@@ -6,16 +6,16 @@ import plug
 import requests
 from config import config
 
-from bgstally.activity import Activity
-from bgstally.activitymanager import ActivityManager
-from bgstally.debug import Debug
-from bgstally.discord import Discord
-from bgstally.constants import UpdateUIPolicy
-from bgstally.missionlog import MissionLog
-from bgstally.overlay import Overlay
-from bgstally.state import State
-from bgstally.tick import Tick
-from bgstally.ui import UI
+from bgstally import Activity
+from bgstally import ActivityManager
+from bgstally import Debug
+from bgstally import Discord
+from bgstally import UpdateUIPolicy
+from bgstally import MissionLog
+from bgstally import Overlay
+from bgstally import State
+from bgstally import Tick
+from bgstally import UI
 
 URL_PLUGIN_VERSION = "https://api.github.com/repos/aussig/BGS-Tally/releases/latest"
 TIME_WORKER_PERIOD_S = 60

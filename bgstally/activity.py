@@ -41,7 +41,11 @@ MISSIONS_WAR = [
 
 # Missions that count towards the Thargoid War
 MISSIONS_TW = [
-    'Mission_TW_Rescue_Alert_name', 'Mission_TW_PassengerEvacuation_Alert_name', 'Mission_TW_Collect_Alert_name', 'Mission_TW_CollectWing_Alert_name',
+    'Mission_TW_Collect_Alert_name', 'Mission_TW_CollectWing_Alert_name',
+    'Mission_TW_Collect_Repairing_name', 'Mission_TW_CollectWing_Repairing_name',
+    'Mission_TW_Collect_Recovery_name', 'Mission_TW_CollectWing_Recovery_name',
+    'Mission_TW_Collect_UnderAttack_name', 'Mission_TW_CollectWing_UnderAttack_name',
+    'Mission_TW_Rescue_Alert_name', 'Mission_TW_PassengerEvacuation_Alert_name',
     'Mission_TW_Rescue_Burning_name', 'Mission_TW_PassengerEvacuation_Burning_name',
     'Mission_TW_Rescue_UnderAttack_name', 'Mission_TW_PassengerEvacuation_UnderAttack_name'
 ]

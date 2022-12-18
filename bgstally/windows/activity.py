@@ -378,7 +378,6 @@ class WindowActivity:
             faction['MissionPointsSecondary'] = MissionPointsVar.get()
 
         activity.recalculate_zero_activity()
-        Debug.logger.info(system)
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
         self._update_discord_field(DiscordText, activity)
 
@@ -523,17 +522,50 @@ class WindowActivity:
                 faction_station = faction['TWStations'][station_name]
                 if faction_station['enabled'] != CheckStates.STATE_ON: continue
 
-                if not station_name in system_stations: system_stations[station_name] = {'missions': 0, 'passengers': 0, 'escapepods': 0, 'cargo': 0}
+                if not station_name in system_stations: system_stations[station_name] = self._get_new_aggregate_tw_station_data()
                 system_station = system_stations[station_name]
-                system_station['missions'] += faction_station['missions']
-                system_station['passengers'] += faction_station['passengers']
-                system_station['escapepods'] += faction_station['escapepods']
-                system_station['cargo'] += faction_station['cargo']
+
+                # Current understanding is we don't need to report the different passenger priorities separately, so aggregate all into a single count and sum
+                system_station['passengers']['count'] += faction_station['passengers']['l']['count'] + faction_station['passengers']['m']['count'] + faction_station['passengers']['h']['count']
+                system_station['passengers']['sum'] += faction_station['passengers']['l']['sum'] + faction_station['passengers']['m']['sum'] + faction_station['passengers']['h']['sum']
+                system_station['mission_count_total'] += faction_station['passengers']['l']['count'] + faction_station['passengers']['m']['count'] + faction_station['passengers']['h']['count']
+                # Current understanding is it is important to report each type of escape pod evac mission separately
+                system_station['escapepods']['l']['count'] += faction_station['escapepods']['l']['count']
+                system_station['escapepods']['l']['sum'] += faction_station['escapepods']['l']['sum']
+                system_station['escapepods']['m']['count'] += faction_station['escapepods']['m']['count']
+                system_station['escapepods']['m']['sum'] += faction_station['escapepods']['m']['sum']
+                system_station['escapepods']['h']['count'] += faction_station['escapepods']['h']['count']
+                system_station['escapepods']['h']['sum'] += faction_station['escapepods']['h']['sum']
+                system_station['mission_count_total'] += faction_station['escapepods']['l']['count'] + faction_station['escapepods']['m']['count'] + faction_station['escapepods']['h']['count']
+                # We don't track different priorities of cargo missions
+                system_station['cargo']['count'] += faction_station['cargo']['count']
+                system_station['cargo']['sum'] += faction_station['cargo']['sum']
+                system_station['mission_count_total'] += faction_station['cargo']['count']
 
         for system_station_name, system_station in system_stations.items():
-            system_discord_text += f"🍀 {system_station_name}: {system_station['missions']} missions; 🧍 x {system_station['passengers']}; ⚰️ x {system_station['escapepods']}; 📦 x {system_station['cargo']}\n"
+            system_discord_text += f"🍀 {system_station_name}: {system_station['mission_count_total']} missions\n"
+            if (system_station['escapepods']['m']['sum'] > 0):
+                system_discord_text += f"  ❕ x {system_station['escapepods']['m']['sum']} - {system_station['escapepods']['m']['count']} missions\n"
+            if (system_station['escapepods']['h']['sum'] > 0):
+                system_discord_text += f"  ❗ x {system_station['escapepods']['h']['sum']} - {system_station['escapepods']['h']['count']} missions\n"
+            if (system_station['cargo']['sum'] > 0):
+                system_discord_text += f"  📦 x {system_station['cargo']['sum']} - {system_station['cargo']['count']} missions\n"
+            if (system_station['escapepods']['l']['sum'] > 0):
+                system_discord_text += f"  ⚕️ x {system_station['escapepods']['l']['sum']} - {system_station['escapepods']['l']['count']} missions\n"
+            if (system_station['passengers']['sum'] > 0):
+                system_discord_text += f"  🧍 x {system_station['passengers']['sum']} - {system_station['passengers']['count']} missions\n"
 
         return system_discord_text
+
+
+    def _get_new_aggregate_tw_station_data(self):
+        """
+        Get a new data structure for storing Thargoid War station data
+        """
+        return {'mission_count_total': 0,
+                'passengers': {'count': 0, 'sum': 0},
+                'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
+                'cargo': {'count': 0, 'sum': 0}}
 
 
     def _build_cz_text(self, cz_data, prefix):

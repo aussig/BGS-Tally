@@ -40,14 +40,23 @@ MISSIONS_WAR = [
 ]
 
 # Missions that count towards the Thargoid War
-MISSIONS_TW = [
+MISSIONS_TW_COLLECT = [
     'Mission_TW_Collect_Alert_name', 'Mission_TW_CollectWing_Alert_name',
     'Mission_TW_Collect_Repairing_name', 'Mission_TW_CollectWing_Repairing_name',
     'Mission_TW_Collect_Recovery_name', 'Mission_TW_CollectWing_Recovery_name',
-    'Mission_TW_Collect_UnderAttack_name', 'Mission_TW_CollectWing_UnderAttack_name',
-    'Mission_TW_Rescue_Alert_name', 'Mission_TW_PassengerEvacuation_Alert_name',
-    'Mission_TW_Rescue_Burning_name', 'Mission_TW_PassengerEvacuation_Burning_name',
-    'Mission_TW_Rescue_UnderAttack_name', 'Mission_TW_PassengerEvacuation_UnderAttack_name'
+    'Mission_TW_Collect_UnderAttack_name', 'Mission_TW_CollectWing_UnderAttack_name'
+]
+MISSIONS_TW_EVAC_LOW = [
+    'Mission_TW_Rescue_Alert_name', # "Evacuate n injured personnel" (cargo)
+    'Mission_TW_PassengerEvacuation_Alert_name' # "n Refugees requesting evacuation" (passenger)
+]
+MISSIONS_TW_EVAC_MED = [
+    'Mission_TW_Rescue_UnderAttack_name', # "Evacuate n wounded" (cargo)
+    'Mission_TW_PassengerEvacuation_UnderAttack_name' # "n Refugees need evacuation" (passenger)
+]
+MISSIONS_TW_EVAC_HIGH = [
+    'Mission_TW_Rescue_Burning_name', # "Evacuate n critically wounded civilians" (cargo)
+    'Mission_TW_PassengerEvacuation_Burning_name' # "n Refugees need evacuation" (passenger)
 ]
 
 CZ_GROUND_LOW_CB_MAX = 5000
@@ -234,7 +243,7 @@ class Activity:
                     and effect_faction_name == journal_entry['Faction']:
                         faction['MissionPoints'] += 1
 
-            if journal_entry['Name'] in MISSIONS_TW and mission is not None:
+            if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH and mission is not None:
                 mission_station = mission.get('Station', "")
                 if mission_station == "": continue
 
@@ -245,17 +254,34 @@ class Activity:
 
                     tw_stations = faction['TWStations']
                     if mission_station not in tw_stations:
-                        tw_stations[mission_station] = {'name': mission_station, 'enabled': CheckStates.STATE_ON, 'missions': 0, 'passengers': 0, 'escapepods': 0, 'cargo': 0}
+                        tw_stations[mission_station] = self._get_new_tw_station_data(mission_station)
 
                     tw_stations[mission_station]['missions'] += 1
                     if mission.get('PassengerCount', -1) > -1:
-                        tw_stations[mission_station]['passengers'] += mission.get('PassengerCount', -1)
+                        if journal_entry['Name'] in MISSIONS_TW_EVAC_LOW:
+                            tw_stations[mission_station]['passengers']['l']['count'] += 1
+                            tw_stations[mission_station]['passengers']['l']['sum'] += mission.get('PassengerCount', -1)
+                        elif journal_entry['Name'] in MISSIONS_TW_EVAC_MED:
+                            tw_stations[mission_station]['passengers']['m']['count'] += 1
+                            tw_stations[mission_station]['passengers']['m']['sum'] += mission.get('PassengerCount', -1)
+                        elif journal_entry['Name'] in MISSIONS_TW_EVAC_HIGH:
+                            tw_stations[mission_station]['passengers']['h']['count'] += 1
+                            tw_stations[mission_station]['passengers']['h']['sum'] += mission.get('PassengerCount', -1)
                     elif mission.get('CommodityCount', -1) > -1:
                         match journal_entry.get('Commodity'):
                             case "$OccupiedCryoPod_Name;":
-                                tw_stations[mission_station]['escapepods'] += mission.get('CommodityCount', -1)
+                                if journal_entry['Name'] in MISSIONS_TW_EVAC_LOW:
+                                    tw_stations[mission_station]['escapepods']['l']['count'] += 1
+                                    tw_stations[mission_station]['escapepods']['l']['sum'] += mission.get('CommodityCount', -1)
+                                elif journal_entry['Name'] in MISSIONS_TW_EVAC_MED:
+                                    tw_stations[mission_station]['escapepods']['m']['count'] += 1
+                                    tw_stations[mission_station]['escapepods']['m']['sum'] += mission.get('CommodityCount', -1)
+                                elif journal_entry['Name'] in MISSIONS_TW_EVAC_HIGH:
+                                    tw_stations[mission_station]['escapepods']['h']['count'] += 1
+                                    tw_stations[mission_station]['escapepods']['h']['sum'] += mission.get('CommodityCount', -1)
                             case _:
-                                tw_stations[mission_station]['cargo'] += mission.get('CommodityCount', -1)
+                                tw_stations[mission_station]['cargo']['count'] += 1
+                                tw_stations[mission_station]['cargo']['sum'] += mission.get('CommodityCount', -1)
 
         self.recalculate_zero_activity()
         mission_log.delete_mission_by_id(journal_entry['MissionID'])
@@ -477,7 +503,6 @@ class Activity:
                 self._update_faction_data(faction_data)
                 if not self._is_faction_data_zero(faction_data):
                     system['zero_system_activity'] = False
-                    break
 
 
     #
@@ -506,6 +531,16 @@ class Activity:
                 'TWStations': {}}
 
 
+    def _get_new_tw_station_data(self, station_name):
+        """
+        Get a new data structure for storing Thargoid War station data
+        """
+        return {'name': station_name, 'enabled': CheckStates.STATE_ON,
+                'passengers': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
+                'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
+                'cargo': {'count': 0, 'sum': 0}}
+
+
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):
         """
         Update faction data structure for elements not present in previous versions of plugin
@@ -530,6 +565,16 @@ class Activity:
         if not 'Scenarios' in faction_data: faction_data['Scenarios'] = 0
         # From < v2.2.0 to 2.2.0
         if not 'TWStations' in faction_data: faction_data['TWStations'] = {}
+        # 2.2.0-a1 - 2.2.0-a3 stored a single integer for passengers,  escapepods and cargo in TW station data. 2.2.0-a4 onwards has a dict for each.
+        # Put the previous values for passengers and escapepods into the 'm' 'sum' entries in the dict, for want of a better place.
+        # Put the previous value for cargo into the 'sum' entry in the dict.
+        # The previous mission count value was aggregate across all passengers, escape pods and cargo so just plonk in escapepods for want of a better place.
+        # We can remove all this code on release of final 2.2.0
+        for station in faction_data['TWStations'].values():
+            if not type(station['passengers']) == dict:
+                station['passengers'] = {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': station['passengers']}, 'h': {'count': 0, 'sum': 0}}
+                station['escapepods'] = {'l': {'count': 0, 'sum': 0}, 'm': {'count': station['missions'], 'sum': station['escapepods']}, 'h': {'count': 0, 'sum': 0}}
+                station['cargo'] = {'count': 0, 'sum': station['cargo']}
 
 
     def _is_faction_data_zero(self, faction_data: Dict):

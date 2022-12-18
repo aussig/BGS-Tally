@@ -528,19 +528,24 @@ class WindowActivity:
                 # Current understanding is we don't need to report the different passenger priorities separately, so aggregate all into a single count and sum
                 system_station['passengers']['count'] += faction_station['passengers']['l']['count'] + faction_station['passengers']['m']['count'] + faction_station['passengers']['h']['count']
                 system_station['passengers']['sum'] += faction_station['passengers']['l']['sum'] + faction_station['passengers']['m']['sum'] + faction_station['passengers']['h']['sum']
-                system_station['mission_count_total'] += faction_station['passengers']['l']['count'] + faction_station['passengers']['m']['count'] + faction_station['passengers']['h']['count']
+                system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['passengers'].values()))
                 # Current understanding is it is important to report each type of escape pod evac mission separately
-                system_station['escapepods']['l']['count'] += faction_station['escapepods']['l']['count']
-                system_station['escapepods']['l']['sum'] += faction_station['escapepods']['l']['sum']
-                system_station['escapepods']['m']['count'] += faction_station['escapepods']['m']['count']
-                system_station['escapepods']['m']['sum'] += faction_station['escapepods']['m']['sum']
-                system_station['escapepods']['h']['count'] += faction_station['escapepods']['h']['count']
-                system_station['escapepods']['h']['sum'] += faction_station['escapepods']['h']['sum']
-                system_station['mission_count_total'] += faction_station['escapepods']['l']['count'] + faction_station['escapepods']['m']['count'] + faction_station['escapepods']['h']['count']
+                system_station['escapepods']['l']['count'] += faction_station['escapepods']['l']['count']; system_station['escapepods']['l']['sum'] += faction_station['escapepods']['l']['sum']
+                system_station['escapepods']['m']['count'] += faction_station['escapepods']['m']['count']; system_station['escapepods']['m']['sum'] += faction_station['escapepods']['m']['sum']
+                system_station['escapepods']['h']['count'] += faction_station['escapepods']['h']['count']; system_station['escapepods']['h']['sum'] += faction_station['escapepods']['h']['sum']
+                system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['escapepods'].values()))
                 # We don't track different priorities of cargo missions
                 system_station['cargo']['count'] += faction_station['cargo']['count']
                 system_station['cargo']['sum'] += faction_station['cargo']['sum']
                 system_station['mission_count_total'] += faction_station['cargo']['count']
+                # We track each type of Thargoid ship massacre mission separately
+                system_station['massacre']['s']['count'] += faction_station['massacre']['s']['count']; system_station['massacre']['s']['sum'] += faction_station['massacre']['s']['sum']
+                system_station['massacre']['c']['count'] += faction_station['massacre']['c']['count']; system_station['massacre']['c']['sum'] += faction_station['massacre']['c']['sum']
+                system_station['massacre']['b']['count'] += faction_station['massacre']['b']['count']; system_station['massacre']['b']['sum'] += faction_station['massacre']['b']['sum']
+                system_station['massacre']['m']['count'] += faction_station['massacre']['m']['count']; system_station['massacre']['m']['sum'] += faction_station['massacre']['m']['sum']
+                system_station['massacre']['h']['count'] += faction_station['massacre']['h']['count']; system_station['massacre']['h']['sum'] += faction_station['massacre']['h']['sum']
+                system_station['massacre']['o']['count'] += faction_station['massacre']['o']['count']; system_station['massacre']['o']['sum'] += faction_station['massacre']['o']['sum']
+                system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['massacre'].values()))
 
         for system_station_name, system_station in system_stations.items():
             system_discord_text += f"🍀 {system_station_name}: {system_station['mission_count_total']} missions\n"

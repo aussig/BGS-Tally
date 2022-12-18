@@ -52,8 +52,9 @@ class WindowActivity:
         DiscordFrame.columnconfigure(0, weight=2)
         DiscordFrame.columnconfigure(1, weight=1)
         ttk.Label(DiscordFrame, text="Discord Report", font=self.ui.heading_font).grid(row=0, column=0, sticky=tk.W)
-        ttk.Label(DiscordFrame, text="Discord Options", font=self.ui.heading_font).grid(row=0, column=1, sticky=tk.W)
-        ttk.Label(DiscordFrame, text="Double-check on-ground CZ tallies, sizes are not always correct", foreground='#f00').grid(row=1, column=0, columnspan=2, sticky=tk.W)
+        ttk.Label(DiscordFrame, text="Discord Additional Notes", font=self.ui.heading_font).grid(row=0, column=1, sticky=tk.W)
+        ttk.Label(DiscordFrame, text="Discord Options", font=self.ui.heading_font).grid(row=0, column=2, sticky=tk.W)
+        ttk.Label(DiscordFrame, text="Double-check on-ground CZ tallies, sizes are not always correct", foreground='#f00').grid(row=1, column=0, columnspan=3, sticky=tk.W)
 
         DiscordTextFrame = ttk.Frame(DiscordFrame)
         DiscordTextFrame.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
@@ -63,8 +64,18 @@ class WindowActivity:
         DiscordScroll.pack(fill=tk.Y, side=tk.RIGHT)
         DiscordText.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
 
+        DiscordNotesFrame = ttk.Frame(DiscordFrame)
+        DiscordNotesFrame.grid(row=2, column=1, pady=5, sticky=tk.NSEW)
+        DiscordNotesText = TextPlus(DiscordNotesFrame, wrap=tk.WORD, height=14, width=30, font=("Helvetica", 9))
+        DiscordNotesText.insert(tk.END, "" if activity.discord_notes is None else activity.discord_notes)
+        DiscordNotesText.bind("<<Modified>>", partial(self._discord_notes_change, DiscordNotesText, activity))
+        DiscordNotesScroll = tk.Scrollbar(DiscordNotesFrame, orient=tk.VERTICAL, command=DiscordNotesText.yview)
+        DiscordNotesText['yscrollcommand'] = DiscordNotesScroll.set
+        DiscordNotesScroll.pack(fill=tk.Y, side=tk.RIGHT)
+        DiscordNotesText.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+
         DiscordOptionsFrame = ttk.Frame(DiscordFrame)
-        DiscordOptionsFrame.grid(row=2, column=1, padx=5, pady=5, sticky=tk.NW)
+        DiscordOptionsFrame.grid(row=2, column=2, padx=5, pady=5, sticky=tk.NW)
         current_row = 1
         ttk.Label(DiscordOptionsFrame, text="Post Format").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         ttk.Radiobutton(DiscordOptionsFrame, text="Modern", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
@@ -244,24 +255,33 @@ class WindowActivity:
                 discord_text:str = self._generate_discord_text(activity, DiscordActivity.BOTH)
                 activity.discord_bgs_messageid = self.bgstally.discord.post_plaintext(discord_text, activity.discord_bgs_messageid, DiscordChannel.BGS)
         else:
+            description = "" if activity.discord_notes is None else activity.discord_notes
             if self.bgstally.state.DiscordActivity.get() == DiscordActivity.BGS:
                 # BGS Only - one post to BGS channel
                 discord_fields:Dict = self._generate_discord_embed_fields(activity, DiscordActivity.BGS)
-                activity.discord_bgs_messageid = self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", "", discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS)
+                activity.discord_bgs_messageid = self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS)
             elif self.bgstally.state.DiscordActivity.get() == DiscordActivity.THARGOIDWAR:
                 # TW Only - one post to TW channel
                 discord_fields:Dict = self._generate_discord_embed_fields(activity, DiscordActivity.THARGOIDWAR)
-                activity.discord_tw_messageid = self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", "", discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR)
+                activity.discord_tw_messageid = self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR)
             elif self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR):
                 # Both, TW channel is available - two posts, one to each channel
                 discord_fields:Dict = self._generate_discord_embed_fields(activity, DiscordActivity.BGS)
-                activity.discord_bgs_messageid = self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", "", discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS)
+                activity.discord_bgs_messageid = self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS)
                 discord_fields:Dict = self._generate_discord_embed_fields(activity, DiscordActivity.THARGOIDWAR)
-                activity.discord_tw_messageid = self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", "", discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR)
+                activity.discord_tw_messageid = self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR)
             else:
                 # Both, TW channel is not available - one combined post to BGS channel
                 discord_fields:Dict = self._generate_discord_embed_fields(activity, DiscordActivity.BOTH)
-                activity.discord_bgs_messageid = self.bgstally.discord.post_embed(f"Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", "", discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS)
+                activity.discord_bgs_messageid = self.bgstally.discord.post_embed(f"Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS)
+
+
+    def _discord_notes_change(self, DiscordNotesText, activity: Activity, *args):
+        """
+        Callback when the user edits the Discord notes field
+        """
+        activity.discord_notes = DiscordNotesText.get("1.0", "end-1c")
+        DiscordNotesText.edit_modified(False) # Ensures the <<Modified>> event is triggered next edit
 
 
     def _option_change(self, DiscordText, activity: Activity):
@@ -438,6 +458,8 @@ class WindowActivity:
 
             if system_discord_text != "":
                 discord_text += f"```css\n{system['System']}\n{system_discord_text}```"
+
+        if activity.discord_notes is not None: discord_text += "\n" + activity.discord_notes
 
         return discord_text.replace("'", "")
 

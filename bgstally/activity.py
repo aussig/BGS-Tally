@@ -91,6 +91,7 @@ class Activity:
         self.tick_time = tick.tick_time
         self.discord_bgs_messageid = discord_bgs_messageid
         self.discord_tw_messageid = None
+        self.discord_notes = ""
         self.systems = {}
 
 
@@ -634,6 +635,7 @@ class Activity:
             'ticktime': self.tick_time.strftime(DATETIME_FORMAT_ACTIVITY),
             'discordmessageid': self.discord_bgs_messageid,
             'discordtwmessageid': self.discord_tw_messageid,
+            'discordnotes': self.discord_notes,
             'systems': self.systems}
 
 
@@ -645,6 +647,7 @@ class Activity:
         self.tick_time = datetime.strptime(dict.get('ticktime'), DATETIME_FORMAT_ACTIVITY)
         self.discord_bgs_messageid = dict.get('discordmessageid')
         self.discord_tw_messageid = dict.get('discordtwmessageid')
+        self.discord_notes = dict.get('discordnotes')
         self.systems = dict.get('systems')
 
 
@@ -688,6 +691,7 @@ class Activity:
         setattr(result, 'tick_time', self.tick_time)
         setattr(result, 'discord_bgs_messageid', self.discord_bgs_messageid)
         setattr(result, 'discord_tw_messageid', self.discord_tw_messageid)
+        setattr(result, 'discord_notes', self.discord_notes)
 
         # Deep copied items
         setattr(result, 'systems', deepcopy(self.systems, memo))

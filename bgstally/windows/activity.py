@@ -68,7 +68,7 @@ class WindowActivity:
         DiscordNotesFrame.grid(row=2, column=1, pady=5, sticky=tk.NSEW)
         DiscordNotesText = TextPlus(DiscordNotesFrame, wrap=tk.WORD, height=14, width=30, font=("Helvetica", 9))
         DiscordNotesText.insert(tk.END, "" if activity.discord_notes is None else activity.discord_notes)
-        DiscordNotesText.bind("<<Modified>>", partial(self._discord_notes_change, DiscordNotesText, activity))
+        DiscordNotesText.bind("<<Modified>>", partial(self._discord_notes_change, DiscordNotesText, DiscordText, activity))
         DiscordNotesScroll = tk.Scrollbar(DiscordNotesFrame, orient=tk.VERTICAL, command=DiscordNotesText.yview)
         DiscordNotesText['yscrollcommand'] = DiscordNotesScroll.set
         DiscordNotesScroll.pack(fill=tk.Y, side=tk.RIGHT)
@@ -276,11 +276,12 @@ class WindowActivity:
                 activity.discord_bgs_messageid = self.bgstally.discord.post_embed(f"Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS)
 
 
-    def _discord_notes_change(self, DiscordNotesText, activity: Activity, *args):
+    def _discord_notes_change(self, DiscordNotesText, DiscordText, activity: Activity, *args):
         """
         Callback when the user edits the Discord notes field
         """
         activity.discord_notes = DiscordNotesText.get("1.0", "end-1c")
+        self._update_discord_field(DiscordText, activity)
         DiscordNotesText.edit_modified(False) # Ensures the <<Modified>> event is triggered next edit
 
 

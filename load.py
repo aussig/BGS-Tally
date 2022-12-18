@@ -5,7 +5,7 @@ from bgstally.constants import UpdateUIPolicy
 
 import semantic_version
 
-PLUGIN_VERSION = semantic_version.Version.coerce("2.2.0-a3")
+PLUGIN_VERSION = semantic_version.Version.coerce("2.2.0-a4")
 
 # Initialise the main plugin class
 this:BGSTally = BGSTally(path.basename(path.dirname(__file__)), PLUGIN_VERSION)

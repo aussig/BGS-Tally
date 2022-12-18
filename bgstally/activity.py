@@ -58,6 +58,14 @@ MISSIONS_TW_EVAC_HIGH = [
     'Mission_TW_Rescue_Burning_name', # "Evacuate n critically wounded civilians" (cargo)
     'Mission_TW_PassengerEvacuation_Burning_name' # "n Refugees need evacuation" (passenger)
 ]
+MISSIONS_TW_MASSACRE = [
+    'Mission_TW_Massacre_Scout_Singular_name', 'Mission_TW_Massacre_Scout_Plural_name',
+    'Mission_TW_Massacre_Cyclops_Singular_name', 'Mission_TW_Massacre_Cyclops_Plural_name',
+    'Mission_TW_Massacre_Basilisk_Singular_name', 'Mission_TW_Massacre_Basilisk_Plural_name',
+    'Mission_TW_Massacre_Medusa_Singular_name', 'Mission_TW_Massacre_Medusa_Plural_name',
+    'Mission_TW_Massacre_Hydra_Singular_name', 'Mission_TW_Massacre_Hydra_Plural_name',
+    'Mission_TW_Massacre_Orthrus_Singular_name', 'Mission_TW_Massacre_Orthrus_Plural_name'
+]
 
 CZ_GROUND_LOW_CB_MAX = 5000
 CZ_GROUND_MED_CB_MAX = 38000
@@ -243,7 +251,7 @@ class Activity:
                     and effect_faction_name == journal_entry['Faction']:
                         faction['MissionPoints'] += 1
 
-            if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH and mission is not None:
+            if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH + MISSIONS_TW_MASSACRE and mission is not None:
                 mission_station = mission.get('Station', "")
                 if mission_station == "": continue
 
@@ -256,7 +264,6 @@ class Activity:
                     if mission_station not in tw_stations:
                         tw_stations[mission_station] = self._get_new_tw_station_data(mission_station)
 
-                    tw_stations[mission_station]['missions'] += 1
                     if mission.get('PassengerCount', -1) > -1:
                         if journal_entry['Name'] in MISSIONS_TW_EVAC_LOW:
                             tw_stations[mission_station]['passengers']['l']['count'] += 1
@@ -282,6 +289,27 @@ class Activity:
                             case _:
                                 tw_stations[mission_station]['cargo']['count'] += 1
                                 tw_stations[mission_station]['cargo']['sum'] += mission.get('CommodityCount', -1)
+                    elif mission.get('KillCount', -1) > -1:
+                        match journal_entry.get('TargetType'):
+                            case "$MissionUtil_FactionTag_Scout;":
+                                tw_stations[mission_station]['massacre']['s']['count'] += 1
+                                tw_stations[mission_station]['massacre']['s']['sum'] += mission.get('KillCount', -1)
+                            case "$MissionUtil_FactionTag_Cyclops;":
+                                tw_stations[mission_station]['massacre']['c']['count'] += 1
+                                tw_stations[mission_station]['massacre']['c']['sum'] += mission.get('KillCount', -1)
+                            case "$MissionUtil_FactionTag_Basilisk;":
+                                tw_stations[mission_station]['massacre']['b']['count'] += 1
+                                tw_stations[mission_station]['massacre']['b']['sum'] += mission.get('KillCount', -1)
+                            case "$MissionUtil_FactionTag_Medusa;":
+                                tw_stations[mission_station]['massacre']['m']['count'] += 1
+                                tw_stations[mission_station]['massacre']['m']['sum'] += mission.get('KillCount', -1)
+                            case "$MissionUtil_FactionTag_Hydra;":
+                                tw_stations[mission_station]['massacre']['h']['count'] += 1
+                                tw_stations[mission_station]['massacre']['h']['sum'] += mission.get('KillCount', -1)
+                            case "$MissionUtil_FactionTag_Orthrus;":
+                                tw_stations[mission_station]['massacre']['o']['count'] += 1
+                                tw_stations[mission_station]['massacre']['o']['sum'] += mission.get('KillCount', -1)
+
 
         self.recalculate_zero_activity()
         mission_log.delete_mission_by_id(journal_entry['MissionID'])
@@ -538,7 +566,8 @@ class Activity:
         return {'name': station_name, 'enabled': CheckStates.STATE_ON,
                 'passengers': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
                 'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
-                'cargo': {'count': 0, 'sum': 0}}
+                'cargo': {'count': 0, 'sum': 0},
+                'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}}
 
 
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):
@@ -571,10 +600,14 @@ class Activity:
         # The previous mission count value was aggregate across all passengers, escape pods and cargo so just plonk in escapepods for want of a better place.
         # We can remove all this code on release of final 2.2.0
         for station in faction_data['TWStations'].values():
-            if not type(station['passengers']) == dict:
+            if not type(station.get('passengers')) == dict:
                 station['passengers'] = {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': station['passengers']}, 'h': {'count': 0, 'sum': 0}}
+            if not type(station.get('escapepods')) == dict:
                 station['escapepods'] = {'l': {'count': 0, 'sum': 0}, 'm': {'count': station['missions'], 'sum': station['escapepods']}, 'h': {'count': 0, 'sum': 0}}
+            if not type(station.get('cargo')) == dict:
                 station['cargo'] = {'count': 0, 'sum': station['cargo']}
+            if not type(station.get('massacre')) == dict:
+                station['massacre'] = {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}
 
 
     def _is_faction_data_zero(self, faction_data: Dict):

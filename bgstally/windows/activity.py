@@ -554,6 +554,11 @@ class WindowActivity:
                 system_discord_text += f"  ⚕️ x {system_station['escapepods']['l']['sum']} - {system_station['escapepods']['l']['count']} missions\n"
             if (system_station['passengers']['sum'] > 0):
                 system_discord_text += f"  🧍 x {system_station['passengers']['sum']} - {system_station['passengers']['count']} missions\n"
+            if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
+                system_discord_text += f"  S x {system_station['massacre']['s']['sum']}, C x {system_station['massacre']['c']['sum']}, " \
+                                    + f"B x {system_station['massacre']['b']['sum']}, M x {system_station['massacre']['m']['sum']}, " \
+                                    + f"H x {system_station['massacre']['h']['sum']}, O x {system_station['massacre']['o']['sum']} " \
+                                    + f"- {(sum(x['count'] for x in system_station['massacre'].values()))} missions\n"
 
         return system_discord_text
 
@@ -565,7 +570,8 @@ class WindowActivity:
         return {'mission_count_total': 0,
                 'passengers': {'count': 0, 'sum': 0},
                 'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
-                'cargo': {'count': 0, 'sum': 0}}
+                'cargo': {'count': 0, 'sum': 0},
+                'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}}
 
 
     def _build_cz_text(self, cz_data, prefix):

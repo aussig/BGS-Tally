@@ -5,12 +5,13 @@
 ### New Features:
 
 * Thargoid War mission tracking 🍀. BGS-Tally now tracks your Thargoid War passenger 🧍, cargo 📦, injured ⚕️, wounded ❕ and critically wounded ❗ (escape pod) missions as well as Thargoid Massacre Missions for each Thargoid vessel type. There are options to report just BGS, just Thargoid War or all combined activity, as well as an option to have a separate Discord channel when reporting Thargoid War activity.
+* Additional notes field. There is a new text field in the activity window to allow you to add notes and comments to your Discord post(s).
 
 ### Changes:
 
 * When displaying information about a CMDR, or posting to Discord, use the latest information we know about that CMDR (squadron membership, for example).
 * When displaying CMDR ship type, try to use the localised name if present, instead of internal ship name (e.g. `Type-10 Defender` instead of `type9_military`).
-* The text report field is unfortunately no longer manually editable.  This wasn't possible with the splitting of the reports into BGS and Thargoid War, and was a bit of an oddity anyway, as any edits were always overwritten by any changes and lost when the window was closed. If you need to edit your post, copy it and edit it at the destination after pasting.
+* The text report field is no longer manually editable. Keeping this editable wasn't possible with the splitting of the reports into BGS and Thargoid War, and was a bit of an oddity anyway, as it only worked for legacy (text) format posts and also any edits were always overwritten by any changes and lost when the window was closed. If you need to edit your post, copy it and edit it at the destination after pasting. Note that the new Discord Notes field (see above) now allows you to add comments to your posts, and these are stored between sessions.
 * When listing ground CZs, use a ⚔️ icon against each to easily differentiate them.
 * Tweaks to post titles and footers.
 * Whitespace is now stripped from Discord URLs to minimise user error (thanks @steaksauce-).
@@ -19,6 +20,7 @@
 
 * If a selected CMDR has a squadron tag, but that squadron isn't available in Inara, still show the tag when displaying or posting the CMDR info to Discord.
 * Moved the overlay text - both tick time and tick alerts - a little to the left to allow for differences in text placement between machines.
+* When using new modern Discord format, don't create empty posts and delete previous post if content is empty.
 
 
 ## v2.1.0 - 2022-12-05

@@ -29,20 +29,21 @@ class Discord:
 
         if previous_messageid == "" or previous_messageid == None:
             # No previous post
-            if discord_text != "":
-                discord_text += f"```md\n# Posted at: {utc_time_now}```" # Blue text instead of gray
-                url = webhook_url
-                response = requests.post(url=url, params={'wait': 'true'}, json={'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []})
-                if response.ok:
-                    # Store the Message ID
-                    response_json = response.json()
-                    new_messageid = response_json['id']
-                else:
-                    Debug.logger.error(f"Unable to create new discord post. Reason: '{response.reason}' Content: '{response.content}' URL: '{url}'")
+            if discord_text == "": return
+
+            discord_text += f"```md\n# Posted at: {utc_time_now}```" # Blue text instead of gray
+            url = webhook_url
+            response = requests.post(url=url, params={'wait': 'true'}, json={'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []})
+            if response.ok:
+                # Store the Message ID
+                response_json = response.json()
+                new_messageid = response_json['id']
+            else:
+                Debug.logger.error(f"Unable to create new discord post. Reason: '{response.reason}' Content: '{response.content}' URL: '{url}'")
 
         else:
             # Previous post, amend or delete it
-            if discord_text != '':
+            if discord_text != "":
                 discord_text += f"```diff\n+ Updated at: {utc_time_now}```"
                 url = f"{webhook_url}/messages/{previous_messageid}"
                 response = requests.patch(url=url, json={'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []})
@@ -82,6 +83,8 @@ class Discord:
 
         if previous_messageid == "" or previous_messageid == None:
             # No previous post
+            if fields is None or fields == []: return
+
             embed = self._get_embed(title, description, fields, False)
             url = webhook_url
             response = requests.post(url=url, params={'wait': 'true'}, json={'content': "", 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': [embed]})
@@ -94,7 +97,7 @@ class Discord:
 
         else:
             # Previous post, amend or delete it
-            if fields is not None:
+            if fields is not None and fields != []:
                 embed = self._get_embed(title, description, fields, True)
                 url = f"{webhook_url}/messages/{previous_messageid}"
                 response = requests.patch(url=url, json={'content': "", 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': [embed]})

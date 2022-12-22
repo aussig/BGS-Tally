@@ -83,7 +83,7 @@ class Discord:
 
         if previous_messageid == "" or previous_messageid == None:
             # No previous post
-            if fields is None or fields == []: return
+            if (fields is None or fields == []) and (description is None or description == ""): return
 
             embed = self._get_embed(title, description, fields, False)
             url = webhook_url
@@ -97,7 +97,7 @@ class Discord:
 
         else:
             # Previous post, amend or delete it
-            if fields is not None and fields != []:
+            if (fields is not None and fields != []) or (description is not None and description != ""):
                 embed = self._get_embed(title, description, fields, True)
                 url = f"{webhook_url}/messages/{previous_messageid}"
                 response = requests.patch(url=url, json={'content': "", 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': [embed]})

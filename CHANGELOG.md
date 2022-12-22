@@ -21,6 +21,7 @@
 * If a selected CMDR has a squadron tag, but that squadron isn't available in Inara, still show the tag when displaying or posting the CMDR info to Discord.
 * Moved the overlay text - both tick time and tick alerts - a little to the left to allow for differences in text placement between machines.
 * When using new modern Discord format, don't create empty posts and delete previous post if content is empty.
+* Minor change to 'CMDRs' button image to make it clearer in dark mode.
 
 
 ## v2.1.0 - 2022-12-05

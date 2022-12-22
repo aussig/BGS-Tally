@@ -164,7 +164,7 @@ class Discord:
             case DiscordChannel.BGS:
                 return self.bgstally.state.DiscordBGSWebhook.get().strip()
             case DiscordChannel.FLEETCARRIER:
-                return self.bgstally.state.DiscordFCJumpWebhook.get().strip()
+                return self.bgstally.state.DiscordFCWebhook.get().strip()
             case DiscordChannel.THARGOIDWAR:
                 return self.bgstally.state.DiscordTWWebhook.get().strip()
 

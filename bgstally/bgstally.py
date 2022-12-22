@@ -7,6 +7,7 @@ import plug
 import requests
 import semantic_version
 
+from companion import CAPIData
 from config import config
 from monitor import monitor
 
@@ -168,6 +169,17 @@ class BGSTally:
         if dirty: self.save_data()
 
 
+    def capi_fleetcarrier(self, data: CAPIData):
+        """
+        Fleet carrier data received from CAPI
+        """
+        if data.get('name') is None or data['name'].get('callsign') is None:
+            raise ValueError("Invalid /fleetcarrier CAPI data")
+
+        self.fleet_carrier.update(data)
+        self.ui.update_plugin_frame()
+
+
     def check_version(self):
         """
         Check for a new plugin version
@@ -208,6 +220,7 @@ class BGSTally:
         self.tick.save()
         self.activity_manager.save()
         self.state.save()
+        self.fleet_carrier.save()
 
 
     def new_tick(self, force: bool, uipolicy: UpdateUIPolicy):

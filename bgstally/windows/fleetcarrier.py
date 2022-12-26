@@ -1,14 +1,13 @@
 import tkinter as tk
-from datetime import datetime
 from functools import partial
 from tkinter import ttk, Text
 from typing import Dict
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, DiscordChannel, MaterialsCategory
+from bgstally.constants import DiscordChannel, MaterialsCategory
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
+from bgstally.ui import UI
 from bgstally.widgets import TextPlus
-from ttkHyperlinkLabel import HyperlinkLabel
 
 
 class WindowFleetCarrier:
@@ -16,9 +15,9 @@ class WindowFleetCarrier:
     Handles the Fleet Carrier window
     """
 
-    def __init__(self, bgstally, ui):
+    def __init__(self, bgstally, ui: UI):
         self.bgstally = bgstally
-        self.ui = ui
+        self.ui: UI = ui
 
         self._show()
 

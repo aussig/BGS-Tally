@@ -32,10 +32,10 @@ class BGSTally:
     """
     Main plugin class
     """
-    def __init__(self, plugin_name: str, version: Optional[semantic_version.Version]):
+    def __init__(self, plugin_name: str, version: semantic_version.Version):
         self.plugin_name:str = plugin_name
-        self.version: Optional[semantic_version.Version] = version
-        self.git_version: Optional[semantic_version.Version] = semantic_version.Version.coerce("0")
+        self.version: semantic_version.Version = version
+        self.git_version: semantic_version.Version = semantic_version.Version.coerce("0")
 
 
     def plugin_start(self, plugin_dir: str):
@@ -60,7 +60,7 @@ class BGSTally:
         self.fleet_carrier = FleetCarrier(self)
         self.ui: UI = UI(self)
 
-        self.thread: Optional[Thread] = Thread(target=self._worker, name="BGSTally Main worker")
+        self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True
         self.thread.start()
 

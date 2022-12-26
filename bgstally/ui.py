@@ -10,7 +10,6 @@ from typing import List, Optional
 
 import myNotebook as nb
 import semantic_version
-
 from theme import theme
 from ttkHyperlinkLabel import HyperlinkLabel
 
@@ -73,8 +72,11 @@ class UI:
         self.button_previous_ticks: tk.Button = tk.Button(self.frame, text="Previous BGS Tallies ", height=SIZE_BUTTON_PIXELS-2, image=self.image_button_dropdown_menu, compound=tk.RIGHT, command=self._previous_ticks_popup)
         self.button_previous_ticks.grid(row=current_row, column=1, padx=3)
         tk.Button(self.frame, image=self.image_button_cmdrs, height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_cmdr_list_window).grid(row=current_row, column=2, padx=3)
-        self.button_carrier: tk.Button = tk.Button(self.frame, image=self.image_button_carrier, state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_fc_window)
-        self.button_carrier.grid(row=current_row, column=3, padx=3)
+        if self.bgstally.fleet_carrier.capi_available():
+            self.button_carrier: tk.Button = tk.Button(self.frame, image=self.image_button_carrier, state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_fc_window)
+            self.button_carrier.grid(row=current_row, column=3, padx=3)
+        else:
+            self.button_carrier: tk.Button = None
         current_row += 1
         tk.Label(self.frame, text="BGS Tally Status:").grid(row=current_row, column=0, sticky=tk.W)
         tk.Label(self.frame, textvariable=self.bgstally.state.Status).grid(row=current_row, column=1, sticky=tk.W)
@@ -93,7 +95,8 @@ class UI:
         """
         self.label_tick.config(text=self.bgstally.tick.get_formatted())
         self.button_latest_tick.config(command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity()))
-        self.button_carrier.config(state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'))
+        if self.button_carrier is not None:
+            self.button_carrier.config(state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'))
 
 
     def get_prefs_frame(self, parent_frame: tk.Frame):

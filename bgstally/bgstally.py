@@ -6,18 +6,16 @@ from typing import Optional
 import plug
 import requests
 import semantic_version
-
-from companion import CAPIData
-from config import config
+from companion import CAPIData, SERVER_LIVE
+from config import appversion, config
 from monitor import monitor
 
 from bgstally.activity import Activity
 from bgstally.activitymanager import ActivityManager
 from bgstally.config import Config
-from bgstally.constants import FOLDER_DATA
+from bgstally.constants import FOLDER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
 from bgstally.discord import Discord
-from bgstally.constants import UpdateUIPolicy
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.missionlog import MissionLog
 from bgstally.overlay import Overlay
@@ -173,11 +171,21 @@ class BGSTally:
         """
         Fleet carrier data received from CAPI
         """
-        if data.get('name') is None or data['name'].get('callsign') is None:
+        if data.data == {} or data.get('name') is None or data['name'].get('callsign') is None:
             raise ValueError("Invalid /fleetcarrier CAPI data")
 
-        self.fleet_carrier.update(data)
+        if data.source_host != SERVER_LIVE:
+            return
+
+        self.fleet_carrier.update(data.data)
         self.ui.update_plugin_frame()
+
+
+    def capi_fleetcarrier_available(self) -> bool:
+        """
+        Return true if the EDMC version is high enough to provide a callback for /fleetcarrier CAPI
+        """
+        return callable(appversion) and appversion() >= semantic_version.Version('5.8.0')
 
 
     def check_version(self):

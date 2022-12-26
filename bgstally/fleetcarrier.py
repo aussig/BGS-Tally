@@ -2,13 +2,11 @@ import json
 from os import path, remove
 from typing import Dict, List
 
-from companion import CAPIData
-
-from bgstally.constants import MaterialsCategory, FOLDER_DATA
+from bgstally.constants import FOLDER_DATA, MaterialsCategory
 from bgstally.debug import Debug
-from config import config
 
 FILENAME = "fleetcarrier.json"
+
 
 class FleetCarrier:
     def __init__(self, bgstally):
@@ -48,25 +46,19 @@ class FleetCarrier:
         return self.name is not None and self.callsign is not None
 
 
-    def update(self, capi_data:CAPIData):
+    def update(self, data:Dict):
         """
         Store the latest data
         """
         # Data directly from CAPI response. Structure documented here:
         # https://github.com/Athanasius/fd-api/blob/main/docs/FrontierDevelopments-CAPI-endpoints.md#fleetcarrier
 
-        # Rudimentary data checks
-        if capi_data.data is None \
-            or capi_data.data.get('name') is None \
-            or capi_data.data['name'].get('vanityName') is None:
-            return
-
         # Store the whole data structure
-        self.data = capi_data.data
+        self.data = data
 
         # Name is encoded as hex string
-        self.name = bytes.fromhex(self.data['name']['vanityName']).decode('utf-8')
-        self.callsign = self.data['name']['callsign']
+        self.name = bytes.fromhex(self.data['name'].get('vanityName', "----")).decode('utf-8')
+        self.callsign = self.data['name'].get('callsign', "----")
 
         # Sort sell orders - a Dict of Dicts
         materials: Dict = self.data.get('orders', {}).get('onfootmicroresources', {}).get('sales')
@@ -77,8 +69,6 @@ class FleetCarrier:
         materials = self.data.get('orders', {}).get('onfootmicroresources', {}).get('purchases')
         if materials is not None:
             self.onfoot_mats_buying = sorted(materials, key=lambda x: x['locName'])
-
-
 
 
     def get_materials_plaintext(self, category: MaterialsCategory = None):

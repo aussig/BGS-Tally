@@ -6,7 +6,6 @@ from typing import Dict
 from bgstally.constants import DiscordChannel, MaterialsCategory
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
-from bgstally.ui import UI
 from bgstally.widgets import TextPlus
 
 
@@ -15,9 +14,9 @@ class WindowFleetCarrier:
     Handles the Fleet Carrier window
     """
 
-    def __init__(self, bgstally, ui: UI):
+    def __init__(self, bgstally, ui):
         self.bgstally = bgstally
-        self.ui: UI = ui
+        self.ui = ui
 
         self._show()
 

@@ -1,6 +1,9 @@
 from os import path
 
+from companion import CAPIData
+
 from bgstally.bgstally import BGSTally
+from bgstally.debug import Debug
 from bgstally.constants import UpdateUIPolicy
 
 import semantic_version
@@ -54,3 +57,11 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
     """
     if this.state.Status.get() != "Active": return
     this.journal_entry(cmdr, is_beta, system, station, entry, state)
+
+
+def capi_fleetcarrier(data: CAPIData):
+    """
+    Handle Fleet carrier data
+    """
+    if this.state.Status.get() != "Active": return
+    this.capi_fleetcarrier(data)

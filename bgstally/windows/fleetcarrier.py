@@ -1,11 +1,11 @@
 import tkinter as tk
 from functools import partial
-from tkinter import ttk
+from tkinter import ttk, Text
+from typing import Dict
 
 from bgstally.constants import DiscordChannel, MaterialsCategory
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
-from bgstally.ui import UI
 from bgstally.widgets import TextPlus
 
 
@@ -14,9 +14,9 @@ class WindowFleetCarrier:
     Handles the Fleet Carrier window
     """
 
-    def __init__(self, bgstally, ui: UI):
+    def __init__(self, bgstally, ui):
         self.bgstally = bgstally
-        self.ui: UI = ui
+        self.ui = ui
 
         self._show()
 
@@ -25,8 +25,10 @@ class WindowFleetCarrier:
         """
         Show our window
         """
+        fc: FleetCarrier = self.bgstally.fleet_carrier
+
         window = tk.Toplevel(self.ui.frame)
-        window.title(f"Fleet Carrier Information for Carrier {self.bgstally.fleet_carrier.name}")
+        window.title(f"Carrier {fc.name} ({fc.callsign}) in system: {fc.data['currentStarSystem']}")
         window.geometry("600x800")
 
         container_frame = ttk.Frame(window)
@@ -38,7 +40,7 @@ class WindowFleetCarrier:
         buttons_frame = ttk.Frame(container_frame)
         buttons_frame.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
 
-        ttk.Label(info_frame, text=f"Fleet Carrier Information for Carrier {self.bgstally.fleet_carrier.name}", font=self.ui.heading_font, foreground='#A300A3').pack(anchor=tk.NW)
+        ttk.Label(info_frame, text=f"System: {fc.data['currentStarSystem']} | Docking: {fc.data['dockingAccess']} | Notorious Allowed: {'Yes' if fc.data['notoriousAccess'] else 'No'}", font=self.ui.heading_font, foreground='#A300A3').pack(anchor=tk.NW)
         ttk.Label(info_frame, text="Selling", font=self.ui.heading_font).pack(anchor=tk.NW)
         selling_frame = ttk.Frame(info_frame)
         selling_frame.pack(fill=tk.BOTH, padx=5, pady=5, anchor=tk.NW, expand=True)
@@ -71,9 +73,14 @@ class WindowFleetCarrier:
         """
         Post Fleet Carrier materials list to Discord
         """
-        title = f"Materials List for Carrier {self.bgstally.fleet_carrier.name}"
+        fc: FleetCarrier = self.bgstally.fleet_carrier
+
+        title = f"Materials List for Carrier {fc.name} in system: {fc.data['currentStarSystem']}"
         description = f"**Selling:**\n```css\n\n{self.bgstally.fleet_carrier.get_materials_plaintext(MaterialsCategory.SELLING)}```\n**Buying:**\n```css\n\n{self.bgstally.fleet_carrier.get_materials_plaintext(MaterialsCategory.BUYING)}```"
 
-        self.bgstally.discord.post_embed(title, description, None, None, DiscordChannel.FLEETCARRIER)
+        fields = []
+        fields.append({'name': "System", 'value': fc.data['currentStarSystem'], 'inline': True})
+        fields.append({'name': "Docking", 'value': fc.data['dockingAccess'], 'inline': True})
+        fields.append({'name': "Notorious", 'value': "Yes" if fc.data['notoriousAccess'] else "No", 'inline': True})
 
-
+        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER)

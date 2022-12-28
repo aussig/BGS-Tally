@@ -1,5 +1,12 @@
 # Change Log
 
+## vx.x.x - xxxx-xx-xx
+
+### Changes:
+
+* BGS-Tally is now more efficient in saving changes to activity files - it only saves to disk when something has changed or you have done some activity in a tick.
+
+
 ## v2.2.0 - xxxx-xx-xx
 
 ### New Features:

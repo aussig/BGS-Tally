@@ -185,6 +185,7 @@ class BGSTally:
         """
         Return true if the EDMC version is high enough to provide a callback for /fleetcarrier CAPI
         """
+        return False # Don't support until EDMC 5.8.0 is out
         return callable(appversion) and appversion() >= semantic_version.Version('5.8.0')
 
 

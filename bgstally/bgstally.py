@@ -171,6 +171,7 @@ class BGSTally:
         """
         Fleet carrier data received from CAPI
         """
+        return # Don't support until EDMC 5.8.0 is out
         if data.data == {} or data.get('name') is None or data['name'].get('callsign') is None:
             raise ValueError("Invalid /fleetcarrier CAPI data")
 

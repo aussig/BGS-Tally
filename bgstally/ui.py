@@ -10,7 +10,6 @@ from typing import List, Optional
 
 import myNotebook as nb
 import semantic_version
-
 from theme import theme
 from ttkHyperlinkLabel import HyperlinkLabel
 
@@ -68,29 +67,36 @@ class UI:
         if git_version > self.bgstally.version:
             HyperlinkLabel(self.frame, text=f"New version available (v{str(git_version)})", background=nb.Label().cget('background'), url=URL_LATEST_RELEASE, underline=True).grid(row=current_row, column=1, columnspan=2, sticky=tk.W)
         current_row += 1
-        tk.Button(self.frame, text="Latest BGS Tally", height=SIZE_BUTTON_PIXELS-2, image=self.image_blank, compound=tk.RIGHT, command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity())).grid(row=current_row, column=0, padx=3)
-        self.PreviousButton = tk.Button(self.frame, text="Previous BGS Tallies ", height=SIZE_BUTTON_PIXELS-2, image=self.image_button_dropdown_menu, compound=tk.RIGHT, command=self._previous_ticks_popup)
-        self.PreviousButton.grid(row=current_row, column=1, padx=3)
+        self.button_latest_tick: tk.Button = tk.Button(self.frame, text="Latest BGS Tally", height=SIZE_BUTTON_PIXELS-2, image=self.image_blank, compound=tk.RIGHT, command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity()))
+        self.button_latest_tick.grid(row=current_row, column=0, padx=3)
+        self.button_previous_ticks: tk.Button = tk.Button(self.frame, text="Previous BGS Tallies ", height=SIZE_BUTTON_PIXELS-2, image=self.image_button_dropdown_menu, compound=tk.RIGHT, command=self._previous_ticks_popup)
+        self.button_previous_ticks.grid(row=current_row, column=1, padx=3)
         tk.Button(self.frame, image=self.image_button_cmdrs, height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_cmdr_list_window).grid(row=current_row, column=2, padx=3)
-        #if self.bgstally.fleet_carrier.available():
-        #    tk.Button(self.frame, image=self.image_button_carrier, height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_fc_window).grid(row=current_row, column=3, padx=3)
+        if self.bgstally.capi_fleetcarrier_available():
+            self.button_carrier: tk.Button = tk.Button(self.frame, image=self.image_button_carrier, state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_fc_window)
+            self.button_carrier.grid(row=current_row, column=3, padx=3)
+        else:
+            self.button_carrier: tk.Button = None
         current_row += 1
         tk.Label(self.frame, text="BGS Tally Status:").grid(row=current_row, column=0, sticky=tk.W)
-        tk.Label(self.frame, textvariable=self.bgstally.state.Status).grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        tk.Label(self.frame, textvariable=self.bgstally.state.Status).grid(row=current_row, column=1, sticky=tk.W)
+        current_row += 1
         tk.Label(self.frame, text="Last BGS Tick:").grid(row=current_row, column=0, sticky=tk.W)
-        tk.Label(self.frame, text=self.bgstally.tick.get_formatted()).grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        self.label_tick: tk.Label = tk.Label(self.frame, text=self.bgstally.tick.get_formatted())
+        self.label_tick.grid(row=current_row, column=1, sticky=tk.W)
+        current_row += 1
 
         return self.frame
 
 
     def update_plugin_frame(self):
         """
-        Update the tick time label and current activity button in the plugin frame
+        Update the tick time label, current activity button and carrier button in the plugin frame
         """
-        tk.Label(self.frame, text=self.bgstally.tick.get_formatted()).grid(row=3, column=1, sticky=tk.W)
-        tk.Button(self.frame, text="Latest BGS Tally", command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity())).grid(row=1, column=0, padx=3)
-
-        theme.update(self.frame)
+        self.label_tick.config(text=self.bgstally.tick.get_formatted())
+        self.button_latest_tick.config(command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity()))
+        if self.button_carrier is not None:
+            self.button_carrier.config(state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'))
 
 
     def get_prefs_frame(self, parent_frame: tk.Frame):
@@ -125,8 +131,8 @@ class UI:
         nb.Checkbutton(frame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Label(frame, text="Discord BGS Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordBGSWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        #nb.Label(frame, text="Discord FC Jump Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        #EntryPlus(frame, textvariable=self.bgstally.state.DiscordFCJumpWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text="Discord FC Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        EntryPlus(frame, textvariable=self.bgstally.state.DiscordFCWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="Discord Thargoid War Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordTWWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="Discord Post as User").grid(row=current_row, column=0, padx=10, sticky=tk.W)
@@ -175,7 +181,7 @@ class UI:
             menu.add_command(label=activity.tick_time, command=partial(self._show_activity_window, activity))
 
         try:
-            menu.tk_popup(self.PreviousButton.winfo_rootx(), self.PreviousButton.winfo_rooty())
+            menu.tk_popup(self.button_previous_ticks.winfo_rootx(), self.button_previous_ticks.winfo_rooty())
         finally:
             menu.grab_release()
 

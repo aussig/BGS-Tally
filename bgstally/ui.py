@@ -131,8 +131,8 @@ class UI:
         nb.Checkbutton(frame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Label(frame, text="Discord BGS Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordBGSWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Discord FC Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordFCWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        #nb.Label(frame, text="Discord FC Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        #EntryPlus(frame, textvariable=self.bgstally.state.DiscordFCWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="Discord Thargoid War Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordTWWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="Discord Post as User").grid(row=current_row, column=0, padx=10, sticky=tk.W)

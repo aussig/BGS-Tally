@@ -100,8 +100,8 @@ class ActivityManager:
         for activity in self.activity_data:
             if activity.tick_id == tick.tick_id:
                 # We already have modern data for this legacy tick ID, ignore it and delete the file
-                Debug.logger.warning(f"Tick data already exists for tick {tick.tick_id} when loading legacy data. Ignoring legacy data.")
-                # TODO: remove(filepath) - Can be done in a future version of the plugin, when we are sure everything is solid
+                Debug.logger.info(f"Tick data already exists for tick {tick.tick_id} when loading legacy data. Deleting legacy data.")
+                remove(filepath)
                 return
 
         activity = Activity(self.bgstally, tick, discord_bgs_messageid)

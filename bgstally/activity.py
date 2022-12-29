@@ -92,6 +92,7 @@ class Activity:
         self.discord_bgs_messageid = discord_bgs_messageid
         self.discord_tw_messageid = None
         self.discord_notes = ""
+        self.dirty: bool = False
         self.systems = {}
 
 
@@ -103,6 +104,7 @@ class Activity:
         # {"1": [{"System": "Sowiio", "SystemAddress": 1458376217306, "Factions": [{}, {}], "zero_system_activity": false}]}
         # To:
         # {"tick_id": tick_id, "tick_time": tick_time, "discord_messageid": discordmessageid, "systems": {1458376217306: {"System": "Sowiio", "SystemAddress": 1458376217306, "zero_system_activity": false, "Factions": {"Faction Name 1": {}, "Faction Name 2": {}}}}}
+        self.dirty = True
         with open(filepath) as legacyactivityfile:
             legacydata = json.load(legacyactivityfile)
             for legacysystemlist in legacydata.values():        # Iterate the values of the dict. We don't care about the keys - they were just "1", "2" etc.
@@ -129,8 +131,11 @@ class Activity:
         """
         Save to an activity file
         """
+        if not self.dirty: return
+
         with open(filepath, 'w') as activityfile:
             json.dump(self._as_dict(), activityfile)
+            self.dirty = False
 
 
     def get_ordered_systems(self):
@@ -145,6 +150,7 @@ class Activity:
         Clear down all activity. If there is a currently active mission in a system, only zero the activity,
         otherwise delete the system completely.
         """
+        self.dirty = True
         mission_systems = mission_log.get_active_systems()
 
         # Need to convert keys to list so we can delete as we iterate
@@ -172,6 +178,7 @@ class Activity:
         try: test = journal_entry['Factions']
         except KeyError: return
 
+        self.dirty = True
         current_system = None
 
         for system_address in self.systems:
@@ -216,6 +223,7 @@ class Activity:
         """
         Handle mission completed
         """
+        self.dirty = True
         mission = mission_log.get_mission(journal_entry['MissionID'])
 
         for faction_effect in journal_entry['FactionEffects']:
@@ -322,6 +330,7 @@ class Activity:
         """
         mission = mission_log.get_mission(journal_entry['MissionID'])
         if mission is None: return
+        self.dirty = True
 
         for system in self.systems.values():
             if mission['System'] != system['System']: continue
@@ -340,6 +349,7 @@ class Activity:
         """
         current_system = self.systems[state.current_system_id]
         if not current_system: return
+        self.dirty = True
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
@@ -353,6 +363,7 @@ class Activity:
         """
         current_system = self.systems[state.current_system_id]
         if not current_system: return
+        self.dirty = True
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
@@ -367,6 +378,7 @@ class Activity:
         """
         current_system = self.systems[state.current_system_id]
         if not current_system: return
+        self.dirty = True
 
         for bv_info in journal_entry['Factions']:
             faction = current_system['Factions'].get(bv_info['Faction'])
@@ -384,6 +396,7 @@ class Activity:
         """
         current_system = self.systems[state.current_system_id]
         if not current_system: return
+        self.dirty = True
 
         faction = current_system['Factions'].get(journal_entry['Faction'])
         if faction:
@@ -397,6 +410,7 @@ class Activity:
         """
         current_system = self.systems[state.current_system_id]
         if not current_system: return
+        self.dirty = True
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
@@ -410,6 +424,7 @@ class Activity:
         """
         current_system = self.systems[state.current_system_id]
         if not current_system: return
+        self.dirty = True
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
@@ -427,6 +442,7 @@ class Activity:
         Handle targeting a ship
         """
         if 'Faction' in journal_entry and 'PilotName_Localised' in journal_entry:
+            self.dirty = True
             state.last_ship_targeted = {'Faction': journal_entry['Faction'], 'PilotName_Localised': journal_entry['PilotName_Localised']}
 
 
@@ -436,6 +452,7 @@ class Activity:
         """
         current_system = self.systems[state.current_system_id]
         if not current_system: return
+        self.dirty = True
 
         # The faction logged in the CommitCrime event is the system faction, not the ship faction. So we store the
         # ship faction from the previous ShipTargeted event in last_ship_targeted.
@@ -462,6 +479,7 @@ class Activity:
 
         current_system = self.systems[state.current_system_id]
         if not current_system: return
+        self.dirty = True
 
         timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_settlement_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
         if timedifference > timedelta(minutes=5):

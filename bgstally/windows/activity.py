@@ -110,31 +110,35 @@ class WindowActivity:
             EnableAllCheckbutton.grid(row=1, column=0, padx=2, pady=2)
             EnableAllCheckbutton.configure(command=partial(self._enable_all_factions_change, TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system))
             EnableAllCheckbutton.state(['!alternate'])
-            ttk.Label(tab, text="Faction", font=self.ui.heading_font).grid(row=0, column=1, padx=2, pady=2)
-            ttk.Label(tab, text="State", font=self.ui.heading_font).grid(row=0, column=2, padx=2, pady=2)
-            ttk.Label(tab, text="INF", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=3, columnspan=2, padx=2)
-            ttk.Label(tab, text="Pri", font=self.ui.heading_font).grid(row=1, column=3, padx=2, pady=2)
-            ttk.Label(tab, text="Sec", font=self.ui.heading_font).grid(row=1, column=4, padx=2, pady=2)
-            ttk.Label(tab, text="Trade", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=5, columnspan=3, padx=2)
-            ttk.Label(tab, text="Purch", font=self.ui.heading_font).grid(row=1, column=5, padx=2, pady=2)
-            ttk.Label(tab, text="Prof", font=self.ui.heading_font).grid(row=1, column=6, padx=2, pady=2)
-            ttk.Label(tab, text="BM Prof", font=self.ui.heading_font).grid(row=1, column=7, padx=2, pady=2)
-            ttk.Label(tab, text="BVs", font=self.ui.heading_font).grid(row=0, column=8, padx=2, pady=2)
-            ttk.Label(tab, text="Expl", font=self.ui.heading_font).grid(row=0, column=9, padx=2, pady=2)
-            ttk.Label(tab, text="Exo", font=self.ui.heading_font).grid(row=0, column=10, padx=2, pady=2)
-            ttk.Label(tab, text="CBs", font=self.ui.heading_font).grid(row=0, column=11, padx=2, pady=2)
-            ttk.Label(tab, text="Fails", font=self.ui.heading_font).grid(row=0, column=12, padx=2, pady=2)
-            ttk.Label(tab, text="Murders", font=self.ui.heading_font).grid(row=0, column=13, padx=2, pady=2)
-            ttk.Label(tab, text="Scens", font=self.ui.heading_font).grid(row=0, column=14, padx=2, pady=2)
-            ttk.Label(tab, text="Space CZs", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=15, columnspan=3, padx=2)
-            ttk.Label(tab, text="L", font=self.ui.heading_font).grid(row=1, column=15, padx=2, pady=2)
-            ttk.Label(tab, text="M", font=self.ui.heading_font).grid(row=1, column=16, padx=2, pady=2)
-            ttk.Label(tab, text="H", font=self.ui.heading_font).grid(row=1, column=17, padx=2, pady=2)
-            ttk.Label(tab, text="On-foot CZs", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=18, columnspan=3, padx=2)
-            ttk.Label(tab, text="L", font=self.ui.heading_font).grid(row=1, column=18, padx=2, pady=2)
-            ttk.Label(tab, text="M", font=self.ui.heading_font).grid(row=1, column=19, padx=2, pady=2)
-            ttk.Label(tab, text="H", font=self.ui.heading_font).grid(row=1, column=20, padx=2, pady=2)
-            ttk.Separator(tab, orient=tk.HORIZONTAL).grid(columnspan=21, padx=2, pady=5, sticky=tk.EW)
+
+            col: int = 1
+            ttk.Label(tab, text="Faction", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="State", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="INF", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2)
+            ttk.Label(tab, text="Pri", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Sec", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Trade", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
+            ttk.Label(tab, text="Purch", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Prof", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="BM Prof", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="BVs", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Expl", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Exo", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="CBs", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Fails", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Murders", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2, pady=2)
+            ttk.Label(tab, text="Foot", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Ship", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Scens", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Space CZs", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
+            ttk.Label(tab, text="L", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="M", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="H", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Foot CZs", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
+            ttk.Label(tab, text="L", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="M", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="H", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Separator(tab, orient=tk.HORIZONTAL).grid(columnspan=col, padx=2, pady=5, sticky=tk.EW)
 
             header_rows = 3
             x = 0
@@ -162,39 +166,41 @@ class WindowActivity:
                     SettlementName.bind("<Button-1>", partial(self._settlement_name_clicked, SettlementCheckbutton, settlement_name, DiscordText, activity, faction, x))
                     settlement_row_index += 1
 
-                ttk.Label(tab, text=faction['FactionState']).grid(row=x + header_rows, column=2, sticky=tk.N)
+                col = 2
+                ttk.Label(tab, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 MissionPointsVar = tk.IntVar(value=faction['MissionPoints'])
-                ttk.Spinbox(tab, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=3, sticky=tk.N, padx=2, pady=2)
+                ttk.Spinbox(tab, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                 MissionPointsVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsVar, True, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
                 MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary'])
-                ttk.Spinbox(tab, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=4, sticky=tk.N, padx=2, pady=2)
+                ttk.Spinbox(tab, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                 MissionPointsSecVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsSecVar, False, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
-                ttk.Label(tab, text=self._human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=5, sticky=tk.N)
-                ttk.Label(tab, text=self._human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=6, sticky=tk.N)
-                ttk.Label(tab, text=self._human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=7, sticky=tk.N)
-                ttk.Label(tab, text=self._human_format(faction['Bounties'])).grid(row=x + header_rows, column=8, sticky=tk.N)
-                ttk.Label(tab, text=self._human_format(faction['CartData'])).grid(row=x + header_rows, column=9, sticky=tk.N)
-                ttk.Label(tab, text=self._human_format(faction['ExoData'])).grid(row=x + header_rows, column=10, sticky=tk.N)
-                ttk.Label(tab, text=self._human_format(faction['CombatBonds'])).grid(row=x + header_rows, column=11, sticky=tk.N)
-                ttk.Label(tab, text=faction['MissionFailed']).grid(row=x + header_rows, column=12, sticky=tk.N)
-                ttk.Label(tab, text=faction['Murdered']).grid(row=x + header_rows, column=13, sticky=tk.N)
+                ttk.Label(tab, text=self._human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                ttk.Label(tab, text=self._human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                ttk.Label(tab, text=self._human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                ttk.Label(tab, text=self._human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                ttk.Label(tab, text=self._human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                ttk.Label(tab, text=self._human_format(faction['ExoData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                ttk.Label(tab, text=self._human_format(faction['CombatBonds'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                ttk.Label(tab, text=faction['MissionFailed']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                ttk.Label(tab, text=faction['GroundMurdered']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                ttk.Label(tab, text=faction['Murdered']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ScenariosVar = tk.IntVar(value=faction['Scenarios'])
-                ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=ScenariosVar).grid(row=x + header_rows, column=14, sticky=tk.N, padx=2, pady=2)
+                ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=ScenariosVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                 ScenariosVar.trace('w', partial(self._scenarios_change, TabParent, tab_index, ScenariosVar, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
 
                 if (faction['FactionState'] in STATES_WAR):
                     CZSpaceLVar = tk.StringVar(value=faction['SpaceCZ'].get('l', '0'))
-                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZSpaceLVar).grid(row=x + header_rows, column=15, sticky=tk.N, padx=2, pady=2)
+                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZSpaceLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     CZSpaceMVar = tk.StringVar(value=faction['SpaceCZ'].get('m', '0'))
-                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZSpaceMVar).grid(row=x + header_rows, column=16, sticky=tk.N, padx=2, pady=2)
+                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZSpaceMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     CZSpaceHVar = tk.StringVar(value=faction['SpaceCZ'].get('h', '0'))
-                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZSpaceHVar).grid(row=x + header_rows, column=17, sticky=tk.N, padx=2, pady=2)
+                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZSpaceHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     CZGroundLVar = tk.StringVar(value=faction['GroundCZ'].get('l', '0'))
-                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZGroundLVar).grid(row=x + header_rows, column=18, sticky=tk.N, padx=2, pady=2)
+                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZGroundLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     CZGroundMVar = tk.StringVar(value=faction['GroundCZ'].get('m', '0'))
-                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZGroundMVar).grid(row=x + header_rows, column=19, sticky=tk.N, padx=2, pady=2)
+                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZGroundMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     CZGroundHVar = tk.StringVar(value=faction['GroundCZ'].get('h', '0'))
-                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZGroundHVar).grid(row=x + header_rows, column=20, sticky=tk.N, padx=2, pady=2)
+                    ttk.Spinbox(tab, from_=0, to=999, width=3, textvariable=CZGroundHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     # Watch for changes on all SpinBox Variables. This approach catches any change, including manual editing, while using 'command' callbacks only catches clicks
                     CZSpaceLVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZSpaceLVar, EnableAllCheckbutton, DiscordText, CZs.SPACE_LOW, activity, system, faction, x))
                     CZSpaceMVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZSpaceMVar, EnableAllCheckbutton, DiscordText, CZs.SPACE_MED, activity, system, faction, x))

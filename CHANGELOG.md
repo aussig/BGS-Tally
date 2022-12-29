@@ -1,6 +1,10 @@
 # Change Log
 
-## vx.x.x - xxxx-xx-xx
+## v2.3.0 - xxxx-xx-xx
+
+### New Features:
+
+* On-foot murders are now tracked and are independent from ship murders.
 
 ### Changes:
 

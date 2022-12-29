@@ -454,14 +454,25 @@ class Activity:
         if not current_system: return
         self.dirty = True
 
-        # The faction logged in the CommitCrime event is the system faction, not the ship faction. So we store the
-        # ship faction from the previous ShipTargeted event in last_ship_targeted.
-        if journal_entry['CrimeType'] != 'murder' or journal_entry.get('Victim') != state.last_ship_targeted.get('PilotName_Localised'): return
+        # For in-space murders, the faction logged in the CommitCrime event is the system faction,
+        # not the ship faction. We need to log the murder against the ship faction, so we store the
+        # it from the previous ShipTargeted event in last_ship_targeted.
 
-        faction = current_system['Factions'].get(state.last_ship_targeted.get('Faction'))
-        if faction:
-            faction['Murdered'] += 1
-            self.recalculate_zero_activity()
+        match journal_entry['CrimeType']:
+            case 'murder':
+                # For ship murders, if we didn't get a previous scan containing ship faction, don't log
+                if journal_entry.get('Victim') != state.last_ship_targeted.get('PilotName_Localised'): return
+                faction = current_system['Factions'].get(state.last_ship_targeted.get('Faction'))
+                if faction:
+                    faction['Murdered'] += 1
+                    self.recalculate_zero_activity()
+
+            case 'onFoot_murder':
+                # For on-foot murders, get the faction from the journal entry
+                faction = current_system['Factions'].get(journal_entry['Faction'])
+                if faction:
+                    faction['GroundMurdered'] += 1
+                    self.recalculate_zero_activity()
 
 
     def settlement_approached(self, journal_entry: Dict, state:State):
@@ -573,7 +584,7 @@ class Activity:
         return {'Faction': faction_name, 'FactionState': faction_state, 'Enabled': CheckStates.STATE_ON,
                 'MissionPoints': 0, 'MissionPointsSecondary': 0,
                 'TradeProfit': 0, 'TradePurchase': 0, 'BlackMarketProfit': 0, 'Bounties': 0, 'CartData': 0, 'ExoData': 0,
-                'CombatBonds': 0, 'MissionFailed': 0, 'Murdered': 0,
+                'CombatBonds': 0, 'MissionFailed': 0, 'Murdered': 0, 'GroundMurdered': 0,
                 'SpaceCZ': {}, 'GroundCZ': {}, 'GroundCZSettlements': {}, 'Scenarios': 0,
                 'TWStations': {}}
 
@@ -627,6 +638,8 @@ class Activity:
                 station['cargo'] = {'count': 0, 'sum': station['cargo']}
             if not type(station.get('massacre')) == dict:
                 station['massacre'] = {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}
+        # From < 2.3.0 to 2.3.0
+        if not 'GroundMurdered' in faction_data: faction_data['GroundMurdered'] = 0
 
 
     def _is_faction_data_zero(self, faction_data: Dict):
@@ -636,7 +649,7 @@ class Activity:
         return int(faction_data['MissionPoints']) == 0 and int(faction_data['MissionPointsSecondary']) == 0 and \
                 int(faction_data['TradeProfit']) == 0 and int(faction_data['TradePurchase']) == 0 and int(faction_data['BlackMarketProfit']) == 0 and \
                 int(faction_data['Bounties']) == 0 and int(faction_data['CartData']) == 0 and int(faction_data['ExoData']) == 0 and \
-                int(faction_data['CombatBonds']) == 0 and int(faction_data['MissionFailed']) == 0 and int(faction_data['Murdered']) == 0 and \
+                int(faction_data['CombatBonds']) == 0 and int(faction_data['MissionFailed']) == 0 and int(faction_data['Murdered']) == 0 and int(faction_data['GroundMurdered']) == 0 and \
                 (faction_data['SpaceCZ'] == {} or (int(faction_data['SpaceCZ'].get('l', 0)) == 0 and int(faction_data['SpaceCZ'].get('m', 0)) == 0 and int(faction_data['SpaceCZ'].get('h', 0)) == 0)) and \
                 (faction_data['GroundCZ'] == {} or (int(faction_data['GroundCZ'].get('l', 0)) == 0 and int(faction_data['GroundCZ'].get('m', 0)) == 0 and int(faction_data['GroundCZ'].get('h', 0)) == 0)) and \
                 faction_data['GroundCZSettlements'] == {} and \

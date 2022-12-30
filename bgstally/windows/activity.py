@@ -525,6 +525,7 @@ class WindowActivity:
         activity_discord_text += f".Expl {self._human_format(faction['CartData'])}; " if faction['CartData'] != 0 else ""
         activity_discord_text += f".Exo {self._human_format(faction['ExoData'])}; " if faction['ExoData'] != 0 else ""
         activity_discord_text += f".Murders {faction['Murdered']}; " if faction['Murdered'] != 0 else ""
+        activity_discord_text += f".GroundMurders {faction['GroundMurdered']}; " if faction['GroundMurdered'] != 0 else ""
         activity_discord_text += f".Scenarios {faction['Scenarios']}; " if faction['Scenarios'] != 0 else ""
         activity_discord_text += f".Fails {faction['MissionFailed']}; " if faction['MissionFailed'] != 0 else ""
         space_cz = self._build_cz_text(faction.get('SpaceCZ', {}), "SpaceCZs")

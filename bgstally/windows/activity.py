@@ -13,6 +13,7 @@ from thirdparty.ScrollableNotebook import ScrollableNotebook
 from theme import theme
 
 DATETIME_FORMAT_WINDOWTITLE = "%Y-%m-%d %H:%M:%S"
+LIMIT_TABS = 60
 
 
 class WindowActivity:
@@ -93,6 +94,10 @@ class WindowActivity:
         tab_index = 0
 
         for system_id in system_list:
+            if tab_index > LIMIT_TABS: # If we try to draw too many, the plugin simply hangs
+                Debug.logger.warn(f"Window tab limit ({LIMIT_TABS}) exceeded, skipping remaining tabs")
+                break
+
             system = activity.systems[system_id]
 
             if self.bgstally.state.ShowZeroActivitySystems.get() == CheckStates.STATE_OFF \

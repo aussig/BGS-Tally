@@ -184,7 +184,7 @@ class WindowActivity:
                     ttk.Label(tab, text=self._human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 else:
                     ttk.Label(tab, text=f"{self._human_format(faction['TradeBuy'][0]['value'])} | {self._human_format(faction['TradeBuy'][1]['value'])} | {self._human_format(faction['TradeBuy'][2]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                    ttk.Label(tab, text=f"{self._human_format(faction['TradeSell'][0]['profit'])} | {self._human_format(faction['TradeSell'][1]['profit'])} | {self._human_format(faction['TradeSell'][2]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(tab, text=f"{self._human_format(faction['TradeSell'][1]['profit'])} | {self._human_format(faction['TradeSell'][2]['profit'])} | {self._human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ttk.Label(tab, text=self._human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ttk.Label(tab, text=self._human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ttk.Label(tab, text=self._human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
@@ -549,9 +549,11 @@ class WindowActivity:
         else:
             # Modern - Split into values per supply / demand bracket
             if sum(int(d['value']) for d in faction['TradeBuy']) > 0:
-                activity_discord_text += f".TrdBuy 🅻{self._human_format(faction['TradeBuy'][0]['value'])} 🅼{self._human_format(faction['TradeBuy'][1]['value'])} 🅷{self._human_format(faction['TradeBuy'][2]['value'])}; "
+                # Buy brackets currently range from 0 - 2
+                activity_discord_text += f".TrdBuy 🅻 {self._human_format(faction['TradeBuy'][0]['value'])} 🅼 {self._human_format(faction['TradeBuy'][1]['value'])} 🅷 {self._human_format(faction['TradeBuy'][2]['value'])}; "
             if sum(int(d['value']) for d in faction['TradeSell']) > 0:
-                activity_discord_text += f".TrdProfit 🅻{self._human_format(faction['TradeSell'][0]['profit'])} 🅼{self._human_format(faction['TradeSell'][1]['profit'])} 🅷{self._human_format(faction['TradeSell'][2]['profit'])}; "
+                # Sell brackets currently range from 0 - 3
+                activity_discord_text += f".TrdProfit 🆉 {self._human_format(faction['TradeSell'][0]['profit'])} 🅻 {self._human_format(faction['TradeSell'][1]['profit'])} 🅼 {self._human_format(faction['TradeSell'][2]['profit'])} 🅷 {self._human_format(faction['TradeSell'][3]['profit'])}; "
         activity_discord_text += f".TrdBMProfit {self._human_format(faction['BlackMarketProfit'])}; " if faction['BlackMarketProfit'] != 0 else ""
         activity_discord_text += f".Expl {self._human_format(faction['CartData'])}; " if faction['CartData'] != 0 else ""
         activity_discord_text += f".Exo {self._human_format(faction['ExoData'])}; " if faction['ExoData'] != 0 else ""

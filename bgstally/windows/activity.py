@@ -316,6 +316,7 @@ class WindowActivity:
         activity.discord_notes = DiscordNotesText.get("1.0", "end-1c")
         self._update_discord_field(DiscordText, activity)
         DiscordNotesText.edit_modified(False) # Ensures the <<Modified>> event is triggered next edit
+        activity.dirty = True
 
 
     def _option_change(self, DiscordText, activity: Activity):
@@ -333,6 +334,7 @@ class WindowActivity:
         faction['Enabled'] = CheckStates.STATE_ON if FactionEnableCheckbuttons[faction_index].instate(['selected']) else CheckStates.STATE_OFF
         self._update_enable_all_factions_checkbutton(notebook, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, system)
         self._update_discord_field(DiscordText, activity)
+        activity.dirty = True
 
 
     def _enable_all_factions_change(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity: Activity, system, *args):
@@ -351,6 +353,7 @@ class WindowActivity:
 
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
         self._update_discord_field(DiscordText, activity)
+        activity.dirty = True
 
 
     def _enable_settlement_change(self, SettlementCheckbutton, settlement_name, DiscordText, activity: Activity, faction, faction_index, *args):
@@ -359,6 +362,7 @@ class WindowActivity:
         """
         faction['GroundCZSettlements'][settlement_name]['enabled'] = CheckStates.STATE_ON if SettlementCheckbutton.instate(['selected']) else CheckStates.STATE_OFF
         self._update_discord_field(DiscordText, activity)
+        activity.dirty = True
 
 
     def _update_enable_all_factions_checkbutton(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, FactionEnableCheckbuttons, system):
@@ -421,6 +425,7 @@ class WindowActivity:
         activity.recalculate_zero_activity()
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
         self._update_discord_field(DiscordText, activity)
+        activity.dirty = True
 
 
     def _mission_points_change(self, notebook: ScrollableNotebook, tab_index: int, MissionPointsVar, primary, EnableAllCheckbutton, DiscordText, activity: Activity, system, faction, faction_index, *args):
@@ -435,6 +440,7 @@ class WindowActivity:
         activity.recalculate_zero_activity()
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
         self._update_discord_field(DiscordText, activity)
+        activity.dirty = True
 
 
     def _scenarios_change(self, notebook: ScrollableNotebook, tab_index: int, ScenariosVar, EnableAllCheckbutton, DiscordText, activity: Activity, system, faction, faction_index, *args):
@@ -446,6 +452,7 @@ class WindowActivity:
         activity.recalculate_zero_activity()
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
         self._update_discord_field(DiscordText, activity)
+        activity.dirty = True
 
 
     def _update_tab_image(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, system: Dict):

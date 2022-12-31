@@ -36,6 +36,7 @@
 * When using new modern Discord format, don't create empty posts and delete previous post if content is empty.
 * Minor change to 'CMDRs' button image to make it clearer in dark mode.
 * A limit of 60 is now applied to the number of tabs shown in the activity window, as too many tabs could crash the plugin.
+* Latest activity window would fail to display if a file is expected on disk but it has been deleted. In this circumstance, just clear down and start from zero.
 
 
 ## v2.1.0 - 2022-12-05

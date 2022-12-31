@@ -179,8 +179,12 @@ class WindowActivity:
                 MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary'])
                 ttk.Spinbox(tab, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                 MissionPointsSecVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsSecVar, False, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
-                ttk.Label(tab, text=self._human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(tab, text=self._human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                if faction['TradePurchase'] > 0:
+                    ttk.Label(tab, text=self._human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(tab, text=self._human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                else:
+                    ttk.Label(tab, text=f"{self._human_format(faction['TradeBuy'][0]['value'])} | {self._human_format(faction['TradeBuy'][1]['value'])} | {self._human_format(faction['TradeBuy'][2]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(tab, text=f"{self._human_format(faction['TradeSell'][0]['profit'])} | {self._human_format(faction['TradeSell'][1]['profit'])} | {self._human_format(faction['TradeSell'][2]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ttk.Label(tab, text=self._human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ttk.Label(tab, text=self._human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ttk.Label(tab, text=self._human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
@@ -538,8 +542,16 @@ class WindowActivity:
 
         activity_discord_text += f".BVs {self._human_format(faction['Bounties'])}; " if faction['Bounties'] != 0 else ""
         activity_discord_text += f".CBs {self._human_format(faction['CombatBonds'])}; " if faction['CombatBonds'] != 0 else ""
-        activity_discord_text += f".TrdPurchase {self._human_format(faction['TradePurchase'])}; " if faction['TradePurchase'] != 0 else ""
-        activity_discord_text += f".TrdProfit {self._human_format(faction['TradeProfit'])}; " if faction['TradeProfit'] != 0 else ""
+        if faction['TradePurchase'] > 0:
+            # Legacy - Used a single value for purchase value / profit
+            activity_discord_text += f".TrdPurchase {self._human_format(faction['TradePurchase'])}; " if faction['TradePurchase'] != 0 else ""
+            activity_discord_text += f".TrdProfit {self._human_format(faction['TradeProfit'])}; " if faction['TradeProfit'] != 0 else ""
+        else:
+            # Modern - Split into values per supply / demand bracket
+            if sum(int(d['value']) for d in faction['TradeBuy']) > 0:
+                activity_discord_text += f".TrdBuy 🅻{self._human_format(faction['TradeBuy'][0]['value'])} 🅼{self._human_format(faction['TradeBuy'][1]['value'])} 🅷{self._human_format(faction['TradeBuy'][2]['value'])}; "
+            if sum(int(d['value']) for d in faction['TradeSell']) > 0:
+                activity_discord_text += f".TrdProfit 🅻{self._human_format(faction['TradeSell'][0]['profit'])} 🅼{self._human_format(faction['TradeSell'][1]['profit'])} 🅷{self._human_format(faction['TradeSell'][2]['profit'])}; "
         activity_discord_text += f".TrdBMProfit {self._human_format(faction['BlackMarketProfit'])}; " if faction['BlackMarketProfit'] != 0 else ""
         activity_discord_text += f".Expl {self._human_format(faction['CartData'])}; " if faction['CartData'] != 0 else ""
         activity_discord_text += f".Exo {self._human_format(faction['ExoData'])}; " if faction['ExoData'] != 0 else ""

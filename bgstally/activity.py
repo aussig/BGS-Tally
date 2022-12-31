@@ -404,36 +404,53 @@ class Activity:
             self.recalculate_zero_activity()
 
 
-    def trade_purchased(self, journal_entry: Dict, state: State):
+    def trade_purchased(self, journal_entry:dict, state:State):
         """
         Handle purchase of trade commodities
         """
         current_system = self.systems[state.current_system_id]
         if not current_system: return
-        self.dirty = True
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
-            faction['TradePurchase'] += journal_entry['TotalCost']
+            self.dirty = True
+            bracket:int = 0
+
+            if self.bgstally.market.available(journal_entry['MarketID']):
+                market_data:dict = self.bgstally.market.get_commodity(journal_entry['Type'])
+                bracket = market_data.get('StockBracket', 0)
+
+            faction['TradeBuy'][bracket]['value'] += journal_entry['TotalCost']
+            faction['TradeBuy'][bracket]['items'] += journal_entry['Count']
+
             self.recalculate_zero_activity()
 
 
-    def trade_sold(self, journal_entry: Dict, state: State):
+    def trade_sold(self, journal_entry:dict, state:State):
         """
         Handle sale of trade commodities
         """
         current_system = self.systems[state.current_system_id]
         if not current_system: return
-        self.dirty = True
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
-            cost = journal_entry['Count'] * journal_entry['AvgPricePaid']
-            profit = journal_entry['TotalSale'] - cost
+            self.dirty = True
+            cost:int = journal_entry['Count'] * journal_entry['AvgPricePaid']
+            profit:int = journal_entry['TotalSale'] - cost
+            bracket:int = 0
+
             if journal_entry.get('BlackMarket', False):
                 faction['BlackMarketProfit'] += profit
             else:
-                faction['TradeProfit'] += profit
+                if self.bgstally.market.available(journal_entry['MarketID']):
+                    market_data:dict = self.bgstally.market.get_commodity(journal_entry['Type'])
+                    bracket = market_data.get('DemandBracket', 0)
+
+                faction['TradeSell'][bracket]['profit'] += profit
+                faction['TradeSell'][bracket]['value'] += journal_entry['TotalSale']
+                faction['TradeSell'][bracket]['items'] += journal_entry['Count']
+
             self.recalculate_zero_activity()
 
 
@@ -584,6 +601,8 @@ class Activity:
         return {'Faction': faction_name, 'FactionState': faction_state, 'Enabled': CheckStates.STATE_ON,
                 'MissionPoints': 0, 'MissionPointsSecondary': 0,
                 'TradeProfit': 0, 'TradePurchase': 0, 'BlackMarketProfit': 0, 'Bounties': 0, 'CartData': 0, 'ExoData': 0,
+                'TradeBuy': [{'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}],
+                'TradeSell': [{'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}],
                 'CombatBonds': 0, 'MissionFailed': 0, 'Murdered': 0, 'GroundMurdered': 0,
                 'SpaceCZ': {}, 'GroundCZ': {}, 'GroundCZSettlements': {}, 'Scenarios': 0,
                 'TWStations': {}}
@@ -640,6 +659,10 @@ class Activity:
                 station['massacre'] = {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}
         # From < 2.3.0 to 2.3.0
         if not 'GroundMurdered' in faction_data: faction_data['GroundMurdered'] = 0
+        if not 'TradeBuy' in faction_data:
+            faction_data['TradeBuy'] = [{'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}]
+        if not 'TradeSell' in faction_data:
+            faction_data['TradeSell'] = [{'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}]
 
 
     def _is_faction_data_zero(self, faction_data: Dict):
@@ -648,6 +671,9 @@ class Activity:
         """
         return int(faction_data['MissionPoints']) == 0 and int(faction_data['MissionPointsSecondary']) == 0 and \
                 int(faction_data['TradeProfit']) == 0 and int(faction_data['TradePurchase']) == 0 and int(faction_data['BlackMarketProfit']) == 0 and \
+                sum(int(d['value']) for d in faction_data['TradeBuy']) == 0 and \
+                sum(int(d['value']) for d in faction_data['TradeSell']) == 0 and \
+                int(faction_data['BlackMarketProfit']) == 0 and \
                 int(faction_data['Bounties']) == 0 and int(faction_data['CartData']) == 0 and int(faction_data['ExoData']) == 0 and \
                 int(faction_data['CombatBonds']) == 0 and int(faction_data['MissionFailed']) == 0 and int(faction_data['Murdered']) == 0 and int(faction_data['GroundMurdered']) == 0 and \
                 (faction_data['SpaceCZ'] == {} or (int(faction_data['SpaceCZ'].get('l', 0)) == 0 and int(faction_data['SpaceCZ'].get('m', 0)) == 0 and int(faction_data['SpaceCZ'].get('h', 0)) == 0)) and \

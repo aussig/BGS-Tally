@@ -5,6 +5,7 @@
 ### New Features:
 
 * On-foot murders are now tracked and are independent from ship murders.
+* Trade purchase and profit is now tracked and reported against the three levels of demand: 🅻 / 🅼 / 🅷.
 
 ### Changes:
 

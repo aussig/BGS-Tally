@@ -338,7 +338,7 @@ class Activity:
         """
         Handle sale of exploration data
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         faction = current_system['Factions'].get(state.station_faction)
@@ -351,7 +351,7 @@ class Activity:
         """
         Handle sale of organic data
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         faction = current_system['Factions'].get(state.station_faction)
@@ -365,7 +365,7 @@ class Activity:
         """
         Handle redemption of bounty vouchers
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         for bv_info in journal_entry['Factions']:
@@ -382,7 +382,7 @@ class Activity:
         """
         Handle redemption of combat bonds
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         faction = current_system['Factions'].get(journal_entry['Faction'])
@@ -395,7 +395,7 @@ class Activity:
         """
         Handle purchase of trade commodities
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         faction = current_system['Factions'].get(state.station_faction)
@@ -408,7 +408,7 @@ class Activity:
         """
         Handle sale of trade commodities
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         faction = current_system['Factions'].get(state.station_faction)
@@ -434,7 +434,7 @@ class Activity:
         """
         Handle a crime
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         # The faction logged in the CommitCrime event is the system faction, not the ship faction. So we store the
@@ -460,7 +460,7 @@ class Activity:
         """
         if state.last_settlement_approached == {}: return
 
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_settlement_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")

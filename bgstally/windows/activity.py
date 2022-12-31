@@ -179,8 +179,12 @@ class WindowActivity:
                 MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary'])
                 ttk.Spinbox(tab, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                 MissionPointsSecVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsSecVar, False, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
-                ttk.Label(tab, text=self._human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(tab, text=self._human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                if faction['TradePurchase'] > 0:
+                    ttk.Label(tab, text=self._human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(tab, text=self._human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                else:
+                    ttk.Label(tab, text=f"{self._human_format(faction['TradeBuy'][0]['value'])} | {self._human_format(faction['TradeBuy'][1]['value'])} | {self._human_format(faction['TradeBuy'][2]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(tab, text=f"{self._human_format(faction['TradeSell'][0]['profit'])} | {self._human_format(faction['TradeSell'][1]['profit'])} | {self._human_format(faction['TradeSell'][2]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ttk.Label(tab, text=self._human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ttk.Label(tab, text=self._human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ttk.Label(tab, text=self._human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
@@ -224,12 +228,30 @@ class WindowActivity:
         self._update_discord_field(DiscordText, activity)
 
         ttk.Button(ContainerFrame, text="Copy to Clipboard (Legacy Format)", command=partial(self._copy_to_clipboard, ContainerFrame, DiscordText)).pack(side=tk.LEFT, padx=5, pady=5)
-        if self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS): ttk.Button(ContainerFrame, text="Post to Discord", command=partial(self._post_to_discord, activity)).pack(side=tk.RIGHT, padx=5, pady=5)
+        self.btn_post_to_discord: ttk.Button = ttk.Button(ContainerFrame, text="Post to Discord", command=partial(self._post_to_discord, activity),
+                                                          state=('normal' if self._discord_button_available() else 'disabled'))
+        self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
 
         theme.update(ContainerFrame)
 
         # Ignore all scroll wheel events on spinboxes, to avoid accidental inputs
         Form.bind_class('TSpinbox', '<MouseWheel>', lambda event : "break")
+
+
+    def _discord_button_available(self) -> bool:
+        """
+        Return true if the 'Post to Discord' button should be available
+        """
+        match self.bgstally.state.DiscordActivity.get():
+            case DiscordActivity.BGS:
+                return self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS)
+            case DiscordActivity.THARGOIDWAR:
+                return self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR)
+            case DiscordActivity.BOTH:
+                return self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS) or \
+                       self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR)
+            case _:
+                return False
 
 
     def _update_discord_field(self, DiscordText, activity: Activity):
@@ -244,7 +266,7 @@ class WindowActivity:
 
     def _post_to_discord(self, activity: Activity):
         """
-        Callback to post to discord
+        Callback to post to discord in the appropriate channel(s)
         """
         if self.bgstally.state.DiscordPostStyle.get() == DiscordPostStyle.TEXT:
             if self.bgstally.state.DiscordActivity.get() == DiscordActivity.BGS:
@@ -300,6 +322,7 @@ class WindowActivity:
         """
         Callback when one of the Discord options is changed
         """
+        self.btn_post_to_discord.config(state=('normal' if self._discord_button_available() else 'disabled'))
         self._update_discord_field(DiscordText, activity)
 
 
@@ -519,8 +542,16 @@ class WindowActivity:
 
         activity_discord_text += f".BVs {self._human_format(faction['Bounties'])}; " if faction['Bounties'] != 0 else ""
         activity_discord_text += f".CBs {self._human_format(faction['CombatBonds'])}; " if faction['CombatBonds'] != 0 else ""
-        activity_discord_text += f".TrdPurchase {self._human_format(faction['TradePurchase'])}; " if faction['TradePurchase'] != 0 else ""
-        activity_discord_text += f".TrdProfit {self._human_format(faction['TradeProfit'])}; " if faction['TradeProfit'] != 0 else ""
+        if faction['TradePurchase'] > 0:
+            # Legacy - Used a single value for purchase value / profit
+            activity_discord_text += f".TrdPurchase {self._human_format(faction['TradePurchase'])}; " if faction['TradePurchase'] != 0 else ""
+            activity_discord_text += f".TrdProfit {self._human_format(faction['TradeProfit'])}; " if faction['TradeProfit'] != 0 else ""
+        else:
+            # Modern - Split into values per supply / demand bracket
+            if sum(int(d['value']) for d in faction['TradeBuy']) > 0:
+                activity_discord_text += f".TrdBuy 🅻{self._human_format(faction['TradeBuy'][0]['value'])} 🅼{self._human_format(faction['TradeBuy'][1]['value'])} 🅷{self._human_format(faction['TradeBuy'][2]['value'])}; "
+            if sum(int(d['value']) for d in faction['TradeSell']) > 0:
+                activity_discord_text += f".TrdProfit 🅻{self._human_format(faction['TradeSell'][0]['profit'])} 🅼{self._human_format(faction['TradeSell'][1]['profit'])} 🅷{self._human_format(faction['TradeSell'][2]['profit'])}; "
         activity_discord_text += f".TrdBMProfit {self._human_format(faction['BlackMarketProfit'])}; " if faction['BlackMarketProfit'] != 0 else ""
         activity_discord_text += f".Expl {self._human_format(faction['CartData'])}; " if faction['CartData'] != 0 else ""
         activity_discord_text += f".Exo {self._human_format(faction['ExoData'])}; " if faction['ExoData'] != 0 else ""

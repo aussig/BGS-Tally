@@ -30,9 +30,11 @@ class ActivityManager:
         self._load()
         self._archive_old_activity()
 
-        if self.activity_data == []:
+        if self.activity_data == [] or self.current_activity == None:
+            # Either no activity data, or the activity data file for the last stored tick has been manually deleted
             self.current_activity = Activity(self.bgstally, self.bgstally.tick)
             self.activity_data.append(self.current_activity)
+            self.activity_data.sort(reverse=True)
 
 
     def save(self):

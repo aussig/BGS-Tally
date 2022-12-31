@@ -29,6 +29,7 @@
 * When listing ground CZs, use a ⚔️ icon against each to easily differentiate them.
 * Tweaks to post titles and footers.
 * Whitespace is now stripped from Discord URLs to minimise user error (thanks @steaksauce-).
+* The 'Post to Discord' button is now enabled / disabled rather than hidden completely.
 
 ### Bug Fixes:
 

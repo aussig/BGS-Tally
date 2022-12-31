@@ -13,6 +13,7 @@ from thirdparty.ScrollableNotebook import ScrollableNotebook
 from theme import theme
 
 DATETIME_FORMAT_WINDOWTITLE = "%Y-%m-%d %H:%M:%S"
+LIMIT_TABS = 60
 
 
 class WindowActivity:
@@ -93,6 +94,10 @@ class WindowActivity:
         tab_index = 0
 
         for system_id in system_list:
+            if tab_index > LIMIT_TABS: # If we try to draw too many, the plugin simply hangs
+                Debug.logger.warn(f"Window tab limit ({LIMIT_TABS}) exceeded, skipping remaining tabs")
+                break
+
             system = activity.systems[system_id]
 
             if self.bgstally.state.ShowZeroActivitySystems.get() == CheckStates.STATE_OFF \
@@ -213,12 +218,30 @@ class WindowActivity:
         self._update_discord_field(DiscordText, activity)
 
         ttk.Button(ContainerFrame, text="Copy to Clipboard (Legacy Format)", command=partial(self._copy_to_clipboard, ContainerFrame, DiscordText)).pack(side=tk.LEFT, padx=5, pady=5)
-        if self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS): ttk.Button(ContainerFrame, text="Post to Discord", command=partial(self._post_to_discord, activity)).pack(side=tk.RIGHT, padx=5, pady=5)
+        self.btn_post_to_discord: ttk.Button = ttk.Button(ContainerFrame, text="Post to Discord", command=partial(self._post_to_discord, activity),
+                                                          state=('normal' if self._discord_button_available() else 'disabled'))
+        self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
 
         theme.update(ContainerFrame)
 
         # Ignore all scroll wheel events on spinboxes, to avoid accidental inputs
         Form.bind_class('TSpinbox', '<MouseWheel>', lambda event : "break")
+
+
+    def _discord_button_available(self) -> bool:
+        """
+        Return true if the 'Post to Discord' button should be available
+        """
+        match self.bgstally.state.DiscordActivity.get():
+            case DiscordActivity.BGS:
+                return self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS)
+            case DiscordActivity.THARGOIDWAR:
+                return self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR)
+            case DiscordActivity.BOTH:
+                return self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS) or \
+                       self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR)
+            case _:
+                return False
 
 
     def _update_discord_field(self, DiscordText, activity: Activity):
@@ -233,7 +256,7 @@ class WindowActivity:
 
     def _post_to_discord(self, activity: Activity):
         """
-        Callback to post to discord
+        Callback to post to discord in the appropriate channel(s)
         """
         if self.bgstally.state.DiscordPostStyle.get() == DiscordPostStyle.TEXT:
             if self.bgstally.state.DiscordActivity.get() == DiscordActivity.BGS:
@@ -289,6 +312,7 @@ class WindowActivity:
         """
         Callback when one of the Discord options is changed
         """
+        self.btn_post_to_discord.config(state=('normal' if self._discord_button_available() else 'disabled'))
         self._update_discord_field(DiscordText, activity)
 
 

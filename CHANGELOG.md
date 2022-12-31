@@ -15,6 +15,7 @@
 * When listing ground CZs, use a ⚔️ icon against each to easily differentiate them.
 * Tweaks to post titles and footers.
 * Whitespace is now stripped from Discord URLs to minimise user error (thanks @steaksauce-).
+* The 'Post to Discord' button is now enabled / disabled rather than hidden completely.
 
 ### Bug Fixes:
 
@@ -22,6 +23,8 @@
 * Moved the overlay text - both tick time and tick alerts - a little to the left to allow for differences in text placement between machines.
 * When using new modern Discord format, don't create empty posts and delete previous post if content is empty.
 * Minor change to 'CMDRs' button image to make it clearer in dark mode.
+* A limit of 60 is now applied to the number of tabs shown in the activity window, as too many tabs could crash the plugin.
+* Latest activity window would fail to display if a file is expected on disk but it has been deleted. In this circumstance, just clear down and start from zero.
 
 
 ## v2.1.0 - 2022-12-05

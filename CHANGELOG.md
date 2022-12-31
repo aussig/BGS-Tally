@@ -5,7 +5,7 @@
 ### New Features:
 
 * On-foot murders are now tracked and are independent from ship murders.
-* Trade purchase and profit is now tracked and reported against the three levels of demand: 🅻 / 🅼 / 🅷.
+* Trade purchase and profit is now tracked and reported against the levels of demand: 🅻 / 🅷 for purchases and 🆉 / 🅻 / 🅷 for sales (🆉 is zero demand, i.e. when you sell cargo that the market doesn't list).
 
 ### Changes:
 

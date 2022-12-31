@@ -308,6 +308,8 @@ class WindowActivity:
                 discord_fields:Dict = self._generate_discord_embed_fields(activity, DiscordActivity.BOTH)
                 activity.discord_bgs_messageid = self.bgstally.discord.post_embed(f"Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS)
 
+        activity.dirty = True # Because discord post ID has been changed
+
 
     def _discord_notes_change(self, DiscordNotesText, DiscordText, activity: Activity, *args):
         """

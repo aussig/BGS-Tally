@@ -167,7 +167,7 @@ class UI:
             if datetime.utcnow() > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
                 self.bgstally.overlay.display_message("tickwarn", f"Tick over {TIME_TICK_ALERT_M}m Overdue (Estimated)", True)
             elif datetime.utcnow() > self.bgstally.tick.next_predicted():
-                self.bgstally.overlay.display_message("tickwarn", f"Past Estimated Tick Time", True, text_colour_override="orange")
+                self.bgstally.overlay.display_message("tickwarn", f"Past Estimated Tick Time", True, text_colour_override="#FFA500")
             elif datetime.utcnow() > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
                 self.bgstally.overlay.display_message("tickwarn", f"Within {TIME_TICK_ALERT_M}m of Next Tick (Estimated)", True, text_colour_override="yellow")
 

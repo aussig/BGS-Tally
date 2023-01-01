@@ -142,8 +142,8 @@ class Activity:
 
     def clear_activity(self, mission_log: MissionLog):
         """
-        Clear down all activity. If there is a currently active mission in a system, only zero the activity,
-        otherwise delete the system completely.
+        Clear down all activity. If there is a currently active mission in a system or it's the current system the player is in,
+        only zero the activity, otherwise delete the system completely.
         """
         mission_systems = mission_log.get_active_systems()
 
@@ -152,8 +152,8 @@ class Activity:
             system = self.systems[system_address]
             # Note that the missions log historically stores system name so we check for that, not system address.
             # Potential for very rare bug here for systems with duplicate names.
-            if system['System'] in mission_systems:
-                # The system has a current mission, zero, don't delete
+            if system['System'] in mission_systems or self.bgstally.state.current_system_id == system_address:
+                # The system has a current mission, or it's the current system - zero, don't delete
                 for faction_name, faction_data in system['Factions'].items():
                     system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'])
             else:

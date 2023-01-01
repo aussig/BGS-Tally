@@ -14,6 +14,11 @@
 * Old `Today data.txt` and `Yesterday Data.txt` files from previous versions of BGS-Tally will now be deleted if found.
 * BGS-Tally is now more efficient in saving changes to activity files - it only saves to disk when something has changed or you have done some activity in a tick.
 
+### Bug Fixes:
+
+* Overlay: Fixed occasional flickering of the tick time.
+
+
 ## v2.2.0 - xxxx-xx-xx
 
 ### New Features:

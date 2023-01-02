@@ -1,5 +1,24 @@
 # Change Log
 
+## v2.3.0 - xxxx-xx-xx
+
+### New Features:
+
+* On-foot murders are now tracked and are independent from ship murders.
+* Trade purchase and profit is now tracked and reported against the levels of demand: 🅻 / 🅷 for purchases and 🆉 / 🅻 / 🅷 for sales (🆉 is zero demand, i.e. when you sell cargo that the market doesn't list).
+* Overlay: The tick warning has been enhanced, with various levels depending on when the last tick was.
+
+### Changes:
+
+* Limit the 'Previous Ticks' dropdown to just the last 20 activity logs. Previous logs are still available, find them in `activitydata/archive/` in the BGS-Tally folder.
+* Old `Today data.txt` and `Yesterday Data.txt` files from previous versions of BGS-Tally will now be deleted if found.
+* BGS-Tally is now more efficient in saving changes to activity files - it only saves to disk when something has changed or you have done some activity in a tick.
+
+### Bug Fixes:
+
+* Overlay: Fixed occasional flickering of the tick time.
+
+
 ## v2.2.0 - 2023-01-02
 
 ### New Features:

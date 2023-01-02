@@ -63,6 +63,6 @@ class Overlay:
         if frame == "info":
             return {"border_colour": "green", "fill_colour": "green", "text_colour": "#ffffff", "x": 900, "y": 5, "w": 100, "h": 25, "ttl": 6, "text_size": "normal"}
         elif frame == "tick":
-            return {"border_colour": None, "fill_colour": None, "text_colour": "#ffffff", "x": 1000, "y": 0, "w": 100, "h": 25, "ttl": 2, "text_size": "large"}
+            return {"border_colour": None, "fill_colour": None, "text_colour": "#ffffff", "x": 1000, "y": 0, "w": 100, "h": 25, "ttl": 3, "text_size": "large"}
         elif frame == "tickwarn":
-            return {"border_colour": None, "fill_colour": None, "text_colour": "red", "x": 1000, "y": 20, "w": 100, "h": 25, "ttl": 1, "text_size": "large"}
+            return {"border_colour": None, "fill_colour": None, "text_colour": "red", "x": 1000, "y": 20, "w": 100, "h": 25, "ttl": 1, "text_size": "normal"}

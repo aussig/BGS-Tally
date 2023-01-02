@@ -163,8 +163,14 @@ class UI:
                 return
 
             self.bgstally.overlay.display_message("tick", f"Curr Tick: {self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)}", True)
-            if (datetime.utcnow() > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M)):
-                self.bgstally.overlay.display_message("tickwarn", f"Within {TIME_TICK_ALERT_M}m of next tick (est)", True)
+            minutes_delta:int = int((datetime.utcnow() - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
+
+            if datetime.utcnow() > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
+                self.bgstally.overlay.display_message("tickwarn", f"Tick {minutes_delta}m Overdue (Estimated)", True)
+            elif datetime.utcnow() > self.bgstally.tick.next_predicted():
+                self.bgstally.overlay.display_message("tickwarn", f"Past Estimated Tick Time", True, text_colour_override="#FFA500")
+            elif datetime.utcnow() > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
+                self.bgstally.overlay.display_message("tickwarn", f"Within {TIME_TICK_ALERT_M}m of Next Tick (Estimated)", True, text_colour_override="yellow")
 
             sleep(TIME_WORKER_PERIOD_S)
 

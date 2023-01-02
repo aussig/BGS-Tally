@@ -17,6 +17,7 @@ from bgstally.constants import FOLDER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
 from bgstally.discord import Discord
 from bgstally.fleetcarrier import FleetCarrier
+from bgstally.market import Market
 from bgstally.missionlog import MissionLog
 from bgstally.overlay import Overlay
 from bgstally.state import State
@@ -58,6 +59,7 @@ class BGSTally:
         self.overlay = Overlay(self)
         self.activity_manager: ActivityManager = ActivityManager(self)
         self.fleet_carrier = FleetCarrier(self)
+        self.market: Market = Market(self)
         self.ui: UI = UI(self)
 
         self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
@@ -97,21 +99,53 @@ class BGSTally:
             dirty = True
 
         match entry.get('event'):
+            case 'ApproachSettlement' if state['Odyssey']:
+                activity.settlement_approached(entry, self.state)
+                dirty = True
+
+            case 'CommitCrime':
+                activity.crime_committed(entry, self.state)
+                dirty = True
+
             case 'Docked':
                 self.state.station_faction = entry['StationFaction']['Name']
                 self.state.station_type = entry['StationType']
+                dirty = True
+
+            case 'FactionKillBond' if state['Odyssey']:
+                activity.cb_received(entry, self.state)
                 dirty = True
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
                 self.state.station_type = entry['StationType']
                 dirty = True
 
-            case 'SellExplorationData' | 'MultiSellExplorationData':
-                activity.exploration_data_sold(entry, self.state)
+            case 'Market':
+                self.market.load()
+
+            case 'MarketBuy':
+                activity.trade_purchased(entry, self.state)
                 dirty = True
 
-            case 'SellOrganicData':
-                activity.organic_data_sold(entry, self.state)
+            case 'MarketSell':
+                activity.trade_sold(entry, self.state)
+                dirty = True
+
+            case 'MissionAbandoned':
+                self.mission_log.delete_mission_by_id(entry.get('MissionID'))
+                dirty = True
+
+            case 'MissionAccepted':
+                self.mission_log.add_mission(entry.get('Name', ""), entry.get('Faction', ""), entry.get('MissionID', ""), entry.get('Expiry', ""), system, station,
+                    entry.get('Count', -1), entry.get('PassengerCount', -1), entry.get('KillCount', -1))
+                dirty = True
+
+            case 'MissionCompleted':
+                activity.mission_completed(entry, self.mission_log)
+                dirty = True
+
+            case 'MissionFailed':
+                activity.mission_failed(entry, self.mission_log)
                 dirty = True
 
             case 'RedeemVoucher' if entry.get('Type') == 'bounty':
@@ -122,46 +156,17 @@ class BGSTally:
                 activity.cb_redeemed(entry, self.state)
                 dirty = True
 
-            case 'MarketBuy':
-                activity.trade_purchased(entry, self.state)
+            case 'SellExplorationData' | 'MultiSellExplorationData':
+                activity.exploration_data_sold(entry, self.state)
                 dirty = True
 
-            case 'MarketSell':
-                activity.trade_sold(entry, self.state)
-                dirty = True
-
-            case 'MissionAccepted':
-                self.mission_log.add_mission(entry.get('Name', ""), entry.get('Faction', ""), entry.get('MissionID', ""), entry.get('Expiry', ""), system, station,
-                    entry.get('Count', -1), entry.get('PassengerCount', -1), entry.get('KillCount', -1))
-                dirty = True
-
-            case 'MissionAbandoned':
-                self.mission_log.delete_mission_by_id(entry.get('MissionID'))
-                dirty = True
-
-            case 'MissionFailed':
-                activity.mission_failed(entry, self.mission_log)
-                dirty = True
-
-            case 'MissionCompleted':
-                activity.mission_completed(entry, self.mission_log)
+            case 'SellOrganicData':
+                activity.organic_data_sold(entry, self.state)
                 dirty = True
 
             case 'ShipTargeted':
                 activity.ship_targeted(entry, self.state)
                 self.target_log.ship_targeted(entry, system)
-                dirty = True
-
-            case 'CommitCrime':
-                activity.crime_committed(entry, self.state)
-                dirty = True
-
-            case 'ApproachSettlement' if state['Odyssey']:
-                activity.settlement_approached(entry, self.state)
-                dirty = True
-
-            case 'FactionKillBond' if state['Odyssey']:
-                activity.cb_received(entry, self.state)
                 dirty = True
 
         if dirty: self.save_data()

@@ -11,7 +11,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Inject Secrets
-      run: sed -i "s/$\{\{secrets.API_KEY_INARA\}\}/${{secrets.API_KEY_INARA}}/g" "./config/config.template.ini"
+      run: sed -i "s/\$API_KEY_INARA/${{secrets.API_KEY_INARA}}/g" "./config/config.template.ini"
       # run: zip -r ${{ github.event.repository.name }}.zip . -x ".git/*" ".github/*" "phpcs.xml" "composer.json" "composer.lock" ".gitignore"
 
       #env:

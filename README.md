@@ -23,7 +23,7 @@ Full instructions for **upgrading from a previous version are [here in the wiki 
 
 # Discord Integration
 
-The plugin generates Discord-ready text for copying-and-pasting manually into Discord and also supports direct posting into a Discord server of your choice using a webhook. You will need to create this webhook on your Discord server first - **instructions for setting up the webhook within Discord are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Discord-Server-Setup)**.
+The plugin generates Discord-ready text for copying-and-pasting manually into Discord and also supports direct posting into a Discord server or servers of your choice using webhooks. You will need to create webhook(s) on your Discord server first - **instructions for setting up webhooks within Discord are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Discord-Server-Setup)**.
 
 
 # What is Tracked
@@ -47,7 +47,7 @@ It writes to the following locations, both in the `BGS-Tally` folder:
 
 All of these files use the JSON format, so can be easily viewed in a text editor or JSON viewer.
 
-(N.B. Older versions of BGS-Tally wrote to `Today Data.txt`, `Yesterday Data.txt` and `MissionLog.txt` in your `BGS-Tally` folder. If you run BGS-Tally v2.0.0 or later, these files are automatically converted to the new formats inside `activitydata\` and `otherdata\`, but the old files are left in place in case you want to revert to the previous v1.x plugin.)
+(N.B. Older versions of BGS-Tally wrote to `Today Data.txt`, `Yesterday Data.txt` and `MissionLog.txt` in your `BGS-Tally` folder. If you run BGS-Tally v2.0.0 or later, these files are automatically converted to the new formats inside `activitydata\` and `otherdata\`).
 
 ## Network Connections
 

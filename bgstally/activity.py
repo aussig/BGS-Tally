@@ -142,8 +142,8 @@ class Activity:
 
     def clear_activity(self, mission_log: MissionLog):
         """
-        Clear down all activity. If there is a currently active mission in a system, only zero the activity,
-        otherwise delete the system completely.
+        Clear down all activity. If there is a currently active mission in a system or it's the current system the player is in,
+        only zero the activity, otherwise delete the system completely.
         """
         mission_systems = mission_log.get_active_systems()
 
@@ -152,8 +152,8 @@ class Activity:
             system = self.systems[system_address]
             # Note that the missions log historically stores system name so we check for that, not system address.
             # Potential for very rare bug here for systems with duplicate names.
-            if system['System'] in mission_systems:
-                # The system has a current mission, zero, don't delete
+            if system['System'] in mission_systems or self.bgstally.state.current_system_id == system_address:
+                # The system has a current mission, or it's the current system - zero, don't delete
                 for faction_name, faction_data in system['Factions'].items():
                     system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'])
             else:
@@ -338,7 +338,7 @@ class Activity:
         """
         Handle sale of exploration data
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         faction = current_system['Factions'].get(state.station_faction)
@@ -351,7 +351,7 @@ class Activity:
         """
         Handle sale of organic data
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         faction = current_system['Factions'].get(state.station_faction)
@@ -365,7 +365,7 @@ class Activity:
         """
         Handle redemption of bounty vouchers
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         for bv_info in journal_entry['Factions']:
@@ -382,7 +382,7 @@ class Activity:
         """
         Handle redemption of combat bonds
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         faction = current_system['Factions'].get(journal_entry['Faction'])
@@ -395,7 +395,7 @@ class Activity:
         """
         Handle purchase of trade commodities
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         faction = current_system['Factions'].get(state.station_faction)
@@ -408,7 +408,7 @@ class Activity:
         """
         Handle sale of trade commodities
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         faction = current_system['Factions'].get(state.station_faction)
@@ -434,7 +434,7 @@ class Activity:
         """
         Handle a crime
         """
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         # The faction logged in the CommitCrime event is the system faction, not the ship faction. So we store the
@@ -460,7 +460,7 @@ class Activity:
         """
         if state.last_settlement_approached == {}: return
 
-        current_system = self.systems[state.current_system_id]
+        current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
         timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_settlement_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")

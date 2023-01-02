@@ -1,6 +1,6 @@
 # Change Log
 
-## v2.2.0 - xxxx-xx-xx
+## v2.2.0 - 2023-01-02
 
 ### New Features:
 

@@ -10,7 +10,6 @@ from typing import List, Optional
 
 import myNotebook as nb
 import semantic_version
-from theme import theme
 from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.activity import Activity

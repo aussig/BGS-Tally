@@ -10,7 +10,6 @@ from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
 from bgstally.widgets import TextPlus
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from theme import theme
 
 DATETIME_FORMAT_WINDOWTITLE = "%Y-%m-%d %H:%M:%S"
 LIMIT_TABS = 60
@@ -231,8 +230,6 @@ class WindowActivity:
         self.btn_post_to_discord: ttk.Button = ttk.Button(ContainerFrame, text="Post to Discord", command=partial(self._post_to_discord, activity),
                                                           state=('normal' if self._discord_button_available() else 'disabled'))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
-
-        theme.update(ContainerFrame)
 
         # Ignore all scroll wheel events on spinboxes, to avoid accidental inputs
         Form.bind_class('TSpinbox', '<MouseWheel>', lambda event : "break")

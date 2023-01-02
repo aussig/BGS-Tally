@@ -1,5 +1,12 @@
 # Change Log
 
+## v2.2.1 - xxxx-xx-xx
+
+### Bug Fixes:
+
+* The CMDR list window wasn't listing scanned commanders. This was due to a missing config file, which should have contained the Inara API key. DOH!
+
+
 ## v2.2.0 - 2023-01-02
 
 ### New Features:

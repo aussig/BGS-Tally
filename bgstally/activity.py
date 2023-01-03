@@ -252,10 +252,9 @@ class Activity:
                     and effect_faction_name == journal_entry['Faction']:
                         faction['MissionPoints'] += 1
 
-            if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH + MISSIONS_TW_MASSACRE and mission is not None:
-                mission_station = mission.get('Station', "")
-                if mission_station == "": continue
-
+        if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH + MISSIONS_TW_MASSACRE and mission is not None:
+            mission_station = mission.get('Station', "")
+            if mission_station != "":
                 for system_address, system in self.systems.items():
                     if mission['System'] != system['System']: continue
                     faction = system['Factions'].get(effect_faction_name)

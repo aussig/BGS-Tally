@@ -257,7 +257,7 @@ class Activity:
             if mission_station != "":
                 for system_address, system in self.systems.items():
                     if mission['System'] != system['System']: continue
-                    faction = system['Factions'].get(effect_faction_name)
+                    faction = system['Factions'].get(journal_entry['Faction'])
                     if not faction: continue
 
                     tw_stations = faction['TWStations']

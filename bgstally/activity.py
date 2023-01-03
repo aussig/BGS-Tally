@@ -226,6 +226,7 @@ class Activity:
         self.dirty = True
         mission = mission_log.get_mission(journal_entry['MissionID'])
 
+        # BGS
         for faction_effect in journal_entry['FactionEffects']:
             effect_faction_name = faction_effect['Faction']
             if faction_effect['Influence'] != []:
@@ -260,6 +261,7 @@ class Activity:
                     and effect_faction_name == journal_entry['Faction']:
                         faction['MissionPoints'] += 1
 
+        # Thargoid War
         if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH + MISSIONS_TW_MASSACRE and mission is not None:
             mission_station = mission.get('Station', "")
             if mission_station != "":
@@ -317,7 +319,6 @@ class Activity:
                             case "$MissionUtil_FactionTag_Orthrus;":
                                 tw_stations[mission_station]['massacre']['o']['count'] += 1
                                 tw_stations[mission_station]['massacre']['o']['sum'] += mission.get('KillCount', -1)
-
 
         self.recalculate_zero_activity()
         mission_log.delete_mission_by_id(journal_entry['MissionID'])

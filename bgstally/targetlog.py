@@ -117,7 +117,7 @@ class TargetLog:
             'header': {
                 'appName': self.bgstally.plugin_name,
                 'appVersion': str(self.bgstally.version),
-                'isBeingDeveloped': "true",
+                'isBeingDeveloped': "false",
                 'APIkey': self.bgstally.config.apikey_inara()
             },
             'events': [

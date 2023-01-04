@@ -1,5 +1,13 @@
 # Change Log
 
+## v2.2.1 - 2023-01-04
+
+### Bug Fixes:
+
+* The CMDR list window wasn't listing scanned commanders. This was due to a missing config file, which should have contained the Inara API key. DOH!
+* In some circumstances, Thargoid War mission counts and commodity / passenger counts could be over-inflated. This is now fixed.
+
+
 ## v2.2.0 - 2023-01-02
 
 ### New Features:

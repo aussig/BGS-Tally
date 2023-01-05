@@ -53,6 +53,15 @@ class DiscordActivity(str, Enum):
     BOTH = 'Both'
 
 
+class RequestMethod(Enum):
+    GET = 'get'
+    POST = 'post'
+    PUT = 'put'
+    DELETE = 'delete'
+    HEAD = 'head'
+    OPTIONS = 'options'
+
+
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"
 FOLDER_ASSETS = "assets"
 FOLDER_DATA = "otherdata"

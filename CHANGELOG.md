@@ -13,6 +13,7 @@
 * Limit the 'Previous Ticks' dropdown to just the last 20 activity logs. Previous logs are still available, find them in `activitydata/archive/` in the BGS-Tally folder.
 * Old `Today data.txt` and `Yesterday Data.txt` files from previous versions of BGS-Tally will now be deleted if found (after conversion to latest format).
 * BGS-Tally is now more efficient in saving changes to activity files - it only saves to disk when something has changed or you have done some activity in a tick.
+* Plugin name and plugin foldername are now properly separated, so if you change the plugin's folder name, Inara API calls and the plugin name in Discord posts will still correctly say 'BGS-Tally'.
 
 ### Bug Fixes:
 

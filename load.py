@@ -8,10 +8,11 @@ from bgstally.constants import UpdateUIPolicy
 
 import semantic_version
 
+PLUGIN_NAME = "BGS-Tally"
 PLUGIN_VERSION = semantic_version.Version.coerce("2.2.1")
 
 # Initialise the main plugin class
-this:BGSTally = BGSTally(path.basename(path.dirname(__file__)), PLUGIN_VERSION)
+this:BGSTally = BGSTally(PLUGIN_NAME, PLUGIN_VERSION)
 
 
 def plugin_start3(plugin_dir):

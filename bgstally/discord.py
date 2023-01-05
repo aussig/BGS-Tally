@@ -31,7 +31,7 @@ class Discord:
             # No previous post
             if discord_text == "": return
 
-            discord_text += f"```md\n# Posted at: {utc_time_now}```" # Blue text instead of gray
+            discord_text += f"```md\n# Posted at: {utc_time_now} | {self.bgstally.plugin_name} v{str(self.bgstally.version)}```" # Blue text
             url = webhook_url
             response = requests.post(url=url, params={'wait': 'true'}, json={'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []})
             if response.ok:
@@ -44,7 +44,7 @@ class Discord:
         else:
             # Previous post, amend or delete it
             if discord_text != "":
-                discord_text += f"```diff\n+ Updated at: {utc_time_now}```"
+                discord_text += f"```diff\n+ Updated at: {utc_time_now} | {self.bgstally.plugin_name} v{str(self.bgstally.version)}```" # Green text
                 url = f"{webhook_url}/messages/{previous_messageid}"
                 response = requests.patch(url=url, json={'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []})
                 if not response.ok:

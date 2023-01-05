@@ -20,6 +20,7 @@ from bgstally.fleetcarrier import FleetCarrier
 from bgstally.market import Market
 from bgstally.missionlog import MissionLog
 from bgstally.overlay import Overlay
+from bgstally.requestmanager import RequestManager
 from bgstally.state import State
 from bgstally.targetlog import TargetLog
 from bgstally.tick import Tick
@@ -61,6 +62,7 @@ class BGSTally:
         self.fleet_carrier = FleetCarrier(self)
         self.market: Market = Market(self)
         self.ui: UI = UI(self)
+        self.request_manager:RequestManager = RequestManager(self)
 
         self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True

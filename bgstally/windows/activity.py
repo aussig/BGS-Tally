@@ -30,6 +30,14 @@ class WindowActivity:
         self.image_tab_inactive_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_enabled.png"))
         self.image_tab_inactive_part_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_part_enabled.png"))
         self.image_tab_inactive_disabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_disabled.png"))
+        self.image_icon_bgs_cz:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz.png"))
+        self.image_icon_tw_cargo:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_cargo.png"))
+        self.image_icon_tw_crit_wounded:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_crit_wounded.png"))
+        self.image_icon_tw_injured:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_injured.png"))
+        self.image_icon_tw_passengers:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_passengers.png"))
+        self.image_icon_tw_wounded:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_wounded.png"))
+
+        self.legend_popup:tk.Toplevel|None = None
 
         self._show(activity)
 
@@ -38,11 +46,11 @@ class WindowActivity:
         """
         Show our window
         """
-        Form = tk.Toplevel(self.ui.frame)
-        Form.title("BGS Tally - After Tick at: " + activity.tick_time.strftime(DATETIME_FORMAT_WINDOWTITLE))
-        Form.geometry("1200x800")
+        self.toplevel:tk.Toplevel = tk.Toplevel(self.ui.frame)
+        self.toplevel.title(f"{self.bgstally.plugin_name} - Activity After Tick at: {activity.tick_time.strftime(DATETIME_FORMAT_WINDOWTITLE)}")
+        self.toplevel.geometry("1200x800")
 
-        ContainerFrame = ttk.Frame(Form)
+        ContainerFrame = ttk.Frame(self.toplevel)
         ContainerFrame.pack(fill=tk.BOTH, expand=1)
         TabParent=ScrollableNotebook(ContainerFrame, wheelscroll=False, tabmenu=True)
         TabParent.pack(fill=tk.BOTH, expand=1, side=tk.TOP, padx=5, pady=5)
@@ -51,7 +59,9 @@ class WindowActivity:
         DiscordFrame.pack(fill=tk.BOTH, padx=5, pady=5)
         DiscordFrame.columnconfigure(0, weight=2)
         DiscordFrame.columnconfigure(1, weight=1)
-        ttk.Label(DiscordFrame, text="Discord Report", font=self.ui.heading_font).grid(row=0, column=0, sticky=tk.W)
+        label_discord_report:ttk.Label = ttk.Label(DiscordFrame, text="❓ Discord Report", font=self.ui.heading_font)
+        label_discord_report.grid(row=0, column=0, sticky=tk.W)
+        label_discord_report.bind("<Button-1>", self._legend_popup)
         ttk.Label(DiscordFrame, text="Discord Additional Notes", font=self.ui.heading_font).grid(row=0, column=1, sticky=tk.W)
         ttk.Label(DiscordFrame, text="Discord Options", font=self.ui.heading_font).grid(row=0, column=2, sticky=tk.W)
         ttk.Label(DiscordFrame, text="Double-check on-ground CZ tallies, sizes are not always correct", foreground='#f00').grid(row=1, column=0, columnspan=3, sticky=tk.W)
@@ -232,7 +242,40 @@ class WindowActivity:
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
 
         # Ignore all scroll wheel events on spinboxes, to avoid accidental inputs
-        Form.bind_class('TSpinbox', '<MouseWheel>', lambda event : "break")
+        self.toplevel.bind_class('TSpinbox', '<MouseWheel>', lambda event : "break")
+
+
+    def _legend_popup(self, event):
+        """
+        Display a mini-window showing a legend of all icons used
+        """
+        if self.legend_popup is not None and self.legend_popup.winfo_exists():
+            self.legend_popup.lift()
+        else:
+            self.legend_popup = tk.Toplevel(self.toplevel)
+            self.legend_popup.title(f"{self.bgstally.plugin_name} - Icon Legend")
+
+            frame_container:ttk.Frame = ttk.Frame(self.legend_popup)
+            frame_container.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)
+
+            current_row:int = 0
+            ttk.Label(frame_container, text="Icons in BGS Reports", font=self.ui.heading_font).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+            ttk.Label(frame_container, image=self.image_icon_bgs_cz).grid(row=current_row, column=0)
+            ttk.Label(frame_container, text=" On-ground Conflict Zone").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+            ttk.Label(frame_container, text="🆉🅻🅷", font=("Helvetica", 24)).grid(row=current_row, column=0)
+            ttk.Label(frame_container, text=" Demand level for trade buy / sell").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+
+            ttk.Label(frame_container, text="Icons in Thargoid War Reports", font=self.ui.heading_font).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+            ttk.Label(frame_container, image=self.image_icon_tw_passengers).grid(row=current_row, column=0)
+            ttk.Label(frame_container, text=" Passenger missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+            ttk.Label(frame_container, image=self.image_icon_tw_cargo).grid(row=current_row, column=0)
+            ttk.Label(frame_container, text=" Cargo missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+            ttk.Label(frame_container, image=self.image_icon_tw_injured).grid(row=current_row, column=0)
+            ttk.Label(frame_container, text=" Injured evacuation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+            ttk.Label(frame_container, image=self.image_icon_tw_wounded).grid(row=current_row, column=0)
+            ttk.Label(frame_container, text=" Wounded evacuation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+            ttk.Label(frame_container, image=self.image_icon_tw_crit_wounded).grid(row=current_row, column=0)
+            ttk.Label(frame_container, text=" Critically wounded evacuation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
 
 
     def _discord_button_available(self) -> bool:

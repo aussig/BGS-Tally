@@ -7,6 +7,7 @@
 * On-foot murders are now tracked and are independent from ship murders.
 * Trade purchase and profit is now tracked and reported against the levels of demand: 🅻 / 🅷 for purchases and 🆉 / 🅻 / 🅷 for sales (🆉 is zero demand, i.e. when you sell cargo that the market doesn't list).
 * In-game overlay: The tick warning has been enhanced, with various levels depending on when the last tick was.
+* There is now a key / legend popup showing all the various Discord icons used in reports and what they mean. Access this by clicking the ❓ icon in any activity window.
 
 ### Changes:
 

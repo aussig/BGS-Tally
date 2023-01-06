@@ -21,7 +21,6 @@ def plugin_start3(plugin_dir):
     """
     this.plugin_start(plugin_dir)
 
-    version_success = this.check_version()
     tick_success = this.check_tick(UpdateUIPolicy.NEVER)
 
     if tick_success == None:
@@ -42,7 +41,7 @@ def plugin_app(parent):
     """
     Return a TK Frame for adding to the EDMC main window
     """
-    return this.ui.get_plugin_frame(parent, this.git_version)
+    return this.ui.get_plugin_frame(parent)
 
 
 def plugin_prefs(parent, cmdr, is_beta):

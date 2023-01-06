@@ -9,18 +9,22 @@ import config
 from bgstally.constants import RequestMethod
 from bgstally.debug import Debug
 
+TIMEOUT_S = 10
+
 
 class BGSTallyRequest:
     """
     Encapsulates a request that can be queued and processed in a thread
     """
-    def __init__(self, endpoint:str, method:RequestMethod, callback:callable, payload:dict|None, data:dict|None):
+    def __init__(self, endpoint:str, method:RequestMethod, callback:callable, stream:bool, payload:dict|None, data:dict|None):
         # The endpoint to call
         self.endpoint:str = endpoint
         # The type of request
         self.method:RequestMethod = method
         # A callback function to call when the response is received
         self.callback:callable = callback
+        # For requests with large content, True to stream in chunks
+        self.stream:bool = stream
         # For requests that send data, a Dict containing the payload
         self.payload:dict|None = payload
         # Any additional data required to be passed to the callback function when the response is received
@@ -41,11 +45,11 @@ class RequestManager:
         self.request_thread.start()
 
 
-    def queue_request(self, endpoint:str, method:RequestMethod, callback:callable, payload:dict|None, data:dict|None):
+    def queue_request(self, endpoint:str, method:RequestMethod, callback:callable, stream:bool = False, payload:dict|None = None, data:dict|None = None):
         """
         Add a request to the queue
         """
-        self.request_queue.put(BGSTallyRequest(endpoint, method, callback, payload, data))
+        self.request_queue.put(BGSTallyRequest(endpoint, method, callback, stream, payload, data))
 
 
     def _worker(self) -> None:
@@ -67,12 +71,12 @@ class RequestManager:
             response:Response = None
             try:
                 match request.method:
-                    case RequestMethod.GET: response = requests.get(request.endpoint, timeout=10)
-                    case RequestMethod.POST: response = requests.post(request.endpoint, json=request.payload, timeout=10)
-                    case RequestMethod.PUT: response = requests.put(request.endpoint, timeout=10)
-                    case RequestMethod.DELETE: response = requests.delete(request.endpoint, timeout=10)
-                    case RequestMethod.HEAD: response = requests.head(request.endpoint, timeout=10)
-                    case RequestMethod.OPTIONS: response = requests.options(request.endpoint, timeout=10)
+                    case RequestMethod.GET: response = requests.get(request.endpoint, stream=request.stream, timeout=TIMEOUT_S)
+                    case RequestMethod.POST: response = requests.post(request.endpoint, stream=request.stream, json=request.payload, timeout=TIMEOUT_S)
+                    case RequestMethod.PUT: response = requests.put(request.endpoint, stream=request.stream, json=request.payload, timeout=TIMEOUT_S)
+                    case RequestMethod.DELETE: response = requests.delete(request.endpoint, stream=request.stream, timeout=TIMEOUT_S)
+                    case RequestMethod.HEAD: response = requests.head(request.endpoint, stream=request.stream, timeout=TIMEOUT_S)
+                    case RequestMethod.OPTIONS: response = requests.options(request.endpoint, stream=request.stream, timeout=TIMEOUT_S)
                     case _:
                         Debug.logger.warning(f"Invalid request method {request.type}")
                         request.callback(False, response, request)

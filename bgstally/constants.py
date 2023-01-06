@@ -65,3 +65,5 @@ class RequestMethod(Enum):
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"
 FOLDER_ASSETS = "assets"
 FOLDER_DATA = "otherdata"
+FOLDER_BACKUPS = "backups"
+FOLDER_UPDATES = "updates"

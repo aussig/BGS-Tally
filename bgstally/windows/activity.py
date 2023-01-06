@@ -254,6 +254,7 @@ class WindowActivity:
         else:
             self.legend_popup = tk.Toplevel(self.toplevel)
             self.legend_popup.title(f"{self.bgstally.plugin_name} - Icon Legend")
+            self.legend_popup.resizable(False, False)
 
             frame_container:ttk.Frame = ttk.Frame(self.legend_popup)
             frame_container.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)

@@ -54,7 +54,7 @@ class UI:
         """
 
 
-    def get_plugin_frame(self, parent_frame: tk.Frame, git_version: Optional[semantic_version.Version]):
+    def get_plugin_frame(self, parent_frame:tk.Frame):
         """
         Return a TK Frame for adding to the EDMC main window
         """
@@ -62,9 +62,8 @@ class UI:
 
         current_row = 0
         tk.Label(self.frame, text="BGS Tally (Aussi)").grid(row=current_row, column=0, sticky=tk.W)
-        tk.Label(self.frame, text=f"v{str(self.bgstally.version)}").grid(row=current_row, column=1, sticky=tk.W)
-        if git_version > self.bgstally.version:
-            HyperlinkLabel(self.frame, text=f"New version available (v{str(git_version)})", background=nb.Label().cget('background'), url=URL_LATEST_RELEASE, underline=True).grid(row=current_row, column=1, columnspan=2, sticky=tk.W)
+        self.label_version = HyperlinkLabel(self.frame, text=f"v{str(self.bgstally.version)}", background=nb.Label().cget('background'), url=URL_LATEST_RELEASE, underline=True)
+        self.label_version.grid(row=current_row, column=1, columnspan=2, sticky=tk.W)
         current_row += 1
         self.button_latest_tick: tk.Button = tk.Button(self.frame, text="Latest BGS Tally", height=SIZE_BUTTON_PIXELS-2, image=self.image_blank, compound=tk.RIGHT, command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity()))
         self.button_latest_tick.grid(row=current_row, column=0, padx=3)
@@ -92,6 +91,8 @@ class UI:
         """
         Update the tick time label, current activity button and carrier button in the plugin frame
         """
+        if self.bgstally.update_manager.update_available:
+            self.label_version.configure(text="Update will be installed on shutdown", foreground='red')
         self.label_tick.config(text=self.bgstally.tick.get_formatted())
         self.button_latest_tick.config(command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity()))
         if self.button_carrier is not None:

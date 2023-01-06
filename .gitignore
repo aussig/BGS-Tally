@@ -136,3 +136,7 @@ config/config.ini
 
 # custom
 test.py
+activitydata/
+otherdata/
+backups/
+updates/

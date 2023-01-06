@@ -133,7 +133,7 @@ class TargetLog:
             ]
         }
 
-        self.bgstally.request_manager.queue_request(URL_INARA_API, RequestMethod.POST, self.inara_data_received, payload, cmdr_data)
+        self.bgstally.request_manager.queue_request(URL_INARA_API, RequestMethod.POST, self.inara_data_received, payload=payload, data=cmdr_data)
 
         return cmdr_data, True, True
 

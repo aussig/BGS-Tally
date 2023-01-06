@@ -1,10 +1,7 @@
 from os import mkdir, path
 from threading import Thread
 from time import sleep
-from typing import Optional
 
-import plug
-import requests
 import semantic_version
 from companion import CAPIData, SERVER_LIVE
 from config import appversion, config
@@ -25,9 +22,9 @@ from bgstally.state import State
 from bgstally.targetlog import TargetLog
 from bgstally.tick import Tick
 from bgstally.ui import UI
+from bgstally.updatemanager import UpdateManager
 
 TIME_WORKER_PERIOD_S = 60
-URL_PLUGIN_VERSION = "https://api.github.com/repos/aussig/BGS-Tally/releases/latest"
 
 
 class BGSTally:
@@ -37,7 +34,6 @@ class BGSTally:
     def __init__(self, plugin_name: str, version: semantic_version.Version):
         self.plugin_name:str = plugin_name
         self.version: semantic_version.Version = version
-        self.git_version: semantic_version.Version = semantic_version.Version.coerce("0")
 
 
     def plugin_start(self, plugin_dir: str):
@@ -63,6 +59,7 @@ class BGSTally:
         self.market: Market = Market(self)
         self.ui: UI = UI(self)
         self.request_manager:RequestManager = RequestManager(self)
+        self.update_manager:UpdateManager = UpdateManager(self)
 
         self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True
@@ -75,6 +72,9 @@ class BGSTally:
         """
         self.ui.shut_down()
         self.save_data()
+
+        if self.update_manager.update_available:
+            self.update_manager.update_plugin()
 
 
     def journal_entry(self, cmdr, is_beta, system, station, entry, state):
@@ -195,24 +195,6 @@ class BGSTally:
         """
         return False # Don't support until EDMC 5.8.0 is out
         return callable(appversion) and appversion() >= semantic_version.Version('5.8.0')
-
-
-    def check_version(self):
-        """
-        Check for a new plugin version
-        """
-        try:
-            response = requests.get(URL_PLUGIN_VERSION, timeout=10)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            self.debug.logger.warning(f"Unable to fetch latest plugin version", exc_info=e)
-            plug.show_error(f"BGS-Tally: Unable to fetch latest plugin version")
-            return None
-        else:
-            latest = response.json()
-            self.git_version = semantic_version.Version.coerce(latest['tag_name'])
-
-        return True
 
 
     def check_tick(self, uipolicy: UpdateUIPolicy):

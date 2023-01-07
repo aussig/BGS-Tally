@@ -264,7 +264,7 @@ class WindowActivity:
             ttk.Label(frame_container, image=self.image_icon_bgs_cz).grid(row=current_row, column=0)
             ttk.Label(frame_container, text=" On-ground Conflict Zone").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
             ttk.Label(frame_container, text="🆉🅻🅷", font=("Helvetica", 24)).grid(row=current_row, column=0)
-            ttk.Label(frame_container, text=" Demand level for trade buy / sell").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+            ttk.Label(frame_container, text=" Zero / Low / High demand level for trade buy / sell").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
 
             ttk.Label(frame_container, text="Icons in Thargoid War Reports", font=self.ui.heading_font).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
             ttk.Label(frame_container, image=self.image_icon_tw_passengers).grid(row=current_row, column=0)

@@ -3,6 +3,7 @@ from threading import Thread
 
 import requests
 from requests import Response
+from re import compile, match, IGNORECASE
 
 import config
 
@@ -39,7 +40,13 @@ class RequestManager:
     """
     def __init__(self, bgstally):
         self.bgstally = bgstally
-
+        self.re_url = compile(
+            r'^(?:http|ftp)s?://' # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+            r'localhost|' #localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+            r'(?::\d+)?' # optional port
+            r'(?:/?|[/?]\S+)$', IGNORECASE)
         self.request_queue:Queue = Queue()
 
         self.request_thread: Thread = Thread(target=self._worker, name="BGSTally Request worker")
@@ -51,9 +58,20 @@ class RequestManager:
         """
         Add a request to the queue
         """
+        if not self._url_valid(endpoint):
+            Debug.logger.info(f"Attempted to call {endpoint} which is not a well-formed URL")
+            return
+
         headers:dict = {'User-Agent': f"{self.bgstally.plugin_name}/{self.bgstally.version}"} | headers
 
         self.request_queue.put(BGSTallyRequest(endpoint, method, callback, headers, stream, payload, data))
+
+
+    def _url_valid(self, url:str) -> bool:
+        """
+        Check whether a URL is well-formed
+        """
+        return match(self.re_url, url) is not None
 
 
     def _worker(self) -> None:

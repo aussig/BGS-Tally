@@ -5,6 +5,8 @@ from bgstally.constants import RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 
+HEADER_APIKEY = "apikey"
+
 
 class APIManager:
     """
@@ -19,9 +21,12 @@ class APIManager:
         """
         Current activity has been updated
         """
-        Debug.logger.info(f"Calling activity API")
-        # Need to set key in a header
-        self.bgstally.request_manager.queue_request(self.bgstally.state.APIActivitiesURL.get(), RequestMethod.PUT, self.version_info_received, payload=activity._as_dict())
+        headers:dict|None = None
+        apikey:str = self.bgstally.state.APIActivitiesKey.get()
+
+        if apikey != "": headers = {HEADER_APIKEY: apikey}
+
+        self.bgstally.request_manager.queue_request(self.bgstally.state.APIActivitiesURL.get(), RequestMethod.PUT, self.version_info_received, headers=headers, payload=activity._as_dict())
 
 
     def version_info_received(self, success:bool, response:Response, request:BGSTallyRequest):

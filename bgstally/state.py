@@ -33,6 +33,11 @@ class State:
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordActivity', default=DiscordActivity.BOTH))
         self.EnableOverlay:tk.StringVar = tk.StringVar(value=config.get_str('XEnableOverlay', default=CheckStates.STATE_ON))
 
+        self.APIActivitiesURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIActivitiesURL', default=""))
+        self.APIActivitiesKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIActivitiesKey', default=""))
+        self.APIEventsURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIEventsURL', default=""))
+        self.APIEventsKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIEventsKey', default=""))
+
         # Persistent values
         self.current_system_id:str = config.get_str('XCurrentSystemID')
         self.station_faction:str = config.get_str('XStationFaction')
@@ -69,6 +74,11 @@ class State:
         config.set('XDiscordPostStyle', self.DiscordPostStyle.get())
         config.set('XDiscordActivity', self.DiscordActivity.get())
         config.set('XEnableOverlay', self.EnableOverlay.get())
+
+        config.set('BGST_APIActivitiesURL', self.APIActivitiesURL.get())
+        config.set('BGST_APIActivitiesKey', self.APIActivitiesKey.get())
+        config.set('BGST_APIEventsURL', self.APIEventsURL.get())
+        config.set('BGST_APIEventsKey', self.APIEventsKey.get())
 
         # Persistent values
         config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")

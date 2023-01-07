@@ -17,13 +17,13 @@ class BGSTallyRequest:
     """
     Encapsulates a request that can be queued and processed in a thread
     """
-    def __init__(self, endpoint:str, method:RequestMethod, callback:callable|None, headers:dict, stream:bool, payload:dict|None, data:dict|None):
+    def __init__(self, endpoint:str, method:RequestMethod, callback:callable, headers:dict, stream:bool, payload:dict|None, data:dict|None):
         # The endpoint to call
         self.endpoint:str = endpoint
         # The type of request
         self.method:RequestMethod = method
         # A callback function to call when the response is received
-        self.callback:callable|None = callback
+        self.callback:callable = callback
         # Request headers
         self.headers:dict = headers
         # For requests with large content, True to stream in chunks
@@ -54,7 +54,7 @@ class RequestManager:
         self.request_thread.start()
 
 
-    def queue_request(self, endpoint:str, method:RequestMethod, callback:callable|None = None, headers:dict = {}, stream:bool = False, payload:dict|None = None, data:dict|None = None):
+    def queue_request(self, endpoint:str, method:RequestMethod, callback:callable = None, headers:dict = {}, stream:bool = False, payload:dict|None = None, data:dict|None = None):
         """
         Add a request to the queue
         """

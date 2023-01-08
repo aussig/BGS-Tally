@@ -3,6 +3,7 @@ from threading import Thread
 
 import requests
 from requests import Response
+from re import compile, match, IGNORECASE
 
 import config
 
@@ -16,13 +17,15 @@ class BGSTallyRequest:
     """
     Encapsulates a request that can be queued and processed in a thread
     """
-    def __init__(self, endpoint:str, method:RequestMethod, callback:callable, stream:bool, payload:dict|None, data:dict|None):
+    def __init__(self, endpoint:str, method:RequestMethod, callback:callable, headers:dict, stream:bool, payload:dict|None, data:dict|None):
         # The endpoint to call
         self.endpoint:str = endpoint
         # The type of request
         self.method:RequestMethod = method
         # A callback function to call when the response is received
         self.callback:callable = callback
+        # Request headers
+        self.headers:dict = headers
         # For requests with large content, True to stream in chunks
         self.stream:bool = stream
         # For requests that send data, a Dict containing the payload
@@ -37,7 +40,13 @@ class RequestManager:
     """
     def __init__(self, bgstally):
         self.bgstally = bgstally
-
+        self.re_url = compile(
+            r'^(?:http|ftp)s?://' # http:// or https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...
+            r'localhost|' #localhost...
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})' # ...or ip
+            r'(?::\d+)?' # optional port
+            r'(?:/?|[/?]\S+)$', IGNORECASE)
         self.request_queue:Queue = Queue()
 
         self.request_thread: Thread = Thread(target=self._worker, name="BGSTally Request worker")
@@ -45,11 +54,24 @@ class RequestManager:
         self.request_thread.start()
 
 
-    def queue_request(self, endpoint:str, method:RequestMethod, callback:callable, stream:bool = False, payload:dict|None = None, data:dict|None = None):
+    def queue_request(self, endpoint:str, method:RequestMethod, callback:callable = None, headers:dict = {}, stream:bool = False, payload:dict|None = None, data:dict|None = None):
         """
         Add a request to the queue
         """
-        self.request_queue.put(BGSTallyRequest(endpoint, method, callback, stream, payload, data))
+        if not self._url_valid(endpoint):
+            Debug.logger.info(f"Attempted to call {endpoint} which is not a well-formed URL")
+            return
+
+        headers:dict = {'User-Agent': f"{self.bgstally.plugin_name}/{self.bgstally.version}"} | headers
+
+        self.request_queue.put(BGSTallyRequest(endpoint, method, callback, headers, stream, payload, data))
+
+
+    def _url_valid(self, url:str) -> bool:
+        """
+        Check whether a URL is well-formed
+        """
+        return match(self.re_url, url) is not None
 
 
     def _worker(self) -> None:
@@ -71,24 +93,24 @@ class RequestManager:
             response:Response = None
             try:
                 match request.method:
-                    case RequestMethod.GET: response = requests.get(request.endpoint, stream=request.stream, timeout=TIMEOUT_S)
-                    case RequestMethod.POST: response = requests.post(request.endpoint, stream=request.stream, json=request.payload, timeout=TIMEOUT_S)
-                    case RequestMethod.PUT: response = requests.put(request.endpoint, stream=request.stream, json=request.payload, timeout=TIMEOUT_S)
-                    case RequestMethod.DELETE: response = requests.delete(request.endpoint, stream=request.stream, timeout=TIMEOUT_S)
-                    case RequestMethod.HEAD: response = requests.head(request.endpoint, stream=request.stream, timeout=TIMEOUT_S)
-                    case RequestMethod.OPTIONS: response = requests.options(request.endpoint, stream=request.stream, timeout=TIMEOUT_S)
+                    case RequestMethod.GET: response = requests.get(request.endpoint, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
+                    case RequestMethod.POST: response = requests.post(request.endpoint, headers=request.headers, stream=request.stream, json=request.payload, timeout=TIMEOUT_S)
+                    case RequestMethod.PUT: response = requests.put(request.endpoint, headers=request.headers, stream=request.stream, json=request.payload, timeout=TIMEOUT_S)
+                    case RequestMethod.DELETE: response = requests.delete(request.endpoint, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
+                    case RequestMethod.HEAD: response = requests.head(request.endpoint, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
+                    case RequestMethod.OPTIONS: response = requests.options(request.endpoint, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
                     case _:
                         Debug.logger.warning(f"Invalid request method {request.type}")
-                        request.callback(False, response, request)
+                        if request.callback: request.callback(False, response, request)
                         continue
 
                 response.raise_for_status()
 
             except requests.exceptions.RequestException as e:
                 Debug.logger.warning(f"Unable to complete request {request.endpoint}", exc_info=e)
-                request.callback(False, response, request)
+                if request.callback: request.callback(False, response, request)
 
             else:
                 # Success
                 Debug.logger.info(f"Request success {request.endpoint}")
-                request.callback(True, response, request)
+                if request.callback: request.callback(True, response, request)

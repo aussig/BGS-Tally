@@ -49,7 +49,7 @@ class UpdateManager:
         except OSError as e:
             if e.errno != errno.EEXIST: return
 
-        self.bgstally.request_manager.queue_request(URL_PLUGIN_VERSION, RequestMethod.GET, self.version_info_received)
+        self.bgstally.request_manager.queue_request(URL_PLUGIN_VERSION, RequestMethod.GET, callback=self.version_info_received)
 
 
     def version_info_received(self, success:bool, response:Response, request:BGSTallyRequest):
@@ -83,7 +83,7 @@ class UpdateManager:
 
         if self.remote_version > self.bgstally.version:
             # Download the new release
-            self.bgstally.request_manager.queue_request(self.release_url, RequestMethod.GET, self.download_received, stream=True)
+            self.bgstally.request_manager.queue_request(self.release_url, RequestMethod.GET, callback=self.download_received, stream=True)
 
 
     def download_received(self, success:bool, response:Response, request:BGSTallyRequest):

@@ -9,6 +9,7 @@ from monitor import monitor
 
 from bgstally.activity import Activity
 from bgstally.activitymanager import ActivityManager
+from bgstally.apimanager import APIManager
 from bgstally.config import Config
 from bgstally.constants import FOLDER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
@@ -46,22 +47,23 @@ class BGSTally:
         if not path.exists(data_filepath): mkdir(data_filepath)
 
         # Classes
-        self.debug: Debug = Debug(self)
-        self.config: Config = Config(self)
-        self.state: State = State(self)
-        self.mission_log: MissionLog = MissionLog(self)
-        self.target_log: TargetLog = TargetLog(self)
-        self.discord: Discord = Discord(self)
-        self.tick: Tick = Tick(self, True)
-        self.overlay = Overlay(self)
-        self.activity_manager: ActivityManager = ActivityManager(self)
-        self.fleet_carrier = FleetCarrier(self)
-        self.market: Market = Market(self)
-        self.ui: UI = UI(self)
+        self.debug:Debug = Debug(self)
+        self.config:Config = Config(self)
+        self.state:State = State(self)
+        self.mission_log:MissionLog = MissionLog(self)
+        self.target_log:TargetLog = TargetLog(self)
+        self.discord:Discord = Discord(self)
+        self.tick:Tick = Tick(self, True)
+        self.overlay:Overlay = Overlay(self)
+        self.activity_manager:ActivityManager = ActivityManager(self)
+        self.fleet_carrier:FleetCarrier = FleetCarrier(self)
+        self.market:Market = Market(self)
+        self.ui:UI = UI(self)
         self.request_manager:RequestManager = RequestManager(self)
+        self.api_manager:APIManager = APIManager(self)
         self.update_manager:UpdateManager = UpdateManager(self)
 
-        self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
+        self.thread:Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True
         self.thread.start()
 
@@ -171,7 +173,9 @@ class BGSTally:
                 self.target_log.ship_targeted(entry, system)
                 dirty = True
 
-        if dirty: self.save_data()
+        if dirty:
+            self.save_data()
+            self.api_manager.activity_update(activity)
 
 
     def capi_fleetcarrier(self, data: CAPIData):

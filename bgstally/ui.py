@@ -109,16 +109,16 @@ class UI:
         frame.columnconfigure(1, weight=1)
 
         current_row = 1
-        nb.Label(frame, text=f"BGS Tally (modified by Aussi) v{str(self.bgstally.version)}", font=self.heading_font).grid(column=0, padx=10, sticky=tk.W)
+        nb.Label(frame, text=f"BGS Tally (modified by Aussi) v{str(self.bgstally.version)}", font=self.heading_font).grid(row=current_row, column=0, padx=10, sticky=tk.W)
         HyperlinkLabel(frame, text="Instructions for Use", background=nb.Label().cget('background'), url=URL_WIKI, underline=True).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="General", font=self.heading_font).grid(column=0, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(frame, text="BGS Tally Active", variable=self.bgstally.state.Status, onvalue="Active", offvalue="Paused").grid(column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(frame, text="Show Systems with Zero Activity", variable=self.bgstally.state.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(column=1, padx=10, sticky=tk.W); current_row += 1
+        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text="General", font=self.heading_font).grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Checkbutton(frame, text="BGS Tally Active", variable=self.bgstally.state.Status, onvalue="Active", offvalue="Paused").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Show Systems with Zero Activity", variable=self.bgstally.state.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Discord", font=self.heading_font).grid(column=0, padx=10, sticky=tk.W); current_row += 1
+        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text="Discord", font=self.heading_font).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1
         nb.Label(frame, text="Post Format").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         nb.Radiobutton(frame, text="Modern", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Radiobutton(frame, text="Legacy", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
@@ -138,15 +138,26 @@ class UI:
         nb.Label(frame, text="Discord Post as User").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
 
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="In-game Overlay", font=self.heading_font).grid(column=0, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(frame, text="Show In-game Overlay", variable=self.bgstally.state.EnableOverlay, state="disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled", onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(column=1, padx=10, sticky=tk.W); current_row += 1
+        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text="In-game Overlay", font=self.heading_font).grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Checkbutton(frame, text="Show In-game Overlay", variable=self.bgstally.state.EnableOverlay, state="disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled", onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         if self.bgstally.overlay.edmcoverlay == None:
             nb.Label(frame, text="In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.").grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1
 
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Advanced", font=self.heading_font).grid(column=0, padx=10, sticky=tk.W); current_row += 1
-        tk.Button(frame, text="FORCE Tick", command=self._confirm_force_tick, bg="red", fg="white").grid(column=1, padx=10, sticky=tk.W, row=current_row); current_row += 1
+        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text="Integrations", font=self.heading_font).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1
+        nb.Label(frame, text="Activities API URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        EntryPlus(frame, textvariable=self.bgstally.state.APIActivitiesURL).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text="Activities API Key").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        EntryPlus(frame, textvariable=self.bgstally.state.APIActivitiesKey).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text="Events API URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        EntryPlus(frame, textvariable=self.bgstally.state.APIEventsURL).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text="Events API Key").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        EntryPlus(frame, textvariable=self.bgstally.state.APIEventsKey).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
+
+        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text="Advanced", font=self.heading_font).grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        tk.Button(frame, text="FORCE Tick", command=self._confirm_force_tick, bg="red", fg="white").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         return frame
 

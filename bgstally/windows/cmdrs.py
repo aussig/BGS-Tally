@@ -167,7 +167,7 @@ class WindowCMDRs:
                     "inline": True
                     })
 
-        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr['TargetName']} Spotted", None, embed_fields, None, DiscordChannel.BGS)
+        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr['TargetName']} Spotted", None, embed_fields, None, DiscordChannel.BGS, None)
 
 
 class TreeviewPlus(ttk.Treeview):

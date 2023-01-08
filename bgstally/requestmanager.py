@@ -17,13 +17,15 @@ class BGSTallyRequest:
     """
     Encapsulates a request that can be queued and processed in a thread
     """
-    def __init__(self, endpoint:str, method:RequestMethod, callback:callable, headers:dict, stream:bool, payload:dict|None, data:dict|None):
+    def __init__(self, endpoint:str, method:RequestMethod, callback:callable, params:dict, headers:dict, stream:bool, payload:dict|None, data:dict|None):
         # The endpoint to call
         self.endpoint:str = endpoint
         # The type of request
         self.method:RequestMethod = method
         # A callback function to call when the response is received
         self.callback:callable = callback
+        # Request parameters
+        self.params:dict = params
         # Request headers
         self.headers:dict = headers
         # For requests with large content, True to stream in chunks
@@ -54,7 +56,7 @@ class RequestManager:
         self.request_thread.start()
 
 
-    def queue_request(self, endpoint:str, method:RequestMethod, callback:callable = None, headers:dict = {}, stream:bool = False, payload:dict|None = None, data:dict|None = None):
+    def queue_request(self, endpoint:str, method:RequestMethod, callback:callable = None, params:dict = {}, headers:dict = {}, stream:bool = False, payload:dict|None = None, data:dict|None = None):
         """
         Add a request to the queue
         """
@@ -64,7 +66,7 @@ class RequestManager:
 
         headers:dict = {'User-Agent': f"{self.bgstally.plugin_name}/{self.bgstally.version}"} | headers
 
-        self.request_queue.put(BGSTallyRequest(endpoint, method, callback, headers, stream, payload, data))
+        self.request_queue.put(BGSTallyRequest(endpoint, method, callback, params, headers, stream, payload, data))
 
 
     def _url_valid(self, url:str) -> bool:
@@ -88,17 +90,18 @@ class RequestManager:
                 Debug.logger.error(f"Queued request was not an instance of BGSTallyRequest")
                 continue
 
-            Debug.logger.info(f"Processing request {request.endpoint}")
+            Debug.logger.info(f"Processing {request.method} request {request.endpoint}")
 
             response:Response = None
             try:
                 match request.method:
-                    case RequestMethod.GET: response = requests.get(request.endpoint, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
-                    case RequestMethod.POST: response = requests.post(request.endpoint, headers=request.headers, stream=request.stream, json=request.payload, timeout=TIMEOUT_S)
-                    case RequestMethod.PUT: response = requests.put(request.endpoint, headers=request.headers, stream=request.stream, json=request.payload, timeout=TIMEOUT_S)
-                    case RequestMethod.DELETE: response = requests.delete(request.endpoint, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
-                    case RequestMethod.HEAD: response = requests.head(request.endpoint, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
-                    case RequestMethod.OPTIONS: response = requests.options(request.endpoint, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
+                    case RequestMethod.GET: response = requests.get(request.endpoint, params=request.params, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
+                    case RequestMethod.POST: response = requests.post(request.endpoint, params=request.params, headers=request.headers, stream=request.stream, json=request.payload, timeout=TIMEOUT_S)
+                    case RequestMethod.PUT: response = requests.put(request.endpoint, params=request.params, headers=request.headers, stream=request.stream, json=request.payload, timeout=TIMEOUT_S)
+                    case RequestMethod.PATCH: response = requests.patch(request.endpoint, params=request.params, headers=request.headers, stream=request.stream, json=request.payload, timeout=TIMEOUT_S)
+                    case RequestMethod.DELETE: response = requests.delete(request.endpoint, params=request.params, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
+                    case RequestMethod.HEAD: response = requests.head(request.endpoint, params=request.params, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
+                    case RequestMethod.OPTIONS: response = requests.options(request.endpoint, params=request.params, headers=request.headers, stream=request.stream, timeout=TIMEOUT_S)
                     case _:
                         Debug.logger.warning(f"Invalid request method {request.type}")
                         if request.callback: request.callback(False, response, request)

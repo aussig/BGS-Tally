@@ -16,3 +16,6 @@ insert_final_newline = true
 
 # No trailing whitespace
 trim_trailing_whitespace  = true
+
+# Hard-wrap at 160 columns
+max_line_length = 159

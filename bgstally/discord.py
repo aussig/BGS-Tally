@@ -1,13 +1,10 @@
 from datetime import datetime
-from typing import Dict, List
 
-import requests
 from requests import Response
 
 from bgstally.constants import DiscordChannel, RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
-
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S (game)"
 URL_CLOCK_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Fxemoji_u1F556.svg/240px-Fxemoji_u1F556.svg.png"
@@ -82,6 +79,7 @@ class Discord:
                 self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, callback=self._request_complete, data=data)
             else:
                 url = f"{webhook_url}/messages/{previous_messageid}"
+
                 self.bgstally.request_manager.queue_request(url, RequestMethod.DELETE, callback=self._request_complete, data=data)
 
 

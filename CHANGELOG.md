@@ -6,6 +6,10 @@
 
 * Plugin auto-update. From this version on, when a new version of the plugin is released, it will automatically be downloaded and update itself the next time you launch EDMarketConnector. You will need to install this version 3.0.0 manually, but that should be the last time you ever have to do a manual update unless you want to test pre-release versions (i.e. alphas or betas).
 
+### Changes:
+
+* All Discord posting has now been moved to the new queued background thread mechanism.
+
 
 ## v2.3.0 - xxxx-xx-xx
 

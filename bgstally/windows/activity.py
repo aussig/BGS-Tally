@@ -60,7 +60,7 @@ class WindowActivity:
         DiscordFrame.pack(fill=tk.BOTH, padx=5, pady=5)
         DiscordFrame.columnconfigure(0, weight=2)
         DiscordFrame.columnconfigure(1, weight=1)
-        label_discord_report:ttk.Label = ttk.Label(DiscordFrame, text="❓ Discord Report", font=self.ui.heading_font)
+        label_discord_report:ttk.Label = ttk.Label(DiscordFrame, text="❓ Discord Report Preview", font=self.ui.heading_font)
         label_discord_report.grid(row=0, column=0, sticky=tk.W)
         label_discord_report.bind("<Button-1>", self._legend_popup)
         ttk.Label(DiscordFrame, text="Discord Additional Notes", font=self.ui.heading_font).grid(row=0, column=1, sticky=tk.W)

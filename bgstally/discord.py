@@ -5,6 +5,7 @@ import requests
 
 from bgstally.constants import DiscordChannel
 from bgstally.debug import Debug
+from thirdparty.colors import *
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S (game)"
 URL_CLOCK_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Fxemoji_u1F556.svg/240px-Fxemoji_u1F556.svg.png"
@@ -31,7 +32,7 @@ class Discord:
             # No previous post
             if discord_text == "": return
 
-            discord_text += f"```md\n# Posted at: {utc_time_now} | {self.bgstally.plugin_name} v{str(self.bgstally.version)}```" # Blue text
+            discord_text += f"```ansi\n{blue(f'Posted at: {utc_time_now} | {self.bgstally.plugin_name} v{str(self.bgstally.version)}')}```"
             url = webhook_url
             response = requests.post(url=url, params={'wait': 'true'}, json={'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []})
             if response.ok:
@@ -44,7 +45,7 @@ class Discord:
         else:
             # Previous post, amend or delete it
             if discord_text != "":
-                discord_text += f"```diff\n+ Updated at: {utc_time_now} | {self.bgstally.plugin_name} v{str(self.bgstally.version)}```" # Green text
+                discord_text += f"```ansi\n{green(f'Updated at: {utc_time_now} | {self.bgstally.plugin_name} v{str(self.bgstally.version)}')}```"
                 url = f"{webhook_url}/messages/{previous_messageid}"
                 response = requests.patch(url=url, json={'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []})
                 if not response.ok:

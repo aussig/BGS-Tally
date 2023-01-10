@@ -4,11 +4,12 @@ from os import path
 from tkinter import PhotoImage, ttk
 from typing import Dict
 
-from bgstally.activity import STATES_WAR, STATES_ELECTION, Activity
+from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import FOLDER_ASSETS, CheckStates, CZs, DiscordActivity, DiscordChannel, DiscordPostStyle
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
 from bgstally.widgets import TextPlus
+from thirdparty.colors import *
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 
 DATETIME_FORMAT_WINDOWTITLE = "%Y-%m-%d %H:%M:%S"
@@ -542,9 +543,9 @@ class WindowActivity:
                     system_discord_text += self._generate_faction_discord_text(faction)
 
             if system_discord_text != "":
-                discord_text += f"```css\n{system['System']}\n{system_discord_text}```"
+                discord_text += f"```ansi\n{color(system['System'], 'white', None, 'bold')}\n{system_discord_text}```"
 
-        if activity.discord_notes is not None: discord_text += "\n" + activity.discord_notes
+        if activity.discord_notes is not None and activity.discord_notes != "": discord_text += "\n" + activity.discord_notes
 
         return discord_text.replace("'", "")
 
@@ -568,7 +569,7 @@ class WindowActivity:
 
             if system_discord_text != "":
                 system_discord_text = system_discord_text.replace("'", "")
-                discord_field = {'name': system['System'], 'value': f"```css\n{system_discord_text}```"}
+                discord_field = {'name': system['System'], 'value': f"```ansi\n{system_discord_text}```"}
                 discord_fields.append(discord_field)
 
         return discord_fields
@@ -584,44 +585,44 @@ class WindowActivity:
         if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON: inf += faction['MissionPointsSecondary']
 
         if faction['FactionState'] in STATES_ELECTION:
-            activity_discord_text += f".ElectionINF +{inf}; " if inf > 0 else f".ElectionINF {inf}; " if inf < 0 else ""
+            activity_discord_text += f"{blue('ElectionINF')} +{green(inf)} " if inf > 0 else f"{blue('ElectionINF')} {green(inf)} " if inf < 0 else ""
         elif faction['FactionState'] in STATES_WAR:
-            activity_discord_text += f".WarINF +{inf}; " if inf > 0 else f".WarINF {inf}; " if inf < 0 else ""
+            activity_discord_text += f"{blue('WarINF')} +{green(inf)} " if inf > 0 else f"{blue('WarINF')} {green(inf)} " if inf < 0 else ""
         else:
-            activity_discord_text += f".INF +{inf}; " if inf > 0 else f".INF {inf}; " if inf < 0 else ""
+            activity_discord_text += f"{blue('INF')} +{green(inf)} " if inf > 0 else f"{blue('INF')} {green(inf)} " if inf < 0 else ""
 
-        activity_discord_text += f".BVs {self._human_format(faction['Bounties'])}; " if faction['Bounties'] != 0 else ""
-        activity_discord_text += f".CBs {self._human_format(faction['CombatBonds'])}; " if faction['CombatBonds'] != 0 else ""
+        activity_discord_text += f"{red('BVs')} {green(self._human_format(faction['Bounties']))} " if faction['Bounties'] != 0 else ""
+        activity_discord_text += f"{red('CBs')} {green(self._human_format(faction['CombatBonds']))} " if faction['CombatBonds'] != 0 else ""
         if faction['TradePurchase'] > 0:
             # Legacy - Used a single value for purchase value / profit
-            activity_discord_text += f".TrdPurchase {self._human_format(faction['TradePurchase'])}; " if faction['TradePurchase'] != 0 else ""
-            activity_discord_text += f".TrdProfit {self._human_format(faction['TradeProfit'])}; " if faction['TradeProfit'] != 0 else ""
+            activity_discord_text += f"{cyan('TrdPurchase')} {green(self._human_format(faction['TradePurchase']))} " if faction['TradePurchase'] != 0 else ""
+            activity_discord_text += f"{cyan('TrdProfit')} {green(self._human_format(faction['TradeProfit']))} " if faction['TradeProfit'] != 0 else ""
         else:
             # Modern - Split into values per supply / demand bracket
             if sum(int(d['value']) for d in faction['TradeBuy']) > 0:
                 # Buy brackets currently range from 0 - 2
-                activity_discord_text += f".TrdBuy 🅻:{self._human_format(faction['TradeBuy'][2]['value'])} 🅷:{self._human_format(faction['TradeBuy'][1]['value'])}; "
+                activity_discord_text += f"{cyan('TrdBuy')} 🅻:{green(self._human_format(faction['TradeBuy'][2]['value']))} 🅷:{green(self._human_format(faction['TradeBuy'][1]['value']))} "
             if sum(int(d['value']) for d in faction['TradeSell']) > 0:
                 # Sell brackets currently range from 0 - 3
-                activity_discord_text += f".TrdProfit 🆉:{self._human_format(faction['TradeSell'][0]['profit'])} 🅻:{self._human_format(faction['TradeSell'][2]['profit'])} 🅷:{self._human_format(faction['TradeSell'][3]['profit'])}; "
-        activity_discord_text += f".TrdBMProfit {self._human_format(faction['BlackMarketProfit'])}; " if faction['BlackMarketProfit'] != 0 else ""
-        activity_discord_text += f".Expl {self._human_format(faction['CartData'])}; " if faction['CartData'] != 0 else ""
-        activity_discord_text += f".Exo {self._human_format(faction['ExoData'])}; " if faction['ExoData'] != 0 else ""
-        activity_discord_text += f".Murders {faction['Murdered']}; " if faction['Murdered'] != 0 else ""
-        activity_discord_text += f".GroundMurders {faction['GroundMurdered']}; " if faction['GroundMurdered'] != 0 else ""
-        activity_discord_text += f".Scenarios {faction['Scenarios']}; " if faction['Scenarios'] != 0 else ""
-        activity_discord_text += f".Fails {faction['MissionFailed']}; " if faction['MissionFailed'] != 0 else ""
-        space_cz = self._build_cz_text(faction.get('SpaceCZ', {}), "SpaceCZs")
+                activity_discord_text += f"{cyan('TrdProfit')} 🆉:{green(self._human_format(faction['TradeSell'][0]['profit']))} 🅻:{green(self._human_format(faction['TradeSell'][2]['profit']))} 🅷:{green(self._human_format(faction['TradeSell'][3]['profit']))} "
+        activity_discord_text += f"{cyan('TrdBMProfit')} {green(self._human_format(faction['BlackMarketProfit']))} " if faction['BlackMarketProfit'] != 0 else ""
+        activity_discord_text += f"{white('Expl')} {green(self._human_format(faction['CartData']))} " if faction['CartData'] != 0 else ""
+        activity_discord_text += f"{grey('Exo')} {green(self._human_format(faction['ExoData']))} " if faction['ExoData'] != 0 else ""
+        activity_discord_text += f"{red('Murders')} {green(faction['Murdered'])} " if faction['Murdered'] != 0 else ""
+        activity_discord_text += f"{red('GroundMurders')} {green(faction['GroundMurdered'])} " if faction['GroundMurdered'] != 0 else ""
+        activity_discord_text += f"{yellow('Scenarios')} {green(faction['Scenarios'])} " if faction['Scenarios'] != 0 else ""
+        activity_discord_text += f"{magenta('Fails')} {green(faction['MissionFailed'])} " if faction['MissionFailed'] != 0 else ""
+        space_cz = self._build_cz_text(faction.get(red('SpaceCZ'), {}), "SpaceCZs")
         activity_discord_text += f"{space_cz}; " if space_cz != "" else ""
-        ground_cz = self._build_cz_text(faction.get('GroundCZ', {}), "GroundCZs")
+        ground_cz = self._build_cz_text(faction.get(red('GroundCZ'), {}), "GroundCZs")
         activity_discord_text += f"{ground_cz}; " if ground_cz != "" else ""
 
         faction_name = self._process_faction_name(faction['Faction'])
-        faction_discord_text = f"[{faction_name}] - {activity_discord_text}\n" if activity_discord_text != "" else ""
+        faction_discord_text = f"{color(faction_name, 'yellow', None, 'bold')} {activity_discord_text}\n" if activity_discord_text != "" else ""
 
         for settlement_name in faction.get('GroundCZSettlements', {}):
             if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON:
-                faction_discord_text += f"  ⚔️ {settlement_name} x {faction['GroundCZSettlements'][settlement_name]['count']}\n"
+                faction_discord_text += f"  ⚔️ {settlement_name} x {green(faction['GroundCZSettlements'][settlement_name]['count'])}\n"
 
         return faction_discord_text
 
@@ -666,22 +667,22 @@ class WindowActivity:
                 system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['massacre'].values()))
 
         for system_station_name, system_station in system_stations.items():
-            system_discord_text += f"🍀 {system_station_name}: {system_station['mission_count_total']} missions\n"
+            system_discord_text += f"🍀 {system_station_name}: {green(system_station['mission_count_total'])} missions\n"
             if (system_station['escapepods']['m']['sum'] > 0):
-                system_discord_text += f"  ❕ x {system_station['escapepods']['m']['sum']} - {system_station['escapepods']['m']['count']} missions\n"
+                system_discord_text += f"  ❕ x {green(system_station['escapepods']['m']['sum'])} - {green(system_station['escapepods']['m']['count'])} missions\n"
             if (system_station['escapepods']['h']['sum'] > 0):
-                system_discord_text += f"  ❗ x {system_station['escapepods']['h']['sum']} - {system_station['escapepods']['h']['count']} missions\n"
+                system_discord_text += f"  ❗ x {green(system_station['escapepods']['h']['sum'])} - {green(system_station['escapepods']['h']['count'])} missions\n"
             if (system_station['cargo']['sum'] > 0):
-                system_discord_text += f"  📦 x {system_station['cargo']['sum']} - {system_station['cargo']['count']} missions\n"
+                system_discord_text += f"  📦 x {green(system_station['cargo']['sum'])} - {green(system_station['cargo']['count'])} missions\n"
             if (system_station['escapepods']['l']['sum'] > 0):
-                system_discord_text += f"  ⚕️ x {system_station['escapepods']['l']['sum']} - {system_station['escapepods']['l']['count']} missions\n"
+                system_discord_text += f"  ⚕️ x {green(system_station['escapepods']['l']['sum'])} - {green(system_station['escapepods']['l']['count'])} missions\n"
             if (system_station['passengers']['sum'] > 0):
-                system_discord_text += f"  🧍 x {system_station['passengers']['sum']} - {system_station['passengers']['count']} missions\n"
+                system_discord_text += f"  🧍 x {green(system_station['passengers']['sum'])} - {green(system_station['passengers']['count'])} missions\n"
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_discord_text += f"  S x {system_station['massacre']['s']['sum']}, C x {system_station['massacre']['c']['sum']}, " \
-                                    + f"B x {system_station['massacre']['b']['sum']}, M x {system_station['massacre']['m']['sum']}, " \
-                                    + f"H x {system_station['massacre']['h']['sum']}, O x {system_station['massacre']['o']['sum']} " \
-                                    + f"- {(sum(x['count'] for x in system_station['massacre'].values()))} missions\n"
+                system_discord_text += f"  S x {green(system_station['massacre']['s']['sum'])}, C x {green(system_station['massacre']['c']['sum'])}, " \
+                                    + f"B x {system_station['massacre']['b']['sum']}, M x {green(system_station['massacre']['m']['sum'])}, " \
+                                    + f"H x {system_station['massacre']['h']['sum']}, O x {green(system_station['massacre']['o']['sum'])} " \
+                                    + f"- {green((sum(x['count'] for x in system_station['massacre'].values())))} missions\n"
 
         return system_discord_text
 
@@ -704,11 +705,11 @@ class WindowActivity:
         if cz_data == {}: return ""
         text = ""
 
-        if 'l' in cz_data and cz_data['l'] != '0' and cz_data['l'] != '': text += f"{cz_data['l']}xL "
-        if 'm' in cz_data and cz_data['m'] != '0' and cz_data['m'] != '': text += f"{cz_data['m']}xM "
-        if 'h' in cz_data and cz_data['h'] != '0' and cz_data['h'] != '': text += f"{cz_data['h']}xH "
+        if 'l' in cz_data and cz_data['l'] != '0' and cz_data['l'] != '': text += f"{green(cz_data['l'])}xL "
+        if 'm' in cz_data and cz_data['m'] != '0' and cz_data['m'] != '': text += f"{green(cz_data['m'])}xM "
+        if 'h' in cz_data and cz_data['h'] != '0' and cz_data['h'] != '': text += f"{green(cz_data['h'])}xH "
 
-        if text != '': text = f".{prefix} {text}"
+        if text != '': text = f"{prefix} {text}"
         return text
 
 

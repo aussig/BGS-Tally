@@ -17,6 +17,7 @@
 * Plugin name and plugin foldername are now properly separated, so if you change the plugin's folder name, Inara API calls and the plugin name in Discord posts will still correctly say 'BGS-Tally'.
 * The plain text Discord post text now has the plugin name and version included in the footer.
 * Re-worked the way BGS-Tally makes network requests, so they are now able to be queued and handled in a background thread. This means the plugin won't lock up EDMC if it's waiting for a slow response from a server. Migrating existing requests will be done in stages. So far, Inara requests when scanning CMDRs is done.
+* Discord changed its colour scheme for code blocks to be largely light blue and white, so re-worked all Discord posts to use new colours (`ansi` blocks instead of `css`).
 
 ### Bug Fixes:
 

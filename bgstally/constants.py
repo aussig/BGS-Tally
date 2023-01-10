@@ -65,3 +65,8 @@ class RequestMethod(Enum):
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"
 FOLDER_ASSETS = "assets"
 FOLDER_DATA = "otherdata"
+FONT_HEADING:tuple = ("Helvetica", 11, "bold")
+FONT_TEXT:tuple = ("Helvetica", 11)
+FONT_TEXT_BOLD:tuple = ("Helvetica", 11, "bold")
+FONT_TEXT_UNDERLINE:tuple = ("Helvetica", 11, "underline")
+FONT_TEXT_BOLD_UNDERLINE:tuple = ("Helvetica", 11, "bold underline")

@@ -5,10 +5,9 @@ from tkinter import PhotoImage, ttk
 from typing import Dict
 
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import FOLDER_ASSETS, CheckStates, CZs, DiscordActivity, DiscordChannel, DiscordPostStyle
+from bgstally.constants import CheckStates, CZs, DiscordActivity, DiscordChannel, DiscordPostStyle, FOLDER_ASSETS, FONT_HEADING, FONT_TEXT
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
-from bgstally.ui import FONT_HEADING, FONT_TEXT
 from bgstally.widgets import DiscordAnsiColorText, TextPlus
 from thirdparty.colors import *
 from thirdparty.ScrollableNotebook import ScrollableNotebook

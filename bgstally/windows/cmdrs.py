@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import partial
 from tkinter import ttk
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, DiscordChannel
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, DiscordChannel, FONT_HEADING
 from bgstally.debug import Debug
 from ttkHyperlinkLabel import HyperlinkLabel
 

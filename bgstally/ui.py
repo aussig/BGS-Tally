@@ -13,7 +13,7 @@ import semantic_version
 from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.activity import Activity
-from bgstally.constants import FOLDER_ASSETS, CheckStates, DiscordActivity, DiscordPostStyle, UpdateUIPolicy
+from bgstally.constants import FOLDER_ASSETS, FONT_HEADING, CheckStates, DiscordActivity, DiscordPostStyle, UpdateUIPolicy
 from bgstally.debug import Debug
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
@@ -22,11 +22,6 @@ from bgstally.windows.fleetcarrier import WindowFleetCarrier
 from config import config
 
 DATETIME_FORMAT_OVERLAY = "%Y-%m-%d %H:%M"
-FONT_HEADING:tuple = ("Helvetica", 11, "bold")
-FONT_TEXT:tuple = ("Helvetica", 11)
-FONT_TEXT_BOLD:tuple = ("Helvetica", 11, "bold")
-FONT_TEXT_UNDERLINE:tuple = ("Helvetica", 11, "underline")
-FONT_TEXT_BOLD_UNDERLINE:tuple = ("Helvetica", 11, "bold underline")
 SIZE_BUTTON_PIXELS = 30
 TIME_WORKER_PERIOD_S = 2
 TIME_TICK_ALERT_M = 60

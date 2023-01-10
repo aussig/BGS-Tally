@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import END, ttk
 import re
+from bgstally.constants import FONT_TEXT, FONT_TEXT_BOLD, FONT_TEXT_UNDERLINE, FONT_TEXT_BOLD_UNDERLINE
 from bgstally.debug import Debug
 
 class TextPlus(tk.Text):

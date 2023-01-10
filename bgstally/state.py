@@ -33,10 +33,10 @@ class State:
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordActivity', default=DiscordActivity.BOTH))
         self.EnableOverlay:tk.StringVar = tk.StringVar(value=config.get_str('XEnableOverlay', default=CheckStates.STATE_ON))
 
-        self.APIActivitiesURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIActivitiesURL', default=""))
-        self.APIActivitiesKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIActivitiesKey', default=""))
-        self.APIEventsURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIEventsURL', default=""))
-        self.APIEventsKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIEventsKey', default=""))
+        self.APIURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIURL', default=""))
+        self.APIKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIKey', default=""))
+        self.APIActivitiesEnabled:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIActivitiesEnabled', default=CheckStates.STATE_ON))
+        self.APIEventsEnabled:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIEventsEnabled', default=CheckStates.STATE_ON))
 
         # Persistent values
         self.current_system_id:str = config.get_str('XCurrentSystemID')
@@ -75,10 +75,10 @@ class State:
         config.set('XDiscordActivity', self.DiscordActivity.get())
         config.set('XEnableOverlay', self.EnableOverlay.get())
 
-        config.set('BGST_APIActivitiesURL', self.APIActivitiesURL.get())
-        config.set('BGST_APIActivitiesKey', self.APIActivitiesKey.get())
-        config.set('BGST_APIEventsURL', self.APIEventsURL.get())
-        config.set('BGST_APIEventsKey', self.APIEventsKey.get())
+        config.set('BGST_APIURL', self.APIURL.get())
+        config.set('BGST_APIKey', self.APIKey.get())
+        config.set('BGST_APIActivitiesEnabled', self.APIActivitiesEnabled.get())
+        config.set('BGST_APIEventsEnabled', self.APIEventsEnabled.get())
 
         # Persistent values
         config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")

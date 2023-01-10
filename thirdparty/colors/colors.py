@@ -15,14 +15,12 @@
 # Modified by Aussi for colours supported by the Discord ```ansi``` block
 
 from __future__ import absolute_import, print_function
+
 import re
-import sys
-from .csscolors import parse_rgb, css_colors
-
-_PY2 = sys.version_info[0] == 2
-string_types = basestring if _PY2 else str
-
 from functools import partial
+
+from .csscolors import parse_rgb
+
 
 # ANSI color names. There is also a "default"
 COLORS_FG = ('grey', 'red', 'green', 'yellow', 'blue',
@@ -40,7 +38,7 @@ def is_string(obj):
     """
     Is the given object a string?
     """
-    return isinstance(obj, string_types)
+    return isinstance(obj, str)
 
 
 def _join(*values):
@@ -95,7 +93,7 @@ def color(s, fg=None, bg=None, style=None):
     :param str|int|tuple bg: Background color specification.
     :param str: Style names, separated by '+'
     :returns: Formatted string.
-    :rtype: str (or unicode in Python 2, if s is unicode)
+    :rtype: str
     """
     codes = []
 
@@ -111,14 +109,7 @@ def color(s, fg=None, bg=None, style=None):
                 raise ValueError('Invalid style "%s"' % style_part)
 
     if codes:
-        template = '\x1b[{0}m{1}\x1b[0m'
-        if _PY2 and isinstance(s, unicode):
-            # Take care in PY2 to return str if string is given, and
-            # unicode if unicode is given. It's a pain, but given PY2's
-            # fragility with Unicode characters and encodings, important
-            # to avoid any disruptions that might trigger downstream errors.
-            template = unicode(template)
-        return template.format(_join(*codes), s)
+        return f"\x1b[{_join(*codes)}m{s}\x1b[0m"
     else:
         return s
 

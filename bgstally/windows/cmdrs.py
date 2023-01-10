@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import partial
 from tkinter import ttk
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, DiscordChannel
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, DiscordChannel, FONT_HEADING
 from bgstally.debug import Debug
 from ttkHyperlinkLabel import HyperlinkLabel
 
@@ -59,17 +59,17 @@ class WindowCMDRs:
         treeview.pack(fill=tk.BOTH, expand=1)
 
         current_row = 0
-        ttk.Label(details_frame, text="CMDR Details", font=self.ui.heading_font).grid(row=current_row, column=0, sticky=tk.W); current_row += 1
-        ttk.Label(details_frame, text="Name: ", font=self.ui.heading_font).grid(row=current_row, column=0, sticky=tk.W)
+        ttk.Label(details_frame, text="CMDR Details", font=FONT_HEADING).grid(row=current_row, column=0, sticky=tk.W); current_row += 1
+        ttk.Label(details_frame, text="Name: ", font=FONT_HEADING).grid(row=current_row, column=0, sticky=tk.W)
         self.cmdr_details_name = ttk.Label(details_frame, text="")
         self.cmdr_details_name.grid(row=current_row, column=1, sticky=tk.W)
-        ttk.Label(details_frame, text="Inara: ", font=self.ui.heading_font).grid(row=current_row, column=2, sticky=tk.W)
+        ttk.Label(details_frame, text="Inara: ", font=FONT_HEADING).grid(row=current_row, column=2, sticky=tk.W)
         self.cmdr_details_name_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/cmdrs/?search=aussi", underline=True)
         self.cmdr_details_name_inara.grid(row=current_row, column=3, sticky=tk.W); current_row += 1
-        ttk.Label(details_frame, text="Squadron: ", font=self.ui.heading_font).grid(row=current_row, column=0, sticky=tk.W)
+        ttk.Label(details_frame, text="Squadron: ", font=FONT_HEADING).grid(row=current_row, column=0, sticky=tk.W)
         self.cmdr_details_squadron = ttk.Label(details_frame, text="")
         self.cmdr_details_squadron.grid(row=current_row, column=1, sticky=tk.W)
-        ttk.Label(details_frame, text="Inara: ", font=self.ui.heading_font).grid(row=current_row, column=2, sticky=tk.W)
+        ttk.Label(details_frame, text="Inara: ", font=FONT_HEADING).grid(row=current_row, column=2, sticky=tk.W)
         self.cmdr_details_squadron_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/squadrons-search/?search=ghst", underline=True)
         self.cmdr_details_squadron_inara.grid(row=current_row, column=3, sticky=tk.W); current_row += 1
 

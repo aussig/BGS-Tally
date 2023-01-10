@@ -3,7 +3,7 @@ from functools import partial
 from tkinter import ttk, Text
 from typing import Dict
 
-from bgstally.constants import DiscordChannel, MaterialsCategory
+from bgstally.constants import DiscordChannel, FONT_HEADING, MaterialsCategory
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.widgets import TextPlus
@@ -40,8 +40,8 @@ class WindowFleetCarrier:
         buttons_frame = ttk.Frame(container_frame)
         buttons_frame.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
 
-        ttk.Label(info_frame, text=f"System: {fc.data['currentStarSystem']} | Docking: {fc.data['dockingAccess']} | Notorious Allowed: {'Yes' if fc.data['notoriousAccess'] else 'No'}", font=self.ui.heading_font, foreground='#A300A3').pack(anchor=tk.NW)
-        ttk.Label(info_frame, text="Selling", font=self.ui.heading_font).pack(anchor=tk.NW)
+        ttk.Label(info_frame, text=f"System: {fc.data['currentStarSystem']} | Docking: {fc.data['dockingAccess']} | Notorious Allowed: {'Yes' if fc.data['notoriousAccess'] else 'No'}", font=FONT_HEADING, foreground='#A300A3').pack(anchor=tk.NW)
+        ttk.Label(info_frame, text="Selling", font=FONT_HEADING).pack(anchor=tk.NW)
         selling_frame = ttk.Frame(info_frame)
         selling_frame.pack(fill=tk.BOTH, padx=5, pady=5, anchor=tk.NW, expand=True)
         selling_text = TextPlus(selling_frame, wrap=tk.WORD, height=1, font=("Helvetica", 9))
@@ -54,7 +54,7 @@ class WindowFleetCarrier:
         selling_text.configure(state='disabled')
 
 
-        ttk.Label(info_frame, text="Buying", font=self.ui.heading_font).pack(anchor=tk.NW)
+        ttk.Label(info_frame, text="Buying", font=FONT_HEADING).pack(anchor=tk.NW)
         buying_frame = ttk.Frame(info_frame)
         buying_frame.pack(fill=tk.BOTH, padx=5, pady=5, anchor=tk.NW, expand=True)
         buying_text = TextPlus(buying_frame, wrap=tk.WORD, height=1, font=("Helvetica", 9))

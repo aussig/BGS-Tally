@@ -32,26 +32,25 @@ class DiscordAnsiColorText(tk.Text):
     class to convert text with a limited set of Discord-supported ansi color codes to
     text with tkinter color tags
     """
-
     foreground_colors = {
-        "30": "Black",
-        "31": "Red",
-        "32": "Green",
-        "33": "Brown",
-        "34": "RoyalBlue1",
-        "35": "Purple",
-        "36": "Cyan",
+        "30": "gray20",
+        "31": "firebrick1",
+        "32": "olive drab",
+        "33": "DarkGoldenrod3",
+        "34": "DodgerBlue2",
+        "35": "magenta4",
+        "36": "cyan4",
         "37": "White",
     }
 
     background_colors = {
-        "40": "DarkGray",
-        "41": "LightRed",
-        "42": "LightGreen",
-        "43": "Yellow",
-        "44": "LightBlue",
-        "45": "Magenta",
-        "46": "Pink",
+        "40": "DodgerBlue4",
+        "41": "orange red",
+        "42": "gray30",
+        "43": "gray40",
+        "44": "gray50",
+        "45": "LightBlue",
+        "46": "gray60",
         "47": "White",
     }
 

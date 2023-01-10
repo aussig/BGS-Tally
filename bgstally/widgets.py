@@ -1,12 +1,13 @@
 import tkinter as tk
 from tkinter import END, ttk
 import re
-
+from bgstally.debug import Debug
 
 class TextPlus(tk.Text):
     """
     Subclass of tk.Text to install a context-sensitive menu on right-click
     """
+
     def __init__(self, *args, **kwargs):
         tk.Text.__init__(self, *args, **kwargs)
         _rc_menu_install(self)
@@ -86,8 +87,8 @@ class AnsiColorText(TextPlus):
 
     # define some regexes which will come in handy in filtering
     # out the ansi color codes
-    color_pat = re.compile("\x01?\x1b\[([\d+;]*?)m\x02?")
-    inner_color_pat = re.compile("^(\d+;?)+$")
+    color_pat = re.compile("\x01?\x1b(\[[\d+;]*m?)\x02?")
+    inner_color_pat = re.compile("^\[(\d+;?)+m$")
 
     def __init__(self, *args, **kwargs):
         """
@@ -127,6 +128,7 @@ class AnsiColorText(TextPlus):
                 if AnsiColorText.inner_color_pat.match(text):
                     # if it's a color pattern, check if we already have
                     # registered a tag for it
+                    text = text[1:-1] # Strip leading '[' and trailing 'm'
                     if text not in self.known_tags:
                         # if tag not yet registered,
                         # extract the foreground and background color

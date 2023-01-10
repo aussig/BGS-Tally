@@ -8,7 +8,7 @@ from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import FOLDER_ASSETS, CheckStates, CZs, DiscordActivity, DiscordChannel, DiscordPostStyle
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
-from bgstally.widgets import TextPlus
+from bgstally.widgets import AnsiColorText, TextPlus
 from thirdparty.colors import *
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 
@@ -69,7 +69,7 @@ class WindowActivity:
 
         DiscordTextFrame = ttk.Frame(DiscordFrame)
         DiscordTextFrame.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
-        DiscordText = TextPlus(DiscordTextFrame, state='disabled', wrap=tk.WORD, height=14, font=("Helvetica", 9))
+        DiscordText = AnsiColorText(DiscordTextFrame, state='disabled', wrap=tk.WORD, height=14, bg="Gray13", font=self.ui.text_font)
         DiscordScroll = tk.Scrollbar(DiscordTextFrame, orient=tk.VERTICAL, command=DiscordText.yview)
         DiscordText['yscrollcommand'] = DiscordScroll.set
         DiscordScroll.pack(fill=tk.Y, side=tk.RIGHT)
@@ -77,7 +77,7 @@ class WindowActivity:
 
         DiscordNotesFrame = ttk.Frame(DiscordFrame)
         DiscordNotesFrame.grid(row=2, column=1, pady=5, sticky=tk.NSEW)
-        DiscordNotesText = TextPlus(DiscordNotesFrame, wrap=tk.WORD, height=14, width=30, font=("Helvetica", 9))
+        DiscordNotesText = TextPlus(DiscordNotesFrame, wrap=tk.WORD, height=14, width=30, font=self.ui.text_font)
         DiscordNotesText.insert(tk.END, "" if activity.discord_notes is None else activity.discord_notes)
         DiscordNotesText.bind("<<Modified>>", partial(self._discord_notes_change, DiscordNotesText, DiscordText, activity))
         DiscordNotesScroll = tk.Scrollbar(DiscordNotesFrame, orient=tk.VERTICAL, command=DiscordNotesText.yview)
@@ -302,7 +302,7 @@ class WindowActivity:
         """
         DiscordText.configure(state='normal')
         DiscordText.delete('1.0', 'end-1c')
-        DiscordText.insert(tk.INSERT, self._generate_discord_text(activity, self.bgstally.state.DiscordActivity.get()))
+        DiscordText.write(self._generate_discord_text(activity, self.bgstally.state.DiscordActivity.get()))
         DiscordText.configure(state='disabled')
 
 

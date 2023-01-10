@@ -42,6 +42,7 @@ class UI:
         self.image_button_carrier = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_carrier.png"))
 
         self.heading_font = ("Helvetica", 11, "bold")
+        self.text_font = ("Helvetica", 11)
 
         self.thread: Optional[Thread] = Thread(target=self._worker, name="BGSTally UI worker")
         self.thread.daemon = True

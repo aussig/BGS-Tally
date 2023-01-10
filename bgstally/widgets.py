@@ -65,12 +65,9 @@ class DiscordAnsiColorText(tk.Text):
         """
         tk.Text.__init__(self, *args, **kwargs)
         self.known_tags = set([])
-        self.font_standard = ("Helvetica", 11)
-        self.font_bold = ("Helvetica", 11, "bold")
-        self.font_underline = ("Helvetica", 11, "underline")
-        self.font_bold_underline = ("Helvetica", 11, "bold underline")
+
         # register a default color tag
-        self.register_tag("0", "White", "Gray13", self.font_standard)
+        self.register_tag("0", "White", "Gray13", FONT_TEXT)
         self.tag_config("sel", background="Gray13") # Make the selected text colour the same as the widget background
         self.configure(cursor='arrow')
         self.reset_to_default_attribs()
@@ -79,7 +76,7 @@ class DiscordAnsiColorText(tk.Text):
         self.tag = "0"
         self.foregroundcolor = "White"
         self.backgroundcolor = "Gray13"
-        self.font = self.font_standard
+        self.font = FONT_TEXT
 
     def register_tag(self, txt, foreground, background, font):
         """
@@ -93,7 +90,6 @@ class DiscordAnsiColorText(tk.Text):
         """
         add text to the text widget
         """
-
         # Remove the Discord ansi block terminators
         text = text.replace("```ansi", "").replace("```", "")
 
@@ -118,11 +114,11 @@ class DiscordAnsiColorText(tk.Text):
                             elif part in DiscordAnsiColorText.background_colors:
                                 self.backgroundcolor = DiscordAnsiColorText.background_colors[part]
                             elif part == "1":
-                                if self.font == self.font_standard: self.font = self.font_bold
-                                else: self.font = self.font_bold_underline
+                                if self.font == FONT_TEXT: self.font = FONT_TEXT_BOLD
+                                else: self.font = FONT_TEXT_BOLD_UNDERLINE
                             elif part == "4":
-                                if self.font == self.font_standard: self.font = self.font_underline
-                                else: self.font = self.font_bold_underline
+                                if self.font == FONT_TEXT: self.font = FONT_TEXT_UNDERLINE
+                                else: self.font = FONT_TEXT_BOLD_UNDERLINE
 
                         self.register_tag(
                             text,

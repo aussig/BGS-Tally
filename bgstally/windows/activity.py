@@ -8,6 +8,7 @@ from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import FOLDER_ASSETS, CheckStates, CZs, DiscordActivity, DiscordChannel, DiscordPostStyle
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
+from bgstally.ui import FONT_HEADING, FONT_TEXT
 from bgstally.widgets import DiscordAnsiColorText, TextPlus
 from thirdparty.colors import *
 from thirdparty.ScrollableNotebook import ScrollableNotebook
@@ -60,16 +61,16 @@ class WindowActivity:
         DiscordFrame.pack(fill=tk.BOTH, padx=5, pady=5)
         DiscordFrame.columnconfigure(0, weight=2)
         DiscordFrame.columnconfigure(1, weight=1)
-        label_discord_report:ttk.Label = ttk.Label(DiscordFrame, text="❓ Discord Report Preview", font=self.ui.heading_font)
+        label_discord_report:ttk.Label = ttk.Label(DiscordFrame, text="❓ Discord Report Preview", font=FONT_HEADING)
         label_discord_report.grid(row=0, column=0, sticky=tk.W)
         label_discord_report.bind("<Button-1>", self._legend_popup)
-        ttk.Label(DiscordFrame, text="Discord Additional Notes", font=self.ui.heading_font).grid(row=0, column=1, sticky=tk.W)
-        ttk.Label(DiscordFrame, text="Discord Options", font=self.ui.heading_font).grid(row=0, column=2, sticky=tk.W)
+        ttk.Label(DiscordFrame, text="Discord Additional Notes", font=FONT_HEADING).grid(row=0, column=1, sticky=tk.W)
+        ttk.Label(DiscordFrame, text="Discord Options", font=FONT_HEADING).grid(row=0, column=2, sticky=tk.W)
         ttk.Label(DiscordFrame, text="Double-check on-ground CZ tallies, sizes are not always correct", foreground='#f00').grid(row=1, column=0, columnspan=3, sticky=tk.W)
 
         DiscordTextFrame = ttk.Frame(DiscordFrame)
         DiscordTextFrame.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
-        DiscordText = DiscordAnsiColorText(DiscordTextFrame, state='disabled', wrap=tk.WORD, height=14, bg="Gray13", font=self.ui.text_font)
+        DiscordText = DiscordAnsiColorText(DiscordTextFrame, state='disabled', wrap=tk.WORD, height=14, bg="Gray13", font=FONT_TEXT)
         DiscordScroll = tk.Scrollbar(DiscordTextFrame, orient=tk.VERTICAL, command=DiscordText.yview)
         DiscordText['yscrollcommand'] = DiscordScroll.set
         DiscordScroll.pack(fill=tk.Y, side=tk.RIGHT)
@@ -77,7 +78,7 @@ class WindowActivity:
 
         DiscordNotesFrame = ttk.Frame(DiscordFrame)
         DiscordNotesFrame.grid(row=2, column=1, pady=5, sticky=tk.NSEW)
-        DiscordNotesText = TextPlus(DiscordNotesFrame, wrap=tk.WORD, height=14, width=30, font=self.ui.text_font)
+        DiscordNotesText = TextPlus(DiscordNotesFrame, wrap=tk.WORD, height=14, width=30, font=FONT_TEXT)
         DiscordNotesText.insert(tk.END, "" if activity.discord_notes is None else activity.discord_notes)
         DiscordNotesText.bind("<<Modified>>", partial(self._discord_notes_change, DiscordNotesText, DiscordText, activity))
         DiscordNotesScroll = tk.Scrollbar(DiscordNotesFrame, orient=tk.VERTICAL, command=DiscordNotesText.yview)
@@ -120,39 +121,39 @@ class WindowActivity:
 
             FactionEnableCheckbuttons = []
 
-            ttk.Label(tab, text="Include", font=self.ui.heading_font).grid(row=0, column=0, padx=2, pady=2)
+            ttk.Label(tab, text="Include", font=FONT_HEADING).grid(row=0, column=0, padx=2, pady=2)
             EnableAllCheckbutton = ttk.Checkbutton(tab)
             EnableAllCheckbutton.grid(row=1, column=0, padx=2, pady=2)
             EnableAllCheckbutton.configure(command=partial(self._enable_all_factions_change, TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system))
             EnableAllCheckbutton.state(['!alternate'])
 
             col: int = 1
-            ttk.Label(tab, text="Faction", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="State", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="INF", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2)
-            ttk.Label(tab, text="Pri", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="Sec", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="Trade", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-            ttk.Label(tab, text="Purch", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="Prof", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="BM Prof", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="BVs", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="Expl", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="Exo", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="CBs", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="Fails", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="Murders", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2, pady=2)
-            ttk.Label(tab, text="Foot", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="Ship", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="Scens", font=self.ui.heading_font).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="Space CZs", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-            ttk.Label(tab, text="L", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="M", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="H", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="Foot CZs", font=self.ui.heading_font, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-            ttk.Label(tab, text="L", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="M", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(tab, text="H", font=self.ui.heading_font).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Faction", font=FONT_HEADING).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="State", font=FONT_HEADING).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="INF", font=FONT_HEADING, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2)
+            ttk.Label(tab, text="Pri", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Sec", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Trade", font=FONT_HEADING, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
+            ttk.Label(tab, text="Purch", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Prof", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="BM Prof", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="BVs", font=FONT_HEADING).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Expl", font=FONT_HEADING).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Exo", font=FONT_HEADING).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="CBs", font=FONT_HEADING).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Fails", font=FONT_HEADING).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Murders", font=FONT_HEADING, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2, pady=2)
+            ttk.Label(tab, text="Foot", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Ship", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Scens", font=FONT_HEADING).grid(row=0, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Space CZs", font=FONT_HEADING, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
+            ttk.Label(tab, text="L", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="M", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="H", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="Foot CZs", font=FONT_HEADING, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
+            ttk.Label(tab, text="L", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="M", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
+            ttk.Label(tab, text="H", font=FONT_HEADING).grid(row=1, column=col, padx=2, pady=2); col += 1
             ttk.Separator(tab, orient=tk.HORIZONTAL).grid(columnspan=col, padx=2, pady=5, sticky=tk.EW)
 
             header_rows = 3
@@ -261,13 +262,13 @@ class WindowActivity:
             frame_container.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)
 
             current_row:int = 0
-            ttk.Label(frame_container, text="Icons in BGS Reports", font=self.ui.heading_font).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+            ttk.Label(frame_container, text="Icons in BGS Reports", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
             ttk.Label(frame_container, image=self.image_icon_bgs_cz).grid(row=current_row, column=0)
             ttk.Label(frame_container, text=" On-ground Conflict Zone").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
             ttk.Label(frame_container, text="🆉🅻🅷", font=("Helvetica", 24)).grid(row=current_row, column=0)
             ttk.Label(frame_container, text=" Zero / Low / High demand level for trade buy / sell").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
 
-            ttk.Label(frame_container, text="Icons in Thargoid War Reports", font=self.ui.heading_font).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+            ttk.Label(frame_container, text="Icons in Thargoid War Reports", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
             ttk.Label(frame_container, image=self.image_icon_tw_passengers).grid(row=current_row, column=0)
             ttk.Label(frame_container, text=" Passenger missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
             ttk.Label(frame_container, image=self.image_icon_tw_cargo).grid(row=current_row, column=0)

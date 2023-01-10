@@ -12,6 +12,8 @@
 # ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 # OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+# Modified by Aussi for colours supported by the Discord ```ansi``` block
+
 from __future__ import absolute_import, print_function
 import re
 import sys
@@ -23,8 +25,11 @@ string_types = basestring if _PY2 else str
 from functools import partial
 
 # ANSI color names. There is also a "default"
-COLORS = ('black', 'red', 'green', 'yellow', 'blue',
+COLORS_FG = ('black', 'red', 'green', 'yellow', 'blue',
           'magenta', 'cyan', 'white')
+
+COLORS_BG = ('dkblue', 'orange', 'grey1', 'grey2', 'grey3',
+          'ltblue', 'grey4', 'white')
 
 # ANSI style names
 STYLES = ('none', 'bold', 'faint', 'italic', 'underline', 'blink',
@@ -48,7 +53,7 @@ def _join(*values):
     return ';'.join(str(v) for v in values)
 
 
-def _color_code(spec, base):
+def _color_code(spec, base, colors):
     """
     Workhorse of encoding a color. Give preference to named colors from
     ANSI, then to specific numeric or tuple specs. If those don't work,
@@ -69,8 +74,8 @@ def _color_code(spec, base):
 
     if spec == 'default':
         return _join(base + 9)
-    elif spec in COLORS:
-        return _join(base + COLORS.index(spec))
+    elif spec in colors:
+        return _join(base + colors.index(spec))
     elif isinstance(spec, int) and 0 <= spec <= 255:
         return _join(base + 8, 5, spec)
     elif isinstance(spec, (tuple, list)):
@@ -95,9 +100,9 @@ def color(s, fg=None, bg=None, style=None):
     codes = []
 
     if fg:
-        codes.append(_color_code(fg, 30))
+        codes.append(_color_code(fg, 30, COLORS_FG))
     if bg:
-        codes.append(_color_code(bg, 40))
+        codes.append(_color_code(bg, 40, COLORS_BG))
     if style:
         for style_part in style.split('+'):
             if style_part in STYLES:

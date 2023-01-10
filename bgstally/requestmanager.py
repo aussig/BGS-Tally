@@ -60,7 +60,7 @@ class RequestManager:
         """
         Add a request to the queue
         """
-        if not self._url_valid(endpoint):
+        if not self.url_valid(endpoint):
             Debug.logger.info(f"Attempted to call {endpoint} which is not a well-formed URL")
             return
 
@@ -69,7 +69,7 @@ class RequestManager:
         self.request_queue.put(BGSTallyRequest(endpoint, method, callback, params, headers, stream, payload, data))
 
 
-    def _url_valid(self, url:str) -> bool:
+    def url_valid(self, url:str) -> bool:
         """
         Check whether a URL is well-formed
         """

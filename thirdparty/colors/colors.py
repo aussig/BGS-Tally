@@ -25,7 +25,7 @@ string_types = basestring if _PY2 else str
 from functools import partial
 
 # ANSI color names. There is also a "default"
-COLORS_FG = ('black', 'red', 'green', 'yellow', 'blue',
+COLORS_FG = ('grey', 'red', 'green', 'yellow', 'blue',
           'magenta', 'cyan', 'white')
 
 COLORS_BG = ('dkblue', 'orange', 'grey1', 'grey2', 'grey3',
@@ -144,7 +144,7 @@ def ansilen(s):
 
 
 # Foreground color shortcuts
-black = partial(color, fg='black')
+grey = partial(color, fg='grey')
 red = partial(color, fg='red')
 green = partial(color, fg='green')
 yellow = partial(color, fg='yellow')

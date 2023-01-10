@@ -40,49 +40,25 @@ class AnsiColorText(TextPlus):
     """
 
     foreground_colors = {
-        "bright": {
-            "30": "Black",
-            "31": "Red",
-            "32": "Green",
-            "33": "Brown",
-            "34": "Blue",
-            "35": "Purple",
-            "36": "Cyan",
-            "37": "White",
-        },
-        "dim": {
-            "30": "DarkGray",
-            "31": "LightRed",
-            "32": "LightGreen",
-            "33": "Yellow",
-            "34": "LightBlue",
-            "35": "Magenta",
-            "36": "Pink",
-            "37": "White",
-        },
+        "30": "Black",
+        "31": "Red",
+        "32": "Green",
+        "33": "Brown",
+        "34": "RoyalBlue1",
+        "35": "Purple",
+        "36": "Cyan",
+        "37": "White",
     }
 
     background_colors = {
-        "bright": {
-            "40": "Black",
-            "41": "Red",
-            "42": "Green",
-            "43": "Brown",
-            "44": "Blue",
-            "45": "Purple",
-            "46": "Cyan",
-            "47": "White",
-        },
-        "dim": {
-            "40": "DarkGray",
-            "41": "LightRed",
-            "42": "LightGreen",
-            "43": "Yellow",
-            "44": "LightBlue",
-            "45": "Magenta",
-            "46": "Pink",
-            "47": "White",
-        },
+        "40": "DarkGray",
+        "41": "LightRed",
+        "42": "LightGreen",
+        "43": "Yellow",
+        "44": "LightBlue",
+        "45": "Magenta",
+        "46": "Pink",
+        "47": "White",
     }
 
     # define some regexes which will come in handy in filtering
@@ -96,22 +72,26 @@ class AnsiColorText(TextPlus):
         """
         TextPlus.__init__(self, *args, **kwargs)
         self.known_tags = set([])
+        self.font_standard = ("Helvetica", 11)
+        self.font_bold = ("Helvetica", 11, "bold")
+        self.font_underline = ("Helvetica", 11, "underline")
+        self.font_bold_underline = ("Helvetica", 11, "bold underline")
         # register a default color tag
-        self.register_tag("30", "White", "Black")
+        self.register_tag("0", "White", "Gray13", self.font_standard)
         self.reset_to_default_attribs()
 
     def reset_to_default_attribs(self):
-        self.tag = "30"
-        self.bright = "bright"
+        self.tag = "0"
         self.foregroundcolor = "White"
         self.backgroundcolor = "Gray13"
+        self.font = self.font_standard
 
-    def register_tag(self, txt, foreground, background):
+    def register_tag(self, txt, foreground, background, font):
         """
         register a tag with name txt and with given
         foreground and background color
         """
-        self.tag_config(txt, foreground=foreground, background=background)
+        self.tag_config(txt, foreground=foreground, background=background, font=font)
         self.known_tags.add(txt)
 
     def write(self, text, is_editable=False):
@@ -130,44 +110,35 @@ class AnsiColorText(TextPlus):
                     # registered a tag for it
                     text = text[1:-1] # Strip leading '[' and trailing 'm'
                     if text not in self.known_tags:
-                        # if tag not yet registered,
-                        # extract the foreground and background color
-                        # and ignore the other things
+                        # if tag not yet registered, start with defaults and
+                        # extract the colour and style
+                        self.reset_to_default_attribs()
                         parts = text.split(";")
                         for part in parts:
-                            if part in AnsiColorText.foreground_colors[self.bright]:
-                                self.foregroundcolor = AnsiColorText.foreground_colors[
-                                    self.bright
-                                ][part]
-                            elif part in AnsiColorText.background_colors[self.bright]:
-                                self.backgroundcolor = AnsiColorText.background_colors[
-                                    self.bright
-                                ][part]
-                            else:
-                                for ch in part:
-                                    if ch == "0":
-                                        # reset all attributes
-                                        self.reset_to_default_attribs()
-                                    if ch == "1":
-                                        # define bright colors
-                                        self.bright = "bright"
-                                    if ch == "2":
-                                        # define dim colors
-                                        self.bright = "dim"
+                            if part in AnsiColorText.foreground_colors:
+                                self.foregroundcolor = AnsiColorText.foreground_colors[part]
+                            elif part in AnsiColorText.background_colors:
+                                self.backgroundcolor = AnsiColorText.background_colors[part]
+                            elif part == "1":
+                                if self.font == self.font_standard: self.font = self.font_bold
+                                else: self.font = self.font_bold_underline
+                            elif part == "4":
+                                if self.font == self.font_standard: self.font = self.font_underline
+                                else: self.font = self.font_bold_underline
 
                         self.register_tag(
                             text,
                             foreground=self.foregroundcolor,
                             background=self.backgroundcolor,
+                            font=self.font
                         )
-                    # remember that we switched to this tag
+                    # Remember that we switched to this tag
                     self.tag = text
                 elif text == "":
-                    # reset tag to black
-                    self.tag = "30"  # black
+                    # Reset tag to default
+                    self.tag = "0"
                 else:
-                    # no color pattern, insert text with the currently selected
-                    # tag
+                    # Not a color pattern, insert text with the currently selected tag
                     self.insert(END, text, self.tag)
 
 

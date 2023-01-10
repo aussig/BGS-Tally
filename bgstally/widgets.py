@@ -26,17 +26,10 @@ class TextPlus(tk.Text):
 # author: stefaan.himpe@gmail.com
 # license: MIT
 
-
-class AnsiColorText(TextPlus):
+class DiscordAnsiColorText(tk.Text):
     """
-    class to convert text with ansi color codes to
+    class to convert text with a limited set of Discord-supported ansi color codes to
     text with tkinter color tags
-
-    for now we ignore all but the simplest color directives
-    see http://www.termsys.demon.co.uk/vtansi.htm for a list of
-    other directives
-
-    it has not been thoroughly tested, but it works well enough for demonstration purposes
     """
 
     foreground_colors = {
@@ -70,7 +63,7 @@ class AnsiColorText(TextPlus):
         """
         initialize our specialized tkinter Text widget
         """
-        TextPlus.__init__(self, *args, **kwargs)
+        tk.Text.__init__(self, *args, **kwargs)
         self.known_tags = set([])
         self.font_standard = ("Helvetica", 11)
         self.font_bold = ("Helvetica", 11, "bold")
@@ -78,6 +71,8 @@ class AnsiColorText(TextPlus):
         self.font_bold_underline = ("Helvetica", 11, "bold underline")
         # register a default color tag
         self.register_tag("0", "White", "Gray13", self.font_standard)
+        self.tag_config("sel", background="Gray13") # Make the selected text colour the same as the widget background
+        self.configure(cursor='arrow')
         self.reset_to_default_attribs()
 
     def reset_to_default_attribs(self):
@@ -99,13 +94,16 @@ class AnsiColorText(TextPlus):
         add text to the text widget
         """
 
-        # first split the text at color codes, stripping stuff like the <ESC>
+        # Remove the Discord ansi block terminators
+        text = text.replace("```ansi", "").replace("```", "")
+
+        # Split the text at color codes, stripping stuff like the <ESC>
         # and \[ characters and keeping only the inner "0;23"-like codes
-        segments = AnsiColorText.color_pat.split(text)
+        segments = DiscordAnsiColorText.color_pat.split(text)
         if segments:
             for text in segments:
                 # a segment can be regular text, or it can be a color pattern
-                if AnsiColorText.inner_color_pat.match(text):
+                if DiscordAnsiColorText.inner_color_pat.match(text):
                     # if it's a color pattern, check if we already have
                     # registered a tag for it
                     text = text[1:-1] # Strip leading '[' and trailing 'm'
@@ -115,10 +113,10 @@ class AnsiColorText(TextPlus):
                         self.reset_to_default_attribs()
                         parts = text.split(";")
                         for part in parts:
-                            if part in AnsiColorText.foreground_colors:
-                                self.foregroundcolor = AnsiColorText.foreground_colors[part]
-                            elif part in AnsiColorText.background_colors:
-                                self.backgroundcolor = AnsiColorText.background_colors[part]
+                            if part in DiscordAnsiColorText.foreground_colors:
+                                self.foregroundcolor = DiscordAnsiColorText.foreground_colors[part]
+                            elif part in DiscordAnsiColorText.background_colors:
+                                self.backgroundcolor = DiscordAnsiColorText.background_colors[part]
                             elif part == "1":
                                 if self.font == self.font_standard: self.font = self.font_bold
                                 else: self.font = self.font_bold_underline

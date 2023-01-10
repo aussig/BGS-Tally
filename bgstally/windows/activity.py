@@ -8,7 +8,7 @@ from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import FOLDER_ASSETS, CheckStates, CZs, DiscordActivity, DiscordChannel, DiscordPostStyle
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
-from bgstally.widgets import AnsiColorText, TextPlus
+from bgstally.widgets import DiscordAnsiColorText, TextPlus
 from thirdparty.colors import *
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 
@@ -69,7 +69,7 @@ class WindowActivity:
 
         DiscordTextFrame = ttk.Frame(DiscordFrame)
         DiscordTextFrame.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
-        DiscordText = AnsiColorText(DiscordTextFrame, state='disabled', wrap=tk.WORD, height=14, bg="Gray13", font=self.ui.text_font)
+        DiscordText = DiscordAnsiColorText(DiscordTextFrame, state='disabled', wrap=tk.WORD, height=14, bg="Gray13", font=self.ui.text_font)
         DiscordScroll = tk.Scrollbar(DiscordTextFrame, orient=tk.VERTICAL, command=DiscordText.yview)
         DiscordText['yscrollcommand'] = DiscordScroll.set
         DiscordScroll.pack(fill=tk.Y, side=tk.RIGHT)
@@ -237,7 +237,7 @@ class WindowActivity:
 
         self._update_discord_field(DiscordText, activity)
 
-        ttk.Button(ContainerFrame, text="Copy to Clipboard (Legacy Format)", command=partial(self._copy_to_clipboard, ContainerFrame, DiscordText)).pack(side=tk.LEFT, padx=5, pady=5)
+        ttk.Button(ContainerFrame, text="Copy to Clipboard (Legacy Format)", command=partial(self._copy_to_clipboard, ContainerFrame, activity)).pack(side=tk.LEFT, padx=5, pady=5)
         self.btn_post_to_discord: ttk.Button = ttk.Button(ContainerFrame, text="Post to Discord", command=partial(self._post_to_discord, activity),
                                                           state=('normal' if self._discord_button_available() else 'disabled'))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -725,12 +725,11 @@ class WindowActivity:
         return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
 
 
-    def _copy_to_clipboard(self, Form, DiscordText):
+    def _copy_to_clipboard(self, Form:tk.Frame, activity:Activity):
         """
         Get all text from the Discord field and put it in the Copy buffer
         """
         Form.clipboard_clear()
-        Form.event_generate("<<TextModified>>")
-        Form.clipboard_append(DiscordText.get('1.0', 'end-1c'))
+        Form.clipboard_append(self._generate_discord_text(activity, self.bgstally.state.DiscordActivity.get()))
         Form.update()
 

@@ -585,11 +585,11 @@ class WindowActivity:
         if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON: inf += faction['MissionPointsSecondary']
 
         if faction['FactionState'] in STATES_ELECTION:
-            activity_discord_text += f"{blue('ElectionINF')} +{green(inf)} " if inf > 0 else f"{blue('ElectionINF')} {green(inf)} " if inf < 0 else ""
+            activity_discord_text += f"{blue('ElectionINF')} {green(f'+{inf}')} " if inf > 0 else f"{blue('ElectionINF')} {green(inf)} " if inf < 0 else ""
         elif faction['FactionState'] in STATES_WAR:
-            activity_discord_text += f"{blue('WarINF')} +{green(inf)} " if inf > 0 else f"{blue('WarINF')} {green(inf)} " if inf < 0 else ""
+            activity_discord_text += f"{blue('WarINF')} {green(f'+{inf}')} " if inf > 0 else f"{blue('WarINF')} {green(inf)} " if inf < 0 else ""
         else:
-            activity_discord_text += f"{blue('INF')} +{green(inf)} " if inf > 0 else f"{blue('INF')} {green(inf)} " if inf < 0 else ""
+            activity_discord_text += f"{blue('INF')} {green(f'+{inf}')} " if inf > 0 else f"{blue('INF')} {green(inf)} " if inf < 0 else ""
 
         activity_discord_text += f"{red('BVs')} {green(self._human_format(faction['Bounties']))} " if faction['Bounties'] != 0 else ""
         activity_discord_text += f"{red('CBs')} {green(self._human_format(faction['CombatBonds']))} " if faction['CombatBonds'] != 0 else ""

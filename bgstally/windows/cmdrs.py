@@ -20,19 +20,22 @@ class WindowCMDRs:
         self.ui = ui
 
         self.selected_cmdr = None
+        self.toplevel:tk.Toplevel = None
 
-        self._show()
 
-
-    def _show(self):
+    def show(self):
         """
         Show our window
         """
-        window = tk.Toplevel(self.ui.frame)
-        window.title("Targeted CMDR Information")
-        window.geometry("1200x800")
+        if self.toplevel is not None and self.toplevel.winfo_exists():
+            self.toplevel.lift()
+            return
 
-        container_frame = ttk.Frame(window)
+        self.toplevel = tk.Toplevel(self.ui.frame)
+        self.toplevel.title("Targeted CMDR Information")
+        self.toplevel.geometry("1200x800")
+
+        container_frame = ttk.Frame(self.toplevel)
         container_frame.pack(fill=tk.BOTH, expand=1)
 
         list_frame = ttk.Frame(container_frame)

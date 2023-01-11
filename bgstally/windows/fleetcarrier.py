@@ -18,20 +18,24 @@ class WindowFleetCarrier:
         self.bgstally = bgstally
         self.ui = ui
 
-        self._show()
+        self.toplevel:tk.Toplevel = None
 
 
-    def _show(self):
+    def show(self):
         """
         Show our window
         """
+        if self.toplevel is not None and self.toplevel.winfo_exists():
+            self.toplevel.lift()
+            return
+
         fc: FleetCarrier = self.bgstally.fleet_carrier
 
-        window = tk.Toplevel(self.ui.frame)
-        window.title(f"Carrier {fc.name} ({fc.callsign}) in system: {fc.data['currentStarSystem']}")
-        window.geometry("600x800")
+        self.toplevel = tk.Toplevel(self.ui.frame)
+        self.toplevel.title(f"Carrier {fc.name} ({fc.callsign}) in system: {fc.data['currentStarSystem']}")
+        self.toplevel.geometry("600x800")
 
-        container_frame = ttk.Frame(window)
+        container_frame = ttk.Frame(self.toplevel)
         container_frame.pack(fill=tk.BOTH, expand=True)
 
         info_frame = ttk.Frame(container_frame)

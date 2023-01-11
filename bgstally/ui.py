@@ -19,6 +19,7 @@ from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.cmdrs import WindowCMDRs
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
+from bgstally.windows.legend import WindowLegend
 from config import config
 
 DATETIME_FORMAT_OVERLAY = "%Y-%m-%d %H:%M"
@@ -27,6 +28,7 @@ TIME_WORKER_PERIOD_S = 2
 TIME_TICK_ALERT_M = 60
 URL_LATEST_RELEASE = "https://github.com/aussig/BGS-Tally/releases/latest"
 URL_WIKI = "https://github.com/aussig/BGS-Tally/wiki"
+
 
 class UI:
     """
@@ -44,6 +46,11 @@ class UI:
         self.thread: Optional[Thread] = Thread(target=self._worker, name="BGSTally UI worker")
         self.thread.daemon = True
         self.thread.start()
+
+        # Single-instance windows
+        self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally, self)
+        self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally, self)
+        self.window_legend:WindowLegend = WindowLegend(self.bgstally, self)
 
 
     def shut_down(self):
@@ -189,13 +196,6 @@ class UI:
             menu.grab_release()
 
 
-    def _show_cmdr_list_window(self):
-        """
-        Display the CMDR list window
-        """
-        WindowCMDRs(self.bgstally, self)
-
-
     def _show_activity_window(self, activity: Activity):
         """
         Display the activity data window, using data from the passed in activity object
@@ -203,11 +203,25 @@ class UI:
         WindowActivity(self.bgstally, self, activity)
 
 
+    def _show_cmdr_list_window(self):
+        """
+        Display the CMDR list window
+        """
+        self.window_cmdrs.show()
+
+
     def _show_fc_window(self):
         """
         Display the Fleet Carrier Window
         """
-        WindowFleetCarrier(self.bgstally, self)
+        self.window_fc.show()
+
+
+    def show_legend_window(self):
+        """
+        Display the Discord Legend Window
+        """
+        self.window_legend.show()
 
 
     def _confirm_force_tick(self):

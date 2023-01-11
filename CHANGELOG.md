@@ -34,6 +34,7 @@
 ### Bug Fixes:
 
 * In-game overlay: Fixed occasional flickering of the tick time.
+* No longer allow multiple copies of the CMDRs list window to be opened at the same time.
 
 
 ## v2.2.1 - 2023-01-04

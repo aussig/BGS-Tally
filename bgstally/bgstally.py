@@ -175,7 +175,9 @@ class BGSTally:
 
         if dirty:
             self.save_data()
-            self.api_manager.activity_update(activity)
+            self.api_manager.send_activity(activity)
+
+        self.api_manager.send_event(entry)
 
 
     def capi_fleetcarrier(self, data: CAPIData):

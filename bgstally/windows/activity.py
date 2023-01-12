@@ -590,10 +590,10 @@ class WindowActivity:
         activity_discord_text += f"{red('GroundMurders')} {green(faction['GroundMurdered'])} " if faction['GroundMurdered'] != 0 else ""
         activity_discord_text += f"{yellow('Scenarios')} {green(faction['Scenarios'])} " if faction['Scenarios'] != 0 else ""
         activity_discord_text += f"{magenta('Fails')} {green(faction['MissionFailed'])} " if faction['MissionFailed'] != 0 else ""
-        space_cz = self._build_cz_text(faction.get(red('SpaceCZ'), {}), "SpaceCZs")
-        activity_discord_text += f"{space_cz}; " if space_cz != "" else ""
-        ground_cz = self._build_cz_text(faction.get(red('GroundCZ'), {}), "GroundCZs")
-        activity_discord_text += f"{ground_cz}; " if ground_cz != "" else ""
+        space_cz = self._build_cz_text(faction.get('SpaceCZ', {}), "SpaceCZs")
+        activity_discord_text += f"{space_cz} " if space_cz != "" else ""
+        ground_cz = self._build_cz_text(faction.get('GroundCZ', {}), "GroundCZs")
+        activity_discord_text += f"{ground_cz} " if ground_cz != "" else ""
 
         faction_name = self._process_faction_name(faction['Faction'])
         faction_discord_text = f"{color(faction_name, 'yellow', None, 'bold')} {activity_discord_text}\n" if activity_discord_text != "" else ""
@@ -683,11 +683,11 @@ class WindowActivity:
         if cz_data == {}: return ""
         text = ""
 
-        if 'l' in cz_data and cz_data['l'] != '0' and cz_data['l'] != '': text += f"{green(cz_data['l'])}xL "
-        if 'm' in cz_data and cz_data['m'] != '0' and cz_data['m'] != '': text += f"{green(cz_data['m'])}xM "
-        if 'h' in cz_data and cz_data['h'] != '0' and cz_data['h'] != '': text += f"{green(cz_data['h'])}xH "
+        if 'l' in cz_data and cz_data['l'] != '0' and cz_data['l'] != '': text += f"{cz_data['l']} x L "
+        if 'm' in cz_data and cz_data['m'] != '0' and cz_data['m'] != '': text += f"{cz_data['m']} x M "
+        if 'h' in cz_data and cz_data['h'] != '0' and cz_data['h'] != '': text += f"{cz_data['h']} x H "
 
-        if text != '': text = f"{prefix} {text}"
+        if text != '': text = f"{red(prefix)} {green(text)}"
         return text
 
 

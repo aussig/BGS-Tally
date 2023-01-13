@@ -161,7 +161,7 @@ class UI:
         self.entry_apikey.grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
         self.cb_apiactivities:nb.Checkbutton = nb.Checkbutton(frame, text="Enable /activities Requests", variable=self.bgstally.state.APIActivitiesEnabled, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF)
         self.cb_apiactivities.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        self.cb_apievents:nb.Checkbutton = nb.Checkbutton(frame, text="Enable /events Resuests", variable=self.bgstally.state.APIEventsEnabled, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF)
+        self.cb_apievents:nb.Checkbutton = nb.Checkbutton(frame, text="Enable /events Requests", variable=self.bgstally.state.APIEventsEnabled, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF)
         self.cb_apievents.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1

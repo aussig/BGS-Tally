@@ -110,7 +110,7 @@ class RequestManager:
                 response.raise_for_status()
 
             except requests.exceptions.RequestException as e:
-                Debug.logger.warning(f"Unable to complete request {request.endpoint}", exc_info=e)
+                Debug.logger.info(f"Request failure {request.endpoint}: {str(e)}")
                 if request.callback: request.callback(False, response, request)
 
             else:

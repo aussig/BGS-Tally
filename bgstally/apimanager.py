@@ -12,6 +12,7 @@ from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import get_by_path
 
+NAME_DEFAULT = "The API URL you have entered has not supplied a name."
 DESCRIPTION_DEFAULT = "Sending the default set of events to the API. This includes information on your location, missions, bounty vouchers, \
     trade, combat bonds and exploration data. PLEASE ENSURE YOU TRUST the application, website or system you are sending this information to."
 VERSION_DEFAULT = "1.0.0"
@@ -104,7 +105,7 @@ class APIManager:
         self.events_queue:Queue = Queue()
 
         # Default API settings. Overridden by response from /discovery endpoint if it exists
-        self.name:str = None
+        self.name:str = NAME_DEFAULT
         self.version:semantic_version = semantic_version.Version.coerce(VERSION_DEFAULT)
         self.description:str = DESCRIPTION_DEFAULT
         self.endpoints:dict = ENDPOINTS_DEFAULT

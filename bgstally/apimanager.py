@@ -143,10 +143,17 @@ class APIManager:
             return
 
         self.version = semantic_version.Version.coerce(discovery_data.get('version', VERSION_DEFAULT))
-        self.description = discovery_data.get('description', EVENTS_FILTER_DEFAULTS)
-        # Todo - Check whether events have changed from previous discovery, and alert user if so
+        self.description = discovery_data.get('description', DESCRIPTION_DEFAULT)
         self.events = discovery_data.get('events', EVENTS_FILTER_DEFAULTS)
         self.endpoints = discovery_data.get('endpoints', ENDPOINTS_DEFAULT)
+
+        if self._discovery_events_changed():
+            # Note we're in a thread
+            Debug.logger.info(f"API Requested Event list has changed, ALERT USER")
+            # Alert user, ask for API approval again
+            # Only once approved:
+            # self.bgstally.state.api_discovery_events = self.events.keys()
+
 
 
     def send_activity(self, activity:Activity):
@@ -179,9 +186,18 @@ class APIManager:
         self.events_queue.put(event)
 
 
+    def _discovery_events_changed(self) -> bool:
+        """
+        Return True if the discovered events have changed from the previously discovered events
+        """
+        previous_events_hash:int = hash(self.bgstally.state.api_discovery_events.sort())
+        latest_events_hash:int = hash(self.events.keys().sort())
+        return previous_events_hash == latest_events_hash
+
+
     def _is_filtered(self, event:dict) -> bool:
         """
-        Return true if this event should be filtered (omitted) from sending to the API.
+        Return True if this event should be filtered (omitted) from sending to the API.
         """
         filters:dict = get_by_path(self.events, [event.get('event', ''), 'filters'], None)
         if filters is None: return False

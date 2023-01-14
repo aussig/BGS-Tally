@@ -17,6 +17,7 @@ from bgstally.constants import FOLDER_ASSETS, FONT_HEADING, CheckStates, Discord
 from bgstally.debug import Debug
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
+from bgstally.windows.api import WindowAPI
 from bgstally.windows.cmdrs import WindowCMDRs
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
 from bgstally.windows.legend import WindowLegend
@@ -51,6 +52,7 @@ class UI:
         self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally, self)
         self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally, self)
         self.window_legend:WindowLegend = WindowLegend(self.bgstally, self)
+        self.window_api = WindowAPI(self.bgstally)
 
 
     def shut_down(self):
@@ -108,7 +110,7 @@ class UI:
         """
         Return a TK Frame for adding to the EDMC settings dialog
         """
-
+        self.plugin_frame:tk.Frame = parent_frame
         frame = nb.Frame(parent_frame)
         # Make the second column fill available space
         frame.columnconfigure(1, weight=1)
@@ -183,6 +185,9 @@ class UI:
         self.entry_apikey.configure(state="normal" if api_settings_enabled else "disabled")
         self.cb_apiactivities.configure(state="enabled" if api_settings_enabled else "disabled")
         self.cb_apievents.configure(state="enabled" if api_settings_enabled else "disabled")
+
+        if api_settings_enabled:
+            self.window_api.show(self.plugin_frame)
 
 
     def _worker(self) -> None:

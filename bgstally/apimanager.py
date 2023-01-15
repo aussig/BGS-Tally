@@ -1,7 +1,5 @@
+from bgstally.activity import Activity
 from bgstally.api import API
-from bgstally.windows.api import WindowAPI
-
-HEADER_APIKEY = "apikey"
 
 # {
 #     "name": "Name of the website or application",
@@ -76,13 +74,20 @@ class APIManager:
         self.apis:list = []
 
         # TODO: Just creating a single API instance for testing, need to extend to multiple
-        self.apis.append(API(self.bgstally, self))
+        self.apis.append(API(self.bgstally))
 
 
-    def get_headers(self, apikey:str) -> dict:
+    def send_activity(self, activity:Activity):
         """
-        Get the API headers
+        Activity data has been updated. Send it to all APIs.
         """
-        headers:dict = {}
-        if apikey is not None and apikey != "": headers = {HEADER_APIKEY: apikey}
-        return headers
+        for api in self.apis:
+            api.send_activity(activity)
+
+
+    def send_event(self, event:dict):
+        """
+        Event has been received. Add it to the events queue.
+        """
+        for api in self.apis:
+            api.send_event(event)

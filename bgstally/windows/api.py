@@ -2,11 +2,13 @@ import tkinter as tk
 from tkinter import ttk
 from functools import partial
 import sys
+import webbrowser
+from inspect import cleandoc
 
 from bgstally.api import API
-from bgstally.constants import CheckStates, FONT_HEADING
+from bgstally.constants import FONT_HEADING, FONT_TEXT
 from bgstally.debug import Debug
-from bgstally.widgets import EntryPlus
+from bgstally.widgets import EntryPlus, HyperlinkManager
 
 
 class WindowAPI:
@@ -40,6 +42,9 @@ class WindowAPI:
         if sys.platform != 'darwin' or plugin_frame.winfo_rooty() > 0:
             self.toplevel.geometry(f"+{plugin_frame.winfo_rootx()+40}+{plugin_frame.winfo_rooty()+40}")
 
+        default_bg = ttk.Style().lookup('TFrame', 'background')
+        default_fg = ttk.Style().lookup('TFrame', 'foreground')
+        default_font = ttk.Style().lookup('TFrame', 'font')
         frame_container:ttk.Frame = ttk.Frame(self.toplevel)
         frame_container.pack(fill=tk.BOTH, expand=1)
 
@@ -70,29 +75,39 @@ class WindowAPI:
         self.cb_apiactivities:ttk.Checkbutton = ttk.Checkbutton(frame_main, text="Enable /activities Requests")
         self.cb_apiactivities.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
         self.cb_apiactivities.configure(command=partial(self._field_edited))
-        self.cb_apiactivities.state(['selected', '!alternate'] if self.api.activities_enabled == CheckStates.STATE_ON else ['!selected', '!alternate'])
+        self.cb_apiactivities.state(['selected', '!alternate'] if self.api.activities_enabled else ['!selected', '!alternate'])
 
         self.cb_apievents:ttk.Checkbutton = ttk.Checkbutton(frame_main, text="Enable /events Requests")
         self.cb_apievents.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
         self.cb_apievents.configure(command=partial(self._field_edited))
-        self.cb_apievents.state(['selected', '!alternate'] if self.api.events_enabled == CheckStates.STATE_ON else ['!selected', '!alternate'])
+        self.cb_apievents.state(['selected', '!alternate'] if self.api.events_enabled else ['!selected', '!alternate'])
 
         self.btn_fetch = tk.Button(frame_main, text="Fetch API Information", command=partial(self._decline))
         self.btn_fetch.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
 
         tk.Label(frame_main, text="API Information", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        self.txt_intro:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
+        hyperlink = HyperlinkManager(self.txt_intro)
+        self.txt_intro.insert(tk.END, "If you approve this API, BGS-Tally will send your information to it, which may include specific information " \
+            "relating to your CMDR such as your location, missions and kills. \n\nThe exact set of Events that will be sent is listed in the 'Events Requested' " \
+            "section below. Further information about these Events and what they contain is provided here: ")
+        self.txt_intro.insert(tk.END, "Player Journal Documentation", hyperlink.add(partial(webbrowser.open, "https://elite-journal.readthedocs.io/en/latest/")))
+        self.txt_intro.insert(tk.END, ".\n\nPLEASE ENSURE YOU TRUST the application, website or system you send this information to!\n")
+        self.txt_intro.configure(state='disabled')
+        self.txt_intro.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
+        self.txt_intro.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         tk.Label(frame_main, text="Name").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
         tk.Label(frame_main, text=self.api.name, wraplength=text_width, justify=tk.LEFT).grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
         tk.Label(frame_main, text="Description").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
         tk.Label(frame_main, text=self.api.description, wraplength=text_width, justify=tk.LEFT).grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
         tk.Label(frame_main, text="Events Requested").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
-        tk.Label(frame_main, text=str(self.api.events.keys()), wraplength=text_width, justify=tk.LEFT).grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
+        tk.Label(frame_main, text=str(", ".join(self.api.events.keys())), wraplength=text_width, justify=tk.LEFT).grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
 
         tk.Button(frame_buttons, text="I Do Not Accept", command=partial(self._decline)).pack(side=tk.RIGHT, padx=5, pady=5)
         tk.Button(frame_buttons, text="I Accept", command=partial(self._accept)).pack(side=tk.RIGHT, padx=5, pady=5)
 
-        self._update()
         self.toplevel.focus() # Necessary because this window is modal, to ensure we lock focus to it immediately
+        frame_main.after(1, self._update) # Do this in an 'after' so that the auto-height resizing works on txt_intro
 
 
     def _field_edited(self, *args):
@@ -101,8 +116,8 @@ class WindowAPI:
         """
         self.api.url = self.entry_apiurl.get()
         self.api.key = self.entry_apikey.get()
-        self.api.activities_enabled = CheckStates.STATE_ON if self.cb_apiactivities.instate(['selected']) else CheckStates.STATE_OFF
-        self.api.events_enabled = CheckStates.STATE_ON if self.cb_apiactivities.instate(['selected']) else CheckStates.STATE_OFF
+        self.api.activities_enabled = self.cb_apiactivities.instate(['selected'])
+        self.api.events_enabled = self.cb_apievents.instate(['selected'])
         self._update()
 
 
@@ -110,6 +125,9 @@ class WindowAPI:
         """
         Update the prefs UI after a setting has changed
         """
+        height = self.txt_intro.tk.call((self.txt_intro._w, "count", "-update", "-displaylines", "1.0", "end"))
+        self.txt_intro.configure(height=height)
+
         api_settings_enabled:bool = self.bgstally.request_manager.url_valid(self.api.url)
 
         self.btn_fetch.configure(state='normal' if api_settings_enabled else 'disabled')

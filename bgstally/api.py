@@ -10,7 +10,7 @@ from queue import Queue
 from requests import JSONDecodeError, Response
 
 from bgstally.activity import Activity
-from bgstally.constants import CheckStates, RequestMethod
+from bgstally.constants import RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import get_by_path
@@ -29,6 +29,7 @@ EVENTS_FILTER_DEFAULTS = {'ApproachSettlement': {}, 'CarrierJump': {}, 'CommitCr
     'FSDJump': {}, 'Location': {}, 'MarketBuy': {}, 'MarketSell': {}, 'MissionAbandoned': {}, 'MissionAccepted': {}, 'MissionCompleted': {},
     'MissionFailed': {}, 'MultiSellExplorationData': {}, 'RedeemVoucher': {}, 'SellExplorationData': {}, 'StartUp': {}}
 
+HEADER_APIKEY = "apikey"
 TIME_ACTIVITIES_WORKER_PERIOD_S = 60
 TIME_EVENTS_WORKER_PERIOD_S = 5
 BATCH_EVENTS_MAX_SIZE = 10
@@ -39,7 +40,7 @@ class API:
     Handles data for an API.
     """
 
-    def __init__(self, bgstally, api_manager):
+    def __init__(self, bgstally):
         """
         Instantiate
         """
@@ -48,8 +49,9 @@ class API:
         # TODO: All these must be stored per API instance, not just a single shared one in state
         self.url:str = self.bgstally.state.APIURL.get().rstrip('/') + '/'
         self.key:str = self.bgstally.state.APIKey.get()
-        self.activities_enabled:str = self.bgstally.state.APIActivitiesEnabled.get()
-        self.events_enabled:str = self.bgstally.state.APIEventsEnabled.get()
+        self.activities_enabled:bool = True
+        self.events_enabled:bool = True
+        self.user_approved:bool = False
 
         # Default API settings. Overridden by response from /discovery endpoint if it exists
         self.name:str = NAME_DEFAULT
@@ -73,7 +75,7 @@ class API:
         self.events_thread.daemon = True
         self.events_thread.start()
 
-        self.bgstally.request_manager.queue_request(self.url + ENDPOINT_DISCOVERY, RequestMethod.GET, headers=api_manager.get_headers(self.key), callback=self.discovery_received)
+        self.bgstally.request_manager.queue_request(self.url + ENDPOINT_DISCOVERY, RequestMethod.GET, headers=self._get_headers(), callback=self.discovery_received)
 
 
     def discovery_received(self, success:bool, response:Response, request:BGSTallyRequest):
@@ -113,7 +115,7 @@ class API:
         """
         Activity data has been updated. Store it ready for the next send via the worker
         """
-        if not self.activities_enabled == CheckStates.STATE_ON \
+        if not self.activities_enabled \
                 or not ENDPOINT_ACTIVITIES in self.endpoints \
                 or not self.bgstally.request_manager.url_valid(self.url):
             self.activity = None
@@ -126,7 +128,7 @@ class API:
         """
         Event has been received. Add it to the events queue.
         """
-        if not self.self.events_enabled == CheckStates.STATE_ON \
+        if not self.events_enabled \
                 or not ENDPOINT_EVENTS in self.endpoints \
                 or not self.bgstally.request_manager.url_valid(self.url):
             with self.events_queue.mutex:
@@ -172,7 +174,7 @@ class API:
 
         while True:
             # Need to check settings every time in case the user has changed them
-            if not self.activities_enabled == CheckStates.STATE_ON \
+            if not self.activities_enabled \
                     or not ENDPOINT_ACTIVITIES in self.endpoints \
                     or not self.bgstally.request_manager.url_valid(self.url):
                 self.activity = None
@@ -196,7 +198,7 @@ class API:
 
         while True:
             # Need to check settings every time in case the user has changed them
-            if not self.events_enabled == CheckStates.STATE_ON \
+            if not self.events_enabled \
                     or not ENDPOINT_EVENTS in self.endpoints \
                     or not self.bgstally.request_manager.url_valid(self.url):
                 with self.events_queue.mutex:
@@ -211,3 +213,12 @@ class API:
                 self.bgstally.request_manager.queue_request(url, RequestMethod.POST, headers=self._get_headers(), payload=queued_events)
 
             sleep(max(int(get_by_path(self.endpoints, [ENDPOINT_EVENTS, 'min_period'], 0)), TIME_EVENTS_WORKER_PERIOD_S))
+
+
+    def _get_headers(self) -> dict:
+        """
+        Get the API headers
+        """
+        headers:dict = {}
+        if self.key is not None and self.key != "": headers = {HEADER_APIKEY: self.key}
+        return headers

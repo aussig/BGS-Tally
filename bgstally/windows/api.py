@@ -9,6 +9,8 @@ from bgstally.api import API
 from bgstally.constants import FONT_HEADING, FONT_TEXT
 from bgstally.debug import Debug
 from bgstally.widgets import EntryPlus, HyperlinkManager
+from requests import Response
+from bgstally.requestmanager import BGSTallyRequest
 
 
 class WindowAPI:
@@ -82,7 +84,7 @@ class WindowAPI:
         self.cb_apievents.configure(command=partial(self._field_edited))
         self.cb_apievents.state(['selected', '!alternate'] if self.api.events_enabled else ['!selected', '!alternate'])
 
-        self.btn_fetch = tk.Button(frame_main, text="Fetch API Information", command=partial(self._decline))
+        self.btn_fetch = tk.Button(frame_main, text="Fetch API Information", command=partial(self._discover))
         self.btn_fetch.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
 
         tk.Label(frame_main, text="API Information", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
@@ -97,14 +99,19 @@ class WindowAPI:
         self.txt_intro.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
         self.txt_intro.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         tk.Label(frame_main, text="Name").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
-        tk.Label(frame_main, text=self.api.name, wraplength=text_width, justify=tk.LEFT).grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
+        self.lbl_apiname:tk.Label = tk.Label(frame_main, wraplength=text_width, justify=tk.LEFT)
+        self.lbl_apiname.grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
         tk.Label(frame_main, text="Description").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
-        tk.Label(frame_main, text=self.api.description, wraplength=text_width, justify=tk.LEFT).grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
+        self.lbl_apidescription:tk.Label = tk.Label(frame_main, wraplength=text_width, justify=tk.LEFT)
+        self.lbl_apidescription.grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
         tk.Label(frame_main, text="Events Requested").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
-        tk.Label(frame_main, text=str(", ".join(self.api.events.keys())), wraplength=text_width, justify=tk.LEFT).grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
+        self.lbl_apievents:tk.Label = tk.Label(frame_main, wraplength=text_width, justify=tk.LEFT)
+        self.lbl_apievents.grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
 
-        tk.Button(frame_buttons, text="I Do Not Accept", command=partial(self._decline)).pack(side=tk.RIGHT, padx=5, pady=5)
-        tk.Button(frame_buttons, text="I Accept", command=partial(self._accept)).pack(side=tk.RIGHT, padx=5, pady=5)
+        self.btn_decline:tk.Button = tk.Button(frame_buttons, text="I Do Not Accept", command=partial(self._decline))
+        self.btn_decline.pack(side=tk.RIGHT, padx=5, pady=5)
+        self.btn_accept:tk.Button = tk.Button(frame_buttons, text="I Accept", command=partial(self._accept))
+        self.btn_accept.pack(side=tk.RIGHT, padx=5, pady=5)
 
         self.toplevel.focus() # Necessary because this window is modal, to ensure we lock focus to it immediately
         frame_main.after(1, self._update) # Do this in an 'after' so that the auto-height resizing works on txt_intro
@@ -123,7 +130,7 @@ class WindowAPI:
 
     def _update(self, *args):
         """
-        Update the prefs UI after a setting has changed
+        Update the prefs UI after something has changed
         """
         height = self.txt_intro.tk.call((self.txt_intro._w, "count", "-update", "-displaylines", "1.0", "end"))
         self.txt_intro.configure(height=height)
@@ -131,10 +138,35 @@ class WindowAPI:
         api_settings_enabled:bool = self.bgstally.request_manager.url_valid(self.api.url)
 
         self.btn_fetch.configure(state='normal' if api_settings_enabled else 'disabled')
+
         self.label_apikey.configure(state='normal' if api_settings_enabled else 'disabled')
         self.entry_apikey.configure(state='normal' if api_settings_enabled else 'disabled')
         self.cb_apiactivities.state(['!disabled'] if api_settings_enabled else ['disabled'])
         self.cb_apievents.state(['!disabled'] if api_settings_enabled else ['disabled'])
+
+        self.lbl_apiname.configure(text=self.api.name)
+        self.lbl_apidescription.configure(text=self.api.description)
+        self.lbl_apievents.configure(text=", ".join(self.api.events.keys()))
+
+        self.btn_decline.configure(state='normal' if api_settings_enabled else 'disabled')
+        self.btn_accept.configure(state='normal' if api_settings_enabled else 'disabled')
+
+
+    def _discover(self):
+        """
+        The user has clicked the 'Fetch information' button
+        """
+        self.api.discover(self.discovery_received)
+
+
+    def discovery_received(self, success:bool, response:Response, request:BGSTallyRequest):
+        """
+        Discovery API information received from the server
+        """
+        # TODO: Clear 'user accepted' flag and enable decline / accept buttons
+
+        self.api.discovery_received(success, response, request)
+        self._update()
 
 
     def _accept(self):

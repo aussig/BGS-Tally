@@ -20,9 +20,8 @@ ENDPOINT_ACTIVITIES = "activities"
 ENDPOINT_DISCOVERY = "discovery"
 ENDPOINT_EVENTS = "events"
 
-NAME_DEFAULT = "The API URL you have entered has not supplied a name."
-DESCRIPTION_DEFAULT = "Sending the default set of events to the API. This includes information on your location, missions, bounty vouchers, \
-    trade, combat bonds and exploration data. PLEASE ENSURE YOU TRUST the application, website or system you are sending this information to."
+NAME_DEFAULT = "This API has not supplied a name."
+DESCRIPTION_DEFAULT = "This API has not supplied a description."
 VERSION_DEFAULT = "1.0.0"
 ENDPOINTS_DEFAULT = {ENDPOINT_ACTIVITIES: {}, ENDPOINT_EVENTS: {}}
 EVENTS_FILTER_DEFAULTS = {'ApproachSettlement': {}, 'CarrierJump': {}, 'CommitCrime': {}, 'Died': {}, 'Docked': {}, 'FactionKillBond': {},
@@ -75,7 +74,14 @@ class API:
         self.events_thread.daemon = True
         self.events_thread.start()
 
-        self.bgstally.request_manager.queue_request(self.url + ENDPOINT_DISCOVERY, RequestMethod.GET, headers=self._get_headers(), callback=self.discovery_received)
+        self.discover(self.discovery_received)
+
+
+    def discover(self, callback:callable):
+        """
+        Call the discovery endpoint
+        """
+        self.bgstally.request_manager.queue_request(self.url + ENDPOINT_DISCOVERY, RequestMethod.GET, headers=self._get_headers(), callback=callback)
 
 
     def discovery_received(self, success:bool, response:Response, request:BGSTallyRequest):
@@ -98,10 +104,11 @@ class API:
             Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
             return
 
+        self.name = discovery_data.get('name', NAME_DEFAULT)
         self.version = semantic_version.Version.coerce(discovery_data.get('version', VERSION_DEFAULT))
         self.description = discovery_data.get('description', DESCRIPTION_DEFAULT)
-        self.events = discovery_data.get('events', EVENTS_FILTER_DEFAULTS)
         self.endpoints = discovery_data.get('endpoints', ENDPOINTS_DEFAULT)
+        self.events = discovery_data.get('events', EVENTS_FILTER_DEFAULTS)
 
         if self._discovery_events_changed():
             # Note we're in a thread
@@ -146,7 +153,7 @@ class API:
         Return True if the discovered events have changed from the previously discovered events
         """
         previous_events_hash:int = hash(self.discovery_events.sort())
-        latest_events_hash:int = hash(self.events.keys().sort())
+        latest_events_hash:int = hash(*(self.events.keys()).sort())
         return previous_events_hash == latest_events_hash
 
 

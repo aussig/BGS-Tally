@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import END, ttk
+from tkinter import CURRENT, END, ttk
 import re
 from bgstally.constants import FONT_TEXT, FONT_TEXT_BOLD, FONT_TEXT_UNDERLINE, FONT_TEXT_BOLD_UNDERLINE
 from bgstally.debug import Debug
@@ -170,3 +170,47 @@ def _rc_menu_install(w):
     w.menu.entryconfigure("Copy", command=lambda: w.focus_force() or w.event_generate("<<Copy>>"))
     w.menu.entryconfigure("Paste", command=lambda: w.focus_force() or w.event_generate("<<Paste>>"))
     w.menu.entryconfigure("Select all", command=w.event_select_all)
+
+
+
+class HyperlinkManager:
+    """
+    Utility class to enable embedded hyperlinks in Text fields.
+
+    Usage:
+
+    text = Text(win)
+    hyperlink = HyperlinkManager(text)
+    text.insert(END, "Click me", hyperlink.add(partial(webbrowser.open, "https://example.com")))
+    """
+    def __init__(self, text):
+        self.text = text
+
+        self.text.tag_config("hyper", foreground="blue", underline=1)
+
+        self.text.tag_bind("hyper", "<Enter>", self._enter)
+        self.text.tag_bind("hyper", "<Leave>", self._leave)
+        self.text.tag_bind("hyper", "<Button-1>", self._click)
+
+        self.reset()
+
+    def reset(self):
+        self.links = {}
+
+    def add(self, action):
+        # Add an action to the manager.  returns tags to use in associated text widget
+        tag = "hyper-%d" % len(self.links)
+        self.links[tag] = action
+        return "hyper", tag
+
+    def _enter(self, event):
+        self.text.config(cursor="hand2")
+
+    def _leave(self, event):
+        self.text.config(cursor="")
+
+    def _click(self, event):
+        for tag in self.text.tag_names(CURRENT):
+            if tag[:6] == "hyper-":
+                self.links[tag]()
+                return

@@ -53,9 +53,6 @@ class UI:
         self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally, self)
         self.window_legend:WindowLegend = WindowLegend(self.bgstally, self)
 
-        # TODO: Needs to become multiple-instance
-        self.window_api = WindowAPI(self.bgstally)
-
 
     def shut_down(self):
         """
@@ -160,7 +157,9 @@ class UI:
         nb.Label(frame, text="Advanced", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.W)
         tk.Button(frame, text="FORCE Tick", command=self._confirm_force_tick, bg="red", fg="white").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
-        self.window_api.show(self.plugin_frame)
+        # TODO: TEMPORARY
+        window_api = WindowAPI(self.bgstally, self.bgstally.api_manager.apis[0])
+        window_api.show(self.plugin_frame)
 
         return frame
 

@@ -153,7 +153,7 @@ class API:
         Return True if the discovered events have changed from the previously discovered events
         """
         previous_events_hash:int = hash(self.discovery_events.sort())
-        latest_events_hash:int = hash(*(self.events.keys()).sort())
+        latest_events_hash:int = hash([*self.events.keys()].sort())
         return previous_events_hash == latest_events_hash
 
 

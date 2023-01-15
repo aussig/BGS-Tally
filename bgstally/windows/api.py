@@ -90,9 +90,9 @@ class WindowAPI:
         tk.Label(frame_main, text="API Information", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         self.txt_intro:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
         hyperlink = HyperlinkManager(self.txt_intro)
-        self.txt_intro.insert(tk.END, "If you approve this API, BGS-Tally will send your information to it, which may include specific information " \
-            "relating to your CMDR such as your location, missions and kills. \n\nThe exact set of Events that will be sent is listed in the 'Events Requested' " \
-            "section below. Further information about these Events and what they contain is provided here: ")
+        self.txt_intro.insert(tk.END, "If you approve this API, BGS-Tally will send your information to it, which may include CMDR details such as your location, " \
+            "missions and kills. \n\nThe exact set of Events that will be sent is listed in the 'Events Requested' section below. " \
+            "Further information about these Events and what they contain is provided here: ")
         self.txt_intro.insert(tk.END, "Player Journal Documentation", hyperlink.add(partial(webbrowser.open, "https://elite-journal.readthedocs.io/en/latest/")))
         self.txt_intro.insert(tk.END, ".\n\nPLEASE ENSURE YOU TRUST the application, website or system you send this information to!\n")
         self.txt_intro.configure(state='disabled')
@@ -156,6 +156,7 @@ class WindowAPI:
         """
         The user has clicked the 'Fetch information' button
         """
+        self.btn_fetch.configure(state='disabled')
         self.api.discover(self.discovery_received)
 
 
@@ -163,6 +164,7 @@ class WindowAPI:
         """
         Discovery API information received from the server
         """
+        self.btn_fetch.configure(state='normal')
         # TODO: Clear 'user accepted' flag and enable decline / accept buttons
 
         self.api.discovery_received(success, response, request)

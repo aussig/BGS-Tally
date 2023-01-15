@@ -52,6 +52,8 @@ class UI:
         self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally, self)
         self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally, self)
         self.window_legend:WindowLegend = WindowLegend(self.bgstally, self)
+
+        # TODO: Needs to become multiple-instance
         self.window_api = WindowAPI(self.bgstally)
 
 
@@ -153,41 +155,14 @@ class UI:
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="Integrations", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1
-        nb.Label(frame, text="API URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        self.entry_apiurl:EntryPlus = EntryPlus(frame, textvariable=self.bgstally.state.APIURL)
-        self.entry_apiurl.grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        if not self.bgstally.state.APIURL.trace_info():  self.bgstally.state.APIURL.trace_add("write", self._update_prefs_frame)
-        self.label_apikey:nb.Label = nb.Label(frame, text="API Key")
-        self.label_apikey.grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        self.entry_apikey:EntryPlus = EntryPlus(frame, textvariable=self.bgstally.state.APIKey)
-        self.entry_apikey.grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        self.cb_apiactivities:nb.Checkbutton = nb.Checkbutton(frame, text="Enable /activities Requests", variable=self.bgstally.state.APIActivitiesEnabled, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF)
-        self.cb_apiactivities.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        self.cb_apievents:nb.Checkbutton = nb.Checkbutton(frame, text="Enable /events Requests", variable=self.bgstally.state.APIEventsEnabled, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF)
-        self.cb_apievents.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="Advanced", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.W)
         tk.Button(frame, text="FORCE Tick", command=self._confirm_force_tick, bg="red", fg="white").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
-        self._update_prefs_frame()
+        self.window_api.show(self.plugin_frame)
 
         return frame
-
-
-    def _update_prefs_frame(self, var_name:str = None, var_index:str = None, operation:str = None):
-        """
-        Update the prefs UI after a setting has changed
-        """
-        api_settings_enabled:bool = self.bgstally.request_manager.url_valid(self.bgstally.state.APIURL.get())
-
-        self.label_apikey.configure(state="normal" if api_settings_enabled else "disabled")
-        self.entry_apikey.configure(state="normal" if api_settings_enabled else "disabled")
-        self.cb_apiactivities.configure(state="enabled" if api_settings_enabled else "disabled")
-        self.cb_apievents.configure(state="enabled" if api_settings_enabled else "disabled")
-
-        if api_settings_enabled:
-            self.window_api.show(self.plugin_frame)
 
 
     def _worker(self) -> None:

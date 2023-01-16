@@ -49,9 +49,11 @@ class UI:
         self.thread.start()
 
         # Single-instance windows
-        self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally, self)
-        self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally, self)
-        self.window_legend:WindowLegend = WindowLegend(self.bgstally, self)
+        self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally)
+        self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally)
+        self.window_legend:WindowLegend = WindowLegend(self.bgstally)
+        # TODO: When we support multiple APIs, this will no longer be a single instance window
+        self.window_api:WindowAPI = WindowAPI(self.bgstally, self.bgstally.api_manager.apis[0])
 
 
     def shut_down(self):
@@ -119,12 +121,12 @@ class UI:
         HyperlinkLabel(frame, text="Instructions for Use", background=nb.Label().cget('background'), url=URL_WIKI, underline=True).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="General", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Label(frame, text="General", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
         nb.Checkbutton(frame, text="BGS Tally Active", variable=self.bgstally.state.Status, onvalue="Active", offvalue="Paused").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(frame, text="Show Systems with Zero Activity", variable=self.bgstally.state.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Discord", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1
+        nb.Label(frame, text="Discord", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1
         nb.Label(frame, text="Post Format").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         nb.Radiobutton(frame, text="Modern", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Radiobutton(frame, text="Legacy", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
@@ -145,21 +147,18 @@ class UI:
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="In-game Overlay", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Label(frame, text="In-game Overlay", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
         nb.Checkbutton(frame, text="Show In-game Overlay", variable=self.bgstally.state.EnableOverlay, state="disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled", onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         if self.bgstally.overlay.edmcoverlay == None:
             nb.Label(frame, text="In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.").grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Integrations", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1
+        nb.Label(frame, text="Integrations", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
+        tk.Button(frame, text="Configure Remote Server", command=partial(self._show_api_window, parent_frame)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Advanced", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Label(frame, text="Advanced", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
         tk.Button(frame, text="FORCE Tick", command=self._confirm_force_tick, bg="red", fg="white").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-
-        # TODO: TEMPORARY
-        window_api = WindowAPI(self.bgstally, self.bgstally.api_manager.apis[0])
-        window_api.show(self.plugin_frame)
 
         return frame
 
@@ -224,6 +223,13 @@ class UI:
         Display the Fleet Carrier Window
         """
         self.window_fc.show()
+
+
+    def _show_api_window(self, parent_frame:tk.Frame):
+        """
+        Display the API configuration window
+        """
+        self.window_api.show(parent_frame)
 
 
     def show_legend_window(self):

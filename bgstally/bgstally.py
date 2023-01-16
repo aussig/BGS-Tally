@@ -58,10 +58,10 @@ class BGSTally:
         self.activity_manager:ActivityManager = ActivityManager(self)
         self.fleet_carrier:FleetCarrier = FleetCarrier(self)
         self.market:Market = Market(self)
-        self.ui:UI = UI(self)
         self.request_manager:RequestManager = RequestManager(self)
         self.api_manager:APIManager = APIManager(self)
         self.update_manager:UpdateManager = UpdateManager(self)
+        self.ui:UI = UI(self)
 
         self.thread:Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True

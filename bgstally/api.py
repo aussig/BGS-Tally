@@ -20,8 +20,8 @@ ENDPOINT_ACTIVITIES = "activities"
 ENDPOINT_DISCOVERY = "discovery"
 ENDPOINT_EVENTS = "events"
 
-NAME_DEFAULT = "This API has not supplied a name."
-DESCRIPTION_DEFAULT = "This API has not supplied a description."
+NAME_DEFAULT = "This server has not supplied a name."
+DESCRIPTION_DEFAULT = "This server has not supplied a description."
 VERSION_DEFAULT = "1.0.0"
 ENDPOINTS_DEFAULT = {ENDPOINT_ACTIVITIES: {}, ENDPOINT_EVENTS: {}}
 EVENTS_FILTER_DEFAULTS = {'ApproachSettlement': {}, 'CarrierJump': {}, 'CommitCrime': {}, 'Died': {}, 'Docked': {}, 'FactionKillBond': {},
@@ -53,12 +53,7 @@ class API:
         self.user_approved:bool = False
 
         # Default API settings. Overridden by response from /discovery endpoint if it exists
-        self.name:str = NAME_DEFAULT
-        self.version:semantic_version = semantic_version.Version.coerce(VERSION_DEFAULT)
-        self.description:str = DESCRIPTION_DEFAULT
-        self.endpoints:dict = ENDPOINTS_DEFAULT
-        self.events:dict = EVENTS_FILTER_DEFAULTS
-        self.discovery_events:list = []
+        self._revert_to_defaults()
 
         # activity is used to store a single Activity object when it's been updated.
         self.activity:Activity = None
@@ -90,6 +85,7 @@ class API:
         """
         if not success:
             Debug.logger.warning(f"Unable to discover API capabilities, falling back to defaults")
+            self._revert_to_defaults()
             return
 
         discovery_data:dict = None
@@ -98,31 +94,34 @@ class API:
             discovery_data = response.json()
         except JSONDecodeError:
             Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
+            self._revert_to_defaults()
             return
 
         if not isinstance(discovery_data, dict):
             Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
+            self._revert_to_defaults()
             return
 
         self.name = discovery_data.get('name', NAME_DEFAULT)
         self.version = semantic_version.Version.coerce(discovery_data.get('version', VERSION_DEFAULT))
         self.description = discovery_data.get('description', DESCRIPTION_DEFAULT)
         self.endpoints = discovery_data.get('endpoints', ENDPOINTS_DEFAULT)
-        self.events = discovery_data.get('events', EVENTS_FILTER_DEFAULTS)
 
-        if self._discovery_events_changed():
+        if self._discovery_events_changed(discovery_data.get('events', EVENTS_FILTER_DEFAULTS)):
+            self.user_approved = False
             # Note we're in a thread
-            Debug.logger.info(f"API Requested Event list has changed, ALERT USER")
-            # Alert user, ask for API approval again
-            # Only once approved:
-            # self.discovery_events = self.events.keys()
+            Debug.logger.info(f"API Requested Event list has changed")
+            # Put Message in BGS-Tally message field in EDMC window (with link to API settings? Possibly not when we have multiple APIs)
+
+        self.events = discovery_data.get('events', EVENTS_FILTER_DEFAULTS)
 
 
     def send_activity(self, activity:Activity):
         """
         Activity data has been updated. Store it ready for the next send via the worker
         """
-        if not self.activities_enabled \
+        if not self.user_approved \
+                or not self.activities_enabled \
                 or not ENDPOINT_ACTIVITIES in self.endpoints \
                 or not self.bgstally.request_manager.url_valid(self.url):
             self.activity = None
@@ -135,7 +134,8 @@ class API:
         """
         Event has been received. Add it to the events queue.
         """
-        if not self.events_enabled \
+        if not self.user_approved \
+                or not self.events_enabled \
                 or not ENDPOINT_EVENTS in self.endpoints \
                 or not self.bgstally.request_manager.url_valid(self.url):
             with self.events_queue.mutex:
@@ -148,13 +148,27 @@ class API:
         self.events_queue.put(event)
 
 
-    def _discovery_events_changed(self) -> bool:
+    def _revert_to_defaults(self):
+        """
+        Revert all API information to default values
+        """
+        self.name:str = NAME_DEFAULT
+        self.version:semantic_version = semantic_version.Version.coerce(VERSION_DEFAULT)
+        self.description:str = DESCRIPTION_DEFAULT
+        self.endpoints:dict = ENDPOINTS_DEFAULT
+        self.events:dict = EVENTS_FILTER_DEFAULTS
+
+
+    def _discovery_events_changed(self, discovery_events:dict) -> bool:
         """
         Return True if the discovered events have changed from the previously discovered events
         """
-        previous_events_hash:int = hash(self.discovery_events.sort())
-        latest_events_hash:int = hash([*self.events.keys()].sort())
-        return previous_events_hash == latest_events_hash
+        previous_events:list = [*self.events.keys()]
+        latest_events:list = [*discovery_events.keys()]
+        previous_events.sort()
+        latest_events.sort()
+
+        return hash(tuple(previous_events)) != hash(tuple(latest_events))
 
 
     def _is_filtered(self, event:dict) -> bool:
@@ -181,7 +195,8 @@ class API:
 
         while True:
             # Need to check settings every time in case the user has changed them
-            if not self.activities_enabled \
+            if not self.user_approved \
+                    or not self.activities_enabled \
                     or not ENDPOINT_ACTIVITIES in self.endpoints \
                     or not self.bgstally.request_manager.url_valid(self.url):
                 self.activity = None
@@ -205,7 +220,8 @@ class API:
 
         while True:
             # Need to check settings every time in case the user has changed them
-            if not self.events_enabled \
+            if not self.user_approved \
+                    or not self.events_enabled \
                     or not ENDPOINT_EVENTS in self.endpoints \
                     or not self.bgstally.request_manager.url_valid(self.url):
                 with self.events_queue.mutex:

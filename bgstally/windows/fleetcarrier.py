@@ -14,9 +14,8 @@ class WindowFleetCarrier:
     Handles the Fleet Carrier window
     """
 
-    def __init__(self, bgstally, ui):
+    def __init__(self, bgstally):
         self.bgstally = bgstally
-        self.ui = ui
 
         self.toplevel:tk.Toplevel = None
 
@@ -31,7 +30,7 @@ class WindowFleetCarrier:
 
         fc: FleetCarrier = self.bgstally.fleet_carrier
 
-        self.toplevel = tk.Toplevel(self.ui.frame)
+        self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
         self.toplevel.title(f"Carrier {fc.name} ({fc.callsign}) in system: {fc.data['currentStarSystem']}")
         self.toplevel.geometry("600x800")
 

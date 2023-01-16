@@ -10,9 +10,8 @@ class WindowLegend:
     Handles a window showing the Discord legend / key window
     """
 
-    def __init__(self, bgstally, ui):
+    def __init__(self, bgstally):
         self.bgstally = bgstally
-        self.ui = ui
 
         self.image_icon_bgs_cz:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz.png"))
         self.image_icon_tw_cargo:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_cargo.png"))
@@ -32,7 +31,7 @@ class WindowLegend:
             self.toplevel.lift()
             return
 
-        self.toplevel = tk.Toplevel(self.ui.frame)
+        self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
         self.toplevel.title(f"{self.bgstally.plugin_name} - Icon Legend")
         self.toplevel.resizable(False, False)
 

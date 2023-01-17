@@ -261,7 +261,14 @@ class CollapsibleFrame(ttk.Frame):
             # A separator is a line, we can also set thickness
             self._separator = ttk.Separator(self, orient=tk.HORIZONTAL)
             self._separator.grid(row=0, column=1, sticky=tk.EW)
+        else:
+            # We need any widget to be in our top-level grid, otherwise
+            # the window won't contract when the panel is closed. Place
+            # an invisible frame
+            self._separator = tk.Frame(self, height=0)
+            self._separator.grid(row=0, column=0, sticky=tk.EW)
 
+        # The internal sub-frame is gridded and ungridded to show/hide contents
         self.frame = ttk.Frame(self)
 
         # This will call activate function of class

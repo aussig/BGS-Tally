@@ -61,17 +61,16 @@ class WindowAPI:
 
         frame_main:ttk.Frame = ttk.Frame(frame_container)
         frame_main.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)
-        frame_main.columnconfigure(0, minsize=200)
+        frame_main.columnconfigure(0, minsize=100)
 
         current_row:int = 0
-        text_width:int = 500
+        text_width:int = 400
 
         tk.Label(frame_main, text="About This", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         self.txt_intro:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
         self.txt_intro.insert(tk.END, "An Application Programming Interface (API) is used to send your data to a server.\n\nTake care when agreeing to this - if " \
             "you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, " \
-            "missions and kills.")
-        self.txt_intro.insert(tk.END, ".\n\nPLEASE ENSURE YOU TRUST the server you send this information to!\n")
+            "missions and kills.\n\nPLEASE ENSURE YOU TRUST the server you send this information to!\n")
         self.txt_intro.configure(state='disabled')
         self.txt_intro.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
         self.txt_intro.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
@@ -107,7 +106,7 @@ class WindowAPI:
 
         self.frame_information:CollapsibleFrame = CollapsibleFrame(frame_container, show_button=False, open=False)
         self.frame_information.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)
-        self.frame_information.columnconfigure(0, minsize=200)
+        self.frame_information.frame.columnconfigure(0, minsize=100)
 
         current_row = 0
         tk.Label(self.frame_information.frame, text="API Information", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
@@ -135,9 +134,9 @@ class WindowAPI:
         frame_buttons:tk.Frame = tk.Frame(self.frame_information.frame)
         frame_buttons.grid(row=current_row, column=1, sticky=tk.E, pady=4); current_row += 1
 
-        self.btn_decline:tk.Button = tk.Button(frame_buttons, text="I Do Not Accept", command=partial(self._decline))
+        self.btn_decline:tk.Button = tk.Button(frame_buttons, text="I Do Not Approve", command=partial(self._decline))
         self.btn_decline.pack(side=tk.RIGHT, padx=5, pady=5)
-        self.btn_accept:tk.Button = tk.Button(frame_buttons, text="I Accept", command=partial(self._accept))
+        self.btn_accept:tk.Button = tk.Button(frame_buttons, text="I Approve", command=partial(self._accept))
         self.btn_accept.pack(side=tk.RIGHT, padx=5, pady=5)
 
         self.toplevel.focus()

@@ -17,3 +17,9 @@ class Config(object):
     def apikey_inara(self):
         return self.config.get('apikeys', 'inara')
 
+
+    def api(self, name:str) -> dict:
+        """
+        Fetch all information about a given API
+        """
+        return self.config[f'apis.{name}']

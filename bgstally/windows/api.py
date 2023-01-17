@@ -9,7 +9,7 @@ from os import path
 from bgstally.api import API
 from bgstally.constants import FOLDER_ASSETS, FONT_HEADING, FONT_TEXT
 from bgstally.debug import Debug
-from bgstally.widgets import EntryPlus, HyperlinkManager
+from bgstally.widgets import CollapsibleFrame, EntryPlus, HyperlinkManager
 from requests import Response
 from bgstally.requestmanager import BGSTallyRequest
 
@@ -26,6 +26,9 @@ class WindowAPI:
 
         self.image_icon_green_tick = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_green_tick.png"))
         self.image_icon_red_cross = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_red_cross.png"))
+
+        self.image_logo_comguard = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_comguard.png"))
+        self.image_logo_dcoh = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_dcoh.png"))
 
 
     def show(self, parent_frame:tk.Frame = None):
@@ -52,26 +55,22 @@ class WindowAPI:
         default_bg = ttk.Style().lookup('TFrame', 'background')
         default_fg = ttk.Style().lookup('TFrame', 'foreground')
         default_font = ttk.Style().lookup('TFrame', 'font')
+
         frame_container:ttk.Frame = ttk.Frame(self.toplevel)
         frame_container.pack(fill=tk.BOTH, expand=1)
 
         frame_main:ttk.Frame = ttk.Frame(frame_container)
         frame_main.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)
-
-        frame_buttons:tk.Frame = tk.Frame(frame_container)
-        frame_buttons.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)
+        frame_main.columnconfigure(0, minsize=200)
 
         current_row:int = 0
         text_width:int = 500
 
         tk.Label(frame_main, text="About This", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         self.txt_intro:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
-        hyperlink = HyperlinkManager(self.txt_intro)
         self.txt_intro.insert(tk.END, "An Application Programming Interface (API) is used to send your data to a server.\n\nTake care when agreeing to this - if " \
             "you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, " \
-            "missions and kills. \n\nThe exact set of Events that will be sent is listed in the 'Events Requested' section below. " \
-            "Further information about these Events and what they contain is provided here: ")
-        self.txt_intro.insert(tk.END, "Player Journal Documentation", hyperlink.add(partial(webbrowser.open, "https://elite-journal.readthedocs.io/en/latest/")))
+            "missions and kills.")
         self.txt_intro.insert(tk.END, ".\n\nPLEASE ENSURE YOU TRUST the server you send this information to!\n")
         self.txt_intro.configure(state='disabled')
         self.txt_intro.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
@@ -98,23 +97,43 @@ class WindowAPI:
         self.cb_apievents.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
         self.cb_apievents.configure(command=partial(self._field_edited, self.cb_apievents))
         self.cb_apievents.state(['selected', '!alternate'] if self.api.events_enabled else ['!selected', '!alternate'])
-        self.btn_fetch = tk.Button(frame_main, text="Establish Connection", command=partial(self._discover))
-        self.btn_fetch.grid(row=current_row, column=1, pady=4, sticky=tk.E); current_row += 1
 
-        tk.Label(frame_main, text="API Information", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
-        tk.Label(frame_main, text="The following information will be discovered automatically when you establish a connection").grid(row=current_row, column=0, columnspan=2, sticky=tk.NW, pady=4); current_row += 1
-        tk.Label(frame_main, text="Name").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
-        self.lbl_apiname:tk.Label = tk.Label(frame_main, wraplength=text_width, justify=tk.LEFT)
+        frame_connection_buttons:ttk.Frame = ttk.Frame(frame_main)
+        frame_connection_buttons.grid(row=current_row, column=1, pady=4, sticky=tk.EW)
+        tk.Button(frame_connection_buttons, image=self.image_logo_dcoh, height=28, bg="Gray13", command=partial(self._autofill, 'dcoh')).pack(side=tk.LEFT, padx=4)
+        tk.Button(frame_connection_buttons, image=self.image_logo_comguard, height=28, bg="Gray13", command=partial(self._autofill, 'comguard')).pack(side=tk.LEFT, padx=4)
+        self.btn_fetch = tk.Button(frame_connection_buttons, text="Establish Connection", command=partial(self._discover))
+        self.btn_fetch.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        self.frame_information:CollapsibleFrame = CollapsibleFrame(frame_container, show_button=False, open=False)
+        self.frame_information.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)
+        self.frame_information.columnconfigure(0, minsize=200)
+
+        current_row = 0
+        tk.Label(self.frame_information.frame, text="API Information", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        self.txt_information:tk.Text = tk.Text(self.frame_information.frame, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
+        hyperlink = HyperlinkManager(self.txt_information)
+        self.txt_information.insert(tk.END, "The exact set of Events that will be sent is listed in the 'Events Requested' section below. " \
+            "Further information about these Events and what they contain is provided here: ")
+        self.txt_information.insert(tk.END, "Player Journal Documentation", hyperlink.add(partial(webbrowser.open, "https://elite-journal.readthedocs.io/en/latest/")))
+        self.txt_information.configure(state='disabled')
+        self.txt_information.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
+        self.txt_information.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        tk.Label(self.frame_information.frame, text="Name").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
+        self.lbl_apiname:tk.Label = tk.Label(self.frame_information.frame, wraplength=text_width, justify=tk.LEFT)
         self.lbl_apiname.grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
-        tk.Label(frame_main, text="Description").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
-        self.lbl_apidescription:tk.Label = tk.Label(frame_main, wraplength=text_width, justify=tk.LEFT)
+        tk.Label(self.frame_information.frame, text="Description").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
+        self.lbl_apidescription:tk.Label = tk.Label(self.frame_information.frame, wraplength=text_width, justify=tk.LEFT)
         self.lbl_apidescription.grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
-        tk.Label(frame_main, text="Events Requested").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
-        self.lbl_apievents:tk.Label = tk.Label(frame_main, wraplength=text_width, justify=tk.LEFT)
+        tk.Label(self.frame_information.frame, text="Events Requested").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
+        self.lbl_apievents:tk.Label = tk.Label(self.frame_information.frame, wraplength=text_width, justify=tk.LEFT)
         self.lbl_apievents.grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
-        tk.Label(frame_main, text="Approved by you").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
-        self.lbl_approved:ttk.Label = ttk.Label(frame_main, image=self.image_icon_green_tick if self.api.user_approved else self.image_icon_red_cross)
+        tk.Label(self.frame_information.frame, text="Approved by you").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
+        self.lbl_approved:ttk.Label = ttk.Label(self.frame_information.frame, image=self.image_icon_green_tick if self.api.user_approved else self.image_icon_red_cross)
         self.lbl_approved.grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
+
+        frame_buttons:tk.Frame = tk.Frame(self.frame_information.frame)
+        frame_buttons.grid(row=current_row, column=1, sticky=tk.E, pady=4); current_row += 1
 
         self.btn_decline:tk.Button = tk.Button(frame_buttons, text="I Do Not Accept", command=partial(self._decline))
         self.btn_decline.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -145,9 +164,11 @@ class WindowAPI:
         """
         Update the prefs UI after something has changed
         """
-        # Automatically adjust height of Text field
+        # Automatically adjust height of Text fields
         height = self.txt_intro.tk.call((self.txt_intro._w, "count", "-update", "-displaylines", "1.0", "end"))
         self.txt_intro.configure(height=height)
+        height = self.txt_information.tk.call((self.txt_information._w, "count", "-update", "-displaylines", "1.0", "end"))
+        self.txt_information.configure(height=height)
 
         url_valid:bool = self.bgstally.request_manager.url_valid(self.api.url)
 
@@ -158,14 +179,34 @@ class WindowAPI:
         self.cb_apiactivities.state(['!disabled'] if url_valid else ['disabled'])
         self.cb_apievents.state(['!disabled'] if url_valid else ['disabled'])
 
-        self.lbl_apiname.configure(text=self.api.name)
-        self.lbl_apidescription.configure(text=self.api.description)
-        self.lbl_apievents.configure(text=", ".join(self.api.events.keys()))
+        if self.discovery_done or self.api.user_approved:
+            self.lbl_apiname.configure(text=self.api.name)
+            self.lbl_apidescription.configure(text=self.api.description)
+            self.lbl_apievents.configure(text=", ".join(self.api.events.keys()))
+            self.frame_information.open()
+        else:
+            self.lbl_apiname.configure(text="Establish a connection")
+            self.lbl_apidescription.configure(text="Establish a connection")
+            self.lbl_apievents.configure(text="Establish a connection")
+            self.frame_information.close()
 
         self.btn_decline.configure(state='normal' if url_valid and self.discovery_done else 'disabled')
         self.btn_accept.configure(state='normal' if url_valid and self.discovery_done else 'disabled')
 
         self.lbl_approved.configure(image=self.image_icon_green_tick if self.api.user_approved else self.image_icon_red_cross)
+
+
+    def _autofill(self, site:str):
+        """
+        Automatically populate fields with predefined server details
+        """
+        api_info:dict = self.bgstally.config.api(site)
+        Debug.logger.info(f"{api_info}")
+        Debug.logger.info(f"{api_info.get('activities_enabled', False)}")
+        Debug.logger.info(f"{bool(api_info.get('activities_enabled', False))}")
+        self.var_apiurl.set(api_info.get('url', ""))
+        self.cb_apiactivities.state(['selected', '!alternate'] if api_info.get('activities_enabled', "False") == "True" else ['!selected', '!alternate'])
+        self.cb_apievents.state(['selected', '!alternate'] if api_info.get('events_enabled', "False") == "True" else ['!selected', '!alternate'])
 
 
     def _discover(self):
@@ -191,7 +232,8 @@ class WindowAPI:
         User has clicked the approve button
         """
         self.api.user_approved = True
-        self.toplevel.destroy()
+        self._update()
+        self.toplevel.after(1000, partial(self.toplevel.destroy))
 
 
     def _decline(self):
@@ -199,4 +241,5 @@ class WindowAPI:
         User has clicked the don't approve button
         """
         self.api.user_approved = False
-        self.toplevel.destroy()
+        self._update()
+        self.toplevel.after(1000, partial(self.toplevel.destroy))

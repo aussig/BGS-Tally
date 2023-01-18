@@ -68,7 +68,7 @@ class WindowAPI:
 
         tk.Label(frame_main, text="About This", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         self.txt_intro:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
-        self.txt_intro.insert(tk.END, "An Application Programming Interface (API) is used to send your data to a server.\n\nTake care when agreeing to this - if " \
+        self.txt_intro.insert(tk.END, "This screen is used to set up a connection to a server.\n\nTake care when agreeing to this - if " \
             "you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, " \
             "missions and kills.\n\nPLEASE ENSURE YOU TRUST the server you send this information to!\n")
         self.txt_intro.configure(state='disabled')
@@ -76,7 +76,12 @@ class WindowAPI:
         self.txt_intro.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
 
         tk.Label(frame_main, text="API Settings", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
-        tk.Label(frame_main, text="The following information will be provided by the administrator of the server").grid(row=current_row, column=0, columnspan=2, sticky=tk.NW, pady=4); current_row += 1
+        self.txt_settings:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
+        self.txt_settings.insert(tk.END, "Ask the server administrator for the information below, then click 'Establish Connection' to continue. " \
+            "Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you.")
+        self.txt_settings.configure(state='disabled')
+        self.txt_settings.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
+        self.txt_settings.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         tk.Label(frame_main, text="Server URL").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
         self.var_apiurl:tk.StringVar = tk.StringVar(value=self.api.url)
         self.entry_apiurl:EntryPlus = EntryPlus(frame_main, textvariable=self.var_apiurl)
@@ -166,6 +171,8 @@ class WindowAPI:
         # Automatically adjust height of Text fields
         height = self.txt_intro.tk.call((self.txt_intro._w, "count", "-update", "-displaylines", "1.0", "end"))
         self.txt_intro.configure(height=height)
+        height = self.txt_settings.tk.call((self.txt_settings._w, "count", "-update", "-displaylines", "1.0", "end"))
+        self.txt_settings.configure(height=height)
         height = self.txt_information.tk.call((self.txt_information._w, "count", "-update", "-displaylines", "1.0", "end"))
         self.txt_information.configure(height=height)
 

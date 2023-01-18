@@ -16,14 +16,14 @@ from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import get_by_path
 
 
-ENDPOINT_ACTIVITIES = "activities"
-ENDPOINT_DISCOVERY = "discovery"
-ENDPOINT_EVENTS = "events"
+ENDPOINT_ACTIVITIES = "activities" # Used as both the dict key and default path
+ENDPOINT_DISCOVERY = "discovery"   # Used as the path
+ENDPOINT_EVENTS = "events"         # Used as both the dict key and default path
 
 NAME_DEFAULT = "This server has not supplied a name."
 DESCRIPTION_DEFAULT = "This server has not supplied a description."
 VERSION_DEFAULT = "1.0.0"
-ENDPOINTS_DEFAULT = {ENDPOINT_ACTIVITIES: {}, ENDPOINT_EVENTS: {}}
+ENDPOINTS_DEFAULT = {ENDPOINT_ACTIVITIES: {'path': ENDPOINT_ACTIVITIES}, ENDPOINT_EVENTS: {'path': ENDPOINT_EVENTS}}
 EVENTS_FILTER_DEFAULTS = {'ApproachSettlement': {}, 'CarrierJump': {}, 'CommitCrime': {}, 'Died': {}, 'Docked': {}, 'FactionKillBond': {},
     'FSDJump': {}, 'Location': {}, 'MarketBuy': {}, 'MarketSell': {}, 'MissionAbandoned': {}, 'MissionAccepted': {}, 'MissionCompleted': {},
     'MissionFailed': {}, 'MultiSellExplorationData': {}, 'RedeemVoucher': {}, 'SellExplorationData': {}, 'StartUp': {}}
@@ -84,7 +84,7 @@ class API:
         Discovery API information received from the server
         """
         if not success:
-            Debug.logger.warning(f"Unable to discover API capabilities, falling back to defaults")
+            Debug.logger.info(f"Unable to discover API capabilities, falling back to defaults")
             self._revert_to_defaults()
             return
 
@@ -173,7 +173,7 @@ class API:
 
     def _is_filtered(self, event:dict) -> bool:
         """
-        Return True if this event should be filtered (omitted) from sending to the API.
+        Return True if this event should be filtered (omitted from sending to the API).
         """
         filters:dict = get_by_path(self.events, [event.get('event', ''), 'filters'], None)
         if filters is None: return False
@@ -202,7 +202,7 @@ class API:
                 self.activity = None
 
             if self.activity is not None:
-                url:str = self.url + ENDPOINT_ACTIVITIES
+                url:str = self.url + get_by_path(self.endpoints, [ENDPOINT_ACTIVITIES, 'path'], ENDPOINT_ACTIVITIES)
 
                 self.bgstally.request_manager.queue_request(url, RequestMethod.PUT, headers=self._get_headers(), payload=self.activity._as_dict())
 
@@ -228,7 +228,7 @@ class API:
                     self.events_queue.queue.clear()
 
             if self.events_queue.qsize() > 0:
-                url:str = self.url + ENDPOINT_EVENTS
+                url:str = self.url + get_by_path(self.endpoints, [ENDPOINT_EVENTS, 'path'], ENDPOINT_EVENTS)
 
                 # Grab all available events in the queue up to a maximum batch size
                 batch_size:int = max(int(get_by_path(self.endpoints, [ENDPOINT_EVENTS, 'max_batch'], 0)), BATCH_EVENTS_MAX_SIZE)

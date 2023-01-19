@@ -580,6 +580,15 @@ class Activity:
                     system['zero_system_activity'] = False
 
 
+    def enhance_entry(self, journal_entry:dict, state:State):
+        """
+        Enhance an event object with additional fields. Used to add useful information for sending to APIs
+        """
+        if 'StarSystem' not in journal_entry: journal_entry['StarSystem'] = self.systems.get(state.current_system_id, "")
+        if 'SystemAddress' not in journal_entry: journal_entry['SystemAddress'] = state.current_system_id
+        journal_entry['tickID'] = self.tick_id
+
+
     #
     # Private functions
     #

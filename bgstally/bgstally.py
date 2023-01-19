@@ -177,6 +177,7 @@ class BGSTally:
             self.save_data()
             self.api_manager.send_activity(activity)
 
+        activity.enhance_entry(entry, self.state)
         self.api_manager.send_event(entry)
 
 

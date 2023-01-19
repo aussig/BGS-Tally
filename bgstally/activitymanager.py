@@ -69,6 +69,7 @@ class ActivityManager:
         new_activity.tick_time = tick.tick_time
         new_activity.discord_bgs_messageid = None
         new_activity.discord_tw_messageid = None
+        new_activity.discord_notes = ""
         new_activity.clear_activity(self.bgstally.mission_log)
         self.activity_data.append(new_activity)
         self.activity_data.sort(reverse=True)

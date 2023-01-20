@@ -118,7 +118,7 @@ class API:
 
     def send_activity(self, activity:Activity):
         """
-        Activity data has been updated. Store it ready for the next send via the worker
+        Activity data has been updated. Store it ready for the next send via the worker.
         """
         if not self.user_approved \
                 or not self.activities_enabled \

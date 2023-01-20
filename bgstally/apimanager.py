@@ -10,7 +10,7 @@ class APIManager:
     def __init__(self, bgstally):
         self.bgstally = bgstally
 
-        self.apis:list = []
+        self.apis:list[API] = []
 
         # TODO: Just creating a single API instance for testing, need to extend to multiple
         self.apis.append(API(self.bgstally))

@@ -1,12 +1,12 @@
 import tkinter as tk
 from functools import partial
-from tkinter import ttk, Text
-from typing import Dict
+from tkinter import ttk
 
-from bgstally.constants import DiscordChannel, FONT_HEADING, MaterialsCategory
+from bgstally.constants import FONT_HEADING, DiscordChannel, MaterialsCategory
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.widgets import TextPlus
+from thirdparty.colors import *
 
 
 class WindowFleetCarrier:
@@ -43,7 +43,7 @@ class WindowFleetCarrier:
         buttons_frame = ttk.Frame(container_frame)
         buttons_frame.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
 
-        ttk.Label(info_frame, text=f"System: {fc.data['currentStarSystem']} | Docking: {fc.data['dockingAccess']} | Notorious Allowed: {'Yes' if fc.data['notoriousAccess'] else 'No'}", font=FONT_HEADING, foreground='#A300A3').pack(anchor=tk.NW)
+        ttk.Label(info_frame, text=f"System: {fc.data['currentStarSystem']} - Docking: {fc.human_format_dockingaccess()} - Notorious Allowed: {fc.human_format_notorious()}", font=FONT_HEADING, foreground='#A300A3').pack(anchor=tk.NW)
         ttk.Label(info_frame, text="Selling", font=FONT_HEADING).pack(anchor=tk.NW)
         selling_frame = ttk.Frame(info_frame)
         selling_frame.pack(fill=tk.BOTH, padx=5, pady=5, anchor=tk.NW, expand=True)
@@ -53,7 +53,7 @@ class WindowFleetCarrier:
         selling_scroll.pack(fill=tk.Y, side=tk.RIGHT)
         selling_text.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
 
-        selling_text.insert(tk.INSERT, self.bgstally.fleet_carrier.get_materials_plaintext(MaterialsCategory.SELLING))
+        selling_text.insert(tk.INSERT, fc.get_materials_plaintext(MaterialsCategory.SELLING))
         selling_text.configure(state='disabled')
 
 
@@ -66,7 +66,7 @@ class WindowFleetCarrier:
         buying_scroll.pack(fill=tk.Y, side=tk.RIGHT)
         buying_text.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
 
-        buying_text.insert(tk.INSERT, self.bgstally.fleet_carrier.get_materials_plaintext(MaterialsCategory.BUYING))
+        buying_text.insert(tk.INSERT, fc.get_materials_plaintext(MaterialsCategory.BUYING))
         buying_text.configure(state='disabled')
 
         if self.bgstally.discord.is_webhook_valid(DiscordChannel.FLEETCARRIER): ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord)).pack(side=tk.RIGHT, padx=5, pady=5)
@@ -79,11 +79,11 @@ class WindowFleetCarrier:
         fc: FleetCarrier = self.bgstally.fleet_carrier
 
         title = f"Materials List for Carrier {fc.name} in system: {fc.data['currentStarSystem']}"
-        description = f"**Selling:**\n```css\n\n{self.bgstally.fleet_carrier.get_materials_plaintext(MaterialsCategory.SELLING)}```\n**Buying:**\n```css\n\n{self.bgstally.fleet_carrier.get_materials_plaintext(MaterialsCategory.BUYING)}```"
+        description = f"**Selling:**\n```css\n{fc.get_materials_plaintext(MaterialsCategory.SELLING)}```\n**Buying:**\n```css\n{fc.get_materials_plaintext(MaterialsCategory.BUYING)}```"
 
         fields = []
         fields.append({'name': "System", 'value': fc.data['currentStarSystem'], 'inline': True})
-        fields.append({'name': "Docking", 'value': fc.data['dockingAccess'], 'inline': True})
-        fields.append({'name': "Notorious", 'value': "Yes" if fc.data['notoriousAccess'] else "No", 'inline': True})
+        fields.append({'name': "Docking", 'value': fc.human_format_dockingaccess(), 'inline': True})
+        fields.append({'name': "Notorious Access", 'value': fc.human_format_notorious(), 'inline': True})
 
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER, None)

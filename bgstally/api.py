@@ -55,8 +55,8 @@ class API:
         # Default API settings. Overridden by response from /discovery endpoint if it exists
         self._revert_to_defaults()
 
-        # activity is used to store a single Activity object when it's been updated.
-        self.activity:Activity = None
+        # Used to store a single dict containing BGS activity when it's been updated.
+        self.activity:dict = None
 
         # Events queue is used to batch up events API messages. All batched messages are sent when the worker works.
         self.events_queue:Queue = Queue()
@@ -116,7 +116,7 @@ class API:
         self.events = discovery_data.get('events', EVENTS_FILTER_DEFAULTS)
 
 
-    def send_activity(self, activity:Activity):
+    def send_activity(self, activity:dict):
         """
         Activity data has been updated. Store it ready for the next send via the worker.
         """
@@ -204,7 +204,7 @@ class API:
             if self.activity is not None:
                 url:str = self.url + get_by_path(self.endpoints, [ENDPOINT_ACTIVITIES, 'path'], ENDPOINT_ACTIVITIES)
 
-                self.bgstally.request_manager.queue_request(url, RequestMethod.PUT, headers=self._get_headers(), payload=self.activity._as_dict())
+                self.bgstally.request_manager.queue_request(url, RequestMethod.PUT, headers=self._get_headers(), payload=self.activity)
 
                 self.activity = None
 

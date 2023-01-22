@@ -3,15 +3,16 @@ from tkinter import PhotoImage, ttk
 from functools import partial
 import sys
 import webbrowser
-from inspect import cleandoc
 from os import path
 
 from bgstally.api import API
-from bgstally.constants import FOLDER_ASSETS, FONT_HEADING, FONT_TEXT
+from bgstally.constants import FOLDER_ASSETS, FONT_HEADING
 from bgstally.debug import Debug
 from bgstally.widgets import CollapsibleFrame, EntryPlus, HyperlinkManager
 from requests import Response
 from bgstally.requestmanager import BGSTallyRequest
+
+URL_JOURNAL_DOCS = "https://elite-journal.readthedocs.io/en/latest/"
 
 
 class WindowAPI:
@@ -119,7 +120,7 @@ class WindowAPI:
         hyperlink = HyperlinkManager(self.txt_information)
         self.txt_information.insert(tk.END, "The exact set of Events that will be sent is listed in the 'Events Requested' section below. " \
             "Further information about these Events and what they contain is provided here: ")
-        self.txt_information.insert(tk.END, "Player Journal Documentation", hyperlink.add(partial(webbrowser.open, "https://elite-journal.readthedocs.io/en/latest/")))
+        self.txt_information.insert(tk.END, "Player Journal Documentation", hyperlink.add(partial(webbrowser.open, URL_JOURNAL_DOCS)))
         self.txt_information.configure(state='disabled')
         self.txt_information.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
         self.txt_information.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1

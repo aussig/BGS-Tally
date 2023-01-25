@@ -58,10 +58,10 @@ class BGSTally:
         self.activity_manager:ActivityManager = ActivityManager(self)
         self.fleet_carrier:FleetCarrier = FleetCarrier(self)
         self.market:Market = Market(self)
-        self.ui:UI = UI(self)
         self.request_manager:RequestManager = RequestManager(self)
         self.api_manager:APIManager = APIManager(self)
         self.update_manager:UpdateManager = UpdateManager(self)
+        self.ui:UI = UI(self)
 
         self.thread:Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True
@@ -175,14 +175,15 @@ class BGSTally:
 
         if dirty:
             self.save_data()
-            self.api_manager.activity_update(activity)
+            self.api_manager.send_activity(activity, cmdr)
+
+        self.api_manager.send_event(entry, activity, cmdr)
 
 
     def capi_fleetcarrier(self, data: CAPIData):
         """
         Fleet carrier data received from CAPI
         """
-        return # Don't support until EDMC 5.8.0 is out
         if data.data == {} or data.get('name') is None or data['name'].get('callsign') is None:
             raise ValueError("Invalid /fleetcarrier CAPI data")
 
@@ -197,7 +198,6 @@ class BGSTally:
         """
         Return true if the EDMC version is high enough to provide a callback for /fleetcarrier CAPI
         """
-        return False # Don't support until EDMC 5.8.0 is out
         return callable(appversion) and appversion() >= semantic_version.Version('5.8.0')
 
 
@@ -218,12 +218,14 @@ class BGSTally:
         """
         Save all data structures
         """
+        # TODO: Don't need to save all this all the time, be more selective
         self.mission_log.save()
         self.target_log.save()
         self.tick.save()
         self.activity_manager.save()
         self.state.save()
         self.fleet_carrier.save()
+        self.api_manager.save()
 
 
     def new_tick(self, force: bool, uipolicy: UpdateUIPolicy):

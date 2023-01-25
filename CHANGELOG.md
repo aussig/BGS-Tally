@@ -5,6 +5,8 @@
 ### New Features:
 
 * Plugin auto-update. From this version on, when a new version of the plugin is released, it will automatically be downloaded and update itself the next time you launch EDMarketConnector. You will need to install this version 3.0.0 manually, but that should be the last time you ever have to do a manual update unless you want to test pre-release versions (i.e. alphas or betas).
+* BGS-Tally will now track your fleet carrier materials for sale and for purchase, with the ability to post to Discord. For this to work, you need to be using EDMC v5.8.0 or greater, authenticate EDMC with your Frontier account, own a fleet carrier (!) and visit your fleet carrier management screen in-game.
+* API implemented. This allows BGS-Tally to send data to a server of your choice, to allow your squadron or another player group to collect and analyse your activity. If the server provides information about itself, this is shown to you and you are **always explicitly asked** to approve the connection. Two servers come pre-configured: COMGUARD and DCoH for quick access to those services.
 
 ### Changes:
 

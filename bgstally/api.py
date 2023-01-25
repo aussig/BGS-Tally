@@ -1,20 +1,16 @@
 
+from queue import Queue
 from re import match
-
+from threading import Thread
 from time import sleep
 
-from bgstally.activity import Activity
 import semantic_version
-from threading import Thread
-from queue import Queue
 from requests import JSONDecodeError, Response
 
-from bgstally.activity import Activity
 from bgstally.constants import RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import get_by_path
-
 
 ENDPOINT_ACTIVITIES = "activities" # Used as both the dict key and default path
 ENDPOINT_DISCOVERY = "discovery"   # Used as the path
@@ -39,21 +35,25 @@ class API:
     Handles data for an API.
     """
 
-    def __init__(self, bgstally):
+    def __init__(self, bgstally, data:list = None):
         """
         Instantiate
         """
         self.bgstally = bgstally
 
-        # TODO: All these must be stored per API instance, not just a single shared one in state
-        self.url:str = self.bgstally.state.APIURL.get().rstrip('/') + '/'
-        self.key:str = self.bgstally.state.APIKey.get()
-        self.activities_enabled:bool = True
-        self.events_enabled:bool = True
-        self.user_approved:bool = False
+        # Populate API user and discovery settings
+        if data is not None:
+            self.from_dict(data)
+        else:
+            # Default user state
+            self.url:str = ""
+            self.key:str = ""
+            self.activities_enabled:bool = True
+            self.events_enabled:bool = True
+            self.user_approved:bool = False
 
-        # Default API settings. Overridden by response from /discovery endpoint if it exists
-        self._revert_to_defaults()
+            # Default API discovery state. Overridden by response from /discovery endpoint if it exists
+            self._revert_discovery_to_defaults()
 
         # Used to store a single dict containing BGS activity when it's been updated.
         self.activity:dict = None
@@ -72,6 +72,46 @@ class API:
         self.discover(self.discovery_received)
 
 
+    def as_dict(self) -> dict:
+        """
+        Return a dict containing our user and discovery state
+        """
+        return {
+            # User state
+            'url': self.url,
+            'key': self.key,
+            'activities_enabled': self.activities_enabled,
+            'events_enabled': self.events_enabled,
+            'user_approved': self.user_approved,
+
+            # Discovery state
+            'name': self.name,
+            'version': str(self.version),
+            'description': self.description,
+            'endpoints': self.endpoints,
+            'events': self.events
+        }
+
+
+    def from_dict(self, data:dict):
+        """
+        Populate our user and discovery state from a dict
+        """
+        # User state
+        self.url:str = data['url']
+        self.key:str = data['key']
+        self.activities_enabled:bool = data['activities_enabled']
+        self.events_enabled:bool = data['events_enabled']
+        self.user_approved:bool = data['user_approved']
+
+        # Discovery state
+        self.name:str = data['name']
+        self.version:semantic_version = semantic_version.Version.coerce(data['version'])
+        self.description:str = data['description']
+        self.endpoints:dict = data['endpoints']
+        self.events:dict = data['events']
+
+
     def discover(self, callback:callable):
         """
         Call the discovery endpoint
@@ -85,7 +125,7 @@ class API:
         """
         if not success:
             Debug.logger.info(f"Unable to discover API capabilities, falling back to defaults")
-            self._revert_to_defaults()
+            self._revert_discovery_to_defaults()
             return
 
         discovery_data:dict = None
@@ -94,12 +134,12 @@ class API:
             discovery_data = response.json()
         except JSONDecodeError:
             Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
-            self._revert_to_defaults()
+            self._revert_discovery_to_defaults()
             return
 
         if not isinstance(discovery_data, dict):
             Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
-            self._revert_to_defaults()
+            self._revert_discovery_to_defaults()
             return
 
         self.name = discovery_data.get('name', NAME_DEFAULT)
@@ -148,7 +188,7 @@ class API:
         self.events_queue.put(event)
 
 
-    def _revert_to_defaults(self):
+    def _revert_discovery_to_defaults(self):
         """
         Revert all API information to default values
         """

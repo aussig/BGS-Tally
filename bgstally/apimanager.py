@@ -1,8 +1,12 @@
+import json
+from datetime import datetime
+from os import path
+
 from bgstally.activity import Activity
 from bgstally.api import API
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA
 
-from datetime import datetime
-from bgstally.constants import DATETIME_FORMAT_JOURNAL
+FILENAME = "apis.json"
 
 
 class APIManager:
@@ -15,20 +19,39 @@ class APIManager:
 
         self.apis:list[API] = []
 
-        # TODO: Just creating a single API instance for testing, need to extend to multiple
-        self.apis.append(API(self.bgstally))
+        self.load()
+
+        if len(self.apis) == 0:
+            # TODO: For the moment, ensure one API is created. Will need to manage multiple in the UI, and likely
+            # not create one by default.
+            self.apis.append(API(self.bgstally))
 
 
     def load(self):
         """
         Load all APIs from disk
         """
+        file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        if path.exists(file):
+            with open(file) as json_file:
+                apis_json:list = json.load(json_file)
+
+            for api_json in apis_json:
+                self.apis.append(API(self.bgstally, api_json))
 
 
     def save(self):
         """
         Save all APIs to disk
         """
+        apis_json:list = []
+
+        for api in self.apis:
+            apis_json.append(api.as_dict())
+
+        file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        with open(file, 'w') as outfile:
+            json.dump(apis_json, outfile)
 
 
     def send_activity(self, activity:Activity, cmdr:str):

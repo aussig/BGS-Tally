@@ -33,16 +33,10 @@ class State:
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordActivity', default=DiscordActivity.BOTH))
         self.EnableOverlay:tk.StringVar = tk.StringVar(value=config.get_str('XEnableOverlay', default=CheckStates.STATE_ON))
 
-        self.APIURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIURL', default=""))
-        self.APIKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIKey', default=""))
-        self.APIActivitiesEnabled:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIActivitiesEnabled', default=CheckStates.STATE_ON))
-        self.APIEventsEnabled:tk.StringVar = tk.StringVar(value=config.get_str('BGST_APIEventsEnabled', default=CheckStates.STATE_ON))
-
         # Persistent values
         self.current_system_id:str = config.get_str('XCurrentSystemID', default="")
         self.station_faction:str = config.get_str('XStationFaction', default = "")
         self.station_type:str = config.get_str('XStationType', default ="")
-        self.api_discovery_events:list = config.get_list('BGST_APIDiscoveryEvents', default=[])
 
         # Non-persistent values
         self.last_settlement_approached:Dict = {}
@@ -76,14 +70,8 @@ class State:
         config.set('XDiscordActivity', self.DiscordActivity.get())
         config.set('XEnableOverlay', self.EnableOverlay.get())
 
-        config.set('BGST_APIURL', self.APIURL.get())
-        config.set('BGST_APIKey', self.APIKey.get())
-        config.set('BGST_APIActivitiesEnabled', self.APIActivitiesEnabled.get())
-        config.set('BGST_APIEventsEnabled', self.APIEventsEnabled.get())
-
         # Persistent values
         config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")
         config.set('XStationFaction', self.station_faction if self.station_faction != None else "")
         config.set('XStationType', self.station_type if self.station_type != None else "")
         config.set('XStationType', self.station_type if self.station_type != None else "")
-        config.set('BGST_APIDiscoveryEvents', self.api_discovery_events if self.api_discovery_events != None else [])

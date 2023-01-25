@@ -218,12 +218,14 @@ class BGSTally:
         """
         Save all data structures
         """
+        # TODO: Don't need to save all this all the time, be more selective
         self.mission_log.save()
         self.target_log.save()
         self.tick.save()
         self.activity_manager.save()
         self.state.save()
         self.fleet_carrier.save()
+        self.api_manager.save()
 
 
     def new_tick(self, force: bool, uipolicy: UpdateUIPolicy):

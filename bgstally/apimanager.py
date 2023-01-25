@@ -63,11 +63,11 @@ class APIManager:
             api.send_activity(api_activity)
 
 
-    def send_event(self, event:dict, cmdr:str):
+    def send_event(self, event:dict, activity:Activity, cmdr:str):
         """
         Event has been received. Add it to the events queue.
         """
-        api_event:dict = self._build_api_event(event, cmdr)
+        api_event:dict = self._build_api_event(event, activity, cmdr)
         for api in self.apis:
             api.send_event(api_event)
 
@@ -90,7 +90,7 @@ class APIManager:
                 'factions': []
             }
 
-            for faction in system.get(['Factions'], {}).values():
+            for faction in system.get('Factions', {}).values():
                 api_faction:dict = {
                     'name': faction.get('Faction', ""),
                     'state': faction.get('FactionState', ""),

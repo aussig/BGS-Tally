@@ -149,9 +149,9 @@ class API:
 
         if self._discovery_events_changed(discovery_data.get('events', EVENTS_FILTER_DEFAULTS)):
             self.user_approved = False
-            # Note we're in a thread
-            Debug.logger.info(f"API Requested Event list has changed")
-            # Put Message in BGS-Tally message field in EDMC window (with link to API settings? Possibly not when we have multiple APIs)
+            # Put Message in BGS-Tally message field (with link to API settings? Possibly not when we have multiple APIs)
+            self.bgstally.api_manager.api_updated = True
+            self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
 
         self.events = discovery_data.get('events', EVENTS_FILTER_DEFAULTS)
 

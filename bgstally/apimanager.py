@@ -18,6 +18,7 @@ class APIManager:
         self.bgstally = bgstally
 
         self.apis:list[API] = []
+        self.api_updated:bool = False
 
         self.load()
 

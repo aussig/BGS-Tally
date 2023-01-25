@@ -4,6 +4,7 @@ from typing import Dict, List
 
 from bgstally.constants import FOLDER_DATA, MaterialsCategory
 from bgstally.debug import Debug
+from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
 
@@ -76,20 +77,58 @@ class FleetCarrier:
         Return a list of formatted materials for posting to Discord
         """
         result:str = ""
-        materials:List = []
+        materials, key = self._get_materials(category)
 
-        if category == MaterialsCategory.SELLING:
-            materials = self.onfoot_mats_selling
-            key = 'stock'
-        elif category == MaterialsCategory.BUYING:
-            materials = self.onfoot_mats_buying
-            key = 'outstanding'
-        else: return ""
+        if materials is None: return ""
 
         for material in materials:
             if material[key] > 0: result += f"{material['locName']} x {material[key]} @ {material['price']}\n"
 
         return result
+
+
+    def get_materials_discord(self, category: MaterialsCategory = None) -> str:
+        """
+        Return a list of formatted materials for posting to Discord
+        """
+        result:str = ""
+        materials, key = self._get_materials(category)
+
+        if materials is None: return ""
+
+        for material in materials:
+            if material[key] > 0: result += f"{cyan(material['locName'])} x {green(material[key])} @ {red(material['price'])}\n"
+
+        return result
+
+
+    def human_format_dockingaccess(self) -> str:
+        """
+        Get the docking access in human-readable format
+        """
+        return "All" if self.data['dockingAccess'] == "all" \
+            else "Squadron and Friends" if self.data['dockingAccess'] == "squadronfriends" \
+            else "Friends" if self.data['dockingAccess'] == "friends" \
+            else "None"
+
+
+    def human_format_notorious(self) -> str:
+        """
+        Get the notorious access in human-readable format
+        """
+        return 'Yes' if self.data['notoriousAccess'] else 'No'
+
+
+    def _get_materials(self, category: MaterialsCategory = None) -> tuple[list|None, str|None]:
+        """
+        Return the materials list and price key for the specified category
+        """
+        if category == MaterialsCategory.SELLING:
+            return self.onfoot_mats_selling, 'stock'
+        elif category == MaterialsCategory.BUYING:
+            return self.onfoot_mats_buying, 'outstanding'
+        else:
+            return None, None
 
 
     def _as_dict(self):

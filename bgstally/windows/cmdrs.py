@@ -15,9 +15,8 @@ class WindowCMDRs:
     Handles the CMDR list window
     """
 
-    def __init__(self, bgstally, ui):
+    def __init__(self, bgstally):
         self.bgstally = bgstally
-        self.ui = ui
 
         self.selected_cmdr = None
         self.toplevel:tk.Toplevel = None
@@ -31,7 +30,7 @@ class WindowCMDRs:
             self.toplevel.lift()
             return
 
-        self.toplevel = tk.Toplevel(self.ui.frame)
+        self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
         self.toplevel.title("Targeted CMDR Information")
         self.toplevel.geometry("1200x800")
 
@@ -170,7 +169,7 @@ class WindowCMDRs:
                     "inline": True
                     })
 
-        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr['TargetName']} Spotted", None, embed_fields, None, DiscordChannel.BGS)
+        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr['TargetName']} Spotted", None, embed_fields, None, DiscordChannel.BGS, None)
 
 
 class TreeviewPlus(ttk.Treeview):

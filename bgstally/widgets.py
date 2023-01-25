@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import END, ttk
+from tkinter import CURRENT, END, ttk
 import re
 from bgstally.constants import FONT_TEXT, FONT_TEXT_BOLD, FONT_TEXT_UNDERLINE, FONT_TEXT_BOLD_UNDERLINE
 from bgstally.debug import Debug
@@ -170,3 +170,138 @@ def _rc_menu_install(w):
     w.menu.entryconfigure("Copy", command=lambda: w.focus_force() or w.event_generate("<<Copy>>"))
     w.menu.entryconfigure("Paste", command=lambda: w.focus_force() or w.event_generate("<<Paste>>"))
     w.menu.entryconfigure("Select all", command=w.event_select_all)
+
+
+
+class HyperlinkManager:
+    """
+    Utility class to enable embedded hyperlinks in Text fields.
+
+    Usage:
+
+    text = Text(win)
+    hyperlink = HyperlinkManager(text)
+    text.insert(END, "Click me", hyperlink.add(partial(webbrowser.open, "https://example.com")))
+    """
+    def __init__(self, text):
+        self.text = text
+
+        self.text.tag_config("hyper", foreground="blue", underline=1)
+
+        self.text.tag_bind("hyper", "<Enter>", self._enter)
+        self.text.tag_bind("hyper", "<Leave>", self._leave)
+        self.text.tag_bind("hyper", "<Button-1>", self._click)
+
+        self.reset()
+
+    def reset(self):
+        self.links = {}
+
+    def add(self, action):
+        # Add an action to the manager.  returns tags to use in associated text widget
+        tag = "hyper-%d" % len(self.links)
+        self.links[tag] = action
+        return "hyper", tag
+
+    def _enter(self, event):
+        self.text.config(cursor="hand2")
+
+    def _leave(self, event):
+        self.text.config(cursor="")
+
+    def _click(self, event):
+        for tag in self.text.tag_names(CURRENT):
+            if tag[:6] == "hyper-":
+                self.links[tag]()
+                return
+
+
+class CollapsibleFrame(ttk.Frame):
+    """
+     -----USAGE-----
+    CollapsibleFrame = CollapsibleFrame(parent,
+                          expanded_text =[string],
+                          collapsed_text =[string])
+
+    CollapsibleFrame.pack()
+    button = Button(CollapsibleFrame.frame).pack()
+    """
+
+    def __init__(self, parent, show_button = True, expanded_text = "Collapse <<",
+                               collapsed_text = "Expand >>", open = False):
+
+        ttk.Frame.__init__(self, parent)
+
+        # These are the class variable
+        # see a underscore in expanded_text and _collapsed_text
+        # this means these are private to class
+        self.parent = parent
+        self._show_button = show_button
+        self._expanded_text = expanded_text
+        self._collapsed_text = collapsed_text
+
+        # Tkinter variable storing integer value
+        self._variable = tk.IntVar(value=open)
+
+        # Checkbutton is created but will behave as Button
+        # cause in style, Button is passed
+        # main reason to do this is Button do not support
+        # variable option but checkbutton do
+        if self._show_button:
+            # Here weight implies that it can grow it's
+            # size if extra space is available
+            # default weight is 0
+            self.columnconfigure(1, weight=1)
+
+            self._button = ttk.Checkbutton(self, variable=self._variable,
+                                command=self._activate, style="TButton")
+            self._button.grid(row=0, column=0)
+
+            # This will create a separator
+            # A separator is a line, we can also set thickness
+            self._separator = ttk.Separator(self, orient=tk.HORIZONTAL)
+            self._separator.grid(row=0, column=1, sticky=tk.EW)
+        else:
+            # We need any widget to be in our top-level grid, otherwise
+            # the window won't contract when the panel is closed. Place
+            # an invisible frame
+            self._separator = tk.Frame(self, height=0)
+            self._separator.grid(row=0, column=0, sticky=tk.EW)
+
+        # The internal sub-frame is gridded and ungridded to show/hide contents
+        self.frame = ttk.Frame(self)
+
+        # This will call activate function of class
+        self._activate()
+
+    def _activate(self):
+        if not self._variable.get():
+            # As soon as button is pressed it removes this widget
+            # but is not destroyed means can be displayed again
+            self.frame.grid_forget()
+
+            # This will change the text of the checkbutton
+            if self._show_button:
+                self._button.configure(text=self._collapsed_text)
+
+        elif self._variable.get():
+            # increasing the frame area so new widgets
+            # could reside in this container
+            if self._show_button:
+                self.frame.grid(row=1, column=0, columnspan=2)
+                self._button.configure(text=self._expanded_text)
+            else:
+                self.frame.grid(row=0, column=0)
+
+    def toggle(self):
+        """Switches the label frame to the opposite state."""
+        self._variable.set(not self._variable.get())
+        self._activate()
+
+    def open(self):
+        self._variable.set(1)
+        self._activate()
+
+    def close(self):
+        self._variable.set(0)
+        self._activate()

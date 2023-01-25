@@ -57,6 +57,7 @@ class RequestMethod(Enum):
     GET = 'get'
     POST = 'post'
     PUT = 'put'
+    PATCH = 'patch'
     DELETE = 'delete'
     HEAD = 'head'
     OPTIONS = 'options'
@@ -65,6 +66,8 @@ class RequestMethod(Enum):
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"
 FOLDER_ASSETS = "assets"
 FOLDER_DATA = "otherdata"
+FOLDER_BACKUPS = "backups"
+FOLDER_UPDATES = "updates"
 FONT_HEADING:tuple = ("Helvetica", 11, "bold")
 FONT_TEXT:tuple = ("Helvetica", 11)
 FONT_TEXT_BOLD:tuple = ("Helvetica", 11, "bold")

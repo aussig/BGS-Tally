@@ -24,6 +24,7 @@ class WindowActivity:
     def __init__(self, bgstally, ui, activity: Activity):
         self.bgstally = bgstally
         self.ui = ui
+        self.activity:Activity = activity
 
         self.image_tab_active_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
         self.image_tab_active_part_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
@@ -279,43 +280,55 @@ class WindowActivity:
             if self.bgstally.state.DiscordActivity.get() == DiscordActivity.BGS:
                 # BGS Only - one post to BGS channel
                 discord_text:str = self._generate_discord_text(activity, DiscordActivity.BGS)
-                activity.discord_bgs_messageid = self.bgstally.discord.post_plaintext(discord_text, activity.discord_bgs_messageid, DiscordChannel.BGS)
+                self.bgstally.discord.post_plaintext(discord_text, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
             elif self.bgstally.state.DiscordActivity.get() == DiscordActivity.THARGOIDWAR:
                 # TW Only - one post to TW channel
                 discord_text:str = self._generate_discord_text(activity, DiscordActivity.THARGOIDWAR)
-                activity.discord_tw_messageid = self.bgstally.discord.post_plaintext(discord_text, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR)
+                self.bgstally.discord.post_plaintext(discord_text, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
             elif self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR):
                 # Both, TW channel is available - two posts, one to each channel
                 discord_text:str = self._generate_discord_text(activity, DiscordActivity.BGS)
-                activity.discord_bgs_messageid = self.bgstally.discord.post_plaintext(discord_text, activity.discord_bgs_messageid, DiscordChannel.BGS)
+                self.bgstally.discord.post_plaintext(discord_text, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
                 discord_text:str = self._generate_discord_text(activity, DiscordActivity.THARGOIDWAR)
-                activity.discord_tw_messageid = self.bgstally.discord.post_plaintext(discord_text, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR)
+                self.bgstally.discord.post_plaintext(discord_text, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
             else:
                 # Both, TW channel is not available - one combined post to BGS channel
                 discord_text:str = self._generate_discord_text(activity, DiscordActivity.BOTH)
-                activity.discord_bgs_messageid = self.bgstally.discord.post_plaintext(discord_text, activity.discord_bgs_messageid, DiscordChannel.BGS)
+                self.bgstally.discord.post_plaintext(discord_text, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
         else:
             description = "" if activity.discord_notes is None else activity.discord_notes
             if self.bgstally.state.DiscordActivity.get() == DiscordActivity.BGS:
                 # BGS Only - one post to BGS channel
                 discord_fields:Dict = self._generate_discord_embed_fields(activity, DiscordActivity.BGS)
-                activity.discord_bgs_messageid = self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS)
+                self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
             elif self.bgstally.state.DiscordActivity.get() == DiscordActivity.THARGOIDWAR:
                 # TW Only - one post to TW channel
                 discord_fields:Dict = self._generate_discord_embed_fields(activity, DiscordActivity.THARGOIDWAR)
-                activity.discord_tw_messageid = self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR)
+                self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
             elif self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR):
                 # Both, TW channel is available - two posts, one to each channel
                 discord_fields:Dict = self._generate_discord_embed_fields(activity, DiscordActivity.BGS)
-                activity.discord_bgs_messageid = self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS)
+                self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
                 discord_fields:Dict = self._generate_discord_embed_fields(activity, DiscordActivity.THARGOIDWAR)
-                activity.discord_tw_messageid = self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR)
+                self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
             else:
                 # Both, TW channel is not available - one combined post to BGS channel
                 discord_fields:Dict = self._generate_discord_embed_fields(activity, DiscordActivity.BOTH)
-                activity.discord_bgs_messageid = self.bgstally.discord.post_embed(f"Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS)
+                self.bgstally.discord.post_embed(f"Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
 
         activity.dirty = True # Because discord post ID has been changed
+
+
+    def discord_post_complete(self, channel:DiscordChannel, messageid:str):
+        """
+        A discord post request has completed
+        """
+        # Store the Message ID
+        match channel:
+            case DiscordChannel.BGS:
+                self.activity.discord_bgs_messageid = messageid
+            case DiscordChannel.THARGOIDWAR:
+                self.activity.discord_tw_messageid = messageid
 
 
     def _discord_notes_change(self, DiscordNotesText, DiscordText, activity: Activity, *args):
@@ -577,10 +590,10 @@ class WindowActivity:
         activity_discord_text += f"{red('GroundMurders')} {green(faction['GroundMurdered'])} " if faction['GroundMurdered'] != 0 else ""
         activity_discord_text += f"{yellow('Scenarios')} {green(faction['Scenarios'])} " if faction['Scenarios'] != 0 else ""
         activity_discord_text += f"{magenta('Fails')} {green(faction['MissionFailed'])} " if faction['MissionFailed'] != 0 else ""
-        space_cz = self._build_cz_text(faction.get(red('SpaceCZ'), {}), "SpaceCZs")
-        activity_discord_text += f"{space_cz}; " if space_cz != "" else ""
-        ground_cz = self._build_cz_text(faction.get(red('GroundCZ'), {}), "GroundCZs")
-        activity_discord_text += f"{ground_cz}; " if ground_cz != "" else ""
+        space_cz = self._build_cz_text(faction.get('SpaceCZ', {}), "SpaceCZs")
+        activity_discord_text += f"{space_cz} " if space_cz != "" else ""
+        ground_cz = self._build_cz_text(faction.get('GroundCZ', {}), "GroundCZs")
+        activity_discord_text += f"{ground_cz} " if ground_cz != "" else ""
 
         faction_name = self._process_faction_name(faction['Faction'])
         faction_discord_text = f"{color(faction_name, 'yellow', None, 'bold')} {activity_discord_text}\n" if activity_discord_text != "" else ""
@@ -670,11 +683,11 @@ class WindowActivity:
         if cz_data == {}: return ""
         text = ""
 
-        if 'l' in cz_data and cz_data['l'] != '0' and cz_data['l'] != '': text += f"{green(cz_data['l'])}xL "
-        if 'm' in cz_data and cz_data['m'] != '0' and cz_data['m'] != '': text += f"{green(cz_data['m'])}xM "
-        if 'h' in cz_data and cz_data['h'] != '0' and cz_data['h'] != '': text += f"{green(cz_data['h'])}xH "
+        if 'l' in cz_data and cz_data['l'] != '0' and cz_data['l'] != '': text += f"{cz_data['l']} x L "
+        if 'm' in cz_data and cz_data['m'] != '0' and cz_data['m'] != '': text += f"{cz_data['m']} x M "
+        if 'h' in cz_data and cz_data['h'] != '0' and cz_data['h'] != '': text += f"{cz_data['h']} x H "
 
-        if text != '': text = f"{prefix} {text}"
+        if text != '': text = f"{red(prefix)} {green(text)}"
         return text
 
 

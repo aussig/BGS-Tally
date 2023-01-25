@@ -1,10 +1,7 @@
 from os import mkdir, path
 from threading import Thread
 from time import sleep
-from typing import Optional
 
-import plug
-import requests
 import semantic_version
 from companion import CAPIData, SERVER_LIVE
 from config import appversion, config
@@ -12,6 +9,7 @@ from monitor import monitor
 
 from bgstally.activity import Activity
 from bgstally.activitymanager import ActivityManager
+from bgstally.apimanager import APIManager
 from bgstally.config import Config
 from bgstally.constants import FOLDER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
@@ -25,9 +23,9 @@ from bgstally.state import State
 from bgstally.targetlog import TargetLog
 from bgstally.tick import Tick
 from bgstally.ui import UI
+from bgstally.updatemanager import UpdateManager
 
 TIME_WORKER_PERIOD_S = 60
-URL_PLUGIN_VERSION = "https://api.github.com/repos/aussig/BGS-Tally/releases/latest"
 
 
 class BGSTally:
@@ -37,7 +35,6 @@ class BGSTally:
     def __init__(self, plugin_name: str, version: semantic_version.Version):
         self.plugin_name:str = plugin_name
         self.version: semantic_version.Version = version
-        self.git_version: semantic_version.Version = semantic_version.Version.coerce("0")
 
 
     def plugin_start(self, plugin_dir: str):
@@ -50,21 +47,23 @@ class BGSTally:
         if not path.exists(data_filepath): mkdir(data_filepath)
 
         # Classes
-        self.debug: Debug = Debug(self)
-        self.config: Config = Config(self)
-        self.state: State = State(self)
-        self.mission_log: MissionLog = MissionLog(self)
-        self.target_log: TargetLog = TargetLog(self)
-        self.discord: Discord = Discord(self)
-        self.tick: Tick = Tick(self, True)
-        self.overlay = Overlay(self)
-        self.activity_manager: ActivityManager = ActivityManager(self)
-        self.fleet_carrier = FleetCarrier(self)
-        self.market: Market = Market(self)
-        self.ui: UI = UI(self)
+        self.debug:Debug = Debug(self)
+        self.config:Config = Config(self)
+        self.state:State = State(self)
+        self.mission_log:MissionLog = MissionLog(self)
+        self.target_log:TargetLog = TargetLog(self)
+        self.discord:Discord = Discord(self)
+        self.tick:Tick = Tick(self, True)
+        self.overlay:Overlay = Overlay(self)
+        self.activity_manager:ActivityManager = ActivityManager(self)
+        self.fleet_carrier:FleetCarrier = FleetCarrier(self)
+        self.market:Market = Market(self)
         self.request_manager:RequestManager = RequestManager(self)
+        self.api_manager:APIManager = APIManager(self)
+        self.update_manager:UpdateManager = UpdateManager(self)
+        self.ui:UI = UI(self)
 
-        self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
+        self.thread:Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True
         self.thread.start()
 
@@ -75,6 +74,9 @@ class BGSTally:
         """
         self.ui.shut_down()
         self.save_data()
+
+        if self.update_manager.update_available:
+            self.update_manager.update_plugin()
 
 
     def journal_entry(self, cmdr, is_beta, system, station, entry, state):
@@ -171,14 +173,17 @@ class BGSTally:
                 self.target_log.ship_targeted(entry, system)
                 dirty = True
 
-        if dirty: self.save_data()
+        if dirty:
+            self.save_data()
+            self.api_manager.send_activity(activity, cmdr)
+
+        self.api_manager.send_event(entry, activity, cmdr)
 
 
     def capi_fleetcarrier(self, data: CAPIData):
         """
         Fleet carrier data received from CAPI
         """
-        return # Don't support until EDMC 5.8.0 is out
         if data.data == {} or data.get('name') is None or data['name'].get('callsign') is None:
             raise ValueError("Invalid /fleetcarrier CAPI data")
 
@@ -193,26 +198,7 @@ class BGSTally:
         """
         Return true if the EDMC version is high enough to provide a callback for /fleetcarrier CAPI
         """
-        return False # Don't support until EDMC 5.8.0 is out
         return callable(appversion) and appversion() >= semantic_version.Version('5.8.0')
-
-
-    def check_version(self):
-        """
-        Check for a new plugin version
-        """
-        try:
-            response = requests.get(URL_PLUGIN_VERSION, timeout=10)
-            response.raise_for_status()
-        except requests.exceptions.RequestException as e:
-            self.debug.logger.warning(f"Unable to fetch latest plugin version", exc_info=e)
-            plug.show_error(f"BGS-Tally: Unable to fetch latest plugin version")
-            return None
-        else:
-            latest = response.json()
-            self.git_version = semantic_version.Version.coerce(latest['tag_name'])
-
-        return True
 
 
     def check_tick(self, uipolicy: UpdateUIPolicy):
@@ -232,12 +218,14 @@ class BGSTally:
         """
         Save all data structures
         """
+        # TODO: Don't need to save all this all the time, be more selective
         self.mission_log.save()
         self.target_log.save()
         self.tick.save()
         self.activity_manager.save()
         self.state.save()
         self.fleet_carrier.save()
+        self.api_manager.save()
 
 
     def new_tick(self, force: bool, uipolicy: UpdateUIPolicy):

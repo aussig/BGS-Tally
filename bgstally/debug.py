@@ -12,7 +12,7 @@ class Debug:
         # folder name in the logging output format.
         # NB: plugin_name here *must* be the plugin's folder name as per the preceding
         #     code, else the logger won't be properly set up.
-        Debug.logger = logging.getLogger(f'{appname}.{bgstally.plugin_name}')
+        Debug.logger = logging.getLogger(f'{appname}.{path.basename(bgstally.plugin_dir)}')
 
         # If the Logger has handlers then it was already set up by the core code, else
         # it needs setting up here.

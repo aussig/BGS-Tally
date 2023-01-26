@@ -18,6 +18,7 @@ class MissionLog:
         self.bgstally = bgstally
         self.missionlog = []
         self.load()
+        self._expire_old_missions()
 
 
     def load(self):

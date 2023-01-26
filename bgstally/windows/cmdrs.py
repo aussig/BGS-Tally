@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import partial
 from tkinter import ttk
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, DiscordChannel
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, DiscordChannel, FONT_HEADING
 from bgstally.debug import Debug
 from ttkHyperlinkLabel import HyperlinkLabel
 
@@ -15,24 +15,26 @@ class WindowCMDRs:
     Handles the CMDR list window
     """
 
-    def __init__(self, bgstally, ui):
+    def __init__(self, bgstally):
         self.bgstally = bgstally
-        self.ui = ui
 
         self.selected_cmdr = None
+        self.toplevel:tk.Toplevel = None
 
-        self._show()
 
-
-    def _show(self):
+    def show(self):
         """
         Show our window
         """
-        window = tk.Toplevel(self.ui.frame)
-        window.title("Targeted CMDR Information")
-        window.geometry("1200x800")
+        if self.toplevel is not None and self.toplevel.winfo_exists():
+            self.toplevel.lift()
+            return
 
-        container_frame = ttk.Frame(window)
+        self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
+        self.toplevel.title("Targeted CMDR Information")
+        self.toplevel.geometry("1200x800")
+
+        container_frame = ttk.Frame(self.toplevel)
         container_frame.pack(fill=tk.BOTH, expand=1)
 
         list_frame = ttk.Frame(container_frame)
@@ -59,17 +61,17 @@ class WindowCMDRs:
         treeview.pack(fill=tk.BOTH, expand=1)
 
         current_row = 0
-        ttk.Label(details_frame, text="CMDR Details", font=self.ui.heading_font).grid(row=current_row, column=0, sticky=tk.W); current_row += 1
-        ttk.Label(details_frame, text="Name: ", font=self.ui.heading_font).grid(row=current_row, column=0, sticky=tk.W)
+        ttk.Label(details_frame, text="CMDR Details", font=FONT_HEADING).grid(row=current_row, column=0, sticky=tk.W); current_row += 1
+        ttk.Label(details_frame, text="Name: ", font=FONT_HEADING).grid(row=current_row, column=0, sticky=tk.W)
         self.cmdr_details_name = ttk.Label(details_frame, text="")
         self.cmdr_details_name.grid(row=current_row, column=1, sticky=tk.W)
-        ttk.Label(details_frame, text="Inara: ", font=self.ui.heading_font).grid(row=current_row, column=2, sticky=tk.W)
+        ttk.Label(details_frame, text="Inara: ", font=FONT_HEADING).grid(row=current_row, column=2, sticky=tk.W)
         self.cmdr_details_name_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/cmdrs/?search=aussi", underline=True)
         self.cmdr_details_name_inara.grid(row=current_row, column=3, sticky=tk.W); current_row += 1
-        ttk.Label(details_frame, text="Squadron: ", font=self.ui.heading_font).grid(row=current_row, column=0, sticky=tk.W)
+        ttk.Label(details_frame, text="Squadron: ", font=FONT_HEADING).grid(row=current_row, column=0, sticky=tk.W)
         self.cmdr_details_squadron = ttk.Label(details_frame, text="")
         self.cmdr_details_squadron.grid(row=current_row, column=1, sticky=tk.W)
-        ttk.Label(details_frame, text="Inara: ", font=self.ui.heading_font).grid(row=current_row, column=2, sticky=tk.W)
+        ttk.Label(details_frame, text="Inara: ", font=FONT_HEADING).grid(row=current_row, column=2, sticky=tk.W)
         self.cmdr_details_squadron_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/squadrons-search/?search=ghst", underline=True)
         self.cmdr_details_squadron_inara.grid(row=current_row, column=3, sticky=tk.W); current_row += 1
 
@@ -167,7 +169,7 @@ class WindowCMDRs:
                     "inline": True
                     })
 
-        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr['TargetName']} Spotted", None, embed_fields, None, DiscordChannel.BGS)
+        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr['TargetName']} Spotted", None, embed_fields, None, DiscordChannel.BGS, None)
 
 
 class TreeviewPlus(ttk.Treeview):

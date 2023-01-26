@@ -4,7 +4,7 @@
 [![GitHub Latest Version](https://img.shields.io/github/v/release/aussig/BGS-Tally)](https://github.com/aussig/BGS-Tally/releases/latest)
 [![Github All Releases](https://img.shields.io/github/downloads/aussig/BGS-Tally/total.svg)](https://github.com/aussig/BGS-Tally/releases/latest)
 
-A tool to track and report your Background Simulation (BGS) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS Tally counts all the BGS work you do for any faction, in any system.
+A tool to track and report your Background Simulation (BGS) and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS Tally counts all the BGS / TW work you do for any faction, in any system.
 
 Based on BGS-Tally v2.0 by tezw21: [Original tezw21 BGS-Tally-v2.0 Project](https://github.com/tezw21/BGS-Tally-v2.0)
 
@@ -23,12 +23,12 @@ Full instructions for **upgrading from a previous version are [here in the wiki 
 
 # Discord Integration
 
-The plugin generates Discord-ready text for copying-and-pasting manually into Discord and also supports direct posting into a Discord server of your choice using a webhook. You will need to create this webhook on your Discord server first - **instructions for setting up the webhook within Discord are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Discord-Server-Setup)**.
+The plugin generates Discord-ready text for copying-and-pasting manually into Discord and also supports direct posting into a Discord server or servers of your choice using webhooks. You will need to create webhook(s) on your Discord server first - **instructions for setting up webhooks within Discord are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Discord-Server-Setup)**.
 
 
 # What is Tracked
 
-The plugin includes both automatic and manual tracking of BGS activity data.
+The plugin includes both automatic and manual tracking of BGS and TW activity data.
 
 * For a basic summary of what is tracked, see the **[Home Page of the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki#it-tracks-bgs-activity)**.
 * For more detail, see the **[Activity Window section in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Use#activity-window)**.
@@ -47,7 +47,7 @@ It writes to the following locations, both in the `BGS-Tally` folder:
 
 All of these files use the JSON format, so can be easily viewed in a text editor or JSON viewer.
 
-(N.B. Older versions of BGS-Tally wrote to `Today Data.txt`, `Yesterday Data.txt` and `MissionLog.txt` in your `BGS-Tally` folder. If you run BGS-Tally v2.0.0 or later, these files are automatically converted to the new formats inside `activitydata\` and `otherdata\`, but the old files are left in place in case you want to revert to the previous v1.x plugin.)
+(N.B. Older versions of BGS-Tally wrote to `Today Data.txt`, `Yesterday Data.txt` and `MissionLog.txt` in your `BGS-Tally` folder. If you run BGS-Tally v2.0.0 or later, these files are automatically converted to the new formats inside `activitydata\` and `otherdata\`).
 
 ## Network Connections
 

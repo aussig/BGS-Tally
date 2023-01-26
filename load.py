@@ -8,10 +8,11 @@ from bgstally.constants import UpdateUIPolicy
 
 import semantic_version
 
-PLUGIN_VERSION = semantic_version.Version.coerce("2.2.1")
+PLUGIN_NAME = "BGS-Tally"
+PLUGIN_VERSION = semantic_version.Version.coerce("3.0.0-a1")
 
 # Initialise the main plugin class
-this:BGSTally = BGSTally(path.basename(path.dirname(__file__)), PLUGIN_VERSION)
+this:BGSTally = BGSTally(PLUGIN_NAME, PLUGIN_VERSION)
 
 
 def plugin_start3(plugin_dir):
@@ -20,7 +21,6 @@ def plugin_start3(plugin_dir):
     """
     this.plugin_start(plugin_dir)
 
-    version_success = this.check_version()
     tick_success = this.check_tick(UpdateUIPolicy.NEVER)
 
     if tick_success == None:
@@ -41,7 +41,7 @@ def plugin_app(parent):
     """
     Return a TK Frame for adding to the EDMC main window
     """
-    return this.ui.get_plugin_frame(parent, this.git_version)
+    return this.ui.get_plugin_frame(parent)
 
 
 def plugin_prefs(parent, cmdr, is_beta):

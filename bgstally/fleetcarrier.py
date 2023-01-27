@@ -82,7 +82,7 @@ class FleetCarrier:
         if materials is None: return ""
 
         for material in materials:
-            if material[key] > 0: result += f"{material['locName']} x {material[key]} @ {material['price']}\n"
+            if material[key] > 0: result += f"{material['locName']} x {material[key]} @ {self._human_format_price(material['price'])}\n"
 
         return result
 
@@ -97,7 +97,7 @@ class FleetCarrier:
         if materials is None: return ""
 
         for material in materials:
-            if material[key] > 0: result += f"{cyan(material['locName'])} x {green(material[key])} @ {red(material['price'])}\n"
+            if material[key] > 0: result += f"{cyan(material['locName'])} x {green(material[key])} @ {red(self._human_format_price(material['price']))}\n"
 
         return result
 
@@ -117,6 +117,18 @@ class FleetCarrier:
         Get the notorious access in human-readable format
         """
         return 'Yes' if self.data['notoriousAccess'] else 'No'
+
+
+    def _human_format_price(self, num) -> str:
+        """
+        Format a BGS value into shortened human-readable text
+        """
+        num = float('{:.3g}'.format(num))
+        magnitude = 0
+        while abs(num) >= 1000:
+            magnitude += 1
+            num /= 1000.0
+        return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
 
 
     def _get_materials(self, category: MaterialsCategory = None) -> tuple[list|None, str|None]:

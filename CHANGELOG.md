@@ -1,5 +1,13 @@
 # Change Log
 
+
+## v3.0.0-xx - xxxx-xx-xx
+
+### Bug Fixes:
+
+* Fleet Carrier materials prices are now abbreviated to make them easier to read.
+
+
 ## v3.0.0-a2 - 2023-01-27
 
 ### Bug Fixes:

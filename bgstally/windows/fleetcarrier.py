@@ -76,10 +76,17 @@ class WindowFleetCarrier:
         """
         Post Fleet Carrier materials list to Discord
         """
-        fc: FleetCarrier = self.bgstally.fleet_carrier
+        fc:FleetCarrier = self.bgstally.fleet_carrier
 
-        title = f"Materials List for Carrier {fc.name} in system: {fc.data['currentStarSystem']}"
-        description = f"**Selling:**\n```css\n{fc.get_materials_plaintext(MaterialsCategory.SELLING)}```\n**Buying:**\n```css\n{fc.get_materials_plaintext(MaterialsCategory.BUYING)}```"
+        title:str = f"Materials List for Carrier {fc.name} in system: {fc.data['currentStarSystem']}"
+        description:str = ""
+        selling:str = fc.get_materials_plaintext(MaterialsCategory.SELLING)
+        buying:str = fc.get_materials_plaintext(MaterialsCategory.BUYING)
+
+        if selling != "":
+            description += f"**Selling:**\n```css\n{selling}```\n"
+        if buying != "":
+            description += f"**Buying:**\n```css\n{buying}```\n"
 
         fields = []
         fields.append({'name': "System", 'value': fc.data['currentStarSystem'], 'inline': True})

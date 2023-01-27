@@ -657,10 +657,14 @@ class WindowActivity:
             if (system_station['passengers']['sum'] > 0):
                 system_discord_text += f"  🧍 x {green(system_station['passengers']['sum'])} - {green(system_station['passengers']['count'])} missions\n"
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_discord_text += f"  S x {green(system_station['massacre']['s']['sum'])}, C x {green(system_station['massacre']['c']['sum'])}, " \
+                system_discord_text += f"  💀 (missions): S x {green(system_station['massacre']['s']['sum'])}, C x {green(system_station['massacre']['c']['sum'])}, " \
                                     + f"B x {system_station['massacre']['b']['sum']}, M x {green(system_station['massacre']['m']['sum'])}, " \
                                     + f"H x {system_station['massacre']['h']['sum']}, O x {green(system_station['massacre']['o']['sum'])} " \
                                     + f"- {green((sum(x['count'] for x in system_station['massacre'].values())))} missions\n"
+            if sum(system['TWKills'].values()) > 0:
+                system_discord_text += f"  💀 (kills): S x {red(system['TWKills']['s'])}, C x {red(system['TWKills']['c'])}, " \
+                                    + f"B x {red(system['TWKills']['b'])}, M x {red(system['TWKills']['m'])}, " \
+                                    + f"H x {red(system['TWKills']['h'])}, O x {red(system['TWKills']['o'])} \n"
 
         return system_discord_text
 

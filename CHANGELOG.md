@@ -1,5 +1,12 @@
 # Change Log
 
+## v3.0.0-a2 - 2023-01-27
+
+### Bug Fixes:
+
+* Fleet Carrier materials Discord report was a bit broken when either your carrier sell or buy orders were empty.
+
+
 ## v3.0.0-a1 - 2023-01-26
 
 ### New Features:

@@ -42,6 +42,7 @@ class ActivityManager:
         Save all activity data
         """
         for activity in self.activity_data:
+            if activity.tick_id is None: continue
             activity.save(path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, activity.tick_id + FILE_SUFFIX))
 
 

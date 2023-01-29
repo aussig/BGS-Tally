@@ -7,6 +7,20 @@
 * Thargoid War kills are now tracked for each vessel type. But **please be aware**: BGS-Tally will only count a kill if it is logged in your game journal. This reliably happens if you solo kill a Thargoid, and sometimes happens when you kill in a Team or with others.  However, when not solo-killing, this is **highly unreliable**. Please don't file a bug if you find your kills aren't being tallied when fighting with other CMDRs.
 
 
+## v3.0.0-xx - xxxx-xx-xx
+
+### Changes:
+
+* Fleet Carrier materials prices are now abbreviated to make them easier to read.
+
+
+## v3.0.0-a2 - 2023-01-27
+
+### Bug Fixes:
+
+* Fleet Carrier materials Discord report was a bit broken when either your carrier sell or buy orders were empty.
+
+
 ## v3.0.0-a1 - 2023-01-26
 
 ### New Features:

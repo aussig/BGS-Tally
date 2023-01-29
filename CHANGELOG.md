@@ -19,6 +19,7 @@
 ### Bug Fixes:
 
 * Fleet Carrier materials Discord report was a bit broken when either your carrier sell or buy orders were empty.
+* Fix rare problem where trying to save activity data when the tickID is invalid.
 
 
 ## v3.0.0-a1 - 2023-01-26

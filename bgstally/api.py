@@ -12,19 +12,21 @@ from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import get_by_path
 
+API_VERSION = "1.0.0"
+
 ENDPOINT_ACTIVITIES = "activities" # Used as both the dict key and default path
 ENDPOINT_DISCOVERY = "discovery"   # Used as the path
 ENDPOINT_EVENTS = "events"         # Used as both the dict key and default path
 
 NAME_DEFAULT = "This server has not supplied a name."
 DESCRIPTION_DEFAULT = "This server has not supplied a description."
-VERSION_DEFAULT = "1.0.0"
 ENDPOINTS_DEFAULT = {ENDPOINT_ACTIVITIES: {'path': ENDPOINT_ACTIVITIES}, ENDPOINT_EVENTS: {'path': ENDPOINT_EVENTS}}
 EVENTS_FILTER_DEFAULTS = {'ApproachSettlement': {}, 'CarrierJump': {}, 'CommitCrime': {}, 'Died': {}, 'Docked': {}, 'FactionKillBond': {},
     'FSDJump': {}, 'Location': {}, 'MarketBuy': {}, 'MarketSell': {}, 'MissionAbandoned': {}, 'MissionAccepted': {}, 'MissionCompleted': {},
     'MissionFailed': {}, 'MultiSellExplorationData': {}, 'RedeemVoucher': {}, 'SellExplorationData': {}, 'StartUp': {}}
 
 HEADER_APIKEY = "apikey"
+HEADER_APIVERSION = "apiversion"
 TIME_ACTIVITIES_WORKER_PERIOD_S = 60
 TIME_EVENTS_WORKER_PERIOD_S = 5
 BATCH_EVENTS_MAX_SIZE = 10
@@ -143,7 +145,6 @@ class API:
             return
 
         self.name = discovery_data.get('name', NAME_DEFAULT)
-        self.version = semantic_version.Version.coerce(discovery_data.get('version', VERSION_DEFAULT))
         self.description = discovery_data.get('description', DESCRIPTION_DEFAULT)
         self.endpoints = discovery_data.get('endpoints', ENDPOINTS_DEFAULT)
 
@@ -193,7 +194,6 @@ class API:
         Revert all API information to default values
         """
         self.name:str = NAME_DEFAULT
-        self.version:semantic_version = semantic_version.Version.coerce(VERSION_DEFAULT)
         self.description:str = DESCRIPTION_DEFAULT
         self.endpoints:dict = ENDPOINTS_DEFAULT
         self.events:dict = EVENTS_FILTER_DEFAULTS
@@ -283,5 +283,6 @@ class API:
         Get the API headers
         """
         headers:dict = {}
+        headers[HEADER_APIVERSION] = API_VERSION
         if self.key is not None and self.key != "": headers = {HEADER_APIKEY: self.key}
         return headers

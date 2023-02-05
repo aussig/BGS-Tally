@@ -1,8 +1,11 @@
 import tkinter as tk
 from tkinter import CURRENT, END, ttk
+from functools import partial
+from datetime import datetime
 import re
 from bgstally.constants import FONT_TEXT, FONT_TEXT_BOLD, FONT_TEXT_UNDERLINE, FONT_TEXT_BOLD_UNDERLINE
 from bgstally.debug import Debug
+
 
 class TextPlus(tk.Text):
     """
@@ -305,3 +308,50 @@ class CollapsibleFrame(ttk.Frame):
     def close(self):
         self._variable.set(0)
         self._activate()
+
+
+class TreeviewPlus(ttk.Treeview):
+    def __init__(self, parent, callback, datetime_format, *args, **kwargs):
+        ttk.Treeview.__init__(self, parent, *args, **kwargs)
+        self.callback = callback
+        self.datetime_format = datetime_format
+        self.bind('<ButtonRelease-1>', self._select_item)
+
+
+    def heading(self, column, sort_by=None, **kwargs):
+        if sort_by and not hasattr(kwargs, 'command'):
+            func = getattr(self, f"_sort_by_{sort_by}", None)
+            if func:
+                kwargs['command'] = partial(func, column, False)
+
+        return super().heading(column, **kwargs)
+
+    def _select_item(self, event):
+        clicked_item = self.item(self.focus())
+        clicked_column_ref = self.identify_column(event.x)
+        if type(clicked_item['values']) is not list: return
+
+        clicked_column = int(clicked_column_ref[1:]) - 1
+        if clicked_column < 0: return
+
+        self.callback(clicked_item['values'], clicked_column, self)
+
+    def _sort(self, column, reverse, data_type, callback):
+        l = [(self.set(k, column), k) for k in self.get_children('')]
+        l.sort(key=lambda t: data_type(t[0]), reverse=reverse)
+        for index, (_, k) in enumerate(l):
+            self.move(k, '', index)
+
+        self.heading(column, command=partial(callback, column, not reverse))
+
+    def _sort_by_num(self, column, reverse):
+        self._sort(column, reverse, int, self._sort_by_num)
+
+    def _sort_by_name(self, column, reverse):
+        self._sort(column, reverse, str, self._sort_by_name)
+
+    def _sort_by_datetime(self, column, reverse):
+        def _str_to_datetime(string):
+            return datetime.strptime(string, self.datetime_format)
+
+        self._sort(column, reverse, _str_to_datetime, self._sort_by_datetime)

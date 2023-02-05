@@ -5,6 +5,7 @@ from tkinter import ttk
 
 from bgstally.constants import DATETIME_FORMAT_JOURNAL, DiscordChannel, FONT_HEADING
 from bgstally.debug import Debug
+from bgstally.widgets import TreeviewPlus
 from ttkHyperlinkLabel import HyperlinkLabel
 
 DATETIME_FORMAT_CMDRLIST = "%Y-%m-%d %H:%M:%S"
@@ -54,7 +55,7 @@ class WindowCMDRs:
                         {'title': "Date / Time", 'type': "datetime", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 150}]
         target_data = self.bgstally.target_log.get_targetlog()
 
-        treeview = TreeviewPlus(list_frame, columns=[d['title'] for d in column_info], show="headings", callback=self._cmdr_selected)
+        treeview = TreeviewPlus(list_frame, columns=[d['title'] for d in column_info], show="headings", callback=self._cmdr_selected, datetime_format=DATETIME_FORMAT_CMDRLIST)
         vsb = tk.Scrollbar(list_frame, orient=tk.VERTICAL, command=treeview.yview)
         vsb.pack(fill=tk.Y, side=tk.RIGHT)
         treeview.configure(yscrollcommand=vsb.set)
@@ -89,7 +90,7 @@ class WindowCMDRs:
             self.post_button['state'] = tk.DISABLED
 
 
-    def _cmdr_selected(self, values, column):
+    def _cmdr_selected(self, values, column, treeview:TreeviewPlus):
         """
         A CMDR row has been clicked in the list, show details
         """
@@ -99,6 +100,7 @@ class WindowCMDRs:
         self.cmdr_details_squadron_inara.configure(text = "", url = "")
 
         # Fetch the latest info for this CMDR
+        Debug.logger.info(f"selection: {treeview.selection()}")
         self.selected_cmdr = self.bgstally.target_log.get_target_info(values[0])
         if not self.selected_cmdr: return
 
@@ -170,50 +172,3 @@ class WindowCMDRs:
                     })
 
         self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr['TargetName']} Spotted", None, embed_fields, None, DiscordChannel.BGS, None)
-
-
-class TreeviewPlus(ttk.Treeview):
-    def __init__(self, parent, callback, *args, **kwargs):
-        ttk.Treeview.__init__(self, parent, *args, **kwargs)
-        self.callback = callback
-        self.bind('<ButtonRelease-1>', self._select_item)
-
-
-    def heading(self, column, sort_by=None, **kwargs):
-        if sort_by and not hasattr(kwargs, 'command'):
-            func = getattr(self, f"_sort_by_{sort_by}", None)
-            if func:
-                kwargs['command'] = partial(func, column, False)
-
-        return super().heading(column, **kwargs)
-
-    def _select_item(self, event):
-        clicked_item = self.item(self.focus())
-        clicked_column_ref = self.identify_column(event.x)
-        if type(clicked_item['values']) is not list: return
-
-        clicked_column = int(clicked_column_ref[1:]) - 1
-        if clicked_column < 0: return
-
-        self.callback(clicked_item['values'], clicked_column)
-
-    def _sort(self, column, reverse, data_type, callback):
-        l = [(self.set(k, column), k) for k in self.get_children('')]
-        l.sort(key=lambda t: data_type(t[0]), reverse=reverse)
-        for index, (_, k) in enumerate(l):
-            self.move(k, '', index)
-
-        self.heading(column, command=partial(callback, column, not reverse))
-
-    def _sort_by_num(self, column, reverse):
-        self._sort(column, reverse, int, self._sort_by_num)
-
-    def _sort_by_name(self, column, reverse):
-        self._sort(column, reverse, str, self._sort_by_name)
-
-    def _sort_by_datetime(self, column, reverse):
-        def _str_to_datetime(string):
-            return datetime.strptime(string, DATETIME_FORMAT_CMDRLIST)
-
-        self._sort(column, reverse, _str_to_datetime, self._sort_by_datetime)
-

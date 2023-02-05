@@ -12,6 +12,7 @@
 ### Changes:
 
 * Fleet Carrier materials prices are now abbreviated to make them easier to read.
+* Identification of Thargoid vessel type changed to new values post patch 14.02.
 
 
 ## v3.0.0-a2 - 2023-01-27

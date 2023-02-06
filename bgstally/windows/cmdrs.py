@@ -19,7 +19,8 @@ class WindowCMDRs:
     def __init__(self, bgstally):
         self.bgstally = bgstally
 
-        self.selected_cmdr = None
+        self.selected_cmdr:dict = None
+        self.target_data:list = None
         self.toplevel:tk.Toplevel = None
 
 
@@ -53,7 +54,7 @@ class WindowCMDRs:
                         {'title': "Ship", 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200},
                         {'title': "Legal", 'type': "name", 'align': tk.W, 'stretch': tk.NO, 'width': 60},
                         {'title': "Date / Time", 'type': "datetime", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 150}]
-        target_data = self.bgstally.target_log.get_targetlog()
+        self.target_data = self.bgstally.target_log.get_targetlog()
 
         treeview = TreeviewPlus(list_frame, columns=[d['title'] for d in column_info], show="headings", callback=self._cmdr_selected, datetime_format=DATETIME_FORMAT_CMDRLIST)
         vsb = tk.Scrollbar(list_frame, orient=tk.VERTICAL, command=treeview.yview)
@@ -80,14 +81,19 @@ class WindowCMDRs:
             treeview.heading(column['title'], text=column['title'].title(), sort_by=column['type'])
             treeview.column(column['title'], anchor=column['align'], stretch=column['stretch'], width=column['width'])
 
-        for target in reversed(target_data):
+        for target in reversed(self.target_data):
             target_values = [target['TargetName'], target['System'], target['SquadronID'], target.get('ShipLocalised', target['Ship']), target['LegalStatus'], datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST)]
-            treeview.insert("", 'end', values=target_values)
+            iid:str = treeview.insert("", 'end', values=target_values)
+            target['iid'] = iid
 
         if self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS):
-            self.post_button =ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
+            self.post_button = tk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
             self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
             self.post_button['state'] = tk.DISABLED
+
+        self.delete_button = tk.Button(buttons_frame, text="Delete", bg="red", fg="white", command=partial(self._delete_selected, treeview))
+        self.delete_button.pack(side=tk.RIGHT, padx=5, pady=5)
+        self.delete_button['state'] = tk.DISABLED
 
 
     def _cmdr_selected(self, values, column, treeview:TreeviewPlus):
@@ -100,9 +106,14 @@ class WindowCMDRs:
         self.cmdr_details_squadron_inara.configure(text = "", url = "")
 
         # Fetch the latest info for this CMDR
-        Debug.logger.info(f"selection: {treeview.selection()}")
         self.selected_cmdr = self.bgstally.target_log.get_target_info(values[0])
-        if not self.selected_cmdr: return
+        if not self.selected_cmdr:
+            self.post_button['state'] = tk.DISABLED
+            self.delete_button['state'] = tk.DISABLED
+            return
+        else:
+            self.post_button['state'] = tk.NORMAL
+            self.delete_button['state'] = tk.NORMAL
 
         if 'TargetName' in self.selected_cmdr: self.cmdr_details_name.config(text = self.selected_cmdr['TargetName'])
         if 'inaraURL' in self.selected_cmdr: self.cmdr_details_name_inara.configure(text = "Inara Info Available", url = self.selected_cmdr['inaraURL'])
@@ -113,7 +124,18 @@ class WindowCMDRs:
         elif 'SquadronID' in self.selected_cmdr:
             self.cmdr_details_squadron.config(text = f"{self.selected_cmdr['SquadronID']}")
 
-        self.post_button['state'] = tk.NORMAL
+
+    def _delete_selected(self, treeview:TreeviewPlus):
+        """
+        Delete the currently selected CMDRs
+        """
+        selected_items:list = treeview.selection()
+        for selected_iid in selected_items:
+           for i in range(len(self.target_data)):
+               if self.target_data[i]['iid'] == selected_iid:
+                   self.target_data.pop(i) # Remove the corresponding item
+                   break
+           treeview.delete(selected_iid)
 
 
     def _post_to_discord(self):

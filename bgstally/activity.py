@@ -526,6 +526,9 @@ class Activity:
             # Too long since we last approached a settlement, we can't be sure we're fighting at that settlement, clear down
             state.last_settlement_approached = {}
             return
+        else:
+            # We're within the timeout, refresh timestamp
+            state.last_settlement_approached['timestamp'] = journal_entry['timestamp']
 
         # Bond issued within a short time after approaching settlement
         faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
@@ -533,7 +536,7 @@ class Activity:
 
         # Add settlement to this faction's list, if not already present
         if state.last_settlement_approached['name'] not in faction['GroundCZSettlements']:
-            faction['GroundCZSettlements'][state.last_settlement_approached['name']] = {'count': 0, 'enabled': CheckStates.STATE_ON}
+            faction['GroundCZSettlements'][state.last_settlement_approached['name']] = {'count': 0, 'enabled': CheckStates.STATE_ON, 'type': 'l'}
 
         # Store the previously counted size of this settlement
         previous_size = state.last_settlement_approached['size']

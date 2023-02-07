@@ -15,6 +15,8 @@
 
 * Fleet Carrier materials prices are now abbreviated to make them easier to read.
 * Identification of Thargoid vessel type changed to new values post patch 14.02.
+* Fix very rare and unusual bug where ground settlement data was invalid, killing the tally window.
+* No longer perform any journal processing if game is a public beta test version.
 
 
 ## v3.0.0-a2 - 2023-01-27

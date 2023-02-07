@@ -12,7 +12,7 @@ from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 
 FILENAME = "targetlog.json"
-TIME_TARGET_LOG_EXPIRY_D = 30
+TIME_TARGET_LOG_EXPIRY_D = 90
 URL_INARA_API = "https://inara.cz/inapi/v1/"
 DATETIME_FORMAT_INARA = "%Y-%m-%dT%H:%M:%SZ"
 
@@ -28,6 +28,7 @@ class TargetLog:
         self.targetlog = []
         self.cmdr_cache = {}
         self.load()
+        self._expire_old_targets()
 
 
     def load(self):
@@ -162,7 +163,7 @@ class TargetLog:
 
     def _expire_old_targets(self):
         """
-        Clear out all targets older than 7 days from the target log
+        Clear out all old targets from the target log
         """
         for target in reversed(self.targetlog):
             timedifference = datetime.utcnow() - datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL)

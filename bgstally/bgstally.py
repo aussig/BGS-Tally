@@ -86,7 +86,7 @@ class BGSTally:
 
         # Live galaxy check
         try:
-            if not monitor.is_live_galaxy(): return
+            if not monitor.is_live_galaxy() or is_beta: return
         except Exception as e:
             self.debug.logger.error(f"The EDMC Version is too old, please upgrade to v5.6.0 or later", exc_info=e)
             return

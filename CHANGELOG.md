@@ -1,10 +1,26 @@
 # Change Log
 
+
+## v3.0.0-a3 - 2023-02-09
+
+### Changes:
+
+* Sizing and layout of activity window has been reworked so the window is always the optimum size.
+
+### Bug Fixes:
+
+* Fleet Carrier materials prices are now abbreviated to make them easier to read.
+* Fix very rare and unusual bug where ground settlement data was invalid, killing the tally window.
+* No longer perform any journal processing if game is a public beta test version.
+* Ensure buttons in activity window don't get overwritten by other content.
+
+
 ## v3.0.0-a2 - 2023-01-27
 
 ### Bug Fixes:
 
 * Fleet Carrier materials Discord report was a bit broken when either your carrier sell or buy orders were empty.
+* Fix rare problem where trying to save activity data when the tickID is invalid.
 
 
 ## v3.0.0-a1 - 2023-01-26

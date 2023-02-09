@@ -42,15 +42,21 @@ class WindowActivity:
         """
         self.toplevel:tk.Toplevel = tk.Toplevel(self.ui.frame)
         self.toplevel.title(f"{self.bgstally.plugin_name} - Activity After Tick at: {activity.tick_time.strftime(DATETIME_FORMAT_WINDOWTITLE)}")
-        self.toplevel.geometry("1200x800")
 
         ContainerFrame = ttk.Frame(self.toplevel)
-        ContainerFrame.pack(fill=tk.BOTH, expand=1)
+        ContainerFrame.pack(fill=tk.BOTH, expand=tk.YES)
         TabParent=ScrollableNotebook(ContainerFrame, wheelscroll=False, tabmenu=True)
-        TabParent.pack(fill=tk.BOTH, expand=1, side=tk.TOP, padx=5, pady=5)
+        TabParent.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
+
+        frame_buttons:ttk.Frame = ttk.Frame(ContainerFrame)
+        frame_buttons.pack(fill=tk.X, side=tk.BOTTOM)
+        ttk.Button(frame_buttons, text="Copy to Clipboard (Legacy Format)", command=partial(self._copy_to_clipboard, ContainerFrame, activity)).pack(side=tk.LEFT, padx=5, pady=5)
+        self.btn_post_to_discord: ttk.Button = ttk.Button(frame_buttons, text="Post to Discord", command=partial(self._post_to_discord, activity),
+                                                          state=('normal' if self._discord_button_available() else 'disabled'))
+        self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
 
         DiscordFrame = ttk.Frame(ContainerFrame)
-        DiscordFrame.pack(fill=tk.BOTH, padx=5, pady=5)
+        DiscordFrame.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)
         DiscordFrame.columnconfigure(0, weight=2)
         DiscordFrame.columnconfigure(1, weight=1)
         label_discord_report:ttk.Label = ttk.Label(DiscordFrame, text="❓ Discord Report Preview", font=FONT_HEADING)
@@ -62,21 +68,21 @@ class WindowActivity:
 
         DiscordTextFrame = ttk.Frame(DiscordFrame)
         DiscordTextFrame.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
-        DiscordText = DiscordAnsiColorText(DiscordTextFrame, state='disabled', wrap=tk.WORD, height=14, bg="Gray13", font=FONT_TEXT)
+        DiscordText = DiscordAnsiColorText(DiscordTextFrame, state='disabled', wrap=tk.WORD, bg="Gray13", height=1, font=FONT_TEXT)
         DiscordScroll = tk.Scrollbar(DiscordTextFrame, orient=tk.VERTICAL, command=DiscordText.yview)
         DiscordText['yscrollcommand'] = DiscordScroll.set
         DiscordScroll.pack(fill=tk.Y, side=tk.RIGHT)
-        DiscordText.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+        DiscordText.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.YES)
 
         DiscordNotesFrame = ttk.Frame(DiscordFrame)
         DiscordNotesFrame.grid(row=2, column=1, pady=5, sticky=tk.NSEW)
-        DiscordNotesText = TextPlus(DiscordNotesFrame, wrap=tk.WORD, height=14, width=30, font=FONT_TEXT)
+        DiscordNotesText = TextPlus(DiscordNotesFrame, wrap=tk.WORD, width=30, height=1, font=FONT_TEXT)
         DiscordNotesText.insert(tk.END, "" if activity.discord_notes is None else activity.discord_notes)
         DiscordNotesText.bind("<<Modified>>", partial(self._discord_notes_change, DiscordNotesText, DiscordText, activity))
         DiscordNotesScroll = tk.Scrollbar(DiscordNotesFrame, orient=tk.VERTICAL, command=DiscordNotesText.yview)
         DiscordNotesText['yscrollcommand'] = DiscordNotesScroll.set
         DiscordNotesScroll.pack(fill=tk.Y, side=tk.RIGHT)
-        DiscordNotesText.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+        DiscordNotesText.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.YES)
 
         DiscordOptionsFrame = ttk.Frame(DiscordFrame)
         DiscordOptionsFrame.grid(row=2, column=2, padx=5, pady=5, sticky=tk.NW)
@@ -229,11 +235,6 @@ class WindowActivity:
             tab_index += 1
 
         self._update_discord_field(DiscordText, activity)
-
-        ttk.Button(ContainerFrame, text="Copy to Clipboard (Legacy Format)", command=partial(self._copy_to_clipboard, ContainerFrame, activity)).pack(side=tk.LEFT, padx=5, pady=5)
-        self.btn_post_to_discord: ttk.Button = ttk.Button(ContainerFrame, text="Post to Discord", command=partial(self._post_to_discord, activity),
-                                                          state=('normal' if self._discord_button_available() else 'disabled'))
-        self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
 
         # Ignore all scroll wheel events on spinboxes, to avoid accidental inputs
         self.toplevel.bind_class('TSpinbox', '<MouseWheel>', lambda event : "break")

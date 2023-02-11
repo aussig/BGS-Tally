@@ -613,7 +613,7 @@ class Activity:
                 'zero_system_activity': True,
                 'Factions': faction_data,
                 'TWKills': self._get_new_tw_kills_data(),
-                'TWSandR': {'dp': {'scooped': 0, 'delivered': 0}, 'op': {'scooped': 0, 'delivered': 0}, 'bb': {'scooped': 0, 'delivered': 0}, 't': {'scooped': 0, 'delivered': 0}}}
+                'TWSandR': self._get_new_tw_sandr_data()}
 
 
     def _get_new_faction_data(self, faction_name, faction_state):
@@ -648,13 +648,20 @@ class Activity:
         return {'s': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
 
 
+    def _get_new_tw_sandr_data(self):
+        """
+        Get a new data structure for storing Thargoid War Search and Rescue
+        """
+        return {'dp': {'scooped': 0, 'delivered': 0}, 'op': {'scooped': 0, 'delivered': 0}, 'bb': {'scooped': 0, 'delivered': 0}, 't': {'scooped': 0, 'delivered': 0}}
+
+
     def _update_system_data(self, system_data:dict):
         """
         Update system data structure for elements not present in previous versions of plugin
         """
         # From < v3.1.0 to 3.1.0
         if not 'TWKills' in system_data: system_data['TWKills'] = self._get_new_tw_kills_data()
-        if not 'TWSandR' in system_data: system_data['TWSandR'] = {'dp': {'scooped': 0, 'delivered': 0}, 'op': {'scooped': 0, 'delivered': 0}, 'bb': {'scooped': 0, 'delivered': 0}, 't': {'scooped': 0, 'delivered': 0}}
+        if not 'TWSandR' in system_data: system_data['TWSandR'] = self._get_new_tw_sandr_data()
 
 
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):

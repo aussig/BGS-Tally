@@ -4,9 +4,13 @@
 
 ### New Features:
 
-* Thargoid War kills are now tracked for each vessel type: 💀. But **please be aware**: BGS-Tally will only count a kill if it is logged in your game journal. This reliably happens if you solo kill a Thargoid, and sometimes happens when you kill in a Team or with others.  However, when not solo-killing, this is **highly unreliable**. Please don't file a bug if you find your kills aren't being tallied when fighting with other CMDRs.
+* Thargoid War kills are now tracked for each vessel type: 💀 (kills). But **please be aware**: BGS-Tally will only count a kill if it is logged in your game journal. This reliably happens if you solo kill a Thargoid, and sometimes happens when you kill in a Team or with others.  However, when not solo-killing, this is **highly unreliable**. Please don't file a bug if you find your kills aren't being tallied when fighting with other CMDRs.
 * You can now delete CMDRs from the CMDR target list history.
 * Targets older than 90 days are automatically removed from the CMDR target list history.
+
+### Changes:
+
+* Thargoid War massacre missions are now labelled slightly differently - 💀 (missions) - in line with the labelling for kills - 💀 (kills).
 
 
 ## v3.0.0-xx - xxxx-xx-xx

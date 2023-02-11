@@ -11,6 +11,10 @@
 
 ## v3.0.0-xx - xxxx-xx-xx
 
+
+
+## v3.0.0-a3 - 2023-02-09
+
 ### Changes:
 
 * Sizing and layout of activity window has been reworked so the window is always the optimum size.

@@ -164,6 +164,7 @@ class Activity:
                 # The system has a current mission, or it's the current system - zero, don't delete
                 for faction_name, faction_data in system['Factions'].items():
                     system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'])
+                system['TWKills'] = self._get_new_tw_kills_data()
             else:
                 # No current missions, delete the whole system
                 del self.systems[system_address]
@@ -611,7 +612,7 @@ class Activity:
                 'SystemAddress': system_address,
                 'zero_system_activity': True,
                 'Factions': faction_data,
-                'TWKills': {'s': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}}
+                'TWKills': self._get_new_tw_kills_data()}
 
 
     def _get_new_faction_data(self, faction_name, faction_state):
@@ -639,12 +640,19 @@ class Activity:
                 'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}}
 
 
+    def _get_new_tw_kills_data(self):
+        """
+        Get a new data structure for storing Thargoid War Kills
+        """
+        return {'s': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
+
+
     def _update_system_data(self, system_data:dict):
         """
         Update system data structure for elements not present in previous versions of plugin
         """
         # From < v3.1.0 to 3.1.0
-        if not 'TWKills' in system_data: system_data['TWKills'] = {'s': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
+        if not 'TWKills' in system_data: system_data['TWKills'] = self._get_new_tw_kills_data()
 
 
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):

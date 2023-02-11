@@ -612,7 +612,8 @@ class Activity:
                 'SystemAddress': system_address,
                 'zero_system_activity': True,
                 'Factions': faction_data,
-                'TWKills': self._get_new_tw_kills_data()}
+                'TWKills': self._get_new_tw_kills_data(),
+                'TWSandR': {'dp': {'scooped': 0, 'delivered': 0}, 'op': {'scooped': 0, 'delivered': 0}, 'bb': {'scooped': 0, 'delivered': 0}, 't': {'scooped': 0, 'delivered': 0}}}
 
 
     def _get_new_faction_data(self, faction_name, faction_state):
@@ -653,6 +654,7 @@ class Activity:
         """
         # From < v3.1.0 to 3.1.0
         if not 'TWKills' in system_data: system_data['TWKills'] = self._get_new_tw_kills_data()
+        if not 'TWSandR' in system_data: system_data['TWSandR'] = {'dp': {'scooped': 0, 'delivered': 0}, 'op': {'scooped': 0, 'delivered': 0}, 'bb': {'scooped': 0, 'delivered': 0}, 't': {'scooped': 0, 'delivered': 0}}
 
 
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):
@@ -693,7 +695,7 @@ class Activity:
                 station['cargo'] = {'count': 0, 'sum': station['cargo']}
             if not type(station.get('massacre')) == dict:
                 station['massacre'] = {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}
-        # From < 2.3.0 to 2.3.0
+        # From < 3.0.0 to 3.0.0
         if not 'GroundMurdered' in faction_data: faction_data['GroundMurdered'] = 0
         if not 'TradeBuy' in faction_data:
             faction_data['TradeBuy'] = [{'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}]

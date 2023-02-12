@@ -173,13 +173,13 @@ class APIManager:
                         if station.get('cargo', {}).get('count', 0) > 0:
                             api_station['twcargo'] = station['cargo'] # dict containing 'count' and 'sum'
 
-                        if sum(int(d['count']) for d in station['escapepods']) > 0:
+                        if sum(int(d['count']) for d in station['escapepods'].values()) > 0:
                             api_station['twescapepods'] = {
                                 'low': station['escapepods']['l'],    # dict containing 'count' and 'sum'
                                 'medium': station['escapepods']['m'], # dict containing 'count' and 'sum'
                                 'high': station['escapepods']['h']    # dict containing 'count' and 'sum'
                             }
-                        if sum(int(d['count']) for d in station['massacre']) > 0:
+                        if sum(int(d['count']) for d in station['massacre'].values()) > 0:
                             api_station['twmassacre'] = {
                                 'basilisk': station['massacre']['b'], # dict containing 'count' and 'sum'
                                 'cyclops': station['massacre']['c'],  # dict containing 'count' and 'sum'
@@ -188,7 +188,7 @@ class APIManager:
                                 'orthrus': station['massacre']['o'],  # dict containing 'count' and 'sum'
                                 'scout': station['massacre']['s']     # dict containing 'count' and 'sum'
                             }
-                        if sum(int(d['count']) for d in station['passengers']) > 0:
+                        if sum(int(d['count']) for d in station['passengers'].values()) > 0:
                             api_station['twpassengers'] = {
                                 'low': station['passengers']['l'],    # dict containing 'count' and 'sum'
                                 'medium': station['passengers']['m'], # dict containing 'count' and 'sum'

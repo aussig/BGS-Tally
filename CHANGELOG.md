@@ -15,6 +15,9 @@
 
 ## v3.0.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
+
+* /activity API calls were breaking if there was any Thargoid War mission activity logged.
 
 
 ## v3.0.0-a3 - 2023-02-09

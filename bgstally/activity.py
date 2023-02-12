@@ -150,7 +150,7 @@ class Activity:
     def clear_activity(self, mission_log: MissionLog):
         """
         Clear down all activity. If there is a currently active mission in a system or it's the current system the player is in,
-        only zero the activity, otherwise delete the system completely.
+        or the system has had search and rescue items collected there, only zero the activity, otherwise delete the system completely.
         """
         self.dirty = True
         mission_systems = mission_log.get_active_systems()
@@ -160,13 +160,16 @@ class Activity:
             system = self.systems[system_address]
             # Note that the missions log historically stores system name so we check for that, not system address.
             # Potential for very rare bug here for systems with duplicate names.
-            if system['System'] in mission_systems or self.bgstally.state.current_system_id == system_address:
-                # The system has a current mission, or it's the current system - zero, don't delete
+            if system['System'] in mission_systems or \
+                    self.bgstally.state.current_system_id == system_address or \
+                    sum(int(d['scooped']) for d in system['TWSandR']) > 0:
+                # The system has a current mission, or it's the current system, or it has TWSandR scoops - zero, don't delete
                 for faction_name, faction_data in system['Factions'].items():
                     system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'])
                 system['TWKills'] = self._get_new_tw_kills_data()
+                # Note: system['TWSandR'] data is carried forward
             else:
-                # No current missions, delete the whole system
+                # Delete the whole system
                 del self.systems[system_address]
 
 
@@ -584,6 +587,69 @@ class Activity:
         self.recalculate_zero_activity()
 
 
+    def collect_cargo(self, journal_entry: dict, state: State):
+        """
+        Handle cargo collection for certain cargo types
+        """
+        current_system = self.systems.get(state.current_system_id)
+        if not current_system: return
+
+        key:str = None
+
+        match journal_entry.get('Type'):
+            case 'damagedescapepod': key = 'dp'
+            case 'occupiedcryopod': key = 'op'
+            case 'usscargoblackbox': key = 'bb'
+
+        if key is None: return
+
+        current_system['TWSandR'][key]['scooped'] += 1
+        self.dirty = True
+
+
+    def search_and_rescue(self, journal_entry: dict, state: State):
+        """
+        Handle search and rescue hand-in
+        """
+        key:str = None
+
+        match journal_entry('Name'):
+            case 'damagedescapepod': key = 'dp'
+            case 'occupiedcryopod': key = 'op'
+            case 'usscargoblackbox': key = 'bb'
+
+        if key is None: return
+
+        # S&R can be handed in in any system, but the effect counts for the system the items were collected in. However,
+        # we have no way of knowing exactly which items were handed in, so just iterate through all our known systems
+        # looking for previously scooped cargo of the correct type.
+
+        count:int = int(journal_entry.get('Count', 0))
+
+        for system in self.systems.values():
+            if count <= 0: break  # Finish when we've accounted for all items
+
+            allocatable:int = min(count, system['TWSandR'][key]['scooped'])
+            if allocatable > 0:
+                system['TWSandR'][key]['scooped'] -= allocatable
+                system['TWSandR'][key]['delivered'] += allocatable
+                count -= allocatable
+                self.dirty = True
+
+        # count can end up > 0 here - i.e. more S&R handed in than we originally logged as scooped. Ignore, as we don't know
+        # where it originally came from
+
+
+    def player_resurrected(self):
+        """
+        Clear down any logged cargo on resurrect
+        """
+        for system in self.systems.values():
+            system['TWSandR'] = self._get_new_tw_sandr_data()
+
+        self.dirty = True
+
+
     def recalculate_zero_activity(self):
         """
         For efficiency at display time, we store whether each system has had any activity in the data structure
@@ -597,7 +663,15 @@ class Activity:
                 if not self._is_faction_data_zero(faction_data):
                     system['zero_system_activity'] = False
 
+            if system['zero_system_activity'] == False: return
+
             if sum(system['TWKills'].values()) > 0: system['zero_system_activity'] = False
+
+            if system['zero_system_activity'] == False: return
+
+            if sum(int(d['delivered']) for d in system['TWSandR']) > 0: system['zero_system_activity'] = False
+
+            if system['zero_system_activity'] == False: return
 
 
     #

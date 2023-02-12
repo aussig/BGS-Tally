@@ -162,7 +162,7 @@ class Activity:
             # Potential for very rare bug here for systems with duplicate names.
             if system['System'] in mission_systems or \
                     self.bgstally.state.current_system_id == system_address or \
-                    sum(int(d['scooped']) for d in system['TWSandR']) > 0:
+                    sum(int(d['scooped']) for d in system['TWSandR'].values()) > 0:
                 # The system has a current mission, or it's the current system, or it has TWSandR scoops - zero, don't delete
                 for faction_name, faction_data in system['Factions'].items():
                     system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'])
@@ -669,7 +669,7 @@ class Activity:
 
             if system['zero_system_activity'] == False: return
 
-            if sum(int(d['delivered']) for d in system['TWSandR']) > 0: system['zero_system_activity'] = False
+            if sum(int(d['delivered']) for d in system['TWSandR'].values()) > 0: system['zero_system_activity'] = False
 
             if system['zero_system_activity'] == False: return
 

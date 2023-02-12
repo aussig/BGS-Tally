@@ -656,12 +656,14 @@ class WindowActivity:
                                     + f"B x {red(system['TWKills']['b'])}, M x {red(system['TWKills']['m'])}, " \
                                     + f"H x {red(system['TWKills']['h'])}, O x {red(system['TWKills']['o'])} \n"
             if sandr > 0:
+                system_discord_text += "  "
                 pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
-                if pods > 0: system_discord_text += f"  ⚰️ x {green(pods)} \n"
+                if pods > 0: system_discord_text += f"⚰️ x {green(pods)} "
                 bbs:int = system['TWSandR']['bb']['delivered']
-                if bbs > 0: system_discord_text += f"  ⬛ x {green(bbs)} \n"
+                if bbs > 0: system_discord_text += f"⬛ x {green(bbs)} "
                 tissue:int = system['TWSandR']['t']['delivered']
-                if tissue > 0: system_discord_text += f"  🌱 x {green(bbs)} \n"
+                if tissue > 0: system_discord_text += f"🌱 x {green(bbs)} "
+                system_discord_text += "\n"
 
         # Station-specific tally
         for system_station_name, system_station in system_stations.items():

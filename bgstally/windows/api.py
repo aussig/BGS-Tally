@@ -208,17 +208,15 @@ class WindowAPI:
         Automatically populate fields with predefined server details
         """
         api_info:dict = self.bgstally.config.api(site)
-        Debug.logger.info(f"{api_info}")
-        Debug.logger.info(f"{api_info.get('activities_enabled', False)}")
-        Debug.logger.info(f"{bool(api_info.get('activities_enabled', False))}")
         self.var_apiurl.set(api_info.get('url', ""))
         self.cb_apiactivities.state(['selected', '!alternate'] if api_info.get('activities_enabled', "False") == "True" else ['!selected', '!alternate'])
         self.cb_apievents.state(['selected', '!alternate'] if api_info.get('events_enabled', "False") == "True" else ['!selected', '!alternate'])
+        self._field_edited(self.entry_apiurl)
 
 
     def _discover(self):
         """
-        The user has clicked the 'Fetch information' button
+        The user has clicked the 'Establish Connection' button
         """
         self.btn_fetch.configure(state='disabled')
         self.api.discover(self.discovery_received)

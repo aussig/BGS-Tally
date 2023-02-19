@@ -2,6 +2,10 @@
 
 ## v3.0.0-xx - xxxx-xx-xx
 
+### Changes:
+
+* Tweak to formatting of CZ totals in Discord report.
+
 ### Bug Fixes:
 
 * /activity API calls were breaking if there was any Thargoid War mission activity logged.

@@ -5,6 +5,7 @@
 ### Bug Fixes:
 
 * /activity API calls were breaking if there was any Thargoid War mission activity logged.
+* Api configuration panel wasn't resetting properly when using the quick access autofill buttons.
 
 
 ## v3.0.0-a3 - 2023-02-09

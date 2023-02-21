@@ -5,6 +5,7 @@
 ### Changes:
 
 * Tweak to formatting of CZ totals in Discord report.
+* Enhance `MarketBuy` and `MarketSell` events in the `/events` API with `StockBracket` and `DemandBracket` values.
 
 ### Bug Fixes:
 

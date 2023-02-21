@@ -208,9 +208,25 @@ class APIManager:
         Build an API-ready event ready for sending. This just involves enhancing the event with some
         additional data
         """
+
+        # BGS-Tally specific global enhancements
         event['cmdr'] = cmdr
         event['tickid'] = activity.tick_id
+
+        # Other global enhancements
         if 'StarSystem' not in event: event['StarSystem'] = activity.systems.get(self.bgstally.state.current_system_id, "")
         if 'SystemAddress' not in event: event['SystemAddress'] = self.bgstally.state.current_system_id
+
+        # Event-specific enhancements
+        match event.get('event'):
+            case 'MarketBuy':
+                if self.bgstally.market.available(event['MarketID']):
+                    market_data:dict = self.bgstally.market.get_commodity(event['Type'])
+                    event['StockBracket'] = market_data.get('StockBracket', 0)
+
+            case 'MarketSell':
+                if self.bgstally.market.available(event['MarketID']):
+                    market_data:dict = self.bgstally.market.get_commodity(event['Type'])
+                    event['DemandBracket'] = market_data.get('DemandBracket', 0)
 
         return event

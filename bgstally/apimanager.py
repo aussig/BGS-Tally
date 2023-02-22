@@ -223,6 +223,7 @@ class APIManager:
         # BGS-Tally specific global enhancements
         event['cmdr'] = cmdr
         event['tickid'] = activity.tick_id
+        event['StationFaction'] = self.bgstally.state.station_faction
 
         # Other global enhancements
         if 'StarSystem' not in event: event['StarSystem'] = activity.systems.get(self.bgstally.state.current_system_id, "")
@@ -234,10 +235,12 @@ class APIManager:
                 if self.bgstally.market.available(event['MarketID']):
                     market_data:dict = self.bgstally.market.get_commodity(event['Type'])
                     event['StockBracket'] = market_data.get('StockBracket', 0)
+                    event['Stock'] = market_data.get('Stock', 0)
 
             case 'MarketSell':
                 if self.bgstally.market.available(event['MarketID']):
                     market_data:dict = self.bgstally.market.get_commodity(event['Type'])
                     event['DemandBracket'] = market_data.get('DemandBracket', 0)
+                    event['Demand'] = market_data.get('Demand', 0)
 
         return event

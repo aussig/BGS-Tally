@@ -212,6 +212,7 @@ class APIManager:
         # BGS-Tally specific global enhancements
         event['cmdr'] = cmdr
         event['tickid'] = activity.tick_id
+        event['StationFaction'] = self.bgstally.state.station_faction
 
         # Other global enhancements
         if 'StarSystem' not in event: event['StarSystem'] = activity.systems.get(self.bgstally.state.current_system_id, "")

@@ -172,13 +172,13 @@ class APIManager:
                         if station.get('cargo', {}).get('count', 0) > 0:
                             api_station['twcargo'] = station['cargo'] # dict containing 'count' and 'sum'
 
-                        if sum(int(d['count']) for d in station['escapepods']) > 0:
+                        if sum(int(d['count']) for d in station['escapepods'].values()) > 0:
                             api_station['twescapepods'] = {
                                 'low': station['escapepods']['l'],    # dict containing 'count' and 'sum'
                                 'medium': station['escapepods']['m'], # dict containing 'count' and 'sum'
                                 'high': station['escapepods']['h']    # dict containing 'count' and 'sum'
                             }
-                        if sum(int(d['count']) for d in station['massacre']) > 0:
+                        if sum(int(d['count']) for d in station['massacre'].values()) > 0:
                             api_station['twmassacre'] = {
                                 'basilisk': station['massacre']['b'], # dict containing 'count' and 'sum'
                                 'cyclops': station['massacre']['c'],  # dict containing 'count' and 'sum'
@@ -187,7 +187,7 @@ class APIManager:
                                 'orthrus': station['massacre']['o'],  # dict containing 'count' and 'sum'
                                 'scout': station['massacre']['s']     # dict containing 'count' and 'sum'
                             }
-                        if sum(int(d['count']) for d in station['passengers']) > 0:
+                        if sum(int(d['count']) for d in station['passengers'].values()) > 0:
                             api_station['twpassengers'] = {
                                 'low': station['passengers']['l'],    # dict containing 'count' and 'sum'
                                 'medium': station['passengers']['m'], # dict containing 'count' and 'sum'
@@ -208,9 +208,28 @@ class APIManager:
         Build an API-ready event ready for sending. This just involves enhancing the event with some
         additional data
         """
+
+        # BGS-Tally specific global enhancements
         event['cmdr'] = cmdr
         event['tickid'] = activity.tick_id
+        event['StationFaction'] = self.bgstally.state.station_faction
+
+        # Other global enhancements
         if 'StarSystem' not in event: event['StarSystem'] = activity.systems.get(self.bgstally.state.current_system_id, "")
         if 'SystemAddress' not in event: event['SystemAddress'] = self.bgstally.state.current_system_id
+
+        # Event-specific enhancements
+        match event.get('event'):
+            case 'MarketBuy':
+                if self.bgstally.market.available(event['MarketID']):
+                    market_data:dict = self.bgstally.market.get_commodity(event['Type'])
+                    event['StockBracket'] = market_data.get('StockBracket', 0)
+                    event['Stock'] = market_data.get('Stock', 0)
+
+            case 'MarketSell':
+                if self.bgstally.market.available(event['MarketID']):
+                    market_data:dict = self.bgstally.market.get_commodity(event['Type'])
+                    event['DemandBracket'] = market_data.get('DemandBracket', 0)
+                    event['Demand'] = market_data.get('Demand', 0)
 
         return event

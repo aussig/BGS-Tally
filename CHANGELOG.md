@@ -1,5 +1,18 @@
 # Change Log
 
+## v3.0.0-a4 - 2023-02-25
+
+### Changes:
+
+* Tweak to formatting of CZ totals in Discord report.
+* Enhanced `MarketBuy` and `MarketSell` events in the `/events` API with `StockBracket`, `Stock`, `DemandBracket` and `Demand` values.
+* Enhanced all events in the `/events` API with `StationFaction`.
+
+### Bug Fixes:
+
+* /activity API calls were breaking if there was any Thargoid War mission activity logged.
+* Api configuration panel wasn't resetting properly when using the quick access autofill buttons.
+
 
 ## v3.0.0-a3 - 2023-02-09
 

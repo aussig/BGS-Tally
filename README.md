@@ -62,4 +62,4 @@ The plugin makes the following network connections:
 
 # Troubleshooting
 
-If you are having problems with BGS-Tally, check out the **[Troubleshooting page &rarr;](https://github.com/aussig/BGS-Tally/wiki#troubleshooting)**. If those troubleshooting solutions don't work, feel free to contact me in the `#support` channel on my [Discord server](https://discord.gg/YDNVtjPnnm).
+If you are having problems with BGS-Tally, check out the **[Troubleshooting page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Troubleshooting)**. If those troubleshooting solutions don't work, feel free to contact me in the `#support` channel on my [Discord server](https://discord.gg/YDNVtjPnnm).

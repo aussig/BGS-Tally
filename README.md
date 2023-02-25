@@ -58,3 +58,8 @@ The plugin makes the following network connections:
 3. To [Inara](https://inara.cz/elite/) to anonymously check for available information on targeted CMDRs.
 4. **Only if configured by you** to a specific Discord webhook on a Discord server of your choice, and only when you explicitly click the _Post to Discord_ button.
 5. **Only if configured by you** to a specific web application of your choice to send your BGS / TW data for aggregation and analysis, via an API. You have control over whether you approve the initial connection, and can choose to terminate the connection at any time.
+
+
+# Troubleshooting
+
+If you are having problems with BGS-Tally, check out the **[Troubleshooting page &rarr;](https://github.com/aussig/BGS-Tally/wiki#troubleshooting)**. If those troubleshooting solutions don't work, feel free to contact me in the `#support` channel on my [Discord server](https://discord.gg/YDNVtjPnnm).

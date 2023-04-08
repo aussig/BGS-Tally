@@ -663,15 +663,15 @@ class Activity:
                 if not self._is_faction_data_zero(faction_data):
                     system['zero_system_activity'] = False
 
-            if system['zero_system_activity'] == False: return
+            if system['zero_system_activity'] == False: continue
 
             if sum(system['TWKills'].values()) > 0: system['zero_system_activity'] = False
 
-            if system['zero_system_activity'] == False: return
+            if system['zero_system_activity'] == False: continue
 
             if sum(int(d['delivered']) for d in system['TWSandR'].values()) > 0: system['zero_system_activity'] = False
 
-            if system['zero_system_activity'] == False: return
+            if system['zero_system_activity'] == False: continue
 
 
     #

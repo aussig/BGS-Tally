@@ -70,6 +70,8 @@ MISSIONS_TW_MASSACRE = [
 CZ_GROUND_LOW_CB_MAX = 5000
 CZ_GROUND_MED_CB_MAX = 38000
 
+TW_CBS = {65000: 's', 75000: 's', 6500000: 'c', 20000000: 'b', 25000000: 'o', 34000000: 'm', 50000000: 'h'}
+
 
 class Activity:
     """
@@ -162,6 +164,7 @@ class Activity:
                 # The system has a current mission, or it's the current system - zero, don't delete
                 for faction_name, faction_data in system['Factions'].items():
                     system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'])
+                system['TWKills'] = self._get_new_tw_kills_data()
             else:
                 # No current missions, delete the whole system
                 del self.systems[system_address]
@@ -191,6 +194,8 @@ class Activity:
             # We don't have this system yet
             current_system = self._get_new_system_data(journal_entry['StarSystem'], journal_entry['SystemAddress'], {})
             self.systems[str(journal_entry['SystemAddress'])] = current_system
+
+        self._update_system_data(current_system)
 
         for faction in journal_entry['Factions']:
             if faction['Name'] == "Pilots' Federation Local Branch": continue
@@ -503,10 +508,18 @@ class Activity:
         """
         Handle a combat bond received for a kill
         """
-        if state.last_settlement_approached == {}: return
-
         current_system = self.systems.get(state.current_system_id)
         if not current_system: return
+
+        # Check for Thargoid Kill
+        if journal_entry.get('VictimFaction') == "$faction_Thargoid;":
+            tw_ship:str = TW_CBS.get(journal_entry['Reward'])
+            if tw_ship: current_system['TWKills'][tw_ship] += 1
+            return
+
+        # Otherwise, must be on-ground for CB kill tracking
+        if state.last_settlement_approached == {}: return
+
         self.dirty = True
 
         timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_settlement_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
@@ -576,11 +589,15 @@ class Activity:
         For efficiency at display time, we store whether each system has had any activity in the data structure
         """
         for system in self.systems.values():
+            self._update_system_data(system)
             system['zero_system_activity'] = True
+
             for faction_data in system['Factions'].values():
                 self._update_faction_data(faction_data)
                 if not self._is_faction_data_zero(faction_data):
                     system['zero_system_activity'] = False
+
+            if sum(system['TWKills'].values()) > 0: system['zero_system_activity'] = False
 
 
     #
@@ -594,7 +611,8 @@ class Activity:
         return {'System': system_name,
                 'SystemAddress': system_address,
                 'zero_system_activity': True,
-                'Factions': faction_data}
+                'Factions': faction_data,
+                'TWKills': self._get_new_tw_kills_data()}
 
 
     def _get_new_faction_data(self, faction_name, faction_state):
@@ -620,6 +638,21 @@ class Activity:
                 'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
                 'cargo': {'count': 0, 'sum': 0},
                 'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}}
+
+
+    def _get_new_tw_kills_data(self):
+        """
+        Get a new data structure for storing Thargoid War Kills
+        """
+        return {'s': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
+
+
+    def _update_system_data(self, system_data:dict):
+        """
+        Update system data structure for elements not present in previous versions of plugin
+        """
+        # From < v3.1.0 to 3.1.0
+        if not 'TWKills' in system_data: system_data['TWKills'] = self._get_new_tw_kills_data()
 
 
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):

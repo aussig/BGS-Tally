@@ -88,7 +88,8 @@ class APIManager:
             api_system:dict = {
                 'name': system.get('System', ""),
                 'address': system.get('SystemAddress', ""),
-                'factions': []
+                'factions': [],
+                'twkills': {}
             }
 
             for faction in system.get('Factions', {}).values():
@@ -197,6 +198,16 @@ class APIManager:
                     api_faction['stations'].append(api_station)
 
                 api_system['factions'].append(api_faction)
+
+            if sum(system.get('TWKills', {}).values()) > 0:
+                api_system['twkills'] = {
+                    'basilisk': system['TWKills']['b'],
+                    'cyclops': system['TWKills']['c'],
+                    'hydra': system['TWKills']['h'],
+                    'medusa': system['TWKills']['m'],
+                    'orthrus': system['TWKills']['o'],
+                    'scout': system['TWKills']['s']
+                }
 
             api_activity['systems'].append(api_system)
 

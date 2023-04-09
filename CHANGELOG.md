@@ -1,48 +1,12 @@
 # Change Log
 
-## v3.0.0-a4 - 2023-02-25
-
-### Changes:
-
-* Tweak to formatting of CZ totals in Discord report.
-* Enhanced `MarketBuy` and `MarketSell` events in the `/events` API with `StockBracket`, `Stock`, `DemandBracket` and `Demand` values.
-* Enhanced all events in the `/events` API with `StationFaction`.
-
-### Bug Fixes:
-
-* /activity API calls were breaking if there was any Thargoid War mission activity logged.
-* Api configuration panel wasn't resetting properly when using the quick access autofill buttons.
-
-
-## v3.0.0-a3 - 2023-02-09
-
-### Changes:
-
-* Sizing and layout of activity window has been reworked so the window is always the optimum size.
-
-### Bug Fixes:
-
-* Fleet Carrier materials prices are now abbreviated to make them easier to read.
-* Fix very rare and unusual bug where ground settlement data was invalid, killing the tally window.
-* No longer perform any journal processing if game is a public beta test version.
-* Ensure buttons in activity window don't get overwritten by other content.
-
-
-## v3.0.0-a2 - 2023-01-27
-
-### Bug Fixes:
-
-* Fleet Carrier materials Discord report was a bit broken when either your carrier sell or buy orders were empty.
-* Fix rare problem where trying to save activity data when the tickID is invalid.
-
-
-## v3.0.0-a1 - 2023-01-26
+## v3.0.0 - 2023-04-09
 
 ### New Features:
 
 * Plugin auto-update. From this version on, when a new version of the plugin is released, it will automatically be downloaded and update itself the next time you launch EDMarketConnector. You will need to install this version 3.0.0 manually, but that should be the last time you ever have to do a manual update unless you want to test pre-release versions (i.e. alphas or betas).
 * Fleet Carrier materials tracking. BGS-Tally will now track your fleet carrier materials for sale and for purchase, with the ability to post to Discord. For this to work, you need to be using EDMC v5.8.0 or greater, authenticate EDMC with your Frontier account, own a fleet carrier (!) and visit your fleet carrier management screen in-game.
-* API. This allows BGS-Tally to send data to a server of your choice, to allow your squadron or another player group to collect and analyse your activity. If the server provides information about itself, this is shown to you and you are **always explicitly asked** to approve the connection. Two servers come pre-configured: COMGUARD and DCoH for quick access to those services.
+* API. This allows BGS-Tally to send data to a server of your choice, to allow your squadron or another player group to collect and analyse your activity. If the server provides information about itself, this is shown to you and you are **always explicitly asked** to approve the connection.
 * On-foot murders are now tracked and are independent from ship murders.
 * Trade demand. Trade purchase and profit is now tracked and reported against the levels of demand: 🅻 / 🅷 for purchases and 🆉 / 🅻 / 🅷 for sales (🆉 is zero demand, i.e. when you sell cargo that the market doesn't list).
 * In-game overlay: The tick warning has been enhanced, with various levels depending on when the last tick was.
@@ -58,12 +22,17 @@
 * The plain text Discord post text now has the plugin name and version included in the footer.
 * Re-worked the way BGS-Tally makes network requests, so they are now able to be queued and handled in a background thread. This means the plugin won't lock up EDMC if it's waiting for a slow response from a server. Migrating existing requests will be done in stages. So far, Inara requests when scanning CMDRs, all Discord posting, and all API requests are done in the background.
 * Discord changed its colour scheme for code blocks to be largely light blue and white, so re-worked all Discord posts to use new colours (`ansi` blocks instead of `css`).
+* Sizing and layout of activity window has been reworked so the window is always the optimum size.
 
 ### Bug Fixes:
 
 * In-game overlay: Fixed occasional flickering of the tick time.
 * No longer allow multiple copies of the CMDRs list window to be opened at the same time.
 * No longer carry forward the contents of the notes field from one tick to the next.
+* Fixed rare problem where trying to save activity data when the tickID is invalid.
+* Fixed very rare and unusual bug where ground settlement data was invalid, killing the tally window.
+* No longer perform any journal processing if game is a public beta test version.
+* Ensure buttons in activity window don't get overwritten by other content.
 
 
 ## v2.2.1 - 2023-01-04

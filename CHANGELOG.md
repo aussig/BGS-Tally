@@ -1,46 +1,6 @@
 # Change Log
 
-## v3.0.0-xx - xxxx-xx-xx
-
-
-
-## v3.0.0-a4 - 2023-02-25
-
-### Changes:
-
-* Tweak to formatting of CZ totals in Discord report.
-* Enhanced `MarketBuy` and `MarketSell` events in the `/events` API with `StockBracket`, `Stock`, `DemandBracket` and `Demand` values.
-* Enhanced all events in the `/events` API with `StationFaction`.
-
-### Bug Fixes:
-
-* /activity API calls were breaking if there was any Thargoid War mission activity logged.
-* Api configuration panel wasn't resetting properly when using the quick access autofill buttons.
-
-
-## v3.0.0-a3 - 2023-02-09
-
-### Changes:
-
-* Sizing and layout of activity window has been reworked so the window is always the optimum size.
-
-### Bug Fixes:
-
-* Fleet Carrier materials prices are now abbreviated to make them easier to read.
-* Fix very rare and unusual bug where ground settlement data was invalid, killing the tally window.
-* No longer perform any journal processing if game is a public beta test version.
-* Ensure buttons in activity window don't get overwritten by other content.
-
-
-## v3.0.0-a2 - 2023-01-27
-
-### Bug Fixes:
-
-* Fleet Carrier materials Discord report was a bit broken when either your carrier sell or buy orders were empty.
-* Fix rare problem where trying to save activity data when the tickID is invalid.
-
-
-## v3.0.0-a1 - 2023-01-26
+## v3.0.0 - 2023-04-09
 
 ### New Features:
 
@@ -62,12 +22,17 @@
 * The plain text Discord post text now has the plugin name and version included in the footer.
 * Re-worked the way BGS-Tally makes network requests, so they are now able to be queued and handled in a background thread. This means the plugin won't lock up EDMC if it's waiting for a slow response from a server. Migrating existing requests will be done in stages. So far, Inara requests when scanning CMDRs, all Discord posting, and all API requests are done in the background.
 * Discord changed its colour scheme for code blocks to be largely light blue and white, so re-worked all Discord posts to use new colours (`ansi` blocks instead of `css`).
+* Sizing and layout of activity window has been reworked so the window is always the optimum size.
 
 ### Bug Fixes:
 
 * In-game overlay: Fixed occasional flickering of the tick time.
 * No longer allow multiple copies of the CMDRs list window to be opened at the same time.
 * No longer carry forward the contents of the notes field from one tick to the next.
+* Fix rare problem where trying to save activity data when the tickID is invalid.
+* Fix very rare and unusual bug where ground settlement data was invalid, killing the tally window.
+* No longer perform any journal processing if game is a public beta test version.
+* Ensure buttons in activity window don't get overwritten by other content.
 
 
 ## v2.2.1 - 2023-01-04

@@ -6,7 +6,7 @@
 
 * Plugin auto-update. From this version on, when a new version of the plugin is released, it will automatically be downloaded and update itself the next time you launch EDMarketConnector. You will need to install this version 3.0.0 manually, but that should be the last time you ever have to do a manual update unless you want to test pre-release versions (i.e. alphas or betas).
 * Fleet Carrier materials tracking. BGS-Tally will now track your fleet carrier materials for sale and for purchase, with the ability to post to Discord. For this to work, you need to be using EDMC v5.8.0 or greater, authenticate EDMC with your Frontier account, own a fleet carrier (!) and visit your fleet carrier management screen in-game.
-* API. This allows BGS-Tally to send data to a server of your choice, to allow your squadron or another player group to collect and analyse your activity. If the server provides information about itself, this is shown to you and you are **always explicitly asked** to approve the connection. Two servers come pre-configured: COMGUARD and DCoH for quick access to those services.
+* API. This allows BGS-Tally to send data to a server of your choice, to allow your squadron or another player group to collect and analyse your activity. If the server provides information about itself, this is shown to you and you are **always explicitly asked** to approve the connection.
 * On-foot murders are now tracked and are independent from ship murders.
 * Trade demand. Trade purchase and profit is now tracked and reported against the levels of demand: 🅻 / 🅷 for purchases and 🆉 / 🅻 / 🅷 for sales (🆉 is zero demand, i.e. when you sell cargo that the market doesn't list).
 * In-game overlay: The tick warning has been enhanced, with various levels depending on when the last tick was.
@@ -29,8 +29,8 @@
 * In-game overlay: Fixed occasional flickering of the tick time.
 * No longer allow multiple copies of the CMDRs list window to be opened at the same time.
 * No longer carry forward the contents of the notes field from one tick to the next.
-* Fix rare problem where trying to save activity data when the tickID is invalid.
-* Fix very rare and unusual bug where ground settlement data was invalid, killing the tally window.
+* Fixed rare problem where trying to save activity data when the tickID is invalid.
+* Fixed very rare and unusual bug where ground settlement data was invalid, killing the tally window.
 * No longer perform any journal processing if game is a public beta test version.
 * Ensure buttons in activity window don't get overwritten by other content.
 

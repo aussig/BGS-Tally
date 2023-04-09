@@ -1,5 +1,12 @@
 # Change Log
 
+## v3.0.1 - xxxx-xx-xx
+
+### Bug Fixes:
+
+* Trade purchasing at 'High' supply stock bracket wasn't being reported.
+
+
 ## v3.0.0 - 2023-04-09
 
 ### New Features:

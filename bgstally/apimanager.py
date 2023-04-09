@@ -117,8 +117,8 @@ class APIManager:
                             'value': faction['TradeBuy'][2]['value']
                         },
                         'high': {
-                            'items': faction['TradeBuy'][1]['items'],
-                            'value': faction['TradeBuy'][1]['value']
+                            'items': faction['TradeBuy'][3]['items'],
+                            'value': faction['TradeBuy'][3]['value']
                         }
                     }
 

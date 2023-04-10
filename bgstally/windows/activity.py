@@ -652,9 +652,9 @@ class WindowActivity:
         if kills > 0 or sandr > 0:
             system_discord_text += f"🍀 System activity\n"
             if kills > 0:
-                system_discord_text += f"  💀 (kills): S x {red(system['TWKills']['s'])}, C x {red(system['TWKills']['c'])}, " \
-                                    + f"B x {red(system['TWKills']['b'])}, M x {red(system['TWKills']['m'])}, " \
-                                    + f"H x {red(system['TWKills']['h'])}, O x {red(system['TWKills']['o'])} \n"
+                system_discord_text += f"  💀 (kills): {red('S')} x {green(system['TWKills']['s'])}, {red('C')} x {green(system['TWKills']['c'])}, " \
+                                    + f"{red('B')} x {green(system['TWKills']['b'])}, {red('M')} x {green(system['TWKills']['m'])}, " \
+                                    + f"{red('H')} x {green(system['TWKills']['h'])}, {red('O')} x {green(system['TWKills']['o'])} \n"
             if sandr > 0:
                 system_discord_text += "  "
                 pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']

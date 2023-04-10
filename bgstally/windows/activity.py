@@ -668,9 +668,9 @@ class WindowActivity:
             if (system_station['passengers']['sum'] > 0):
                 system_discord_text += f"  🧍 x {green(system_station['passengers']['sum'])} - {green(system_station['passengers']['count'])} missions\n"
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_discord_text += f"  💀 (missions): S x {green(system_station['massacre']['s']['sum'])}, C x {green(system_station['massacre']['c']['sum'])}, " \
-                                    + f"B x {system_station['massacre']['b']['sum']}, M x {green(system_station['massacre']['m']['sum'])}, " \
-                                    + f"H x {system_station['massacre']['h']['sum']}, O x {green(system_station['massacre']['o']['sum'])} " \
+                system_discord_text += f"  💀 (missions): {red('S')} x {green(system_station['massacre']['s']['sum'])}, {red('C')} x {green(system_station['massacre']['c']['sum'])}, " \
+                                    + f"{red('B')} x {green(system_station['massacre']['b']['sum'])}, {red('M')} x {green(system_station['massacre']['m']['sum'])}, " \
+                                    + f"{red('H')} x {green(system_station['massacre']['h']['sum'])}, {red('O')} x {green(system_station['massacre']['o']['sum'])} " \
                                     + f"- {green((sum(x['count'] for x in system_station['massacre'].values())))} missions\n"
 
         return system_discord_text

@@ -645,6 +645,16 @@ class WindowActivity:
                 system_station['massacre']['o']['count'] += faction_station['massacre']['o']['count']; system_station['massacre']['o']['sum'] += faction_station['massacre']['o']['sum']
                 system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['massacre'].values()))
 
+        # System-specific tally
+        kills:int = sum(system['TWKills'].values())
+        if kills > 0:
+            system_discord_text += f"🍀 System activity\n"
+            if kills > 0:
+                system_discord_text += f"  💀 (kills): {red('S')} x {green(system['TWKills']['s'])}, {red('C')} x {green(system['TWKills']['c'])}, " \
+                    + f"{red('B')} x {green(system['TWKills']['b'])}, {red('M')} x {green(system['TWKills']['m'])}, " \
+                    + f"{red('H')} x {green(system['TWKills']['h'])}, {red('O')} x {green(system['TWKills']['o'])} \n"
+
+        # Station-specific tally
         for system_station_name, system_station in system_stations.items():
             system_discord_text += f"🍀 {system_station_name}: {green(system_station['mission_count_total'])} missions\n"
             if (system_station['escapepods']['m']['sum'] > 0):
@@ -662,10 +672,6 @@ class WindowActivity:
                                     + f"B x {system_station['massacre']['b']['sum']}, M x {green(system_station['massacre']['m']['sum'])}, " \
                                     + f"H x {system_station['massacre']['h']['sum']}, O x {green(system_station['massacre']['o']['sum'])} " \
                                     + f"- {green((sum(x['count'] for x in system_station['massacre'].values())))} missions\n"
-            if sum(system['TWKills'].values()) > 0:
-                system_discord_text += f"  💀 (kills): S x {red(system['TWKills']['s'])}, C x {red(system['TWKills']['c'])}, " \
-                                    + f"B x {red(system['TWKills']['b'])}, M x {red(system['TWKills']['m'])}, " \
-                                    + f"H x {red(system['TWKills']['h'])}, O x {red(system['TWKills']['o'])} \n"
 
         return system_discord_text
 

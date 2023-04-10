@@ -19,6 +19,8 @@ class WindowLegend:
         self.image_icon_tw_injured:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_injured.png"))
         self.image_icon_tw_passengers:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_passengers.png"))
         self.image_icon_tw_wounded:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_wounded.png"))
+        self.image_icon_tw_mass_missions:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_mass_missions.png"))
+        self.image_icon_tw_kills:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_kills.png"))
 
         self.toplevel:tk.Toplevel = None
 
@@ -56,3 +58,7 @@ class WindowLegend:
         ttk.Label(frame_container, text=" Wounded evacuation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_crit_wounded).grid(row=current_row, column=0)
         ttk.Label(frame_container, text=" Critically wounded evacuation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, image=self.image_icon_tw_mass_missions).grid(row=current_row, column=0)
+        ttk.Label(frame_container, text=" Massacre missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, image=self.image_icon_tw_kills).grid(row=current_row, column=0)
+        ttk.Label(frame_container, text=" Kills").grid(row=current_row, column=1, sticky=tk.W); current_row += 1

@@ -662,7 +662,7 @@ class WindowActivity:
                 bbs:int = system['TWSandR']['bb']['delivered']
                 if bbs > 0: system_discord_text += f"⬛ x {green(bbs)} "
                 tissue:int = system['TWSandR']['t']['delivered']
-                if tissue > 0: system_discord_text += f"🌱 x {green(bbs)} "
+                if tissue > 0: system_discord_text += f"🌱 x {green(tissue)} "
                 system_discord_text += "\n"
 
         # Station-specific tally

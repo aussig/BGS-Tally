@@ -10,7 +10,7 @@
 
 ### Changes:
 
-* Thargoid War massacre missions are now labelled slightly differently - 💀 (missions) - in line with the labelling for kills - 💀 (kills).
+* Thargoid War massacre missions are now labelled slightly differently - `💀 (missions)` - in line with the labelling for kills - `💀 (kills)`.
 
 ### Bug Fixes:
 

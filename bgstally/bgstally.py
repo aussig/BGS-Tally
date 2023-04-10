@@ -120,6 +120,9 @@ class BGSTally:
                 activity.cb_received(entry, self.state)
                 dirty = True
 
+            case 'Friends' if entry.get('Status') == "Requested":
+                self.target_log.friend_request(entry, system)
+
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
                 self.state.station_type = entry['StationType']
                 dirty = True

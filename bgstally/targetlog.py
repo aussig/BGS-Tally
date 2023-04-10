@@ -89,6 +89,26 @@ class TargetLog:
         if different and not pending: self.targetlog.append(cmdr_data)
 
 
+    def friend_request(self, journal_entry: Dict, system: str):
+        """
+        A friend request has been received
+        """
+        # { "timestamp":"2023-04-09T06:30:50Z", "event":"Friends", "Status":"Requested", "Name":"Name of CMDR" }
+        if not 'Name' in journal_entry: return
+        cmdr_name = journal_entry['Name']
+
+        cmdr_data = {'TargetName': cmdr_name,
+                    'System': system,
+                    'SquadronID': "----",
+                    'Ship': "----",
+                    'ShipLocalised': "----",
+                    'LegalStatus': "----",
+                    'Timestamp': journal_entry['timestamp']}
+
+        cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
+        if different and not pending: self.targetlog.append(cmdr_data)
+
+
     def _fetch_cmdr_info(self, cmdr_name:str, cmdr_data:Dict):
         """
         Fetch additional CMDR data from Inara and enhance the cmdr_data Dict with it

@@ -19,6 +19,7 @@ ENDPOINT_DISCOVERY = "discovery"   # Used as the path
 ENDPOINT_EVENTS = "events"         # Used as both the dict key and default path
 
 NAME_DEFAULT = "This server has not supplied a name."
+VERSION_DEFAULT = API_VERSION
 DESCRIPTION_DEFAULT = "This server has not supplied a description."
 ENDPOINTS_DEFAULT = {ENDPOINT_ACTIVITIES: {'path': ENDPOINT_ACTIVITIES}, ENDPOINT_EVENTS: {'path': ENDPOINT_EVENTS}}
 EVENTS_FILTER_DEFAULTS = {'ApproachSettlement': {}, 'CarrierJump': {}, 'CommitCrime': {}, 'Died': {}, 'Docked': {}, 'FactionKillBond': {},
@@ -194,6 +195,7 @@ class API:
         Revert all API information to default values
         """
         self.name:str = NAME_DEFAULT
+        self.version:semantic_version = semantic_version.Version.coerce(VERSION_DEFAULT)
         self.description:str = DESCRIPTION_DEFAULT
         self.endpoints:dict = ENDPOINTS_DEFAULT
         self.events:dict = EVENTS_FILTER_DEFAULTS

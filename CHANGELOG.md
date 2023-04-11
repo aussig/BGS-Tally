@@ -8,10 +8,21 @@
 * Thargoid War Search and Rescue collection and hand-in tracking. BGS-Tally now tracks where you pick up occupied and damaged escape pods ⚰️ and black boxes ⬛. You can hand them in anywhere, but they are tallied in the system they were collected.
 * You can now delete CMDRs from the CMDR target list history.
 * Targets older than 90 days are automatically removed from the CMDR target list history.
+* When a friend request is received from another player, their details are looked up on Inara and they are added to the target log. Note that the squadron ID and legal status will be shown as '----' as that information is not available for friend requests.
 
 ### Changes:
 
 * Thargoid War massacre missions are now labelled slightly differently - `💀 (missions)` - in line with the labelling for kills - `💀 (kills)`.
+
+
+## v3.0.2 - 2023-04-11
+
+### Bug Fixes:
+
+* Fix crashing bug for new clean installs.
+
+
+## v3.0.1 - 2023-04-11
 
 ### Bug Fixes:
 

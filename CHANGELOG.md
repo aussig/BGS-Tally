@@ -14,6 +14,13 @@
 * Thargoid War massacre missions are now labelled slightly differently - `💀 (missions)` - in line with the labelling for kills - `💀 (kills)`.
 
 
+## v3.0.2 - 2023-04-11
+
+### Bug Fixes:
+
+* Fix crashing bug for new clean installs.
+
+
 ## v3.0.1 - 2023-04-11
 
 ### Bug Fixes:

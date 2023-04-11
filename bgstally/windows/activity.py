@@ -192,7 +192,7 @@ class WindowActivity:
                     ttk.Label(tab, text=self._human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(tab, text=self._human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 else:
-                    ttk.Label(tab, text=f"{self._human_format(faction['TradeBuy'][2]['value'])} | {self._human_format(faction['TradeBuy'][1]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(tab, text=f"{self._human_format(faction['TradeBuy'][2]['value'])} | {self._human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(tab, text=f"{self._human_format(faction['TradeSell'][0]['profit'])} | {self._human_format(faction['TradeSell'][2]['profit'])} | {self._human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ttk.Label(tab, text=self._human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                 ttk.Label(tab, text=self._human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
@@ -579,8 +579,8 @@ class WindowActivity:
         else:
             # Modern - Split into values per supply / demand bracket
             if sum(int(d['value']) for d in faction['TradeBuy']) > 0:
-                # Buy brackets currently range from 0 - 2
-                activity_discord_text += f"{cyan('TrdBuy')} 🅻:{green(self._human_format(faction['TradeBuy'][2]['value']))} 🅷:{green(self._human_format(faction['TradeBuy'][1]['value']))} "
+                # Buy brackets currently range from 0 - 3
+                activity_discord_text += f"{cyan('TrdBuy')} 🅻:{green(self._human_format(faction['TradeBuy'][2]['value']))} 🅷:{green(self._human_format(faction['TradeBuy'][3]['value']))} "
             if sum(int(d['value']) for d in faction['TradeSell']) > 0:
                 # Sell brackets currently range from 0 - 3
                 activity_discord_text += f"{cyan('TrdProfit')} 🆉:{green(self._human_format(faction['TradeSell'][0]['profit']))} 🅻:{green(self._human_format(faction['TradeSell'][2]['profit']))} 🅷:{green(self._human_format(faction['TradeSell'][3]['profit']))} "

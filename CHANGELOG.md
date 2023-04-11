@@ -13,6 +13,9 @@
 
 * Thargoid War massacre missions are now labelled slightly differently - `💀 (missions)` - in line with the labelling for kills - `💀 (kills)`.
 
+
+## v3.0.1 - 2023-04-11
+
 ### Bug Fixes:
 
 * Trade purchasing at 'High' supply stock bracket wasn't being reported.

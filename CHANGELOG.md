@@ -18,7 +18,7 @@
 
 ### Bug Fixes:
 
-* Fix crashing bug for new clean installs.
+* Fix crashing bug which was affecting some CMDRs, stopping Discord posting. Unfortunate side effect was that it also stopped auto-updating, so this version will have to be installed manually.
 
 
 ## v3.0.1 - 2023-04-11

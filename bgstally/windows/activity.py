@@ -613,6 +613,7 @@ class WindowActivity:
         system_discord_text = ""
         system_stations = {}
 
+        # Faction-specific tally
         for faction in system['Factions'].values():
             if faction['Enabled'] != CheckStates.STATE_ON: continue
 
@@ -647,12 +648,22 @@ class WindowActivity:
 
         # System-specific tally
         kills:int = sum(system['TWKills'].values())
-        if kills > 0:
+        sandr:int = sum(int(d['delivered']) for d in system['TWSandR'].values())
+        if kills > 0 or sandr > 0:
             system_discord_text += f"🍀 System activity\n"
             if kills > 0:
                 system_discord_text += f"  💀 (kills): {red('S')} x {green(system['TWKills']['s'])}, {red('C')} x {green(system['TWKills']['c'])}, " \
-                    + f"{red('B')} x {green(system['TWKills']['b'])}, {red('M')} x {green(system['TWKills']['m'])}, " \
-                    + f"{red('H')} x {green(system['TWKills']['h'])}, {red('O')} x {green(system['TWKills']['o'])} \n"
+                                    + f"{red('B')} x {green(system['TWKills']['b'])}, {red('M')} x {green(system['TWKills']['m'])}, " \
+                                    + f"{red('H')} x {green(system['TWKills']['h'])}, {red('O')} x {green(system['TWKills']['o'])} \n"
+            if sandr > 0:
+                system_discord_text += "  "
+                pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
+                if pods > 0: system_discord_text += f"⚰️ x {green(pods)} "
+                bbs:int = system['TWSandR']['bb']['delivered']
+                if bbs > 0: system_discord_text += f"⬛ x {green(bbs)} "
+                tissue:int = system['TWSandR']['t']['delivered']
+                if tissue > 0: system_discord_text += f"🌱 x {green(tissue)} "
+                system_discord_text += "\n"
 
         # Station-specific tally
         for system_station_name, system_station in system_stations.items():

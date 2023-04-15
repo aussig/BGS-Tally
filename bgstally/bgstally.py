@@ -107,6 +107,10 @@ class BGSTally:
                 activity.settlement_approached(entry, self.state)
                 dirty = True
 
+            case 'CollectCargo':
+                activity.collect_cargo(entry, self.state)
+                dirty = True
+
             case 'CommitCrime':
                 activity.crime_committed(entry, self.state)
                 dirty = True
@@ -161,6 +165,14 @@ class BGSTally:
 
             case 'RedeemVoucher' if entry.get('Type') == 'CombatBond':
                 activity.cb_redeemed(entry, self.state)
+                dirty = True
+
+            case 'Resurrect':
+                activity.player_resurrected()
+                dirty = True
+
+            case 'SearchAndRescue':
+                activity.search_and_rescue(entry, self.state)
                 dirty = True
 
             case 'SellExplorationData' | 'MultiSellExplorationData':

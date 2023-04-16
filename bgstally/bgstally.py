@@ -107,6 +107,15 @@ class BGSTally:
                 activity.settlement_approached(entry, self.state)
                 dirty = True
 
+            case 'CarrierJumpCancelled':
+                self.fleet_carrier.jump_cancelled()
+
+            case 'CarrierJumpRequest':
+                self.fleet_carrier.jump_requested(entry)
+
+            case 'CarrierStats':
+                self.fleet_carrier.stats_received(entry)
+
             case 'CollectCargo':
                 activity.collect_cargo(entry, self.state)
                 dirty = True

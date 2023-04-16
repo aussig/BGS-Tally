@@ -69,7 +69,7 @@ class WindowFleetCarrier:
         buying_text.insert(tk.INSERT, fc.get_materials_plaintext(MaterialsCategory.BUYING))
         buying_text.configure(state='disabled')
 
-        if self.bgstally.discord.is_webhook_valid(DiscordChannel.FLEETCARRIER): ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord)).pack(side=tk.RIGHT, padx=5, pady=5)
+        if self.bgstally.discord.is_webhook_valid(DiscordChannel.FLEETCARRIER_MATERIALS): ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord)).pack(side=tk.RIGHT, padx=5, pady=5)
 
 
     def _post_to_discord(self):
@@ -93,4 +93,4 @@ class WindowFleetCarrier:
         fields.append({'name': "Docking", 'value': fc.human_format_dockingaccess(), 'inline': True})
         fields.append({'name': "Notorious Access", 'value': fc.human_format_notorious(), 'inline': True})
 
-        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER, None)
+        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)

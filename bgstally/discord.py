@@ -145,8 +145,10 @@ class Discord:
         match channel:
             case DiscordChannel.BGS:
                 return self.bgstally.state.DiscordBGSWebhook.get().strip()
-            case DiscordChannel.FLEETCARRIER:
-                return self.bgstally.state.DiscordFCWebhook.get().strip()
+            case DiscordChannel.FLEETCARRIER_MATERIALS:
+                return self.bgstally.state.DiscordFCMaterialsWebhook.get().strip()
+            case DiscordChannel.FLEETCARRIER_OPERATIONS:
+                return self.bgstally.state.DiscordFCOperationsWebhook.get().strip()
             case DiscordChannel.THARGOIDWAR:
                 return self.bgstally.state.DiscordTWWebhook.get().strip()
 

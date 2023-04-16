@@ -9,6 +9,8 @@
 * You can now delete CMDRs from the CMDR target list history.
 * Targets older than 90 days are automatically removed from the CMDR target list history.
 * When a friend request is received from another player, their details are looked up on Inara and they are added to the target log. Note that the squadron ID and legal status will be shown as '----' as that information is not available for friend requests.
+* Carrier jump reporting implemented, automatically reporting your carrier jumps (and cancelled jumps) to a Discord channel of your choice.
+
 
 ### Changes:
 

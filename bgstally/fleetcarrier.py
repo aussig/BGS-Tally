@@ -1,8 +1,10 @@
 import json
+from datetime import datetime
 from os import path, remove
 
-from bgstally.constants import FOLDER_DATA, DiscordChannel, MaterialsCategory
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA, DiscordChannel, MaterialsCategory
 from bgstally.debug import Debug
+from bgstally.discord import DATETIME_FORMAT
 from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
@@ -93,11 +95,11 @@ class FleetCarrier:
         fields.append({'name': "From System", 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
         fields.append({'name': "To System", 'value': journal_entry.get('SystemName', "Unknown"), 'inline': True})
         fields.append({'name': "To Body", 'value': journal_entry.get('Body', "Unknown"), 'inline': True})
-        fields.append({'name': "Departure Time", 'value': journal_entry.get('DepartureTime', "Unknown"), 'inline': True})
+        fields.append({'name': "Departure Time", 'value': datetime.strptime(journal_entry.get('DepartureTime'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT), 'inline': True})
         fields.append({'name': "Docking", 'value': self.human_format_dockingaccess(), 'inline': True})
         fields.append({'name': "Notorious Access", 'value': self.human_format_notorious(), 'inline': True})
 
-        self.bgstally.discord.post_embed(title, "A carrier jump has been scheduled", fields, None, DiscordChannel.FLEETCARRIER, None)
+        self.bgstally.discord.post_embed(title, "A carrier jump has been scheduled", fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
     def jump_cancelled(self):
@@ -111,7 +113,7 @@ class FleetCarrier:
         fields.append({'name': "Docking", 'value': self.human_format_dockingaccess(), 'inline': True})
         fields.append({'name': "Notorious Access", 'value': self.human_format_notorious(), 'inline': True})
 
-        self.bgstally.discord.post_embed(title, "The scheduled carrier jump was cancelled", fields, None, DiscordChannel.FLEETCARRIER, None)
+        self.bgstally.discord.post_embed(title, "The scheduled carrier jump was cancelled", fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
     def get_materials_plaintext(self, category: MaterialsCategory = None):

@@ -1,8 +1,7 @@
 import json
 from os import path, remove
-from typing import Dict, List
 
-from bgstally.constants import FOLDER_DATA, MaterialsCategory
+from bgstally.constants import FOLDER_DATA, DiscordChannel, MaterialsCategory
 from bgstally.debug import Debug
 from thirdparty.colors import *
 
@@ -12,11 +11,11 @@ FILENAME = "fleetcarrier.json"
 class FleetCarrier:
     def __init__(self, bgstally):
         self.bgstally = bgstally
-        self.data:Dict = {}
+        self.data:dict = {}
         self.name:str = None
         self.callsign:str = None
-        self.onfoot_mats_selling: List = []
-        self.onfoot_mats_buying: List = []
+        self.onfoot_mats_selling:list = []
+        self.onfoot_mats_buying:list = []
 
         self.load()
 
@@ -47,7 +46,7 @@ class FleetCarrier:
         return self.name is not None and self.callsign is not None
 
 
-    def update(self, data:Dict):
+    def update(self, data: dict):
         """
         Store the latest data
         """
@@ -58,11 +57,11 @@ class FleetCarrier:
         self.data = data
 
         # Name is encoded as hex string
-        self.name = bytes.fromhex(self.data['name'].get('vanityName', "----")).decode('utf-8')
-        self.callsign = self.data['name'].get('callsign', "----")
+        self.name = bytes.fromhex(self.data.get('name', {}).get('vanityName', "----")).decode('utf-8')
+        self.callsign = self.data.get('name', {}).get('callsign', "----")
 
         # Sort sell orders - a Dict of Dicts
-        materials: Dict = self.data.get('orders', {}).get('onfootmicroresources', {}).get('sales')
+        materials: dict = self.data.get('orders', {}).get('onfootmicroresources', {}).get('sales')
         if materials is not None:
             self.onfoot_mats_selling = sorted(materials.values(), key=lambda x: x['locName'])
 
@@ -70,6 +69,49 @@ class FleetCarrier:
         materials = self.data.get('orders', {}).get('onfootmicroresources', {}).get('purchases')
         if materials is not None:
             self.onfoot_mats_buying = sorted(materials, key=lambda x: x['locName'])
+
+
+    def stats_received(self, journal_entry: dict):
+        """
+        The user entered the carrier management screen
+        """
+        if self.name is None:
+            self.name = journal_entry.get("Name")
+            self.callsign = journal_entry.get("Callsign")
+            self.data['dockingAccess'] = journal_entry.get("DockingAccess")
+
+
+    def jump_requested(self, journal_entry: dict):
+        """
+        The user scheduled a carrier jump
+        """
+        # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
+
+        title:str = f"Jump Scheduled for Carrier {self.name}"
+
+        fields = []
+        fields.append({'name': "From System", 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
+        fields.append({'name': "To System", 'value': journal_entry.get('SystemName', "Unknown"), 'inline': True})
+        fields.append({'name': "To Body", 'value': journal_entry.get('Body', "Unknown"), 'inline': True})
+        fields.append({'name': "Departure Time", 'value': journal_entry.get('DepartureTime', "Unknown"), 'inline': True})
+        fields.append({'name': "Docking", 'value': self.human_format_dockingaccess(), 'inline': True})
+        fields.append({'name': "Notorious Access", 'value': self.human_format_notorious(), 'inline': True})
+
+        self.bgstally.discord.post_embed(title, "A carrier jump has been scheduled", fields, None, DiscordChannel.FLEETCARRIER, None)
+
+
+    def jump_cancelled(self):
+        """
+        The user cancelled their carrier jump
+        """
+        title:str = f"Jump Cancelled for Carrier {self.name}"
+
+        fields = []
+        fields.append({'name': "Current System", 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
+        fields.append({'name': "Docking", 'value': self.human_format_dockingaccess(), 'inline': True})
+        fields.append({'name': "Notorious Access", 'value': self.human_format_notorious(), 'inline': True})
+
+        self.bgstally.discord.post_embed(title, "The scheduled carrier jump was cancelled", fields, None, DiscordChannel.FLEETCARRIER, None)
 
 
     def get_materials_plaintext(self, category: MaterialsCategory = None):
@@ -106,17 +148,18 @@ class FleetCarrier:
         """
         Get the docking access in human-readable format
         """
-        return "All" if self.data['dockingAccess'] == "all" \
-            else "Squadron and Friends" if self.data['dockingAccess'] == "squadronfriends" \
-            else "Friends" if self.data['dockingAccess'] == "friends" \
-            else "None"
+        match (self.data.get('dockingAccess')):
+            case "all": return "All"
+            case "squadronfriends": return "Squadron and Friends"
+            case "friends": return "Friends"
+            case _: return "None"
 
 
     def human_format_notorious(self) -> str:
         """
         Get the notorious access in human-readable format
         """
-        return 'Yes' if self.data['notoriousAccess'] else 'No'
+        return 'Yes' if self.data.get('notoriousAccess', False) else 'No'
 
 
     def _human_format_price(self, num) -> str:
@@ -155,7 +198,7 @@ class FleetCarrier:
             'data': self.data}
 
 
-    def _from_dict(self, dict: Dict):
+    def _from_dict(self, dict: dict):
         """
         Populate our data from a Dictionary that has been deserialized
         """

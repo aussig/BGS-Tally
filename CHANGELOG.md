@@ -15,6 +15,7 @@
 ### Changes:
 
 * Thargoid War massacre missions are now labelled slightly differently - `💀 (missions)` - in line with the labelling for kills - `💀 (kills)`.
+* Posting information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
 
 
 ## v3.0.2 - 2023-04-11

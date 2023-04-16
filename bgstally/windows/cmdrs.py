@@ -86,7 +86,7 @@ class WindowCMDRs:
             iid:str = treeview.insert("", 'end', values=target_values)
             target['iid'] = iid
 
-        if self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS):
+        if self.bgstally.discord.is_webhook_valid(DiscordChannel.CMDR_INFORMATION) or self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS):
             self.post_button = tk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
             self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
             self.post_button['state'] = tk.DISABLED
@@ -193,4 +193,6 @@ class WindowCMDRs:
                     "inline": True
                     })
 
-        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr['TargetName']} Spotted", None, embed_fields, None, DiscordChannel.BGS, None)
+        discord_channel:DiscordChannel = DiscordChannel.BGS
+        if self.bgstally.discord.is_webhook_valid(DiscordChannel.CMDR_INFORMATION): discord_channel = DiscordChannel.CMDR_INFORMATION
+        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr['TargetName']} Spotted", None, embed_fields, None, discord_channel, None)

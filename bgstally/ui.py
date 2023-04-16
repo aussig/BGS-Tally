@@ -142,15 +142,17 @@ class UI:
         nb.Label(frame, text="Other Options").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         nb.Checkbutton(frame, text="Abbreviate Faction Names", variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(frame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Label(frame, text="Discord BGS Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Label(frame, text="BGS Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordBGSWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Discord Thargoid War Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Label(frame, text="Thargoid War Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordTWWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Discord Fleet Carrier Materials Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Label(frame, text="Fleet Carrier Materials Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordFCMaterialsWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Discord Fleet Carrier Operations Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Label(frame, text="Fleet Carrier Operations Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordFCOperationsWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Discord Post as User").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Label(frame, text="CMDR Information Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        EntryPlus(frame, textvariable=self.bgstally.state.DiscordCMDRInformationWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text="Post as User").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1

@@ -145,6 +145,8 @@ class Discord:
         match channel:
             case DiscordChannel.BGS:
                 return self.bgstally.state.DiscordBGSWebhook.get().strip()
+            case DiscordChannel.CMDR_INFORMATION:
+                return self.bgstally.state.DiscordCMDRInformationWebhook.get().strip()
             case DiscordChannel.FLEETCARRIER_MATERIALS:
                 return self.bgstally.state.DiscordFCMaterialsWebhook.get().strip()
             case DiscordChannel.FLEETCARRIER_OPERATIONS:

@@ -1,11 +1,12 @@
 
+from json import JSONDecodeError
 from queue import Queue
 from re import match
 from threading import Thread
 from time import sleep
 
 import semantic_version
-from requests import JSONDecodeError, Response
+from requests import Response
 
 from bgstally.constants import RequestMethod
 from bgstally.debug import Debug

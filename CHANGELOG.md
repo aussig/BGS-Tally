@@ -11,11 +11,14 @@
 * When a friend request is received from another player, their details are looked up on Inara and they are added to the target log. Note that the squadron ID and legal status will be shown as '----' as that information is not available for friend requests.
 * Carrier jump reporting implemented, automatically reporting your carrier jumps (and cancelled jumps) to a Discord channel of your choice.
 
-
 ### Changes:
 
 * Thargoid War massacre missions are now labelled slightly differently - `💀 (missions)` - in line with the labelling for kills - `💀 (kills)`.
 * Posting information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
+
+### Bug Fixes:
+
+* BGS-Tally was crashing on load when running on Linux. This is now fixed.
 
 
 ## v3.0.2 - 2023-04-11

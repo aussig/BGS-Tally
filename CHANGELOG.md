@@ -20,6 +20,11 @@
 
 * BGS-Tally was crashing on load when running on Linux. This is now fixed.
 
+### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/activities` endpoint: Thargoid war kills now included in `systems/[system]/twkills`
+* `/activities` endpoint: Thargoid search and rescue counts now included in `systems/[system]/twsandr`
+
 
 ## v3.0.2 - 2023-04-11
 

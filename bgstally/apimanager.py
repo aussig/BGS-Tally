@@ -209,6 +209,14 @@ class APIManager:
                     'scout': system['TWKills']['s']
                 }
 
+            if sum(int(d['delivered']) for d in system.get('TWSandR', {}).values()) > 0:
+                api_system['twsandr'] = {
+                    'damagedpods': system['TWSandR']['dp']['delivered'],
+                    'occupiedpods': system['TWSandR']['op']['delivered'],
+                    'blackboxes': system['TWSandR']['bb']['delivered'],
+                    'tissuesamples': system['TWSandR']['t']['delivered']
+                }
+
             api_activity['systems'].append(api_system)
 
         return api_activity
@@ -244,3 +252,27 @@ class APIManager:
                     event['Demand'] = market_data.get('Demand', 0)
 
         return event
+
+
+    def _filter_localised(self, d: dict[str, any]) -> dict[str, any]:
+        """
+        Recursively remove any dict keys with names ending `_Localised` from a dict.
+
+        :param d: dict to filter keys of.
+        :return: The filtered dict.
+        """
+        filtered: dict[str, any] = dict()
+        for k, v in d.items():
+            if k.endswith('_Localised'):
+                pass
+
+            elif hasattr(v, 'items'):  # dict -> recurse
+                filtered[k] = self._filter_localised(v)
+
+            elif isinstance(v, list):  # list of dicts -> recurse
+                filtered[k] = [self._filter_localised(x) if hasattr(x, 'items') else x for x in v]
+
+            else:
+                filtered[k] = v
+
+        return filtered

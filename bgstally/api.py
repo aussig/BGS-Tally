@@ -1,18 +1,19 @@
 
+from json import JSONDecodeError
 from queue import Queue
 from re import match
 from threading import Thread
 from time import sleep
 
 import semantic_version
-from requests import JSONDecodeError, Response
+from requests import Response
 
 from bgstally.constants import RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import get_by_path
 
-API_VERSION = "1.0.0"
+API_VERSION = "1.1.0"
 
 ENDPOINT_ACTIVITIES = "activities" # Used as both the dict key and default path
 ENDPOINT_DISCOVERY = "discovery"   # Used as the path

@@ -107,6 +107,19 @@ class BGSTally:
                 activity.settlement_approached(entry, self.state)
                 dirty = True
 
+            case 'CarrierJumpCancelled':
+                self.fleet_carrier.jump_cancelled()
+
+            case 'CarrierJumpRequest':
+                self.fleet_carrier.jump_requested(entry)
+
+            case 'CarrierStats':
+                self.fleet_carrier.stats_received(entry)
+
+            case 'CollectCargo':
+                activity.collect_cargo(entry, self.state)
+                dirty = True
+
             case 'CommitCrime':
                 activity.crime_committed(entry, self.state)
                 dirty = True
@@ -119,6 +132,9 @@ class BGSTally:
             case 'FactionKillBond' if state['Odyssey']:
                 activity.cb_received(entry, self.state)
                 dirty = True
+
+            case 'Friends' if entry.get('Status') == "Requested":
+                self.target_log.friend_request(entry, system)
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
                 self.state.station_type = entry['StationType']
@@ -158,6 +174,14 @@ class BGSTally:
 
             case 'RedeemVoucher' if entry.get('Type') == 'CombatBond':
                 activity.cb_redeemed(entry, self.state)
+                dirty = True
+
+            case 'Resurrect':
+                activity.player_resurrected()
+                dirty = True
+
+            case 'SearchAndRescue':
+                activity.search_and_rescue(entry, self.state)
                 dirty = True
 
             case 'SellExplorationData' | 'MultiSellExplorationData':

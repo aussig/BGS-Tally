@@ -70,6 +70,8 @@ MISSIONS_TW_MASSACRE = [
 CZ_GROUND_LOW_CB_MAX = 5000
 CZ_GROUND_MED_CB_MAX = 38000
 
+TW_CBS = {65000: 's', 75000: 's', 6500000: 'c', 20000000: 'b', 25000000: 'o', 34000000: 'm', 50000000: 'h'}
+
 
 class Activity:
     """
@@ -148,7 +150,7 @@ class Activity:
     def clear_activity(self, mission_log: MissionLog):
         """
         Clear down all activity. If there is a currently active mission in a system or it's the current system the player is in,
-        only zero the activity, otherwise delete the system completely.
+        or the system has had search and rescue items collected there, only zero the activity, otherwise delete the system completely.
         """
         self.dirty = True
         mission_systems = mission_log.get_active_systems()
@@ -158,12 +160,16 @@ class Activity:
             system = self.systems[system_address]
             # Note that the missions log historically stores system name so we check for that, not system address.
             # Potential for very rare bug here for systems with duplicate names.
-            if system['System'] in mission_systems or self.bgstally.state.current_system_id == system_address:
-                # The system has a current mission, or it's the current system - zero, don't delete
+            if system['System'] in mission_systems or \
+                    self.bgstally.state.current_system_id == system_address or \
+                    sum(int(d['scooped']) for d in system['TWSandR'].values()) > 0:
+                # The system has a current mission, or it's the current system, or it has TWSandR scoops - zero, don't delete
                 for faction_name, faction_data in system['Factions'].items():
                     system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'])
+                system['TWKills'] = self._get_new_tw_kills_data()
+                # Note: system['TWSandR'] data is carried forward
             else:
-                # No current missions, delete the whole system
+                # Delete the whole system
                 del self.systems[system_address]
 
 
@@ -191,6 +197,8 @@ class Activity:
             # We don't have this system yet
             current_system = self._get_new_system_data(journal_entry['StarSystem'], journal_entry['SystemAddress'], {})
             self.systems[str(journal_entry['SystemAddress'])] = current_system
+
+        self._update_system_data(current_system)
 
         for faction in journal_entry['Factions']:
             if faction['Name'] == "Pilots' Federation Local Branch": continue
@@ -503,10 +511,18 @@ class Activity:
         """
         Handle a combat bond received for a kill
         """
-        if state.last_settlement_approached == {}: return
-
         current_system = self.systems.get(state.current_system_id)
         if not current_system: return
+
+        # Check for Thargoid Kill
+        if journal_entry.get('VictimFaction') == "$faction_Thargoid;":
+            tw_ship:str = TW_CBS.get(journal_entry['Reward'])
+            if tw_ship: current_system['TWKills'][tw_ship] += 1
+            return
+
+        # Otherwise, must be on-ground for CB kill tracking
+        if state.last_settlement_approached == {}: return
+
         self.dirty = True
 
         timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_settlement_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
@@ -571,16 +587,91 @@ class Activity:
         self.recalculate_zero_activity()
 
 
+    def collect_cargo(self, journal_entry: dict, state: State):
+        """
+        Handle cargo collection for certain cargo types
+        """
+        current_system = self.systems.get(state.current_system_id)
+        if not current_system: return
+
+        key:str = None
+
+        match journal_entry.get('Type'):
+            case 'damagedescapepod': key = 'dp'
+            case 'occupiedcryopod': key = 'op'
+            case 'usscargoblackbox': key = 'bb'
+
+        if key is None: return
+
+        current_system['TWSandR'][key]['scooped'] += 1
+        self.dirty = True
+
+
+    def search_and_rescue(self, journal_entry: dict, state: State):
+        """
+        Handle search and rescue hand-in
+        """
+        key:str = None
+
+        match journal_entry('Name'):
+            case 'damagedescapepod': key = 'dp'
+            case 'occupiedcryopod': key = 'op'
+            case 'usscargoblackbox': key = 'bb'
+
+        if key is None: return
+
+        # S&R can be handed in in any system, but the effect counts for the system the items were collected in. However,
+        # we have no way of knowing exactly which items were handed in, so just iterate through all our known systems
+        # looking for previously scooped cargo of the correct type.
+
+        count:int = int(journal_entry.get('Count', 0))
+
+        for system in self.systems.values():
+            if count <= 0: break  # Finish when we've accounted for all items
+
+            allocatable:int = min(count, system['TWSandR'][key]['scooped'])
+            if allocatable > 0:
+                system['TWSandR'][key]['scooped'] -= allocatable
+                system['TWSandR'][key]['delivered'] += allocatable
+                count -= allocatable
+                self.dirty = True
+
+        # count can end up > 0 here - i.e. more S&R handed in than we originally logged as scooped. Ignore, as we don't know
+        # where it originally came from
+
+
+    def player_resurrected(self):
+        """
+        Clear down any logged cargo on resurrect
+        """
+        for system in self.systems.values():
+            system['TWSandR'] = self._get_new_tw_sandr_data()
+
+        self.dirty = True
+
+
     def recalculate_zero_activity(self):
         """
         For efficiency at display time, we store whether each system has had any activity in the data structure
         """
         for system in self.systems.values():
+            self._update_system_data(system)
             system['zero_system_activity'] = True
+
             for faction_data in system['Factions'].values():
                 self._update_faction_data(faction_data)
                 if not self._is_faction_data_zero(faction_data):
                     system['zero_system_activity'] = False
+
+            if system['zero_system_activity'] == False: continue
+
+            if sum(system['TWKills'].values()) > 0: system['zero_system_activity'] = False
+
+            if system['zero_system_activity'] == False: continue
+
+            if sum(int(d['delivered']) for d in system['TWSandR'].values()) > 0: system['zero_system_activity'] = False
+
+            if system['zero_system_activity'] == False: continue
 
 
     #
@@ -594,7 +685,9 @@ class Activity:
         return {'System': system_name,
                 'SystemAddress': system_address,
                 'zero_system_activity': True,
-                'Factions': faction_data}
+                'Factions': faction_data,
+                'TWKills': self._get_new_tw_kills_data(),
+                'TWSandR': self._get_new_tw_sandr_data()}
 
 
     def _get_new_faction_data(self, faction_name, faction_state):
@@ -620,6 +713,29 @@ class Activity:
                 'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
                 'cargo': {'count': 0, 'sum': 0},
                 'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}}
+
+
+    def _get_new_tw_kills_data(self):
+        """
+        Get a new data structure for storing Thargoid War Kills
+        """
+        return {'s': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
+
+
+    def _get_new_tw_sandr_data(self):
+        """
+        Get a new data structure for storing Thargoid War Search and Rescue
+        """
+        return {'dp': {'scooped': 0, 'delivered': 0}, 'op': {'scooped': 0, 'delivered': 0}, 'bb': {'scooped': 0, 'delivered': 0}, 't': {'scooped': 0, 'delivered': 0}}
+
+
+    def _update_system_data(self, system_data:dict):
+        """
+        Update system data structure for elements not present in previous versions of plugin
+        """
+        # From < v3.1.0 to 3.1.0
+        if not 'TWKills' in system_data: system_data['TWKills'] = self._get_new_tw_kills_data()
+        if not 'TWSandR' in system_data: system_data['TWSandR'] = self._get_new_tw_sandr_data()
 
 
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):
@@ -660,7 +776,7 @@ class Activity:
                 station['cargo'] = {'count': 0, 'sum': station['cargo']}
             if not type(station.get('massacre')) == dict:
                 station['massacre'] = {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}
-        # From < 2.3.0 to 2.3.0
+        # From < 3.0.0 to 3.0.0
         if not 'GroundMurdered' in faction_data: faction_data['GroundMurdered'] = 0
         if not 'TradeBuy' in faction_data:
             faction_data['TradeBuy'] = [{'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}]

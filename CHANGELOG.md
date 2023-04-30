@@ -1,10 +1,36 @@
 # Change Log
 
+## v3.1.0-a1 - 2023-04-30
+
+### New Features:
+
+* Thargoid War kills are now tracked for each vessel type: `💀 (kills)`. But **please be aware**: BGS-Tally will only count a kill if it is logged in your game journal. This reliably happens if you solo kill a Thargoid, and sometimes happens when you kill in a Team or with others.  However, when not solo-killing, this is **highly unreliable**. Please don't file a bug if you find your kills aren't being tallied when fighting with other CMDRs in the instance.
+* Thargoid War Search and Rescue collection and hand-in tracking. BGS-Tally now tracks where you pick up occupied and damaged escape pods ⚰️, black boxes ⬛ and tissue samples 🌱. You can hand them in anywhere, but they are tallied in the system they were collected.
+* You can now delete CMDRs from the CMDR target list history.
+* Targets older than 90 days are automatically removed from the CMDR target list history.
+* When a friend request is received from another player, their details are looked up on Inara and they are added to the target log. Note that the squadron ID and legal status will be shown as '----' as that information is not available for friend requests.
+* Carrier jump reporting implemented, automatically reporting your carrier jumps (and cancelled jumps) to a Discord channel of your choice.
+
+### Changes:
+
+* Thargoid War massacre missions are now labelled slightly differently - `💀 (missions)` - in line with the labelling for kills - `💀 (kills)`.
+* Posting information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
+
+### Bug Fixes:
+
+* BGS-Tally was crashing on load when running on Linux. This is now fixed.
+
+### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/activities` endpoint: Thargoid war kills now included in `systems/[system]/twkills`
+* `/activities` endpoint: Thargoid search and rescue counts now included in `systems/[system]/twsandr`
+
+
 ## v3.0.2 - 2023-04-11
 
 ### Bug Fixes:
 
-* Fix crashing bug for new clean installs.
+* Fix crashing bug which was affecting some CMDRs, stopping Discord posting. Unfortunate side effect was that it also stopped auto-updating, so this version will have to be installed manually.
 
 
 ## v3.0.1 - 2023-04-11

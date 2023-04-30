@@ -613,6 +613,7 @@ class WindowActivity:
         system_discord_text = ""
         system_stations = {}
 
+        # Faction-specific tally
         for faction in system['Factions'].values():
             if faction['Enabled'] != CheckStates.STATE_ON: continue
 
@@ -645,6 +646,26 @@ class WindowActivity:
                 system_station['massacre']['o']['count'] += faction_station['massacre']['o']['count']; system_station['massacre']['o']['sum'] += faction_station['massacre']['o']['sum']
                 system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['massacre'].values()))
 
+        # System-specific tally
+        kills:int = sum(system['TWKills'].values())
+        sandr:int = sum(int(d['delivered']) for d in system['TWSandR'].values())
+        if kills > 0 or sandr > 0:
+            system_discord_text += f"🍀 System activity\n"
+            if kills > 0:
+                system_discord_text += f"  💀 (kills): {red('S')} x {green(system['TWKills']['s'])}, {red('C')} x {green(system['TWKills']['c'])}, " \
+                                    + f"{red('B')} x {green(system['TWKills']['b'])}, {red('M')} x {green(system['TWKills']['m'])}, " \
+                                    + f"{red('H')} x {green(system['TWKills']['h'])}, {red('O')} x {green(system['TWKills']['o'])} \n"
+            if sandr > 0:
+                system_discord_text += "  "
+                pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
+                if pods > 0: system_discord_text += f"⚰️ x {green(pods)} "
+                bbs:int = system['TWSandR']['bb']['delivered']
+                if bbs > 0: system_discord_text += f"⬛ x {green(bbs)} "
+                tissue:int = system['TWSandR']['t']['delivered']
+                if tissue > 0: system_discord_text += f"🌱 x {green(tissue)} "
+                system_discord_text += "\n"
+
+        # Station-specific tally
         for system_station_name, system_station in system_stations.items():
             system_discord_text += f"🍀 {system_station_name}: {green(system_station['mission_count_total'])} missions\n"
             if (system_station['escapepods']['m']['sum'] > 0):
@@ -658,9 +679,9 @@ class WindowActivity:
             if (system_station['passengers']['sum'] > 0):
                 system_discord_text += f"  🧍 x {green(system_station['passengers']['sum'])} - {green(system_station['passengers']['count'])} missions\n"
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_discord_text += f"  S x {green(system_station['massacre']['s']['sum'])}, C x {green(system_station['massacre']['c']['sum'])}, " \
-                                    + f"B x {system_station['massacre']['b']['sum']}, M x {green(system_station['massacre']['m']['sum'])}, " \
-                                    + f"H x {system_station['massacre']['h']['sum']}, O x {green(system_station['massacre']['o']['sum'])} " \
+                system_discord_text += f"  💀 (missions): {red('S')} x {green(system_station['massacre']['s']['sum'])}, {red('C')} x {green(system_station['massacre']['c']['sum'])}, " \
+                                    + f"{red('B')} x {green(system_station['massacre']['b']['sum'])}, {red('M')} x {green(system_station['massacre']['m']['sum'])}, " \
+                                    + f"{red('H')} x {green(system_station['massacre']['h']['sum'])}, {red('O')} x {green(system_station['massacre']['o']['sum'])} " \
                                     + f"- {green((sum(x['count'] for x in system_station['massacre'].values())))} missions\n"
 
         return system_discord_text

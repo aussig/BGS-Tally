@@ -12,7 +12,7 @@ from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 
 FILENAME = "targetlog.json"
-TIME_TARGET_LOG_EXPIRY_D = 30
+TIME_TARGET_LOG_EXPIRY_D = 90
 URL_INARA_API = "https://inara.cz/inapi/v1/"
 DATETIME_FORMAT_INARA = "%Y-%m-%dT%H:%M:%SZ"
 
@@ -28,6 +28,7 @@ class TargetLog:
         self.targetlog = []
         self.cmdr_cache = {}
         self.load()
+        self._expire_old_targets()
 
 
     def load(self):
@@ -82,6 +83,26 @@ class TargetLog:
                     'Ship': journal_entry.get('Ship', '----'),
                     'ShipLocalised': journal_entry.get('Ship_Localised', journal_entry.get('Ship', '----')),
                     'LegalStatus': journal_entry.get('LegalStatus', '----'),
+                    'Timestamp': journal_entry['timestamp']}
+
+        cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
+        if different and not pending: self.targetlog.append(cmdr_data)
+
+
+    def friend_request(self, journal_entry: Dict, system: str):
+        """
+        A friend request has been received
+        """
+        # { "timestamp":"2023-04-09T06:30:50Z", "event":"Friends", "Status":"Requested", "Name":"Name of CMDR" }
+        if not 'Name' in journal_entry: return
+        cmdr_name = journal_entry['Name']
+
+        cmdr_data = {'TargetName': cmdr_name,
+                    'System': system,
+                    'SquadronID': "----",
+                    'Ship': "----",
+                    'ShipLocalised': "----",
+                    'LegalStatus': "----",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
@@ -162,7 +183,7 @@ class TargetLog:
 
     def _expire_old_targets(self):
         """
-        Clear out all targets older than 7 days from the target log
+        Clear out all old targets from the target log
         """
         for target in reversed(self.targetlog):
             timedifference = datetime.utcnow() - datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL)

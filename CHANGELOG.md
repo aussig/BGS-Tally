@@ -1,6 +1,6 @@
 # Change Log
 
-## v3.1.0-xx - xxxx-xx-xx
+## v3.1.0-a2 - 2023-08-05
 
 ### Bug Fixes:
 

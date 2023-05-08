@@ -2,6 +2,10 @@
 
 ## v3.1.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
+
+* Thargoid War S&R collection / dropoff wasn't being reliably tallied.
+
 
 
 ## v3.1.0-a1 - 2023-04-30

@@ -596,7 +596,7 @@ class Activity:
 
         key:str = None
 
-        match journal_entry.get('Type'):
+        match journal_entry.get('Type', "").lower():
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
             case 'usscargoblackbox': key = 'bb'
@@ -613,7 +613,7 @@ class Activity:
         """
         key:str = None
 
-        match journal_entry('Name'):
+        match journal_entry.get('Name', "").lower():
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
             case 'usscargoblackbox': key = 'bb'

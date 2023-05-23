@@ -190,7 +190,7 @@ class UI:
 
             # Activity Indicator
             if self.indicate_activity:
-                self.bgstally.overlay.display_message("info", " ", True, 2)
+                self.bgstally.overlay.display_indicator("indicator")
                 self.indicate_activity = False
 
             # Tick Warning

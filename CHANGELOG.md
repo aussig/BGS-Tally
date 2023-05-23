@@ -1,6 +1,6 @@
 # Change Log
 
-## v3.1.0-xx - xxxx-xx-xx
+## v3.2.0-xx - xxxx-xx-xx
 
 ### New Features:
 

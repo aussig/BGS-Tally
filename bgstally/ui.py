@@ -183,15 +183,28 @@ class UI:
                 Debug.logger.debug("Shutting down UI Worker...")
                 return
 
+            current_activity:Activity = self.bgstally.activity_manager.get_current_activity()
+
+            # Current Tick Time
             self.bgstally.overlay.display_message("tick", f"Curr Tick: {self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)}", True)
             minutes_delta:int = int((datetime.utcnow() - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
 
+            # Tick Warning
             if datetime.utcnow() > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
                 self.bgstally.overlay.display_message("tickwarn", f"Tick {minutes_delta}m Overdue (Estimated)", True)
             elif datetime.utcnow() > self.bgstally.tick.next_predicted():
                 self.bgstally.overlay.display_message("tickwarn", f"Past Estimated Tick Time", True, text_colour_override="#FFA500")
             elif datetime.utcnow() > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
                 self.bgstally.overlay.display_message("tickwarn", f"Within {TIME_TICK_ALERT_M}m of Next Tick (Estimated)", True, text_colour_override="yellow")
+
+            # Thargoid War Progress Report
+            if (self.bgstally.state.system_tw_status is not None and current_activity is not None):
+                current_system:dict = current_activity.get_current_system()
+                if current_system:
+                    progress:float = float(self.bgstally.state.system_tw_status.get('WarProgress', 0))
+                    percent:float = round(progress * 100, 2)
+
+                    self.bgstally.overlay.display_progress_bar("tw", f"TW War Progress in {current_system.get('System', 'Unknown')}: {percent}%", progress)
 
             sleep(TIME_WORKER_PERIOD_S)
 

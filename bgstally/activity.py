@@ -147,6 +147,13 @@ class Activity:
         return sorted(self.systems.keys(), key=lambda x: (str(x) != self.bgstally.state.current_system_id, self.systems[x]['zero_system_activity'], self.systems[x]['System']))
 
 
+    def get_current_system(self) -> dict | None:
+        """
+        Get the data for the current system
+        """
+        return self.systems.get(self.bgstally.state.current_system_id)
+
+
     def clear_activity(self, mission_log: MissionLog):
         """
         Clear down all activity. If there is a currently active mission in a system or it's the current system the player is in,
@@ -225,6 +232,7 @@ class Activity:
 
         self.recalculate_zero_activity()
         state.current_system_id = str(current_system['SystemAddress'])
+        state.system_tw_status = journal_entry.get('ThargoidWar', None)
 
 
     def mission_completed(self, journal_entry: Dict, mission_log: MissionLog):

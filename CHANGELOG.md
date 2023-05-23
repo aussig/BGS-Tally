@@ -2,7 +2,9 @@
 
 ## v3.1.0-xx - xxxx-xx-xx
 
+### New Features:
 
+* Thargoid War system progress is now displayed as a progress bar on the in-game overlay when in a TW active system.
 
 
 ## v3.1.0-a2 - 2023-08-05
@@ -26,7 +28,7 @@
 ### Changes:
 
 * Thargoid War massacre missions are now labelled slightly differently - `💀 (missions)` - in line with the labelling for kills - `💀 (kills)`.
-* Posting information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
+* Posting targeted CMDR information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
 
 ### Bug Fixes:
 

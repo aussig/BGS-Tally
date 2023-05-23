@@ -2,7 +2,9 @@
 
 ## v3.1.0-xx - xxxx-xx-xx
 
+### New Features:
 
+* An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
 
 
 ## v3.1.0-a2 - 2023-08-05

@@ -45,6 +45,27 @@ class Overlay:
                 Debug.logger.info(f"Could not display overlay message")
 
 
+    def display_indicator(self, frame_name: str, ttl_override: int = None, fill_colour_override: str = None, border_colour_override: str = None):
+        """
+        Display a rectangular indicator
+        """
+        if self.edmcoverlay == None: return
+        if not self.bgstally.state.enable_overlay: return
+
+        try:
+            fi = self._get_frame_info(frame_name)
+            ttl = ttl_override if ttl_override else fi["ttl"]
+            fill_colour = fill_colour_override if fill_colour_override else fi["fill_colour"]
+            border_colour = border_colour_override if border_colour_override else fi["border_colour"]
+            self.edmcoverlay.send_shape(f"bgstally-frame-{frame_name}", "rect", border_colour, fill_colour, fi["x"], fi["y"], fi["w"], fi["h"], ttl=ttl)
+
+        except Exception as e:
+                    if not self.problem_displaying:
+                        # Only log a warning about failure once
+                        self.problem_displaying = True
+                        Debug.logger.info(f"Could not display overlay message")
+
+
     def display_progress_bar(self, frame_name: str, message: str, progress: float = 0, ttl_override: int = None):
         """
         Display a progress bar with a message
@@ -96,6 +117,8 @@ class Overlay:
         """
         if frame == "info":
             return {"border_colour": "green", "fill_colour": "green", "text_colour": "#ffffff", "x": 900, "y": 5, "w": 100, "h": 25, "ttl": 30, "text_size": "normal"}
+        elif frame == "indicator":
+            return {"border_colour": "#ffffff", "fill_colour": "green", "text_colour": "red", "x": 900, "y": 5, "w": 20, "h": 25, "ttl": 1, "text_size": "normal"}
         elif frame == "tick":
             return {"border_colour": None, "fill_colour": None, "text_colour": "#ffffff", "x": 1000, "y": 0, "w": 100, "h": 25, "ttl": 3, "text_size": "large"}
         elif frame == "tickwarn":

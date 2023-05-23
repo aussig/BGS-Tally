@@ -101,5 +101,5 @@ class Overlay:
         elif frame == "tickwarn":
             return {"border_colour": None, "fill_colour": None, "text_colour": "red", "x": 1000, "y": 20, "w": 100, "h": 25, "ttl": 1, "text_size": "normal"}
         elif frame == "tw":
-            return {"border_colour": "#1a4f09", "fill_colour": "#63029c", "text_colour": "#ffffff", "x": 1000, "y": 40, "w": 100, "h": 25, "ttl": 3, "text_size": "normal"}
+            return {"border_colour": "#1a4f09", "fill_colour": "#63029c", "text_colour": "#ffffff", "x": 1000, "y": 60, "w": 100, "h": 25, "ttl": 3, "text_size": "normal"}
 

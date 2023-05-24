@@ -36,7 +36,7 @@ The plugin includes both automatic and manual tracking of BGS and TW activity da
 
 # Your Personal Activity and Privacy
 
-If you're concerned about the privacy of your BGS activity, note that this plugin **does not send your data anywhere, unless you specifically choose to by configuring the Discord Integration** (see above for instructions).
+If you're concerned about the privacy of your BGS activity, note that this plugin **does not send your data anywhere, unless you specifically choose to by configuring the Discord Integration or API Integration**.
 
 ## Local Files and Folders
 

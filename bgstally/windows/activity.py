@@ -1,11 +1,12 @@
 import tkinter as tk
 from functools import partial
 from os import path
+from re import Pattern, compile
 from tkinter import PhotoImage, ttk
 from typing import Dict
 
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import CheckStates, CZs, DiscordActivity, DiscordChannel, DiscordPostStyle, FOLDER_ASSETS, FONT_HEADING, FONT_TEXT
+from bgstally.constants import FOLDER_ASSETS, FONT_HEADING, FONT_TEXT, CheckStates, CZs, DiscordActivity, DiscordChannel, DiscordPostStyle
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
 from bgstally.widgets import DiscordAnsiColorText, TextPlus
@@ -20,6 +21,9 @@ class WindowActivity:
     """
     Handles an activity window
     """
+
+    human_readable_number_pat:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt]?)$")
+
 
     def __init__(self, bgstally, ui, activity: Activity):
         self.bgstally = bgstally
@@ -713,7 +717,7 @@ class WindowActivity:
         return text
 
 
-    def _human_format(self, num):
+    def _human_format(self, num:int) -> str:
         """
         Format a BGS value into shortened human-readable text
         """
@@ -723,6 +727,30 @@ class WindowActivity:
             magnitude += 1
             num /= 1000.0
         return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
+
+
+    def _parse_human_format(self, text:str) -> int:
+        """
+        Convert shortened human-readable text into a number
+        """
+        if not isinstance(text, str): return 0
+
+        match = self.human_readable_number_pat.match(text)
+
+        if match:
+            num = float(match.group(1))
+            multiplier = {'': 1, 'k': 1000, 'm': 1000000, 'b': 1000000000, 't': 1000000000000}[match.group(2).lower()]
+            return int(num * multiplier)
+        else:
+            return 0
+
+
+    def _validate_human_format(self, text:str) -> bool:
+        """
+        Validate whether a string value is in standard shortened human-readable (integer) format
+        """
+        if not isinstance(text, str): return False
+        else: return self.human_readable_number_pat.match(text)
 
 
     def _copy_to_clipboard(self, Form:tk.Frame, activity:Activity):

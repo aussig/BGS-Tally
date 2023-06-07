@@ -38,6 +38,7 @@ class UI:
 
     def __init__(self, bgstally):
         self.bgstally = bgstally
+        self.frame = None
 
         self.image_blank = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "blank.png"))
         self.image_button_dropdown_menu = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_dropdown_menu.png"))

@@ -154,7 +154,7 @@ class API:
             self.user_approved = False
             # Put Message in BGS-Tally message field (with link to API settings? Possibly not when we have multiple APIs)
             self.bgstally.api_manager.api_updated = True
-            self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
+            if self.bgstally.ui.frame: self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
 
         self.events = discovery_data.get('events', EVENTS_FILTER_DEFAULTS)
 

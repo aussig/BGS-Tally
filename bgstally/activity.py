@@ -441,6 +441,11 @@ class Activity:
         current_system = self.systems.get(state.current_system_id)
         if not current_system: return
 
+        # Handle SandR tissue samples first
+        if 'thargoidtissuesample' in journal_entry.get('Type', "").lower():
+            self._search_and_rescue_handin('t', journal_entry.get('Count', 0))
+            # Fall through to BGS tracking for standard trade sale
+
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
             self.dirty = True
@@ -600,6 +605,7 @@ class Activity:
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
             case 'usscargoblackbox': key = 'bb'
+            case _ as cargo_type if "thargoidtissuesample" in cargo_type: key = 't'
 
         if key is None: return
 
@@ -612,19 +618,27 @@ class Activity:
         Handle search and rescue hand-in
         """
         key:str = None
+        count:int = int(journal_entry.get('Count', 0))
 
+        # There is no tissue sample tracking here as those are treated a commodities
         match journal_entry.get('Name', "").lower():
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
             case 'usscargoblackbox': key = 'bb'
 
-        if key is None: return
+        if key is None or count == 0: return
+
+        self._search_and_rescue_handin(key, count)
+
+
+    def _search_and_rescue_handin(self, key:str, count:int):
+        """
+        Tally a search and rescue handin. These can originate from SearchAndRescue or TradeSell events
+        """
 
         # S&R can be handed in in any system, but the effect counts for the system the items were collected in. However,
         # we have no way of knowing exactly which items were handed in, so just iterate through all our known systems
         # looking for previously scooped cargo of the correct type.
-
-        count:int = int(journal_entry.get('Count', 0))
 
         for system in self.systems.values():
             if count <= 0: break  # Finish when we've accounted for all items

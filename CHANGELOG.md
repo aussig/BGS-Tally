@@ -8,6 +8,14 @@
 * An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
 
 
+## v3.1.0-xx - xxxx-xx-xx
+
+### Bug Fixes:
+
+* Fix failure of networking thread, and therefore all subsequent networking calls, if an API discovery request detects new API features during startup.
+* Fix Thargoid tissue sample Search and Rescue pickup and handin.
+
+
 ## v3.1.0-a2 - 2023-08-05
 
 ### Bug Fixes:

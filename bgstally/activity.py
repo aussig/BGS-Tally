@@ -167,7 +167,9 @@ class Activity:
                 for faction_name, faction_data in system['Factions'].items():
                     system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'])
                 system['TWKills'] = self._get_new_tw_kills_data()
-                # Note: system['TWSandR'] data is carried forward
+                # Note: system['TWSandR'] scooped data is carried forward, delivered data is cleared
+                for d in system['TWSandR'].values():
+                    d['delivered'] = 0
             else:
                 # Delete the whole system
                 del self.systems[system_address]

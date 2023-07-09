@@ -1,6 +1,6 @@
 # Change Log
 
-## v3.1.0-xx - xxxx-xx-xx
+## v3.1.0-a3 - 2023-06-23
 
 ### Bug Fixes:
 
@@ -8,7 +8,7 @@
 * Fix Thargoid tissue sample Search and Rescue pickup and handin.
 
 
-## v3.1.0-a2 - 2023-08-05
+## v3.1.0-a2 - 2023-05-08
 
 ### Bug Fixes:
 

@@ -8,6 +8,14 @@
 * An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
 
 
+## vx.x.x-xx - xxxx-xx-xx
+
+### Bug Fixes:
+
+* TW kills were not being logged to the correct system if it was a zero-population system. This was because historically BGST only dealt with BGS logging, so ignored zero-pop systems.  We now create tracking entries for these systems.
+* TW search and rescue hand-ins were being carried forward to the next tick for systems where items had been both scooped and delivered - escape pods, black boxes and tissue samples. Delivered items are now cleared on a new tick.
+
+
 ## v3.1.0-a3 - 2023-06-23
 
 ### Bug Fixes:

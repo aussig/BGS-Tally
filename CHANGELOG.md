@@ -1,5 +1,12 @@
 # Change Log
 
+## vx.x.x-xx - xxxx-xx-xx
+
+### Bug Fixes:
+
+* TW kills were not being logged to the correct system if it was a zero-population system. This was because historically BGST only dealt with BGS logging, so ignored zero-pop systems.  We now create tracking entries for these systems.
+
+
 ## v3.1.0-a3 - 2023-06-23
 
 ### Bug Fixes:

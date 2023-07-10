@@ -10,6 +10,10 @@
 
 ## vx.x.x-xx - xxxx-xx-xx
 
+### New Features:
+
+* Thargoid War Revenant kills are now tracked.
+
 ### Bug Fixes:
 
 * TW kills were not being logged to the correct system if it was a zero-population system. This was because historically BGST only dealt with BGS logging, so ignored zero-pop systems.  We now create tracking entries for these systems.

@@ -652,9 +652,14 @@ class WindowActivity:
         if kills > 0 or sandr > 0:
             system_discord_text += f"🍀 System activity\n"
             if kills > 0:
-                system_discord_text += f"  💀 (kills): {red('S')} x {green(system['TWKills']['s'])}, {red('C')} x {green(system['TWKills']['c'])}, " \
-                                    + f"{red('B')} x {green(system['TWKills']['b'])}, {red('M')} x {green(system['TWKills']['m'])}, " \
-                                    + f"{red('H')} x {green(system['TWKills']['h'])}, {red('O')} x {green(system['TWKills']['o'])} \n"
+                system_discord_text += f"  💀 (kills): " \
+                                    + f"{red('R')} x {green(system['TWKills'].get('r', 0))}, " \
+                                    + f"{red('S')} x {green(system['TWKills'].get('s', 0))}, " \
+                                    + f"{red('C')} x {green(system['TWKills'].get('c', 0))}, " \
+                                    + f"{red('B')} x {green(system['TWKills'].get('b', 0))}, " \
+                                    + f"{red('M')} x {green(system['TWKills'].get('m', 0))}, " \
+                                    + f"{red('H')} x {green(system['TWKills'].get('h', 0))}, " \
+                                    + f"{red('O')} x {green(system['TWKills'].get('o', 0))} \n"
             if sandr > 0:
                 system_discord_text += "  "
                 pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']

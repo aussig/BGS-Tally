@@ -201,12 +201,13 @@ class APIManager:
 
             if sum(system.get('TWKills', {}).values()) > 0:
                 api_system['twkills'] = {
-                    'basilisk': system['TWKills']['b'],
-                    'cyclops': system['TWKills']['c'],
-                    'hydra': system['TWKills']['h'],
-                    'medusa': system['TWKills']['m'],
-                    'orthrus': system['TWKills']['o'],
-                    'scout': system['TWKills']['s']
+                    'revenant': system['TWKills'].get('r', 0),
+                    'basilisk': system['TWKills'].get('b', 0),
+                    'cyclops': system['TWKills'].get('c', 0),
+                    'hydra': system['TWKills'].get('h', 0),
+                    'medusa': system['TWKills'].get('m', 0),
+                    'orthrus': system['TWKills'].get('o', 0),
+                    'scout': system['TWKills'].get('s', 0)
                 }
 
             if sum(int(d['delivered']) for d in system.get('TWSandR', {}).values()) > 0:

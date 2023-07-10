@@ -197,6 +197,10 @@ class BGSTally:
                 self.target_log.ship_targeted(entry, system)
                 dirty = True
 
+            case 'Undocked':
+                self.state.station_faction = ""
+                self.state.station_type = ""
+
         if dirty:
             self.save_data()
             self.api_manager.send_activity(activity, cmdr)

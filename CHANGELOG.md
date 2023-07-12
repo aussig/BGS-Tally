@@ -12,6 +12,7 @@
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 
 * `/activities` endpoint: Thargoid War reactivation missions now included in `systems/[system]/factions/[faction]/stations/[station]/twreactivate`
+* `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`
 
 
 ## vx.x.x-xx - xxxx-xx-xx

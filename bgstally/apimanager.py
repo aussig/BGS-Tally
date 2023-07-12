@@ -194,6 +194,8 @@ class APIManager:
                                 'medium': station['passengers']['m'], # dict containing 'count' and 'sum'
                                 'high': station['passengers']['h']    # dict containing 'count' and 'sum'
                             }
+                        if station.get('reactivate', 0) > 0:
+                            api_station['twreactivate'] = station['reactivate'] # int
 
                     api_faction['stations'].append(api_station)
 

@@ -352,7 +352,11 @@ class Activity:
                     elif journal_entry['Name'] in MISSIONS_TW_REACTIVATE:
                         # Show activity indicator
                         self.bgstally.ui.indicate_activity = True
+                        # This tracking is unusual - we track BOTH against the station where the mission was completed AND the system where the settlement was reactivated
                         tw_stations[mission_station]['reactivate'] += 1
+                        destination_system = self._get_system_by_name(mission['DestinationSystem'])
+                        if destination_system is not None:
+                            destination_system['TWReactivate'] += 1
 
         self.recalculate_zero_activity()
         mission_log.delete_mission_by_id(journal_entry['MissionID'])
@@ -814,6 +818,8 @@ class Activity:
         # From < v3.1.0 to 3.1.0
         if not 'TWKills' in system_data: system_data['TWKills'] = self._get_new_tw_kills_data()
         if not 'TWSandR' in system_data: system_data['TWSandR'] = self._get_new_tw_sandr_data()
+        # From < 3.2.0 to 3.2.0
+        if not 'TWReactivate' in system_data: system_data['TWReactivate'] = 0
 
 
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):
@@ -881,6 +887,16 @@ class Activity:
                 faction_data['GroundCZSettlements'] == {} and \
                 int(faction_data['Scenarios']) == 0 and \
                 faction_data['TWStations'] == {}
+
+
+    def _get_system_by_name(self, system_name:str) -> dict | None:
+        """
+        Retrieve the data for a system by its name, or None if system not found
+        """
+        for system in self.systems.values():
+            if system['System'] == system_name: return system
+
+        return None
 
 
     def _as_dict(self):

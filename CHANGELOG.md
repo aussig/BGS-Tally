@@ -6,11 +6,12 @@
 
 * Thargoid War system progress is now displayed as a progress bar on the in-game overlay when in a TW active system.
 * An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
-* Thargoid War reactivation (settlement reboot) missions are now tracked: `🛠️ (missions)`, for the station issuing the mission.
+* Thargoid War reactivation (settlement reboot) missions are now tracked: `🛠️ (missions)`, both for the station issuing the mission and for the system where the settlement was reactivated.
+
 
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 
-* `/activities` endpoint: Thargoid reactiviation missions now included in `systems/[system]/factions/[faction]/stations/[station]/twreactivate`
+* `/activities` endpoint: Thargoid War reactivation missions now included in `systems/[system]/factions/[faction]/stations/[station]/twreactivate`
 
 
 ## vx.x.x-xx - xxxx-xx-xx

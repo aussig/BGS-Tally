@@ -6,6 +6,12 @@
 
 * Thargoid War system progress is now displayed as a progress bar on the in-game overlay when in a TW active system.
 * An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
+* Thargoid War reactivation (settlement reboot) missions are now tracked: `🛠️ (missions)`, both for the station issuing the mission and for the system where the settlement was reactivated.
+
+### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/activities` endpoint: Thargoid War reactivation missions now included in `systems/[system]/factions/[faction]/stations/[station]/twreactivate`
+* `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`
 
 
 ## vx.x.x-xx - xxxx-xx-xx
@@ -19,7 +25,7 @@
 * TW kills were not being logged to the correct system if it was a zero-population system. This was because historically BGST only dealt with BGS logging, so ignored zero-pop systems.  We now create tracking entries for these systems.
 * TW search and rescue hand-ins were being carried forward to the next tick for systems where items had been both scooped and delivered - escape pods, black boxes and tissue samples. Delivered items are now cleared on a new tick.
 
-### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/c2adeddc-f874-42d3-b450-49bd59ed1a79)):
 
 * `/events` endpoint: `StationFaction` is now an empty string "" when undocked.
 
@@ -59,7 +65,7 @@
 
 * BGS-Tally was crashing on load when running on Linux. This is now fixed.
 
-### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/c2adeddc-f874-42d3-b450-49bd59ed1a79)):
 
 * `/activities` endpoint: Thargoid war kills now included in `systems/[system]/twkills`
 * `/activities` endpoint: Thargoid search and rescue counts now included in `systems/[system]/twsandr`

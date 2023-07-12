@@ -645,11 +645,15 @@ class WindowActivity:
                 system_station['massacre']['h']['count'] += faction_station['massacre']['h']['count']; system_station['massacre']['h']['sum'] += faction_station['massacre']['h']['sum']
                 system_station['massacre']['o']['count'] += faction_station['massacre']['o']['count']; system_station['massacre']['o']['sum'] += faction_station['massacre']['o']['sum']
                 system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['massacre'].values()))
+                # We track TW settlement reactivation missions as a simple total
+                system_station['reactivate'] += faction_station['reactivate']
+                system_station['mission_count_total'] += faction_station['reactivate']
 
         # System-specific tally
         kills:int = sum(system['TWKills'].values())
         sandr:int = sum(int(d['delivered']) for d in system['TWSandR'].values())
-        if kills > 0 or sandr > 0:
+        reactivate:int = system['TWReactivate']
+        if kills > 0 or sandr > 0 or reactivate > 0:
             system_discord_text += f"🍀 System activity\n"
             if kills > 0:
                 system_discord_text += f"  💀 (kills): " \
@@ -669,6 +673,8 @@ class WindowActivity:
                 tissue:int = system['TWSandR']['t']['delivered']
                 if tissue > 0: system_discord_text += f"🌱 x {green(tissue)} "
                 system_discord_text += "\n"
+            if reactivate > 0:
+                system_discord_text += f"  🛠️ x {green(reactivate)} settlements\n"
 
         # Station-specific tally
         for system_station_name, system_station in system_stations.items():
@@ -688,6 +694,8 @@ class WindowActivity:
                                     + f"{red('B')} x {green(system_station['massacre']['b']['sum'])}, {red('M')} x {green(system_station['massacre']['m']['sum'])}, " \
                                     + f"{red('H')} x {green(system_station['massacre']['h']['sum'])}, {red('O')} x {green(system_station['massacre']['o']['sum'])} " \
                                     + f"- {green((sum(x['count'] for x in system_station['massacre'].values())))} missions\n"
+            if (system_station['reactivate'] > 0):
+                system_discord_text += f"  🛠️ x {green(system_station['reactivate'])} missions\n"
 
         return system_discord_text
 
@@ -700,7 +708,8 @@ class WindowActivity:
                 'passengers': {'count': 0, 'sum': 0},
                 'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
                 'cargo': {'count': 0, 'sum': 0},
-                'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}}
+                'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}},
+                'reactivate': 0}
 
 
     def _build_cz_text(self, cz_data, prefix):

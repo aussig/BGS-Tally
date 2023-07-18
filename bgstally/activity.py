@@ -124,9 +124,12 @@ class Activity:
         """
         Load an activity file
         """
-        with open(filepath) as activityfile:
-            self._from_dict(json.load(activityfile))
-            self.recalculate_zero_activity()
+        try:
+            with open(filepath) as activityfile:
+                self._from_dict(json.load(activityfile))
+                self.recalculate_zero_activity()
+        except Exception as e:
+            Debug.logger.info(f"Unable to load {filepath}")
 
 
     def save(self, filepath: str):

@@ -127,9 +127,12 @@ class Activity:
         """
         Load an activity file
         """
-        with open(filepath) as activityfile:
-            self._from_dict(json.load(activityfile))
-            self.recalculate_zero_activity()
+        try:
+            with open(filepath) as activityfile:
+                self._from_dict(json.load(activityfile))
+                self.recalculate_zero_activity()
+        except Exception as e:
+            Debug.logger.info(f"Unable to load {filepath}")
 
 
     def save(self, filepath: str):
@@ -397,7 +400,12 @@ class Activity:
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
-            faction['CartData'] += journal_entry['TotalEarnings']
+            base_value:int = journal_entry.get('BaseValue', 0)
+            bonus:int = journal_entry.get('Bonus', 0)
+            total_earnings:int = journal_entry.get('TotalEarnings', 0)
+            if total_earnings < base_value + bonus: total_earnings = base_value + bonus
+
+            faction['CartData'] += total_earnings
             self.recalculate_zero_activity()
 
 

@@ -1,6 +1,6 @@
 # Change Log
 
-## vx.x.x-xx - xxxx-xx-xx
+## v3.1.0-b1 - 2023-07-18
 
 ### New Features:
 

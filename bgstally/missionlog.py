@@ -28,16 +28,22 @@ class MissionLog:
         # New location
         file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
         if path.exists(file):
-            with open(file) as json_file:
-                self.missionlog = json.load(json_file)
-                return
+            try:
+                with open(file) as json_file:
+                    self.missionlog = json.load(json_file)
+                    return
+            except Exception as e:
+                Debug.logger.info(f"Unable to load {file}")
 
         # Legacy location
         file = path.join(self.bgstally.plugin_dir, FILENAME_LEGACY)
         if path.exists(file):
-            with open(file) as json_file:
-                self.missionlog = json.load(json_file)
-            remove(file)
+            try:
+                with open(file) as json_file:
+                    self.missionlog = json.load(json_file)
+                remove(file)
+            except Exception as e:
+                Debug.logger.info(f"Unable to load and remove {file}")
 
 
     def save(self):

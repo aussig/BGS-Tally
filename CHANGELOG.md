@@ -1,5 +1,27 @@
 # Change Log
 
+## v3.1.0-b1 - 2023-07-18
+
+### New Features:
+
+* Thargoid War Revenant kills are now tracked.
+
+### Changes:
+
+* Exploration data tallying now takes into account not just the `TotalEarnings` logged but also the `BaseValue` and `Bonus`. The larger value is used if these differ.  Note this is now the same logic that EDDiscovery uses.
+
+### Bug Fixes:
+
+* TW kills were not being logged to the correct system if it was a zero-population system. This was because historically BGST only dealt with BGS logging, so ignored zero-pop systems.  We now create tracking entries for these systems.
+* TW search and rescue hand-ins were being carried forward to the next tick for systems where items had been both scooped and delivered - escape pods, black boxes and tissue samples. Delivered items are now cleared on a new tick.
+* Harden all file loading and JSON parsing to protect against corrupted data on disk.
+
+
+### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/events` endpoint: `StationFaction` is now an empty string "" when undocked.
+
+
 ## v3.1.0-a3 - 2023-06-23
 
 ### Bug Fixes:

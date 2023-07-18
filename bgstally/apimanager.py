@@ -5,6 +5,7 @@ from os import path
 from bgstally.activity import Activity
 from bgstally.api import API
 from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA
+from bgstally.debug import Debug
 
 FILENAME = "apis.json"
 
@@ -34,11 +35,14 @@ class APIManager:
         """
         file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
         if path.exists(file):
-            with open(file) as json_file:
-                apis_json:list = json.load(json_file)
+            try:
+                with open(file) as json_file:
+                    apis_json:list = json.load(json_file)
 
-            for api_json in apis_json:
-                self.apis.append(API(self.bgstally, api_json))
+                for api_json in apis_json:
+                    self.apis.append(API(self.bgstally, api_json))
+            except Exception as e:
+                Debug.logger.info(f"Unable to load {file}")
 
 
     def save(self):
@@ -201,12 +205,13 @@ class APIManager:
 
             if sum(system.get('TWKills', {}).values()) > 0:
                 api_system['twkills'] = {
-                    'basilisk': system['TWKills']['b'],
-                    'cyclops': system['TWKills']['c'],
-                    'hydra': system['TWKills']['h'],
-                    'medusa': system['TWKills']['m'],
-                    'orthrus': system['TWKills']['o'],
-                    'scout': system['TWKills']['s']
+                    'revenant': system['TWKills'].get('r', 0),
+                    'basilisk': system['TWKills'].get('b', 0),
+                    'cyclops': system['TWKills'].get('c', 0),
+                    'hydra': system['TWKills'].get('h', 0),
+                    'medusa': system['TWKills'].get('m', 0),
+                    'orthrus': system['TWKills'].get('o', 0),
+                    'scout': system['TWKills'].get('s', 0)
                 }
 
             if sum(int(d['delivered']) for d in system.get('TWSandR', {}).values()) > 0:

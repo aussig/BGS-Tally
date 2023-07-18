@@ -70,7 +70,7 @@ MISSIONS_TW_MASSACRE = [
 CZ_GROUND_LOW_CB_MAX = 5000
 CZ_GROUND_MED_CB_MAX = 38000
 
-TW_CBS = {65000: 's', 75000: 's', 6500000: 'c', 20000000: 'b', 25000000: 'o', 34000000: 'm', 50000000: 'h'}
+TW_CBS = {25000: 'r', 65000: 's', 75000: 's', 6500000: 'c', 20000000: 'b', 25000000: 'o', 34000000: 'm', 50000000: 'h'}
 
 
 class Activity:
@@ -124,9 +124,12 @@ class Activity:
         """
         Load an activity file
         """
-        with open(filepath) as activityfile:
-            self._from_dict(json.load(activityfile))
-            self.recalculate_zero_activity()
+        try:
+            with open(filepath) as activityfile:
+                self._from_dict(json.load(activityfile))
+                self.recalculate_zero_activity()
+        except Exception as e:
+            Debug.logger.info(f"Unable to load {filepath}")
 
 
     def save(self, filepath: str):
@@ -167,7 +170,9 @@ class Activity:
                 for faction_name, faction_data in system['Factions'].items():
                     system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'])
                 system['TWKills'] = self._get_new_tw_kills_data()
-                # Note: system['TWSandR'] data is carried forward
+                # Note: system['TWSandR'] scooped data is carried forward, delivered data is cleared
+                for d in system['TWSandR'].values():
+                    d['delivered'] = 0
             else:
                 # Delete the whole system
                 del self.systems[system_address]
@@ -181,9 +186,6 @@ class Activity:
         """
         The user has entered a system
         """
-        try: test = journal_entry['Factions']
-        except KeyError: return
-
         self.dirty = True
         current_system = None
 
@@ -200,28 +202,29 @@ class Activity:
 
         self._update_system_data(current_system)
 
-        for faction in journal_entry['Factions']:
-            if faction['Name'] == "Pilots' Federation Local Branch": continue
+        if 'Factions' in journal_entry:
+            for faction in journal_entry['Factions']:
+                if faction['Name'] == "Pilots' Federation Local Branch": continue
 
-            # Ignore conflict states in FactionState as we can't trust they always come in pairs. We deal with conflicts separately below.
-            faction_state = faction['FactionState'] if faction['FactionState'] not in STATES_WAR and faction['FactionState'] not in STATES_ELECTION else "None"
+                # Ignore conflict states in FactionState as we can't trust they always come in pairs. We deal with conflicts separately below.
+                faction_state = faction['FactionState'] if faction['FactionState'] not in STATES_WAR and faction['FactionState'] not in STATES_ELECTION else "None"
 
-            if faction['Name'] in current_system['Factions']:
-                # We have this faction, ensure it's up to date with latest state
-                faction_data = current_system['Factions'][faction['Name']]
-                self._update_faction_data(faction_data, faction_state)
-            else:
-                # We do not have this faction, create a new clean entry
-                current_system['Factions'][faction['Name']] = self._get_new_faction_data(faction['Name'], faction_state)
+                if faction['Name'] in current_system['Factions']:
+                    # We have this faction, ensure it's up to date with latest state
+                    faction_data = current_system['Factions'][faction['Name']]
+                    self._update_faction_data(faction_data, faction_state)
+                else:
+                    # We do not have this faction, create a new clean entry
+                    current_system['Factions'][faction['Name']] = self._get_new_faction_data(faction['Name'], faction_state)
 
-        # Set war states for pairs of factions in War / Civil War / Elections
-        for conflict in journal_entry.get('Conflicts', []):
-            if conflict['Status'] != "active": continue
+            # Set war states for pairs of factions in War / Civil War / Elections
+            for conflict in journal_entry.get('Conflicts', []):
+                if conflict['Status'] != "active": continue
 
-            if conflict['Faction1']['Name'] in current_system['Factions'] and conflict['Faction2']['Name'] in current_system['Factions']:
-                conflict_state = "War" if conflict['WarType'] == "war" else "CivilWar" if conflict['WarType'] == "civilwar" else "Election" if conflict['WarType'] == "election" else "None"
-                current_system['Factions'][conflict['Faction1']['Name']]['FactionState'] = conflict_state
-                current_system['Factions'][conflict['Faction2']['Name']]['FactionState'] = conflict_state
+                if conflict['Faction1']['Name'] in current_system['Factions'] and conflict['Faction2']['Name'] in current_system['Factions']:
+                    conflict_state = "War" if conflict['WarType'] == "war" else "CivilWar" if conflict['WarType'] == "civilwar" else "Election" if conflict['WarType'] == "election" else "None"
+                    current_system['Factions'][conflict['Faction1']['Name']]['FactionState'] = conflict_state
+                    current_system['Factions'][conflict['Faction2']['Name']]['FactionState'] = conflict_state
 
         self.recalculate_zero_activity()
         state.current_system_id = str(current_system['SystemAddress'])
@@ -361,7 +364,12 @@ class Activity:
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
-            faction['CartData'] += journal_entry['TotalEarnings']
+            base_value:int = journal_entry.get('BaseValue', 0)
+            bonus:int = journal_entry.get('Bonus', 0)
+            total_earnings:int = journal_entry.get('TotalEarnings', 0)
+            if total_earnings < base_value + bonus: total_earnings = base_value + bonus
+
+            faction['CartData'] += total_earnings
             self.recalculate_zero_activity()
 
 
@@ -733,7 +741,7 @@ class Activity:
         """
         Get a new data structure for storing Thargoid War Kills
         """
-        return {'s': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
+        return {'r': 0, 's': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
 
 
     def _get_new_tw_sandr_data(self):

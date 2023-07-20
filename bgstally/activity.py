@@ -450,7 +450,8 @@ class Activity:
         if not current_system: return
 
         # Handle SandR tissue samples first
-        if 'thargoidtissuesample' in journal_entry.get('Type', "").lower():
+        cargo_type:str = journal_entry.get('Type', "").lower()
+        if 'thargoidtissuesample' in cargo_type or 'thargoidscouttissuesample' in cargo_type:
             self._search_and_rescue_handin('t', journal_entry.get('Count', 0))
             # Fall through to BGS tracking for standard trade sale
 
@@ -613,7 +614,7 @@ class Activity:
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
             case 'usscargoblackbox': key = 'bb'
-            case _ as cargo_type if "thargoidtissuesample" in cargo_type: key = 't'
+            case _ as cargo_type if "thargoidtissuesample" in cargo_type or "thargoidscouttissuesample" in cargo_type: key = 't'
 
         if key is None: return
 

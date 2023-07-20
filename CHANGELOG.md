@@ -1,5 +1,12 @@
 # Change Log
 
+## v3.1.0-xx - xxxx-xx-xx
+
+### Bug Fixes:
+
+* Now track thargoid scout tissue sample collection and hand-in, as well as all other thargoid tissue sample types.
+
+
 ## v3.1.0-b1 - 2023-07-18
 
 ### New Features:
@@ -15,7 +22,6 @@
 * TW kills were not being logged to the correct system if it was a zero-population system. This was because historically BGST only dealt with BGS logging, so ignored zero-pop systems.  We now create tracking entries for these systems.
 * TW search and rescue hand-ins were being carried forward to the next tick for systems where items had been both scooped and delivered - escape pods, black boxes and tissue samples. Delivered items are now cleared on a new tick.
 * Harden all file loading and JSON parsing to protect against corrupted data on disk.
-
 
 ### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 

@@ -14,6 +14,13 @@
 * `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`
 
 
+## v3.1.0-xx - xxxx-xx-xx
+
+### Bug Fixes:
+
+* Now track thargoid scout tissue sample collection and hand-in, as well as all other thargoid tissue sample types.
+
+
 ## v3.1.0-b1 - 2023-07-18
 
 ### New Features:

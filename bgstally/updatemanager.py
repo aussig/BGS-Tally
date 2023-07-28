@@ -110,6 +110,9 @@ class UpdateManager:
         # Update UI, deferred because we're in a thread
         self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
 
+        # Perform update
+        self.update_manager.update_plugin()
+
 
     def update_plugin(self):
         """

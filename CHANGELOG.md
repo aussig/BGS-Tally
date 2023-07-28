@@ -2,6 +2,10 @@
 
 ## v3.1.0-xx - xxxx-xx-xx
 
+### Changes:
+
+* If there is a new version of BGS-Tally available, it is downloaded and installed during **launch** of the plugin instead of **shutdown**. This should mean that if there is a critical plugin bug that stops a clean shutdown, we should be able to fix it with an auto-update.
+
 ### Bug Fixes:
 
 * Now track thargoid scout tissue sample collection and hand-in, as well as all other thargoid tissue sample types.

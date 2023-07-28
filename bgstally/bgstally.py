@@ -75,9 +75,6 @@ class BGSTally:
         self.ui.shut_down()
         self.save_data()
 
-        if self.update_manager.update_available:
-            self.update_manager.update_plugin()
-
 
     def journal_entry(self, cmdr, is_beta, system, station, entry, state):
         """

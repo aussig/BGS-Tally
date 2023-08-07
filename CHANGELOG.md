@@ -16,6 +16,10 @@
 
 ## v3.1.0-xx - xxxx-xx-xx
 
+### New Features:
+
+* Track the new TW evacuation mission released in Update 16 .
+
 ### Changes:
 
 * If there is a new version of BGS-Tally available, it is downloaded and installed during **launch** of the plugin instead of **shutdown**. This should mean that if there is a critical plugin bug that stops a clean shutdown, we should be able to fix it with an auto-update.

@@ -646,7 +646,7 @@ class Activity:
                 # Increment overall 'Med' count for this faction
                 faction['GroundCZ']['m'] = str(int(faction['GroundCZ'].get('m', '0')) + 1)
                 # Decrement overall previous size count if we previously counted it
-                if previous_size != None: faction['GroundCZ'][previous_size] -= 1
+                if previous_size != None: faction['GroundCZ'][previous_size] = str(int(faction['GroundCZ'].get(previous_size, '0')) - 1)
                 # Set faction settlement type
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'm'
                 # Store last settlement type
@@ -657,7 +657,7 @@ class Activity:
                 # Increment overall 'High' count for this faction
                 faction['GroundCZ']['h'] = str(int(faction['GroundCZ'].get('h', '0')) + 1)
                 # Decrement overall previous size count if we previously counted it
-                if previous_size != None: faction['GroundCZ'][previous_size] -= 1
+                if previous_size != None: faction['GroundCZ'][previous_size] = str(int(faction['GroundCZ'].get(previous_size, '0')) - 1)
                 # Set faction settlement type
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'h'
                 # Store last settlement type

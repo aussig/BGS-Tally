@@ -27,6 +27,7 @@
 ### Bug Fixes:
 
 * Now track thargoid scout tissue sample collection and hand-in, as well as all other thargoid tissue sample types.
+* Potential fix for mis-tallying of ground CZs when other commanders are fighting.
 
 
 ## v3.1.0-b1 - 2023-07-18

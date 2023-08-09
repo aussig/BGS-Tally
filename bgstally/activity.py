@@ -48,7 +48,8 @@ MISSIONS_TW_COLLECT = [
 ]
 MISSIONS_TW_EVAC_LOW = [
     'Mission_TW_Rescue_Alert_name', # "Evacuate n injured personnel" (cargo)
-    'Mission_TW_PassengerEvacuation_Alert_name' # "n Refugees requesting evacuation" (passenger)
+    'Mission_TW_PassengerEvacuation_Alert_name', # "n Refugees requesting evacuation" (passenger)
+    'Mission_TW_RefugeeBulk_name' # "Evacuate xxx's group of refugees" (passenger)
 ]
 MISSIONS_TW_EVAC_MED = [
     'Mission_TW_Rescue_UnderAttack_name', # "Evacuate n wounded" (cargo)
@@ -450,7 +451,8 @@ class Activity:
         if not current_system: return
 
         # Handle SandR tissue samples first
-        if 'thargoidtissuesample' in journal_entry.get('Type', "").lower():
+        cargo_type:str = journal_entry.get('Type', "").lower()
+        if 'thargoidtissuesample' in cargo_type or 'thargoidscouttissuesample' in cargo_type:
             self._search_and_rescue_handin('t', journal_entry.get('Count', 0))
             # Fall through to BGS tracking for standard trade sale
 
@@ -580,7 +582,7 @@ class Activity:
                 # Increment overall 'Med' count for this faction
                 faction['GroundCZ']['m'] = str(int(faction['GroundCZ'].get('m', '0')) + 1)
                 # Decrement overall previous size count if we previously counted it
-                if previous_size != None: faction['GroundCZ'][previous_size] -= 1
+                if previous_size != None: faction['GroundCZ'][previous_size] = str(int(faction['GroundCZ'].get(previous_size, '0')) - 1)
                 # Set faction settlement type
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'm'
                 # Store last settlement type
@@ -591,7 +593,7 @@ class Activity:
                 # Increment overall 'High' count for this faction
                 faction['GroundCZ']['h'] = str(int(faction['GroundCZ'].get('h', '0')) + 1)
                 # Decrement overall previous size count if we previously counted it
-                if previous_size != None: faction['GroundCZ'][previous_size] -= 1
+                if previous_size != None: faction['GroundCZ'][previous_size] = str(int(faction['GroundCZ'].get(previous_size, '0')) - 1)
                 # Set faction settlement type
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'h'
                 # Store last settlement type
@@ -613,7 +615,7 @@ class Activity:
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
             case 'usscargoblackbox': key = 'bb'
-            case _ as cargo_type if "thargoidtissuesample" in cargo_type: key = 't'
+            case _ as cargo_type if "thargoidtissuesample" in cargo_type or "thargoidscouttissuesample" in cargo_type: key = 't'
 
         if key is None: return
 

@@ -1,10 +1,10 @@
 # Change Log
 
-## v3.1.0-xx - xxxx-xx-xx
+## v3.1.0-b2 - 2023-08-09
 
 ### New Features:
 
-* Track the new TW evacuation mission released in Update 16 .
+* Track the new TW evacuation mission released in Update 16.
 
 ### Changes:
 

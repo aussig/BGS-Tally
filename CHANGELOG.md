@@ -14,11 +14,11 @@
 * `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`
 
 
-## v3.1.0-xx - xxxx-xx-xx
+## v3.1.0-b2 - 2023-08-09
 
 ### New Features:
 
-* Track the new TW evacuation mission released in Update 16 .
+* Track the new TW evacuation mission released in Update 16.
 
 ### Changes:
 

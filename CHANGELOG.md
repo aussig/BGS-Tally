@@ -2,6 +2,9 @@
 
 ## v3.1.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
+
+* Check for main UI frame before attempting to update the status text. Protects against rare errors where the status bar was updated before the main window has fully initialised.
 
 
 ## v3.1.0-b2 - 2023-08-09

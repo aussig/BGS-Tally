@@ -655,6 +655,7 @@ class WindowActivity:
                 system_discord_text += f"  💀 (kills): " \
                                     + f"{red('R')} x {green(system['TWKills'].get('r', 0))}, " \
                                     + f"{red('S')} x {green(system['TWKills'].get('s', 0))}, " \
+                                    + f"{red('S/G')} x {green(system['TWKills'].get('sg', 0))}, " \
                                     + f"{red('C')} x {green(system['TWKills'].get('c', 0))}, " \
                                     + f"{red('B')} x {green(system['TWKills'].get('b', 0))}, " \
                                     + f"{red('M')} x {green(system['TWKills'].get('m', 0))}, " \

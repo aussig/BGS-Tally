@@ -49,10 +49,10 @@ class UpdateManager:
         except OSError as e:
             if e.errno != errno.EEXIST: return
 
-        self.bgstally.request_manager.queue_request(URL_PLUGIN_VERSION, RequestMethod.GET, callback=self.version_info_received)
+        self.bgstally.request_manager.queue_request(URL_PLUGIN_VERSION, RequestMethod.GET, callback=self._version_info_received)
 
 
-    def version_info_received(self, success:bool, response:Response, request:BGSTallyRequest):
+    def _version_info_received(self, success:bool, response:Response, request:BGSTallyRequest):
         """
         Latest version info received from the server. Called from a Thread.
         """
@@ -83,10 +83,10 @@ class UpdateManager:
 
         if self.remote_version > self.bgstally.version:
             # Download the new release
-            self.bgstally.request_manager.queue_request(self.release_url, RequestMethod.GET, callback=self.download_received, stream=True)
+            self.bgstally.request_manager.queue_request(self.release_url, RequestMethod.GET, callback=self._download_received, stream=True)
 
 
-    def download_received(self, success:bool, response:Response, request:BGSTallyRequest):
+    def _download_received(self, success:bool, response:Response, request:BGSTallyRequest):
         """
         The download request has initially returned. This is a streamed download so the actual receipt of the file must be chunked
         """
@@ -108,13 +108,13 @@ class UpdateManager:
         self.update_available = True
 
         # Update UI, deferred because we're in a thread
-        self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
+        if self.bgstally.ui.frame: self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
 
         # Perform update
-        self.update_manager.update_plugin()
+        self._update_plugin()
 
 
-    def update_plugin(self):
+    def _update_plugin(self):
         """
         Backup the old plugin and extract the new, ready for next launch
         """

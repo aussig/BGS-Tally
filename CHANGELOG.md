@@ -1,5 +1,19 @@
 # Change Log
 
+## v3.2.0-xx - xxxx-xx-xx
+
+### New Features:
+
+* Thargoid War system progress is now displayed as a progress bar on the in-game overlay when in a TW active system.
+* An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
+* Thargoid War reactivation (settlement reboot) missions are now tracked: `🛠️ (missions)`, both for the station issuing the mission and for the system where the settlement was reactivated.
+
+### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/activities` endpoint: Thargoid War reactivation missions now included in `systems/[system]/factions/[faction]/stations/[station]/twreactivate`
+* `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`
+
+
 ## v3.1.0 - 2023-08-13
 
 ### New Features:
@@ -17,6 +31,7 @@
 ### Changes:
 
 * Thargoid War massacre missions are now labelled slightly differently - `💀 (missions)` - in line with the labelling for kills - `💀 (kills)`.
+* Posting targeted CMDR information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
 * Posting information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
 * Exploration data tallying now takes into account not just the `TotalEarnings` logged but also the `BaseValue` and `Bonus`. The larger value is used if these differ.  Note this is now the same logic that EDDiscovery uses.
 * If there is a new version of BGS-Tally available, it is downloaded and installed during **launch** of the plugin instead of **shutdown**. This should mean that if there is a critical plugin bug that stops a clean shutdown, we should be able to fix it with an auto-update.

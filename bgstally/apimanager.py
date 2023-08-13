@@ -198,6 +198,9 @@ class APIManager:
                                 'medium': station['passengers']['m'], # dict containing 'count' and 'sum'
                                 'high': station['passengers']['h']    # dict containing 'count' and 'sum'
                             }
+                        # TW settlement reactivation missions
+                        if station.get('reactivate', 0) > 0:
+                            api_station['twreactivate'] = station['reactivate'] # int
 
                     api_faction['stations'].append(api_station)
 
@@ -221,6 +224,10 @@ class APIManager:
                     'blackboxes': system['TWSandR']['bb']['delivered'],
                     'tissuesamples': system['TWSandR']['t']['delivered']
                 }
+
+            # TW Reactivated settlements in system
+            if system.get('TWReactivate', 0) > 0:
+                api_system['twreactivate'] = system.get('TWReactivate', 0)
 
             api_activity['systems'].append(api_system)
 

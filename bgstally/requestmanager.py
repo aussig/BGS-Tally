@@ -1,15 +1,16 @@
 from queue import Queue
+from re import IGNORECASE, compile, match
 from threading import Thread
+from time import sleep
 
 import requests
 from requests import Response
-from re import compile, match, IGNORECASE
 
 import config
-
 from bgstally.constants import RequestMethod
 from bgstally.debug import Debug
 
+TIME_WORKER_PERIOD_S = 1
 TIMEOUT_S = 10
 
 
@@ -83,6 +84,12 @@ class RequestManager:
         Debug.logger.debug("Starting Request Worker...")
 
         while True:
+            if config.shutting_down:
+                Debug.logger.debug("Shutting down RequestManager Worker...")
+                return
+
+            sleep(TIME_WORKER_PERIOD_S)
+
             # Fetch from the queue. Blocks indefinitely until an item is available.
             request:BGSTallyRequest = self.request_queue.get()
 

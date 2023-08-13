@@ -1,69 +1,6 @@
 # Change Log
 
-## v3.1.0-b3 - 2023-088-12
-
-### New Features:
-
-* Thargoid War Scythe and Glaive kills are now tracked (`S/G` in report).
-
-### Bug Fixes:
-
-* Check for main UI frame before attempting to update the status text. Protects against rare errors where the status bar was updated before the main window has fully initialised.
-
-
-## v3.1.0-b2 - 2023-08-09
-
-### New Features:
-
-* Track the new TW evacuation mission released in Update 16.
-
-### Changes:
-
-* If there is a new version of BGS-Tally available, it is downloaded and installed during **launch** of the plugin instead of **shutdown**. This should mean that if there is a critical plugin bug that stops a clean shutdown, we should be able to fix it with an auto-update.
-
-### Bug Fixes:
-
-* Now track thargoid scout tissue sample collection and hand-in, as well as all other thargoid tissue sample types.
-* Potential fix for mis-tallying of ground CZs when other commanders are fighting.
-
-
-## v3.1.0-b1 - 2023-07-18
-
-### New Features:
-
-* Thargoid War Revenant kills are now tracked (`R` in report).
-
-### Changes:
-
-* Exploration data tallying now takes into account not just the `TotalEarnings` logged but also the `BaseValue` and `Bonus`. The larger value is used if these differ.  Note this is now the same logic that EDDiscovery uses.
-
-### Bug Fixes:
-
-* TW kills were not being logged to the correct system if it was a zero-population system. This was because historically BGST only dealt with BGS logging, so ignored zero-pop systems.  We now create tracking entries for these systems.
-* TW search and rescue hand-ins were being carried forward to the next tick for systems where items had been both scooped and delivered - escape pods, black boxes and tissue samples. Delivered items are now cleared on a new tick.
-* Harden all file loading and JSON parsing to protect against corrupted data on disk.
-
-### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
-
-* `/events` endpoint: `StationFaction` is now an empty string "" when undocked.
-
-
-## v3.1.0-a3 - 2023-06-23
-
-### Bug Fixes:
-
-* Fix failure of networking thread, and therefore all subsequent networking calls, if an API discovery request detects new API features during startup.
-* Fix Thargoid tissue sample Search and Rescue pickup and handin.
-
-
-## v3.1.0-a2 - 2023-05-08
-
-### Bug Fixes:
-
-* Thargoid War S&R collection / dropoff wasn't being reliably tallied.
-
-
-## v3.1.0-a1 - 2023-04-30
+## v3.1.0 - 2023-08-13
 
 ### New Features:
 
@@ -73,20 +10,31 @@
 * Targets older than 90 days are automatically removed from the CMDR target list history.
 * When a friend request is received from another player, their details are looked up on Inara and they are added to the target log. Note that the squadron ID and legal status will be shown as '----' as that information is not available for friend requests.
 * Carrier jump reporting implemented, automatically reporting your carrier jumps (and cancelled jumps) to a Discord channel of your choice.
+* Thargoid War Revenant kills are now tracked (`R` in report).
+* Thargoid War Scythe and Glaive kills are now tracked (`S/G` in report).
+* Track the new TW evacuation mission released in Update 16.
 
 ### Changes:
 
 * Thargoid War massacre missions are now labelled slightly differently - `💀 (missions)` - in line with the labelling for kills - `💀 (kills)`.
 * Posting information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
+* Exploration data tallying now takes into account not just the `TotalEarnings` logged but also the `BaseValue` and `Bonus`. The larger value is used if these differ.  Note this is now the same logic that EDDiscovery uses.
+* If there is a new version of BGS-Tally available, it is downloaded and installed during **launch** of the plugin instead of **shutdown**. This should mean that if there is a critical plugin bug that stops a clean shutdown, we should be able to fix it with an auto-update.
 
 ### Bug Fixes:
 
 * BGS-Tally was crashing on load when running on Linux. This is now fixed.
+* Fix failure of networking thread, and therefore all subsequent networking calls, if an API discovery request detects new API features during startup.
+* TW kills were not being logged to the correct system if it was a zero-population system. This was because historically BGST only dealt with BGS logging, so ignored zero-pop systems.  We now create tracking entries for these systems.
+* Harden all file loading and JSON parsing to protect against corrupted data on disk.
+* Potential fix for mis-tallying of ground CZs when other commanders are fighting.
+* Check for main UI frame before attempting to update the status text. Protects against rare errors where the status bar was updated before the main window has fully initialised.
 
-### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/c2adeddc-f874-42d3-b450-49bd59ed1a79)):
 
 * `/activities` endpoint: Thargoid war kills now included in `systems/[system]/twkills`
 * `/activities` endpoint: Thargoid search and rescue counts now included in `systems/[system]/twsandr`
+* `/events` endpoint: `StationFaction` is now an empty string "" when undocked.
 
 
 ## v3.0.2 - 2023-04-11

@@ -6,9 +6,9 @@ from time import sleep
 import requests
 from requests import Response
 
-import config
 from bgstally.constants import RequestMethod
 from bgstally.debug import Debug
+from config import config
 
 TIME_WORKER_PERIOD_S = 1
 TIMEOUT_S = 10

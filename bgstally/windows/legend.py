@@ -62,9 +62,23 @@ class WindowLegend:
         ttk.Label(frame_container, image=self.image_icon_tw_crit_wounded).grid(row=current_row, column=0)
         ttk.Label(frame_container, text=" Critically wounded evacuation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_mass_missions).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Massacre missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" Massacre missions\n" \
+                                        + "   S - Scout\n" \
+                                        + "   C - Cyclops\n" \
+                                        + "   B - Basilisk\n" \
+                                        + "   M - Medusa\n" \
+                                        + "   H - Hydra\n" \
+                                        + "   O - Orthrus").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_kills).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Kills").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" Kills\n" \
+                                        + "   R - Revenant\n" \
+                                        + "   S - Scout\n" \
+                                        + "   S/G - Scythe / Glaive (Cannot be automatically distinguised)\n" \
+                                        + "   C - Cyclops\n" \
+                                        + "   B - Basilisk\n" \
+                                        + "   M - Medusa\n" \
+                                        + "   H - Hydra\n" \
+                                        + "   O - Orthrus").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_sr_bbs).grid(row=current_row, column=0)
         ttk.Label(frame_container, text=" Search & Rescue Black Boxes").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_sr_pods).grid(row=current_row, column=0)

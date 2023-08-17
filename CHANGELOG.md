@@ -7,6 +7,7 @@
 * Thargoid War system progress is now displayed as a progress bar on the in-game overlay when in a TW active system.
 * An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
 * Thargoid War reactivation (settlement reboot) missions are now tracked: `🛠️ (missions)`, both for the station issuing the mission and for the system where the settlement was reactivated.
+* Show hand cursor over help text to make it clearer you can click it to show the legend window.
 
 ### Changes:
 
@@ -38,7 +39,7 @@
 * Posting targeted CMDR information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
 * Posting information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
 * Exploration data tallying now takes into account not just the `TotalEarnings` logged but also the `BaseValue` and `Bonus`. The larger value is used if these differ.  Note this is now the same logic that EDDiscovery uses.
-* If there is a new version of BGS-Tally available, it is downloaded and installed during **launch** of the plugin instead of **shutdown**. This should mean that if there is a critical plugin bug that stops a clean shutdown, we should be able to fix it with an auto-update.
+* If there is a new version of BGS-Tally available, it is downloaded and prepared during **launch** of the plugin instead of **shutdown**. You still need to relaunch EDMC to get the new version, but this change should mean that if there is a critical plugin bug that kills the plugin, we should be able to fix it with an auto-update.
 
 ### Bug Fixes:
 

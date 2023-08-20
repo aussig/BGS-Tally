@@ -579,6 +579,22 @@ class Activity:
         state.last_settlement_approached = {'timestamp': journal_entry['timestamp'], 'name': journal_entry['Name'], 'size': None}
 
 
+    def destination_dropped(self, journal_entry: dict, state: State):
+        """
+        Handle drop at a supercruise destination
+        """
+        current_system = self.systems.get(state.current_system_id)
+        if not current_system: return
+
+        match journal_entry.get('Type', "").lower():
+            case type if type.startswith("$warzone_pointrace_low"):
+                state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'l', 'counted': False}
+            case type if type.startswith("$warzone_pointrace_med"):
+                state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'm', 'counted': False}
+            case type if type.startswith("$warzone_pointrace_high"):
+                state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'h', 'counted': False}
+
+
     def cb_received(self, journal_entry: Dict, state: State):
         """
         Handle a combat bond received for a kill
@@ -587,35 +603,55 @@ class Activity:
         if not current_system: return
 
         # Check for Thargoid Kill
-        if journal_entry.get('VictimFaction') == "$faction_Thargoid;":
-            tw_ship:str = TW_CBS.get(journal_entry['Reward'])
-            if tw_ship: current_system['TWKills'][tw_ship] += 1
-
-            # Show activity indicator
-            self.bgstally.ui.indicate_activity = True
-
+        if journal_entry.get('VictimFaction', "").lower() == "$faction_thargoid;":
+            self._cb_tw(journal_entry, current_system)
             return
 
-        # Otherwise, must be on-ground for CB kill tracking
-        if state.last_settlement_approached == {}: return
+        # Otherwise, must be on-ground or in-space CZ for CB kill tracking
+        if state.last_settlement_approached != {}:
+            timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_settlement_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+            if timedifference > timedelta(minutes=5):
+                # Too long since we last approached a settlement, we can't be sure we're fighting at that settlement, clear down
+                state.last_settlement_approached = {}
+                # Fall through to check space CZs too
+            else:
+                # We're within the timeout, refresh timestamp and handle the CB
+                state.last_settlement_approached['timestamp'] = journal_entry['timestamp']
+                self._cb_ground_cz(journal_entry, current_system, state)
+
+        if state.last_spacecz_approached != {}:
+            timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_spacecz_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+            if timedifference > timedelta(minutes=5):
+                # Too long since we last entered a space cz, we can't be sure we're fighting at that cz, clear down
+                state.last_spacecz_approached = {}
+            else:
+                # We're within the timeout, refresh timestamp and handle the CB
+                state.last_spacecz_approached['timestamp'] = journal_entry['timestamp']
+                self._cb_space_cz(journal_entry, current_system, state)
+
+
+    def _cb_tw(self, journal_entry:dict, current_system:dict):
+        """
+        We are logging a Thargoid kill
+        """
+        tw_ship:str = TW_CBS.get(journal_entry.get('Reward', 0))
+        if tw_ship: current_system['TWKills'][tw_ship] += 1
+
+        # Show activity indicator
+        self.bgstally.ui.indicate_activity = True
+
+
+    def _cb_ground_cz(self, journal_entry:dict, current_system:dict, state:State):
+        """
+        We are in an active ground CZ
+        """
+        faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
+        if not faction: return
 
         self.dirty = True
 
         # Show activity indicator
         self.bgstally.ui.indicate_activity = True
-
-        timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_settlement_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
-        if timedifference > timedelta(minutes=5):
-            # Too long since we last approached a settlement, we can't be sure we're fighting at that settlement, clear down
-            state.last_settlement_approached = {}
-            return
-        else:
-            # We're within the timeout, refresh timestamp
-            state.last_settlement_approached['timestamp'] = journal_entry['timestamp']
-
-        # Bond issued within a short time after approaching settlement
-        faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
-        if not faction: return
 
         # Add settlement to this faction's list, if not already present
         if state.last_settlement_approached['name'] not in faction['GroundCZSettlements']:
@@ -662,6 +698,28 @@ class Activity:
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'h'
                 # Store last settlement type
                 state.last_settlement_approached['size'] = 'h'
+
+        self.recalculate_zero_activity()
+
+
+    def _cb_space_cz(self, journal_entry:dict, current_system:dict, state:State):
+        """
+        We are in an active space CZ
+        """
+        faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
+        if not faction: return
+
+        # If we've already counted this CZ, exit
+        if state.last_spacecz_approached.get('counted', False): return
+
+        state.last_spacecz_approached['counted'] = True
+        self.dirty = True
+
+        # Show activity indicator
+        self.bgstally.ui.indicate_activity = True
+
+        type:str = state.last_spacecz_approached.get('type', 'l')
+        faction['SpaceCZ'][type] = str(int(faction['SpaceCZ'].get(type, '0')) + 1)
 
         self.recalculate_zero_activity()
 

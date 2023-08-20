@@ -42,6 +42,7 @@ class State:
 
         # Non-persistent values
         self.last_settlement_approached:Dict = {}
+        self.last_spacecz_approached:Dict = {}
         self.last_ship_targeted:Dict = {}
         self.system_tw_status = None
 

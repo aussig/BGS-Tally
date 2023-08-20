@@ -195,6 +195,10 @@ class BGSTally:
                 self.target_log.ship_targeted(entry, system)
                 dirty = True
 
+            case 'SupercruiseDestinationDrop':
+                activity.destination_dropped(entry, self.state)
+                dirty = True
+
             case 'Undocked':
                 self.state.station_faction = ""
                 self.state.station_type = ""

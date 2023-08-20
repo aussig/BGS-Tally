@@ -4,14 +4,15 @@
 
 ### New Features:
 
+* Space Conflict Zones are now tracked automatically. As with Ground CZs, the game doesn't give us enough information to detect whether you've actually **won** the CZ, so if you drop in and log a kill within 5 minutes, this is tallied as a win. Manual controls are still available to adjust if you need.
 * Thargoid War system progress is now displayed as a progress bar on the in-game overlay when in a TW active system.
 * An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
 * Thargoid War reactivation (settlement reboot) missions are now tracked: `🛠️ (missions)`, both for the station issuing the mission and for the system where the settlement was reactivated.
-* Show hand cursor over help text to make it clearer you can click it to show the legend window.
 
 ### Changes:
 
 * Pop-up legend window now contains a list of the Thargoid vessel type abbreviations.
+* Show hand cursor over help text to make it clearer you can click it to show the legend window.
 
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 

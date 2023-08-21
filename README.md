@@ -8,7 +8,16 @@ A tool to track and report your Background Simulation (BGS) and Thargoid War (TW
 
 Based on BGS-Tally v2.0 by tezw21: [Original tezw21 BGS-Tally-v2.0 Project](https://github.com/tezw21/BGS-Tally-v2.0)
 
-This modified version includes automatic on-foot Conflict Zone tracking (with settlement names), manual in-space Conflict Zone tracking, Discord-ready information, quick Copy to Clipboard function for the Discord text, posting directly to Discord and an API to send data to other web applications.
+As well as all the BGS tracking from Tez's original version, this modified version includes:
+
+* Automatic on-foot Conflict Zone tracking (with settlement names)
+* Automatic in-space Conflict Zone tracking
+* TW tracking
+* Targeted CMDR logging and Inara lookup for CMDR and Squadron
+* Fleet Carrier materials tracking
+* Fleet Carrier jump tracking
+* Discord-ready information - quick Copy to Clipboard for the Discord text as well as posting directly to Discord
+* An API to send data to other web applications.
 
 
 # Initial Installation and Use

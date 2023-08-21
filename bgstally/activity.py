@@ -48,7 +48,8 @@ MISSIONS_TW_COLLECT = [
 ]
 MISSIONS_TW_EVAC_LOW = [
     'Mission_TW_Rescue_Alert_name', # "Evacuate n injured personnel" (cargo)
-    'Mission_TW_PassengerEvacuation_Alert_name' # "n Refugees requesting evacuation" (passenger)
+    'Mission_TW_PassengerEvacuation_Alert_name', # "n Refugees requesting evacuation" (passenger)
+    'Mission_TW_RefugeeBulk_name' # "Evacuate xxx's group of refugees" (passenger)
 ]
 MISSIONS_TW_EVAC_MED = [
     'Mission_TW_Rescue_UnderAttack_name', # "Evacuate n wounded" (cargo)
@@ -66,11 +67,14 @@ MISSIONS_TW_MASSACRE = [
     'Mission_TW_Massacre_Hydra_Singular_name', 'Mission_TW_Massacre_Hydra_Plural_name',
     'Mission_TW_Massacre_Orthrus_Singular_name', 'Mission_TW_Massacre_Orthrus_Plural_name'
 ]
+MISSIONS_TW_REACTIVATE = [
+    'Mission_TW_OnFoot_Reboot_Occupied_MB_name'
+]
 
 CZ_GROUND_LOW_CB_MAX = 5000
 CZ_GROUND_MED_CB_MAX = 38000
 
-TW_CBS = {65000: 's', 75000: 's', 6500000: 'c', 20000000: 'b', 25000000: 'o', 34000000: 'm', 50000000: 'h'}
+TW_CBS = {25000: 'r', 65000: 's', 75000: 's', 4500000: 'sg', 6500000: 'c', 20000000: 'b', 25000000: 'o', 34000000: 'm', 50000000: 'h'}
 
 
 class Activity:
@@ -124,9 +128,12 @@ class Activity:
         """
         Load an activity file
         """
-        with open(filepath) as activityfile:
-            self._from_dict(json.load(activityfile))
-            self.recalculate_zero_activity()
+        try:
+            with open(filepath) as activityfile:
+                self._from_dict(json.load(activityfile))
+                self.recalculate_zero_activity()
+        except Exception as e:
+            Debug.logger.info(f"Unable to load {filepath}")
 
 
     def save(self, filepath: str):
@@ -174,7 +181,9 @@ class Activity:
                 for faction_name, faction_data in system['Factions'].items():
                     system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'])
                 system['TWKills'] = self._get_new_tw_kills_data()
-                # Note: system['TWSandR'] data is carried forward
+                # Note: system['TWSandR'] scooped data is carried forward, delivered data is cleared
+                for d in system['TWSandR'].values():
+                    d['delivered'] = 0
             else:
                 # Delete the whole system
                 del self.systems[system_address]
@@ -188,9 +197,6 @@ class Activity:
         """
         The user has entered a system
         """
-        try: test = journal_entry['Factions']
-        except KeyError: return
-
         self.dirty = True
         current_system = None
 
@@ -207,28 +213,29 @@ class Activity:
 
         self._update_system_data(current_system)
 
-        for faction in journal_entry['Factions']:
-            if faction['Name'] == "Pilots' Federation Local Branch": continue
+        if 'Factions' in journal_entry:
+            for faction in journal_entry['Factions']:
+                if faction['Name'] == "Pilots' Federation Local Branch": continue
 
-            # Ignore conflict states in FactionState as we can't trust they always come in pairs. We deal with conflicts separately below.
-            faction_state = faction['FactionState'] if faction['FactionState'] not in STATES_WAR and faction['FactionState'] not in STATES_ELECTION else "None"
+                # Ignore conflict states in FactionState as we can't trust they always come in pairs. We deal with conflicts separately below.
+                faction_state = faction['FactionState'] if faction['FactionState'] not in STATES_WAR and faction['FactionState'] not in STATES_ELECTION else "None"
 
-            if faction['Name'] in current_system['Factions']:
-                # We have this faction, ensure it's up to date with latest state
-                faction_data = current_system['Factions'][faction['Name']]
-                self._update_faction_data(faction_data, faction_state)
-            else:
-                # We do not have this faction, create a new clean entry
-                current_system['Factions'][faction['Name']] = self._get_new_faction_data(faction['Name'], faction_state)
+                if faction['Name'] in current_system['Factions']:
+                    # We have this faction, ensure it's up to date with latest state
+                    faction_data = current_system['Factions'][faction['Name']]
+                    self._update_faction_data(faction_data, faction_state)
+                else:
+                    # We do not have this faction, create a new clean entry
+                    current_system['Factions'][faction['Name']] = self._get_new_faction_data(faction['Name'], faction_state)
 
-        # Set war states for pairs of factions in War / Civil War / Elections
-        for conflict in journal_entry.get('Conflicts', []):
-            if conflict['Status'] != "active": continue
+            # Set war states for pairs of factions in War / Civil War / Elections
+            for conflict in journal_entry.get('Conflicts', []):
+                if conflict['Status'] != "active": continue
 
-            if conflict['Faction1']['Name'] in current_system['Factions'] and conflict['Faction2']['Name'] in current_system['Factions']:
-                conflict_state = "War" if conflict['WarType'] == "war" else "CivilWar" if conflict['WarType'] == "civilwar" else "Election" if conflict['WarType'] == "election" else "None"
-                current_system['Factions'][conflict['Faction1']['Name']]['FactionState'] = conflict_state
-                current_system['Factions'][conflict['Faction2']['Name']]['FactionState'] = conflict_state
+                if conflict['Faction1']['Name'] in current_system['Factions'] and conflict['Faction2']['Name'] in current_system['Factions']:
+                    conflict_state = "War" if conflict['WarType'] == "war" else "CivilWar" if conflict['WarType'] == "civilwar" else "Election" if conflict['WarType'] == "election" else "None"
+                    current_system['Factions'][conflict['Faction1']['Name']]['FactionState'] = conflict_state
+                    current_system['Factions'][conflict['Faction2']['Name']]['FactionState'] = conflict_state
 
         self.recalculate_zero_activity()
         state.current_system_id = str(current_system['SystemAddress'])
@@ -283,7 +290,7 @@ class Activity:
                         self.bgstally.ui.indicate_activity = True
 
         # Thargoid War
-        if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH + MISSIONS_TW_MASSACRE and mission is not None:
+        if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH + MISSIONS_TW_MASSACRE + MISSIONS_TW_REACTIVATE and mission is not None:
             mission_station = mission.get('Station', "")
             if mission_station != "":
                 for system_address, system in self.systems.items():
@@ -346,6 +353,14 @@ class Activity:
                             case "$MissionUtil_FactionTag_Orthrus;":
                                 tw_stations[mission_station]['massacre']['o']['count'] += 1
                                 tw_stations[mission_station]['massacre']['o']['sum'] += mission.get('KillCount', -1)
+                    elif journal_entry['Name'] in MISSIONS_TW_REACTIVATE:
+                        # Show activity indicator
+                        self.bgstally.ui.indicate_activity = True
+                        # This tracking is unusual - we track BOTH against the station where the mission was completed AND the system where the settlement was reactivated
+                        tw_stations[mission_station]['reactivate'] += 1
+                        destination_system = self._get_system_by_name(mission['DestinationSystem'])
+                        if destination_system is not None:
+                            destination_system['TWReactivate'] += 1
 
         self.recalculate_zero_activity()
         mission_log.delete_mission_by_id(journal_entry['MissionID'])
@@ -386,7 +401,12 @@ class Activity:
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
-            faction['CartData'] += journal_entry['TotalEarnings']
+            base_value:int = journal_entry.get('BaseValue', 0)
+            bonus:int = journal_entry.get('Bonus', 0)
+            total_earnings:int = journal_entry.get('TotalEarnings', 0)
+            if total_earnings < base_value + bonus: total_earnings = base_value + bonus
+
+            faction['CartData'] += total_earnings
             self.recalculate_zero_activity()
 
 
@@ -479,7 +499,8 @@ class Activity:
         if not current_system: return
 
         # Handle SandR tissue samples first
-        if 'thargoidtissuesample' in journal_entry.get('Type', "").lower():
+        cargo_type:str = journal_entry.get('Type', "").lower()
+        if 'thargoidtissuesample' in cargo_type or 'thargoidscouttissuesample' in cargo_type:
             self._search_and_rescue_handin('t', journal_entry.get('Count', 0))
             # Fall through to BGS tracking for standard trade sale
 
@@ -558,6 +579,22 @@ class Activity:
         state.last_settlement_approached = {'timestamp': journal_entry['timestamp'], 'name': journal_entry['Name'], 'size': None}
 
 
+    def destination_dropped(self, journal_entry: dict, state: State):
+        """
+        Handle drop at a supercruise destination
+        """
+        current_system = self.systems.get(state.current_system_id)
+        if not current_system: return
+
+        match journal_entry.get('Type', "").lower():
+            case type if type.startswith("$warzone_pointrace_low"):
+                state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'l', 'counted': False}
+            case type if type.startswith("$warzone_pointrace_med"):
+                state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'm', 'counted': False}
+            case type if type.startswith("$warzone_pointrace_high"):
+                state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'h', 'counted': False}
+
+
     def cb_received(self, journal_entry: Dict, state: State):
         """
         Handle a combat bond received for a kill
@@ -566,35 +603,55 @@ class Activity:
         if not current_system: return
 
         # Check for Thargoid Kill
-        if journal_entry.get('VictimFaction') == "$faction_Thargoid;":
-            tw_ship:str = TW_CBS.get(journal_entry['Reward'])
-            if tw_ship: current_system['TWKills'][tw_ship] += 1
-
-            # Show activity indicator
-            self.bgstally.ui.indicate_activity = True
-
+        if journal_entry.get('VictimFaction', "").lower() == "$faction_thargoid;":
+            self._cb_tw(journal_entry, current_system)
             return
 
-        # Otherwise, must be on-ground for CB kill tracking
-        if state.last_settlement_approached == {}: return
+        # Otherwise, must be on-ground or in-space CZ for CB kill tracking
+        if state.last_settlement_approached != {}:
+            timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_settlement_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+            if timedifference > timedelta(minutes=5):
+                # Too long since we last approached a settlement, we can't be sure we're fighting at that settlement, clear down
+                state.last_settlement_approached = {}
+                # Fall through to check space CZs too
+            else:
+                # We're within the timeout, refresh timestamp and handle the CB
+                state.last_settlement_approached['timestamp'] = journal_entry['timestamp']
+                self._cb_ground_cz(journal_entry, current_system, state)
+
+        if state.last_spacecz_approached != {}:
+            timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_spacecz_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+            if timedifference > timedelta(minutes=5):
+                # Too long since we last entered a space cz, we can't be sure we're fighting at that cz, clear down
+                state.last_spacecz_approached = {}
+            else:
+                # We're within the timeout, refresh timestamp and handle the CB
+                state.last_spacecz_approached['timestamp'] = journal_entry['timestamp']
+                self._cb_space_cz(journal_entry, current_system, state)
+
+
+    def _cb_tw(self, journal_entry:dict, current_system:dict):
+        """
+        We are logging a Thargoid kill
+        """
+        tw_ship:str = TW_CBS.get(journal_entry.get('Reward', 0))
+        if tw_ship: current_system['TWKills'][tw_ship] += 1
+
+        # Show activity indicator
+        self.bgstally.ui.indicate_activity = True
+
+
+    def _cb_ground_cz(self, journal_entry:dict, current_system:dict, state:State):
+        """
+        We are in an active ground CZ
+        """
+        faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
+        if not faction: return
 
         self.dirty = True
 
         # Show activity indicator
         self.bgstally.ui.indicate_activity = True
-
-        timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_settlement_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
-        if timedifference > timedelta(minutes=5):
-            # Too long since we last approached a settlement, we can't be sure we're fighting at that settlement, clear down
-            state.last_settlement_approached = {}
-            return
-        else:
-            # We're within the timeout, refresh timestamp
-            state.last_settlement_approached['timestamp'] = journal_entry['timestamp']
-
-        # Bond issued within a short time after approaching settlement
-        faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
-        if not faction: return
 
         # Add settlement to this faction's list, if not already present
         if state.last_settlement_approached['name'] not in faction['GroundCZSettlements']:
@@ -625,7 +682,7 @@ class Activity:
                 # Increment overall 'Med' count for this faction
                 faction['GroundCZ']['m'] = str(int(faction['GroundCZ'].get('m', '0')) + 1)
                 # Decrement overall previous size count if we previously counted it
-                if previous_size != None: faction['GroundCZ'][previous_size] -= 1
+                if previous_size != None: faction['GroundCZ'][previous_size] = str(int(faction['GroundCZ'].get(previous_size, '0')) - 1)
                 # Set faction settlement type
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'm'
                 # Store last settlement type
@@ -636,11 +693,33 @@ class Activity:
                 # Increment overall 'High' count for this faction
                 faction['GroundCZ']['h'] = str(int(faction['GroundCZ'].get('h', '0')) + 1)
                 # Decrement overall previous size count if we previously counted it
-                if previous_size != None: faction['GroundCZ'][previous_size] -= 1
+                if previous_size != None: faction['GroundCZ'][previous_size] = str(int(faction['GroundCZ'].get(previous_size, '0')) - 1)
                 # Set faction settlement type
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'h'
                 # Store last settlement type
                 state.last_settlement_approached['size'] = 'h'
+
+        self.recalculate_zero_activity()
+
+
+    def _cb_space_cz(self, journal_entry:dict, current_system:dict, state:State):
+        """
+        We are in an active space CZ
+        """
+        faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
+        if not faction: return
+
+        # If we've already counted this CZ, exit
+        if state.last_spacecz_approached.get('counted', False): return
+
+        state.last_spacecz_approached['counted'] = True
+        self.dirty = True
+
+        # Show activity indicator
+        self.bgstally.ui.indicate_activity = True
+
+        type:str = state.last_spacecz_approached.get('type', 'l')
+        faction['SpaceCZ'][type] = str(int(faction['SpaceCZ'].get(type, '0')) + 1)
 
         self.recalculate_zero_activity()
 
@@ -658,7 +737,7 @@ class Activity:
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
             case 'usscargoblackbox': key = 'bb'
-            case _ as cargo_type if "thargoidtissuesample" in cargo_type: key = 't'
+            case _ as cargo_type if "thargoidtissuesample" in cargo_type or "thargoidscouttissuesample" in cargo_type: key = 't'
 
         if key is None: return
 
@@ -782,14 +861,15 @@ class Activity:
                 'passengers': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
                 'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
                 'cargo': {'count': 0, 'sum': 0},
-                'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}}
+                'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}},
+                'reactivate': 0}
 
 
     def _get_new_tw_kills_data(self):
         """
         Get a new data structure for storing Thargoid War Kills
         """
-        return {'s': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
+        return {'r': 0, 's': 0, 'sg': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
 
 
     def _get_new_tw_sandr_data(self):
@@ -806,6 +886,8 @@ class Activity:
         # From < v3.1.0 to 3.1.0
         if not 'TWKills' in system_data: system_data['TWKills'] = self._get_new_tw_kills_data()
         if not 'TWSandR' in system_data: system_data['TWSandR'] = self._get_new_tw_sandr_data()
+        # From < 3.2.0 to 3.2.0
+        if not 'TWReactivate' in system_data: system_data['TWReactivate'] = 0
 
 
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):
@@ -852,6 +934,9 @@ class Activity:
             faction_data['TradeBuy'] = [{'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}]
         if not 'TradeSell' in faction_data:
             faction_data['TradeSell'] = [{'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}]
+        # From < 3.2.0 to 3.2.0
+        for station in faction_data['TWStations'].values():
+            if not 'reactivate' in station: station['reactivate'] = 0
 
 
     def _is_faction_data_zero(self, faction_data: Dict):
@@ -870,6 +955,16 @@ class Activity:
                 faction_data['GroundCZSettlements'] == {} and \
                 int(faction_data['Scenarios']) == 0 and \
                 faction_data['TWStations'] == {}
+
+
+    def _get_system_by_name(self, system_name:str) -> dict | None:
+        """
+        Retrieve the data for a system by its name, or None if system not found
+        """
+        for system in self.systems.values():
+            if system['System'] == system_name: return system
+
+        return None
 
 
     def _as_dict(self):

@@ -60,10 +60,10 @@ class Overlay:
             self.edmcoverlay.send_shape(f"bgstally-frame-{frame_name}", "rect", border_colour, fill_colour, fi["x"], fi["y"], fi["w"], fi["h"], ttl=ttl)
 
         except Exception as e:
-                    if not self.problem_displaying:
-                        # Only log a warning about failure once
-                        self.problem_displaying = True
-                        Debug.logger.info(f"Could not display overlay message")
+            if not self.problem_displaying:
+                # Only log a warning about failure once
+                self.problem_displaying = True
+                Debug.logger.info(f"Could not display overlay message")
 
 
     def display_progress_bar(self, frame_name: str, message: str, progress: float = 0, ttl_override: int = None):
@@ -118,7 +118,7 @@ class Overlay:
         if frame == "info":
             return {"border_colour": "green", "fill_colour": "green", "text_colour": "#ffffff", "x": 900, "y": 5, "w": 100, "h": 25, "ttl": 30, "text_size": "normal"}
         elif frame == "indicator":
-            return {"border_colour": "#ffffff", "fill_colour": "#00cc00", "text_colour": "red", "x": 970, "y": 5, "w": 15, "h": 20, "ttl": 1, "text_size": "normal"}
+            return {"border_colour": "#ffffff", "fill_colour": "#00cc00", "text_colour": "red", "x": 970, "y": 10, "w": 10, "h": 15, "ttl": 1, "text_size": "normal"}
         elif frame == "tick":
             return {"border_colour": None, "fill_colour": None, "text_colour": "#ffffff", "x": 1000, "y": 0, "w": 100, "h": 25, "ttl": 3, "text_size": "large"}
         elif frame == "tickwarn":

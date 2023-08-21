@@ -75,9 +75,6 @@ class BGSTally:
         self.ui.shut_down()
         self.save_data()
 
-        if self.update_manager.update_available:
-            self.update_manager.update_plugin()
-
 
     def journal_entry(self, cmdr, is_beta, system, station, entry, state):
         """
@@ -156,8 +153,9 @@ class BGSTally:
                 dirty = True
 
             case 'MissionAccepted':
-                self.mission_log.add_mission(entry.get('Name', ""), entry.get('Faction', ""), entry.get('MissionID', ""), entry.get('Expiry', ""), system, station,
-                    entry.get('Count', -1), entry.get('PassengerCount', -1), entry.get('KillCount', -1))
+                self.mission_log.add_mission(entry.get('Name', ""), entry.get('Faction', ""), entry.get('MissionID', ""), entry.get('Expiry', ""),
+                                             entry.get('DestinationSystem', ""), entry.get('DestinationSettlement', ""), system, station,
+                                             entry.get('Count', -1), entry.get('PassengerCount', -1), entry.get('KillCount', -1))
                 dirty = True
 
             case 'MissionCompleted':
@@ -196,6 +194,14 @@ class BGSTally:
                 activity.ship_targeted(entry, self.state)
                 self.target_log.ship_targeted(entry, system)
                 dirty = True
+
+            case 'SupercruiseDestinationDrop':
+                activity.destination_dropped(entry, self.state)
+                dirty = True
+
+            case 'Undocked':
+                self.state.station_faction = ""
+                self.state.station_type = ""
 
         if dirty:
             self.save_data()

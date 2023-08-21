@@ -28,8 +28,11 @@ class FleetCarrier:
         """
         file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
         if path.exists(file):
-            with open(file) as json_file:
-                self._from_dict(json.load(json_file))
+            try:
+                with open(file) as json_file:
+                    self._from_dict(json.load(json_file))
+            except Exception as e:
+                Debug.logger.info(f"Unable to load {file}")
 
 
     def save(self):

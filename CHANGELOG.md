@@ -4,49 +4,58 @@
 
 ### New Features:
 
+* Space Conflict Zones are now tracked automatically. As with Ground CZs, the game doesn't give us enough information to detect whether you've actually **won** the CZ, so if you drop in and log a kill within 5 minutes, this is tallied as a win. Manual controls are still available to adjust if you need.
 * Thargoid War system progress is now displayed as a progress bar on the in-game overlay when in a TW active system.
 * An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
+* Thargoid War reactivation (settlement reboot) missions are now tracked: `🛠️ (missions)`, both for the station issuing the mission and for the system where the settlement was reactivated.
+
+### Changes:
+
+* Pop-up legend window now contains a list of the Thargoid vessel type abbreviations.
+* Show hand cursor over help text to make it clearer you can click it to show the legend window.
+
+### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/activities` endpoint: Thargoid War reactivation missions now included in `systems/[system]/factions/[faction]/stations/[station]/twreactivate`
+* `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`
 
 
-## v3.1.0-xx - xxxx-xx-xx
-
-### Bug Fixes:
-
-* Fix failure of networking thread, and therefore all subsequent networking calls, if an API discovery request detects new API features during startup.
-* Fix Thargoid tissue sample Search and Rescue pickup and handin.
-
-
-## v3.1.0-a2 - 2023-08-05
-
-### Bug Fixes:
-
-* Thargoid War S&R collection / dropoff wasn't being reliably tallied.
-
-
-## v3.1.0-a1 - 2023-04-30
+## v3.1.0 - 2023-08-13
 
 ### New Features:
 
-* Thargoid War kills are now tracked for each vessel type: `💀 (kills)`. But **please be aware**: BGS-Tally will only count a kill if it is logged in your game journal. This reliably happens if you solo kill a Thargoid, and sometimes happens when you kill in a Team or with others.  However, when not solo-killing, this is **highly unreliable**. Please don't file a bug if you find your kills aren't being tallied when fighting with other CMDRs in the instance.
+* Thargoid War kills are now tracked for each vessel type: `💀 (kills)`. But **please be aware**: BGS-Tally will only count a kill if it is logged in your game journal. This reliably happens if you solo kill a Thargoid, and usually happens (since game update 16) when you kill in a Team or with others.
 * Thargoid War Search and Rescue collection and hand-in tracking. BGS-Tally now tracks where you pick up occupied and damaged escape pods ⚰️, black boxes ⬛ and tissue samples 🌱. You can hand them in anywhere, but they are tallied in the system they were collected.
 * You can now delete CMDRs from the CMDR target list history.
 * Targets older than 90 days are automatically removed from the CMDR target list history.
 * When a friend request is received from another player, their details are looked up on Inara and they are added to the target log. Note that the squadron ID and legal status will be shown as '----' as that information is not available for friend requests.
 * Carrier jump reporting implemented, automatically reporting your carrier jumps (and cancelled jumps) to a Discord channel of your choice.
+* Thargoid War Revenant kills are now tracked (`R` in report).
+* Thargoid War Scythe and Glaive kills are now tracked (`S/G` in report).
+* Track the new TW evacuation mission released in Update 16.
 
 ### Changes:
 
 * Thargoid War massacre missions are now labelled slightly differently - `💀 (missions)` - in line with the labelling for kills - `💀 (kills)`.
 * Posting targeted CMDR information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
+* Posting information on Discord now goes to a separate 'CMDR Information' channel, if you configure one. It will fall back to using the BGS channel.
+* Exploration data tallying now takes into account not just the `TotalEarnings` logged but also the `BaseValue` and `Bonus`. The larger value is used if these differ.  Note this is now the same logic that EDDiscovery uses.
+* If there is a new version of BGS-Tally available, it is downloaded and prepared during **launch** of the plugin instead of **shutdown**. You still need to relaunch EDMC to get the new version, but this change should mean that if there is a critical plugin bug that kills the plugin, we should be able to fix it with an auto-update.
 
 ### Bug Fixes:
 
 * BGS-Tally was crashing on load when running on Linux. This is now fixed.
+* Fix failure of networking thread, and therefore all subsequent networking calls, if an API discovery request detects new API features during startup.
+* TW kills were not being logged to the correct system if it was a zero-population system. This was because historically BGST only dealt with BGS logging, so ignored zero-pop systems.  We now create tracking entries for these systems.
+* Harden all file loading and JSON parsing to protect against corrupted data on disk.
+* Potential fix for mis-tallying of ground CZs when other commanders are fighting.
+* Check for main UI frame before attempting to update the status text. Protects against rare errors where the status bar was updated before the main window has fully initialised.
 
-### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/c2adeddc-f874-42d3-b450-49bd59ed1a79)):
 
 * `/activities` endpoint: Thargoid war kills now included in `systems/[system]/twkills`
 * `/activities` endpoint: Thargoid search and rescue counts now included in `systems/[system]/twsandr`
+* `/events` endpoint: `StationFaction` is now an empty string "" when undocked.
 
 
 ## v3.0.2 - 2023-04-11

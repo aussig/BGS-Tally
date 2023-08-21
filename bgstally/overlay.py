@@ -60,10 +60,10 @@ class Overlay:
             self.edmcoverlay.send_shape(f"bgstally-frame-{frame_name}", "rect", border_colour, fill_colour, fi["x"], fi["y"], fi["w"], fi["h"], ttl=ttl)
 
         except Exception as e:
-                    if not self.problem_displaying:
-                        # Only log a warning about failure once
-                        self.problem_displaying = True
-                        Debug.logger.info(f"Could not display overlay message")
+            if not self.problem_displaying:
+                # Only log a warning about failure once
+                self.problem_displaying = True
+                Debug.logger.info(f"Could not display overlay message")
 
 
     def display_progress_bar(self, frame_name: str, message: str, progress: float = 0, ttl_override: int = None):

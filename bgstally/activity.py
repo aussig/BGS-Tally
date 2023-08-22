@@ -943,6 +943,18 @@ class Activity:
                 'reactivate': 0}
 
 
+    def _get_new_aggregate_tw_station_data(self):
+        """
+        Get a new data structure for aggregating Thargoid War station data when displaying in text reports
+        """
+        return {'mission_count_total': 0,
+                'passengers': {'count': 0, 'sum': 0},
+                'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
+                'cargo': {'count': 0, 'sum': 0},
+                'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}},
+                'reactivate': 0}
+
+
     def _get_new_tw_kills_data(self):
         """
         Get a new data structure for storing Thargoid War Kills
@@ -1074,14 +1086,14 @@ class Activity:
             if sum(int(d['value']) for d in faction['TradeBuy']) > 0:
                 # Buy brackets currently range from 0 - 3
                 activity_text += f"{cyan('TrdBuy', fp=fp)} " \
-                    + f"🅻:{green(human_format(faction['TradeBuy'][2]['value']), fp=fp)} " \
-                    + f"🅷:{green(human_format(faction['TradeBuy'][3]['value']), fp=fp)} "
+                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeBuy'][2]['value']), fp=fp)} " \
+                    + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeBuy'][3]['value']), fp=fp)} "
             if sum(int(d['value']) for d in faction['TradeSell']) > 0:
                 # Sell brackets currently range from 0 - 3
                 activity_text += f"{cyan('TrdProfit', fp=fp)} " \
-                    + f"🆉:{green(human_format(faction['TradeSell'][0]['profit']), fp=fp)} " \
-                    + f"🅻:{green(human_format(faction['TradeSell'][2]['profit']), fp=fp)} " \
-                    + f"🅷:{green(human_format(faction['TradeSell'][3]['profit']), fp=fp)} "
+                    + f"{'🆉' if discord else '[Z]'}:{green(human_format(faction['TradeSell'][0]['profit']), fp=fp)} " \
+                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeSell'][2]['profit']), fp=fp)} " \
+                    + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeSell'][3]['profit']), fp=fp)} "
         activity_text += f"{cyan('TrdBMProfit', fp=fp)} {green(human_format(faction['BlackMarketProfit']), fp=fp)} " if faction['BlackMarketProfit'] != 0 else ""
         activity_text += f"{white('Expl', fp=fp)} {green(human_format(faction['CartData']), fp=fp)} " if faction['CartData'] != 0 else ""
         activity_text += f"{grey('Exo', fp=fp)} {green(human_format(faction['ExoData']), fp=fp)} " if faction['ExoData'] != 0 else ""
@@ -1099,7 +1111,7 @@ class Activity:
 
         for settlement_name in faction.get('GroundCZSettlements', {}):
             if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON:
-                faction_text += f"  ⚔️ {settlement_name} x {green(faction['GroundCZSettlements'][settlement_name]['count'], fp=fp)}\n"
+                faction_text += f"  {'⚔️' if discord else '[X]'} {settlement_name} x {green(faction['GroundCZSettlements'][settlement_name]['count'], fp=fp)}\n"
 
         return faction_text
 
@@ -1110,6 +1122,8 @@ class Activity:
         """
         system_text = ""
         system_stations = {}
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
 
         # Faction-specific tally
         for faction in system['Factions'].values():
@@ -1155,60 +1169,48 @@ class Activity:
             system_text += f"🍀 System activity\n"
             if kills > 0:
                 system_text += f"  💀 (kills): " \
-                                    + f"{red('R')} x {green(system['TWKills'].get('r', 0))}, " \
-                                    + f"{red('S')} x {green(system['TWKills'].get('s', 0))}, " \
-                                    + f"{red('S/G')} x {green(system['TWKills'].get('sg', 0))}, " \
-                                    + f"{red('C')} x {green(system['TWKills'].get('c', 0))}, " \
-                                    + f"{red('B')} x {green(system['TWKills'].get('b', 0))}, " \
-                                    + f"{red('M')} x {green(system['TWKills'].get('m', 0))}, " \
-                                    + f"{red('H')} x {green(system['TWKills'].get('h', 0))}, " \
-                                    + f"{red('O')} x {green(system['TWKills'].get('o', 0))} \n"
+                                    + f"{red('R', fp=fp)} x {green(system['TWKills'].get('r', 0), fp=fp)}, " \
+                                    + f"{red('S', fp=fp)} x {green(system['TWKills'].get('s', 0), fp=fp)}, " \
+                                    + f"{red('S/G', fp=fp)} x {green(system['TWKills'].get('sg', 0), fp=fp)}, " \
+                                    + f"{red('C', fp=fp)} x {green(system['TWKills'].get('c', 0), fp=fp)}, " \
+                                    + f"{red('B', fp=fp)} x {green(system['TWKills'].get('b', 0), fp=fp)}, " \
+                                    + f"{red('M', fp=fp)} x {green(system['TWKills'].get('m', 0), fp=fp)}, " \
+                                    + f"{red('H', fp=fp)} x {green(system['TWKills'].get('h', 0), fp=fp)}, " \
+                                    + f"{red('O', fp=fp)} x {green(system['TWKills'].get('o', 0), fp=fp)} \n"
             if sandr > 0:
                 system_text += "  "
                 pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
-                if pods > 0: system_text += f"⚰️ x {green(pods)} "
+                if pods > 0: system_text += f"⚰️ x {green(pods, fp=fp)} "
                 bbs:int = system['TWSandR']['bb']['delivered']
-                if bbs > 0: system_text += f"⬛ x {green(bbs)} "
+                if bbs > 0: system_text += f"⬛ x {green(bbs, fp=fp)} "
                 tissue:int = system['TWSandR']['t']['delivered']
-                if tissue > 0: system_text += f"🌱 x {green(tissue)} "
+                if tissue > 0: system_text += f"🌱 x {green(tissue, fp=fp)} "
                 system_text += "\n"
             if reactivate > 0:
-                system_text += f"  🛠️ x {green(reactivate)} settlements\n"
+                system_text += f"  🛠️ x {green(reactivate, fp=fp)} settlements\n"
 
         # Station-specific tally
         for system_station_name, system_station in system_stations.items():
-            system_text += f"🍀 {system_station_name}: {green(system_station['mission_count_total'])} missions\n"
+            system_text += f"🍀 {system_station_name}: {green(system_station['mission_count_total'], fp=fp)} missions\n"
             if (system_station['escapepods']['m']['sum'] > 0):
-                system_text += f"  ❕ x {green(system_station['escapepods']['m']['sum'])} - {green(system_station['escapepods']['m']['count'])} missions\n"
+                system_text += f"  ❕ x {green(system_station['escapepods']['m']['sum'], fp=fp)} - {green(system_station['escapepods']['m']['count'], fp=fp)} missions\n"
             if (system_station['escapepods']['h']['sum'] > 0):
-                system_text += f"  ❗ x {green(system_station['escapepods']['h']['sum'])} - {green(system_station['escapepods']['h']['count'])} missions\n"
+                system_text += f"  ❗ x {green(system_station['escapepods']['h']['sum'], fp=fp)} - {green(system_station['escapepods']['h']['count'], fp=fp)} missions\n"
             if (system_station['cargo']['sum'] > 0):
-                system_text += f"  📦 x {green(system_station['cargo']['sum'])} - {green(system_station['cargo']['count'])} missions\n"
+                system_text += f"  📦 x {green(system_station['cargo']['sum'], fp=fp)} - {green(system_station['cargo']['count'], fp=fp)} missions\n"
             if (system_station['escapepods']['l']['sum'] > 0):
-                system_text += f"  ⚕️ x {green(system_station['escapepods']['l']['sum'])} - {green(system_station['escapepods']['l']['count'])} missions\n"
+                system_text += f"  ⚕️ x {green(system_station['escapepods']['l']['sum'], fp=fp)} - {green(system_station['escapepods']['l']['count'], fp=fp)} missions\n"
             if (system_station['passengers']['sum'] > 0):
-                system_text += f"  🧍 x {green(system_station['passengers']['sum'])} - {green(system_station['passengers']['count'])} missions\n"
+                system_text += f"  🧍 x {green(system_station['passengers']['sum'], fp=fp)} - {green(system_station['passengers']['count'], fp=fp)} missions\n"
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_text += f"  💀 (missions): {red('S')} x {green(system_station['massacre']['s']['sum'])}, {red('C')} x {green(system_station['massacre']['c']['sum'])}, " \
-                                    + f"{red('B')} x {green(system_station['massacre']['b']['sum'])}, {red('M')} x {green(system_station['massacre']['m']['sum'])}, " \
-                                    + f"{red('H')} x {green(system_station['massacre']['h']['sum'])}, {red('O')} x {green(system_station['massacre']['o']['sum'])} " \
-                                    + f"- {green((sum(x['count'] for x in system_station['massacre'].values())))} missions\n"
+                system_text += f"  💀 (missions): {red('S', fp=fp)} x {green(system_station['massacre']['s']['sum'], fp=fp)}, {red('C', fp=fp)} x {green(system_station['massacre']['c']['sum'], fp=fp)}, " \
+                                    + f"{red('B', fp=fp)} x {green(system_station['massacre']['b']['sum'], fp=fp)}, {red('M', fp=fp)} x {green(system_station['massacre']['m']['sum'], fp=fp)}, " \
+                                    + f"{red('H', fp=fp)} x {green(system_station['massacre']['h']['sum'], fp=fp)}, {red('O', fp=fp)} x {green(system_station['massacre']['o']['sum'], fp=fp)} " \
+                                    + f"- {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
             if (system_station['reactivate'] > 0):
-                system_text += f"  🛠️ x {green(system_station['reactivate'])} missions\n"
+                system_text += f"  🛠️ x {green(system_station['reactivate'], fp=fp)} missions\n"
 
         return system_text
-
-
-    def _get_new_aggregate_tw_station_data(self):
-        """
-        Get a new data structure for storing Thargoid War station data
-        """
-        return {'mission_count_total': 0,
-                'passengers': {'count': 0, 'sum': 0},
-                'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
-                'cargo': {'count': 0, 'sum': 0},
-                'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}},
-                'reactivate': 0}
 
 
     def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool):

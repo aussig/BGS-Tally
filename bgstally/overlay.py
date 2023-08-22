@@ -6,6 +6,8 @@ try:
 except ImportError:
     edmcoverlay = None
 
+HEIGHT_CHARACTER_NORMAL = 12
+HEIGHT_CHARACTER_LARGE = 18
 WIDTH_CHARACTER_NORMAL = 4
 WIDTH_CHARACTER_LARGE = 6
 
@@ -20,7 +22,7 @@ class Overlay:
         self._check_overlay()
 
 
-    def display_message(self, frame_name: str, message: str, fit_to_width: bool = False, ttl_override: int = None, text_colour_override: str = None):
+    def display_message(self, frame_name: str, message: str, fit_to_text: bool = False, ttl_override: int = None, text_colour_override: str = None, has_title: bool = False):
         """
         Display a message in the overlay
         """
@@ -29,13 +31,31 @@ class Overlay:
 
         try:
             fi:dict = self._get_frame_info(frame_name)
-            message_width:int = len(message) * WIDTH_CHARACTER_NORMAL if fi["text_size"] == "normal" else len(message) * WIDTH_CHARACTER_LARGE
+            segments:list = message.split("\n")
+            message_width:int = len(max(segments, key = len)) * WIDTH_CHARACTER_NORMAL if fi["text_size"] == "normal" else len(max(segments, key = len)) * WIDTH_CHARACTER_LARGE
+            message_height:int = len(segments) * HEIGHT_CHARACTER_NORMAL if fi["text_size"] == "normal" else len(max(segments, key = len)) * HEIGHT_CHARACTER_LARGE
             ttl:int = ttl_override if ttl_override else fi["ttl"]
             text_colour:str = text_colour_override if text_colour_override else fi["text_colour"]
 
+            # Border
             if fi["border_colour"] and fi["fill_colour"]:
-                self.edmcoverlay.send_shape(f"bgstally-frame-{frame_name}", "rect", fi["border_colour"], fi["fill_colour"], fi["x"], fi["y"], message_width + 30 if fit_to_width else fi["w"], fi["h"], ttl=ttl)
-            self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}", message, text_colour, fi["x"] + 10, fi["y"] + 5, ttl=ttl, size=fi["text_size"])
+                self.edmcoverlay.send_shape(f"bgstally-frame-{frame_name}", "rect", fi["border_colour"], fi["fill_colour"], fi["x"], fi["y"], message_width + 30 if fit_to_text else fi["w"], message_height + 10 if fit_to_text else fi["h"], ttl=ttl)
+
+            yoffset:int = 0
+            index:int = 0
+
+            # Title
+            if has_title:
+                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], text_colour, fi["x"] + 10, fi["y"] + 5 + yoffset, ttl=ttl, size="large")
+                yoffset += HEIGHT_CHARACTER_LARGE
+                index += 1
+
+            # Text
+            while index < len(segments):
+                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], text_colour, fi["x"] + 10, fi["y"] + 5 + yoffset, ttl=ttl, size=fi["text_size"])
+                yoffset += HEIGHT_CHARACTER_NORMAL if fi["text_size"] == "normal" else HEIGHT_CHARACTER_LARGE
+                index += 1
+
             self.problem_displaying = False
 
         except Exception as e:
@@ -125,4 +145,5 @@ class Overlay:
             return {"border_colour": None, "fill_colour": None, "text_colour": "red", "x": 1000, "y": 20, "w": 100, "h": 25, "ttl": 1, "text_size": "normal"}
         elif frame == "tw":
             return {"border_colour": "#1a4f09", "fill_colour": "#63029c", "text_colour": "#ffffff", "x": 1000, "y": 60, "w": 100, "h": 25, "ttl": 3, "text_size": "normal"}
-
+        elif frame == "system_info":
+            return {"border_colour": "#ffffff", "fill_colour": "#010101", "text_colour": "#ffffff", "x": 1000, "y": 95, "w": 100, "h": 100, "ttl": 30, "text_size": "normal"}

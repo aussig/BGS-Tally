@@ -67,7 +67,7 @@ class FleetCarrier:
 
         # Sort sell orders - a Dict of Dicts
         materials: dict = self.data.get('orders', {}).get('onfootmicroresources', {}).get('sales')
-        if materials is not None and materials != []:
+        if materials is not None and materials != {}:
             self.onfoot_mats_selling = sorted(materials.values(), key=lambda x: x['locName'])
         else:
             self.onfoot_mats_selling = []

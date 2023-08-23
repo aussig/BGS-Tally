@@ -1,5 +1,7 @@
-from bgstally.debug import Debug
+import textwrap
+
 from bgstally.constants import CheckStates
+from bgstally.debug import Debug
 
 try:
     from EDMCOverlay import edmcoverlay
@@ -10,6 +12,8 @@ HEIGHT_CHARACTER_NORMAL = 14
 HEIGHT_CHARACTER_LARGE = 20
 WIDTH_CHARACTER_NORMAL = 4
 WIDTH_CHARACTER_LARGE = 6
+MAX_LINES_PER_PANEL = 30
+
 
 class Overlay:
     """
@@ -31,7 +35,13 @@ class Overlay:
 
         try:
             fi:dict = self._get_frame_info(frame_name)
-            segments:list = message.split("\n")
+
+            # Split text on line breaks, then limit length of each line
+            lines:list = message.splitlines()
+            segments:list = []
+            for line in lines:
+                segments += textwrap.wrap(line, width = 70, subsequent_indent = '  ')
+
             message_width:int = len(max(segments, key = len)) * WIDTH_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(max(segments, key = len)) * WIDTH_CHARACTER_LARGE
             message_height:int = len(segments) * HEIGHT_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(max(segments, key = len)) * HEIGHT_CHARACTER_LARGE
             ttl:int = ttl_override if ttl_override else fi['ttl']
@@ -52,8 +62,18 @@ class Overlay:
                 index += 1
 
             # Text
-            while index < len(segments):
-                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], text_colour, fi['x'] + 10, fi['y'] + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+            while index <= MAX_LINES_PER_PANEL:
+                if index < len(segments):
+                    if index < MAX_LINES_PER_PANEL:
+                        # Line has content
+                        self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], text_colour, fi['x'] + 10, fi['y'] + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                    else:
+                        # Last line
+                        self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "[...]", text_colour, fi['x'] + 10, fi['y'] + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                else:
+                    # Unused line, clear
+                    self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "", text_colour, fi['x'] + 10, fi['y'] + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+
                 yoffset += HEIGHT_CHARACTER_NORMAL if fi['text_size'] == "normal" else HEIGHT_CHARACTER_LARGE
                 index += 1
 

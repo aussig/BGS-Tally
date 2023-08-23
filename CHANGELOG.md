@@ -21,6 +21,13 @@
 * `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`
 
 
+## v3.1.1 - 2023-08-23
+
+### Bug Fixes:
+
+* Fixed the Fleet Carrier screen, which was showing empty buy and sell order panels if your carrier had _either_ no buy or sell orders.
+
+
 ## v3.1.0 - 2023-08-13
 
 ### New Features:

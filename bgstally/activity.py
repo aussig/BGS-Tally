@@ -163,6 +163,23 @@ class Activity:
         return self.systems.get(self.bgstally.state.current_system_id)
 
 
+    def get_system_by_name(self, system_name:str) -> dict | None:
+        """
+        Retrieve the data for a system by its name, or None if system not found
+        """
+        for system in self.systems.values():
+            if system['System'] == system_name: return system
+
+        return None
+
+
+    def get_system_by_address(self, system_address:str) -> dict | None:
+        """
+        Retrieve the data for a system by its address, or None if system not found
+        """
+        return self.systems.get(system_address, None)
+
+
     def clear_activity(self, mission_log: MissionLog):
         """
         Clear down all activity. If there is a currently active mission in a system or it's the current system the player is in,
@@ -263,9 +280,7 @@ class Activity:
                     faction = system['Factions'].get(effect_faction_name)
                     if not faction: continue
 
-                    # Show activity indicator
-                    self.bgstally.ui.indicate_activity = True
-                    self.bgstally.ui.report_system = system_address
+                    self.bgstally.ui.show_system_report(system_address)
 
                     if inftrend == "UpGood" or inftrend == "DownGood":
                         if effect_faction_name == journal_entry['Faction']:
@@ -289,9 +304,7 @@ class Activity:
                     or (faction['FactionState'] in STATES_WAR and journal_entry['Name'] in MISSIONS_WAR) \
                     and effect_faction_name == journal_entry['Faction']:
                         faction['MissionPoints'] += 1
-                        # Show activity indicator
-                        self.bgstally.ui.indicate_activity = True
-                        self.bgstally.ui.report_system = system_address
+                        self.bgstally.ui.show_system_report(system_address)
 
         # Thargoid War
         if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH + MISSIONS_TW_MASSACRE + MISSIONS_TW_REACTIVATE and mission is not None:
@@ -307,9 +320,7 @@ class Activity:
                         tw_stations[mission_station] = self._get_new_tw_station_data(mission_station)
 
                     if mission.get('PassengerCount', -1) > -1:
-                        # Show activity indicator
-                        self.bgstally.ui.indicate_activity = True
-                        self.bgstally.ui.report_system = system_address
+                        self.bgstally.ui.show_system_report(system_address)
 
                         if journal_entry['Name'] in MISSIONS_TW_EVAC_LOW:
                             tw_stations[mission_station]['passengers']['l']['count'] += 1
@@ -321,9 +332,7 @@ class Activity:
                             tw_stations[mission_station]['passengers']['h']['count'] += 1
                             tw_stations[mission_station]['passengers']['h']['sum'] += mission.get('PassengerCount', -1)
                     elif mission.get('CommodityCount', -1) > -1:
-                        # Show activity indicator
-                        self.bgstally.ui.indicate_activity = True
-                        self.bgstally.ui.report_system = system_address
+                        self.bgstally.ui.show_system_report(system_address)
 
                         match journal_entry.get('Commodity'):
                             case "$OccupiedCryoPod_Name;":
@@ -340,9 +349,7 @@ class Activity:
                                 tw_stations[mission_station]['cargo']['count'] += 1
                                 tw_stations[mission_station]['cargo']['sum'] += mission.get('CommodityCount', -1)
                     elif mission.get('KillCount', -1) > -1:
-                        # Show activity indicator
-                        self.bgstally.ui.indicate_activity = True
-                        self.bgstally.ui.report_system = system_address
+                        self.bgstally.ui.show_system_report(system_address)
 
                         match journal_entry.get('TargetType'):
                             case "$MissionUtil_FactionTag_Scout;":
@@ -364,13 +371,11 @@ class Activity:
                                 tw_stations[mission_station]['massacre']['o']['count'] += 1
                                 tw_stations[mission_station]['massacre']['o']['sum'] += mission.get('KillCount', -1)
                     elif journal_entry['Name'] in MISSIONS_TW_REACTIVATE:
-                        # Show activity indicator
-                        self.bgstally.ui.indicate_activity = True
-                        self.bgstally.ui.report_system = system_address
+                        self.bgstally.ui.show_system_report(system_address)
 
                         # This tracking is unusual - we track BOTH against the station where the mission was completed AND the system where the settlement was reactivated
                         tw_stations[mission_station]['reactivate'] += 1
-                        destination_system = self._get_system_by_name(mission['DestinationSystem'])
+                        destination_system = self.get_system_by_name(mission['DestinationSystem'])
                         if destination_system is not None:
                             destination_system['TWReactivate'] += 1
 
@@ -389,9 +394,7 @@ class Activity:
         for system in self.systems.values():
             if mission['System'] != system['System']: continue
 
-            # Show activity indicator
-            self.bgstally.ui.indicate_activity = True
-            self.bgstally.ui.report_system = system['SystemAddress']
+            self.bgstally.ui.show_system_report(system['SystemAddress'])
 
             faction = system['Factions'].get(mission['Faction'])
             if faction: faction['MissionFailed'] += 1
@@ -411,9 +414,7 @@ class Activity:
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
-            # Show activity indicator
-            self.bgstally.ui.indicate_activity = True
-            self.bgstally.ui.report_system = current_system['SystemAddress']
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
             base_value:int = journal_entry.get('BaseValue', 0)
             bonus:int = journal_entry.get('Bonus', 0)
@@ -434,9 +435,7 @@ class Activity:
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
-            # Show activity indicator
-            self.bgstally.ui.indicate_activity = True
-            self.bgstally.ui.report_system = current_system['SystemAddress']
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
             for e in journal_entry['BioData']:
                 faction['ExoData'] += e['Value'] + e['Bonus']
@@ -454,9 +453,7 @@ class Activity:
         for bv_info in journal_entry['Factions']:
             faction = current_system['Factions'].get(bv_info['Faction'])
             if faction:
-                # Show activity indicator
-                self.bgstally.ui.indicate_activity = True
-                self.bgstally.ui.report_system = current_system['SystemAddress']
+                self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
                 if state.station_type == 'FleetCarrier':
                     faction['Bounties'] += (bv_info['Amount'] / 2)
@@ -475,9 +472,7 @@ class Activity:
 
         faction = current_system['Factions'].get(journal_entry['Faction'])
         if faction:
-            # Show activity indicator
-            self.bgstally.ui.indicate_activity = True
-            self.bgstally.ui.report_system = current_system['SystemAddress']
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
             faction['CombatBonds'] += journal_entry['Amount']
             self.recalculate_zero_activity()
@@ -495,9 +490,7 @@ class Activity:
             self.dirty = True
             bracket:int = 0
 
-            # Show activity indicator
-            self.bgstally.ui.indicate_activity = True
-            self.bgstally.ui.report_system = current_system['SystemAddress']
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
             if self.bgstally.market.available(journal_entry['MarketID']):
                 market_data:dict = self.bgstally.market.get_commodity(journal_entry['Type'])
@@ -529,9 +522,7 @@ class Activity:
             profit:int = journal_entry['TotalSale'] - cost
             bracket:int = 0
 
-            # Show activity indicator
-            self.bgstally.ui.indicate_activity = True
-            self.bgstally.ui.report_system = current_system['SystemAddress']
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
             if journal_entry.get('BlackMarket', False):
                 faction['BlackMarketProfit'] += profit
@@ -577,9 +568,7 @@ class Activity:
                     faction['Murdered'] += 1
                     self.recalculate_zero_activity()
 
-                    # Show activity indicator
-                    self.bgstally.ui.indicate_activity = True
-                    self.bgstally.ui.report_system = current_system['SystemAddress']
+                    self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
             case 'onFoot_murder':
                 # For on-foot murders, get the faction from the journal entry
@@ -588,9 +577,7 @@ class Activity:
                     faction['GroundMurdered'] += 1
                     self.recalculate_zero_activity()
 
-                    # Show activity indicator
-                    self.bgstally.ui.indicate_activity = True
-                    self.bgstally.ui.report_system = current_system['SystemAddress']
+                    self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
 
     def settlement_approached(self, journal_entry: Dict, state:State):
@@ -658,9 +645,7 @@ class Activity:
         tw_ship:str = TW_CBS.get(journal_entry.get('Reward', 0))
         if tw_ship: current_system['TWKills'][tw_ship] += 1
 
-        # Show activity indicator
-        self.bgstally.ui.indicate_activity = True
-        self.bgstally.ui.report_system = current_system['SystemAddress']
+        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
 
     def _cb_ground_cz(self, journal_entry:dict, current_system:dict, state:State):
@@ -672,9 +657,7 @@ class Activity:
 
         self.dirty = True
 
-        # Show activity indicator
-        self.bgstally.ui.indicate_activity = True
-        self.bgstally.ui.report_system = current_system['SystemAddress']
+        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
         # Add settlement to this faction's list, if not already present
         if state.last_settlement_approached['name'] not in faction['GroundCZSettlements']:
@@ -738,9 +721,7 @@ class Activity:
         state.last_spacecz_approached['counted'] = True
         self.dirty = True
 
-        # Show activity indicator
-        self.bgstally.ui.indicate_activity = True
-        self.bgstally.ui.report_system = current_system['SystemAddress']
+        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
         type:str = state.last_spacecz_approached.get('type', 'l')
         faction['SpaceCZ'][type] = str(int(faction['SpaceCZ'].get(type, '0')) + 1)
@@ -806,9 +787,7 @@ class Activity:
                 count -= allocatable
                 self.dirty = True
 
-                # Show activity indicator
-                self.bgstally.ui.indicate_activity = True
-                self.bgstally.ui.report_system = system['SystemAddress']
+                self.bgstally.ui.show_system_report(system['SystemAddress'])
 
         # count can end up > 0 here - i.e. more S&R handed in than we originally logged as scooped. Ignore, as we don't know
         # where it originally came from
@@ -848,7 +827,7 @@ class Activity:
             if system['zero_system_activity'] == False: continue
 
 
-    def generate_text(self, activity_mode: DiscordActivity, discord: bool = False):
+    def generate_text(self, activity_mode: DiscordActivity, discord: bool = False, system_name: str = None):
         """
         Generate plain text report
         """
@@ -857,6 +836,7 @@ class Activity:
         fp:bool = not discord
 
         for system in self.systems.values():
+            if system_name is not None and system['System'] != system_name: continue
             system_text:str = ""
 
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
@@ -1045,16 +1025,6 @@ class Activity:
                 faction_data['GroundCZSettlements'] == {} and \
                 int(faction_data['Scenarios']) == 0 and \
                 faction_data['TWStations'] == {}
-
-
-    def _get_system_by_name(self, system_name:str) -> dict | None:
-        """
-        Retrieve the data for a system by its name, or None if system not found
-        """
-        for system in self.systems.values():
-            if system['System'] == system_name: return system
-
-        return None
 
 
     def _generate_faction_text(self, faction: dict, discord: bool):

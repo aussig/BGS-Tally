@@ -45,7 +45,7 @@ class UI:
         self.image_button_carrier = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_carrier.png"))
 
         self.indicate_activity:bool = False
-        self.report_system:str = None
+        self.report_system_address:str = None
 
         # Single-instance windows
         self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally)
@@ -175,6 +175,14 @@ class UI:
         return frame
 
 
+    def show_system_report(self, system_address):
+        """
+        Show the system report overlay
+        """
+        self.indicate_activity = True
+        self.report_system_address = system_address
+
+
     def _worker(self) -> None:
         """
         Handle thread work for overlay
@@ -214,12 +222,11 @@ class UI:
 
                     self.bgstally.overlay.display_progress_bar("tw", f"TW War Progress in {current_system.get('System', 'Unknown')}: {percent}%", progress)
 
-            if self.report_system is not None and current_activity is not None:
-                current_system:dict = current_activity.get_current_system()
-                if current_system:
-                    self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False), fit_to_text=True, has_title=True)
-
-                self.report_system = None
+            if self.report_system_address is not None and current_activity is not None:
+                report_system:dict = current_activity.get_system_by_address(self.report_system_address)
+                if report_system is not None:
+                    self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, report_system['System']), fit_to_text=True, has_title=True)
+                self.report_system_address = None
 
             sleep(TIME_WORKER_PERIOD_S)
 

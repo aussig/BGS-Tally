@@ -27,7 +27,7 @@ Full instructions for **installation and use are [here in the wiki &rarr;](https
 
 # Updating from a Previous Version
 
-Full instructions for **upgrading from a previous version are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Upgrade)**.
+Since v3, upgrading is fully automatic. However, if you need to do a manual upgrade for some reason, **full instructions are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Upgrade)**.
 
 
 # Discord Integration

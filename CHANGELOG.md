@@ -12,7 +12,11 @@
 ### Changes:
 
 * Pop-up legend window now contains a list of the Thargoid vessel type abbreviations.
-* Show hand cursor over help text to make it clearer you can click it to show the legend window.
+* Show a hand cursor 👆 over help text to make it clearer you can click it to show the legend window.
+
+### Bug Fixes:
+
+* Some Orthrus kills were not being tallied because the bond value logged was 40m instead of the previous 25m. We can only detect the type of Thargoid via the bond value logged by the game, so BGS-Tally will now tally an Orthrus for both kill values.
 
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 

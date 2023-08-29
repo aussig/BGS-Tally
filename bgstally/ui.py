@@ -175,12 +175,12 @@ class UI:
         return frame
 
 
-    def show_system_report(self, system_address):
+    def show_system_report(self, system_address:int):
         """
         Show the system report overlay
         """
         self.indicate_activity = True
-        self.report_system_address = system_address
+        self.report_system_address = str(system_address)
 
 
     def _worker(self) -> None:

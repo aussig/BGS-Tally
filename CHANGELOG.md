@@ -9,6 +9,7 @@
 * Thargoid War system progress is now displayed as a progress bar on the in-game overlay when in a TW active system.
 * An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
 * Thargoid War reactivation (settlement reboot) missions are now tracked: `🛠️ (missions)`, both for the station issuing the mission and for the system where the settlement was reactivated.
+* Added a new setting to allow you to switch off reporting for new systems you visit. This is for CMDRs who regularly only want to report a subset of their work - it means you don't have to switch off a load of systems, you can just switch on the few you need.
 
 ### Changes:
 

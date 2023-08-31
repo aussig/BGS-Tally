@@ -4,6 +4,7 @@
 
 ### New Features:
 
+* In-game overlay now briefly displays a BGS summary for the current system when doing BGS work.
 * Space Conflict Zones are now tracked automatically. As with Ground CZs, the game doesn't give us enough information to detect whether you've actually **won** the CZ, so if you drop in and log a kill within 5 minutes, this is tallied as a win. Manual controls are still available to adjust if you need.
 * Thargoid War system progress is now displayed as a progress bar on the in-game overlay when in a TW active system.
 * An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.

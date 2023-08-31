@@ -3,11 +3,13 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Dict
 
+from bgstally.constants import CheckStates, DiscordActivity
 from bgstally.debug import Debug
-from bgstally.constants import CheckStates
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
 from bgstally.tick import Tick
+from bgstally.utils import human_format
+from thirdparty.colors import *
 
 DATETIME_FORMAT_ACTIVITY = "%Y-%m-%dT%H:%M:%S.%fZ"
 STATES_WAR = ['War', 'CivilWar']
@@ -161,6 +163,23 @@ class Activity:
         return self.systems.get(self.bgstally.state.current_system_id)
 
 
+    def get_system_by_name(self, system_name:str) -> dict | None:
+        """
+        Retrieve the data for a system by its name, or None if system not found
+        """
+        for system in self.systems.values():
+            if system['System'] == system_name: return system
+
+        return None
+
+
+    def get_system_by_address(self, system_address:str) -> dict | None:
+        """
+        Retrieve the data for a system by its address, or None if system not found
+        """
+        return self.systems.get(system_address, None)
+
+
     def clear_activity(self, mission_log: MissionLog):
         """
         Clear down all activity. If there is a currently active mission in a system or it's the current system the player is in,
@@ -261,8 +280,7 @@ class Activity:
                     faction = system['Factions'].get(effect_faction_name)
                     if not faction: continue
 
-                    # Show activity indicator
-                    self.bgstally.ui.indicate_activity = True
+                    self.bgstally.ui.show_system_report(system_address)
 
                     if inftrend == "UpGood" or inftrend == "DownGood":
                         if effect_faction_name == journal_entry['Faction']:
@@ -286,8 +304,7 @@ class Activity:
                     or (faction['FactionState'] in STATES_WAR and journal_entry['Name'] in MISSIONS_WAR) \
                     and effect_faction_name == journal_entry['Faction']:
                         faction['MissionPoints'] += 1
-                        # Show activity indicator
-                        self.bgstally.ui.indicate_activity = True
+                        self.bgstally.ui.show_system_report(system_address)
 
         # Thargoid War
         if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH + MISSIONS_TW_MASSACRE + MISSIONS_TW_REACTIVATE and mission is not None:
@@ -303,8 +320,8 @@ class Activity:
                         tw_stations[mission_station] = self._get_new_tw_station_data(mission_station)
 
                     if mission.get('PassengerCount', -1) > -1:
-                        # Show activity indicator
-                        self.bgstally.ui.indicate_activity = True
+                        self.bgstally.ui.show_system_report(system_address)
+
                         if journal_entry['Name'] in MISSIONS_TW_EVAC_LOW:
                             tw_stations[mission_station]['passengers']['l']['count'] += 1
                             tw_stations[mission_station]['passengers']['l']['sum'] += mission.get('PassengerCount', -1)
@@ -315,8 +332,8 @@ class Activity:
                             tw_stations[mission_station]['passengers']['h']['count'] += 1
                             tw_stations[mission_station]['passengers']['h']['sum'] += mission.get('PassengerCount', -1)
                     elif mission.get('CommodityCount', -1) > -1:
-                        # Show activity indicator
-                        self.bgstally.ui.indicate_activity = True
+                        self.bgstally.ui.show_system_report(system_address)
+
                         match journal_entry.get('Commodity'):
                             case "$OccupiedCryoPod_Name;":
                                 if journal_entry['Name'] in MISSIONS_TW_EVAC_LOW:
@@ -332,8 +349,8 @@ class Activity:
                                 tw_stations[mission_station]['cargo']['count'] += 1
                                 tw_stations[mission_station]['cargo']['sum'] += mission.get('CommodityCount', -1)
                     elif mission.get('KillCount', -1) > -1:
-                        # Show activity indicator
-                        self.bgstally.ui.indicate_activity = True
+                        self.bgstally.ui.show_system_report(system_address)
+
                         match journal_entry.get('TargetType'):
                             case "$MissionUtil_FactionTag_Scout;":
                                 tw_stations[mission_station]['massacre']['s']['count'] += 1
@@ -354,11 +371,11 @@ class Activity:
                                 tw_stations[mission_station]['massacre']['o']['count'] += 1
                                 tw_stations[mission_station]['massacre']['o']['sum'] += mission.get('KillCount', -1)
                     elif journal_entry['Name'] in MISSIONS_TW_REACTIVATE:
-                        # Show activity indicator
-                        self.bgstally.ui.indicate_activity = True
+                        self.bgstally.ui.show_system_report(system_address)
+
                         # This tracking is unusual - we track BOTH against the station where the mission was completed AND the system where the settlement was reactivated
                         tw_stations[mission_station]['reactivate'] += 1
-                        destination_system = self._get_system_by_name(mission['DestinationSystem'])
+                        destination_system = self.get_system_by_name(mission['DestinationSystem'])
                         if destination_system is not None:
                             destination_system['TWReactivate'] += 1
 
@@ -374,11 +391,10 @@ class Activity:
         if mission is None: return
         self.dirty = True
 
-        # Show activity indicator
-        self.bgstally.ui.indicate_activity = True
-
         for system in self.systems.values():
             if mission['System'] != system['System']: continue
+
+            self.bgstally.ui.show_system_report(system['SystemAddress'])
 
             faction = system['Factions'].get(mission['Faction'])
             if faction: faction['MissionFailed'] += 1
@@ -396,11 +412,10 @@ class Activity:
         if not current_system: return
         self.dirty = True
 
-        # Show activity indicator
-        self.bgstally.ui.indicate_activity = True
-
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+
             base_value:int = journal_entry.get('BaseValue', 0)
             bonus:int = journal_entry.get('Bonus', 0)
             total_earnings:int = journal_entry.get('TotalEarnings', 0)
@@ -418,11 +433,10 @@ class Activity:
         if not current_system: return
         self.dirty = True
 
-        # Show activity indicator
-        self.bgstally.ui.indicate_activity = True
-
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+
             for e in journal_entry['BioData']:
                 faction['ExoData'] += e['Value'] + e['Bonus']
             self.recalculate_zero_activity()
@@ -436,12 +450,11 @@ class Activity:
         if not current_system: return
         self.dirty = True
 
-        # Show activity indicator
-        self.bgstally.ui.indicate_activity = True
-
         for bv_info in journal_entry['Factions']:
             faction = current_system['Factions'].get(bv_info['Faction'])
             if faction:
+                self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+
                 if state.station_type == 'FleetCarrier':
                     faction['Bounties'] += (bv_info['Amount'] / 2)
                 else:
@@ -457,11 +470,10 @@ class Activity:
         if not current_system: return
         self.dirty = True
 
-        # Show activity indicator
-        self.bgstally.ui.indicate_activity = True
-
         faction = current_system['Factions'].get(journal_entry['Faction'])
         if faction:
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+
             faction['CombatBonds'] += journal_entry['Amount']
             self.recalculate_zero_activity()
 
@@ -478,8 +490,7 @@ class Activity:
             self.dirty = True
             bracket:int = 0
 
-            # Show activity indicator
-            self.bgstally.ui.indicate_activity = True
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
             if self.bgstally.market.available(journal_entry['MarketID']):
                 market_data:dict = self.bgstally.market.get_commodity(journal_entry['Type'])
@@ -511,8 +522,7 @@ class Activity:
             profit:int = journal_entry['TotalSale'] - cost
             bracket:int = 0
 
-            # Show activity indicator
-            self.bgstally.ui.indicate_activity = True
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
             if journal_entry.get('BlackMarket', False):
                 faction['BlackMarketProfit'] += profit
@@ -558,8 +568,7 @@ class Activity:
                     faction['Murdered'] += 1
                     self.recalculate_zero_activity()
 
-                    # Show activity indicator
-                    self.bgstally.ui.indicate_activity = True
+                    self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
             case 'onFoot_murder':
                 # For on-foot murders, get the faction from the journal entry
@@ -568,8 +577,7 @@ class Activity:
                     faction['GroundMurdered'] += 1
                     self.recalculate_zero_activity()
 
-                    # Show activity indicator
-                    self.bgstally.ui.indicate_activity = True
+                    self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
 
     def settlement_approached(self, journal_entry: Dict, state:State):
@@ -637,8 +645,7 @@ class Activity:
         tw_ship:str = TW_CBS.get(journal_entry.get('Reward', 0))
         if tw_ship: current_system['TWKills'][tw_ship] += 1
 
-        # Show activity indicator
-        self.bgstally.ui.indicate_activity = True
+        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
 
     def _cb_ground_cz(self, journal_entry:dict, current_system:dict, state:State):
@@ -650,8 +657,7 @@ class Activity:
 
         self.dirty = True
 
-        # Show activity indicator
-        self.bgstally.ui.indicate_activity = True
+        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
         # Add settlement to this faction's list, if not already present
         if state.last_settlement_approached['name'] not in faction['GroundCZSettlements']:
@@ -715,8 +721,7 @@ class Activity:
         state.last_spacecz_approached['counted'] = True
         self.dirty = True
 
-        # Show activity indicator
-        self.bgstally.ui.indicate_activity = True
+        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
         type:str = state.last_spacecz_approached.get('type', 'l')
         faction['SpaceCZ'][type] = str(int(faction['SpaceCZ'].get(type, '0')) + 1)
@@ -782,8 +787,7 @@ class Activity:
                 count -= allocatable
                 self.dirty = True
 
-                # Show activity indicator
-                self.bgstally.ui.indicate_activity = True
+                self.bgstally.ui.show_system_report(system['SystemAddress'])
 
         # count can end up > 0 here - i.e. more S&R handed in than we originally logged as scooped. Ignore, as we don't know
         # where it originally came from
@@ -823,6 +827,60 @@ class Activity:
             if system['zero_system_activity'] == False: continue
 
 
+    def generate_text(self, activity_mode: DiscordActivity, discord: bool = False, system_name: str = None):
+        """
+        Generate plain text report
+        """
+        text:str = ""
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+
+        for system in self.systems.values():
+            if system_name is not None and system['System'] != system_name: continue
+            system_text:str = ""
+
+            if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
+                system_text += self._generate_tw_system_text(system, discord)
+
+            if activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH:
+                for faction in system['Factions'].values():
+                    if faction['Enabled'] != CheckStates.STATE_ON: continue
+                    system_text += self._generate_faction_text(faction, discord)
+
+            if system_text != "":
+                if discord: text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}```"
+                else: text += f"{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
+
+        if discord and self.discord_notes is not None and self.discord_notes != "": text += "\n" + self.discord_notes
+
+        return text.replace("'", "")
+
+
+    def generate_discord_embed_fields(self, activity_mode: DiscordActivity):
+        """
+        Generate fields for a Discord post with embed
+        """
+        discord_fields = []
+
+        for system in self.systems.values():
+            system_text = ""
+
+            if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
+                system_text += self._generate_tw_system_text(system, True)
+
+            if activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH:
+                for faction in system['Factions'].values():
+                    if faction['Enabled'] != CheckStates.STATE_ON: continue
+                    system_text += self._generate_faction_text(faction, True)
+
+            if system_text != "":
+                system_text = system_text.replace("'", "")
+                discord_field = {'name': system['System'], 'value': f"```ansi\n{system_text}```"}
+                discord_fields.append(discord_field)
+
+        return discord_fields
+
+
     #
     # Private functions
     #
@@ -859,6 +917,18 @@ class Activity:
         """
         return {'name': station_name, 'enabled': CheckStates.STATE_ON,
                 'passengers': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
+                'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
+                'cargo': {'count': 0, 'sum': 0},
+                'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}},
+                'reactivate': 0}
+
+
+    def _get_new_aggregate_tw_station_data(self):
+        """
+        Get a new data structure for aggregating Thargoid War station data when displaying in text reports
+        """
+        return {'mission_count_total': 0,
+                'passengers': {'count': 0, 'sum': 0},
                 'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
                 'cargo': {'count': 0, 'sum': 0},
                 'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}},
@@ -957,14 +1027,187 @@ class Activity:
                 faction_data['TWStations'] == {}
 
 
-    def _get_system_by_name(self, system_name:str) -> dict | None:
+    def _generate_faction_text(self, faction: dict, discord: bool):
         """
-        Retrieve the data for a system by its name, or None if system not found
+        Generate formatted text for a faction
         """
-        for system in self.systems.values():
-            if system['System'] == system_name: return system
+        activity_text:str = ""
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
 
-        return None
+        inf = faction['MissionPoints']
+        if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON: inf += faction['MissionPointsSecondary']
+
+        if faction['FactionState'] in STATES_ELECTION:
+            activity_text += f"{blue('ElectionINF', fp=fp)} {green(f'+{inf}', fp=fp)} " if inf > 0 else f"{blue('ElectionINF', fp=fp)} {green(inf, fp=fp)} " if inf < 0 else ""
+        elif faction['FactionState'] in STATES_WAR:
+            activity_text += f"{blue('WarINF', fp=fp)} {green(f'+{inf}', fp=fp)} " if inf > 0 else f"{blue('WarINF', fp=fp)} {green(inf, fp=fp)} " if inf < 0 else ""
+        else:
+            activity_text += f"{blue('INF', fp=fp)} {green(f'+{inf}', fp=fp)} " if inf > 0 else f"{blue('INF', fp=fp)} {green(inf, fp=fp)} " if inf < 0 else ""
+
+        activity_text += f"{red('BVs', fp=fp)} {green(human_format(faction['Bounties']), fp=fp)} " if faction['Bounties'] != 0 else ""
+        activity_text += f"{red('CBs', fp=fp)} {green(human_format(faction['CombatBonds']), fp=fp)} " if faction['CombatBonds'] != 0 else ""
+        if faction['TradePurchase'] > 0:
+            # Legacy - Used a single value for purchase value / profit
+            activity_text += f"{cyan('TrdPurchase', fp=fp)} {green(human_format(faction['TradePurchase']), fp=fp)} " if faction['TradePurchase'] != 0 else ""
+            activity_text += f"{cyan('TrdProfit', fp=fp)} {green(human_format(faction['TradeProfit']), fp=fp)} " if faction['TradeProfit'] != 0 else ""
+        else:
+            # Modern - Split into values per supply / demand bracket
+            if sum(int(d['value']) for d in faction['TradeBuy']) > 0:
+                # Buy brackets currently range from 0 - 3
+                activity_text += f"{cyan('TrdBuy', fp=fp)} " \
+                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeBuy'][2]['value']), fp=fp)} " \
+                    + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeBuy'][3]['value']), fp=fp)} "
+            if sum(int(d['value']) for d in faction['TradeSell']) > 0:
+                # Sell brackets currently range from 0 - 3
+                activity_text += f"{cyan('TrdProfit', fp=fp)} " \
+                    + f"{'🆉' if discord else '[Z]'}:{green(human_format(faction['TradeSell'][0]['profit']), fp=fp)} " \
+                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeSell'][2]['profit']), fp=fp)} " \
+                    + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeSell'][3]['profit']), fp=fp)} "
+        activity_text += f"{cyan('TrdBMProfit', fp=fp)} {green(human_format(faction['BlackMarketProfit']), fp=fp)} " if faction['BlackMarketProfit'] != 0 else ""
+        activity_text += f"{white('Expl', fp=fp)} {green(human_format(faction['CartData']), fp=fp)} " if faction['CartData'] != 0 else ""
+        activity_text += f"{grey('Exo', fp=fp)} {green(human_format(faction['ExoData']), fp=fp)} " if faction['ExoData'] != 0 else ""
+        activity_text += f"{red('Murders', fp=fp)} {green(faction['Murdered'], fp=fp)} " if faction['Murdered'] != 0 else ""
+        activity_text += f"{red('GroundMurders', fp=fp)} {green(faction['GroundMurdered'], fp=fp)} " if faction['GroundMurdered'] != 0 else ""
+        activity_text += f"{yellow('Scenarios', fp=fp)} {green(faction['Scenarios'], fp=fp)} " if faction['Scenarios'] != 0 else ""
+        activity_text += f"{magenta('Fails', fp=fp)} {green(faction['MissionFailed'], fp=fp)} " if faction['MissionFailed'] != 0 else ""
+        space_cz = self._build_cz_text(faction.get('SpaceCZ', {}), "SpaceCZs", discord)
+        activity_text += f"{space_cz} " if space_cz != "" else ""
+        ground_cz = self._build_cz_text(faction.get('GroundCZ', {}), "GroundCZs", discord)
+        activity_text += f"{ground_cz} " if ground_cz != "" else ""
+
+        faction_name = self._process_faction_name(faction['Faction'])
+        faction_text = f"{color_wrap(faction_name, 'yellow', None, 'bold', fp=fp)} {activity_text}\n" if activity_text != "" else ""
+
+        for settlement_name in faction.get('GroundCZSettlements', {}):
+            if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON:
+                faction_text += f"  {'⚔️' if discord else '[X]'} {settlement_name} x {green(faction['GroundCZSettlements'][settlement_name]['count'], fp=fp)}\n"
+
+        return faction_text
+
+
+    def _generate_tw_system_text(self, system: dict, discord: bool):
+        """
+        Create formatted text for Thargoid War in a system
+        """
+        system_text = ""
+        system_stations = {}
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+
+        # Faction-specific tally
+        for faction in system['Factions'].values():
+            if faction['Enabled'] != CheckStates.STATE_ON: continue
+
+            for station_name in faction.get('TWStations', {}):
+                faction_station = faction['TWStations'][station_name]
+                if faction_station['enabled'] != CheckStates.STATE_ON: continue
+
+                if not station_name in system_stations: system_stations[station_name] = self._get_new_aggregate_tw_station_data()
+                system_station = system_stations[station_name]
+
+                # Current understanding is we don't need to report the different passenger priorities separately, so aggregate all into a single count and sum
+                system_station['passengers']['count'] += faction_station['passengers']['l']['count'] + faction_station['passengers']['m']['count'] + faction_station['passengers']['h']['count']
+                system_station['passengers']['sum'] += faction_station['passengers']['l']['sum'] + faction_station['passengers']['m']['sum'] + faction_station['passengers']['h']['sum']
+                system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['passengers'].values()))
+                # Current understanding is it is important to report each type of escape pod evac mission separately
+                system_station['escapepods']['l']['count'] += faction_station['escapepods']['l']['count']; system_station['escapepods']['l']['sum'] += faction_station['escapepods']['l']['sum']
+                system_station['escapepods']['m']['count'] += faction_station['escapepods']['m']['count']; system_station['escapepods']['m']['sum'] += faction_station['escapepods']['m']['sum']
+                system_station['escapepods']['h']['count'] += faction_station['escapepods']['h']['count']; system_station['escapepods']['h']['sum'] += faction_station['escapepods']['h']['sum']
+                system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['escapepods'].values()))
+                # We don't track different priorities of cargo missions
+                system_station['cargo']['count'] += faction_station['cargo']['count']
+                system_station['cargo']['sum'] += faction_station['cargo']['sum']
+                system_station['mission_count_total'] += faction_station['cargo']['count']
+                # We track each type of Thargoid ship massacre mission separately
+                system_station['massacre']['s']['count'] += faction_station['massacre']['s']['count']; system_station['massacre']['s']['sum'] += faction_station['massacre']['s']['sum']
+                system_station['massacre']['c']['count'] += faction_station['massacre']['c']['count']; system_station['massacre']['c']['sum'] += faction_station['massacre']['c']['sum']
+                system_station['massacre']['b']['count'] += faction_station['massacre']['b']['count']; system_station['massacre']['b']['sum'] += faction_station['massacre']['b']['sum']
+                system_station['massacre']['m']['count'] += faction_station['massacre']['m']['count']; system_station['massacre']['m']['sum'] += faction_station['massacre']['m']['sum']
+                system_station['massacre']['h']['count'] += faction_station['massacre']['h']['count']; system_station['massacre']['h']['sum'] += faction_station['massacre']['h']['sum']
+                system_station['massacre']['o']['count'] += faction_station['massacre']['o']['count']; system_station['massacre']['o']['sum'] += faction_station['massacre']['o']['sum']
+                system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['massacre'].values()))
+                # We track TW settlement reactivation missions as a simple total
+                system_station['reactivate'] += faction_station['reactivate']
+                system_station['mission_count_total'] += faction_station['reactivate']
+
+        # System-specific tally
+        kills:int = sum(system['TWKills'].values())
+        sandr:int = sum(int(d['delivered']) for d in system['TWSandR'].values())
+        reactivate:int = system['TWReactivate']
+        if kills > 0 or sandr > 0 or reactivate > 0:
+            system_text += f"🍀 System activity\n"
+            if kills > 0:
+                system_text += f"  💀 (kills): " \
+                                    + f"{red('R', fp=fp)} x {green(system['TWKills'].get('r', 0), fp=fp)}, " \
+                                    + f"{red('S', fp=fp)} x {green(system['TWKills'].get('s', 0), fp=fp)}, " \
+                                    + f"{red('S/G', fp=fp)} x {green(system['TWKills'].get('sg', 0), fp=fp)}, " \
+                                    + f"{red('C', fp=fp)} x {green(system['TWKills'].get('c', 0), fp=fp)}, " \
+                                    + f"{red('B', fp=fp)} x {green(system['TWKills'].get('b', 0), fp=fp)}, " \
+                                    + f"{red('M', fp=fp)} x {green(system['TWKills'].get('m', 0), fp=fp)}, " \
+                                    + f"{red('H', fp=fp)} x {green(system['TWKills'].get('h', 0), fp=fp)}, " \
+                                    + f"{red('O', fp=fp)} x {green(system['TWKills'].get('o', 0), fp=fp)} \n"
+            if sandr > 0:
+                system_text += "  "
+                pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
+                if pods > 0: system_text += f"⚰️ x {green(pods, fp=fp)} "
+                bbs:int = system['TWSandR']['bb']['delivered']
+                if bbs > 0: system_text += f"⬛ x {green(bbs, fp=fp)} "
+                tissue:int = system['TWSandR']['t']['delivered']
+                if tissue > 0: system_text += f"🌱 x {green(tissue, fp=fp)} "
+                system_text += "\n"
+            if reactivate > 0:
+                system_text += f"  🛠️ x {green(reactivate, fp=fp)} settlements\n"
+
+        # Station-specific tally
+        for system_station_name, system_station in system_stations.items():
+            system_text += f"🍀 {system_station_name}: {green(system_station['mission_count_total'], fp=fp)} missions\n"
+            if (system_station['escapepods']['m']['sum'] > 0):
+                system_text += f"  ❕ x {green(system_station['escapepods']['m']['sum'], fp=fp)} - {green(system_station['escapepods']['m']['count'], fp=fp)} missions\n"
+            if (system_station['escapepods']['h']['sum'] > 0):
+                system_text += f"  ❗ x {green(system_station['escapepods']['h']['sum'], fp=fp)} - {green(system_station['escapepods']['h']['count'], fp=fp)} missions\n"
+            if (system_station['cargo']['sum'] > 0):
+                system_text += f"  📦 x {green(system_station['cargo']['sum'], fp=fp)} - {green(system_station['cargo']['count'], fp=fp)} missions\n"
+            if (system_station['escapepods']['l']['sum'] > 0):
+                system_text += f"  ⚕️ x {green(system_station['escapepods']['l']['sum'], fp=fp)} - {green(system_station['escapepods']['l']['count'], fp=fp)} missions\n"
+            if (system_station['passengers']['sum'] > 0):
+                system_text += f"  🧍 x {green(system_station['passengers']['sum'], fp=fp)} - {green(system_station['passengers']['count'], fp=fp)} missions\n"
+            if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
+                system_text += f"  💀 (missions): {red('S', fp=fp)} x {green(system_station['massacre']['s']['sum'], fp=fp)}, {red('C', fp=fp)} x {green(system_station['massacre']['c']['sum'], fp=fp)}, " \
+                                    + f"{red('B', fp=fp)} x {green(system_station['massacre']['b']['sum'], fp=fp)}, {red('M', fp=fp)} x {green(system_station['massacre']['m']['sum'], fp=fp)}, " \
+                                    + f"{red('H', fp=fp)} x {green(system_station['massacre']['h']['sum'], fp=fp)}, {red('O', fp=fp)} x {green(system_station['massacre']['o']['sum'], fp=fp)} " \
+                                    + f"- {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
+            if (system_station['reactivate'] > 0):
+                system_text += f"  🛠️ x {green(system_station['reactivate'], fp=fp)} missions\n"
+
+        return system_text
+
+
+    def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool):
+        """
+        Create a summary of Conflict Zone activity
+        """
+        if cz_data == {}: return ""
+        text:str = ""
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+
+        if 'l' in cz_data and cz_data['l'] != '0' and cz_data['l'] != '': text += f"{cz_data['l']}xL "
+        if 'm' in cz_data and cz_data['m'] != '0' and cz_data['m'] != '': text += f"{cz_data['m']}xM "
+        if 'h' in cz_data and cz_data['h'] != '0' and cz_data['h'] != '': text += f"{cz_data['h']}xH "
+
+        if text != '': text = f"{red(prefix, fp=fp)} {green(text, fp=fp)}"
+        return text
+
+
+    def _process_faction_name(self, faction_name):
+        """
+        Shorten the faction name if the user has chosen to
+        """
+        if self.bgstally.state.AbbreviateFactionNames.get() == CheckStates.STATE_ON:
+            return ''.join((i if i.isnumeric() else i[0]) for i in faction_name.split())
+        else:
+            return faction_name
 
 
     def _as_dict(self):

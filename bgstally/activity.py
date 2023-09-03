@@ -280,16 +280,16 @@ class Activity:
                     faction = system['Factions'].get(effect_faction_name)
                     if not faction: continue
 
-                    self.bgstally.ui.show_system_report(system_address)
-
                     if inftrend == "UpGood" or inftrend == "DownGood":
                         if effect_faction_name == journal_entry['Faction']:
                             faction['MissionPoints'] += inf
+                            self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
                         else:
                             faction['MissionPointsSecondary'] += inf
                     else:
                         if effect_faction_name == journal_entry['Faction']:
                             faction['MissionPoints'] -= inf
+                            self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
                         else:
                             faction['MissionPointsSecondary'] -= inf
 
@@ -304,7 +304,7 @@ class Activity:
                     or (faction['FactionState'] in STATES_WAR and journal_entry['Name'] in MISSIONS_WAR) \
                     and effect_faction_name == journal_entry['Faction']:
                         faction['MissionPoints'] += 1
-                        self.bgstally.ui.show_system_report(system_address)
+                        self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
 
         # Thargoid War
         if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH + MISSIONS_TW_MASSACRE + MISSIONS_TW_REACTIVATE and mission is not None:

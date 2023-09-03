@@ -134,6 +134,7 @@ class BGSTally:
                 self.target_log.friend_request(entry, system)
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
+                self.state.station_faction = entry['StationFaction']['Name']
                 self.state.station_type = entry['StationType']
                 dirty = True
 

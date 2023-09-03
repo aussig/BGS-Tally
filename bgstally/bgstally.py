@@ -199,7 +199,7 @@ class BGSTally:
                 activity.destination_dropped(entry, self.state)
                 dirty = True
 
-            case 'Undocked':
+            case 'Undocked' if entry.get('Taxi') == False:
                 self.state.station_faction = ""
                 self.state.station_type = ""
 

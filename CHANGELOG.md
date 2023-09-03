@@ -18,7 +18,8 @@
 
 ### Bug Fixes:
 
-* Some Orthrus kills were not being tallied because the bond value logged was 40m instead of the previous 25m. We can only detect the type of Thargoid via the bond value logged by the game, so BGS-Tally will now tally an Orthrus for both kill values.
+* Some Orthrus kills were not being tallied because the bond value logged was 40m instead of the previous 25m. We can only detect the type of Thargoid via the bond value logged by the game, so BGS-Tally will now tally an Orthrus for both kill values.#
+* Trade purchase, sale and profit was not being logged if you previously disembarked from your ship on foot, took a taxi or dropship somewhere, returned to your ship and then traded.
 
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 

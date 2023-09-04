@@ -60,21 +60,22 @@ class ActivityManager:
         return self.activity_data[1:]
 
 
-    def new_tick(self, tick: Tick):
+    def new_tick(self, tick: Tick, forced: bool) -> bool:
         """
-        New tick detected, duplicate the current Activity object or update the current tick time.
+        New tick detected, duplicate the current Activity object or ignore if it's older than current tick.
         """
 
         if tick.tick_time < self.current_activity.tick_time:
             # An inbound tick is older than the current tick. The only valid situation for this is if the user previously
-            # did a Force Tick and an earlier tick was later detected. Just set the current tick time to the received tick time.
-            self.current_activity.tick_time = tick.tick_time
+            # did a Force Tick and an earlier tick was later detected. Ignore the tick in this situation.
+            return False
         else:
             # An inbound tick is newer than the current tick. Create a new Activity object.
             # Note Activity uses a customised __deepcopy__ that only deep copies data, not class instances.
             new_activity:Activity = deepcopy(self.current_activity)
             new_activity.tick_id = tick.tick_id
             new_activity.tick_time = tick.tick_time
+            new_activity.tick_forced = forced
             new_activity.discord_bgs_messageid = None
             new_activity.discord_tw_messageid = None
             new_activity.discord_notes = ""
@@ -82,6 +83,8 @@ class ActivityManager:
             self.activity_data.append(new_activity)
             self.activity_data.sort(reverse=True)
             self.current_activity = new_activity
+
+            return True
 
 
     def _load(self):

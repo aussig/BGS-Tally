@@ -18,8 +18,9 @@
 
 ### Bug Fixes:
 
-* Some Orthrus kills were not being tallied because the bond value logged was 40m instead of the previous 25m. We can only detect the type of Thargoid via the bond value logged by the game, so BGS-Tally will now tally an Orthrus for both kill values.#
+* Some Orthrus kills were not being tallied because the bond value logged was 40m instead of the previous 25m. We can only detect the type of Thargoid via the bond value logged by the game, so BGS-Tally will now tally an Orthrus for both kill values.
 * Trade purchase, sale and profit was not being logged if you previously disembarked from your ship on foot, took a taxi or dropship somewhere, returned to your ship and then traded.
+* If you did a Force Tick but then an automatic tick was detected that had an earlier tick time, this could cause BGS-Tally to get confused, post more than once to Discord and if you also restart EDMC you could lose activity. Now in this situation, your current activity inherits the older incoming tick time.
 
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 

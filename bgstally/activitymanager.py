@@ -62,19 +62,26 @@ class ActivityManager:
 
     def new_tick(self, tick: Tick):
         """
-        New tick detected, duplicate the current Activity object
+        New tick detected, duplicate the current Activity object or update the current tick time.
         """
-        # Note Activity uses a customised __deepcopy__ that only deep copies data, not class instances.
-        new_activity = deepcopy(self.current_activity)
-        new_activity.tick_id = tick.tick_id
-        new_activity.tick_time = tick.tick_time
-        new_activity.discord_bgs_messageid = None
-        new_activity.discord_tw_messageid = None
-        new_activity.discord_notes = ""
-        new_activity.clear_activity(self.bgstally.mission_log)
-        self.activity_data.append(new_activity)
-        self.activity_data.sort(reverse=True)
-        self.current_activity = new_activity
+
+        if tick.tick_time < self.current_activity.tick_time:
+            # An inbound tick is older than the current tick. The only valid situation for this is if the user previously
+            # did a Force Tick and an earlier tick was later detected. Just set the current tick time to the received tick time.
+            self.current_activity.tick_time = tick.tick_time
+        else:
+            # An inbound tick is newer than the current tick. Create a new Activity object.
+            # Note Activity uses a customised __deepcopy__ that only deep copies data, not class instances.
+            new_activity:Activity = deepcopy(self.current_activity)
+            new_activity.tick_id = tick.tick_id
+            new_activity.tick_time = tick.tick_time
+            new_activity.discord_bgs_messageid = None
+            new_activity.discord_tw_messageid = None
+            new_activity.discord_notes = ""
+            new_activity.clear_activity(self.bgstally.mission_log)
+            self.activity_data.append(new_activity)
+            self.activity_data.sort(reverse=True)
+            self.current_activity = new_activity
 
 
     def _load(self):

@@ -12,6 +12,7 @@ from bgstally.utils import human_format
 from thirdparty.colors import *
 
 DATETIME_FORMAT_ACTIVITY = "%Y-%m-%dT%H:%M:%S.%fZ"
+DATETIME_FORMAT_TITLE = "%Y-%m-%d %H:%M:%S"
 STATES_WAR = ['War', 'CivilWar']
 STATES_ELECTION = ['Election']
 
@@ -94,14 +95,15 @@ class Activity:
         self.bgstally = bgstally
         if tick == None: tick = Tick(self.bgstally)
 
-        # Stored data. Remember to modify __deepcopy__() if these are changed or new data added.
-        self.tick_id = tick.tick_id
-        self.tick_time = tick.tick_time
-        self.discord_bgs_messageid = discord_bgs_messageid
-        self.discord_tw_messageid = None
-        self.discord_notes = ""
+        # Stored data. Remember to modify __deepcopy__(), _as_dict() and _from_dict() if these are changed or new data added.
+        self.tick_id: str = tick.tick_id
+        self.tick_time: datetime = tick.tick_time
+        self.tick_forced: bool = False
+        self.discord_bgs_messageid: str = discord_bgs_messageid
+        self.discord_tw_messageid: str = None
+        self.discord_notes: str = ""
         self.dirty: bool = False
-        self.systems = {}
+        self.systems: dict = {}
 
 
     def load_legacy_data(self, filepath: str):
@@ -147,6 +149,16 @@ class Activity:
         with open(filepath, 'w') as activityfile:
             json.dump(self._as_dict(), activityfile)
             self.dirty = False
+
+
+    def get_title(self) -> str:
+        """
+        Get the title for this activity
+        """
+        if self.tick_forced:
+            return f"{str(self.tick_time.strftime(DATETIME_FORMAT_TITLE))} (forced)"
+        else:
+            return f"{str(self.tick_time.strftime(DATETIME_FORMAT_TITLE))} (game)"
 
 
     def get_ordered_systems(self):
@@ -1217,6 +1229,7 @@ class Activity:
         return {
             'tickid': self.tick_id,
             'ticktime': self.tick_time.strftime(DATETIME_FORMAT_ACTIVITY),
+            'tickforced': self.tick_forced,
             'discordmessageid': self.discord_bgs_messageid,
             'discordtwmessageid': self.discord_tw_messageid,
             'discordnotes': self.discord_notes,
@@ -1229,6 +1242,7 @@ class Activity:
         """
         self.tick_id = dict.get('tickid')
         self.tick_time = datetime.strptime(dict.get('ticktime'), DATETIME_FORMAT_ACTIVITY)
+        self.tick_forced = dict.get('tickforced', False)
         self.discord_bgs_messageid = dict.get('discordmessageid')
         self.discord_tw_messageid = dict.get('discordtwmessageid')
         self.discord_notes = dict.get('discordnotes')
@@ -1273,6 +1287,7 @@ class Activity:
         setattr(result, 'bgstally', self.bgstally)
         setattr(result, 'tick_id', self.tick_id)
         setattr(result, 'tick_time', self.tick_time)
+        setattr(result, 'tick_forced', self.tick_forced)
         setattr(result, 'discord_bgs_messageid', self.discord_bgs_messageid)
         setattr(result, 'discord_tw_messageid', self.discord_tw_messageid)
         setattr(result, 'discord_notes', self.discord_notes)

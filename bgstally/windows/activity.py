@@ -7,13 +7,11 @@ from typing import Dict
 from bgstally.activity import STATES_WAR, Activity
 from bgstally.constants import FOLDER_ASSETS, FONT_HEADING, FONT_TEXT, CheckStates, CZs, DiscordActivity, DiscordChannel, DiscordPostStyle
 from bgstally.debug import Debug
-from bgstally.discord import DATETIME_FORMAT
 from bgstally.utils import human_format
 from bgstally.widgets import DiscordAnsiColorText, TextPlus
 from thirdparty.colors import *
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 
-DATETIME_FORMAT_WINDOWTITLE = "%Y-%m-%d %H:%M:%S"
 LIMIT_TABS = 60
 
 
@@ -42,7 +40,7 @@ class WindowActivity:
         Show our window
         """
         self.toplevel:tk.Toplevel = tk.Toplevel(self.ui.frame)
-        self.toplevel.title(f"{self.bgstally.plugin_name} - Activity After Tick at: {activity.tick_time.strftime(DATETIME_FORMAT_WINDOWTITLE)}")
+        self.toplevel.title(f"{self.bgstally.plugin_name} - Activity After Tick at: {activity.get_title()}")
 
         ContainerFrame = ttk.Frame(self.toplevel)
         ContainerFrame.pack(fill=tk.BOTH, expand=tk.YES)
@@ -303,21 +301,21 @@ class WindowActivity:
             if self.bgstally.state.DiscordActivity.get() == DiscordActivity.BGS:
                 # BGS Only - one post to BGS channel
                 discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
-                self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
+                self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
             elif self.bgstally.state.DiscordActivity.get() == DiscordActivity.THARGOIDWAR:
                 # TW Only - one post to TW channel
                 discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
-                self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
+                self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
             elif self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR):
                 # Both, TW channel is available - two posts, one to each channel
                 discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
-                self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
+                self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
                 discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
-                self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
+                self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
             else:
                 # Both, TW channel is not available - one combined post to BGS channel
                 discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.BOTH)
-                self.bgstally.discord.post_embed(f"Activity after tick: {activity.tick_time.strftime(DATETIME_FORMAT)}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
+                self.bgstally.discord.post_embed(f"Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
 
         activity.dirty = True # Because discord post ID has been changed
 

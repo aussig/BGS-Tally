@@ -3,7 +3,7 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Dict
 
-from bgstally.constants import CheckStates, DiscordActivity
+from bgstally.constants import CheckStates, DiscordActivity, FILE_SUFFIX
 from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
@@ -149,6 +149,13 @@ class Activity:
         with open(filepath, 'w') as activityfile:
             json.dump(self._as_dict(), activityfile)
             self.dirty = False
+
+
+    def get_filename(self) -> str:
+        """
+        Return the filename for this Activity
+        """
+        return self.tick_id + FILE_SUFFIX
 
 
     def get_title(self) -> str:

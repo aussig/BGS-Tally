@@ -241,7 +241,7 @@ class UI:
         activities: List = self.bgstally.activity_manager.get_previous_activities()
 
         for activity in activities:
-            menu.add_command(label=activity.tick_time, command=partial(self._show_activity_window, activity))
+            menu.add_command(label=activity.get_title(), command=partial(self._show_activity_window, activity))
 
         try:
             menu.tk_popup(self.button_previous_ticks.winfo_rootx(), self.button_previous_ticks.winfo_rooty())

@@ -84,6 +84,7 @@ class APIManager:
         api_activity:dict = {
             'cmdr': cmdr,
             'tickid': activity.tick_id,
+            'ticktime': activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL),
             'timestamp': datetime.utcnow().strftime(DATETIME_FORMAT_JOURNAL),
             'systems': []
         }
@@ -243,6 +244,7 @@ class APIManager:
         # BGS-Tally specific global enhancements
         event['cmdr'] = cmdr
         event['tickid'] = activity.tick_id
+        event['ticktime']: activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL)
         event['StationFaction'] = self.bgstally.state.station_faction
 
         # Other global enhancements

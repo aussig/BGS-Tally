@@ -264,7 +264,7 @@ class BGSTally:
         Start a new tick.
         """
         if force: self.tick.force_tick()
-        self.activity_manager.new_tick(self.tick)
+        if not self.activity_manager.new_tick(self.tick, force): return
 
         match uipolicy:
             case UpdateUIPolicy.IMMEDIATE:

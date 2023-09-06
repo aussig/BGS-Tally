@@ -66,6 +66,7 @@ class RequestMethod(Enum):
 
 
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"
+FILE_SUFFIX = ".json"
 FOLDER_ASSETS = "assets"
 FOLDER_DATA = "otherdata"
 FOLDER_BACKUPS = "backups"

@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 import plug
 import requests
 from config import config
+from secrets import token_hex
 
 from bgstally.debug import Debug
 
@@ -19,8 +20,8 @@ class Tick:
 
     def __init__(self, bgstally, load: bool = False):
         self.bgstally = bgstally
-        self.tick_id = TICKID_UNKNOWN
-        self.tick_time = (datetime.utcnow() - timedelta(days = 30)) # Default to a tick a month old
+        self.tick_id:str = TICKID_UNKNOWN
+        self.tick_time:datetime = (datetime.utcnow() - timedelta(days = 30)) # Default to a tick a month old
         if load: self.load()
 
 
@@ -37,11 +38,12 @@ class Tick:
             return None
         else:
             tick = response.json()
+            tick_time:datetime = datetime.strptime(tick[0]['time'], DATETIME_FORMAT_ELITEBGS)
 
-            if self.tick_id != tick[0]['_id']:
-                # There is a new tick ID
+            if tick_time > self.tick_time:
+                # There is a newer tick
                 self.tick_id = tick[0]['_id']
-                self.tick_time = datetime.strptime(tick[0]['time'], DATETIME_FORMAT_ELITEBGS)
+                self.tick_time = tick_time
                 return True
 
         return False
@@ -51,8 +53,8 @@ class Tick:
         """
         Force a new tick, user-initiated
         """
-        # Keep the same tick ID so we don't start another new tick on next launch,
-        # but update the time to show the user that something has happened
+        # Set the tick time to the current datetime and generate a new 24-digit tick id with six leading zeroes to signify a forced tick
+        self.tick_id = f"000000{token_hex(9)}"
         self.tick_time = datetime.now()
 
 

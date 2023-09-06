@@ -27,6 +27,8 @@
 
 * `/activities` endpoint: Thargoid War reactivation missions now included in `systems/[system]/factions/[faction]/stations/[station]/twreactivate`
 * `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`
+* `/activities` endpoint: `Activity` now has a `ticktime` timestamp in addition to `tickid`.
+* `/events` endpoint: `Event` now has a `ticktime` timestamp in addition to `tickid`.
 
 
 ## v3.1.1 - 2023-08-23

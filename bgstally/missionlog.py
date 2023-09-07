@@ -73,13 +73,15 @@ class MissionLog:
 
     def add_mission(self, name: str, faction: str, missionid: str, expiry: str,
                     destination_system: str, destination_settlement: str, system_name: str, station_name: str,
-                    commodity_count: int, passenger_count: int, kill_count: int):
+                    commodity_count: int, passenger_count: int, kill_count: int,
+                    target_faction: str):
         """
         Add a mission to the missionlog
         """
         self.missionlog.append({'Name': name, 'Faction': faction, 'MissionID': missionid, 'Expiry': expiry,
                                 'DestinationSystem': destination_system, 'DestinationSettlement': destination_settlement, 'System': system_name, 'Station': station_name,
-                                'CommodityCount': commodity_count, 'PassengerCount': passenger_count, 'KillCount': kill_count})
+                                'CommodityCount': commodity_count, 'PassengerCount': passenger_count, 'KillCount': kill_count,
+                                'TargetFaction': target_faction})
 
 
     def delete_mission_by_id(self, missionid: str):

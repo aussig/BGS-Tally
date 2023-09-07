@@ -156,7 +156,8 @@ class BGSTally:
             case 'MissionAccepted':
                 self.mission_log.add_mission(entry.get('Name', ""), entry.get('Faction', ""), entry.get('MissionID', ""), entry.get('Expiry', ""),
                                              entry.get('DestinationSystem', ""), entry.get('DestinationSettlement', ""), system, station,
-                                             entry.get('Count', -1), entry.get('PassengerCount', -1), entry.get('KillCount', -1))
+                                             entry.get('Count', -1), entry.get('PassengerCount', -1), entry.get('KillCount', -1),
+                                             entry.get('TargetFaction', ""))
                 dirty = True
 
             case 'MissionCompleted':

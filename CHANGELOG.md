@@ -25,6 +25,7 @@
     * It would cause your previously logged activity for the current tick to be lost and replaced by activity after the forced tick. Now, a 'proper' new tick is created so your earlier activity should be kept and available in the previous tick.
     * If an automatic tick arrived with an earlier tick time than your forced tick, this could cause BGS-Tally to get confused. We now ignore any incoming ticks that have an older tick time than your forced tick.
     * Forced ticks are now handled more elegantly when sending data via the BGS-Tally API, as we generate a fake `tickid` for the forced tick.
+* Due to a game bug, some illegal massacre and assassination missions were not logging negative INF correctly against the target faction. Implemented a workaround for this.
 
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 

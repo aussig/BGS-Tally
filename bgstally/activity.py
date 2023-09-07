@@ -280,16 +280,21 @@ class Activity:
         state.system_tw_status = journal_entry.get('ThargoidWar', None)
 
 
-    def mission_completed(self, journal_entry: Dict, mission_log: MissionLog):
+    def mission_completed(self, journal_entry: dict, mission_log: MissionLog):
         """
         Handle mission completed
         """
         self.dirty = True
-        mission = mission_log.get_mission(journal_entry['MissionID'])
+        mission:dict = mission_log.get_mission(journal_entry['MissionID'])
 
         # BGS
         for faction_effect in journal_entry['FactionEffects']:
-            effect_faction_name = faction_effect['Faction']
+            effect_faction_name:str = faction_effect['Faction']
+            if effect_faction_name is None or effect_faction_name == "":
+                # A game bug means Faction can sometimes be an empty string in FactionEffects.
+                # Use the TargetFaction stored from the original MissionAccepted event in this case
+                effect_faction_name = mission.get('TargetFaction', "")
+
             if faction_effect['Influence'] != []:
                 inf = len(faction_effect['Influence'][0]['Influence'])
                 inftrend = faction_effect['Influence'][0]['Trend']
@@ -402,11 +407,11 @@ class Activity:
         mission_log.delete_mission_by_id(journal_entry['MissionID'])
 
 
-    def mission_failed(self, journal_entry: Dict, mission_log: MissionLog):
+    def mission_failed(self, journal_entry: dict, mission_log: MissionLog):
         """
         Handle mission failed
         """
-        mission = mission_log.get_mission(journal_entry['MissionID'])
+        mission:dict = mission_log.get_mission(journal_entry['MissionID'])
         if mission is None: return
         self.dirty = True
 

@@ -34,6 +34,7 @@ class State:
         self.DiscordPostStyle:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordPostStyle', default=DiscordPostStyle.EMBED))
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordActivity', default=DiscordActivity.BOTH))
         self.EnableOverlay:tk.StringVar = tk.StringVar(value=config.get_str('XEnableOverlay', default=CheckStates.STATE_ON))
+        self.EnableSystemActivityByDefault:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableSystemActivityByDefault', default=CheckStates.STATE_ON))
 
         # Persistent values
         self.current_system_id:str = config.get_str('XCurrentSystemID', default="")
@@ -42,7 +43,9 @@ class State:
 
         # Non-persistent values
         self.last_settlement_approached:Dict = {}
-        self.last_ship_targeted:Dict = {}
+        self.last_spacecz_approached:Dict = {}
+        self.last_ships_targeted:Dict = {}
+        self.system_tw_status = None
 
         self.refresh()
 
@@ -73,6 +76,7 @@ class State:
         config.set('XDiscordPostStyle', self.DiscordPostStyle.get())
         config.set('XDiscordActivity', self.DiscordActivity.get())
         config.set('XEnableOverlay', self.EnableOverlay.get())
+        config.set('BGST_EnableSystemActivityByDefault', self.EnableSystemActivityByDefault.get())
 
         # Persistent values
         config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")

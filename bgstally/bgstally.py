@@ -134,6 +134,7 @@ class BGSTally:
                 self.target_log.friend_request(entry, system)
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
+                self.state.station_faction = entry['StationFaction']['Name']
                 self.state.station_type = entry['StationType']
                 dirty = True
 
@@ -153,8 +154,10 @@ class BGSTally:
                 dirty = True
 
             case 'MissionAccepted':
-                self.mission_log.add_mission(entry.get('Name', ""), entry.get('Faction', ""), entry.get('MissionID', ""), entry.get('Expiry', ""), system, station,
-                    entry.get('Count', -1), entry.get('PassengerCount', -1), entry.get('KillCount', -1))
+                self.mission_log.add_mission(entry.get('Name', ""), entry.get('Faction', ""), entry.get('MissionID', ""), entry.get('Expiry', ""),
+                                             entry.get('DestinationSystem', ""), entry.get('DestinationSettlement', ""), system, station,
+                                             entry.get('Count', -1), entry.get('PassengerCount', -1), entry.get('KillCount', -1),
+                                             entry.get('TargetFaction', ""))
                 dirty = True
 
             case 'MissionCompleted':
@@ -194,7 +197,11 @@ class BGSTally:
                 self.target_log.ship_targeted(entry, system)
                 dirty = True
 
-            case 'Undocked':
+            case 'SupercruiseDestinationDrop':
+                activity.destination_dropped(entry, self.state)
+                dirty = True
+
+            case 'Undocked' if entry.get('Taxi') == False:
                 self.state.station_faction = ""
                 self.state.station_type = ""
 
@@ -258,7 +265,7 @@ class BGSTally:
         Start a new tick.
         """
         if force: self.tick.force_tick()
-        self.activity_manager.new_tick(self.tick)
+        if not self.activity_manager.new_tick(self.tick, force): return
 
         match uipolicy:
             case UpdateUIPolicy.IMMEDIATE:

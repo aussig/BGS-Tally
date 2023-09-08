@@ -9,7 +9,6 @@ from tkinter.messagebox import askyesno
 from typing import List, Optional
 
 import myNotebook as nb
-import semantic_version
 from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.activity import Activity
@@ -45,9 +44,8 @@ class UI:
         self.image_button_cmdrs = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_cmdrs.png"))
         self.image_button_carrier = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_carrier.png"))
 
-        self.thread: Optional[Thread] = Thread(target=self._worker, name="BGSTally UI worker")
-        self.thread.daemon = True
-        self.thread.start()
+        self.indicate_activity:bool = False
+        self.report_system_address:str = None
 
         # Single-instance windows
         self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally)
@@ -55,6 +53,10 @@ class UI:
         self.window_legend:WindowLegend = WindowLegend(self.bgstally)
         # TODO: When we support multiple APIs, this will no longer be a single instance window
         self.window_api:WindowAPI = WindowAPI(self.bgstally, self.bgstally.api_manager.apis[0])
+
+        self.thread: Optional[Thread] = Thread(target=self._worker, name="BGSTally UI worker")
+        self.thread.daemon = True
+        self.thread.start()
 
 
     def shut_down(self):
@@ -143,6 +145,7 @@ class UI:
         nb.Label(frame, text="Other Options").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         nb.Checkbutton(frame, text="Abbreviate Faction Names", variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(frame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Report Newly Visited System Activity By Default", variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Label(frame, text="BGS Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordBGSWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="Thargoid War Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
@@ -173,6 +176,14 @@ class UI:
         return frame
 
 
+    def show_system_report(self, system_address:int):
+        """
+        Show the system report overlay
+        """
+        self.indicate_activity = True
+        self.report_system_address = str(system_address)
+
+
     def _worker(self) -> None:
         """
         Handle thread work for overlay
@@ -184,15 +195,39 @@ class UI:
                 Debug.logger.debug("Shutting down UI Worker...")
                 return
 
+            current_activity:Activity = self.bgstally.activity_manager.get_current_activity()
+
+            # Current Tick Time
             self.bgstally.overlay.display_message("tick", f"Curr Tick: {self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)}", True)
             minutes_delta:int = int((datetime.utcnow() - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
 
+            # Activity Indicator
+            if self.indicate_activity:
+                self.bgstally.overlay.display_indicator("indicator")
+                self.indicate_activity = False
+
+            # Tick Warning
             if datetime.utcnow() > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
                 self.bgstally.overlay.display_message("tickwarn", f"Tick {minutes_delta}m Overdue (Estimated)", True)
             elif datetime.utcnow() > self.bgstally.tick.next_predicted():
                 self.bgstally.overlay.display_message("tickwarn", f"Past Estimated Tick Time", True, text_colour_override="#FFA500")
             elif datetime.utcnow() > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
                 self.bgstally.overlay.display_message("tickwarn", f"Within {TIME_TICK_ALERT_M}m of Next Tick (Estimated)", True, text_colour_override="yellow")
+
+            # Thargoid War Progress Report
+            if (self.bgstally.state.system_tw_status is not None and current_activity is not None):
+                current_system:dict = current_activity.get_current_system()
+                if current_system:
+                    progress:float = float(self.bgstally.state.system_tw_status.get('WarProgress', 0))
+                    percent:float = round(progress * 100, 2)
+
+                    self.bgstally.overlay.display_progress_bar("tw", f"TW War Progress in {current_system.get('System', 'Unknown')}: {percent}%", progress)
+
+            if self.report_system_address is not None and current_activity is not None:
+                report_system:dict = current_activity.get_system_by_address(self.report_system_address)
+                if report_system is not None:
+                    self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, report_system['System']), fit_to_text=True, has_title=True)
+                self.report_system_address = None
 
             sleep(TIME_WORKER_PERIOD_S)
 
@@ -206,7 +241,7 @@ class UI:
         activities: List = self.bgstally.activity_manager.get_previous_activities()
 
         for activity in activities:
-            menu.add_command(label=activity.tick_time, command=partial(self._show_activity_window, activity))
+            menu.add_command(label=activity.get_title(), command=partial(self._show_activity_window, activity))
 
         try:
             menu.tk_popup(self.button_previous_ticks.winfo_rootx(), self.button_previous_ticks.winfo_rooty())

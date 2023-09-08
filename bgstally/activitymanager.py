@@ -4,6 +4,7 @@ from os import listdir, mkdir, path, remove, rename
 from config import config
 
 from bgstally.activity import Activity
+from bgstally.constants import FILE_SUFFIX
 from bgstally.debug import Debug
 from bgstally.tick import Tick
 
@@ -11,7 +12,6 @@ FILE_LEGACY_CURRENTDATA = "Today Data.txt"
 FILE_LEGACY_PREVIOUSDATA = "Yesterday Data.txt"
 FOLDER_ACTIVITYDATA = "activitydata"
 FOLDER_ACTIVITYDATA_ARCHIVE = "archive"
-FILE_SUFFIX = ".json"
 KEEP_CURRENT_ACTIVITIES = 20
 
 
@@ -43,7 +43,7 @@ class ActivityManager:
         """
         for activity in self.activity_data:
             if activity.tick_id is None: continue
-            activity.save(path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, activity.tick_id + FILE_SUFFIX))
+            activity.save(path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, activity.get_filename()))
 
 
     def get_current_activity(self):
@@ -60,21 +60,31 @@ class ActivityManager:
         return self.activity_data[1:]
 
 
-    def new_tick(self, tick: Tick):
+    def new_tick(self, tick: Tick, forced: bool) -> bool:
         """
-        New tick detected, duplicate the current Activity object
+        New tick detected, duplicate the current Activity object or ignore if it's older than current tick.
         """
-        # Note Activity uses a customised __deepcopy__ that only deep copies data, not class instances.
-        new_activity = deepcopy(self.current_activity)
-        new_activity.tick_id = tick.tick_id
-        new_activity.tick_time = tick.tick_time
-        new_activity.discord_bgs_messageid = None
-        new_activity.discord_tw_messageid = None
-        new_activity.discord_notes = ""
-        new_activity.clear_activity(self.bgstally.mission_log)
-        self.activity_data.append(new_activity)
-        self.activity_data.sort(reverse=True)
-        self.current_activity = new_activity
+
+        if tick.tick_time < self.current_activity.tick_time:
+            # An inbound tick is older than the current tick. The only valid situation for this is if the user has done a Force Tick
+            # but an elitebgs.app tick was then detected with an earlier timestamp. Ignore the tick in this situation.
+            return False
+        else:
+            # An inbound tick is newer than the current tick. Create a new Activity object.
+            # Note Activity uses a customised __deepcopy__ that only deep copies data, not class instances.
+            new_activity:Activity = deepcopy(self.current_activity)
+            new_activity.tick_id = tick.tick_id
+            new_activity.tick_time = tick.tick_time
+            new_activity.tick_forced = forced
+            new_activity.discord_bgs_messageid = None
+            new_activity.discord_tw_messageid = None
+            new_activity.discord_notes = ""
+            new_activity.clear_activity(self.bgstally.mission_log)
+            self.activity_data.append(new_activity)
+            self.activity_data.sort(reverse=True)
+            self.current_activity = new_activity
+
+            return True
 
 
     def _load(self):
@@ -114,7 +124,7 @@ class ActivityManager:
 
         activity = Activity(self.bgstally, tick, discord_bgs_messageid)
         activity.load_legacy_data(filepath)
-        activity.save(path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, activity.tick_id + FILE_SUFFIX))
+        activity.save(path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, activity.get_filename()))
         self.activity_data.append(activity)
         if activity.tick_id == tick.tick_id: self.current_activity = activity
 
@@ -132,8 +142,8 @@ class ActivityManager:
 
         for activity in activity_to_archive:
             try:
-                rename(path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, activity.tick_id + FILE_SUFFIX),
-                       path.join(self.bgstally.plugin_dir, archive_filepath, activity.tick_id + FILE_SUFFIX))
+                rename(path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, activity.get_filename()),
+                       path.join(self.bgstally.plugin_dir, archive_filepath, activity.get_filename()))
             except FileExistsError: # Destination exists
                 Debug.logger.warning(f"Attempt to archive failed, destination file already exists")
                 continue

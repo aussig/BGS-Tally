@@ -84,6 +84,7 @@ class APIManager:
         api_activity:dict = {
             'cmdr': cmdr,
             'tickid': activity.tick_id,
+            'ticktime': activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL),
             'timestamp': datetime.utcnow().strftime(DATETIME_FORMAT_JOURNAL),
             'systems': []
         }
@@ -198,6 +199,9 @@ class APIManager:
                                 'medium': station['passengers']['m'], # dict containing 'count' and 'sum'
                                 'high': station['passengers']['h']    # dict containing 'count' and 'sum'
                             }
+                        # TW settlement reactivation missions
+                        if station.get('reactivate', 0) > 0:
+                            api_station['twreactivate'] = station['reactivate'] # int
 
                     api_faction['stations'].append(api_station)
 
@@ -222,6 +226,10 @@ class APIManager:
                     'tissuesamples': system['TWSandR']['t']['delivered']
                 }
 
+            # TW Reactivated settlements in system
+            if system.get('TWReactivate', 0) > 0:
+                api_system['twreactivate'] = system.get('TWReactivate', 0)
+
             api_activity['systems'].append(api_system)
 
         return api_activity
@@ -236,6 +244,7 @@ class APIManager:
         # BGS-Tally specific global enhancements
         event['cmdr'] = cmdr
         event['tickid'] = activity.tick_id
+        event['ticktime']: activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL)
         event['StationFaction'] = self.bgstally.state.station_faction
 
         # Other global enhancements

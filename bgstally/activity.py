@@ -568,7 +568,7 @@ class Activity:
         """
         if 'Faction' in journal_entry and 'PilotName_Localised' in journal_entry:
             self.dirty = True
-            state.last_ship_targeted = {'Faction': journal_entry['Faction'], 'PilotName_Localised': journal_entry['PilotName_Localised']}
+            state.last_ships_targeted[journal_entry['PilotName_Localised']] = {'Faction': journal_entry['Faction'], 'PilotName_Localised': journal_entry['PilotName_Localised']}
 
 
     def crime_committed(self, journal_entry: Dict, state: State):
@@ -580,14 +580,18 @@ class Activity:
         self.dirty = True
 
         # For in-space murders, the faction logged in the CommitCrime event is the system faction,
-        # not the ship faction. We need to log the murder against the ship faction, so we store the
-        # it from the previous ShipTargeted event in last_ship_targeted.
+        # not the ship faction. We need to log the murder against the ship faction, so we store
+        # it from the previous ShipTargeted event in last_ships_targeted. Need to keep a dict of all
+        # previously targeted ships because of a game bug where the logged murdered ship may not be the
+        # last target logged.
 
         match journal_entry['CrimeType']:
             case 'murder':
                 # For ship murders, if we didn't get a previous scan containing ship faction, don't log
-                if journal_entry.get('Victim') != state.last_ship_targeted.get('PilotName_Localised'): return
-                faction = current_system['Factions'].get(state.last_ship_targeted.get('Faction'))
+                ship_target_info:dict = state.last_ships_targeted.pop(journal_entry.get('Victim'), None)
+                if ship_target_info is None: return
+                faction = current_system['Factions'].get(ship_target_info.get('Faction'))
+
                 if faction:
                     faction['Murdered'] += 1
                     self.recalculate_zero_activity()

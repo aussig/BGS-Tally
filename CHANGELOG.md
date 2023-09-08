@@ -21,11 +21,12 @@
 
 * Some Orthrus kills were not being tallied because the bond value logged was 40m instead of the previous 25m. We can only detect the type of Thargoid via the bond value logged by the game, so BGS-Tally will now tally an Orthrus for both kill values.
 * Trade purchase, sale and profit was not being logged if you previously disembarked from your ship on foot, took a taxi or dropship somewhere, returned to your ship and then traded.
-* Forcing a tick (via the settings panel), though still not advised unless automatic tick detection has **definitely** missed a tick, should now be much more reliable:
-    * It would cause your previously logged activity for the current tick to be lost and replaced by activity after the forced tick. Now, a 'proper' new tick is created so your earlier activity should be kept and available in the previous tick.
+* Forcing a tick (via the settings panel), though still not recommended unless automatic tick detection has **definitely** missed a tick, should now be much more reliable:
+    * It would cause your previously logged activity for the current tick to be lost and replaced by activity after the forced tick. Now, a 'proper' new tick is created so your earlier activity should be kept and available in the previous ticks dropdown menu.
     * If an automatic tick arrived with an earlier tick time than your forced tick, this could cause BGS-Tally to get confused. We now ignore any incoming ticks that have an older tick time than your forced tick.
     * Forced ticks are now handled more elegantly when sending data via the BGS-Tally API, as we generate a fake `tickid` for the forced tick.
-* Due to a game bug, some illegal massacre and assassination missions were not logging negative INF correctly against the target faction. Implemented a workaround for this.
+* Due to a game bug, some illegal massacre and assassination missions were not tallying negative INF correctly against the target faction. Implemented a workaround for this.
+* Due to a game bug, some ship murders were not being tallied against the target ship faction. Implemented a workaround for this.
 
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 

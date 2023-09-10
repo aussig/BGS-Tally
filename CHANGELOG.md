@@ -2,6 +2,10 @@
 
 ## v3.2.0-xx - xxxx-xx-xx
 
+### Changes:
+
+* Pop-up legend window now includes 🛠️ for TW reactivation missions.
+
 ### Bug Fixes:
 
 * The new TW reactivation mission tracking wasn't working quite right - it was tallying the missions as cargo instead of reac.

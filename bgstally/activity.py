@@ -343,7 +343,15 @@ class Activity:
                     if mission_station not in tw_stations:
                         tw_stations[mission_station] = self._get_new_tw_station_data(mission_station)
 
-                    if mission.get('PassengerCount', -1) > -1:
+                    if journal_entry['Name'] in MISSIONS_TW_REACTIVATE:
+                        self.bgstally.ui.show_system_report(system_address)
+
+                        # This tracking is unusual - we track BOTH against the station where the mission was completed AND the system where the settlement was reactivated
+                        tw_stations[mission_station]['reactivate'] += 1
+                        destination_system = self.get_system_by_name(mission['DestinationSystem'])
+                        if destination_system is not None:
+                            destination_system['TWReactivate'] += 1
+                    elif mission.get('PassengerCount', -1) > -1:
                         self.bgstally.ui.show_system_report(system_address)
 
                         if journal_entry['Name'] in MISSIONS_TW_EVAC_LOW:
@@ -394,14 +402,6 @@ class Activity:
                             case "$MissionUtil_FactionTag_Orthrus;":
                                 tw_stations[mission_station]['massacre']['o']['count'] += 1
                                 tw_stations[mission_station]['massacre']['o']['sum'] += mission.get('KillCount', -1)
-                    elif journal_entry['Name'] in MISSIONS_TW_REACTIVATE:
-                        self.bgstally.ui.show_system_report(system_address)
-
-                        # This tracking is unusual - we track BOTH against the station where the mission was completed AND the system where the settlement was reactivated
-                        tw_stations[mission_station]['reactivate'] += 1
-                        destination_system = self.get_system_by_name(mission['DestinationSystem'])
-                        if destination_system is not None:
-                            destination_system['TWReactivate'] += 1
 
         self.recalculate_zero_activity()
         mission_log.delete_mission_by_id(journal_entry['MissionID'])

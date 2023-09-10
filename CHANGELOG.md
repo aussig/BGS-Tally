@@ -2,7 +2,9 @@
 
 ## v3.2.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
 
+* The new TW reactivation mission tracking wasn't working quite right - it was tallying the missions as cargo instead of reac.
 
 
 ## v3.2.0-a1 - 2023-09-08
@@ -13,7 +15,7 @@
 * Space Conflict Zones are now tracked automatically. As with Ground CZs, the game doesn't give us enough information to detect whether you've actually **won** the CZ, so if you drop in and log a kill within 5 minutes, this is tallied as a win. Manual controls are still available to adjust if you need.
 * Thargoid War system progress is now displayed as a progress bar on the in-game overlay when in a TW active system.
 * An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
-* Thargoid War reactivation (settlement reboot) missions are now tracked: `🛠️ (missions)`, both for the station issuing the mission and for the system where the settlement was reactivated.
+* Thargoid War reactivation (settlement reboot) missions are now tracked: both for the station issuing the mission (`🛠️ x n missions`) and for the system where the settlement was reactivated (`🛠️ x n settlements`).
 * Added a new setting to allow you to switch off reporting for new systems you visit. This is for CMDRs who regularly only want to report a subset of their work - it means you don't have to switch off a load of systems, you can just switch on the few you need.
 * Forced ticks are now labelled clearly, including in Discord posts.
 

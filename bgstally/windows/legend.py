@@ -24,6 +24,7 @@ class WindowLegend:
         self.image_icon_tw_sr_bbs:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_sr_bbs.png"))
         self.image_icon_tw_sr_pods:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_sr_pods.png"))
         self.image_icon_tw_sr_tissue:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_sr_tissue.png"))
+        self.image_icon_tw_reactivate:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_reactivate.png"))
 
         self.toplevel:tk.Toplevel = None
 
@@ -61,6 +62,8 @@ class WindowLegend:
         ttk.Label(frame_container, text=" Wounded evacuation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_crit_wounded).grid(row=current_row, column=0)
         ttk.Label(frame_container, text=" Critically wounded evacuation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, image=self.image_icon_tw_reactivate).grid(row=current_row, column=0)
+        ttk.Label(frame_container, text=" Reactivation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_mass_missions).grid(row=current_row, column=0)
         ttk.Label(frame_container, text=" Massacre missions\n" \
                                         + "   S - Scout\n" \

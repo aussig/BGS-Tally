@@ -12,7 +12,7 @@ import myNotebook as nb
 from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.activity import Activity
-from bgstally.constants import FOLDER_ASSETS, FONT_HEADING, CheckStates, DiscordActivity, DiscordPostStyle, UpdateUIPolicy
+from bgstally.constants import FOLDER_ASSETS, FONT_HEADING, CheckStates, DiscordActivity, DiscordPostStyle, UpdateUIPolicy, OverlayPosition
 from bgstally.debug import Debug
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
@@ -162,6 +162,13 @@ class UI:
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="In-game Overlay", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
         nb.Checkbutton(frame, text="Show In-game Overlay", variable=self.bgstally.state.EnableOverlay, state="disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled", onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Label(frame, text="Current Tick Overlay Position").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Radiobutton(frame, text=OverlayPosition.TOP_LEFT, variable=self.bgstally.state.OverlayCurrentTickPosition, value=OverlayPosition.TOP_LEFT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Radiobutton(frame, text=OverlayPosition.TOP_RIGHT, variable=self.bgstally.state.OverlayCurrentTickPosition, value=OverlayPosition.TOP_RIGHT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Radiobutton(frame, text=OverlayPosition.BOTTOM_LEFT, variable=self.bgstally.state.OverlayCurrentTickPosition, value=OverlayPosition.BOTTOM_LEFT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Radiobutton(frame, text=OverlayPosition.BOTTOM_RIGHT, variable=self.bgstally.state.OverlayCurrentTickPosition, value=OverlayPosition.BOTTOM_RIGHT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Radiobutton(frame, text=OverlayPosition.DISABLED, variable=self.bgstally.state.OverlayCurrentTickPosition, value=OverlayPosition.DISABLED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+
         if self.bgstally.overlay.edmcoverlay == None:
             nb.Label(frame, text="In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.").grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1
 
@@ -198,7 +205,9 @@ class UI:
             current_activity:Activity = self.bgstally.activity_manager.get_current_activity()
 
             # Current Tick Time
-            self.bgstally.overlay.display_message("tick", f"Curr Tick: {self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)}", True)
+            if self.bgstally.state.OverlayCurrentTickPosition.get() != OverlayPosition.DISABLED:
+                self.bgstally.overlay.display_message("tick", f"Curr Tick: {self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)}", True)
+            
             minutes_delta:int = int((datetime.utcnow() - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
 
             # Activity Indicator

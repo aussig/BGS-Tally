@@ -64,6 +64,13 @@ class RequestMethod(Enum):
     HEAD = 'head'
     OPTIONS = 'options'
 
+class OverlayPosition(str, Enum):
+    TOP_LEFT = 'Top Left'
+    TOP_RIGHT = 'Top Right'
+    BOTTOM_LEFT = 'Bottom Left'
+    BOTTOM_RIGHT = 'Bottom Right'
+    DISABLED = 'Disabled'
+
 
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"
 FILE_SUFFIX = ".json"

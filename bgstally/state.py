@@ -3,7 +3,7 @@ from typing import Dict
 
 from config import config
 
-from bgstally.constants import CheckStates, DiscordActivity, DiscordPostStyle, OverlayPosition
+from bgstally.constants import CheckStates, DiscordActivity, DiscordPostStyle
 
 
 class State:
@@ -34,7 +34,7 @@ class State:
         self.DiscordPostStyle:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordPostStyle', default=DiscordPostStyle.EMBED))
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordActivity', default=DiscordActivity.BOTH))
         self.EnableOverlay:tk.StringVar = tk.StringVar(value=config.get_str('XEnableOverlay', default=CheckStates.STATE_ON))
-        self.OverlayCurrentTickPosition:tk.StringVar = tk.StringVar(value=config.get_str('XOverlayCurrentTickPosition', default=OverlayPosition.TOP_RIGHT))
+        self.EnableOverlayCurrentTick:tk.StringVar = tk.StringVar(value=config.get_str('XEnableOverlayCurrentTick', default=CheckStates.STATE_ON))
         self.EnableSystemActivityByDefault:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableSystemActivityByDefault', default=CheckStates.STATE_ON))
 
         # Persistent values
@@ -76,7 +76,7 @@ class State:
         config.set('XDiscordPostStyle', self.DiscordPostStyle.get())
         config.set('XDiscordActivity', self.DiscordActivity.get())
         config.set('XEnableOverlay', self.EnableOverlay.get())
-        config.set('XOverlayCurrentTickPosition', self.OverlayCurrentTickPosition.get())
+        config.set('XEnableOverlayCurrentTick', self.EnableOverlayCurrentTick.get())
         config.set('BGST_EnableSystemActivityByDefault', self.EnableSystemActivityByDefault.get())
 
         # Persistent values

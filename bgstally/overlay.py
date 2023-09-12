@@ -1,6 +1,6 @@
 import textwrap
 
-from bgstally.constants import CheckStates, OverlayPosition
+from bgstally.constants import CheckStates
 from bgstally.debug import Debug
 
 try:
@@ -13,13 +13,6 @@ HEIGHT_CHARACTER_LARGE = 20
 WIDTH_CHARACTER_NORMAL = 4
 WIDTH_CHARACTER_LARGE = 6
 MAX_LINES_PER_PANEL = 30
-
-OVERLAY_COORDS = {
-    OverlayPosition.TOP_LEFT:  {'x': 20, 'y': 0},
-    OverlayPosition.TOP_RIGHT: {'x': 1000, 'y': 0},
-    OverlayPosition.BOTTOM_LEFT: {'x': 20, 'y': 950},
-    OverlayPosition.BOTTOM_RIGHT: {'x': 1000, 'y': 950}
-}
 
 
 class Overlay:
@@ -168,11 +161,7 @@ class Overlay:
         elif frame == "indicator":
             return {'border_colour': "#ffffff", 'fill_colour': "#00cc00", 'text_colour': "red", 'title_colour': "red", 'x': 970, 'y': 10, 'w': 10, 'h': 15, 'ttl': 1, 'text_size': "normal"}
         elif frame == "tick":
-            return dict(
-                {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "#ffffff", 'w': 100, 'h': 25, 'ttl': 3, 'text_size': "large"},
-                **OVERLAY_COORDS[self.bgstally.state.OverlayCurrentTickPosition.get()]
-            )
-            return 
+            return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "#ffffff", 'x': 1000, 'y': 0, 'w': 100, 'h': 25, 'ttl': 3, 'text_size': "large"}
         elif frame == "tickwarn":
             return {'border_colour': None, 'fill_colour': None, 'text_colour': "red", 'title_colour': "red", 'x': 1000, 'y': 20, 'w': 100, 'h': 25, 'ttl': 1, 'text_size': "normal"}
         elif frame == "tw":

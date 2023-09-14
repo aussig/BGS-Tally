@@ -2,7 +2,9 @@
 
 ## v3.2.0-xx - xxxx-xx-xx
 
+### New Features:
 
+* Allow each overlay panel to be individually hidden or shown.
 
 
 ## v3.2.0-a2 - 2023-09-10

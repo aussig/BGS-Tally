@@ -160,8 +160,21 @@ class UI:
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="In-game Overlay", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
-        nb.Checkbutton(frame, text="Show In-game Overlay", variable=self.bgstally.state.EnableOverlay, state="disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled", onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Label(frame, text="In-game Overlay", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1
+        nb.Checkbutton(frame, text="Show In-game Overlay", 
+                       variable=self.bgstally.state.EnableOverlay, 
+                       state=self._overlay_options_state(), 
+                       onvalue=CheckStates.STATE_ON, 
+                       offvalue=CheckStates.STATE_OFF, 
+                       command=self.bgstally.state.refresh
+                       ).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Show 'Curr Tick' Overlay", 
+                       variable=self.bgstally.state.EnableOverlayCurrentTick,
+                       state=self._overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON, 
+                       offvalue=CheckStates.STATE_OFF, 
+                       ).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+
         if self.bgstally.overlay.edmcoverlay == None:
             nb.Label(frame, text="In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.").grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1
 
@@ -198,7 +211,9 @@ class UI:
             current_activity:Activity = self.bgstally.activity_manager.get_current_activity()
 
             # Current Tick Time
-            self.bgstally.overlay.display_message("tick", f"Curr Tick: {self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)}", True)
+            if self.bgstally.state.EnableOverlayCurrentTick.get() == CheckStates.STATE_ON:
+                self.bgstally.overlay.display_message("tick", f"Curr Tick: {self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)}", True)
+            
             minutes_delta:int = int((datetime.utcnow() - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
 
             # Activity Indicator
@@ -290,3 +305,10 @@ class UI:
         """
         answer = askyesno(title="Confirm FORCE a New Tick", message="This will move your current activity into the previous tick, and clear activity for the current tick.\n\nWARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but BGS-Tally is not showing it.\n\nAre you sure that you want to do this?", default="no")
         if answer: self.bgstally.new_tick(True, UpdateUIPolicy.IMMEDIATE)
+
+    def _overlay_options_state(self):
+        """
+        If the overlay plugin is not available, we want to disable the options so users are not interacting
+        with them expecting results
+        """
+        "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"

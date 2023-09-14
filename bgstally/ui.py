@@ -161,10 +161,16 @@ class UI:
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="In-game Overlay", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1
-        nb.Checkbutton(frame, text="Show In-game Overlay", variable=self.bgstally.state.EnableOverlay, state="disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled", onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(frame, text="Enable 'Curr Tick' Overlay", 
+        nb.Checkbutton(frame, text="Show In-game Overlay", 
+                       variable=self.bgstally.state.EnableOverlay, 
+                       state=self._overlay_options_state(), 
+                       onvalue=CheckStates.STATE_ON, 
+                       offvalue=CheckStates.STATE_OFF, 
+                       command=self.bgstally.state.refresh
+                       ).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Show 'Curr Tick' Overlay", 
                        variable=self.bgstally.state.EnableOverlayCurrentTick,
-                       state="disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled",
+                       state=self._overlay_options_state(),
                        onvalue=CheckStates.STATE_ON, 
                        offvalue=CheckStates.STATE_OFF, 
                        ).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1

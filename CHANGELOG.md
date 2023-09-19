@@ -5,6 +5,7 @@
 ### New Features:
 
 * Allow each overlay panel to be individually hidden or shown.
+* Trade purchase is now reported in three brackets rather than two: 🅻 | 🅼 | 🅷
 
 
 ## v3.2.0-a2 - 2023-09-10

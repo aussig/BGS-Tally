@@ -1084,7 +1084,8 @@ class Activity:
             if sum(int(d['value']) for d in faction['TradeBuy']) > 0:
                 # Buy brackets currently range from 0 - 3
                 activity_text += f"{cyan('TrdBuy', fp=fp)} " \
-                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeBuy'][2]['value']), fp=fp)} " \
+                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeBuy'][1]['value']), fp=fp)} " \
+                    + f"{'🅼' if discord else '[L]'}:{green(human_format(faction['TradeBuy'][2]['value']), fp=fp)} " \
                     + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeBuy'][3]['value']), fp=fp)} "
             if sum(int(d['value']) for d in faction['TradeSell']) > 0:
                 # Sell brackets currently range from 0 - 3

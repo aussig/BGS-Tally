@@ -1,9 +1,7 @@
 import tkinter as tk
-from typing import Dict
-
-from config import config
 
 from bgstally.constants import CheckStates, DiscordActivity, DiscordPostStyle
+from config import config
 
 
 class State:
@@ -46,9 +44,10 @@ class State:
         self.station_type:str = config.get_str('XStationType', default ="")
 
         # Non-persistent values
-        self.last_settlement_approached:Dict = {}
-        self.last_spacecz_approached:Dict = {}
-        self.last_ships_targeted:Dict = {}
+        self.last_settlement_approached:dict = {}
+        self.last_spacecz_approached:dict = {}
+        self.last_megaship_approached:dict = {}
+        self.last_ships_targeted:dict = {}
         self.system_tw_status = None
 
         self.refresh()

@@ -104,6 +104,10 @@ class BGSTally:
                 activity.settlement_approached(entry, self.state)
                 dirty = True
 
+            case 'Bounty':
+                activity.bv_received(entry, self.state)
+                dirty = True
+
             case 'CarrierJumpCancelled':
                 self.fleet_carrier.jump_cancelled()
 

@@ -2,6 +2,7 @@ import json
 from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Dict
+import re
 
 from bgstally.constants import CheckStates, DiscordActivity, FILE_SUFFIX
 from bgstally.debug import Debug
@@ -104,6 +105,8 @@ class Activity:
         self.discord_notes: str = ""
         self.dirty: bool = False
         self.systems: dict = {}
+
+        self.megaship_pat:re.Pattern = re.compile("^[a-z]{3}-[0-9]{3} ")  # e.g. kar-314 aquarius-class tanker
 
 
     def load_legacy_data(self, filepath: str):
@@ -269,11 +272,15 @@ class Activity:
             # Set war states for pairs of factions in War / Civil War / Elections
             for conflict in journal_entry.get('Conflicts', []):
                 if conflict['Status'] != "active": continue
+                faction_1:str = conflict['Faction1']['Name']
+                faction_2:str = conflict['Faction2']['Name']
 
-                if conflict['Faction1']['Name'] in current_system['Factions'] and conflict['Faction2']['Name'] in current_system['Factions']:
+                if faction_1 in current_system['Factions'] and faction_2 in current_system['Factions']:
                     conflict_state = "War" if conflict['WarType'] == "war" else "CivilWar" if conflict['WarType'] == "civilwar" else "Election" if conflict['WarType'] == "election" else "None"
-                    current_system['Factions'][conflict['Faction1']['Name']]['FactionState'] = conflict_state
-                    current_system['Factions'][conflict['Faction2']['Name']]['FactionState'] = conflict_state
+                    current_system['Factions'][faction_1]['FactionState'] = conflict_state
+                    current_system['Factions'][faction_1]['Opponent'] = faction_2
+                    current_system['Factions'][faction_2]['FactionState'] = conflict_state
+                    current_system['Factions'][faction_2]['Opponent'] = faction_1
 
         self.recalculate_zero_activity()
         state.current_system_id = str(current_system['SystemAddress'])
@@ -613,6 +620,8 @@ class Activity:
         Handle approaching a settlement
         """
         state.last_settlement_approached = {'timestamp': journal_entry['timestamp'], 'name': journal_entry['Name'], 'size': None}
+        state.last_spacecz_approached = {}
+        self.last_megaship_approached = {}
 
 
     def destination_dropped(self, journal_entry: dict, state: State):
@@ -625,10 +634,20 @@ class Activity:
         match journal_entry.get('Type', "").lower():
             case type if type.startswith("$warzone_pointrace_low"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'l', 'counted': False}
+                state.last_settlement_approached = {}
+                self.last_megaship_approached = {}
             case type if type.startswith("$warzone_pointrace_med"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'm', 'counted': False}
+                state.last_settlement_approached = {}
+                self.last_megaship_approached = {}
             case type if type.startswith("$warzone_pointrace_high"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'h', 'counted': False}
+                state.last_settlement_approached = {}
+                self.last_megaship_approached = {}
+            case type if re.match(self.megaship_pat, type):
+                state.last_megaship_approached = {'timestamp': journal_entry['timestamp'], 'counted': False}
+                self.last_spacecz_approached = {}
+                state.last_settlement_approached = {}
 
 
     def cb_received(self, journal_entry: Dict, state: State):
@@ -655,7 +674,7 @@ class Activity:
                 state.last_settlement_approached['timestamp'] = journal_entry['timestamp']
                 self._cb_ground_cz(journal_entry, current_system, state)
 
-        if state.last_spacecz_approached != {}:
+        elif state.last_spacecz_approached != {}:
             timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_spacecz_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
             if timedifference > timedelta(minutes=5):
                 # Too long since we last entered a space cz, we can't be sure we're fighting at that cz, clear down
@@ -749,11 +768,51 @@ class Activity:
         state.last_spacecz_approached['counted'] = True
         self.dirty = True
 
-        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
-
         type:str = state.last_spacecz_approached.get('type', 'l')
         faction['SpaceCZ'][type] = str(int(faction['SpaceCZ'].get(type, '0')) + 1)
 
+        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+        self.recalculate_zero_activity()
+
+
+    def bv_received(self, journal_entry: Dict, state: State):
+        """
+        Handle a bounty voucher for a kill
+        """
+        current_system = self.systems.get(state.current_system_id)
+        if not current_system: return
+
+        # Check whether in megaship scenario for scenario tracking
+        if state.last_megaship_approached != {}:
+            timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_megaship_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+            if timedifference > timedelta(minutes=5):
+                # Too long since we last entered a megaship scenario, we can't be sure we're fighting at that scenario, clear down
+                state.last_megaship_approached = {}
+            else:
+                # We're within the timeout, refresh timestamp and handle the CB
+                state.last_megaship_approached['timestamp'] = journal_entry['timestamp']
+                self._bv_megaship_scenario(journal_entry, current_system, state)
+
+
+    def _bv_megaship_scenario(self, journal_entry:dict, current_system:dict, state:State):
+        """
+        We are in an active megaship scenario
+        """
+        faction:dict = current_system['Factions'].get(journal_entry['VictimFaction'])
+        if not faction: return
+        opponent_faction:dict = current_system['Factions'].get(faction.get('Opponent'))
+        if not opponent_faction: return
+
+        # If we've already counted this scenario, exit
+        if state.last_megaship_approached.get('counted', False): return
+
+        state.last_megaship_approached['counted'] = True
+        self.dirty = True
+
+        # The scenario should be counted against the opponent faction of the ship just killed
+        opponent_faction['Scenarios'] += 1
+
+        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
         self.recalculate_zero_activity()
 
 

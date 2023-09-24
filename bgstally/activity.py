@@ -800,7 +800,7 @@ class Activity:
         """
         faction:dict = current_system['Factions'].get(journal_entry['VictimFaction'])
         if not faction: return
-        opponent_faction:dict = current_system['Factions'].get(faction.get('Opponent'))
+        opponent_faction:dict = current_system['Factions'].get(faction.get('Opponent', ""))
         if not opponent_faction: return
 
         # If we've already counted this scenario, exit

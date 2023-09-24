@@ -6,6 +6,7 @@
 
 * Allow each overlay panel to be individually hidden or shown.
 * Trade purchase is now reported in three brackets rather than two: 🅻 | 🅼 | 🅷
+* Automatically attempt to track megaship scenarios.  As with Ground CZs, the game doesn't give us enough information to detect whether you've actually **won** the scenario, so if you drop in and log a kill within 5 minutes, this is tallied as a win for the faction that's at war with the first ship you kill.
 
 
 ## v3.2.0-a2 - 2023-09-10

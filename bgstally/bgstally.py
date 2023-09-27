@@ -130,6 +130,10 @@ class BGSTally:
                 self.state.station_type = entry['StationType']
                 dirty = True
 
+            case 'EjectCargo':
+                activity.eject_cargo(entry)
+                dirty = True
+
             case 'FactionKillBond' if state['Odyssey']:
                 activity.cb_received(entry, self.state)
                 dirty = True

@@ -543,7 +543,7 @@ class Activity:
         # Handle SandR tissue samples first
         cargo_type:str = journal_entry.get('Type', "").lower()
         if 'thargoidtissuesample' in cargo_type or 'thargoidscouttissuesample' in cargo_type:
-            self._search_and_rescue_handin('t', journal_entry.get('Count', 0))
+            self._search_and_rescue_handin('t', journal_entry.get('Count', 0), True)
             # Fall through to BGS tracking for standard trade sale
 
         faction = current_system['Factions'].get(state.station_faction)
@@ -837,6 +837,23 @@ class Activity:
         self.dirty = True
 
 
+    def eject_cargo(self, journal_entry: dict):
+        """
+        Handle cargo ejection for certain cargo types
+        """
+        key:str = None
+
+        match journal_entry.get('Type', "").lower():
+            case 'damagedescapepod': key = 'dp'
+            case 'occupiedcryopod': key = 'op'
+            case 'usscargoblackbox': key = 'bb'
+            case _ as cargo_type if "thargoidtissuesample" in cargo_type or "thargoidscouttissuesample" in cargo_type: key = 't'
+
+        if key is None: return
+
+        self._search_and_rescue_handin(key, journal_entry.get('Count', 0), False)
+
+
     def search_and_rescue(self, journal_entry: dict, state: State):
         """
         Handle search and rescue hand-in
@@ -852,10 +869,10 @@ class Activity:
 
         if key is None or count == 0: return
 
-        self._search_and_rescue_handin(key, count)
+        self._search_and_rescue_handin(key, count, True)
 
 
-    def _search_and_rescue_handin(self, key:str, count:int):
+    def _search_and_rescue_handin(self, key:str, count:int, tally:bool):
         """
         Tally a search and rescue handin. These can originate from SearchAndRescue or TradeSell events
         """
@@ -870,11 +887,11 @@ class Activity:
             allocatable:int = min(count, system['TWSandR'][key]['scooped'])
             if allocatable > 0:
                 system['TWSandR'][key]['scooped'] -= allocatable
-                system['TWSandR'][key]['delivered'] += allocatable
+                if tally: system['TWSandR'][key]['delivered'] += allocatable
                 count -= allocatable
                 self.dirty = True
 
-                self.bgstally.ui.show_system_report(system['SystemAddress'])
+                if tally: self.bgstally.ui.show_system_report(system['SystemAddress'])
 
         # count can end up > 0 here - i.e. more S&R handed in than we originally logged as scooped. Ignore, as we don't know
         # where it originally came from

@@ -104,6 +104,10 @@ class BGSTally:
                 activity.settlement_approached(entry, self.state)
                 dirty = True
 
+            case 'Bounty':
+                activity.bv_received(entry, self.state)
+                dirty = True
+
             case 'CarrierJumpCancelled':
                 self.fleet_carrier.jump_cancelled()
 
@@ -124,6 +128,10 @@ class BGSTally:
             case 'Docked':
                 self.state.station_faction = entry['StationFaction']['Name']
                 self.state.station_type = entry['StationType']
+                dirty = True
+
+            case 'EjectCargo':
+                activity.eject_cargo(entry)
                 dirty = True
 
             case 'FactionKillBond' if state['Odyssey']:

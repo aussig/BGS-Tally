@@ -134,14 +134,14 @@ class UI:
         nb.Checkbutton(frame, text="Show Systems with Zero Activity", variable=self.bgstally.state.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Discord", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1
-        nb.Label(frame, text="Post Format").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        nb.Radiobutton(frame, text="Modern", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Radiobutton(frame, text="Legacy", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Label(frame, text="Activity to Include").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Label(frame, text="Discord", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # Don't increment row because we want the 1st radio option to be opposite title
+        nb.Label(frame, text="Activity to Include").grid(row=current_row + 1, column=0, padx=10, sticky=tk.W)
         nb.Radiobutton(frame, text="BGS", variable=self.bgstally.state.DiscordActivity, value=DiscordActivity.BGS).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Radiobutton(frame, text="Thargoid War", variable=self.bgstally.state.DiscordActivity, value=DiscordActivity.THARGOIDWAR).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Radiobutton(frame, text="Both", variable=self.bgstally.state.DiscordActivity, value=DiscordActivity.BOTH).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Label(frame, text="Post Format").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Radiobutton(frame, text="Modern", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Radiobutton(frame, text="Legacy", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Label(frame, text="Other Options").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         nb.Checkbutton(frame, text="Abbreviate Faction Names", variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(frame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
@@ -161,7 +161,45 @@ class UI:
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="In-game Overlay", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
-        nb.Checkbutton(frame, text="Show In-game Overlay", variable=self.bgstally.state.EnableOverlay, state="disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled", onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Show In-game Overlay",
+                       variable=self.bgstally.state.EnableOverlay,
+                       state=self._overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+
+        nb.Label(frame, text="Panels").grid(row=current_row, column=0, padx=10, sticky=tk.NW)
+        overlay_options_frame:ttk.Frame = ttk.Frame(frame)
+        overlay_options_frame.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(overlay_options_frame, text="Current Tick",
+                       variable=self.bgstally.state.EnableOverlayCurrentTick,
+                       state=self._overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame, text="Activity Indicator",
+                       variable=self.bgstally.state.EnableOverlayActivity,
+                       state=self._overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame, text="Thargoid War Progress",
+                       variable=self.bgstally.state.EnableOverlayTWProgress,
+                       state=self._overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame, text="System Information",
+                       variable=self.bgstally.state.EnableOverlaySystem,
+                       state=self._overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).pack(side=tk.LEFT)
         if self.bgstally.overlay.edmcoverlay == None:
             nb.Label(frame, text="In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.").grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1
 
@@ -198,24 +236,26 @@ class UI:
             current_activity:Activity = self.bgstally.activity_manager.get_current_activity()
 
             # Current Tick Time
-            self.bgstally.overlay.display_message("tick", f"Curr Tick: {self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)}", True)
+            if self.bgstally.state.enable_overlay_current_tick:
+                self.bgstally.overlay.display_message("tick", f"Curr Tick: {self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)}", True)
+
+            # Tick Warning
             minutes_delta:int = int((datetime.utcnow() - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
+            if self.bgstally.state.enable_overlay_current_tick:
+                if datetime.utcnow() > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
+                    self.bgstally.overlay.display_message("tickwarn", f"Tick {minutes_delta}m Overdue (Estimated)", True)
+                elif datetime.utcnow() > self.bgstally.tick.next_predicted():
+                    self.bgstally.overlay.display_message("tickwarn", f"Past Estimated Tick Time", True, text_colour_override="#FFA500")
+                elif datetime.utcnow() > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
+                    self.bgstally.overlay.display_message("tickwarn", f"Within {TIME_TICK_ALERT_M}m of Next Tick (Estimated)", True, text_colour_override="yellow")
 
             # Activity Indicator
-            if self.indicate_activity:
+            if self.bgstally.state.enable_overlay_activity and self.indicate_activity:
                 self.bgstally.overlay.display_indicator("indicator")
                 self.indicate_activity = False
 
-            # Tick Warning
-            if datetime.utcnow() > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
-                self.bgstally.overlay.display_message("tickwarn", f"Tick {minutes_delta}m Overdue (Estimated)", True)
-            elif datetime.utcnow() > self.bgstally.tick.next_predicted():
-                self.bgstally.overlay.display_message("tickwarn", f"Past Estimated Tick Time", True, text_colour_override="#FFA500")
-            elif datetime.utcnow() > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
-                self.bgstally.overlay.display_message("tickwarn", f"Within {TIME_TICK_ALERT_M}m of Next Tick (Estimated)", True, text_colour_override="yellow")
-
             # Thargoid War Progress Report
-            if (self.bgstally.state.system_tw_status is not None and current_activity is not None):
+            if self.bgstally.state.enable_overlay_tw_progress and self.bgstally.state.system_tw_status is not None and current_activity is not None:
                 current_system:dict = current_activity.get_current_system()
                 if current_system:
                     progress:float = float(self.bgstally.state.system_tw_status.get('WarProgress', 0))
@@ -223,7 +263,8 @@ class UI:
 
                     self.bgstally.overlay.display_progress_bar("tw", f"TW War Progress in {current_system.get('System', 'Unknown')}: {percent}%", progress)
 
-            if self.report_system_address is not None and current_activity is not None:
+            # System Information
+            if self.bgstally.state.enable_overlay_system and self.report_system_address is not None and current_activity is not None:
                 report_system:dict = current_activity.get_system_by_address(self.report_system_address)
                 if report_system is not None:
                     self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, report_system['System']), fit_to_text=True, has_title=True)
@@ -290,3 +331,11 @@ class UI:
         """
         answer = askyesno(title="Confirm FORCE a New Tick", message="This will move your current activity into the previous tick, and clear activity for the current tick.\n\nWARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but BGS-Tally is not showing it.\n\nAre you sure that you want to do this?", default="no")
         if answer: self.bgstally.new_tick(True, UpdateUIPolicy.IMMEDIATE)
+
+
+    def _overlay_options_state(self):
+        """
+        If the overlay plugin is not available, we want to disable the options so users are not interacting
+        with them expecting results
+        """
+        "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"

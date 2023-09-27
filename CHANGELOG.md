@@ -1,8 +1,16 @@
 # Change Log
 
-## v3.2.0-xx - xxxx-xx-xx
+## v3.2.0-b1 - 2023-09-27
 
+### New Features:
 
+* Allow each overlay panel to be individually hidden or shown.
+* Trade purchase is now reported in three brackets rather than two: 🅻 | 🅼 | 🅷
+* Automatically attempt to track megaship scenarios.  As with Ground CZs, the game doesn't give us enough information to detect whether you've actually **won** the scenario, so if you drop in and log a kill within 5 minutes, this is tallied as a win for the faction that's at war with the first ship you kill.
+
+### Bug Fixes:
+
+* Now handles cargo ejection for Thargoid S&R operations. Previously, it could mis-tally to the wrong system because it hadn't realised the cargo scooped in that system had been destroyed by ejection.
 
 
 ## v3.2.0-a2 - 2023-09-10

@@ -1,9 +1,7 @@
 import tkinter as tk
-from typing import Dict
-
-from config import config
 
 from bgstally.constants import CheckStates, DiscordActivity, DiscordPostStyle
+from config import config
 
 
 class State:
@@ -34,6 +32,10 @@ class State:
         self.DiscordPostStyle:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordPostStyle', default=DiscordPostStyle.EMBED))
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordActivity', default=DiscordActivity.BOTH))
         self.EnableOverlay:tk.StringVar = tk.StringVar(value=config.get_str('XEnableOverlay', default=CheckStates.STATE_ON))
+        self.EnableOverlayCurrentTick:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCurrentTick', default=CheckStates.STATE_ON))
+        self.EnableOverlayActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayActivity', default=CheckStates.STATE_ON))
+        self.EnableOverlayTWProgress:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayTWProgress', default=CheckStates.STATE_ON))
+        self.EnableOverlaySystem:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlaySystem', default=CheckStates.STATE_ON))
         self.EnableSystemActivityByDefault:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableSystemActivityByDefault', default=CheckStates.STATE_ON))
 
         # Persistent values
@@ -42,9 +44,10 @@ class State:
         self.station_type:str = config.get_str('XStationType', default ="")
 
         # Non-persistent values
-        self.last_settlement_approached:Dict = {}
-        self.last_spacecz_approached:Dict = {}
-        self.last_ships_targeted:Dict = {}
+        self.last_settlement_approached:dict = {}
+        self.last_spacecz_approached:dict = {}
+        self.last_megaship_approached:dict = {}
+        self.last_ships_targeted:dict = {}
         self.system_tw_status = None
 
         self.refresh()
@@ -55,6 +58,10 @@ class State:
         Update all our mirror thread-safe values from their tk equivalents
         """
         self.enable_overlay:bool = (self.EnableOverlay.get() == CheckStates.STATE_ON)
+        self.enable_overlay_current_tick:bool = (self.EnableOverlayCurrentTick.get() == CheckStates.STATE_ON)
+        self.enable_overlay_activity:bool = (self.EnableOverlayActivity.get() == CheckStates.STATE_ON)
+        self.enable_overlay_tw_progress:bool = (self.EnableOverlayTWProgress.get() == CheckStates.STATE_ON)
+        self.enable_overlay_system:bool = (self.EnableOverlaySystem.get() == CheckStates.STATE_ON)
 
 
     def save(self):
@@ -76,6 +83,10 @@ class State:
         config.set('XDiscordPostStyle', self.DiscordPostStyle.get())
         config.set('XDiscordActivity', self.DiscordActivity.get())
         config.set('XEnableOverlay', self.EnableOverlay.get())
+        config.set('BGST_EnableOverlayCurrentTick', self.EnableOverlayCurrentTick.get())
+        config.set('BGST_EnableOverlayActivity', self.EnableOverlayActivity.get())
+        config.set('BGST_EnableOverlayTWProgress', self.EnableOverlayTWProgress.get())
+        config.set('BGST_EnableOverlaySystem', self.EnableOverlaySystem.get())
         config.set('BGST_EnableSystemActivityByDefault', self.EnableSystemActivityByDefault.get())
 
         # Persistent values

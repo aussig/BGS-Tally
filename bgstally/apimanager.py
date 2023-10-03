@@ -6,6 +6,7 @@ from bgstally.activity import Activity
 from bgstally.api import API
 from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA
 from bgstally.debug import Debug
+from bgstally.utils import get_by_path
 
 FILENAME = "apis.json"
 
@@ -245,10 +246,10 @@ class APIManager:
         event['cmdr'] = cmdr
         event['tickid'] = activity.tick_id
         event['ticktime']: activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL)
-        event['StationFaction'] = self.bgstally.state.station_faction
 
         # Other global enhancements
-        if 'StarSystem' not in event: event['StarSystem'] = activity.systems.get(self.bgstally.state.current_system_id, "")
+        if 'StationFaction' not in event: event['StationFaction'] = self.bgstally.state.station_faction
+        if 'StarSystem' not in event: event['StarSystem'] = get_by_path(activity.systems, [self.bgstally.state.current_system_id, 'System'], "")
         if 'SystemAddress' not in event: event['SystemAddress'] = self.bgstally.state.current_system_id
 
         # Event-specific enhancements

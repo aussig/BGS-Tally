@@ -2,6 +2,9 @@
 
 ## v3.2.0-xx - xxxx-xx-xx
 
+### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/events` endpoint: Ensure `StationFaction` is not overwritten if it is already present from the journal event. Note that this means `StationFaction` can now be _either_ a string or a dict.
 
 
 ## v3.2.0-b1 - 2023-09-27

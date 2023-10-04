@@ -7,6 +7,9 @@
 * Added quick-setup button for Comguard in API configuration window.
 * Trade profit is now reported in four brackets rather than three: 🆉 | 🅻 | 🅼 | 🅷
 
+### Bug Fixes:
+
+* If you quit EDMC, jumped to a new system, then launched EDMC, any activity would be tallied to the last system you visited while EDMC was running.
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 
 * `/events` endpoint: Ensure `StationFaction` is not overwritten if it is already present from the journal event. Note that this means `StationFaction` can now be _either_ a string _or_ an object.

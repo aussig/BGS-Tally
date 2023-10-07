@@ -3,8 +3,7 @@ from threading import Thread
 from time import sleep
 
 import semantic_version
-from companion import CAPIData, SERVER_LIVE
-from config import appversion, config
+from companion import SERVER_LIVE, CAPIData
 from monitor import monitor
 
 from bgstally.activity import Activity
@@ -24,6 +23,8 @@ from bgstally.targetlog import TargetLog
 from bgstally.tick import Tick
 from bgstally.ui import UI
 from bgstally.updatemanager import UpdateManager
+from bgstally.utils import get_by_path
+from config import appversion, config
 
 TIME_WORKER_PERIOD_S = 60
 
@@ -91,7 +92,7 @@ class BGSTally:
         activity: Activity = self.activity_manager.get_current_activity()
         dirty: bool = False
 
-        if entry.get('event') in ['Location', 'FSDJump', 'CarrierJump']:
+        if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
             if self.check_tick(UpdateUIPolicy.IMMEDIATE):
                 # New activity will be generated with a new tick
                 activity = self.activity_manager.get_current_activity()
@@ -126,8 +127,8 @@ class BGSTally:
                 dirty = True
 
             case 'Docked':
-                self.state.station_faction = entry['StationFaction']['Name']
-                self.state.station_type = entry['StationType']
+                self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
+                self.state.station_type = entry.get('StationType', "")
                 dirty = True
 
             case 'EjectCargo':
@@ -142,8 +143,8 @@ class BGSTally:
                 self.target_log.friend_request(entry, system)
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
-                self.state.station_faction = entry['StationFaction']['Name']
-                self.state.station_type = entry['StationType']
+                self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
+                self.state.station_type = entry.get('StationType', "")
                 dirty = True
 
             case 'Market':

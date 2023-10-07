@@ -287,5 +287,5 @@ class API:
         """
         headers:dict = {}
         headers[HEADER_APIVERSION] = API_VERSION
-        if self.key is not None and self.key != "": headers = {HEADER_APIKEY: self.key}
+        if self.key is not None and self.key != "": headers[HEADER_APIKEY] = self.key
         return headers

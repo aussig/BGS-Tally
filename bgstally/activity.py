@@ -1161,13 +1161,14 @@ class Activity:
                 # Buy brackets currently range from 0 - 3
                 activity_text += f"{cyan('TrdBuy', fp=fp)} " \
                     + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeBuy'][1]['value']), fp=fp)} " \
-                    + f"{'🅼' if discord else '[L]'}:{green(human_format(faction['TradeBuy'][2]['value']), fp=fp)} " \
+                    + f"{'🅼' if discord else '[M]'}:{green(human_format(faction['TradeBuy'][2]['value']), fp=fp)} " \
                     + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeBuy'][3]['value']), fp=fp)} "
             if sum(int(d['value']) for d in faction['TradeSell']) > 0:
                 # Sell brackets currently range from 0 - 3
                 activity_text += f"{cyan('TrdProfit', fp=fp)} " \
                     + f"{'🆉' if discord else '[Z]'}:{green(human_format(faction['TradeSell'][0]['profit']), fp=fp)} " \
-                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeSell'][2]['profit']), fp=fp)} " \
+                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeSell'][1]['profit']), fp=fp)} " \
+                    + f"{'🅼' if discord else '[M]'}:{green(human_format(faction['TradeSell'][2]['profit']), fp=fp)} " \
                     + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeSell'][3]['profit']), fp=fp)} "
         activity_text += f"{cyan('TrdBMProfit', fp=fp)} {green(human_format(faction['BlackMarketProfit']), fp=fp)} " if faction['BlackMarketProfit'] != 0 else ""
         activity_text += f"{white('Expl', fp=fp)} {green(human_format(faction['CartData']), fp=fp)} " if faction['CartData'] != 0 else ""

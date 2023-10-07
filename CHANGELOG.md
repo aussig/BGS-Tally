@@ -1,5 +1,21 @@
 # Change Log
 
+## v3.2.0-b2 - 2023-10-07
+
+### New Features:
+
+* Added quick-setup button for [Comguard](https://comguard.app/) in API configuration window.
+* Trade profit is now reported in four brackets rather than three: 🆉 | 🅻 | 🅼 | 🅷
+
+### Bug Fixes:
+
+* If you quit EDMC, jumped to a new system, then relaunched EDMC, any activity would be tallied to the last system you visited before quitting EDMC. BGS-Tally now realises that you are in a new system. Please note however, although it now knows you're in a new system, it can't get hold of faction or conflict information in this situation, so if you plan to work in the new system and haven't visited it before in this tick, you should jump to another system and back, or re-log to the main menu, either of which will properly load up the factions and conflicts.
+
+### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/events` endpoint: Ensure `StationFaction` is not overwritten if it is already present from the journal event. Note that this means `StationFaction` can now be _either_ a string _or_ an object.
+
+
 ## v3.2.0-b1 - 2023-09-27
 
 ### New Features:

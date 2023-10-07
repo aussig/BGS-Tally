@@ -248,7 +248,7 @@ class APIManager:
         event['ticktime']: activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL)
 
         # Other global enhancements
-        if 'StationFaction' not in event: event['StationFaction'] = self.bgstally.state.station_faction
+        if 'StationFaction' not in event: event['StationFaction'] = {'Name': self.bgstally.state.station_faction}
         if 'StarSystem' not in event: event['StarSystem'] = get_by_path(activity.systems, [self.bgstally.state.current_system_id, 'System'], "")
         if 'SystemAddress' not in event: event['SystemAddress'] = self.bgstally.state.current_system_id
 

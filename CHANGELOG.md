@@ -9,6 +9,13 @@
 
 ## v3.2.0-xx - xxxx-xx-xx
 
+### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/events` endpoint **breaking change**: `StationFaction` is now always an object with a single `Name` property, and is never a simple string.
+
+
+## v3.2.0-b2 - 2023-10-07
+
 ### New Features:
 
 * Added quick-setup button for [Comguard](https://comguard.app/) in API configuration window.

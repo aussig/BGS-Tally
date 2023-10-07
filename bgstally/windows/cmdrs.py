@@ -82,7 +82,7 @@ class WindowCMDRs:
             treeview.column(column['title'], anchor=column['align'], stretch=column['stretch'], width=column['width'])
 
         for target in reversed(self.target_data):
-            target_values = [target['TargetName'], target['System'], target['SquadronID'], target.get('ShipLocalised', target['Ship']), target['LegalStatus'], datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST)]
+            target_values = [target['TargetName'], target['System'], target['SquadronID'], target['Ship'], target['LegalStatus'], datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST)]
             iid:str = treeview.insert("", 'end', values=target_values)
             target['iid'] = iid
 
@@ -157,7 +157,7 @@ class WindowCMDRs:
             },
             {
                 "name": "In Ship",
-                "value": self.selected_cmdr.get('ShipLocalised', self.selected_cmdr['Ship']),  # More recently we store both, but only 'Ship' may be present for old data
+                "value": self.selected_cmdr['Ship'],
                 "inline": True
             },
             {

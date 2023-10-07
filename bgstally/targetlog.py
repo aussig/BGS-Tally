@@ -71,20 +71,31 @@ class TargetLog:
         """
         A ship targeted event has been received, if it's a player, add it to the target log
         """
-        # { "timestamp":"2022-10-09T06:49:06Z", "event":"ShipTargeted", "TargetLocked":true, "Ship":"cutter", "Ship_Localised":"Imperial Cutter", "ScanStage":3, "PilotName":"$cmdr_decorate:#name=[Name];", "PilotName_Localised":"[CMDR Name]", "PilotRank":"Elite", "SquadronID":"TSPA", "ShieldHealth":100.000000, "HullHealth":100.000000, "LegalStatus":"Clean" }
+        # Normal Player: { "timestamp":"2022-10-09T06:49:06Z", "event":"ShipTargeted", "TargetLocked":true, "Ship":"cutter", "Ship_Localised":"Imperial Cutter", "ScanStage":3, "PilotName":"$cmdr_decorate:#name=[Name];", "PilotName_Localised":"[CMDR Name]", "PilotRank":"Elite", "SquadronID":"TSPA", "ShieldHealth":100.000000, "HullHealth":100.000000, "LegalStatus":"Clean" }
+        # Taxi Player:   { "timestamp":"2023-10-07T16:47:16Z", "event":"ShipTargeted", "TargetLocked":true, "Ship":"vulture_taxi", "Ship_Localised":"$VULTURE_NAME;", "ScanStage":3, "PilotName":"$npc_name_decorate:#name=[CMDR Name];", "PilotName_Localised":"[CMDR Name]", "PilotRank":"Harmless", "ShieldHealth":100.000000, "HullHealth":100.000000, "Faction":"FrontlineSolutions", "LegalStatus":"Clean" }
+        # Normal NPC:    { "timestamp":"2023-10-03T21:08:08Z", "event":"ShipTargeted", "TargetLocked":true, "Ship":"federation_corvette", "Ship_Localised":"Federal Corvette", "ScanStage":3, "PilotName":"$npc_name_decorate:#name=John Ehrnstrom;", "PilotName_Localised":"John Ehrnstrom", "PilotRank":"Dangerous", "ShieldHealth":100.000000, "HullHealth":100.000000, "Faction":"Mafia of LTT 9552", "LegalStatus":"Wanted", "Bounty":609303 }
+
         if not 'ScanStage' in journal_entry or journal_entry['ScanStage'] < 3: return
         if not 'PilotName' in journal_entry: return
 
+        cmdr_name:str = None
         cmdr_match = self.cmdr_name_pattern.match(journal_entry['PilotName'])
-        if not cmdr_match: return
 
-        cmdr_name = cmdr_match.group(1)
+        if cmdr_match:
+            # CMDR in their own ship
+            cmdr_name = cmdr_match.group(1)
+        elif "_taxi" in journal_entry.get('Ship', ""):
+            # CMDR in a taxi
+            cmdr_name = journal_entry.get('PilotName_Localised')
+
+        if cmdr_name is None: return
+
+        ship_type:str = "Vulture Taxi" if journal_entry.get('Ship', "") == "vulture_taxi" else journal_entry.get('Ship_Localised', journal_entry.get('Ship', '----'))
 
         cmdr_data = {'TargetName': cmdr_name,
                     'System': system,
                     'SquadronID': journal_entry.get('SquadronID', "----"),
-                    'Ship': journal_entry.get('Ship', '----'),
-                    'ShipLocalised': journal_entry.get('Ship_Localised', journal_entry.get('Ship', '----')),
+                    'Ship': ship_type,
                     'LegalStatus': journal_entry.get('LegalStatus', '----'),
                     'Timestamp': journal_entry['timestamp']}
 
@@ -104,7 +115,6 @@ class TargetLog:
                     'System': system,
                     'SquadronID': "----",
                     'Ship': "----",
-                    'ShipLocalised': "----",
                     'LegalStatus': "----",
                     'Timestamp': journal_entry['timestamp']}
 
@@ -131,7 +141,6 @@ class TargetLog:
             cmdr_data_copy = copy(self.cmdr_cache[cmdr_name])
             cmdr_data_copy['System'] = cmdr_data['System']
             cmdr_data_copy['Ship'] = cmdr_data['Ship']
-            cmdr_data_copy['ShipLocalised'] = cmdr_data['ShipLocalised']
             cmdr_data_copy['LegalStatus'] = cmdr_data['LegalStatus']
             cmdr_data_copy['Timestamp'] = cmdr_data['Timestamp']
             # Re-cache the data with the latest updates

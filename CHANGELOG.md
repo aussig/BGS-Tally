@@ -2,6 +2,9 @@
 
 ## x3.3.0-xx - xxxx-xx-xx
 
+### New Features:
+
+* Targeting a player in a taxi will now log the player name and attempt lookup on Inara.
 
 
 ## v3.2.0-xx - xxxx-xx-xx

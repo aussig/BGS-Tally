@@ -9,6 +9,10 @@
 
 ## v3.2.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
+
+* `/events/` API wasn't augmenting `StationFaction` correctly for `MissionFailed` and `MissionAbandoned` events (per API spec v1.1).
+
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 
 * `/events` endpoint **breaking change**: `StationFaction` is now always an object with a single `Name` property, and is never a simple string.

@@ -6,6 +6,10 @@
 
 * Targeting a player in a taxi will now log the player name and attempt lookup on Inara.
 
+### Changes:
+
+* Faction name abbreviations are less obscure when the faction name contains a number or a dash.
+
 
 ## v3.2.0-xx - xxxx-xx-xx
 

@@ -69,11 +69,11 @@ class APIManager:
             api.send_activity(api_activity)
 
 
-    def send_event(self, event:dict, activity:Activity, cmdr:str):
+    def send_event(self, event:dict, activity:Activity, cmdr:str, mission:dict):
         """
         Event has been received. Add it to the events queue.
         """
-        api_event:dict = self._build_api_event(event, activity, cmdr)
+        api_event:dict = self._build_api_event(event, activity, cmdr, mission)
         for api in self.apis:
             api.send_event(api_event)
 
@@ -236,7 +236,7 @@ class APIManager:
         return api_activity
 
 
-    def _build_api_event(self, event:dict, activity:Activity, cmdr:str):
+    def _build_api_event(self, event:dict, activity:Activity, cmdr:str, mission:dict):
         """
         Build an API-ready event ready for sending. This just involves enhancing the event with some
         additional data
@@ -265,6 +265,9 @@ class APIManager:
                     market_data:dict = self.bgstally.market.get_commodity(event['Type'])
                     event['DemandBracket'] = market_data.get('DemandBracket', 0)
                     event['Demand'] = market_data.get('Demand', 0)
+
+            case 'MissionFailed' | 'MissionAbandoned':
+                event['StationFaction'] = {'Name': mission.get('Faction', "")}
 
         return event
 

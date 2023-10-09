@@ -242,6 +242,9 @@ class APIManager:
         additional data
         """
 
+        # Remove all '_Localised' event parameters
+        event = self._filter_localised(event)
+
         # BGS-Tally specific global enhancements
         event['cmdr'] = cmdr
         event['tickid'] = activity.tick_id

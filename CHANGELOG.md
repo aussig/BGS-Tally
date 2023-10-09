@@ -10,6 +10,10 @@
 
 * Faction name abbreviations are less obscure when the faction name contains a number or a dash.
 
+### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/events` endpoint: All localised fields are now stripped before sending. i.e. fields who's name ends with `_Localised`.
+
 
 ## v3.2.0-xx - xxxx-xx-xx
 

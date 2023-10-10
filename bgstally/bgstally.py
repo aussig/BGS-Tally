@@ -128,6 +128,9 @@ class BGSTally:
                 activity.crime_committed(entry, self.state)
                 dirty = True
 
+            case 'Died':
+                self.target_log.died(entry, system)
+
             case 'Docked':
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
                 self.state.station_type = entry.get('StationType', "")
@@ -143,6 +146,9 @@ class BGSTally:
 
             case 'Friends' if entry.get('Status') == "Requested":
                 self.target_log.friend_request(entry, system)
+
+            case 'Interdicted':
+                self.target_log.interdicted(entry, system)
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
@@ -178,6 +184,9 @@ class BGSTally:
             case 'MissionFailed':
                 activity.mission_failed(entry, self.mission_log)
                 dirty = True
+
+            case 'ReceiveText':
+                self.target_log.received_text(entry, system)
 
             case 'RedeemVoucher' if entry.get('Type') == 'bounty':
                 activity.bv_redeemed(entry, self.state)
@@ -215,6 +224,9 @@ class BGSTally:
             case 'Undocked' if entry.get('Taxi') == False:
                 self.state.station_faction = ""
                 self.state.station_type = ""
+
+            case 'WingInvite':
+                self.target_log.team_invite(entry, system)
 
         if dirty:
             self.save_data()

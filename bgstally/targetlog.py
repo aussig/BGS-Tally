@@ -2,7 +2,7 @@ import json
 import os.path
 import re
 from datetime import datetime, timedelta
-from typing import Dict
+
 from copy import copy
 
 from requests import Response
@@ -67,7 +67,7 @@ class TargetLog:
         return next((item for item in reversed(self.targetlog) if item['TargetName'] == cmdr_name), None)
 
 
-    def ship_targeted(self, journal_entry: Dict, system: str):
+    def ship_targeted(self, journal_entry: dict, system: str):
         """
         A ship targeted event has been received, if it's a player, add it to the target log
         """
@@ -92,56 +92,145 @@ class TargetLog:
 
         ship_type:str = "Vulture Taxi" if journal_entry.get('Ship', "") == "vulture_taxi" else journal_entry.get('Ship_Localised', journal_entry.get('Ship', '----'))
 
-        cmdr_data = {'TargetName': cmdr_name,
+        cmdr_data:dict = {'TargetName': cmdr_name,
                     'System': system,
                     'SquadronID': journal_entry.get('SquadronID', "----"),
                     'Ship': ship_type,
                     'LegalStatus': journal_entry.get('LegalStatus', '----'),
+                    'Notes': "Scanned",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
         if different and not pending: self.targetlog.append(cmdr_data)
 
 
-    def friend_request(self, journal_entry: Dict, system: str):
+    def friend_request(self, journal_entry: dict, system: str):
         """
         A friend request has been received
         """
-        # { "timestamp":"2023-04-09T06:30:50Z", "event":"Friends", "Status":"Requested", "Name":"Name of CMDR" }
-        if not 'Name' in journal_entry: return
-        cmdr_name = journal_entry['Name']
+        cmdr_name:str = journal_entry.get('Name', "")
+        if cmdr_name == "": return
 
-        cmdr_data = {'TargetName': cmdr_name,
+        cmdr_data:dict = {'TargetName': cmdr_name,
                     'System': system,
                     'SquadronID': "----",
                     'Ship': "----",
                     'LegalStatus': "----",
+                    'Notes': "Received friend request",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
         if different and not pending: self.targetlog.append(cmdr_data)
 
 
-    def _fetch_cmdr_info(self, cmdr_name:str, cmdr_data:Dict):
+    def interdicted(self, journal_entry: dict, system: str):
+        """
+        Interdicted by another ship
+        """
+        if journal_entry.get('IsPlayer', False) != True: return
+
+        cmdr_name:str = journal_entry.get('Interdictor', "")
+        if cmdr_name == "": return
+
+        cmdr_data:dict = {'TargetName': cmdr_name,
+                    'System': system,
+                    'SquadronID': "----",
+                    'Ship': "----",
+                    'LegalStatus': "----",
+                    'Notes': "Interdicted by",
+                    'Timestamp': journal_entry['timestamp']}
+
+        cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
+        if different and not pending: self.targetlog.append(cmdr_data)
+
+
+    def died(self, journal_entry: dict, system: str):
+        """
+        Killed by another ship or team.
+        """
+        # We can only guarantee it was another player if we were killed by a team
+        killers:list[dict] = journal_entry.get('Killers', [])
+        if len(killers) == 0: return
+
+        for cmdr in killers:
+            cmdr_name:str = cmdr.get('Name')
+            if cmdr_name is None: continue
+
+            cmdr_data:dict = {'TargetName': cmdr_name,
+                    'System': system,
+                    'SquadronID': "----",
+                    'Ship': cmdr.get('Ship', "----"),
+                    'LegalStatus': "----",
+                    'Notes': "Killed by",
+                    'Timestamp': journal_entry['timestamp']}
+
+            cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
+            if different and not pending: self.targetlog.append(cmdr_data)
+
+
+    def received_text(self, journal_entry: dict, system: str):
+        """
+        Received a text message
+        """
+        # Only interested if it's in the 'local' channel, as that's the current system. Ignore all other messages.
+        if journal_entry.get('Channel') != "local": return
+
+        cmdr_name:str = journal_entry.get('From', "")
+        if cmdr_name == "": return
+
+        cmdr_data:dict = {'TargetName': cmdr_name,
+                    'System': system,
+                    'SquadronID': "----",
+                    'Ship': "----",
+                    'LegalStatus': "----",
+                    'Notes': "Received message from",
+                    'Timestamp': journal_entry['timestamp']}
+
+        cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
+        if different and not pending: self.targetlog.append(cmdr_data)
+
+
+    def team_invite(self, journal_entry: dict, system: str):
+        """
+        Received a team invite
+        """
+        cmdr_name:str = journal_entry.get('Name', "")
+        if cmdr_name == "": return
+
+        cmdr_data:dict = {'TargetName': cmdr_name,
+                    'System': system,
+                    'SquadronID': "----",
+                    'Ship': "----",
+                    'LegalStatus': "----",
+                    'Notes': "Received team invite from",
+                    'Timestamp': journal_entry['timestamp']}
+
+        cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
+        if different and not pending: self.targetlog.append(cmdr_data)
+
+
+    def _fetch_cmdr_info(self, cmdr_name:str, cmdr_data:dict):
         """
         Fetch additional CMDR data from Inara and enhance the cmdr_data Dict with it
         """
         if cmdr_name in self.cmdr_cache:
             # We have cached data. Check whether it's different enough to make a new log entry for this CMDR.
-            cmdr_cache_data = self.cmdr_cache[cmdr_name]
+            # Different enough: Any of System, SquadronID, Ship and LegalStatus don't match (if blank in the new data, ignore).
+            cmdr_cache_data:dict = self.cmdr_cache[cmdr_name]
             if cmdr_data['System'] == cmdr_cache_data['System'] \
-                and cmdr_data['SquadronID'] == cmdr_cache_data['SquadronID'] \
-                and cmdr_data['Ship'] == cmdr_cache_data['Ship'] \
-                and cmdr_data['LegalStatus'] == cmdr_cache_data['LegalStatus']:
+                and (cmdr_data['SquadronID'] == cmdr_cache_data['SquadronID'] or cmdr_data['SquadronID'] == "----") \
+                and (cmdr_data['Ship'] == cmdr_cache_data['Ship'] or cmdr_data['Ship'] == "----") \
+                and (cmdr_data['LegalStatus'] == cmdr_cache_data['LegalStatus'] or cmdr_data['LegalStatus'] == "----"):
                 return cmdr_cache_data, False, False
 
             # It's different, make a copy and update the fields that may have changed in the latest data. This ensures we avoid
             # expensive multiple calls to the Inara API, but keep a record of every sighting of the same CMDR. We assume Inara info
             # (squadron name, ranks, URLs) stay the same during a play session.
-            cmdr_data_copy = copy(self.cmdr_cache[cmdr_name])
+            cmdr_data_copy:dict = copy(self.cmdr_cache[cmdr_name])
             cmdr_data_copy['System'] = cmdr_data['System']
-            cmdr_data_copy['Ship'] = cmdr_data['Ship']
-            cmdr_data_copy['LegalStatus'] = cmdr_data['LegalStatus']
+            if cmdr_data['Ship'] != "----": cmdr_data_copy['Ship'] = cmdr_data['Ship']
+            if cmdr_data['LegalStatus'] != "----": cmdr_data_copy['LegalStatus'] = cmdr_data['LegalStatus']
+            cmdr_data_copy['Notes'] = cmdr_data['Notes']
             cmdr_data_copy['Timestamp'] = cmdr_data['Timestamp']
             # Re-cache the data with the latest updates
             self.cmdr_cache[cmdr_name] = cmdr_data_copy

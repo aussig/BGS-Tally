@@ -5,6 +5,7 @@
 ### New Features:
 
 * Targeting a player in a taxi will now log the player name and attempt lookup on Inara.
+* Now log the details of any CMDR who interdicts you, sends a message in local chat, invites you to a team or kills you in a team.
 
 ### Changes:
 

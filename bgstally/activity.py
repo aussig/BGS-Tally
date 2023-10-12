@@ -644,7 +644,7 @@ class Activity:
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'h', 'counted': False}
                 state.last_settlement_approached = {}
                 self.last_megaship_approached = {}
-            case type if re.match(self.megaship_pat, type):
+            case type if self.megaship_pat.match(type):
                 state.last_megaship_approached = {'timestamp': journal_entry['timestamp'], 'counted': False}
                 self.last_spacecz_approached = {}
                 state.last_settlement_approached = {}

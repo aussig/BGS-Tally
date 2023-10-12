@@ -543,7 +543,7 @@ class Activity:
         # Handle SandR tissue samples first
         cargo_type:str = journal_entry.get('Type', "").lower()
         if 'thargoidtissuesample' in cargo_type or 'thargoidscouttissuesample' in cargo_type:
-            self._search_and_rescue_handin('t', journal_entry.get('Count', 0), True)
+            self._sandr_handin('t', journal_entry.get('Count', 0), True)
             # Fall through to BGS tracking for standard trade sale
 
         faction = current_system['Factions'].get(state.station_faction)
@@ -816,6 +816,14 @@ class Activity:
         self.recalculate_zero_activity()
 
 
+    def cargo(self, journal_entry: dict):
+        """
+        Handle Cargo status
+        """
+        if journal_entry.get('Vessel') == "Ship" and journal_entry.get('Count', 0) == 0:
+            self._sandr_clear_all_scooped()
+
+
     def collect_cargo(self, journal_entry: dict, state: State):
         """
         Handle cargo collection for certain cargo types
@@ -851,7 +859,7 @@ class Activity:
 
         if key is None: return
 
-        self._search_and_rescue_handin(key, journal_entry.get('Count', 0), False)
+        self._sandr_handin(key, journal_entry.get('Count', 0), False)
 
 
     def search_and_rescue(self, journal_entry: dict, state: State):
@@ -869,42 +877,14 @@ class Activity:
 
         if key is None or count == 0: return
 
-        self._search_and_rescue_handin(key, count, True)
-
-
-    def _search_and_rescue_handin(self, key:str, count:int, tally:bool):
-        """
-        Tally a search and rescue handin. These can originate from SearchAndRescue or TradeSell events
-        """
-
-        # S&R can be handed in in any system, but the effect counts for the system the items were collected in. However,
-        # we have no way of knowing exactly which items were handed in, so just iterate through all our known systems
-        # looking for previously scooped cargo of the correct type.
-
-        for system in self.systems.values():
-            if count <= 0: break  # Finish when we've accounted for all items
-
-            allocatable:int = min(count, system['TWSandR'][key]['scooped'])
-            if allocatable > 0:
-                system['TWSandR'][key]['scooped'] -= allocatable
-                if tally: system['TWSandR'][key]['delivered'] += allocatable
-                count -= allocatable
-                self.dirty = True
-
-                if tally: self.bgstally.ui.show_system_report(system['SystemAddress'])
-
-        # count can end up > 0 here - i.e. more S&R handed in than we originally logged as scooped. Ignore, as we don't know
-        # where it originally came from
+        self._sandr_handin(key, count, True)
 
 
     def player_resurrected(self):
         """
-        Clear down any logged cargo on resurrect
+        Clear down any logged S&R cargo on resurrect
         """
-        for system in self.systems.values():
-            system['TWSandR'] = self._get_new_tw_sandr_data()
-
-        self.dirty = True
+        self._sandr_clear_all_scooped()
 
 
     def recalculate_zero_activity(self):
@@ -1129,6 +1109,44 @@ class Activity:
                 faction_data['GroundCZSettlements'] == {} and \
                 int(faction_data['Scenarios']) == 0 and \
                 faction_data['TWStations'] == {}
+
+
+    def _sandr_handin(self, key:str, count:int, tally:bool):
+        """
+        Tally a search and rescue handin. These can originate from SearchAndRescue or TradeSell events
+        """
+
+        # S&R can be handed in in any system, but the effect counts for the system the items were collected in. However,
+        # we have no way of knowing exactly which items were handed in, so just iterate through all our known systems
+        # looking for previously scooped cargo of the correct type.
+
+        for system in self.systems.values():
+            if count <= 0: break  # Finish when we've accounted for all items
+
+            allocatable:int = min(count, system['TWSandR'][key]['scooped'])
+            if allocatable > 0:
+                system['TWSandR'][key]['scooped'] -= allocatable
+                if tally: system['TWSandR'][key]['delivered'] += allocatable
+                count -= allocatable
+                self.dirty = True
+
+                if tally: self.bgstally.ui.show_system_report(system['SystemAddress'])
+
+        # count can end up > 0 here - i.e. more S&R handed in than we originally logged as scooped. Ignore, as we don't know
+        # where it originally came from
+
+
+    def _sandr_clear_all_scooped(self):
+        """
+        Clear down all search and rescue scooped cargo
+        """
+        for system in self.systems.values():
+            system['TWSandR']['dp']['scooped'] = 0
+            system['TWSandR']['op']['scooped'] = 0
+            system['TWSandR']['bb']['scooped'] = 0
+            system['TWSandR']['t']['scooped'] = 0
+
+        self.dirty = True
 
 
     def _generate_faction_text(self, faction: dict, discord: bool):

@@ -111,6 +111,9 @@ class BGSTally:
                 activity.bv_received(entry, self.state)
                 dirty = True
 
+            case 'Cargo':
+                activity.cargo(entry)
+
             case 'CarrierJumpCancelled':
                 self.fleet_carrier.jump_cancelled()
 

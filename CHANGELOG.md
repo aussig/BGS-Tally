@@ -22,6 +22,9 @@
 ### Bug Fixes:
 
 * `/events/` API wasn't augmenting `StationFaction` correctly for `MissionFailed` and `MissionAbandoned` events (per API spec v1.1).
+* Thargoid S&R operations cargo tracking now cleared down properly when your cargo hold is empty. Previously, it could mis-tally to the wrong system.
+* Don't clear Thargoid S&R delivery tally if you are killed.
+* Fix crash in code that detects drop from supercruise at megaships.
 
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 

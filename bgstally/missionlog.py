@@ -66,6 +66,8 @@ class MissionLog:
         """
         Fetch a given mission from the missionlog, or None if not found
         """
+        if missionid is None: return None
+
         for mission in self.missionlog:
             if mission['MissionID'] == missionid: return mission
         return None

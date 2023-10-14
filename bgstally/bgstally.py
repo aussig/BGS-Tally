@@ -100,6 +100,8 @@ class BGSTally:
             activity.system_entered(entry, self.state)
             dirty = True
 
+        mission:dict = self.mission_log.get_mission(entry.get('MissionID'))
+
         match entry.get('event'):
             case 'ApproachSettlement' if state['Odyssey']:
                 activity.settlement_approached(entry, self.state)
@@ -108,6 +110,9 @@ class BGSTally:
             case 'Bounty':
                 activity.bv_received(entry, self.state)
                 dirty = True
+
+            case 'Cargo':
+                activity.cargo(entry)
 
             case 'CarrierJumpCancelled':
                 self.fleet_carrier.jump_cancelled()
@@ -218,7 +223,7 @@ class BGSTally:
             self.save_data()
             self.api_manager.send_activity(activity, cmdr)
 
-        self.api_manager.send_event(entry, activity, cmdr)
+        self.api_manager.send_event(entry, activity, cmdr, mission)
 
 
     def capi_fleetcarrier(self, data: CAPIData):

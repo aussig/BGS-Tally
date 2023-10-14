@@ -19,6 +19,11 @@
 
 ## v3.2.0-xx - xxxx-xx-xx
 
+
+
+
+## v3.2.0-b3 - 2023-10-14
+
 ### Bug Fixes:
 
 * `/events/` API wasn't augmenting `StationFaction` correctly for `MissionFailed` and `MissionAbandoned` events (per API spec v1.1).

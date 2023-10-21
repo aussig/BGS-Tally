@@ -58,7 +58,7 @@
 * Fix crash in code that detects drop from supercruise at megaships.
 
 
-### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/cc3753c2-6569-4d74-8448-8fb9363898ce)):
 
 * `/activities` endpoint: Thargoid War reactivation missions now included in `systems/[system]/factions/[faction]/stations/[station]/twreactivate`
 * `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`

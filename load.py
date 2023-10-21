@@ -1,15 +1,14 @@
 from os import path
 
+import semantic_version
 from companion import CAPIData
 
 from bgstally.bgstally import BGSTally
-from bgstally.debug import Debug
 from bgstally.constants import UpdateUIPolicy
-
-import semantic_version
+from bgstally.debug import Debug
 
 PLUGIN_NAME = "BGS-Tally"
-PLUGIN_VERSION = semantic_version.Version.coerce("3.2.0")
+PLUGIN_VERSION = semantic_version.Version.coerce("3.3.0-dev")
 
 # Initialise the main plugin class
 this:BGSTally = BGSTally(PLUGIN_NAME, PLUGIN_VERSION)

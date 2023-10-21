@@ -1,5 +1,22 @@
 # Change Log
 
+## x3.3.0-xx - xxxx-xx-xx
+
+### New Features:
+
+* Targeting a player in a taxi will now log the player name and attempt lookup on Inara.
+* Now log the details of any CMDR who interdicts you, sends a message in local chat, invites you to a team or kills you in a team.
+* The CMDR listing window now has an extra 'Interaction' column which describes how you interacted with the other CMDR (scanned, interdicted by etc.).
+
+### Changes:
+
+* Faction name abbreviations are less obscure when the faction name contains a number or a dash.
+
+### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/events` endpoint: All localised fields are now stripped before sending. i.e. fields who's name ends with `_Localised`.
+
+
 ## v3.2.0 - 2023-10-21
 
 ### New Features:

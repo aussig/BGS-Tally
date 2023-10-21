@@ -53,7 +53,8 @@ class WindowCMDRs:
                         {'title': "Squadron ID", 'type': "name", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 50},
                         {'title': "Ship", 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200},
                         {'title': "Legal", 'type': "name", 'align': tk.W, 'stretch': tk.NO, 'width': 60},
-                        {'title': "Date / Time", 'type': "datetime", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 150}]
+                        {'title': "Date / Time", 'type': "datetime", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 150},
+                        {'title': "Interaction", 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 300}]
         self.target_data = self.bgstally.target_log.get_targetlog()
 
         treeview = TreeviewPlus(list_frame, columns=[d['title'] for d in column_info], show="headings", callback=self._cmdr_selected, datetime_format=DATETIME_FORMAT_CMDRLIST)
@@ -82,7 +83,13 @@ class WindowCMDRs:
             treeview.column(column['title'], anchor=column['align'], stretch=column['stretch'], width=column['width'])
 
         for target in reversed(self.target_data):
-            target_values = [target['TargetName'], target['System'], target['SquadronID'], target.get('ShipLocalised', target['Ship']), target['LegalStatus'], datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST)]
+            target_values = [target.get('TargetName', "----"), \
+                             target.get('System', "----"), \
+                             target.get('SquadronID', "----"), \
+                             target.get('Ship', "----"), \
+                             target.get('LegalStatus', "----"), \
+                             datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST), \
+                             target.get('Notes', "Scanned")]
             iid:str = treeview.insert("", 'end', values=target_values)
             target['iid'] = iid
 
@@ -157,7 +164,7 @@ class WindowCMDRs:
             },
             {
                 "name": "In Ship",
-                "value": self.selected_cmdr.get('ShipLocalised', self.selected_cmdr['Ship']),  # More recently we store both, but only 'Ship' may be present for old data
+                "value": self.selected_cmdr['Ship'],
                 "inline": True
             },
             {

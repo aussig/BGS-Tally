@@ -9,7 +9,7 @@ from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
 from bgstally.tick import Tick
-from bgstally.utils import human_format
+from bgstally.utils import human_format, is_number
 from thirdparty.colors import *
 
 DATETIME_FORMAT_ACTIVITY = "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -1329,7 +1329,7 @@ class Activity:
         Shorten the faction name if the user has chosen to
         """
         if self.bgstally.state.AbbreviateFactionNames.get() == CheckStates.STATE_ON:
-            return ''.join((i if i.isnumeric() else i[0]) for i in faction_name.split())
+            return ''.join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
         else:
             return faction_name
 

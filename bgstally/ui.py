@@ -338,4 +338,4 @@ class UI:
         If the overlay plugin is not available, we want to disable the options so users are not interacting
         with them expecting results
         """
-        "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"
+        return "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"

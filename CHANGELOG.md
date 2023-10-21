@@ -1,60 +1,6 @@
 # Change Log
 
-## v3.2.0-b3 - 2023-10-14
-
-### Bug Fixes:
-
-* `/events/` API wasn't augmenting `StationFaction` correctly for `MissionFailed` and `MissionAbandoned` events (per API spec v1.1).
-* Thargoid S&R operations cargo tracking now cleared down properly when your cargo hold is empty. Previously, it could mis-tally to the wrong system.
-* Don't clear Thargoid S&R delivery tally if you are killed.
-* Fix crash in code that detects drop from supercruise at megaships.
-
-### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
-
-* `/events` endpoint **breaking change**: `StationFaction` is now always an object with a single `Name` property, and is never a simple string.
-
-
-## v3.2.0-b2 - 2023-10-07
-
-### New Features:
-
-* Added quick-setup button for [Comguard](https://comguard.app/) in API configuration window.
-* Trade profit is now reported in four brackets rather than three: 🆉 | 🅻 | 🅼 | 🅷
-
-### Bug Fixes:
-
-* If you quit EDMC, jumped to a new system, then relaunched EDMC, any activity would be tallied to the last system you visited before quitting EDMC. BGS-Tally now realises that you are in a new system. Please note however, although it now knows you're in a new system, it can't get hold of faction or conflict information in this situation, so if you plan to work in the new system and haven't visited it before in this tick, you should jump to another system and back, or re-log to the main menu, either of which will properly load up the factions and conflicts.
-
-### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
-
-* `/events` endpoint: Ensure `StationFaction` is not overwritten if it is already present from the journal event. Note that this means `StationFaction` can now be _either_ a string _or_ an object.
-
-
-## v3.2.0-b1 - 2023-09-27
-
-### New Features:
-
-* Allow each overlay panel to be individually hidden or shown.
-* Trade purchase is now reported in three brackets rather than two: 🅻 | 🅼 | 🅷
-* Automatically attempt to track megaship scenarios.  As with Ground CZs, the game doesn't give us enough information to detect whether you've actually **won** the scenario, so if you drop in and log a kill within 5 minutes, this is tallied as a win for the faction that's at war with the first ship you kill.
-
-### Bug Fixes:
-
-* Now handles cargo ejection for Thargoid S&R operations. Previously, it could mis-tally to the wrong system because it hadn't realised the cargo scooped in that system had been destroyed by ejection.
-
-
-## v3.2.0-a2 - 2023-09-10
-
-### Changes:
-
-* Pop-up legend window now includes 🛠️ for TW reactivation missions.
-
-### Bug Fixes:
-
-* The new TW reactivation mission tracking wasn't working quite right - it was tallying the missions as cargo instead of reac.
-
-
-## v3.2.0-a1 - 2023-09-08
+## v3.2.0 - 2023-10-21
 
 ### New Features:
 
@@ -65,11 +11,17 @@
 * Thargoid War reactivation (settlement reboot) missions are now tracked: both for the station issuing the mission (`🛠️ x n missions`) and for the system where the settlement was reactivated (`🛠️ x n settlements`).
 * Added a new setting to allow you to switch off reporting for new systems you visit. This is for CMDRs who regularly only want to report a subset of their work - it means you don't have to switch off a load of systems, you can just switch on the few you need.
 * Forced ticks are now labelled clearly, including in Discord posts.
+* Allow each overlay panel to be individually hidden or shown.
+* Automatically attempt to track megaship scenarios.  As with Ground CZs, the game doesn't give us enough information to detect whether you've actually **won** the scenario, so if you drop in and log a kill within 5 minutes, this is tallied as a win for the faction that's at war with the first ship you kill.
+* Added quick-setup button for [Comguard](https://comguard.app/) in API configuration window.
 
 ### Changes:
 
 * Pop-up legend window now contains a list of the Thargoid vessel type abbreviations.
 * Show a hand cursor 👆 over help text to make it clearer you can click it to show the legend window.
+* Pop-up legend window now includes 🛠️ for TW reactivation missions.
+* Trade purchase is now reported in three brackets rather than two: 🅻 | 🅼 | 🅷
+* Trade profit is now reported in four brackets rather than three: 🆉 | 🅻 | 🅼 | 🅷
 
 ### Bug Fixes:
 
@@ -81,6 +33,13 @@
     * Forced ticks are now handled more elegantly when sending data via the BGS-Tally API, as we generate a fake `tickid` for the forced tick.
 * Due to a game bug, some illegal massacre and assassination missions were not tallying negative INF correctly against the target faction. Implemented a workaround for this.
 * Due to a game bug, some ship murders were not being tallied against the target ship faction. Implemented a workaround for this.
+* BGS-Tally now handles cargo ejection for Thargoid S&R operations. Previously, it could mis-tally to the wrong system because it hadn't realised the cargo scooped in that system had been destroyed by ejection.
+* If you quit EDMC, jumped to a new system, then relaunched EDMC, any activity would be tallied to the last system you visited before quitting EDMC. BGS-Tally now realises that you are in a new system. Please note however, although it now knows you're in a new system, it can't get hold of faction or conflict information in this situation, so if you plan to work in the new system and haven't visited it before in this tick, you should jump to another system and back, or re-log to the main menu, either of which will properly load up the factions and conflicts.
+* `/events/` API wasn't augmenting `StationFaction` correctly for `MissionFailed` and `MissionAbandoned` events (per API spec v1.1).
+* Thargoid S&R operations cargo tracking now cleared down properly when your cargo hold is empty. Previously, it could mis-tally to the wrong system.
+* Don't clear Thargoid S&R delivery tally if you are killed.
+* Fix crash in code that detects drop from supercruise at megaships.
+
 
 ### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
 
@@ -90,6 +49,8 @@
 * `/activities` endpoint: When the user forces a tick, a new `tickid` is generated by BGS-Tally that conforms to the 24-character elitebgs.app tickid standard but starts with six zeroes '000000' to distinguish it as a forced tick.
 * `/events` endpoint: `Event` now has a `ticktime` timestamp in addition to `tickid`.
 * `/events` endpoint: When the user forces a tick, a new `tickid` is generated by BGS-Tally that conforms to the 24-character elitebgs.app tickid standard but starts with six zeroes '000000' to distinguish it as a forced tick.
+* `/events` endpoint: Ensure `StationFaction` is not overwritten if it is already present from the journal event.
+* `/events` endpoint **breaking change**: `StationFaction` is now always an object with a single `Name` property, and is never a simple string.
 
 
 ## v3.1.1 - 2023-08-23

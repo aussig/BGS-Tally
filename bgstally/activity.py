@@ -78,7 +78,7 @@ MISSIONS_TW_REACTIVATE = [
 CZ_GROUND_LOW_CB_MAX = 5000
 CZ_GROUND_MED_CB_MAX = 38000
 
-TW_CBS = {25000: 'r', 65000: 's', 75000: 's', 4500000: 'sg', 6500000: 'c', 20000000: 'b', 25000000: 'o', 34000000: 'm', 40000000: 'o', 50000000: 'h'}
+TW_CBS = {25000: 'r', 65000: 's', 75000: 's', 1000000: 'ba', 4500000: 'sg', 6500000: 'c', 20000000: 'b', 25000000: 'o', 34000000: 'm', 40000000: 'o', 50000000: 'h'}
 
 
 class Activity:
@@ -690,7 +690,7 @@ class Activity:
         We are logging a Thargoid kill
         """
         tw_ship:str = TW_CBS.get(journal_entry.get('Reward', 0))
-        if tw_ship: current_system['TWKills'][tw_ship] += 1
+        if tw_ship: current_system['TWKills'][tw_ship] = current_system['TWKills'].get(tw_ship, 0) + 1
 
         self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
@@ -1023,7 +1023,7 @@ class Activity:
         """
         Get a new data structure for storing Thargoid War Kills
         """
-        return {'r': 0, 's': 0, 'sg': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
+        return {'r': 0, 's': 0, 'ba': 0, 'sg': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
 
 
     def _get_new_tw_sandr_data(self):
@@ -1265,6 +1265,7 @@ class Activity:
                 system_text += f"  💀 (kills): " \
                                     + f"{red('R', fp=fp)} x {green(system['TWKills'].get('r', 0), fp=fp)}, " \
                                     + f"{red('S', fp=fp)} x {green(system['TWKills'].get('s', 0), fp=fp)}, " \
+                                    + f"{red('Ba', fp=fp)} x {green(system['TWKills'].get('ba', 0), fp=fp)}, " \
                                     + f"{red('S/G', fp=fp)} x {green(system['TWKills'].get('sg', 0), fp=fp)}, " \
                                     + f"{red('C', fp=fp)} x {green(system['TWKills'].get('c', 0), fp=fp)}, " \
                                     + f"{red('B', fp=fp)} x {green(system['TWKills'].get('b', 0), fp=fp)}, " \

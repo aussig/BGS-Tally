@@ -1,23 +1,83 @@
 # Change Log
 
-## v3.2.0-xx - xxxx-xx-xx
+## x3.3.0-xx - xxxx-xx-xx
 
 ### New Features:
 
+* Targeting a player in a taxi will now log the player name and attempt lookup on Inara.
+* Now log the details of any CMDR who interdicts you, sends a message in local chat, invites you to a team or kills you in a team.
+* The CMDR listing window now has an extra 'Interaction' column which describes how you interacted with the other CMDR (scanned, interdicted by etc.).
+* Now tally Thargoid War banshee kills.
+
+### Changes:
+
+* Faction name abbreviations are less obscure when the faction name contains a number or a dash.
+
+### API Changes ([v1.3](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/events` endpoint: All localised fields are now stripped before sending. i.e. fields who's name ends with `_Localised`.
+* `/activities` endpoint: Added `banshee` to `systems/[system]/twkills`.
+* `/activities` endpoint: Added `scythe-glaive` to `systems/[system]/twkills`.
+
+
+## v3.2.0 - 2023-10-21
+
+### New Features:
+
+* In-game overlay now briefly displays a BGS summary for the current system when doing BGS work.
 * Space Conflict Zones are now tracked automatically. As with Ground CZs, the game doesn't give us enough information to detect whether you've actually **won** the CZ, so if you drop in and log a kill within 5 minutes, this is tallied as a win. Manual controls are still available to adjust if you need.
 * Thargoid War system progress is now displayed as a progress bar on the in-game overlay when in a TW active system.
 * An activity indicator now briefly flashes green on the overlay when BGS-Tally logs BGS or TW activity.
-* Thargoid War reactivation (settlement reboot) missions are now tracked: `🛠️ (missions)`, both for the station issuing the mission and for the system where the settlement was reactivated.
+* Thargoid War reactivation (settlement reboot) missions are now tracked: both for the station issuing the mission (`🛠️ x n missions`) and for the system where the settlement was reactivated (`🛠️ x n settlements`).
+* Added a new setting to allow you to switch off reporting for new systems you visit. This is for CMDRs who regularly only want to report a subset of their work - it means you don't have to switch off a load of systems, you can just switch on the few you need.
+* Forced ticks are now labelled clearly, including in Discord posts.
+* Allow each overlay panel to be individually hidden or shown.
+* Automatically attempt to track megaship scenarios.  As with Ground CZs, the game doesn't give us enough information to detect whether you've actually **won** the scenario, so if you drop in and log a kill within 5 minutes, this is tallied as a win for the faction that's at war with the first ship you kill.
+* Added quick-setup button for [Comguard](https://comguard.app/) in API configuration window.
 
 ### Changes:
 
 * Pop-up legend window now contains a list of the Thargoid vessel type abbreviations.
-* Show hand cursor over help text to make it clearer you can click it to show the legend window.
+* Show a hand cursor 👆 over help text to make it clearer you can click it to show the legend window.
+* Pop-up legend window now includes 🛠️ for TW reactivation missions.
+* Trade purchase is now reported in three brackets rather than two: 🅻 | 🅼 | 🅷
+* Trade profit is now reported in four brackets rather than three: 🆉 | 🅻 | 🅼 | 🅷
 
-### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+### Bug Fixes:
+
+* Some Orthrus kills were not being tallied because the bond value logged was 40m instead of the previous 25m. We can only detect the type of Thargoid via the bond value logged by the game, so BGS-Tally will now tally an Orthrus for both kill values.
+* Trade purchase, sale and profit was not being logged if you previously disembarked from your ship on foot, took a taxi or dropship somewhere, returned to your ship and then traded.
+* Forcing a tick (via the settings panel), though still not recommended unless automatic tick detection has **definitely** missed a tick, should now be much more reliable:
+    * It would cause your previously logged activity for the current tick to be lost and replaced by activity after the forced tick. Now, a 'proper' new tick is created so your earlier activity should be kept and available in the previous ticks dropdown menu.
+    * If an automatic tick arrived with an earlier tick time than your forced tick, this could cause BGS-Tally to get confused. We now ignore any incoming ticks that have an older tick time than your forced tick.
+    * Forced ticks are now handled more elegantly when sending data via the BGS-Tally API, as we generate a fake `tickid` for the forced tick.
+* Due to a game bug, some illegal massacre and assassination missions were not tallying negative INF correctly against the target faction. Implemented a workaround for this.
+* Due to a game bug, some ship murders were not being tallied against the target ship faction. Implemented a workaround for this.
+* BGS-Tally now handles cargo ejection for Thargoid S&R operations. Previously, it could mis-tally to the wrong system because it hadn't realised the cargo scooped in that system had been destroyed by ejection.
+* If you quit EDMC, jumped to a new system, then relaunched EDMC, any activity would be tallied to the last system you visited before quitting EDMC. BGS-Tally now realises that you are in a new system. Please note however, although it now knows you're in a new system, it can't get hold of faction or conflict information in this situation, so if you plan to work in the new system and haven't visited it before in this tick, you should jump to another system and back, or re-log to the main menu, either of which will properly load up the factions and conflicts.
+* `/events/` API wasn't augmenting `StationFaction` correctly for `MissionFailed` and `MissionAbandoned` events (per API spec v1.1).
+* Thargoid S&R operations cargo tracking now cleared down properly when your cargo hold is empty. Previously, it could mis-tally to the wrong system.
+* Don't clear Thargoid S&R delivery tally if you are killed.
+* Fix crash in code that detects drop from supercruise at megaships.
+
+
+### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/cc3753c2-6569-4d74-8448-8fb9363898ce)):
 
 * `/activities` endpoint: Thargoid War reactivation missions now included in `systems/[system]/factions/[faction]/stations/[station]/twreactivate`
 * `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`
+* `/activities` endpoint: `Activity` now has a `ticktime` timestamp in addition to `tickid`.
+* `/activities` endpoint: When the user forces a tick, a new `tickid` is generated by BGS-Tally that conforms to the 24-character elitebgs.app tickid standard but starts with six zeroes '000000' to distinguish it as a forced tick.
+* `/events` endpoint: `Event` now has a `ticktime` timestamp in addition to `tickid`.
+* `/events` endpoint: When the user forces a tick, a new `tickid` is generated by BGS-Tally that conforms to the 24-character elitebgs.app tickid standard but starts with six zeroes '000000' to distinguish it as a forced tick.
+* `/events` endpoint: Ensure `StationFaction` is not overwritten if it is already present from the journal event.
+* `/events` endpoint **breaking change**: `StationFaction` is now always an object with a single `Name` property, and is never a simple string.
+
+
+## v3.1.1 - 2023-08-23
+
+### Bug Fixes:
+
+* Fixed the Fleet Carrier screen, which was showing empty buy and sell order panels if your carrier had _either_ no buy or sell orders.
 
 
 ## v3.1.0 - 2023-08-13

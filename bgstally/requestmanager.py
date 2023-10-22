@@ -36,6 +36,19 @@ class BGSTallyRequest:
         # Any additional data required to be passed to the callback function when the response is received
         self.data:dict|None = data
 
+    def __str__(self):
+        """
+        String representation of this object
+        """
+        return f"BGSTallyRequest: \n" \
+                    f"  endpoint: {self.endpoint} \n" \
+                    f"  method: {self.method} \n" \
+                    f"  params: {self.params} \n" \
+                    f"  headers: {self.headers} \n" \
+                    f"  stream: {self.stream} \n" \
+                    f"  payload: {self.payload} \n" \
+                    f"  data: {self.data} \n"
+
 
 class RequestManager:
     """

@@ -1,10 +1,10 @@
+import sys
 from os import mkdir, path
 from threading import Thread
 from time import sleep
 
 import semantic_version
-from companion import CAPIData, SERVER_LIVE
-from config import appversion, config
+from companion import SERVER_LIVE, CAPIData
 from monitor import monitor
 
 from bgstally.activity import Activity
@@ -24,6 +24,8 @@ from bgstally.targetlog import TargetLog
 from bgstally.tick import Tick
 from bgstally.ui import UI
 from bgstally.updatemanager import UpdateManager
+from bgstally.utils import get_by_path
+from config import appversion, config
 
 TIME_WORKER_PERIOD_S = 60
 
@@ -43,12 +45,28 @@ class BGSTally:
         """
         self.plugin_dir = plugin_dir
 
+        # Debug and Config Classes
+        self.debug:Debug = Debug(self)
+        self.config:Config = Config(self)
+
+        # Load sentry to track errors during development - Hard check on "dev" versions ONLY (which never go out to testers)
+        # If you are a developer and want to use sentry, install the sentry_sdk inside the ./thirdparty folder and add your full dsn
+        # (starting https://) to a 'sentry' entry in config.ini file
+        if type(self.version.prerelease) is tuple and self.version.prerelease[0] == "dev":
+            sys.path.append(path.join(plugin_dir, 'thirdparty'))
+            try:
+                import sentry_sdk
+                sentry_sdk.init(
+                    dsn=self.config.apikey_sentry()
+                )
+                Debug.logger.info("Enabling Sentry Error Logging")
+            except ImportError:
+                pass
+
         data_filepath = path.join(self.plugin_dir, FOLDER_DATA)
         if not path.exists(data_filepath): mkdir(data_filepath)
 
-        # Classes
-        self.debug:Debug = Debug(self)
-        self.config:Config = Config(self)
+        # Main Classes
         self.state:State = State(self)
         self.mission_log:MissionLog = MissionLog(self)
         self.target_log:TargetLog = TargetLog(self)
@@ -91,7 +109,7 @@ class BGSTally:
         activity: Activity = self.activity_manager.get_current_activity()
         dirty: bool = False
 
-        if entry.get('event') in ['Location', 'FSDJump', 'CarrierJump']:
+        if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
             if self.check_tick(UpdateUIPolicy.IMMEDIATE):
                 # New activity will be generated with a new tick
                 activity = self.activity_manager.get_current_activity()
@@ -99,10 +117,19 @@ class BGSTally:
             activity.system_entered(entry, self.state)
             dirty = True
 
+        mission:dict = self.mission_log.get_mission(entry.get('MissionID'))
+
         match entry.get('event'):
             case 'ApproachSettlement' if state['Odyssey']:
                 activity.settlement_approached(entry, self.state)
                 dirty = True
+
+            case 'Bounty':
+                activity.bv_received(entry, self.state)
+                dirty = True
+
+            case 'Cargo':
+                activity.cargo(entry)
 
             case 'CarrierJumpCancelled':
                 self.fleet_carrier.jump_cancelled()
@@ -121,9 +148,16 @@ class BGSTally:
                 activity.crime_committed(entry, self.state)
                 dirty = True
 
+            case 'Died':
+                self.target_log.died(entry, system)
+
             case 'Docked':
-                self.state.station_faction = entry['StationFaction']['Name']
-                self.state.station_type = entry['StationType']
+                self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
+                self.state.station_type = entry.get('StationType', "")
+                dirty = True
+
+            case 'EjectCargo':
+                activity.eject_cargo(entry)
                 dirty = True
 
             case 'FactionKillBond' if state['Odyssey']:
@@ -133,8 +167,12 @@ class BGSTally:
             case 'Friends' if entry.get('Status') == "Requested":
                 self.target_log.friend_request(entry, system)
 
+            case 'Interdicted':
+                self.target_log.interdicted(entry, system)
+
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
-                self.state.station_type = entry['StationType']
+                self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
+                self.state.station_type = entry.get('StationType', "")
                 dirty = True
 
             case 'Market':
@@ -155,7 +193,8 @@ class BGSTally:
             case 'MissionAccepted':
                 self.mission_log.add_mission(entry.get('Name', ""), entry.get('Faction', ""), entry.get('MissionID', ""), entry.get('Expiry', ""),
                                              entry.get('DestinationSystem', ""), entry.get('DestinationSettlement', ""), system, station,
-                                             entry.get('Count', -1), entry.get('PassengerCount', -1), entry.get('KillCount', -1))
+                                             entry.get('Count', -1), entry.get('PassengerCount', -1), entry.get('KillCount', -1),
+                                             entry.get('TargetFaction', ""))
                 dirty = True
 
             case 'MissionCompleted':
@@ -165,6 +204,9 @@ class BGSTally:
             case 'MissionFailed':
                 activity.mission_failed(entry, self.mission_log)
                 dirty = True
+
+            case 'ReceiveText':
+                self.target_log.received_text(entry, system)
 
             case 'RedeemVoucher' if entry.get('Type') == 'bounty':
                 activity.bv_redeemed(entry, self.state)
@@ -199,15 +241,18 @@ class BGSTally:
                 activity.destination_dropped(entry, self.state)
                 dirty = True
 
-            case 'Undocked':
+            case 'Undocked' if entry.get('Taxi') == False:
                 self.state.station_faction = ""
                 self.state.station_type = ""
+
+            case 'WingInvite':
+                self.target_log.team_invite(entry, system)
 
         if dirty:
             self.save_data()
             self.api_manager.send_activity(activity, cmdr)
 
-        self.api_manager.send_event(entry, activity, cmdr)
+        self.api_manager.send_event(entry, activity, cmdr, mission)
 
 
     def capi_fleetcarrier(self, data: CAPIData):
@@ -263,7 +308,7 @@ class BGSTally:
         Start a new tick.
         """
         if force: self.tick.force_tick()
-        self.activity_manager.new_tick(self.tick)
+        if not self.activity_manager.new_tick(self.tick, force): return
 
         match uipolicy:
             case UpdateUIPolicy.IMMEDIATE:

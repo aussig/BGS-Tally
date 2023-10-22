@@ -13,7 +13,7 @@ from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import get_by_path
 
-API_VERSION = "1.1.0"
+API_VERSION = "1.2.0"
 
 ENDPOINT_ACTIVITIES = "activities" # Used as both the dict key and default path
 ENDPOINT_DISCOVERY = "discovery"   # Used as the path
@@ -287,5 +287,5 @@ class API:
         """
         headers:dict = {}
         headers[HEADER_APIVERSION] = API_VERSION
-        if self.key is not None and self.key != "": headers = {HEADER_APIKEY: self.key}
+        if self.key is not None and self.key != "": headers[HEADER_APIKEY] = self.key
         return headers

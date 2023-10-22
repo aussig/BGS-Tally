@@ -18,6 +18,10 @@ class Config(object):
         return self.config.get('apikeys', 'inara')
 
 
+    def apikey_sentry(self):
+        return self.config.get('apikeys', 'sentry')
+
+
     def api(self, name:str) -> dict:
         """
         Fetch all information about a given API

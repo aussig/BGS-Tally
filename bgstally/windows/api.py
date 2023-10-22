@@ -103,13 +103,14 @@ class WindowAPI:
         self.cb_apievents.configure(command=partial(self._field_edited, self.cb_apievents))
         self.cb_apievents.state(['selected', '!alternate'] if self.api.events_enabled else ['!selected', '!alternate'])
 
-        # tk.Label(frame_main, text="Shortcuts for Popular Servers").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
+        tk.Label(frame_main, text="Shortcuts for Popular Servers").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
         frame_connection_buttons:ttk.Frame = ttk.Frame(frame_main)
-        frame_connection_buttons.grid(row=current_row, column=1, pady=4, sticky=tk.EW)
+        frame_connection_buttons.grid(row=current_row, column=1, pady=4, sticky=tk.EW); current_row += 1
         # tk.Button(frame_connection_buttons, image=self.image_logo_dcoh, height=28, bg="Gray13", command=partial(self._autofill, 'dcoh')).pack(side=tk.LEFT, padx=4)
-        # tk.Button(frame_connection_buttons, image=self.image_logo_comguard, height=28, bg="Gray13", command=partial(self._autofill, 'comguard')).pack(side=tk.LEFT, padx=4)
-        self.btn_fetch = tk.Button(frame_connection_buttons, text="Establish Connection", command=partial(self._discover))
-        self.btn_fetch.pack(side=tk.RIGHT, padx=5, pady=5)
+        tk.Button(frame_connection_buttons, image=self.image_logo_comguard, height=28, bg="Gray13", command=partial(self._autofill, 'comguard')).pack(side=tk.LEFT, padx=4)
+
+        self.btn_fetch = tk.Button(frame_main, text="Establish Connection", command=partial(self._discover))
+        self.btn_fetch.grid(row=current_row, column=1, pady=4, sticky=tk.W)
 
         self.frame_information:CollapsibleFrame = CollapsibleFrame(frame_container, show_button=False, open=False)
         self.frame_information.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)

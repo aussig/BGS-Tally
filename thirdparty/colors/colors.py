@@ -134,24 +134,31 @@ def ansilen(s):
     return len(strip_color(s))
 
 
+def color_wrap(s, fg = None, bg = None, style = None, fp = False):
+    """
+    Allow us to force plain text even when using the shortcut partial functions below, by passing fp = True
+    """
+    if fp: return color(s)
+    else: return color(s, fg, bg, style)
+
 # Foreground color shortcuts
-grey = partial(color, fg='grey')
-red = partial(color, fg='red')
-green = partial(color, fg='green')
-yellow = partial(color, fg='yellow')
-blue = partial(color, fg='blue')
-magenta = partial(color, fg='magenta')
-cyan = partial(color, fg='cyan')
-white = partial(color, fg='white')
+grey = partial(color_wrap, fg='grey')
+red = partial(color_wrap, fg='red')
+green = partial(color_wrap, fg='green')
+yellow = partial(color_wrap, fg='yellow')
+blue = partial(color_wrap, fg='blue')
+magenta = partial(color_wrap, fg='magenta')
+cyan = partial(color_wrap, fg='cyan')
+white = partial(color_wrap, fg='white')
 
 # Style shortcuts
-bold = partial(color, style='bold')
-none = partial(color, style='none')
-faint = partial(color, style='faint')
-italic = partial(color, style='italic')
-underline = partial(color, style='underline')
-blink = partial(color, style='blink')
-blink2 = partial(color, style='blink2')
-negative = partial(color, style='negative')
-concealed = partial(color, style='concealed')
-crossed = partial(color, style='crossed')
+bold = partial(color_wrap, style='bold')
+none = partial(color_wrap, style='none')
+faint = partial(color_wrap, style='faint')
+italic = partial(color_wrap, style='italic')
+underline = partial(color_wrap, style='underline')
+blink = partial(color_wrap, style='blink')
+blink2 = partial(color_wrap, style='blink2')
+negative = partial(color_wrap, style='negative')
+concealed = partial(color_wrap, style='concealed')
+crossed = partial(color_wrap, style='crossed')

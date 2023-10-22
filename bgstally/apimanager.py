@@ -6,6 +6,7 @@ from bgstally.activity import Activity
 from bgstally.api import API
 from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA
 from bgstally.debug import Debug
+from bgstally.utils import get_by_path
 
 FILENAME = "apis.json"
 
@@ -68,11 +69,11 @@ class APIManager:
             api.send_activity(api_activity)
 
 
-    def send_event(self, event:dict, activity:Activity, cmdr:str):
+    def send_event(self, event:dict, activity:Activity, cmdr:str, mission:dict):
         """
         Event has been received. Add it to the events queue.
         """
-        api_event:dict = self._build_api_event(event, activity, cmdr)
+        api_event:dict = self._build_api_event(event, activity, cmdr, mission)
         for api in self.apis:
             api.send_event(api_event)
 
@@ -84,6 +85,7 @@ class APIManager:
         api_activity:dict = {
             'cmdr': cmdr,
             'tickid': activity.tick_id,
+            'ticktime': activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL),
             'timestamp': datetime.utcnow().strftime(DATETIME_FORMAT_JOURNAL),
             'systems': []
         }
@@ -208,13 +210,15 @@ class APIManager:
 
             if sum(system.get('TWKills', {}).values()) > 0:
                 api_system['twkills'] = {
-                    'revenant': system['TWKills'].get('r', 0),
+                    'banshee': system['TWKills'].get('ba', 0),
                     'basilisk': system['TWKills'].get('b', 0),
                     'cyclops': system['TWKills'].get('c', 0),
                     'hydra': system['TWKills'].get('h', 0),
                     'medusa': system['TWKills'].get('m', 0),
                     'orthrus': system['TWKills'].get('o', 0),
-                    'scout': system['TWKills'].get('s', 0)
+                    'revenant': system['TWKills'].get('r', 0),
+                    'scout': system['TWKills'].get('s', 0),
+                    'scythe-glaive': system['TWKills'].get('sg', 0)
                 }
 
             if sum(int(d['delivered']) for d in system.get('TWSandR', {}).values()) > 0:
@@ -234,19 +238,23 @@ class APIManager:
         return api_activity
 
 
-    def _build_api_event(self, event:dict, activity:Activity, cmdr:str):
+    def _build_api_event(self, event:dict, activity:Activity, cmdr:str, mission:dict):
         """
         Build an API-ready event ready for sending. This just involves enhancing the event with some
         additional data
         """
 
+        # Remove all '_Localised' event parameters
+        event = self._filter_localised(event)
+
         # BGS-Tally specific global enhancements
         event['cmdr'] = cmdr
         event['tickid'] = activity.tick_id
-        event['StationFaction'] = self.bgstally.state.station_faction
+        event['ticktime']: activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL)
 
         # Other global enhancements
-        if 'StarSystem' not in event: event['StarSystem'] = activity.systems.get(self.bgstally.state.current_system_id, "")
+        if 'StationFaction' not in event: event['StationFaction'] = {'Name': self.bgstally.state.station_faction}
+        if 'StarSystem' not in event: event['StarSystem'] = get_by_path(activity.systems, [self.bgstally.state.current_system_id, 'System'], "")
         if 'SystemAddress' not in event: event['SystemAddress'] = self.bgstally.state.current_system_id
 
         # Event-specific enhancements
@@ -262,6 +270,9 @@ class APIManager:
                     market_data:dict = self.bgstally.market.get_commodity(event['Type'])
                     event['DemandBracket'] = market_data.get('DemandBracket', 0)
                     event['Demand'] = market_data.get('Demand', 0)
+
+            case 'MissionFailed' | 'MissionAbandoned':
+                event['StationFaction'] = {'Name': mission.get('Faction', "")}
 
         return event
 

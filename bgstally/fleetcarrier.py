@@ -67,13 +67,17 @@ class FleetCarrier:
 
         # Sort sell orders - a Dict of Dicts
         materials: dict = self.data.get('orders', {}).get('onfootmicroresources', {}).get('sales')
-        if materials is not None:
+        if materials is not None and materials != {}:
             self.onfoot_mats_selling = sorted(materials.values(), key=lambda x: x['locName'])
+        else:
+            self.onfoot_mats_selling = []
 
         # Sort buy orders - a List of Dicts
         materials = self.data.get('orders', {}).get('onfootmicroresources', {}).get('purchases')
-        if materials is not None:
+        if materials is not None and materials != []:
             self.onfoot_mats_buying = sorted(materials, key=lambda x: x['locName'])
+        else:
+            self.onfoot_mats_buying = []
 
 
     def stats_received(self, journal_entry: dict):

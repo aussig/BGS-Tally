@@ -3,7 +3,7 @@ from re import Pattern, compile
 human_readable_number_pat:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt]?)$")
 
 
-def get_by_path(dic:dict, keys:list, default:any = None):
+def get_by_path(dic:dict, keys:list, default:any = None) -> any:
     """
     Access a nested dict by key sequence
     """
@@ -28,7 +28,7 @@ def human_format(num:int) -> str:
     return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
 
 
-def parse_human_format(self, text:str) -> int:
+def parse_human_format(text:str) -> int:
     """
     Convert shortened human-readable text into a number
     """
@@ -44,7 +44,7 @@ def parse_human_format(self, text:str) -> int:
         return 0
 
 
-def validate_human_format(self, text:str) -> bool:
+def validate_human_format(text:str) -> bool:
     """
     Validate whether a string value is in standard shortened human-readable (integer) format
     """
@@ -52,7 +52,7 @@ def validate_human_format(self, text:str) -> bool:
     else: return human_readable_number_pat.match(text)
 
 
-def is_number(s:str):
+def is_number(s:str) -> bool:
     """
     Return True if the string represents a number
     """

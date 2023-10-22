@@ -4,7 +4,7 @@ from os import path
 from tkinter import PhotoImage, ttk
 from typing import Dict
 
-from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
+from bgstally.activity import STATES_WAR, Activity
 from bgstally.constants import FOLDER_ASSETS, FONT_HEADING, FONT_TEXT, CheckStates, CZs, DiscordActivity, DiscordChannel, DiscordPostStyle
 from bgstally.debug import Debug
 from bgstally.utils import human_format

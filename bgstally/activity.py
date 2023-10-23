@@ -1,10 +1,10 @@
 import json
+import re
 from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Dict
-import re
 
-from bgstally.constants import CheckStates, DiscordActivity, FILE_SUFFIX
+from bgstally.constants import FILE_SUFFIX, CheckStates, DiscordActivity
 from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
@@ -106,6 +106,7 @@ class Activity:
         self.dirty: bool = False
         self.systems: dict = {}
 
+        # Non-stored instance data. Remember to modify __deepcopy__() if these are changed or new data added.
         self.megaship_pat:re.Pattern = re.compile("^[a-z]{3}-[0-9]{3} ")  # e.g. kar-314 aquarius-class tanker
 
 
@@ -1404,6 +1405,7 @@ class Activity:
         setattr(result, 'discord_bgs_messageid', self.discord_bgs_messageid)
         setattr(result, 'discord_tw_messageid', self.discord_tw_messageid)
         setattr(result, 'discord_notes', self.discord_notes)
+        setattr(result, 'megaship_pat', self.megaship_pat)
 
         # Deep copied items
         setattr(result, 'systems', deepcopy(self.systems, memo))

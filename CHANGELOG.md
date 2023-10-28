@@ -13,6 +13,7 @@
 
 * Faction name abbreviations are less obscure when the faction name contains a number or a dash.
 * Thargoid vessel types are omitted if they are 0, both for kills and for missions. This creates shorter and clearer reports.
+* No longer include Exobiology sales in discord reports.
 
 ### Bug Fixes:
 

@@ -1191,7 +1191,7 @@ class Activity:
                     + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeSell'][3]['profit']), fp=fp)} "
         activity_text += f"{cyan('TrdBMProfit', fp=fp)} {green(human_format(faction['BlackMarketProfit']), fp=fp)} " if faction['BlackMarketProfit'] != 0 else ""
         activity_text += f"{white('Expl', fp=fp)} {green(human_format(faction['CartData']), fp=fp)} " if faction['CartData'] != 0 else ""
-        activity_text += f"{grey('Exo', fp=fp)} {green(human_format(faction['ExoData']), fp=fp)} " if faction['ExoData'] != 0 else ""
+        # activity_text += f"{grey('Exo', fp=fp)} {green(human_format(faction['ExoData']), fp=fp)} " if faction['ExoData'] != 0 else ""
         activity_text += f"{red('Murders', fp=fp)} {green(faction['Murdered'], fp=fp)} " if faction['Murdered'] != 0 else ""
         activity_text += f"{red('GroundMurders', fp=fp)} {green(faction['GroundMurdered'], fp=fp)} " if faction['GroundMurdered'] != 0 else ""
         activity_text += f"{yellow('Scenarios', fp=fp)} {green(faction['Scenarios'], fp=fp)} " if faction['Scenarios'] != 0 else ""

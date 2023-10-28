@@ -7,11 +7,12 @@
 * Targeting a player in a taxi will now log the player name and attempt lookup on Inara.
 * Now log the details of any CMDR who interdicts you, sends a message in local chat, invites you to a team or kills you in a team.
 * The CMDR listing window now has an extra 'Interaction' column which describes how you interacted with the other CMDR (scanned, interdicted by etc.).
-* Now tally Thargoid War banshee kills.
+* Thargoid War banshee kills are now tallied.
 
 ### Changes:
 
 * Faction name abbreviations are less obscure when the faction name contains a number or a dash.
+* Thargoid vessel types are omitted if they are 0, both for kills and for missions. This creates shorter and clearer reports.
 
 ### Bug Fixes:
 

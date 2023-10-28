@@ -138,7 +138,7 @@ def color_wrap(s, fg = None, bg = None, style = None, fp = False):
     """
     Allow us to force plain text even when using the shortcut partial functions below, by passing fp = True
     """
-    if fp: return color(s)
+    if fp: return s
     else: return color(s, fg, bg, style)
 
 # Foreground color shortcuts

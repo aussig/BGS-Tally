@@ -1196,10 +1196,8 @@ class Activity:
         activity_text += f"{red('GroundMurders', fp=fp)} {green(faction['GroundMurdered'], fp=fp)} " if faction['GroundMurdered'] != 0 else ""
         activity_text += f"{yellow('Scenarios', fp=fp)} {green(faction['Scenarios'], fp=fp)} " if faction['Scenarios'] != 0 else ""
         activity_text += f"{magenta('Fails', fp=fp)} {green(faction['MissionFailed'], fp=fp)} " if faction['MissionFailed'] != 0 else ""
-        space_cz = self._build_cz_text(faction.get('SpaceCZ', {}), "SpaceCZs", discord)
-        activity_text += f"{space_cz} " if space_cz != "" else ""
-        ground_cz = self._build_cz_text(faction.get('GroundCZ', {}), "GroundCZs", discord)
-        activity_text += f"{ground_cz} " if ground_cz != "" else ""
+        activity_text += self._build_cz_text(faction.get('SpaceCZ', {}), "SpaceCZs", discord)
+        activity_text += self._build_cz_text(faction.get('GroundCZ', {}), "GroundCZs", discord)
 
         faction_name = self._process_faction_name(faction['Faction'])
         faction_text = f"{color_wrap(faction_name, 'yellow', None, 'bold', fp=fp)} {activity_text}\n" if activity_text != "" else ""
@@ -1263,16 +1261,8 @@ class Activity:
         if kills > 0 or sandr > 0 or reactivate > 0:
             system_text += f"🍀 System activity\n"
             if kills > 0:
-                system_text += f"  💀 (kills): " \
-                                    + f"{red('R', fp=fp)} x {green(system['TWKills'].get('r', 0), fp=fp)}, " \
-                                    + f"{red('S', fp=fp)} x {green(system['TWKills'].get('s', 0), fp=fp)}, " \
-                                    + f"{red('Ba', fp=fp)} x {green(system['TWKills'].get('ba', 0), fp=fp)}, " \
-                                    + f"{red('S/G', fp=fp)} x {green(system['TWKills'].get('sg', 0), fp=fp)}, " \
-                                    + f"{red('C', fp=fp)} x {green(system['TWKills'].get('c', 0), fp=fp)}, " \
-                                    + f"{red('B', fp=fp)} x {green(system['TWKills'].get('b', 0), fp=fp)}, " \
-                                    + f"{red('M', fp=fp)} x {green(system['TWKills'].get('m', 0), fp=fp)}, " \
-                                    + f"{red('H', fp=fp)} x {green(system['TWKills'].get('h', 0), fp=fp)}, " \
-                                    + f"{red('O', fp=fp)} x {green(system['TWKills'].get('o', 0), fp=fp)} \n"
+                system_text += f"  💀 (kills): " + self._build_tw_vessels_text(system['TWKills'], discord) + " \n"
+
             if sandr > 0:
                 system_text += "  "
                 pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
@@ -1299,17 +1289,14 @@ class Activity:
             if (system_station['passengers']['sum'] > 0):
                 system_text += f"  🧍 x {green(system_station['passengers']['sum'], fp=fp)} - {green(system_station['passengers']['count'], fp=fp)} missions\n"
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_text += f"  💀 (missions): {red('S', fp=fp)} x {green(system_station['massacre']['s']['sum'], fp=fp)}, {red('C', fp=fp)} x {green(system_station['massacre']['c']['sum'], fp=fp)}, " \
-                                    + f"{red('B', fp=fp)} x {green(system_station['massacre']['b']['sum'], fp=fp)}, {red('M', fp=fp)} x {green(system_station['massacre']['m']['sum'], fp=fp)}, " \
-                                    + f"{red('H', fp=fp)} x {green(system_station['massacre']['h']['sum'], fp=fp)}, {red('O', fp=fp)} x {green(system_station['massacre']['o']['sum'], fp=fp)} " \
-                                    + f"- {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
+                system_text += f"  💀 (missions): " + self._build_tw_vessels_text(system_station['massacre'], discord) + f"- {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
             if (system_station['reactivate'] > 0):
                 system_text += f"  🛠️ x {green(system_station['reactivate'], fp=fp)} missions\n"
 
         return system_text
 
 
-    def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool):
+    def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool) -> str:
         """
         Create a summary of Conflict Zone activity
         """
@@ -1318,11 +1305,43 @@ class Activity:
         # Force plain text if we are not posting to Discord
         fp:bool = not discord
 
-        if 'l' in cz_data and cz_data['l'] != '0' and cz_data['l'] != '': text += f"{cz_data['l']}xL "
-        if 'm' in cz_data and cz_data['m'] != '0' and cz_data['m'] != '': text += f"{cz_data['m']}xM "
-        if 'h' in cz_data and cz_data['h'] != '0' and cz_data['h'] != '': text += f"{cz_data['h']}xH "
+        if 'l' in cz_data and cz_data['l'] != "0" and cz_data['l'] != "": text += f"{cz_data['l']}xL "
+        if 'm' in cz_data and cz_data['m'] != "0" and cz_data['m'] != "": text += f"{cz_data['m']}xM "
+        if 'h' in cz_data and cz_data['h'] != "0" and cz_data['h'] != "": text += f"{cz_data['h']}xH "
 
-        if text != '': text = f"{red(prefix, fp=fp)} {green(text, fp=fp)}"
+        if text != "": text = f"{red(prefix, fp=fp)} {green(text, fp=fp)} "
+        return text
+
+
+    def _build_tw_vessels_text(self, tw_data: dict, discord: bool) -> str:
+        """
+        Create a summary of TW activity. tw_data can be a dict containing either:
+          key = str representing thargoid vessel type; value = dict containing 'sum' property with int total for that vessel
+          key = str representing thargoid vessel type; value = int total for that vessel
+        """
+        if tw_data == {}: return ""
+        text:str = ""
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+        first:bool = True
+
+        for k, v in tw_data.items():
+            label:str = ""
+            value:int = 0
+
+            if k == 'ba': label = "Ba"    # Banshee
+            elif k == 'sg': label = "S/G" # Scythe / Glaive
+            else: label = k.upper()       # All others
+
+            if isinstance(v, dict): value = int(v.get('sum', 0))
+            else: value = int(v)
+            if v == 0: continue
+
+            if not first: text += ", "
+            text += f"{red(label, fp=fp)} x {green(value, fp=fp)}"
+
+            first = False
+
         return text
 
 
@@ -1331,7 +1350,7 @@ class Activity:
         Shorten the faction name if the user has chosen to
         """
         if self.bgstally.state.AbbreviateFactionNames.get() == CheckStates.STATE_ON:
-            return ''.join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
+            return "".join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
         else:
             return faction_name
 

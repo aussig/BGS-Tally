@@ -14,6 +14,7 @@
 * Faction name abbreviations are less obscure when the faction name contains a number or a dash.
 * Thargoid vessel types are omitted if they are 0, both for kills and for missions. This creates shorter and clearer reports.
 * No longer include Exobiology sales in discord reports.
+* Plugin no longer terminates if it cannot fetch the tick from elitebgs.app on initial load. Not an ideal situation as we know nothing about the current tick, but at least BGS-Tally is still usable in this situation.
 
 ### Bug Fixes:
 

@@ -20,11 +20,7 @@ def plugin_start3(plugin_dir):
     """
     this.plugin_start(plugin_dir)
 
-    tick_success = this.check_tick(UpdateUIPolicy.NEVER)
-
-    if tick_success == None:
-        # Cannot continue if we couldn't fetch a tick
-        raise Exception("BGS-Tally couldn't continue because the current tick could not be fetched")
+    this.check_tick(UpdateUIPolicy.NEVER)
 
     return this.plugin_name
 

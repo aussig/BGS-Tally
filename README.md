@@ -13,7 +13,7 @@ As well as all the BGS tracking from Tez's original version, this modified versi
 * Automatic on-foot Conflict Zone tracking (with settlement names)
 * Automatic in-space Conflict Zone tracking
 * TW tracking
-* Targeted CMDR logging and Inara lookup for CMDR and Squadron
+* Logging of interactions with other CMDRs, with automatic Inara lookup for CMDR and Squadron
 * Fleet Carrier materials tracking
 * Fleet Carrier jump tracking
 * Discord-ready information - quick Copy to Clipboard for the Discord text as well as posting directly to Discord

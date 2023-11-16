@@ -1,5 +1,32 @@
 # Change Log
 
+## v3.3.0-a1 - 2023-11-16
+
+### New Features:
+
+* Targeting a player in a taxi will now log the player name and attempt lookup on Inara.
+* Now log the details of any CMDR who interdicts you, sends a message in local chat, invites you to a team or kills you in a team.
+* The CMDR listing window now has an extra 'Interaction' column which describes how you interacted with the other CMDR (scanned, interdicted by etc.).
+* Thargoid War banshee kills are now tallied.
+
+### Changes:
+
+* Faction name abbreviations are less obscure when the faction name contains a number or a dash.
+* Thargoid vessel types are omitted if they are 0, both for kills and for missions. This creates shorter and clearer reports.
+* No longer include Exobiology sales in discord reports.
+* Plugin no longer terminates if it cannot fetch the tick from elitebgs.app on initial load. Not an ideal situation as we know nothing about the current tick, but at least BGS-Tally is still usable in this situation.
+
+### Bug Fixes:
+
+* Fix (another) crash in code that detects drop from supercruise at megaships.
+
+### API Changes ([v1.3](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+
+* `/events` endpoint: All localised fields are now stripped before sending. i.e. fields who's name ends with `_Localised`.
+* `/activities` endpoint: Added `banshee` to `systems/[system]/twkills`.
+* `/activities` endpoint: Added `scythe-glaive` to `systems/[system]/twkills`.
+
+
 ## v3.2.0 - 2023-10-21
 
 ### New Features:
@@ -41,7 +68,7 @@
 * Fix crash in code that detects drop from supercruise at megaships.
 
 
-### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/cc3753c2-6569-4d74-8448-8fb9363898ce)):
 
 * `/activities` endpoint: Thargoid War reactivation missions now included in `systems/[system]/factions/[faction]/stations/[station]/twreactivate`
 * `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`

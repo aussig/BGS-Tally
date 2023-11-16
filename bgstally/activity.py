@@ -1,15 +1,15 @@
 import json
+import re
 from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Dict
-import re
 
-from bgstally.constants import CheckStates, DiscordActivity, FILE_SUFFIX
+from bgstally.constants import FILE_SUFFIX, CheckStates, DiscordActivity
 from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
 from bgstally.tick import Tick
-from bgstally.utils import human_format
+from bgstally.utils import human_format, is_number
 from thirdparty.colors import *
 
 DATETIME_FORMAT_ACTIVITY = "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -78,7 +78,7 @@ MISSIONS_TW_REACTIVATE = [
 CZ_GROUND_LOW_CB_MAX = 5000
 CZ_GROUND_MED_CB_MAX = 38000
 
-TW_CBS = {25000: 'r', 65000: 's', 75000: 's', 4500000: 'sg', 6500000: 'c', 20000000: 'b', 25000000: 'o', 34000000: 'm', 40000000: 'o', 50000000: 'h'}
+TW_CBS = {25000: 'r', 65000: 's', 75000: 's', 1000000: 'ba', 4500000: 'sg', 6500000: 'c', 20000000: 'b', 25000000: 'o', 34000000: 'm', 40000000: 'o', 50000000: 'h'}
 
 
 class Activity:
@@ -106,6 +106,7 @@ class Activity:
         self.dirty: bool = False
         self.systems: dict = {}
 
+        # Non-stored instance data. Remember to modify __deepcopy__() if these are changed or new data added.
         self.megaship_pat:re.Pattern = re.compile("^[a-z]{3}-[0-9]{3} ")  # e.g. kar-314 aquarius-class tanker
 
 
@@ -690,7 +691,7 @@ class Activity:
         We are logging a Thargoid kill
         """
         tw_ship:str = TW_CBS.get(journal_entry.get('Reward', 0))
-        if tw_ship: current_system['TWKills'][tw_ship] += 1
+        if tw_ship: current_system['TWKills'][tw_ship] = current_system['TWKills'].get(tw_ship, 0) + 1
 
         self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
@@ -1023,7 +1024,7 @@ class Activity:
         """
         Get a new data structure for storing Thargoid War Kills
         """
-        return {'r': 0, 's': 0, 'sg': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
+        return {'r': 0, 's': 0, 'ba': 0, 'sg': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
 
 
     def _get_new_tw_sandr_data(self):
@@ -1190,15 +1191,13 @@ class Activity:
                     + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeSell'][3]['profit']), fp=fp)} "
         activity_text += f"{cyan('TrdBMProfit', fp=fp)} {green(human_format(faction['BlackMarketProfit']), fp=fp)} " if faction['BlackMarketProfit'] != 0 else ""
         activity_text += f"{white('Expl', fp=fp)} {green(human_format(faction['CartData']), fp=fp)} " if faction['CartData'] != 0 else ""
-        activity_text += f"{grey('Exo', fp=fp)} {green(human_format(faction['ExoData']), fp=fp)} " if faction['ExoData'] != 0 else ""
+        # activity_text += f"{grey('Exo', fp=fp)} {green(human_format(faction['ExoData']), fp=fp)} " if faction['ExoData'] != 0 else ""
         activity_text += f"{red('Murders', fp=fp)} {green(faction['Murdered'], fp=fp)} " if faction['Murdered'] != 0 else ""
         activity_text += f"{red('GroundMurders', fp=fp)} {green(faction['GroundMurdered'], fp=fp)} " if faction['GroundMurdered'] != 0 else ""
         activity_text += f"{yellow('Scenarios', fp=fp)} {green(faction['Scenarios'], fp=fp)} " if faction['Scenarios'] != 0 else ""
         activity_text += f"{magenta('Fails', fp=fp)} {green(faction['MissionFailed'], fp=fp)} " if faction['MissionFailed'] != 0 else ""
-        space_cz = self._build_cz_text(faction.get('SpaceCZ', {}), "SpaceCZs", discord)
-        activity_text += f"{space_cz} " if space_cz != "" else ""
-        ground_cz = self._build_cz_text(faction.get('GroundCZ', {}), "GroundCZs", discord)
-        activity_text += f"{ground_cz} " if ground_cz != "" else ""
+        activity_text += self._build_cz_text(faction.get('SpaceCZ', {}), "SpaceCZs", discord)
+        activity_text += self._build_cz_text(faction.get('GroundCZ', {}), "GroundCZs", discord)
 
         faction_name = self._process_faction_name(faction['Faction'])
         faction_text = f"{color_wrap(faction_name, 'yellow', None, 'bold', fp=fp)} {activity_text}\n" if activity_text != "" else ""
@@ -1262,15 +1261,8 @@ class Activity:
         if kills > 0 or sandr > 0 or reactivate > 0:
             system_text += f"🍀 System activity\n"
             if kills > 0:
-                system_text += f"  💀 (kills): " \
-                                    + f"{red('R', fp=fp)} x {green(system['TWKills'].get('r', 0), fp=fp)}, " \
-                                    + f"{red('S', fp=fp)} x {green(system['TWKills'].get('s', 0), fp=fp)}, " \
-                                    + f"{red('S/G', fp=fp)} x {green(system['TWKills'].get('sg', 0), fp=fp)}, " \
-                                    + f"{red('C', fp=fp)} x {green(system['TWKills'].get('c', 0), fp=fp)}, " \
-                                    + f"{red('B', fp=fp)} x {green(system['TWKills'].get('b', 0), fp=fp)}, " \
-                                    + f"{red('M', fp=fp)} x {green(system['TWKills'].get('m', 0), fp=fp)}, " \
-                                    + f"{red('H', fp=fp)} x {green(system['TWKills'].get('h', 0), fp=fp)}, " \
-                                    + f"{red('O', fp=fp)} x {green(system['TWKills'].get('o', 0), fp=fp)} \n"
+                system_text += f"  💀 (kills): " + self._build_tw_vessels_text(system['TWKills'], discord) + " \n"
+
             if sandr > 0:
                 system_text += "  "
                 pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
@@ -1297,17 +1289,14 @@ class Activity:
             if (system_station['passengers']['sum'] > 0):
                 system_text += f"  🧍 x {green(system_station['passengers']['sum'], fp=fp)} - {green(system_station['passengers']['count'], fp=fp)} missions\n"
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_text += f"  💀 (missions): {red('S', fp=fp)} x {green(system_station['massacre']['s']['sum'], fp=fp)}, {red('C', fp=fp)} x {green(system_station['massacre']['c']['sum'], fp=fp)}, " \
-                                    + f"{red('B', fp=fp)} x {green(system_station['massacre']['b']['sum'], fp=fp)}, {red('M', fp=fp)} x {green(system_station['massacre']['m']['sum'], fp=fp)}, " \
-                                    + f"{red('H', fp=fp)} x {green(system_station['massacre']['h']['sum'], fp=fp)}, {red('O', fp=fp)} x {green(system_station['massacre']['o']['sum'], fp=fp)} " \
-                                    + f"- {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
+                system_text += f"  💀 (missions): " + self._build_tw_vessels_text(system_station['massacre'], discord) + f"- {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
             if (system_station['reactivate'] > 0):
                 system_text += f"  🛠️ x {green(system_station['reactivate'], fp=fp)} missions\n"
 
         return system_text
 
 
-    def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool):
+    def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool) -> str:
         """
         Create a summary of Conflict Zone activity
         """
@@ -1316,11 +1305,43 @@ class Activity:
         # Force plain text if we are not posting to Discord
         fp:bool = not discord
 
-        if 'l' in cz_data and cz_data['l'] != '0' and cz_data['l'] != '': text += f"{cz_data['l']}xL "
-        if 'm' in cz_data and cz_data['m'] != '0' and cz_data['m'] != '': text += f"{cz_data['m']}xM "
-        if 'h' in cz_data and cz_data['h'] != '0' and cz_data['h'] != '': text += f"{cz_data['h']}xH "
+        if 'l' in cz_data and cz_data['l'] != "0" and cz_data['l'] != "": text += f"{cz_data['l']}xL "
+        if 'm' in cz_data and cz_data['m'] != "0" and cz_data['m'] != "": text += f"{cz_data['m']}xM "
+        if 'h' in cz_data and cz_data['h'] != "0" and cz_data['h'] != "": text += f"{cz_data['h']}xH "
 
-        if text != '': text = f"{red(prefix, fp=fp)} {green(text, fp=fp)}"
+        if text != "": text = f"{red(prefix, fp=fp)} {green(text, fp=fp)} "
+        return text
+
+
+    def _build_tw_vessels_text(self, tw_data: dict, discord: bool) -> str:
+        """
+        Create a summary of TW activity. tw_data can be a dict containing either:
+          key = str representing thargoid vessel type; value = dict containing 'sum' property with int total for that vessel
+          key = str representing thargoid vessel type; value = int total for that vessel
+        """
+        if tw_data == {}: return ""
+        text:str = ""
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+        first:bool = True
+
+        for k, v in tw_data.items():
+            label:str = ""
+            value:int = 0
+
+            if k == 'ba': label = "Ba"    # Banshee
+            elif k == 'sg': label = "S/G" # Scythe / Glaive
+            else: label = k.upper()       # All others
+
+            if isinstance(v, dict): value = int(v.get('sum', 0))
+            else: value = int(v)
+            if v == 0: continue
+
+            if not first: text += ", "
+            text += f"{red(label, fp=fp)} x {green(value, fp=fp)}"
+
+            first = False
+
         return text
 
 
@@ -1329,7 +1350,7 @@ class Activity:
         Shorten the faction name if the user has chosen to
         """
         if self.bgstally.state.AbbreviateFactionNames.get() == CheckStates.STATE_ON:
-            return ''.join((i if i.isnumeric() else i[0]) for i in faction_name.split())
+            return "".join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
         else:
             return faction_name
 
@@ -1403,6 +1424,7 @@ class Activity:
         setattr(result, 'discord_bgs_messageid', self.discord_bgs_messageid)
         setattr(result, 'discord_tw_messageid', self.discord_tw_messageid)
         setattr(result, 'discord_notes', self.discord_notes)
+        setattr(result, 'megaship_pat', self.megaship_pat)
 
         # Deep copied items
         setattr(result, 'systems', deepcopy(self.systems, memo))

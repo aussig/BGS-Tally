@@ -210,13 +210,15 @@ class APIManager:
 
             if sum(system.get('TWKills', {}).values()) > 0:
                 api_system['twkills'] = {
-                    'revenant': system['TWKills'].get('r', 0),
+                    'banshee': system['TWKills'].get('ba', 0),
                     'basilisk': system['TWKills'].get('b', 0),
                     'cyclops': system['TWKills'].get('c', 0),
                     'hydra': system['TWKills'].get('h', 0),
                     'medusa': system['TWKills'].get('m', 0),
                     'orthrus': system['TWKills'].get('o', 0),
-                    'scout': system['TWKills'].get('s', 0)
+                    'revenant': system['TWKills'].get('r', 0),
+                    'scout': system['TWKills'].get('s', 0),
+                    'scythe-glaive': system['TWKills'].get('sg', 0)
                 }
 
             if sum(int(d['delivered']) for d in system.get('TWSandR', {}).values()) > 0:
@@ -241,6 +243,9 @@ class APIManager:
         Build an API-ready event ready for sending. This just involves enhancing the event with some
         additional data
         """
+
+        # Remove all '_Localised' event parameters
+        event = self._filter_localised(event)
 
         # BGS-Tally specific global enhancements
         event['cmdr'] = cmdr

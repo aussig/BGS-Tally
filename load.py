@@ -1,15 +1,14 @@
 from os import path
 
+import semantic_version
 from companion import CAPIData
 
 from bgstally.bgstally import BGSTally
-from bgstally.debug import Debug
 from bgstally.constants import UpdateUIPolicy
-
-import semantic_version
+from bgstally.debug import Debug
 
 PLUGIN_NAME = "BGS-Tally"
-PLUGIN_VERSION = semantic_version.Version.coerce("3.2.0")
+PLUGIN_VERSION = semantic_version.Version.coerce("3.3.0-a1")
 
 # Initialise the main plugin class
 this:BGSTally = BGSTally(PLUGIN_NAME, PLUGIN_VERSION)
@@ -21,11 +20,7 @@ def plugin_start3(plugin_dir):
     """
     this.plugin_start(plugin_dir)
 
-    tick_success = this.check_tick(UpdateUIPolicy.NEVER)
-
-    if tick_success == None:
-        # Cannot continue if we couldn't fetch a tick
-        raise Exception("BGS-Tally couldn't continue because the current tick could not be fetched")
+    this.check_tick(UpdateUIPolicy.NEVER)
 
     return this.plugin_name
 

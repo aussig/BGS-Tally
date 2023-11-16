@@ -83,7 +83,7 @@ class Overlay:
             if not self.problem_displaying:
                 # Only log a warning about failure once
                 self.problem_displaying = True
-                Debug.logger.info(f"Could not display overlay message")
+                Debug.logger.warning(f"Could not display overlay message", exc_info=e)
 
 
     def display_indicator(self, frame_name: str, ttl_override: int = None, fill_colour_override: str = None, border_colour_override: str = None):
@@ -104,7 +104,7 @@ class Overlay:
             if not self.problem_displaying:
                 # Only log a warning about failure once
                 self.problem_displaying = True
-                Debug.logger.info(f"Could not display overlay message")
+                Debug.logger.warning(f"Could not display overlay message", exc_info=e)
 
 
     def display_progress_bar(self, frame_name: str, message: str, progress: float = 0, ttl_override: int = None):
@@ -132,7 +132,7 @@ class Overlay:
             if not self.problem_displaying:
                 # Only log a warning about failure once
                 self.problem_displaying = True
-                Debug.logger.info(f"Could not display overlay message")
+                Debug.logger.warning(f"Could not display overlay message", exc_info=e)
 
 
     def _check_overlay(self):

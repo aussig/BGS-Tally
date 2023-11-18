@@ -2,6 +2,13 @@
 
 ## v3.3.0-xx - xxxx-xx-xx
 
+### New Features:
+
+* Now log the details of any CMDR who kills you solo.
+
+### Bug Fixes:
+
+* Don't log NPCs who kill you in a team, only CMDRs, and correctly look up the CMDR name (without the "Cmdr " prefix)
 
 
 ## v3.3.0-a1 - 2023-11-16

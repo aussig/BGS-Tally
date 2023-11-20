@@ -2,6 +2,10 @@
 
 ## v3.4.0-xx - xxxx-xx-xx
 
+### New Features:
+
+* Add system title and Inara link to the system at the top of every activity panel.
+
 ### Changes:
 
 * Standardise heading styles across all windows.

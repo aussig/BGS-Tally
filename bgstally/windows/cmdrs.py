@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import partial
 from tkinter import ttk
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, DiscordChannel, FONT_HEADING
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, DiscordChannel, COLOUR_HEADING_1, FONT_HEADING_1, FONT_HEADING_2
 from bgstally.debug import Debug
 from bgstally.widgets import TreeviewPlus
 from ttkHyperlinkLabel import HyperlinkLabel
@@ -64,17 +64,17 @@ class WindowCMDRs:
         treeview.pack(fill=tk.BOTH, expand=1)
 
         current_row = 0
-        ttk.Label(details_frame, text="CMDR Details", font=FONT_HEADING).grid(row=current_row, column=0, sticky=tk.W); current_row += 1
-        ttk.Label(details_frame, text="Name: ", font=FONT_HEADING).grid(row=current_row, column=0, sticky=tk.W)
+        ttk.Label(details_frame, text="CMDR Details", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, sticky=tk.W); current_row += 1
+        ttk.Label(details_frame, text="Name: ", font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W)
         self.cmdr_details_name = ttk.Label(details_frame, text="")
         self.cmdr_details_name.grid(row=current_row, column=1, sticky=tk.W)
-        ttk.Label(details_frame, text="Inara: ", font=FONT_HEADING).grid(row=current_row, column=2, sticky=tk.W)
+        ttk.Label(details_frame, text="Inara: ", font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W)
         self.cmdr_details_name_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/cmdrs/?search=aussi", underline=True)
         self.cmdr_details_name_inara.grid(row=current_row, column=3, sticky=tk.W); current_row += 1
-        ttk.Label(details_frame, text="Squadron: ", font=FONT_HEADING).grid(row=current_row, column=0, sticky=tk.W)
+        ttk.Label(details_frame, text="Squadron: ", font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W)
         self.cmdr_details_squadron = ttk.Label(details_frame, text="")
         self.cmdr_details_squadron.grid(row=current_row, column=1, sticky=tk.W)
-        ttk.Label(details_frame, text="Inara: ", font=FONT_HEADING).grid(row=current_row, column=2, sticky=tk.W)
+        ttk.Label(details_frame, text="Inara: ", font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W)
         self.cmdr_details_squadron_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/squadrons-search/?search=ghst", underline=True)
         self.cmdr_details_squadron_inara.grid(row=current_row, column=3, sticky=tk.W); current_row += 1
 
@@ -123,11 +123,11 @@ class WindowCMDRs:
             self.delete_button['state'] = tk.NORMAL
 
         if 'TargetName' in self.selected_cmdr: self.cmdr_details_name.config(text = self.selected_cmdr['TargetName'])
-        if 'inaraURL' in self.selected_cmdr: self.cmdr_details_name_inara.configure(text = "Inara Info Available", url = self.selected_cmdr['inaraURL'])
+        if 'inaraURL' in self.selected_cmdr: self.cmdr_details_name_inara.configure(text = "Inara Info Available ⤴", url = self.selected_cmdr['inaraURL'])
         if 'squadron' in self.selected_cmdr:
             squadron_info = self.selected_cmdr['squadron']
             if 'squadronName' in squadron_info: self.cmdr_details_squadron.config(text = f"{squadron_info['squadronName']} ({squadron_info['squadronMemberRank']})")
-            if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text = "Inara Info Available", url = squadron_info['inaraURL'])
+            if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text = "Inara Info Available ⤴", url = squadron_info['inaraURL'])
         elif 'SquadronID' in self.selected_cmdr:
             self.cmdr_details_squadron.config(text = f"{self.selected_cmdr['SquadronID']}")
 

@@ -2,6 +2,9 @@
 
 ## v3.4.0-xx - xxxx-xx-xx
 
+### Changes:
+
+* Standardise heading styles across all windows.
 
 
 ## v3.3.0-xx - xxxx-xx-xx

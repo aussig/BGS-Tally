@@ -4,11 +4,12 @@
 
 ### New Features:
 
-* Add system title and Inara link to the system at the top of every activity panel.
+* Discord webhooks completely re-worked. Now, instead of a single, fixed webhook for each type of Discord post, there is a fully flexible table of webhooks which you can set up any way you like - a single webhook for all Discord posts; a webhook for each type of Discord post; multiple webhooks for each type, or any combination of these.
+* The system title and an Inara link to the system are now shown at the top of every activity panel.
 
 ### Changes:
 
-* Standardise heading styles across all windows.
+* Heading styles have been standardised across all windows. And headings are now purple, yay!
 
 
 ## v3.3.0-xx - xxxx-xx-xx

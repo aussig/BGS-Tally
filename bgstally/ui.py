@@ -152,33 +152,20 @@ class UI:
         nb.Label(frame, text="Discord Webhooks", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1
         nb.Label(frame, text="Post to Discord as").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
-        sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, enable_edit_cell_auto_resize=False, height=140, width=880,
+        self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, enable_edit_cell_auto_resize=False, height=140, width=880,
                                      column_width=55, header_align="left", empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
-                                     show_horizontal_grid=False, show_vertical_grid=False, show_top_left=False,
+                                     show_horizontal_grid=False, show_vertical_grid=False, show_top_left=False, edit_cell_validation=False,
                                      headers=["Nickname", "Webhook URL", "BGS", "TW", "FC Mats", "FC Ops", "CMDR"])
-        sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
-        sheet_webhooks.checkbox_column(c = [2, 3, 4, 5, 6])
-        sheet_webhooks.column_width(column=0, width=150, redraw=False)
-        sheet_webhooks.column_width(column=1, width=400, redraw=True)
-        sheet_webhooks.insert_row(["BGS", self.bgstally.state.DiscordBGSWebhook.get(), True, False, False, False, False])
-        sheet_webhooks.insert_row(["TW", self.bgstally.state.DiscordTWWebhook.get(), False, True, False, False, False])
-        sheet_webhooks.insert_row(["FC Materials", self.bgstally.state.DiscordFCMaterialsWebhook.get(), False, False, True, False, False])
-        sheet_webhooks.insert_row(["FC Ops", self.bgstally.state.DiscordFCOperationsWebhook.get(), False, False, False, True, False])
-        sheet_webhooks.insert_row(["CMDR Info", self.bgstally.state.DiscordCMDRInformationWebhook.get(), False, False, False, False, True])
-        sheet_webhooks.enable_bindings(("single_select", "row_select", "arrowkeys", "right_click_popup_menu", "rc_select", "rc_insert_row",
-                            "rc_delete_row", "copy", "cut", "paste", "delete", "undo", "edit_cell"))
-        nb.Label(frame, text="To add a webhook: Right-click on an empty row and select 'Insert Row'. To delete a webhook: Right-click on a row number and select 'Delete rows'.", font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
-
-        nb.Label(frame, text="BGS Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordBGSWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Thargoid War Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordTWWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Fleet Carrier Materials Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordFCMaterialsWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Fleet Carrier Operations Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordFCOperationsWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="CMDR Information Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordCMDRInformationWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        self.sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
+        self.sheet_webhooks.checkbox_column(c = [2, 3, 4, 5, 6])
+        self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks())
+        self.sheet_webhooks.column_width(column=0, width=150, redraw=False)
+        self.sheet_webhooks.column_width(column=1, width=400, redraw=True)
+        self.sheet_webhooks.enable_bindings(('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select', 'rc_insert_row',
+                            'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell', 'modified'))
+        self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)
+        nb.Label(frame, text="Add a webhook: Right-click on a row number and select 'Insert rows above / below'.", font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
+        nb.Label(frame, text="Delete a webhook: Right-click on a row number and select 'Delete rows'.", font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="In-game Overlay", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
@@ -241,6 +228,16 @@ class UI:
         """
         self.indicate_activity = True
         self.report_system_address = str(system_address)
+
+
+    def _webhooks_table_modified(self, event=None):
+        """
+        Callback for all modifications to the webhooks table
+
+        Args:
+            event (namedtuple, optional): Variables related to the callback. Defaults to None.
+        """
+        self.bgstally.webhook_manager.set_webhooks(self.sheet_webhooks.get_sheet_data())
 
 
     def _worker(self) -> None:

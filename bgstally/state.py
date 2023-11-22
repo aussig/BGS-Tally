@@ -23,11 +23,6 @@ class State:
         self.ShowZeroActivitySystems:tk.StringVar = tk.StringVar(value=config.get_str('XShowZeroActivity', default=CheckStates.STATE_ON))
         self.AbbreviateFactionNames:tk.StringVar = tk.StringVar(value=config.get_str('XAbbreviate', default=CheckStates.STATE_OFF))
         self.IncludeSecondaryInf:tk.StringVar = tk.StringVar(value=config.get_str('XSecondaryInf', default=CheckStates.STATE_ON))
-        self.DiscordBGSWebhook:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordWebhook', default=""))
-        self.DiscordCMDRInformationWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordCMDRInformationWebhook", default=""))
-        self.DiscordFCMaterialsWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordFCMaterialsWebhook", default=""))
-        self.DiscordFCOperationsWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordFCOperationsWebhook", default=""))
-        self.DiscordTWWebhook:tk.StringVar = tk.StringVar(value=config.get_str("XDiscordTWWebhook", default=""))
         self.DiscordUsername:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordUsername', default=""))
         self.DiscordPostStyle:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordPostStyle', default=DiscordPostStyle.EMBED))
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordActivity', default=DiscordActivity.BOTH))
@@ -37,6 +32,13 @@ class State:
         self.EnableOverlayTWProgress:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayTWProgress', default=CheckStates.STATE_ON))
         self.EnableOverlaySystem:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlaySystem', default=CheckStates.STATE_ON))
         self.EnableSystemActivityByDefault:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableSystemActivityByDefault', default=CheckStates.STATE_ON))
+
+        # Legacy values, remove in future version
+        self.DiscordBGSWebhook:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordWebhook', default=""))
+        self.DiscordCMDRInformationWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordCMDRInformationWebhook", default=""))
+        self.DiscordFCMaterialsWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordFCMaterialsWebhook", default=""))
+        self.DiscordFCOperationsWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordFCOperationsWebhook", default=""))
+        self.DiscordTWWebhook:tk.StringVar = tk.StringVar(value=config.get_str("XDiscordTWWebhook", default=""))
 
         # Persistent values
         self.current_system_id:str = config.get_str('XCurrentSystemID', default="")
@@ -74,11 +76,6 @@ class State:
         config.set('XShowZeroActivity', self.ShowZeroActivitySystems.get())
         config.set('XAbbreviate', self.AbbreviateFactionNames.get())
         config.set('XSecondaryInf', self.IncludeSecondaryInf.get())
-        config.set('XDiscordWebhook', self.DiscordBGSWebhook.get())
-        config.set('BGST_DiscordCMDRInformationWebhook', self.DiscordCMDRInformationWebhook.get())
-        config.set('BGST_DiscordFCMaterialsWebhook', self.DiscordFCMaterialsWebhook.get())
-        config.set('BGST_DiscordFCOperationsWebhook', self.DiscordFCOperationsWebhook.get())
-        config.set('XDiscordTWWebhook', self.DiscordTWWebhook.get())
         config.set('XDiscordUsername', self.DiscordUsername.get())
         config.set('XDiscordPostStyle', self.DiscordPostStyle.get())
         config.set('XDiscordActivity', self.DiscordActivity.get())

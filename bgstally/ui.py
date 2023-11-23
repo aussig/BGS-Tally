@@ -11,7 +11,6 @@ from typing import List, Optional
 import myNotebook as nb
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from thirdparty.tksheet import Sheet
 from bgstally.activity import Activity
 from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL, CheckStates, DiscordActivity, DiscordPostStyle, UpdateUIPolicy
 from bgstally.debug import Debug
@@ -22,6 +21,7 @@ from bgstally.windows.cmdrs import WindowCMDRs
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
 from bgstally.windows.legend import WindowLegend
 from config import config
+from thirdparty.tksheet import Sheet
 
 DATETIME_FORMAT_OVERLAY = "%Y-%m-%d %H:%M"
 SIZE_BUTTON_PIXELS = 30
@@ -155,12 +155,13 @@ class UI:
         self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, enable_edit_cell_auto_resize=False, height=140, width=880,
                                      column_width=55, header_align="left", empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
                                      show_horizontal_grid=False, show_vertical_grid=False, show_top_left=False, edit_cell_validation=False,
-                                     headers=["Nickname", "Webhook URL", "BGS", "TW", "FC Mats", "FC Ops", "CMDR"])
+                                     headers=["UUID", "Nickname", "Webhook URL", "BGS", "TW", "FC Mats", "FC Ops", "CMDR"])
         self.sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
-        self.sheet_webhooks.checkbox_column(c = [2, 3, 4, 5, 6])
+        self.sheet_webhooks.hide_columns(columns=[0])                       # Visible column indexes
+        self.sheet_webhooks.checkbox_column(c=[3, 4, 5, 6, 7])              # Data column indexes
         self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks())
-        self.sheet_webhooks.column_width(column=0, width=150, redraw=False)
-        self.sheet_webhooks.column_width(column=1, width=400, redraw=True)
+        self.sheet_webhooks.column_width(column=0, width=150, redraw=False) # Visible column indexes
+        self.sheet_webhooks.column_width(column=1, width=400, redraw=True)  # Visible column indexes
         self.sheet_webhooks.enable_bindings(('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select', 'rc_insert_row',
                             'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell', 'modified'))
         self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)

@@ -1,5 +1,6 @@
 import json
 from os import path, remove
+from secrets import token_hex
 
 from bgstally.constants import FOLDER_DATA
 from bgstally.debug import Debug
@@ -33,14 +34,15 @@ class WebhookManager:
 
         if self.data == {}:
             # We are in default state, initialise from legacy data
+            # List format: UUID, Nickname, URL, BGS, TW, FC Mats, FC Ops, CMDR
             self.data = {
                 'webhooks':
                     [
-                        ["BGS", self.bgstally.state.DiscordBGSWebhook.get(), True, False, False, False, False],
-                        ["TW", self.bgstally.state.DiscordTWWebhook.get(), False, True, False, False, False],
-                        ["FC Materials", self.bgstally.state.DiscordFCMaterialsWebhook.get(), False, False, True, False, False],
-                        ["FC Ops", self.bgstally.state.DiscordFCOperationsWebhook.get(), False, False, False, True, False],
-                        ["CMDR Info", self.bgstally.state.DiscordCMDRInformationWebhook.get(), False, False, False, False, True]
+                        [token_hex(9), "BGS", self.bgstally.state.DiscordBGSWebhook.get(), True, False, False, False, False],
+                        [token_hex(9), "TW", self.bgstally.state.DiscordTWWebhook.get(), False, True, False, False, False],
+                        [token_hex(9), "FC Materials", self.bgstally.state.DiscordFCMaterialsWebhook.get(), False, False, True, False, False],
+                        [token_hex(9), "FC Ops", self.bgstally.state.DiscordFCOperationsWebhook.get(), False, False, False, True, False],
+                        [token_hex(9), "CMDR Info", self.bgstally.state.DiscordCMDRInformationWebhook.get(), False, False, False, False, True]
                     ]
             }
 
@@ -58,6 +60,14 @@ class WebhookManager:
         """
         Store the latest webhooks data
         """
+        if data is None:
+            self.data['webhooks'] = []
+            return
+
+        for webhook in data:
+            # Set UUID if not already set (a new entry in the list)
+            if webhook[0] is None or webhook[0] == "": webhook[0] = token_hex(9)
+
         self.data['webhooks'] = data
         self.save()
 

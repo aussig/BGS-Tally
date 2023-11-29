@@ -30,13 +30,14 @@ class UpdateUIPolicy(Enum):
     IMMEDIATE = 1
     LATER = 2
 
-
-class DiscordChannel(Enum):
-    BGS = 0
-    CMDR_INFORMATION = 1
-    FLEETCARRIER_MATERIALS = 2
-    FLEETCARRIER_OPERATIONS = 3
-    THARGOIDWAR = 4
+# Discord channels
+# Subclassing from int as well as Enum means json.load and json.dump work seamlessly
+class DiscordChannel(str, Enum):
+    BGS = 'BGS'
+    CMDR_INFORMATION = 'CMDR-info'
+    FLEETCARRIER_MATERIALS = 'FC-mats'
+    FLEETCARRIER_OPERATIONS = 'FC-ops'
+    THARGOIDWAR = 'TW'
 
 
 class MaterialsCategory(Enum):

@@ -159,7 +159,7 @@ class UI:
         self.sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
         self.sheet_webhooks.hide_columns(columns=[0])                       # Visible column indexes
         self.sheet_webhooks.checkbox_column(c=[3, 4, 5, 6, 7])              # Data column indexes
-        self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks())
+        self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks_as_list())
         self.sheet_webhooks.column_width(column=0, width=150, redraw=False) # Visible column indexes
         self.sheet_webhooks.column_width(column=1, width=400, redraw=True)  # Visible column indexes
         self.sheet_webhooks.enable_bindings(('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select', 'rc_insert_row',
@@ -238,7 +238,7 @@ class UI:
         Args:
             event (namedtuple, optional): Variables related to the callback. Defaults to None.
         """
-        self.bgstally.webhook_manager.set_webhooks(self.sheet_webhooks.get_sheet_data())
+        self.bgstally.webhook_manager.set_webhooks_from_list(self.sheet_webhooks.get_sheet_data())
 
 
     def _worker(self) -> None:

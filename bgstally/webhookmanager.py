@@ -2,7 +2,7 @@ import json
 from os import path, remove
 from secrets import token_hex
 
-from bgstally.constants import FOLDER_DATA
+from bgstally.constants import DiscordChannel, FOLDER_DATA
 from bgstally.debug import Debug
 from thirdparty.colors import *
 
@@ -34,15 +34,24 @@ class WebhookManager:
 
         if self.data == {}:
             # We are in default state, initialise from legacy data
-            # List format: UUID, Nickname, URL, BGS, TW, FC Mats, FC Ops, CMDR
             self.data = {
                 'webhooks':
                     [
-                        [token_hex(9), "BGS", self.bgstally.state.DiscordBGSWebhook.get(), True, False, False, False, False],
-                        [token_hex(9), "TW", self.bgstally.state.DiscordTWWebhook.get(), False, True, False, False, False],
-                        [token_hex(9), "FC Materials", self.bgstally.state.DiscordFCMaterialsWebhook.get(), False, False, True, False, False],
-                        [token_hex(9), "FC Ops", self.bgstally.state.DiscordFCOperationsWebhook.get(), False, False, False, True, False],
-                        [token_hex(9), "CMDR Info", self.bgstally.state.DiscordCMDRInformationWebhook.get(), False, False, False, False, True]
+                        {'uuid': token_hex(9), 'name': "BGS", 'url': self.bgstally.state.DiscordBGSWebhook.get(),
+                         DiscordChannel.BGS: True, DiscordChannel.THARGOIDWAR: False, DiscordChannel.FLEETCARRIER_MATERIALS: False,
+                         DiscordChannel.FLEETCARRIER_OPERATIONS: False, DiscordChannel.CMDR_INFORMATION: False},
+                        {'uuid': token_hex(9), 'name': "TW", 'url': self.bgstally.state.DiscordTWWebhook.get(),
+                         DiscordChannel.BGS: False, DiscordChannel.THARGOIDWAR: True, DiscordChannel.FLEETCARRIER_MATERIALS: False,
+                         DiscordChannel.FLEETCARRIER_OPERATIONS: False, DiscordChannel.CMDR_INFORMATION: False},
+                        {'uuid': token_hex(9), 'name': "FC Materials", 'url': self.bgstally.state.DiscordFCMaterialsWebhook.get(),
+                         DiscordChannel.BGS: False, DiscordChannel.THARGOIDWAR: False, DiscordChannel.FLEETCARRIER_MATERIALS: True,
+                         DiscordChannel.FLEETCARRIER_OPERATIONS: False, DiscordChannel.CMDR_INFORMATION: False},
+                        {'uuid': token_hex(9), 'name': "FC Ops", 'url': self.bgstally.state.DiscordFCOperationsWebhook.get(),
+                         DiscordChannel.BGS: False, DiscordChannel.THARGOIDWAR: False, DiscordChannel.FLEETCARRIER_MATERIALS: False,
+                         DiscordChannel.FLEETCARRIER_OPERATIONS: True, DiscordChannel.CMDR_INFORMATION: False},
+                        {'uuid': token_hex(9), 'name': "CMDR Info", 'url': self.bgstally.state.DiscordCMDRInformationWebhook.get(),
+                         DiscordChannel.BGS: False, DiscordChannel.THARGOIDWAR: False, DiscordChannel.FLEETCARRIER_MATERIALS: False,
+                         DiscordChannel.FLEETCARRIER_OPERATIONS: False, DiscordChannel.CMDR_INFORMATION: True}
                     ]
             }
 
@@ -56,30 +65,64 @@ class WebhookManager:
             json.dump(self._as_dict(), outfile)
 
 
-    def set_webhooks(self, data: list):
+    def set_webhooks_from_list(self, data: list):
         """
-        Store the latest webhooks data
+        Store webhooks data from a 2-dimensional list
+
+        Args:
+            data (list): A 2-dimensional list containing the webhooks
         """
-        if data is None:
-            self.data['webhooks'] = []
+        self.data['webhooks'] = []
+
+        if data is None or data == []:
+            self.save()
             return
 
         for webhook in data:
-            # Set UUID if not already set (a new entry in the list)
-            if webhook[0] is None or webhook[0] == "": webhook[0] = token_hex(9)
+            if len(webhook) == 8:
+                self.data['webhooks'].append({
+                    'uuid': webhook[0] if webhook[0] is not None and webhook[0] is not "" else token_hex(9),
+                    'name': webhook[1],
+                    'url': webhook[2],
+                    DiscordChannel.BGS: webhook[3],
+                    DiscordChannel.THARGOIDWAR: webhook[4],
+                    DiscordChannel.FLEETCARRIER_MATERIALS: webhook[5],
+                    DiscordChannel.FLEETCARRIER_OPERATIONS: webhook[6],
+                    DiscordChannel.CMDR_INFORMATION: webhook[7]
+                })
 
-        self.data['webhooks'] = data
         self.save()
 
 
-    def get_webhooks(self) -> list:
+    def get_webhooks_as_list(self, channel:DiscordChannel|None = None) -> list:
         """
-        Return the latest webhooks data
+        Get the webhooks as a 2-dimensional list
+
+        Args:
+            channel (DiscordChannel | None, optional): If None or omitted, return all webhooks. If specified, only return webhooks for the given channel.
+
+        Returns:
+            list: A 2-dimensional list containing the appropriate webhooks
         """
-        return self.data.get('webhooks', [])
+        result:list = []
+
+        for webhook in self.data.get('webhooks', []):
+            if channel is None or webhook.get(channel) == True:
+                result.append([
+                    webhook.get('uuid', token_hex(9)),
+                    webhook.get('name', ""),
+                    webhook.get('url', ""),
+                    webhook.get(DiscordChannel.BGS, False),
+                    webhook.get(DiscordChannel.THARGOIDWAR, False),
+                    webhook.get(DiscordChannel.FLEETCARRIER_MATERIALS, False),
+                    webhook.get(DiscordChannel.FLEETCARRIER_OPERATIONS, False),
+                    webhook.get(DiscordChannel.CMDR_INFORMATION, False)
+                ])
+
+        return result
 
 
-    def _as_dict(self):
+    def _as_dict(self) -> dict:
         """
         Return a Dictionary representation of our data, suitable for serializing
         """

@@ -67,10 +67,10 @@ class WebhookManager:
 
     def set_webhooks_from_list(self, data: list):
         """
-        Store webhooks data from a 2-dimensional list
+        Store webhooks data from a list of lists
 
         Args:
-            data (list): A 2-dimensional list containing the webhooks
+            data (list): A list containing the webhooks, each webhook being a list
         """
         self.data['webhooks'] = []
 
@@ -81,7 +81,7 @@ class WebhookManager:
         for webhook in data:
             if len(webhook) == 8:
                 self.data['webhooks'].append({
-                    'uuid': webhook[0] if webhook[0] is not None and webhook[0] is not "" else token_hex(9),
+                    'uuid': webhook[0] if webhook[0] is not None and webhook[0] != "" else token_hex(9),
                     'name': webhook[1],
                     'url': webhook[2],
                     DiscordChannel.BGS: webhook[3],
@@ -94,15 +94,35 @@ class WebhookManager:
         self.save()
 
 
-    def get_webhooks_as_list(self, channel:DiscordChannel|None = None) -> list:
+    def get_webhooks_as_dict(self, channel:DiscordChannel|None = None) -> list:
         """
-        Get the webhooks as a 2-dimensional list
+        Get the webhooks as a dict
 
         Args:
-            channel (DiscordChannel | None, optional): If None or omitted, return all webhooks. If specified, only return webhooks for the given channel.
+            channel (DiscordChannel | None, optional): If None or omitted, return all webhooks. If specified, only return webhooks for the given channel. Defaults to None.
 
         Returns:
-            list: A 2-dimensional list containing the appropriate webhooks
+            dict: A dict containing the relevant webhooks, with the key being the uuid and the value being the webhook as a dict
+        """
+        result:dict = {}
+
+        for webhook in self.data.get('webhooks', []):
+            if channel is None or webhook.get(channel) == True:
+                uuid:str = webhook.get('uuid', token_hex(9))
+                result[uuid] = webhook
+
+        return result
+
+
+    def get_webhooks_as_list(self, channel:DiscordChannel|None = None) -> list:
+        """
+        Get the webhooks as a list of lists
+
+        Args:
+            channel (DiscordChannel | None, optional): If None or omitted, return all webhooks. If specified, only return webhooks for the given channel. Defaults to None.
+
+        Returns:
+            list: A list containing the relevant webhooks, each webhook being a list
         """
         result:list = []
 

@@ -76,8 +76,7 @@ class ActivityManager:
             new_activity.tick_id = tick.tick_id
             new_activity.tick_time = tick.tick_time
             new_activity.tick_forced = forced
-            new_activity.discord_bgs_messageid = None
-            new_activity.discord_tw_messageid = None
+            new_activity.discord_webhook_data = {}
             new_activity.discord_notes = ""
             new_activity.clear_activity(self.bgstally.mission_log)
             self.activity_data.append(new_activity)

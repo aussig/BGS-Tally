@@ -289,57 +289,45 @@ class WindowActivity:
         """
         if self.bgstally.state.DiscordPostStyle.get() == DiscordPostStyle.TEXT:
             if self.bgstally.state.DiscordActivity.get() == DiscordActivity.BGS:
-                # BGS Only - one post to BGS channel
+                # BGS Only - post to BGS channels
                 discord_text:str = activity.generate_text(DiscordActivity.BGS, True)
-                self.bgstally.discord.post_plaintext(discord_text, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
+                self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
             elif self.bgstally.state.DiscordActivity.get() == DiscordActivity.THARGOIDWAR:
-                # TW Only - one post to TW channel
+                # TW Only - post to TW channels
                 discord_text:str = activity.generate_text(DiscordActivity.THARGOIDWAR, True)
-                self.bgstally.discord.post_plaintext(discord_text, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
-            elif self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR):
-                # Both, TW channel is available - two posts, one to each channel
-                discord_text:str = activity.generate_text(DiscordActivity.BGS, True)
-                self.bgstally.discord.post_plaintext(discord_text, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
-                discord_text:str = activity.generate_text(DiscordActivity.THARGOIDWAR, True)
-                self.bgstally.discord.post_plaintext(discord_text, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
+                self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
             else:
-                # Both, TW channel is not available - one combined post to BGS channel
+                # Both, post to both channels
                 discord_text:str = activity.generate_text(DiscordActivity.BOTH, True)
-                self.bgstally.discord.post_plaintext(discord_text, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
+                self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
         else:
             description = "" if activity.discord_notes is None else activity.discord_notes
             if self.bgstally.state.DiscordActivity.get() == DiscordActivity.BGS:
-                # BGS Only - one post to BGS channel
+                # BGS Only - post to BGS channels
                 discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
-                self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
+                self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
             elif self.bgstally.state.DiscordActivity.get() == DiscordActivity.THARGOIDWAR:
-                # TW Only - one post to TW channel
+                # TW Only - post to TW channels
                 discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
-                self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
-            elif self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR):
-                # Both, TW channel is available - two posts, one to each channel
-                discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
-                self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
-                discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
-                self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_tw_messageid, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
+                self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
             else:
-                # Both, TW channel is not available - one combined post to BGS channel
+                # Both, post to both channels
                 discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.BOTH)
-                self.bgstally.discord.post_embed(f"Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_bgs_messageid, DiscordChannel.BGS, self.discord_post_complete)
+                self.bgstally.discord.post_embed(f"Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
 
         activity.dirty = True # Because discord post ID has been changed
 
 
-    def discord_post_complete(self, channel:DiscordChannel, messageid:str):
+    def discord_post_complete(self, channel:DiscordChannel, webhook_data:dict, messageid:str):
         """
         A discord post request has completed
         """
-        # Store the Message ID
-        match channel:
-            case DiscordChannel.BGS:
-                self.activity.discord_bgs_messageid = messageid
-            case DiscordChannel.THARGOIDWAR:
-                self.activity.discord_tw_messageid = messageid
+        uuid:str = webhook_data.get('uuid')
+        if uuid is None: return
+
+        activity_webhook_data:dict = self.activity.discord_webhook_data.get(uuid, webhook_data) # Fetch current activity webhook data, default to data from callback.
+        activity_webhook_data[channel] = messageid                                              # Store the returned messageid against the channel
+        self.activity.discord_webhook_data[uuid] = activity_webhook_data                        # Store the webhook dict back to the activity
 
 
     def _discord_notes_change(self, DiscordNotesText, DiscordText, activity: Activity, *args):

@@ -165,8 +165,8 @@ class UI:
         self.sheet_webhooks.enable_bindings(('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select', 'rc_insert_row',
                             'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell', 'modified'))
         self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)
-        nb.Label(frame, text="Add a webhook: Right-click on a row number and select 'Insert rows above / below'.", font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
-        nb.Label(frame, text="Delete a webhook: Right-click on a row number and select 'Delete rows'.", font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
+        nb.Label(frame, text="To add a webhook: Right-click on a row number and select 'Insert rows above / below'.", font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
+        nb.Label(frame, text="To delete a webhook: Right-click on a row number and select 'Delete rows'.", font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="In-game Overlay", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW)

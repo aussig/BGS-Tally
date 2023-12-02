@@ -148,23 +148,26 @@ class TargetLog:
         """
         Killed by another ship or team.
         """
-        # We can only guarantee it was another player if we were killed by a team
+        # Look for team kill first
         killers:list[dict] = journal_entry.get('Killers', [])
-        if len(killers) == 0: return
+        if len(killers) == 0:
+            # Not a team kill, check for solo kill
+            if not 'KillerName' in journal_entry: return
+            killers = [{'Name': journal_entry.get('KillerName'), 'Ship': journal_entry.get('KillerShip')}]
 
-        for cmdr in killers:
-            cmdr_name:str = cmdr.get('Name')
-            if cmdr_name is None: continue
+        for killer in killers:
+            killer_name:str = killer.get('Name')
+            if killer_name is None or not killer_name.startswith("Cmdr "): continue
 
-            cmdr_data:dict = {'TargetName': cmdr_name,
+            cmdr_data:dict = {'TargetName': killer_name[5:],
                     'System': system,
                     'SquadronID': "----",
-                    'Ship': cmdr.get('Ship', "----"),
+                    'Ship': killer.get('Ship', "----"),
                     'LegalStatus': "----",
                     'Notes': "Killed by",
                     'Timestamp': journal_entry['timestamp']}
 
-            cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
+            cmdr_data, different, pending = self._fetch_cmdr_info(killer_name[5:], cmdr_data)
             if different and not pending: self.targetlog.append(cmdr_data)
 
 

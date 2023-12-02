@@ -9,6 +9,7 @@
 ### Changes:
 
 * Standardise heading styles across all windows.
+* Standardise URL link styles across all windows.
 
 
 ## v3.3.0-b1 - 2023-12-02

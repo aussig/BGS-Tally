@@ -1,6 +1,6 @@
 # Change Log
 
-## v3.3.0-xx - xxxx-xx-xx
+## v3.3.0-b1 - 2023-12-02
 
 ### New Features:
 

@@ -25,6 +25,7 @@ from bgstally.tick import Tick
 from bgstally.ui import UI
 from bgstally.updatemanager import UpdateManager
 from bgstally.utils import get_by_path
+from bgstally.webhookmanager import WebhookManager
 from config import appversion, config
 
 TIME_WORKER_PERIOD_S = 60
@@ -78,6 +79,7 @@ class BGSTally:
         self.market:Market = Market(self)
         self.request_manager:RequestManager = RequestManager(self)
         self.api_manager:APIManager = APIManager(self)
+        self.webhook_manager:WebhookManager = WebhookManager(self)
         self.update_manager:UpdateManager = UpdateManager(self)
         self.ui:UI = UI(self)
 

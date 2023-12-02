@@ -10,6 +10,7 @@
 ### Changes:
 
 * Heading styles have been standardised across all windows. And headings are now purple, yay!
+* URL link styles have been standardised across all windows.
 
 
 ## v3.3.0-b1 - 2023-12-02

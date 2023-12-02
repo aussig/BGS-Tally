@@ -19,19 +19,19 @@ class Discord:
         self.bgstally = bgstally
 
 
-    def post_plaintext(self, discord_text:str, webhook_data:dict|None, channel:DiscordChannel, callback:callable):
+    def post_plaintext(self, discord_text:str, webhooks_data:dict|None, channel:DiscordChannel, callback:callable):
         """
         Post plain text to Discord
         """
-        # Start with latest webhooks from manager. Will contain True / False for each channel.
-        webhooks:dict = self.bgstally.webhook_manager.get_webhooks_as_dict(channel)
+        # Start with latest webhooks from manager. Will contain True / False for each channel. Copy dict so we don't affect the webhook manager data.
+        webhooks:dict = self.bgstally.webhook_manager.get_webhooks_as_dict(channel).copy()
 
         for webhook in webhooks.values():
             webhook_url:str = webhook.get('url')
             if not self._is_webhook_valid(webhook_url): return
 
             # Get the previous state for this webhook's uuid from the passed in data, if it exists. Default to the state from the webhook manager
-            specific_webhook_data:dict = {} if webhook_data is None else webhook_data.get(webhook.get('uuid', ""), webhook)
+            specific_webhook_data:dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)
 
             utc_time_now:str = datetime.utcnow().strftime(DATETIME_FORMAT)
             data:dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
@@ -62,19 +62,19 @@ class Discord:
                     self.bgstally.request_manager.queue_request(url, RequestMethod.DELETE, callback=self._request_complete, data=data)
 
 
-    def post_embed(self, title:str, description:str, fields:list, webhook_data:dict|None, channel:DiscordChannel, callback:callable):
+    def post_embed(self, title:str, description:str, fields:list, webhooks_data:dict|None, channel:DiscordChannel, callback:callable):
         """
         Post an embed to Discord
         """
-        # Start with latest webhooks from manager. Will contain True / False for each channel.
-        webhooks:dict = self.bgstally.webhook_manager.get_webhooks_as_dict(channel)
+        # Start with latest webhooks from manager. Will contain True / False for each channel. Copy dict so we don't affect the webhook manager data.
+        webhooks:dict = self.bgstally.webhook_manager.get_webhooks_as_dict(channel).copy()
 
         for webhook in webhooks.values():
             webhook_url:str = webhook.get('url')
             if not self._is_webhook_valid(webhook_url): return
 
             # Get the previous state for this webhook's uuid from the passed in data, if it exists. Default to the state from the webhook manager
-            specific_webhook_data:dict = {} if webhook_data is None else webhook_data.get(webhook.get('uuid', ""), webhook)
+            specific_webhook_data:dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)
 
             data:dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
 

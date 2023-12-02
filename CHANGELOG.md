@@ -12,7 +12,7 @@
 * Heading styles have been standardised across all windows. And headings are now purple, yay!
 
 
-## v3.3.0-xx - xxxx-xx-xx
+## v3.3.0-b1 - 2023-12-02
 
 ### New Features:
 

@@ -303,6 +303,7 @@ class BGSTally:
         self.state.save()
         self.fleet_carrier.save()
         self.api_manager.save()
+        self.webhook_manager.save()
 
 
     def new_tick(self, force: bool, uipolicy: UpdateUIPolicy):

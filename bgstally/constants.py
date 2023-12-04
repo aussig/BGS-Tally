@@ -31,7 +31,7 @@ class UpdateUIPolicy(Enum):
     LATER = 2
 
 # Discord channels
-# Subclassing from int as well as Enum means json.load and json.dump work seamlessly
+# Subclassing from str as well as Enum means json.load and json.dump work seamlessly
 class DiscordChannel(str, Enum):
     BGS = 'BGS'
     CMDR_INFORMATION = 'CMDR-info'
@@ -64,6 +64,15 @@ class RequestMethod(Enum):
     DELETE = 'delete'
     HEAD = 'head'
     OPTIONS = 'options'
+
+
+class CmdrInteractionReason(int, Enum):
+    SCANNED = 0
+    FRIEND_REQUEST_RECEIVED = 1
+    INTERDICTED_BY = 2
+    KILLED_BY = 3
+    MESSAGE_RECEIVED = 4
+    TEAM_INVITE_RECEIVED = 5
 
 
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"

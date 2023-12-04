@@ -3,10 +3,11 @@ from datetime import datetime
 from functools import partial
 from tkinter import ttk
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, DiscordChannel, COLOUR_HEADING_1, FONT_HEADING_1, FONT_HEADING_2
+from bgstally.constants import CmdrInteractionReason, DATETIME_FORMAT_JOURNAL, DiscordChannel, COLOUR_HEADING_1, FONT_HEADING_1, FONT_HEADING_2
 from bgstally.debug import Debug
 from bgstally.widgets import TreeviewPlus
 from ttkHyperlinkLabel import HyperlinkLabel
+from thirdparty.colors import *
 
 DATETIME_FORMAT_CMDRLIST = "%Y-%m-%d %H:%M:%S"
 
@@ -77,6 +78,9 @@ class WindowCMDRs:
         ttk.Label(details_frame, text="Inara: ", font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W)
         self.cmdr_details_squadron_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/squadrons-search/?search=ghst", underline=True)
         self.cmdr_details_squadron_inara.grid(row=current_row, column=3, sticky=tk.W); current_row += 1
+        ttk.Label(details_frame, text="Interaction: ", font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W)
+        self.cmdr_details_interaction = ttk.Label(details_frame, text="")
+        self.cmdr_details_interaction.grid(row=current_row, column=1, sticky=tk.W); current_row += 1
 
         for column in column_info:
             treeview.heading(column['title'], text=column['title'].title(), sort_by=column['type'])
@@ -90,8 +94,7 @@ class WindowCMDRs:
                              target.get('LegalStatus', "----"), \
                              datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST), \
                              target.get('Notes', "Scanned")]
-            iid:str = treeview.insert("", 'end', values=target_values)
-            target['iid'] = iid
+            treeview.insert("", 'end', values=target_values, iid=target.get('index'))
 
         if self.bgstally.discord.is_webhook_valid(DiscordChannel.CMDR_INFORMATION) or self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS):
             self.post_button = tk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
@@ -103,7 +106,7 @@ class WindowCMDRs:
         self.delete_button['state'] = tk.DISABLED
 
 
-    def _cmdr_selected(self, values, column, treeview:TreeviewPlus):
+    def _cmdr_selected(self, values, column, treeview:TreeviewPlus, iid:str):
         """
         A CMDR row has been clicked in the list, show details
         """
@@ -111,9 +114,11 @@ class WindowCMDRs:
         self.cmdr_details_name_inara.configure(text = "", url = "")
         self.cmdr_details_squadron.config(text = "")
         self.cmdr_details_squadron_inara.configure(text = "", url = "")
+        self.cmdr_details_interaction.configure(text = "")
 
-        # Fetch the latest info for this CMDR
-        self.selected_cmdr = self.bgstally.target_log.get_target_info(values[0])
+        # Fetch the info for this CMDR. iid is the index into the original (unsorted) CMDR list.
+        self.selected_cmdr = self.target_data[int(iid)]
+
         if not self.selected_cmdr:
             self.post_button['state'] = tk.DISABLED
             self.delete_button['state'] = tk.DISABLED
@@ -122,14 +127,15 @@ class WindowCMDRs:
             self.post_button['state'] = tk.NORMAL
             self.delete_button['state'] = tk.NORMAL
 
-        if 'TargetName' in self.selected_cmdr: self.cmdr_details_name.config(text = self.selected_cmdr['TargetName'])
-        if 'inaraURL' in self.selected_cmdr: self.cmdr_details_name_inara.configure(text = "Inara Info Available ⤴", url = self.selected_cmdr['inaraURL'])
+        if 'TargetName' in self.selected_cmdr: self.cmdr_details_name.config(text = self.selected_cmdr.get('TargetName'))
+        if 'inaraURL' in self.selected_cmdr: self.cmdr_details_name_inara.configure(text = "Inara Info Available ⤴", url = self.selected_cmdr.get('inaraURL'))
         if 'squadron' in self.selected_cmdr:
-            squadron_info = self.selected_cmdr['squadron']
-            if 'squadronName' in squadron_info: self.cmdr_details_squadron.config(text = f"{squadron_info['squadronName']} ({squadron_info['squadronMemberRank']})")
-            if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text = "Inara Info Available ⤴", url = squadron_info['inaraURL'])
+            squadron_info = self.selected_cmdr.get('squadron')
+            if 'squadronName' in squadron_info: self.cmdr_details_squadron.config(text = f"{squadron_info.get('squadronName')} ({squadron_info.get('squadronMemberRank')})")
+            if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text = "Inara Info Available ⤴", url = squadron_info.get('inaraURL'))
         elif 'SquadronID' in self.selected_cmdr:
-            self.cmdr_details_squadron.config(text = f"{self.selected_cmdr['SquadronID']}")
+            self.cmdr_details_squadron.config(text = f"{self.selected_cmdr.get('SquadronID')}")
+        if 'Notes' in self.selected_cmdr: self.cmdr_details_interaction.config(text = self.selected_cmdr.get('Notes'))
 
 
     def _delete_selected(self, treeview:TreeviewPlus):
@@ -154,32 +160,32 @@ class WindowCMDRs:
         embed_fields = [
             {
                 "name": "Name",
-                "value": self.selected_cmdr['TargetName'],
+                "value": self.selected_cmdr.get('TargetName'),
                 "inline": True
             },
             {
-                "name": "Spotted in System",
-                "value": self.selected_cmdr['System'],
+                "name": "In System",
+                "value": self.selected_cmdr.get('System'),
                 "inline": True
             },
             {
                 "name": "In Ship",
-                "value": self.selected_cmdr['Ship'],
+                "value": self.selected_cmdr.get('Ship'),
                 "inline": True
             },
             {
                 "name": "In Squadron",
-                "value": self.selected_cmdr['SquadronID'],
+                "value": self.selected_cmdr.get('SquadronID'),
                 "inline": True
             },
             {
                 "name": "Legal Status",
-                "value": self.selected_cmdr['LegalStatus'],
+                "value": self.selected_cmdr.get('LegalStatus'),
                 "inline": True
             },
             {
                 "name": "Date and Time",
-                "value": datetime.strptime(self.selected_cmdr['Timestamp'], DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST),
+                "value": datetime.strptime(self.selected_cmdr.get('Timestamp'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST),
                 "inline": True
             }
         ]
@@ -187,19 +193,38 @@ class WindowCMDRs:
         if 'inaraURL' in self.selected_cmdr:
             embed_fields.append({
                 "name": "CMDR Inara Link",
-                "value": f"[{self.selected_cmdr['TargetName']}]({self.selected_cmdr['inaraURL']})",
+                "value": f"[{self.selected_cmdr.get('TargetName')}]({self.selected_cmdr.get('inaraURL')})",
                 "inline": True
                 })
 
         if 'squadron' in self.selected_cmdr:
-            squadron_info = self.selected_cmdr['squadron']
+            squadron_info = self.selected_cmdr.get('squadron')
             if 'squadronName' in squadron_info and 'inaraURL' in squadron_info:
                 embed_fields.append({
                     "name": "Squadron Inara Link",
-                    "value": f"[{squadron_info['squadronName']} ({squadron_info['squadronMemberRank']})]({squadron_info['inaraURL']})",
+                    "value": f"[{squadron_info.get('squadronName')} ({squadron_info.get('squadronMemberRank')})]({squadron_info.get('inaraURL')})",
                     "inline": True
                     })
 
         discord_channel:DiscordChannel = DiscordChannel.BGS
+
+        description:str = ""
+
+        match self.selected_cmdr.get('Reason'):
+            case CmdrInteractionReason.FRIEND_REQUEST_RECEIVED:
+                description = f"{cyan('Friend request received from this CMDR')}"
+            case CmdrInteractionReason.INTERDICTED_BY:
+                description = f"{red('INTERDICTED BY this CMDR')}"
+            case CmdrInteractionReason.KILLED_BY:
+                description = f"{red('KILLED BY this CMDR')}"
+            case CmdrInteractionReason.MESSAGE_RECEIVED:
+                description = f"{blue('Message received from this CMDR in local chat')}"
+            case CmdrInteractionReason.TEAM_INVITE_RECEIVED:
+                description = f"{green('Team invite received from this CMDR')}"
+            case _:
+                description = f"{yellow('I scanned this CMDR')}"
+
+        description = f"```ansi\n{description}\n```"
+
         if self.bgstally.discord.is_webhook_valid(DiscordChannel.CMDR_INFORMATION): discord_channel = DiscordChannel.CMDR_INFORMATION
-        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr['TargetName']} Spotted", None, embed_fields, None, discord_channel, None)
+        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr.get('TargetName')}", description, embed_fields, None, discord_channel, None)

@@ -1,5 +1,19 @@
 # Change Log
 
+## v3.4.0-xx - xxxx-xx-xx
+
+### New Features:
+
+* Discord webhooks completely re-worked. Now, instead of a single, fixed webhook for each type of Discord post, there is a fully flexible table of webhooks which you can set up any way you like - a single webhook for all Discord posts; a webhook for each type of Discord post; multiple webhooks for each type, or any combination of these.
+* The system title and an Inara link to the system are now shown at the top of every activity panel.
+
+### Changes:
+
+* Heading styles have been standardised across all windows. And headings are now purple, yay!
+* URL link styles have been standardised across all windows.
+* When posting CMDR info to Discord, now include how you interacted with them, colour coded.
+
+
 ## v3.3.0 - 2023-12-09
 
 ### New Features:

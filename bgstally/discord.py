@@ -19,69 +19,89 @@ class Discord:
         self.bgstally = bgstally
 
 
-    def post_plaintext(self, discord_text:str, previous_messageid:str, channel:DiscordChannel, callback:callable):
+    def post_plaintext(self, discord_text:str, webhooks_data:dict|None, channel:DiscordChannel, callback:callable):
         """
         Post plain text to Discord
         """
-        webhook_url = self._get_webhook(channel)
-        if not self._is_webhook_valid(webhook_url): return
+        # Start with latest webhooks from manager. Will contain True / False for each channel. Copy dict so we don't affect the webhook manager data.
+        webhooks:dict = self.bgstally.webhook_manager.get_webhooks_as_dict(channel).copy()
 
-        utc_time_now = datetime.utcnow().strftime(DATETIME_FORMAT)
-        data:dict = {'channel': channel, 'callback': callback, 'webhook_url': webhook_url} # Data that's carried through the request queue and back to the callback
+        for webhook in webhooks.values():
+            webhook_url:str = webhook.get('url')
+            if not self._is_webhook_valid(webhook_url): return
 
-        if previous_messageid == "" or previous_messageid == None:
-            # No previous post
-            if discord_text == "": return
+            # Get the previous state for this webhook's uuid from the passed in data, if it exists. Default to the state from the webhook manager
+            specific_webhook_data:dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)
 
-            discord_text += f"```ansi\n{blue(f'Posted at: {utc_time_now} | {self.bgstally.plugin_name} v{str(self.bgstally.version)}')}```"
-            url = webhook_url
-            payload:dict = {'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []}
+            utc_time_now:str = datetime.utcnow().strftime(DATETIME_FORMAT)
+            data:dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
 
-            self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, callback=self._request_complete, data=data)
-        else:
-            # Previous post
-            if discord_text != "":
-                discord_text += f"```ansi\n{green(f'Updated at: {utc_time_now} | {self.bgstally.plugin_name} v{str(self.bgstally.version)}')}```"
-                url = f"{webhook_url}/messages/{previous_messageid}"
+            # Fetch the previous post ID, if present, from the webhook data for the channel we're posting in. May be the default True / False value
+            previous_messageid:str = specific_webhook_data.get(channel, None)
+
+            if previous_messageid == "" or previous_messageid == None or previous_messageid == True or previous_messageid == False:
+                # No previous post
+                if discord_text == "": return
+
+                discord_text += f"```ansi\n{blue(f'Posted at: {utc_time_now} | {self.bgstally.plugin_name} v{str(self.bgstally.version)}')}```"
+                url:str = webhook_url
                 payload:dict = {'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []}
 
-                self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, callback=self._request_complete, data=data)
+                self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, callback=self._request_complete, data=data)
             else:
-                url = f"{webhook_url}/messages/{previous_messageid}"
+                # Previous post
+                if discord_text != "":
+                    discord_text += f"```ansi\n{green(f'Updated at: {utc_time_now} | {self.bgstally.plugin_name} v{str(self.bgstally.version)}')}```"
+                    url:str = f"{webhook_url}/messages/{previous_messageid}"
+                    payload:dict = {'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []}
 
-                self.bgstally.request_manager.queue_request(url, RequestMethod.DELETE, callback=self._request_complete, data=data)
+                    self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, callback=self._request_complete, data=data)
+                else:
+                    url:str = f"{webhook_url}/messages/{previous_messageid}"
+
+                    self.bgstally.request_manager.queue_request(url, RequestMethod.DELETE, callback=self._request_complete, data=data)
 
 
-    def post_embed(self, title:str, description:str, fields:list, previous_messageid:str, channel:DiscordChannel, callback:callable):
+    def post_embed(self, title:str, description:str, fields:list, webhooks_data:dict|None, channel:DiscordChannel, callback:callable):
         """
         Post an embed to Discord
         """
-        webhook_url = self._get_webhook(channel)
-        if not self._is_webhook_valid(webhook_url): return
+        # Start with latest webhooks from manager. Will contain True / False for each channel. Copy dict so we don't affect the webhook manager data.
+        webhooks:dict = self.bgstally.webhook_manager.get_webhooks_as_dict(channel).copy()
 
-        data:dict = {'channel': channel, 'callback': callback, 'webhook_url': webhook_url} # Data that's carried through the request queue and back to the callback
+        for webhook in webhooks.values():
+            webhook_url:str = webhook.get('url')
+            if not self._is_webhook_valid(webhook_url): return
 
-        if previous_messageid == "" or previous_messageid == None:
-            # No previous post
-            if fields is None or fields == []: return
+            # Get the previous state for this webhook's uuid from the passed in data, if it exists. Default to the state from the webhook manager
+            specific_webhook_data:dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)
 
-            embed:dict = self._get_embed(title, description, fields, False)
-            url:str = webhook_url
-            payload:dict = {'content': "", 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': [embed]}
+            data:dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
 
-            self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, params={'wait': 'true'}, callback=self._request_complete, data=data)
-        else:
-            # Previous post
-            if fields is not None and fields != []:
-                embed:dict = self._get_embed(title, description, fields, True)
-                url:str = f"{webhook_url}/messages/{previous_messageid}"
+            # Fetch the previous post ID, if present, from the webhook data for the channel we're posting in. May be the default True / False value
+            previous_messageid:str = specific_webhook_data.get(channel, None)
+
+            if previous_messageid == "" or previous_messageid == None or previous_messageid == True or previous_messageid == False:
+                # No previous post
+                if fields is None or fields == []: return
+
+                embed:dict = self._get_embed(title, description, fields, False)
+                url:str = webhook_url
                 payload:dict = {'content': "", 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': [embed]}
 
-                self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, callback=self._request_complete, data=data)
+                self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, params={'wait': 'true'}, callback=self._request_complete, data=data)
             else:
-                url = f"{webhook_url}/messages/{previous_messageid}"
+                # Previous post
+                if fields is not None and fields != []:
+                    embed:dict = self._get_embed(title, description, fields, True)
+                    url:str = f"{webhook_url}/messages/{previous_messageid}"
+                    payload:dict = {'content': "", 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': [embed]}
 
-                self.bgstally.request_manager.queue_request(url, RequestMethod.DELETE, callback=self._request_complete, data=data)
+                    self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, callback=self._request_complete, data=data)
+                else:
+                    url = f"{webhook_url}/messages/{previous_messageid}"
+
+                    self.bgstally.request_manager.queue_request(url, RequestMethod.DELETE, callback=self._request_complete, data=data)
 
 
     def _request_complete(self, success:bool, response:Response, request:BGSTallyRequest):
@@ -102,10 +122,10 @@ class Discord:
         callback:callable = request.data.get('callback')
         if callback:
             if request.method == RequestMethod.DELETE:
-                callback(request.data.get('channel'), "")
+                callback(request.data.get('channel'), request.data.get('webhookdata'), "")
             else:
                 response_json:dict = response.json()
-                callback(request.data.get('channel'), response_json.get('id', ""))
+                callback(request.data.get('channel'), request.data.get('webhookdata'), response_json.get('id', ""))
 
 
     def _get_embed(self, title:str, description:str, fields:list, update:bool) -> dict:

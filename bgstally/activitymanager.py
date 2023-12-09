@@ -76,8 +76,7 @@ class ActivityManager:
             new_activity.tick_id = tick.tick_id
             new_activity.tick_time = tick.tick_time
             new_activity.tick_forced = forced
-            new_activity.discord_bgs_messageid = None
-            new_activity.discord_tw_messageid = None
+            new_activity.discord_webhook_data = {}
             new_activity.discord_notes = ""
             new_activity.clear_activity(self.bgstally.mission_log)
             self.activity_data.append(new_activity)
@@ -104,14 +103,14 @@ class ActivityManager:
 
         # Handle legacy data if it exists - parse and migrate to new format
         filepath = path.join(self.bgstally.plugin_dir, FILE_LEGACY_PREVIOUSDATA)
-        if path.exists(filepath): self._convert_legacy_data(filepath, Tick(self.bgstally), config.get_str('XDiscordPreviousMessageID')) # Fake a tick for previous legacy - we don't have tick_id or tick_time
+        if path.exists(filepath): self._convert_legacy_data(filepath, Tick(self.bgstally)) # Fake a tick for previous legacy - we don't have tick_id or tick_time
         filepath = path.join(self.bgstally.plugin_dir, FILE_LEGACY_CURRENTDATA)
-        if path.exists(filepath): self._convert_legacy_data(filepath, self.bgstally.tick, config.get_str('XDiscordCurrentMessageID'))
+        if path.exists(filepath): self._convert_legacy_data(filepath, self.bgstally.tick)
 
         self.activity_data.sort(reverse=True)
 
 
-    def _convert_legacy_data(self, filepath: str, tick: Tick, discord_bgs_messageid: str):
+    def _convert_legacy_data(self, filepath: str, tick: Tick):
         """
         Convert a legacy activity data file to new location and format.
         """
@@ -122,7 +121,7 @@ class ActivityManager:
                 remove(filepath)
                 return
 
-        activity = Activity(self.bgstally, tick, discord_bgs_messageid)
+        activity = Activity(self.bgstally, tick)
         activity.load_legacy_data(filepath)
         activity.save(path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, activity.get_filename()))
         self.activity_data.append(activity)

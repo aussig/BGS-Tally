@@ -51,8 +51,9 @@ class BGSTally:
 
         # Load sentry to track errors during development - Hard check on "dev" versions ONLY (which never go out to testers)
         # If you are a developer and want to use sentry, install the sentry_sdk inside the ./thirdparty folder and add your full dsn
-        # (starting https://) to a 'sentry' entry in config.ini file
-        if type(self.version.prerelease) is tuple and self.version.prerelease[0] == "dev":
+        # (starting https://) to a 'sentry' entry in config.ini file. Set the plugin version in load.py to include a 'dev' prerelease,
+        # e.g. "3.3.0-dev"
+        if type(self.version.prerelease) is tuple and len(self.version.prerelease) > 0 and self.version.prerelease[0] == "dev":
             sys.path.append(path.join(plugin_dir, 'thirdparty'))
             try:
                 import sentry_sdk

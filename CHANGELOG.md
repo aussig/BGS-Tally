@@ -1,22 +1,11 @@
 # Change Log
 
-## v3.3.0-b1 - 2023-12-02
-
-### New Features:
-
-* Now log the details of any CMDR who kills you solo.
-
-### Bug Fixes:
-
-* Don't log NPCs who kill you in a team, only CMDRs, and correctly look up the CMDR name (without the "Cmdr " prefix)
-
-
-## v3.3.0-a1 - 2023-11-16
+## v3.3.0 - 2023-12-09
 
 ### New Features:
 
 * Targeting a player in a taxi will now log the player name and attempt lookup on Inara.
-* Now log the details of any CMDR who interdicts you, sends a message in local chat, invites you to a team or kills you in a team.
+* Now log the details of any CMDR who interdicts you, sends a message in local chat, invites you to a team, kills you solo or kills you in a team.
 * The CMDR listing window now has an extra 'Interaction' column which describes how you interacted with the other CMDR (scanned, interdicted by etc.).
 * Thargoid War banshee kills are now tallied.
 

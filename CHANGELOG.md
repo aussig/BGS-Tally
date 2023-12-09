@@ -14,23 +14,12 @@
 * When posting CMDR info to Discord, now include how you interacted with them, colour coded.
 
 
-## v3.3.0-b1 - 2023-12-02
-
-### New Features:
-
-* Now log the details of any CMDR who kills you solo.
-
-### Bug Fixes:
-
-* Don't log NPCs who kill you in a team, only CMDRs, and correctly look up the CMDR name (without the "Cmdr " prefix)
-
-
-## v3.3.0-a1 - 2023-11-16
+## v3.3.0 - 2023-12-09
 
 ### New Features:
 
 * Targeting a player in a taxi will now log the player name and attempt lookup on Inara.
-* Now log the details of any CMDR who interdicts you, sends a message in local chat, invites you to a team or kills you in a team.
+* Now log the details of any CMDR who interdicts you, sends a message in local chat, invites you to a team, kills you solo or kills you in a team.
 * The CMDR listing window now has an extra 'Interaction' column which describes how you interacted with the other CMDR (scanned, interdicted by etc.).
 * Thargoid War banshee kills are now tallied.
 
@@ -45,7 +34,7 @@
 
 * Fix (another) crash in code that detects drop from supercruise at megaships.
 
-### API Changes ([v1.3](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+### API Changes ([v1.3](https://studio-ws.apicur.io/sharing/d352797e-c40e-4f91-bcd8-773a14f40fc0)):
 
 * `/events` endpoint: All localised fields are now stripped before sending. i.e. fields who's name ends with `_Localised`.
 * `/activities` endpoint: Added `banshee` to `systems/[system]/twkills`.

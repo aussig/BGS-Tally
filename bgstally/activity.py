@@ -1288,7 +1288,7 @@ class Activity:
             if (system_station['passengers']['sum'] > 0):
                 system_text += f"  🧍 x {green(system_station['passengers']['sum'], fp=fp)} - {green(system_station['passengers']['count'], fp=fp)} missions\n"
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_text += f"  💀 (missions): " + self._build_tw_vessels_text(system_station['massacre'], discord) + f"- {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
+                system_text += f"  💀 (missions): " + self._build_tw_vessels_text(system_station['massacre'], discord) + f" - {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
             if (system_station['reactivate'] > 0):
                 system_text += f"  🛠️ x {green(system_station['reactivate'], fp=fp)} missions\n"
 
@@ -1334,7 +1334,7 @@ class Activity:
 
             if isinstance(v, dict): value = int(v.get('sum', 0))
             else: value = int(v)
-            if v == 0: continue
+            if value == 0: continue
 
             if not first: text += ", "
             text += f"{red(label, fp=fp)} x {green(value, fp=fp)}"

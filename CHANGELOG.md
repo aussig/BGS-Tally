@@ -13,6 +13,10 @@
 * URL link styles have been standardised across all windows.
 * When posting CMDR info to Discord, now include how you interacted with them, colour coded.
 
+### Bug Fixes:
+
+* Thargoid vessel types in mission reports were still showing if they were 0. These are now omitted.
+
 
 ## v3.3.0 - 2023-12-09
 

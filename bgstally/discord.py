@@ -70,10 +70,6 @@ class Discord:
         # Start with latest webhooks from manager. Will contain True / False for each channel. Copy dict so we don't affect the webhook manager data.
         webhooks:dict = deepcopy(self.bgstally.webhook_manager.get_webhooks_as_dict(channel))
 
-        Debug.logger.info(f"webhooks: {webhooks}")
-        Debug.logger.info(f"webhooks_data: {webhooks_data}")
-        Debug.logger.info(f"channel: {channel}")
-
         for webhook in webhooks.values():
             webhook_url:str = webhook.get('url')
             if not self._is_webhook_valid(webhook_url): return
@@ -83,12 +79,8 @@ class Discord:
 
             data:dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
 
-            Debug.logger.info(f"data: {data}")
-
             # Fetch the previous post ID, if present, from the webhook data for the channel we're posting in. May be the default True / False value
             previous_messageid:str = specific_webhook_data.get(channel, None)
-
-            Debug.logger.info(f"previous_messageid: {previous_messageid}")
 
             if previous_messageid == "" or previous_messageid == None or previous_messageid == True or previous_messageid == False:
                 # No previous post

@@ -2,16 +2,15 @@ from datetime import datetime, timedelta
 
 import plug
 import requests
+import hashlib
 from config import config
 from secrets import token_hex
 
 from bgstally.debug import Debug
 
-DATETIME_FORMAT_ELITEBGS = "%Y-%m-%dT%H:%M:%S.%fZ"
 DATETIME_FORMAT_DISPLAY = "%Y-%m-%d %H:%M:%S"
 TICKID_UNKNOWN = "unknown_tickid"
-URL_TICK_DETECTOR = "https://elitebgs.app/api/ebgs/v5/ticks"
-
+URL_TICK_DETECTOR = "https://tick.edcd.io/api/tick"
 
 class Tick:
     """
@@ -37,12 +36,12 @@ class Tick:
             plug.show_error(f"BGS-Tally WARNING: Unable to fetch latest tick")
             return None
         else:
-            tick = response.json()
-            tick_time:datetime = datetime.strptime(tick[0]['time'], DATETIME_FORMAT_ELITEBGS)
+            tickTime = response.text.replace("\"", "")
+            tick_time:datetime = datetime.fromisoformat(tickTime).replace(tzinfo=None)
 
             if tick_time > self.tick_time:
                 # There is a newer tick
-                self.tick_id = tick[0]['_id']
+                self.tick_id = hashlib.md5(tickTime.encode()).hexdigest()
                 self.tick_time = tick_time
                 return True
 
@@ -63,7 +62,7 @@ class Tick:
         Load tick status from config
         """
         self.tick_id = config.get_str("XLastTick")
-        self.tick_time = datetime.strptime(config.get_str("XTickTime", default=self.tick_time.strftime(DATETIME_FORMAT_ELITEBGS)), DATETIME_FORMAT_ELITEBGS)
+        self.tick_time = datetime.fromisoformat(config.get_str("XTickTime", default=self.tick_time.isoformat())).replace(tzinfo=None)
 
 
     def save(self):
@@ -71,7 +70,7 @@ class Tick:
         Save tick status to config
         """
         config.set('XLastTick', self.tick_id)
-        config.set('XTickTime', self.tick_time.strftime(DATETIME_FORMAT_ELITEBGS))
+        config.set('XTickTime', self.tick_time.isoformat())
 
 
     def get_formatted(self, format:str = DATETIME_FORMAT_DISPLAY):

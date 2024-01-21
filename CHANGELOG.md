@@ -4,7 +4,7 @@
 
 ### New Features:
 
-* Discord webhooks completely re-worked. Now, instead of a single, fixed webhook for each type of Discord post, there is a fully flexible table of webhooks which you can set up any way you like - a single webhook for all Discord posts; a webhook for each type of Discord post; multiple webhooks for each type, or any combination of these. As an example, this would allow you to send your BGS reports to multiple Discord servers if you wish.
+* Discord webhooks completely re-worked. Now, instead of a single, fixed webhook for each type of Discord post, there is a fully flexible table of webhooks which you can set up any way you like - a single webhook for all Discord posts; a webhook for each type of Discord post; multiple webhooks for each type, or any combination of these. As one example, this would allow you to send your BGS reports to multiple Discord servers if you wish.
 * The system title and a link to the Inara page for the system are now shown at the top of every activity panel.
 
 ### Changes:
@@ -16,6 +16,7 @@
 ### Bug Fixes:
 
 * Thargoid vessel types in mission reports were still showing if they were 0. These are now omitted.
+* Fix error when fetching carrier data when carrier has no sell orders.
 
 
 ## v3.3.0 - 2023-12-09

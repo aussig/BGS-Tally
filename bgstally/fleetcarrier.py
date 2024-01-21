@@ -65,9 +65,9 @@ class FleetCarrier:
         self.name = bytes.fromhex(self.data.get('name', {}).get('vanityName', "----")).decode('utf-8')
         self.callsign = self.data.get('name', {}).get('callsign', "----")
 
-        # Sort sell orders - a Dict of Dicts
-        materials: dict = self.data.get('orders', {}).get('onfootmicroresources', {}).get('sales')
-        if materials is not None and materials != {}:
+        # Sort sell orders - a Dict of Dicts, or an empty list
+        materials:dict|list = self.data.get('orders', {}).get('onfootmicroresources', {}).get('sales')
+        if materials is not None and type(materials) is dict and materials != {}:
             self.onfoot_mats_selling = sorted(materials.values(), key=lambda x: x['locName'])
         else:
             self.onfoot_mats_selling = []

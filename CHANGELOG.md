@@ -1,5 +1,24 @@
 # Change Log
 
+## v3.4.0-a1 - 2024-01-28
+
+### New Features:
+
+* Discord webhooks completely re-worked. Now, instead of a single, fixed webhook for each type of Discord post, there is a fully flexible table of webhooks which you can set up any way you like - a single webhook for all Discord posts; a webhook for each type of Discord post; multiple webhooks for each type, or any combination of these. As one example, this would allow you to send your BGS reports to multiple Discord servers if you wish.
+* The system title and a link to the Inara page for the system are now shown at the top of every activity panel.
+
+### Changes:
+
+* Heading styles have been standardised across all windows. And headings are now purple, yay!
+* URL link styles have been standardised across all windows.
+* When posting CMDR info to Discord, now include how you interacted with them, colour coded.
+
+### Bug Fixes:
+
+* Thargoid vessel types in mission reports were still showing if they were 0. These are now omitted.
+* Fix error when fetching carrier data when carrier has no sell orders.
+
+
 ## v3.3.0 - 2023-12-09
 
 ### New Features:
@@ -20,7 +39,7 @@
 
 * Fix (another) crash in code that detects drop from supercruise at megaships.
 
-### API Changes ([v1.3](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+### API Changes ([v1.3](https://studio-ws.apicur.io/sharing/d352797e-c40e-4f91-bcd8-773a14f40fc0)):
 
 * `/events` endpoint: All localised fields are now stripped before sending. i.e. fields who's name ends with `_Localised`.
 * `/activities` endpoint: Added `banshee` to `systems/[system]/twkills`.

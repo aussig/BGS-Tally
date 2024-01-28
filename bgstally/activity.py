@@ -89,7 +89,7 @@ class Activity:
     factions with their activity
     """
 
-    def __init__(self, bgstally, tick: Tick = None, discord_bgs_messageid: str = None):
+    def __init__(self, bgstally, tick: Tick = None):
         """
         Instantiate using a given Tick
         """
@@ -100,8 +100,7 @@ class Activity:
         self.tick_id: str = tick.tick_id
         self.tick_time: datetime = tick.tick_time
         self.tick_forced: bool = False
-        self.discord_bgs_messageid: str = discord_bgs_messageid
-        self.discord_tw_messageid: str = None
+        self.discord_webhook_data:dict = {} # key = webhook uuid, value = dict containing webhook data
         self.discord_notes: str = ""
         self.dirty: bool = False
         self.systems: dict = {}
@@ -1289,7 +1288,7 @@ class Activity:
             if (system_station['passengers']['sum'] > 0):
                 system_text += f"  🧍 x {green(system_station['passengers']['sum'], fp=fp)} - {green(system_station['passengers']['count'], fp=fp)} missions\n"
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_text += f"  💀 (missions): " + self._build_tw_vessels_text(system_station['massacre'], discord) + f"- {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
+                system_text += f"  💀 (missions): " + self._build_tw_vessels_text(system_station['massacre'], discord) + f" - {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
             if (system_station['reactivate'] > 0):
                 system_text += f"  🛠️ x {green(system_station['reactivate'], fp=fp)} missions\n"
 
@@ -1335,7 +1334,7 @@ class Activity:
 
             if isinstance(v, dict): value = int(v.get('sum', 0))
             else: value = int(v)
-            if v == 0: continue
+            if value == 0: continue
 
             if not first: text += ", "
             text += f"{red(label, fp=fp)} x {green(value, fp=fp)}"
@@ -1363,8 +1362,7 @@ class Activity:
             'tickid': self.tick_id,
             'ticktime': self.tick_time.strftime(DATETIME_FORMAT_ACTIVITY),
             'tickforced': self.tick_forced,
-            'discordmessageid': self.discord_bgs_messageid,
-            'discordtwmessageid': self.discord_tw_messageid,
+            'discordwebhookdata': self.discord_webhook_data,
             'discordnotes': self.discord_notes,
             'systems': self.systems}
 
@@ -1376,10 +1374,9 @@ class Activity:
         self.tick_id = dict.get('tickid')
         self.tick_time = datetime.strptime(dict.get('ticktime'), DATETIME_FORMAT_ACTIVITY)
         self.tick_forced = dict.get('tickforced', False)
-        self.discord_bgs_messageid = dict.get('discordmessageid')
-        self.discord_tw_messageid = dict.get('discordtwmessageid')
-        self.discord_notes = dict.get('discordnotes')
-        self.systems = dict.get('systems')
+        self.discord_webhook_data = dict.get('discordwebhookdata', {})
+        self.discord_notes = dict.get('discordnotes', "")
+        self.systems = dict.get('systems', {})
 
 
 
@@ -1421,12 +1418,11 @@ class Activity:
         setattr(result, 'tick_id', self.tick_id)
         setattr(result, 'tick_time', self.tick_time)
         setattr(result, 'tick_forced', self.tick_forced)
-        setattr(result, 'discord_bgs_messageid', self.discord_bgs_messageid)
-        setattr(result, 'discord_tw_messageid', self.discord_tw_messageid)
         setattr(result, 'discord_notes', self.discord_notes)
         setattr(result, 'megaship_pat', self.megaship_pat)
 
         # Deep copied items
         setattr(result, 'systems', deepcopy(self.systems, memo))
+        setattr(result, 'discord_webhook_data', deepcopy(self.discord_webhook_data, memo))
 
         return result

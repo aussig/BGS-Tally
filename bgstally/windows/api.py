@@ -6,7 +6,7 @@ import webbrowser
 from os import path
 
 from bgstally.api import API
-from bgstally.constants import FOLDER_ASSETS, FONT_HEADING
+from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2
 from bgstally.debug import Debug
 from bgstally.widgets import CollapsibleFrame, EntryPlus, HyperlinkManager
 from requests import Response
@@ -67,7 +67,7 @@ class WindowAPI:
         current_row:int = 0
         text_width:int = 400
 
-        tk.Label(frame_main, text="About This", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        tk.Label(frame_main, text="About This", font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         self.txt_intro:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
         self.txt_intro.insert(tk.END, "This screen is used to set up a connection to a server.\n\nTake care when agreeing to this - if " \
             "you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, " \
@@ -76,7 +76,7 @@ class WindowAPI:
         self.txt_intro.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
         self.txt_intro.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
 
-        tk.Label(frame_main, text="API Settings", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        tk.Label(frame_main, text="API Settings", font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         self.txt_settings:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
         self.txt_settings.insert(tk.END, "Ask the server administrator for the information below, then click 'Establish Connection' to continue. " \
             "Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you.")
@@ -117,7 +117,7 @@ class WindowAPI:
         self.frame_information.frame.columnconfigure(0, minsize=100)
 
         current_row = 0
-        tk.Label(self.frame_information.frame, text="API Information", font=FONT_HEADING).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        tk.Label(self.frame_information.frame, text="API Information", font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         self.txt_information:tk.Text = tk.Text(self.frame_information.frame, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
         hyperlink = HyperlinkManager(self.txt_information)
         self.txt_information.insert(tk.END, "The exact set of Events that will be sent is listed in the 'Events Requested' section below. " \

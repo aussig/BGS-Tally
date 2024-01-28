@@ -7,7 +7,7 @@ from copy import copy
 
 from requests import Response
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA, RequestMethod
+from bgstally.constants import CmdrInteractionReason, DATETIME_FORMAT_JOURNAL, FOLDER_DATA, RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 
@@ -57,6 +57,11 @@ class TargetLog:
         """
         Get the current target log
         """
+        index:int = 0
+        for target in self.targetlog:
+            target['index'] = index
+            index += 1
+
         return self.targetlog
 
 
@@ -97,6 +102,7 @@ class TargetLog:
                     'SquadronID': journal_entry.get('SquadronID', "----"),
                     'Ship': ship_type,
                     'LegalStatus': journal_entry.get('LegalStatus', '----'),
+                    'Reason': CmdrInteractionReason.SCANNED,
                     'Notes': "Scanned",
                     'Timestamp': journal_entry['timestamp']}
 
@@ -116,7 +122,8 @@ class TargetLog:
                     'SquadronID': "----",
                     'Ship': "----",
                     'LegalStatus': "----",
-                    'Notes': "Received friend request",
+                    'Reason': CmdrInteractionReason.FRIEND_REQUEST_RECEIVED,
+                    'Notes': "Received friend request from",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
@@ -137,6 +144,7 @@ class TargetLog:
                     'SquadronID': "----",
                     'Ship': "----",
                     'LegalStatus': "----",
+                    'Reason': CmdrInteractionReason.INTERDICTED_BY,
                     'Notes': "Interdicted by",
                     'Timestamp': journal_entry['timestamp']}
 
@@ -164,6 +172,7 @@ class TargetLog:
                     'SquadronID': "----",
                     'Ship': killer.get('Ship', "----"),
                     'LegalStatus': "----",
+                    'Reason': CmdrInteractionReason.KILLED_BY,
                     'Notes': "Killed by",
                     'Timestamp': journal_entry['timestamp']}
 
@@ -186,6 +195,7 @@ class TargetLog:
                     'SquadronID': "----",
                     'Ship': "----",
                     'LegalStatus': "----",
+                    'Reason': CmdrInteractionReason.MESSAGE_RECEIVED,
                     'Notes': "Received message from",
                     'Timestamp': journal_entry['timestamp']}
 
@@ -205,6 +215,7 @@ class TargetLog:
                     'SquadronID': "----",
                     'Ship': "----",
                     'LegalStatus': "----",
+                    'Reason': CmdrInteractionReason.TEAM_INVITE_RECEIVED,
                     'Notes': "Received team invite from",
                     'Timestamp': journal_entry['timestamp']}
 
@@ -220,21 +231,23 @@ class TargetLog:
             # We have cached data. Check whether it's different enough to make a new log entry for this CMDR.
             # Different enough: Any of System, SquadronID, Ship and LegalStatus don't match (if blank in the new data, ignore).
             cmdr_cache_data:dict = self.cmdr_cache[cmdr_name]
-            if cmdr_data['System'] == cmdr_cache_data['System'] \
-                and (cmdr_data['SquadronID'] == cmdr_cache_data['SquadronID'] or cmdr_data['SquadronID'] == "----") \
-                and (cmdr_data['Ship'] == cmdr_cache_data['Ship'] or cmdr_data['Ship'] == "----") \
-                and (cmdr_data['LegalStatus'] == cmdr_cache_data['LegalStatus'] or cmdr_data['LegalStatus'] == "----"):
+            if cmdr_data.get('System') == cmdr_cache_data.get('System') \
+                and (cmdr_data.get('SquadronID') == cmdr_cache_data.get('SquadronID') or cmdr_cache_data.get('SquadronID') == "----") \
+                and (cmdr_data.get('Ship') == cmdr_cache_data.get('Ship') or cmdr_data.get('Ship') == "----") \
+                and (cmdr_data.get('LegalStatus') == cmdr_cache_data.get('LegalStatus') or cmdr_cache_data.get('LegalStatus') == "----") \
+                and (cmdr_data.get('Reason') == cmdr_cache_data.get('Reason')):
                 return cmdr_cache_data, False, False
 
             # It's different, make a copy and update the fields that may have changed in the latest data. This ensures we avoid
             # expensive multiple calls to the Inara API, but keep a record of every sighting of the same CMDR. We assume Inara info
             # (squadron name, ranks, URLs) stay the same during a play session.
             cmdr_data_copy:dict = copy(self.cmdr_cache[cmdr_name])
-            cmdr_data_copy['System'] = cmdr_data['System']
-            if cmdr_data['Ship'] != "----": cmdr_data_copy['Ship'] = cmdr_data['Ship']
-            if cmdr_data['LegalStatus'] != "----": cmdr_data_copy['LegalStatus'] = cmdr_data['LegalStatus']
-            cmdr_data_copy['Notes'] = cmdr_data['Notes']
-            cmdr_data_copy['Timestamp'] = cmdr_data['Timestamp']
+            cmdr_data_copy['System'] = cmdr_data.get('System')
+            if cmdr_data.get('Ship') != "----": cmdr_data_copy['Ship'] = cmdr_data.get('Ship')
+            if cmdr_data.get('LegalStatus') != "----": cmdr_data_copy['LegalStatus'] = cmdr_data.get('LegalStatus')
+            cmdr_data_copy['Reason'] = cmdr_data.get('Reason', CmdrInteractionReason.SCANNED)
+            cmdr_data_copy['Notes'] = cmdr_data.get('Notes')
+            cmdr_data_copy['Timestamp'] = cmdr_data.get('Timestamp')
             # Re-cache the data with the latest updates
             self.cmdr_cache[cmdr_name] = cmdr_data_copy
             return cmdr_data_copy, True, False

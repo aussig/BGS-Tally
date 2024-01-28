@@ -2,6 +2,9 @@
 
 ## v3.4.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
+
+* If one of the discord webhook URLs was invalid, was failing immediately and wasn't trying any additional webhooks.
 
 
 ## v3.4.0-a1 - 2024-01-28

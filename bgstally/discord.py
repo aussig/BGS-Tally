@@ -29,7 +29,7 @@ class Discord:
 
         for webhook in webhooks.values():
             webhook_url:str = webhook.get('url')
-            if not self._is_webhook_valid(webhook_url): return
+            if not self._is_webhook_valid(webhook_url): continue
 
             # Get the previous state for this webhook's uuid from the passed in data, if it exists. Default to the state from the webhook manager
             specific_webhook_data:dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)
@@ -72,7 +72,7 @@ class Discord:
 
         for webhook in webhooks.values():
             webhook_url:str = webhook.get('url')
-            if not self._is_webhook_valid(webhook_url): return
+            if not self._is_webhook_valid(webhook_url): continue
 
             # Get the previous state for this webhook's uuid from the passed in data, if it exists. Default to the state from the webhook manager
             specific_webhook_data:dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)

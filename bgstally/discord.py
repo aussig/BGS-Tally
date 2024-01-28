@@ -152,28 +152,17 @@ class Discord:
         return embed
 
 
-    def is_webhook_valid(self, channel:DiscordChannel):
+    def valid_webhook_available(self, channel:DiscordChannel):
         """
-        Check a channel's webhook is valid
+        Check whether there is a valid webhook available for this channel
         """
-        return self._is_webhook_valid(self._get_webhook(channel))
+        webhooks:dict = self.bgstally.webhook_manager.get_webhooks_as_dict(channel) # No need to deepcopy as we're not altering the data
 
+        for webhook in webhooks.values():
+            webhook_url:str = webhook.get('url')
+            if self._is_webhook_valid(webhook_url): return True
 
-    def _get_webhook(self, channel:DiscordChannel):
-        """
-        Get the webhook url for the given channel
-        """
-        match channel:
-            case DiscordChannel.BGS:
-                return self.bgstally.state.DiscordBGSWebhook.get().strip()
-            case DiscordChannel.CMDR_INFORMATION:
-                return self.bgstally.state.DiscordCMDRInformationWebhook.get().strip()
-            case DiscordChannel.FLEETCARRIER_MATERIALS:
-                return self.bgstally.state.DiscordFCMaterialsWebhook.get().strip()
-            case DiscordChannel.FLEETCARRIER_OPERATIONS:
-                return self.bgstally.state.DiscordFCOperationsWebhook.get().strip()
-            case DiscordChannel.THARGOIDWAR:
-                return self.bgstally.state.DiscordTWWebhook.get().strip()
+        return False
 
 
     def _is_webhook_valid(self, webhook:str):

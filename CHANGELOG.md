@@ -2,9 +2,14 @@
 
 ## v3.4.0-xx - xxxx-xx-xx
 
+### Changes:
+
+* 'Post to Discord' button always visible (but greyed out if not usable) on Fleet Carrier and CMDR Information windows.
+
 ### Bug Fixes:
 
 * If one of the discord webhook URLs was invalid, was failing immediately and wasn't trying any additional webhooks.
+* Discord button enabling / disabling wasn't working properly with the new multiple discord channel support.
 
 
 ## v3.4.0-a1 - 2024-01-28

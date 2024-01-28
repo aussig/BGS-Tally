@@ -69,7 +69,9 @@ class WindowFleetCarrier:
         buying_text.insert(tk.INSERT, fc.get_materials_plaintext(MaterialsCategory.BUYING))
         buying_text.configure(state='disabled')
 
-        if self.bgstally.discord.is_webhook_valid(DiscordChannel.FLEETCARRIER_MATERIALS): ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord)).pack(side=tk.RIGHT, padx=5, pady=5)
+        post_button:ttk.Button = ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
+        post_button.pack(side=tk.RIGHT, padx=5, pady=5)
+        post_button['state'] = tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) else tk.DISABLED
 
 
     def _post_to_discord(self):

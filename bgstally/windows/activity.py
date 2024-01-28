@@ -263,12 +263,11 @@ class WindowActivity:
         """
         match self.bgstally.state.DiscordActivity.get():
             case DiscordActivity.BGS:
-                return self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS)
+                return self.bgstally.discord.valid_webhook_available(DiscordChannel.BGS)
             case DiscordActivity.THARGOIDWAR:
-                return self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR)
+                return self.bgstally.discord.valid_webhook_available(DiscordChannel.THARGOIDWAR)
             case DiscordActivity.BOTH:
-                return self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS) or \
-                       self.bgstally.discord.is_webhook_valid(DiscordChannel.THARGOIDWAR)
+                return self.bgstally.discord.valid_webhook_available(DiscordChannel.BGS)
             case _:
                 return False
 
@@ -297,7 +296,7 @@ class WindowActivity:
                 discord_text:str = activity.generate_text(DiscordActivity.THARGOIDWAR, True)
                 self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
             else:
-                # Both, post to both channels
+                # Both - post combined report to BGS channels
                 discord_text:str = activity.generate_text(DiscordActivity.BOTH, True)
                 self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
         else:
@@ -311,7 +310,7 @@ class WindowActivity:
                 discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
                 self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
             else:
-                # Both, post to both channels
+                # Both - post combined report to BGS channels
                 discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.BOTH)
                 self.bgstally.discord.post_embed(f"Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
 

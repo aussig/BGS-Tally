@@ -2,7 +2,6 @@ import tkinter as tk
 from functools import partial
 from os import path
 from tkinter import PhotoImage, ttk
-from typing import Dict
 
 from ttkHyperlinkLabel import HyperlinkLabel
 
@@ -69,7 +68,7 @@ class WindowActivity:
 
         DiscordTextFrame = ttk.Frame(DiscordFrame)
         DiscordTextFrame.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
-        DiscordText = DiscordAnsiColorText(DiscordTextFrame, state='disabled', wrap=tk.WORD, bg="Gray13", height=1, font=FONT_TEXT)
+        DiscordText = DiscordAnsiColorText(DiscordTextFrame, state='disabled', wrap=tk.WORD, bg="Gray13", height=15, font=FONT_TEXT)
         DiscordScroll = tk.Scrollbar(DiscordTextFrame, orient=tk.VERTICAL, command=DiscordText.yview)
         DiscordText['yscrollcommand'] = DiscordScroll.set
         DiscordScroll.pack(fill=tk.Y, side=tk.RIGHT)
@@ -91,10 +90,6 @@ class WindowActivity:
         ttk.Label(DiscordOptionsFrame, text="Post Format").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         ttk.Radiobutton(DiscordOptionsFrame, text="Modern", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         ttk.Radiobutton(DiscordOptionsFrame, text="Legacy", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Label(DiscordOptionsFrame, text="Activity to Include").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        ttk.Radiobutton(DiscordOptionsFrame, text="BGS", variable=self.bgstally.state.DiscordActivity, value=DiscordActivity.BGS, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Radiobutton(DiscordOptionsFrame, text="Thargoid War", variable=self.bgstally.state.DiscordActivity, value=DiscordActivity.THARGOIDWAR, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Radiobutton(DiscordOptionsFrame, text="Both", variable=self.bgstally.state.DiscordActivity, value=DiscordActivity.BOTH, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         ttk.Label(DiscordOptionsFrame, text="Other Options").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         ttk.Checkbutton(DiscordOptionsFrame, text="Abbreviate Faction Names", variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         ttk.Checkbutton(DiscordOptionsFrame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
@@ -261,15 +256,7 @@ class WindowActivity:
         """
         Return true if the 'Post to Discord' button should be available
         """
-        match self.bgstally.state.DiscordActivity.get():
-            case DiscordActivity.BGS:
-                return self.bgstally.discord.valid_webhook_available(DiscordChannel.BGS)
-            case DiscordActivity.THARGOIDWAR:
-                return self.bgstally.discord.valid_webhook_available(DiscordChannel.THARGOIDWAR)
-            case DiscordActivity.BOTH:
-                return self.bgstally.discord.valid_webhook_available(DiscordChannel.BGS)
-            case _:
-                return False
+        return self.bgstally.discord.valid_webhook_available(DiscordChannel.BGS) or self.bgstally.discord.valid_webhook_available(DiscordChannel.THARGOIDWAR)
 
 
     def _update_discord_field(self, DiscordText, activity: Activity):
@@ -278,7 +265,7 @@ class WindowActivity:
         """
         DiscordText.configure(state='normal')
         DiscordText.delete('1.0', 'end-1c')
-        DiscordText.write(activity.generate_text(self.bgstally.state.DiscordActivity.get(), True))
+        DiscordText.write(activity.generate_text(DiscordActivity.BOTH, True))
         DiscordText.configure(state='disabled')
 
 
@@ -287,32 +274,16 @@ class WindowActivity:
         Callback to post to discord in the appropriate channel(s)
         """
         if self.bgstally.state.DiscordPostStyle.get() == DiscordPostStyle.TEXT:
-            if self.bgstally.state.DiscordActivity.get() == DiscordActivity.BGS:
-                # BGS Only - post to BGS channels
-                discord_text:str = activity.generate_text(DiscordActivity.BGS, True)
-                self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
-            elif self.bgstally.state.DiscordActivity.get() == DiscordActivity.THARGOIDWAR:
-                # TW Only - post to TW channels
-                discord_text:str = activity.generate_text(DiscordActivity.THARGOIDWAR, True)
-                self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
-            else:
-                # Both - post combined report to BGS channels
-                discord_text:str = activity.generate_text(DiscordActivity.BOTH, True)
-                self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
+            discord_text:str = activity.generate_text(DiscordActivity.BGS, True)
+            self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
+            discord_text = activity.generate_text(DiscordActivity.THARGOIDWAR, True)
+            self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
         else:
             description = "" if activity.discord_notes is None else activity.discord_notes
-            if self.bgstally.state.DiscordActivity.get() == DiscordActivity.BGS:
-                # BGS Only - post to BGS channels
-                discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
-                self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
-            elif self.bgstally.state.DiscordActivity.get() == DiscordActivity.THARGOIDWAR:
-                # TW Only - post to TW channels
-                discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
-                self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
-            else:
-                # Both - post combined report to BGS channels
-                discord_fields:Dict = activity.generate_discord_embed_fields(DiscordActivity.BOTH)
-                self.bgstally.discord.post_embed(f"Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
+            discord_fields:dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
+            self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
+            discord_fields = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
+            self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
 
         activity.dirty = True # Because discord post ID has been changed
 
@@ -475,7 +446,7 @@ class WindowActivity:
         activity.dirty = True
 
 
-    def _update_tab_image(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, system: Dict):
+    def _update_tab_image(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, system: dict):
         """
         Update the image alongside the tab title
         """
@@ -496,6 +467,6 @@ class WindowActivity:
         Get all text from the Discord field and put it in the Copy buffer
         """
         Form.clipboard_clear()
-        Form.clipboard_append(activity.generate_text(self.bgstally.state.DiscordActivity.get(), True))
+        Form.clipboard_append(activity.generate_text(DiscordActivity.BOTH, True))
         Form.update()
 

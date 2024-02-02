@@ -2,6 +2,9 @@
 
 ## v3.4.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
+
+* If an `/events` API client sets an event filter using an integer as the filter, e.g. `3`, this was throwing an error and the event would not have been sent.
 
 
 ## v3.4.0-a2 - 2024-02-02

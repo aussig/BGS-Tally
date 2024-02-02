@@ -96,10 +96,9 @@ class WindowCMDRs:
                              target.get('Notes', "Scanned")]
             treeview.insert("", 'end', values=target_values, iid=target.get('index'))
 
-        if self.bgstally.discord.is_webhook_valid(DiscordChannel.CMDR_INFORMATION) or self.bgstally.discord.is_webhook_valid(DiscordChannel.BGS):
-            self.post_button = tk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
-            self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
-            self.post_button['state'] = tk.DISABLED
+        self.post_button = tk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
+        self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
+        self.post_button['state'] = tk.DISABLED
 
         self.delete_button = tk.Button(buttons_frame, text="Delete", bg="red", fg="white", command=partial(self._delete_selected, treeview))
         self.delete_button.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -123,7 +122,7 @@ class WindowCMDRs:
             self.post_button['state'] = tk.DISABLED
             self.delete_button['state'] = tk.DISABLED
             return
-        else:
+        elif self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
             self.post_button['state'] = tk.NORMAL
             self.delete_button['state'] = tk.NORMAL
 
@@ -206,8 +205,6 @@ class WindowCMDRs:
                     "inline": True
                     })
 
-        discord_channel:DiscordChannel = DiscordChannel.BGS
-
         description:str = ""
 
         match self.selected_cmdr.get('Reason'):
@@ -226,5 +223,4 @@ class WindowCMDRs:
 
         description = f"```ansi\n{description}\n```"
 
-        if self.bgstally.discord.is_webhook_valid(DiscordChannel.CMDR_INFORMATION): discord_channel = DiscordChannel.CMDR_INFORMATION
-        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr.get('TargetName')}", description, embed_fields, None, discord_channel, None)
+        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr.get('TargetName')}", description, embed_fields, None, DiscordChannel.CMDR_INFORMATION, None)

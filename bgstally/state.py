@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from bgstally.constants import CheckStates, DiscordActivity, DiscordPostStyle
+from bgstally.constants import CheckStates, DiscordPostStyle
 from config import config
 
 
@@ -25,7 +25,6 @@ class State:
         self.IncludeSecondaryInf:tk.StringVar = tk.StringVar(value=config.get_str('XSecondaryInf', default=CheckStates.STATE_ON))
         self.DiscordUsername:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordUsername', default=""))
         self.DiscordPostStyle:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordPostStyle', default=DiscordPostStyle.EMBED))
-        self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordActivity', default=DiscordActivity.BOTH))
         self.EnableOverlay:tk.StringVar = tk.StringVar(value=config.get_str('XEnableOverlay', default=CheckStates.STATE_ON))
         self.EnableOverlayCurrentTick:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCurrentTick', default=CheckStates.STATE_ON))
         self.EnableOverlayActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayActivity', default=CheckStates.STATE_ON))
@@ -33,7 +32,7 @@ class State:
         self.EnableOverlaySystem:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlaySystem', default=CheckStates.STATE_ON))
         self.EnableSystemActivityByDefault:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableSystemActivityByDefault', default=CheckStates.STATE_ON))
 
-        # TODO: Legacy values, remove in future version
+        # TODO: Legacy values, used to migrate initial state, remove in future version
         self.DiscordBGSWebhook:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordWebhook', default=""))
         self.DiscordCMDRInformationWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordCMDRInformationWebhook", default=""))
         self.DiscordFCMaterialsWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordFCMaterialsWebhook", default=""))
@@ -78,7 +77,6 @@ class State:
         config.set('XSecondaryInf', self.IncludeSecondaryInf.get())
         config.set('XDiscordUsername', self.DiscordUsername.get())
         config.set('XDiscordPostStyle', self.DiscordPostStyle.get())
-        config.set('XDiscordActivity', self.DiscordActivity.get())
         config.set('XEnableOverlay', self.EnableOverlay.get())
         config.set('BGST_EnableOverlayCurrentTick', self.EnableOverlayCurrentTick.get())
         config.set('BGST_EnableOverlayActivity', self.EnableOverlayActivity.get())
@@ -89,5 +87,4 @@ class State:
         # Persistent values
         config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")
         config.set('XStationFaction', self.station_faction if self.station_faction != None else "")
-        config.set('XStationType', self.station_type if self.station_type != None else "")
         config.set('XStationType', self.station_type if self.station_type != None else "")

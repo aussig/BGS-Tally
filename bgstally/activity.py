@@ -303,7 +303,7 @@ class Activity:
                 effect_faction_name = mission.get('TargetFaction', "")
 
             if faction_effect['Influence'] != []:
-                inf = len(faction_effect['Influence'][0]['Influence'])
+                inf_index:str = str(len(faction_effect['Influence'][0]['Influence'])) # Index into dict containing detailed INF breakdown
                 inftrend = faction_effect['Influence'][0]['Trend']
                 for system_address, system in self.systems.items():
                     if str(faction_effect['Influence'][0]['SystemAddress']) != system_address: continue
@@ -313,16 +313,16 @@ class Activity:
 
                     if inftrend == "UpGood" or inftrend == "DownGood":
                         if effect_faction_name == journal_entry['Faction']:
-                            faction['MissionPoints'] += inf
+                            faction['MissionPoints'][inf_index] += 1
                             self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
                         else:
-                            faction['MissionPointsSecondary'] += inf
+                            faction['MissionPointsSecondary'][inf_index] += 1
                     else:
                         if effect_faction_name == journal_entry['Faction']:
-                            faction['MissionPoints'] -= inf
+                            faction['MissionPoints'][inf_index] -= 1
                             self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
                         else:
-                            faction['MissionPointsSecondary'] -= inf
+                            faction['MissionPointsSecondary'][inf_index] -= 1
 
             elif mission is not None:  # No influence specified for faction effect
                 for system_address, system in self.systems.items():
@@ -334,7 +334,7 @@ class Activity:
                     if (faction['FactionState'] in STATES_ELECTION and journal_entry['Name'] in MISSIONS_ELECTION) \
                     or (faction['FactionState'] in STATES_WAR and journal_entry['Name'] in MISSIONS_WAR) \
                     and effect_faction_name == journal_entry['Faction']:
-                        faction['MissionPoints'] += 1
+                        faction['MissionPoints']['1'] += 1
                         self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
 
         # Thargoid War
@@ -1103,8 +1103,8 @@ class Activity:
         Check whether all information is empty or zero for a faction. _update_faction_data() is always called before this
         so we can always assume here that the data is in the very latest structure.
         """
-        return sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_data['MissionPoints']) == 0 and \
-                sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_data['MissionPointsSecondary']) == 0 and \
+        return sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_data['MissionPoints'].items()) == 0 and \
+                sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_data['MissionPointsSecondary'].items()) == 0 and \
                 int(faction_data['TradeProfit']) == 0 and int(faction_data['TradePurchase']) == 0 and int(faction_data['BlackMarketProfit']) == 0 and \
                 sum(int(d['value']) for d in faction_data['TradeBuy']) == 0 and \
                 sum(int(d['value']) for d in faction_data['TradeSell']) == 0 and \
@@ -1294,6 +1294,55 @@ class Activity:
 
 
     def _build_inf_text(self, inf_data: dict, secondary_inf_data: dict, faction_state: str, discord: bool) -> str:
+        """
+        Create a completel summary of INF for the faction, including both primary and secondary if user has requested
+
+        Args:
+            inf_data (dict): Dict containing INF, key = '1' - '5' or 'm'
+            secondary_inf_data (dict): Dict containing secondary INF, key = '1' - '5' or 'm'
+            faction_state (str): Current faction state
+            discord (bool): True if creating for Discord
+
+        Returns:
+            str: INF summary
+        """
+        text:str = ""
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+
+        inf:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in inf_data.items())
+        inf_sec:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in secondary_inf_data.items())
+
+        if inf != 0 or (inf_sec != 0 and self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON):
+            if faction_state in STATES_ELECTION:
+                text += f"{blue('ElectionINF', fp=fp)} "
+            elif faction_state in STATES_WAR:
+                text += f"{blue('WarINF', fp=fp)} "
+            else:
+                text += f"{blue('INF', fp=fp)} "
+
+            if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON:
+                text += self._build_inf_individual(inf, inf_data, "🅟", discord)
+                text += self._build_inf_individual(inf_sec, secondary_inf_data, "🅢", discord)
+            else:
+                text += self._build_inf_individual(inf, inf_data, "", discord)
+
+        return text
+
+
+    def _build_inf_individual(self, inf:int, inf_data: dict, prefix: str, discord: bool) -> str:
+        """
+        Create a summary of either primary or secondary INF, with detailed breakdown if user has requested
+
+        Args:
+            inf (int): Total INF
+            inf_data (dict): dict containing INF, key = '1' - '5' or 'm'
+            prefix (str): Prefix label (🅟 or 🅢 or empty)
+            discord (bool): True if creating for Discord
+
+        Returns:
+            str: INF summary
+        """
         # Secondary INF: on; Detailed INF: on
         # 🅟+41 (5️⃣ x 4, 4️⃣ x 2, 3️⃣ x 1, 1️⃣ x 10) 🅢+4 (1️⃣ x 4)
         # Secondary INF: off; Detailed INF: on
@@ -1304,30 +1353,21 @@ class Activity:
         # +41
 
         text:str = ""
+        if inf == 0: return text
+
         # Force plain text if we are not posting to Discord
         fp:bool = not discord
 
+        text += f"{prefix}{green(f'{inf}', fp=fp)} "
+
         if self.bgstally.state.DetailedInf.get() == CheckStates.STATE_ON:
-            labels:dict = {'1': "1️⃣", '2': "2️⃣", '3': "3️⃣", '4': "4️⃣", '5': "5️⃣", 'm': "man"} if discord else {'1': "+", '2': "++", '3': "+++", '4': "++++", '5': "+++++", 'm': "man"}
-
-
-        else:
-            inf:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in inf_data)
-            inf_sec:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in secondary_inf_data)
-
-            if inf != 0 or (inf_sec != 0 and self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON):
-                if faction_state in STATES_ELECTION:
-                    text += f"{blue('ElectionINF', fp=fp)} "
-                elif faction_state in STATES_WAR:
-                    text += f"{blue('WarINF', fp=fp)} "
-                else:
-                    text += f"{blue('INF', fp=fp)} "
-
-                if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON:
-                    text += f"🅟{green(f'{inf}', fp=fp)} " if inf != 0 else ""
-                    text += f"🅢{green(f'{inf_sec}', fp=fp)} " if inf_sec != 0 else ""
-                else:
-                    text += f"{green(f'{inf}', fp=fp)} "
+            text += "("
+            if inf_data.get('1', 0) != 0: text += f"{'1️⃣' if discord else '+'}x{inf_data['1']} "
+            if inf_data.get('2', 0) != 0: text += f"{'2️⃣' if discord else '++'}x{inf_data['2']} "
+            if inf_data.get('3', 0) != 0: text += f"{'3️⃣' if discord else '+++'}x{inf_data['3']} "
+            if inf_data.get('4', 0) != 0: text += f"{'4️⃣' if discord else '++++'}x{inf_data['4']} "
+            if inf_data.get('5', 0) != 0: text += f"{'5️⃣' if discord else '+++++'}x{inf_data['5']} "
+            text += ")"
 
         return text
 

@@ -986,7 +986,7 @@ class Activity:
         Get a new data structure for storing faction data
         """
         return {'Faction': faction_name, 'FactionState': faction_state, 'Enabled': self.bgstally.state.EnableSystemActivityByDefault.get(),
-                'MissionPoints': 0, 'MissionPointsSecondary': 0,
+                'MissionPoints': {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': 0}, 'MissionPointsSecondary': {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': 0},
                 'TradeProfit': 0, 'TradePurchase': 0, 'BlackMarketProfit': 0, 'Bounties': 0, 'CartData': 0, 'ExoData': 0,
                 'TradeBuy': [{'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}],
                 'TradeSell': [{'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}],
@@ -1091,13 +1091,20 @@ class Activity:
         # From < 3.2.0 to 3.2.0
         for station in faction_data['TWStations'].values():
             if not 'reactivate' in station: station['reactivate'] = 0
+        # From < 3.5.0 to 3.5.0
+        if not type(faction_data.get('MissionPoints', 0)) == dict:
+            faction_data['MissionPoints'] = {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': int(faction_data.get('MissionPoints', 0))}
+        if not type(faction_data.get('MissionPointsSecondary', 0)) == dict:
+            faction_data['MissionPointsSecondary'] = {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': int(faction_data.get('MissionPointsSecondary', 0))}
 
 
     def _is_faction_data_zero(self, faction_data: Dict):
         """
-        Check whether all information is empty or zero for a faction
+        Check whether all information is empty or zero for a faction. _update_faction_data() is always called before this
+        so we can always assume here that the data is in the very latest structure.
         """
-        return int(faction_data['MissionPoints']) == 0 and int(faction_data['MissionPointsSecondary']) == 0 and \
+        return sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_data['MissionPoints']) == 0 and \
+                sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_data['MissionPointsSecondary']) == 0 and \
                 int(faction_data['TradeProfit']) == 0 and int(faction_data['TradePurchase']) == 0 and int(faction_data['BlackMarketProfit']) == 0 and \
                 sum(int(d['value']) for d in faction_data['TradeBuy']) == 0 and \
                 sum(int(d['value']) for d in faction_data['TradeSell']) == 0 and \
@@ -1157,16 +1164,7 @@ class Activity:
         # Force plain text if we are not posting to Discord
         fp:bool = not discord
 
-        inf = faction['MissionPoints']
-        if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON: inf += faction['MissionPointsSecondary']
-
-        if faction['FactionState'] in STATES_ELECTION:
-            activity_text += f"{blue('ElectionINF', fp=fp)} {green(f'+{inf}', fp=fp)} " if inf > 0 else f"{blue('ElectionINF', fp=fp)} {green(inf, fp=fp)} " if inf < 0 else ""
-        elif faction['FactionState'] in STATES_WAR:
-            activity_text += f"{blue('WarINF', fp=fp)} {green(f'+{inf}', fp=fp)} " if inf > 0 else f"{blue('WarINF', fp=fp)} {green(inf, fp=fp)} " if inf < 0 else ""
-        else:
-            activity_text += f"{blue('INF', fp=fp)} {green(f'+{inf}', fp=fp)} " if inf > 0 else f"{blue('INF', fp=fp)} {green(inf, fp=fp)} " if inf < 0 else ""
-
+        activity_text += self._build_inf_text(faction['MissionPoints'], faction['MissionPointsSecondary'], faction['FactionState'], discord)
         activity_text += f"{red('BVs', fp=fp)} {green(human_format(faction['Bounties']), fp=fp)} " if faction['Bounties'] != 0 else ""
         activity_text += f"{red('CBs', fp=fp)} {green(human_format(faction['CombatBonds']), fp=fp)} " if faction['CombatBonds'] != 0 else ""
         if faction['TradePurchase'] > 0:
@@ -1293,6 +1291,45 @@ class Activity:
                 system_text += f"  🛠️ x {green(system_station['reactivate'], fp=fp)} missions\n"
 
         return system_text
+
+
+    def _build_inf_text(self, inf_data: dict, secondary_inf_data: dict, faction_state: str, discord: bool) -> str:
+        # Secondary INF: on; Detailed INF: on
+        # 🅟+41 (5️⃣ x 4, 4️⃣ x 2, 3️⃣ x 1, 1️⃣ x 10) 🅢+4 (1️⃣ x 4)
+        # Secondary INF: off; Detailed INF: on
+        # +41 (5️⃣ x 4, 4️⃣ x 2, 3️⃣ x 1, 1️⃣ x 10)
+        # Secondary INF: on; Detailed INF: off
+        # 🅟+41 🅢+4
+        # Secondary INF: off; Detailed INF: off
+        # +41
+
+        text:str = ""
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+
+        if self.bgstally.state.DetailedInf.get() == CheckStates.STATE_ON:
+            labels:dict = {'1': "1️⃣", '2': "2️⃣", '3': "3️⃣", '4': "4️⃣", '5': "5️⃣", 'm': "man"} if discord else {'1': "+", '2': "++", '3': "+++", '4': "++++", '5': "+++++", 'm': "man"}
+
+
+        else:
+            inf:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in inf_data)
+            inf_sec:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in secondary_inf_data)
+
+            if inf != 0 or (inf_sec != 0 and self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON):
+                if faction_state in STATES_ELECTION:
+                    text += f"{blue('ElectionINF', fp=fp)} "
+                elif faction_state in STATES_WAR:
+                    text += f"{blue('WarINF', fp=fp)} "
+                else:
+                    text += f"{blue('INF', fp=fp)} "
+
+                if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON:
+                    text += f"🅟{green(f'{inf}', fp=fp)} " if inf != 0 else ""
+                    text += f"🅢{green(f'{inf_sec}', fp=fp)} " if inf_sec != 0 else ""
+                else:
+                    text += f"{green(f'{inf}', fp=fp)} "
+
+        return text
 
 
     def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool) -> str:

@@ -1359,7 +1359,7 @@ class Activity:
             if inf_data.get('3', 0) != 0: detailed_inf += f"{'➌' if discord else '+++'} x {inf_data['3']} "
             if inf_data.get('4', 0) != 0: detailed_inf += f"{'➍' if discord else '++++'} x {inf_data['4']} "
             if inf_data.get('5', 0) != 0: detailed_inf += f"{'➎' if discord else '+++++'} x {inf_data['5']} "
-            if detailed_inf != "": text += f"({detailed_inf.rstrip()})"
+            if detailed_inf != "": text += f"({detailed_inf.rstrip()}) "
 
         return text
 

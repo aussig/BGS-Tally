@@ -1322,8 +1322,8 @@ class Activity:
                 text += f"{blue('INF', fp=fp)} "
 
             if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON:
-                text += self._build_inf_individual(inf, inf_data, "🅟", discord)
-                text += self._build_inf_individual(inf_sec, secondary_inf_data, "🅢", discord)
+                text += self._build_inf_individual(inf, inf_data, "🅟" if discord else "[P]", discord)
+                text += self._build_inf_individual(inf_sec, secondary_inf_data, "🅢" if discord else "[S]", discord)
             else:
                 text += self._build_inf_individual(inf, inf_data, "", discord)
 
@@ -1343,31 +1343,23 @@ class Activity:
         Returns:
             str: INF summary
         """
-        # Secondary INF: on; Detailed INF: on
-        # 🅟+41 (5️⃣ x 4, 4️⃣ x 2, 3️⃣ x 1, 1️⃣ x 10) 🅢+4 (1️⃣ x 4)
-        # Secondary INF: off; Detailed INF: on
-        # +41 (5️⃣ x 4, 4️⃣ x 2, 3️⃣ x 1, 1️⃣ x 10)
-        # Secondary INF: on; Detailed INF: off
-        # 🅟+41 🅢+4
-        # Secondary INF: off; Detailed INF: off
-        # +41
-
         text:str = ""
         if inf == 0: return text
 
         # Force plain text if we are not posting to Discord
         fp:bool = not discord
 
-        text += f"{prefix}{green(f'{inf}', fp=fp)} "
+        inf_str:str = f"{'+' if inf > 0 else ''}{inf}"
+        text += f"{prefix}{green(inf_str, fp=fp)} "
 
         if self.bgstally.state.DetailedInf.get() == CheckStates.STATE_ON:
-            text += "("
-            if inf_data.get('1', 0) != 0: text += f"{'1️⃣' if discord else '+'}x{inf_data['1']} "
-            if inf_data.get('2', 0) != 0: text += f"{'2️⃣' if discord else '++'}x{inf_data['2']} "
-            if inf_data.get('3', 0) != 0: text += f"{'3️⃣' if discord else '+++'}x{inf_data['3']} "
-            if inf_data.get('4', 0) != 0: text += f"{'4️⃣' if discord else '++++'}x{inf_data['4']} "
-            if inf_data.get('5', 0) != 0: text += f"{'5️⃣' if discord else '+++++'}x{inf_data['5']} "
-            text += ")"
+            detailed_inf:str = ""
+            if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {inf_data['1']} "
+            if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {inf_data['2']} "
+            if inf_data.get('3', 0) != 0: detailed_inf += f"{'➌' if discord else '+++'} x {inf_data['3']} "
+            if inf_data.get('4', 0) != 0: detailed_inf += f"{'➍' if discord else '++++'} x {inf_data['4']} "
+            if inf_data.get('5', 0) != 0: detailed_inf += f"{'➎' if discord else '+++++'} x {inf_data['5']} "
+            if detailed_inf != "": text += f"({detailed_inf.rstrip()})"
 
         return text
 

@@ -1,6 +1,6 @@
 # Change Log
 
-## v3.4.0-xx - xxxx-xx-xx
+## v3.4.0-b1 - 2024-02-07
 
 ### Bug Fixes:
 

@@ -8,7 +8,7 @@
 * When secondary INF reporting is switched on, now indicate which INF is primary `🅟` and which is secondary `🅢`. This can also combine with detailed INF reporting to give a full breakdown of primary and secondary INF.
 
 
-## v3.4.0-xx - xxxx-xx-xx
+## v3.4.0-b1 - 2024-02-07
 
 ### Bug Fixes:
 

@@ -222,8 +222,9 @@ class API:
         if filters is None: return False
 
         for field, filter in filters.items():
-            Debug.logger.info(f"Checking for match against {filter} in field {field} in event. Field value: {event.get(field, '')}. Match: {match(filter, event.get(field, ''))}")
-            if not match(filter, event.get(field, "")): return True
+            filter_str:str = str(filter)
+            value_str:str = str(event.get(field, ""))
+            if not match(filter_str, value_str): return True
 
         # All fields matched, don't filter out this event
         return False

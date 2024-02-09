@@ -46,6 +46,12 @@ class WindowLegend:
 
         current_row:int = 0
         ttk.Label(frame_container, text="Icons in BGS Reports", font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        ttk.Label(frame_container, text="🅟", font=("Helvetica", 24)).grid(row=current_row, column=0)
+        ttk.Label(frame_container, text=" Primary INF. This is INF gained for the mission issuing faction.").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text="🅢", font=("Helvetica", 24)).grid(row=current_row, column=0)
+        ttk.Label(frame_container, text=" Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions.").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text="➊ ➋ ➌ ➍ ➎", font=("Helvetica", 14)).grid(row=current_row, column=0)
+        ttk.Label(frame_container, text=" Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions.").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_bgs_cz).grid(row=current_row, column=0)
         ttk.Label(frame_container, text=" On-ground Conflict Zone").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, text="🆉 🅻 🅼 🅷", font=("Helvetica", 24)).grid(row=current_row, column=0)

@@ -110,8 +110,10 @@ class APIManager:
                 if faction.get('ExoData', "0") != "0": api_faction['exobiology'] = faction['ExoData']
                 if faction.get('CartData', "0") != "0": api_faction['exploration'] = faction['CartData']
                 if faction.get('Scenarios', "0") != "0": api_faction['scenarios'] = faction['Scenarios']
-                if faction.get('MissionPoints', "0") != "0": api_faction['infprimary'] = faction['MissionPoints']
-                if faction.get('MissionPointsSecondary', "0") != "0": api_faction['infsecondary'] = faction['MissionPointsSecondary']
+                inf_primary:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction['MissionPoints'].items())
+                inf_secondary:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction['MissionPointsSecondary'].items())
+                if inf_primary != 0: api_faction['infprimary'] = str(inf_primary)
+                if inf_secondary != 0: api_faction['infsecondary'] = str(inf_secondary)
                 if faction.get('MissionFailed', "0") != "0": api_faction['missionfails'] = faction['MissionFailed']
                 if faction.get('GroundMurdered', "0") != "0": api_faction['murdersground'] = faction['GroundMurdered']
                 if faction.get('Murdered', "0") != "0": api_faction['murdersspace'] = faction['Murdered']

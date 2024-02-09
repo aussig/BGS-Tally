@@ -1,25 +1,6 @@
 # Change Log
 
-## v3.4.0-b1 - 2024-02-07
-
-### Bug Fixes:
-
-* If an `/events` API client sets an event filter using an integer as the filter, e.g. `3`, this was throwing an error and the event was not sent.
-
-
-## v3.4.0-a2 - 2024-02-02
-
-### Changes:
-
-* 'Post to Discord' button always visible (but greyed out if not usable) on Fleet Carrier and CMDR Information windows.
-
-### Bug Fixes:
-
-* If one of the discord webhook URLs was invalid, was failing immediately and wasn't trying any additional webhooks.
-* Discord button enabling / disabling wasn't working properly with the new multiple discord channel support.
-
-
-## v3.4.0-a1 - 2024-01-28
+## v3.4.0 - 2024-02-09
 
 ### New Features:
 
@@ -31,11 +12,13 @@
 * Heading styles have been standardised across all windows. And headings are now purple, yay!
 * URL link styles have been standardised across all windows.
 * When posting CMDR info to Discord, now include how you interacted with them, colour coded.
+* The 'Post to Discord' button is now always visible (but greyed out if not usable) on Fleet Carrier and CMDR Information windows.
 
 ### Bug Fixes:
 
 * Thargoid vessel types in mission reports were still showing if they were 0. These are now omitted.
 * Fix error when fetching carrier data when carrier has no sell orders.
+* If an `/events` API client sets an event filter using an integer as the filter, e.g. `3`, this was throwing an error and the event was not sent.
 
 
 ## v3.3.0 - 2023-12-09

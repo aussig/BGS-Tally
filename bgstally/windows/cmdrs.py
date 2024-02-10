@@ -34,7 +34,7 @@ class WindowCMDRs:
             return
 
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
-        self.toplevel.title("Targeted CMDR Information")
+        self.toplevel.title("CMDR Interactions")
         self.toplevel.geometry("1200x800")
 
         container_frame = ttk.Frame(self.toplevel)

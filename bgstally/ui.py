@@ -55,6 +55,9 @@ class UI:
         # TODO: When we support multiple APIs, this will no longer be a single instance window
         self.window_api:WindowAPI = WindowAPI(self.bgstally, self.bgstally.api_manager.apis[0])
 
+        # Multi-instance windows
+        self.window_activity:dict = {}
+
         self.thread: Optional[Thread] = Thread(target=self._worker, name="BGSTally UI worker")
         self.thread.daemon = True
         self.thread.start()
@@ -308,9 +311,13 @@ class UI:
 
     def _show_activity_window(self, activity: Activity):
         """
-        Display the activity data window, using data from the passed in activity object
+        Display the appropriate activity data window, using data from the passed in activity object
         """
-        WindowActivity(self.bgstally, self, activity)
+        existing_activity_window:WindowActivity = self.window_activity.get(activity.tick_id)
+        if existing_activity_window is not None:
+            existing_activity_window.show(activity)
+        else:
+            self.window_activity[activity.tick_id] = WindowActivity(self.bgstally, self, activity)
 
 
     def _show_cmdr_list_window(self):

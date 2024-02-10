@@ -8,6 +8,11 @@
 * When secondary INF reporting is switched on, now indicate which INF is primary `🅟` and which is secondary `🅢`. This can also combine with detailed INF reporting to give a full breakdown of primary and secondary INF.
 * New 'detailed Trade' checkbox, which is on by default and when enabled shows the full trade breakdown into brackets 🆉 | 🅻 | 🅼 | 🅷, when disabled all brackets are combined into simple totals for trade purchase and trade profit.
 
+### Changes:
+
+* Activity windows (latest Tally / previous Tally) will now remember their positions and sizes.
+* Re-opening an already open activity window (latest Tally / previous Tally) will no longer open two copies of the same window. Instead, the old one will be closed and a new fresh window with latest data opened at the same position and size on screen.
+
 
 ## v3.4.0 - 2024-02-09
 

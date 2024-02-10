@@ -1167,25 +1167,7 @@ class Activity:
         activity_text += self._build_inf_text(faction['MissionPoints'], faction['MissionPointsSecondary'], faction['FactionState'], discord)
         activity_text += f"{red('BVs', fp=fp)} {green(human_format(faction['Bounties']), fp=fp)} " if faction['Bounties'] != 0 else ""
         activity_text += f"{red('CBs', fp=fp)} {green(human_format(faction['CombatBonds']), fp=fp)} " if faction['CombatBonds'] != 0 else ""
-        if faction['TradePurchase'] > 0:
-            # Legacy - Used a single value for purchase value / profit
-            activity_text += f"{cyan('TrdPurchase', fp=fp)} {green(human_format(faction['TradePurchase']), fp=fp)} " if faction['TradePurchase'] != 0 else ""
-            activity_text += f"{cyan('TrdProfit', fp=fp)} {green(human_format(faction['TradeProfit']), fp=fp)} " if faction['TradeProfit'] != 0 else ""
-        else:
-            # Modern - Split into values per supply / demand bracket
-            if sum(int(d['value']) for d in faction['TradeBuy']) > 0:
-                # Buy brackets currently range from 0 - 3
-                activity_text += f"{cyan('TrdBuy', fp=fp)} " \
-                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeBuy'][1]['value']), fp=fp)} " \
-                    + f"{'🅼' if discord else '[M]'}:{green(human_format(faction['TradeBuy'][2]['value']), fp=fp)} " \
-                    + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeBuy'][3]['value']), fp=fp)} "
-            if sum(int(d['value']) for d in faction['TradeSell']) > 0:
-                # Sell brackets currently range from 0 - 3
-                activity_text += f"{cyan('TrdProfit', fp=fp)} " \
-                    + f"{'🆉' if discord else '[Z]'}:{green(human_format(faction['TradeSell'][0]['profit']), fp=fp)} " \
-                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeSell'][1]['profit']), fp=fp)} " \
-                    + f"{'🅼' if discord else '[M]'}:{green(human_format(faction['TradeSell'][2]['profit']), fp=fp)} " \
-                    + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeSell'][3]['profit']), fp=fp)} "
+        activity_text += self._build_trade_text(faction['TradePurchase'], faction['TradeProfit'], faction['TradeBuy'], faction['TradeSell'], discord)
         activity_text += f"{cyan('TrdBMProfit', fp=fp)} {green(human_format(faction['BlackMarketProfit']), fp=fp)} " if faction['BlackMarketProfit'] != 0 else ""
         activity_text += f"{white('Expl', fp=fp)} {green(human_format(faction['CartData']), fp=fp)} " if faction['CartData'] != 0 else ""
         # activity_text += f"{grey('Exo', fp=fp)} {green(human_format(faction['ExoData']), fp=fp)} " if faction['ExoData'] != 0 else ""
@@ -1360,6 +1342,54 @@ class Activity:
             if inf_data.get('4', 0) != 0: detailed_inf += f"{'➍' if discord else '++++'} x {inf_data['4']} "
             if inf_data.get('5', 0) != 0: detailed_inf += f"{'➎' if discord else '+++++'} x {inf_data['5']} "
             if detailed_inf != "": text += f"({detailed_inf.rstrip()}) "
+
+        return text
+
+
+    def _build_trade_text(self, trade_purchase: int, trade_profit: int, trade_buy: list, trade_sell: list, discord: bool) -> str:
+        """
+        Create a summary of trade, with detailed breakdown if user has requested
+
+        Args:
+            trade_purchase (int): Legacy total trade purchase value (before trade was tracked in brackets).
+            trade_profit (int): Legacy total trade profit value (before trade was tracked in brackets).
+            trade_buy (list): List of trade purchases with each entry corresponding to a trade bracket.
+            trade_sell (list): List of trade sales with each entry corresponding to a trade bracket.
+            discord (bool): True if creating for Discord
+
+        Returns:
+            str: Trade summary
+        """
+        text:str = ""
+
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+
+        if trade_purchase > 0:
+            # Legacy - Used a single value for purchase value / profit
+            text += f"{cyan('TrdPurchase', fp=fp)} {green(human_format(trade_purchase), fp=fp)} " if trade_purchase != 0 else ""
+            text += f"{cyan('TrdProfit', fp=fp)} {green(human_format(trade_profit), fp=fp)} " if trade_profit != 0 else ""
+        elif self.bgstally.state.DetailedTrade.get() == CheckStates.STATE_OFF:
+            # Modern, simple trade report - Combine buy at all brackets and profit at all brackets
+            buy_total:int = sum(int(d['value']) for d in trade_buy)
+            profit_total:int = sum(int(d['value']) for d in trade_sell)
+            text += f"{cyan('TrdBuy', fp=fp)} {green(human_format(buy_total), fp=fp)} " if buy_total != 0 else ""
+            text += f"{cyan('TrdProfit', fp=fp)} {green(human_format(profit_total), fp=fp)} " if profit_total != 0 else ""
+        else:
+            # Modern, detailed trade report - Split into values per supply / demand bracket
+            if sum(int(d['value']) for d in trade_buy) > 0:
+                # Buy brackets currently range from 1 - 3
+                text += f"{cyan('TrdBuy', fp=fp)} " \
+                    + f"{'🅻' if discord else '[L]'}:{green(human_format(trade_buy[1]['value']), fp=fp)} " \
+                    + f"{'🅼' if discord else '[M]'}:{green(human_format(trade_buy[2]['value']), fp=fp)} " \
+                    + f"{'🅷' if discord else '[H]'}:{green(human_format(trade_buy[3]['value']), fp=fp)} "
+            if sum(int(d['value']) for d in trade_sell) > 0:
+                # Sell brackets currently range from 0 - 3
+                text += f"{cyan('TrdProfit', fp=fp)} " \
+                    + f"{'🆉' if discord else '[Z]'}:{green(human_format(trade_sell[0]['profit']), fp=fp)} " \
+                    + f"{'🅻' if discord else '[L]'}:{green(human_format(trade_sell[1]['profit']), fp=fp)} " \
+                    + f"{'🅼' if discord else '[M]'}:{green(human_format(trade_sell[2]['profit']), fp=fp)} " \
+                    + f"{'🅷' if discord else '[H]'}:{green(human_format(trade_sell[3]['profit']), fp=fp)} "
 
         return text
 

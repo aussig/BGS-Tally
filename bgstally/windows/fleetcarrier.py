@@ -2,7 +2,7 @@ import tkinter as tk
 from functools import partial
 from tkinter import ttk
 
-from bgstally.constants import FONT_HEADING, DiscordChannel, MaterialsCategory
+from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_1, FONT_HEADING_2, DiscordChannel, MaterialsCategory
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.widgets import TextPlus
@@ -43,8 +43,8 @@ class WindowFleetCarrier:
         buttons_frame = ttk.Frame(container_frame)
         buttons_frame.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
 
-        ttk.Label(info_frame, text=f"System: {fc.data['currentStarSystem']} - Docking: {fc.human_format_dockingaccess()} - Notorious Allowed: {fc.human_format_notorious()}", font=FONT_HEADING, foreground='#A300A3').pack(anchor=tk.NW)
-        ttk.Label(info_frame, text="Selling", font=FONT_HEADING).pack(anchor=tk.NW)
+        ttk.Label(info_frame, text=f"System: {fc.data['currentStarSystem']} - Docking: {fc.human_format_dockingaccess()} - Notorious Allowed: {fc.human_format_notorious()}", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW)
+        ttk.Label(info_frame, text="Selling", font=FONT_HEADING_2).pack(anchor=tk.NW)
         selling_frame = ttk.Frame(info_frame)
         selling_frame.pack(fill=tk.BOTH, padx=5, pady=5, anchor=tk.NW, expand=True)
         selling_text = TextPlus(selling_frame, wrap=tk.WORD, height=1, font=("Helvetica", 9))
@@ -57,7 +57,7 @@ class WindowFleetCarrier:
         selling_text.configure(state='disabled')
 
 
-        ttk.Label(info_frame, text="Buying", font=FONT_HEADING).pack(anchor=tk.NW)
+        ttk.Label(info_frame, text="Buying", font=FONT_HEADING_2).pack(anchor=tk.NW)
         buying_frame = ttk.Frame(info_frame)
         buying_frame.pack(fill=tk.BOTH, padx=5, pady=5, anchor=tk.NW, expand=True)
         buying_text = TextPlus(buying_frame, wrap=tk.WORD, height=1, font=("Helvetica", 9))
@@ -69,7 +69,9 @@ class WindowFleetCarrier:
         buying_text.insert(tk.INSERT, fc.get_materials_plaintext(MaterialsCategory.BUYING))
         buying_text.configure(state='disabled')
 
-        if self.bgstally.discord.is_webhook_valid(DiscordChannel.FLEETCARRIER_MATERIALS): ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord)).pack(side=tk.RIGHT, padx=5, pady=5)
+        post_button:ttk.Button = ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
+        post_button.pack(side=tk.RIGHT, padx=5, pady=5)
+        post_button['state'] = tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) else tk.DISABLED
 
 
     def _post_to_discord(self):

@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from bgstally.constants import CheckStates, DiscordActivity, DiscordPostStyle
+from bgstally.constants import CheckStates, DiscordPostStyle
 from config import config
 
 
@@ -23,20 +23,23 @@ class State:
         self.ShowZeroActivitySystems:tk.StringVar = tk.StringVar(value=config.get_str('XShowZeroActivity', default=CheckStates.STATE_ON))
         self.AbbreviateFactionNames:tk.StringVar = tk.StringVar(value=config.get_str('XAbbreviate', default=CheckStates.STATE_OFF))
         self.IncludeSecondaryInf:tk.StringVar = tk.StringVar(value=config.get_str('XSecondaryInf', default=CheckStates.STATE_ON))
-        self.DiscordBGSWebhook:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordWebhook', default=""))
-        self.DiscordCMDRInformationWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordCMDRInformationWebhook", default=""))
-        self.DiscordFCMaterialsWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordFCMaterialsWebhook", default=""))
-        self.DiscordFCOperationsWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordFCOperationsWebhook", default=""))
-        self.DiscordTWWebhook:tk.StringVar = tk.StringVar(value=config.get_str("XDiscordTWWebhook", default=""))
         self.DiscordUsername:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordUsername', default=""))
         self.DiscordPostStyle:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordPostStyle', default=DiscordPostStyle.EMBED))
-        self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordActivity', default=DiscordActivity.BOTH))
         self.EnableOverlay:tk.StringVar = tk.StringVar(value=config.get_str('XEnableOverlay', default=CheckStates.STATE_ON))
         self.EnableOverlayCurrentTick:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCurrentTick', default=CheckStates.STATE_ON))
         self.EnableOverlayActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayActivity', default=CheckStates.STATE_ON))
         self.EnableOverlayTWProgress:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayTWProgress', default=CheckStates.STATE_ON))
         self.EnableOverlaySystem:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlaySystem', default=CheckStates.STATE_ON))
         self.EnableSystemActivityByDefault:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableSystemActivityByDefault', default=CheckStates.STATE_ON))
+        self.DetailedInf:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedInf', default=CheckStates.STATE_OFF))
+        self.DetailedTrade:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedTrade', default=CheckStates.STATE_ON))
+
+        # TODO: Legacy values, used to migrate initial state, remove in future version
+        self.DiscordBGSWebhook:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordWebhook', default=""))
+        self.DiscordCMDRInformationWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordCMDRInformationWebhook", default=""))
+        self.DiscordFCMaterialsWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordFCMaterialsWebhook", default=""))
+        self.DiscordFCOperationsWebhook:tk.StringVar = tk.StringVar(value=config.get_str("BGST_DiscordFCOperationsWebhook", default=""))
+        self.DiscordTWWebhook:tk.StringVar = tk.StringVar(value=config.get_str("XDiscordTWWebhook", default=""))
 
         # Persistent values
         self.current_system_id:str = config.get_str('XCurrentSystemID', default="")
@@ -74,23 +77,18 @@ class State:
         config.set('XShowZeroActivity', self.ShowZeroActivitySystems.get())
         config.set('XAbbreviate', self.AbbreviateFactionNames.get())
         config.set('XSecondaryInf', self.IncludeSecondaryInf.get())
-        config.set('XDiscordWebhook', self.DiscordBGSWebhook.get())
-        config.set('BGST_DiscordCMDRInformationWebhook', self.DiscordCMDRInformationWebhook.get())
-        config.set('BGST_DiscordFCMaterialsWebhook', self.DiscordFCMaterialsWebhook.get())
-        config.set('BGST_DiscordFCOperationsWebhook', self.DiscordFCOperationsWebhook.get())
-        config.set('XDiscordTWWebhook', self.DiscordTWWebhook.get())
         config.set('XDiscordUsername', self.DiscordUsername.get())
         config.set('XDiscordPostStyle', self.DiscordPostStyle.get())
-        config.set('XDiscordActivity', self.DiscordActivity.get())
         config.set('XEnableOverlay', self.EnableOverlay.get())
         config.set('BGST_EnableOverlayCurrentTick', self.EnableOverlayCurrentTick.get())
         config.set('BGST_EnableOverlayActivity', self.EnableOverlayActivity.get())
         config.set('BGST_EnableOverlayTWProgress', self.EnableOverlayTWProgress.get())
         config.set('BGST_EnableOverlaySystem', self.EnableOverlaySystem.get())
         config.set('BGST_EnableSystemActivityByDefault', self.EnableSystemActivityByDefault.get())
+        config.set('BGST_DetailedInf', self.DetailedInf.get())
+        config.set('BGST_DetailedTrade', self.DetailedTrade.get())
 
         # Persistent values
         config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")
         config.set('XStationFaction', self.station_faction if self.station_faction != None else "")
-        config.set('XStationType', self.station_type if self.station_type != None else "")
         config.set('XStationType', self.station_type if self.station_type != None else "")

@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Ideas and Feature Requests
+    url: https://github.com/aussig/BGS-Tally/discussions/categories/ideas
+    about: Please create a new discussion about your idea here. Alternatively, discuss it first on our Discord server (link available on the project home page). 
+  - name: Got a Problem?
+    url: https://github.com/aussig/BGS-Tally/wiki/Troubleshooting
+    about: Try our troubleshooting page first. If that doesn''t provide an answer then perhaps discuss it first on our Discord server (link available on the project home page), or raise an issue here. 
+  - name: Questions and Answers
+    url: https://github.com/aussig/BGS-Tally/discussions/categories/q-a
+    about: Raise your question in the discussions area, or alternatively discuss it first on our Discord server (link available on the project home page). 

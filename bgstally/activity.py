@@ -1,10 +1,10 @@
 import json
+import re
 from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Dict
-import re
 
-from bgstally.constants import CheckStates, DiscordActivity, FILE_SUFFIX
+from bgstally.constants import FILE_SUFFIX, CheckStates, DiscordActivity
 from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
@@ -89,7 +89,7 @@ class Activity:
     factions with their activity
     """
 
-    def __init__(self, bgstally, tick: Tick = None, discord_bgs_messageid: str = None):
+    def __init__(self, bgstally, tick: Tick = None):
         """
         Instantiate using a given Tick
         """
@@ -100,12 +100,12 @@ class Activity:
         self.tick_id: str = tick.tick_id
         self.tick_time: datetime = tick.tick_time
         self.tick_forced: bool = False
-        self.discord_bgs_messageid: str = discord_bgs_messageid
-        self.discord_tw_messageid: str = None
+        self.discord_webhook_data:dict = {} # key = webhook uuid, value = dict containing webhook data
         self.discord_notes: str = ""
         self.dirty: bool = False
         self.systems: dict = {}
 
+        # Non-stored instance data. Remember to modify __deepcopy__() if these are changed or new data added.
         self.megaship_pat:re.Pattern = re.compile("^[a-z]{3}-[0-9]{3} ")  # e.g. kar-314 aquarius-class tanker
 
 
@@ -303,7 +303,7 @@ class Activity:
                 effect_faction_name = mission.get('TargetFaction', "")
 
             if faction_effect['Influence'] != []:
-                inf = len(faction_effect['Influence'][0]['Influence'])
+                inf_index:str = str(len(faction_effect['Influence'][0]['Influence'])) # Index into dict containing detailed INF breakdown
                 inftrend = faction_effect['Influence'][0]['Trend']
                 for system_address, system in self.systems.items():
                     if str(faction_effect['Influence'][0]['SystemAddress']) != system_address: continue
@@ -313,16 +313,16 @@ class Activity:
 
                     if inftrend == "UpGood" or inftrend == "DownGood":
                         if effect_faction_name == journal_entry['Faction']:
-                            faction['MissionPoints'] += inf
+                            faction['MissionPoints'][inf_index] += 1
                             self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
                         else:
-                            faction['MissionPointsSecondary'] += inf
+                            faction['MissionPointsSecondary'][inf_index] += 1
                     else:
                         if effect_faction_name == journal_entry['Faction']:
-                            faction['MissionPoints'] -= inf
+                            faction['MissionPoints'][inf_index] -= 1
                             self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
                         else:
-                            faction['MissionPointsSecondary'] -= inf
+                            faction['MissionPointsSecondary'][inf_index] -= 1
 
             elif mission is not None:  # No influence specified for faction effect
                 for system_address, system in self.systems.items():
@@ -334,7 +334,7 @@ class Activity:
                     if (faction['FactionState'] in STATES_ELECTION and journal_entry['Name'] in MISSIONS_ELECTION) \
                     or (faction['FactionState'] in STATES_WAR and journal_entry['Name'] in MISSIONS_WAR) \
                     and effect_faction_name == journal_entry['Faction']:
-                        faction['MissionPoints'] += 1
+                        faction['MissionPoints']['1'] += 1
                         self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
 
         # Thargoid War
@@ -986,7 +986,7 @@ class Activity:
         Get a new data structure for storing faction data
         """
         return {'Faction': faction_name, 'FactionState': faction_state, 'Enabled': self.bgstally.state.EnableSystemActivityByDefault.get(),
-                'MissionPoints': 0, 'MissionPointsSecondary': 0,
+                'MissionPoints': {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': 0}, 'MissionPointsSecondary': {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': 0},
                 'TradeProfit': 0, 'TradePurchase': 0, 'BlackMarketProfit': 0, 'Bounties': 0, 'CartData': 0, 'ExoData': 0,
                 'TradeBuy': [{'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}],
                 'TradeSell': [{'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}],
@@ -1091,13 +1091,20 @@ class Activity:
         # From < 3.2.0 to 3.2.0
         for station in faction_data['TWStations'].values():
             if not 'reactivate' in station: station['reactivate'] = 0
+        # From < 3.5.0 to 3.5.0
+        if not type(faction_data.get('MissionPoints', 0)) == dict:
+            faction_data['MissionPoints'] = {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': int(faction_data.get('MissionPoints', 0))}
+        if not type(faction_data.get('MissionPointsSecondary', 0)) == dict:
+            faction_data['MissionPointsSecondary'] = {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': int(faction_data.get('MissionPointsSecondary', 0))}
 
 
     def _is_faction_data_zero(self, faction_data: Dict):
         """
-        Check whether all information is empty or zero for a faction
+        Check whether all information is empty or zero for a faction. _update_faction_data() is always called before this
+        so we can always assume here that the data is in the very latest structure.
         """
-        return int(faction_data['MissionPoints']) == 0 and int(faction_data['MissionPointsSecondary']) == 0 and \
+        return sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_data['MissionPoints'].items()) == 0 and \
+                sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_data['MissionPointsSecondary'].items()) == 0 and \
                 int(faction_data['TradeProfit']) == 0 and int(faction_data['TradePurchase']) == 0 and int(faction_data['BlackMarketProfit']) == 0 and \
                 sum(int(d['value']) for d in faction_data['TradeBuy']) == 0 and \
                 sum(int(d['value']) for d in faction_data['TradeSell']) == 0 and \
@@ -1157,48 +1164,19 @@ class Activity:
         # Force plain text if we are not posting to Discord
         fp:bool = not discord
 
-        inf = faction['MissionPoints']
-        if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON: inf += faction['MissionPointsSecondary']
-
-        if faction['FactionState'] in STATES_ELECTION:
-            activity_text += f"{blue('ElectionINF', fp=fp)} {green(f'+{inf}', fp=fp)} " if inf > 0 else f"{blue('ElectionINF', fp=fp)} {green(inf, fp=fp)} " if inf < 0 else ""
-        elif faction['FactionState'] in STATES_WAR:
-            activity_text += f"{blue('WarINF', fp=fp)} {green(f'+{inf}', fp=fp)} " if inf > 0 else f"{blue('WarINF', fp=fp)} {green(inf, fp=fp)} " if inf < 0 else ""
-        else:
-            activity_text += f"{blue('INF', fp=fp)} {green(f'+{inf}', fp=fp)} " if inf > 0 else f"{blue('INF', fp=fp)} {green(inf, fp=fp)} " if inf < 0 else ""
-
+        activity_text += self._build_inf_text(faction['MissionPoints'], faction['MissionPointsSecondary'], faction['FactionState'], discord)
         activity_text += f"{red('BVs', fp=fp)} {green(human_format(faction['Bounties']), fp=fp)} " if faction['Bounties'] != 0 else ""
         activity_text += f"{red('CBs', fp=fp)} {green(human_format(faction['CombatBonds']), fp=fp)} " if faction['CombatBonds'] != 0 else ""
-        if faction['TradePurchase'] > 0:
-            # Legacy - Used a single value for purchase value / profit
-            activity_text += f"{cyan('TrdPurchase', fp=fp)} {green(human_format(faction['TradePurchase']), fp=fp)} " if faction['TradePurchase'] != 0 else ""
-            activity_text += f"{cyan('TrdProfit', fp=fp)} {green(human_format(faction['TradeProfit']), fp=fp)} " if faction['TradeProfit'] != 0 else ""
-        else:
-            # Modern - Split into values per supply / demand bracket
-            if sum(int(d['value']) for d in faction['TradeBuy']) > 0:
-                # Buy brackets currently range from 0 - 3
-                activity_text += f"{cyan('TrdBuy', fp=fp)} " \
-                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeBuy'][1]['value']), fp=fp)} " \
-                    + f"{'🅼' if discord else '[M]'}:{green(human_format(faction['TradeBuy'][2]['value']), fp=fp)} " \
-                    + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeBuy'][3]['value']), fp=fp)} "
-            if sum(int(d['value']) for d in faction['TradeSell']) > 0:
-                # Sell brackets currently range from 0 - 3
-                activity_text += f"{cyan('TrdProfit', fp=fp)} " \
-                    + f"{'🆉' if discord else '[Z]'}:{green(human_format(faction['TradeSell'][0]['profit']), fp=fp)} " \
-                    + f"{'🅻' if discord else '[L]'}:{green(human_format(faction['TradeSell'][1]['profit']), fp=fp)} " \
-                    + f"{'🅼' if discord else '[M]'}:{green(human_format(faction['TradeSell'][2]['profit']), fp=fp)} " \
-                    + f"{'🅷' if discord else '[H]'}:{green(human_format(faction['TradeSell'][3]['profit']), fp=fp)} "
+        activity_text += self._build_trade_text(faction['TradePurchase'], faction['TradeProfit'], faction['TradeBuy'], faction['TradeSell'], discord)
         activity_text += f"{cyan('TrdBMProfit', fp=fp)} {green(human_format(faction['BlackMarketProfit']), fp=fp)} " if faction['BlackMarketProfit'] != 0 else ""
         activity_text += f"{white('Expl', fp=fp)} {green(human_format(faction['CartData']), fp=fp)} " if faction['CartData'] != 0 else ""
-        activity_text += f"{grey('Exo', fp=fp)} {green(human_format(faction['ExoData']), fp=fp)} " if faction['ExoData'] != 0 else ""
+        # activity_text += f"{grey('Exo', fp=fp)} {green(human_format(faction['ExoData']), fp=fp)} " if faction['ExoData'] != 0 else ""
         activity_text += f"{red('Murders', fp=fp)} {green(faction['Murdered'], fp=fp)} " if faction['Murdered'] != 0 else ""
         activity_text += f"{red('GroundMurders', fp=fp)} {green(faction['GroundMurdered'], fp=fp)} " if faction['GroundMurdered'] != 0 else ""
         activity_text += f"{yellow('Scenarios', fp=fp)} {green(faction['Scenarios'], fp=fp)} " if faction['Scenarios'] != 0 else ""
         activity_text += f"{magenta('Fails', fp=fp)} {green(faction['MissionFailed'], fp=fp)} " if faction['MissionFailed'] != 0 else ""
-        space_cz = self._build_cz_text(faction.get('SpaceCZ', {}), "SpaceCZs", discord)
-        activity_text += f"{space_cz} " if space_cz != "" else ""
-        ground_cz = self._build_cz_text(faction.get('GroundCZ', {}), "GroundCZs", discord)
-        activity_text += f"{ground_cz} " if ground_cz != "" else ""
+        activity_text += self._build_cz_text(faction.get('SpaceCZ', {}), "SpaceCZs", discord)
+        activity_text += self._build_cz_text(faction.get('GroundCZ', {}), "GroundCZs", discord)
 
         faction_name = self._process_faction_name(faction['Faction'])
         faction_text = f"{color_wrap(faction_name, 'yellow', None, 'bold', fp=fp)} {activity_text}\n" if activity_text != "" else ""
@@ -1262,16 +1240,8 @@ class Activity:
         if kills > 0 or sandr > 0 or reactivate > 0:
             system_text += f"🍀 System activity\n"
             if kills > 0:
-                system_text += f"  💀 (kills): " \
-                                    + f"{red('R', fp=fp)} x {green(system['TWKills'].get('r', 0), fp=fp)}, " \
-                                    + f"{red('S', fp=fp)} x {green(system['TWKills'].get('s', 0), fp=fp)}, " \
-                                    + f"{red('Ba', fp=fp)} x {green(system['TWKills'].get('ba', 0), fp=fp)}, " \
-                                    + f"{red('S/G', fp=fp)} x {green(system['TWKills'].get('sg', 0), fp=fp)}, " \
-                                    + f"{red('C', fp=fp)} x {green(system['TWKills'].get('c', 0), fp=fp)}, " \
-                                    + f"{red('B', fp=fp)} x {green(system['TWKills'].get('b', 0), fp=fp)}, " \
-                                    + f"{red('M', fp=fp)} x {green(system['TWKills'].get('m', 0), fp=fp)}, " \
-                                    + f"{red('H', fp=fp)} x {green(system['TWKills'].get('h', 0), fp=fp)}, " \
-                                    + f"{red('O', fp=fp)} x {green(system['TWKills'].get('o', 0), fp=fp)} \n"
+                system_text += f"  💀 (kills): " + self._build_tw_vessels_text(system['TWKills'], discord) + " \n"
+
             if sandr > 0:
                 system_text += "  "
                 pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
@@ -1298,17 +1268,133 @@ class Activity:
             if (system_station['passengers']['sum'] > 0):
                 system_text += f"  🧍 x {green(system_station['passengers']['sum'], fp=fp)} - {green(system_station['passengers']['count'], fp=fp)} missions\n"
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_text += f"  💀 (missions): {red('S', fp=fp)} x {green(system_station['massacre']['s']['sum'], fp=fp)}, {red('C', fp=fp)} x {green(system_station['massacre']['c']['sum'], fp=fp)}, " \
-                                    + f"{red('B', fp=fp)} x {green(system_station['massacre']['b']['sum'], fp=fp)}, {red('M', fp=fp)} x {green(system_station['massacre']['m']['sum'], fp=fp)}, " \
-                                    + f"{red('H', fp=fp)} x {green(system_station['massacre']['h']['sum'], fp=fp)}, {red('O', fp=fp)} x {green(system_station['massacre']['o']['sum'], fp=fp)} " \
-                                    + f"- {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
+                system_text += f"  💀 (missions): " + self._build_tw_vessels_text(system_station['massacre'], discord) + f" - {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
             if (system_station['reactivate'] > 0):
                 system_text += f"  🛠️ x {green(system_station['reactivate'], fp=fp)} missions\n"
 
         return system_text
 
 
-    def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool):
+    def _build_inf_text(self, inf_data: dict, secondary_inf_data: dict, faction_state: str, discord: bool) -> str:
+        """
+        Create a completel summary of INF for the faction, including both primary and secondary if user has requested
+
+        Args:
+            inf_data (dict): Dict containing INF, key = '1' - '5' or 'm'
+            secondary_inf_data (dict): Dict containing secondary INF, key = '1' - '5' or 'm'
+            faction_state (str): Current faction state
+            discord (bool): True if creating for Discord
+
+        Returns:
+            str: INF summary
+        """
+        text:str = ""
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+
+        inf:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in inf_data.items())
+        inf_sec:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in secondary_inf_data.items())
+
+        if inf != 0 or (inf_sec != 0 and self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON):
+            if faction_state in STATES_ELECTION:
+                text += f"{blue('ElectionINF', fp=fp)} "
+            elif faction_state in STATES_WAR:
+                text += f"{blue('WarINF', fp=fp)} "
+            else:
+                text += f"{blue('INF', fp=fp)} "
+
+            if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON:
+                text += self._build_inf_individual(inf, inf_data, "🅟" if discord else "[P]", discord)
+                text += self._build_inf_individual(inf_sec, secondary_inf_data, "🅢" if discord else "[S]", discord)
+            else:
+                text += self._build_inf_individual(inf, inf_data, "", discord)
+
+        return text
+
+
+    def _build_inf_individual(self, inf:int, inf_data: dict, prefix: str, discord: bool) -> str:
+        """
+        Create a summary of either primary or secondary INF, with detailed breakdown if user has requested
+
+        Args:
+            inf (int): Total INF
+            inf_data (dict): dict containing INF, key = '1' - '5' or 'm'
+            prefix (str): Prefix label (🅟 or 🅢 or empty)
+            discord (bool): True if creating for Discord
+
+        Returns:
+            str: INF summary
+        """
+        text:str = ""
+        if inf == 0: return text
+
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+
+        inf_str:str = f"{'+' if inf > 0 else ''}{inf}"
+        text += f"{prefix}{green(inf_str, fp=fp)} "
+
+        if self.bgstally.state.DetailedInf.get() == CheckStates.STATE_ON:
+            detailed_inf:str = ""
+            if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {inf_data['1']} "
+            if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {inf_data['2']} "
+            if inf_data.get('3', 0) != 0: detailed_inf += f"{'➌' if discord else '+++'} x {inf_data['3']} "
+            if inf_data.get('4', 0) != 0: detailed_inf += f"{'➍' if discord else '++++'} x {inf_data['4']} "
+            if inf_data.get('5', 0) != 0: detailed_inf += f"{'➎' if discord else '+++++'} x {inf_data['5']} "
+            if detailed_inf != "": text += f"({detailed_inf.rstrip()}) "
+
+        return text
+
+
+    def _build_trade_text(self, trade_purchase: int, trade_profit: int, trade_buy: list, trade_sell: list, discord: bool) -> str:
+        """
+        Create a summary of trade, with detailed breakdown if user has requested
+
+        Args:
+            trade_purchase (int): Legacy total trade purchase value (before trade was tracked in brackets).
+            trade_profit (int): Legacy total trade profit value (before trade was tracked in brackets).
+            trade_buy (list): List of trade purchases with each entry corresponding to a trade bracket.
+            trade_sell (list): List of trade sales with each entry corresponding to a trade bracket.
+            discord (bool): True if creating for Discord
+
+        Returns:
+            str: Trade summary
+        """
+        text:str = ""
+
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+
+        if trade_purchase > 0:
+            # Legacy - Used a single value for purchase value / profit
+            text += f"{cyan('TrdPurchase', fp=fp)} {green(human_format(trade_purchase), fp=fp)} " if trade_purchase != 0 else ""
+            text += f"{cyan('TrdProfit', fp=fp)} {green(human_format(trade_profit), fp=fp)} " if trade_profit != 0 else ""
+        elif self.bgstally.state.DetailedTrade.get() == CheckStates.STATE_OFF:
+            # Modern, simple trade report - Combine buy at all brackets and profit at all brackets
+            buy_total:int = sum(int(d['value']) for d in trade_buy)
+            profit_total:int = sum(int(d['value']) for d in trade_sell)
+            text += f"{cyan('TrdBuy', fp=fp)} {green(human_format(buy_total), fp=fp)} " if buy_total != 0 else ""
+            text += f"{cyan('TrdProfit', fp=fp)} {green(human_format(profit_total), fp=fp)} " if profit_total != 0 else ""
+        else:
+            # Modern, detailed trade report - Split into values per supply / demand bracket
+            if sum(int(d['value']) for d in trade_buy) > 0:
+                # Buy brackets currently range from 1 - 3
+                text += f"{cyan('TrdBuy', fp=fp)} " \
+                    + f"{'🅻' if discord else '[L]'}:{green(human_format(trade_buy[1]['value']), fp=fp)} " \
+                    + f"{'🅼' if discord else '[M]'}:{green(human_format(trade_buy[2]['value']), fp=fp)} " \
+                    + f"{'🅷' if discord else '[H]'}:{green(human_format(trade_buy[3]['value']), fp=fp)} "
+            if sum(int(d['value']) for d in trade_sell) > 0:
+                # Sell brackets currently range from 0 - 3
+                text += f"{cyan('TrdProfit', fp=fp)} " \
+                    + f"{'🆉' if discord else '[Z]'}:{green(human_format(trade_sell[0]['profit']), fp=fp)} " \
+                    + f"{'🅻' if discord else '[L]'}:{green(human_format(trade_sell[1]['profit']), fp=fp)} " \
+                    + f"{'🅼' if discord else '[M]'}:{green(human_format(trade_sell[2]['profit']), fp=fp)} " \
+                    + f"{'🅷' if discord else '[H]'}:{green(human_format(trade_sell[3]['profit']), fp=fp)} "
+
+        return text
+
+
+    def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool) -> str:
         """
         Create a summary of Conflict Zone activity
         """
@@ -1317,11 +1403,43 @@ class Activity:
         # Force plain text if we are not posting to Discord
         fp:bool = not discord
 
-        if 'l' in cz_data and cz_data['l'] != '0' and cz_data['l'] != '': text += f"{cz_data['l']}xL "
-        if 'm' in cz_data and cz_data['m'] != '0' and cz_data['m'] != '': text += f"{cz_data['m']}xM "
-        if 'h' in cz_data and cz_data['h'] != '0' and cz_data['h'] != '': text += f"{cz_data['h']}xH "
+        if 'l' in cz_data and cz_data['l'] != "0" and cz_data['l'] != "": text += f"{cz_data['l']}xL "
+        if 'm' in cz_data and cz_data['m'] != "0" and cz_data['m'] != "": text += f"{cz_data['m']}xM "
+        if 'h' in cz_data and cz_data['h'] != "0" and cz_data['h'] != "": text += f"{cz_data['h']}xH "
 
-        if text != '': text = f"{red(prefix, fp=fp)} {green(text, fp=fp)}"
+        if text != "": text = f"{red(prefix, fp=fp)} {green(text, fp=fp)} "
+        return text
+
+
+    def _build_tw_vessels_text(self, tw_data: dict, discord: bool) -> str:
+        """
+        Create a summary of TW activity. tw_data can be a dict containing either:
+          key = str representing thargoid vessel type; value = dict containing 'sum' property with int total for that vessel
+          key = str representing thargoid vessel type; value = int total for that vessel
+        """
+        if tw_data == {}: return ""
+        text:str = ""
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+        first:bool = True
+
+        for k, v in tw_data.items():
+            label:str = ""
+            value:int = 0
+
+            if k == 'ba': label = "Ba"    # Banshee
+            elif k == 'sg': label = "S/G" # Scythe / Glaive
+            else: label = k.upper()       # All others
+
+            if isinstance(v, dict): value = int(v.get('sum', 0))
+            else: value = int(v)
+            if value == 0: continue
+
+            if not first: text += ", "
+            text += f"{red(label, fp=fp)} x {green(value, fp=fp)}"
+
+            first = False
+
         return text
 
 
@@ -1330,7 +1448,7 @@ class Activity:
         Shorten the faction name if the user has chosen to
         """
         if self.bgstally.state.AbbreviateFactionNames.get() == CheckStates.STATE_ON:
-            return ''.join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
+            return "".join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
         else:
             return faction_name
 
@@ -1343,8 +1461,7 @@ class Activity:
             'tickid': self.tick_id,
             'ticktime': self.tick_time.strftime(DATETIME_FORMAT_ACTIVITY),
             'tickforced': self.tick_forced,
-            'discordmessageid': self.discord_bgs_messageid,
-            'discordtwmessageid': self.discord_tw_messageid,
+            'discordwebhookdata': self.discord_webhook_data,
             'discordnotes': self.discord_notes,
             'systems': self.systems}
 
@@ -1356,10 +1473,9 @@ class Activity:
         self.tick_id = dict.get('tickid')
         self.tick_time = datetime.strptime(dict.get('ticktime'), DATETIME_FORMAT_ACTIVITY)
         self.tick_forced = dict.get('tickforced', False)
-        self.discord_bgs_messageid = dict.get('discordmessageid')
-        self.discord_tw_messageid = dict.get('discordtwmessageid')
-        self.discord_notes = dict.get('discordnotes')
-        self.systems = dict.get('systems')
+        self.discord_webhook_data = dict.get('discordwebhookdata', {})
+        self.discord_notes = dict.get('discordnotes', "")
+        self.systems = dict.get('systems', {})
 
 
 
@@ -1401,11 +1517,11 @@ class Activity:
         setattr(result, 'tick_id', self.tick_id)
         setattr(result, 'tick_time', self.tick_time)
         setattr(result, 'tick_forced', self.tick_forced)
-        setattr(result, 'discord_bgs_messageid', self.discord_bgs_messageid)
-        setattr(result, 'discord_tw_messageid', self.discord_tw_messageid)
         setattr(result, 'discord_notes', self.discord_notes)
+        setattr(result, 'megaship_pat', self.megaship_pat)
 
         # Deep copied items
         setattr(result, 'systems', deepcopy(self.systems, memo))
+        setattr(result, 'discord_webhook_data', deepcopy(self.discord_webhook_data, memo))
 
         return result

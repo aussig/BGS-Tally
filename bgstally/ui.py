@@ -12,7 +12,7 @@ import myNotebook as nb
 from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.activity import Activity
-from bgstally.constants import FOLDER_ASSETS, FONT_HEADING, CheckStates, DiscordActivity, DiscordPostStyle, UpdateUIPolicy
+from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL, CheckStates, DiscordActivity, DiscordPostStyle, UpdateUIPolicy
 from bgstally.debug import Debug
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
@@ -21,6 +21,7 @@ from bgstally.windows.cmdrs import WindowCMDRs
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
 from bgstally.windows.legend import WindowLegend
 from config import config
+from thirdparty.tksheet import Sheet
 
 DATETIME_FORMAT_OVERLAY = "%Y-%m-%d %H:%M"
 SIZE_BUTTON_PIXELS = 30
@@ -53,6 +54,9 @@ class UI:
         self.window_legend:WindowLegend = WindowLegend(self.bgstally)
         # TODO: When we support multiple APIs, this will no longer be a single instance window
         self.window_api:WindowAPI = WindowAPI(self.bgstally, self.bgstally.api_manager.apis[0])
+
+        # Multi-instance windows
+        self.window_activity:dict = {}
 
         self.thread: Optional[Thread] = Thread(target=self._worker, name="BGSTally UI worker")
         self.thread.daemon = True
@@ -125,42 +129,47 @@ class UI:
         frame.columnconfigure(1, weight=1)
 
         current_row = 1
-        nb.Label(frame, text=f"BGS Tally (modified by Aussi) v{str(self.bgstally.version)}", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        nb.Label(frame, text=f"BGS Tally (Aussi) v{str(self.bgstally.version)}", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.W)
         HyperlinkLabel(frame, text="Instructions for Use", background=nb.Label().cget('background'), url=URL_WIKI, underline=True).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="General", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
+        nb.Label(frame, text="General Options", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
         nb.Checkbutton(frame, text="BGS Tally Active", variable=self.bgstally.state.Status, onvalue="Active", offvalue="Paused").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(frame, text="Show Systems with Zero Activity", variable=self.bgstally.state.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Discord", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # Don't increment row because we want the 1st radio option to be opposite title
-        nb.Label(frame, text="Activity to Include").grid(row=current_row + 1, column=0, padx=10, sticky=tk.W)
-        nb.Radiobutton(frame, text="BGS", variable=self.bgstally.state.DiscordActivity, value=DiscordActivity.BGS).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Radiobutton(frame, text="Thargoid War", variable=self.bgstally.state.DiscordActivity, value=DiscordActivity.THARGOIDWAR).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Radiobutton(frame, text="Both", variable=self.bgstally.state.DiscordActivity, value=DiscordActivity.BOTH).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Label(frame, text="Discord Options", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # Don't increment row because we want the 1st radio option to be opposite title
+        nb.Checkbutton(frame, text="Abbreviate Faction Names", variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Show Detailed INF", variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Show Detailed Trade", variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Report Newly Visited System Activity By Default", variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Label(frame, text="Post Format").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         nb.Radiobutton(frame, text="Modern", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Radiobutton(frame, text="Legacy", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Label(frame, text="Other Options").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        nb.Checkbutton(frame, text="Abbreviate Faction Names", variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(frame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(frame, text="Report Newly Visited System Activity By Default", variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Label(frame, text="BGS Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordBGSWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Thargoid War Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordTWWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Fleet Carrier Materials Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordFCMaterialsWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Fleet Carrier Operations Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordFCOperationsWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="CMDR Information Webhook URL").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordCMDRInformationWebhook).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Post as User").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="In-game Overlay", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
+        nb.Label(frame, text="Discord Webhooks", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1
+        nb.Label(frame, text="Post to Discord as").grid(row=current_row, column=0, padx=10, sticky=tk.W)
+        EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
+        self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, enable_edit_cell_auto_resize=False, height=140, width=880,
+                                     column_width=55, header_align="left", empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
+                                     show_horizontal_grid=False, show_vertical_grid=False, show_top_left=False, edit_cell_validation=False,
+                                     headers=["UUID", "Nickname", "Webhook URL", "BGS", "TW", "FC Mats", "FC Ops", "CMDR"])
+        self.sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
+        self.sheet_webhooks.hide_columns(columns=[0])                       # Visible column indexes
+        self.sheet_webhooks.checkbox_column(c=[3, 4, 5, 6, 7])              # Data column indexes
+        self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks_as_list())
+        self.sheet_webhooks.column_width(column=0, width=150, redraw=False) # Visible column indexes
+        self.sheet_webhooks.column_width(column=1, width=400, redraw=True)  # Visible column indexes
+        self.sheet_webhooks.enable_bindings(('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select', 'rc_insert_row',
+                            'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell', 'modified'))
+        self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)
+        nb.Label(frame, text="To add a webhook: Right-click on a row number and select 'Insert rows above / below'.", font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
+        nb.Label(frame, text="To delete a webhook: Right-click on a row number and select 'Delete rows'.", font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
+
+        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text="In-game Overlay", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
         nb.Checkbutton(frame, text="Show In-game Overlay",
                        variable=self.bgstally.state.EnableOverlay,
                        state=self._overlay_options_state(),
@@ -204,11 +213,11 @@ class UI:
             nb.Label(frame, text="In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.").grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Integrations", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
+        nb.Label(frame, text="Integrations", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
         tk.Button(frame, text="Configure Remote Server", command=partial(self._show_api_window, parent_frame)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text="Advanced", font=FONT_HEADING).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
+        nb.Label(frame, text="Advanced", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
         tk.Button(frame, text="FORCE Tick", command=self._confirm_force_tick, bg="red", fg="white").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         return frame
@@ -220,6 +229,16 @@ class UI:
         """
         self.indicate_activity = True
         self.report_system_address = str(system_address)
+
+
+    def _webhooks_table_modified(self, event=None):
+        """
+        Callback for all modifications to the webhooks table
+
+        Args:
+            event (namedtuple, optional): Variables related to the callback. Defaults to None.
+        """
+        self.bgstally.webhook_manager.set_webhooks_from_list(self.sheet_webhooks.get_sheet_data())
 
 
     def _worker(self) -> None:
@@ -292,9 +311,13 @@ class UI:
 
     def _show_activity_window(self, activity: Activity):
         """
-        Display the activity data window, using data from the passed in activity object
+        Display the appropriate activity data window, using data from the passed in activity object
         """
-        WindowActivity(self.bgstally, self, activity)
+        existing_activity_window:WindowActivity = self.window_activity.get(activity.tick_id)
+        if existing_activity_window is not None:
+            existing_activity_window.show(activity)
+        else:
+            self.window_activity[activity.tick_id] = WindowActivity(self.bgstally, self, activity)
 
 
     def _show_cmdr_list_window(self):

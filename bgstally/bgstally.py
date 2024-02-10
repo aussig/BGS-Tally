@@ -25,6 +25,7 @@ from bgstally.tick import Tick
 from bgstally.ui import UI
 from bgstally.updatemanager import UpdateManager
 from bgstally.utils import get_by_path
+from bgstally.webhookmanager import WebhookManager
 from config import appversion, config
 
 TIME_WORKER_PERIOD_S = 60
@@ -51,8 +52,9 @@ class BGSTally:
 
         # Load sentry to track errors during development - Hard check on "dev" versions ONLY (which never go out to testers)
         # If you are a developer and want to use sentry, install the sentry_sdk inside the ./thirdparty folder and add your full dsn
-        # (starting https://) to a 'sentry' entry in config.ini file
-        if type(self.version.prerelease) is tuple and self.version.prerelease[0] == "dev":
+        # (starting https://) to a 'sentry' entry in config.ini file. Set the plugin version in load.py to include a 'dev' prerelease,
+        # e.g. "3.3.0-dev"
+        if type(self.version.prerelease) is tuple and len(self.version.prerelease) > 0 and self.version.prerelease[0] == "dev":
             sys.path.append(path.join(plugin_dir, 'thirdparty'))
             try:
                 import sentry_sdk
@@ -78,6 +80,7 @@ class BGSTally:
         self.market:Market = Market(self)
         self.request_manager:RequestManager = RequestManager(self)
         self.api_manager:APIManager = APIManager(self)
+        self.webhook_manager:WebhookManager = WebhookManager(self)
         self.update_manager:UpdateManager = UpdateManager(self)
         self.ui:UI = UI(self)
 
@@ -301,6 +304,7 @@ class BGSTally:
         self.state.save()
         self.fleet_carrier.save()
         self.api_manager.save()
+        self.webhook_manager.save()
 
 
     def new_tick(self, force: bool, uipolicy: UpdateUIPolicy):

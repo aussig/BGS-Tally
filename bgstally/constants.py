@@ -30,13 +30,14 @@ class UpdateUIPolicy(Enum):
     IMMEDIATE = 1
     LATER = 2
 
-
-class DiscordChannel(Enum):
-    BGS = 0
-    CMDR_INFORMATION = 1
-    FLEETCARRIER_MATERIALS = 2
-    FLEETCARRIER_OPERATIONS = 3
-    THARGOIDWAR = 4
+# Discord channels
+# Subclassing from str as well as Enum means json.load and json.dump work seamlessly
+class DiscordChannel(str, Enum):
+    BGS = 'BGS'
+    CMDR_INFORMATION = 'CMDR-info'
+    FLEETCARRIER_MATERIALS = 'FC-mats'
+    FLEETCARRIER_OPERATIONS = 'FC-ops'
+    THARGOIDWAR = 'TW'
 
 
 class MaterialsCategory(Enum):
@@ -65,14 +66,26 @@ class RequestMethod(Enum):
     OPTIONS = 'options'
 
 
+class CmdrInteractionReason(int, Enum):
+    SCANNED = 0
+    FRIEND_REQUEST_RECEIVED = 1
+    INTERDICTED_BY = 2
+    KILLED_BY = 3
+    MESSAGE_RECEIVED = 4
+    TEAM_INVITE_RECEIVED = 5
+
+
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"
 FILE_SUFFIX = ".json"
 FOLDER_ASSETS = "assets"
 FOLDER_DATA = "otherdata"
 FOLDER_BACKUPS = "backups"
 FOLDER_UPDATES = "updates"
-FONT_HEADING:tuple = ("Helvetica", 11, "bold")
-FONT_TEXT:tuple = ("Helvetica", 11)
+FONT_HEADING_1:tuple = ("Helvetica", 13, "bold")
+FONT_HEADING_2:tuple = ("Helvetica", 11, "bold")
+FONT_TEXT:tuple = ("Helvetica", 11, "normal")
 FONT_TEXT_BOLD:tuple = ("Helvetica", 11, "bold")
 FONT_TEXT_UNDERLINE:tuple = ("Helvetica", 11, "underline")
 FONT_TEXT_BOLD_UNDERLINE:tuple = ("Helvetica", 11, "bold underline")
+FONT_SMALL:tuple = ("Helvetica", 9, "normal")
+COLOUR_HEADING_1 = "#A300A3"

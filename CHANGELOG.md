@@ -1,19 +1,61 @@
 # Change Log
 
-## x3.3.0-xx - xxxx-xx-xx
+## v3.5.0-xx - xxxx-xx-xx
+
+### New Features:
+
+* New 'detailed INF' report. This is optional and is off by default, but when enabled gives a detailed breakdown of the number of missions completed at each +INF level. For example: `INF +19 (➋ x 4 ➌ x 2 ➎ x 1)` means you completed 4 missions awarding ++, 2 mission awarding +++ and 1 mission awarding +++++. Manually tallied INF is simply added or removed from the overall total.
+* When secondary INF reporting is switched on, now indicate which INF is primary `🅟` and which is secondary `🅢`. This can also combine with detailed INF reporting to give a full breakdown of primary and secondary INF.
+* New 'detailed Trade' checkbox, which is on by default and when enabled shows the full trade breakdown into brackets 🆉 | 🅻 | 🅼 | 🅷, when disabled all brackets are combined into simple totals for trade purchase and trade profit.
+
+### Changes:
+
+* Activity windows (latest Tally / previous Tally) will now remember their positions and sizes.
+* Re-opening an already open activity window (latest Tally / previous Tally) will no longer open two copies of the same window. Instead, the old one will be closed and a new fresh window with latest data opened at the same position and size on screen.
+
+
+## v3.4.0 - 2024-02-09
+
+### New Features:
+
+* Discord webhooks completely re-worked. Now, instead of a single, fixed webhook for each type of Discord post, there is a fully flexible table of webhooks which you can set up any way you like - a single webhook for all Discord posts; a webhook for each type of Discord post; multiple webhooks for each type, or any combination of these. As one example, this would allow you to send your BGS reports to multiple Discord servers if you wish.
+* The system title and a link to the Inara page for the system are now shown at the top of every activity panel.
+
+### Changes:
+
+* Heading styles have been standardised across all windows. And headings are now purple, yay!
+* URL link styles have been standardised across all windows.
+* When posting CMDR info to Discord, now include how you interacted with them, colour coded.
+* The 'Post to Discord' button is now always visible (but greyed out if not usable) on Fleet Carrier and CMDR Information windows.
+
+### Bug Fixes:
+
+* Thargoid vessel types in mission reports were still showing if they were 0. These are now omitted.
+* Fix error when fetching carrier data when carrier has no sell orders.
+* If an `/events` API client sets an event filter using an integer as the filter, e.g. `3`, this was throwing an error and the event was not sent.
+
+
+## v3.3.0 - 2023-12-09
 
 ### New Features:
 
 * Targeting a player in a taxi will now log the player name and attempt lookup on Inara.
-* Now log the details of any CMDR who interdicts you, sends a message in local chat, invites you to a team or kills you in a team.
+* Now log the details of any CMDR who interdicts you, sends a message in local chat, invites you to a team, kills you solo or kills you in a team.
 * The CMDR listing window now has an extra 'Interaction' column which describes how you interacted with the other CMDR (scanned, interdicted by etc.).
-* Now tally Thargoid War banshee kills.
+* Thargoid War banshee kills are now tallied.
 
 ### Changes:
 
 * Faction name abbreviations are less obscure when the faction name contains a number or a dash.
+* Thargoid vessel types are omitted if they are 0, both for kills and for missions. This creates shorter and clearer reports.
+* No longer include Exobiology sales in discord reports.
+* Plugin no longer terminates if it cannot fetch the tick from elitebgs.app on initial load. Not an ideal situation as we know nothing about the current tick, but at least BGS-Tally is still usable in this situation.
 
-### API Changes ([v1.3](https://studio-ws.apicur.io/sharing/281a84ad-dca9-42da-a08b-84e4b9af1b7e)):
+### Bug Fixes:
+
+* Fix (another) crash in code that detects drop from supercruise at megaships.
+
+### API Changes ([v1.3](https://studio-ws.apicur.io/sharing/d352797e-c40e-4f91-bcd8-773a14f40fc0)):
 
 * `/events` endpoint: All localised fields are now stripped before sending. i.e. fields who's name ends with `_Localised`.
 * `/activities` endpoint: Added `banshee` to `systems/[system]/twkills`.

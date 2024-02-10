@@ -8,7 +8,7 @@ from bgstally.constants import UpdateUIPolicy
 from bgstally.debug import Debug
 
 PLUGIN_NAME = "BGS-Tally"
-PLUGIN_VERSION = semantic_version.Version.coerce("3.3.0-dev")
+PLUGIN_VERSION = semantic_version.Version.coerce("3.5.0-dev")
 
 # Initialise the main plugin class
 this:BGSTally = BGSTally(PLUGIN_NAME, PLUGIN_VERSION)
@@ -20,11 +20,7 @@ def plugin_start3(plugin_dir):
     """
     this.plugin_start(plugin_dir)
 
-    tick_success = this.check_tick(UpdateUIPolicy.NEVER)
-
-    if tick_success == None:
-        # Cannot continue if we couldn't fetch a tick
-        raise Exception("BGS-Tally couldn't continue because the current tick could not be fetched")
+    this.check_tick(UpdateUIPolicy.NEVER)
 
     return this.plugin_name
 

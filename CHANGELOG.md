@@ -7,10 +7,11 @@
 * New 'detailed INF' report. This is optional and is off by default, but when enabled gives a detailed breakdown of the number of missions completed at each +INF level. For example: `INF +19 (➋ x 4 ➌ x 2 ➎ x 1)` means you completed 4 missions awarding ++, 2 mission awarding +++ and 1 mission awarding +++++. Manually tallied INF is simply added or removed from the overall total.
 * When secondary INF reporting is switched on, now indicate which INF is primary `🅟` and which is secondary `🅢`. This can also combine with detailed INF reporting to give a full breakdown of primary and secondary INF.
 * New 'detailed Trade' checkbox, which is on by default and when enabled shows the full trade breakdown into brackets 🆉 | 🅻 | 🅼 | 🅷, when disabled all brackets are combined into simple totals for trade purchase and trade profit.
+* When multiple CMDRs are selected in the CMDR window, 'Post to Discord' now posts a concise table containing all the CMDRs in the list, with Inara and Inara squadron links where available. With a single CMDR selected, posting is exactly the same as it was.
 
 ### Changes:
 
-* Activity windows (latest Tally / previous Tally) will now remember their positions and sizes.
+* Activity windows (latest Tally / previous Tally) will now remember their positions and sizes within a game session.
 * Re-opening an already open activity window (latest Tally / previous Tally) will no longer open two copies of the same window. Instead, the old one will be closed and a new fresh window with latest data opened at the same position and size on screen.
 
 

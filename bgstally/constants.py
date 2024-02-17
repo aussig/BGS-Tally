@@ -40,9 +40,11 @@ class DiscordChannel(str, Enum):
     THARGOIDWAR = 'TW'
 
 
-class MaterialsCategory(Enum):
-    SELLING = 0
-    BUYING = 1
+class FleetCarrierItemType(Enum):
+    MATERIALS_SELLING = 0
+    MATERIALS_BUYING = 1
+    COMMODITIES_SELLING = 2
+    COMMODITIES_BUYING = 3
 
 
 class DiscordPostStyle(str, Enum):

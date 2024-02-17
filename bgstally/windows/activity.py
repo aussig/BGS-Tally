@@ -25,6 +25,8 @@ class WindowActivity:
         self.bgstally = bgstally
         self.ui = ui
         self.activity:Activity = activity
+        self.toplevel:tk.Toplevel = None
+        self.window_geometry:dict = None
 
         self.image_tab_active_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
         self.image_tab_active_part_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
@@ -33,14 +35,24 @@ class WindowActivity:
         self.image_tab_inactive_part_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_part_enabled.png"))
         self.image_tab_inactive_disabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_disabled.png"))
 
-        self._show(activity)
+        self.show(activity)
 
 
-    def _show(self, activity: Activity):
+    def show(self, activity: Activity):
         """
         Show our window
         """
-        self.toplevel:tk.Toplevel = tk.Toplevel(self.ui.frame)
+        # If we already have a window, save its geometry and close it before we create a new one.
+        if self.toplevel is not None and self.toplevel.winfo_exists():
+            self._store_window_geometry()
+            self.toplevel.destroy()
+
+        self.toplevel = tk.Toplevel(self.ui.frame)
+        self.toplevel.protocol("WM_DELETE_WINDOW", self._window_closed)
+
+        if self.window_geometry is not None:
+            self.toplevel.geometry(f"{self.window_geometry['w']}x{self.window_geometry['h']}+{self.window_geometry['x']}+{self.window_geometry['y']}")
+
         self.toplevel.title(f"{self.bgstally.plugin_name} - Activity After Tick at: {activity.get_title()}")
 
         ContainerFrame = ttk.Frame(self.toplevel)
@@ -92,7 +104,9 @@ class WindowActivity:
         ttk.Radiobutton(DiscordOptionsFrame, text="Legacy", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         ttk.Label(DiscordOptionsFrame, text="Other Options").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         ttk.Checkbutton(DiscordOptionsFrame, text="Abbreviate Faction Names", variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        ttk.Checkbutton(DiscordOptionsFrame, text="Show Detailed INF", variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         ttk.Checkbutton(DiscordOptionsFrame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        ttk.Checkbutton(DiscordOptionsFrame, text="Show Detailed Trade", variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         ttk.Checkbutton(DiscordOptionsFrame, text="Report Newly Visited System Activity By Default", variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         system_list = activity.get_ordered_systems()
@@ -188,10 +202,10 @@ class WindowActivity:
 
                 col = 2
                 ttk.Label(frame_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                MissionPointsVar = tk.IntVar(value=faction['MissionPoints'])
+                MissionPointsVar = tk.IntVar(value=faction['MissionPoints']['m'])
                 ttk.Spinbox(frame_table, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                 MissionPointsVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsVar, True, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
-                MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary'])
+                MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary']['m'])
                 ttk.Spinbox(frame_table, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                 MissionPointsSecVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsSecVar, False, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
                 if faction['TradePurchase'] > 0:
@@ -243,6 +257,29 @@ class WindowActivity:
 
         # Ignore all scroll wheel events on spinboxes, to avoid accidental inputs
         self.toplevel.bind_class('TSpinbox', '<MouseWheel>', lambda event : "break")
+
+        self._store_window_geometry()
+
+
+    def _window_closed(self):
+        """
+        Callback for when user closes the window
+        """
+        self._store_window_geometry()
+        self.toplevel.destroy()
+
+
+    def _store_window_geometry(self):
+        """
+        Save the current window position and dimensions
+        """
+        if not self.toplevel: return
+
+        self.window_geometry = {
+            'x': self.toplevel.winfo_x(),
+            'y': self.toplevel.winfo_y(),
+            'w': self.toplevel.winfo_width(),
+            'h': self.toplevel.winfo_height()}
 
 
     def _show_legend_window(self, event):
@@ -424,9 +461,9 @@ class WindowActivity:
         Callback (set as a variable trace) for when a mission points Variable is changed
         """
         if primary:
-            faction['MissionPoints'] = MissionPointsVar.get()
+            faction['MissionPoints']['m'] = MissionPointsVar.get()
         else:
-            faction['MissionPointsSecondary'] = MissionPointsVar.get()
+            faction['MissionPointsSecondary']['m'] = MissionPointsVar.get()
 
         activity.recalculate_zero_activity()
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)

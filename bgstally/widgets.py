@@ -336,7 +336,8 @@ class TreeviewPlus(ttk.Treeview):
 
         iid:str = self.identify('item', event.x, event.y)
 
-        self.callback(clicked_item['values'], clicked_column, self, iid)
+        if self.callback is not None:
+            self.callback(clicked_item['values'], clicked_column, self, iid)
 
     def _sort(self, column, reverse, data_type, callback):
         l = [(self.set(k, column), k) for k in self.get_children('')]

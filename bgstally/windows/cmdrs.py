@@ -21,6 +21,7 @@ class WindowCMDRs:
         self.bgstally = bgstally
 
         self.selected_cmdr:dict = None
+        self.selected_items:list = None
         self.target_data:list = None
         self.toplevel:tk.Toplevel = None
 
@@ -34,7 +35,7 @@ class WindowCMDRs:
             return
 
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
-        self.toplevel.title("Targeted CMDR Information")
+        self.toplevel.title("CMDR Interactions")
         self.toplevel.geometry("1200x800")
 
         container_frame = ttk.Frame(self.toplevel)
@@ -59,6 +60,7 @@ class WindowCMDRs:
         self.target_data = self.bgstally.target_log.get_targetlog()
 
         treeview = TreeviewPlus(list_frame, columns=[d['title'] for d in column_info], show="headings", callback=self._cmdr_selected, datetime_format=DATETIME_FORMAT_CMDRLIST)
+        treeview.bind('<<TreeviewSelect>>', partial(self._cmdr_selection_changed, treeview))
         vsb = tk.Scrollbar(list_frame, orient=tk.VERTICAL, command=treeview.yview)
         vsb.pack(fill=tk.Y, side=tk.RIGHT)
         treeview.configure(yscrollcommand=vsb.set)
@@ -96,11 +98,11 @@ class WindowCMDRs:
                              target.get('Notes', "Scanned")]
             treeview.insert("", 'end', values=target_values, iid=target.get('index'))
 
-        self.post_button = tk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
+        self.post_button = tk.Button(buttons_frame, text="Post CMDR to Discord", command=partial(self._post_to_discord))
         self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
         self.post_button['state'] = tk.DISABLED
 
-        self.delete_button = tk.Button(buttons_frame, text="Delete", bg="red", fg="white", command=partial(self._delete_selected, treeview))
+        self.delete_button = tk.Button(buttons_frame, text="Delete Selected", bg="red", fg="white", command=partial(self._delete_selected, treeview))
         self.delete_button.pack(side=tk.RIGHT, padx=5, pady=5)
         self.delete_button['state'] = tk.DISABLED
 
@@ -118,14 +120,6 @@ class WindowCMDRs:
         # Fetch the info for this CMDR. iid is the index into the original (unsorted) CMDR list.
         self.selected_cmdr = self.target_data[int(iid)]
 
-        if not self.selected_cmdr:
-            self.post_button['state'] = tk.DISABLED
-            self.delete_button['state'] = tk.DISABLED
-            return
-        elif self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
-            self.post_button['state'] = tk.NORMAL
-            self.delete_button['state'] = tk.NORMAL
-
         if 'TargetName' in self.selected_cmdr: self.cmdr_details_name.config(text = self.selected_cmdr.get('TargetName'))
         if 'inaraURL' in self.selected_cmdr: self.cmdr_details_name_inara.configure(text = "Inara Info Available ⤴", url = self.selected_cmdr.get('inaraURL'))
         if 'squadron' in self.selected_cmdr:
@@ -137,6 +131,30 @@ class WindowCMDRs:
         if 'Notes' in self.selected_cmdr: self.cmdr_details_interaction.config(text = self.selected_cmdr.get('Notes'))
 
 
+    def _cmdr_selection_changed(self, treeview:TreeviewPlus, *args):
+        """
+        The selected CMDRs have changed in the list. Called on any change, so there could be nothing selected, one CMDR selected
+        or multiple CMDRs.
+
+        Args:
+            treeview (TreeviewPlus): The TreeViewPlus object
+        """
+        self.selected_items = treeview.selection()
+
+        if len(self.selected_items) == 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
+            self.post_button.configure(text = "Post CMDR to Discord")
+            self.post_button['state'] = tk.NORMAL
+            self.delete_button['state'] = tk.NORMAL
+        elif len(self.selected_items) > 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
+            self.post_button.configure(text = "Post CMDR List to Discord")
+            self.post_button['state'] = tk.NORMAL
+            self.delete_button['state'] = tk.NORMAL
+        else:
+            self.post_button.configure(text = "Post CMDR to Discord")
+            self.post_button['state'] = tk.DISABLED
+            self.delete_button['state'] = tk.DISABLED
+
+
     def _delete_selected(self, treeview:TreeviewPlus):
         """
         Delete the currently selected CMDRs
@@ -144,13 +162,26 @@ class WindowCMDRs:
         selected_items:list = treeview.selection()
         for selected_iid in selected_items:
            for i in range(len(self.target_data)):
-               if self.target_data[i]['iid'] == selected_iid:
+               if int(self.target_data[i]['index']) == int(selected_iid):
                    self.target_data.pop(i) # Remove the corresponding item
                    break
-           treeview.delete(selected_iid)
+           treeview.delete(int(selected_iid))
+
+        self.selected_cmdr = None
+        self._cmdr_selection_changed(treeview)
 
 
     def _post_to_discord(self):
+        """
+        Post the current selected CMDR or multiple CMDR details to discord
+        """
+        if len(self.selected_items) == 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
+            self._post_single_cmdr_to_discord()
+        elif len(self.selected_items) > 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
+            self._post_multiple_CMDRs_to_discord()
+
+
+    def _post_single_cmdr_to_discord(self):
         """
         Post the current selected cmdr details to discord
         """
@@ -224,3 +255,34 @@ class WindowCMDRs:
         description = f"```ansi\n{description}\n```"
 
         self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr.get('TargetName')}", description, embed_fields, None, DiscordChannel.CMDR_INFORMATION, None)
+
+
+    def _post_multiple_CMDRs_to_discord(self):
+        """
+        Post the currently selected list of CMDRs to discord
+        """
+        text:str = ""
+
+        for selected_iid in self.selected_items:
+            if len(text) > 1500:
+                text += "[...]"
+                break
+
+            for cmdr in self.target_data:
+                if int(cmdr['index']) == int(selected_iid):
+                    text += f"{datetime.strptime(cmdr.get('Timestamp'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST)}: "
+
+                    if 'inaraURL' in cmdr:
+                        text += f" - [{cmdr.get('TargetName')}]({cmdr.get('inaraURL')})"
+                    else:
+                        text += f" - {cmdr.get('TargetName')}"
+
+                    text += f" - [{cmdr.get('System')}](https://inara.cz/elite/starsystem/?search={cmdr.get('System')}) - {cmdr.get('Ship')}"
+
+                    if 'squadron' in cmdr:
+                        squadron_info = cmdr.get('squadron')
+                        if 'squadronName' in squadron_info and 'inaraURL' in squadron_info:
+                            text += f" - [{squadron_info.get('squadronName')}]({squadron_info.get('inaraURL')})"
+                    text += "\n"
+
+        self.bgstally.discord.post_plaintext(text, None, DiscordChannel.CMDR_INFORMATION, None)

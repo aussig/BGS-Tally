@@ -2,7 +2,7 @@ import tkinter as tk
 from functools import partial
 from tkinter import ttk
 
-from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_1, FONT_HEADING_2, DiscordChannel, FleetCarrierItemType
+from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, DiscordChannel, FleetCarrierItemType
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.widgets import TextPlus
@@ -47,13 +47,13 @@ class WindowFleetCarrier:
 
         current_row = 0
 
-        ttk.Label(items_frame, text="Selling Materials", font=FONT_HEADING_2).grid(row=current_row, column=0)
-        ttk.Label(items_frame, text="Buying Materials", font=FONT_HEADING_2).grid(row=current_row, column=1)
+        ttk.Label(items_frame, text="Selling Materials", font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W)
+        ttk.Label(items_frame, text="Buying Materials", font=FONT_HEADING_2).grid(row=current_row, column=1, sticky=tk.W)
 
         current_row += 1
 
         materials_selling_frame:ttk.Frame = ttk.Frame(items_frame)
-        materials_selling_text:TextPlus = TextPlus(materials_selling_frame, wrap=tk.WORD, font=("Helvetica", 9))
+        materials_selling_text:TextPlus = TextPlus(materials_selling_frame, wrap=tk.WORD, height=1, font=FONT_TEXT)
         materials_selling_scroll:tk.Scrollbar = tk.Scrollbar(materials_selling_frame, orient=tk.VERTICAL, command=materials_selling_text.yview)
         materials_selling_text['yscrollcommand'] = materials_selling_scroll.set
         materials_selling_scroll.pack(fill=tk.Y, side=tk.RIGHT)
@@ -64,7 +64,7 @@ class WindowFleetCarrier:
         materials_selling_frame.grid(row=current_row, column=0, sticky=tk.NSEW)
 
         materials_buying_frame:ttk.Frame = ttk.Frame(items_frame)
-        materials_buying_text:TextPlus = TextPlus(materials_buying_frame, wrap=tk.WORD, font=("Helvetica", 9))
+        materials_buying_text:TextPlus = TextPlus(materials_buying_frame, wrap=tk.WORD, height=1, font=FONT_TEXT)
         materials_buying_scroll:tk.Scrollbar = tk.Scrollbar(materials_buying_frame, orient=tk.VERTICAL, command=materials_buying_text.yview)
         materials_buying_text['yscrollcommand'] = materials_buying_scroll.set
         materials_buying_scroll.pack(fill=tk.Y, side=tk.RIGHT)
@@ -76,13 +76,13 @@ class WindowFleetCarrier:
 
         current_row += 1
 
-        ttk.Label(items_frame, text="Selling Commodities", font=FONT_HEADING_2).grid(row=current_row, column=0)
-        ttk.Label(items_frame, text="Buying Commodities", font=FONT_HEADING_2).grid(row=current_row, column=1)
+        ttk.Label(items_frame, text="Selling Commodities", font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W)
+        ttk.Label(items_frame, text="Buying Commodities", font=FONT_HEADING_2).grid(row=current_row, column=1, sticky=tk.W)
 
         current_row += 1
 
         commodities_selling_frame:ttk.Frame = ttk.Frame(items_frame)
-        commodities_selling_text:TextPlus = TextPlus(commodities_selling_frame, wrap=tk.WORD, font=("Helvetica", 9))
+        commodities_selling_text:TextPlus = TextPlus(commodities_selling_frame, wrap=tk.WORD, height=1, font=FONT_TEXT)
         commodities_selling_scroll:tk.Scrollbar = tk.Scrollbar(commodities_selling_frame, orient=tk.VERTICAL, command=commodities_selling_text.yview)
         commodities_selling_text['yscrollcommand'] = commodities_selling_scroll.set
         commodities_selling_scroll.pack(fill=tk.Y, side=tk.RIGHT)
@@ -93,7 +93,7 @@ class WindowFleetCarrier:
         commodities_selling_frame.grid(row=current_row, column=0, sticky=tk.NSEW)
 
         commodities_buying_frame:ttk.Frame = ttk.Frame(items_frame)
-        commodities_buying_text:TextPlus = TextPlus(commodities_buying_frame, wrap=tk.WORD, font=("Helvetica", 9))
+        commodities_buying_text:TextPlus = TextPlus(commodities_buying_frame, wrap=tk.WORD, height=1, font=FONT_TEXT)
         commodities_buying_scroll:tk.Scrollbar = tk.Scrollbar(commodities_buying_frame, orient=tk.VERTICAL, command=commodities_buying_text.yview)
         commodities_buying_text['yscrollcommand'] = commodities_buying_scroll.set
         commodities_buying_scroll.pack(fill=tk.Y, side=tk.RIGHT)
@@ -102,6 +102,11 @@ class WindowFleetCarrier:
         commodities_buying_text.insert(tk.INSERT, fc.get_items_plaintext(FleetCarrierItemType.COMMODITIES_BUYING))
         commodities_buying_text.configure(state='disabled')
         commodities_buying_frame.grid(row=current_row, column=1, sticky=tk.NSEW)
+
+        items_frame.columnconfigure(0, weight=1) # Make the first column fill available space
+        items_frame.columnconfigure(1, weight=1) # Make the second column fill available space
+        items_frame.rowconfigure(1, weight=1) # Make the materials text fill available space
+        items_frame.rowconfigure(3, weight=1) # Make the commodities text fill available space
 
 
         post_button:ttk.Button = ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))

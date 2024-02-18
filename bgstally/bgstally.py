@@ -143,6 +143,9 @@ class BGSTally:
             case 'CarrierStats':
                 self.fleet_carrier.stats_received(entry)
 
+            case 'CarrierTradeOrder':
+                self.fleet_carrier.trade_order(entry)
+
             case 'CollectCargo':
                 activity.collect_cargo(entry, self.state)
                 dirty = True

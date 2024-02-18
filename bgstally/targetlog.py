@@ -7,7 +7,7 @@ from copy import copy
 
 from requests import Response
 
-from bgstally.constants import CmdrInteractionReason, DATETIME_FORMAT_JOURNAL, FOLDER_DATA, RequestMethod
+from bgstally.constants import CmdrInteractionReason, DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA, RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 
@@ -35,7 +35,7 @@ class TargetLog:
         """
         Load state from file
         """
-        file = os.path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = os.path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         if os.path.exists(file):
             try:
                 with open(file) as json_file:
@@ -48,7 +48,7 @@ class TargetLog:
         """
         Save state to file
         """
-        file = os.path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = os.path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self.targetlog, outfile)
 

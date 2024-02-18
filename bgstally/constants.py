@@ -80,8 +80,9 @@ class CmdrInteractionReason(int, Enum):
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"
 FILE_SUFFIX = ".json"
 FOLDER_ASSETS = "assets"
-FOLDER_DATA = "otherdata"
 FOLDER_BACKUPS = "backups"
+FOLDER_DATA = "data"
+FOLDER_OTHER_DATA = "otherdata"
 FOLDER_UPDATES = "updates"
 FONT_HEADING_1:tuple = ("Helvetica", 13, "bold")
 FONT_HEADING_2:tuple = ("Helvetica", 11, "bold")

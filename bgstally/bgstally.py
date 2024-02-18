@@ -11,7 +11,7 @@ from bgstally.activity import Activity
 from bgstally.activitymanager import ActivityManager
 from bgstally.apimanager import APIManager
 from bgstally.config import Config
-from bgstally.constants import FOLDER_DATA, UpdateUIPolicy
+from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
 from bgstally.discord import Discord
 from bgstally.fleetcarrier import FleetCarrier
@@ -65,7 +65,7 @@ class BGSTally:
             except ImportError:
                 pass
 
-        data_filepath = path.join(self.plugin_dir, FOLDER_DATA)
+        data_filepath = path.join(self.plugin_dir, FOLDER_OTHER_DATA)
         if not path.exists(data_filepath): mkdir(data_filepath)
 
         # Main Classes

@@ -4,10 +4,12 @@
 
 ### New Features:
 
-* BGS-Tally now tracks carrier commodity buy and sell orders (in addition to the existing materials buy and sell orders). These are tracked in real time as you change your carrier orders and are posted to Discord with your materials orders.
+* BGS-Tally now tracks carrier commodity buy and sell orders (in addition to the existing bartender materials buy and sell orders). These are tracked in real time as you change your carrier orders and are posted to Discord with your materials orders.
 
 ### Changes:
 
+* The tracking of bartender materials buy and sell orders is now updated in real time, as you change them in your carrier. Previously, you would have to wait for the next CAPI carrier data update, which would be at the most every 15 minutes.
+* The Carrier information window has been reorganised to show commodities and materials.
 * All 'Post to Discord' buttons now only allow a single click. They temporarily disable themselves for a few seconds after posting, to avoid accidental multiple posts.
 
 

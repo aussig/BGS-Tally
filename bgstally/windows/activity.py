@@ -64,7 +64,7 @@ class WindowActivity:
         frame_buttons.pack(fill=tk.X, side=tk.BOTTOM)
         ttk.Button(frame_buttons, text="Copy to Clipboard (Legacy Format)", command=partial(self._copy_to_clipboard, ContainerFrame, activity)).pack(side=tk.LEFT, padx=5, pady=5)
         self.btn_post_to_discord: ttk.Button = ttk.Button(frame_buttons, text="Post to Discord", command=partial(self._post_to_discord, activity),
-                                                          state=('normal' if self._discord_button_available() else 'disabled'))
+                                                          state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
 
         DiscordFrame = ttk.Frame(ContainerFrame)
@@ -80,7 +80,7 @@ class WindowActivity:
 
         DiscordTextFrame = ttk.Frame(DiscordFrame)
         DiscordTextFrame.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
-        DiscordText = DiscordAnsiColorText(DiscordTextFrame, state='disabled', wrap=tk.WORD, bg="Gray13", height=15, font=FONT_TEXT)
+        DiscordText = DiscordAnsiColorText(DiscordTextFrame, state=tk.DISABLED, wrap=tk.WORD, bg="Gray13", height=15, font=FONT_TEXT)
         DiscordScroll = tk.Scrollbar(DiscordTextFrame, orient=tk.VERTICAL, command=DiscordText.yview)
         DiscordText['yscrollcommand'] = DiscordScroll.set
         DiscordScroll.pack(fill=tk.Y, side=tk.RIGHT)
@@ -300,16 +300,18 @@ class WindowActivity:
         """
         Update the contents of the Discord text field
         """
-        DiscordText.configure(state='normal')
+        DiscordText.configure(state=tk.NORMAL)
         DiscordText.delete('1.0', 'end-1c')
         DiscordText.write(activity.generate_text(DiscordActivity.BOTH, True))
-        DiscordText.configure(state='disabled')
+        DiscordText.configure(state=tk.DISABLED)
 
 
     def _post_to_discord(self, activity: Activity):
         """
         Callback to post to discord in the appropriate channel(s)
         """
+        self.btn_post_to_discord.config(state=tk.DISABLED)
+
         if self.bgstally.state.DiscordPostStyle.get() == DiscordPostStyle.TEXT:
             discord_text:str = activity.generate_text(DiscordActivity.BGS, True)
             self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
@@ -323,6 +325,15 @@ class WindowActivity:
             self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
 
         activity.dirty = True # Because discord post ID has been changed
+
+        self.btn_post_to_discord.after(5000, self._enable_post_button)
+
+
+    def _enable_post_button(self):
+        """
+        Re-enable the post to discord button if it should be enabled
+        """
+        self.btn_post_to_discord.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
 
 
     def discord_post_complete(self, channel:DiscordChannel, webhook_data:dict, messageid:str):
@@ -351,7 +362,7 @@ class WindowActivity:
         """
         Callback when one of the Discord options is changed
         """
-        self.btn_post_to_discord.config(state=('normal' if self._discord_button_available() else 'disabled'))
+        self.btn_post_to_discord.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self._update_discord_field(DiscordText, activity)
 
 

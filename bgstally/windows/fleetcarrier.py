@@ -109,15 +109,17 @@ class WindowFleetCarrier:
         items_frame.rowconfigure(3, weight=1) # Make the commodities text fill available space
 
 
-        post_button:ttk.Button = ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
-        post_button.pack(side=tk.RIGHT, padx=5, pady=5)
-        post_button['state'] = tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) else tk.DISABLED
+        self.post_button:ttk.Button = ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
+        self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
+        self.post_button.config(state=(tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) else tk.DISABLED))
 
 
     def _post_to_discord(self):
         """
         Post Fleet Carrier materials list to Discord
         """
+        self.post_button.config(state=tk.DISABLED)
+
         fc:FleetCarrier = self.bgstally.fleet_carrier
 
         title:str = f"Materials List for Carrier {fc.name} in system: {fc.data['currentStarSystem']}"
@@ -142,3 +144,12 @@ class WindowFleetCarrier:
         fields.append({'name': "Notorious Access", 'value': fc.human_format_notorious(), 'inline': True})
 
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
+
+        self.post_button.after(5000, self._enable_post_button)
+
+
+    def _enable_post_button(self):
+        """
+        Re-enable the post to discord button if it should be enabled
+        """
+        self.post_button.config(state=(tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) else tk.DISABLED))

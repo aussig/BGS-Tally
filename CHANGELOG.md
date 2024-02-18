@@ -6,6 +6,10 @@
 
 * BGS-Tally now tracks carrier commodity buy and sell orders (in addition to the existing materials buy and sell orders). These are tracked in real time as you change your carrier orders and are posted to Discord with your materials orders.
 
+### Changes:
+
+* All 'Post to Discord' buttons now only allow a single click. They temporarily disable themselves for a few seconds after posting, to avoid accidental multiple posts.
+
 
 ## v3.5.0-a1 - 2024-02-17
 

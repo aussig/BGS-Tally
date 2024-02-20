@@ -75,6 +75,7 @@ class CmdrInteractionReason(int, Enum):
     KILLED_BY = 3
     MESSAGE_RECEIVED = 4
     TEAM_INVITE_RECEIVED = 5
+    FRIEND_ADDED = 6
 
 
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"

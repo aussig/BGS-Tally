@@ -130,6 +130,30 @@ class TargetLog:
         if different and not pending: self.targetlog.append(cmdr_data)
 
 
+    def friend_added(self, journal_entry: dict, system: str):
+        """
+        A friend has been added
+
+        Args:
+            journal_entry (dict): The full journal entry
+            system (str): The system name
+        """
+        cmdr_name:str = journal_entry.get('Name', "")
+        if cmdr_name == "": return
+
+        cmdr_data:dict = {'TargetName': cmdr_name,
+                    'System': system,
+                    'SquadronID': "----",
+                    'Ship': "----",
+                    'LegalStatus': "----",
+                    'Reason': CmdrInteractionReason.FRIEND_ADDED,
+                    'Notes': "Added a friend",
+                    'Timestamp': journal_entry['timestamp']}
+
+        cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
+        if different and not pending: self.targetlog.append(cmdr_data)
+
+
     def interdicted(self, journal_entry: dict, system: str):
         """
         Interdicted by another ship

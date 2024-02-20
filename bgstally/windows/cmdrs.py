@@ -252,6 +252,8 @@ class WindowCMDRs:
         match self.selected_cmdr.get('Reason'):
             case CmdrInteractionReason.FRIEND_REQUEST_RECEIVED:
                 description = f"{cyan('Friend request received from this CMDR')}"
+            case CmdrInteractionReason.FRIEND_ADDED:
+                description = f"{cyan('This CMDR was added as a friend')}"
             case CmdrInteractionReason.INTERDICTED_BY:
                 description = f"{red('INTERDICTED BY this CMDR')}"
             case CmdrInteractionReason.KILLED_BY:

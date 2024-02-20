@@ -173,6 +173,9 @@ class BGSTally:
             case 'Friends' if entry.get('Status') == "Requested":
                 self.target_log.friend_request(entry, system)
 
+            case 'Friends' if entry.get('Status') == "Added":
+                self.target_log.friend_added(entry, system)
+
             case 'Interdicted':
                 self.target_log.interdicted(entry, system)
 

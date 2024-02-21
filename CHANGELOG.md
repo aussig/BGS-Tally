@@ -1,5 +1,10 @@
 # Change Log
 
+## v3.5.0-b1 - 2024-02-21
+
+[No Changes from a1]
+
+
 ## v3.5.0-a1 - 2024-02-17
 
 ### New Features:

@@ -133,6 +133,11 @@ class WindowActivity:
 
             HyperlinkLabel(frame_header, text="Inara ⤴", url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=1, padx=2, pady=2)
 
+            if self.activity == self.bgstally.activity_manager.get_current_activity():
+                chk_pin_to_overlay:ttk.Checkbutton = ttk.Checkbutton(frame_header, text=f"Pin {system['System']} to Overlay")
+                chk_pin_to_overlay.grid(row=0, column=2, padx=2, pady=2, sticky=tk.E)
+                frame_header.columnconfigure(2, weight=1) # Make the pin checkbutton fill available space
+
             frame_table:ttk.Frame = ttk.Frame(tab)
             frame_table.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5, expand=tk.YES)
             frame_table.columnconfigure(1, weight=1) # Make the second column (faction name) fill available space

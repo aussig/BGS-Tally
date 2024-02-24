@@ -1,5 +1,12 @@
 # Change Log
 
+## v3.5.0-b2 - 2024-02-24
+
+### Changes:
+
+* Activity windows now only remember positions, not sizes. Size should be automatic based on content, and if it's not then can get truncated content.
+
+
 ## v3.5.0-b1 - 2024-02-21
 
 [No Changes from a1]

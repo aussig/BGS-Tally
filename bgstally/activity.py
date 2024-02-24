@@ -284,7 +284,7 @@ class Activity:
 
         self.recalculate_zero_activity()
         state.current_system_id = str(current_system['SystemAddress'])
-        state.system_tw_status = journal_entry.get('ThargoidWar', None)
+        current_system['system_tw_status'] = journal_entry.get('ThargoidWar', None)
 
 
     def mission_completed(self, journal_entry: dict, mission_log: MissionLog):

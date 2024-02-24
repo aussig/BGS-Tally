@@ -12,6 +12,7 @@
 * The tracking of bartender materials buy and sell orders is now updated in real time, as you change them in your carrier. Previously, you would have to wait for the next CAPI carrier data update, which would be at the most every 15 minutes.
 * The Carrier information window has been reorganised to show commodities and materials.
 * All 'Post to Discord' buttons now only allow a single click. They temporarily disable themselves for a few seconds after posting, to avoid accidental multiple posts.
+* No longer report BGS work for systems in Thargoid War.
 
 
 ## v3.5.0-xx - xxxx-xx-xx

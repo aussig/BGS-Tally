@@ -5,6 +5,7 @@
 ### New Features:
 
 * BGS-Tally now tracks carrier commodity buy and sell orders (in addition to the existing bartender materials buy and sell orders). These are tracked in real time as you change your carrier orders and are posted to Discord with your materials orders.
+* You can now pin one or more systems to the in-game overlay, to permanently show your work in those systems.
 * Adding a friend is now logged as a CMDR interaction.
 
 ### Changes:
@@ -15,6 +16,10 @@
 * No longer report BGS work for systems in Thargoid War.
 * Activity windows no longer show BGS factions and data for Thargoid War systems, instead now showing a message stating that the system is in TW state.
 * Activity windows no longer show a spurious 'Enable' checkbox (which didn't do anything) for systems that have no factions, instead now showing a message stating it is an empty system.
+
+### Bug Fixes:
+
+* Fixed a rare crash that would stop the in-game overlay working.
 
 
 ## v3.5.0-b3 - 2024-02-24

@@ -137,6 +137,8 @@ class WindowActivity:
                 # Current tick activity
                 chk_pin_to_overlay:ttk.Checkbutton = ttk.Checkbutton(frame_header, text=f"Pin {system['System']} to Overlay")
                 chk_pin_to_overlay.grid(row=0, column=2, padx=2, pady=2, sticky=tk.E)
+                chk_pin_to_overlay.configure(command=partial(self._pin_overlay_change, chk_pin_to_overlay, system))
+                chk_pin_to_overlay.state(['selected', '!alternate'] if system.get('PinToOverlay') == CheckStates.STATE_ON else ['!selected', '!alternate'])
                 frame_header.columnconfigure(2, weight=1) # Make the final column (pin checkbutton) fill available space
             else:
                 # Previous tick activity
@@ -365,6 +367,17 @@ class WindowActivity:
         self.activity.discord_webhook_data[uuid] = activity_webhook_data                        # Store the webhook dict back to the activity
 
 
+    def _pin_overlay_change(self, chk_pin_to_overlay:ttk.Checkbutton, system:dict):
+        """
+        The 'pin to overlay' checkbox has been changed, store state
+
+        Args:
+            chk_pin_to_overlay (ttk.Checkbutton): The pin to overlay CheckButton
+            system (dict): The system state dict
+        """
+        system['PinToOverlay'] = CheckStates.STATE_ON if chk_pin_to_overlay.instate(['selected']) else CheckStates.STATE_OFF
+
+
     def _discord_notes_change(self, DiscordNotesText, DiscordText, activity: Activity, *args):
         """
         Callback when the user edits the Discord notes field
@@ -381,6 +394,7 @@ class WindowActivity:
         """
         self.btn_post_to_discord.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self._update_discord_field(DiscordText, activity)
+        self.bgstally.state.refresh()
 
 
     def _enable_faction_change(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity: Activity, system, faction, faction_index, *args):

@@ -65,6 +65,11 @@ class State:
         self.enable_overlay_tw_progress:bool = (self.EnableOverlayTWProgress.get() == CheckStates.STATE_ON)
         self.enable_overlay_system:bool = (self.EnableOverlaySystem.get() == CheckStates.STATE_ON)
 
+        self.abbreviate_faction_names:bool = (self.AbbreviateFactionNames.get() == CheckStates.STATE_ON)
+        self.secondary_inf:bool = (self.IncludeSecondaryInf.get() == CheckStates.STATE_ON)
+        self.detailed_inf:bool = (self.DetailedInf.get() == CheckStates.STATE_ON)
+        self.detailed_trade:bool = (self.DetailedTrade.get() == CheckStates.STATE_ON)
+
 
     def save(self):
         """

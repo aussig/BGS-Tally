@@ -32,6 +32,7 @@ class Overlay:
         """
         if self.edmcoverlay == None: return
         if not self.bgstally.state.enable_overlay: return
+        if message == "": return
 
         try:
             fi:dict = self._get_frame_info(frame_name)

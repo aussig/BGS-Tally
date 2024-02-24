@@ -14,6 +14,18 @@
 * All 'Post to Discord' buttons now only allow a single click. They temporarily disable themselves for a few seconds after posting, to avoid accidental multiple posts.
 
 
+## v3.5.0-xx - xxxx-xx-xx
+
+### Changes:
+
+* Activity windows now only remember positions, not sizes. Size should be automatic based on content, and if it's not then can get truncated content.
+
+
+## v3.5.0-b1 - 2024-02-21
+
+[No Changes from a1]
+
+
 ## v3.5.0-a1 - 2024-02-17
 
 ### New Features:

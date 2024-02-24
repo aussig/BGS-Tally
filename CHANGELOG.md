@@ -22,6 +22,13 @@
 * Fixed a rare crash that would stop the in-game overlay working.
 
 
+## v3.5.0-xx - xxxx-xx-xx
+
+### Bug Fixes:
+
+* The new simple trade total was giving incorrect combined profit.
+
+
 ## v3.5.0-b3 - 2024-02-24
 
 ### Bug Fixes:

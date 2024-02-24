@@ -1391,7 +1391,7 @@ class Activity:
         elif self.bgstally.state.detailed_trade:
             # Modern, simple trade report - Combine buy at all brackets and profit at all brackets
             buy_total:int = sum(int(d['value']) for d in trade_buy)
-            profit_total:int = sum(int(d['value']) for d in trade_sell)
+            profit_total:int = sum(int(d['profit']) for d in trade_sell)
             text += f"{cyan('TrdBuy', fp=fp)} {green(human_format(buy_total), fp=fp)} " if buy_total != 0 else ""
             text += f"{cyan('TrdProfit', fp=fp)} {green(human_format(profit_total), fp=fp)} " if profit_total != 0 else ""
         else:

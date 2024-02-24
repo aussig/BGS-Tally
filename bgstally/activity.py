@@ -284,7 +284,7 @@ class Activity:
 
         self.recalculate_zero_activity()
         state.current_system_id = str(current_system['SystemAddress'])
-        current_system['system_tw_status'] = journal_entry.get('ThargoidWar', None)
+        current_system['tw_status'] = journal_entry.get('ThargoidWar', None)
 
 
     def mission_completed(self, journal_entry: dict, mission_log: MissionLog):
@@ -926,7 +926,7 @@ class Activity:
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
                 system_text += self._generate_tw_system_text(system, discord)
 
-            if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('system_tw_status') is None:
+            if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
                 for faction in system['Factions'].values():
                     if faction['Enabled'] != CheckStates.STATE_ON: continue
                     system_text += self._generate_faction_text(faction, discord)

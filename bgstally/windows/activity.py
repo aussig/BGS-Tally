@@ -51,7 +51,7 @@ class WindowActivity:
         self.toplevel.protocol("WM_DELETE_WINDOW", self._window_closed)
 
         if self.window_geometry is not None:
-            self.toplevel.geometry(f"{self.window_geometry['w']}x{self.window_geometry['h']}+{self.window_geometry['x']}+{self.window_geometry['y']}")
+            self.toplevel.geometry(f"+{self.window_geometry['x']}+{self.window_geometry['y']}")
 
         self.toplevel.title(f"{self.bgstally.plugin_name} - Activity After Tick at: {activity.get_title()}")
 

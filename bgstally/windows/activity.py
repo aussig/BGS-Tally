@@ -392,9 +392,9 @@ class WindowActivity:
         """
         Callback when one of the Discord options is changed
         """
+        self.bgstally.state.refresh()
         self.btn_post_to_discord.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self._update_discord_field(DiscordText, activity)
-        self.bgstally.state.refresh()
 
 
     def _enable_faction_change(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity: Activity, system, faction, faction_index, *args):

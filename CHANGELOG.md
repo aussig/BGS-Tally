@@ -13,6 +13,8 @@
 * The Carrier information window has been reorganised to show commodities and materials.
 * All 'Post to Discord' buttons now only allow a single click. They temporarily disable themselves for a few seconds after posting, to avoid accidental multiple posts.
 * No longer report BGS work for systems in Thargoid War.
+* Activity windows no longer show BGS factions and data for Thargoid War systems, instead now showing a message stating that the system is in TW state.
+* Activity windows no longer show a spurious 'Enable' checkbox (which didn't do anything) for systems that have no factions, instead now showing a message stating it is an empty system.
 
 
 ## v3.5.0-xx - xxxx-xx-xx

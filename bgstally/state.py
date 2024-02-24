@@ -51,7 +51,6 @@ class State:
         self.last_spacecz_approached:dict = {}
         self.last_megaship_approached:dict = {}
         self.last_ships_targeted:dict = {}
-        self.system_tw_status = None
 
         self.refresh()
 

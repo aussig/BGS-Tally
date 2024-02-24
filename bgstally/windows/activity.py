@@ -122,139 +122,151 @@ class WindowActivity:
 
             if self.bgstally.state.ShowZeroActivitySystems.get() == CheckStates.STATE_OFF \
                 and system['zero_system_activity'] \
-                and str(system_id) != self.bgstally.state.current_system_id: continue
+                and str(system_id) != self.bgstally.state.current_system_id:
+                continue
 
             tab:ttk.Frame = ttk.Frame(TabParent)
             TabParent.add(tab, text=system['System'], compound='right', image=self.image_tab_active_enabled)
 
             frame_header:ttk.Frame = ttk.Frame(tab)
             frame_header.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
-            ttk.Label(frame_header, text=system['System'], font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=0, column=0, padx=2, pady=2)
-
-            HyperlinkLabel(frame_header, text="Inara ⤴", url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=1, padx=2, pady=2)
+            ttk.Label(frame_header, text=system['System'], font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=0, column=0, padx=2, pady=2, sticky=tk.W)
+            HyperlinkLabel(frame_header, text="Inara ⤴", url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=1, padx=2, pady=2, sticky=tk.W)
 
             if self.activity == self.bgstally.activity_manager.get_current_activity():
+                # Current tick activity
                 chk_pin_to_overlay:ttk.Checkbutton = ttk.Checkbutton(frame_header, text=f"Pin {system['System']} to Overlay")
                 chk_pin_to_overlay.grid(row=0, column=2, padx=2, pady=2, sticky=tk.E)
-                frame_header.columnconfigure(2, weight=1) # Make the pin checkbutton fill available space
+                frame_header.columnconfigure(2, weight=1) # Make the final column (pin checkbutton) fill available space
+            else:
+                # Previous tick activity
+                frame_header.columnconfigure(1, weight=1) # Make the final column (Inara link) fill available space
 
-            frame_table:ttk.Frame = ttk.Frame(tab)
-            frame_table.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5, expand=tk.YES)
-            frame_table.columnconfigure(1, weight=1) # Make the second column (faction name) fill available space
+            if system.get('system_tw_status') is not None:
+                # TW system, skip all BGS
+                ttk.Label(frame_header, text="Thargoid War System, no BGS Activity is Counted", font=FONT_HEADING_2).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky=tk.W)
+            elif len(system['Factions']) == 0:
+                # Empty system
+                ttk.Label(frame_header, text="Empty System, no BGS Activity Available", font=FONT_HEADING_2).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky=tk.W)
+            else:
+                # BGS system
+                frame_table:ttk.Frame = ttk.Frame(tab)
+                frame_table.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5, expand=tk.YES)
+                frame_table.columnconfigure(1, weight=1) # Make the second column (faction name) fill available space
 
-            FactionEnableCheckbuttons = []
+                FactionEnableCheckbuttons = []
 
-            ttk.Label(frame_table, text="Include", font=FONT_HEADING_2).grid(row=0, column=0, padx=2, pady=2)
-            EnableAllCheckbutton = ttk.Checkbutton(frame_table)
-            EnableAllCheckbutton.grid(row=1, column=0, padx=2, pady=2)
-            EnableAllCheckbutton.configure(command=partial(self._enable_all_factions_change, TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system))
-            EnableAllCheckbutton.state(['!alternate'])
+                ttk.Label(frame_table, text="Include", font=FONT_HEADING_2).grid(row=0, column=0, padx=2, pady=2)
+                EnableAllCheckbutton = ttk.Checkbutton(frame_table)
+                EnableAllCheckbutton.grid(row=1, column=0, padx=2, pady=2)
+                EnableAllCheckbutton.configure(command=partial(self._enable_all_factions_change, TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system))
+                EnableAllCheckbutton.state(['!alternate'])
 
-            col: int = 1
-            ttk.Label(frame_table, text="Faction", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="State", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="INF", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2)
-            ttk.Label(frame_table, text="Pri", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Sec", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Trade", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-            ttk.Label(frame_table, text="Purch", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Prof", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="BM Prof", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="BVs", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Expl", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Exo", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="CBs", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Fails", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Murders", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2, pady=2)
-            ttk.Label(frame_table, text="Foot", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Ship", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Scens", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Space CZs", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-            ttk.Label(frame_table, text="L", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="M", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="H", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Foot CZs", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-            ttk.Label(frame_table, text="L", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="M", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="H", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Separator(frame_table, orient=tk.HORIZONTAL).grid(columnspan=col, padx=2, pady=5, sticky=tk.EW)
+                col: int = 1
+                ttk.Label(frame_table, text="Faction", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="State", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="INF", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2)
+                ttk.Label(frame_table, text="Pri", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="Sec", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="Trade", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
+                ttk.Label(frame_table, text="Purch", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="Prof", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="BM Prof", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="BVs", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="Expl", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="Exo", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="CBs", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="Fails", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="Murders", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2, pady=2)
+                ttk.Label(frame_table, text="Foot", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="Ship", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="Scens", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="Space CZs", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
+                ttk.Label(frame_table, text="L", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="M", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="H", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="Foot CZs", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
+                ttk.Label(frame_table, text="L", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="M", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text="H", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Separator(frame_table, orient=tk.HORIZONTAL).grid(columnspan=col, padx=2, pady=5, sticky=tk.EW)
 
-            header_rows = 3
-            x = 0
+                header_rows = 3
+                x = 0
 
-            for faction in system['Factions'].values():
-                EnableCheckbutton = ttk.Checkbutton(frame_table)
-                EnableCheckbutton.grid(row=x + header_rows, column=0, sticky=tk.N, padx=2, pady=2)
-                EnableCheckbutton.configure(command=partial(self._enable_faction_change, TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system, faction, x))
-                EnableCheckbutton.state(['selected', '!alternate'] if faction['Enabled'] == CheckStates.STATE_ON else ['!selected', '!alternate'])
-                FactionEnableCheckbuttons.append(EnableCheckbutton)
+                for faction in system['Factions'].values():
+                    EnableCheckbutton = ttk.Checkbutton(frame_table)
+                    EnableCheckbutton.grid(row=x + header_rows, column=0, sticky=tk.N, padx=2, pady=2)
+                    EnableCheckbutton.configure(command=partial(self._enable_faction_change, TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system, faction, x))
+                    EnableCheckbutton.state(['selected', '!alternate'] if faction['Enabled'] == CheckStates.STATE_ON else ['!selected', '!alternate'])
+                    FactionEnableCheckbuttons.append(EnableCheckbutton)
 
-                FactionNameFrame = ttk.Frame(frame_table)
-                FactionNameFrame.grid(row=x + header_rows, column=1, sticky=tk.NW)
-                FactionName = ttk.Label(FactionNameFrame, text=faction['Faction'])
-                FactionName.grid(row=0, column=0, columnspan=2, sticky=tk.W, padx=2, pady=2)
-                FactionName.bind("<Button-1>", partial(self._faction_name_clicked, TabParent, tab_index, EnableCheckbutton, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system, faction, x))
-                settlement_row_index = 1
-                for settlement_name in faction.get('GroundCZSettlements', {}):
-                    SettlementCheckbutton = ttk.Checkbutton(FactionNameFrame)
-                    SettlementCheckbutton.grid(row=settlement_row_index, column=0, padx=2, pady=2)
-                    SettlementCheckbutton.configure(command=partial(self._enable_settlement_change, SettlementCheckbutton, settlement_name, DiscordText, activity, faction, x))
-                    SettlementCheckbutton.state(['selected', '!alternate'] if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON else ['!selected', '!alternate'])
-                    SettlementName = ttk.Label(FactionNameFrame, text=f"{settlement_name} ({faction['GroundCZSettlements'][settlement_name]['type'].upper()})")
-                    SettlementName.grid(row=settlement_row_index, column=1, sticky=tk.W, padx=2, pady=2)
-                    SettlementName.bind("<Button-1>", partial(self._settlement_name_clicked, SettlementCheckbutton, settlement_name, DiscordText, activity, faction, x))
-                    settlement_row_index += 1
+                    FactionNameFrame = ttk.Frame(frame_table)
+                    FactionNameFrame.grid(row=x + header_rows, column=1, sticky=tk.NW)
+                    FactionName = ttk.Label(FactionNameFrame, text=faction['Faction'])
+                    FactionName.grid(row=0, column=0, columnspan=2, sticky=tk.W, padx=2, pady=2)
+                    FactionName.bind("<Button-1>", partial(self._faction_name_clicked, TabParent, tab_index, EnableCheckbutton, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system, faction, x))
+                    settlement_row_index = 1
+                    for settlement_name in faction.get('GroundCZSettlements', {}):
+                        SettlementCheckbutton = ttk.Checkbutton(FactionNameFrame)
+                        SettlementCheckbutton.grid(row=settlement_row_index, column=0, padx=2, pady=2)
+                        SettlementCheckbutton.configure(command=partial(self._enable_settlement_change, SettlementCheckbutton, settlement_name, DiscordText, activity, faction, x))
+                        SettlementCheckbutton.state(['selected', '!alternate'] if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON else ['!selected', '!alternate'])
+                        SettlementName = ttk.Label(FactionNameFrame, text=f"{settlement_name} ({faction['GroundCZSettlements'][settlement_name]['type'].upper()})")
+                        SettlementName.grid(row=settlement_row_index, column=1, sticky=tk.W, padx=2, pady=2)
+                        SettlementName.bind("<Button-1>", partial(self._settlement_name_clicked, SettlementCheckbutton, settlement_name, DiscordText, activity, faction, x))
+                        settlement_row_index += 1
 
-                col = 2
-                ttk.Label(frame_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                MissionPointsVar = tk.IntVar(value=faction['MissionPoints']['m'])
-                ttk.Spinbox(frame_table, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                MissionPointsVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsVar, True, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
-                MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary']['m'])
-                ttk.Spinbox(frame_table, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                MissionPointsSecVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsSecVar, False, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
-                if faction['TradePurchase'] > 0:
-                    ttk.Label(frame_table, text=human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                    ttk.Label(frame_table, text=human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                else:
-                    ttk.Label(frame_table, text=f"{human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                    ttk.Label(frame_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=human_format(faction['ExoData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=human_format(faction['CombatBonds'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=faction['MissionFailed']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=faction['GroundMurdered']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=faction['Murdered']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ScenariosVar = tk.IntVar(value=faction['Scenarios'])
-                ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=ScenariosVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                ScenariosVar.trace('w', partial(self._scenarios_change, TabParent, tab_index, ScenariosVar, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
+                    col = 2
+                    ttk.Label(frame_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    MissionPointsVar = tk.IntVar(value=faction['MissionPoints']['m'])
+                    ttk.Spinbox(frame_table, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                    MissionPointsVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsVar, True, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
+                    MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary']['m'])
+                    ttk.Spinbox(frame_table, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                    MissionPointsSecVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsSecVar, False, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
+                    if faction['TradePurchase'] > 0:
+                        ttk.Label(frame_table, text=human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                        ttk.Label(frame_table, text=human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    else:
+                        ttk.Label(frame_table, text=f"{human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                        ttk.Label(frame_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frame_table, text=human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frame_table, text=human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frame_table, text=human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frame_table, text=human_format(faction['ExoData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frame_table, text=human_format(faction['CombatBonds'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frame_table, text=faction['MissionFailed']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frame_table, text=faction['GroundMurdered']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frame_table, text=faction['Murdered']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ScenariosVar = tk.IntVar(value=faction['Scenarios'])
+                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=ScenariosVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                    ScenariosVar.trace('w', partial(self._scenarios_change, TabParent, tab_index, ScenariosVar, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
 
-                if (faction['FactionState'] in STATES_WAR):
-                    CZSpaceLVar = tk.StringVar(value=faction['SpaceCZ'].get('l', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZSpaceLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    CZSpaceMVar = tk.StringVar(value=faction['SpaceCZ'].get('m', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZSpaceMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    CZSpaceHVar = tk.StringVar(value=faction['SpaceCZ'].get('h', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZSpaceHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    CZGroundLVar = tk.StringVar(value=faction['GroundCZ'].get('l', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZGroundLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    CZGroundMVar = tk.StringVar(value=faction['GroundCZ'].get('m', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZGroundMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    CZGroundHVar = tk.StringVar(value=faction['GroundCZ'].get('h', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZGroundHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    # Watch for changes on all SpinBox Variables. This approach catches any change, including manual editing, while using 'command' callbacks only catches clicks
-                    CZSpaceLVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZSpaceLVar, EnableAllCheckbutton, DiscordText, CZs.SPACE_LOW, activity, system, faction, x))
-                    CZSpaceMVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZSpaceMVar, EnableAllCheckbutton, DiscordText, CZs.SPACE_MED, activity, system, faction, x))
-                    CZSpaceHVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZSpaceHVar, EnableAllCheckbutton, DiscordText, CZs.SPACE_HIGH, activity, system, faction, x))
-                    CZGroundLVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZGroundLVar, EnableAllCheckbutton, DiscordText, CZs.GROUND_LOW, activity, system, faction, x))
-                    CZGroundMVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZGroundMVar, EnableAllCheckbutton, DiscordText, CZs.GROUND_MED, activity, system, faction, x))
-                    CZGroundHVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZGroundHVar, EnableAllCheckbutton, DiscordText, CZs.GROUND_HIGH, activity, system, faction, x))
+                    if (faction['FactionState'] in STATES_WAR):
+                        CZSpaceLVar = tk.StringVar(value=faction['SpaceCZ'].get('l', '0'))
+                        ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZSpaceLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZSpaceMVar = tk.StringVar(value=faction['SpaceCZ'].get('m', '0'))
+                        ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZSpaceMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZSpaceHVar = tk.StringVar(value=faction['SpaceCZ'].get('h', '0'))
+                        ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZSpaceHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZGroundLVar = tk.StringVar(value=faction['GroundCZ'].get('l', '0'))
+                        ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZGroundLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZGroundMVar = tk.StringVar(value=faction['GroundCZ'].get('m', '0'))
+                        ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZGroundMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZGroundHVar = tk.StringVar(value=faction['GroundCZ'].get('h', '0'))
+                        ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZGroundHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        # Watch for changes on all SpinBox Variables. This approach catches any change, including manual editing, while using 'command' callbacks only catches clicks
+                        CZSpaceLVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZSpaceLVar, EnableAllCheckbutton, DiscordText, CZs.SPACE_LOW, activity, system, faction, x))
+                        CZSpaceMVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZSpaceMVar, EnableAllCheckbutton, DiscordText, CZs.SPACE_MED, activity, system, faction, x))
+                        CZSpaceHVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZSpaceHVar, EnableAllCheckbutton, DiscordText, CZs.SPACE_HIGH, activity, system, faction, x))
+                        CZGroundLVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZGroundLVar, EnableAllCheckbutton, DiscordText, CZs.GROUND_LOW, activity, system, faction, x))
+                        CZGroundMVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZGroundMVar, EnableAllCheckbutton, DiscordText, CZs.GROUND_MED, activity, system, faction, x))
+                        CZGroundHVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZGroundHVar, EnableAllCheckbutton, DiscordText, CZs.GROUND_HIGH, activity, system, faction, x))
 
-                x += 1
+                    x += 1
 
-            self._update_enable_all_factions_checkbutton(TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, system)
+                self._update_enable_all_factions_checkbutton(TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, system)
 
             tab_index += 1
 
@@ -388,10 +400,18 @@ class WindowActivity:
         x = 0
         for faction in system['Factions'].values():
             if EnableAllCheckbutton.instate(['selected']):
-                FactionEnableCheckbuttons[x].state(['selected'])
+                try:
+                    FactionEnableCheckbuttons[x].state(['selected'])
+                except:
+                    # Will happen if we're hiding BGS checkboxes in a TW system
+                    pass
                 faction['Enabled'] = CheckStates.STATE_ON
             else:
-                FactionEnableCheckbuttons[x].state(['!selected'])
+                try:
+                    FactionEnableCheckbuttons[x].state(['!selected'])
+                except:
+                    # Will happen if we're hiding BGS checkboxes in a TW system
+                    pass
                 faction['Enabled'] = CheckStates.STATE_OFF
             x += 1
 

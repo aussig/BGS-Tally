@@ -277,8 +277,8 @@ class UI:
             # Thargoid War Progress Report
             if self.bgstally.state.enable_overlay_tw_progress and current_activity is not None:
                 current_system:dict = current_activity.get_current_system()
-                if current_system and current_system.get('system_tw_status') is not None:
-                    progress:float = float(get_by_path(current_system, ['system_tw_status', 'WarProgress'], 0))
+                if current_system and current_system.get('tw_status') is not None:
+                    progress:float = float(get_by_path(current_system, ['tw_status', 'WarProgress'], 0))
                     percent:float = round(progress * 100, 2)
 
                     self.bgstally.overlay.display_progress_bar("tw", f"TW War Progress in {current_system.get('System', 'Unknown')}: {percent}%", progress)

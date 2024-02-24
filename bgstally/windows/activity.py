@@ -142,7 +142,7 @@ class WindowActivity:
                 # Previous tick activity
                 frame_header.columnconfigure(1, weight=1) # Make the final column (Inara link) fill available space
 
-            if system.get('system_tw_status') is not None:
+            if system.get('tw_status') is not None:
                 # TW system, skip all BGS
                 ttk.Label(frame_header, text="Thargoid War System, no BGS Activity is Counted", font=FONT_HEADING_2).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky=tk.W)
             elif len(system['Factions']) == 0:

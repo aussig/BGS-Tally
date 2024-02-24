@@ -2,11 +2,13 @@ import tkinter as tk
 from datetime import datetime
 from functools import partial
 from tkinter import ttk
+from urllib.parse import quote
 
-from bgstally.constants import CmdrInteractionReason, DATETIME_FORMAT_JOURNAL, DiscordChannel, COLOUR_HEADING_1, FONT_HEADING_1, FONT_HEADING_2
+from ttkHyperlinkLabel import HyperlinkLabel
+
+from bgstally.constants import COLOUR_HEADING_1, DATETIME_FORMAT_JOURNAL, FONT_HEADING_1, FONT_HEADING_2, CmdrInteractionReason, DiscordChannel
 from bgstally.debug import Debug
 from bgstally.widgets import TreeviewPlus
-from ttkHyperlinkLabel import HyperlinkLabel
 from thirdparty.colors import *
 
 DATETIME_FORMAT_CMDRLIST = "%Y-%m-%d %H:%M:%S"
@@ -277,7 +279,7 @@ class WindowCMDRs:
                     else:
                         text += f" - {cmdr.get('TargetName')}"
 
-                    text += f" - [{cmdr.get('System')}](https://inara.cz/elite/starsystem/?search={cmdr.get('System')}) - {cmdr.get('Ship')}"
+                    text += f" - [{cmdr.get('System')}](https://inara.cz/elite/starsystem/?search={quote(cmdr.get('System'))}) - {cmdr.get('Ship')}"
 
                     if 'squadron' in cmdr:
                         squadron_info = cmdr.get('squadron')

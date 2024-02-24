@@ -1,5 +1,12 @@
 # Change Log
 
+## v3.5.0-b3 - 2024-02-24
+
+### Bug Fixes:
+
+* Handle system names with spaces in multi-CMDR discord report.
+
+
 ## v3.5.0-b2 - 2024-02-24
 
 ### Changes:

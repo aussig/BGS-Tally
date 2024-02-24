@@ -1388,7 +1388,7 @@ class Activity:
             # Legacy - Used a single value for purchase value / profit
             text += f"{cyan('TrdPurchase', fp=fp)} {green(human_format(trade_purchase), fp=fp)} " if trade_purchase != 0 else ""
             text += f"{cyan('TrdProfit', fp=fp)} {green(human_format(trade_profit), fp=fp)} " if trade_profit != 0 else ""
-        elif self.bgstally.state.detailed_trade:
+        elif not self.bgstally.state.detailed_trade:
             # Modern, simple trade report - Combine buy at all brackets and profit at all brackets
             buy_total:int = sum(int(d['value']) for d in trade_buy)
             profit_total:int = sum(int(d['profit']) for d in trade_sell)

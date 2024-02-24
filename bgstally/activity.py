@@ -212,7 +212,8 @@ class Activity:
         result:list = []
 
         for system in self.systems.values():
-            if system.get('PinToOverlay') == CheckStates.STATE_ON: result.append(system.get('System'))
+            if system.get('PinToOverlay') == CheckStates.STATE_ON and not system.get('zero_system_activity'):
+                result.append(system.get('System'))
 
         result.sort()
         return result

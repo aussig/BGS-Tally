@@ -41,7 +41,7 @@ class Overlay:
             lines:list = message.splitlines()
             segments:list = []
             for line in lines:
-                segments += textwrap.wrap(line, width = 70, subsequent_indent = '  ')
+                segments += textwrap.wrap(line, width = 80, subsequent_indent = '  ')
 
             message_width:int = len(max(segments, key = len)) * WIDTH_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(max(segments, key = len)) * WIDTH_CHARACTER_LARGE
             message_height:int = len(segments) * HEIGHT_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(max(segments, key = len)) * HEIGHT_CHARACTER_LARGE
@@ -168,4 +168,4 @@ class Overlay:
         elif frame == "tw":
             return {'border_colour': "#1a4f09", 'fill_colour': "#63029c", 'text_colour': "#ffffff", 'title_colour': "#ffffff", 'x': 1000, 'y': 60, 'w': 100, 'h': 25, 'ttl': 3, 'text_size': "normal"}
         elif frame == "system_info":
-            return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "green", 'x': 600, 'y': 0, 'w': 100, 'h': 100, 'ttl': 30, 'text_size': "normal"}
+            return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "green", 'x': 550, 'y': 0, 'w': 100, 'h': 100, 'ttl': 30, 'text_size': "normal"}

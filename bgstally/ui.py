@@ -294,8 +294,10 @@ class UI:
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
-                    if len(pinned_systems) > 0:
+                    if len(pinned_systems) == 1:
                         self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, pinned_systems), fit_to_text=True, has_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
+                    elif len(pinned_systems) > 1:
+                        self.bgstally.overlay.display_message("system_info", "Pinned Systems\n" + current_activity.generate_text(DiscordActivity.BOTH, False, pinned_systems), fit_to_text=True, has_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
 
 
             sleep(TIME_WORKER_PERIOD_S)

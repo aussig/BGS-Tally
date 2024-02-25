@@ -1,5 +1,16 @@
 # Change Log
 
+## v3.5.0-b4 - 2024-02-25
+
+### Changes:
+
+* No longer trigger automatic Discord embeds for all hyperlinks in the multi-CMDR report.
+
+### Bug Fixes:
+
+* The new simple trade total was giving incorrect combined profit.
+
+
 ## v3.5.0-b3 - 2024-02-24
 
 ### Bug Fixes:

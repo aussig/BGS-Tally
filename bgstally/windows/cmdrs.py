@@ -275,16 +275,16 @@ class WindowCMDRs:
                     text += f"{datetime.strptime(cmdr.get('Timestamp'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST)}: "
 
                     if 'inaraURL' in cmdr:
-                        text += f" - [{cmdr.get('TargetName')}]({cmdr.get('inaraURL')})"
+                        text += f" - [{cmdr.get('TargetName')}](<{cmdr.get('inaraURL')}>)"
                     else:
                         text += f" - {cmdr.get('TargetName')}"
 
-                    text += f" - [{cmdr.get('System')}](https://inara.cz/elite/starsystem/?search={quote(cmdr.get('System'))}) - {cmdr.get('Ship')}"
+                    text += f" - [{cmdr.get('System')}](<https://inara.cz/elite/starsystem/?search={quote(cmdr.get('System'))}>) - {cmdr.get('Ship')}"
 
                     if 'squadron' in cmdr:
                         squadron_info = cmdr.get('squadron')
                         if 'squadronName' in squadron_info and 'inaraURL' in squadron_info:
-                            text += f" - [{squadron_info.get('squadronName')}]({squadron_info.get('inaraURL')})"
+                            text += f" - [{squadron_info.get('squadronName')}](<{squadron_info.get('inaraURL')}>)"
                     text += "\n"
 
         self.bgstally.discord.post_plaintext(text, None, DiscordChannel.CMDR_INFORMATION, None)

@@ -22,7 +22,11 @@
 * Fixed a rare crash that would stop the in-game overlay working.
 
 
-## v3.5.0-xx - xxxx-xx-xx
+## v3.5.0-b4 - 2024-02-25
+
+### Changes:
+
+* No longer trigger automatic Discord embeds for all hyperlinks in the multi-CMDR report.
 
 ### Bug Fixes:
 

@@ -17,7 +17,11 @@
 * Activity windows no longer show a spurious 'Enable' checkbox (which didn't do anything) for systems that have no factions, instead now showing a message stating it is an empty system.
 
 
-## v3.5.0-xx - xxxx-xx-xx
+## v3.5.0-b4 - 2024-02-25
+
+### Changes:
+
+* No longer trigger automatic Discord embeds for all hyperlinks in the multi-CMDR report.
 
 ### Bug Fixes:
 

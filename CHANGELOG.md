@@ -2,6 +2,10 @@
 
 ## v3.5.0-xx - xxxx-xx-xx
 
+### Changes:
+
+* No longer trigger automatic Discord embeds for all hyperlinks in the multi-CMDR report.
+
 ### Bug Fixes:
 
 * The new simple trade total was giving incorrect combined profit.

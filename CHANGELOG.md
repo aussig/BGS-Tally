@@ -22,37 +22,7 @@
 * Fixed a rare crash that would stop the in-game overlay working.
 
 
-## v3.5.0-b4 - 2024-02-25
-
-### Changes:
-
-* No longer trigger automatic Discord embeds for all hyperlinks in the multi-CMDR report.
-
-### Bug Fixes:
-
-* The new simple trade total was giving incorrect combined profit.
-
-
-## v3.5.0-b3 - 2024-02-24
-
-### Bug Fixes:
-
-* Handle system names with spaces in multi-CMDR discord report.
-
-
-## v3.5.0-b2 - 2024-02-24
-
-### Changes:
-
-* Activity windows now only remember positions, not sizes. Size should be automatic based on content, and if it's not then can get truncated content.
-
-
-## v3.5.0-b1 - 2024-02-21
-
-[No Changes from a1]
-
-
-## v3.5.0-a1 - 2024-02-17
+## v3.5.0 - 2024-02-27
 
 ### New Features:
 
@@ -63,7 +33,7 @@
 
 ### Changes:
 
-* Activity windows (latest Tally / previous Tally) will now remember their positions and sizes within a game session.
+* Activity windows (latest Tally / previous Tally) will now remember their positions within a game session. Height and width is still automatic to avoid truncated content if it's larger than the last time you opened the window.
 * Re-opening an already open activity window (latest Tally / previous Tally) will no longer open two copies of the same window. Instead, the old one will be closed and a new fresh window with latest data opened at the same position and size on screen.
 
 

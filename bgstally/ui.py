@@ -140,10 +140,10 @@ class UI:
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text="Discord Options", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # Don't increment row because we want the 1st radio option to be opposite title
-        nb.Checkbutton(frame, text="Abbreviate Faction Names", variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(frame, text="Show Detailed INF", variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(frame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(frame, text="Show Detailed Trade", variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Abbreviate Faction Names", variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Show Detailed INF", variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text="Show Detailed Trade", variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(frame, text="Report Newly Visited System Activity By Default", variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Label(frame, text="Post Format").grid(row=current_row, column=0, padx=10, sticky=tk.W)
         nb.Radiobutton(frame, text="Modern", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
@@ -156,7 +156,7 @@ class UI:
         self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, enable_edit_cell_auto_resize=False, height=140, width=880,
                                      column_width=55, header_align="left", empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
                                      show_horizontal_grid=False, show_vertical_grid=False, show_top_left=False, edit_cell_validation=False,
-                                     headers=["UUID", "Nickname", "Webhook URL", "BGS", "TW", "FC Mats", "FC Ops", "CMDR"])
+                                     headers=["UUID", "Nickname", "Webhook URL", "BGS", "TW", "FC C/M", "FC Ops", "CMDR"])
         self.sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
         self.sheet_webhooks.hide_columns(columns=[0])                       # Visible column indexes
         self.sheet_webhooks.checkbox_column(c=[3, 4, 5, 6, 7])              # Data column indexes
@@ -173,7 +173,7 @@ class UI:
         nb.Label(frame, text="In-game Overlay", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
         nb.Checkbutton(frame, text="Show In-game Overlay",
                        variable=self.bgstally.state.EnableOverlay,
-                       state=self._overlay_options_state(),
+                       state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
@@ -184,28 +184,28 @@ class UI:
         overlay_options_frame.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(overlay_options_frame, text="Current Tick",
                        variable=self.bgstally.state.EnableOverlayCurrentTick,
-                       state=self._overlay_options_state(),
+                       state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
         nb.Checkbutton(overlay_options_frame, text="Activity Indicator",
                        variable=self.bgstally.state.EnableOverlayActivity,
-                       state=self._overlay_options_state(),
+                       state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
         nb.Checkbutton(overlay_options_frame, text="Thargoid War Progress",
                        variable=self.bgstally.state.EnableOverlayTWProgress,
-                       state=self._overlay_options_state(),
+                       state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
         nb.Checkbutton(overlay_options_frame, text="System Information",
                        variable=self.bgstally.state.EnableOverlaySystem,
-                       state=self._overlay_options_state(),
+                       state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
@@ -230,6 +230,21 @@ class UI:
         """
         self.indicate_activity = True
         self.report_system_address = str(system_address)
+
+
+    def show_legend_window(self):
+        """
+        Display the Discord Legend Window
+        """
+        self.window_legend.show()
+
+
+    def overlay_options_state(self):
+        """
+        If the overlay plugin is not available, we want to disable the options so users are not interacting
+        with them expecting results
+        """
+        return "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"
 
 
     def _webhooks_table_modified(self, event=None):
@@ -284,11 +299,21 @@ class UI:
                     self.bgstally.overlay.display_progress_bar("tw", f"TW War Progress in {current_system.get('System', 'Unknown')}: {percent}%", progress)
 
             # System Information
-            if self.bgstally.state.enable_overlay_system and self.report_system_address is not None and current_activity is not None:
-                report_system:dict = current_activity.get_system_by_address(self.report_system_address)
-                if report_system is not None:
-                    self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, report_system['System']), fit_to_text=True, has_title=True)
-                self.report_system_address = None
+            if self.bgstally.state.enable_overlay_system and current_activity is not None:
+                if self.report_system_address is not None:
+                    # Report recent activity in a designated system, overrides pinned systems
+                    report_system:dict = current_activity.get_system_by_address(self.report_system_address)
+                    if report_system is not None:
+                        self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, [report_system['System']]), fit_to_text=True, has_title=True)
+                    self.report_system_address = None
+                else:
+                    # Report pinned systems
+                    pinned_systems:list = current_activity.get_pinned_systems()
+                    if len(pinned_systems) == 1:
+                        self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, pinned_systems), fit_to_text=True, has_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
+                    elif len(pinned_systems) > 1:
+                        self.bgstally.overlay.display_message("system_info", "Pinned Systems\n" + current_activity.generate_text(DiscordActivity.BOTH, False, pinned_systems), fit_to_text=True, has_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
+
 
             sleep(TIME_WORKER_PERIOD_S)
 
@@ -342,24 +367,9 @@ class UI:
         self.window_api.show(parent_frame)
 
 
-    def show_legend_window(self):
-        """
-        Display the Discord Legend Window
-        """
-        self.window_legend.show()
-
-
     def _confirm_force_tick(self):
         """
         Force a tick when user clicks button
         """
         answer = askyesno(title="Confirm FORCE a New Tick", message="This will move your current activity into the previous tick, and clear activity for the current tick.\n\nWARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but BGS-Tally is not showing it.\n\nAre you sure that you want to do this?", default="no")
         if answer: self.bgstally.new_tick(True, UpdateUIPolicy.IMMEDIATE)
-
-
-    def _overlay_options_state(self):
-        """
-        If the overlay plugin is not available, we want to disable the options so users are not interacting
-        with them expecting results
-        """
-        return "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"

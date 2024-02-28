@@ -1,6 +1,6 @@
 import json
 import re
-from copy import deepcopy
+from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from typing import Dict
 
@@ -200,6 +200,23 @@ class Activity:
         Retrieve the data for a system by its address, or None if system not found
         """
         return self.systems.get(system_address, None)
+
+
+    def get_pinned_systems(self) -> list:
+        """
+        Retrieve a list of all system names that are currently pinned to the overlay
+
+        Returns:
+            list | None: List of system names
+        """
+        result:list = []
+
+        for system in self.systems.values():
+            if system.get('PinToOverlay') == CheckStates.STATE_ON and not system.get('zero_system_activity'):
+                result.append(system.get('System'))
+
+        result.sort()
+        return result
 
 
     def clear_activity(self, mission_log: MissionLog):
@@ -911,7 +928,7 @@ class Activity:
             if system['zero_system_activity'] == False: continue
 
 
-    def generate_text(self, activity_mode: DiscordActivity, discord: bool = False, system_name: str = None):
+    def generate_text(self, activity_mode: DiscordActivity, discord: bool = False, system_names: list = None):
         """
         Generate plain text report
         """
@@ -919,8 +936,8 @@ class Activity:
         # Force plain text if we are not posting to Discord
         fp:bool = not discord
 
-        for system in self.systems.values():
-            if system_name is not None and system['System'] != system_name: continue
+        for system in self.systems.copy().values(): # Use a copy for thread-safe operation
+            if system_names is not None and system['System'] not in system_names: continue
             system_text:str = ""
 
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
@@ -1042,6 +1059,8 @@ class Activity:
         if not 'TWSandR' in system_data: system_data['TWSandR'] = self._get_new_tw_sandr_data()
         # From < 3.2.0 to 3.2.0
         if not 'TWReactivate' in system_data: system_data['TWReactivate'] = 0
+        # From < 3.6.0 to 3.6.0
+        if not 'PinToOverlay' in system_data: system_data['PinToOverlay'] = CheckStates.STATE_OFF
 
 
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):
@@ -1295,7 +1314,7 @@ class Activity:
         inf:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in inf_data.items())
         inf_sec:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in secondary_inf_data.items())
 
-        if inf != 0 or (inf_sec != 0 and self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON):
+        if inf != 0 or (inf_sec != 0 and self.bgstally.state.secondary_inf):
             if faction_state in STATES_ELECTION:
                 text += f"{blue('ElectionINF', fp=fp)} "
             elif faction_state in STATES_WAR:
@@ -1303,7 +1322,7 @@ class Activity:
             else:
                 text += f"{blue('INF', fp=fp)} "
 
-            if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON:
+            if self.bgstally.state.secondary_inf:
                 text += self._build_inf_individual(inf, inf_data, "🅟" if discord else "[P]", discord)
                 text += self._build_inf_individual(inf_sec, secondary_inf_data, "🅢" if discord else "[S]", discord)
             else:
@@ -1334,7 +1353,7 @@ class Activity:
         inf_str:str = f"{'+' if inf > 0 else ''}{inf}"
         text += f"{prefix}{green(inf_str, fp=fp)} "
 
-        if self.bgstally.state.DetailedInf.get() == CheckStates.STATE_ON:
+        if self.bgstally.state.detailed_inf:
             detailed_inf:str = ""
             if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {inf_data['1']} "
             if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {inf_data['2']} "
@@ -1369,7 +1388,7 @@ class Activity:
             # Legacy - Used a single value for purchase value / profit
             text += f"{cyan('TrdPurchase', fp=fp)} {green(human_format(trade_purchase), fp=fp)} " if trade_purchase != 0 else ""
             text += f"{cyan('TrdProfit', fp=fp)} {green(human_format(trade_profit), fp=fp)} " if trade_profit != 0 else ""
-        elif self.bgstally.state.DetailedTrade.get() == CheckStates.STATE_OFF:
+        elif not self.bgstally.state.detailed_trade:
             # Modern, simple trade report - Combine buy at all brackets and profit at all brackets
             buy_total:int = sum(int(d['value']) for d in trade_buy)
             profit_total:int = sum(int(d['profit']) for d in trade_sell)
@@ -1447,7 +1466,7 @@ class Activity:
         """
         Shorten the faction name if the user has chosen to
         """
-        if self.bgstally.state.AbbreviateFactionNames.get() == CheckStates.STATE_ON:
+        if self.bgstally.state.abbreviate_faction_names:
             return "".join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
         else:
             return faction_name

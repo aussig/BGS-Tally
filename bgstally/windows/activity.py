@@ -137,7 +137,7 @@ class WindowActivity:
                 # Current tick activity
                 chk_pin_to_overlay:ttk.Checkbutton = ttk.Checkbutton(frame_header, text=f"Pin {system['System']} to Overlay")
                 chk_pin_to_overlay.grid(row=0, column=2, padx=2, pady=2, sticky=tk.E)
-                chk_pin_to_overlay.configure(command=partial(self._pin_overlay_change, chk_pin_to_overlay, system))
+                chk_pin_to_overlay.configure(command=partial(self._pin_overlay_change, chk_pin_to_overlay, system), state=self.bgstally.ui.overlay_options_state())
                 chk_pin_to_overlay.state(['selected', '!alternate'] if system.get('PinToOverlay') == CheckStates.STATE_ON else ['!selected', '!alternate'])
                 frame_header.columnconfigure(2, weight=1) # Make the final column (pin checkbutton) fill available space
             else:

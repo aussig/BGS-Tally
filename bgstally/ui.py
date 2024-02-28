@@ -173,7 +173,7 @@ class UI:
         nb.Label(frame, text="In-game Overlay", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
         nb.Checkbutton(frame, text="Show In-game Overlay",
                        variable=self.bgstally.state.EnableOverlay,
-                       state=self._overlay_options_state(),
+                       state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
@@ -184,28 +184,28 @@ class UI:
         overlay_options_frame.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(overlay_options_frame, text="Current Tick",
                        variable=self.bgstally.state.EnableOverlayCurrentTick,
-                       state=self._overlay_options_state(),
+                       state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
         nb.Checkbutton(overlay_options_frame, text="Activity Indicator",
                        variable=self.bgstally.state.EnableOverlayActivity,
-                       state=self._overlay_options_state(),
+                       state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
         nb.Checkbutton(overlay_options_frame, text="Thargoid War Progress",
                        variable=self.bgstally.state.EnableOverlayTWProgress,
-                       state=self._overlay_options_state(),
+                       state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
         nb.Checkbutton(overlay_options_frame, text="System Information",
                        variable=self.bgstally.state.EnableOverlaySystem,
-                       state=self._overlay_options_state(),
+                       state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
@@ -230,6 +230,21 @@ class UI:
         """
         self.indicate_activity = True
         self.report_system_address = str(system_address)
+
+
+    def show_legend_window(self):
+        """
+        Display the Discord Legend Window
+        """
+        self.window_legend.show()
+
+
+    def overlay_options_state(self):
+        """
+        If the overlay plugin is not available, we want to disable the options so users are not interacting
+        with them expecting results
+        """
+        return "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"
 
 
     def _webhooks_table_modified(self, event=None):
@@ -352,24 +367,9 @@ class UI:
         self.window_api.show(parent_frame)
 
 
-    def show_legend_window(self):
-        """
-        Display the Discord Legend Window
-        """
-        self.window_legend.show()
-
-
     def _confirm_force_tick(self):
         """
         Force a tick when user clicks button
         """
         answer = askyesno(title="Confirm FORCE a New Tick", message="This will move your current activity into the previous tick, and clear activity for the current tick.\n\nWARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but BGS-Tally is not showing it.\n\nAre you sure that you want to do this?", default="no")
         if answer: self.bgstally.new_tick(True, UpdateUIPolicy.IMMEDIATE)
-
-
-    def _overlay_options_state(self):
-        """
-        If the overlay plugin is not available, we want to disable the options so users are not interacting
-        with them expecting results
-        """
-        return "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"

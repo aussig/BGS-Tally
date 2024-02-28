@@ -156,7 +156,7 @@ class UI:
         self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, enable_edit_cell_auto_resize=False, height=140, width=880,
                                      column_width=55, header_align="left", empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
                                      show_horizontal_grid=False, show_vertical_grid=False, show_top_left=False, edit_cell_validation=False,
-                                     headers=["UUID", "Nickname", "Webhook URL", "BGS", "TW", "FC Mats", "FC Ops", "CMDR"])
+                                     headers=["UUID", "Nickname", "Webhook URL", "BGS", "TW", "FC C/M", "FC Ops", "CMDR"])
         self.sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
         self.sheet_webhooks.hide_columns(columns=[0])                       # Visible column indexes
         self.sheet_webhooks.checkbox_column(c=[3, 4, 5, 6, 7])              # Data column indexes

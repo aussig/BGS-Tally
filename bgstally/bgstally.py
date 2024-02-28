@@ -11,7 +11,7 @@ from bgstally.activity import Activity
 from bgstally.activitymanager import ActivityManager
 from bgstally.apimanager import APIManager
 from bgstally.config import Config
-from bgstally.constants import FOLDER_DATA, UpdateUIPolicy
+from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
 from bgstally.discord import Discord
 from bgstally.fleetcarrier import FleetCarrier
@@ -65,7 +65,7 @@ class BGSTally:
             except ImportError:
                 pass
 
-        data_filepath = path.join(self.plugin_dir, FOLDER_DATA)
+        data_filepath = path.join(self.plugin_dir, FOLDER_OTHER_DATA)
         if not path.exists(data_filepath): mkdir(data_filepath)
 
         # Main Classes
@@ -143,6 +143,9 @@ class BGSTally:
             case 'CarrierStats':
                 self.fleet_carrier.stats_received(entry)
 
+            case 'CarrierTradeOrder':
+                self.fleet_carrier.trade_order(entry)
+
             case 'CollectCargo':
                 activity.collect_cargo(entry, self.state)
                 dirty = True
@@ -169,6 +172,9 @@ class BGSTally:
 
             case 'Friends' if entry.get('Status') == "Requested":
                 self.target_log.friend_request(entry, system)
+
+            case 'Friends' if entry.get('Status') == "Added":
+                self.target_log.friend_added(entry, system)
 
             case 'Interdicted':
                 self.target_log.interdicted(entry, system)

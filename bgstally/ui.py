@@ -14,6 +14,7 @@ from ttkHyperlinkLabel import HyperlinkLabel
 from bgstally.activity import Activity
 from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL, CheckStates, DiscordActivity, DiscordPostStyle, UpdateUIPolicy
 from bgstally.debug import Debug
+from bgstally.utils import get_by_path
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
@@ -274,10 +275,10 @@ class UI:
                 self.indicate_activity = False
 
             # Thargoid War Progress Report
-            if self.bgstally.state.enable_overlay_tw_progress and self.bgstally.state.system_tw_status is not None and current_activity is not None:
+            if self.bgstally.state.enable_overlay_tw_progress and current_activity is not None:
                 current_system:dict = current_activity.get_current_system()
-                if current_system:
-                    progress:float = float(self.bgstally.state.system_tw_status.get('WarProgress', 0))
+                if current_system and current_system.get('tw_status') is not None:
+                    progress:float = float(get_by_path(current_system, ['tw_status', 'WarProgress'], 0))
                     percent:float = round(progress * 100, 2)
 
                     self.bgstally.overlay.display_progress_bar("tw", f"TW War Progress in {current_system.get('System', 'Unknown')}: {percent}%", progress)

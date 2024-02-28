@@ -7,7 +7,7 @@ from copy import copy
 
 from requests import Response
 
-from bgstally.constants import CmdrInteractionReason, DATETIME_FORMAT_JOURNAL, FOLDER_DATA, RequestMethod
+from bgstally.constants import CmdrInteractionReason, DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA, RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 
@@ -35,7 +35,7 @@ class TargetLog:
         """
         Load state from file
         """
-        file = os.path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = os.path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         if os.path.exists(file):
             try:
                 with open(file) as json_file:
@@ -48,7 +48,7 @@ class TargetLog:
         """
         Save state to file
         """
-        file = os.path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = os.path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self.targetlog, outfile)
 
@@ -124,6 +124,30 @@ class TargetLog:
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.FRIEND_REQUEST_RECEIVED,
                     'Notes': "Received friend request from",
+                    'Timestamp': journal_entry['timestamp']}
+
+        cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
+        if different and not pending: self.targetlog.append(cmdr_data)
+
+
+    def friend_added(self, journal_entry: dict, system: str):
+        """
+        A friend has been added
+
+        Args:
+            journal_entry (dict): The full journal entry
+            system (str): The system name
+        """
+        cmdr_name:str = journal_entry.get('Name', "")
+        if cmdr_name == "": return
+
+        cmdr_data:dict = {'TargetName': cmdr_name,
+                    'System': system,
+                    'SquadronID': "----",
+                    'Ship': "----",
+                    'LegalStatus': "----",
+                    'Reason': CmdrInteractionReason.FRIEND_ADDED,
+                    'Notes': "Added a friend",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)

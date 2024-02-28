@@ -177,10 +177,21 @@ class WindowCMDRs:
         """
         Post the current selected CMDR or multiple CMDR details to discord
         """
+        self.post_button.config(state=tk.DISABLED)
+
         if len(self.selected_items) == 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
             self._post_single_cmdr_to_discord()
         elif len(self.selected_items) > 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
             self._post_multiple_CMDRs_to_discord()
+
+        self.post_button.after(5000, self._enable_post_button)
+
+
+    def _enable_post_button(self):
+        """
+        Re-enable the post to discord button if it should be enabled
+        """
+        self.post_button.config(state=(tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION) else tk.DISABLED))
 
 
     def _post_single_cmdr_to_discord(self):
@@ -243,6 +254,8 @@ class WindowCMDRs:
         match self.selected_cmdr.get('Reason'):
             case CmdrInteractionReason.FRIEND_REQUEST_RECEIVED:
                 description = f"{cyan('Friend request received from this CMDR')}"
+            case CmdrInteractionReason.FRIEND_ADDED:
+                description = f"{cyan('This CMDR was added as a friend')}"
             case CmdrInteractionReason.INTERDICTED_BY:
                 description = f"{red('INTERDICTED BY this CMDR')}"
             case CmdrInteractionReason.KILLED_BY:

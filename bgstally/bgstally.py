@@ -250,6 +250,9 @@ class BGSTally:
                 activity.destination_dropped(entry, self.state)
                 dirty = True
 
+            case 'SupercruiseEntry':
+                activity.supercruise(entry, self.state)
+
             case 'Undocked' if entry.get('Taxi') == False:
                 self.state.station_faction = ""
                 self.state.station_type = ""

@@ -632,13 +632,24 @@ class Activity:
                     self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
 
-    def settlement_approached(self, journal_entry: Dict, state:State):
+    def supercruise(self, journal_entry: dict, state:State):
+        """Enter supercruise
+
+        Args:
+            journal_entry (dict): The journal entry
+        """
+        state.last_settlement_approached = {}
+        state.last_spacecz_approached = {}
+        state.last_megaship_approached = {}
+
+
+    def settlement_approached(self, journal_entry: dict, state:State):
         """
         Handle approaching a settlement
         """
         state.last_settlement_approached = {'timestamp': journal_entry['timestamp'], 'name': journal_entry['Name'], 'size': None}
         state.last_spacecz_approached = {}
-        self.last_megaship_approached = {}
+        state.last_megaship_approached = {}
 
 
     def destination_dropped(self, journal_entry: dict, state: State):
@@ -652,22 +663,22 @@ class Activity:
             case type if type.startswith("$warzone_pointrace_low"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'l', 'counted': False}
                 state.last_settlement_approached = {}
-                self.last_megaship_approached = {}
+                state.last_megaship_approached = {}
             case type if type.startswith("$warzone_pointrace_med"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'm', 'counted': False}
                 state.last_settlement_approached = {}
-                self.last_megaship_approached = {}
+                state.last_megaship_approached = {}
             case type if type.startswith("$warzone_pointrace_high"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'h', 'counted': False}
                 state.last_settlement_approached = {}
-                self.last_megaship_approached = {}
+                state.last_megaship_approached = {}
             case type if self.megaship_pat.match(type):
                 state.last_megaship_approached = {'timestamp': journal_entry['timestamp'], 'counted': False}
-                self.last_spacecz_approached = {}
+                state.last_spacecz_approached = {}
                 state.last_settlement_approached = {}
 
 
-    def cb_received(self, journal_entry: Dict, state: State):
+    def cb_received(self, journal_entry: dict, state: State):
         """
         Handle a combat bond received for a kill
         """

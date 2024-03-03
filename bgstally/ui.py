@@ -48,6 +48,7 @@ class UI:
 
         self.indicate_activity:bool = False
         self.report_system_address:str = None
+        self.warning:str = None
 
         # Single-instance windows
         self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally)
@@ -210,6 +211,13 @@ class UI:
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame, text="Warnings",
+                       variable=self.bgstally.state.EnableOverlayWarning,
+                       state=self.overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).pack(side=tk.LEFT)
         if self.bgstally.overlay.edmcoverlay == None:
             nb.Label(frame, text="In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.").grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1
 
@@ -230,6 +238,13 @@ class UI:
         """
         self.indicate_activity = True
         self.report_system_address = str(system_address)
+
+
+    def show_warning(self, warning:str):
+        """
+        Show the warning overlay
+        """
+        self.warning = warning
 
 
     def show_legend_window(self):
@@ -304,16 +319,20 @@ class UI:
                     # Report recent activity in a designated system, overrides pinned systems
                     report_system:dict = current_activity.get_system_by_address(self.report_system_address)
                     if report_system is not None:
-                        self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, [report_system['System']]), fit_to_text=True, has_title=True)
+                        self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, [report_system['System']]), fit_to_text=True, text_includes_title=True)
                     self.report_system_address = None
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
                     if len(pinned_systems) == 1:
-                        self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, pinned_systems), fit_to_text=True, has_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
+                        self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, pinned_systems), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
                     elif len(pinned_systems) > 1:
-                        self.bgstally.overlay.display_message("system_info", "Pinned Systems\n" + current_activity.generate_text(DiscordActivity.BOTH, False, pinned_systems), fit_to_text=True, has_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
+                        self.bgstally.overlay.display_message("system_info", "Pinned Systems\n" + current_activity.generate_text(DiscordActivity.BOTH, False, pinned_systems), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
 
+            # Warning
+            if self.bgstally.state.enable_overlay_warning and self.warning is not None:
+                self.bgstally.overlay.display_message("warning", self.warning, fit_to_text=True)
+                self.warning = None
 
             sleep(TIME_WORKER_PERIOD_S)
 

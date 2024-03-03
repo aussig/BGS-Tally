@@ -172,3 +172,5 @@ class Overlay:
             return {'border_colour': "#1a4f09", 'fill_colour': "#63029c", 'text_colour': "#ffffff", 'title_colour': "#ffffff", 'x': 1000, 'y': 60, 'w': 100, 'h': 25, 'ttl': 3, 'text_size': "normal"}
         elif frame == "system_info":
             return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "green", 'x': 550, 'y': 0, 'w': 100, 'h': 100, 'ttl': 30, 'text_size': "normal"}
+        elif frame == "warning":
+            return {'border_colour': "red", 'fill_colour': "red", 'text_colour': "#020202", 'title_colour': "red", 'x': 600, 'y': 300, 'w': 100, 'h': 100, 'ttl': 5, 'text_size': "large"}

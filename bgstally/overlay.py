@@ -11,7 +11,7 @@ except ImportError:
 HEIGHT_CHARACTER_NORMAL = 14
 HEIGHT_CHARACTER_LARGE = 20
 WIDTH_CHARACTER_NORMAL = 4
-WIDTH_CHARACTER_LARGE = 6
+WIDTH_CHARACTER_LARGE = 7
 MAX_LINES_PER_PANEL = 30
 
 
@@ -44,7 +44,7 @@ class Overlay:
                 segments += textwrap.wrap(line, width = 80, subsequent_indent = '  ')
 
             message_width:int = len(max(segments, key = len)) * WIDTH_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(max(segments, key = len)) * WIDTH_CHARACTER_LARGE
-            message_height:int = len(segments) * HEIGHT_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(max(segments, key = len)) * HEIGHT_CHARACTER_LARGE
+            message_height:int = len(segments) * HEIGHT_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(segments) * HEIGHT_CHARACTER_LARGE
             ttl:int = ttl_override if ttl_override else fi['ttl']
             title_colour:str = title_colour_override if title_colour_override else fi['title_colour']
             text_colour:str = text_colour_override if text_colour_override else fi['text_colour']

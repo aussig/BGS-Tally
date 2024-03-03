@@ -591,8 +591,14 @@ class Activity:
         Handle targeting a ship
         """
         if 'Faction' in journal_entry and 'PilotName_Localised' in journal_entry:
+            # Store info on targeted ship
             self.dirty = True
             state.last_ships_targeted[journal_entry['PilotName_Localised']] = {'Faction': journal_entry['Faction'], 'PilotName_Localised': journal_entry['PilotName_Localised']}
+
+        if 'Faction' in journal_entry and state.last_spacecz_approached != {} and state.last_spacecz_approached.get('ally_faction') is not None:
+            # If in space CZ, check we're targeting the right faction
+            if journal_entry.get('Faction', "") == state.last_spacecz_approached.get('ally_faction', ""):
+                self.bgstally.ui.show_warning("Targeted Friendly!")
 
 
     def crime_committed(self, journal_entry: Dict, state: State):
@@ -787,13 +793,14 @@ class Activity:
         """
         We are in an active space CZ
         """
-        faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
+        faction = current_system['Factions'].get(journal_entry.get('AwardingFaction', ""))
         if not faction: return
 
         # If we've already counted this CZ, exit
         if state.last_spacecz_approached.get('counted', False): return
 
         state.last_spacecz_approached['counted'] = True
+        state.last_spacecz_approached['ally_faction'] = faction.get('Faction', "")
         self.dirty = True
 
         type:str = state.last_spacecz_approached.get('type', 'l')

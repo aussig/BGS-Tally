@@ -26,7 +26,7 @@ class Overlay:
         self._check_overlay()
 
 
-    def display_message(self, frame_name: str, message: str, fit_to_text: bool = False, ttl_override: int = None, text_colour_override: str = None, title_colour_override: str = None, has_title: bool = False):
+    def display_message(self, frame_name: str, message: str, fit_to_text: bool = False, ttl_override: int = None, text_colour_override: str = None, title_colour_override: str = None, text_includes_title: bool = False, title: str = None):
         """
         Display a message in the overlay
         """
@@ -57,10 +57,13 @@ class Overlay:
             index:int = 0
 
             # Title
-            if has_title:
+            if text_includes_title:
                 self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], title_colour, fi['x'] + 10, fi['y'] + 5 + yoffset, ttl=ttl, size="large")
                 yoffset += HEIGHT_CHARACTER_LARGE
                 index += 1
+            elif title is not None:
+                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", title, title_colour, fi['x'] + 10, fi['y'] + 5 + yoffset, ttl=ttl, size="large")
+                yoffset += HEIGHT_CHARACTER_LARGE
 
             # Text
             while index <= MAX_LINES_PER_PANEL:

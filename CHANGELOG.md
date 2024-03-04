@@ -7,6 +7,7 @@
 * BGS-Tally now tracks carrier commodity buy and sell orders (in addition to the existing bartender materials buy and sell orders). These are tracked in real time as you change your carrier orders and are posted to Discord with your materials orders.
 * You can now pin one or more systems to the in-game overlay, to permanently show your work in those systems.
 * Adding a friend is now logged as a CMDR interaction.
+* If you accidentally target an ally ship in a space CZ, you now get a warning on screen.
 
 ### Changes:
 
@@ -20,6 +21,7 @@
 ### Bug Fixes:
 
 * Fixed a rare crash that would stop the in-game overlay working.
+* Sometimes BGS-Tally wasn't realising you had left a megaship scenario.
 
 
 ## v3.5.0 - 2024-02-27

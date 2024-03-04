@@ -2,7 +2,7 @@ import tkinter as tk
 from os import path
 from tkinter import PhotoImage, ttk
 
-from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2
+from bgstally.constants import COLOUR_HEADING_1, FOLDER_ASSETS, FONT_HEADING_1
 
 
 class WindowLegend:
@@ -46,7 +46,7 @@ class WindowLegend:
         frame_container.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)
 
         current_row:int = 0
-        ttk.Label(frame_container, text="Icons in BGS Reports", font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        ttk.Label(frame_container, text="Icons in BGS Reports", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         ttk.Label(frame_container, text="🅟", font=("Helvetica", 24)).grid(row=current_row, column=0)
         ttk.Label(frame_container, text=" Primary INF. This is INF gained for the mission issuing faction.").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, text="🅢", font=("Helvetica", 24)).grid(row=current_row, column=0)
@@ -58,7 +58,7 @@ class WindowLegend:
         ttk.Label(frame_container, text="🆉 🅻 🅼 🅷", font=("Helvetica", 24)).grid(row=current_row, column=0)
         ttk.Label(frame_container, text=" Zero / Low / Med / High demand level for trade buy / sell").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
 
-        ttk.Label(frame_container, text="Icons in Thargoid War Reports", font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        ttk.Label(frame_container, text="Icons in Thargoid War Reports", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_passengers).grid(row=current_row, column=0)
         ttk.Label(frame_container, text=" Passenger missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_cargo).grid(row=current_row, column=0)

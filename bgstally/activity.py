@@ -1275,6 +1275,8 @@ class Activity:
                 system_text += "  "
                 pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered'] + system['TWSandR']['tp']['delivered']
                 if pods > 0: system_text += f"⚰️ x {green(pods, fp=fp)} "
+                tps:int = system['TWSandR']['tp']['delivered']
+                if tps > 0: system_text += f"🏮 x {green(tps, fp=fp)} "
                 bbs:int = system['TWSandR']['bb']['delivered']
                 if bbs > 0: system_text += f"⬛ x {green(bbs, fp=fp)} "
                 tissue:int = system['TWSandR']['t']['delivered']

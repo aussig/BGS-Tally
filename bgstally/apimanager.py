@@ -227,6 +227,7 @@ class APIManager:
                 api_system['twsandr'] = {
                     'damagedpods': system['TWSandR']['dp']['delivered'],
                     'occupiedpods': system['TWSandR']['op']['delivered'],
+                    'thargoidpods': system['TWSandR']['tp']['delivered'],
                     'blackboxes': system['TWSandR']['bb']['delivered'],
                     'tissuesamples': system['TWSandR']['t']['delivered']
                 }

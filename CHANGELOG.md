@@ -7,7 +7,7 @@
 * BGS-Tally now tracks carrier commodity buy and sell orders (in addition to the existing bartender materials buy and sell orders). These are tracked in real time as you change your carrier orders. They are posted to Discord with your materials orders.
 * You can now pin one or more systems to the in-game overlay, to permanently show your work in those systems.
 * Adding a friend is now logged as a CMDR interaction.
-* Thargoid Titan pod collection and hand-in tracking ⚰️. You can hand them in at any rescue ship, but they are tallied in the system they were collected.
+* Thargoid Titan pod collection and hand-in tracking 🏮. You can hand them in at any rescue ship, but they are tallied in the system they were collected.
 
 ### Changes:
 

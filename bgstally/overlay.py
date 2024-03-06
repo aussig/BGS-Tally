@@ -14,6 +14,9 @@ WIDTH_CHARACTER_NORMAL = 4
 WIDTH_CHARACTER_LARGE = 7
 MAX_LINES_PER_PANEL = 30
 
+WIDTH_OVERLAY = 1280  # Virtual screen width of overlay
+HEIGHT_OVERLAY = 960  # Virtual screen height of overlay
+
 
 class Overlay:
     """
@@ -48,6 +51,8 @@ class Overlay:
             ttl:int = ttl_override if ttl_override else fi['ttl']
             title_colour:str = title_colour_override if title_colour_override else fi['title_colour']
             text_colour:str = text_colour_override if text_colour_override else fi['text_colour']
+            if fi.get('x_center', False): fi['x'] = int((WIDTH_OVERLAY - message_width) / 2) + fi['x']     # Horizontally centred, offset by 'x'
+            if fi.get('y_center', False): fi['y'] = int((HEIGHT_OVERLAY - message_height) / 2) + fi['y']   # Vertically centred, offset by 'y'
 
             # Border
             if fi['border_colour'] and fi['fill_colour']:
@@ -171,6 +176,6 @@ class Overlay:
         elif frame == "tw":
             return {'border_colour': "#1a4f09", 'fill_colour': "#63029c", 'text_colour': "#ffffff", 'title_colour': "#ffffff", 'x': 1000, 'y': 60, 'w': 100, 'h': 25, 'ttl': 3, 'text_size': "normal"}
         elif frame == "system_info":
-            return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "green", 'x': 550, 'y': 0, 'w': 100, 'h': 100, 'ttl': 30, 'text_size': "normal"}
+            return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "green", 'x': 0, 'y': 0, 'w': 100, 'h': 100, 'x_center': True, 'ttl': 30, 'text_size': "normal"}
         elif frame == "warning":
-            return {'border_colour': "red", 'fill_colour': "red", 'text_colour': "#020202", 'title_colour': "red", 'x': 600, 'y': 300, 'w': 100, 'h': 100, 'ttl': 5, 'text_size': "large"}
+            return {'border_colour': "red", 'fill_colour': "red", 'text_colour': "#020202", 'title_colour': "red", 'x': 0, 'y': -100, 'w': 100, 'h': 100, 'x_center': True, 'y_center': True, 'ttl': 5, 'text_size': "large"}

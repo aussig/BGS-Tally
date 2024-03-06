@@ -853,6 +853,7 @@ class Activity:
         match journal_entry.get('Type', "").lower():
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
+            case 'thargoidpod': key = 'tp'
             case 'usscargoblackbox': key = 'bb'
             case _ as cargo_type if "thargoidtissuesample" in cargo_type or "thargoidscouttissuesample" in cargo_type: key = 't'
 
@@ -871,6 +872,7 @@ class Activity:
         match journal_entry.get('Type', "").lower():
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
+            case 'thargoidpod': key = 'tp'
             case 'usscargoblackbox': key = 'bb'
             case _ as cargo_type if "thargoidtissuesample" in cargo_type or "thargoidscouttissuesample" in cargo_type: key = 't'
 
@@ -890,6 +892,7 @@ class Activity:
         match journal_entry.get('Name', "").lower():
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
+            case 'thargoidpod': key = 'tp'
             case 'usscargoblackbox': key = 'bb'
 
         if key is None or count == 0: return
@@ -1047,7 +1050,12 @@ class Activity:
         """
         Get a new data structure for storing Thargoid War Search and Rescue
         """
-        return {'dp': {'scooped': 0, 'delivered': 0}, 'op': {'scooped': 0, 'delivered': 0}, 'bb': {'scooped': 0, 'delivered': 0}, 't': {'scooped': 0, 'delivered': 0}}
+        return {
+            'dp': {'scooped': 0, 'delivered': 0},
+            'op': {'scooped': 0, 'delivered': 0},
+            'tp': {'scooped': 0, 'delivered': 0},
+            'bb': {'scooped': 0, 'delivered': 0},
+            't': {'scooped': 0, 'delivered': 0}}
 
 
     def _update_system_data(self, system_data:dict):
@@ -1061,6 +1069,7 @@ class Activity:
         if not 'TWReactivate' in system_data: system_data['TWReactivate'] = 0
         # From < 3.6.0 to 3.6.0
         if not 'PinToOverlay' in system_data: system_data['PinToOverlay'] = CheckStates.STATE_OFF
+        if not 'tp' in system_data['TWSandR']: system_data['TWSandR']['tp'] = {'scooped': 0, 'delivered': 0}
 
 
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):
@@ -1169,6 +1178,7 @@ class Activity:
         for system in self.systems.values():
             system['TWSandR']['dp']['scooped'] = 0
             system['TWSandR']['op']['scooped'] = 0
+            system['TWSandR']['tp']['scooped'] = 0
             system['TWSandR']['bb']['scooped'] = 0
             system['TWSandR']['t']['scooped'] = 0
 
@@ -1263,8 +1273,10 @@ class Activity:
 
             if sandr > 0:
                 system_text += "  "
-                pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
+                pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered'] + system['TWSandR']['tp']['delivered']
                 if pods > 0: system_text += f"⚰️ x {green(pods, fp=fp)} "
+                tps:int = system['TWSandR']['tp']['delivered']
+                if tps > 0: system_text += f"🏮 x {green(tps, fp=fp)} "
                 bbs:int = system['TWSandR']['bb']['delivered']
                 if bbs > 0: system_text += f"⬛ x {green(bbs, fp=fp)} "
                 tissue:int = system['TWSandR']['t']['delivered']

@@ -4,9 +4,10 @@
 
 ### New Features:
 
-* BGS-Tally now tracks carrier commodity buy and sell orders (in addition to the existing bartender materials buy and sell orders). These are tracked in real time as you change your carrier orders and are posted to Discord with your materials orders.
+* BGS-Tally now tracks carrier commodity buy and sell orders (in addition to the existing bartender materials buy and sell orders). These are tracked in real time as you change your carrier orders. They are posted to Discord with your materials orders.
 * You can now pin one or more systems to the in-game overlay, to permanently show your work in those systems.
 * Adding a friend is now logged as a CMDR interaction.
+* Thargoid Titan pod collection and hand-in tracking 🏮. You can hand them in at any rescue ship, but they are tallied in the system they were collected.
 
 ### Changes:
 
@@ -20,6 +21,10 @@
 ### Bug Fixes:
 
 * Fixed a rare crash that would stop the in-game overlay working.
+
+### API Changes ([v1.4](https://studio-ws.apicur.io/sharing/xxxxxxxxxx)):
+
+* `/activities` endpoint: Added `thargoidpods` to `systems/[system]/twsandr`.
 
 
 ## v3.5.0 - 2024-02-27

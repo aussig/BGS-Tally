@@ -11,8 +11,11 @@ except ImportError:
 HEIGHT_CHARACTER_NORMAL = 14
 HEIGHT_CHARACTER_LARGE = 20
 WIDTH_CHARACTER_NORMAL = 4
-WIDTH_CHARACTER_LARGE = 6
+WIDTH_CHARACTER_LARGE = 7
 MAX_LINES_PER_PANEL = 30
+
+WIDTH_OVERLAY = 1280  # Virtual screen width of overlay
+HEIGHT_OVERLAY = 960  # Virtual screen height of overlay
 
 
 class Overlay:
@@ -26,7 +29,7 @@ class Overlay:
         self._check_overlay()
 
 
-    def display_message(self, frame_name: str, message: str, fit_to_text: bool = False, ttl_override: int = None, text_colour_override: str = None, title_colour_override: str = None, has_title: bool = False):
+    def display_message(self, frame_name: str, message: str, fit_to_text: bool = False, ttl_override: int = None, text_colour_override: str = None, title_colour_override: str = None, text_includes_title: bool = False, title: str = None):
         """
         Display a message in the overlay
         """
@@ -44,10 +47,12 @@ class Overlay:
                 segments += textwrap.wrap(line, width = 80, subsequent_indent = '  ')
 
             message_width:int = len(max(segments, key = len)) * WIDTH_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(max(segments, key = len)) * WIDTH_CHARACTER_LARGE
-            message_height:int = len(segments) * HEIGHT_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(max(segments, key = len)) * HEIGHT_CHARACTER_LARGE
+            message_height:int = len(segments) * HEIGHT_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(segments) * HEIGHT_CHARACTER_LARGE
             ttl:int = ttl_override if ttl_override else fi['ttl']
             title_colour:str = title_colour_override if title_colour_override else fi['title_colour']
             text_colour:str = text_colour_override if text_colour_override else fi['text_colour']
+            if fi.get('x_center', False): fi['x'] = int((WIDTH_OVERLAY - message_width) / 2) + fi['x']     # Horizontally centred, offset by 'x'
+            if fi.get('y_center', False): fi['y'] = int((HEIGHT_OVERLAY - message_height) / 2) + fi['y']   # Vertically centred, offset by 'y'
 
             # Border
             if fi['border_colour'] and fi['fill_colour']:
@@ -57,10 +62,13 @@ class Overlay:
             index:int = 0
 
             # Title
-            if has_title:
+            if text_includes_title:
                 self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], title_colour, fi['x'] + 10, fi['y'] + 5 + yoffset, ttl=ttl, size="large")
                 yoffset += HEIGHT_CHARACTER_LARGE
                 index += 1
+            elif title is not None:
+                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", title, title_colour, fi['x'] + 10, fi['y'] + 5 + yoffset, ttl=ttl, size="large")
+                yoffset += HEIGHT_CHARACTER_LARGE
 
             # Text
             while index <= MAX_LINES_PER_PANEL:
@@ -168,4 +176,6 @@ class Overlay:
         elif frame == "tw":
             return {'border_colour': "#1a4f09", 'fill_colour': "#63029c", 'text_colour': "#ffffff", 'title_colour': "#ffffff", 'x': 1000, 'y': 60, 'w': 100, 'h': 25, 'ttl': 3, 'text_size': "normal"}
         elif frame == "system_info":
-            return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "green", 'x': 550, 'y': 0, 'w': 100, 'h': 100, 'ttl': 30, 'text_size': "normal"}
+            return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "green", 'x': 0, 'y': 0, 'w': 100, 'h': 100, 'x_center': True, 'ttl': 30, 'text_size': "normal"}
+        elif frame == "warning":
+            return {'border_colour': "red", 'fill_colour': "red", 'text_colour': "#020202", 'title_colour': "red", 'x': 0, 'y': -100, 'w': 100, 'h': 100, 'x_center': True, 'y_center': True, 'ttl': 5, 'text_size': "large"}

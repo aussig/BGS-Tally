@@ -591,8 +591,14 @@ class Activity:
         Handle targeting a ship
         """
         if 'Faction' in journal_entry and 'PilotName_Localised' in journal_entry:
+            # Store info on targeted ship
             self.dirty = True
             state.last_ships_targeted[journal_entry['PilotName_Localised']] = {'Faction': journal_entry['Faction'], 'PilotName_Localised': journal_entry['PilotName_Localised']}
+
+        if 'Faction' in journal_entry and state.last_spacecz_approached != {} and state.last_spacecz_approached.get('ally_faction') is not None:
+            # If in space CZ, check we're targeting the right faction
+            if journal_entry.get('Faction', "") == state.last_spacecz_approached.get('ally_faction', ""):
+                self.bgstally.ui.show_warning("Targeted Friendly!")
 
 
     def crime_committed(self, journal_entry: Dict, state: State):
@@ -632,13 +638,24 @@ class Activity:
                     self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
 
-    def settlement_approached(self, journal_entry: Dict, state:State):
+    def supercruise(self, journal_entry: dict, state:State):
+        """Enter supercruise
+
+        Args:
+            journal_entry (dict): The journal entry
+        """
+        state.last_settlement_approached = {}
+        state.last_spacecz_approached = {}
+        state.last_megaship_approached = {}
+
+
+    def settlement_approached(self, journal_entry: dict, state:State):
         """
         Handle approaching a settlement
         """
         state.last_settlement_approached = {'timestamp': journal_entry['timestamp'], 'name': journal_entry['Name'], 'size': None}
         state.last_spacecz_approached = {}
-        self.last_megaship_approached = {}
+        state.last_megaship_approached = {}
 
 
     def destination_dropped(self, journal_entry: dict, state: State):
@@ -652,22 +669,22 @@ class Activity:
             case type if type.startswith("$warzone_pointrace_low"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'l', 'counted': False}
                 state.last_settlement_approached = {}
-                self.last_megaship_approached = {}
+                state.last_megaship_approached = {}
             case type if type.startswith("$warzone_pointrace_med"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'm', 'counted': False}
                 state.last_settlement_approached = {}
-                self.last_megaship_approached = {}
+                state.last_megaship_approached = {}
             case type if type.startswith("$warzone_pointrace_high"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'h', 'counted': False}
                 state.last_settlement_approached = {}
-                self.last_megaship_approached = {}
+                state.last_megaship_approached = {}
             case type if self.megaship_pat.match(type):
                 state.last_megaship_approached = {'timestamp': journal_entry['timestamp'], 'counted': False}
-                self.last_spacecz_approached = {}
+                state.last_spacecz_approached = {}
                 state.last_settlement_approached = {}
 
 
-    def cb_received(self, journal_entry: Dict, state: State):
+    def cb_received(self, journal_entry: dict, state: State):
         """
         Handle a combat bond received for a kill
         """
@@ -776,13 +793,14 @@ class Activity:
         """
         We are in an active space CZ
         """
-        faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
+        faction = current_system['Factions'].get(journal_entry.get('AwardingFaction', ""))
         if not faction: return
 
         # If we've already counted this CZ, exit
         if state.last_spacecz_approached.get('counted', False): return
 
         state.last_spacecz_approached['counted'] = True
+        state.last_spacecz_approached['ally_faction'] = faction.get('Faction', "")
         self.dirty = True
 
         type:str = state.last_spacecz_approached.get('type', 'l')

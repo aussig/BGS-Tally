@@ -8,6 +8,7 @@
 * You can now pin one or more systems to the in-game overlay, to permanently show your work in those systems.
 * Adding a friend is now logged as a CMDR interaction.
 * Thargoid Titan pod collection and hand-in tracking 🏮. You can hand them in at any rescue ship, but they are tallied in the system they were collected.
+* If you accidentally target an ally ship in a space CZ, you now get a warning on screen.
 
 ### Changes:
 
@@ -21,6 +22,7 @@
 ### Bug Fixes:
 
 * Fixed a rare crash that would stop the in-game overlay working.
+* Sometimes BGS-Tally wasn't realising you had left a megaship scenario.
 
 ### API Changes ([v1.4](https://studio-ws.apicur.io/sharing/xxxxxxxxxx)):
 

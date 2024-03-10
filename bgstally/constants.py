@@ -40,9 +40,11 @@ class DiscordChannel(str, Enum):
     THARGOIDWAR = 'TW'
 
 
-class MaterialsCategory(Enum):
-    SELLING = 0
-    BUYING = 1
+class FleetCarrierItemType(Enum):
+    MATERIALS_SELLING = 0
+    MATERIALS_BUYING = 1
+    COMMODITIES_SELLING = 2
+    COMMODITIES_BUYING = 3
 
 
 class DiscordPostStyle(str, Enum):
@@ -73,13 +75,15 @@ class CmdrInteractionReason(int, Enum):
     KILLED_BY = 3
     MESSAGE_RECEIVED = 4
     TEAM_INVITE_RECEIVED = 5
+    FRIEND_ADDED = 6
 
 
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"
 FILE_SUFFIX = ".json"
 FOLDER_ASSETS = "assets"
-FOLDER_DATA = "otherdata"
 FOLDER_BACKUPS = "backups"
+FOLDER_DATA = "data"
+FOLDER_OTHER_DATA = "otherdata"
 FOLDER_UPDATES = "updates"
 FONT_HEADING_1:tuple = ("Helvetica", 13, "bold")
 FONT_HEADING_2:tuple = ("Helvetica", 11, "bold")

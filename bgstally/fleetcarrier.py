@@ -1,13 +1,16 @@
+import csv
 import json
 from datetime import datetime
 from os import path, remove
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA, DiscordChannel, MaterialsCategory
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierItemType
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
+from bgstally.utils import get_by_path
 from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
+COMMODITIES_CSV_FILENAME = "commodity.csv"
 
 
 class FleetCarrier:
@@ -18,7 +21,11 @@ class FleetCarrier:
         self.callsign:str = None
         self.onfoot_mats_selling:list = []
         self.onfoot_mats_buying:list = []
+        self.commodities_selling:list = []
+        self.commodities_buying:list = []
+        self.commodities:dict = {}
 
+        self._load_commodities()
         self.load()
 
 
@@ -26,7 +33,7 @@ class FleetCarrier:
         """
         Load state from file
         """
-        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         if path.exists(file):
             try:
                 with open(file) as json_file:
@@ -39,7 +46,7 @@ class FleetCarrier:
         """
         Save state to file
         """
-        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile)
 
@@ -65,19 +72,33 @@ class FleetCarrier:
         self.name = bytes.fromhex(self.data.get('name', {}).get('vanityName', "----")).decode('utf-8')
         self.callsign = self.data.get('name', {}).get('callsign', "----")
 
-        # Sort sell orders - a Dict of Dicts, or an empty list
-        materials:dict|list = self.data.get('orders', {}).get('onfootmicroresources', {}).get('sales')
+        # Sort microresource sell orders - a Dict of Dicts, or an empty list
+        materials:dict|list = get_by_path(self.data, ['orders', 'onfootmicroresources', 'sales'], [])
         if materials is not None and type(materials) is dict and materials != {}:
-            self.onfoot_mats_selling = sorted(materials.values(), key=lambda x: x['locName'])
+            self.onfoot_mats_selling = list(materials.values())
         else:
             self.onfoot_mats_selling = []
 
-        # Sort buy orders - a List of Dicts
-        materials = self.data.get('orders', {}).get('onfootmicroresources', {}).get('purchases')
+        # Sort microresource buy orders - a List of Dicts
+        materials = get_by_path(self.data, ['orders', 'onfootmicroresources', 'purchases'], [])
         if materials is not None and materials != []:
-            self.onfoot_mats_buying = sorted(materials, key=lambda x: x['locName'])
+            self.onfoot_mats_buying = materials
         else:
             self.onfoot_mats_buying = []
+
+        # Sort commodity sell orders - a List of Dicts
+        commodities:list = get_by_path(self.data, ['orders', 'commodities', 'sales'], [])
+        if commodities is not None and commodities != []:
+            self.commodities_selling = commodities
+        else:
+            self.commodities_selling = []
+
+        # Sort commodity buy orders - a List of Dicts
+        commodities = get_by_path(self.data, ['orders', 'commodities', 'purchases'], [])
+        if commodities is not None and commodities != []:
+            self.commodities_buying = commodities
+        else:
+            self.commodities_buying = []
 
 
     def stats_received(self, journal_entry: dict):
@@ -123,34 +144,124 @@ class FleetCarrier:
         self.bgstally.discord.post_embed(title, "The scheduled carrier jump was cancelled", fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
-    def get_materials_plaintext(self, category: MaterialsCategory = None):
+    def trade_order(self, journal_entry: dict):
         """
-        Return a list of formatted materials for posting to Discord
+        The user set a buy or sell order
+
+        Args:
+            journal_entry (dict): The journal entry data
+        """
+
+        # { "timestamp":"2024-02-17T16:33:10Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"imperialslaves", "Commodity_Localised":"Imperial Slaves", "SaleOrder":10, "Price":1749300 }
+        # { "timestamp":"2024-02-17T16:33:51Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "PurchaseOrder":5, "Price":4516 }
+        # { "timestamp":"2024-02-17T16:35:57Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "CancelTrade":true }
+
+        item_name:str = journal_entry.get('Commodity', "").lower()
+
+        if item_name in self.commodities:
+            # The order is for a commodity. Note we pass the item_name as the display name because Commodity_Localised is not always present for commodities,
+            # and anyway we don't get localised names in CAPI data so generally they are not present. So, we look display name up later for commodities.
+            if journal_entry.get('SaleOrder') is not None:
+                self._update_item(item_name, item_name, int(journal_entry.get('SaleOrder', 0)), int(journal_entry.get('Price', 0)), FleetCarrierItemType.COMMODITIES_SELLING)
+                self._update_item(item_name, item_name, 0, 0, FleetCarrierItemType.COMMODITIES_BUYING)
+            elif journal_entry.get('PurchaseOrder') is not None:
+                self._update_item(item_name, item_name, 0, 0, FleetCarrierItemType.COMMODITIES_SELLING)
+                self._update_item(item_name, item_name, int(journal_entry.get('PurchaseOrder', 0)), int(journal_entry.get('Price', 0)), FleetCarrierItemType.COMMODITIES_BUYING)
+            elif journal_entry.get('CancelTrade') == True:
+                self._update_item(item_name, item_name, 0, 0, FleetCarrierItemType.COMMODITIES_SELLING)
+                self._update_item(item_name, item_name, 0, 0, FleetCarrierItemType.COMMODITIES_BUYING)
+        else:
+            # The order is for a material.
+            item_display_name:str = journal_entry.get('Commodity_Localised', "")
+            if journal_entry.get('SaleOrder') is not None:
+                self._update_item(item_name, item_display_name, int(journal_entry.get('SaleOrder', 0)), int(journal_entry.get('Price', 0)), FleetCarrierItemType.MATERIALS_SELLING)
+                self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_BUYING)
+            elif journal_entry.get('PurchaseOrder') is not None:
+                self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_SELLING)
+                self._update_item(item_name, item_display_name, int(journal_entry.get('PurchaseOrder', 0)), int(journal_entry.get('Price', 0)), FleetCarrierItemType.MATERIALS_BUYING)
+            elif journal_entry.get('CancelTrade') == True:
+                self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_SELLING)
+                self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_BUYING)
+
+
+    def get_items_plaintext(self, category: FleetCarrierItemType = None):
+        """
+        Return a plain list of items
         """
         result:str = ""
-        materials, key = self._get_materials(category)
+        items, name_key, display_name_key, quantity_key = self._get_items(category)
 
-        if materials is None: return ""
+        if items is None: return ""
+        items = sorted(items, key=lambda x: x[name_key])
 
-        for material in materials:
-            if material[key] > 0: result += f"{material['locName']} x {material[key]} @ {self._human_format_price(material['price'])}\n"
+        for item in items:
+            if category == FleetCarrierItemType.COMMODITIES_BUYING or category == FleetCarrierItemType.COMMODITIES_SELLING:
+                # Look up the display name because we don't have it in CAPI data
+                display_name:str = self.commodities[item[name_key]]
+            else:
+                # Use the localised name from CAPI data
+                display_name:str = item[display_name_key]
+
+            if int(item[quantity_key]) > 0: result += f"{display_name} x {item[quantity_key]} @ {self._human_format_price(item['price'])}\n"
 
         return result
 
 
-    def get_materials_discord(self, category: MaterialsCategory = None) -> str:
+    def get_items_discord(self, category: FleetCarrierItemType = None) -> str:
         """
-        Return a list of formatted materials for posting to Discord
+        Return a list of formatted items for posting to Discord
         """
         result:str = ""
-        materials, key = self._get_materials(category)
+        items, name_key, display_name_key, quantity_key = self._get_items(category)
 
-        if materials is None: return ""
+        if items is None: return ""
+        items = sorted(items, key=lambda x: x[name_key])
 
-        for material in materials:
-            if material[key] > 0: result += f"{cyan(material['locName'])} x {green(material[key])} @ {red(self._human_format_price(material['price']))}\n"
+        for item in items:
+            if category == FleetCarrierItemType.COMMODITIES_BUYING or category == FleetCarrierItemType.COMMODITIES_SELLING:
+                # Look up the display name because we don't have it in CAPI data
+                display_name:str = self.commodities[item[name_key]]
+            else:
+                # Use the localised name from CAPI data
+                display_name:str = item[display_name_key]
+
+            if int(item[quantity_key]) > 0: result += f"{cyan(display_name)} x {green(item[quantity_key])} @ {red(self._human_format_price(item['price']))}\n"
 
         return result
+
+
+
+    def _update_item(self, name: str, display_name: str, quantity: int, price: int, category: FleetCarrierItemType):
+        """
+        Update the buy order or sell order for a commodity or material
+
+        Args:
+            name (str): The name of the item, this is the key used to look up the item
+            quantity (int): The quantity of the order
+            price (int): The price of the order
+            category (FleetCarrierItemType): The type of item and order
+        """
+        items, name_key, display_name_key, quantity_key = self._get_items(category)
+        if items is None: return
+
+        # items is returned as reference, so we are directly manipulating the appropriate list
+        found:bool = False
+        for item in items:
+            if item[name_key] == name:
+                item[quantity_key] = quantity
+                item['price'] = price
+                found = True
+                break
+
+        if not found:
+            items.append(
+                {
+                    name_key: name,
+                    display_name_key: display_name,
+                    quantity_key: quantity,
+                    'price': price
+                }
+            )
 
 
     def human_format_dockingaccess(self) -> str:
@@ -175,7 +286,7 @@ class FleetCarrier:
         """
         Format a BGS value into shortened human-readable text
         """
-        num = float('{:.3g}'.format(num))
+        num = float('{:.3g}'.format(float(num)))
         magnitude = 0
         while abs(num) >= 1000:
             magnitude += 1
@@ -183,16 +294,46 @@ class FleetCarrier:
         return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
 
 
-    def _get_materials(self, category: MaterialsCategory = None) -> tuple[list|None, str|None]:
+    def _get_items(self, category: FleetCarrierItemType = None) -> tuple[list|None, str|None, str|None]:
         """
-        Return the materials list and price key for the specified category
+        Return the current items list, lookup name key, display name key and quantity key for the specified category
         """
-        if category == MaterialsCategory.SELLING:
-            return self.onfoot_mats_selling, 'stock'
-        elif category == MaterialsCategory.BUYING:
-            return self.onfoot_mats_buying, 'outstanding'
-        else:
-            return None, None
+        match category:
+            case FleetCarrierItemType.MATERIALS_SELLING:
+                return self.onfoot_mats_selling, 'name', 'locName', 'stock'
+            case FleetCarrierItemType.MATERIALS_BUYING:
+                return self.onfoot_mats_buying, 'name', 'locName', 'outstanding'
+            case FleetCarrierItemType.COMMODITIES_SELLING:
+                # Lookup name and display name are the same for commodities as we are not passed localised name from CAPI. We
+                # convert the display name later
+                return self.commodities_selling, 'name', 'name', 'stock'
+            case FleetCarrierItemType.COMMODITIES_BUYING:
+                # Lookup name and display name are the same for commodities as we are not passed localised name from CAPI. We
+                # convert the display name later
+                return self.commodities_buying, 'name', 'name', 'outstanding'
+            case _:
+                return None, None, None
+
+
+    def _load_commodities(self):
+        """
+        Load the CSV file containing full list of commodities. For our purposes, we build a dict where the key is the commodity
+        internal name from the 'symbol' column in the CSV, lowercased, and the value is the localised name. As we are not passed
+        localised names for commodities in the CAPI data, this allows us to show nice human-readable commodity names.
+
+        The CSV file is sourced from the EDCD FDevIDs project https://github.com/EDCD/FDevIDs and should be updated occasionally
+        """
+        filepath:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, COMMODITIES_CSV_FILENAME)
+        self.commodities = {}
+
+        try:
+            with open(filepath, encoding = 'utf-8') as csv_file_handler:
+                csv_reader = csv.DictReader(csv_file_handler)
+
+                for rows in csv_reader:
+                    self.commodities[rows.get('symbol', "").lower()] = rows.get('name', "")
+        except Exception as e:
+                Debug.logger.error(f"Unable to load {filepath}")
 
 
     def _as_dict(self):
@@ -204,6 +345,8 @@ class FleetCarrier:
             'callsign': self.callsign,
             'onfoot_mats_selling': self.onfoot_mats_selling,
             'onfoot_mats_buying': self.onfoot_mats_buying,
+            'commodities_selling': self.commodities_selling,
+            'commodities_buying': self.commodities_buying,
             'data': self.data}
 
 
@@ -213,6 +356,8 @@ class FleetCarrier:
         """
         self.name = dict.get('name')
         self.callsign = dict.get('callsign')
-        self.onfoot_mats_selling = dict.get('onfoot_mats_selling')
-        self.onfoot_mats_buying = dict.get('onfoot_mats_buying')
+        self.onfoot_mats_selling = dict.get('onfoot_mats_selling', [])
+        self.onfoot_mats_buying = dict.get('onfoot_mats_buying', [])
+        self.commodities_selling = dict.get('commodities_selling', [])
+        self.commodities_buying = dict.get('commodities_buying', [])
         self.data = dict.get('data')

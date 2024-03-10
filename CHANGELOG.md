@@ -1,5 +1,34 @@
 # Change Log
 
+## v3.6.0-a1 - 2024-03-10
+
+### New Features:
+
+* BGS-Tally now tracks carrier commodity buy and sell orders (in addition to the existing bartender materials buy and sell orders). These are tracked in real time as you change your carrier orders. They are posted to Discord with your materials orders.
+* You can now pin one or more systems to the in-game overlay, to permanently show your work in those systems.
+* Adding a friend is now logged as a CMDR interaction.
+* Thargoid Titan pod collection and hand-in tracking 🏮. You can hand them in at any rescue ship, but they are tallied in the system they were collected.
+* If you accidentally target an ally ship in a space CZ, you now get a warning on screen.
+
+### Changes:
+
+* The tracking of bartender materials buy and sell orders is now updated in real time, as you change them in your carrier. Previously, you would have to wait for the next CAPI carrier data update, which would be at the most every 15 minutes.
+* The Carrier information window has been reorganised to show commodities and materials.
+* All 'Post to Discord' buttons now only allow a single click. They temporarily disable themselves for a few seconds after posting, to avoid accidental multiple posts.
+* No longer report BGS work for systems in Thargoid War.
+* Activity windows no longer show BGS factions and data for Thargoid War systems, instead now showing a message stating that the system is in TW state.
+* Activity windows no longer show a spurious 'Enable' checkbox (which didn't do anything) for systems that have no factions, instead now showing a message stating it is an empty system.
+
+### Bug Fixes:
+
+* Fixed a rare crash that would stop the in-game overlay working.
+* Sometimes BGS-Tally wasn't realising you had left a megaship scenario.
+
+### API Changes ([v1.4](https://studio-ws.apicur.io/sharing/xxxxxxxxxx)):
+
+* `/activities` endpoint: Added `thargoidpods` to `systems/[system]/twsandr`.
+
+
 ## v3.5.0 - 2024-02-27
 
 ### New Features:

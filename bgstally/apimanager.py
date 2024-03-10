@@ -4,7 +4,7 @@ from os import path
 
 from bgstally.activity import Activity
 from bgstally.api import API
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA
 from bgstally.debug import Debug
 from bgstally.utils import get_by_path
 
@@ -34,7 +34,7 @@ class APIManager:
         """
         Load all APIs from disk
         """
-        file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         if path.exists(file):
             try:
                 with open(file) as json_file:
@@ -55,7 +55,7 @@ class APIManager:
         for api in self.apis:
             apis_json.append(api.as_dict())
 
-        file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(apis_json, outfile)
 
@@ -227,6 +227,7 @@ class APIManager:
                 api_system['twsandr'] = {
                     'damagedpods': system['TWSandR']['dp']['delivered'],
                     'occupiedpods': system['TWSandR']['op']['delivered'],
+                    'thargoidpods': system['TWSandR']['tp']['delivered'],
                     'blackboxes': system['TWSandR']['bb']['delivered'],
                     'tissuesamples': system['TWSandR']['t']['delivered']
                 }

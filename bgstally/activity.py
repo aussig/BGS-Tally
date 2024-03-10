@@ -1,6 +1,6 @@
 import json
 import re
-from copy import deepcopy
+from copy import copy, deepcopy
 from datetime import datetime, timedelta
 from typing import Dict
 
@@ -202,6 +202,23 @@ class Activity:
         return self.systems.get(system_address, None)
 
 
+    def get_pinned_systems(self) -> list:
+        """
+        Retrieve a list of all system names that are currently pinned to the overlay
+
+        Returns:
+            list | None: List of system names
+        """
+        result:list = []
+
+        for system in self.systems.values():
+            if system.get('PinToOverlay') == CheckStates.STATE_ON and not system.get('zero_system_activity'):
+                result.append(system.get('System'))
+
+        result.sort()
+        return result
+
+
     def clear_activity(self, mission_log: MissionLog):
         """
         Clear down all activity. If there is a currently active mission in a system or it's the current system the player is in,
@@ -284,7 +301,7 @@ class Activity:
 
         self.recalculate_zero_activity()
         state.current_system_id = str(current_system['SystemAddress'])
-        state.system_tw_status = journal_entry.get('ThargoidWar', None)
+        current_system['tw_status'] = journal_entry.get('ThargoidWar', None)
 
 
     def mission_completed(self, journal_entry: dict, mission_log: MissionLog):
@@ -574,8 +591,14 @@ class Activity:
         Handle targeting a ship
         """
         if 'Faction' in journal_entry and 'PilotName_Localised' in journal_entry:
+            # Store info on targeted ship
             self.dirty = True
             state.last_ships_targeted[journal_entry['PilotName_Localised']] = {'Faction': journal_entry['Faction'], 'PilotName_Localised': journal_entry['PilotName_Localised']}
+
+        if 'Faction' in journal_entry and state.last_spacecz_approached != {} and state.last_spacecz_approached.get('ally_faction') is not None:
+            # If in space CZ, check we're targeting the right faction
+            if journal_entry.get('Faction', "") == state.last_spacecz_approached.get('ally_faction', ""):
+                self.bgstally.ui.show_warning("Targeted Friendly!")
 
 
     def crime_committed(self, journal_entry: Dict, state: State):
@@ -615,13 +638,24 @@ class Activity:
                     self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
 
-    def settlement_approached(self, journal_entry: Dict, state:State):
+    def supercruise(self, journal_entry: dict, state:State):
+        """Enter supercruise
+
+        Args:
+            journal_entry (dict): The journal entry
+        """
+        state.last_settlement_approached = {}
+        state.last_spacecz_approached = {}
+        state.last_megaship_approached = {}
+
+
+    def settlement_approached(self, journal_entry: dict, state:State):
         """
         Handle approaching a settlement
         """
         state.last_settlement_approached = {'timestamp': journal_entry['timestamp'], 'name': journal_entry['Name'], 'size': None}
         state.last_spacecz_approached = {}
-        self.last_megaship_approached = {}
+        state.last_megaship_approached = {}
 
 
     def destination_dropped(self, journal_entry: dict, state: State):
@@ -635,22 +669,22 @@ class Activity:
             case type if type.startswith("$warzone_pointrace_low"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'l', 'counted': False}
                 state.last_settlement_approached = {}
-                self.last_megaship_approached = {}
+                state.last_megaship_approached = {}
             case type if type.startswith("$warzone_pointrace_med"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'm', 'counted': False}
                 state.last_settlement_approached = {}
-                self.last_megaship_approached = {}
+                state.last_megaship_approached = {}
             case type if type.startswith("$warzone_pointrace_high"):
                 state.last_spacecz_approached = {'timestamp': journal_entry['timestamp'], 'type': 'h', 'counted': False}
                 state.last_settlement_approached = {}
-                self.last_megaship_approached = {}
+                state.last_megaship_approached = {}
             case type if self.megaship_pat.match(type):
                 state.last_megaship_approached = {'timestamp': journal_entry['timestamp'], 'counted': False}
-                self.last_spacecz_approached = {}
+                state.last_spacecz_approached = {}
                 state.last_settlement_approached = {}
 
 
-    def cb_received(self, journal_entry: Dict, state: State):
+    def cb_received(self, journal_entry: dict, state: State):
         """
         Handle a combat bond received for a kill
         """
@@ -759,13 +793,14 @@ class Activity:
         """
         We are in an active space CZ
         """
-        faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
+        faction = current_system['Factions'].get(journal_entry.get('AwardingFaction', ""))
         if not faction: return
 
         # If we've already counted this CZ, exit
         if state.last_spacecz_approached.get('counted', False): return
 
         state.last_spacecz_approached['counted'] = True
+        state.last_spacecz_approached['ally_faction'] = faction.get('Faction', "")
         self.dirty = True
 
         type:str = state.last_spacecz_approached.get('type', 'l')
@@ -836,6 +871,7 @@ class Activity:
         match journal_entry.get('Type', "").lower():
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
+            case 'thargoidpod': key = 'tp'
             case 'usscargoblackbox': key = 'bb'
             case _ as cargo_type if "thargoidtissuesample" in cargo_type or "thargoidscouttissuesample" in cargo_type: key = 't'
 
@@ -854,6 +890,7 @@ class Activity:
         match journal_entry.get('Type', "").lower():
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
+            case 'thargoidpod': key = 'tp'
             case 'usscargoblackbox': key = 'bb'
             case _ as cargo_type if "thargoidtissuesample" in cargo_type or "thargoidscouttissuesample" in cargo_type: key = 't'
 
@@ -873,6 +910,7 @@ class Activity:
         match journal_entry.get('Name', "").lower():
             case 'damagedescapepod': key = 'dp'
             case 'occupiedcryopod': key = 'op'
+            case 'thargoidpod': key = 'tp'
             case 'usscargoblackbox': key = 'bb'
 
         if key is None or count == 0: return
@@ -911,7 +949,7 @@ class Activity:
             if system['zero_system_activity'] == False: continue
 
 
-    def generate_text(self, activity_mode: DiscordActivity, discord: bool = False, system_name: str = None):
+    def generate_text(self, activity_mode: DiscordActivity, discord: bool = False, system_names: list = None):
         """
         Generate plain text report
         """
@@ -919,14 +957,14 @@ class Activity:
         # Force plain text if we are not posting to Discord
         fp:bool = not discord
 
-        for system in self.systems.values():
-            if system_name is not None and system['System'] != system_name: continue
+        for system in self.systems.copy().values(): # Use a copy for thread-safe operation
+            if system_names is not None and system['System'] not in system_names: continue
             system_text:str = ""
 
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
                 system_text += self._generate_tw_system_text(system, discord)
 
-            if activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH:
+            if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
                 for faction in system['Factions'].values():
                     if faction['Enabled'] != CheckStates.STATE_ON: continue
                     system_text += self._generate_faction_text(faction, discord)
@@ -1030,7 +1068,12 @@ class Activity:
         """
         Get a new data structure for storing Thargoid War Search and Rescue
         """
-        return {'dp': {'scooped': 0, 'delivered': 0}, 'op': {'scooped': 0, 'delivered': 0}, 'bb': {'scooped': 0, 'delivered': 0}, 't': {'scooped': 0, 'delivered': 0}}
+        return {
+            'dp': {'scooped': 0, 'delivered': 0},
+            'op': {'scooped': 0, 'delivered': 0},
+            'tp': {'scooped': 0, 'delivered': 0},
+            'bb': {'scooped': 0, 'delivered': 0},
+            't': {'scooped': 0, 'delivered': 0}}
 
 
     def _update_system_data(self, system_data:dict):
@@ -1042,6 +1085,9 @@ class Activity:
         if not 'TWSandR' in system_data: system_data['TWSandR'] = self._get_new_tw_sandr_data()
         # From < 3.2.0 to 3.2.0
         if not 'TWReactivate' in system_data: system_data['TWReactivate'] = 0
+        # From < 3.6.0 to 3.6.0
+        if not 'PinToOverlay' in system_data: system_data['PinToOverlay'] = CheckStates.STATE_OFF
+        if not 'tp' in system_data['TWSandR']: system_data['TWSandR']['tp'] = {'scooped': 0, 'delivered': 0}
 
 
     def _update_faction_data(self, faction_data: Dict, faction_state: str = None):
@@ -1150,6 +1196,7 @@ class Activity:
         for system in self.systems.values():
             system['TWSandR']['dp']['scooped'] = 0
             system['TWSandR']['op']['scooped'] = 0
+            system['TWSandR']['tp']['scooped'] = 0
             system['TWSandR']['bb']['scooped'] = 0
             system['TWSandR']['t']['scooped'] = 0
 
@@ -1244,8 +1291,10 @@ class Activity:
 
             if sandr > 0:
                 system_text += "  "
-                pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
+                pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered'] + system['TWSandR']['tp']['delivered']
                 if pods > 0: system_text += f"⚰️ x {green(pods, fp=fp)} "
+                tps:int = system['TWSandR']['tp']['delivered']
+                if tps > 0: system_text += f"🏮 x {green(tps, fp=fp)} "
                 bbs:int = system['TWSandR']['bb']['delivered']
                 if bbs > 0: system_text += f"⬛ x {green(bbs, fp=fp)} "
                 tissue:int = system['TWSandR']['t']['delivered']
@@ -1295,7 +1344,7 @@ class Activity:
         inf:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in inf_data.items())
         inf_sec:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in secondary_inf_data.items())
 
-        if inf != 0 or (inf_sec != 0 and self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON):
+        if inf != 0 or (inf_sec != 0 and self.bgstally.state.secondary_inf):
             if faction_state in STATES_ELECTION:
                 text += f"{blue('ElectionINF', fp=fp)} "
             elif faction_state in STATES_WAR:
@@ -1303,7 +1352,7 @@ class Activity:
             else:
                 text += f"{blue('INF', fp=fp)} "
 
-            if self.bgstally.state.IncludeSecondaryInf.get() == CheckStates.STATE_ON:
+            if self.bgstally.state.secondary_inf:
                 text += self._build_inf_individual(inf, inf_data, "🅟" if discord else "[P]", discord)
                 text += self._build_inf_individual(inf_sec, secondary_inf_data, "🅢" if discord else "[S]", discord)
             else:
@@ -1334,7 +1383,7 @@ class Activity:
         inf_str:str = f"{'+' if inf > 0 else ''}{inf}"
         text += f"{prefix}{green(inf_str, fp=fp)} "
 
-        if self.bgstally.state.DetailedInf.get() == CheckStates.STATE_ON:
+        if self.bgstally.state.detailed_inf:
             detailed_inf:str = ""
             if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {inf_data['1']} "
             if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {inf_data['2']} "
@@ -1369,7 +1418,7 @@ class Activity:
             # Legacy - Used a single value for purchase value / profit
             text += f"{cyan('TrdPurchase', fp=fp)} {green(human_format(trade_purchase), fp=fp)} " if trade_purchase != 0 else ""
             text += f"{cyan('TrdProfit', fp=fp)} {green(human_format(trade_profit), fp=fp)} " if trade_profit != 0 else ""
-        elif self.bgstally.state.DetailedTrade.get() == CheckStates.STATE_OFF:
+        elif not self.bgstally.state.detailed_trade:
             # Modern, simple trade report - Combine buy at all brackets and profit at all brackets
             buy_total:int = sum(int(d['value']) for d in trade_buy)
             profit_total:int = sum(int(d['profit']) for d in trade_sell)
@@ -1447,7 +1496,7 @@ class Activity:
         """
         Shorten the faction name if the user has chosen to
         """
-        if self.bgstally.state.AbbreviateFactionNames.get() == CheckStates.STATE_ON:
+        if self.bgstally.state.abbreviate_faction_names:
             return "".join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
         else:
             return faction_name

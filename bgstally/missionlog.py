@@ -2,7 +2,7 @@ import json
 from os import path, remove
 from datetime import datetime, timedelta
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA
 from bgstally.debug import Debug
 
 FILENAME = "missionlog.json"
@@ -26,7 +26,7 @@ class MissionLog:
         Load state from file
         """
         # New location
-        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         if path.exists(file):
             try:
                 with open(file) as json_file:
@@ -50,7 +50,7 @@ class MissionLog:
         """
         Save state to file
         """
-        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self.missionlog, outfile)
 

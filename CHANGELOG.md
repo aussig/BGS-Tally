@@ -1,6 +1,6 @@
 # Change Log
 
-## v3.6.0-xx - xxxx-xx-xx
+## v3.6.0-a1 - 2024-03-10
 
 ### New Features:
 

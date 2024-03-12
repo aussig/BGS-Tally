@@ -96,4 +96,4 @@ class WindowLegend:
         ttk.Label(frame_container, image=self.image_icon_tw_sr_tissue).grid(row=current_row, column=0)
         ttk.Label(frame_container, text=" Search & Rescue Tissue Samples").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_sr_tps).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Search & Rescue Titan Pods").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" Search & Rescue Bio Pods").grid(row=current_row, column=1, sticky=tk.W); current_row += 1

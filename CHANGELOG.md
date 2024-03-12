@@ -1,5 +1,13 @@
 # Change Log
 
+## v3.6.0-a2 - 2024-03-12
+
+### Bug Fixes:
+
+* Bio pods were being tallied as both bio pods and escape pods.
+* A lot of special characters used in TW reports were not displaying correctly in the in-game overlay.
+
+
 ## v3.6.0-a1 - 2024-03-10
 
 ### New Features:
@@ -7,7 +15,7 @@
 * BGS-Tally now tracks carrier commodity buy and sell orders (in addition to the existing bartender materials buy and sell orders). These are tracked in real time as you change your carrier orders. They are posted to Discord with your materials orders.
 * You can now pin one or more systems to the in-game overlay, to permanently show your work in those systems.
 * Adding a friend is now logged as a CMDR interaction.
-* Thargoid Titan pod collection and hand-in tracking 🏮. You can hand them in at any rescue ship, but they are tallied in the system they were collected.
+* Thargoid Titan bio pod collection and hand-in tracking 🏮. You can hand them in at any rescue ship, but they are tallied in the system they were collected.
 * If you accidentally target an ally ship in a space CZ, you now get a warning on screen.
 
 ### Changes:

@@ -1285,41 +1285,41 @@ class Activity:
         sandr:int = sum(int(d['delivered']) for d in system['TWSandR'].values())
         reactivate:int = system['TWReactivate']
         if kills > 0 or sandr > 0 or reactivate > 0:
-            system_text += f"🍀 System activity\n"
+            system_text += f"{'🍀' if discord else 'TW'} System activity\n"
             if kills > 0:
-                system_text += f"  💀 (kills): " + self._build_tw_vessels_text(system['TWKills'], discord) + " \n"
+                system_text += f"  {'💀 (kills)' if discord else '[kills]'}: " + self._build_tw_vessels_text(system['TWKills'], discord) + " \n"
 
             if sandr > 0:
                 system_text += "  "
                 pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
-                if pods > 0: system_text += f"⚰️ x {green(pods, fp=fp)} "
+                if pods > 0: system_text += f"{'⚰️' if discord else '[esc-pod]'} x {green(pods, fp=fp)} "
                 tps:int = system['TWSandR']['tp']['delivered']
-                if tps > 0: system_text += f"🏮 x {green(tps, fp=fp)} "
+                if tps > 0: system_text += f"{'🏮' if discord else '[bio-pod]'} x {green(tps, fp=fp)} "
                 bbs:int = system['TWSandR']['bb']['delivered']
-                if bbs > 0: system_text += f"⬛ x {green(bbs, fp=fp)} "
+                if bbs > 0: system_text += f"{'⬛' if discord else '[bb]'} x {green(bbs, fp=fp)} "
                 tissue:int = system['TWSandR']['t']['delivered']
-                if tissue > 0: system_text += f"🌱 x {green(tissue, fp=fp)} "
+                if tissue > 0: system_text += f"{'🌱' if discord else '[sample]'} x {green(tissue, fp=fp)} "
                 system_text += "\n"
             if reactivate > 0:
-                system_text += f"  🛠️ x {green(reactivate, fp=fp)} settlements\n"
+                system_text += f"  {'🛠️' if discord else '[reac]'} x {green(reactivate, fp=fp)} settlements\n"
 
         # Station-specific tally
         for system_station_name, system_station in system_stations.items():
-            system_text += f"🍀 {system_station_name}: {green(system_station['mission_count_total'], fp=fp)} missions\n"
+            system_text += f"{'🍀' if discord else 'TW'} {system_station_name}: {green(system_station['mission_count_total'], fp=fp)} missions\n"
             if (system_station['escapepods']['m']['sum'] > 0):
-                system_text += f"  ❕ x {green(system_station['escapepods']['m']['sum'], fp=fp)} - {green(system_station['escapepods']['m']['count'], fp=fp)} missions\n"
+                system_text += f"  {'❕' if discord else '[wounded]'} x {green(system_station['escapepods']['m']['sum'], fp=fp)} - {green(system_station['escapepods']['m']['count'], fp=fp)} missions\n"
             if (system_station['escapepods']['h']['sum'] > 0):
-                system_text += f"  ❗ x {green(system_station['escapepods']['h']['sum'], fp=fp)} - {green(system_station['escapepods']['h']['count'], fp=fp)} missions\n"
+                system_text += f"  {'❗' if discord else '[crit]'} x {green(system_station['escapepods']['h']['sum'], fp=fp)} - {green(system_station['escapepods']['h']['count'], fp=fp)} missions\n"
             if (system_station['cargo']['sum'] > 0):
-                system_text += f"  📦 x {green(system_station['cargo']['sum'], fp=fp)} - {green(system_station['cargo']['count'], fp=fp)} missions\n"
+                system_text += f"  {'📦' if discord else '[cargo]'} x {green(system_station['cargo']['sum'], fp=fp)} - {green(system_station['cargo']['count'], fp=fp)} missions\n"
             if (system_station['escapepods']['l']['sum'] > 0):
-                system_text += f"  ⚕️ x {green(system_station['escapepods']['l']['sum'], fp=fp)} - {green(system_station['escapepods']['l']['count'], fp=fp)} missions\n"
+                system_text += f"  {'⚕️' if discord else '[injured]'} x {green(system_station['escapepods']['l']['sum'], fp=fp)} - {green(system_station['escapepods']['l']['count'], fp=fp)} missions\n"
             if (system_station['passengers']['sum'] > 0):
-                system_text += f"  🧍 x {green(system_station['passengers']['sum'], fp=fp)} - {green(system_station['passengers']['count'], fp=fp)} missions\n"
+                system_text += f"  {'🧍' if discord else '[passeng]'} x {green(system_station['passengers']['sum'], fp=fp)} - {green(system_station['passengers']['count'], fp=fp)} missions\n"
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_text += f"  💀 (missions): " + self._build_tw_vessels_text(system_station['massacre'], discord) + f" - {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
+                system_text += f"  {'💀 (missions)' if discord else '[massac miss]'}: " + self._build_tw_vessels_text(system_station['massacre'], discord) + f" - {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
             if (system_station['reactivate'] > 0):
-                system_text += f"  🛠️ x {green(system_station['reactivate'], fp=fp)} missions\n"
+                system_text += f"  {'🛠️' if discord else '[reac]'} x {green(system_station['reactivate'], fp=fp)} missions\n"
 
         return system_text
 

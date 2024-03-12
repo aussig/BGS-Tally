@@ -5,6 +5,7 @@
 ### Bug Fixes:
 
 * Bio pods were being tallied as both bio pods and escape pods.
+* A lot of special characters used in TW reports were not displaying correctly in the in-game overlay.
 
 
 ## v3.6.0-a1 - 2024-03-10

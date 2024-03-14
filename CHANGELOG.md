@@ -6,6 +6,7 @@
 
 * Bio pods were being tallied as both bio pods and escape pods.
 * A lot of special characters used in TW reports were not displaying correctly in the in-game overlay.
+* Wasn't omitting BGS activity from systems in TW state in 'modern' style Discord posts, only text posts. Now omitted in both.
 
 
 ## v3.6.0-a1 - 2024-03-10

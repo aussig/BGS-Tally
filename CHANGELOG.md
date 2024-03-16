@@ -1,13 +1,19 @@
 # Change Log
 
+## v3.6.0-a3 - 2024-03-16
+
+### Bug Fixes:
+
+* Wasn't omitting BGS activity from systems in TW state in 'modern' style Discord posts, only text posts. Now omitted in both.
+* Not all thargoid activity was being omitted when a system was switched off.
+
+
 ## v3.6.0-a2 - 2024-03-12
 
 ### Bug Fixes:
 
 * Bio pods were being tallied as both bio pods and escape pods.
 * A lot of special characters used in TW reports were not displaying correctly in the in-game overlay.
-* Wasn't omitting BGS activity from systems in TW state in 'modern' style Discord posts, only text posts. Now omitted in both.
-* Not all thargoid activity was being omitted when a system was switched off.
 
 
 ## v3.6.0-a1 - 2024-03-10

@@ -990,7 +990,7 @@ class Activity:
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
                 system_text += self._generate_tw_system_text(system, True)
 
-            if activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH:
+            if activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH and system.get('tw_status') is None:
                 for faction in system['Factions'].values():
                     if faction['Enabled'] != CheckStates.STATE_ON: continue
                     system_text += self._generate_faction_text(faction, True)
@@ -1244,9 +1244,14 @@ class Activity:
         # Force plain text if we are not posting to Discord
         fp:bool = not discord
 
+        # system_tw_enabled defaults to True. Set to False if any faction is disabled in the system
+        system_tw_enabled:bool = True
+
         # Faction-specific tally
         for faction in system['Factions'].values():
-            if faction['Enabled'] != CheckStates.STATE_ON: continue
+            if faction['Enabled'] != CheckStates.STATE_ON:
+                system_tw_enabled = False
+                continue
 
             for station_name in faction.get('TWStations', {}):
                 faction_station = faction['TWStations'][station_name]
@@ -1279,6 +1284,8 @@ class Activity:
                 # We track TW settlement reactivation missions as a simple total
                 system_station['reactivate'] += faction_station['reactivate']
                 system_station['mission_count_total'] += faction_station['reactivate']
+
+        if not system_tw_enabled : return ""
 
         # System-specific tally
         kills:int = sum(system['TWKills'].values())

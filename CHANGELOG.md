@@ -32,7 +32,7 @@
 * Fixed a rare crash that would stop the in-game overlay working.
 * Sometimes BGS-Tally wasn't realising you had left a megaship scenario.
 
-### API Changes ([v1.4](https://studio-ws.apicur.io/sharing/xxxxxxxxxx)):
+### API Changes ([v1.4](https://studio-ws.apicur.io/sharing/3164656a-eea9-4588-a9b9-e3f5f7ee66bc)):
 
 * `/activities` endpoint: Added `thargoidpods` to `systems/[system]/twsandr`.
 

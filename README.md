@@ -1,3 +1,5 @@
+![BGS-Tally Logo](https://repository-images.githubusercontent.com/400106152/643acdcc-7be0-4f2b-8ea3-e407c7d27947)
+
 # BGS-Tally (modified by Aussi)
 
 [![CodeQL](https://github.com/aussig/BGS-Tally/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/aussig/BGS-Tally/actions/workflows/codeql-analysis.yml)

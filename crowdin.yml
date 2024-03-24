@@ -1,3 +1,3 @@
 files:
-  - source: /L10n/en.template
+  - source: /L10n/en.template.strings
     translation: /L10n/%two_letters_code%.strings

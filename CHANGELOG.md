@@ -4,6 +4,7 @@
 
 ### Changes:
 
+* Added new logo as avatar for all posts.
 * Removed 'modified by' references, as Tez (the original author of BGS-Tally) is now recommending this version to users.
 
 

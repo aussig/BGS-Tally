@@ -10,6 +10,7 @@ from thirdparty.colors import *
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S (game)"
 URL_CLOCK_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Fxemoji_u1F556.svg/240px-Fxemoji_u1F556.svg.png"
+URL_LOGO = "https://raw.githubusercontent.com/wiki/aussig/BGS-Tally/images/logo-square-white.png"
 
 
 class Discord:
@@ -88,7 +89,11 @@ class Discord:
 
                 embed:dict = self._get_embed(title, description, fields, False)
                 url:str = webhook_url
-                payload:dict = {'content': "", 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': [embed]}
+                payload:dict = {
+                    'content': "",
+                    'username': self.bgstally.state.DiscordUsername.get(),
+                    'avatar_url': URL_LOGO,
+                    'embeds': [embed]}
 
                 self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, params={'wait': 'true'}, callback=self._request_complete, data=data)
             else:
@@ -96,7 +101,11 @@ class Discord:
                 if fields is not None and fields != []:
                     embed:dict = self._get_embed(title, description, fields, True)
                     url:str = f"{webhook_url}/messages/{previous_messageid}"
-                    payload:dict = {'content': "", 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': [embed]}
+                    payload:dict = {
+                        'content': "",
+                        'username': self.bgstally.state.DiscordUsername.get(),
+                        'avatar_url': URL_LOGO,
+                        'embeds': [embed]}
 
                     self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, callback=self._request_complete, data=data)
                 else:

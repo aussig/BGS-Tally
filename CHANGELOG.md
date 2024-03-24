@@ -2,7 +2,9 @@
 
 ## v3.7.0 - xxxx-xx-xx
 
+### Changes:
 
+* Removed 'modified by' references, as Tez (the original author of BGS-Tally) is now recommending this fork to users.
 
 
 ## v3.6.0 - 2024-03-23

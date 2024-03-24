@@ -1,3 +1,9 @@
+import l10n
+import functools
+
+_ = functools.partial(l10n.Translations.translate, context=__file__)
+
+
 def get_by_path(dic:dict, keys:list, default:any = None):
     """
     Access a nested dict by key sequence

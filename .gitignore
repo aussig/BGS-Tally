@@ -141,3 +141,4 @@ otherdata/
 backups/
 updates/
 thirdparty/sentry_sdk
+l10n.py

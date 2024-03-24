@@ -1,0 +1,15 @@
+/* Language name */
+"!Language" = "English";
+
+/* [activity.py] */
+"%(plugin_name)s - Activity After Tick at: %(tick_time)s" = "%(plugin_name)s - Activity After Tick at: %(tick_time)s";
+
+/* [activity.py] */
+"Discord Additional Notes" = "Discord Additional Notes";
+
+/* [activity.py] */
+"Discord Options" = "Discord Options";
+
+/* f00').grid(row=1, column=0, columnspan=3, sticky=tk.W). [activity.py] */
+"Double-check on-ground CZ tallies, sizes are not always correct" = "Double-check on-ground CZ tallies, sizes are not always correct";
+

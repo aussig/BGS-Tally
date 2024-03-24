@@ -1,6 +1,6 @@
 ![BGS-Tally Logo](https://repository-images.githubusercontent.com/400106152/2666ea20-1f4d-4dcb-9ece-686c53a78910)
 
-# BGS-Tally (modified by Aussi)
+# BGS-Tally
 
 [![CodeQL](https://github.com/aussig/BGS-Tally/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/aussig/BGS-Tally/actions/workflows/codeql-analysis.yml)
 [![GitHub Latest Version](https://img.shields.io/github/v/release/aussig/BGS-Tally)](https://github.com/aussig/BGS-Tally/releases/latest)
@@ -74,4 +74,4 @@ The plugin makes the following network connections:
 
 # Troubleshooting
 
-If you are having problems with BGS-Tally, check out the **[Troubleshooting page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Troubleshooting)**. If those troubleshooting solutions don't work, feel free to contact me in the `#support` channel on my [Discord server](https://discord.gg/YDNVtjPnnm).
+If you are having problems with BGS-Tally, check out the **[Troubleshooting page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Troubleshooting)**. If those troubleshooting solutions don't work, feel free to contact me in the `#support` channel on the [BGS-Tally Discord server](https://discord.gg/YDNVtjPnnm).

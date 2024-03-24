@@ -1,15 +1,267 @@
 /* Language name */
 "!Language" = "English";
 
-/* [activity.py] */
+/* Activity window title. [activity.py] */
 "%(plugin_name)s - Activity After Tick at: %(tick_time)s" = "%(plugin_name)s - Activity After Tick at: %(tick_time)s";
 
-/* [activity.py] */
+/* API settings window title. [api.py] */
+"%(plugin_name)s - API Settings" = "%(plugin_name)s - API Settings";
+
+/* CMDR window title. [cmdrs.py] */
+"%(plugin_name)s - CMDR Interactions" = "%(plugin_name)s - CMDR Interactions";
+
+/* Checkbox label. [activity.py] */
+"Abbreviate Faction Names" = "Abbreviate Faction Names";
+
+/* Label on API settings window. [api.py] */
+"About This" = "About This";
+
+/* Label on API settings window. [api.py] */
+"API Information" = "API Information";
+
+/* Label on API settings window. [api.py] */
+"API Settings" = "API Settings";
+
+/* Label on API settings window. [api.py] */
+"Approved by you" = "Approved by you";
+
+/* Text on API settings window. [api.py] */
+"Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you.";
+
+/* Discord post title. [activity.py] */
+"BGS Activity after Tick: %(tick_time)s" = "BGS Activity after Tick: %(tick_time)s";
+
+/* Activity window column title. [activity.py] */
+"BM Prof" = "BM Prof";
+
+/* Activity window column title. [activity.py] */
+"BVs" = "BVs";
+
+/* Activity window column title. [activity.py] */
+"CBs" = "CBs";
+
+/* Label on CMDR window. [cmdrs.py] */
+"CMDR Details" = "CMDR Details";
+
+/* Button label. [activity.py] */
+"Copy to Clipboard (Legacy Format)" = "Copy to Clipboard (Legacy Format)";
+
+/* CMDR window column title. [cmdrs.py] */
+"Date / Time" = "Date / Time";
+
+/* Button on CMDR window. [cmdrs.py] */
+"Delete Selected" = "Delete Selected";
+
+/* Label on API settings window. [api.py] */
+"Description" = "Description";
+
+/* Label on activity window. [activity.py] */
 "Discord Additional Notes" = "Discord Additional Notes";
 
-/* [activity.py] */
+/* Label on activity window. [activity.py] */
 "Discord Options" = "Discord Options";
 
-/* f00').grid(row=1, column=0, columnspan=3, sticky=tk.W). [activity.py] */
+/* [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Double-check on-ground CZ tallies, sizes are not always correct";
+
+/* Label on activity window. [activity.py] */
+"Empty System, no BGS Activity Available" = "Empty System, no BGS Activity Available";
+
+/* Checkbox on API settings window. [api.py] */
+"Enable /activities Requests" = "Enable /activities Requests";
+
+/* Checkbox on API settings window. [api.py] */
+"Enable /events Requests" = "Enable /events Requests";
+
+/* Label on API settings window. [api.py] */
+"Establish a connection" = "Establish a connection";
+
+/* Button on API settings window. [api.py] */
+"Establish Connection" = "Establish Connection";
+
+/* Label on API settings window. [api.py] */
+"Events Requested" = "Events Requested";
+
+/* Activity window column title. [activity.py] */
+"Exo" = "Exo";
+
+/* Activity window column title. [activity.py] */
+"Expl" = "Expl";
+
+/* Activity window column title. [activity.py] */
+"Faction" = "Faction";
+
+/* Activity window column title. [activity.py] */
+"Fails" = "Fails";
+
+/* Activity window column title. [activity.py] */
+"Foot" = "Foot";
+
+/* Activity window column title. [activity.py] */
+"Foot CZs" = "Foot CZs";
+
+/* Discord CMDR information. [cmdrs.py] */
+"Friend request received from this CMDR" = "Friend request received from this CMDR";
+
+/* Activity window column title. [activity.py] */
+"H" = "H";
+
+/* Button on API settings window. [api.py] */
+"I Approve" = "I Approve";
+
+/* Button on API settings window. [api.py] */
+"I Do Not Approve" = "I Do Not Approve";
+
+/* Discord CMDR information. [cmdrs.py] */
+"I scanned this CMDR" = "I scanned this CMDR";
+
+/* Inara URL on CMDR window. [cmdrs.py] */
+"Inara Info Available ⤴" = "Inara Info Available ⤴";
+
+/* Inara link. [activity.py] */
+"Inara ⤴" = "Inara ⤴";
+
+/* Label on CMDR window. [cmdrs.py] */
+"Inara: " = "Inara: ";
+
+/* Checkbox label. [activity.py] */
+"Include" = "Include";
+
+/* Checkbox label. [activity.py] */
+"Include Secondary INF" = "Include Secondary INF";
+
+/* Activity window column title. [activity.py] */
+"INF" = "INF";
+
+/* CMDR window column title. [cmdrs.py] */
+"Interaction" = "Interaction";
+
+/* Label on CMDR window. [cmdrs.py] */
+"Interaction: " = "Interaction: ";
+
+/* Discord CMDR information. [cmdrs.py] */
+"INTERDICTED BY this CMDR" = "INTERDICTED BY this CMDR";
+
+/* Discord CMDR information. [cmdrs.py] */
+"KILLED BY this CMDR" = "KILLED BY this CMDR";
+
+/* Activity window column title. [activity.py] */
+"L" = "L";
+
+/* Radio button label. [activity.py] */
+"Legacy" = "Legacy";
+
+/* CMDR window column title. [cmdrs.py] */
+"Legal" = "Legal";
+
+/* Activity window column title. [activity.py] */
+"M" = "M";
+
+/* Discord CMDR information. [cmdrs.py] */
+"Message received from this CMDR in local chat" = "Message received from this CMDR in local chat";
+
+/* Radio button label. [activity.py] */
+"Modern" = "Modern";
+
+/* Activity window column title. [activity.py] */
+"Murders" = "Murders";
+
+/* Label on API settings window. [api.py] */
+"Name" = "Name";
+
+/* Label on CMDR window. [cmdrs.py] */
+"Name: " = "Name: ";
+
+/* Options group title. [activity.py] */
+"Other Options" = "Other Options";
+
+/* Checkbox label. [activity.py] */
+"Pin %(system_name)s to Overlay" = "Pin %(system_name)s to Overlay";
+
+/* URL label on API settings window. [api.py] */
+"Player Journal Documentation" = "Player Journal Documentation";
+
+/* Button on CMDR window. [cmdrs.py] */
+"Post CMDR List to Discord" = "Post CMDR List to Discord";
+
+/* Button on CMDR window. [cmdrs.py] */
+"Post CMDR to Discord" = "Post CMDR to Discord";
+
+/* Radio group title. [activity.py] */
+"Post Format" = "Post Format";
+
+/* Button label. [activity.py] */
+"Post to Discord" = "Post to Discord";
+
+/* Activity window column title. [activity.py] */
+"Pri" = "Pri";
+
+/* Activity window column title. [activity.py] */
+"Prof" = "Prof";
+
+/* Activity window column title. [activity.py] */
+"Purch" = "Purch";
+
+/* Checkbox label. [activity.py] */
+"Report Newly Visited System Activity By Default" = "Report Newly Visited System Activity By Default";
+
+/* Label on CMDR window. [cmdrs.py] */
+"Scanned" = "Scanned";
+
+/* Activity window column title. [activity.py] */
+"Scens" = "Scens";
+
+/* Activity window column title. [activity.py] */
+"Sec" = "Sec";
+
+/* Activity window column title. [activity.py] */
+"Ship" = "Ship";
+
+/* Label on API settings window. [api.py] */
+"Shortcuts for Popular Servers" = "Shortcuts for Popular Servers";
+
+/* Checkbox label. [activity.py] */
+"Show Detailed INF" = "Show Detailed INF";
+
+/* Checkbox label. [activity.py] */
+"Show Detailed Trade" = "Show Detailed Trade";
+
+/* Activity window column title. [activity.py] */
+"Space CZs" = "Space CZs";
+
+/* CMDR window column title. [cmdrs.py] */
+"Squadron ID" = "Squadron ID";
+
+/* Label on CMDR window. [cmdrs.py] */
+"Squadron: " = "Squadron: ";
+
+/* Activity window column title. [activity.py] */
+"State" = "State";
+
+/* CMDR window column title. [cmdrs.py] */
+"System" = "System";
+
+/* Discord CMDR information. [cmdrs.py] */
+"Team invite received from this CMDR" = "Team invite received from this CMDR";
+
+/* Label on activity window. [activity.py] */
+"Thargoid War System, no BGS Activity is Counted" = "Thargoid War System, no BGS Activity is Counted";
+
+/* Text on API settings window. [api.py] */
+"The exact set of Events that will be sent is listed in the 'Events Requested' section below. Further information about these Events and what they contain is provided here: " = "The exact set of Events that will be sent is listed in the 'Events Requested' section below. Further information about these Events and what they contain is provided here: ";
+
+/* Discord CMDR information. [cmdrs.py] */
+"This CMDR was added as a friend" = "This CMDR was added as a friend";
+
+/* Text on API settings window. [api.py] */
+"This screen is used to set up a connection to a server.\n\nTake care when agreeing to this - if you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, missions and kills.\n\nPLEASE ENSURE YOU TRUST the server you send this information to!\n" = "This screen is used to set up a connection to a server.\n\nTake care when agreeing to this - if you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, missions and kills.\n\nPLEASE ENSURE YOU TRUST the server you send this information to!\n";
+
+/* Activity window column title. [activity.py] */
+"Trade" = "Trade";
+
+/* Discord post title. [activity.py] */
+"TW Activity after Tick: %(tick_time)s" = "TW Activity after Tick: %(tick_time)s";
+
+/* Label on activity window. [activity.py] */
+"❓ Discord Report Preview" = "❓ Discord Report Preview";
 

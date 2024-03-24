@@ -8,6 +8,7 @@ from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.constants import COLOUR_HEADING_1, DATETIME_FORMAT_JOURNAL, FONT_HEADING_1, FONT_HEADING_2, CmdrInteractionReason, DiscordChannel
 from bgstally.debug import Debug
+from bgstally.utils import _, __
 from bgstally.widgets import TreeviewPlus
 from thirdparty.colors import *
 
@@ -37,7 +38,7 @@ class WindowCMDRs:
             return
 
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
-        self.toplevel.title("CMDR Interactions")
+        self.toplevel.title(_("%(plugin_name)s - CMDR Interactions") % {'plugin_name': self.bgstally.plugin_name}) # LANG: CMDR window title
         self.toplevel.geometry("1200x800")
 
         container_frame = ttk.Frame(self.toplevel)
@@ -52,13 +53,13 @@ class WindowCMDRs:
         details_frame = ttk.Frame(container_frame)
         details_frame.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
 
-        column_info = [{'title': "Name", 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200},
-                        {'title': "System", 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200},
-                        {'title': "Squadron ID", 'type': "name", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 50},
-                        {'title': "Ship", 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200},
-                        {'title': "Legal", 'type': "name", 'align': tk.W, 'stretch': tk.NO, 'width': 60},
-                        {'title': "Date / Time", 'type': "datetime", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 150},
-                        {'title': "Interaction", 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 300}]
+        column_info = [{'title': _("Name"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200}, # LANG: CMDR window column title
+                        {'title': _("System"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200}, # LANG: CMDR window column title
+                        {'title': _("Squadron ID"), 'type': "name", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 50}, # LANG: CMDR window column title
+                        {'title': _("Ship"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200}, # LANG: CMDR window column title
+                        {'title': _("Legal"), 'type': "name", 'align': tk.W, 'stretch': tk.NO, 'width': 60}, # LANG: CMDR window column title
+                        {'title': _("Date / Time"), 'type': "datetime", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 150}, # LANG: CMDR window column title
+                        {'title': _("Interaction"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 300}] # LANG: CMDR window column title
         self.target_data = self.bgstally.target_log.get_targetlog()
 
         treeview = TreeviewPlus(list_frame, columns=[d['title'] for d in column_info], show="headings", callback=self._cmdr_selected, datetime_format=DATETIME_FORMAT_CMDRLIST)
@@ -69,20 +70,20 @@ class WindowCMDRs:
         treeview.pack(fill=tk.BOTH, expand=1)
 
         current_row = 0
-        ttk.Label(details_frame, text="CMDR Details", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, sticky=tk.W); current_row += 1
-        ttk.Label(details_frame, text="Name: ", font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W)
+        ttk.Label(details_frame, text=_("CMDR Details"), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, sticky=tk.W); current_row += 1 # LANG: Label on CMDR window
+        ttk.Label(details_frame, text=_("Name: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W) # LANG: Label on CMDR window
         self.cmdr_details_name = ttk.Label(details_frame, text="")
         self.cmdr_details_name.grid(row=current_row, column=1, sticky=tk.W)
-        ttk.Label(details_frame, text="Inara: ", font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W)
+        ttk.Label(details_frame, text=_("Inara: "), font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W) # LANG: Label on CMDR window
         self.cmdr_details_name_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/cmdrs/?search=aussi", underline=True)
         self.cmdr_details_name_inara.grid(row=current_row, column=3, sticky=tk.W); current_row += 1
-        ttk.Label(details_frame, text="Squadron: ", font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W)
+        ttk.Label(details_frame, text=_("Squadron: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W) # LANG: Label on CMDR window
         self.cmdr_details_squadron = ttk.Label(details_frame, text="")
         self.cmdr_details_squadron.grid(row=current_row, column=1, sticky=tk.W)
-        ttk.Label(details_frame, text="Inara: ", font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W)
+        ttk.Label(details_frame, text=_("Inara: "), font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W) # LANG: Label on CMDR window
         self.cmdr_details_squadron_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/squadrons-search/?search=ghst", underline=True)
         self.cmdr_details_squadron_inara.grid(row=current_row, column=3, sticky=tk.W); current_row += 1
-        ttk.Label(details_frame, text="Interaction: ", font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W)
+        ttk.Label(details_frame, text=_("Interaction: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W) # LANG: Label on CMDR window
         self.cmdr_details_interaction = ttk.Label(details_frame, text="")
         self.cmdr_details_interaction.grid(row=current_row, column=1, sticky=tk.W); current_row += 1
 
@@ -97,14 +98,14 @@ class WindowCMDRs:
                              target.get('Ship', "----"), \
                              target.get('LegalStatus', "----"), \
                              datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST), \
-                             target.get('Notes', "Scanned")]
+                             target.get('Notes', _("Scanned"))] # LANG: Label on CMDR window
             treeview.insert("", 'end', values=target_values, iid=target.get('index'))
 
-        self.post_button = tk.Button(buttons_frame, text="Post CMDR to Discord", command=partial(self._post_to_discord))
+        self.post_button = tk.Button(buttons_frame, text=_("Post CMDR to Discord"), command=partial(self._post_to_discord)) # LANG: Button on CMDR window
         self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
         self.post_button['state'] = tk.DISABLED
 
-        self.delete_button = tk.Button(buttons_frame, text="Delete Selected", bg="red", fg="white", command=partial(self._delete_selected, treeview))
+        self.delete_button = tk.Button(buttons_frame, text=_("Delete Selected"), bg="red", fg="white", command=partial(self._delete_selected, treeview)) # LANG: Button on CMDR window
         self.delete_button.pack(side=tk.RIGHT, padx=5, pady=5)
         self.delete_button['state'] = tk.DISABLED
 
@@ -122,15 +123,15 @@ class WindowCMDRs:
         # Fetch the info for this CMDR. iid is the index into the original (unsorted) CMDR list.
         self.selected_cmdr = self.target_data[int(iid)]
 
-        if 'TargetName' in self.selected_cmdr: self.cmdr_details_name.config(text = self.selected_cmdr.get('TargetName'))
-        if 'inaraURL' in self.selected_cmdr: self.cmdr_details_name_inara.configure(text = "Inara Info Available ⤴", url = self.selected_cmdr.get('inaraURL'))
+        if 'TargetName' in self.selected_cmdr: self.cmdr_details_name.config(text=self.selected_cmdr.get('TargetName'))
+        if 'inaraURL' in self.selected_cmdr: self.cmdr_details_name_inara.configure(text=_("Inara Info Available ⤴"), url=self.selected_cmdr.get('inaraURL')) # LANG: Inara URL on CMDR window
         if 'squadron' in self.selected_cmdr:
             squadron_info = self.selected_cmdr.get('squadron')
-            if 'squadronName' in squadron_info: self.cmdr_details_squadron.config(text = f"{squadron_info.get('squadronName')} ({squadron_info.get('squadronMemberRank')})")
-            if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text = "Inara Info Available ⤴", url = squadron_info.get('inaraURL'))
+            if 'squadronName' in squadron_info: self.cmdr_details_squadron.config(text=f"{squadron_info.get('squadronName')} ({squadron_info.get('squadronMemberRank')})")
+            if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text="Inara Info Available ⤴", url=squadron_info.get('inaraURL')) # LANG: Inara URL on CMDR window
         elif 'SquadronID' in self.selected_cmdr:
-            self.cmdr_details_squadron.config(text = f"{self.selected_cmdr.get('SquadronID')}")
-        if 'Notes' in self.selected_cmdr: self.cmdr_details_interaction.config(text = self.selected_cmdr.get('Notes'))
+            self.cmdr_details_squadron.config(text=f"{self.selected_cmdr.get('SquadronID')}")
+        if 'Notes' in self.selected_cmdr: self.cmdr_details_interaction.config(text=self.selected_cmdr.get('Notes'))
 
 
     def _cmdr_selection_changed(self, treeview:TreeviewPlus, *args):
@@ -144,15 +145,15 @@ class WindowCMDRs:
         self.selected_items = treeview.selection()
 
         if len(self.selected_items) == 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
-            self.post_button.configure(text = "Post CMDR to Discord")
+            self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self.post_button['state'] = tk.NORMAL
             self.delete_button['state'] = tk.NORMAL
         elif len(self.selected_items) > 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
-            self.post_button.configure(text = "Post CMDR List to Discord")
+            self.post_button.configure(text=_("Post CMDR List to Discord")) # LANG: Button on CMDR window
             self.post_button['state'] = tk.NORMAL
             self.delete_button['state'] = tk.NORMAL
         else:
-            self.post_button.configure(text = "Post CMDR to Discord")
+            self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self.post_button['state'] = tk.DISABLED
             self.delete_button['state'] = tk.DISABLED
 
@@ -253,19 +254,19 @@ class WindowCMDRs:
 
         match self.selected_cmdr.get('Reason'):
             case CmdrInteractionReason.FRIEND_REQUEST_RECEIVED:
-                description = f"{cyan('Friend request received from this CMDR')}"
+                description = cyan(__("Friend request received from this CMDR")) # LANG: Discord CMDR information
             case CmdrInteractionReason.FRIEND_ADDED:
-                description = f"{cyan('This CMDR was added as a friend')}"
+                description = cyan(__("This CMDR was added as a friend")) # LANG: Discord CMDR information
             case CmdrInteractionReason.INTERDICTED_BY:
-                description = f"{red('INTERDICTED BY this CMDR')}"
+                description = red(__("INTERDICTED BY this CMDR")) # LANG: Discord CMDR information
             case CmdrInteractionReason.KILLED_BY:
-                description = f"{red('KILLED BY this CMDR')}"
+                description = red(__("KILLED BY this CMDR")) # LANG: Discord CMDR information
             case CmdrInteractionReason.MESSAGE_RECEIVED:
-                description = f"{blue('Message received from this CMDR in local chat')}"
+                description = blue(__("Message received from this CMDR in local chat")) # LANG: Discord CMDR information
             case CmdrInteractionReason.TEAM_INVITE_RECEIVED:
-                description = f"{green('Team invite received from this CMDR')}"
+                description = green(__("Team invite received from this CMDR")) # LANG: Discord CMDR information
             case _:
-                description = f"{yellow('I scanned this CMDR')}"
+                description = yellow(__("I scanned this CMDR")) # LANG: Discord CMDR information
 
         description = f"```ansi\n{description}\n```"
 

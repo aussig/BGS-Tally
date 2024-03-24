@@ -9,7 +9,7 @@ from bgstally.activity import STATES_WAR, Activity
 from bgstally.constants import (COLOUR_HEADING_1, FOLDER_ASSETS, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, CheckStates, CZs, DiscordActivity, DiscordChannel,
                                 DiscordPostStyle)
 from bgstally.debug import Debug
-from bgstally.utils import _, human_format
+from bgstally.utils import _, __, human_format
 from bgstally.widgets import DiscordAnsiColorText, TextPlus
 from thirdparty.colors import *
 from thirdparty.ScrollableNotebook import ScrollableNotebook
@@ -54,7 +54,7 @@ class WindowActivity:
         if self.window_geometry is not None:
             self.toplevel.geometry(f"+{self.window_geometry['x']}+{self.window_geometry['y']}")
 
-        self.toplevel.title(_("%(plugin_name)s - Activity After Tick at: %(tick_time)s") % {'plugin_name': self.bgstally.plugin_name, 'tick_time': activity.get_title()})
+        self.toplevel.title(_("%(plugin_name)s - Activity After Tick at: %(tick_time)s") % {'plugin_name': self.bgstally.plugin_name, 'tick_time': activity.get_title()}) # LANG: Activity window title
 
         ContainerFrame = ttk.Frame(self.toplevel)
         ContainerFrame.pack(fill=tk.BOTH, expand=tk.YES)
@@ -63,8 +63,8 @@ class WindowActivity:
 
         frame_buttons:ttk.Frame = ttk.Frame(ContainerFrame)
         frame_buttons.pack(fill=tk.X, side=tk.BOTTOM)
-        ttk.Button(frame_buttons, text="Copy to Clipboard (Legacy Format)", command=partial(self._copy_to_clipboard, ContainerFrame, activity)).pack(side=tk.LEFT, padx=5, pady=5)
-        self.btn_post_to_discord: ttk.Button = ttk.Button(frame_buttons, text="Post to Discord", command=partial(self._post_to_discord, activity),
+        ttk.Button(frame_buttons, text=_("Copy to Clipboard (Legacy Format)"), command=partial(self._copy_to_clipboard, ContainerFrame, activity)).pack(side=tk.LEFT, padx=5, pady=5) # LANG: Button label
+        self.btn_post_to_discord: ttk.Button = ttk.Button(frame_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord, activity), # LANG: Button label
                                                           state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
 
@@ -72,12 +72,12 @@ class WindowActivity:
         DiscordFrame.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)
         DiscordFrame.columnconfigure(0, weight=2)
         DiscordFrame.columnconfigure(1, weight=1)
-        label_discord_report:ttk.Label = ttk.Label(DiscordFrame, text="❓ Discord Report Preview", font=FONT_HEADING_2, cursor="hand2")
+        label_discord_report:ttk.Label = ttk.Label(DiscordFrame, text=_("❓ Discord Report Preview"), font=FONT_HEADING_2, cursor="hand2") # LANG: Label on activity window
         label_discord_report.grid(row=0, column=0, sticky=tk.W)
         label_discord_report.bind("<Button-1>", self._show_legend_window)
-        ttk.Label(DiscordFrame, text=_("Discord Additional Notes"), font=FONT_HEADING_2).grid(row=0, column=1, sticky=tk.W)
-        ttk.Label(DiscordFrame, text=_("Discord Options"), font=FONT_HEADING_2).grid(row=0, column=2, sticky=tk.W)
-        ttk.Label(DiscordFrame, text=_("Double-check on-ground CZ tallies, sizes are not always correct"), foreground='#f00').grid(row=1, column=0, columnspan=3, sticky=tk.W)
+        ttk.Label(DiscordFrame, text=_("Discord Additional Notes"), font=FONT_HEADING_2).grid(row=0, column=1, sticky=tk.W) # LANG: Label on activity window
+        ttk.Label(DiscordFrame, text=_("Discord Options"), font=FONT_HEADING_2).grid(row=0, column=2, sticky=tk.W) # LANG: Label on activity window
+        ttk.Label(DiscordFrame, text=_("Double-check on-ground CZ tallies, sizes are not always correct"), foreground='#f00').grid(row=1, column=0, columnspan=3, sticky=tk.W) # LANG: Label on activity window
 
         DiscordTextFrame = ttk.Frame(DiscordFrame)
         DiscordTextFrame.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
@@ -100,15 +100,15 @@ class WindowActivity:
         DiscordOptionsFrame = ttk.Frame(DiscordFrame)
         DiscordOptionsFrame.grid(row=2, column=2, padx=5, pady=5, sticky=tk.NW)
         current_row = 1
-        ttk.Label(DiscordOptionsFrame, text="Post Format").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        ttk.Radiobutton(DiscordOptionsFrame, text="Modern", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Radiobutton(DiscordOptionsFrame, text="Legacy", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Label(DiscordOptionsFrame, text="Other Options").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        ttk.Checkbutton(DiscordOptionsFrame, text="Abbreviate Faction Names", variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Checkbutton(DiscordOptionsFrame, text="Show Detailed INF", variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Checkbutton(DiscordOptionsFrame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Checkbutton(DiscordOptionsFrame, text="Show Detailed Trade", variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Checkbutton(DiscordOptionsFrame, text="Report Newly Visited System Activity By Default", variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        ttk.Label(DiscordOptionsFrame, text=_("Post Format")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Radio group title
+        ttk.Radiobutton(DiscordOptionsFrame, text=_("Modern"), variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Radio button label
+        ttk.Radiobutton(DiscordOptionsFrame, text=_("Legacy"), variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Radio button label
+        ttk.Label(DiscordOptionsFrame, text=_("Other Options")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Options group title
+        ttk.Checkbutton(DiscordOptionsFrame, text=_("Abbreviate Faction Names"), variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
+        ttk.Checkbutton(DiscordOptionsFrame, text=_("Show Detailed INF"), variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
+        ttk.Checkbutton(DiscordOptionsFrame, text=_("Include Secondary INF"), variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
+        ttk.Checkbutton(DiscordOptionsFrame, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
+        ttk.Checkbutton(DiscordOptionsFrame, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
 
         system_list = activity.get_ordered_systems()
 
@@ -132,11 +132,11 @@ class WindowActivity:
             frame_header:ttk.Frame = ttk.Frame(tab)
             frame_header.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
             ttk.Label(frame_header, text=system['System'], font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=0, column=0, padx=2, pady=2, sticky=tk.W)
-            HyperlinkLabel(frame_header, text="Inara ⤴", url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=1, padx=2, pady=2, sticky=tk.W)
+            HyperlinkLabel(frame_header, text=_("Inara ⤴"), url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=1, padx=2, pady=2, sticky=tk.W) # LANG: Inara link
 
             if self.activity == self.bgstally.activity_manager.get_current_activity():
                 # Current tick activity
-                chk_pin_to_overlay:ttk.Checkbutton = ttk.Checkbutton(frame_header, text=f"Pin {system['System']} to Overlay")
+                chk_pin_to_overlay:ttk.Checkbutton = ttk.Checkbutton(frame_header, text=_("Pin %(system_name)s to Overlay") % {'system_name': system['System']}) # LANG: Checkbox label
                 chk_pin_to_overlay.grid(row=0, column=2, padx=2, pady=2, sticky=tk.E)
                 chk_pin_to_overlay.configure(command=partial(self._pin_overlay_change, chk_pin_to_overlay, system), state=self.bgstally.ui.overlay_options_state())
                 chk_pin_to_overlay.state(['selected', '!alternate'] if system.get('PinToOverlay') == CheckStates.STATE_ON else ['!selected', '!alternate'])
@@ -147,10 +147,10 @@ class WindowActivity:
 
             if system.get('tw_status') is not None:
                 # TW system, skip all BGS
-                ttk.Label(frame_header, text="Thargoid War System, no BGS Activity is Counted", font=FONT_HEADING_2).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky=tk.W)
+                ttk.Label(frame_header, text=_("Thargoid War System, no BGS Activity is Counted"), font=FONT_HEADING_2).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky=tk.W) # LANG: Label on activity window
             elif len(system['Factions']) == 0:
                 # Empty system
-                ttk.Label(frame_header, text="Empty System, no BGS Activity Available", font=FONT_HEADING_2).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky=tk.W)
+                ttk.Label(frame_header, text=_("Empty System, no BGS Activity Available"), font=FONT_HEADING_2).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky=tk.W) # LANG: Label on activity window
             else:
                 # BGS system
                 frame_table:ttk.Frame = ttk.Frame(tab)
@@ -159,39 +159,39 @@ class WindowActivity:
 
                 FactionEnableCheckbuttons = []
 
-                ttk.Label(frame_table, text="Include", font=FONT_HEADING_2).grid(row=0, column=0, padx=2, pady=2)
+                ttk.Label(frame_table, text=_("Include"), font=FONT_HEADING_2).grid(row=0, column=0, padx=2, pady=2) # LANG: Checkbox label
                 EnableAllCheckbutton = ttk.Checkbutton(frame_table)
                 EnableAllCheckbutton.grid(row=1, column=0, padx=2, pady=2)
                 EnableAllCheckbutton.configure(command=partial(self._enable_all_factions_change, TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system))
                 EnableAllCheckbutton.state(['!alternate'])
 
                 col: int = 1
-                ttk.Label(frame_table, text="Faction", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="State", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="INF", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2)
-                ttk.Label(frame_table, text="Pri", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="Sec", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="Trade", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-                ttk.Label(frame_table, text="Purch", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="Prof", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="BM Prof", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="BVs", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="Expl", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="Exo", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="CBs", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="Fails", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="Murders", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2, pady=2)
-                ttk.Label(frame_table, text="Foot", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="Ship", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="Scens", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="Space CZs", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-                ttk.Label(frame_table, text="L", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="M", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="H", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="Foot CZs", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-                ttk.Label(frame_table, text="L", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="M", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-                ttk.Label(frame_table, text="H", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frame_table, text=_("Faction"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("State"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("INF"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2) # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Pri"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Sec"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Trade"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Purch"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Prof"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("BM Prof"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("BVs"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Expl"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Exo"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("CBs"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Fails"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Murders"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2, pady=2) # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Foot"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Ship"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Scens"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Space CZs"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("L"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("M"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("H"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Foot CZs"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("L"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("M"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("H"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 ttk.Separator(frame_table, orient=tk.HORIZONTAL).grid(columnspan=col, padx=2, pady=5, sticky=tk.EW)
 
                 header_rows = 3
@@ -340,9 +340,9 @@ class WindowActivity:
         else:
             description = "" if activity.discord_notes is None else activity.discord_notes
             discord_fields:dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
-            self.bgstally.discord.post_embed(f"BGS Activity after Tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
+            self.bgstally.discord.post_embed(__("BGS Activity after Tick: %(tick_time)s") % {'tick_time': activity.get_title()}, description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete) # LANG: Discord post title
             discord_fields = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
-            self.bgstally.discord.post_embed(f"TW Activity after Tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
+            self.bgstally.discord.post_embed(__("TW Activity after Tick: %(tick_time)s") % {'tick_time': activity.get_title()}, description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete) # LANG: Discord post title
 
         activity.dirty = True # Because discord post ID has been changed
 

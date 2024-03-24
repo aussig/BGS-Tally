@@ -3,6 +3,7 @@ import functools
 
 _ = functools.partial(l10n.Translations.translate, context=__file__)
 
+__ = functools.partial(_)
 
 def get_by_path(dic:dict, keys:list, default:any = None):
     """

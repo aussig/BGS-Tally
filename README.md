@@ -1,4 +1,4 @@
-![BGS-Tally Logo](https://repository-images.githubusercontent.com/400106152/643acdcc-7be0-4f2b-8ea3-e407c7d27947)
+![BGS-Tally Logo](https://repository-images.githubusercontent.com/400106152/2666ea20-1f4d-4dcb-9ece-686c53a78910)
 
 # BGS-Tally (modified by Aussi)
 

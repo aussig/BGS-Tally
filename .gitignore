@@ -142,3 +142,4 @@ backups/
 updates/
 thirdparty/sentry_sdk
 l10n.py
+L10n/en.template.new

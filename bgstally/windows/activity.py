@@ -168,30 +168,30 @@ class WindowActivity:
                 col: int = 1
                 ttk.Label(frame_table, text=_("Faction"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 ttk.Label(frame_table, text=_("State"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("INF"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2) # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("Pri"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("Sec"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("INF"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2) # LANG: Activity window column title, abbreviation for influence
+                ttk.Label(frame_table, text=_("Pri"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for primary
+                ttk.Label(frame_table, text=_("Sec"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for secondary
                 ttk.Label(frame_table, text=_("Trade"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("Purch"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("Prof"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("BM Prof"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("BVs"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("Expl"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("Exo"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("CBs"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Purch"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for purchase
+                ttk.Label(frame_table, text=_("Prof"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for profit
+                ttk.Label(frame_table, text=_("BM Prof"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for black market profit
+                ttk.Label(frame_table, text=_("BVs"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for bounty vouchers
+                ttk.Label(frame_table, text=_("Expl"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for exploration
+                ttk.Label(frame_table, text=_("Exo"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for exobiology
+                ttk.Label(frame_table, text=_("CBs"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for combat bonds
                 ttk.Label(frame_table, text=_("Fails"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 ttk.Label(frame_table, text=_("Murders"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2, pady=2) # LANG: Activity window column title
                 ttk.Label(frame_table, text=_("Foot"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 ttk.Label(frame_table, text=_("Ship"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("Scens"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("Space CZs"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("L"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("M"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("H"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Scens"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for scenarios
+                ttk.Label(frame_table, text=_("Space CZs"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title, abbreviation for space conflict zones
+                ttk.Label(frame_table, text=_("L"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for low
+                ttk.Label(frame_table, text=_("M"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for medium
+                ttk.Label(frame_table, text=_("H"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for high
                 ttk.Label(frame_table, text=_("Foot CZs"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("L"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("M"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("H"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("L"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for low
+                ttk.Label(frame_table, text=_("M"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for medium
+                ttk.Label(frame_table, text=_("H"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for high
                 ttk.Separator(frame_table, orient=tk.HORIZONTAL).grid(columnspan=col, padx=2, pady=5, sticky=tk.EW)
 
                 header_rows = 3
@@ -340,9 +340,9 @@ class WindowActivity:
         else:
             description = "" if activity.discord_notes is None else activity.discord_notes
             discord_fields:dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
-            self.bgstally.discord.post_embed(__("BGS Activity after Tick: %(tick_time)s") % {'tick_time': activity.get_title()}, description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete) # LANG: Discord post title
+            self.bgstally.discord.post_embed(__("BGS Activity after Tick: %(tick_time)s") % {'tick_time': activity.get_title(True)}, description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete) # LANG: Discord post title
             discord_fields = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
-            self.bgstally.discord.post_embed(__("TW Activity after Tick: %(tick_time)s") % {'tick_time': activity.get_title()}, description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete) # LANG: Discord post title
+            self.bgstally.discord.post_embed(__("TW Activity after Tick: %(tick_time)s") % {'tick_time': activity.get_title(True)}, description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete) # LANG: Discord post title
 
         activity.dirty = True # Because discord post ID has been changed
 

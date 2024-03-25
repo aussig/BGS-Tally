@@ -5,6 +5,7 @@ from tkinter import ttk
 from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, DiscordChannel, FleetCarrierItemType
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
+from bgstally.utils import _, __
 from bgstally.widgets import TextPlus
 from thirdparty.colors import *
 
@@ -31,13 +32,13 @@ class WindowFleetCarrier:
         fc: FleetCarrier = self.bgstally.fleet_carrier
 
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
-        self.toplevel.title(f"Carrier {fc.name} ({fc.callsign}) in system: {fc.data['currentStarSystem']}")
+        self.toplevel.title(_("%(plugin_name)s - Carrier %(carrier_name)s (%(carrier_callsign)s) in system: %(system_name)s") % {'plugin_name': self.bgstally.plugin_name, 'carrier_name': fc.name, 'carrier_callsign': fc.callsign, 'system_name': fc.data['currentStarSystem']}) # LANG: Carrier window title
         self.toplevel.geometry("600x800")
 
         container_frame:ttk.Frame = ttk.Frame(self.toplevel)
         container_frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(container_frame, text=f"System: {fc.data['currentStarSystem']} - Docking: {fc.human_format_dockingaccess()} - Notorious Allowed: {fc.human_format_notorious()}", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW)
+        ttk.Label(container_frame, text=_("System: %(current_system)s - Docking: %(docking_access)s - Notorious Allowed: %(notorious)s") % {'current_system': fc.data['currentStarSystem'], 'docking_access': fc.human_format_dockingaccess(), 'notorious': fc.human_format_notorious()}, font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on carrier window
 
         items_frame:ttk.Frame = ttk.Frame(container_frame)
         items_frame.pack(fill=tk.BOTH, padx=5, pady=5, expand=True)
@@ -47,8 +48,8 @@ class WindowFleetCarrier:
 
         current_row = 0
 
-        ttk.Label(items_frame, text="Selling Materials", font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W)
-        ttk.Label(items_frame, text="Buying Materials", font=FONT_HEADING_2).grid(row=current_row, column=1, sticky=tk.W)
+        ttk.Label(items_frame, text=_("Selling Materials"), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W) # LANG: Label on carrier window
+        ttk.Label(items_frame, text=_("Buying Materials"), font=FONT_HEADING_2).grid(row=current_row, column=1, sticky=tk.W) # LANG: Label on carrier window
 
         current_row += 1
 
@@ -76,8 +77,8 @@ class WindowFleetCarrier:
 
         current_row += 1
 
-        ttk.Label(items_frame, text="Selling Commodities", font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W)
-        ttk.Label(items_frame, text="Buying Commodities", font=FONT_HEADING_2).grid(row=current_row, column=1, sticky=tk.W)
+        ttk.Label(items_frame, text=_("Selling Commodities"), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W) # LANG: Label on carrier window
+        ttk.Label(items_frame, text=_("Buying Commodities"), font=FONT_HEADING_2).grid(row=current_row, column=1, sticky=tk.W) # LANG: Label on carrier window
 
         current_row += 1
 
@@ -109,7 +110,7 @@ class WindowFleetCarrier:
         items_frame.rowconfigure(3, weight=1) # Make the commodities text fill available space
 
 
-        self.post_button:ttk.Button = ttk.Button(buttons_frame, text="Post to Discord", command=partial(self._post_to_discord))
+        self.post_button:ttk.Button = ttk.Button(buttons_frame, text=_("Post to Discord"), command=partial(self._post_to_discord)) # LANG: Button
         self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
         self.post_button.config(state=(tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) else tk.DISABLED))
 
@@ -130,18 +131,18 @@ class WindowFleetCarrier:
         commodities_buying:str = fc.get_items_plaintext(FleetCarrierItemType.COMMODITIES_BUYING)
 
         if materials_selling != "":
-            description += f"**Selling Materials:**\n```css\n{materials_selling}```\n"
+            description += "**" + __("Selling Materials:") + f"**\n```css\n{materials_selling}```\n" # LANG: Discord fleet carrier section heading
         if materials_buying != "":
-            description += f"**Buying Materials:**\n```css\n{materials_buying}```\n"
+            description += "**" + __("Buying Materials:") + f"**\n```css\n{materials_buying}```\n" # LANG: Discord fleet carrier section heading
         if commodities_selling != "":
-            description += f"**Selling Commodities:**\n```css\n{commodities_selling}```\n"
+            description += "**" + __("Selling Commodities:") + f"**\n```css\n{commodities_selling}```\n" # LANG: Discord fleet carrier section heading
         if commodities_buying != "":
-            description += f"**Buying Commodities:**\n```css\n{commodities_buying}```\n"
+            description += "**" + __("Buying Commodities:") + f"**\n```css\n{commodities_buying}```\n" # LANG: Discord fleet carrier section heading
 
         fields = []
-        fields.append({'name': "System", 'value': fc.data['currentStarSystem'], 'inline': True})
-        fields.append({'name': "Docking", 'value': fc.human_format_dockingaccess(), 'inline': True})
-        fields.append({'name': "Notorious Access", 'value': fc.human_format_notorious(), 'inline': True})
+        fields.append({'name': __("System"), 'value': fc.data['currentStarSystem'], 'inline': True}) # LANG: Discord fleet carrier field heading
+        fields.append({'name': __("Docking"), 'value': fc.human_format_dockingaccess(), 'inline': True}) # LANG: Discord fleet carrier field heading
+        fields.append({'name': __("Notorious Access"), 'value': fc.human_format_notorious(), 'inline': True}) # LANG: Discord fleet carrier field heading
 
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
 

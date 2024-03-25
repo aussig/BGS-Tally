@@ -1,9 +1,12 @@
 import l10n
 import functools
 
+# Localisation main translation function
 _ = functools.partial(l10n.Translations.translate, context=__file__)
 
-__ = functools.partial(_)
+# Localisation conditional translation function
+def __(string:str, translate:bool = True): return _(string) if translate else string
+
 
 def get_by_path(dic:dict, keys:list, default:any = None):
     """

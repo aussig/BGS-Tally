@@ -53,7 +53,8 @@ MISSIONS_TW_COLLECT = [
 MISSIONS_TW_EVAC_LOW = [
     'Mission_TW_Rescue_Alert_name', # "Evacuate n injured personnel" (cargo)
     'Mission_TW_PassengerEvacuation_Alert_name', # "n Refugees requesting evacuation" (passenger)
-    'Mission_TW_RefugeeBulk_name' # "Evacuate xxx's group of refugees" (passenger)
+    'Mission_TW_RefugeeBulk_name', # "Evacuate xxx's group of refugees" (passenger)
+    'Mission_TW_RefugeeVIP_name' # Evacuate xxx's party (passenger)
 ]
 MISSIONS_TW_EVAC_MED = [
     'Mission_TW_Rescue_UnderAttack_name', # "Evacuate n wounded" (cargo)

@@ -7,6 +7,10 @@
 * Added new logo as avatar for all posts.
 * Removed 'modified by Aussi' references, as Tez (the original author of BGS-Tally) is now recommending this version to users.
 
+### Bug Fixes:
+
+* Thargoid War VIP passenger evac missions weren't being counted.
+
 
 ## v3.6.0 - 2024-03-23
 

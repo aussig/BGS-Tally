@@ -1293,27 +1293,28 @@ class Activity:
         sandr:int = sum(int(d['delivered']) for d in system['TWSandR'].values())
         reactivate:int = system['TWReactivate']
         if kills > 0 or sandr > 0 or reactivate > 0:
-            system_text += f"{'🍀' if discord else 'TW'} System activity\n"
+            system_text += ("🍀 " if discord else "TW ") + __("System activity") + "\n" # LANG: Discord heading
             if kills > 0:
-                system_text += f"  {'💀 (kills)' if discord else '[kills]'}: " + self._build_tw_vessels_text(system['TWKills'], discord) + " \n"
+                system_text += "  💀 (" + __("kills") + ")" if discord else "[" + __("kills") + "]: " + self._build_tw_vessels_text(system['TWKills'], discord) + " \n" # LANG: Discord heading
 
             if sandr > 0:
                 system_text += "  "
                 pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
-                if pods > 0: system_text += f"{'⚰️' if discord else '[esc-pod]'} x {green(pods, fp=fp)} "
+                if pods > 0: system_text += ("⚰️" if discord else "[" + __("esc-pod") + "]") + " x " + green(pods, fp=fp) + " " # LANG: Discord heading, abbreviation for escape pod
                 tps:int = system['TWSandR']['tp']['delivered']
-                if tps > 0: system_text += f"{'🏮' if discord else '[bio-pod]'} x {green(tps, fp=fp)} "
+                if tps > 0: system_text += ("🏮" if discord else "[" + __("bio-pod") + "]") + " x " + green(tps, fp=fp) + " " # LANG: Discord heading
                 bbs:int = system['TWSandR']['bb']['delivered']
-                if bbs > 0: system_text += f"{'⬛' if discord else '[bb]'} x {green(bbs, fp=fp)} "
+                if bbs > 0: system_text += ("⬛" if discord else "[" + __("bb") + "]") + " x " + green(bbs, fp=fp) + " " # LANG: Discord heading, abbreviation for black box
                 tissue:int = system['TWSandR']['t']['delivered']
-                if tissue > 0: system_text += f"{'🌱' if discord else '[sample]'} x {green(tissue, fp=fp)} "
+                if tissue > 0: system_text += ("🌱" if discord else "[" + __("ts") + "]") + " x " + green(tissue, fp=fp) + " " # LANG: Discord heading, abbreviation for tissue sample
                 system_text += "\n"
             if reactivate > 0:
-                system_text += f"  {'🛠️' if discord else '[reac]'} x {green(reactivate, fp=fp)} settlements\n"
+                system_text += ("  🛠️" if discord else "[" + __("reac") + "]") + " x " + green(reactivate, fp=fp) + " " # LANG: Discord heading, abbreviation for reactivation (TW missions)
+                system_text += __("settlements") + "\n" # LANG: Discord heading
 
         # Station-specific tally
         for system_station_name, system_station in system_stations.items():
-            system_text += f"{'🍀' if discord else 'TW'} {system_station_name}: {green(system_station['mission_count_total'], fp=fp)} missions\n"
+            system_text += f"{'🍀' if discord else 'TW'} {system_station_name}: {green(system_station['mission_count_total'], fp=fp)} " + __("missions") + "\n" # LANG: Discord heading
             if (system_station['escapepods']['m']['sum'] > 0):
                 system_text += f"  {'❕' if discord else '[wounded]'} x {green(system_station['escapepods']['m']['sum'], fp=fp)} - {green(system_station['escapepods']['m']['count'], fp=fp)} missions\n"
             if (system_station['escapepods']['h']['sum'] > 0):
@@ -1424,14 +1425,14 @@ class Activity:
 
         if trade_purchase > 0:
             # Legacy - Used a single value for purchase value / profit
-            text += cyan(__("TrdPurchase"), fp=fp) + " " + green(human_format(trade_purchase), fp=fp) + " " if trade_purchase != 0 else ""
-            text += cyan(__("TrdProfit"), fp=fp) + " " + green(human_format(trade_profit), fp=fp) + " " if trade_profit != 0 else ""
+            text += cyan(__("TrdPurchase"), fp=fp) + " " + green(human_format(trade_purchase), fp=fp) + " " if trade_purchase != 0 else "" # LANG: Discord heading, abbreviation for trade purchase
+            text += cyan(__("TrdProfit"), fp=fp) + " " + green(human_format(trade_profit), fp=fp) + " " if trade_profit != 0 else "" # LANG: Discord heading, abbreviation for trade profit
         elif not self.bgstally.state.detailed_trade:
             # Modern, simple trade report - Combine buy at all brackets and profit at all brackets
             buy_total:int = sum(int(d['value']) for d in trade_buy)
             profit_total:int = sum(int(d['profit']) for d in trade_sell)
-            text += cyan(__("TrdBuy"), fp=fp) + " " + green(human_format(buy_total), fp=fp) + " " if buy_total != 0 else ""
-            text += cyan(__("TrdProfit"), fp=fp) + " " + green(human_format(profit_total), fp=fp) + " " if profit_total != 0 else ""
+            text += cyan(__("TrdBuy"), fp=fp) + " " + green(human_format(buy_total), fp=fp) + " " if buy_total != 0 else "" # LANG: Discord heading, abbreviation for trade buy
+            text += cyan(__("TrdProfit"), fp=fp) + " " + green(human_format(profit_total), fp=fp) + " " if profit_total != 0 else "" # LANG: Discord heading, abbreviation for trade profit
         else:
             # Modern, detailed trade report - Split into values per supply / demand bracket
             if sum(int(d['value']) for d in trade_buy) > 0:

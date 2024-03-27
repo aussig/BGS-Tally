@@ -38,7 +38,7 @@ class WindowFleetCarrier:
         container_frame:ttk.Frame = ttk.Frame(self.toplevel)
         container_frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(container_frame, text=_("System: %(current_system)s - Docking: %(docking_access)s - Notorious Allowed: %(notorious)s") % {'current_system': fc.data['currentStarSystem'], 'docking_access': fc.human_format_dockingaccess(), 'notorious': fc.human_format_notorious()}, font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on carrier window
+        ttk.Label(container_frame, text=_("System: %(current_system)s - Docking: %(docking_access)s - Notorious Allowed: %(notorious)s") % {'current_system': fc.data['currentStarSystem'], 'docking_access': fc.human_format_dockingaccess(False), 'notorious': fc.human_format_notorious(False)}, font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on carrier window
 
         items_frame:ttk.Frame = ttk.Frame(container_frame)
         items_frame.pack(fill=tk.BOTH, padx=5, pady=5, expand=True)
@@ -141,8 +141,8 @@ class WindowFleetCarrier:
 
         fields = []
         fields.append({'name': __("System"), 'value': fc.data['currentStarSystem'], 'inline': True}) # LANG: Discord fleet carrier field heading
-        fields.append({'name': __("Docking"), 'value': fc.human_format_dockingaccess(), 'inline': True}) # LANG: Discord fleet carrier field heading
-        fields.append({'name': __("Notorious Access"), 'value': fc.human_format_notorious(), 'inline': True}) # LANG: Discord fleet carrier field heading
+        fields.append({'name': __("Docking"), 'value': fc.human_format_dockingaccess(True), 'inline': True}) # LANG: Discord fleet carrier field heading
+        fields.append({'name': __("Notorious Access"), 'value': fc.human_format_notorious(True), 'inline': True}) # LANG: Discord fleet carrier field heading
 
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
 

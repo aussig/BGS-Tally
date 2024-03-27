@@ -2,6 +2,7 @@ import textwrap
 
 from bgstally.constants import CheckStates
 from bgstally.debug import Debug
+from bgstally.utils import _
 
 try:
     from EDMCOverlay import edmcoverlay
@@ -151,7 +152,7 @@ class Overlay:
         if edmcoverlay:
             try:
                 self.edmcoverlay = edmcoverlay.Overlay()
-                self.display_message("info", "BGSTally Ready", True, 30)
+                self.display_message("info", _("BGSTally Ready"), True, 30) # LANG: Overlay message
             except Exception as e:
                 Debug.logger.warning(f"EDMCOverlay is not running")
             else:

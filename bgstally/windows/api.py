@@ -70,7 +70,10 @@ class WindowAPI:
 
         tk.Label(frame_main, text=_("About This"), font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1 # LANG: Label on API settings window
         self.txt_intro:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
-        self.txt_intro.insert(tk.END, _("This screen is used to set up a connection to a server.\n\nTake care when agreeing to this - if you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, missions and kills.\n\nPLEASE ENSURE YOU TRUST the server you send this information to!\n")) # LANG: Text on API settings window
+        intro_text:str = _("This screen is used to set up a connection to a server.") + "\n\n" # LANG: Text on API settings window
+        intro_text += _("Take care when agreeing to this - if you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, missions and kills.") + "\n\n" # LANG: Text on API settings window
+        intro_text += _("PLEASE ENSURE YOU TRUST the server you send this information to!") + "\n" # LANG: Text on API settings window
+        self.txt_intro.insert(tk.END, intro_text)
         self.txt_intro.configure(state='disabled')
         self.txt_intro.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
         self.txt_intro.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
@@ -81,12 +84,12 @@ class WindowAPI:
         self.txt_settings.configure(state='disabled')
         self.txt_settings.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
         self.txt_settings.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
-        tk.Label(frame_main, text="Server URL").grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
+        tk.Label(frame_main, text=_("Server URL")).grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
         self.var_apiurl:tk.StringVar = tk.StringVar(value=self.api.url)
         self.entry_apiurl:EntryPlus = EntryPlus(frame_main, textvariable=self.var_apiurl)
         self.entry_apiurl.grid(row=current_row, column=1, pady=4, sticky=tk.EW); current_row += 1
         self.var_apiurl.trace_add('write', partial(self._field_edited, self.entry_apiurl))
-        self.label_apikey:tk.Label = tk.Label(frame_main, text="API Key")
+        self.label_apikey:tk.Label = tk.Label(frame_main, text=_("API Key")) # LANG: Label on API settings window
         self.var_apikey:tk.StringVar = tk.StringVar(value=self.api.key)
         self.label_apikey.grid(row=current_row, column=0, sticky=tk.NW, pady=4)
         self.entry_apikey:EntryPlus = EntryPlus(frame_main, textvariable=self.var_apikey)

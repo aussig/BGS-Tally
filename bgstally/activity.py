@@ -167,9 +167,9 @@ class Activity:
         Get the title for this activity
         """
         if self.tick_forced:
-            return f"{str(self.tick_time.strftime(DATETIME_FORMAT_TITLE))} " + (__("(forced)") if discord else _("(forced)")) # LANG: Appended to tick time if a forced tick
+            return f"{str(self.tick_time.strftime(DATETIME_FORMAT_TITLE))} (" + (__("forced") if discord else _("forced")) + ")" # LANG: Appended to tick time if a forced tick
         else:
-            return f"{str(self.tick_time.strftime(DATETIME_FORMAT_TITLE))} " + (__("(game)") if discord else _("(game)")) # LANG: Appended to tick time if a normal tick
+            return f"{str(self.tick_time.strftime(DATETIME_FORMAT_TITLE))} (" + (__("game") if discord else _("game")) + ")" # LANG: Appended to tick time if a normal tick
 
 
     def get_ordered_systems(self):
@@ -1316,19 +1316,26 @@ class Activity:
         for system_station_name, system_station in system_stations.items():
             system_text += f"{'🍀' if discord else 'TW'} {system_station_name}: {green(system_station['mission_count_total'], fp=fp)} " + __("missions") + "\n" # LANG: Discord heading
             if (system_station['escapepods']['m']['sum'] > 0):
-                system_text += f"  {'❕' if discord else '[wounded]'} x {green(system_station['escapepods']['m']['sum'], fp=fp)} - {green(system_station['escapepods']['m']['count'], fp=fp)} missions\n"
+                system_text += ("  ❕" if discord else "[" + __("wounded") + "]") + " x " + green(system_station['escapepods']['m']['sum'], fp=fp) + " - " + green(system_station['escapepods']['m']['count'], fp=fp) + " " # LANG: Discord heading
+                system_text += __("missions") + "\n" # LANG: Discord heading
             if (system_station['escapepods']['h']['sum'] > 0):
-                system_text += f"  {'❗' if discord else '[crit]'} x {green(system_station['escapepods']['h']['sum'], fp=fp)} - {green(system_station['escapepods']['h']['count'], fp=fp)} missions\n"
+                system_text += ("  ❗" if discord else "[" + __("crit") + "]") + " x " + green(system_station['escapepods']['h']['sum'], fp=fp) + " - " + green(system_station['escapepods']['h']['count'], fp=fp) + " " # LANG: Discord heading
+                system_text += __("missions") + "\n" # LANG: Discord heading
             if (system_station['cargo']['sum'] > 0):
-                system_text += f"  {'📦' if discord else '[cargo]'} x {green(system_station['cargo']['sum'], fp=fp)} - {green(system_station['cargo']['count'], fp=fp)} missions\n"
+                system_text += ("  📦" if discord else "[" + __("cargo") + "]") + " x " + green(system_station['cargo']['sum'], fp=fp) + " - " + green(system_station['cargo']['count'], fp=fp) + " " # LANG: Discord heading
+                system_text += __("missions") + "\n" # LANG: Discord heading
             if (system_station['escapepods']['l']['sum'] > 0):
-                system_text += f"  {'⚕️' if discord else '[injured]'} x {green(system_station['escapepods']['l']['sum'], fp=fp)} - {green(system_station['escapepods']['l']['count'], fp=fp)} missions\n"
+                system_text += ("  ⚕️" if discord else "[" + __("injured") + "]") + " x " + green(system_station['escapepods']['l']['sum'], fp=fp) + " - " + green(system_station['escapepods']['l']['count'], fp=fp) + " " # LANG: Discord heading
+                system_text += __("missions") + "\n" # LANG: Discord heading
             if (system_station['passengers']['sum'] > 0):
-                system_text += f"  {'🧍' if discord else '[passeng]'} x {green(system_station['passengers']['sum'], fp=fp)} - {green(system_station['passengers']['count'], fp=fp)} missions\n"
+                system_text += ("  🧍" if discord else "[" + __("passeng") + "]") + " x " + green(system_station['passengers']['sum'], fp=fp) + " - " + green(system_station['passengers']['count'], fp=fp) + " " # LANG: Discord heading
+                system_text += __("missions") + "\n" # LANG: Discord heading
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_text += f"  {'💀 (missions)' if discord else '[massac miss]'}: " + self._build_tw_vessels_text(system_station['massacre'], discord) + f" - {green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp)} missions\n"
+                system_text += ("  💀 (" + __("mm") + ")" if discord else "[" + __("mm") + "]") + ": " + self._build_tw_vessels_text(system_station['massacre'], discord) + " - " + green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp) + " " # LANG: Discord heading
+                system_text += __("missions") + "\n" # LANG: Discord heading
             if (system_station['reactivate'] > 0):
-                system_text += f"  {'🛠️' if discord else '[reac]'} x {green(system_station['reactivate'], fp=fp)} missions\n"
+                system_text += ("  🛠️" if discord else "[" + __("reac") + "]") + " x " + green(system_station['reactivate'], fp=fp) + " " # LANG: Discord heading
+                system_text += __("missions") + "\n" # LANG: Discord heading
 
         return system_text
 

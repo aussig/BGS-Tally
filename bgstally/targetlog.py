@@ -103,7 +103,6 @@ class TargetLog:
                     'Ship': ship_type,
                     'LegalStatus': journal_entry.get('LegalStatus', '----'),
                     'Reason': CmdrInteractionReason.SCANNED,
-                    'Notes': "Scanned",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
@@ -123,7 +122,6 @@ class TargetLog:
                     'Ship': "----",
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.FRIEND_REQUEST_RECEIVED,
-                    'Notes': "Received friend request from",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
@@ -147,7 +145,6 @@ class TargetLog:
                     'Ship': "----",
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.FRIEND_ADDED,
-                    'Notes': "Added a friend",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
@@ -169,7 +166,6 @@ class TargetLog:
                     'Ship': "----",
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.INTERDICTED_BY,
-                    'Notes': "Interdicted by",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
@@ -197,7 +193,6 @@ class TargetLog:
                     'Ship': killer.get('Ship', "----"),
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.KILLED_BY,
-                    'Notes': "Killed by",
                     'Timestamp': journal_entry['timestamp']}
 
             cmdr_data, different, pending = self._fetch_cmdr_info(killer_name[5:], cmdr_data)
@@ -220,7 +215,6 @@ class TargetLog:
                     'Ship': "----",
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.MESSAGE_RECEIVED,
-                    'Notes': "Received message from",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
@@ -240,7 +234,6 @@ class TargetLog:
                     'Ship': "----",
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.TEAM_INVITE_RECEIVED,
-                    'Notes': "Received team invite from",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
@@ -270,7 +263,6 @@ class TargetLog:
             if cmdr_data.get('Ship') != "----": cmdr_data_copy['Ship'] = cmdr_data.get('Ship')
             if cmdr_data.get('LegalStatus') != "----": cmdr_data_copy['LegalStatus'] = cmdr_data.get('LegalStatus')
             cmdr_data_copy['Reason'] = cmdr_data.get('Reason', CmdrInteractionReason.SCANNED)
-            cmdr_data_copy['Notes'] = cmdr_data.get('Notes')
             cmdr_data_copy['Timestamp'] = cmdr_data.get('Timestamp')
             # Re-cache the data with the latest updates
             self.cmdr_cache[cmdr_name] = cmdr_data_copy

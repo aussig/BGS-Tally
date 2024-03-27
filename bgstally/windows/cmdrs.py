@@ -98,7 +98,7 @@ class WindowCMDRs:
                              target.get('Ship', "----"), \
                              target.get('LegalStatus', "----"), \
                              datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST), \
-                             target.get('Notes', _("Scanned"))] # LANG: Label on CMDR window
+                             self._get_human_readable_reason(target.get('Reason'), False)]
             treeview.insert("", 'end', values=target_values, iid=target.get('index'))
 
         self.post_button = tk.Button(buttons_frame, text=_("Post CMDR to Discord"), command=partial(self._post_to_discord)) # LANG: Button on CMDR window
@@ -128,10 +128,10 @@ class WindowCMDRs:
         if 'squadron' in self.selected_cmdr:
             squadron_info = self.selected_cmdr.get('squadron')
             if 'squadronName' in squadron_info: self.cmdr_details_squadron.config(text=f"{squadron_info.get('squadronName')} ({squadron_info.get('squadronMemberRank')})")
-            if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text="Inara Info Available ⤴", url=squadron_info.get('inaraURL')) # LANG: Inara URL on CMDR window
+            if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text=_("Inara Info Available ⤴"), url=squadron_info.get('inaraURL')) # LANG: Inara URL on CMDR window
         elif 'SquadronID' in self.selected_cmdr:
             self.cmdr_details_squadron.config(text=f"{self.selected_cmdr.get('SquadronID')}")
-        if 'Notes' in self.selected_cmdr: self.cmdr_details_interaction.config(text=self.selected_cmdr.get('Notes'))
+        self.cmdr_details_interaction.config(text=self._get_human_readable_reason(self.selected_cmdr.get('Reason')))
 
 
     def _cmdr_selection_changed(self, treeview:TreeviewPlus, *args):
@@ -203,32 +203,32 @@ class WindowCMDRs:
 
         embed_fields = [
             {
-                "name": "Name",
+                "name": __("Name"), # LANG: Discord heading
                 "value": self.selected_cmdr.get('TargetName'),
                 "inline": True
             },
             {
-                "name": "In System",
+                "name": __("In System"), # LANG: Discord heading
                 "value": self.selected_cmdr.get('System'),
                 "inline": True
             },
             {
-                "name": "In Ship",
+                "name": __("In Ship"), # LANG: Discord heading
                 "value": self.selected_cmdr.get('Ship'),
                 "inline": True
             },
             {
-                "name": "In Squadron",
+                "name": __("In Squadron"), # LANG: Discord heading
                 "value": self.selected_cmdr.get('SquadronID'),
                 "inline": True
             },
             {
-                "name": "Legal Status",
+                "name": __("Legal Status"), # LANG: Discord heading
                 "value": self.selected_cmdr.get('LegalStatus'),
                 "inline": True
             },
             {
-                "name": "Date and Time",
+                "name": __("Date and Time"), # LANG: Discord heading
                 "value": datetime.strptime(self.selected_cmdr.get('Timestamp'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST),
                 "inline": True
             }
@@ -236,7 +236,7 @@ class WindowCMDRs:
 
         if 'inaraURL' in self.selected_cmdr:
             embed_fields.append({
-                "name": "CMDR Inara Link",
+                "name": __("CMDR Inara Link"), # LANG: Discord heading
                 "value": f"[{self.selected_cmdr.get('TargetName')}]({self.selected_cmdr.get('inaraURL')})",
                 "inline": True
                 })
@@ -245,30 +245,12 @@ class WindowCMDRs:
             squadron_info = self.selected_cmdr.get('squadron')
             if 'squadronName' in squadron_info and 'inaraURL' in squadron_info:
                 embed_fields.append({
-                    "name": "Squadron Inara Link",
+                    "name": __("Squadron Inara Link"), # LANG: Discord heading
                     "value": f"[{squadron_info.get('squadronName')} ({squadron_info.get('squadronMemberRank')})]({squadron_info.get('inaraURL')})",
                     "inline": True
                     })
 
-        description:str = ""
-
-        match self.selected_cmdr.get('Reason'):
-            case CmdrInteractionReason.FRIEND_REQUEST_RECEIVED:
-                description = cyan(__("Friend request received from this CMDR")) # LANG: Discord CMDR information
-            case CmdrInteractionReason.FRIEND_ADDED:
-                description = cyan(__("This CMDR was added as a friend")) # LANG: Discord CMDR information
-            case CmdrInteractionReason.INTERDICTED_BY:
-                description = red(__("INTERDICTED BY this CMDR")) # LANG: Discord CMDR information
-            case CmdrInteractionReason.KILLED_BY:
-                description = red(__("KILLED BY this CMDR")) # LANG: Discord CMDR information
-            case CmdrInteractionReason.MESSAGE_RECEIVED:
-                description = blue(__("Message received from this CMDR in local chat")) # LANG: Discord CMDR information
-            case CmdrInteractionReason.TEAM_INVITE_RECEIVED:
-                description = green(__("Team invite received from this CMDR")) # LANG: Discord CMDR information
-            case _:
-                description = yellow(__("I scanned this CMDR")) # LANG: Discord CMDR information
-
-        description = f"```ansi\n{description}\n```"
+        description = f"```ansi\n{self._get_human_readable_reason(self.selected_cmdr.get('Reason'), True)}\n```"
 
         self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr.get('TargetName')}", description, embed_fields, None, DiscordChannel.CMDR_INFORMATION, None)
 
@@ -302,3 +284,53 @@ class WindowCMDRs:
                     text += "\n"
 
         self.bgstally.discord.post_plaintext(text, None, DiscordChannel.CMDR_INFORMATION, None)
+
+
+    def _get_human_readable_reason(self, reason:CmdrInteractionReason, discord:bool) -> str:
+        """
+        Get a human readable version of this interaction reason
+
+        Args:
+            reason (CmdrInteractionReason): The interaction reason
+            discord (bool): True if this message is going to Discord
+
+        Returns:
+            str: Descriptive text for reason
+        """
+
+        match reason:
+            case CmdrInteractionReason.FRIEND_REQUEST_RECEIVED:
+                if discord:
+                    return cyan(__("Friend request received from this CMDR")) # LANG: Discord CMDR information
+                else:
+                    return _("Received friend request from") # LANG: CMDR information
+            case CmdrInteractionReason.FRIEND_ADDED:
+                if discord:
+                    return cyan(__("This CMDR was added as a friend")) # LANG: Discord CMDR information
+                else:
+                    return _("Added a friend") # LANG: CMDR information
+            case CmdrInteractionReason.INTERDICTED_BY:
+                if discord:
+                    return red(__("INTERDICTED BY this CMDR")) # LANG: Discord CMDR information
+                else:
+                    return _("Interdicted by") # LANG: CMDR information
+            case CmdrInteractionReason.KILLED_BY:
+                if discord:
+                    return red(__("KILLED BY this CMDR")) # LANG: Discord CMDR information
+                else:
+                    return _("Killed by") # LANG: CMDR information
+            case CmdrInteractionReason.MESSAGE_RECEIVED:
+                if discord:
+                    return blue(__("Message received from this CMDR in local chat")) # LANG: Discord CMDR information
+                else:
+                    return _("Received message from") # LANG: CMDR information
+            case CmdrInteractionReason.TEAM_INVITE_RECEIVED:
+                if discord:
+                    return green(__("Team invite received from this CMDR")) # LANG: Discord CMDR information
+                else:
+                    return _("Received team invite from") # LANG: CMDR information
+            case _:
+                if discord:
+                    return yellow(__("I scanned this CMDR")) # LANG: Discord CMDR information
+                else:
+                    return _("Scanned") # LANG: CMDR information

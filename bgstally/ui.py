@@ -298,13 +298,13 @@ class UI:
                 self.bgstally.overlay.display_message("tick", _("Curr Tick:") + self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY), True) # Overlay tick message
 
             # Tick Warning
-            minutes_delta:int = int((datetime.now(datetime.UTC) - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
+            minutes_delta:int = int((datetime.utcnow() - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
             if self.bgstally.state.enable_overlay_current_tick:
-                if datetime.now(datetime.UTC) > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
+                if datetime.utcnow() > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
                     self.bgstally.overlay.display_message("tickwarn", _("Tick %(minutes_delta)im Overdue (Estimated)") % {'minutes_delta': minutes_delta}, True) # Overlay tick message
-                elif datetime.now(datetime.UTC) > self.bgstally.tick.next_predicted():
+                elif datetime.utcnow() > self.bgstally.tick.next_predicted():
                     self.bgstally.overlay.display_message("tickwarn", _("Past Estimated Tick Time"), True, text_colour_override="#FFA500") # Overlay tick message
-                elif datetime.now(datetime.UTC) > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
+                elif datetime.utcnow() > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
                     self.bgstally.overlay.display_message("tickwarn", _("Within %(minutes_to_tick)im of Next Tick (Estimated)") % {'minutes_to_tick': TIME_TICK_ALERT_M}, True, text_colour_override="yellow") # Overlay tick message
 
             # Activity Indicator

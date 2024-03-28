@@ -36,7 +36,7 @@ class Discord:
             # Get the previous state for this webhook's uuid from the passed in data, if it exists. Default to the state from the webhook manager
             specific_webhook_data:dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)
 
-            utc_time_now:str = datetime.now(datetime.UTC).strftime(DATETIME_FORMAT)
+            utc_time_now:str = datetime.utcnow().strftime(DATETIME_FORMAT)
             data:dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
 
             # Fetch the previous post ID, if present, from the webhook data for the channel we're posting in. May be the default True / False value
@@ -144,7 +144,7 @@ class Discord:
         Create a Discord embed JSON structure. If supplied, `fields` should be a List of Dicts, with each Dict containing 'name' (the field title) and
         'value' (the field contents)
         """
-        footer_timestamp:str = (__("Updated at %(date_time)s") if update else __("Posted at %(date_time)s")) % {'date_time': datetime.now(datetime.UTC).strftime(DATETIME_FORMAT)} # LANG: Discord footer message, modern embed mode
+        footer_timestamp:str = (__("Updated at %(date_time)s") if update else __("Posted at %(date_time)s")) % {'date_time': datetime.utcnow().strftime(DATETIME_FORMAT)} # LANG: Discord footer message, modern embed mode
         footer_version:str = f"{self.bgstally.plugin_name} v{str(self.bgstally.version)}"
         footer_pad:int = 108 - len(footer_version)
 

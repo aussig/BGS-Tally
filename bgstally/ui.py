@@ -295,7 +295,7 @@ class UI:
 
             # Current Tick Time
             if self.bgstally.state.enable_overlay_current_tick:
-                self.bgstally.overlay.display_message("tick", _("Curr Tick:") + self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY), True) # Overlay tick message
+                self.bgstally.overlay.display_message("tick", _("Curr Tick:") + " " + self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY), True) # Overlay tick message
 
             # Tick Warning
             minutes_delta:int = int((datetime.utcnow() - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))

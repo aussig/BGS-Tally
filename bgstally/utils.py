@@ -26,7 +26,7 @@ def __(string:str):
     """
     plugin_path:str = join(config.plugin_dir_path, "BGS-Tally", l10n.LOCALISATION_DIR)
     lang:str = bgstally.globals.this.state.discord_lang
-    if lang == "": lang = None # Default lang
+    if lang == "" or lang is None: return _(string)
 
     contents:dict[str, str] = l10n.Translations.contents(lang=lang, plugin_path=plugin_path)
 

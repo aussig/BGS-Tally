@@ -1,6 +1,8 @@
 import functools
+from os import listdir
 from os.path import join
 
+import bgstally.globals
 import l10n
 from bgstally.debug import Debug
 from config import config
@@ -8,26 +10,25 @@ from config import config
 # Localisation main translation function
 _ = functools.partial(l10n.Translations.translate, context=__file__)
 
-# Localisation conditional translation function
+# Localisation conditional translation function for when PR [2188] is merged in to EDMC
+# __ = functools.partial(l10n.Translations.translate, context=__file__, lang=bgstally.globals.this.state.discord_lang)
+
+# Localisation conditional translation function before PR [2188] is merged in to EDMC
 def __(string:str):
-    lang:str = "de"
-    # context = __file__[len(config.plugin_dir)+1:].split(sep)[0]
-    # plugin_path = join(config.plugin_dir_path, context, l10n.LOCALISATION_DIR)
-    # plugin_path = join(__file__, l10n.LOCALISATION_DIR)
-    plugin_path = join(config.plugin_dir_path, "BGS-Tally", l10n.LOCALISATION_DIR)
+    """Translate using our overridden language
+
+    Args:
+        string (str): The string to translate
+        lang (str): The override language
+
+    Returns:
+        _type_: Translated string
+    """
+    plugin_path:str = join(config.plugin_dir_path, "BGS-Tally", l10n.LOCALISATION_DIR)
+    lang:str = bgstally.globals.this.state.discord_lang
+    if lang == "": lang = None # Default lang
+
     contents:dict[str, str] = l10n.Translations.contents(lang=lang, plugin_path=plugin_path)
-    # Debug.logger.info(f'context: {context}')
-    # Debug.logger.info(f'plugin_path: {plugin_path}')
-    # Debug.logger.info(f'Contents: {contents}')
-    # For EDMC contribution, use try: catch: here something like
-    # try:
-    #     lang_contents:dict[str, str] = l10n.Translations.contents(lang='de', plugin_path = __file__)
-
-    # except UnicodeDecodeError as e:
-    #     logger.warning(f'Malformed file {lang}.strings in plugin {plugin}: {e}')
-
-    # except Exception:
-    #     logger.exception(f'Exception occurred while parsing {lang}.strings in plugin {plugin}')
 
     if not contents:
         Debug.logger.debug(f'Failure loading translations for language {lang!r}')
@@ -37,6 +38,29 @@ def __(string:str):
     else:
         Debug.logger.debug(f'Missing translation: {string!r} in language {lang!r}')
         return string
+
+
+def available_langs() -> dict[str | None, str]:
+    """Return a dict containing our available plugin language names by code.
+
+    Returns:
+        dict[str | None, str]: The available language names indexed by language code
+    """
+
+    plugin_path:str = join(config.plugin_dir_path, "BGS-Tally", l10n.LOCALISATION_DIR)
+    available:set[str] = {x[:-len('.strings')] for x in listdir(plugin_path) if x.endswith('.strings') and "template" not in x}
+
+    names: dict[str | None, str] = {
+        # LANG: The system default language choice in Settings > Appearance
+        None: _('Default'),  # Appearance theme and language setting
+    }
+    names.update(sorted(
+        [(lang, l10n.Translations.contents(lang, plugin_path).get(l10n.LANGUAGE_ID, lang)) for lang in available] +
+        [(l10n._Translations.FALLBACK, l10n._Translations.FALLBACK_NAME)],
+        key=lambda x: x[1]
+    ))
+
+    return names
 
 
 def get_by_path(dic:dict, keys:list, default:any = None):

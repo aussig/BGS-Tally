@@ -11,10 +11,11 @@ from typing import List, Optional
 import myNotebook as nb
 from ttkHyperlinkLabel import HyperlinkLabel
 
+import l10n
 from bgstally.activity import Activity
 from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL, CheckStates, DiscordActivity, DiscordPostStyle, UpdateUIPolicy
 from bgstally.debug import Debug
-from bgstally.utils import _, get_by_path
+from bgstally.utils import _, get_by_path, available_langs
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
@@ -161,6 +162,12 @@ class UI:
         nb.Label(frame, text=_("Discord Webhooks"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
         nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
+
+        self.languages: dict = available_langs()
+        self.language:tk.StringVar = tk.StringVar(value=self.languages.get(self.bgstally.state.discord_lang, _('Default')))
+        nb.Label(frame, text=_("Language for Discord Posts")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
+        nb.OptionMenu(frame, self.language, self.language.get(), *self.languages.values(), command=self._language_modified).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
+
         sheet_headings:list = ["UUID",
                                _("Nickname"), # LANG: Preferences table heading
                                _("Webhook URL"), # LANG: Preferences table heading
@@ -292,6 +299,16 @@ class UI:
             event (namedtuple, optional): Variables related to the callback. Defaults to None.
         """
         self.bgstally.webhook_manager.set_webhooks_from_list(self.sheet_webhooks.get_sheet_data())
+
+
+    def _language_modified(self, event=None):
+        """Callback for change in language dropdown
+
+        Args:
+            event (_type_, optional): Variable related to the callback. Defaults to None.
+        """
+        langs_by_name:dict = {v: k for k, v in self.languages.items()}  # Codes by name
+        self.bgstally.state.discord_lang = langs_by_name.get(self.language.get()) or ''  # or '' used here due to Default being None above
 
 
     def _worker(self) -> None:

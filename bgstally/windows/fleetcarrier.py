@@ -32,13 +32,13 @@ class WindowFleetCarrier:
         fc: FleetCarrier = self.bgstally.fleet_carrier
 
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
-        self.toplevel.title(_("%(plugin_name)s - Carrier %(carrier_name)s (%(carrier_callsign)s) in system: %(system_name)s") % {'plugin_name': self.bgstally.plugin_name, 'carrier_name': fc.name, 'carrier_callsign': fc.callsign, 'system_name': fc.data['currentStarSystem']}) # LANG: Carrier window title
+        self.toplevel.title(_("{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=fc.name, carrier_callsign=fc.callsign, system_name=fc.data['currentStarSystem'])) # LANG: Carrier window title
         self.toplevel.geometry("600x800")
 
         container_frame:ttk.Frame = ttk.Frame(self.toplevel)
         container_frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(container_frame, text=_("System: %(current_system)s - Docking: %(docking_access)s - Notorious Allowed: %(notorious)s") % {'current_system': fc.data['currentStarSystem'], 'docking_access': fc.human_format_dockingaccess(False), 'notorious': fc.human_format_notorious(False)}, font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on carrier window
+        ttk.Label(container_frame, text=_("System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}").format(current_system=fc.data['currentStarSystem'], docking_access=fc.human_format_dockingaccess(False), notorious=fc.human_format_notorious(False)), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on carrier window
 
         items_frame:ttk.Frame = ttk.Frame(container_frame)
         items_frame.pack(fill=tk.BOTH, padx=5, pady=5, expand=True)

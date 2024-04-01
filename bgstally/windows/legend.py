@@ -40,7 +40,7 @@ class WindowLegend:
             return
 
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
-        self.toplevel.title(_("%(plugin_name)s - Icon Legend") % {'plugin_name': self.bgstally.plugin_name}) # LANG: Legend window title
+        self.toplevel.title(_("{plugin_name} - Icon Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Legend window title
         self.toplevel.resizable(False, False)
 
         frame_container:ttk.Frame = ttk.Frame(self.toplevel)

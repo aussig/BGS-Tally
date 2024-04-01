@@ -117,7 +117,7 @@ class FleetCarrier:
         """
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
 
-        title:str = __("Jump Scheduled for Carrier %(carrier_name)s") % {'carrier_name': self.name} # LANG: Discord post title
+        title:str = __("Jump Scheduled for Carrier {carrier_name}").format(carrier_name=self.name) # LANG: Discord post title
         description:str = __("A carrier jump has been scheduled") # LANG: Discord text
 
         fields = []
@@ -135,7 +135,7 @@ class FleetCarrier:
         """
         The user cancelled their carrier jump
         """
-        title:str = __("Jump Cancelled for Carrier %(carrier_name)s") % {'carrier_name': self.name} # LANG: Discord post title
+        title:str = __("Jump Cancelled for Carrier {carrier_name}").format(carrier_name=self.name) # LANG: Discord post title
         description:str = __("The scheduled carrier jump was cancelled") # LANG: Discord text
 
         fields = []

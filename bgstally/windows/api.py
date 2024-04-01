@@ -48,7 +48,7 @@ class WindowAPI:
 
         if parent_frame is None: parent_frame = self.bgstally.ui.frame
         self.toplevel = tk.Toplevel(parent_frame)
-        self.toplevel.title(_("%(plugin_name)s - API Settings") % {'plugin_name': self.bgstally.plugin_name}) # LANG: API settings window title
+        self.toplevel.title(_("{plugin_name} - API Settings").format(plugin_name=self.bgstally.plugin_name)) # LANG: API settings window title
         self.toplevel.resizable(False, False)
 
         if sys.platform == 'win32':

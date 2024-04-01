@@ -38,7 +38,7 @@ class WindowCMDRs:
             return
 
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
-        self.toplevel.title(_("%(plugin_name)s - CMDR Interactions") % {'plugin_name': self.bgstally.plugin_name}) # LANG: CMDR window title
+        self.toplevel.title(_("{plugin_name} - CMDR Interactions").format(plugin_name=self.bgstally.plugin_name)) # LANG: CMDR window title
         self.toplevel.geometry("1200x800")
 
         container_frame = ttk.Frame(self.toplevel)

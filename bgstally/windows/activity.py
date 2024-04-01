@@ -54,7 +54,7 @@ class WindowActivity:
         if self.window_geometry is not None:
             self.toplevel.geometry(f"+{self.window_geometry['x']}+{self.window_geometry['y']}")
 
-        self.toplevel.title(_("%(plugin_name)s - Activity After Tick at: %(tick_time)s") % {'plugin_name': self.bgstally.plugin_name, 'tick_time': activity.get_title()}) # LANG: Activity window title
+        self.toplevel.title(_("{plugin_name} - Activity After Tick at: {tick_time}").format(plugin_name=self.bgstally.plugin_name, tick_time=activity.get_title())) # LANG: Activity window title
 
         ContainerFrame = ttk.Frame(self.toplevel)
         ContainerFrame.pack(fill=tk.BOTH, expand=tk.YES)
@@ -136,7 +136,7 @@ class WindowActivity:
 
             if self.activity == self.bgstally.activity_manager.get_current_activity():
                 # Current tick activity
-                chk_pin_to_overlay:ttk.Checkbutton = ttk.Checkbutton(frame_header, text=_("Pin %(system_name)s to Overlay") % {'system_name': system['System']}) # LANG: Checkbox label
+                chk_pin_to_overlay:ttk.Checkbutton = ttk.Checkbutton(frame_header, text=_("Pin {system_name} to Overlay").format(system_name=system['System'])) # LANG: Checkbox label
                 chk_pin_to_overlay.grid(row=0, column=2, padx=2, pady=2, sticky=tk.E)
                 chk_pin_to_overlay.configure(command=partial(self._pin_overlay_change, chk_pin_to_overlay, system), state=self.bgstally.ui.overlay_options_state())
                 chk_pin_to_overlay.state(['selected', '!alternate'] if system.get('PinToOverlay') == CheckStates.STATE_ON else ['!selected', '!alternate'])
@@ -340,9 +340,9 @@ class WindowActivity:
         else:
             description = "" if activity.discord_notes is None else activity.discord_notes
             discord_fields:dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
-            self.bgstally.discord.post_embed(__("BGS Activity after Tick: %(tick_time)s") % {'tick_time': activity.get_title(True)}, description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete) # LANG: Discord post title
+            self.bgstally.discord.post_embed(__("BGS Activity after Tick: {tick_time}").format(tick_time=activity.get_title(True)), description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete) # LANG: Discord post title
             discord_fields = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
-            self.bgstally.discord.post_embed(__("TW Activity after Tick: %(tick_time)s") % {'tick_time': activity.get_title(True)}, description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete) # LANG: Discord post title
+            self.bgstally.discord.post_embed(__("TW Activity after Tick: {tick_time}").format(tick_time=activity.get_title(True)), description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete) # LANG: Discord post title
 
         activity.dirty = True # Because discord post ID has been changed
 

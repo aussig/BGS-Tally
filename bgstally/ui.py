@@ -94,7 +94,7 @@ class UI:
         else:
             self.button_carrier: tk.Button = None
         current_row += 1
-        self.label_status: tk.Label = tk.Label(self.frame, text=_("BGS-Tally Status:")) # LANG: Main window label
+        self.label_status: tk.Label = tk.Label(self.frame, text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window label
         self.label_status.grid(row=current_row, column=0, sticky=tk.W)
         tk.Label(self.frame, textvariable=self.bgstally.state.Status).grid(row=current_row, column=1, sticky=tk.W)
         current_row += 1
@@ -113,7 +113,7 @@ class UI:
         """
         self.button_latest_tick.configure(text=_("Latest BGS Tally")) # LANG: Button label
         self.button_previous_ticks.configure(text=_("Previous BGS Tallies")) # LANG: Button label
-        self.label_status.configure(text=_("BGS-Tally Status:")) # LANG: Main window label
+        self.label_status.configure(text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window label
         self.label_tick.configure(text=_("Last BGS Tick:")) # LANG: Main window label
 
         if self.bgstally.update_manager.update_available:
@@ -144,7 +144,7 @@ class UI:
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("General Options"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
-        nb.Checkbutton(frame, text=_("BGS-Tally Active"), variable=self.bgstally.state.Status, onvalue="Active", offvalue="Paused").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
+        nb.Checkbutton(frame, text=_("{plugin_name} Active").format(plugin_name=self.bgstally.plugin_name), variable=self.bgstally.state.Status, onvalue="Active", offvalue="Paused").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Show Systems with Zero Activity"), variable=self.bgstally.state.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
@@ -332,11 +332,11 @@ class UI:
             minutes_delta:int = int((datetime.utcnow() - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
             if self.bgstally.state.enable_overlay_current_tick:
                 if datetime.utcnow() > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
-                    self.bgstally.overlay.display_message("tickwarn", _("Tick %(minutes_delta)im Overdue (Estimated)") % {'minutes_delta': minutes_delta}, True) # Overlay tick message
+                    self.bgstally.overlay.display_message("tickwarn", _("Tick {minutes_delta}m Overdue (Estimated)").format(minutes_delta=minutes_delta), True) # Overlay tick message
                 elif datetime.utcnow() > self.bgstally.tick.next_predicted():
                     self.bgstally.overlay.display_message("tickwarn", _("Past Estimated Tick Time"), True, text_colour_override="#FFA500") # Overlay tick message
                 elif datetime.utcnow() > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
-                    self.bgstally.overlay.display_message("tickwarn", _("Within %(minutes_to_tick)im of Next Tick (Estimated)") % {'minutes_to_tick': TIME_TICK_ALERT_M}, True, text_colour_override="yellow") # Overlay tick message
+                    self.bgstally.overlay.display_message("tickwarn", _("Within {minutes_to_tick}m of Next Tick (Estimated)").format(minutes_to_tick=TIME_TICK_ALERT_M), True, text_colour_override="yellow") # Overlay tick message
 
             # Activity Indicator
             if self.bgstally.state.enable_overlay_activity and self.indicate_activity:
@@ -350,7 +350,7 @@ class UI:
                     progress:float = float(get_by_path(current_system, ['tw_status', 'WarProgress'], 0))
                     percent:float = round(progress * 100, 2)
 
-                    self.bgstally.overlay.display_progress_bar("tw", _("TW War Progress in %(current_system)s: %(percent)i%") % {'current_system': current_system.get('System', 'Unknown'), 'percent': percent}, progress) # Overlay TW report message
+                    self.bgstally.overlay.display_progress_bar("tw", _("TW War Progress in {current_system}: {percent}%").format(current_system=current_system.get('System', 'Unknown'), percent=percent), progress) # Overlay TW report message
 
             # System Information
             if self.bgstally.state.enable_overlay_system and current_activity is not None:
@@ -430,7 +430,7 @@ class UI:
         Force a tick when user clicks button
         """
         message:str = _("This will move your current activity into the previous tick, and clear activity for the current tick.") + "\n\n" # LANG: Preferences force tick popup text
-        message += _("WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but BGS-Tally is not showing it.") + "\n\n" # LANG: Preferences force tick popup text
+        message += _("WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but {plugin_name} is not showing it.").format(plugin_name=self.bgstally.plugin_name) + "\n\n" # LANG: Preferences force tick popup text
         message += _("Are you sure that you want to do this?") # LANG: Preferences force tick text
 
         answer = askyesno(title=_("Confirm FORCE a New Tick"), message=message, default="no") # LANG: Preferences force tick popup title

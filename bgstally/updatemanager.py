@@ -38,7 +38,7 @@ class UpdateManager:
         # If you do accidentally overwrite your local folder, the plugin should have made a backup in "backups/"
         if path.exists(path.join(self.bgstally.plugin_dir, FILE_DISABLE)):
             Debug.logger.info(f"Disabling auto-update because {FILE_DISABLE} exists")
-            plug.show_error(_("BGS-Tally: Disabling auto-update because handbrake file exists")) # LANG: Main window error message
+            plug.show_error(_("{plugin_name}: Disabling auto-update because handbrake file exists").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
             return
 
         try:
@@ -59,7 +59,7 @@ class UpdateManager:
         """
         if not success:
             Debug.logger.warning("Unable to fetch latest plugin version")
-            plug.show_error(_("BGS-Tally: Unable to fetch latest plugin version")) # LANG: Main window error message
+            plug.show_error(_("{plugin_name}: Unable to fetch latest plugin version").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
             return
 
         version_data:dict = response.json()
@@ -67,7 +67,7 @@ class UpdateManager:
         if version_data['draft'] == True or version_data['prerelease'] == True:
             # This should never happen because the latest version URL excludes these, but in case GitHub has a wobble
             Debug.logger.info("Latest server version is draft or pre-release, ignoring")
-            plug.show_error(_("BGS-Tally: Unable to fetch latest plugin version")) # LANG: Main window error message
+            plug.show_error(_("{plugin_name}: Unable to fetch latest plugin version").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
             return
 
         # Check remote assets data structure
@@ -93,7 +93,7 @@ class UpdateManager:
         """
         if not success:
             Debug.logger.warning("Unable to fetch latest plugin download")
-            plug.show_error(_("BGS-Tally: Unable to fetch latest plugin download")) # LANG: Main window error message
+            plug.show_error(_("{plugin_name}: Unable to fetch latest plugin download").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
             return
 
         try:
@@ -102,7 +102,7 @@ class UpdateManager:
                     file.write(chunk)
         except Exception as e:
             Debug.logger.warning("Problem saving new version", exc_info=e)
-            plug.show_error(_("BGS-Tally: There was a problem saving the new version")) # LANG: Main window error message
+            plug.show_error(_("{plugin_name}: There was a problem saving the new version").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
             return
 
         # Full success, download complete and available

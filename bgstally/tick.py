@@ -35,7 +35,7 @@ class Tick:
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             Debug.logger.error(f"Unable to fetch latest tick from elitebgs.app: {str(e)}")
-            plug.show_error(_("BGS-Tally WARNING: Unable to fetch latest tick")) # LANG: Main window error message
+            plug.show_error(_("{plugin_name} WARNING: Unable to fetch latest tick").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
             return None
         else:
             tick = response.json()

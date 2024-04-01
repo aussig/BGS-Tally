@@ -152,7 +152,7 @@ class Overlay:
         if edmcoverlay:
             try:
                 self.edmcoverlay = edmcoverlay.Overlay()
-                self.display_message("info", _("BGSTally Ready"), True, 30) # LANG: Overlay message
+                self.display_message("info", _("{plugin_name} Ready").format(plugin_name=self.bgstally.plugin_name), True, 30) # LANG: Overlay message
             except Exception as e:
                 Debug.logger.warning(f"EDMCOverlay is not running")
             else:

@@ -79,7 +79,7 @@ class UI:
 
         current_row = 0
         tk.Label(self.frame, text=self.bgstally.plugin_name).grid(row=current_row, column=0, sticky=tk.W)
-        self.label_version = HyperlinkLabel(self.frame, text=f"v{str(self.bgstally.version)}", background=nb.Label().cget('background'), url=URL_LATEST_RELEASE, underline=True)
+        self.label_version: HyperlinkLabel = HyperlinkLabel(self.frame, text=f"v{str(self.bgstally.version)}", background=nb.Label().cget('background'), url=URL_LATEST_RELEASE, underline=True)
         self.label_version.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
         current_row += 1
         self.button_latest_tick: tk.Button = tk.Button(self.frame, text=_("Latest BGS Tally"), height=SIZE_BUTTON_PIXELS-2, image=self.image_blank, compound=tk.RIGHT, command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity())) # LANG: Button label
@@ -93,12 +93,14 @@ class UI:
         else:
             self.button_carrier: tk.Button = None
         current_row += 1
-        tk.Label(self.frame, text=_("BGS Tally Status:")).grid(row=current_row, column=0, sticky=tk.W) # LANG: Main window label
+        self.label_status: tk.Label = tk.Label(self.frame, text=_("BGS Tally Status:")) # LANG: Main window label
+        self.label_status.grid(row=current_row, column=0, sticky=tk.W)
         tk.Label(self.frame, textvariable=self.bgstally.state.Status).grid(row=current_row, column=1, sticky=tk.W)
         current_row += 1
-        tk.Label(self.frame, text=_("Last BGS Tick:")).grid(row=current_row, column=0, sticky=tk.W) # LANG: Main window label
-        self.label_tick: tk.Label = tk.Label(self.frame, text=self.bgstally.tick.get_formatted())
-        self.label_tick.grid(row=current_row, column=1, sticky=tk.W)
+        self.label_tick: tk.Label = tk.Label(self.frame, text=_("Last BGS Tick:")) # LANG: Main window label
+        self.label_tick.grid(row=current_row, column=0, sticky=tk.W)
+        self.label_tick_value: tk.Label = tk.Label(self.frame, text=self.bgstally.tick.get_formatted())
+        self.label_tick_value.grid(row=current_row, column=1, sticky=tk.W)
         current_row += 1
 
         return self.frame
@@ -106,8 +108,13 @@ class UI:
 
     def update_plugin_frame(self):
         """
-        Update the tick time label, current activity button and carrier button in the plugin frame
+        Update the tick time label, current activity button, carrier button and all labels in the plugin frame
         """
+        self.button_latest_tick.configure(text=_("Latest BGS Tally")) # LANG: Button label
+        self.button_previous_ticks.configure(text=_("Previous BGS Tallies")) # LANG: Button label
+        self.label_status.configure(text=_("BGS Tally Status:")) # LANG: Main window label
+        self.label_tick.configure(text=_("Last BGS Tick:")) # LANG: Main window label
+
         if self.bgstally.update_manager.update_available:
             self.label_version.configure(text=_("Update will be installed on shutdown"), url=URL_LATEST_RELEASE, foreground='red') # LANG: Main window label
         elif self.bgstally.api_manager.api_updated:
@@ -115,7 +122,7 @@ class UI:
         else:
             self.label_version.configure(text=f"v{str(self.bgstally.version)}", url=URL_LATEST_RELEASE, foreground='blue')
 
-        self.label_tick.config(text=self.bgstally.tick.get_formatted())
+        self.label_tick_value.config(text=self.bgstally.tick.get_formatted())
         self.button_latest_tick.config(command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity()))
         if self.button_carrier is not None:
             self.button_carrier.config(state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'))

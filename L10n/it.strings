@@ -1,21 +1,6 @@
 /* Language name */
 "!Language" = "Italiano";
 
-/* Activity window title. [activity.py] */
-"%(plugin_name)s - Activity After Tick at: %(tick_time)s" = "%(plugin_name)s - Activity After Tick at: %(tick_time)s";
-
-/* API settings window title. [api.py] */
-"%(plugin_name)s - API Settings" = "%(plugin_name)s - API Settings";
-
-/* Carrier window title. [fleetcarrier.py] */
-"%(plugin_name)s - Carrier %(carrier_name)s (%(carrier_callsign)s) in system: %(system_name)s" = "%(plugin_name)s - Carrier %(carrier_name)s (%(carrier_callsign)s) in system: %(system_name)s";
-
-/* CMDR window title. [cmdrs.py] */
-"%(plugin_name)s - CMDR Interactions" = "%(plugin_name)s - CMDR Interactions";
-
-/* Legend window title. [legend.py] */
-"%(plugin_name)s - Icon Legend" = "%(plugin_name)s - Icon Legend";
-
 /* [legend.py] */
 "(Cannot be automatically distinguished)" = "(Cannot be automatically distinguished)";
 
@@ -68,31 +53,7 @@
 "BGS" = "BGS";
 
 /* Discord post title. [activity.py] */
-"BGS Activity after Tick: %(tick_time)s" = "BGS Activity after Tick: %(tick_time)s";
-
-/* Preferences checkbox label. [ui.py] */
-"BGS-Tally Active" = "BGS-Tally Active";
-
-/* Main window label. [ui.py] */
-"BGS-Tally Status:" = "BGS-Tally Status:";
-
-/* Main window error message. [tick.py] */
-"BGS-Tally WARNING: Unable to fetch latest tick" = "BGS-Tally WARNING: Unable to fetch latest tick";
-
-/* Main window error message. [updatemanager.py] */
-"BGS-Tally: Disabling auto-update because handbrake file exists" = "BGS-Tally: Disabling auto-update because handbrake file exists";
-
-/* Main window error message. [updatemanager.py] */
-"BGS-Tally: There was a problem saving the new version" = "BGS-Tally: There was a problem saving the new version";
-
-/* Main window error message. [updatemanager.py] */
-"BGS-Tally: Unable to fetch latest plugin download" = "BGS-Tally: Unable to fetch latest plugin download";
-
-/* Main window error message. [updatemanager.py] */
-"BGS-Tally: Unable to fetch latest plugin version" = "BGS-Tally: Unable to fetch latest plugin version";
-
-/* Overlay message. [overlay.py] */
-"BGSTally Ready" = "BGSTally Ready";
+"BGS Activity after Tick: {tick_time}" = "BGS Activity after Tick: {tick_time}";
 
 /* Discord heading. [activity.py] */
 "bio-pod" = "bio-pod";
@@ -344,10 +305,10 @@
 "INTERDICTED BY this CMDR" = "INTERDICTED BY this CMDR";
 
 /* Discord post title. [fleetcarrier.py] */
-"Jump Cancelled for Carrier %(carrier_name)s" = "Jump Cancelled for Carrier %(carrier_name)s";
+"Jump Cancelled for Carrier {carrier_name}" = "Jump Cancelled for Carrier {carrier_name}";
 
 /* Discord post title. [fleetcarrier.py] */
-"Jump Scheduled for Carrier %(carrier_name)s" = "Jump Scheduled for Carrier %(carrier_name)s";
+"Jump Scheduled for Carrier {carrier_name}" = "Jump Scheduled for Carrier {carrier_name}";
 
 /* CMDR information. [cmdrs.py] */
 "Killed by" = "Killed by";
@@ -443,7 +404,7 @@
 "Past Estimated Tick Time" = "Past Estimated Tick Time";
 
 /* Checkbox label. [activity.py] */
-"Pin %(system_name)s to Overlay" = "Pin %(system_name)s to Overlay";
+"Pin {system_name} to Overlay" = "Pin {system_name} to Overlay";
 
 /* [ui.py] */
 "Pinned Systems" = "Pinned Systems";
@@ -470,7 +431,7 @@
 "Post to Discord as" = "Post to Discord as";
 
 /* Discord message footer, legacy text mode. [discord.py] */
-"Posted at: %(date_time)s | %(plugin_name)s v%(version)s" = "Posted at: %(date_time)s | %(plugin_name)s v%(version)s";
+"Posted at: {date_time} | {plugin_name} v{version}" = "Posted at: {date_time} | {plugin_name} v{version}";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Previous BGS Tallies";
@@ -599,10 +560,10 @@
 "System Information" = "System Information";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"System: %(current_system)s - Docking: %(docking_access)s - Notorious Allowed: %(notorious)s" = "System: %(current_system)s - Docking: %(docking_access)s - Notorious Allowed: %(notorious)s";
+"System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}";
 
 /* Text on API settings window. [api.py] */
-"Take care when agreeing to this - if you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, missions and kills." = "Take care when agreeing to this - if you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, missions and kills.";
+"Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills." = "Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills.";
 
 /* Overlay message. [activity.py] */
 "Targeted Ally!" = "Targeted Ally!";
@@ -632,7 +593,7 @@
 "This will move your current activity into the previous tick, and clear activity for the current tick." = "This will move your current activity into the previous tick, and clear activity for the current tick.";
 
 /* [ui.py] */
-"Tick %(minutes_delta)im Overdue (Estimated)" = "Tick %(minutes_delta)im Overdue (Estimated)";
+"Tick {minutes_delta}m Overdue (Estimated)" = "Tick {minutes_delta}m Overdue (Estimated)";
 
 /* [ui.py] */
 "To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "To add a webhook: Right-click on a row number and select 'Insert rows above / below'.";
@@ -668,25 +629,25 @@
 "TW" = "TW";
 
 /* Discord post title. [activity.py] */
-"TW Activity after Tick: %(tick_time)s" = "TW Activity after Tick: %(tick_time)s";
+"TW Activity after Tick: {tick_time}" = "TW Activity after Tick: {tick_time}";
 
 /* [ui.py] */
-"TW War Progress in %(current_system)s: %(percent)i%" = "TW War Progress in %(current_system)s: %(percent)i%";
+"TW War Progress in {current_system}: {percent}%" = "TW War Progress in {current_system}: {percent}%";
 
 /* Main window label. [ui.py] */
 "Update will be installed on shutdown" = "Update will be installed on shutdown";
 
 /* Discord footer message, modern embed mode. [discord.py] */
-"Updated at %(date_time)s" = "Updated at %(date_time)s";
+"Updated at {date_time} (game)" = "Updated at {date_time} (game)";
 
 /* Discord message footer, legacy text mode. [discord.py] */
-"Updated at: %(date_time)s | %(plugin_name)s v%(version)s" = "Updated at: %(date_time)s | %(plugin_name)s v%(version)s";
+"Updated at: {date_time} | {plugin_name} v{version}" = "Updated at: {date_time} | {plugin_name} v{version}";
 
 /* Discord heading, abbreviation for war INF. [activity.py] */
 "WarINF" = "WarINF";
 
 /* Preferences force tick popup text. [ui.py] */
-"WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but BGS-Tally is not showing it." = "WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but BGS-Tally is not showing it.";
+"WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but {plugin_name} is not showing it." = "WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but {plugin_name} is not showing it.";
 
 /* Preferences checkbox label. [ui.py] */
 "Warnings" = "Warnings";
@@ -695,7 +656,7 @@
 "Webhook URL" = "Webhook URL";
 
 /* [ui.py] */
-"Within %(minutes_to_tick)im of Next Tick (Estimated)" = "Within %(minutes_to_tick)im of Next Tick (Estimated)";
+"Within {minutes_to_tick}m of Next Tick (Estimated)" = "Within {minutes_to_tick}m of Next Tick (Estimated)";
 
 /* Discord heading. [activity.py] */
 "wounded" = "wounded";
@@ -708,6 +669,45 @@
 
 /* Label on legend window. [legend.py] */
 "Zero / Low / Med / High demand level for trade buy / sell" = "Zero / Low / Med / High demand level for trade buy / sell";
+
+/* Activity window title. [activity.py] */
+"{plugin_name} - Activity After Tick at: {tick_time}" = "{plugin_name} - Activity After Tick at: {tick_time}";
+
+/* API settings window title. [api.py] */
+"{plugin_name} - API Settings" = "{plugin_name} - API Settings";
+
+/* Carrier window title. [fleetcarrier.py] */
+"{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}" = "{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}";
+
+/* CMDR window title. [cmdrs.py] */
+"{plugin_name} - CMDR Interactions" = "{plugin_name} - CMDR Interactions";
+
+/* Legend window title. [legend.py] */
+"{plugin_name} - Icon Legend" = "{plugin_name} - Icon Legend";
+
+/* Preferences checkbox label. [ui.py] */
+"{plugin_name} Active" = "{plugin_name} Active";
+
+/* Overlay message. [overlay.py] */
+"{plugin_name} Ready" = "{plugin_name} Ready";
+
+/* Main window label. [ui.py] */
+"{plugin_name} Status:" = "{plugin_name} Status:";
+
+/* Main window error message. [tick.py] */
+"{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} WARNING: Unable to fetch latest tick";
+
+/* Main window error message. [updatemanager.py] */
+"{plugin_name}: Disabling auto-update because handbrake file exists" = "{plugin_name}: Disabling auto-update because handbrake file exists";
+
+/* Main window error message. [updatemanager.py] */
+"{plugin_name}: There was a problem saving the new version" = "{plugin_name}: There was a problem saving the new version";
+
+/* Main window error message. [updatemanager.py] */
+"{plugin_name}: Unable to fetch latest plugin download" = "{plugin_name}: Unable to fetch latest plugin download";
+
+/* Main window error message. [updatemanager.py] */
+"{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: Unable to fetch latest plugin version";
 
 /* Label on activity window. [activity.py] */
 "❓ Discord Report Preview" = "❓ Discord Report Preview";

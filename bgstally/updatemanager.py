@@ -38,7 +38,7 @@ class UpdateManager:
         # If you do accidentally overwrite your local folder, the plugin should have made a backup in "backups/"
         if path.exists(path.join(self.bgstally.plugin_dir, FILE_DISABLE)):
             Debug.logger.info(f"Disabling auto-update because {FILE_DISABLE} exists")
-            plug.show_error(_("{plugin_name}: Disabling auto-update because handbrake file exists").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
+            plug.show_error("{plugin_name}: Disabling auto-update because handbrake file exists".format(plugin_name=self.bgstally.plugin_name))
             return
 
         try:

@@ -95,11 +95,11 @@ class WindowAPI:
         self.entry_apikey:EntryPlus = EntryPlus(frame_main, textvariable=self.var_apikey)
         self.entry_apikey.grid(row=current_row, column=1, pady=4, sticky=tk.EW); current_row += 1
         self.var_apikey.trace_add('write', partial(self._field_edited, self.entry_apikey))
-        self.cb_apiactivities:ttk.Checkbutton = ttk.Checkbutton(frame_main, text=_("Enable /activities Requests")) # LANG: Checkbox on API settings window
+        self.cb_apiactivities:ttk.Checkbutton = ttk.Checkbutton(frame_main, text=_("Enable {activities_url} Requests").format(activities_url="/activities")) # LANG: Checkbox on API settings window
         self.cb_apiactivities.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
         self.cb_apiactivities.configure(command=partial(self._field_edited, self.cb_apiactivities))
         self.cb_apiactivities.state(['selected', '!alternate'] if self.api.activities_enabled else ['!selected', '!alternate'])
-        self.cb_apievents:ttk.Checkbutton = ttk.Checkbutton(frame_main, text=_("Enable /events Requests")) # LANG: Checkbox on API settings window
+        self.cb_apievents:ttk.Checkbutton = ttk.Checkbutton(frame_main, text=_("Enable {events_url} Requests").format(events_url="/events")) # LANG: Checkbox on API settings window
         self.cb_apievents.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
         self.cb_apievents.configure(command=partial(self._field_edited, self.cb_apievents))
         self.cb_apievents.state(['selected', '!alternate'] if self.api.events_enabled else ['!selected', '!alternate'])

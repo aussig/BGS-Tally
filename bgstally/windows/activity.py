@@ -181,14 +181,14 @@ class WindowActivity:
                 ttk.Label(frame_table, text=_("CBs"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for combat bonds
                 ttk.Label(frame_table, text=_("Fails"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 ttk.Label(frame_table, text=_("Murders"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2, pady=2) # LANG: Activity window column title
-                ttk.Label(frame_table, text=_("Foot"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Ground"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 ttk.Label(frame_table, text=_("Ship"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 ttk.Label(frame_table, text=_("Scens"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for scenarios
                 ttk.Label(frame_table, text=_("Space CZs"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title, abbreviation for space conflict zones
                 ttk.Label(frame_table, text=_("L"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for low
                 ttk.Label(frame_table, text=_("M"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for medium
                 ttk.Label(frame_table, text=_("H"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for high
-                ttk.Label(frame_table, text=_("Foot CZs"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title
+                ttk.Label(frame_table, text=_("Ground CZs"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title, abbreviation for ground conflict zones
                 ttk.Label(frame_table, text=_("L"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for low
                 ttk.Label(frame_table, text=_("M"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for medium
                 ttk.Label(frame_table, text=_("H"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for high

@@ -1432,7 +1432,7 @@ class Activity:
 
         if trade_purchase > 0:
             # Legacy - Used a single value for purchase value / profit
-            text += cyan(__("TrdPurchase"), fp=fp) + " " + green(human_format(trade_purchase), fp=fp) + " " if trade_purchase != 0 else "" # LANG: Discord heading, abbreviation for trade purchase
+            text += cyan(__("TrdBuy"), fp=fp) + " " + green(human_format(trade_purchase), fp=fp) + " " if trade_purchase != 0 else "" # LANG: Discord heading, abbreviation for trade buy
             text += cyan(__("TrdProfit"), fp=fp) + " " + green(human_format(trade_profit), fp=fp) + " " if trade_profit != 0 else "" # LANG: Discord heading, abbreviation for trade profit
         elif not self.bgstally.state.detailed_trade:
             # Modern, simple trade report - Combine buy at all brackets and profit at all brackets

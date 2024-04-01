@@ -171,11 +171,11 @@ class UI:
         sheet_headings:list = ["UUID",
                                _("Nickname"), # LANG: Preferences table heading
                                _("Webhook URL"), # LANG: Preferences table heading
-                               _("BGS"), # LANG: Preferences table heading
-                               _("TW"), # LANG: Preferences table heading
+                               "BGS",
+                               "TW",
                                _("FC C/M"), # LANG: Preferences table heading, abbreviation for fleet carrier commodities / materials
                                _("FC Ops"), # LANG: Preferences table heading, abbreviation for fleet carrier operations
-                               _("CMDR")] # LANG: Preferences table heading
+                               "CMDR"]
         self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, enable_edit_cell_auto_resize=False, height=140, width=880,
                                      column_width=55, header_align="left", empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
                                      show_horizontal_grid=False, show_vertical_grid=False, show_top_left=False, edit_cell_validation=False,

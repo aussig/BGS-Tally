@@ -1319,7 +1319,7 @@ class Activity:
                 system_text += ("  ❕" if discord else "[" + __("wounded") + "]") + " x " + green(system_station['escapepods']['m']['sum'], fp=fp) + " - " + green(system_station['escapepods']['m']['count'], fp=fp) + " " # LANG: Discord heading
                 system_text += __("missions") + "\n" # LANG: Discord heading
             if (system_station['escapepods']['h']['sum'] > 0):
-                system_text += ("  ❗" if discord else "[" + __("crit") + "]") + " x " + green(system_station['escapepods']['h']['sum'], fp=fp) + " - " + green(system_station['escapepods']['h']['count'], fp=fp) + " " # LANG: Discord heading
+                system_text += ("  ❗" if discord else "[" + __("crit") + "]") + " x " + green(system_station['escapepods']['h']['sum'], fp=fp) + " - " + green(system_station['escapepods']['h']['count'], fp=fp) + " " # LANG: Discord heading, abbreviation for critically injured
                 system_text += __("missions") + "\n" # LANG: Discord heading
             if (system_station['cargo']['sum'] > 0):
                 system_text += ("  📦" if discord else "[" + __("cargo") + "]") + " x " + green(system_station['cargo']['sum'], fp=fp) + " - " + green(system_station['cargo']['count'], fp=fp) + " " # LANG: Discord heading
@@ -1328,13 +1328,13 @@ class Activity:
                 system_text += ("  ⚕️" if discord else "[" + __("injured") + "]") + " x " + green(system_station['escapepods']['l']['sum'], fp=fp) + " - " + green(system_station['escapepods']['l']['count'], fp=fp) + " " # LANG: Discord heading
                 system_text += __("missions") + "\n" # LANG: Discord heading
             if (system_station['passengers']['sum'] > 0):
-                system_text += ("  🧍" if discord else "[" + __("passeng") + "]") + " x " + green(system_station['passengers']['sum'], fp=fp) + " - " + green(system_station['passengers']['count'], fp=fp) + " " # LANG: Discord heading
+                system_text += ("  🧍" if discord else "[" + __("passeng") + "]") + " x " + green(system_station['passengers']['sum'], fp=fp) + " - " + green(system_station['passengers']['count'], fp=fp) + " " # LANG: Discord heading, abbreviation for passengers
                 system_text += __("missions") + "\n" # LANG: Discord heading
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_text += ("  💀 (" + __("mm") + ")" if discord else "[" + __("mm") + "]") + ": " + self._build_tw_vessels_text(system_station['massacre'], discord) + " - " + green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp) + " " # LANG: Discord heading
+                system_text += ("  💀 (" + __("mm") + ")" if discord else "[" + __("mm") + "]") + ": " + self._build_tw_vessels_text(system_station['massacre'], discord) + " - " + green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp) + " " # LANG: Discord heading, abbreviation for massacre (missions)
                 system_text += __("missions") + "\n" # LANG: Discord heading
             if (system_station['reactivate'] > 0):
-                system_text += ("  🛠️" if discord else "[" + __("reac") + "]") + " x " + green(system_station['reactivate'], fp=fp) + " " # LANG: Discord heading
+                system_text += ("  🛠️" if discord else "[" + __("reac") + "]") + " x " + green(system_station['reactivate'], fp=fp) + " " # LANG: Discord heading, abbreviation for TW reactivation (missions)
                 system_text += __("missions") + "\n" # LANG: Discord heading
 
         return system_text

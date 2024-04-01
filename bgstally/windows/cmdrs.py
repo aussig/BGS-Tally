@@ -131,7 +131,7 @@ class WindowCMDRs:
             if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text=_("Inara Info Available ⤴"), url=squadron_info.get('inaraURL')) # LANG: Inara URL on CMDR window
         elif 'SquadronID' in self.selected_cmdr:
             self.cmdr_details_squadron.config(text=f"{self.selected_cmdr.get('SquadronID')}")
-        self.cmdr_details_interaction.config(text=self._get_human_readable_reason(self.selected_cmdr.get('Reason')))
+        self.cmdr_details_interaction.config(text=self._get_human_readable_reason(self.selected_cmdr.get('Reason'), False))
 
 
     def _cmdr_selection_changed(self, treeview:TreeviewPlus, *args):
@@ -292,7 +292,7 @@ class WindowCMDRs:
 
         Args:
             reason (CmdrInteractionReason): The interaction reason
-            discord (bool): True if this message is going to Discord
+            discord (bool): True if this message is going to Discord. Defaults to False.
 
         Returns:
             str: Descriptive text for reason

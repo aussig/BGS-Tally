@@ -3,6 +3,7 @@ from os import path
 import semantic_version
 from companion import CAPIData
 
+import bgstally.globals
 from bgstally.bgstally import BGSTally
 from bgstally.constants import UpdateUIPolicy
 from bgstally.debug import Debug

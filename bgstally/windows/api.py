@@ -71,7 +71,7 @@ class WindowAPI:
         tk.Label(frame_main, text=_("About This"), font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1 # LANG: Label on API settings window
         self.txt_intro:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
         intro_text:str = _("This screen is used to set up a connection to a server.") + "\n\n" # LANG: Text on API settings window
-        intro_text += _("Take care when agreeing to this - if you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, missions and kills.") + "\n\n" # LANG: Text on API settings window
+        intro_text += _("Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills.").format(plugin_name=self.bgstally.plugin_name) + "\n\n" # LANG: Text on API settings window
         intro_text += _("PLEASE ENSURE YOU TRUST the server you send this information to!") + "\n" # LANG: Text on API settings window
         self.txt_intro.insert(tk.END, intro_text)
         self.txt_intro.configure(state='disabled')

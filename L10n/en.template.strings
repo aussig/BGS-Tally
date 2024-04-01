@@ -163,6 +163,9 @@
 /* Discord heading. [cmdrs.py] */
 "Date and Time" = "Date and Time";
 
+/* [ui.py] */
+"Default" = "Default";
+
 /* Button on CMDR window. [cmdrs.py] */
 "Delete Selected" = "Delete Selected";
 
@@ -360,6 +363,9 @@
 
 /* Activity window column title, abbreviation for low. [activity.py] */
 "L" = "L";
+
+/* Preferences label. [ui.py] */
+"Language for Discord Posts" = "Language for Discord Posts";
 
 /* Main window label. [ui.py] */
 "Last BGS Tick:" = "Last BGS Tick:";

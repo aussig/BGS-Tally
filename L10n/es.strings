@@ -49,9 +49,6 @@
 /* Discord heading, abbreviation for black box. [activity.py] */
 "bb" = "bb";
 
-/* Preferences table heading. [ui.py] */
-"BGS" = "BGS";
-
 /* Discord post title. [activity.py] */
 "BGS Activity after Tick: {tick_time}" = "BGS Activity after Tick: {tick_time}";
 
@@ -73,20 +70,11 @@
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Buying Materials:" = "Buying Materials:";
 
-/* Discord heading, abbreviation for bounty vouchers. [activity.py] */
-"BVs" = "BVs";
-
 /* Discord heading. [activity.py] */
 "cargo" = "cargo";
 
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Cargo missions";
-
-/* Discord heading, abbreviation for combat bonds. [activity.py] */
-"CBs" = "CBs";
-
-/* Preferences table heading. [ui.py] */
-"CMDR" = "CMDR";
 
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "CMDR Details";
@@ -220,17 +208,11 @@
 /* Activity window column title. [activity.py] */
 "Ground" = "Ground";
 
-/* Activity window column title, abbreviation for ground conflict zones. [activity.py] */
-"Ground CZs" = "Ground CZs";
-
 /* Discord heading, abbreviation for ground conflict zones. [activity.py] */
 "GroundCZs" = "GroundCZs";
 
 /* Discord heading. [activity.py] */
 "GroundMurders" = "GroundMurders";
-
-/* Activity window column title, abbreviation for high. [activity.py] */
-"H" = "H";
 
 /* Button on API settings window. [api.py] */
 "I Approve" = "I Approve";
@@ -322,9 +304,6 @@
 /* [legend.py] */
 "Kills" = "Kills";
 
-/* Activity window column title, abbreviation for low. [activity.py] */
-"L" = "L";
-
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Language for Discord Posts";
 
@@ -342,9 +321,6 @@
 
 /* Discord heading. [cmdrs.py] */
 "Legal Status" = "Legal Status";
-
-/* Activity window column title, abbreviation for medium. [activity.py] */
-"M" = "M";
 
 /* [legend.py] */
 "Massacre missions" = "Massacre missions";
@@ -529,9 +505,6 @@
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Show Systems with Zero Activity";
 
-/* Activity window column title, abbreviation for space conflict zones. [activity.py] */
-"Space CZs" = "Space CZs";
-
 /* Discord heading, abbreviation for space conflict zones. [activity.py] */
 "SpaceCZs" = "SpaceCZs";
 
@@ -621,9 +594,6 @@
 
 /* Discord heading, abbreviation for tissue sample. [activity.py] */
 "ts" = "ts";
-
-/* Preferences table heading. [ui.py] */
-"TW" = "TW";
 
 /* Discord post title. [activity.py] */
 "TW Activity after Tick: {tick_time}" = "TW Activity after Tick: {tick_time}";

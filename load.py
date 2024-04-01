@@ -11,7 +11,7 @@ PLUGIN_NAME = "BGS-Tally"
 PLUGIN_VERSION = semantic_version.Version.coerce("3.6.0")
 
 # Initialise the main plugin class
-this:BGSTally = BGSTally(PLUGIN_NAME, PLUGIN_VERSION)
+bgstally.globals.this = this = BGSTally(PLUGIN_NAME, PLUGIN_VERSION)
 
 
 def plugin_start3(plugin_dir):

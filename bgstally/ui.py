@@ -94,7 +94,7 @@ class UI:
         else:
             self.button_carrier: tk.Button = None
         current_row += 1
-        self.label_status: tk.Label = tk.Label(self.frame, text=_("BGS Tally Status:")) # LANG: Main window label
+        self.label_status: tk.Label = tk.Label(self.frame, text=_("BGS-Tally Status:")) # LANG: Main window label
         self.label_status.grid(row=current_row, column=0, sticky=tk.W)
         tk.Label(self.frame, textvariable=self.bgstally.state.Status).grid(row=current_row, column=1, sticky=tk.W)
         current_row += 1
@@ -113,7 +113,7 @@ class UI:
         """
         self.button_latest_tick.configure(text=_("Latest BGS Tally")) # LANG: Button label
         self.button_previous_ticks.configure(text=_("Previous BGS Tallies")) # LANG: Button label
-        self.label_status.configure(text=_("BGS Tally Status:")) # LANG: Main window label
+        self.label_status.configure(text=_("BGS-Tally Status:")) # LANG: Main window label
         self.label_tick.configure(text=_("Last BGS Tick:")) # LANG: Main window label
 
         if self.bgstally.update_manager.update_available:
@@ -144,7 +144,7 @@ class UI:
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("General Options"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
-        nb.Checkbutton(frame, text=_("BGS Tally Active"), variable=self.bgstally.state.Status, onvalue="Active", offvalue="Paused").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
+        nb.Checkbutton(frame, text=_("BGS-Tally Active"), variable=self.bgstally.state.Status, onvalue="Active", offvalue="Paused").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Show Systems with Zero Activity"), variable=self.bgstally.state.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1

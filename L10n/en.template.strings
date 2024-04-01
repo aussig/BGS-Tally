@@ -98,12 +98,12 @@
 "Configure Remote Server" = "Configure Remote Server";
 
 /* Preferences force tick popup title. [ui.py] */
-"Confirm FORCE a New Tick" = "Confirm FORCE a New Tick";
+"Confirm Force a New Tick" = "Confirm Force a New Tick";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard (Legacy Format)" = "Copy to Clipboard (Legacy Format)";
 
-/* Discord heading. [activity.py] */
+/* Discord heading, abbreviation for critically injured. [activity.py] */
 "crit" = "crit";
 
 /* Label on legend window. [legend.py] */
@@ -161,10 +161,10 @@
 "Empty System, no BGS Activity Available" = "Empty System, no BGS Activity Available";
 
 /* Checkbox on API settings window. [api.py] */
-"Enable /activities Requests" = "Enable /activities Requests";
+"Enable {activities_url} Requests" = "Enable {activities_url} Requests";
 
 /* Checkbox on API settings window. [api.py] */
-"Enable /events Requests" = "Enable /events Requests";
+"Enable {events_url} Requests" = "Enable {events_url} Requests";
 
 /* Discord heading, abbreviation for escape pod. [activity.py] */
 "esc-pod" = "esc-pod";
@@ -196,14 +196,8 @@
 /* Preferences table heading, abbreviation for fleet carrier operations. [ui.py] */
 "FC Ops" = "FC Ops";
 
-/* Activity window column title. [activity.py] */
-"Foot" = "Foot";
-
-/* Activity window column title. [activity.py] */
-"Foot CZs" = "Foot CZs";
-
 /* Preferences button label. [ui.py] */
-"FORCE Tick" = "FORCE Tick";
+"Force Tick" = "Force Tick";
 
 /* Appended to tick time if a forced tick. [activity.py] */
 "forced" = "forced";
@@ -222,6 +216,12 @@
 
 /* Preferences heading. [ui.py] */
 "General Options" = "General Options";
+
+/* Activity window column title. [activity.py] */
+"Ground" = "Ground";
+
+/* Activity window column title, abbreviation for ground conflict zones. [activity.py] */
+"Ground CZs" = "Ground CZs";
 
 /* Discord heading, abbreviation for ground conflict zones. [activity.py] */
 "GroundCZs" = "GroundCZs";
@@ -355,7 +355,7 @@
 /* Discord heading. [activity.py] */
 "missions" = "missions";
 
-/* Discord heading. [activity.py] */
+/* Discord heading, abbreviation for massacre (missions). [activity.py] */
 "mm" = "mm";
 
 /* Preferences radio button label. [ui.py] */
@@ -394,7 +394,7 @@
 /* [ui.py] */
 "Panels" = "Panels";
 
-/* Discord heading. [activity.py] */
+/* Discord heading, abbreviation for passengers. [activity.py] */
 "passeng" = "passeng";
 
 /* Label on legend window. [legend.py] */
@@ -619,9 +619,6 @@
 /* Discord heading, abbreviation for trade profit. [activity.py] */
 "TrdProfit" = "TrdProfit";
 
-/* Discord heading, abbreviation for trade purchase. [activity.py] */
-"TrdPurchase" = "TrdPurchase";
-
 /* Discord heading, abbreviation for tissue sample. [activity.py] */
 "ts" = "ts";
 
@@ -696,9 +693,6 @@
 
 /* Main window error message. [tick.py] */
 "{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} WARNING: Unable to fetch latest tick";
-
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: Disabling auto-update because handbrake file exists" = "{plugin_name}: Disabling auto-update because handbrake file exists";
 
 /* Main window error message. [updatemanager.py] */
 "{plugin_name}: There was a problem saving the new version" = "{plugin_name}: There was a problem saving the new version";

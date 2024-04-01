@@ -240,6 +240,13 @@ class UI:
         return frame
 
 
+    def save_prefs(self):
+        """
+        Preferences frame has been saved (from EDMC core or any plugin)
+        """
+        self.update_plugin_frame()
+
+
     def show_system_report(self, system_address:int):
         """
         Show the system report overlay

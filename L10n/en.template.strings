@@ -71,10 +71,10 @@
 "BGS Activity after Tick: %(tick_time)s" = "BGS Activity after Tick: %(tick_time)s";
 
 /* Preferences checkbox label. [ui.py] */
-"BGS Tally Active" = "BGS Tally Active";
+"BGS-Tally Active" = "BGS-Tally Active";
 
 /* Main window label. [ui.py] */
-"BGS Tally Status:" = "BGS Tally Status:";
+"BGS-Tally Status:" = "BGS-Tally Status:";
 
 /* Main window error message. [tick.py] */
 "BGS-Tally WARNING: Unable to fetch latest tick" = "BGS-Tally WARNING: Unable to fetch latest tick";

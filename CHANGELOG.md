@@ -6,9 +6,6 @@
 
 * Localisation. The plugin is now translated into French, German, Italian, Spanish and Turkish. For the user interface, it will pick up the language you have set EDMC to use. If anyone would like to help translate into other languages, please post a message on the BGS-Tally Discord.
 * Independent language for Discord posts. You can separately set the language that is used for Discord posts, in case the Discord server has a different preferred language to the one you run EDMC in.
-
-### New Features:
-
 * Add logo to main window and all window icons
 
 ### Changes:

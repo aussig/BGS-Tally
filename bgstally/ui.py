@@ -83,17 +83,18 @@ class UI:
 
         current_row: int = 0
         tk.Label(self.frame, image=self.image_logo_bgstally_100).grid(row=current_row, column=0, rowspan=3, sticky=tk.W)
-        self.label_version = HyperlinkLabel(self.frame, text=f"v{str(self.bgstally.version)}", background=nb.Label().cget('background'), url=URL_LATEST_RELEASE, underline=True)
+        self.label_version: HyperlinkLabel = HyperlinkLabel(self.frame, text=f"v{str(self.bgstally.version)}", background=nb.Label().cget('background'), url=URL_LATEST_RELEASE, underline=True)
         self.label_version.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
         current_row += 1
-        tk.Label(self.frame, text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name) + " " + self.bgstally.state.Status.get()).grid(row=current_row, column=1, sticky=tk.W) # LANG: Main window label
+        self.label_status: tk.Label = tk.Label(self.frame, text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name) + " " + self.bgstally.state.Status.get())
+        self.label_status.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W) # LANG: Main window label
         current_row += 1
-        self.label_tick = tk.Label(self.frame, text=_("Last BGS Tick:") + " " + self.bgstally.tick.get_formatted()) # LANG: Main window label
-        self.label_tick.grid(row=current_row, column=1, sticky=tk.W)
+        self.label_tick: tk.Label = tk.Label(self.frame, text=_("Last BGS Tick:") + " " + self.bgstally.tick.get_formatted()) # LANG: Main window label
+        self.label_tick.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
         current_row += 1
         self.button_latest_tick: tk.Button = tk.Button(self.frame, text=_("Latest BGS Tally"), height=SIZE_BUTTON_PIXELS-2, image=self.image_blank, compound=tk.RIGHT, command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity())) # LANG: Button label
         self.button_latest_tick.grid(row=current_row, column=0, padx=3)
-        self.button_previous_ticks: tk.Button = tk.Button(self.frame, text=_("Previous BGS Tallies "), height=SIZE_BUTTON_PIXELS-2, image=self.image_button_dropdown_menu, compound=tk.RIGHT, command=self._previous_ticks_popup) # LANG: Button label
+        self.button_previous_ticks: tk.Button = tk.Button(self.frame, text=_("Previous BGS Tallies") + " ", height=SIZE_BUTTON_PIXELS-2, image=self.image_button_dropdown_menu, compound=tk.RIGHT, command=self._previous_ticks_popup) # LANG: Button label
         self.button_previous_ticks.grid(row=current_row, column=1, padx=3, sticky=tk.W)
         tk.Button(self.frame, image=self.image_button_cmdrs, height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_cmdr_list_window).grid(row=current_row, column=2, padx=3)
         if self.bgstally.capi_fleetcarrier_available():
@@ -111,7 +112,7 @@ class UI:
         Update the tick time label, current activity button, carrier button and all labels in the plugin frame
         """
         self.button_latest_tick.configure(text=_("Latest BGS Tally")) # LANG: Button label
-        self.button_previous_ticks.configure(text=_("Previous BGS Tallies")) # LANG: Button label
+        self.button_previous_ticks.configure(text=_("Previous BGS Tallies") + " ") # LANG: Button label
         self.label_status.configure(text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window label
         self.label_tick.configure(text=_("Last BGS Tick:") + " " + self.bgstally.tick.get_formatted()) # LANG: Main window label
 

@@ -48,6 +48,7 @@ class WindowAPI:
         if parent_frame is None: parent_frame = self.bgstally.ui.frame
         self.toplevel = tk.Toplevel(parent_frame)
         self.toplevel.title(f"{self.bgstally.plugin_name} - API Settings")
+        self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
         self.toplevel.resizable(False, False)
 
         if sys.platform == 'win32':

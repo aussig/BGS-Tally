@@ -23,7 +23,6 @@ class WindowActivity:
 
     def __init__(self, bgstally, ui, activity: Activity):
         self.bgstally = bgstally
-        self.ui = ui
         self.activity:Activity = activity
         self.toplevel:tk.Toplevel = None
         self.window_geometry:dict = None
@@ -47,13 +46,14 @@ class WindowActivity:
             self._store_window_geometry()
             self.toplevel.destroy()
 
-        self.toplevel = tk.Toplevel(self.ui.frame)
+        self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
+        self.toplevel.title(f"{self.bgstally.plugin_name} - Activity After Tick at: {activity.get_title()}")
         self.toplevel.protocol("WM_DELETE_WINDOW", self._window_closed)
+        self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
 
         if self.window_geometry is not None:
             self.toplevel.geometry(f"+{self.window_geometry['x']}+{self.window_geometry['y']}")
 
-        self.toplevel.title(f"{self.bgstally.plugin_name} - Activity After Tick at: {activity.get_title()}")
 
         ContainerFrame = ttk.Frame(self.toplevel)
         ContainerFrame.pack(fill=tk.BOTH, expand=tk.YES)
@@ -305,7 +305,7 @@ class WindowActivity:
         """
         Display a mini-window showing a legend of all icons used
         """
-        self.ui.show_legend_window()
+        self.bgstally.ui.show_legend_window()
 
 
     def _discord_button_available(self) -> bool:

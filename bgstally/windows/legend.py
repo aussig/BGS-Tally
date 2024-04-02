@@ -40,6 +40,7 @@ class WindowLegend:
 
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
         self.toplevel.title(f"{self.bgstally.plugin_name} - Icon Legend")
+        self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
         self.toplevel.resizable(False, False)
 
         frame_container:ttk.Frame = ttk.Frame(self.toplevel)

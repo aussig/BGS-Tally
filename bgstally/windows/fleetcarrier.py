@@ -32,6 +32,7 @@ class WindowFleetCarrier:
 
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
         self.toplevel.title(f"Carrier {fc.name} ({fc.callsign}) in system: {fc.data['currentStarSystem']}")
+        self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
         self.toplevel.geometry("600x800")
 
         container_frame:ttk.Frame = ttk.Frame(self.toplevel)

@@ -2,6 +2,10 @@
 
 ## v3.7.0 - xxxx-xx-xx
 
+### New Features:
+
+* Add logo to main window and all window icons
+
 ### Changes:
 
 * Added new logo as avatar for all posts.

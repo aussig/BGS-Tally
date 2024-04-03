@@ -170,10 +170,10 @@ def _rc_menu_install(w):
     w.menu.add_separator()
     w.menu.add_command(label=_("Select all"))
 
-    w.menu.entryconfigure("Cut", command=lambda: w.focus_force() or w.event_generate("<<Cut>>"))
-    w.menu.entryconfigure("Copy", command=lambda: w.focus_force() or w.event_generate("<<Copy>>"))
-    w.menu.entryconfigure("Paste", command=lambda: w.focus_force() or w.event_generate("<<Paste>>"))
-    w.menu.entryconfigure("Select all", command=w.event_select_all)
+    w.menu.entryconfigure(_("Cut"), command=lambda: w.focus_force() or w.event_generate("<<Cut>>"))
+    w.menu.entryconfigure(_("Copy"), command=lambda: w.focus_force() or w.event_generate("<<Copy>>"))
+    w.menu.entryconfigure(_("Paste"), command=lambda: w.focus_force() or w.event_generate("<<Paste>>"))
+    w.menu.entryconfigure(_("Select all"), command=w.event_select_all)
 
 
 

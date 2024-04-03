@@ -86,8 +86,8 @@ class UI:
         self.label_version: HyperlinkLabel = HyperlinkLabel(self.frame, text=f"v{str(self.bgstally.version)}", background=nb.Label().cget('background'), url=URL_LATEST_RELEASE, underline=True)
         self.label_version.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
         current_row += 1
-        self.label_status: tk.Label = tk.Label(self.frame, text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name) + " " + self.bgstally.state.Status.get())
-        self.label_status.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W) # LANG: Main window label
+        self.label_status: tk.Label = tk.Label(self.frame, text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name) + " " + self.bgstally.state.Status.get()) # LANG: Main window label
+        self.label_status.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
         current_row += 1
         self.label_tick: tk.Label = tk.Label(self.frame, text=_("Last BGS Tick:") + " " + self.bgstally.tick.get_formatted()) # LANG: Main window label
         self.label_tick.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)

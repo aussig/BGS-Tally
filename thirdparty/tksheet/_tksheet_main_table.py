@@ -11,6 +11,8 @@ from itertools import accumulate, chain, cycle, islice, product, repeat
 from math import ceil, floor
 from tkinter import TclError
 from typing import Any, Union
+from bgstally.utils import _
+
 from ._tksheet_formatters import (
     data_to_str,
     format_data,
@@ -2240,7 +2242,7 @@ class MainTable(tk.Canvas):
         if self.rc_popup_menus_enabled and self.CH.edit_cell_enabled:
             self.menu_add_command(
                 self.CH.ch_rc_popup_menu,
-                label="Edit header",
+                label=_("Edit header"),
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
                 background=self.popup_menu_bg,
@@ -2251,7 +2253,7 @@ class MainTable(tk.Canvas):
         if self.rc_popup_menus_enabled and self.RI.edit_cell_enabled:
             self.menu_add_command(
                 self.RI.ri_rc_popup_menu,
-                label="Edit index",
+                label=_("Edit index"),
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
                 background=self.popup_menu_bg,
@@ -2262,7 +2264,7 @@ class MainTable(tk.Canvas):
         if self.rc_popup_menus_enabled and self.edit_cell_enabled:
             self.menu_add_command(
                 self.rc_popup_menu,
-                label="Edit cell",
+                label=_("Edit cell"),
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
                 background=self.popup_menu_bg,
@@ -2273,7 +2275,7 @@ class MainTable(tk.Canvas):
         if self.cut_enabled:
             self.menu_add_command(
                 self.rc_popup_menu,
-                label="Cut",
+                label=_("Cut"),
                 accelerator="Ctrl+X",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2284,7 +2286,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.CH.ch_rc_popup_menu,
-                label="Cut contents",
+                label=_("Cut contents"),
                 accelerator="Ctrl+X",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2295,7 +2297,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.RI.ri_rc_popup_menu,
-                label="Cut contents",
+                label=_("Cut contents"),
                 accelerator="Ctrl+X",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2307,7 +2309,7 @@ class MainTable(tk.Canvas):
         if self.copy_enabled:
             self.menu_add_command(
                 self.rc_popup_menu,
-                label="Copy",
+                label=_("Copy"),
                 accelerator="Ctrl+C",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2318,7 +2320,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.CH.ch_rc_popup_menu,
-                label="Copy contents",
+                label=_("Copy contents"),
                 accelerator="Ctrl+C",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2329,7 +2331,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.RI.ri_rc_popup_menu,
-                label="Copy contents",
+                label=_("Copy contents"),
                 accelerator="Ctrl+C",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2341,7 +2343,7 @@ class MainTable(tk.Canvas):
         if self.paste_enabled:
             self.menu_add_command(
                 self.rc_popup_menu,
-                label="Paste",
+                label=_("Paste"),
                 accelerator="Ctrl+V",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2352,7 +2354,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.CH.ch_rc_popup_menu,
-                label="Paste",
+                label=_("Paste"),
                 accelerator="Ctrl+V",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2363,7 +2365,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.RI.ri_rc_popup_menu,
-                label="Paste",
+                label=_("Paste"),
                 accelerator="Ctrl+V",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2375,7 +2377,7 @@ class MainTable(tk.Canvas):
             if self.expand_sheet_if_paste_too_big:
                 self.menu_add_command(
                     self.empty_rc_popup_menu,
-                    label="Paste",
+                    label=_("Paste"),
                     accelerator="Ctrl+V",
                     font=self.popup_menu_font,
                     foreground=self.popup_menu_fg,
@@ -2387,7 +2389,7 @@ class MainTable(tk.Canvas):
         if self.delete_key_enabled:
             self.menu_add_command(
                 self.rc_popup_menu,
-                label="Delete",
+                label=_("Delete"),
                 accelerator="Del",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2398,7 +2400,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.CH.ch_rc_popup_menu,
-                label="Clear contents",
+                label=_("Clear contents"),
                 accelerator="Del",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2409,7 +2411,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.RI.ri_rc_popup_menu,
-                label="Clear contents",
+                label=_("Clear contents"),
                 accelerator="Del",
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
@@ -2421,7 +2423,7 @@ class MainTable(tk.Canvas):
         if self.rc_delete_column_enabled:
             self.menu_add_command(
                 self.CH.ch_rc_popup_menu,
-                label="Delete columns",
+                label=_("Delete columns"),
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
                 background=self.popup_menu_bg,
@@ -2432,7 +2434,7 @@ class MainTable(tk.Canvas):
         if self.rc_insert_column_enabled:
             self.menu_add_command(
                 self.CH.ch_rc_popup_menu,
-                label="Insert columns left",
+                label=_("Insert columns left"),
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
                 background=self.popup_menu_bg,
@@ -2442,7 +2444,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.empty_rc_popup_menu,
-                label="Insert column",
+                label=_("Insert column"),
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
                 background=self.popup_menu_bg,
@@ -2452,7 +2454,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.CH.ch_rc_popup_menu,
-                label="Insert columns right",
+                label=_("Insert columns right"),
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
                 background=self.popup_menu_bg,
@@ -2463,7 +2465,7 @@ class MainTable(tk.Canvas):
         if self.rc_delete_row_enabled:
             self.menu_add_command(
                 self.RI.ri_rc_popup_menu,
-                label="Delete rows",
+                label=_("Delete rows"),
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
                 background=self.popup_menu_bg,
@@ -2474,7 +2476,7 @@ class MainTable(tk.Canvas):
         if self.rc_insert_row_enabled:
             self.menu_add_command(
                 self.RI.ri_rc_popup_menu,
-                label="Insert rows above",
+                label=_("Insert rows above"),
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
                 background=self.popup_menu_bg,
@@ -2484,7 +2486,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.RI.ri_rc_popup_menu,
-                label="Insert rows below",
+                label=_("Insert rows below"),
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
                 background=self.popup_menu_bg,
@@ -2494,7 +2496,7 @@ class MainTable(tk.Canvas):
             )
             self.menu_add_command(
                 self.empty_rc_popup_menu,
-                label="Insert row",
+                label=_("Insert row"),
                 font=self.popup_menu_font,
                 foreground=self.popup_menu_fg,
                 background=self.popup_menu_bg,
@@ -4730,7 +4732,7 @@ class MainTable(tk.Canvas):
             iid = self.create_rectangle(coords, fill=fill, outline=outline, tag=tag)
         self.disp_high[iid] = True
         return True
-    
+
     def redraw_gridline(
         self,
         points,

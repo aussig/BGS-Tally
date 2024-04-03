@@ -76,6 +76,9 @@
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Cargo missions";
 
+/* [_tksheet_main_table.py] */
+"Clear contents" = "Clear contents";
+
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "CMDR Details";
 
@@ -87,6 +90,12 @@
 
 /* Preferences force tick popup title. [ui.py] */
 "Confirm Force a New Tick" = "Confirm Force a New Tick";
+
+/* [widgets.py] */
+"Copy" = "Copy";
+
+/* [_tksheet_main_table.py] */
+"Copy contents" = "Copy contents";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard (Legacy Format)" = "Copy to Clipboard (Legacy Format)";
@@ -106,6 +115,12 @@
 /* Preferences checkbox label. [ui.py] */
 "Current Tick" = "Current Tick";
 
+/* [widgets.py] */
+"Cut" = "Cut";
+
+/* [_tksheet_main_table.py] */
+"Cut contents" = "Cut contents";
+
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Date / Time";
 
@@ -114,6 +129,15 @@
 
 /* [ui.py] */
 "Default" = "Default";
+
+/* [_tksheet_main_table.py] */
+"Delete" = "Delete";
+
+/* [_tksheet_main_table.py] */
+"Delete columns" = "Delete columns";
+
+/* [_tksheet_main_table.py] */
+"Delete rows" = "Delete rows";
 
 /* Button on CMDR window. [cmdrs.py] */
 "Delete Selected" = "Delete Selected";
@@ -141,6 +165,15 @@
 
 /* [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Double-check on-ground CZ tallies, sizes are not always correct";
+
+/* [_tksheet_main_table.py] */
+"Edit cell" = "Edit cell";
+
+/* [_tksheet_main_table.py] */
+"Edit header" = "Edit header";
+
+/* [_tksheet_main_table.py] */
+"Edit index" = "Edit index";
 
 /* Discord heading, abbreviation for election INF. [activity.py] */
 "ElectionINF" = "ElectionINF";
@@ -268,6 +301,24 @@
 /* Label on legend window. [legend.py] */
 "Injured evacuation missions" = "Injured evacuation missions";
 
+/* [_tksheet_main_table.py] */
+"Insert column" = "Insert column";
+
+/* [_tksheet_main_table.py] */
+"Insert columns left" = "Insert columns left";
+
+/* [_tksheet_main_table.py] */
+"Insert columns right" = "Insert columns right";
+
+/* [_tksheet_main_table.py] */
+"Insert row" = "Insert row";
+
+/* [_tksheet_main_table.py] */
+"Insert rows above" = "Insert rows above";
+
+/* [_tksheet_main_table.py] */
+"Insert rows below" = "Insert rows below";
+
 /* Preferences label. [ui.py] */
 "Instructions for Use" = "Instructions for Use";
 
@@ -379,6 +430,9 @@
 /* [ui.py] */
 "Past Estimated Tick Time" = "Past Estimated Tick Time";
 
+/* [widgets.py] */
+"Paste" = "Paste";
+
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "Pin {system_name} to Overlay";
 
@@ -468,6 +522,9 @@
 
 /* Label on legend window. [legend.py] */
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions.";
+
+/* [widgets.py] */
+"Select all" = "Select all";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "Selling Commodities" = "Selling Commodities";

@@ -113,7 +113,7 @@ class UI:
         """
         self.button_latest_tick.configure(text=_("Latest BGS Tally")) # LANG: Button label
         self.button_previous_ticks.configure(text=_("Previous BGS Tallies") + " ") # LANG: Button label
-        self.label_status.configure(text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window label
+        self.label_status.configure(text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name) + " " + self.bgstally.state.Status.get()) # LANG: Main window label
         self.label_tick.configure(text=_("Last BGS Tick:") + " " + self.bgstally.tick.get_formatted()) # LANG: Main window label
 
         if self.bgstally.update_manager.update_available:

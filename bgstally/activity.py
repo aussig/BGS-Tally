@@ -991,7 +991,7 @@ class Activity:
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
                 system_text += self._generate_tw_system_text(system, True)
 
-            if activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH and system.get('tw_status') is None:
+            if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
                 for faction in system['Factions'].values():
                     if faction['Enabled'] != CheckStates.STATE_ON: continue
                     system_text += self._generate_faction_text(faction, True)
@@ -1444,17 +1444,17 @@ class Activity:
             # Modern, detailed trade report - Split into values per supply / demand bracket
             if sum(int(d['value']) for d in trade_buy) > 0:
                 # Buy brackets currently range from 1 - 3
-                text += cyan(__("TrdBuy"), fp=fp) + " " \
-                    + f"{'🅻' if discord else '[L]'}:{green(human_format(trade_buy[1]['value']), fp=fp)} " \
-                    + f"{'🅼' if discord else '[M]'}:{green(human_format(trade_buy[2]['value']), fp=fp)} " \
-                    + f"{'🅷' if discord else '[H]'}:{green(human_format(trade_buy[3]['value']), fp=fp)} "
+                text += cyan(__("TrdBuy"), fp=fp) + " "
+                if int(trade_buy[1]['value']) != 0: text += f"{'🅻' if discord else '[L]'}:{green(human_format(trade_buy[1]['value']), fp=fp)} "
+                if int(trade_buy[2]['value']) != 0: text += f"{'🅼' if discord else '[M]'}:{green(human_format(trade_buy[2]['value']), fp=fp)} "
+                if int(trade_buy[3]['value']) != 0: text += f"{'🅷' if discord else '[H]'}:{green(human_format(trade_buy[3]['value']), fp=fp)} "
             if sum(int(d['value']) for d in trade_sell) > 0:
                 # Sell brackets currently range from 0 - 3
-                text += cyan(__("TrdProfit"), fp=fp) + " " \
-                    + f"{'🆉' if discord else '[Z]'}:{green(human_format(trade_sell[0]['profit']), fp=fp)} " \
-                    + f"{'🅻' if discord else '[L]'}:{green(human_format(trade_sell[1]['profit']), fp=fp)} " \
-                    + f"{'🅼' if discord else '[M]'}:{green(human_format(trade_sell[2]['profit']), fp=fp)} " \
-                    + f"{'🅷' if discord else '[H]'}:{green(human_format(trade_sell[3]['profit']), fp=fp)} "
+                text += cyan(__("TrdProfit"), fp=fp) + " "
+                if int(trade_sell[0]['profit']) != 0: text += f"{'🆉' if discord else '[Z]'}:{green(human_format(trade_sell[0]['profit']), fp=fp)} "
+                if int(trade_sell[1]['profit']) != 0: text += f"{'🅻' if discord else '[L]'}:{green(human_format(trade_sell[1]['profit']), fp=fp)} "
+                if int(trade_sell[2]['profit']) != 0: text += f"{'🅼' if discord else '[M]'}:{green(human_format(trade_sell[2]['profit']), fp=fp)} "
+                if int(trade_sell[3]['profit']) != 0: text += f"{'🅷' if discord else '[H]'}:{green(human_format(trade_sell[3]['profit']), fp=fp)} "
 
         return text
 

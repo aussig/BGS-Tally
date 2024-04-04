@@ -14,6 +14,7 @@
 ### Bug Fixes:
 
 * Thargoid War VIP passenger evac missions weren't being counted.
+* Was incorrectly reporting BGS activity in TW systems.
 
 
 ## v3.6.0 - 2024-03-23

@@ -10,6 +10,7 @@
 
 * Added new logo as avatar for all posts.
 * Removed 'modified by Aussi' references, as Tez (the original author of BGS-Tally) is now recommending this version to users.
+* Each trade buy / sell band is only reported if it is non-zero, avoiding clutter in the report.
 
 ### Bug Fixes:
 

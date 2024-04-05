@@ -4,7 +4,8 @@
 
 ### New Features:
 
-* Add logo to main window and all window icons
+* Added logo to main window and all window icons
+* Added options to only post your BGS activity, only your TW activity or both (defaults to both), for CMDRs who want to selectively post a single type of activity.
 
 ### Changes:
 

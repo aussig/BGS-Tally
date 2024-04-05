@@ -54,7 +54,6 @@ class WindowActivity:
         if self.window_geometry is not None:
             self.toplevel.geometry(f"+{self.window_geometry['x']}+{self.window_geometry['y']}")
 
-
         ContainerFrame = ttk.Frame(self.toplevel)
         ContainerFrame.pack(fill=tk.BOTH, expand=tk.YES)
         TabParent=ScrollableNotebook(ContainerFrame, wheelscroll=False, tabmenu=True)
@@ -66,6 +65,13 @@ class WindowActivity:
         self.btn_post_to_discord: ttk.Button = ttk.Button(frame_buttons, text="Post to Discord", command=partial(self._post_to_discord, activity),
                                                           state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
+        activity_type_options: dict = {DiscordActivity.BOTH: "All", DiscordActivity.BGS: "BGS Only", DiscordActivity.THARGOIDWAR: "TW Only"}
+        activity_type_var: tk.StringVar = tk.StringVar(value=activity_type_options.get(self.bgstally.state.DiscordActivity.get(), DiscordActivity.BOTH))
+        self.mnu_activity_type: ttk.OptionMenu = ttk.OptionMenu(frame_buttons, activity_type_var, activity_type_var.get(),
+                                                               *activity_type_options.values(),
+                                                               command=partial(self._activity_type_selected, activity_type_options), direction='above')
+        self.mnu_activity_type.pack(side=tk.RIGHT, pady=5)
+        ttk.Label(frame_buttons, text="Activity to post:").pack(side=tk.RIGHT, pady=5)
 
         DiscordFrame = ttk.Frame(ContainerFrame)
         DiscordFrame.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)
@@ -325,6 +331,13 @@ class WindowActivity:
         DiscordText.configure(state=tk.DISABLED)
 
 
+    def _activity_type_selected(self, activity_options: dict, value: str):
+        """The user has changed the dropdown to choose the activity type to post
+        """
+        k: str = next(k for k, v in activity_options.items() if v == value)
+        self.bgstally.state.DiscordActivity.set(k)
+
+
     def _post_to_discord(self, activity: Activity):
         """
         Callback to post to discord in the appropriate channel(s)
@@ -332,16 +345,20 @@ class WindowActivity:
         self.btn_post_to_discord.config(state=tk.DISABLED)
 
         if self.bgstally.state.DiscordPostStyle.get() == DiscordPostStyle.TEXT:
-            discord_text:str = activity.generate_text(DiscordActivity.BGS, True)
-            self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
-            discord_text = activity.generate_text(DiscordActivity.THARGOIDWAR, True)
-            self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
+            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:
+                discord_text:str = activity.generate_text(DiscordActivity.BGS, True)
+                self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
+            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
+                discord_text = activity.generate_text(DiscordActivity.THARGOIDWAR, True)
+                self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
         else:
             description = "" if activity.discord_notes is None else activity.discord_notes
-            discord_fields:dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
-            self.bgstally.discord.post_embed(f"BGS Activity after Tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
-            discord_fields = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
-            self.bgstally.discord.post_embed(f"TW Activity after Tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
+            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:
+                discord_fields:dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
+                self.bgstally.discord.post_embed(f"BGS Activity after Tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
+            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
+                discord_fields = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
+                self.bgstally.discord.post_embed(f"TW Activity after Tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
 
         activity.dirty = True # Because discord post ID has been changed
 

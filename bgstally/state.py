@@ -47,6 +47,7 @@ class State:
         self.current_system_id:str = config.get_str('XCurrentSystemID', default="")
         self.station_faction:str = config.get_str('XStationFaction', default = "")
         self.station_type:str = config.get_str('XStationType', default ="")
+        self.discord_lang:str|None = config.get_str('BGST_DiscordLang', default="")
 
         # Non-persistent values
         self.last_settlement_approached:dict = {}
@@ -101,3 +102,4 @@ class State:
         config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")
         config.set('XStationFaction', self.station_faction if self.station_faction != None else "")
         config.set('XStationType', self.station_type if self.station_type != None else "")
+        config.set('BGST_DiscordLang', self.discord_lang if self.discord_lang != None else "")

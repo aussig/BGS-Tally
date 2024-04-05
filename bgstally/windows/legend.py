@@ -3,6 +3,7 @@ from os import path
 from tkinter import PhotoImage, ttk
 
 from bgstally.constants import COLOUR_HEADING_1, FOLDER_ASSETS, FONT_HEADING_1
+from bgstally.utils import _, __
 
 
 class WindowLegend:
@@ -39,7 +40,7 @@ class WindowLegend:
             return
 
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
-        self.toplevel.title(f"{self.bgstally.plugin_name} - Icon Legend")
+        self.toplevel.title(_("{plugin_name} - Icon Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Legend window title
         self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
         self.toplevel.resizable(False, False)
 
@@ -47,54 +48,54 @@ class WindowLegend:
         frame_container.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)
 
         current_row:int = 0
-        ttk.Label(frame_container, text="Icons in BGS Reports", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        ttk.Label(frame_container, text=_("Icons in BGS Reports"), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1 # LANG: Heading on legend window
         ttk.Label(frame_container, text="🅟", font=("Helvetica", 24)).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Primary INF. This is INF gained for the mission issuing faction.").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Primary INF. This is INF gained for the mission issuing faction.")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, text="🅢", font=("Helvetica", 24)).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions.").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions.")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, text="➊ ➋ ➌ ➍ ➎", font=("Helvetica", 14)).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions.").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions.")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, image=self.image_icon_bgs_cz).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" On-ground Conflict Zone").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("On-ground Conflict Zone")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, text="🆉 🅻 🅼 🅷", font=("Helvetica", 24)).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Zero / Low / Med / High demand level for trade buy / sell").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Zero / Low / Med / High demand level for trade buy / sell")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
 
-        ttk.Label(frame_container, text="Icons in Thargoid War Reports", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        ttk.Label(frame_container, text=_("Icons in Thargoid War Reports"), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1 # LANG: Heading on legend window
         ttk.Label(frame_container, image=self.image_icon_tw_passengers).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Passenger missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Passenger missions")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, image=self.image_icon_tw_cargo).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Cargo missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Cargo missions")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, image=self.image_icon_tw_injured).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Injured evacuation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Injured evacuation missions")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, image=self.image_icon_tw_wounded).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Wounded evacuation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Wounded evacuation missions")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, image=self.image_icon_tw_crit_wounded).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Critically wounded evacuation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Critically wounded evacuation missions")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, image=self.image_icon_tw_reactivate).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Reactivation missions").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Reactivation missions")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, image=self.image_icon_tw_mass_missions).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Massacre missions\n" \
-                                        + "   S - Scout\n" \
-                                        + "   C - Cyclops\n" \
-                                        + "   B - Basilisk\n" \
-                                        + "   M - Medusa\n" \
-                                        + "   H - Hydra\n" \
+        ttk.Label(frame_container, text=" " + _("Massacre missions") + "\n" \
+                                        + "   S - Scout" + "\n" \
+                                        + "   C - Cyclops" + "\n" \
+                                        + "   B - Basilisk" + "\n" \
+                                        + "   M - Medusa" + "\n" \
+                                        + "   H - Hydra" + "\n" \
                                         + "   O - Orthrus").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_kills).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Kills\n" \
+        ttk.Label(frame_container, text=" " + _("Kills") + "\n" \
                                         + "   R - Revenant\n" \
                                         + "   S - Scout\n" \
-                                        + "   S/G - Scythe / Glaive (Cannot be automatically distinguised)\n" \
+                                        + "   S/G - Scythe / Glaive " + _("(Cannot be automatically distinguished)") + "\n" \
                                         + "   C - Cyclops\n" \
                                         + "   B - Basilisk\n" \
                                         + "   M - Medusa\n" \
                                         + "   H - Hydra\n" \
                                         + "   O - Orthrus").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_container, image=self.image_icon_tw_sr_bbs).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Search & Rescue Black Boxes").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Search & Rescue Black Boxes")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, image=self.image_icon_tw_sr_pods).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Search & Rescue Escape Pods").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Search & Rescue Escape Pods")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, image=self.image_icon_tw_sr_tissue).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Search & Rescue Tissue Samples").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Search & Rescue Tissue Samples")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, image=self.image_icon_tw_sr_tps).grid(row=current_row, column=0)
-        ttk.Label(frame_container, text=" Search & Rescue Bio Pods").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        ttk.Label(frame_container, text=" " + _("Search & Rescue Bio Pods")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window

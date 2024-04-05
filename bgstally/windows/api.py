@@ -8,6 +8,7 @@ from os import path
 from bgstally.api import API
 from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2
 from bgstally.debug import Debug
+from bgstally.utils import _
 from bgstally.widgets import CollapsibleFrame, EntryPlus, HyperlinkManager
 from requests import Response
 from bgstally.requestmanager import BGSTallyRequest
@@ -47,7 +48,7 @@ class WindowAPI:
 
         if parent_frame is None: parent_frame = self.bgstally.ui.frame
         self.toplevel = tk.Toplevel(parent_frame)
-        self.toplevel.title(f"{self.bgstally.plugin_name} - API Settings")
+        self.toplevel.title(_("{plugin_name} - API Settings").format(plugin_name=self.bgstally.plugin_name)) # LANG: API settings window title
         self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
         self.toplevel.resizable(False, False)
 
@@ -68,49 +69,49 @@ class WindowAPI:
         current_row:int = 0
         text_width:int = 400
 
-        tk.Label(frame_main, text="About This", font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        tk.Label(frame_main, text=_("About This"), font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1 # LANG: Label on API settings window
         self.txt_intro:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
-        self.txt_intro.insert(tk.END, "This screen is used to set up a connection to a server.\n\nTake care when agreeing to this - if " \
-            "you approve this server, BGS-Tally will send your information to it, which will include CMDR details such as your location, " \
-            "missions and kills.\n\nPLEASE ENSURE YOU TRUST the server you send this information to!\n")
+        intro_text:str = _("This screen is used to set up a connection to a server.") + "\n\n" # LANG: Text on API settings window
+        intro_text += _("Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills.").format(plugin_name=self.bgstally.plugin_name) + "\n\n" # LANG: Text on API settings window
+        intro_text += _("PLEASE ENSURE YOU TRUST the server you send this information to!") + "\n" # LANG: Text on API settings window
+        self.txt_intro.insert(tk.END, intro_text)
         self.txt_intro.configure(state='disabled')
         self.txt_intro.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
         self.txt_intro.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
 
-        tk.Label(frame_main, text="API Settings", font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        tk.Label(frame_main, text=_("API Settings"), font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1 # LANG: Label on API settings window
         self.txt_settings:tk.Text = tk.Text(frame_main, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
-        self.txt_settings.insert(tk.END, "Ask the server administrator for the information below, then click 'Establish Connection' to continue. " \
-            "Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you.")
+        self.txt_settings.insert(tk.END, _("Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you.")) # LANG: Text on API settings window
         self.txt_settings.configure(state='disabled')
         self.txt_settings.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
         self.txt_settings.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
-        tk.Label(frame_main, text="Server URL").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
+        tk.Label(frame_main, text=_("Server URL")).grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
         self.var_apiurl:tk.StringVar = tk.StringVar(value=self.api.url)
         self.entry_apiurl:EntryPlus = EntryPlus(frame_main, textvariable=self.var_apiurl)
         self.entry_apiurl.grid(row=current_row, column=1, pady=4, sticky=tk.EW); current_row += 1
         self.var_apiurl.trace_add('write', partial(self._field_edited, self.entry_apiurl))
-        self.label_apikey:tk.Label = tk.Label(frame_main, text="API Key")
+        self.label_apikey:tk.Label = tk.Label(frame_main, text=_("API Key")) # LANG: Label on API settings window
         self.var_apikey:tk.StringVar = tk.StringVar(value=self.api.key)
         self.label_apikey.grid(row=current_row, column=0, sticky=tk.NW, pady=4)
         self.entry_apikey:EntryPlus = EntryPlus(frame_main, textvariable=self.var_apikey)
         self.entry_apikey.grid(row=current_row, column=1, pady=4, sticky=tk.EW); current_row += 1
         self.var_apikey.trace_add('write', partial(self._field_edited, self.entry_apikey))
-        self.cb_apiactivities:ttk.Checkbutton = ttk.Checkbutton(frame_main, text="Enable /activities Requests")
+        self.cb_apiactivities:ttk.Checkbutton = ttk.Checkbutton(frame_main, text=_("Enable {activities_url} Requests").format(activities_url="/activities")) # LANG: Checkbox on API settings window
         self.cb_apiactivities.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
         self.cb_apiactivities.configure(command=partial(self._field_edited, self.cb_apiactivities))
         self.cb_apiactivities.state(['selected', '!alternate'] if self.api.activities_enabled else ['!selected', '!alternate'])
-        self.cb_apievents:ttk.Checkbutton = ttk.Checkbutton(frame_main, text="Enable /events Requests")
+        self.cb_apievents:ttk.Checkbutton = ttk.Checkbutton(frame_main, text=_("Enable {events_url} Requests").format(events_url="/events")) # LANG: Checkbox on API settings window
         self.cb_apievents.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
         self.cb_apievents.configure(command=partial(self._field_edited, self.cb_apievents))
         self.cb_apievents.state(['selected', '!alternate'] if self.api.events_enabled else ['!selected', '!alternate'])
 
-        tk.Label(frame_main, text="Shortcuts for Popular Servers").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
+        tk.Label(frame_main, text=_("Shortcuts for Popular Servers")).grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
         frame_connection_buttons:ttk.Frame = ttk.Frame(frame_main)
         frame_connection_buttons.grid(row=current_row, column=1, pady=4, sticky=tk.EW); current_row += 1
         # tk.Button(frame_connection_buttons, image=self.image_logo_dcoh, height=28, bg="Gray13", command=partial(self._autofill, 'dcoh')).pack(side=tk.LEFT, padx=4)
         tk.Button(frame_connection_buttons, image=self.image_logo_comguard, height=28, bg="Gray13", command=partial(self._autofill, 'comguard')).pack(side=tk.LEFT, padx=4)
 
-        self.btn_fetch = tk.Button(frame_main, text="Establish Connection", command=partial(self._discover))
+        self.btn_fetch = tk.Button(frame_main, text=_("Establish Connection"), command=partial(self._discover)) # LANG: Button on API settings window
         self.btn_fetch.grid(row=current_row, column=1, pady=4, sticky=tk.W)
 
         self.frame_information:CollapsibleFrame = CollapsibleFrame(frame_container, show_button=False, open=False)
@@ -118,34 +119,33 @@ class WindowAPI:
         self.frame_information.frame.columnconfigure(0, minsize=100)
 
         current_row = 0
-        tk.Label(self.frame_information.frame, text="API Information", font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
+        tk.Label(self.frame_information.frame, text=_("API Information"), font=FONT_HEADING_2).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1 # LANG: Label on API settings window
         self.txt_information:tk.Text = tk.Text(self.frame_information.frame, font=default_font, wrap=tk.WORD, bd=0, highlightthickness=0, borderwidth=0, bg=default_bg, cursor="")
         hyperlink = HyperlinkManager(self.txt_information)
-        self.txt_information.insert(tk.END, "The exact set of Events that will be sent is listed in the 'Events Requested' section below. " \
-            "Further information about these Events and what they contain is provided here: ")
-        self.txt_information.insert(tk.END, "Player Journal Documentation", hyperlink.add(partial(webbrowser.open, URL_JOURNAL_DOCS)))
+        self.txt_information.insert(tk.END, _("The exact set of Events that will be sent is listed in the 'Events Requested' section below. Further information about these Events and what they contain is provided here: ")) # LANG: Text on API settings window
+        self.txt_information.insert(tk.END, _("Player Journal Documentation"), hyperlink.add(partial(webbrowser.open, URL_JOURNAL_DOCS))) # LANG: URL label on API settings window
         self.txt_information.configure(state='disabled')
         self.txt_information.tag_config("sel", background=default_bg, foreground=default_fg) # Make the selected text colour the same as the widget background
         self.txt_information.grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1
-        tk.Label(self.frame_information.frame, text="Name").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
+        tk.Label(self.frame_information.frame, text=_("Name")).grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
         self.lbl_apiname:tk.Label = tk.Label(self.frame_information.frame, wraplength=text_width, justify=tk.LEFT)
         self.lbl_apiname.grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
-        tk.Label(self.frame_information.frame, text="Description").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
+        tk.Label(self.frame_information.frame, text=_("Description")).grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
         self.lbl_apidescription:tk.Label = tk.Label(self.frame_information.frame, wraplength=text_width, justify=tk.LEFT)
         self.lbl_apidescription.grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
-        tk.Label(self.frame_information.frame, text="Events Requested").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
+        tk.Label(self.frame_information.frame, text=_("Events Requested")).grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
         self.lbl_apievents:tk.Label = tk.Label(self.frame_information.frame, wraplength=text_width, justify=tk.LEFT)
         self.lbl_apievents.grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
-        tk.Label(self.frame_information.frame, text="Approved by you").grid(row=current_row, column=0, sticky=tk.NW, pady=4)
+        tk.Label(self.frame_information.frame, text=_("Approved by you")).grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
         self.lbl_approved:ttk.Label = ttk.Label(self.frame_information.frame, image=self.image_icon_green_tick if self.api.user_approved else self.image_icon_red_cross)
         self.lbl_approved.grid(row=current_row, column=1, sticky=tk.W, pady=4); current_row += 1
 
         frame_buttons:tk.Frame = tk.Frame(self.frame_information.frame)
         frame_buttons.grid(row=current_row, column=1, sticky=tk.E, pady=4); current_row += 1
 
-        self.btn_decline:tk.Button = tk.Button(frame_buttons, text="I Do Not Approve", command=partial(self._decline))
+        self.btn_decline:tk.Button = tk.Button(frame_buttons, text=_("I Do Not Approve"), command=partial(self._decline)) # LANG: Button on API settings window
         self.btn_decline.pack(side=tk.RIGHT, padx=5, pady=5)
-        self.btn_accept:tk.Button = tk.Button(frame_buttons, text="I Approve", command=partial(self._accept))
+        self.btn_accept:tk.Button = tk.Button(frame_buttons, text=_("I Approve"), command=partial(self._accept)) # LANG: Button on API settings window
         self.btn_accept.pack(side=tk.RIGHT, padx=5, pady=5)
 
         self.toplevel.focus()
@@ -195,9 +195,9 @@ class WindowAPI:
             self.lbl_apievents.configure(text=", ".join(self.api.events.keys()))
             self.frame_information.open()
         else:
-            self.lbl_apiname.configure(text="Establish a connection")
-            self.lbl_apidescription.configure(text="Establish a connection")
-            self.lbl_apievents.configure(text="Establish a connection")
+            self.lbl_apiname.configure(text=_("Establish a connection")) # LANG: Label on API settings window
+            self.lbl_apidescription.configure(text=_("Establish a connection")) # LANG: Label on API settings window
+            self.lbl_apievents.configure(text=_("Establish a connection")) # LANG: Label on API settings window
             self.frame_information.close()
 
         self.btn_decline.configure(state='normal' if url_valid and self.discovery_done else 'disabled')

@@ -24,7 +24,7 @@ from bgstally.targetlog import TargetLog
 from bgstally.tick import Tick
 from bgstally.ui import UI
 from bgstally.updatemanager import UpdateManager
-from bgstally.utils import get_by_path
+from bgstally.utils import _, get_by_path
 from bgstally.webhookmanager import WebhookManager
 from config import appversion, config
 
@@ -329,7 +329,7 @@ class BGSTally:
             case UpdateUIPolicy.LATER:
                 self.ui.frame.after(1000, self.ui.update_plugin_frame())
 
-        self.overlay.display_message("tickwarn", f"NEW TICK DETECTED!", True, 180, "green")
+        self.overlay.display_message("tickwarn", _("NEW TICK DETECTED!"), True, 180, "green") # LANG: Overlay message
 
 
     def _worker(self) -> None:

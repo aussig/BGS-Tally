@@ -5,6 +5,7 @@ from datetime import datetime
 import re
 from bgstally.constants import FONT_TEXT, FONT_TEXT_BOLD, FONT_TEXT_UNDERLINE, FONT_TEXT_BOLD_UNDERLINE
 from bgstally.debug import Debug
+from bgstally.utils import _
 
 
 class TextPlus(tk.Text):
@@ -163,16 +164,16 @@ def _rc_menu_install(w):
     Create a context sensitive menu for a text widget
     """
     w.menu = tk.Menu(w, tearoff=0)
-    w.menu.add_command(label="Cut")
-    w.menu.add_command(label="Copy")
-    w.menu.add_command(label="Paste")
+    w.menu.add_command(label=_("Cut"))
+    w.menu.add_command(label=_("Copy"))
+    w.menu.add_command(label=_("Paste"))
     w.menu.add_separator()
-    w.menu.add_command(label="Select all")
+    w.menu.add_command(label=_("Select all"))
 
-    w.menu.entryconfigure("Cut", command=lambda: w.focus_force() or w.event_generate("<<Cut>>"))
-    w.menu.entryconfigure("Copy", command=lambda: w.focus_force() or w.event_generate("<<Copy>>"))
-    w.menu.entryconfigure("Paste", command=lambda: w.focus_force() or w.event_generate("<<Paste>>"))
-    w.menu.entryconfigure("Select all", command=w.event_select_all)
+    w.menu.entryconfigure(_("Cut"), command=lambda: w.focus_force() or w.event_generate("<<Cut>>"))
+    w.menu.entryconfigure(_("Copy"), command=lambda: w.focus_force() or w.event_generate("<<Copy>>"))
+    w.menu.entryconfigure(_("Paste"), command=lambda: w.focus_force() or w.event_generate("<<Paste>>"))
+    w.menu.entryconfigure(_("Select all"), command=w.event_select_all)
 
 
 

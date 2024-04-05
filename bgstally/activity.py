@@ -866,6 +866,7 @@ class Activity:
         """
         current_system = self.systems.get(state.current_system_id)
         if not current_system: return
+        if current_system.get('tw_status') is None: return # Do not track TW cargo collection in non TW systems
 
         key:str = None
 

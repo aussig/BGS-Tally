@@ -561,7 +561,7 @@ class Activity:
         # Handle SandR tissue samples first
         cargo_type:str = journal_entry.get('Type', "").lower()
         if 'thargoidtissuesample' in cargo_type or 'thargoidscouttissuesample' in cargo_type:
-            self._sandr_handin('t', journal_entry.get('Count', 0), True)
+            self._tw_sandr_handin('t', journal_entry.get('Count', 0), True)
             # Fall through to BGS tracking for standard trade sale
 
         faction = current_system['Factions'].get(state.station_faction)
@@ -857,7 +857,7 @@ class Activity:
         Handle Cargo status
         """
         if journal_entry.get('Vessel') == "Ship" and journal_entry.get('Count', 0) == 0:
-            self._sandr_clear_all_scooped()
+            self._tw_sandr_clear_all_scooped()
 
 
     def collect_cargo(self, journal_entry: dict, state: State):
@@ -898,33 +898,56 @@ class Activity:
 
         if key is None: return
 
-        self._sandr_handin(key, journal_entry.get('Count', 0), False)
+        self._tw_sandr_handin(key, journal_entry.get('Count', 0), False)
 
 
     def search_and_rescue(self, journal_entry: dict, state: State):
         """
-        Handle search and rescue hand-in
+        Handle search and rescue hand-in.
         """
-        key:str = None
-        count:int = int(journal_entry.get('Count', 0))
+        current_system: dict = self.systems.get(state.current_system_id)
+        if not current_system: return
+        count: int = int(journal_entry.get('Count', 0))
+        if count == 0: return
 
-        # There is no tissue sample tracking here as those are treated a commodities
+        key: str = None
+        tw: bool = False
+
         match journal_entry.get('Name', "").lower():
-            case 'damagedescapepod': key = 'dp'
-            case 'occupiedcryopod': key = 'op'
-            case 'thargoidpod': key = 'tp'
-            case 'usscargoblackbox': key = 'bb'
+            # There is no TW tissue sample tracking here as those are treated a commodities
+            case 'damagedescapepod': key = 'dp'; tw = True
+            case 'occupiedcryopod': key = 'op'; tw = True
+            case 'thargoidpod': key = 'tp'; tw = True
+            case 'usscargoblackbox': key = 'bb'; tw = True
+            case 'wreckagecomponents': key = 'wc'
+            case 'personaleffects': key = 'pe'
+            case 'politicalprisoner': key = 'pp'
+            case 'hostage': key = 'h'
 
-        if key is None or count == 0: return
+        if key is None: return
 
-        self._sandr_handin(key, count, True)
+        # Handle BGS S&R
+        # This is counted for the controlling faction at the station handed in. Note that if the S&R items originated in a TW
+        # system, they will be counted for both BGS and TW
+
+        faction = current_system['Factions'].get(state.station_faction)
+        if faction:
+            self.dirty = True
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+
+            faction['SandR'][key] += count
+            self.recalculate_zero_activity()
+
+        # Handle TW S&R
+        if not tw: return
+        self._tw_sandr_handin(key, count, True)
 
 
     def player_resurrected(self):
         """
         Clear down any logged S&R cargo on resurrect
         """
-        self._sandr_clear_all_scooped()
+        self._tw_sandr_clear_all_scooped()
 
 
     def recalculate_zero_activity(self):
@@ -1032,6 +1055,7 @@ class Activity:
                 'TradeSell': [{'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}],
                 'CombatBonds': 0, 'MissionFailed': 0, 'Murdered': 0, 'GroundMurdered': 0,
                 'SpaceCZ': {}, 'GroundCZ': {}, 'GroundCZSettlements': {}, 'Scenarios': 0,
+                'SandR': {'dp': 0, 'op': 0, 'tp': 0, 'bb': 0, 'wc': 0, 'pe': 0, 'pp': 0, 'h': 0},
                 'TWStations': {}}
 
 
@@ -1144,6 +1168,8 @@ class Activity:
             faction_data['MissionPoints'] = {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': int(faction_data.get('MissionPoints', 0))}
         if not type(faction_data.get('MissionPointsSecondary', 0)) == dict:
             faction_data['MissionPointsSecondary'] = {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': int(faction_data.get('MissionPointsSecondary', 0))}
+        # From < 4.0.0 to 4.0.0
+        if not 'SandR' in faction_data: faction_data['SandR'] = {'dp': 0, 'op': 0, 'tp': 0, 'bb': 0, 'wc': 0, 'pe': 0, 'pp': 0, 'h': 0}
 
 
     def _is_faction_data_zero(self, faction_data: Dict):
@@ -1163,15 +1189,16 @@ class Activity:
                 (faction_data['GroundCZ'] == {} or (int(faction_data['GroundCZ'].get('l', 0)) == 0 and int(faction_data['GroundCZ'].get('m', 0)) == 0 and int(faction_data['GroundCZ'].get('h', 0)) == 0)) and \
                 faction_data['GroundCZSettlements'] == {} and \
                 int(faction_data['Scenarios']) == 0 and \
+                sum(faction_data.get('SandR', {}).values()) == 0 and \
                 faction_data['TWStations'] == {}
 
 
-    def _sandr_handin(self, key:str, count:int, tally:bool):
+    def _tw_sandr_handin(self, key:str, count:int, tally:bool):
         """
-        Tally a search and rescue handin. These can originate from SearchAndRescue or TradeSell events
+        Tally a TW search and rescue handin. These can originate from SearchAndRescue or TradeSell events
         """
 
-        # S&R can be handed in in any system, but the effect counts for the system the items were collected in. However,
+        # This can be handed in in any system, but the effect counts for the system the items were collected in. However,
         # we have no way of knowing exactly which items were handed in, so just iterate through all our known systems
         # looking for previously scooped cargo of the correct type.
 
@@ -1191,9 +1218,9 @@ class Activity:
         # where it originally came from
 
 
-    def _sandr_clear_all_scooped(self):
+    def _tw_sandr_clear_all_scooped(self):
         """
-        Clear down all search and rescue scooped cargo
+        Clear down all TW search and rescue scooped cargo
         """
         for system in self.systems.values():
             system['TWSandR']['dp']['scooped'] = 0
@@ -1226,6 +1253,7 @@ class Activity:
         activity_text += magenta(__("Fails"), fp=fp) + " " + green(faction['MissionFailed'], fp=fp) + " " if faction['MissionFailed'] != 0 else "" # LANG: Discord heading, abbreviation for failed missions
         activity_text += self._build_cz_text(faction.get('SpaceCZ', {}), __("SpaceCZs"), discord) # LANG: Discord heading, abbreviation for space conflict zones
         activity_text += self._build_cz_text(faction.get('GroundCZ', {}), __("GroundCZs"), discord) # LANG: Discord heading, abbreviation for ground conflict zones
+        activity_text += self._build_sandr_text(faction.get('SandR', {}), discord)
 
         faction_name = self._process_faction_name(faction['Faction'])
         faction_text = f"{color_wrap(faction_name, 'yellow', None, 'bold', fp=fp)} {activity_text}\n" if activity_text != "" else ""
@@ -1507,6 +1535,26 @@ class Activity:
             first = False
 
         return text
+
+
+    def _build_sandr_text(self, sandr_data: dict, discord: bool) -> str:
+        """Create a summary of BGS search and rescue activity
+
+        Args:
+            sandr_data (dict): dict containing an entry for each type of SandR handin
+            discord (bool): True if this text is destined for Discord
+
+        Returns:
+            str: The activity summary text
+        """
+        if sandr_data == {}: return ""
+        # Force plain text if we are not posting to Discord
+        fp:bool = not discord
+
+        value: int = int(sum(sandr_data.values()))
+        if value == 0: return ""
+
+        return white(__("SandR"), fp=fp) + " " + green(value, fp=fp) + " " # LANG: Discord heading, abbreviation for search and rescue
 
 
     def _process_faction_name(self, faction_name):

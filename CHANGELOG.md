@@ -8,6 +8,7 @@
 * Independent language for Discord posts. You can separately set the language that is used for Discord posts, in case the Discord server has a different preferred language to the one you run EDMC in.
 * Added logo to main window and all window icons
 * Added options to only post your BGS activity, only your TW activity or both (defaults to both), for CMDRs who want to selectively post a single type of activity.
+* Now track and report Search and Rescue (SandR) hand-ins for the BGS, tallied against the controlling faction at the station handed in.
 
 ### Changes:
 
@@ -20,6 +21,10 @@
 * Thargoid War VIP passenger evac missions weren't being counted.
 * Was incorrectly reporting BGS activity in TW systems.
 * Was incorrectly reporting TW search and rescue collection in non-TW systems.
+
+### API Changes ([vx.x](https://studio-ws.apicur.io/sharing/xxxxxxxx)):
+
+* `/activities` endpoint: Search and Rescue handins now included at `systems/[system]/factions/[faction]/sandr`, containing `damagedpods`, `occupiedpods`, `thargoidpods`, `blackboxes`, `wreckagecomponents`, `personaleffects`, `politicalprisoners` and `hostages` as properties.
 
 
 ## v3.6.0 - 2024-03-23

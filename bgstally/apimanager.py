@@ -150,6 +150,18 @@ class APIManager:
                         }
                     }
 
+                if sum(faction.get('SandR', {}).values()) > 0:
+                    api_faction['sandr'] = {
+                        'damagedpods': get_by_path(faction, ['SandR', 'dp'], 0),
+                        'occupiedpods': get_by_path(faction, ['SandR', 'op'], 0),
+                        'thargoidpods': get_by_path(faction, ['SandR', 'tp'], 0),
+                        'blackboxes': get_by_path(faction, ['SandR', 'bb'], 0),
+                        'wreckagecomponents': get_by_path(faction, ['SandR', 'wc'], 0),
+                        'personaleffects': get_by_path(faction, ['SandR', 'pe'], 0),
+                        'politicalprisoners': get_by_path(faction, ['SandR', 'pp'], 0),
+                        'hostages': get_by_path(faction, ['SandR', 'h'], 0)
+                    }
+
                 if faction.get('GroundCZ', {}) != {}:
                     api_faction['czground'] = {
                         'low': faction['GroundCZ'].get('l', 0),

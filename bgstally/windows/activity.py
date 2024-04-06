@@ -190,6 +190,7 @@ class WindowActivity:
                 ttk.Label(frame_table, text=_("Ground"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 ttk.Label(frame_table, text=_("Ship"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 ttk.Label(frame_table, text=_("Scens"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for scenarios
+                ttk.Label(frame_table, text=_("SandR"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for search and rescue
                 ttk.Label(frame_table, text=_("SpaceCZs"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title, abbreviation for space conflict zones
                 ttk.Label(frame_table, text="L", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for low
                 ttk.Label(frame_table, text="M", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for medium
@@ -251,6 +252,7 @@ class WindowActivity:
                     ScenariosVar = tk.IntVar(value=faction['Scenarios'])
                     ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=ScenariosVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     ScenariosVar.trace('w', partial(self._scenarios_change, TabParent, tab_index, ScenariosVar, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
+                    ttk.Label(frame_table, text=sum(faction.get('SandR', {}).values())).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
 
                     if (faction['FactionState'] in STATES_WAR):
                         CZSpaceLVar = tk.StringVar(value=faction['SpaceCZ'].get('l', '0'))

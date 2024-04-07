@@ -9,6 +9,11 @@
 * Added logo to main window and all window icons
 * Added options to only post your BGS activity, only your TW activity or both (defaults to both), for CMDRs who want to selectively post a single type of activity.
 * Now track and report Search and Rescue (SandR) hand-ins for the BGS, tallied against the controlling faction at the station handed in.
+* Now track side objectives in space conflict zones, but with some caveats:
+    * Capital ship defeats 👑 should be 100% reliable
+    * Spec ops wing kills 🔠 are tallied as soon as BGS-Tally detects the **first** kill in the spec ops wing. We have to do this because the order of events logged by the game is not predictable, so we need to tally as soon as we spot a kill. Just make sure you finish off those spec ops wings CMDRs!
+    * Enemy captain kills 👨‍✈️ will sometimes be tallied and sometimes not, for the same reason.
+    * Enemy propagandist wing kills ✒️ are also tallied as soon as BGS-Tally spots the **first** kill in the propagandist wing, for the same reason.
 
 ### Changes:
 

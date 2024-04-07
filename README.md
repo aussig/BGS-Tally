@@ -87,4 +87,5 @@ And finally, a huge thank you to:
     * French - CMDR ThArGos
     * German - CMDR Ryan Murdoc
     * Italian - CMDR FrostBit
+    * Portuguese (Brazilian) - CMDR FelaKuti
     * Turkish - CMDR Yu-gen

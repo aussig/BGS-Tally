@@ -76,6 +76,9 @@
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Missioni di carico";
 
+/* [_tksheet_main_table.py] */
+"Clear contents" = "Cancella contenuto";
+
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "Dettagli CMDR";
 
@@ -87,6 +90,12 @@
 
 /* Preferences force tick popup title. [ui.py] */
 "Confirm Force a New Tick" = "Conferma la forzatura di un nuovo Tick";
+
+/* [widgets.py] */
+"Copy" = "Copia";
+
+/* [_tksheet_main_table.py] */
+"Copy contents" = "Copia contenuto";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard (Legacy Format)" = "Copia negli Appunti (Formato Legacy)";
@@ -106,6 +115,12 @@
 /* Preferences checkbox label. [ui.py] */
 "Current Tick" = "Tick attuale";
 
+/* [widgets.py] */
+"Cut" = "Taglia";
+
+/* [_tksheet_main_table.py] */
+"Cut contents" = "Taglia contenuto";
+
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Data / Ora";
 
@@ -114,6 +129,15 @@
 
 /* [ui.py] */
 "Default" = "Predefinita";
+
+/* [_tksheet_main_table.py] */
+"Delete" = "Elimina";
+
+/* [_tksheet_main_table.py] */
+"Delete columns" = "Elimina colonna";
+
+/* [_tksheet_main_table.py] */
+"Delete rows" = "Elimina riga";
 
 /* Button on CMDR window. [cmdrs.py] */
 "Delete Selected" = "Cancella Selezionato";
@@ -141,6 +165,15 @@
 
 /* [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Ricontrolla i dati delle CZ a terra, le stime non sono sempre corrette";
+
+/* [_tksheet_main_table.py] */
+"Edit cell" = "Modifica cella";
+
+/* [_tksheet_main_table.py] */
+"Edit header" = "Modifica intestazione";
+
+/* [_tksheet_main_table.py] */
+"Edit index" = "Modifica indice";
 
 /* Discord heading, abbreviation for election INF. [activity.py] */
 "ElectionINF" = "INF Elezione";
@@ -245,10 +278,10 @@
 "In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information." = "Il supporto per l'overlay all'interno del gioco richiede l'installazione del plugin EDMCOverlay separato - per ulteriori informazioni, consultare le istruzioni.";
 
 /* Inara URL on CMDR window. [cmdrs.py] */
-"Inara Info Available ⤴" = "Informazioni Inara Disponibile ⤴️";
+"Inara Info Available ⤴" = "Informazioni Inara Disponibile ⤴";
 
 /* Inara link. [activity.py] */
-"Inara ⤴" = "Inara ⤴️";
+"Inara ⤴" = "Inara ⤴";
 
 /* Label on CMDR window. [cmdrs.py] */
 "Inara: " = "Inara: ";
@@ -267,6 +300,24 @@
 
 /* Label on legend window. [legend.py] */
 "Injured evacuation missions" = "Missioni di evacuazione dei feriti";
+
+/* [_tksheet_main_table.py] */
+"Insert column" = "Inserisci colonna";
+
+/* [_tksheet_main_table.py] */
+"Insert columns left" = "Inserisci colonna a sinistra";
+
+/* [_tksheet_main_table.py] */
+"Insert columns right" = "Inserisci colonna a destra";
+
+/* [_tksheet_main_table.py] */
+"Insert row" = "Inserisci riga";
+
+/* [_tksheet_main_table.py] */
+"Insert rows above" = "Inserisci righe sopra";
+
+/* [_tksheet_main_table.py] */
+"Insert rows below" = "Inserisci riga sotto";
 
 /* Preferences label. [ui.py] */
 "Instructions for Use" = "Istruzioni d’uso";
@@ -311,7 +362,7 @@
 "Last BGS Tick:" = "Ultimo Tick del BGS:";
 
 /* Button label. [ui.py] */
-"Latest BGS Tally" = "Ultimo Bilancio BGS";
+"Latest BGS Tally" = "Bilancio BGS Attuale";
 
 /* Preferences radio button label. [ui.py] */
 "Legacy" = "Legacy";
@@ -379,6 +430,9 @@
 /* [ui.py] */
 "Past Estimated Tick Time" = "Tempo stimato dal tick passato";
 
+/* [widgets.py] */
+"Paste" = "Incolla";
+
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "Pinna {system_name} nell'overlay";
 
@@ -410,7 +464,7 @@
 "Posted at: {date_time} | {plugin_name} v{version}" = "Inviato alle: {date_time} | {plugin_name} v{version}";
 
 /* Button label. [ui.py] */
-"Previous BGS Tallies" = "Bilancio BGS precedenti";
+"Previous BGS Tallies" = "Bilancio BGS Precedenti";
 
 /* Activity window column title, abbreviation for primary. [activity.py] */
 "Pri" = "Pri";
@@ -468,6 +522,9 @@
 
 /* Label on legend window. [legend.py] */
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "INF secondaria. Si tratta di INF guadagnata come effetto secondario della missione, ad esempio la fazione di destinazione per le missioni di consegna.";
+
+/* [widgets.py] */
+"Select all" = "Seleziona tutto";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "Selling Commodities" = "Vendita delle Commodity";

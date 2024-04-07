@@ -27,6 +27,13 @@
 * `/activities` endpoint: Search and Rescue handins now included at `systems/[system]/factions/[faction]/sandr`, containing `damagedpods`, `occupiedpods`, `thargoidpods`, `blackboxes`, `wreckagecomponents`, `personaleffects`, `politicalprisoners` and `hostages` as properties.
 
 
+## v3.6.1 - 2024-04-07
+
+### Bug Fixes:
+
+* For some CMDRS, TW system and station data was omitted for some systems.
+
+
 ## v3.6.0 - 2024-03-23
 
 ### New Features:

@@ -9,6 +9,7 @@
 * Added logo to main window and all window icons
 * Added options to only post your BGS activity, only your TW activity or both (defaults to both), for CMDRs who want to selectively post a single type of activity.
 * Now track and report Search and Rescue (SandR) hand-ins for the BGS, tallied against the controlling faction at the station handed in.
+* Now track side objectives in space conflict zones: Capital ship kills 👑
 
 ### Changes:
 

@@ -581,6 +581,27 @@ class Activity:
             self.recalculate_zero_activity()
 
 
+    def cap_ship_bond_received(self, journal_entry: dict):
+        """Handle a capital ship bond
+
+        Args:
+            journal_entry (dict): The journal entry data
+        """
+        current_system = self.systems.get(self.bgstally.state.current_system_id)
+        if not current_system: return
+
+        if self.bgstally.state.last_spacecz_approached != {}:
+            faction = current_system['Factions'].get(journal_entry.get('AwardingFaction', ""))
+            if not faction: return
+
+            self.dirty = True
+
+            faction['SpaceCZ']['cs'] = str(int(faction['SpaceCZ'].get('cs', '0')) + 1)
+
+            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+            self.recalculate_zero_activity()
+
+
     def trade_purchased(self, journal_entry:dict, state:State):
         """
         Handle purchase of trade commodities
@@ -1331,6 +1352,13 @@ class Activity:
         if 'm' in cz_data and cz_data['m'] != "0" and cz_data['m'] != "": text += f"{cz_data['m']}xM "
         if 'h' in cz_data and cz_data['h'] != "0" and cz_data['h'] != "": text += f"{cz_data['h']}xH "
 
+        objectives: str = ""
+        if 'cs' in cz_data and cz_data['cs'] != "0" and cz_data['cs'] != "": objectives += f"{'👑' if discord else '[Cap Ship]'}:{green(cz_data['cs'])} " # Cap Ship
+        if 'so' in cz_data and cz_data['so'] != "0" and cz_data['so'] != "": objectives += f"{'🔠' if discord else '[Spec Ops]'}:{green(cz_data['so'])} " # Spec Ops
+        if 'cp' in cz_data and cz_data['cp'] != "0" and cz_data['cp'] != "": objectives += f"{'👨‍✈️' if discord else '[Capt]'}:{green(cz_data['cp'])} " # Captain
+        if 'pr' in cz_data and cz_data['pr'] != "0" and cz_data['pr'] != "": objectives += f"{'✒️' if discord else '[Propagand]'}:{green(cz_data['pr'])} " # Propagandist
+        if objectives != "": text += f"({objectives.rstrip()}) "
+
         if text != "": text = f"{red(prefix, fp=fp)} {green(text, fp=fp)} "
         return text
 
@@ -1550,7 +1578,7 @@ class Activity:
                 int(faction_data['BlackMarketProfit']) == 0 and \
                 int(faction_data['Bounties']) == 0 and int(faction_data['CartData']) == 0 and int(faction_data['ExoData']) == 0 and \
                 int(faction_data['CombatBonds']) == 0 and int(faction_data['MissionFailed']) == 0 and int(faction_data['Murdered']) == 0 and int(faction_data['GroundMurdered']) == 0 and \
-                (faction_data['SpaceCZ'] == {} or (int(faction_data['SpaceCZ'].get('l', 0)) == 0 and int(faction_data['SpaceCZ'].get('m', 0)) == 0 and int(faction_data['SpaceCZ'].get('h', 0)) == 0)) and \
+                sum(faction_data.get('SpaceCZ', {}).values()) == 0 and \
                 (faction_data['GroundCZ'] == {} or (int(faction_data['GroundCZ'].get('l', 0)) == 0 and int(faction_data['GroundCZ'].get('m', 0)) == 0 and int(faction_data['GroundCZ'].get('h', 0)) == 0)) and \
                 faction_data['GroundCZSettlements'] == {} and \
                 int(faction_data['Scenarios']) == 0 and \

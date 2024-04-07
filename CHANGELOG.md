@@ -21,6 +21,7 @@
 * Removed 'modified by Aussi' references, as Tez (the original author of BGS-Tally) is now recommending this version to users.
 * Each trade buy / sell band is only reported if it is non-zero, avoiding clutter in the report.
 * Changed the font used in the Discord preview panel on activity windows to a font that supports more emoji and more closely matches Discord posts.
+* Tweaked the discord webhooks layout in settings to include horizontal lines for better clarity.
 
 ### Bug Fixes:
 

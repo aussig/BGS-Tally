@@ -76,6 +76,21 @@ MISSIONS_TW_REACTIVATE = [
     'Mission_TW_OnFoot_Reboot_Occupied_MB_name'
 ]
 
+SPACECZ_PILOTNAMES_CAPTAIN = [
+    '$LUASC_Scenario_Warzone_NPC_WarzoneGeneral_Emp;',
+    '$LUASC_Scenario_Warzone_NPC_WarzoneGeneral_Fed;',
+    '$LUASC_Scenario_Warzone_NPC_WarzoneGeneral_Ind;'
+]
+
+SPACECZ_PILOTNAMES_SPECOPS = [
+    '$LUASC_Scenario_Warzone_NPC_SpecOps_A;',
+    '$LUASC_Scenario_Warzone_NPC_SpecOps_B;',
+    '$LUASC_Scenario_Warzone_NPC_SpecOps_G;',
+    '$LUASC_Scenario_Warzone_NPC_SpecOps_D;'
+]
+
+SPACECZ_PILOTNAME_PROPAGAND = '$LUASC_Scenario_Warzone_NPC_WarzoneCorrespondent;'
+
 CZ_GROUND_LOW_CB_MAX = 5000
 CZ_GROUND_MED_CB_MAX = 38000
 
@@ -666,13 +681,21 @@ class Activity:
         """
         Handle targeting a ship
         """
-        if 'Faction' in journal_entry and 'PilotName_Localised' in journal_entry:
+        # Always clear last targeted on new target lock
+        if journal_entry.get('TargetLocked', False) == True:
+            Debug.logger.info("Cleared last ship targeted")
+            state.last_ship_targeted = {}
+
+        if 'Faction' in journal_entry and 'PilotName_Localised' in journal_entry and 'PilotName' in journal_entry:
             # Store info on targeted ship
             self.dirty = True
-            state.last_ships_targeted[journal_entry['PilotName_Localised']] = {'Faction': journal_entry['Faction'], 'PilotName_Localised': journal_entry['PilotName_Localised']}
+            state.last_ship_targeted = {'Faction': journal_entry['Faction'],
+                                        'PilotName': journal_entry['PilotName'],
+                                        'PilotName_Localised': journal_entry['PilotName_Localised']}
+            state.last_ships_targeted[journal_entry['PilotName_Localised']] = state.last_ship_targeted
 
         if 'Faction' in journal_entry and state.last_spacecz_approached != {} and state.last_spacecz_approached.get('ally_faction') is not None:
-            # If in space CZ, check we're targeting the right faction
+            # In space CZ, check we're targeting the right faction
             if journal_entry.get('Faction', "") == state.last_spacecz_approached.get('ally_faction', ""):
                 self.bgstally.ui.show_warning(_("Targeted Ally!")) # LANG: Overlay message
 
@@ -952,7 +975,7 @@ class Activity:
 
     def _cb_ground_cz(self, journal_entry:dict, current_system:dict, state:State):
         """
-        We are in an active ground CZ
+        Combat bond received while we are in an active ground CZ
         """
         faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
         if not faction: return
@@ -1011,11 +1034,36 @@ class Activity:
 
 
     def _cb_space_cz(self, journal_entry:dict, current_system:dict, state:State):
+        """Combat bond received while we are in an active space CZ
+
+        Args:
+            journal_entry (dict): The journal entry data
+            current_system (dict): The current system dict
+            state (State): The bgstally state object
         """
-        We are in an active space CZ
-        """
+
         faction = current_system['Factions'].get(journal_entry.get('AwardingFaction', ""))
         if not faction: return
+
+        # Check for side objectives detected by CBs
+        if state.last_ship_targeted != {} and journal_entry.get('VictimFaction') != state.last_spacecz_approached.get('ally_faction'):
+            if state.last_ship_targeted.get('PilotName', "") in SPACECZ_PILOTNAMES_CAPTAIN and not state.last_spacecz_approached.get('capt'):
+                # Tally a captain kill. Unreliable because of journal order unpredictability.
+                state.last_spacecz_approached['capt'] = True
+                faction['SpaceCZ']['cp'] = str(int(faction['SpaceCZ'].get('cp', '0')) + 1)
+                self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+            elif state.last_ship_targeted.get('PilotName', "") in SPACECZ_PILOTNAMES_SPECOPS and not state.last_spacecz_approached.get('specops'):
+                # Tally a specops kill. We would like to only tally this after 4 kills in a CZ, but sadly due to journal order
+                # unpredictability we tally as soon as we spot a kill after targeting a spec ops
+                state.last_spacecz_approached['specops'] = True
+                faction['SpaceCZ']['so'] = str(int(faction['SpaceCZ'].get('so', '0')) + 1)
+                self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+            elif state.last_ship_targeted.get('PilotName', "") == SPACECZ_PILOTNAME_PROPAGAND and not state.last_spacecz_approached.get('propagand'):
+                # Tally a propagandist kill. We would like to only tally this after 3 kills in a CZ, but sadly due to journal order
+                # unpredictability we tally as soon as we spot a kill after targeting a propagandist
+                state.last_spacecz_approached['propagand'] = True
+                faction['SpaceCZ']['pr'] = str(int(faction['SpaceCZ'].get('pr', '0')) + 1)
+                self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
         # If we've already counted this CZ, exit
         if state.last_spacecz_approached.get('counted', False): return
@@ -1353,13 +1401,13 @@ class Activity:
         if 'h' in cz_data and cz_data['h'] != "0" and cz_data['h'] != "": text += f"{cz_data['h']}xH "
 
         objectives: str = ""
-        if 'cs' in cz_data and cz_data['cs'] != "0" and cz_data['cs'] != "": objectives += f"{'👑' if discord else '[Cap Ship]'}:{green(cz_data['cs'])} " # Cap Ship
-        if 'so' in cz_data and cz_data['so'] != "0" and cz_data['so'] != "": objectives += f"{'🔠' if discord else '[Spec Ops]'}:{green(cz_data['so'])} " # Spec Ops
-        if 'cp' in cz_data and cz_data['cp'] != "0" and cz_data['cp'] != "": objectives += f"{'👨‍✈️' if discord else '[Capt]'}:{green(cz_data['cp'])} " # Captain
-        if 'pr' in cz_data and cz_data['pr'] != "0" and cz_data['pr'] != "": objectives += f"{'✒️' if discord else '[Propagand]'}:{green(cz_data['pr'])} " # Propagandist
+        if 'cs' in cz_data and cz_data['cs'] != "0" and cz_data['cs'] != "": objectives += f"{'👑' if discord else 'Cap Ship'}:{green(cz_data['cs'], fp=fp)} " # Cap Ship
+        if 'so' in cz_data and cz_data['so'] != "0" and cz_data['so'] != "": objectives += f"{'🔠' if discord else 'Spec Ops'}:{green(cz_data['so'], fp=fp)} " # Spec Ops
+        if 'cp' in cz_data and cz_data['cp'] != "0" and cz_data['cp'] != "": objectives += f"{'👨‍✈️' if discord else 'Capt'}:{green(cz_data['cp'], fp=fp)} " # Captain
+        if 'pr' in cz_data and cz_data['pr'] != "0" and cz_data['pr'] != "": objectives += f"{'✒️' if discord else 'Propagand'}:{green(cz_data['pr'], fp=fp)} " # Propagandist
         if objectives != "": text += f"({objectives.rstrip()}) "
 
-        if text != "": text = f"{red(prefix, fp=fp)} {green(text, fp=fp)} "
+        if text != "": text = f"{red(prefix, fp=fp)} {text} "
         return text
 
 

@@ -131,6 +131,10 @@ class BGSTally:
                 activity.bv_received(entry, self.state)
                 dirty = True
 
+            case 'CapShipBond':
+                activity.cap_ship_bond_received(entry)
+                dirty = True
+
             case 'Cargo':
                 activity.cargo(entry)
 

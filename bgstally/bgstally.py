@@ -147,7 +147,7 @@ class BGSTally:
                 self.fleet_carrier.trade_order(entry)
 
             case 'CollectCargo':
-                activity.collect_cargo(entry, self.state)
+                activity.cargo_collected(entry, self.state)
                 dirty = True
 
             case 'CommitCrime':
@@ -163,7 +163,7 @@ class BGSTally:
                 dirty = True
 
             case 'EjectCargo':
-                activity.eject_cargo(entry)
+                activity.cargo_ejected(entry)
                 dirty = True
 
             case 'FactionKillBond' if state['Odyssey']:

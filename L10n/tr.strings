@@ -76,6 +76,9 @@
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Kargo görevleri";
 
+/* [_tksheet_main_table.py] */
+"Clear contents" = "İçeriği temizle";
+
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "CMDR Detayları";
 
@@ -87,6 +90,12 @@
 
 /* Preferences force tick popup title. [ui.py] */
 "Confirm Force a New Tick" = "Döngü Sıfırlamayı Onayla";
+
+/* [widgets.py] */
+"Copy" = "Kopyala";
+
+/* [_tksheet_main_table.py] */
+"Copy contents" = "İçeriği kopyala";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard (Legacy Format)" = "Panoya kopyala (Eski Format)";
@@ -106,6 +115,12 @@
 /* Preferences checkbox label. [ui.py] */
 "Current Tick" = "Mevcut Döngü";
 
+/* [widgets.py] */
+"Cut" = "Kes";
+
+/* [_tksheet_main_table.py] */
+"Cut contents" = "İçeriği kes";
+
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Tarih / Saat";
 
@@ -114,6 +129,15 @@
 
 /* [ui.py] */
 "Default" = "Varsayılan";
+
+/* [_tksheet_main_table.py] */
+"Delete" = "Sil";
+
+/* [_tksheet_main_table.py] */
+"Delete columns" = "Sütunları sil";
+
+/* [_tksheet_main_table.py] */
+"Delete rows" = "Satırları sil";
 
 /* Button on CMDR window. [cmdrs.py] */
 "Delete Selected" = "Seçileni Sil";
@@ -141,6 +165,15 @@
 
 /* [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Yüzey Çatışma Bölgelerini iki kez kontrol edin, bölge boyutları doğru kaydedilmeyebilir";
+
+/* [_tksheet_main_table.py] */
+"Edit cell" = "Hücreyi düzenle";
+
+/* [_tksheet_main_table.py] */
+"Edit header" = "Başlığı düzenle";
+
+/* [_tksheet_main_table.py] */
+"Edit index" = "Dizini düzenle";
 
 /* Discord heading, abbreviation for election INF. [activity.py] */
 "ElectionINF" = "SeçimINF";
@@ -268,6 +301,24 @@
 /* Label on legend window. [legend.py] */
 "Injured evacuation missions" = "Yaralı tahliye görevleri";
 
+/* [_tksheet_main_table.py] */
+"Insert column" = "Sütun ekle";
+
+/* [_tksheet_main_table.py] */
+"Insert columns left" = "Sola sütun ekle";
+
+/* [_tksheet_main_table.py] */
+"Insert columns right" = "Sağa sütun ekle";
+
+/* [_tksheet_main_table.py] */
+"Insert row" = "Satır ekle";
+
+/* [_tksheet_main_table.py] */
+"Insert rows above" = "Yukarıya satır ekle";
+
+/* [_tksheet_main_table.py] */
+"Insert rows below" = "Aşağıya satır ekle";
+
 /* Preferences label. [ui.py] */
 "Instructions for Use" = "Kullanım için talimatlar";
 
@@ -379,6 +430,9 @@
 /* [ui.py] */
 "Past Estimated Tick Time" = "Geçmiş Tahmini Döngü Süresi";
 
+/* [widgets.py] */
+"Paste" = "Yapıştır";
+
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "{system_name} arayüze sabitle";
 
@@ -468,6 +522,9 @@
 
 /* Label on legend window. [legend.py] */
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "İkincil INF. Bu, görevin ikincil bir etkisi olarak kazanılan INF'dir; örneğin teslimat görevleri için hedef grup.";
+
+/* [widgets.py] */
+"Select all" = "Tümünü seç";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "Selling Commodities" = "Satılan Ürünler";
@@ -569,13 +626,13 @@
 "Tick {minutes_delta}m Overdue (Estimated)" = "Döngü {minutes_delta}dk Rötarlı (Tahmini)";
 
 /* [ui.py] */
-"To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "Bir webhook eklemek için: Satır numarasına sağ tıklayın ve 'Insert rows above / below'a basın.";
+"To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "Bir webhook eklemek için: Satır numarasına sağ tıklayın ve 'Yukarıya / aşağıya satır ekle'ye basın.";
 
 /* Discord heading. [fleetcarrier.py] */
 "To Body" = "Gidilen Gezegen";
 
 /* [ui.py] */
-"To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Bir webhook silmek için: Bir satır numarasına sağ tıklayın ve \"Delete rows\"a basın.";
+"To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Bir webhook silmek için: Bir satır numarasına sağ tıklayın ve \"Satırları sil\"e basın.";
 
 /* Discord heading. [fleetcarrier.py] */
 "To System" = "Gidilen Sistem";

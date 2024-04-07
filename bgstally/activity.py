@@ -1244,15 +1244,8 @@ class Activity:
         # Force plain text if we are not posting to Discord
         fp:bool = not discord
 
-        # system_tw_enabled defaults to True. Set to False if any faction is disabled in the system
-        system_tw_enabled:bool = True
-
         # Faction-specific tally
         for faction in system['Factions'].values():
-            if faction['Enabled'] != CheckStates.STATE_ON:
-                system_tw_enabled = False
-                continue
-
             for station_name in faction.get('TWStations', {}):
                 faction_station = faction['TWStations'][station_name]
                 if faction_station['enabled'] != CheckStates.STATE_ON: continue
@@ -1284,8 +1277,6 @@ class Activity:
                 # We track TW settlement reactivation missions as a simple total
                 system_station['reactivate'] += faction_station['reactivate']
                 system_station['mission_count_total'] += faction_station['reactivate']
-
-        if not system_tw_enabled : return ""
 
         # System-specific tally
         kills:int = sum(system['TWKills'].values())

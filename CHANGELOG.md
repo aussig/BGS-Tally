@@ -1,5 +1,12 @@
 # Change Log
 
+## v3.6.1 - 2024-04-07
+
+### Bug Fixes:
+
+* For some CMDRS, TW system and station data was omitted for some systems.
+
+
 ## v3.6.0 - 2024-03-23
 
 ### New Features:

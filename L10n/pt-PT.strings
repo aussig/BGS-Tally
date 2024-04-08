@@ -1,41 +1,41 @@
 /* Language name */
-"!Language" = "English";
+"!Language" = "Português (Portugal)";
 
 /* [legend.py] */
-"(Cannot be automatically distinguished)" = "(Cannot be automatically distinguished)";
+"(Cannot be automatically distinguished)" = "(Não pode ser distinguido automaticamente)";
 
 /* Discord text. [fleetcarrier.py] */
 "A carrier jump has been scheduled" = "A carrier jump has been scheduled";
 
 /* Preferences checkbox label. [ui.py] */
-"Abbreviate Faction Names" = "Abbreviate Faction Names";
+"Abbreviate Faction Names" = "Abreviar Nomes das Facções";
 
 /* Label on API settings window. [api.py] */
-"About This" = "About This";
+"About This" = "Sobre Isto";
 
 /* Preferences checkbox label. [ui.py] */
-"Activity Indicator" = "Activity Indicator";
+"Activity Indicator" = "Indicador de Atividade";
 
 /* CMDR information. [cmdrs.py] */
-"Added a friend" = "Added a friend";
+"Added a friend" = "Adicionado um amigo";
 
 /* Preferences heading. [ui.py] */
-"Advanced" = "Advanced";
+"Advanced" = "Avançadas";
 
 /* Discord carrier docking access. [fleetcarrier.py] */
-"All" = "All";
+"All" = "Tudo";
 
 /* Main window label. [ui.py] */
-"API changed, open settings to re-approve" = "API changed, open settings to re-approve";
+"API changed, open settings to re-approve" = "API alterado, abrir as definições para reaprovar";
 
 /* Label on API settings window. [api.py] */
-"API Information" = "API Information";
+"API Information" = "Informação do API";
 
 /* Label on API settings window. [api.py] */
-"API Key" = "API Key";
+"API Key" = "Chave do API";
 
 /* Label on API settings window. [api.py] */
-"API Settings" = "API Settings";
+"API Settings" = "Definições do API";
 
 /* Label on API settings window. [api.py] */
 "Approved by you" = "Approved by you";

@@ -209,7 +209,7 @@
 "Faction" = "Fazione";
 
 /* Discord heading, abbreviation for failed missions. [activity.py] */
-"Fails" = "Fallim";
+"Fails" = "Fallite";
 
 /* Preferences table heading, abbreviation for fleet carrier commodities / materials. [ui.py] */
 "FC C/M" = "FC C/M";
@@ -362,7 +362,7 @@
 "Last BGS Tick:" = "Ultimo Tick del BGS:";
 
 /* Button label. [ui.py] */
-"Latest BGS Tally" = "Bilancio BGS Attuale";
+"Latest BGS Tally" = "Report BGS Attuale";
 
 /* Preferences radio button label. [ui.py] */
 "Legacy" = "Legacy";
@@ -389,7 +389,7 @@
 "Modern" = "Modern";
 
 /* Discord heading. [activity.py] */
-"Murders" = "Assassini";
+"Murders" = "Uccisioni";
 
 /* Label on API settings window. [api.py] */
 "Name" = "Nome";
@@ -464,7 +464,7 @@
 "Posted at: {date_time} | {plugin_name} v{version}" = "Inviato alle: {date_time} | {plugin_name} v{version}";
 
 /* Button label. [ui.py] */
-"Previous BGS Tallies" = "Bilancio BGS Precedenti";
+"Previous BGS Tallies" = "Report BGS Precedenti";
 
 /* Activity window column title, abbreviation for primary. [activity.py] */
 "Pri" = "Pri";
@@ -503,7 +503,7 @@
 "Scenarios" = "Scenari";
 
 /* Activity window column title, abbreviation for scenarios. [activity.py] */
-"Scens" = "Scen";
+"Scens" = "Scen.";
 
 /* Label on legend window. [legend.py] */
 "Search & Rescue Bio Pods" = "Ricerca e salvataggio Bio Pod";
@@ -545,13 +545,13 @@
 "settlements" = "insediamenti";
 
 /* Activity window column title. [activity.py] */
-"Ship" = "Nave";
+"Ship" = "In nave";
 
 /* Label on API settings window. [api.py] */
 "Shortcuts for Popular Servers" = "Scorciatoia per Server Popolari";
 
 /* Preferences checkbox label. [ui.py] */
-"Show Detailed INF" = "Mostra Dettagli INF";
+"Show Detailed INF" = "Mostra INF Dettagliata";
 
 /* Preferences checkbox label. [ui.py] */
 "Show Detailed Trade" = "Mostra Dettagli Commercio";

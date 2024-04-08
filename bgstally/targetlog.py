@@ -89,9 +89,9 @@ class TargetLog:
         if cmdr_match:
             # CMDR in their own ship
             cmdr_name = cmdr_match.group(1)
-        elif "_taxi" in journal_entry.get('Ship', ""):
-            # CMDR in a taxi
-            cmdr_name = journal_entry.get('PilotName_Localised')
+        # elif "_taxi" in journal_entry.get('Ship', ""):
+        #     # CMDR in a taxi. Removed for the moment as it no longer works.
+        #     cmdr_name = journal_entry.get('PilotName_Localised')
 
         if cmdr_name is None: return
 

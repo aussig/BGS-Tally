@@ -14,6 +14,7 @@
     * Spec ops wing kills 🔠 are tallied as soon as BGS-Tally finds the **first detectable kill** in the spec ops wing. This may not be the first spec ops kill you make because the order of events logged by the game is not predictable, so we need to tally as soon as we spot a kill. Just make sure you finish off those spec ops wings CMDRs!
     * Enemy captain kills 👨‍✈️ will sometimes be tallied and sometimes not, for the same reason.
     * Enemy propagandist wing kills ✒️ are also tallied as soon as BGS-Tally spots the **first detectable kill** in the propagandist wing, for the same reason.
+* Added tooltips (hover text) to all abbreviations on screen, and a few of the controls and buttons that are not self-explanatory.
 
 ### Changes:
 

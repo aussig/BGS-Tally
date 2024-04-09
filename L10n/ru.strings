@@ -314,49 +314,49 @@
 "Insert row" = "Insert row";
 
 /* [_tksheet_main_table.py] */
-"Insert rows above" = "Insert rows above";
+"Insert rows above" = "Вставить строки сверху";
 
 /* [_tksheet_main_table.py] */
-"Insert rows below" = "Insert rows below";
+"Insert rows below" = "Вставить строки внизу";
 
 /* Preferences label. [ui.py] */
-"Instructions for Use" = "Instructions for Use";
+"Instructions for Use" = "Инструкции по использованию";
 
 /* Preferences heading. [ui.py] */
-"Integrations" = "Integrations";
+"Integrations" = "Интеграции";
 
 /* CMDR window column title. [cmdrs.py] */
-"Interaction" = "Interaction";
+"Interaction" = "Взаимодействие";
 
 /* Label on CMDR window. [cmdrs.py] */
-"Interaction: " = "Interaction: ";
+"Interaction: " = "Взаимодействие: ";
 
 /* CMDR information. [cmdrs.py] */
-"Interdicted by" = "Interdicted by";
+"Interdicted by" = "Перехвачен";
 
 /* Discord CMDR information. [cmdrs.py] */
-"INTERDICTED BY this CMDR" = "INTERDICTED BY this CMDR";
+"INTERDICTED BY this CMDR" = "Перехвачен этим КМДР";
 
 /* Discord post title. [fleetcarrier.py] */
-"Jump Cancelled for Carrier {carrier_name}" = "Jump Cancelled for Carrier {carrier_name}";
+"Jump Cancelled for Carrier {carrier_name}" = "Прыжок отменен для Carrier {carrier_name}";
 
 /* Discord post title. [fleetcarrier.py] */
-"Jump Scheduled for Carrier {carrier_name}" = "Jump Scheduled for Carrier {carrier_name}";
+"Jump Scheduled for Carrier {carrier_name}" = "Прыжок отменен для Carrier {carrier_name}";
 
 /* CMDR information. [cmdrs.py] */
-"Killed by" = "Killed by";
+"Killed by" = "Убит";
 
 /* Discord CMDR information. [cmdrs.py] */
-"KILLED BY this CMDR" = "KILLED BY this CMDR";
+"KILLED BY this CMDR" = "Убит этим КМДР";
 
 /* Discord heading. [activity.py] */
-"kills" = "kills";
+"kills" = "убийства";
 
 /* [legend.py] */
-"Kills" = "Kills";
+"Kills" = "Убийства";
 
 /* Preferences label. [ui.py] */
-"Language for Discord Posts" = "Language for Discord Posts";
+"Language for Discord Posts" = "Язык для сообщений Discord";
 
 /* Main window label. [ui.py] */
 "Last BGS Tick:" = "Last BGS Tick:";
@@ -500,7 +500,7 @@
 "Scanned" = "Scanned";
 
 /* Discord heading. [activity.py] */
-"Scenarios" = "Scenarios";
+"Scenarios" = "Сценарии";
 
 /* Activity window column title, abbreviation for scenarios. [activity.py] */
 "Scens" = "Scens";
@@ -524,64 +524,64 @@
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions.";
 
 /* [widgets.py] */
-"Select all" = "Select all";
+"Select all" = "Выбрать все";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"Selling Commodities" = "Selling Commodities";
+"Selling Commodities" = "Продажа товаров";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Selling Commodities:" = "Selling Commodities:";
+"Selling Commodities:" = "Продажа товаров:";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"Selling Materials" = "Selling Materials";
+"Selling Materials" = "Продажа материалов";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Selling Materials:" = "Selling Materials:";
+"Selling Materials:" = "Продажа материалов:";
 
 /* Label on API settings window. [api.py] */
-"Server URL" = "Server URL";
+"Server URL" = "URL сервера";
 
 /* Discord heading. [activity.py] */
-"settlements" = "settlements";
+"settlements" = "поселение";
 
 /* Activity window column title. [activity.py] */
-"Ship" = "Ship";
+"Ship" = "Корабль";
 
 /* Label on API settings window. [api.py] */
-"Shortcuts for Popular Servers" = "Shortcuts for Popular Servers";
+"Shortcuts for Popular Servers" = "Ярлыки для популярных серверов";
 
 /* Preferences checkbox label. [ui.py] */
-"Show Detailed INF" = "Show Detailed INF";
+"Show Detailed INF" = "Показать детали INF";
 
 /* Preferences checkbox label. [ui.py] */
-"Show Detailed Trade" = "Show Detailed Trade";
+"Show Detailed Trade" = "Показать Торговлю Детально";
 
 /* Preferences checkbox label. [ui.py] */
-"Show In-game Overlay" = "Show In-game Overlay";
+"Show In-game Overlay" = "Показать оверлей в игре";
 
 /* Preferences checkbox label. [ui.py] */
-"Show Systems with Zero Activity" = "Show Systems with Zero Activity";
+"Show Systems with Zero Activity" = "Показать системы с нулевой активностью";
 
 /* Discord heading, abbreviation for space conflict zones. [activity.py] */
-"SpaceCZs" = "SpaceCZs";
+"SpaceCZs" = "Космические Часы";
 
 /* Discord carrier docking access. [fleetcarrier.py] */
-"Squadron and Friends" = "Squadron and Friends";
+"Squadron and Friends" = "Эскадра и Друзья";
 
 /* CMDR window column title. [cmdrs.py] */
-"Squadron ID" = "Squadron ID";
+"Squadron ID" = "ID Эскадры";
 
 /* Discord heading. [cmdrs.py] */
-"Squadron Inara Link" = "Squadron Inara Link";
+"Squadron Inara Link" = "Ссылка на Inara Эскадры";
 
 /* Label on CMDR window. [cmdrs.py] */
-"Squadron: " = "Squadron: ";
+"Squadron: " = "Эскадра: ";
 
 /* Activity window column title. [activity.py] */
-"State" = "State";
+"State" = "Состояние";
 
 /* CMDR window column title. [cmdrs.py] */
-"System" = "System";
+"System" = "Система";
 
 /* Discord heading. [activity.py] */
 "System activity" = "System activity";
@@ -674,7 +674,7 @@
 "WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but {plugin_name} is not showing it." = "WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but {plugin_name} is not showing it.";
 
 /* Preferences checkbox label. [ui.py] */
-"Warnings" = "Warnings";
+"Warnings" = "Предупреждения";
 
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "Webhook URL";
@@ -689,7 +689,7 @@
 "Wounded evacuation missions" = "Wounded evacuation missions";
 
 /* [fleetcarrier.py] */
-"Yes" = "Yes";
+"Yes" = "Да";
 
 /* Label on legend window. [legend.py] */
 "Zero / Low / Med / High demand level for trade buy / sell" = "Zero / Low / Med / High demand level for trade buy / sell";
@@ -698,7 +698,7 @@
 "{plugin_name} - Activity After Tick at: {tick_time}" = "{plugin_name} - Activity After Tick at: {tick_time}";
 
 /* API settings window title. [api.py] */
-"{plugin_name} - API Settings" = "{plugin_name} - API Settings";
+"{plugin_name} - API Settings" = "{plugin_name} - Настройки API";
 
 /* Carrier window title. [fleetcarrier.py] */
 "{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}" = "{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}";
@@ -710,25 +710,25 @@
 "{plugin_name} - Icon Legend" = "{plugin_name} - Icon Legend";
 
 /* Preferences checkbox label. [ui.py] */
-"{plugin_name} Active" = "{plugin_name} Active";
+"{plugin_name} Active" = "{plugin_name} активен";
 
 /* Overlay message. [overlay.py] */
-"{plugin_name} Ready" = "{plugin_name} Ready";
+"{plugin_name} Ready" = "{plugin_name} Готов";
 
 /* Main window label. [ui.py] */
-"{plugin_name} Status:" = "{plugin_name} Status:";
+"{plugin_name} Status:" = "Статус {plugin_name}:";
 
 /* Main window error message. [tick.py] */
 "{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} WARNING: Unable to fetch latest tick";
 
 /* Main window error message. [updatemanager.py] */
-"{plugin_name}: There was a problem saving the new version" = "{plugin_name}: There was a problem saving the new version";
+"{plugin_name}: There was a problem saving the new version" = "{plugin_name}: Произошла ошибка при сохранении новой версии";
 
 /* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin download" = "{plugin_name}: Unable to fetch latest plugin download";
+"{plugin_name}: Unable to fetch latest plugin download" = "{plugin_name}: Не удалось получить последнюю версию плагина";
 
 /* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: Unable to fetch latest plugin version";
+"{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: Не удалось получить последнюю версию плагина";
 
 /* Label on activity window. [activity.py] */
-"❓ Discord Report Preview" = "❓ Discord Report Preview";
+"❓ Discord Report Preview" = "❓ предпросмотр отчета Discord";

@@ -209,13 +209,8 @@ class ColumnHeaders(tk.Canvas):
         if binding == "hide_columns":
             self.hide_columns_enabled = False
 
-    def check_mouse_position_width_resizers(self, x, y):
-        for c, (x1, y1, x2, y2) in self.visible_col_dividers.items():
-            if x >= x1 and y >= y1 and x <= x2 and y <= y2:
-                return c
-
     def rc(self, event):
-        self.mouseclick_outside_editor_or_dropdown_all_canvases()
+        self.mouseclick_outside_editor_or_dropdown_all_canvases(inside=True)
         self.focus_set()
         popup_menu = None
         if self.MT.identify_col(x=event.x, allow_end=False) is None:
@@ -242,7 +237,7 @@ class ColumnHeaders(tk.Canvas):
             popup_menu.tk_popup(event.x_root, event.y_root)
 
     def ctrl_b1_press(self, event=None):
-        self.mouseclick_outside_editor_or_dropdown_all_canvases()
+        self.mouseclick_outside_editor_or_dropdown_all_canvases(inside=True)
         if (
             (self.drag_and_drop_enabled or self.col_selection_enabled)
             and self.MT.ctrl_select_enabled
@@ -266,7 +261,7 @@ class ColumnHeaders(tk.Canvas):
             self.b1_press(event)
 
     def ctrl_shift_b1_press(self, event):
-        self.mouseclick_outside_editor_or_dropdown_all_canvases()
+        self.mouseclick_outside_editor_or_dropdown_all_canvases(inside=True)
         x = event.x
         c = self.MT.identify_col(x=x)
         if (
@@ -314,7 +309,7 @@ class ColumnHeaders(tk.Canvas):
             self.shift_b1_press(event)
 
     def shift_b1_press(self, event):
-        self.mouseclick_outside_editor_or_dropdown_all_canvases()
+        self.mouseclick_outside_editor_or_dropdown_all_canvases(inside=True)
         x = event.x
         c = self.MT.identify_col(x=x)
         if (self.drag_and_drop_enabled or self.col_selection_enabled) and self.rsz_h is None and self.rsz_w is None:
@@ -375,6 +370,12 @@ class ColumnHeaders(tk.Canvas):
             if sh:
                 self.itemconfig(t, state="hidden")
                 self.hidd_resize_lines[t] = False
+                
+    def check_mouse_position_width_resizers(self, x, y):
+        for c, (x1, y1, x2, y2) in self.visible_col_dividers.items():
+            if x >= x1 and y >= y1 and x <= x2 and y <= y2:
+                return c
+        return None
 
     def mouse_motion(self, event):
         if not self.currently_resizing_height and not self.currently_resizing_width:
@@ -386,7 +387,9 @@ class ColumnHeaders(tk.Canvas):
                 c = self.check_mouse_position_width_resizers(x, y)
                 if c is not None:
                     self.rsz_w, mouse_over_resize = c, True
-                    self.config(cursor="sb_h_double_arrow")
+                    if self.MT.current_cursor != "sb_h_double_arrow":
+                        self.config(cursor="sb_h_double_arrow")
+                        self.MT.current_cursor = "sb_h_double_arrow"
                 else:
                     self.rsz_w = None
             if self.height_resizing_enabled and not mouse_over_resize:
@@ -398,24 +401,27 @@ class ColumnHeaders(tk.Canvas):
                         self.col_height_resize_bbox[3],
                     )
                     if x >= x1 and y >= y1 and x <= x2 and y <= y2:
-                        self.config(cursor="sb_v_double_arrow")
-                        self.rsz_h = True
-                        mouse_over_resize = True
+                        self.rsz_h, mouse_over_resize = True, True
+                        if self.MT.current_cursor != "sb_v_double_arrow":
+                            self.config(cursor="sb_v_double_arrow")
+                            self.MT.current_cursor = "sb_v_double_arrow"
                     else:
                         self.rsz_h = None
                 except Exception:
                     self.rsz_h = None
             if not mouse_over_resize:
                 if self.MT.col_selected(self.MT.identify_col(event, allow_end=False)):
-                    self.config(cursor="hand2")
                     mouse_over_selected = True
+                    if self.MT.current_cursor != "hand2":
+                        self.config(cursor="hand2")
+                        self.MT.current_cursor = "hand2"
             if not mouse_over_resize and not mouse_over_selected:
                 self.MT.reset_mouse_motion_creations()
         if self.extra_motion_func is not None:
             self.extra_motion_func(event)
 
     def double_b1(self, event=None):
-        self.mouseclick_outside_editor_or_dropdown_all_canvases()
+        self.mouseclick_outside_editor_or_dropdown_all_canvases(inside=True)
         self.focus_set()
         if (
             self.double_click_resizing_enabled
@@ -452,7 +458,7 @@ class ColumnHeaders(tk.Canvas):
     def b1_press(self, event=None):
         self.MT.unbind("<MouseWheel>")
         self.focus_set()
-        self.closed_dropdown = self.mouseclick_outside_editor_or_dropdown_all_canvases()
+        self.closed_dropdown = self.mouseclick_outside_editor_or_dropdown_all_canvases(inside=True)
         x = self.canvasx(event.x)
         y = self.canvasy(event.y)
         c = self.MT.identify_col(x=event.x)
@@ -913,7 +919,7 @@ class ColumnHeaders(tk.Canvas):
                 ):
                     self.open_cell(event)
             else:
-                self.mouseclick_outside_editor_or_dropdown_all_canvases()
+                self.mouseclick_outside_editor_or_dropdown_all_canvases(inside=True)
             self.b1_pressed_loc = None
             self.closed_dropdown = None
         self.dragged_col = None
@@ -1257,24 +1263,9 @@ class ColumnHeaders(tk.Canvas):
             t, sh = self.hidd_grid.popitem()
             self.coords(t, points)
             if sh:
-                self.itemconfig(
-                    t,
-                    fill=fill,
-                    width=width,
-                    tag=tag,
-                    capstyle=tk.BUTT,
-                    joinstyle=tk.ROUND,
-                )
+                self.itemconfig(t, fill=fill, width=width, tag=tag)
             else:
-                self.itemconfig(
-                    t,
-                    fill=fill,
-                    width=width,
-                    tag=tag,
-                    capstyle=tk.BUTT,
-                    joinstyle=tk.ROUND,
-                    state="normal",
-                )
+                self.itemconfig(t, fill=fill, width=width, tag=tag, state="normal")
             self.disp_grid[t] = True
         else:
             self.disp_grid[self.create_line(points, fill=fill, width=width, tag=tag)] = True
@@ -1446,6 +1437,7 @@ class ColumnHeaders(tk.Canvas):
         )
         font = self.MT.header_font
         selections = self.get_redraw_selections(start_col, end_col)
+        dd_coords = self.get_existing_dropdown_coords()
         for c in range(start_col, end_col - 1):
             draw_y = self.MT.header_fl_ins
             cleftgridln = self.MT.col_positions[c]
@@ -1475,7 +1467,7 @@ class ColumnHeaders(tk.Canvas):
                         tag="dd",
                         draw_outline=not dd_drawn,
                         draw_arrow=mw >= 5,
-                        dd_is_open=kwargs["window"] != "no dropdown open",
+                        dd_is_open=dd_coords == c,
                     )
                 else:
                     mw = crightgridln - cleftgridln - 1
@@ -1494,7 +1486,7 @@ class ColumnHeaders(tk.Canvas):
                         tag="dd",
                         draw_outline=not dd_drawn,
                         draw_arrow=mw >= 5,
-                        dd_is_open=kwargs["window"] != "no dropdown open",
+                        dd_is_open=dd_coords == c,
                     )
                 else:
                     mw = crightgridln - cleftgridln - 1
@@ -1515,7 +1507,7 @@ class ColumnHeaders(tk.Canvas):
                         tag="dd",
                         draw_outline=not dd_drawn,
                         draw_arrow=mw >= 5,
-                        dd_is_open=kwargs["window"] != "no dropdown open",
+                        dd_is_open=dd_coords == c,
                     )
                 else:
                     mw = crightgridln - cleftgridln - 1
@@ -1685,9 +1677,6 @@ class ColumnHeaders(tk.Canvas):
         c=0,
         text=None,
         state="normal",
-        see=True,
-        set_data_on_close=True,
-        binding=None,
         dropdown=False,
     ):
         text = None
@@ -1717,7 +1706,14 @@ class ColumnHeaders(tk.Canvas):
         self.text_editor_loc = c
         if self.extra_begin_edit_cell_func is not None:
             try:
-                text = self.extra_begin_edit_cell_func(EditHeaderEvent(c, extra_func_key, text, "begin_edit_header"))
+                text = self.extra_begin_edit_cell_func(
+                    EditHeaderEvent(
+                        c,
+                        extra_func_key,
+                        text,
+                        "begin_edit_header",
+                    )
+                )
             except Exception:
                 return False
             if text is None:
@@ -1735,10 +1731,8 @@ class ColumnHeaders(tk.Canvas):
             return
         if self.text_editor is not None:
             self.destroy_text_editor()
-        if see:
-            has_redrawn = self.MT.see(r=0, c=c, keep_yscroll=True, check_cell_visibility=True)
-            if not has_redrawn:
-                self.MT.refresh()
+        if not self.MT.see(r=0, c=c, keep_yscroll=True, check_cell_visibility=True):
+            self.MT.refresh()
         self.text_editor_loc = c
         x = self.MT.col_positions[c] + 1
         y = 0
@@ -1764,7 +1758,6 @@ class ColumnHeaders(tk.Canvas):
             popup_menu_bg=self.MT.popup_menu_bg,
             popup_menu_highlight_bg=self.MT.popup_menu_highlight_bg,
             popup_menu_highlight_fg=self.MT.popup_menu_highlight_fg,
-            binding=binding,
             align=self.get_cell_align(c),
             c=c,
             newline_binding=self.text_editor_has_wrapped,
@@ -1774,27 +1767,19 @@ class ColumnHeaders(tk.Canvas):
         if not dropdown:
             self.text_editor.textedit.focus_set()
             self.text_editor.scroll_to_bottom()
-        self.text_editor.textedit.bind("<Alt-Return>", lambda x: self.text_editor_newline_binding(c=c))
+        self.text_editor.textedit.bind("<Alt-Return>", lambda _x: self.text_editor_newline_binding(c=c))
         if USER_OS == "darwin":
-            self.text_editor.textedit.bind("<Option-Return>", lambda x: self.text_editor_newline_binding(c=c))
+            self.text_editor.textedit.bind("<Option-Return>", lambda _x: self.text_editor_newline_binding(c=c))
         for key, func in self.MT.text_editor_user_bound_keys.items():
             self.text_editor.textedit.bind(key, func)
-        if binding is not None:
-            self.text_editor.textedit.bind("<Tab>", lambda x: binding((c, "Tab")))
-            self.text_editor.textedit.bind("<Return>", lambda x: binding((c, "Return")))
-            self.text_editor.textedit.bind("<FocusOut>", lambda x: binding((c, "FocusOut")))
-            self.text_editor.textedit.bind("<Escape>", lambda x: binding((c, "Escape")))
-        elif binding is None and set_data_on_close:
-            self.text_editor.textedit.bind("<Tab>", lambda x: self.close_text_editor((c, "Tab")))
-            self.text_editor.textedit.bind("<Return>", lambda x: self.close_text_editor((c, "Return")))
-            if not dropdown:
-                self.text_editor.textedit.bind("<FocusOut>", lambda x: self.close_text_editor((c, "FocusOut")))
-            self.text_editor.textedit.bind("<Escape>", lambda x: self.close_text_editor((c, "Escape")))
-        else:
-            self.text_editor.textedit.bind("<Escape>", lambda x: self.destroy_text_editor("Escape"))
+        self.text_editor.textedit.bind("<Tab>", lambda _x: self.close_text_editor((c, "Tab")))
+        self.text_editor.textedit.bind("<Return>", lambda _x: self.close_text_editor((c, "Return")))
+        if not dropdown:
+            self.text_editor.textedit.bind("<FocusOut>", lambda _x: self.close_text_editor((c, "FocusOut")))
+        self.text_editor.textedit.bind("<Escape>", lambda _x: self.close_text_editor((c, "Escape")))
         return True
 
-    # displayed indexes                             #just here to receive text editor arg
+    # displayed indexes
     def text_editor_has_wrapped(self, r=0, c=0, check_lines=None):
         if self.width_resizing_enabled:
             datacn = c if self.MT.all_columns_displayed else self.MT.displayed_columns[c]
@@ -1878,16 +1863,12 @@ class ColumnHeaders(tk.Canvas):
             self.edit_cell_enabled = False
 
     def bind_text_editor_destroy(self, binding, c):
-        self.text_editor.textedit.bind("<Return>", lambda x: binding((c, "Return")))
-        self.text_editor.textedit.bind("<FocusOut>", lambda x: binding((c, "FocusOut")))
-        self.text_editor.textedit.bind("<Escape>", lambda x: binding((c, "Escape")))
+        self.text_editor.textedit.bind("<Return>", lambda _x: binding((c, "Return")))
+        self.text_editor.textedit.bind("<FocusOut>", lambda _x: binding((c, "FocusOut")))
+        self.text_editor.textedit.bind("<Escape>", lambda _x: binding((c, "Escape")))
         self.text_editor.textedit.focus_set()
 
-    def destroy_text_editor(self, event=None):
-        if event is not None and self.extra_end_edit_cell_func is not None and self.text_editor_loc is not None:
-            self.extra_end_edit_cell_func(
-                EditHeaderEvent(int(self.text_editor_loc), "Escape", None, "escape_edit_header")
-            )
+    def destroy_text_editor(self, reason=None):
         self.text_editor_loc = None
         try:
             self.delete(self.text_editor_id)
@@ -1899,89 +1880,263 @@ class ColumnHeaders(tk.Canvas):
             pass
         self.text_editor = None
         self.text_editor_id = None
-        if event is not None and len(event) >= 3 and "Escape" in event:
+        if reason == "Escape":
             self.focus_set()
 
     # c is displayed col
     def close_text_editor(
         self,
-        editor_info=None,
-        c=None,
-        set_data_on_close=True,
-        event=None,
-        destroy=True,
-        move_down=True,
-        redraw=True,
-        recreate=True,
+        editor_info,
     ):
-        if self.focus_get() is None and editor_info:
-            return
-        if editor_info is not None and len(editor_info) >= 2 and editor_info[1] == "Escape":
-            self.destroy_text_editor("Escape")
-            self.close_dropdown_window(c)
-            return
-        if self.text_editor is not None:
-            self.text_editor_value = self.text_editor.get()
-        if destroy:
-            self.destroy_text_editor()
-        if set_data_on_close:
-            if c is None and editor_info is not None and len(editor_info) >= 2:
-                c = editor_info[0]
-            datacn = c if self.MT.all_columns_displayed else self.MT.displayed_columns[c]
-            if self.extra_end_edit_cell_func is None and self.input_valid_for_cell(datacn, self.text_editor_value):
-                self.set_cell_data_undo(
-                    c,
-                    datacn=datacn,
-                    value=self.text_editor_value,
-                    check_input_valid=False,
-                )
-            elif (
-                self.extra_end_edit_cell_func is not None
-                and not self.MT.edit_cell_validation
-                and self.input_valid_for_cell(datacn, self.text_editor_value)
-            ):
-                self.set_cell_data_undo(
-                    c,
-                    datacn=datacn,
-                    value=self.text_editor_value,
-                    check_input_valid=False,
-                )
-                self.extra_end_edit_cell_func(
-                    EditHeaderEvent(
-                        c,
-                        editor_info[1] if len(editor_info) >= 2 else "FocusOut",
-                        f"{self.text_editor_value}",
-                        "end_edit_header",
-                    )
-                )
-            elif self.extra_end_edit_cell_func is not None and self.MT.edit_cell_validation:
-                validation = self.extra_end_edit_cell_func(
-                    EditHeaderEvent(
-                        c,
-                        editor_info[1] if len(editor_info) >= 2 else "FocusOut",
-                        f"{self.text_editor_value}",
-                        "end_edit_header",
-                    )
-                )
-                if validation is not None:
-                    self.text_editor_value = validation
-                    if self.input_valid_for_cell(datacn, self.text_editor_value):
-                        self.set_cell_data_undo(
-                            c,
-                            datacn=datacn,
-                            value=self.text_editor_value,
-                            check_input_valid=False,
-                        )
-        if move_down:
+        # checking if text editor should be closed or not
+        focused = self.focus_get()
+        try:
+            if focused == self.text_editor.textedit.rc_popup_menu:
+                return "break"
+        except Exception:
             pass
+        if focused is None and editor_info:
+            return "break"
+        if editor_info[1] == "Escape":
+            self.destroy_text_editor("Escape")
+            self.close_dropdown_window()
+            return
+        # setting cell data with text editor value
+        text_editor_value = self.text_editor.get()
+        self.destroy_text_editor()
+        c = editor_info[0]
+        datacn = c if self.MT.all_columns_displayed else self.MT.displayed_columns[c]
+        if self.extra_end_edit_cell_func is None and self.input_valid_for_cell(datacn, text_editor_value):
+            self.set_cell_data_undo(
+                c,
+                datacn=datacn,
+                value=text_editor_value,
+                check_input_valid=False,
+            )
+        elif (
+            self.extra_end_edit_cell_func is not None
+            and not self.MT.edit_cell_validation
+            and self.input_valid_for_cell(datacn, text_editor_value)
+        ):
+            self.set_cell_data_undo(
+                c,
+                datacn=datacn,
+                value=text_editor_value,
+                check_input_valid=False,
+            )
+            self.extra_end_edit_cell_func(
+                EditHeaderEvent(
+                    c,
+                    editor_info[1],
+                    f"{text_editor_value}",
+                    "end_edit_header",
+                )
+            )
+        elif self.extra_end_edit_cell_func is not None and self.MT.edit_cell_validation:
+            validation = self.extra_end_edit_cell_func(
+                EditHeaderEvent(
+                    c,
+                    editor_info[1],
+                    f"{text_editor_value}",
+                    "end_edit_header",
+                )
+            )
+            if validation is not None:
+                text_editor_value = validation
+                if self.input_valid_for_cell(datacn, text_editor_value):
+                    self.set_cell_data_undo(
+                        c,
+                        datacn=datacn,
+                        value=text_editor_value,
+                        check_input_valid=False,
+                    )
         self.close_dropdown_window(c)
-        if recreate:
-            self.MT.recreate_all_selection_boxes()
-        if redraw:
-            self.MT.refresh()
-        if editor_info is not None and len(editor_info) >= 2 and editor_info[1] != "FocusOut":
+        self.MT.recreate_all_selection_boxes()
+        self.MT.refresh()
+        if editor_info[1] != "FocusOut":
             self.focus_set()
         return "break"
+
+    def get_dropdown_height_anchor(self, c, text_editor_h=None):
+        win_h = 5
+        datacn = c if self.MT.all_columns_displayed else self.MT.displayed_columns[c]
+        for i, v in enumerate(self.get_cell_kwargs(datacn, key="dropdown")["values"]):
+            v_numlines = len(v.split("\n") if isinstance(v, str) else f"{v}".split("\n"))
+            if v_numlines > 1:
+                win_h += self.MT.header_fl_ins + (v_numlines * self.MT.header_xtra_lines_increment) + 5  # end of cell
+            else:
+                win_h += self.MT.min_header_height
+            if i == 5:
+                break
+        if win_h > 500:
+            win_h = 500
+        space_bot = self.MT.get_space_bot(0, text_editor_h)
+        win_h2 = int(win_h)
+        if win_h > space_bot:
+            win_h = space_bot - 1
+        if win_h < self.MT.header_txt_h + 5:
+            win_h = self.MT.header_txt_h + 5
+        elif win_h > win_h2:
+            win_h = win_h2
+        return win_h, "nw"
+
+    def dropdown_text_editor_modified(self, dd_window, event, modified_func):
+        if modified_func:
+            modified_func(event)
+        dd_window.search_and_see(event)
+
+    def open_dropdown_window(self, c, datacn=None, event=None):
+        self.destroy_text_editor("Escape")
+        self.destroy_opened_dropdown_window()
+        if datacn is None:
+            datacn = c if self.MT.all_columns_displayed else self.MT.displayed_columns[c]
+        kwargs = self.get_cell_kwargs(datacn, key="dropdown")
+        if kwargs["state"] == "normal":
+            if not self.open_text_editor(event=event, c=c, dropdown=True):
+                return
+        win_h, anchor = self.get_dropdown_height_anchor(c)
+        window = self.MT.parentframe.dropdown_class(
+            self.MT.winfo_toplevel(),
+            0,
+            c,
+            width=self.MT.col_positions[c + 1] - self.MT.col_positions[c] + 1,
+            height=win_h,
+            font=self.MT.header_font,
+            colors={
+                "bg": self.MT.popup_menu_bg,
+                "fg": self.MT.popup_menu_fg,
+                "highlight_bg": self.MT.popup_menu_highlight_bg,
+                "highlight_fg": self.MT.popup_menu_highlight_fg,
+            },
+            outline_color=self.MT.popup_menu_fg,
+            values=kwargs["values"],
+            close_dropdown_window=self.close_dropdown_window,
+            search_function=kwargs["search_function"],
+            arrowkey_RIGHT=self.MT.arrowkey_RIGHT,
+            arrowkey_LEFT=self.MT.arrowkey_LEFT,
+            align="w",
+            single_index="c",
+        )
+        ypos = self.current_height - 1
+        kwargs["canvas_id"] = self.create_window((self.MT.col_positions[c], ypos), window=window, anchor=anchor)
+        if kwargs["state"] == "normal":
+            self.text_editor.textedit.bind(
+                "<<TextModified>>",
+                lambda _x: self.dropdown_text_editor_modified(
+                    window,
+                    DropDownModifiedEvent(
+                        "HeaderComboboxModified",
+                        0,
+                        c,
+                        self.text_editor.get(),
+                    ),
+                    kwargs["modified_function"],
+                ),
+            )
+            self.update_idletasks()
+            try:
+                self.after(1, lambda: self.text_editor.textedit.focus())
+                self.after(2, self.text_editor.scroll_to_bottom())
+            except Exception:
+                return
+            redraw = False
+        else:
+            window.bind("<FocusOut>", lambda _x: self.close_dropdown_window(c))
+            self.update_idletasks()
+            window.focus_set()
+            redraw = True
+        self.existing_dropdown_window = window
+        kwargs["window"] = window
+        self.existing_dropdown_canvas_id = kwargs["canvas_id"]
+        if redraw:
+            self.MT.main_table_redraw_grid_and_text(redraw_header=True, redraw_row_index=False, redraw_table=False)
+
+    def close_dropdown_window(self, c=None, selection=None, redraw=True):
+        if c is not None and selection is not None:
+            datacn = c if self.MT.all_columns_displayed else self.MT.displayed_columns[c]
+            kwargs = self.get_cell_kwargs(datacn, key="dropdown")
+            if kwargs["select_function"] is not None:  # user has specified a selection function
+                kwargs["select_function"](
+                    EditHeaderEvent(c, "HeaderComboboxSelected", f"{selection}", "end_edit_header")
+                )
+            if self.extra_end_edit_cell_func is None:
+                self.set_cell_data_undo(c, datacn=datacn, value=selection, redraw=not redraw)
+            elif self.extra_end_edit_cell_func is not None and self.MT.edit_cell_validation:
+                validation = self.extra_end_edit_cell_func(
+                    EditHeaderEvent(c, "HeaderComboboxSelected", f"{selection}", "end_edit_header")
+                )
+                if validation is not None:
+                    selection = validation
+                self.set_cell_data_undo(c, datacn=datacn, value=selection, redraw=not redraw)
+            elif self.extra_end_edit_cell_func is not None and not self.MT.edit_cell_validation:
+                self.set_cell_data_undo(c, datacn=datacn, value=selection, redraw=not redraw)
+                self.extra_end_edit_cell_func(
+                    EditHeaderEvent(c, "HeaderComboboxSelected", f"{selection}", "end_edit_header")
+                )
+            self.focus_set()
+            self.MT.recreate_all_selection_boxes()
+        self.destroy_text_editor("Escape")
+        self.destroy_opened_dropdown_window(c)
+        if redraw:
+            self.MT.refresh()
+
+    def get_existing_dropdown_coords(self):
+        if self.existing_dropdown_window is not None:
+            return int(self.existing_dropdown_window.c)
+        return None
+
+    def mouseclick_outside_editor_or_dropdown(self, inside=False):
+        closed_dd_coords = self.get_existing_dropdown_coords()
+        if self.text_editor_loc is not None and self.text_editor is not None:
+            self.close_text_editor((self.text_editor_loc, "ButtonPress-1"))
+        if closed_dd_coords is not None:
+            # displayed coords not data, necessary for b1 function
+            self.destroy_opened_dropdown_window(closed_dd_coords)
+            if inside:
+                self.MT.main_table_redraw_grid_and_text(
+                    redraw_header=True,
+                    redraw_row_index=False,
+                    redraw_table=False,
+                )
+        return closed_dd_coords
+
+    def mouseclick_outside_editor_or_dropdown_all_canvases(self, inside=False):
+        self.RI.mouseclick_outside_editor_or_dropdown()
+        self.MT.mouseclick_outside_editor_or_dropdown()
+        return self.mouseclick_outside_editor_or_dropdown(inside)
+
+    # function can receive two None args
+    def destroy_opened_dropdown_window(self, c=None, datacn=None):
+        # getting the coords
+        if c is None and datacn is None and self.existing_dropdown_window is not None:
+            c = self.get_existing_dropdown_coords()
+        if c is not None or datacn is not None:
+            if datacn is None:
+                datacn_ = c if self.MT.all_columns_displayed else self.MT.displayed_columns[c]
+            else:
+                datacn_ = datacn
+        else:
+            datacn_ = None
+        # destruction
+        try:
+            self.delete(self.existing_dropdown_canvas_id)
+        except Exception:
+            pass
+        self.existing_dropdown_canvas_id = None
+        try:
+            self.existing_dropdown_window.destroy()
+        except Exception:
+            pass
+        self.existing_dropdown_window = None
+        # setting options dict values
+        kwargs = self.get_cell_kwargs(datacn_, key="dropdown")
+        if kwargs:
+            kwargs["canvas_id"] = "no dropdown open"
+            kwargs["window"] = "no dropdown open"
+            try:
+                self.delete(kwargs["canvas_id"])
+            except Exception:
+                pass
 
     # internal event use
     def set_cell_data_undo(
@@ -2221,171 +2376,6 @@ class ColumnHeaders(tk.Canvas):
             if kwargs["values"]
             else "",
         )
-
-    def get_dropdown_height_anchor(self, c, text_editor_h=None):
-        win_h = 5
-        datacn = c if self.MT.all_columns_displayed else self.MT.displayed_columns[c]
-        for i, v in enumerate(self.get_cell_kwargs(datacn, key="dropdown")["values"]):
-            v_numlines = len(v.split("\n") if isinstance(v, str) else f"{v}".split("\n"))
-            if v_numlines > 1:
-                win_h += self.MT.header_fl_ins + (v_numlines * self.MT.header_xtra_lines_increment) + 5  # end of cell
-            else:
-                win_h += self.MT.min_header_height
-            if i == 5:
-                break
-        if win_h > 500:
-            win_h = 500
-        space_bot = self.MT.get_space_bot(0, text_editor_h)
-        win_h2 = int(win_h)
-        if win_h > space_bot:
-            win_h = space_bot - 1
-        if win_h < self.MT.header_txt_h + 5:
-            win_h = self.MT.header_txt_h + 5
-        elif win_h > win_h2:
-            win_h = win_h2
-        return win_h, "nw"
-
-    def open_dropdown_window(self, c, datacn=None, event=None):
-        self.destroy_text_editor("Escape")
-        self.destroy_opened_dropdown_window()
-        if datacn is None:
-            datacn = c if self.MT.all_columns_displayed else self.MT.displayed_columns[c]
-        kwargs = self.get_cell_kwargs(datacn, key="dropdown")
-        if kwargs["state"] == "normal":
-            if not self.open_text_editor(event=event, c=c, dropdown=True):
-                return
-        win_h, anchor = self.get_dropdown_height_anchor(c)
-        window = self.MT.parentframe.dropdown_class(
-            self.MT.winfo_toplevel(),
-            0,
-            c,
-            width=self.MT.col_positions[c + 1] - self.MT.col_positions[c] + 1,
-            height=win_h,
-            font=self.MT.header_font,
-            colors={
-                "bg": self.MT.popup_menu_bg,
-                "fg": self.MT.popup_menu_fg,
-                "highlight_bg": self.MT.popup_menu_highlight_bg,
-                "highlight_fg": self.MT.popup_menu_highlight_fg,
-            },
-            outline_color=self.MT.popup_menu_fg,
-            values=kwargs["values"],
-            close_dropdown_window=self.close_dropdown_window,
-            search_function=kwargs["search_function"],
-            arrowkey_RIGHT=self.MT.arrowkey_RIGHT,
-            arrowkey_LEFT=self.MT.arrowkey_LEFT,
-            align="w",
-            single_index="c",
-        )
-        ypos = self.current_height - 1
-        kwargs["canvas_id"] = self.create_window((self.MT.col_positions[c], ypos), window=window, anchor=anchor)
-        if kwargs["state"] == "normal":
-            self.text_editor.textedit.bind(
-                "<<TextModified>>",
-                lambda x: window.search_and_see(
-                    DropDownModifiedEvent("HeaderComboboxModified", 0, c, self.text_editor.get())
-                ),
-            )
-            if kwargs["modified_function"] is not None:
-                window.modified_function = kwargs["modified_function"]
-            self.update_idletasks()
-            try:
-                self.after(1, lambda: self.text_editor.textedit.focus())
-                self.after(2, self.text_editor.scroll_to_bottom())
-            except Exception:
-                return
-            redraw = False
-        else:
-            window.bind("<FocusOut>", lambda x: self.close_dropdown_window(c))
-            self.update_idletasks()
-            window.focus_set()
-            redraw = True
-        self.existing_dropdown_window = window
-        kwargs["window"] = window
-        self.existing_dropdown_canvas_id = kwargs["canvas_id"]
-        if redraw:
-            self.MT.main_table_redraw_grid_and_text(redraw_header=True, redraw_row_index=False, redraw_table=False)
-
-    def close_dropdown_window(self, c=None, selection=None, redraw=True):
-        if c is not None and selection is not None:
-            datacn = c if self.MT.all_columns_displayed else self.MT.displayed_columns[c]
-            kwargs = self.get_cell_kwargs(datacn, key="dropdown")
-            if kwargs["select_function"] is not None:  # user has specified a selection function
-                kwargs["select_function"](
-                    EditHeaderEvent(c, "HeaderComboboxSelected", f"{selection}", "end_edit_header")
-                )
-            if self.extra_end_edit_cell_func is None:
-                self.set_cell_data_undo(c, datacn=datacn, value=selection, redraw=not redraw)
-            elif self.extra_end_edit_cell_func is not None and self.MT.edit_cell_validation:
-                validation = self.extra_end_edit_cell_func(
-                    EditHeaderEvent(c, "HeaderComboboxSelected", f"{selection}", "end_edit_header")
-                )
-                if validation is not None:
-                    selection = validation
-                self.set_cell_data_undo(c, datacn=datacn, value=selection, redraw=not redraw)
-            elif self.extra_end_edit_cell_func is not None and not self.MT.edit_cell_validation:
-                self.set_cell_data_undo(c, datacn=datacn, value=selection, redraw=not redraw)
-                self.extra_end_edit_cell_func(
-                    EditHeaderEvent(c, "HeaderComboboxSelected", f"{selection}", "end_edit_header")
-                )
-            self.focus_set()
-            self.MT.recreate_all_selection_boxes()
-        self.destroy_text_editor("Escape")
-        self.destroy_opened_dropdown_window(c)
-        if redraw:
-            self.MT.refresh()
-
-    def get_existing_dropdown_coords(self):
-        if self.existing_dropdown_window is not None:
-            return int(self.existing_dropdown_window.c)
-        return None
-
-    def mouseclick_outside_editor_or_dropdown(self):
-        closed_dd_coords = self.get_existing_dropdown_coords()
-        if self.text_editor_loc is not None and self.text_editor is not None:
-            self.close_text_editor(editor_info=(self.text_editor_loc, "ButtonPress-1"))
-        else:
-            self.destroy_text_editor("Escape")
-        if closed_dd_coords is not None:
-            self.destroy_opened_dropdown_window(
-                closed_dd_coords
-            )  # displayed coords not data, necessary for b1 function
-        return closed_dd_coords
-
-    def mouseclick_outside_editor_or_dropdown_all_canvases(self):
-        self.RI.mouseclick_outside_editor_or_dropdown()
-        self.MT.mouseclick_outside_editor_or_dropdown()
-        return self.mouseclick_outside_editor_or_dropdown()
-
-    # function can receive two None args
-    def destroy_opened_dropdown_window(self, c=None, datacn=None):
-        if c is None and datacn is None and self.existing_dropdown_window is not None:
-            c = self.get_existing_dropdown_coords()
-        if c is not None or datacn is not None:
-            if datacn is None:
-                datacn_ = c if self.MT.all_columns_displayed else self.MT.displayed_columns[c]
-            else:
-                datacn_ = datacn
-        else:
-            datacn_ = None
-        try:
-            self.delete(self.existing_dropdown_canvas_id)
-        except Exception:
-            pass
-        self.existing_dropdown_canvas_id = None
-        try:
-            self.existing_dropdown_window.destroy()
-        except Exception:
-            pass
-        kwargs = self.get_cell_kwargs(datacn_, key="dropdown")
-        if kwargs:
-            kwargs["canvas_id"] = "no dropdown open"
-            kwargs["window"] = "no dropdown open"
-            try:
-                self.delete(kwargs["canvas_id"])
-            except Exception:
-                pass
-        self.existing_dropdown_window = None
 
     def get_cell_kwargs(self, datacn, key="dropdown", cell=True, entire=True):
         if cell and datacn in self.cell_options and key in self.cell_options[datacn]:

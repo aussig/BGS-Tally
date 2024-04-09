@@ -8,18 +8,39 @@
 * Independent language for Discord posts. You can separately set the language that is used for Discord posts, in case the Discord server has a different preferred language to the one you run EDMC in.
 * Added logo to main window and all window icons
 * Added options to only post your BGS activity, only your TW activity or both (defaults to both), for CMDRs who want to selectively post a single type of activity.
+* Now track and report Search and Rescue (SandR) hand-ins for the BGS, tallied against the controlling faction at the station handed in.
+* Now track side objectives in space conflict zones, but with some caveats:
+    * Capital ship defeats 👑 should be 100% reliable
+    * Spec ops wing kills 🔠 are tallied as soon as BGS-Tally finds the **first detectable kill** in the spec ops wing. This may not be the first spec ops kill you make because the order of events logged by the game is not predictable, so we need to tally as soon as we spot a kill. Just make sure you finish off those spec ops wings CMDRs!
+    * Enemy captain kills 👨‍✈️ will sometimes be tallied and sometimes not, for the same reason.
+    * Enemy propagandist wing kills ✒️ are also tallied as soon as BGS-Tally spots the **first detectable kill** in the propagandist wing, for the same reason.
+* Added tooltips (hover text) to all abbreviations on screen, and a few of the controls and buttons that are not self-explanatory.
 
 ### Changes:
 
 * Added new logo as avatar for all posts.
 * Removed 'modified by Aussi' references, as Tez (the original author of BGS-Tally) is now recommending this version to users.
 * Each trade buy / sell band is only reported if it is non-zero, avoiding clutter in the report.
+* Changed the font used in the Discord preview panel on activity windows to a font that supports more emoji and more closely matches Discord posts.
+* Tweaked the discord webhooks layout in settings to include horizontal lines for better clarity.
+* Unfortunately had to remove the functionality to log CMDRs scanned while in a dropship / taxi as we can no longer get the CMDR name from the game journal.
 
 ### Bug Fixes:
 
 * Thargoid War VIP passenger evac missions weren't being counted.
 * Was incorrectly reporting BGS activity in TW systems.
 * Was incorrectly reporting TW search and rescue collection in non-TW systems.
+
+### API Changes ([vx.x](https://studio-ws.apicur.io/sharing/xxxxxxxx)):
+
+* `/activities` endpoint: Search and Rescue handins now included at `systems/[system]/factions/[faction]/sandr`, containing `damagedpods`, `occupiedpods`, `thargoidpods`, `blackboxes`, `wreckagecomponents`, `personaleffects`, `politicalprisoners` and `hostages` as properties.
+
+
+## v3.6.1 - 2024-04-07
+
+### Bug Fixes:
+
+* For some CMDRS, TW system and station data was omitted for some systems.
 
 
 ## v3.6.0 - 2024-03-23

@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import bisect
 import tkinter as tk
+import warnings
 from collections import namedtuple
 from itertools import islice
+
 from ._tksheet_vars import (
     ctrl_key,
     get_font,
     rc_binding,
 )
-import warnings
 
 
 def show_kwargs_warning(kwargs, name):
@@ -36,6 +37,31 @@ EndDragDropEvent = namedtuple("EndDragDropEvent", "eventname oldindexes newindex
 ResizeEvent = namedtuple("ResizeEvent", "eventname index oldsize newsize")
 DropDownModifiedEvent = namedtuple("DropDownModifiedEvent", "eventname row column value")
 DraggedRowColumn = namedtuple("DraggedRowColumn", "dragged to_move")
+
+
+class DotDict(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Recursively turn nested dicts into DotDicts
+        for key, value in self.items():
+            if type(value) is dict:  # noqa: E721
+                self[key] = DotDict(value)
+
+    def __getstate__(self):
+        return self
+
+    def __setstate__(self, state):
+        self.update(state)
+
+    def __setitem__(self, key, item):
+        if type(item) is dict:  # noqa: E721
+            super().__setitem__(key, DotDict(item))
+        else:
+            super().__setitem__(key, item)
+
+    __setattr__ = __setitem__
+    __getattr__ = dict.__getitem__
+    __delattr__ = dict.__delitem__
 
 
 class TextEditor_(tk.Text):
@@ -137,6 +163,8 @@ class TextEditor_(tk.Text):
         )
         self.bind("<1>", lambda event: self.focus_set())
         self.bind(rc_binding, self.rc)
+        self.bind(f"<{ctrl_key}-a>", self.select_all)
+        self.bind(f"<{ctrl_key}-A>", self.select_all)
         self._orig = self._w + "_orig"
         self.tk.call("rename", self._w, self._orig)
         self.tk.createcommand(self._w, self._proxy)
@@ -161,7 +189,9 @@ class TextEditor_(tk.Text):
         self.rc_popup_menu.tk_popup(event.x_root, event.y_root)
 
     def select_all(self, event=None):
-        self.event_generate(f"<{ctrl_key}-a>")
+        self.tag_add(tk.SEL, "1.0", tk.END)
+        self.mark_set(tk.INSERT, tk.END)
+        # self.see(tk.INSERT)
         return "break"
 
     def cut(self, event=None):
@@ -199,7 +229,6 @@ class TextEditor(tk.Frame):
         popup_menu_fg="black",
         popup_menu_highlight_bg="blue",
         popup_menu_highlight_fg="white",
-        binding=None,
         align="w",
         r=0,
         c=0,
@@ -239,7 +268,6 @@ class TextEditor(tk.Frame):
         self.grid_propagate(False)
         self.w_ = width
         self.h_ = height
-        self.binding = binding
         self.textedit.focus_set()
 
     def get(self):
@@ -264,21 +292,44 @@ class GeneratedMouseEvent:
 
 def dropdown_search_function(search_for, data):
     search_len = len(search_for)
-    best_match = {"rn": float("inf"), "st": float("inf"), "len_diff": float("inf")}
+    # search_for in data
+    match_rn = float("inf")
+    match_st = float("inf")
+    match_len_diff = float("inf")
+    # data in search_for in case no match
+    match_data_rn = float("inf")
+    match_data_st = float("inf")
+    match_data_numchars = 0
     for rn, row in enumerate(data):
         dd_val = rf"{row[0]}".lower()
+        # checking if search text is in dropdown row
         st = dd_val.find(search_for)
         if st > -1:
             # priority is start index
             # if there's already a matching start
             # then compare the len difference
             len_diff = len(dd_val) - search_len
-            if st < best_match["st"] or (st == best_match["st"] and len_diff < best_match["len_diff"]):
-                best_match["rn"] = rn
-                best_match["st"] = st
-                best_match["len_diff"] = len_diff
-    if best_match["rn"] != float("inf"):
-        return best_match["rn"]
+            if st < match_st or (st == match_st and len_diff < match_len_diff):
+                match_rn = rn
+                match_st = st
+                match_len_diff = len_diff
+        # fall back in case of no existing match
+        elif match_rn == float("inf"):
+            for numchars in range(2, search_len - 1):
+                for from_idx in range(search_len - 1):
+                    if from_idx + numchars > search_len:
+                        break
+                    st = dd_val.find(search_for[from_idx : from_idx + numchars])
+                    if st > -1 and (
+                        numchars > match_data_numchars or (numchars == match_data_numchars and st < match_data_st)
+                    ):
+                        match_data_rn = rn
+                        match_data_st = st
+                        match_data_numchars = numchars
+    if match_rn != float("inf"):
+        return match_rn
+    elif match_data_rn != float("inf"):
+        return match_data_rn
     return None
 
 

@@ -15,6 +15,10 @@ class WindowLegend:
         self.bgstally = bgstally
 
         self.image_icon_bgs_cz:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz.png"))
+        self.image_icon_bgs_cz_cs:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz_cs.png"))
+        self.image_icon_bgs_cz_so:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz_so.png"))
+        self.image_icon_bgs_cz_cp:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz_cp.png"))
+        self.image_icon_bgs_cz_pr:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz_pr.png"))
         self.image_icon_tw_cargo:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_cargo.png"))
         self.image_icon_tw_crit_wounded:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_crit_wounded.png"))
         self.image_icon_tw_injured:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_tw_injured.png"))
@@ -59,6 +63,14 @@ class WindowLegend:
         ttk.Label(frame_container, text=" " + _("On-ground Conflict Zone")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_container, text="🆉 🅻 🅼 🅷", font=("Helvetica", 24)).grid(row=current_row, column=0)
         ttk.Label(frame_container, text=" " + _("Zero / Low / Med / High demand level for trade buy / sell")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
+        ttk.Label(frame_container, image=self.image_icon_bgs_cz_cs).grid(row=current_row, column=0)
+        ttk.Label(frame_container, text=" " + _("In-space Conflict Zone Side Objective: Cap ship")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
+        ttk.Label(frame_container, image=self.image_icon_bgs_cz_so).grid(row=current_row, column=0)
+        ttk.Label(frame_container, text=" " + _("In-space Conflict Zone Side Objective: Spec ops wing")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
+        ttk.Label(frame_container, image=self.image_icon_bgs_cz_cp).grid(row=current_row, column=0)
+        ttk.Label(frame_container, text=" " + _("In-space Conflict Zone Side Objective: Enemy captain")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
+        ttk.Label(frame_container, image=self.image_icon_bgs_cz_pr).grid(row=current_row, column=0)
+        ttk.Label(frame_container, text=" " + _("In-space Conflict Zone Side Objective: Propaganda wing")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
 
         ttk.Label(frame_container, text=_("Icons in Thargoid War Reports"), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, columnspan=2, sticky=tk.W, pady=4); current_row += 1 # LANG: Heading on legend window
         ttk.Label(frame_container, image=self.image_icon_tw_passengers).grid(row=current_row, column=0)

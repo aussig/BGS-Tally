@@ -242,10 +242,10 @@
 "Ground" = "Tierra";
 
 /* Discord heading, abbreviation for ground conflict zones. [activity.py] */
-"GroundCZs" = "CZsTierra";
+"GroundCZs" = "CZs Tierra";
 
 /* Discord heading. [activity.py] */
-"GroundMurders" = "MuertesTierra";
+"GroundMurders" = "Asesinatos en tierra";
 
 /* Button on API settings window. [api.py] */
 "I Approve" = "Apruebo";
@@ -494,241 +494,241 @@
 "Received team invite from" = "Invitación de equipo recibida de";
 
 /* Preferences checkbox label. [ui.py] */
-"Report Newly Visited System Activity By Default" = "Report Newly Visited System Activity By Default";
+"Report Newly Visited System Activity By Default" = "Reportar por defecto actividad de sistemas recientemente visitados";
 
 /* CMDR information. [cmdrs.py] */
-"Scanned" = "Scanned";
+"Scanned" = "Escaneado";
 
 /* Discord heading. [activity.py] */
-"Scenarios" = "Scenarios";
+"Scenarios" = "Escenarios";
 
 /* Activity window column title, abbreviation for scenarios. [activity.py] */
 "Scens" = "Scens";
 
 /* Label on legend window. [legend.py] */
-"Search & Rescue Bio Pods" = "Search & Rescue Bio Pods";
+"Search & Rescue Bio Pods" = "Bio-cápsulas de Búsqueda y Rescate";
 
 /* Label on legend window. [legend.py] */
-"Search & Rescue Black Boxes" = "Search & Rescue Black Boxes";
+"Search & Rescue Black Boxes" = "Cajas negras de Búsqueda y Rescate";
 
 /* Label on legend window. [legend.py] */
-"Search & Rescue Escape Pods" = "Search & Rescue Escape Pods";
+"Search & Rescue Escape Pods" = "Cápsulas de escape de Búsqueda y Rescate";
 
 /* Label on legend window. [legend.py] */
-"Search & Rescue Tissue Samples" = "Search & Rescue Tissue Samples";
+"Search & Rescue Tissue Samples" = "Muestras de tejido de Búsqueda y Rescate";
 
 /* Activity window column title, abbreviation for secondary. [activity.py] */
 "Sec" = "Sec";
 
 /* Label on legend window. [legend.py] */
-"Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions.";
+"Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "INF secundaria. Ésta es la INF obtenida como un efecto secundario de la misión, como por ejemplo la facción de destino de las misiones de mensajería/entrega de carga.";
 
 /* [widgets.py] */
-"Select all" = "Select all";
+"Select all" = "Seleccionar todo";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"Selling Commodities" = "Selling Commodities";
+"Selling Commodities" = "Vendiendo Mercancías";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Selling Commodities:" = "Selling Commodities:";
+"Selling Commodities:" = "Vendiendo Mercancías:";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"Selling Materials" = "Selling Materials";
+"Selling Materials" = "Vendiendo Materiales";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Selling Materials:" = "Selling Materials:";
+"Selling Materials:" = "Vendiendo Materiales:";
 
 /* Label on API settings window. [api.py] */
-"Server URL" = "Server URL";
+"Server URL" = "URL del servidor";
 
 /* Discord heading. [activity.py] */
-"settlements" = "settlements";
+"settlements" = "asentamientos";
 
 /* Activity window column title. [activity.py] */
-"Ship" = "Ship";
+"Ship" = "Nave";
 
 /* Label on API settings window. [api.py] */
-"Shortcuts for Popular Servers" = "Shortcuts for Popular Servers";
+"Shortcuts for Popular Servers" = "Atajos para Servidores Populares";
 
 /* Preferences checkbox label. [ui.py] */
-"Show Detailed INF" = "Show Detailed INF";
+"Show Detailed INF" = "Mostrar INF detallada";
 
 /* Preferences checkbox label. [ui.py] */
-"Show Detailed Trade" = "Show Detailed Trade";
+"Show Detailed Trade" = "Mostrar Comercio en detalle";
 
 /* Preferences checkbox label. [ui.py] */
-"Show In-game Overlay" = "Show In-game Overlay";
+"Show In-game Overlay" = "Mostrar superposición en el juego";
 
 /* Preferences checkbox label. [ui.py] */
-"Show Systems with Zero Activity" = "Show Systems with Zero Activity";
+"Show Systems with Zero Activity" = "Mostrar sistemas sin ninguna actividad";
 
 /* Discord heading, abbreviation for space conflict zones. [activity.py] */
-"SpaceCZs" = "SpaceCZs";
+"SpaceCZs" = "CZs Espaciales";
 
 /* Discord carrier docking access. [fleetcarrier.py] */
-"Squadron and Friends" = "Squadron and Friends";
+"Squadron and Friends" = "Flota y Amigos";
 
 /* CMDR window column title. [cmdrs.py] */
-"Squadron ID" = "Squadron ID";
+"Squadron ID" = "ID de Flota";
 
 /* Discord heading. [cmdrs.py] */
-"Squadron Inara Link" = "Squadron Inara Link";
+"Squadron Inara Link" = "Enlace de Inara de la Flota";
 
 /* Label on CMDR window. [cmdrs.py] */
-"Squadron: " = "Squadron: ";
+"Squadron: " = "Flota: ";
 
 /* Activity window column title. [activity.py] */
-"State" = "State";
+"State" = "Estado";
 
 /* CMDR window column title. [cmdrs.py] */
-"System" = "System";
+"System" = "Sistema";
 
 /* Discord heading. [activity.py] */
-"System activity" = "System activity";
+"System activity" = "Actividad del sistema";
 
 /* Preferences checkbox label. [ui.py] */
-"System Information" = "System Information";
+"System Information" = "Información del Sistema";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}";
+"System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistema: {current_system} - Atraque: {docking_access} - Acceso con notoriedad: {notorious}";
 
 /* Text on API settings window. [api.py] */
-"Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills." = "Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills.";
+"Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills." = "Ten precaución al aceptar esto - si apruebas este servidor, {plugin_name} le enviarás tu información que incluirá detalles de CMDT como tu ubicación, misiones y asesinatos.";
 
 /* Overlay message. [activity.py] */
-"Targeted Ally!" = "Targeted Ally!";
+"Targeted Ally!" = "¡Aliado seleccionado como objetivo!";
 
 /* Discord CMDR information. [cmdrs.py] */
-"Team invite received from this CMDR" = "Team invite received from this CMDR";
+"Team invite received from this CMDR" = "Invitación de equipo recibida de este CMDT";
 
 /* Preferences checkbox label. [ui.py] */
-"Thargoid War Progress" = "Thargoid War Progress";
+"Thargoid War Progress" = "Progreso de Guerra Thargoide";
 
 /* Label on activity window. [activity.py] */
-"Thargoid War System, no BGS Activity is Counted" = "Thargoid War System, no BGS Activity is Counted";
+"Thargoid War System, no BGS Activity is Counted" = "Sistema de Guerra Thargoide, no se conteará la actividad de BGS";
 
 /* Text on API settings window. [api.py] */
-"The exact set of Events that will be sent is listed in the 'Events Requested' section below. Further information about these Events and what they contain is provided here: " = "The exact set of Events that will be sent is listed in the 'Events Requested' section below. Further information about these Events and what they contain is provided here: ";
+"The exact set of Events that will be sent is listed in the 'Events Requested' section below. Further information about these Events and what they contain is provided here: " = "El conjunto exacto de eventos que se enviarán está listado en la sección 'Eventos solicitados' a continuación. Aquí se proporciona más información sobre estos eventos y lo que contienen: ";
 
 /* Discord text. [fleetcarrier.py] */
-"The scheduled carrier jump was cancelled" = "The scheduled carrier jump was cancelled";
+"The scheduled carrier jump was cancelled" = "El salto programado del portanaves ha sido cancelado";
 
 /* Discord CMDR information. [cmdrs.py] */
-"This CMDR was added as a friend" = "This CMDR was added as a friend";
+"This CMDR was added as a friend" = "Se ha añadido a este CMDT como amigo";
 
 /* Text on API settings window. [api.py] */
-"This screen is used to set up a connection to a server." = "This screen is used to set up a connection to a server.";
+"This screen is used to set up a connection to a server." = "Esta pantalla se utiliza para establecer una conexión hacia un servidor.";
 
 /* Preferences force tick popup text. [ui.py] */
-"This will move your current activity into the previous tick, and clear activity for the current tick." = "This will move your current activity into the previous tick, and clear activity for the current tick.";
+"This will move your current activity into the previous tick, and clear activity for the current tick." = "Ésto moverá su actividad actual al tick anterior, y borrará la actividad del tick actual.";
 
 /* [ui.py] */
-"Tick {minutes_delta}m Overdue (Estimated)" = "Tick {minutes_delta}m Overdue (Estimated)";
+"Tick {minutes_delta}m Overdue (Estimated)" = "Tick {minutes_delta}m Atrasado (Estimado)";
 
 /* [ui.py] */
-"To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "To add a webhook: Right-click on a row number and select 'Insert rows above / below'.";
+"To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "Para agregar un webhook: Haz clic derecho en un número de fila y selecciona 'Insertar filas encima / debajo'.";
 
 /* Discord heading. [fleetcarrier.py] */
-"To Body" = "To Body";
+"To Body" = "Al Cuerpo";
 
 /* [ui.py] */
-"To delete a webhook: Right-click on a row number and select 'Delete rows'." = "To delete a webhook: Right-click on a row number and select 'Delete rows'.";
+"To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Para eliminar un webhook: Haz clic derecho en un número de fila y selecciona 'Eliminar filas'.";
 
 /* Discord heading. [fleetcarrier.py] */
-"To System" = "To System";
+"To System" = "Al Sistema";
 
 /* Activity window column title. [activity.py] */
-"Trade" = "Trade";
+"Trade" = "Comercio";
 
 /* Discord heading, abbreviation for trade black market profit. [activity.py] */
-"TrdBMProfit" = "TrdBMProfit";
+"TrdBMProfit" = "ComMNBenef";
 
 /* Discord heading, abbreviation for trade buy. [activity.py] */
-"TrdBuy" = "TrdBuy";
+"TrdBuy" = "ComCompra";
 
 /* Discord heading, abbreviation for trade profit. [activity.py] */
-"TrdProfit" = "TrdProfit";
+"TrdProfit" = "ComBenef";
 
 /* Discord heading, abbreviation for tissue sample. [activity.py] */
-"ts" = "ts";
+"ts" = "mt";
 
 /* Discord post title. [activity.py] */
-"TW Activity after Tick: {tick_time}" = "TW Activity after Tick: {tick_time}";
+"TW Activity after Tick: {tick_time}" = "Actividad de TW después del Tick: {tick_time}";
 
 /* [ui.py] */
-"TW War Progress in {current_system}: {percent}%" = "TW War Progress in {current_system}: {percent}%";
+"TW War Progress in {current_system}: {percent}%" = "Progreso de la Guerra de TW en {current_system}: {percent}%";
 
 /* Main window label. [ui.py] */
-"Update will be installed on shutdown" = "Update will be installed on shutdown";
+"Update will be installed on shutdown" = "La actualización se instalará al apagar";
 
 /* Discord footer message, modern embed mode. [discord.py] */
-"Updated at {date_time} (game)" = "Updated at {date_time} (game)";
+"Updated at {date_time} (game)" = "Actualizado el {date_time} (juego)";
 
 /* Discord message footer, legacy text mode. [discord.py] */
-"Updated at: {date_time} | {plugin_name} v{version}" = "Updated at: {date_time} | {plugin_name} v{version}";
+"Updated at: {date_time} | {plugin_name} v{version}" = "Actualizado el: {date_time} | {plugin_name} v{version}";
 
 /* Discord heading, abbreviation for war INF. [activity.py] */
 "WarINF" = "GuerraINF";
 
 /* Preferences force tick popup text. [ui.py] */
-"WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but {plugin_name} is not showing it." = "WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but {plugin_name} is not showing it.";
+"WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but {plugin_name} is not showing it." = "ADVERTENCIA: Normalmente no es necesario forzar un tick. Hazlo solo si sabes CON CERTEZA que ha habido un tick, pero {plugin_name} no lo muestra.";
 
 /* Preferences checkbox label. [ui.py] */
-"Warnings" = "Warnings";
+"Warnings" = "Alertas";
 
 /* Preferences table heading. [ui.py] */
-"Webhook URL" = "Webhook URL";
+"Webhook URL" = "URL de Webhook";
 
 /* [ui.py] */
-"Within {minutes_to_tick}m of Next Tick (Estimated)" = "Within {minutes_to_tick}m of Next Tick (Estimated)";
+"Within {minutes_to_tick}m of Next Tick (Estimated)" = "Quedan {minutes_to_tick}m para el siguiente Tick (Estimado)";
 
 /* Discord heading. [activity.py] */
-"wounded" = "wounded";
+"wounded" = "heridos";
 
 /* Label on legend window. [legend.py] */
-"Wounded evacuation missions" = "Wounded evacuation missions";
+"Wounded evacuation missions" = "Misiones de evacuación de heridos";
 
 /* [fleetcarrier.py] */
-"Yes" = "Yes";
+"Yes" = "Sí";
 
 /* Label on legend window. [legend.py] */
-"Zero / Low / Med / High demand level for trade buy / sell" = "Zero / Low / Med / High demand level for trade buy / sell";
+"Zero / Low / Med / High demand level for trade buy / sell" = "Cero / Bajo / Medio / Alto nivel de demanda para compra / venta de comercio";
 
 /* Activity window title. [activity.py] */
-"{plugin_name} - Activity After Tick at: {tick_time}" = "{plugin_name} - Activity After Tick at: {tick_time}";
+"{plugin_name} - Activity After Tick at: {tick_time}" = "{plugin_name} - Actividad Después del Tick de las: {tick_time}";
 
 /* API settings window title. [api.py] */
-"{plugin_name} - API Settings" = "{plugin_name} - API Settings";
+"{plugin_name} - API Settings" = "{plugin_name} - Ajustes de la API";
 
 /* Carrier window title. [fleetcarrier.py] */
-"{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}" = "{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}";
+"{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}" = "{plugin_name} - Portanaves {carrier_name} ({carrier_callsign}) en el sistema: {system_name}";
 
 /* CMDR window title. [cmdrs.py] */
-"{plugin_name} - CMDR Interactions" = "{plugin_name} - CMDR Interactions";
+"{plugin_name} - CMDR Interactions" = "{plugin_name} - Interacciones del CMDT";
 
 /* Legend window title. [legend.py] */
-"{plugin_name} - Icon Legend" = "{plugin_name} - Icon Legend";
+"{plugin_name} - Icon Legend" = "{plugin_name} - Leyenda de los iconos";
 
 /* Preferences checkbox label. [ui.py] */
-"{plugin_name} Active" = "{plugin_name} Active";
+"{plugin_name} Active" = "Activar {plugin_name}";
 
 /* Overlay message. [overlay.py] */
-"{plugin_name} Ready" = "{plugin_name} Ready";
+"{plugin_name} Ready" = "{plugin_name} Listo";
 
 /* Main window label. [ui.py] */
-"{plugin_name} Status:" = "{plugin_name} Status:";
+"{plugin_name} Status:" = "{plugin_name} Estado:";
 
 /* Main window error message. [tick.py] */
-"{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} WARNING: Unable to fetch latest tick";
+"{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} ATENCIÓN: No ha sido posible obtener el último tick";
 
 /* Main window error message. [updatemanager.py] */
-"{plugin_name}: There was a problem saving the new version" = "{plugin_name}: There was a problem saving the new version";
+"{plugin_name}: There was a problem saving the new version" = "{plugin_name}: Ha habido un problema al guardar la nueva versión";
 
 /* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin download" = "{plugin_name}: Unable to fetch latest plugin download";
+"{plugin_name}: Unable to fetch latest plugin download" = "{plugin_name}: No se pudo obtener la última descarga del plugin";
 
 /* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: Unable to fetch latest plugin version";
+"{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: No se pudo obtener la última versión del plugin";
 
 /* Label on activity window. [activity.py] */
-"❓ Discord Report Preview" = "❓ Discord Report Preview";
+"❓ Discord Report Preview" = "❓ Vista previa del informe de Discord";

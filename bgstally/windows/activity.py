@@ -67,7 +67,9 @@ class WindowActivity:
         self.btn_post_to_discord: ttk.Button = ttk.Button(frm_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord, activity), # LANG: Button label
                                                           state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
-        activity_type_options: dict = {DiscordActivity.BOTH: _("All"), DiscordActivity.BGS: _("BGS Only"), DiscordActivity.THARGOIDWAR: _("TW Only")}
+        activity_type_options: dict = {DiscordActivity.BOTH: _("All"), # LANG: Dropdown menu on activity window
+                                       DiscordActivity.BGS: _("BGS Only"), # LANG: Dropdown menu on activity window
+                                       DiscordActivity.THARGOIDWAR: _("TW Only")} # LANG: Dropdown menu on activity window
         activity_type_var: tk.StringVar = tk.StringVar(value=activity_type_options.get(self.bgstally.state.DiscordActivity.get(), DiscordActivity.BOTH))
         self.mnu_activity_type: ttk.OptionMenu = ttk.OptionMenu(frm_buttons, activity_type_var, activity_type_var.get(),
                                                                *activity_type_options.values(),

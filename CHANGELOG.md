@@ -30,6 +30,7 @@
 * Thargoid War VIP passenger evac missions weren't being counted.
 * Was incorrectly reporting BGS activity in TW systems.
 * Was incorrectly reporting TW search and rescue collection in non-TW systems.
+* Activity window wasn't showing all trade purchase and profit bands.
 
 ### API Changes ([vx.x](https://studio-ws.apicur.io/sharing/xxxxxxxx)):
 

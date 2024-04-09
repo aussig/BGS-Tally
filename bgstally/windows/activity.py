@@ -191,10 +191,10 @@ class WindowActivity:
                 ttk.Label(frm_table, text=_("Trade"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title
                 lbl_purch: ttk.Label = ttk.Label(frm_table, text=_("Purch"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for purchase
                 lbl_purch.grid(row=1, column=col, padx=2, pady=2); col += 1
-                ToolTip(lbl_purch, text=_("Purchase")) # LANG: Activity window tooltip
+                ToolTip(lbl_purch, text=_("Purchase at L | M | H supply")) # LANG: Activity window tooltip for purchase at low | medium | high supply
                 lbl_prof: ttk.Label = ttk.Label(frm_table, text=_("Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for profit
                 lbl_prof.grid(row=1, column=col, padx=2, pady=2); col += 1
-                ToolTip(lbl_prof, text=_("Profit")) # LANG: Activity window tooltip
+                ToolTip(lbl_prof, text=_("Profit at Z | L | M | H demand")) # LANG: Activity window tooltip for profit at zero | low | medium | high demand
                 lbl_bmprof: ttk.Label = ttk.Label(frm_table, text=_("BM Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for black market profit
                 lbl_bmprof.grid(row=1, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_bmprof, text=_("Black market profit")) # LANG: Activity window tooltip
@@ -285,8 +285,8 @@ class WindowActivity:
                         ttk.Label(frm_table, text=human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                         ttk.Label(frm_table, text=human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     else:
-                        ttk.Label(frm_table, text=f"{human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                        ttk.Label(frm_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                        ttk.Label(frm_table, text=f"{human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
+                        ttk.Label(frm_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
                     ttk.Label(frm_table, text=human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(frm_table, text=human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(frm_table, text=human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1

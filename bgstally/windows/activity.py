@@ -266,9 +266,9 @@ class WindowActivity:
                         chk_settlement.grid(row=settlement_row_index, column=0, padx=2, pady=2)
                         chk_settlement.configure(command=partial(self._enable_settlement_change, chk_settlement, settlement_name, txt_discord, activity, faction, x))
                         chk_settlement.state(['selected', '!alternate'] if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON else ['!selected', '!alternate'])
-                        SettlementName = ttk.Label(frm_faction, text=f"{settlement_name} ({faction['GroundCZSettlements'][settlement_name]['type'].upper()})")
-                        SettlementName.grid(row=settlement_row_index, column=1, sticky=tk.W, padx=2, pady=2)
-                        SettlementName.bind("<Button-1>", partial(self._settlement_name_clicked, chk_settlement, settlement_name, txt_discord, activity, faction, x))
+                        lbl_settlement = ttk.Label(frm_faction, text=f"{settlement_name} ({faction['GroundCZSettlements'][settlement_name]['type'].upper()})")
+                        lbl_settlement.grid(row=settlement_row_index, column=1, sticky=tk.W, padx=2, pady=2)
+                        lbl_settlement.bind("<Button-1>", partial(self._settlement_name_clicked, chk_settlement, settlement_name, txt_discord, activity, faction, x))
                         settlement_row_index += 1
 
                     col = 2

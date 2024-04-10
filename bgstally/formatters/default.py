@@ -21,6 +21,15 @@ class DefaultFormatter(FormatterInterface):
         super(DefaultFormatter, self).__init__(state)
 
 
+    def get_name(self) -> str:
+        """Get the name of this formatter for presenting in the UI
+
+        Returns:
+            str: The name
+        """
+        return _("Default") # LANG: Name of default output formatter
+
+
     def generate_text(self, activity: Activity, activity_mode: DiscordActivity, discord: bool = False, system_names: list = None, lang: str = None) -> str:
         """Generate formatted text for a given instance of Activity
 

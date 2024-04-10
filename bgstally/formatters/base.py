@@ -1,6 +1,7 @@
 from bgstally.activity import Activity
 from bgstally.constants import DiscordActivity
 from bgstally.state import State
+from bgstally.utils import _
 
 
 class FormatterInterface:
@@ -14,6 +15,15 @@ class FormatterInterface:
             state (State): The State object containing persistent values and settings
         """
         self.state: State = state
+
+
+    def get_name(self) -> str:
+        """Get the name of this formatter
+
+        Returns:
+            str: The name of this formatter for choosing in the UI
+        """
+        pass
 
 
     def generate_text(self, activity: Activity, activity_mode: DiscordActivity, discord: bool = False, system_names: list = None, lang: str = None) -> str:

@@ -36,7 +36,7 @@ class Discord:
             # Get the previous state for this webhook's uuid from the passed in data, if it exists. Default to the state from the webhook manager
             specific_webhook_data:dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)
 
-            utc_time_now:str = datetime.utcnow().strftime(DATETIME_FORMAT) + " " + __("game") # LANG: Discord date/time suffix for game time
+            utc_time_now:str = datetime.utcnow().strftime(DATETIME_FORMAT) + " " + __("game", lang=self.bgstally.state.discord_lang) # LANG: Discord date/time suffix for game time
             data:dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
 
             # Fetch the previous post ID, if present, from the webhook data for the channel we're posting in. May be the default True / False value
@@ -46,7 +46,7 @@ class Discord:
                 # No previous post
                 if discord_text == "": return
 
-                discord_text += ("```ansi\n" + blue(__("Posted at: {date_time} | {plugin_name} v{version}")) + "```").format(date_time=utc_time_now, plugin_name=self.bgstally.plugin_name, version=str(self.bgstally.version)) # LANG: Discord message footer, legacy text mode
+                discord_text += ("```ansi\n" + blue(__("Posted at: {date_time} | {plugin_name} v{version}", lang=self.bgstally.state.discord_lang)) + "```").format(date_time=utc_time_now, plugin_name=self.bgstally.plugin_name, version=str(self.bgstally.version)) # LANG: Discord message footer, legacy text mode
                 url:str = webhook_url
                 payload:dict = {'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []}
 
@@ -54,7 +54,7 @@ class Discord:
             else:
                 # Previous post
                 if discord_text != "":
-                    discord_text += ("```ansi\n" + green(__("Updated at: {date_time} | {plugin_name} v{version}")) + "```").format(date_time=utc_time_now, plugin_name=self.bgstally.plugin_name, version=str(self.bgstally.version)) # LANG: Discord message footer, legacy text mode
+                    discord_text += ("```ansi\n" + green(__("Updated at: {date_time} | {plugin_name} v{version}", lang=self.bgstally.state.discord_lang)) + "```").format(date_time=utc_time_now, plugin_name=self.bgstally.plugin_name, version=str(self.bgstally.version)) # LANG: Discord message footer, legacy text mode
                     url:str = f"{webhook_url}/messages/{previous_messageid}"
                     payload:dict = {'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []}
 
@@ -144,7 +144,7 @@ class Discord:
         Create a Discord embed JSON structure. If supplied, `fields` should be a List of Dicts, with each Dict containing 'name' (the field title) and
         'value' (the field contents)
         """
-        footer_timestamp:str = (__("Updated at {date_time} (game)") if update else __("Posted at {date_time} (game)")).format(date_time=datetime.utcnow().strftime(DATETIME_FORMAT)) # LANG: Discord footer message, modern embed mode
+        footer_timestamp:str = (__("Updated at {date_time} (game)", lang=self.bgstally.state.discord_lang) if update else __("Posted at {date_time} (game)", lang=self.bgstally.state.discord_lang)).format(date_time=datetime.utcnow().strftime(DATETIME_FORMAT)) # LANG: Discord footer message, modern embed mode
         footer_version:str = f"{self.bgstally.plugin_name} v{str(self.bgstally.version)}"
         footer_pad:int = 108 - len(footer_version)
 

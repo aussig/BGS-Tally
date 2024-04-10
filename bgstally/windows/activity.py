@@ -376,7 +376,7 @@ class WindowActivity:
         """
         DiscordText.configure(state=tk.NORMAL)
         DiscordText.delete('1.0', 'end-1c')
-        DiscordText.write(activity.generate_text(DiscordActivity.BOTH, True))
+        DiscordText.write(self.bgstally.formatter.generate_text(activity, DiscordActivity.BOTH, True, lang=self.bgstally.state.discord_lang))
         DiscordText.configure(state=tk.DISABLED)
 
 
@@ -395,19 +395,19 @@ class WindowActivity:
 
         if self.bgstally.state.DiscordPostStyle.get() == DiscordPostStyle.TEXT:
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:
-                discord_text:str = activity.generate_text(DiscordActivity.BGS, True)
+                discord_text: str = self.bgstally.formatter.generate_text(activity, DiscordActivity.BGS, True, lang=self.bgstally.state.discord_lang)
                 self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
-                discord_text = activity.generate_text(DiscordActivity.THARGOIDWAR, True)
+                discord_text = self.bgstally.formatter.generate_text(activity, DiscordActivity.THARGOIDWAR, True, lang=self.bgstally.state.discord_lang)
                 self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
         else:
             description = "" if activity.discord_notes is None else activity.discord_notes
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:
-                discord_fields:dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
-                self.bgstally.discord.post_embed(__("BGS Activity after Tick: {tick_time}").format(tick_time=activity.get_title(True)), description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete) # LANG: Discord post title
+                discord_fields: dict = self.bgstally.formatter.generate_embed_fields(activity, DiscordActivity.BGS, lang=self.bgstally.state.discord_lang)
+                self.bgstally.discord.post_embed(__("BGS Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=activity.get_title(True)), description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete) # LANG: Discord post title
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
-                discord_fields = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
-                self.bgstally.discord.post_embed(__("TW Activity after Tick: {tick_time}").format(tick_time=activity.get_title(True)), description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete) # LANG: Discord post title
+                discord_fields = self.bgstally.formatter.generate_embed_fields(activity, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
+                self.bgstally.discord.post_embed(__("TW Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=activity.get_title(True)), description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete) # LANG: Discord post title
 
         activity.dirty = True # Because discord post ID has been changed
 
@@ -620,6 +620,6 @@ class WindowActivity:
         Get all text from the Discord field and put it in the Copy buffer
         """
         Form.clipboard_clear()
-        Form.clipboard_append(activity.generate_text(DiscordActivity.BOTH, True))
+        Form.clipboard_append(self.bgstally.formatter.generate_text(activity, DiscordActivity.BOTH, True, lang=self.bgstally.state.discord_lang))
         Form.update()
 

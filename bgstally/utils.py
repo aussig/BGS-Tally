@@ -2,7 +2,6 @@ import functools
 from os import listdir
 from os.path import join
 
-import bgstally.globals
 import l10n
 from bgstally.debug import Debug
 from config import config
@@ -11,10 +10,10 @@ from config import config
 _ = functools.partial(l10n.Translations.translate, context=__file__)
 
 # Localisation conditional translation function for when PR [2188] is merged in to EDMC
-# __ = functools.partial(l10n.Translations.translate, context=__file__, lang=bgstally.globals.this.state.discord_lang)
+# __ = functools.partial(l10n.Translations.translate, context=__file__, lang=lang)
 
 # Localisation conditional translation function before PR [2188] is merged in to EDMC
-def __(string:str):
+def __(string: str, lang: str):
     """Translate using our overridden language
 
     Args:
@@ -25,7 +24,6 @@ def __(string:str):
         _type_: Translated string
     """
     plugin_path:str = join(config.plugin_dir_path, "BGS-Tally", l10n.LOCALISATION_DIR)
-    lang:str = bgstally.globals.this.state.discord_lang
     if lang == "" or lang is None: return _(string)
 
     contents:dict[str, str] = l10n.Translations.contents(lang=lang, plugin_path=plugin_path)

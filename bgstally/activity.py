@@ -1,15 +1,15 @@
 import json
 import re
-from copy import copy, deepcopy
+from copy import deepcopy
 from datetime import datetime, timedelta
 from typing import Dict
 
-from bgstally.constants import FILE_SUFFIX, CheckStates, DiscordActivity
+from bgstally.constants import FILE_SUFFIX, CheckStates
 from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
 from bgstally.tick import Tick
-from bgstally.utils import _, __, human_format, is_number
+from bgstally.utils import _, __
 from thirdparty.colors import *
 
 DATETIME_FORMAT_ACTIVITY = "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -182,9 +182,9 @@ class Activity:
         Get the title for this activity
         """
         if self.tick_forced:
-            return f"{str(self.tick_time.strftime(DATETIME_FORMAT_TITLE))} (" + (__("forced") if discord else _("forced")) + ")" # LANG: Appended to tick time if a forced tick
+            return f"{str(self.tick_time.strftime(DATETIME_FORMAT_TITLE))} (" + (__("forced", lang=self.bgstally.state.discord_lang) if discord else _("forced")) + ")" # LANG: Appended to tick time if a forced tick
         else:
-            return f"{str(self.tick_time.strftime(DATETIME_FORMAT_TITLE))} (" + (__("game") if discord else _("game")) + ")" # LANG: Appended to tick time if a normal tick
+            return f"{str(self.tick_time.strftime(DATETIME_FORMAT_TITLE))} (" + (__("game", lang=self.bgstally.state.discord_lang) if discord else _("game")) + ")" # LANG: Appended to tick time if a normal tick
 
 
     def get_ordered_systems(self):
@@ -881,60 +881,6 @@ class Activity:
                 state.last_settlement_approached = {}
 
 
-    def generate_text(self, activity_mode: DiscordActivity, discord: bool = False, system_names: list = None):
-        """
-        Generate plain text report
-        """
-        text:str = ""
-        # Force plain text if we are not posting to Discord
-        fp:bool = not discord
-
-        for system in self.systems.copy().values(): # Use a copy for thread-safe operation
-            if system_names is not None and system['System'] not in system_names: continue
-            system_text:str = ""
-
-            if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
-                system_text += self._build_tw_system_text(system, discord)
-
-            if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
-                for faction in system['Factions'].values():
-                    if faction['Enabled'] != CheckStates.STATE_ON: continue
-                    system_text += self._build_faction_text(faction, discord)
-
-            if system_text != "":
-                if discord: text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}```"
-                else: text += f"{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
-
-        if discord and self.discord_notes is not None and self.discord_notes != "": text += "\n" + self.discord_notes
-
-        return text.replace("'", "")
-
-
-    def generate_discord_embed_fields(self, activity_mode: DiscordActivity):
-        """
-        Generate fields for a Discord post with embed
-        """
-        discord_fields = []
-
-        for system in self.systems.values():
-            system_text = ""
-
-            if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
-                system_text += self._build_tw_system_text(system, True)
-
-            if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
-                for faction in system['Factions'].values():
-                    if faction['Enabled'] != CheckStates.STATE_ON: continue
-                    system_text += self._build_faction_text(faction, True)
-
-            if system_text != "":
-                system_text = system_text.replace("'", "")
-                discord_field = {'name': system['System'], 'value': f"```ansi\n{system_text}```"}
-                discord_fields.append(discord_field)
-
-        return discord_fields
-
-
     def recalculate_zero_activity(self):
         """
         For efficiency at display time, we store whether each system has had any activity in the data structure
@@ -1140,339 +1086,6 @@ class Activity:
         self.dirty = True
 
 
-    def _build_faction_text(self, faction: dict, discord: bool):
-        """
-        Generate formatted text for a faction
-        """
-        activity_text:str = ""
-        # Force plain text if we are not posting to Discord
-        fp:bool = not discord
-
-        activity_text += self._build_inf_text(faction['MissionPoints'], faction['MissionPointsSecondary'], faction['FactionState'], discord)
-        activity_text += red("BVs", fp=fp) + " " + green(human_format(faction['Bounties']), fp=fp) + " " if faction['Bounties'] != 0 else "" # LANG: Discord heading, abbreviation for bounty vouchers
-        activity_text += red("CBs", fp=fp) + " " + green(human_format(faction['CombatBonds']), fp=fp) + " " if faction['CombatBonds'] != 0 else "" # LANG: Discord heading, abbreviation for combat bonds
-        activity_text += self._build_trade_text(faction['TradePurchase'], faction['TradeProfit'], faction['TradeBuy'], faction['TradeSell'], discord)
-        activity_text += cyan(__("TrdBMProfit"), fp=fp) + " " + green(human_format(faction['BlackMarketProfit']), fp=fp) + " " if faction['BlackMarketProfit'] != 0 else "" # LANG: Discord heading, abbreviation for trade black market profit
-        activity_text += white(__("Expl"), fp=fp) + " " + green(human_format(faction['CartData']), fp=fp) + " " if faction['CartData'] != 0 else "" # LANG: Discord heading, abbreviation for exploration
-        # activity_text += grey(__('Exo'), fp=fp) + " " + green(human_format(faction['ExoData']), fp=fp) + " " if faction['ExoData'] != 0 else "" # LANG: Discord heading, abbreviation for exobiology
-        activity_text += red(__("Murders"), fp=fp) + " " + green(faction['Murdered'], fp=fp) + " " if faction['Murdered'] != 0 else "" # LANG: Discord heading
-        activity_text += red(__("GroundMurders"), fp=fp) + " " + green(faction['GroundMurdered'], fp=fp) + " " if faction['GroundMurdered'] != 0 else "" # LANG: Discord heading
-        activity_text += yellow(__("Scenarios"), fp=fp) + " " + green(faction['Scenarios'], fp=fp) + " " if faction['Scenarios'] != 0 else "" # LANG: Discord heading
-        activity_text += magenta(__("Fails"), fp=fp) + " " + green(faction['MissionFailed'], fp=fp) + " " if faction['MissionFailed'] != 0 else "" # LANG: Discord heading, abbreviation for failed missions
-        activity_text += self._build_cz_text(faction.get('SpaceCZ', {}), __("SpaceCZs"), discord) # LANG: Discord heading, abbreviation for space conflict zones
-        activity_text += self._build_cz_text(faction.get('GroundCZ', {}), __("GroundCZs"), discord) # LANG: Discord heading, abbreviation for ground conflict zones
-        activity_text += self._build_sandr_text(faction.get('SandR', {}), discord)
-
-        faction_name = self._build_faction_name(faction['Faction'])
-        faction_text = f"{color_wrap(faction_name, 'yellow', None, 'bold', fp=fp)} {activity_text}\n" if activity_text != "" else ""
-
-        for settlement_name in faction.get('GroundCZSettlements', {}):
-            if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON:
-                faction_text += f"  {'⚔️' if discord else '[X]'} {settlement_name} x {green(faction['GroundCZSettlements'][settlement_name]['count'], fp=fp)}\n"
-
-        return faction_text
-
-
-    def _build_tw_system_text(self, system: dict, discord: bool):
-        """
-        Create formatted text for Thargoid War in a system
-        """
-        system_text = ""
-        system_stations = {}
-        # Force plain text if we are not posting to Discord
-        fp:bool = not discord
-
-        # Faction-specific tally
-        for faction in system['Factions'].values():
-            for station_name in faction.get('TWStations', {}):
-                faction_station = faction['TWStations'][station_name]
-                if faction_station['enabled'] != CheckStates.STATE_ON: continue
-
-                if not station_name in system_stations: system_stations[station_name] = self._get_new_aggregate_tw_station_data()
-                system_station = system_stations[station_name]
-
-                # Current understanding is we don't need to report the different passenger priorities separately, so aggregate all into a single count and sum
-                system_station['passengers']['count'] += faction_station['passengers']['l']['count'] + faction_station['passengers']['m']['count'] + faction_station['passengers']['h']['count']
-                system_station['passengers']['sum'] += faction_station['passengers']['l']['sum'] + faction_station['passengers']['m']['sum'] + faction_station['passengers']['h']['sum']
-                system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['passengers'].values()))
-                # Current understanding is it is important to report each type of escape pod evac mission separately
-                system_station['escapepods']['l']['count'] += faction_station['escapepods']['l']['count']; system_station['escapepods']['l']['sum'] += faction_station['escapepods']['l']['sum']
-                system_station['escapepods']['m']['count'] += faction_station['escapepods']['m']['count']; system_station['escapepods']['m']['sum'] += faction_station['escapepods']['m']['sum']
-                system_station['escapepods']['h']['count'] += faction_station['escapepods']['h']['count']; system_station['escapepods']['h']['sum'] += faction_station['escapepods']['h']['sum']
-                system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['escapepods'].values()))
-                # We don't track different priorities of cargo missions
-                system_station['cargo']['count'] += faction_station['cargo']['count']
-                system_station['cargo']['sum'] += faction_station['cargo']['sum']
-                system_station['mission_count_total'] += faction_station['cargo']['count']
-                # We track each type of Thargoid ship massacre mission separately
-                system_station['massacre']['s']['count'] += faction_station['massacre']['s']['count']; system_station['massacre']['s']['sum'] += faction_station['massacre']['s']['sum']
-                system_station['massacre']['c']['count'] += faction_station['massacre']['c']['count']; system_station['massacre']['c']['sum'] += faction_station['massacre']['c']['sum']
-                system_station['massacre']['b']['count'] += faction_station['massacre']['b']['count']; system_station['massacre']['b']['sum'] += faction_station['massacre']['b']['sum']
-                system_station['massacre']['m']['count'] += faction_station['massacre']['m']['count']; system_station['massacre']['m']['sum'] += faction_station['massacre']['m']['sum']
-                system_station['massacre']['h']['count'] += faction_station['massacre']['h']['count']; system_station['massacre']['h']['sum'] += faction_station['massacre']['h']['sum']
-                system_station['massacre']['o']['count'] += faction_station['massacre']['o']['count']; system_station['massacre']['o']['sum'] += faction_station['massacre']['o']['sum']
-                system_station['mission_count_total'] += (sum(x['count'] for x in faction_station['massacre'].values()))
-                # We track TW settlement reactivation missions as a simple total
-                system_station['reactivate'] += faction_station['reactivate']
-                system_station['mission_count_total'] += faction_station['reactivate']
-
-        # System-specific tally
-        kills:int = sum(system['TWKills'].values())
-        sandr:int = sum(int(d['delivered']) for d in system['TWSandR'].values())
-        reactivate:int = system['TWReactivate']
-        if kills > 0 or sandr > 0 or reactivate > 0:
-            system_text += ("🍀 " if discord else "TW ") + __("System activity") + "\n" # LANG: Discord heading
-            if kills > 0:
-                system_text += "  💀 (" + __("kills") + ")" if discord else "[" + __("kills") + "]: " + self._build_tw_vessels_text(system['TWKills'], discord) + " \n" # LANG: Discord heading
-
-            if sandr > 0:
-                system_text += "  "
-                pods:int = system['TWSandR']['dp']['delivered'] + system['TWSandR']['op']['delivered']
-                if pods > 0: system_text += ("⚰️" if discord else "[" + __("esc-pod") + "]") + " x " + green(pods, fp=fp) + " " # LANG: Discord heading, abbreviation for escape pod
-                tps:int = system['TWSandR']['tp']['delivered']
-                if tps > 0: system_text += ("🏮" if discord else "[" + __("bio-pod") + "]") + " x " + green(tps, fp=fp) + " " # LANG: Discord heading
-                bbs:int = system['TWSandR']['bb']['delivered']
-                if bbs > 0: system_text += ("⬛" if discord else "[" + __("bb") + "]") + " x " + green(bbs, fp=fp) + " " # LANG: Discord heading, abbreviation for black box
-                tissue:int = system['TWSandR']['t']['delivered']
-                if tissue > 0: system_text += ("🌱" if discord else "[" + __("ts") + "]") + " x " + green(tissue, fp=fp) + " " # LANG: Discord heading, abbreviation for tissue sample
-                system_text += "\n"
-            if reactivate > 0:
-                system_text += ("  🛠️" if discord else "[" + __("reac") + "]") + " x " + green(reactivate, fp=fp) + " " # LANG: Discord heading, abbreviation for reactivation (TW missions)
-                system_text += __("settlements") + "\n" # LANG: Discord heading
-
-        # Station-specific tally
-        for system_station_name, system_station in system_stations.items():
-            system_text += f"{'🍀' if discord else 'TW'} {system_station_name}: {green(system_station['mission_count_total'], fp=fp)} " + __("missions") + "\n" # LANG: Discord heading
-            if (system_station['escapepods']['m']['sum'] > 0):
-                system_text += ("  ❕" if discord else "[" + __("wounded") + "]") + " x " + green(system_station['escapepods']['m']['sum'], fp=fp) + " - " + green(system_station['escapepods']['m']['count'], fp=fp) + " " # LANG: Discord heading
-                system_text += __("missions") + "\n" # LANG: Discord heading
-            if (system_station['escapepods']['h']['sum'] > 0):
-                system_text += ("  ❗" if discord else "[" + __("crit") + "]") + " x " + green(system_station['escapepods']['h']['sum'], fp=fp) + " - " + green(system_station['escapepods']['h']['count'], fp=fp) + " " # LANG: Discord heading, abbreviation for critically injured
-                system_text += __("missions") + "\n" # LANG: Discord heading
-            if (system_station['cargo']['sum'] > 0):
-                system_text += ("  📦" if discord else "[" + __("cargo") + "]") + " x " + green(system_station['cargo']['sum'], fp=fp) + " - " + green(system_station['cargo']['count'], fp=fp) + " " # LANG: Discord heading
-                system_text += __("missions") + "\n" # LANG: Discord heading
-            if (system_station['escapepods']['l']['sum'] > 0):
-                system_text += ("  ⚕️" if discord else "[" + __("injured") + "]") + " x " + green(system_station['escapepods']['l']['sum'], fp=fp) + " - " + green(system_station['escapepods']['l']['count'], fp=fp) + " " # LANG: Discord heading
-                system_text += __("missions") + "\n" # LANG: Discord heading
-            if (system_station['passengers']['sum'] > 0):
-                system_text += ("  🧍" if discord else "[" + __("passeng") + "]") + " x " + green(system_station['passengers']['sum'], fp=fp) + " - " + green(system_station['passengers']['count'], fp=fp) + " " # LANG: Discord heading, abbreviation for passengers
-                system_text += __("missions") + "\n" # LANG: Discord heading
-            if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_text += ("  💀 (" + __("mm") + ")" if discord else "[" + __("mm") + "]") + ": " + self._build_tw_vessels_text(system_station['massacre'], discord) + " - " + green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp) + " " # LANG: Discord heading, abbreviation for massacre (missions)
-                system_text += __("missions") + "\n" # LANG: Discord heading
-            if (system_station['reactivate'] > 0):
-                system_text += ("  🛠️" if discord else "[" + __("reac") + "]") + " x " + green(system_station['reactivate'], fp=fp) + " " # LANG: Discord heading, abbreviation for TW reactivation (missions)
-                system_text += __("missions") + "\n" # LANG: Discord heading
-
-        return system_text
-
-
-    def _build_inf_text(self, inf_data: dict, secondary_inf_data: dict, faction_state: str, discord: bool) -> str:
-        """
-        Create a complete summary of INF for the faction, including both primary and secondary if user has requested
-
-        Args:
-            inf_data (dict): Dict containing INF, key = '1' - '5' or 'm'
-            secondary_inf_data (dict): Dict containing secondary INF, key = '1' - '5' or 'm'
-            faction_state (str): Current faction state
-            discord (bool): True if creating for Discord
-
-        Returns:
-            str: INF summary
-        """
-        text:str = ""
-        # Force plain text if we are not posting to Discord
-        fp:bool = not discord
-
-        inf:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in inf_data.items())
-        inf_sec:int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in secondary_inf_data.items())
-
-        if inf != 0 or (inf_sec != 0 and self.bgstally.state.secondary_inf):
-            if faction_state in STATES_ELECTION:
-                text += blue(__("ElectionINF"), fp=fp) + " " # LANG: Discord heading, abbreviation for election INF
-            elif faction_state in STATES_WAR:
-                text += blue(__("WarINF"), fp=fp) + " " # LANG: Discord heading, abbreviation for war INF
-            else:
-                text += blue(__("INF"), fp=fp) + " " # LANG: Discord heading, abbreviation for INF
-
-            if self.bgstally.state.secondary_inf:
-                text += self._build_inf_individual(inf, inf_data, "🅟" if discord else "[P]", discord)
-                text += self._build_inf_individual(inf_sec, secondary_inf_data, "🅢" if discord else "[S]", discord)
-            else:
-                text += self._build_inf_individual(inf, inf_data, "", discord)
-
-        return text
-
-
-    def _build_inf_individual(self, inf:int, inf_data: dict, prefix: str, discord: bool) -> str:
-        """
-        Create a summary of either primary or secondary INF, with detailed breakdown if user has requested
-
-        Args:
-            inf (int): Total INF
-            inf_data (dict): dict containing INF, key = '1' - '5' or 'm'
-            prefix (str): Prefix label (🅟 or 🅢 or empty)
-            discord (bool): True if creating for Discord
-
-        Returns:
-            str: INF summary
-        """
-        text:str = ""
-        if inf == 0: return text
-
-        # Force plain text if we are not posting to Discord
-        fp:bool = not discord
-
-        inf_str:str = f"{'+' if inf > 0 else ''}{inf}"
-        text += f"{prefix}{green(inf_str, fp=fp)} "
-
-        if self.bgstally.state.detailed_inf:
-            detailed_inf:str = ""
-            if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {inf_data['1']} "
-            if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {inf_data['2']} "
-            if inf_data.get('3', 0) != 0: detailed_inf += f"{'➌' if discord else '+++'} x {inf_data['3']} "
-            if inf_data.get('4', 0) != 0: detailed_inf += f"{'➍' if discord else '++++'} x {inf_data['4']} "
-            if inf_data.get('5', 0) != 0: detailed_inf += f"{'➎' if discord else '+++++'} x {inf_data['5']} "
-            if detailed_inf != "": text += f"({detailed_inf.rstrip()}) "
-
-        return text
-
-
-    def _build_trade_text(self, trade_purchase: int, trade_profit: int, trade_buy: list, trade_sell: list, discord: bool) -> str:
-        """
-        Create a summary of trade, with detailed breakdown if user has requested
-
-        Args:
-            trade_purchase (int): Legacy total trade purchase value (before trade was tracked in brackets).
-            trade_profit (int): Legacy total trade profit value (before trade was tracked in brackets).
-            trade_buy (list): List of trade purchases with each entry corresponding to a trade bracket.
-            trade_sell (list): List of trade sales with each entry corresponding to a trade bracket.
-            discord (bool): True if creating for Discord
-
-        Returns:
-            str: Trade summary
-        """
-        text:str = ""
-
-        # Force plain text if we are not posting to Discord
-        fp:bool = not discord
-
-        if trade_purchase > 0:
-            # Legacy - Used a single value for purchase value / profit
-            text += cyan(__("TrdBuy"), fp=fp) + " " + green(human_format(trade_purchase), fp=fp) + " " if trade_purchase != 0 else "" # LANG: Discord heading, abbreviation for trade buy
-            text += cyan(__("TrdProfit"), fp=fp) + " " + green(human_format(trade_profit), fp=fp) + " " if trade_profit != 0 else "" # LANG: Discord heading, abbreviation for trade profit
-        elif not self.bgstally.state.detailed_trade:
-            # Modern, simple trade report - Combine buy at all brackets and profit at all brackets
-            buy_total:int = sum(int(d['value']) for d in trade_buy)
-            profit_total:int = sum(int(d['profit']) for d in trade_sell)
-            text += cyan(__("TrdBuy"), fp=fp) + " " + green(human_format(buy_total), fp=fp) + " " if buy_total != 0 else "" # LANG: Discord heading, abbreviation for trade buy
-            text += cyan(__("TrdProfit"), fp=fp) + " " + green(human_format(profit_total), fp=fp) + " " if profit_total != 0 else "" # LANG: Discord heading, abbreviation for trade profit
-        else:
-            # Modern, detailed trade report - Split into values per supply / demand bracket
-            if sum(int(d['value']) for d in trade_buy) > 0:
-                # Buy brackets currently range from 1 - 3
-                text += cyan(__("TrdBuy"), fp=fp) + " "
-                if int(trade_buy[1]['value']) != 0: text += f"{'🅻' if discord else '[L]'}:{green(human_format(trade_buy[1]['value']), fp=fp)} "
-                if int(trade_buy[2]['value']) != 0: text += f"{'🅼' if discord else '[M]'}:{green(human_format(trade_buy[2]['value']), fp=fp)} "
-                if int(trade_buy[3]['value']) != 0: text += f"{'🅷' if discord else '[H]'}:{green(human_format(trade_buy[3]['value']), fp=fp)} "
-            if sum(int(d['value']) for d in trade_sell) > 0:
-                # Sell brackets currently range from 0 - 3
-                text += cyan(__("TrdProfit"), fp=fp) + " "
-                if int(trade_sell[0]['profit']) != 0: text += f"{'🆉' if discord else '[Z]'}:{green(human_format(trade_sell[0]['profit']), fp=fp)} "
-                if int(trade_sell[1]['profit']) != 0: text += f"{'🅻' if discord else '[L]'}:{green(human_format(trade_sell[1]['profit']), fp=fp)} "
-                if int(trade_sell[2]['profit']) != 0: text += f"{'🅼' if discord else '[M]'}:{green(human_format(trade_sell[2]['profit']), fp=fp)} "
-                if int(trade_sell[3]['profit']) != 0: text += f"{'🅷' if discord else '[H]'}:{green(human_format(trade_sell[3]['profit']), fp=fp)} "
-
-        return text
-
-
-    def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool) -> str:
-        """
-        Create a summary of Conflict Zone activity
-        """
-        if cz_data == {}: return ""
-        text:str = ""
-        # Force plain text if we are not posting to Discord
-        fp:bool = not discord
-
-        if 'l' in cz_data and cz_data['l'] != "0" and cz_data['l'] != "": text += f"{cz_data['l']}xL "
-        if 'm' in cz_data and cz_data['m'] != "0" and cz_data['m'] != "": text += f"{cz_data['m']}xM "
-        if 'h' in cz_data and cz_data['h'] != "0" and cz_data['h'] != "": text += f"{cz_data['h']}xH "
-
-        objectives: str = ""
-        if 'cs' in cz_data and cz_data['cs'] != "0" and cz_data['cs'] != "": objectives += f"{'👑' if discord else 'Cap Ship'}:{green(cz_data['cs'], fp=fp)} " # Cap Ship
-        if 'so' in cz_data and cz_data['so'] != "0" and cz_data['so'] != "": objectives += f"{'🔠' if discord else 'Spec Ops'}:{green(cz_data['so'], fp=fp)} " # Spec Ops
-        if 'cp' in cz_data and cz_data['cp'] != "0" and cz_data['cp'] != "": objectives += f"{'👨‍✈️' if discord else 'Capt'}:{green(cz_data['cp'], fp=fp)} " # Captain
-        if 'pr' in cz_data and cz_data['pr'] != "0" and cz_data['pr'] != "": objectives += f"{'✒️' if discord else 'Propagand'}:{green(cz_data['pr'], fp=fp)} " # Propagandist
-        if objectives != "": text += f"({objectives.rstrip()}) "
-
-        if text != "": text = f"{red(prefix, fp=fp)} {text} "
-        return text
-
-
-    def _build_tw_vessels_text(self, tw_data: dict, discord: bool) -> str:
-        """
-        Create a summary of TW activity. tw_data can be a dict containing either:
-          key = str representing thargoid vessel type; value = dict containing 'sum' property with int total for that vessel
-          key = str representing thargoid vessel type; value = int total for that vessel
-        """
-        if tw_data == {}: return ""
-        text:str = ""
-        # Force plain text if we are not posting to Discord
-        fp:bool = not discord
-        first:bool = True
-
-        for k, v in tw_data.items():
-            label:str = ""
-            value:int = 0
-
-            if k == 'ba': label = "Ba"    # Banshee
-            elif k == 'sg': label = "S/G" # Scythe / Glaive
-            else: label = k.upper()       # All others
-
-            if isinstance(v, dict): value = int(v.get('sum', 0))
-            else: value = int(v)
-            if value == 0: continue
-
-            if not first: text += ", "
-            text += f"{red(label, fp=fp)} x {green(value, fp=fp)}"
-
-            first = False
-
-        return text
-
-
-    def _build_sandr_text(self, sandr_data: dict, discord: bool) -> str:
-        """Create a summary of BGS search and rescue activity
-
-        Args:
-            sandr_data (dict): dict containing an entry for each type of SandR handin
-            discord (bool): True if this text is destined for Discord
-
-        Returns:
-            str: The activity summary text
-        """
-        if sandr_data == {}: return ""
-        # Force plain text if we are not posting to Discord
-        fp:bool = not discord
-
-        value: int = int(sum(sandr_data.values()))
-        if value == 0: return ""
-
-        return white(__("SandR"), fp=fp) + " " + green(value, fp=fp) + " " # LANG: Discord heading, abbreviation for search and rescue
-
-
-    def _build_faction_name(self, faction_name):
-        """
-        Shorten the faction name if the user has chosen to
-        """
-        if self.bgstally.state.abbreviate_faction_names:
-            return "".join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
-        else:
-            return faction_name
-
-
     def _get_new_system_data(self, system_name: str, system_address: str, faction_data: Dict):
         """
         Get a new data structure for storing system data
@@ -1506,18 +1119,6 @@ class Activity:
         """
         return {'name': station_name, 'enabled': CheckStates.STATE_ON,
                 'passengers': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
-                'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
-                'cargo': {'count': 0, 'sum': 0},
-                'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}},
-                'reactivate': 0}
-
-
-    def _get_new_aggregate_tw_station_data(self):
-        """
-        Get a new data structure for aggregating Thargoid War station data when displaying in text reports
-        """
-        return {'mission_count_total': 0,
-                'passengers': {'count': 0, 'sum': 0},
                 'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
                 'cargo': {'count': 0, 'sum': 0},
                 'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}},

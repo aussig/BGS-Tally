@@ -15,6 +15,7 @@ from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
 from bgstally.discord import Discord
 from bgstally.fleetcarrier import FleetCarrier
+from bgstally.formatters.default import DefaultFormatter
 from bgstally.market import Market
 from bgstally.missionlog import MissionLog
 from bgstally.overlay import Overlay
@@ -83,6 +84,7 @@ class BGSTally:
         self.webhook_manager:WebhookManager = WebhookManager(self)
         self.update_manager:UpdateManager = UpdateManager(self)
         self.ui:UI = UI(self)
+        self.formatter: DefaultFormatter = DefaultFormatter(self.state)
 
         self.thread:Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True

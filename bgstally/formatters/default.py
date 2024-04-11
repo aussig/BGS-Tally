@@ -1,15 +1,17 @@
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import CheckStates, DiscordActivity
+from bgstally.constants import CheckStates, DiscordActivity, FormatMode
 from bgstally.debug import Debug
-from bgstally.formatters.base import FormatterInterface
+from bgstally.formatters.base import TextFormatterInterface, FieldFormatterInterface
 from bgstally.state import State
 from bgstally.utils import _, __, human_format, is_number
 from thirdparty.colors import *
 
 
-class DefaultFormatter(FormatterInterface):
+class DefaultFormatter(TextFormatterInterface, FieldFormatterInterface):
     """The default output formatter. Produces coloured text using ANSI formatting and UTF8 emojis
-    to represent activity when sending to Discord, and equivalent string representations when not
+    to represent activity when sending to Discord, and equivalent string representations when not.
+
+    The DefaultFormatter's get_text() method is used to deliver formatted text to the activity windows
     """
 
     def __init__(self, state: State):
@@ -30,8 +32,17 @@ class DefaultFormatter(FormatterInterface):
         return _("Default") # LANG: Name of default output formatter
 
 
-    def generate_text(self, activity: Activity, activity_mode: DiscordActivity, discord: bool = False, system_names: list = None, lang: str = None) -> str:
-        """Generate formatted text for a given instance of Activity
+    def get_mode(self) -> FormatMode:
+        """Get the output format mode that this Formatter supports
+
+        Returns:
+            FormatMode: The supported format mode
+        """
+        return FormatMode.FIELDS
+
+
+    def get_text(self, activity: Activity, activity_mode: DiscordActivity, discord: bool = False, system_names: list = None, lang: str = None) -> str:
+        """Generate formatted text for a given instance of Activity.
 
         Args:
             activity (Activity): The Activity object containing the activity to post
@@ -69,7 +80,7 @@ class DefaultFormatter(FormatterInterface):
         return text.replace("'", "")
 
 
-    def generate_embed_fields(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> list:
+    def get_fields(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> list:
         """Generate a list of discord embed fields, conforming to the embed field spec defined here:
         https://birdie0.github.io/discord-webhooks-guide/structure/embed/fields.html - i.e. each field should be a dict
         containing 'name' and 'value' str keys, and optionally an 'inline' bool key
@@ -81,7 +92,7 @@ class DefaultFormatter(FormatterInterface):
             lang (str, optional): The language code for this post. Defaults to None.
 
         Returns:
-            list: A list of fields
+            list[dict]: A list of dicts, each containing an embed field containing 'name' and 'value' str keys, and optionally an 'inline' bool key
         """
         discord_fields = []
 

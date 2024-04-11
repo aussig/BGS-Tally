@@ -95,3 +95,7 @@ def is_number(s:str):
         return True
     except ValueError:
         return False
+
+
+def all_subclasses(cls: type) -> set:
+    return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in all_subclasses(c)])

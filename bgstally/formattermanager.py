@@ -57,3 +57,12 @@ class ActivityFormatterManager:
             DefaultFormatter | None: The formatter
         """
         return self.get_formatter(DefaultActivityFormatter.__name__)
+
+
+    def get_current_formatter(self) -> BaseActivityFormatterInterface:
+        """Get the currently selected activity formatter
+
+        Returns:
+            BaseActivityFormatterInterface: Activity Formatter
+        """
+        return self.get_formatter(self.bgstally.state.discord_formatter)

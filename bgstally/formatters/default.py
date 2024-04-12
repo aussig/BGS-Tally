@@ -1,13 +1,13 @@
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import CheckStates, DiscordActivity, FormatMode
 from bgstally.debug import Debug
-from bgstally.formatters.base import TextFormatterInterface, FieldFormatterInterface
+from bgstally.formatters.base import TextActivityFormatterInterface, FieldActivityFormatterInterface
 from bgstally.state import State
 from bgstally.utils import _, __, human_format, is_number
 from thirdparty.colors import *
 
 
-class DefaultFormatter(TextFormatterInterface, FieldFormatterInterface):
+class DefaultActivityFormatter(FieldActivityFormatterInterface):
     """The default output formatter. Produces coloured text using ANSI formatting and UTF8 emojis
     to represent activity when sending to Discord, and equivalent string representations when not.
 
@@ -20,7 +20,7 @@ class DefaultFormatter(TextFormatterInterface, FieldFormatterInterface):
         Args:
             state (State): The State object containing persistent values and settings
         """
-        super(DefaultFormatter, self).__init__(state)
+        super(DefaultActivityFormatter, self).__init__(state)
 
 
     def get_name(self) -> str:
@@ -30,15 +30,6 @@ class DefaultFormatter(TextFormatterInterface, FieldFormatterInterface):
             str: The name
         """
         return _("Default") # LANG: Name of default output formatter
-
-
-    def get_mode(self) -> FormatMode:
-        """Get the output format mode that this Formatter supports
-
-        Returns:
-            FormatMode: The supported format mode
-        """
-        return FormatMode.FIELDS
 
 
     def get_text(self, activity: Activity, activity_mode: DiscordActivity, discord: bool = False, system_names: list = None, lang: str = None) -> str:
@@ -217,7 +208,7 @@ class DefaultFormatter(TextFormatterInterface, FieldFormatterInterface):
         if kills > 0 or sandr > 0 or reactivate > 0:
             system_text += ("🍀 " if discord else "TW ") + __("System activity", lang) + "\n" # LANG: Discord heading
             if kills > 0:
-                system_text += "  💀 (" + __("kills", lang) + ")" if discord else "[" + __("kills", lang) + "]: " + self._build_tw_vessels_text(system['TWKills'], discord) + " \n" # LANG: Discord heading
+                system_text += ("  💀 (" + __("kills", lang) + "): " if discord else "[" + __("kills", lang) + "]: ") + self._build_tw_vessels_text(system['TWKills'], discord) + " \n" # LANG: Discord heading
 
             if sandr > 0:
                 system_text += "  "
@@ -423,6 +414,7 @@ class DefaultFormatter(TextFormatterInterface, FieldFormatterInterface):
         Returns:
             str: TW vessels summary
         """
+        Debug.logger.info(f"TW Data: {tw_data}")
         if tw_data == {}: return ""
         text: str = ""
         # Force plain text if we are not posting to Discord

@@ -2,8 +2,8 @@ from importlib import import_module
 from os import listdir, path
 
 from bgstally.debug import Debug
-from bgstally.formatters.base import BaseFormatterInterface, FieldFormatterInterface, TextFormatterInterface
-from bgstally.formatters.default import DefaultFormatter
+from bgstally.formatters.base import BaseActivityFormatterInterface, FieldActivityFormatterInterface, TextActivityFormatterInterface
+from bgstally.formatters.default import DefaultActivityFormatter
 from bgstally.utils import all_subclasses
 
 for module in listdir(path.join(path.dirname(__file__), "formatters")):
@@ -11,7 +11,7 @@ for module in listdir(path.join(path.dirname(__file__), "formatters")):
 del module
 
 
-class FormatterManager:
+class ActivityFormatterManager:
     """
     Handles the management of output formatters
     """
@@ -20,10 +20,10 @@ class FormatterManager:
         self.bgstally = bgstally
 
         # Create list of instances of each subclass of FormatterInterface
-        self._formatters: dict[str: BaseFormatterInterface] = {}
+        self._formatters: dict[str: BaseActivityFormatterInterface] = {}
 
-        for cls in all_subclasses(FieldFormatterInterface) | all_subclasses(TextFormatterInterface):
-            instance: BaseFormatterInterface = cls(bgstally.state)
+        for cls in all_subclasses(FieldActivityFormatterInterface) | all_subclasses(TextActivityFormatterInterface):
+            instance: BaseActivityFormatterInterface = cls(bgstally.state)
             self._formatters[cls.__name__] = instance
 
         Debug.logger.info(f"formatters: {self._formatters}")
@@ -38,7 +38,7 @@ class FormatterManager:
         return ({class_name: class_instance.get_name() for class_name, class_instance in self._formatters.items()})
 
 
-    def get_formatter(self, class_name: str) -> BaseFormatterInterface | None:
+    def get_formatter(self, class_name: str) -> BaseActivityFormatterInterface | None:
         """Get a specific formatter by its class name
 
         Args:
@@ -50,10 +50,10 @@ class FormatterManager:
         return self._formatters.get(class_name)
 
 
-    def get_default_formatter(self) -> DefaultFormatter | None:
+    def get_default_formatter(self) -> DefaultActivityFormatter | None:
         """Get the default formatter
 
         Returns:
             DefaultFormatter | None: The formatter
         """
-        return self.get_formatter("DefaultFormatter")
+        return self.get_formatter(DefaultActivityFormatter.__name__)

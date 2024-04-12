@@ -376,15 +376,15 @@ class UI:
                     # Report recent activity in a designated system, overrides pinned systems
                     report_system:dict = current_activity.get_system_by_address(self.report_system_address)
                     if report_system is not None:
-                        self.bgstally.overlay.display_message("system_info", self.bgstally.formattermanager.get_default_formatter().get_text(current_activity, DiscordActivity.BOTH, False, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True)
+                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_text(current_activity, DiscordActivity.BOTH, False, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True)
                     self.report_system_address = None
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
                     if len(pinned_systems) == 1:
-                        self.bgstally.overlay.display_message("system_info", self.bgstally.formattermanager.get_default_formatter().get_text(current_activity, DiscordActivity.BOTH, False, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
+                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_text(current_activity, DiscordActivity.BOTH, False, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
                     elif len(pinned_systems) > 1:
-                        self.bgstally.overlay.display_message("system_info", _("Pinned Systems") + "\n" + self.bgstally.formattermanager.get_default_formatter().get_text(current_activity, DiscordActivity.BOTH, False, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
+                        self.bgstally.overlay.display_message("system_info", _("Pinned Systems") + "\n" + self.bgstally.formatter_manager.get_default_formatter().get_text(current_activity, DiscordActivity.BOTH, False, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
 
             # Warning
             if self.bgstally.state.enable_overlay_warning and self.warning is not None:

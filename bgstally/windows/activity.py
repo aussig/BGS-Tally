@@ -67,13 +67,16 @@ class WindowActivity:
         self.btn_post_to_discord: ttk.Button = ttk.Button(frm_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord, activity), # LANG: Button label
                                                           state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
-        activity_type_options: dict = {DiscordActivity.BOTH: _("All"), DiscordActivity.BGS: _("BGS Only"), DiscordActivity.THARGOIDWAR: _("TW Only")}
+        activity_type_options: dict = {DiscordActivity.BOTH: _("All"), # LANG: Activity window option
+                                       DiscordActivity.BGS: _("BGS Only"), # LANG: Activity window option
+                                       DiscordActivity.THARGOIDWAR: _("TW Only") # LANG: Activity window option
+                                       }
         activity_type_var: tk.StringVar = tk.StringVar(value=activity_type_options.get(self.bgstally.state.DiscordActivity.get(), DiscordActivity.BOTH))
         self.mnu_activity_type: ttk.OptionMenu = ttk.OptionMenu(frm_buttons, activity_type_var, activity_type_var.get(),
                                                                *activity_type_options.values(),
                                                                command=partial(self._activity_type_selected, activity_type_options), direction='above')
         self.mnu_activity_type.pack(side=tk.RIGHT, pady=5)
-        ttk.Label(frm_buttons, text="Activity to post:").pack(side=tk.RIGHT, pady=5)
+        ttk.Label(frm_buttons, text=_("Activity to post:")).pack(side=tk.RIGHT, pady=5) # LANG: Label on activity window
 
         frm_discord = ttk.Frame(ContainerFrame)
         frm_discord.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)

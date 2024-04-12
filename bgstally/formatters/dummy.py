@@ -43,15 +43,15 @@ class DummyActivityFormatter(FieldActivityFormatterInterface):
         Returns:
             str: The output text
         """
-        return "[Lorum Ipsum 1]\n \
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam a odio urna. Integer nec augue luctus, \
-                fermentum massa mattis, euismod nibh. Cras volutpat nec risus non porta. Aliquam varius laoreet tempor.\n\n \
-                [Lorum Ipsum 2]\n \
-                Suspendisse sit amet ultricies nulla. Phasellus sed metus molestie, tincidunt felis in, sagittis est. \
-                Aliquam orci augue, congue in sollicitudin at, viverra eu tortor. Phasellus faucibus condimentum risus\n\n \
-                [Lorum Ipsum 3]\n \
-                venenatis laoreet. Aliquam erat volutpat. Integer sagittis facilisis ipsum a tristique. Vivamus at tortor \
-                erat. Vivamus nec interdum tortor. Praesent vitae odio sed tortor pulvinar varius."
+        return ("[Lorum Ipsum 1]\n" +
+                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam a odio urna. Integer nec augue luctus, " +
+                "fermentum massa mattis, euismod nibh. Cras volutpat nec risus non porta. Aliquam varius laoreet tempor.\n\n " +
+                "[Lorum Ipsum 2]\n " +
+                "Suspendisse sit amet ultricies nulla. Phasellus sed metus molestie, tincidunt felis in, sagittis est. " +
+                "Aliquam orci augue, congue in sollicitudin at, viverra eu tortor. Phasellus faucibus condimentum risus\n\n " +
+                "[Lorum Ipsum 3]\n " +
+                "venenatis laoreet. Aliquam erat volutpat. Integer sagittis facilisis ipsum a tristique. Vivamus at tortor " +
+                "erat. Vivamus nec interdum tortor. Praesent vitae odio sed tortor pulvinar varius.")
 
 
     def get_fields(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> list[dict]:

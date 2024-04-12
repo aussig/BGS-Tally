@@ -414,7 +414,6 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         Returns:
             str: TW vessels summary
         """
-        Debug.logger.info(f"TW Data: {tw_data}")
         if tw_data == {}: return ""
         text: str = ""
         # Force plain text if we are not posting to Discord

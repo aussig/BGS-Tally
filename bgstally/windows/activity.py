@@ -75,7 +75,7 @@ class WindowActivity:
                                                                *activity_type_options.values(),
                                                                command=partial(self._activity_type_selected, activity_type_options), direction='above')
         self.mnu_activity_type.pack(side=tk.RIGHT, pady=5)
-        ttk.Label(frm_buttons, text="Activity to post:").pack(side=tk.RIGHT, pady=5)
+        ttk.Label(frm_buttons, text=_("Activity to post:")).pack(side=tk.RIGHT, pady=5) # LANG: Label on activity window
 
         frm_discord = ttk.Frame(ContainerFrame)
         frm_discord.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)

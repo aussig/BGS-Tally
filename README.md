@@ -86,7 +86,7 @@ And finally, a huge thank you to:
 * All the translators who have given their time and effort:
     * French - CMDR ThArGos
     * German - CMDR Ryan Murdoc
-    * Italian - CMDR FrostBit aka @GLWine
+    * Italian - CMDR FrostBit / [@GLWine](https://github.com/GLWine)
     * Portuguese (Portugal) - CMDR Holy Nothing
     * Portuguese (Brazil) - CMDR FelaKuti
     * Russian - CMDR KuzSan

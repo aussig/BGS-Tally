@@ -35,7 +35,12 @@ class ActivityFormatterManager:
         Returns:
             dict: key = formatter class name, value = formatter public name
         """
-        return ({class_name: class_instance.get_name() for class_name, class_instance in self._formatters.items()})
+        result: dict = {}
+
+        for class_name, class_instance in self._formatters.items():
+            if class_instance.is_visible(): result[class_name] = class_instance.get_name()
+
+        return result
 
 
     def get_formatter(self, class_name: str) -> BaseActivityFormatterInterface | None:

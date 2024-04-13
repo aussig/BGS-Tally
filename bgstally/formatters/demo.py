@@ -27,6 +27,16 @@ class DemoActivityFormatter(DefaultActivityFormatter):
         return _("Demo Data Only")
 
 
+    def is_visible(self) -> bool:
+        """Should this formatter be visible to the user as a choice. Only return True for this
+        formatter if we are running in dev mode.
+
+        Returns:
+            bool: True if visible, false if not
+        """
+        return self.bgstally.dev_mode
+
+
     def get_text(self, activity: Activity, activity_mode: DiscordActivity, discord: bool = False, system_names: list = None, lang: str = None) -> str:
         """Generate formatted text for a demonstration Activity with demo data only.
         This method is also used to display the preview text on-screen in activity windows.

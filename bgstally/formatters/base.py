@@ -37,6 +37,15 @@ class BaseActivityFormatterInterface(ABC):
         pass
 
 
+    def is_visible(self) -> bool:
+        """Should this formatter be visible to the user as a choice
+
+        Returns:
+            bool: True if visible, false if not
+        """
+        return True
+
+
     @abstractmethod
     def get_text(self, activity: Activity, activity_mode: DiscordActivity, discord: bool = False, system_names: list = None, lang: str = None) -> str:
         """Generate formatted text for a given instance of Activity. Must be implemented by subclasses.
@@ -61,7 +70,7 @@ class TextActivityFormatterInterface(BaseActivityFormatterInterface):
     """An activity formatter that returns text for displaying in Discord.
 
     It is not recommended to implement formatters based on this class, use a FieldFormatterInterface to build
-    Discord posts that use the more modern-looking
+    Discord posts that use the more modern-looking embed-based display
     """
 
     def get_mode(self) -> FormatMode:

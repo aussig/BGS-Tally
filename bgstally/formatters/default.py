@@ -2,7 +2,6 @@ from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import CheckStates, DiscordActivity, FormatMode
 from bgstally.debug import Debug
 from bgstally.formatters.base import TextActivityFormatterInterface, FieldActivityFormatterInterface
-from bgstally.state import State
 from bgstally.utils import _, __, human_format, is_number
 from thirdparty.colors import *
 
@@ -14,13 +13,13 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
     The DefaultFormatter's get_text() method is used to deliver formatted text to the activity windows
     """
 
-    def __init__(self, state: State):
+    def __init__(self, bgstally):
         """Instantiate class
 
         Args:
-            state (State): The State object containing persistent values and settings
+            bgstally (BGSTally): The BGSTally object
         """
-        super(DefaultActivityFormatter, self).__init__(state)
+        super().__init__(bgstally)
 
 
     def get_name(self) -> str:
@@ -273,7 +272,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         inf: int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in inf_data.items())
         inf_sec: int = sum((1 if k == 'm' else int(k)) * int(v) for k, v in secondary_inf_data.items())
 
-        if inf != 0 or (inf_sec != 0 and self.state.secondary_inf):
+        if inf != 0 or (inf_sec != 0 and self.bgstally.state.secondary_inf):
             if faction_state in STATES_ELECTION:
                 text += blue(__("ElectionINF", lang), fp=fp) + " " # LANG: Discord heading, abbreviation for election INF
             elif faction_state in STATES_WAR:
@@ -281,7 +280,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
             else:
                 text += blue(__("INF", lang), fp=fp) + " " # LANG: Discord heading, abbreviation for INF
 
-            if self.state.secondary_inf:
+            if self.bgstally.state.secondary_inf:
                 text += self._build_inf_individual(inf, inf_data, "🅟" if discord else "[P]", discord)
                 text += self._build_inf_individual(inf_sec, secondary_inf_data, "🅢" if discord else "[S]", discord)
             else:
@@ -311,7 +310,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         inf_str: str = f"{'+' if inf > 0 else ''}{inf}"
         text += f"{prefix}{green(inf_str, fp=fp)} "
 
-        if self.state.detailed_inf:
+        if self.bgstally.state.detailed_inf:
             detailed_inf: str = ""
             if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {inf_data['1']} "
             if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {inf_data['2']} "
@@ -346,7 +345,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
             # Legacy - Used a single value for purchase value / profit
             text += cyan(__("TrdBuy", lang), fp=fp) + " " + green(human_format(trade_purchase), fp=fp) + " " if trade_purchase != 0 else "" # LANG: Discord heading, abbreviation for trade buy
             text += cyan(__("TrdProfit", lang), fp=fp) + " " + green(human_format(trade_profit), fp=fp) + " " if trade_profit != 0 else "" # LANG: Discord heading, abbreviation for trade profit
-        elif not self.state.detailed_trade:
+        elif not self.bgstally.state.detailed_trade:
             # Modern, simple trade report - Combine buy at all brackets and profit at all brackets
             buy_total: int = sum(int(d['value']) for d in trade_buy)
             profit_total: int = sum(int(d['profit']) for d in trade_sell)
@@ -470,7 +469,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         Returns:
             str: The shortened faction name
         """
-        if self.state.abbreviate_faction_names:
+        if self.bgstally.state.abbreviate_faction_names:
             return "".join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
         else:
             return faction_name

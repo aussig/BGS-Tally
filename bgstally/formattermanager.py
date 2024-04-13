@@ -23,7 +23,7 @@ class ActivityFormatterManager:
         self._formatters: dict[str: BaseActivityFormatterInterface] = {}
 
         for cls in all_subclasses(FieldActivityFormatterInterface) | all_subclasses(TextActivityFormatterInterface):
-            instance: BaseActivityFormatterInterface = cls(bgstally.state)
+            instance: BaseActivityFormatterInterface = cls(bgstally)
             self._formatters[cls.__name__] = instance
 
         Debug.logger.info(f"formatters: {self._formatters}")

@@ -1,7 +1,6 @@
 from bgstally.constants import FormatMode
 from bgstally.debug import Debug
 from bgstally.formatters.default import DefaultActivityFormatter
-from bgstally.state import State
 from bgstally.utils import _
 from thirdparty.colors import *
 
@@ -11,13 +10,13 @@ class TextOnlyActivityFormatter(DefaultActivityFormatter):
     UTF8 emojis to represent activity, but send as text only
     """
 
-    def __init__(self, state: State):
+    def __init__(self, bgstally):
         """Instantiate class
 
         Args:
-            state (State): The State object containing persistent values and settings
+            bgstally (BGSTally): The BGSTally object
         """
-        super(TextOnlyActivityFormatter, self).__init__(state)
+        super().__init__(bgstally)
 
 
     def get_name(self) -> str:

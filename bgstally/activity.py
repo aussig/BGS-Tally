@@ -105,9 +105,13 @@ class Activity:
     factions with their activity
     """
 
-    def __init__(self, bgstally, tick: Tick = None):
-        """
-        Instantiate using a given Tick
+    def __init__(self, bgstally, tick: Tick = None, sample: bool = False):
+        """Constructor
+
+        Args:
+            bgstally (BGSTally): The BGSTally object
+            tick (Tick, optional): The Tick object to instantiate from. If None, the last known tick is used. Defaults to None.
+            sample (bool, optional): Populate with sample data. Defaults to False.
         """
         self.bgstally = bgstally
         if tick == None: tick = Tick(self.bgstally)
@@ -119,7 +123,11 @@ class Activity:
         self.discord_webhook_data:dict = {} # key = webhook uuid, value = dict containing webhook data
         self.discord_notes: str = ""
         self.dirty: bool = False
-        self.systems: dict = {}
+
+        if sample:
+            self.systems: dict = {"Sample System ID": self.get_sample_system_data()}
+        else:
+            self.systems: dict = {}
 
         # Non-stored instance data. Remember to modify __deepcopy__() if these are changed or new data added.
         self.megaship_pat:re.Pattern = re.compile("^[a-z]{3}-[0-9]{3} ")  # e.g. kar-314 aquarius-class tanker
@@ -932,7 +940,7 @@ class Activity:
 
         # Add settlement to this faction's list, if not already present
         if state.last_settlement_approached['name'] not in faction['GroundCZSettlements']:
-            faction['GroundCZSettlements'][state.last_settlement_approached['name']] = {'count': 0, 'enabled': CheckStates.STATE_ON, 'type': 'l'}
+            faction['GroundCZSettlements'][state.last_settlement_approached['name']] = self._get_new_groundcz_settlement_data()
 
         # Store the previously counted size of this settlement
         previous_size = state.last_settlement_approached['size']
@@ -1086,62 +1094,133 @@ class Activity:
         self.dirty = True
 
 
-    def _get_new_system_data(self, system_name: str, system_address: str, faction_data: Dict):
+    def get_sample_system_data(self) -> dict:
+        """Get sample system data containing every type of activity for preview / demo purposes
+
+        Returns:
+            dict: The sample system data
         """
-        Get a new data structure for storing system data
+        return {'System': "Sample System Name",
+                'SystemAddress': 1,
+                'zero_system_activity': False,
+                'Factions': {"Sample Faction Name 1": self._get_new_faction_data("Sample Faction Name 1", "None", True),
+                             "Sample Faction Name 2": self._get_new_faction_data("Sample Faction Name 2", "None", True),
+                             "Sample Faction Name 3": self._get_new_faction_data("Sample Faction Name 3", "None", True)},
+                'TWKills': self._get_new_tw_kills_data(True),
+                'TWSandR': self._get_new_tw_sandr_data(True),
+                'TWReactivate': 5}
+
+
+    def _get_new_system_data(self, system_name: str, system_address: str, faction_data: dict) -> dict:
+        """Get a new data structure for storing system data
+
+        Args:
+            system_name (str): The system name
+            system_address (str): The system identifying address
+            faction_data (dict): The faction data
+
+        Returns:
+            dict: The system data
         """
         return {'System': system_name,
                 'SystemAddress': system_address,
                 'zero_system_activity': True,
                 'Factions': faction_data,
                 'TWKills': self._get_new_tw_kills_data(),
-                'TWSandR': self._get_new_tw_sandr_data()}
+                'TWSandR': self._get_new_tw_sandr_data(),
+                'TWReactivate': 0}
 
 
-    def _get_new_faction_data(self, faction_name, faction_state):
+    def _get_new_faction_data(self, faction_name: str, faction_state: str, sample: bool = False) -> dict:
+        """Get a new data structure for storing faction data
+
+        Args:
+            faction_name (str): The faction name
+            faction_state (str): The BGS state of the faction
+            sample (bool, optional): Populate with sample data if True. Defaults to False.
+
+        Returns:
+            dict: The faction data
         """
-        Get a new data structure for storing faction data
-        """
+        s: bool = sample # Shorter
         return {'Faction': faction_name, 'FactionState': faction_state, 'Enabled': self.bgstally.state.EnableSystemActivityByDefault.get(),
-                'MissionPoints': {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': 0}, 'MissionPointsSecondary': {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': 0},
-                'TradeProfit': 0, 'TradePurchase': 0, 'BlackMarketProfit': 0, 'Bounties': 0, 'CartData': 0, 'ExoData': 0,
-                'TradeBuy': [{'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}, {'items': 0, 'value': 0}],
-                'TradeSell': [{'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}, {'items': 0, 'value': 0, 'profit': 0}],
-                'CombatBonds': 0, 'MissionFailed': 0, 'Murdered': 0, 'GroundMurdered': 0,
-                'SpaceCZ': {}, 'GroundCZ': {}, 'GroundCZSettlements': {}, 'Scenarios': 0,
-                'SandR': {'dp': 0, 'op': 0, 'tp': 0, 'bb': 0, 'wc': 0, 'pe': 0, 'pp': 0, 'h': 0},
-                'TWStations': {}}
+                'MissionPoints': {'1': 3 if s else 0, '2': 4 if s else 0, '3': 5 if s else 0, '4': 6 if s else 0, '5': 7 if s else 0, 'm': 8 if s else 0},
+                'MissionPointsSecondary': {'1': 3 if s else 0, '2': 4 if s else 0, '3': 5 if s else 0, '4': 6 if s else 0, '5': 7 if s else 0, 'm': 8 if s else 0},
+                'TradeProfit': 150000 if s else 0, 'TradePurchase': 200000 if s else 0, 'BlackMarketProfit': 50000 if s else 0, 'Bounties': 1000000 if s else 0, 'CartData': 2000000 if s else 0, 'ExoData': 3000000 if s else 0,
+                'TradeBuy': [{'items': 100 if s else 0, 'value': 100000 if s else 0}, {'items': 200 if s else 0, 'value': 200000 if s else 0}, {'items': 300 if s else 0, 'value': 300000 if s else 0}, {'items': 400 if s else 0, 'value': 400000 if s else 0}],
+                'TradeSell': [{'items': 100 if s else 0, 'value': 100000 if s else 0, 'profit': 1000 if s else 0}, {'items': 200 if s else 0, 'value': 200000 if s else 0, 'profit': 2000 if s else 0}, {'items': 300 if s else 0, 'value': 300000 if s else 0, 'profit': 3000 if s else 0}, {'items': 400 if s else 0, 'value': 400000 if s else 0, 'profit': 4000 if s else 0}],
+                'CombatBonds': 1000000 if s else 0, 'MissionFailed': 10 if s else 0, 'Murdered': 30 if s else 0, 'GroundMurdered': 20 if s else 0,
+                'SpaceCZ': {'l': 3 if s else 0, 'm': 4 if s else 0, 'h': 5 if s else 0, 'cs': 1 if s else 0, 'cp': 2 if s else 0, 'so': 3 if s else 0, 'pr': 4 if s else 0},
+                'GroundCZ': {'l': 3 if s else 0, 'm': 4 if s else 0, 'h': 5 if s else 0},
+                'GroundCZSettlements': {"Sample Ground Settlement Name": self._get_new_groundcz_settlement_data('l', s)} if s else {},
+                'Scenarios': 5 if s else 0,
+                'SandR': {'dp': 3 if s else 0, 'op': 4 if s else 0, 'tp': 5 if s else 0, 'bb': 6 if s else 0, 'wc': 7 if s else 0, 'pe': 8 if s else 0, 'pp': 9 if s else 0, 'h': 10 if s else 0},
+                'TWStations': {"Sample Station Name": self._get_new_tw_station_data("Station Name", s)} if s else {}
+                }
 
 
-    def _get_new_tw_station_data(self, station_name):
+    def _get_new_tw_station_data(self, station_name: str, sample: bool = False) -> dict:
+        """Get a new data structure for storing Thargoid War station data
+
+        Args:
+            station_name (str): The station name
+            sample (bool, optional): Populate with sample data if True. Defaults to False.
+
+        Returns:
+            dict: The thargoid war station data
         """
-        Get a new data structure for storing Thargoid War station data
-        """
+        s: bool = sample # Shorter
         return {'name': station_name, 'enabled': CheckStates.STATE_ON,
-                'passengers': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
-                'escapepods': {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}},
-                'cargo': {'count': 0, 'sum': 0},
-                'massacre': {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}},
-                'reactivate': 0}
+                'passengers': {'l': {'count': 3 if s else 0, 'sum': 30 if s else 0}, 'm': {'count': 4 if s else 0, 'sum': 40 if s else 0}, 'h': {'count': 5 if s else 0, 'sum': 50 if s else 0}},
+                'escapepods': {'l': {'count': 3 if s else 0, 'sum': 30 if s else 0}, 'm': {'count': 4 if s else 0, 'sum': 40 if s else 0}, 'h': {'count': 5 if s else 0, 'sum': 50 if s else 0}},
+                'cargo': {'count': 3 if s else 0, 'sum': 300 if s else 0},
+                'massacre': {'s': {'count': 1 if s else 0, 'sum': 10 if s else 0}, 'c': {'count': 2 if s else 0, 'sum': 20 if s else 0}, 'b': {'count': 3 if s else 0, 'sum': 30 if s else 0}, 'm': {'count': 4 if s else 0, 'sum': 40 if s else 0}, 'h': {'count': 5 if s else 0, 'sum': 50 if s else 0}, 'o': {'count': 6 if s else 0, 'sum': 60 if s else 0}},
+                'reactivate': 10 if s else 0}
 
 
-    def _get_new_tw_kills_data(self):
+    def _get_new_tw_kills_data(self, sample: bool = False) -> dict:
+        """Get a new data structure for storing Thargoid War Kills
+
+        Args:
+            sample (bool, optional): Populate with sample data if True. Defaults to False.
+
+        Returns:
+            dict: The thargoid war kills data
         """
-        Get a new data structure for storing Thargoid War Kills
-        """
-        return {'r': 0, 's': 0, 'ba': 0, 'sg': 0, 'c': 0, 'b': 0, 'm': 0, 'h': 0, 'o': 0}
+        s: bool = sample # Shorter
+        return {'r': 1 if s else 0, 's': 2 if s else 0, 'ba': 3 if s else 0, 'sg': 4 if s else 0, 'c': 5 if s else 0, 'b': 6 if s else 0, 'm': 7 if s else 0, 'h': 8 if s else 0, 'o': 9 if s else 0}
 
 
-    def _get_new_tw_sandr_data(self):
+    def _get_new_tw_sandr_data(self, sample: bool = False) -> dict:
+        """Get a new data structure for storing Thargoid War Search and Rescue
+
+        Args:
+            sample (bool, optional): Populate with sample data if True. Defaults to False.
+
+        Returns:
+            dict: The thargoid war SandR data
         """
-        Get a new data structure for storing Thargoid War Search and Rescue
-        """
+        s: bool = sample # Shorter
         return {
-            'dp': {'scooped': 0, 'delivered': 0},
-            'op': {'scooped': 0, 'delivered': 0},
-            'tp': {'scooped': 0, 'delivered': 0},
-            'bb': {'scooped': 0, 'delivered': 0},
-            't': {'scooped': 0, 'delivered': 0}}
+            'dp': {'scooped': 0, 'delivered': 30 if s else 0},
+            'op': {'scooped': 0, 'delivered': 40 if s else 0},
+            'tp': {'scooped': 0, 'delivered': 50 if s else 0},
+            'bb': {'scooped': 0, 'delivered': 60 if s else 0},
+            't': {'scooped': 0, 'delivered': 70 if s else 0}}
+
+
+    def _get_new_groundcz_settlement_data(self, type: str = 'l', sample: bool = False) -> dict:
+        """Get a new data structure for a single GroundCZ settlement
+
+        Args:
+            type (str, optional): The CZ type. Defaults to 'l'.
+            sample (bool, optional): Populate with sample data if True. Defaults to False.
+
+        Returns:
+            dict: Settlement data
+        """
+        s: bool = sample # Shorter
+        return {'count': 5 if s else 0, 'enabled': CheckStates.STATE_ON, 'type': type}
 
 
     def _update_system_data(self, system_data:dict):

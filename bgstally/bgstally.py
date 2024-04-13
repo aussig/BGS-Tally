@@ -49,14 +49,18 @@ class BGSTally:
         self.plugin_dir = plugin_dir
 
         # Debug and Config Classes
-        self.debug:Debug = Debug(self)
-        self.config:Config = Config(self)
+        self.debug: Debug = Debug(self)
+        self.config: Config = Config(self)
+
+        # True only if we are running a dev version
+        self.dev_mode: bool = False
 
         # Load sentry to track errors during development - Hard check on "dev" versions ONLY (which never go out to testers)
         # If you are a developer and want to use sentry, install the sentry_sdk inside the ./thirdparty folder and add your full dsn
         # (starting https://) to a 'sentry' entry in config.ini file. Set the plugin version in load.py to include a 'dev' prerelease,
         # e.g. "3.3.0-dev"
         if type(self.version.prerelease) is tuple and len(self.version.prerelease) > 0 and self.version.prerelease[0] == "dev":
+            self.dev_mode = True
             sys.path.append(path.join(plugin_dir, 'thirdparty'))
             try:
                 import sentry_sdk
@@ -71,22 +75,22 @@ class BGSTally:
         if not path.exists(data_filepath): mkdir(data_filepath)
 
         # Main Classes
-        self.state:State = State(self)
-        self.mission_log:MissionLog = MissionLog(self)
-        self.target_log:TargetLog = TargetLog(self)
-        self.discord:Discord = Discord(self)
-        self.tick:Tick = Tick(self, True)
-        self.overlay:Overlay = Overlay(self)
-        self.activity_manager:ActivityManager = ActivityManager(self)
-        self.fleet_carrier:FleetCarrier = FleetCarrier(self)
-        self.market:Market = Market(self)
-        self.request_manager:RequestManager = RequestManager(self)
-        self.api_manager:APIManager = APIManager(self)
-        self.webhook_manager:WebhookManager = WebhookManager(self)
-        self.update_manager:UpdateManager = UpdateManager(self)
-        self.ui:UI = UI(self)
+        self.state: State = State(self)
+        self.mission_log: MissionLog = MissionLog(self)
+        self.target_log: TargetLog = TargetLog(self)
+        self.discord: Discord = Discord(self)
+        self.tick: Tick = Tick(self, True)
+        self.overlay: Overlay = Overlay(self)
+        self.activity_manager: ActivityManager = ActivityManager(self)
+        self.fleet_carrier: FleetCarrier = FleetCarrier(self)
+        self.market: Market = Market(self)
+        self.request_manager: RequestManager = RequestManager(self)
+        self.api_manager: APIManager = APIManager(self)
+        self.webhook_manager: WebhookManager = WebhookManager(self)
+        self.update_manager: UpdateManager = UpdateManager(self)
+        self.ui: UI = UI(self)
         self.formatter_manager: ActivityFormatterManager = ActivityFormatterManager(self)
-        self.thread:Thread = Thread(target=self._worker, name="BGSTally Main worker")
+        self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True
         self.thread.start()
 

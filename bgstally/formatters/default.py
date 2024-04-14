@@ -31,16 +31,91 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return _("Default") # LANG: Name of default output formatter
 
 
-    def get_text(self, activity: Activity, activity_mode: DiscordActivity, discord: bool = False, system_names: list = None, lang: str = None) -> str:
+    def get_overlay(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> str:
+        """Get the in-game overlay text for a given instance of Activity. The in-game overlay
+        doesn't support any ANSI colouring and very few UTF-8 special characters. Basically,
+        only plain text is safe.
+
+        Args:
+            activity (Activity): The Activity object containing the activity to post
+            activity_mode (DiscordActivity): Determines the type(s) of activity to post
+            system_names (list, optional): A list of system names to restrict the output for. If None, all systems are included. Defaults to None.
+            lang (str, optional): The language code for this post. Defaults to None.
+
+        Returns:
+            str: The output text
+        """
+        return self._build_text(activity, activity_mode, system_names, lang, False)
+
+
+    def get_text(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> str:
+        """Generate formatted text for a given instance of Activity. Must be implemented by subclasses.
+        This method is used for getting the text for the 'copy and paste' function, and for direct posting
+        to Discord for those Formatters that use text style posts (vs Discord embed style posts)
+
+        Args:
+            activity (Activity): The Activity object containing the activity to post
+            activity_mode (DiscordActivity): Determines the type(s) of activity to post
+            system_names (list, optional): A list of system names to restrict the output for. If None, all systems are included. Defaults to None.
+            lang (str, optional): The language code for this post. Defaults to None.
+
+        Returns:
+            str: The output text
+        """
+        return self._build_text(activity, activity_mode, system_names, lang, True)
+
+
+    def get_fields(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> list:
+        """Generate a list of discord embed fields, conforming to the embed field spec defined here:
+        https://birdie0.github.io/discord-webhooks-guide/structure/embed/fields.html - i.e. each field should be a dict
+        containing 'name' and 'value' str keys, and optionally an 'inline' bool key
+
+        Args:
+            activity (Activity): The Activity object containing the activity to post
+            activity_mode (DiscordActivity): Determines the type(s) of activity to post
+            system_names (list, optional): A list of system names to restrict the output for. If None, all systems are included. Defaults to None.
+            lang (str, optional): The language code for this post. Defaults to None.
+
+        Returns:
+            list[dict]: A list of dicts, each containing an embed field containing 'name' and 'value' str keys, and optionally an 'inline' bool key
+        """
+        discord_fields = []
+
+        for system in activity.systems.copy().values(): # Use a copy for thread-safe operation
+            if system_names is not None and system['System'] not in system_names: continue
+            system_text: str = ""
+
+            if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
+                system_text += self._build_tw_system_text(system, True, lang)
+
+            if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
+                for faction in system['Factions'].values():
+                    if faction['Enabled'] != CheckStates.STATE_ON: continue
+                    system_text += self._build_faction_text(faction, True, lang)
+
+            if system_text != "":
+                system_text = system_text.replace("'", "")
+                discord_field = {'name': system['System'], 'value': f"```ansi\n{system_text}```"}
+                discord_fields.append(discord_field)
+
+        return discord_fields
+
+
+
+    #
+    # Private functions
+    #
+
+    def _build_text(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None, discord: bool = True) -> str:
         """Generate formatted text for a given instance of Activity.
 
         Args:
             activity (Activity): The Activity object containing the activity to post
             activity_mode (DiscordActivity): Determines the type(s) of activity to post
-            discord (bool, optional): True if the destination is Discord (so can include Discord-specific formatting such
-            as ```ansi blocks and UTF8 emoji characters), False if not. Defaults to False.
-            system_names (list, optional): A list of system names to restrict the output for. Defaults to None.
+            system_names (list, optional): A list of system names to restrict the output for. If None, all systems are included. Defaults to None.
             lang (str, optional): The language code for this post. Defaults to None.
+            discord (bool, optional): True if the destination is Discord (so can include Discord-specific formatting such
+            as ```ansi blocks and UTF8 emoji characters), False if not. Defaults to True.
 
         Returns:
             str: The output text
@@ -69,46 +144,6 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
         return text.replace("'", "")
 
-
-    def get_fields(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> list:
-        """Generate a list of discord embed fields, conforming to the embed field spec defined here:
-        https://birdie0.github.io/discord-webhooks-guide/structure/embed/fields.html - i.e. each field should be a dict
-        containing 'name' and 'value' str keys, and optionally an 'inline' bool key
-
-        Args:
-            activity (Activity): The Activity object containing the activity to post
-            activity_mode (DiscordActivity): Determines the type(s) of activity to post
-            system_names (list, optional): A list of system names to restrict the output for. Defaults to None.
-            lang (str, optional): The language code for this post. Defaults to None.
-
-        Returns:
-            list[dict]: A list of dicts, each containing an embed field containing 'name' and 'value' str keys, and optionally an 'inline' bool key
-        """
-        discord_fields = []
-
-        for system in activity.systems.copy().values(): # Use a copy for thread-safe operation
-            if system_names is not None and system['System'] not in system_names: continue
-            system_text: str = ""
-
-            if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
-                system_text += self._build_tw_system_text(system, True, lang)
-
-            if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
-                for faction in system['Factions'].values():
-                    if faction['Enabled'] != CheckStates.STATE_ON: continue
-                    system_text += self._build_faction_text(faction, True, lang)
-
-            if system_text != "":
-                system_text = system_text.replace("'", "")
-                discord_field = {'name': system['System'], 'value': f"```ansi\n{system_text}```"}
-                discord_fields.append(discord_field)
-
-        return discord_fields
-
-
-    #
-    # Private functions
-    #
 
     def _build_faction_text(self, faction: dict, discord: bool, lang: str) -> str:
         """Generate formatted text for a faction

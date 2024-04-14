@@ -37,3 +37,6 @@ class TextOnlyActivityFormatter(DefaultActivityFormatter):
         # Override text mode for this legacy formatter as the specific purpose of this formatter is
         # to force Discord posts to the old text-only format
         return FormatMode.TEXT
+
+
+    # get_text() simply uses the superclass

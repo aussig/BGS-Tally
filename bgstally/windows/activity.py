@@ -63,7 +63,7 @@ class WindowActivity:
 
         frm_buttons:ttk.Frame = ttk.Frame(ContainerFrame)
         frm_buttons.pack(fill=tk.X, side=tk.BOTTOM)
-        ttk.Button(frm_buttons, text=_("Copy to Clipboard (Legacy Format)"), command=partial(self._copy_to_clipboard, ContainerFrame, activity)).pack(side=tk.LEFT, padx=5, pady=5) # LANG: Button label
+        ttk.Button(frm_buttons, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, ContainerFrame, activity)).pack(side=tk.LEFT, padx=5, pady=5) # LANG: Button label
         self.btn_post_to_discord: ttk.Button = ttk.Button(frm_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord, activity), # LANG: Button label
                                                           state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -376,7 +376,7 @@ class WindowActivity:
         """
         DiscordText.configure(state=tk.NORMAL)
         DiscordText.delete('1.0', 'end-1c')
-        DiscordText.write(self.bgstally.formatter_manager.get_current_formatter().get_text(activity, DiscordActivity.BOTH, True, lang=self.bgstally.state.discord_lang))
+        DiscordText.write(self.bgstally.formatter_manager.get_current_formatter().get_text(activity, DiscordActivity.BOTH, lang=self.bgstally.state.discord_lang))
         DiscordText.configure(state=tk.DISABLED)
 
 
@@ -395,10 +395,10 @@ class WindowActivity:
 
         if self.bgstally.state.DiscordPostStyle.get() == DiscordPostStyle.TEXT:
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:
-                discord_text: str = self.bgstally.formatter_manager.get_current_formatter().get_text(activity, DiscordActivity.BGS, True, lang=self.bgstally.state.discord_lang)
+                discord_text: str = self.bgstally.formatter_manager.get_current_formatter().get_text(activity, DiscordActivity.BGS, lang=self.bgstally.state.discord_lang)
                 self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
-                discord_text = self.bgstally.formatter_manager.get_current_formatter().get_text(activity, DiscordActivity.THARGOIDWAR, True, lang=self.bgstally.state.discord_lang)
+                discord_text = self.bgstally.formatter_manager.get_current_formatter().get_text(activity, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
                 self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
         else:
             description = "" if activity.discord_notes is None else activity.discord_notes
@@ -620,6 +620,6 @@ class WindowActivity:
         Get all text from the Discord field and put it in the Copy buffer
         """
         Form.clipboard_clear()
-        Form.clipboard_append(self.bgstally.formatter_manager.get_current_formatter().get_text(activity, DiscordActivity.BOTH, True, lang=self.bgstally.state.discord_lang))
+        Form.clipboard_append(self.bgstally.formatter_manager.get_current_formatter().get_text(activity, DiscordActivity.BOTH, lang=self.bgstally.state.discord_lang))
         Form.update()
 

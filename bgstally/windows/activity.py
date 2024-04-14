@@ -57,14 +57,14 @@ class WindowActivity:
         if self.window_geometry is not None:
             self.toplevel.geometry(f"+{self.window_geometry['x']}+{self.window_geometry['y']}")
 
-        ContainerFrame = ttk.Frame(self.toplevel)
-        ContainerFrame.pack(fill=tk.BOTH, expand=tk.YES)
-        nb_tab=ScrollableNotebook(ContainerFrame, wheelscroll=False, tabmenu=True)
+        frm_container: ttk.Frame = ttk.Frame(self.toplevel)
+        frm_container.pack(fill=tk.BOTH, expand=tk.YES)
+        nb_tab=ScrollableNotebook(frm_container, wheelscroll=False, tabmenu=True)
         nb_tab.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
-        frm_buttons:ttk.Frame = ttk.Frame(ContainerFrame)
+        frm_buttons:ttk.Frame = ttk.Frame(frm_container)
         frm_buttons.pack(fill=tk.X, side=tk.BOTTOM)
-        ttk.Button(frm_buttons, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, ContainerFrame, activity)).pack(side=tk.LEFT, padx=5, pady=5) # LANG: Button label
+        ttk.Button(frm_buttons, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, frm_container, activity)).pack(side=tk.LEFT, padx=5, pady=5) # LANG: Button label
         self.btn_post_to_discord: ttk.Button = ttk.Button(frm_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord, activity), # LANG: Button label
                                                           state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -78,7 +78,7 @@ class WindowActivity:
         self.mnu_activity_type.pack(side=tk.RIGHT, pady=5)
         ttk.Label(frm_buttons, text=_("Activity to post:")).pack(side=tk.RIGHT, pady=5) # LANG: Label on activity window
 
-        frm_discord = ttk.Frame(ContainerFrame)
+        frm_discord = ttk.Frame(frm_container)
         frm_discord.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)
         frm_discord.columnconfigure(0, weight=2)
         frm_discord.columnconfigure(1, weight=1)
@@ -618,11 +618,11 @@ class WindowActivity:
                 else: notebook.notebookTab.tab(tab_index, image=self.image_tab_active_disabled)
 
 
-    def _copy_to_clipboard(self, Form:tk.Frame, activity:Activity):
+    def _copy_to_clipboard(self, frm_container: tk.Frame, activity: Activity):
         """
         Get all text from the Discord field and put it in the Copy buffer
         """
-        Form.clipboard_clear()
-        Form.clipboard_append(self.bgstally.formatter_manager.get_current_formatter().get_text(activity, self.bgstally.state.DiscordActivity.get(), lang=self.bgstally.state.discord_lang))
-        Form.update()
+        frm_container.clipboard_clear()
+        frm_container.clipboard_append(self.bgstally.formatter_manager.get_current_formatter().get_text(activity, self.bgstally.state.DiscordActivity.get(), lang=self.bgstally.state.discord_lang))
+        frm_container.update()
 

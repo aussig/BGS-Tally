@@ -16,6 +16,9 @@
 /* Preferences checkbox label. [ui.py] */
 "Activity Indicator" = "Activity Indicator";
 
+/* Label on activity window. [activity.py] */
+"Activity to post:" = "Activity to post:";
+
 /* CMDR information. [cmdrs.py] */
 "Added a friend" = "Added a friend";
 
@@ -51,6 +54,9 @@
 
 /* Discord post title. [activity.py] */
 "BGS Activity after Tick: {tick_time}" = "BGS Activity after Tick: {tick_time}";
+
+/* Dropdown menu on activity window. [activity.py] */
+"BGS Only" = "BGS Only";
 
 /* Discord heading. [activity.py] */
 "bio-pod" = "bio-pod";
@@ -526,14 +532,14 @@
 /* Activity window column title, abbreviation for profit. [activity.py] */
 "Prof" = "Prof";
 
-/* Activity window tooltip. [activity.py] */
-"Profit" = "Profit";
+/* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
+"Profit at Z | L | M | H demand" = "Profit at Z | L | M | H demand";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */
 "Purch" = "Purch";
 
-/* Activity window tooltip. [activity.py] */
-"Purchase" = "Purchase";
+/* Activity window tooltip for purchase at low | medium | high supply. [activity.py] */
+"Purchase at L | M | H supply" = "Purchase at L | M | H supply";
 
 /* Discord heading, abbreviation for reactivation (TW missions). [activity.py] */
 "reac" = "reac";
@@ -735,6 +741,9 @@
 
 /* Discord post title. [activity.py] */
 "TW Activity after Tick: {tick_time}" = "TW Activity after Tick: {tick_time}";
+
+/* Dropdown menu on activity window. [activity.py] */
+"TW Only" = "TW Only";
 
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "TW War Progress in {current_system}: {percent}%";

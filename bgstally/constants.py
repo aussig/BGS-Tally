@@ -78,11 +78,6 @@ class CmdrInteractionReason(int, Enum):
     FRIEND_ADDED = 6
 
 
-class FormatMode(Enum):
-    TEXT = 0
-    FIELDS = 1
-
-
 DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"
 FILE_SUFFIX = ".json"
 FOLDER_ASSETS = "assets"

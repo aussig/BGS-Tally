@@ -1,4 +1,4 @@
-from bgstally.constants import FormatMode
+from bgstally.constants import DiscordPostStyle
 from bgstally.debug import Debug
 from bgstally.formatters.default import DefaultActivityFormatter
 from bgstally.utils import _
@@ -28,15 +28,15 @@ class TextOnlyActivityFormatter(DefaultActivityFormatter):
         return _("Text Only") # LANG: Name of default output formatter
 
 
-    def get_mode(self) -> FormatMode:
+    def get_mode(self) -> DiscordPostStyle:
         """Get the output format mode that this Formatter supports.
 
         Returns:
-            FormatMode: The supported format mode
+            DiscordPostStyle: The supported format mode
         """
         # Override text mode for this legacy formatter as the specific purpose of this formatter is
         # to force Discord posts to the old text-only format
-        return FormatMode.TEXT
+        return DiscordPostStyle.TEXT
 
 
     # get_text() simply uses the superclass

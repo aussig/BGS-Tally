@@ -1,5 +1,5 @@
 from bgstally.activity import Activity
-from bgstally.constants import DiscordActivity, FormatMode
+from bgstally.constants import DiscordActivity
 from bgstally.debug import Debug
 from bgstally.formatters.default import DefaultActivityFormatter
 from bgstally.utils import _

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from bgstally.activity import Activity
-from bgstally.constants import DiscordActivity, FormatMode
+from bgstally.constants import DiscordActivity, DiscordPostStyle
 from bgstally.utils import _
 
 
@@ -29,11 +29,11 @@ class BaseActivityFormatterInterface(ABC):
 
 
     @abstractmethod
-    def get_mode(self) -> FormatMode:
+    def get_mode(self) -> DiscordPostStyle:
         """Get the output format mode that this Formatter supports
 
         Returns:
-            FormatMode: The supported format mode
+            DiscordPostStyle: The supported discord post mode
         """
         pass
 
@@ -91,13 +91,13 @@ class TextActivityFormatterInterface(BaseActivityFormatterInterface):
     Discord posts that use the more modern-looking embed-based display
     """
 
-    def get_mode(self) -> FormatMode:
+    def get_mode(self) -> DiscordPostStyle:
         """Get the output format mode that this Formatter supports
 
         Returns:
-            FormatMode: The supported format mode
+            DiscordPostStyle: The supported discord post mode
         """
-        return FormatMode.TEXT
+        return DiscordPostStyle.TEXT
 
 
 class FieldActivityFormatterInterface(BaseActivityFormatterInterface):
@@ -108,13 +108,13 @@ class FieldActivityFormatterInterface(BaseActivityFormatterInterface):
     Fleet Carrier information posts.
     """
 
-    def get_mode(self) -> FormatMode:
+    def get_mode(self) -> DiscordPostStyle:
         """Get the output format mode that this Formatter supports
 
         Returns:
-            FormatMode: The supported format mode
+            DiscordPostStyle: The supported discord post mode
         """
-        return FormatMode.FIELDS
+        return DiscordPostStyle.EMBED
 
 
     @abstractmethod

@@ -1,7 +1,7 @@
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import CheckStates, DiscordActivity, FormatMode
+from bgstally.constants import CheckStates, DiscordActivity
 from bgstally.debug import Debug
-from bgstally.formatters.base import TextActivityFormatterInterface, FieldActivityFormatterInterface
+from bgstally.formatters.base import FieldActivityFormatterInterface
 from bgstally.utils import _, __, human_format, is_number
 from thirdparty.colors import *
 

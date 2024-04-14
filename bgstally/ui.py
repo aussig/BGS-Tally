@@ -315,7 +315,7 @@ class UI:
         Args:
             event (_type_, optional): Variable related to the callback. Defaults to None.
         """
-        langs_by_name:dict = {v: k for k, v in self.languages.items()}  # Codes by name
+        langs_by_name: dict = {v: k for k, v in self.languages.items()}  # Codes by name
         self.bgstally.state.discord_lang = langs_by_name.get(self.language.get()) or ''  # or '' used here due to Default being None above
 
 
@@ -325,7 +325,7 @@ class UI:
         Args:
             event (_type_, optional): Variable related to the callback. Defaults to None.
         """
-        formatters_by_name:dict = {v: k for k, v in self.formatters.items()}
+        formatters_by_name: dict = {v: k for k, v in self.formatters.items()}
         self.bgstally.state.discord_formatter = formatters_by_name.get(self.formatter.get())
 
 

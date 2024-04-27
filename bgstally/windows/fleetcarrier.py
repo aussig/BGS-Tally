@@ -132,18 +132,18 @@ class WindowFleetCarrier:
         commodities_buying:str = fc.get_items_plaintext(FleetCarrierItemType.COMMODITIES_BUYING)
 
         if materials_selling != "":
-            description += "**" + __("Selling Materials:") + f"**\n```css\n{materials_selling}```\n" # LANG: Discord fleet carrier section heading
+            description += "**" + __("Selling Materials:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{materials_selling}```\n" # LANG: Discord fleet carrier section heading
         if materials_buying != "":
-            description += "**" + __("Buying Materials:") + f"**\n```css\n{materials_buying}```\n" # LANG: Discord fleet carrier section heading
+            description += "**" + __("Buying Materials:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{materials_buying}```\n" # LANG: Discord fleet carrier section heading
         if commodities_selling != "":
-            description += "**" + __("Selling Commodities:") + f"**\n```css\n{commodities_selling}```\n" # LANG: Discord fleet carrier section heading
+            description += "**" + __("Selling Commodities:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{commodities_selling}```\n" # LANG: Discord fleet carrier section heading
         if commodities_buying != "":
-            description += "**" + __("Buying Commodities:") + f"**\n```css\n{commodities_buying}```\n" # LANG: Discord fleet carrier section heading
+            description += "**" + __("Buying Commodities:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{commodities_buying}```\n" # LANG: Discord fleet carrier section heading
 
         fields = []
-        fields.append({'name': __("System"), 'value': fc.data['currentStarSystem'], 'inline': True}) # LANG: Discord fleet carrier field heading
-        fields.append({'name': __("Docking"), 'value': fc.human_format_dockingaccess(True), 'inline': True}) # LANG: Discord fleet carrier field heading
-        fields.append({'name': __("Notorious Access"), 'value': fc.human_format_notorious(True), 'inline': True}) # LANG: Discord fleet carrier field heading
+        fields.append({'name': __("System", lang=self.bgstally.state.discord_lang), 'value': fc.data['currentStarSystem'], 'inline': True}) # LANG: Discord fleet carrier field heading
+        fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': fc.human_format_dockingaccess(True), 'inline': True}) # LANG: Discord fleet carrier field heading
+        fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': fc.human_format_notorious(True), 'inline': True}) # LANG: Discord fleet carrier field heading
 
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
 

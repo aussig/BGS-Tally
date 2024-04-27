@@ -204,32 +204,32 @@ class WindowCMDRs:
 
         embed_fields = [
             {
-                "name": __("Name"), # LANG: Discord heading
+                "name": __("Name", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
                 "value": self.selected_cmdr.get('TargetName'),
                 "inline": True
             },
             {
-                "name": __("In System"), # LANG: Discord heading
+                "name": __("In System", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
                 "value": self.selected_cmdr.get('System'),
                 "inline": True
             },
             {
-                "name": __("In Ship"), # LANG: Discord heading
+                "name": __("In Ship", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
                 "value": self.selected_cmdr.get('Ship'),
                 "inline": True
             },
             {
-                "name": __("In Squadron"), # LANG: Discord heading
+                "name": __("In Squadron", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
                 "value": self.selected_cmdr.get('SquadronID'),
                 "inline": True
             },
             {
-                "name": __("Legal Status"), # LANG: Discord heading
+                "name": __("Legal Status", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
                 "value": self.selected_cmdr.get('LegalStatus'),
                 "inline": True
             },
             {
-                "name": __("Date and Time"), # LANG: Discord heading
+                "name": __("Date and Time", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
                 "value": datetime.strptime(self.selected_cmdr.get('Timestamp'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST),
                 "inline": True
             }
@@ -237,7 +237,7 @@ class WindowCMDRs:
 
         if 'inaraURL' in self.selected_cmdr:
             embed_fields.append({
-                "name": __("CMDR Inara Link"), # LANG: Discord heading
+                "name": __("CMDR Inara Link", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
                 "value": f"[{self.selected_cmdr.get('TargetName')}]({self.selected_cmdr.get('inaraURL')})",
                 "inline": True
                 })
@@ -246,7 +246,7 @@ class WindowCMDRs:
             squadron_info = self.selected_cmdr.get('squadron')
             if 'squadronName' in squadron_info and 'inaraURL' in squadron_info:
                 embed_fields.append({
-                    "name": __("Squadron Inara Link"), # LANG: Discord heading
+                    "name": __("Squadron Inara Link", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
                     "value": f"[{squadron_info.get('squadronName')} ({squadron_info.get('squadronMemberRank')})]({squadron_info.get('inaraURL')})",
                     "inline": True
                     })
@@ -302,36 +302,36 @@ class WindowCMDRs:
         match reason:
             case CmdrInteractionReason.FRIEND_REQUEST_RECEIVED:
                 if discord:
-                    return cyan(__("Friend request received from this CMDR")) # LANG: Discord CMDR information
+                    return cyan(__("Friend request received from this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
                 else:
                     return _("Received friend request from") # LANG: CMDR information
             case CmdrInteractionReason.FRIEND_ADDED:
                 if discord:
-                    return cyan(__("This CMDR was added as a friend")) # LANG: Discord CMDR information
+                    return cyan(__("This CMDR was added as a friend", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
                 else:
                     return _("Added a friend") # LANG: CMDR information
             case CmdrInteractionReason.INTERDICTED_BY:
                 if discord:
-                    return red(__("INTERDICTED BY this CMDR")) # LANG: Discord CMDR information
+                    return red(__("INTERDICTED BY this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
                 else:
                     return _("Interdicted by") # LANG: CMDR information
             case CmdrInteractionReason.KILLED_BY:
                 if discord:
-                    return red(__("KILLED BY this CMDR")) # LANG: Discord CMDR information
+                    return red(__("KILLED BY this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
                 else:
                     return _("Killed by") # LANG: CMDR information
             case CmdrInteractionReason.MESSAGE_RECEIVED:
                 if discord:
-                    return blue(__("Message received from this CMDR in local chat")) # LANG: Discord CMDR information
+                    return blue(__("Message received from this CMDR in local chat", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
                 else:
                     return _("Received message from") # LANG: CMDR information
             case CmdrInteractionReason.TEAM_INVITE_RECEIVED:
                 if discord:
-                    return green(__("Team invite received from this CMDR")) # LANG: Discord CMDR information
+                    return green(__("Team invite received from this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
                 else:
                     return _("Received team invite from") # LANG: CMDR information
             case _:
                 if discord:
-                    return yellow(__("I scanned this CMDR")) # LANG: Discord CMDR information
+                    return yellow(__("I scanned this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
                 else:
                     return _("Scanned") # LANG: CMDR information

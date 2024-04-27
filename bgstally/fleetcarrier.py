@@ -117,16 +117,16 @@ class FleetCarrier:
         """
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
 
-        title:str = __("Jump Scheduled for Carrier {carrier_name}").format(carrier_name=self.name) # LANG: Discord post title
-        description:str = __("A carrier jump has been scheduled") # LANG: Discord text
+        title:str = __("Jump Scheduled for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=self.name) # LANG: Discord post title
+        description:str = __("A carrier jump has been scheduled", lang=self.bgstally.state.discord_lang) # LANG: Discord text
 
         fields = []
-        fields.append({'name': __("From System"), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("To System"), 'value': journal_entry.get('SystemName', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("To Body"), 'value': journal_entry.get('Body', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("Departure Time"), 'value': datetime.strptime(journal_entry.get('DepartureTime'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("Docking"), 'value': self.human_format_dockingaccess(True), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("Notorious Access"), 'value': self.human_format_notorious(True), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("From System", lang=self.bgstally.state.discord_lang), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("To System", lang=self.bgstally.state.discord_lang), 'value': journal_entry.get('SystemName', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("To Body", lang=self.bgstally.state.discord_lang), 'value': journal_entry.get('Body', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Departure Time", lang=self.bgstally.state.discord_lang), 'value': datetime.strptime(journal_entry.get('DepartureTime'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': self.human_format_dockingaccess(True), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': self.human_format_notorious(True), 'inline': True}) # LANG: Discord heading
 
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
@@ -135,13 +135,13 @@ class FleetCarrier:
         """
         The user cancelled their carrier jump
         """
-        title:str = __("Jump Cancelled for Carrier {carrier_name}").format(carrier_name=self.name) # LANG: Discord post title
-        description:str = __("The scheduled carrier jump was cancelled") # LANG: Discord text
+        title:str = __("Jump Cancelled for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=self.name) # LANG: Discord post title
+        description:str = __("The scheduled carrier jump was cancelled", lang=self.bgstally.state.discord_lang) # LANG: Discord text
 
         fields = []
-        fields.append({'name': __("Current System"), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
-        fields.append({'name': __("Docking"), 'value': self.human_format_dockingaccess(True), 'inline': True})
-        fields.append({'name': __("Notorious Access"), 'value': self.human_format_notorious(True), 'inline': True})
+        fields.append({'name': __("Current System", lang=self.bgstally.state.discord_lang), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
+        fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': self.human_format_dockingaccess(True), 'inline': True})
+        fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': self.human_format_notorious(True), 'inline': True})
 
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
@@ -271,10 +271,10 @@ class FleetCarrier:
         Get the docking access in human-readable format
         """
         match (self.data.get('dockingAccess')):
-            case "all": return __("All") if discord else _("All") # LANG: Discord carrier docking access
-            case "squadronfriends": return __("Squadron and Friends") if discord else _("Squadron and Friends") # LANG: Discord carrier docking access
-            case "friends": return __("Friends") if discord else _("Friends") # LANG: Discord carrier docking access
-            case _: return __("None") if discord else _("None") # LANG: Discord carrier docking access
+            case "all": return __("All", lang=self.bgstally.state.discord_lang) if discord else _("All") # LANG: Discord carrier docking access
+            case "squadronfriends": return __("Squadron and Friends", lang=self.bgstally.state.discord_lang) if discord else _("Squadron and Friends") # LANG: Discord carrier docking access
+            case "friends": return __("Friends", lang=self.bgstally.state.discord_lang) if discord else _("Friends") # LANG: Discord carrier docking access
+            case _: return __("None", lang=self.bgstally.state.discord_lang) if discord else _("None") # LANG: Discord carrier docking access
 
 
     def human_format_notorious(self, discord:bool) -> str:
@@ -282,9 +282,9 @@ class FleetCarrier:
         Get the notorious access in human-readable format
         """
         if self.data.get('notoriousAccess', False):
-            return __("Yes") if discord else _("Yes")
+            return __("Yes", lang=self.bgstally.state.discord_lang) if discord else _("Yes")
         else:
-            return __("No") if discord else _("No")
+            return __("No", lang=self.bgstally.state.discord_lang) if discord else _("No")
 
 
     def _human_format_price(self, num) -> str:

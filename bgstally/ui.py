@@ -166,11 +166,16 @@ class UI:
         nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
 
-        self.languages: dict = available_langs()
+        self.languages: dict[str: str] = available_langs()
         self.language:tk.StringVar = tk.StringVar(value=self.languages.get(self.bgstally.state.discord_lang, _('Default')))
+        self.formatters: dict[str: str] = self.bgstally.formatter_manager.get_formatters()
+        self.formatter:tk.StringVar = tk.StringVar(value=self.formatters.get(self.bgstally.state.discord_formatter, _('Default')))
         nb.Label(frame, text=_("Language for Discord Posts")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         nb.OptionMenu(frame, self.language, self.language.get(), *self.languages.values(), command=self._language_modified).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
-
+        nb.Label(frame, text=_("Format for Discord Posts")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
+        nb.OptionMenu(frame, self.formatter, self.formatter.get(), *sorted(self.formatters.values()), command=self._formatter_modified).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
+        Debug.logger.info(f"Discord Lang: {self.bgstally.state.discord_lang}")
+        Debug.logger.info(f"Discord Language: {self.language.get()}")
         sheet_headings:list = ["UUID",
                                _("Nickname"), # LANG: Preferences table heading
                                _("Webhook URL"), # LANG: Preferences table heading
@@ -310,8 +315,18 @@ class UI:
         Args:
             event (_type_, optional): Variable related to the callback. Defaults to None.
         """
-        langs_by_name:dict = {v: k for k, v in self.languages.items()}  # Codes by name
+        langs_by_name: dict = {v: k for k, v in self.languages.items()}  # Codes by name
         self.bgstally.state.discord_lang = langs_by_name.get(self.language.get()) or ''  # or '' used here due to Default being None above
+
+
+    def _formatter_modified(self, event=None):
+        """Callback for change in formatter dropdown
+
+        Args:
+            event (_type_, optional): Variable related to the callback. Defaults to None.
+        """
+        formatters_by_name: dict = {v: k for k, v in self.formatters.items()}
+        self.bgstally.state.discord_formatter = formatters_by_name.get(self.formatter.get())
 
 
     def _worker(self) -> None:
@@ -361,15 +376,15 @@ class UI:
                     # Report recent activity in a designated system, overrides pinned systems
                     report_system:dict = current_activity.get_system_by_address(self.report_system_address)
                     if report_system is not None:
-                        self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, [report_system['System']]), fit_to_text=True, text_includes_title=True)
+                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True)
                     self.report_system_address = None
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
                     if len(pinned_systems) == 1:
-                        self.bgstally.overlay.display_message("system_info", current_activity.generate_text(DiscordActivity.BOTH, False, pinned_systems), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
+                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
                     elif len(pinned_systems) > 1:
-                        self.bgstally.overlay.display_message("system_info", _("Pinned Systems") + "\n" + current_activity.generate_text(DiscordActivity.BOTH, False, pinned_systems), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
+                        self.bgstally.overlay.display_message("system_info", _("Pinned Systems") + "\n" + self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
 
             # Warning
             if self.bgstally.state.enable_overlay_warning and self.warning is not None:

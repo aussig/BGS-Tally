@@ -48,6 +48,7 @@ class State:
         self.station_faction:str = config.get_str('XStationFaction', default = "")
         self.station_type:str = config.get_str('XStationType', default ="")
         self.discord_lang:str|None = config.get_str('BGST_DiscordLang', default="")
+        self.discord_formatter:str|None = config.get_str('BGST_DiscordFormatter', default="")
 
         # Non-persistent values
         self.last_settlement_approached:dict = {}
@@ -104,3 +105,4 @@ class State:
         config.set('XStationFaction', self.station_faction if self.station_faction != None else "")
         config.set('XStationType', self.station_type if self.station_type != None else "")
         config.set('BGST_DiscordLang', self.discord_lang if self.discord_lang != None else "")
+        config.set('BGST_DiscordFormatter', self.discord_formatter if self.discord_formatter != None else "")

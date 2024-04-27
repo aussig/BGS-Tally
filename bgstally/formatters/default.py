@@ -421,15 +421,15 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         # Force plain text if we are not posting to Discord
         fp: bool = not discord
 
-        if 'l' in cz_data and cz_data['l'] != "0" and cz_data['l'] != "": text += f"{cz_data['l']}xL "
-        if 'm' in cz_data and cz_data['m'] != "0" and cz_data['m'] != "": text += f"{cz_data['m']}xM "
-        if 'h' in cz_data and cz_data['h'] != "0" and cz_data['h'] != "": text += f"{cz_data['h']}xH "
+        if 'l' in cz_data and cz_data['l'] != "" and int(cz_data['l']) != 0: text += f"{cz_data['l']}xL "
+        if 'm' in cz_data and cz_data['m'] != "" and int(cz_data['m']) != 0: text += f"{cz_data['m']}xM "
+        if 'h' in cz_data and cz_data['h'] != "" and int(cz_data['h']) != 0: text += f"{cz_data['h']}xH "
 
         objectives: str = ""
-        if 'cs' in cz_data and cz_data['cs'] != "0" and cz_data['cs'] != "": objectives += f"{'👑' if discord else 'Cap Ship'}:{green(cz_data['cs'], fp=fp)} " # Cap Ship
-        if 'so' in cz_data and cz_data['so'] != "0" and cz_data['so'] != "": objectives += f"{'🔠' if discord else 'Spec Ops'}:{green(cz_data['so'], fp=fp)} " # Spec Ops
-        if 'cp' in cz_data and cz_data['cp'] != "0" and cz_data['cp'] != "": objectives += f"{'👨‍✈️' if discord else 'Capt'}:{green(cz_data['cp'], fp=fp)} " # Captain
-        if 'pr' in cz_data and cz_data['pr'] != "0" and cz_data['pr'] != "": objectives += f"{'✒️' if discord else 'Propagand'}:{green(cz_data['pr'], fp=fp)} " # Propagandist
+        if 'cs' in cz_data and cz_data['cs'] != "" and int(cz_data['cs']) != 0: objectives += f"{'👑' if discord else 'Cap Ship'}:{green(cz_data['cs'], fp=fp)} " # Cap Ship
+        if 'so' in cz_data and cz_data['so'] != "" and int(cz_data['so']) != 0: objectives += f"{'🔠' if discord else 'Spec Ops'}:{green(cz_data['so'], fp=fp)} " # Spec Ops
+        if 'cp' in cz_data and cz_data['cp'] != "" and int(cz_data['cp']) != 0: objectives += f"{'👨‍✈️' if discord else 'Capt'}:{green(cz_data['cp'], fp=fp)} " # Captain
+        if 'pr' in cz_data and cz_data['pr'] != "" and int(cz_data['pr']) != 0: objectives += f"{'✒️' if discord else 'Propagand'}:{green(cz_data['pr'], fp=fp)} " # Propagandist
         if objectives != "": text += f"({objectives.rstrip()}) "
 
         if text != "": text = f"{red(prefix, fp=fp)} {text} "

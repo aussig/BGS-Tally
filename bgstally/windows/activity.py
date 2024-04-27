@@ -302,17 +302,17 @@ class WindowActivity:
                     ttk.Label(frm_table, text=sum(faction.get('SandR', {}).values())).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
 
                     if (faction['FactionState'] in STATES_WAR):
-                        CZSpaceLVar = tk.StringVar(value=faction['SpaceCZ'].get('l', '0'))
+                        CZSpaceLVar = tk.IntVar(value=faction['SpaceCZ'].get('l', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                        CZSpaceMVar = tk.StringVar(value=faction['SpaceCZ'].get('m', '0'))
+                        CZSpaceMVar = tk.IntVar(value=faction['SpaceCZ'].get('m', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                        CZSpaceHVar = tk.StringVar(value=faction['SpaceCZ'].get('h', '0'))
+                        CZSpaceHVar = tk.IntVar(value=faction['SpaceCZ'].get('h', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                        CZGroundLVar = tk.StringVar(value=faction['GroundCZ'].get('l', '0'))
+                        CZGroundLVar = tk.IntVar(value=faction['GroundCZ'].get('l', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZGroundLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                        CZGroundMVar = tk.StringVar(value=faction['GroundCZ'].get('m', '0'))
+                        CZGroundMVar = tk.IntVar(value=faction['GroundCZ'].get('m', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZGroundMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                        CZGroundHVar = tk.StringVar(value=faction['GroundCZ'].get('h', '0'))
+                        CZGroundHVar = tk.IntVar(value=faction['GroundCZ'].get('h', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZGroundHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                         # Watch for changes on all SpinBox Variables. This approach catches any change, including manual editing, while using 'command' callbacks only catches clicks
                         CZSpaceLVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceLVar, chk_enable_all, CZs.SPACE_LOW, activity, system, faction, x))
@@ -552,7 +552,7 @@ class WindowActivity:
         self._enable_settlement_change(SettlementCheckbutton, settlement_name, activity, faction, faction_index, *args)
 
 
-    def _cz_change(self, notebook: ScrollableNotebook, tab_index: int, CZVar, EnableAllCheckbutton, cz_type, activity: Activity, system, faction, faction_index, *args):
+    def _cz_change(self, notebook: ScrollableNotebook, tab_index: int, CZVar: tk.IntVar, EnableAllCheckbutton, cz_type, activity: Activity, system, faction, faction_index, *args):
         """
         Callback (set as a variable trace) for when a CZ Variable is changed
         """
@@ -575,7 +575,7 @@ class WindowActivity:
         activity.dirty = True
 
 
-    def _mission_points_change(self, notebook: ScrollableNotebook, tab_index: int, MissionPointsVar, primary, EnableAllCheckbutton, activity: Activity, system, faction, faction_index, *args):
+    def _mission_points_change(self, notebook: ScrollableNotebook, tab_index: int, MissionPointsVar: tk.IntVar, primary, EnableAllCheckbutton, activity: Activity, system, faction, faction_index, *args):
         """
         Callback (set as a variable trace) for when a mission points Variable is changed
         """
@@ -590,7 +590,7 @@ class WindowActivity:
         activity.dirty = True
 
 
-    def _scenarios_change(self, notebook: ScrollableNotebook, tab_index: int, ScenariosVar, EnableAllCheckbutton, activity: Activity, system, faction, faction_index, *args):
+    def _scenarios_change(self, notebook: ScrollableNotebook, tab_index: int, ScenariosVar: tk.IntVar, EnableAllCheckbutton, activity: Activity, system, faction, faction_index, *args):
         """
         Callback (set as a variable trace) for when the scenarios Variable is changed
         """

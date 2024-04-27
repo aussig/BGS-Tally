@@ -619,7 +619,7 @@ class Activity:
 
             self.dirty = True
 
-            faction['SpaceCZ']['cs'] = str(int(faction['SpaceCZ'].get('cs', '0')) + 1)
+            faction['SpaceCZ']['cs'] = int(faction['SpaceCZ'].get('cs', '0')) + 1
 
             self.bgstally.ui.show_system_report(current_system['SystemAddress'])
             self.recalculate_zero_activity()
@@ -956,7 +956,7 @@ class Activity:
             # Handle as 'Low' if this is the first CB
             if state.last_settlement_approached['size'] == None:
                 # Increment overall 'Low' count for this faction
-                faction['GroundCZ']['l'] = str(int(faction['GroundCZ'].get('l', '0')) + 1)
+                faction['GroundCZ']['l'] = int(faction['GroundCZ'].get('l', '0')) + 1
                 # Set faction settlement type
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'l'
                 # Store last settlement type
@@ -965,9 +965,9 @@ class Activity:
             # Handle as 'Med' if this is either the first CB or we've counted this settlement as a 'Low' before
             if state.last_settlement_approached['size'] == None or state.last_settlement_approached['size'] == 'l':
                 # Increment overall 'Med' count for this faction
-                faction['GroundCZ']['m'] = str(int(faction['GroundCZ'].get('m', '0')) + 1)
+                faction['GroundCZ']['m'] = int(faction['GroundCZ'].get('m', '0')) + 1
                 # Decrement overall previous size count if we previously counted it
-                if previous_size != None: faction['GroundCZ'][previous_size] = str(int(faction['GroundCZ'].get(previous_size, '0')) - 1)
+                if previous_size != None: faction['GroundCZ'][previous_size] = int(faction['GroundCZ'].get(previous_size, '0')) - 1
                 # Set faction settlement type
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'm'
                 # Store last settlement type
@@ -976,9 +976,9 @@ class Activity:
             # Handle as 'High' if this is either the first CB or we've counted this settlement as a 'Low' or 'Med' before
             if state.last_settlement_approached['size'] == None or state.last_settlement_approached['size'] == 'l' or state.last_settlement_approached['size'] == 'm':
                 # Increment overall 'High' count for this faction
-                faction['GroundCZ']['h'] = str(int(faction['GroundCZ'].get('h', '0')) + 1)
+                faction['GroundCZ']['h'] = int(faction['GroundCZ'].get('h', '0')) + 1
                 # Decrement overall previous size count if we previously counted it
-                if previous_size != None: faction['GroundCZ'][previous_size] = str(int(faction['GroundCZ'].get(previous_size, '0')) - 1)
+                if previous_size != None: faction['GroundCZ'][previous_size] = int(faction['GroundCZ'].get(previous_size, '0')) - 1
                 # Set faction settlement type
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'h'
                 # Store last settlement type
@@ -1004,19 +1004,19 @@ class Activity:
             if state.last_ship_targeted.get('PilotName', "") in SPACECZ_PILOTNAMES_CAPTAIN and not state.last_spacecz_approached.get('capt'):
                 # Tally a captain kill. Unreliable because of journal order unpredictability.
                 state.last_spacecz_approached['capt'] = True
-                faction['SpaceCZ']['cp'] = str(int(faction['SpaceCZ'].get('cp', '0')) + 1)
+                faction['SpaceCZ']['cp'] = int(faction['SpaceCZ'].get('cp', '0')) + 1
                 self.bgstally.ui.show_system_report(current_system['SystemAddress'])
             elif state.last_ship_targeted.get('PilotName', "") in SPACECZ_PILOTNAMES_SPECOPS and not state.last_spacecz_approached.get('specops'):
                 # Tally a specops kill. We would like to only tally this after 4 kills in a CZ, but sadly due to journal order
                 # unpredictability we tally as soon as we spot a kill after targeting a spec ops
                 state.last_spacecz_approached['specops'] = True
-                faction['SpaceCZ']['so'] = str(int(faction['SpaceCZ'].get('so', '0')) + 1)
+                faction['SpaceCZ']['so'] = int(faction['SpaceCZ'].get('so', '0')) + 1
                 self.bgstally.ui.show_system_report(current_system['SystemAddress'])
             elif state.last_ship_targeted.get('PilotName', "") == SPACECZ_PILOTNAME_PROPAGAND and not state.last_spacecz_approached.get('propagand'):
                 # Tally a propagandist kill. We would like to only tally this after 3 kills in a CZ, but sadly due to journal order
                 # unpredictability we tally as soon as we spot a kill after targeting a propagandist
                 state.last_spacecz_approached['propagand'] = True
-                faction['SpaceCZ']['pr'] = str(int(faction['SpaceCZ'].get('pr', '0')) + 1)
+                faction['SpaceCZ']['pr'] = int(faction['SpaceCZ'].get('pr', '0')) + 1
                 self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
         # If we've already counted this CZ, exit
@@ -1027,7 +1027,7 @@ class Activity:
         self.dirty = True
 
         type:str = state.last_spacecz_approached.get('type', 'l')
-        faction['SpaceCZ'][type] = str(int(faction['SpaceCZ'].get(type, '0')) + 1)
+        faction['SpaceCZ'][type] = int(faction['SpaceCZ'].get(type, '0')) + 1
 
         self.bgstally.ui.show_system_report(current_system['SystemAddress'])
         self.recalculate_zero_activity()

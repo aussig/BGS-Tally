@@ -347,11 +347,11 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
         if self.bgstally.state.detailed_inf:
             detailed_inf: str = ""
-            if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {inf_data['1']} "
-            if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {inf_data['2']} "
-            if inf_data.get('3', 0) != 0: detailed_inf += f"{'➌' if discord else '+++'} x {inf_data['3']} "
-            if inf_data.get('4', 0) != 0: detailed_inf += f"{'➍' if discord else '++++'} x {inf_data['4']} "
-            if inf_data.get('5', 0) != 0: detailed_inf += f"{'➎' if discord else '+++++'} x {inf_data['5']} "
+            if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {green(inf_data['1'], fp=fp)} "
+            if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {green(inf_data['2'], fp=fp)} "
+            if inf_data.get('3', 0) != 0: detailed_inf += f"{'➌' if discord else '+++'} x {green(inf_data['3'], fp=fp)} "
+            if inf_data.get('4', 0) != 0: detailed_inf += f"{'➍' if discord else '++++'} x {green(inf_data['4'], fp=fp)} "
+            if inf_data.get('5', 0) != 0: detailed_inf += f"{'➎' if discord else '+++++'} x {green(inf_data['5'], fp=fp)} "
             if detailed_inf != "": text += f"({detailed_inf.rstrip()}) "
 
         return text
@@ -421,9 +421,9 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         # Force plain text if we are not posting to Discord
         fp: bool = not discord
 
-        if 'l' in cz_data and cz_data['l'] != "" and int(cz_data['l']) != 0: text += f"{cz_data['l']}xL "
-        if 'm' in cz_data and cz_data['m'] != "" and int(cz_data['m']) != 0: text += f"{cz_data['m']}xM "
-        if 'h' in cz_data and cz_data['h'] != "" and int(cz_data['h']) != 0: text += f"{cz_data['h']}xH "
+        if 'l' in cz_data and cz_data['l'] != "" and int(cz_data['l']) != 0: text += f"L x {green(cz_data['l'], fp=fp)} "
+        if 'm' in cz_data and cz_data['m'] != "" and int(cz_data['m']) != 0: text += f"M x {green(cz_data['m'], fp=fp)} "
+        if 'h' in cz_data and cz_data['h'] != "" and int(cz_data['h']) != 0: text += f"H x {green(cz_data['h'], fp=fp)} "
 
         objectives: str = ""
         if 'cs' in cz_data and cz_data['cs'] != "" and int(cz_data['cs']) != 0: objectives += f"{'👑' if discord else 'Cap Ship'}:{green(cz_data['cs'], fp=fp)} " # Cap Ship

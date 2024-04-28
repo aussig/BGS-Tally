@@ -282,12 +282,8 @@ class WindowActivity:
                     MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary']['m'])
                     ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     MissionPointsSecVar.trace('w', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsSecVar, False, chk_enable_all, activity, system, faction, x))
-                    if faction['TradePurchase'] > 0:
-                        ttk.Label(frm_table, text=human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                        ttk.Label(frm_table, text=human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                    else:
-                        ttk.Label(frm_table, text=f"{human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
-                        ttk.Label(frm_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
+                    ttk.Label(frm_table, text=f"{human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
+                    ttk.Label(frm_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
                     ttk.Label(frm_table, text=human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(frm_table, text=human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(frm_table, text=human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1

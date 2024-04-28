@@ -163,7 +163,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         activity_text += self._build_inf(faction['MissionPoints'], faction['MissionPointsSecondary'], faction['FactionState'], discord, lang)
         activity_text += red("BVs", fp=fp) + " " + green(human_format(faction['Bounties']), fp=fp) + " " if faction['Bounties'] != 0 else "" # LANG: Discord heading, abbreviation for bounty vouchers
         activity_text += red("CBs", fp=fp) + " " + green(human_format(faction['CombatBonds']), fp=fp) + " " if faction['CombatBonds'] != 0 else "" # LANG: Discord heading, abbreviation for combat bonds
-        activity_text += self._build_trade(faction['TradePurchase'], faction['TradeProfit'], faction['TradeBuy'], faction['TradeSell'], discord, lang)
+        activity_text += self._build_trade(faction['TradeBuy'], faction['TradeSell'], discord, lang)
         activity_text += cyan(__("TrdBMProfit", lang), fp=fp) + " " + green(human_format(faction['BlackMarketProfit']), fp=fp) + " " if faction['BlackMarketProfit'] != 0 else "" # LANG: Discord heading, abbreviation for trade black market profit
         activity_text += white(__("Expl", lang), fp=fp) + " " + green(human_format(faction['CartData']), fp=fp) + " " if faction['CartData'] != 0 else "" # LANG: Discord heading, abbreviation for exploration
         # activity_text += grey(__('Exo', lang), fp=fp) + " " + green(human_format(faction['ExoData']), fp=fp) + " " if faction['ExoData'] != 0 else "" # LANG: Discord heading, abbreviation for exobiology
@@ -357,7 +357,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return text
 
 
-    def _build_trade(self, trade_purchase: int, trade_profit: int, trade_buy: list, trade_sell: list, discord: bool, lang: str) -> str:
+    def _build_trade(self, trade_buy: list, trade_sell: list, discord: bool, lang: str) -> str:
         """Create a summary of trade, with detailed breakdown if user has requested
 
         Args:
@@ -376,11 +376,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         # Force plain text if we are not posting to Discord
         fp: bool = not discord
 
-        if trade_purchase > 0:
-            # Legacy - Used a single value for purchase value / profit
-            text += cyan(__("TrdBuy", lang), fp=fp) + " " + green(human_format(trade_purchase), fp=fp) + " " if trade_purchase != 0 else "" # LANG: Discord heading, abbreviation for trade buy
-            text += cyan(__("TrdProfit", lang), fp=fp) + " " + green(human_format(trade_profit), fp=fp) + " " if trade_profit != 0 else "" # LANG: Discord heading, abbreviation for trade profit
-        elif not self.bgstally.state.detailed_trade:
+        if not self.bgstally.state.detailed_trade:
             # Modern, simple trade report - Combine buy at all brackets and profit at all brackets
             buy_total: int = sum(int(d['value']) for d in trade_buy)
             profit_total: int = sum(int(d['profit']) for d in trade_sell)

@@ -111,9 +111,6 @@ class WindowActivity:
         frm_discordoptions = ttk.Frame(frm_discord)
         frm_discordoptions.grid(row=2, column=2, padx=5, pady=5, sticky=tk.NW)
         current_row = 1
-        ttk.Label(frm_discordoptions, text=_("Post Format")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Radio group title
-        ttk.Radiobutton(frm_discordoptions, text=_("Modern"), variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Radio button label
-        ttk.Radiobutton(frm_discordoptions, text=_("Legacy"), variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Radio button label
         ttk.Label(frm_discordoptions, text=_("Other Options")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Options group title
         ttk.Checkbutton(frm_discordoptions, text=_("Abbreviate Faction Names"), variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         ttk.Checkbutton(frm_discordoptions, text=_("Show Detailed INF"), variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label

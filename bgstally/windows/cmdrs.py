@@ -6,7 +6,7 @@ from urllib.parse import quote
 
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from bgstally.constants import COLOUR_HEADING_1, DATETIME_FORMAT_JOURNAL, FONT_HEADING_1, FONT_HEADING_2, CmdrInteractionReason, DiscordChannel
+from bgstally.constants import COLOUR_HEADING_1, DATETIME_FORMAT_JOURNAL, FONT_HEADING_1, FONT_HEADING_2, DiscordChannel
 from bgstally.debug import Debug
 from bgstally.utils import _, __
 from bgstally.widgets import TreeviewPlus
@@ -99,7 +99,7 @@ class WindowCMDRs:
                              target.get('Ship', "----"), \
                              target.get('LegalStatus', "----"), \
                              datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST), \
-                             self._get_human_readable_reason(target.get('Reason'), False)]
+                             self.bgstally.targetmanager.get_human_readable_reason(target.get('Reason'), False)]
             treeview.insert("", 'end', values=target_values, iid=target.get('index'))
 
         self.post_button = tk.Button(buttons_frame, text=_("Post CMDR to Discord"), command=partial(self._post_to_discord)) # LANG: Button on CMDR window
@@ -132,7 +132,7 @@ class WindowCMDRs:
             if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text=_("Inara Info Available ⤴"), url=squadron_info.get('inaraURL')) # LANG: Inara URL on CMDR window
         elif 'SquadronID' in self.selected_cmdr:
             self.cmdr_details_squadron.config(text=f"{self.selected_cmdr.get('SquadronID')}")
-        self.cmdr_details_interaction.config(text=self._get_human_readable_reason(self.selected_cmdr.get('Reason'), False))
+        self.cmdr_details_interaction.config(text=self.bgstally.targetmanager.get_human_readable_reason(self.selected_cmdr.get('Reason'), False))
 
 
     def _cmdr_selection_changed(self, treeview:TreeviewPlus, *args):
@@ -251,7 +251,7 @@ class WindowCMDRs:
                     "inline": True
                     })
 
-        description = f"```ansi\n{self._get_human_readable_reason(self.selected_cmdr.get('Reason'), True)}\n```"
+        description = f"```ansi\n{self.bgstally.targetmanager.get_human_readable_reason(self.selected_cmdr.get('Reason'), True)}\n```"
 
         self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr.get('TargetName')}", description, embed_fields, None, DiscordChannel.CMDR_INFORMATION, None)
 
@@ -285,53 +285,3 @@ class WindowCMDRs:
                     text += "\n"
 
         self.bgstally.discord.post_plaintext(text, None, DiscordChannel.CMDR_INFORMATION, None)
-
-
-    def _get_human_readable_reason(self, reason:CmdrInteractionReason, discord:bool) -> str:
-        """
-        Get a human readable version of this interaction reason
-
-        Args:
-            reason (CmdrInteractionReason): The interaction reason
-            discord (bool): True if this message is going to Discord. Defaults to False.
-
-        Returns:
-            str: Descriptive text for reason
-        """
-
-        match reason:
-            case CmdrInteractionReason.FRIEND_REQUEST_RECEIVED:
-                if discord:
-                    return cyan(__("Friend request received from this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
-                else:
-                    return _("Received friend request from") # LANG: CMDR information
-            case CmdrInteractionReason.FRIEND_ADDED:
-                if discord:
-                    return cyan(__("This CMDR was added as a friend", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
-                else:
-                    return _("Added a friend") # LANG: CMDR information
-            case CmdrInteractionReason.INTERDICTED_BY:
-                if discord:
-                    return red(__("INTERDICTED BY this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
-                else:
-                    return _("Interdicted by") # LANG: CMDR information
-            case CmdrInteractionReason.KILLED_BY:
-                if discord:
-                    return red(__("KILLED BY this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
-                else:
-                    return _("Killed by") # LANG: CMDR information
-            case CmdrInteractionReason.MESSAGE_RECEIVED:
-                if discord:
-                    return blue(__("Message received from this CMDR in local chat", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
-                else:
-                    return _("Received message from") # LANG: CMDR information
-            case CmdrInteractionReason.TEAM_INVITE_RECEIVED:
-                if discord:
-                    return green(__("Team invite received from this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
-                else:
-                    return _("Received team invite from") # LANG: CMDR information
-            case _:
-                if discord:
-                    return yellow(__("I scanned this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
-                else:
-                    return _("Scanned") # LANG: CMDR information

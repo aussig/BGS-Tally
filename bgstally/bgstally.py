@@ -22,7 +22,7 @@ from bgstally.missionlog import MissionLog
 from bgstally.overlay import Overlay
 from bgstally.requestmanager import RequestManager
 from bgstally.state import State
-from bgstally.targetlog import TargetLog
+from bgstally.targetmanager import TargetManager
 from bgstally.tick import Tick
 from bgstally.ui import UI
 from bgstally.updatemanager import UpdateManager
@@ -77,7 +77,7 @@ class BGSTally:
         # Main Classes
         self.state: State = State(self)
         self.mission_log: MissionLog = MissionLog(self)
-        self.target_log: TargetLog = TargetLog(self)
+        self.target_log: TargetManager = TargetManager(self)
         self.discord: Discord = Discord(self)
         self.tick: Tick = Tick(self, True)
         self.overlay: Overlay = Overlay(self)

@@ -403,7 +403,7 @@ class UI:
             # CMDR Information
             if self.bgstally.state.enable_overlay_cmdr and self.report_cmdr_data is not None:
                 # Report recent interaction with a CMDR
-                display_text: str = self.bgstally.targetmanager.get_human_readable_reason(self.report_cmdr_data.get('Reason', 0), False) + ": " + self.report_cmdr_data.get('TargetName', _("Unknown")) + "\n" # LANG: Overlay CMDR information report message
+                display_text: str = self.bgstally.target_manager.get_human_readable_reason(self.report_cmdr_data.get('Reason', 0), False) + ": " + self.report_cmdr_data.get('TargetName', _("Unknown")) + "\n" # LANG: Overlay CMDR information report message
                 display_text += _("In system: {system}").format(system=self.report_cmdr_data.get('System', _("Unknown"))) + "  " # LANG: Overlay CMDR information report message
                 display_text += _("Squadron ID: {squadron}").format(squadron=self.report_cmdr_data.get('SquadronID', _("Unknown"))) + "\n" # LANG: Overlay CMDR information report message
                 display_text += _("In ship: {ship}").format(ship=self.report_cmdr_data.get('Ship', _("Unknown"))) + "  " # LANG: Overlay CMDR information report message

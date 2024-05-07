@@ -77,7 +77,7 @@ class BGSTally:
         # Main Classes
         self.state: State = State(self)
         self.mission_log: MissionLog = MissionLog(self)
-        self.target_log: TargetManager = TargetManager(self)
+        self.target_manager: TargetManager = TargetManager(self)
         self.discord: Discord = Discord(self)
         self.tick: Tick = Tick(self, True)
         self.overlay: Overlay = Overlay(self)
@@ -165,7 +165,7 @@ class BGSTally:
                 dirty = True
 
             case 'Died':
-                self.target_log.died(entry, system)
+                self.target_manager.died(entry, system)
 
             case 'Docked':
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
@@ -181,13 +181,13 @@ class BGSTally:
                 dirty = True
 
             case 'Friends' if entry.get('Status') == "Requested":
-                self.target_log.friend_request(entry, system)
+                self.target_manager.friend_request(entry, system)
 
             case 'Friends' if entry.get('Status') == "Added":
-                self.target_log.friend_added(entry, system)
+                self.target_manager.friend_added(entry, system)
 
             case 'Interdicted':
-                self.target_log.interdicted(entry, system)
+                self.target_manager.interdicted(entry, system)
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
@@ -225,7 +225,7 @@ class BGSTally:
                 dirty = True
 
             case 'ReceiveText':
-                self.target_log.received_text(entry, system)
+                self.target_manager.received_text(entry, system)
 
             case 'RedeemVoucher' if entry.get('Type') == 'bounty':
                 activity.bv_redeemed(entry, self.state)
@@ -253,7 +253,7 @@ class BGSTally:
 
             case 'ShipTargeted':
                 activity.ship_targeted(entry, self.state)
-                self.target_log.ship_targeted(entry, system)
+                self.target_manager.ship_targeted(entry, system)
                 dirty = True
 
             case 'SupercruiseDestinationDrop':
@@ -268,7 +268,7 @@ class BGSTally:
                 self.state.station_type = ""
 
             case 'WingInvite':
-                self.target_log.team_invite(entry, system)
+                self.target_manager.team_invite(entry, system)
 
         if dirty:
             self.save_data()
@@ -317,7 +317,7 @@ class BGSTally:
         """
         # TODO: Don't need to save all this all the time, be more selective
         self.mission_log.save()
-        self.target_log.save()
+        self.target_manager.save()
         self.tick.save()
         self.activity_manager.save()
         self.state.save()

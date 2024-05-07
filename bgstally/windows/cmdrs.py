@@ -61,7 +61,7 @@ class WindowCMDRs:
                         {'title': _("Legal"), 'type': "name", 'align': tk.W, 'stretch': tk.NO, 'width': 60}, # LANG: CMDR window column title
                         {'title': _("Date / Time"), 'type': "datetime", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 150}, # LANG: CMDR window column title
                         {'title': _("Interaction"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 300}] # LANG: CMDR window column title
-        self.target_data = self.bgstally.target_log.get_targetlog()
+        self.target_data = self.bgstally.target_manager.get_targetlog()
 
         treeview = TreeviewPlus(list_frame, columns=[d['title'] for d in column_info], show="headings", callback=self._cmdr_selected, datetime_format=DATETIME_FORMAT_CMDRLIST)
         treeview.bind('<<TreeviewSelect>>', partial(self._cmdr_selection_changed, treeview))
@@ -99,7 +99,7 @@ class WindowCMDRs:
                              target.get('Ship', "----"), \
                              target.get('LegalStatus', "----"), \
                              datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST), \
-                             self.bgstally.targetmanager.get_human_readable_reason(target.get('Reason'), False)]
+                             self.bgstally.target_manager.get_human_readable_reason(target.get('Reason'), False)]
             treeview.insert("", 'end', values=target_values, iid=target.get('index'))
 
         self.post_button = tk.Button(buttons_frame, text=_("Post CMDR to Discord"), command=partial(self._post_to_discord)) # LANG: Button on CMDR window
@@ -132,7 +132,7 @@ class WindowCMDRs:
             if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text=_("Inara Info Available ⤴"), url=squadron_info.get('inaraURL')) # LANG: Inara URL on CMDR window
         elif 'SquadronID' in self.selected_cmdr:
             self.cmdr_details_squadron.config(text=f"{self.selected_cmdr.get('SquadronID')}")
-        self.cmdr_details_interaction.config(text=self.bgstally.targetmanager.get_human_readable_reason(self.selected_cmdr.get('Reason'), False))
+        self.cmdr_details_interaction.config(text=self.bgstally.target_manager.get_human_readable_reason(self.selected_cmdr.get('Reason'), False))
 
 
     def _cmdr_selection_changed(self, treeview:TreeviewPlus, *args):
@@ -251,7 +251,7 @@ class WindowCMDRs:
                     "inline": True
                     })
 
-        description = f"```ansi\n{self.bgstally.targetmanager.get_human_readable_reason(self.selected_cmdr.get('Reason'), True)}\n```"
+        description = f"```ansi\n{self.bgstally.target_manager.get_human_readable_reason(self.selected_cmdr.get('Reason'), True)}\n```"
 
         self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr.get('TargetName')}", description, embed_fields, None, DiscordChannel.CMDR_INFORMATION, None)
 

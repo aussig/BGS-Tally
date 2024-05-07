@@ -26,6 +26,7 @@
 * Changed the font used in the Discord preview panel on activity windows to a font that supports more emoji and more closely matches Discord posts.
 * Tweaked the discord webhooks layout in settings to include horizontal lines for better clarity.
 * Unfortunately had to remove the functionality to log CMDRs scanned while in a dropship / taxi as we can no longer get the CMDR name from the game journal.
+* The layout of the CMDR information panel in the CMDRs window has been tidied up.
 
 ### Bug Fixes:
 

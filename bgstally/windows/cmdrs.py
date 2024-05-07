@@ -41,6 +41,7 @@ class WindowCMDRs:
         self.toplevel.title(_("{plugin_name} - CMDR Interactions").format(plugin_name=self.bgstally.plugin_name)) # LANG: CMDR window title
         self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
         self.toplevel.geometry("1200x800")
+        self.toplevel.minsize(750, 500)
 
         container_frame = ttk.Frame(self.toplevel)
         container_frame.pack(fill=tk.BOTH, expand=1)
@@ -51,7 +52,7 @@ class WindowCMDRs:
         buttons_frame = ttk.Frame(container_frame)
         buttons_frame.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
 
-        details_frame = ttk.Frame(container_frame)
+        details_frame = ttk.Frame(container_frame, relief=tk.GROOVE)
         details_frame.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
 
         column_info = [{'title': _("Name"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200}, # LANG: CMDR window column title
@@ -71,22 +72,22 @@ class WindowCMDRs:
         treeview.pack(fill=tk.BOTH, expand=1)
 
         current_row = 0
-        ttk.Label(details_frame, text=_("CMDR Details"), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, sticky=tk.W); current_row += 1 # LANG: Label on CMDR window
-        ttk.Label(details_frame, text=_("Name: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W) # LANG: Label on CMDR window
-        self.cmdr_details_name = ttk.Label(details_frame, text="")
-        self.cmdr_details_name.grid(row=current_row, column=1, sticky=tk.W)
-        ttk.Label(details_frame, text=_("Inara: "), font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W) # LANG: Label on CMDR window
+        ttk.Label(details_frame, text=_("CMDR Details"), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, sticky=tk.W, columnspan=4, padx=5, pady=[5, 0]); current_row += 1 # LANG: Label on CMDR window
+        ttk.Label(details_frame, text=_("Name: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W, padx=5) # LANG: Label on CMDR window
+        self.cmdr_details_name = ttk.Label(details_frame, text="", width=50)
+        self.cmdr_details_name.grid(row=current_row, column=1, sticky=tk.W, padx=5)
+        ttk.Label(details_frame, text=_("Inara: "), font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W, padx=5) # LANG: Label on CMDR window
         self.cmdr_details_name_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/cmdrs/?search=aussi", underline=True)
-        self.cmdr_details_name_inara.grid(row=current_row, column=3, sticky=tk.W); current_row += 1
-        ttk.Label(details_frame, text=_("Squadron: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W) # LANG: Label on CMDR window
+        self.cmdr_details_name_inara.grid(row=current_row, column=3, sticky=tk.W, padx=5); current_row += 1
+        ttk.Label(details_frame, text=_("Squadron: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W, padx=5) # LANG: Label on CMDR window
         self.cmdr_details_squadron = ttk.Label(details_frame, text="")
-        self.cmdr_details_squadron.grid(row=current_row, column=1, sticky=tk.W)
-        ttk.Label(details_frame, text=_("Inara: "), font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W) # LANG: Label on CMDR window
+        self.cmdr_details_squadron.grid(row=current_row, column=1, sticky=tk.W, padx=5)
+        ttk.Label(details_frame, text=_("Inara: "), font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W, padx=5) # LANG: Label on CMDR window
         self.cmdr_details_squadron_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/squadrons-search/?search=ghst", underline=True)
-        self.cmdr_details_squadron_inara.grid(row=current_row, column=3, sticky=tk.W); current_row += 1
-        ttk.Label(details_frame, text=_("Interaction: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W) # LANG: Label on CMDR window
+        self.cmdr_details_squadron_inara.grid(row=current_row, column=3, sticky=tk.W, padx=5); current_row += 1
+        ttk.Label(details_frame, text=_("Interaction: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W, padx=5) # LANG: Label on CMDR window
         self.cmdr_details_interaction = ttk.Label(details_frame, text="")
-        self.cmdr_details_interaction.grid(row=current_row, column=1, sticky=tk.W); current_row += 1
+        self.cmdr_details_interaction.grid(row=current_row, column=1, sticky=tk.W, padx=5, pady=[0, 5]); current_row += 1
 
         for column in column_info:
             treeview.heading(column['title'], text=column['title'].title(), sort_by=column['type'])

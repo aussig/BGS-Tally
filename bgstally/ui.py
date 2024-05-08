@@ -53,6 +53,7 @@ class UI:
 
         self.indicate_activity:bool = False
         self.report_system_address:str = None
+        self.report_cmdr_data:dict = None
         self.warning:str = None
 
         # Single-instance windows
@@ -157,15 +158,8 @@ class UI:
         nb.Checkbutton(frame, text=_("Include Secondary INF"), variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Label(frame, text=_("Post Format")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
-        nb.Radiobutton(frame, text=_("Modern"), variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences radio button label
-        nb.Radiobutton(frame, text=_("Legacy"), variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences radio button label
-
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text=_("Discord Webhooks"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
         nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
-
         self.languages: dict[str: str] = available_langs()
         self.language:tk.StringVar = tk.StringVar(value=self.languages.get(self.bgstally.state.discord_lang, _('Default')))
         self.formatters: dict[str: str] = self.bgstally.formatter_manager.get_formatters()
@@ -174,8 +168,9 @@ class UI:
         nb.OptionMenu(frame, self.language, self.language.get(), *self.languages.values(), command=self._language_modified).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
         nb.Label(frame, text=_("Format for Discord Posts")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         nb.OptionMenu(frame, self.formatter, self.formatter.get(), *sorted(self.formatters.values()), command=self._formatter_modified).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
-        Debug.logger.info(f"Discord Lang: {self.bgstally.state.discord_lang}")
-        Debug.logger.info(f"Discord Language: {self.language.get()}")
+
+        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text=_("Discord Webhooks"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
         sheet_headings:list = ["UUID",
                                _("Nickname"), # LANG: Preferences table heading
                                _("Webhook URL"), # LANG: Preferences table heading
@@ -211,38 +206,47 @@ class UI:
                        ).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         nb.Label(frame, text=_("Panels")).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
-        overlay_options_frame:ttk.Frame = ttk.Frame(frame)
-        overlay_options_frame.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(overlay_options_frame, text=_("Current Tick"), # LANG: Preferences checkbox label
+        overlay_options_frame_1:ttk.Frame = ttk.Frame(frame)
+        overlay_options_frame_1.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(overlay_options_frame_1, text=_("Current Tick"), # LANG: Preferences checkbox label
                        variable=self.bgstally.state.EnableOverlayCurrentTick,
                        state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame, text=_("Activity Indicator"), # LANG: Preferences checkbox label
+        nb.Checkbutton(overlay_options_frame_1, text=_("Activity Indicator"), # LANG: Preferences checkbox label
                        variable=self.bgstally.state.EnableOverlayActivity,
                        state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame, text=_("Thargoid War Progress"), # LANG: Preferences checkbox label
+        nb.Checkbutton(overlay_options_frame_1, text=_("Thargoid War Progress"), # LANG: Preferences checkbox label
                        variable=self.bgstally.state.EnableOverlayTWProgress,
                        state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame, text=_("System Information"), # LANG: Preferences checkbox label
+        overlay_options_frame_2:ttk.Frame = ttk.Frame(frame)
+        overlay_options_frame_2.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(overlay_options_frame_2, text=_("System Information"), # LANG: Preferences checkbox label
                        variable=self.bgstally.state.EnableOverlaySystem,
                        state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame, text=_("Warnings"), # LANG: Preferences checkbox label
+        nb.Checkbutton(overlay_options_frame_2, text=_("Warnings"), # LANG: Preferences checkbox label
                        variable=self.bgstally.state.EnableOverlayWarning,
+                       state=self.overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame_2, text=_("CMDR Info"), # LANG: Preferences checkbox label
+                       variable=self.bgstally.state.EnableOverlayCMDR,
                        state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
@@ -269,7 +273,7 @@ class UI:
         self.update_plugin_frame()
 
 
-    def show_system_report(self, system_address:int):
+    def show_system_report(self, system_address: int):
         """
         Show the system report overlay
         """
@@ -277,7 +281,17 @@ class UI:
         self.report_system_address = str(system_address)
 
 
-    def show_warning(self, warning:str):
+    def show_cmdr_report(self, cmdr_data: dict):
+        """Show the CMDR report overlay
+
+        Args:
+            cmdr_data (dict): Information about the CMDR
+        """
+        self.indicate_activity = True
+        self.report_cmdr_data = cmdr_data
+
+
+    def show_warning(self, warning: str):
         """
         Show the warning overlay
         """
@@ -385,6 +399,19 @@ class UI:
                         self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
                     elif len(pinned_systems) > 1:
                         self.bgstally.overlay.display_message("system_info", _("Pinned Systems") + "\n" + self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
+
+            # CMDR Information
+            if self.bgstally.state.enable_overlay_cmdr and self.report_cmdr_data is not None:
+                # Report recent interaction with a CMDR
+                display_text: str = self.bgstally.target_manager.get_human_readable_reason(self.report_cmdr_data.get('Reason', 0), False) + ": " + self.report_cmdr_data.get('TargetName', _("Unknown")) + "\n" # LANG: Overlay CMDR information report message
+                display_text += _("In system: {system}").format(system=self.report_cmdr_data.get('System', _("Unknown"))) + "  " # LANG: Overlay CMDR information report message
+                display_text += _("Squadron ID: {squadron}").format(squadron=self.report_cmdr_data.get('SquadronID', _("Unknown"))) + "\n" # LANG: Overlay CMDR information report message
+                display_text += _("In ship: {ship}").format(ship=self.report_cmdr_data.get('Ship', _("Unknown"))) + "  " # LANG: Overlay CMDR information report message
+                display_text += _("Legal status: {legal}").format(legal=self.report_cmdr_data.get('LegalStatus', _("Unknown"))) + "\n" # LANG: Overlay CMDR information report message
+                if 'ranks' in self.report_cmdr_data: display_text += "  " + _("INARA INFORMATION AVAILABLE") # LANG: Overlay CMDR information report message
+
+                self.bgstally.overlay.display_message("cmdr_info", display_text, fit_to_text=True, text_includes_title=True)
+                self.report_cmdr_data = None
 
             # Warning
             if self.bgstally.state.enable_overlay_warning and self.warning is not None:

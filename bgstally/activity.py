@@ -1146,7 +1146,7 @@ class Activity:
         return {'Faction': faction_name, 'FactionState': faction_state, 'Enabled': self.bgstally.state.EnableSystemActivityByDefault.get(),
                 'MissionPoints': {'1': 3 if s else 0, '2': 4 if s else 0, '3': 5 if s else 0, '4': 6 if s else 0, '5': 7 if s else 0, 'm': 8 if s else 0},
                 'MissionPointsSecondary': {'1': 3 if s else 0, '2': 4 if s else 0, '3': 5 if s else 0, '4': 6 if s else 0, '5': 7 if s else 0, 'm': 8 if s else 0},
-                'TradeProfit': 150000 if s else 0, 'TradePurchase': 200000 if s else 0, 'BlackMarketProfit': 50000 if s else 0, 'Bounties': 1000000 if s else 0, 'CartData': 2000000 if s else 0, 'ExoData': 3000000 if s else 0,
+                'BlackMarketProfit': 50000 if s else 0, 'Bounties': 1000000 if s else 0, 'CartData': 2000000 if s else 0, 'ExoData': 3000000 if s else 0,
                 'TradeBuy': [{'items': 100 if s else 0, 'value': 100000 if s else 0}, {'items': 200 if s else 0, 'value': 200000 if s else 0}, {'items': 300 if s else 0, 'value': 300000 if s else 0}, {'items': 400 if s else 0, 'value': 400000 if s else 0}],
                 'TradeSell': [{'items': 100 if s else 0, 'value': 100000 if s else 0, 'profit': 1000 if s else 0}, {'items': 200 if s else 0, 'value': 200000 if s else 0, 'profit': 2000 if s else 0}, {'items': 300 if s else 0, 'value': 300000 if s else 0, 'profit': 3000 if s else 0}, {'items': 400 if s else 0, 'value': 400000 if s else 0, 'profit': 4000 if s else 0}],
                 'CombatBonds': 1000000 if s else 0, 'MissionFailed': 10 if s else 0, 'Murdered': 30 if s else 0, 'GroundMurdered': 20 if s else 0,
@@ -1300,7 +1300,7 @@ class Activity:
         """
         return sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_data['MissionPoints'].items()) == 0 and \
                 sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_data['MissionPointsSecondary'].items()) == 0 and \
-                int(faction_data['TradeProfit']) == 0 and int(faction_data['TradePurchase']) == 0 and int(faction_data['BlackMarketProfit']) == 0 and \
+                int(faction_data['BlackMarketProfit']) == 0 and \
                 sum(int(d['value']) for d in faction_data['TradeBuy']) == 0 and \
                 sum(int(d['value']) for d in faction_data['TradeSell']) == 0 and \
                 int(faction_data['BlackMarketProfit']) == 0 and \

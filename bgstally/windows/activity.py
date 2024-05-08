@@ -68,7 +68,7 @@ class WindowActivity:
         self.btn_post_to_discord: ttk.Button = ttk.Button(frm_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord, activity), # LANG: Button label
                                                           state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
-        activity_type_options: dict = {DiscordActivity.BOTH: _("All"), # LANG: Dropdown menu on activity window
+        activity_type_options: dict = {DiscordActivity.BOTH: _("Both BGS and TW"), # LANG: Dropdown menu on activity window
                                        DiscordActivity.BGS: _("BGS Only"), # LANG: Dropdown menu on activity window
                                        DiscordActivity.THARGOIDWAR: _("TW Only")} # LANG: Dropdown menu on activity window
         activity_type_var: tk.StringVar = tk.StringVar(value=activity_type_options.get(self.bgstally.state.DiscordActivity.get(), DiscordActivity.BOTH))
@@ -111,9 +111,6 @@ class WindowActivity:
         frm_discordoptions = ttk.Frame(frm_discord)
         frm_discordoptions.grid(row=2, column=2, padx=5, pady=5, sticky=tk.NW)
         current_row = 1
-        ttk.Label(frm_discordoptions, text=_("Post Format")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Radio group title
-        ttk.Radiobutton(frm_discordoptions, text=_("Modern"), variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Radio button label
-        ttk.Radiobutton(frm_discordoptions, text=_("Legacy"), variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Radio button label
         ttk.Label(frm_discordoptions, text=_("Other Options")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Options group title
         ttk.Checkbutton(frm_discordoptions, text=_("Abbreviate Faction Names"), variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         ttk.Checkbutton(frm_discordoptions, text=_("Show Detailed INF"), variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
@@ -282,12 +279,8 @@ class WindowActivity:
                     MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary']['m'])
                     ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     MissionPointsSecVar.trace('w', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsSecVar, False, chk_enable_all, activity, system, faction, x))
-                    if faction['TradePurchase'] > 0:
-                        ttk.Label(frm_table, text=human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                        ttk.Label(frm_table, text=human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                    else:
-                        ttk.Label(frm_table, text=f"{human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
-                        ttk.Label(frm_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
+                    ttk.Label(frm_table, text=f"{human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
+                    ttk.Label(frm_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
                     ttk.Label(frm_table, text=human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(frm_table, text=human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(frm_table, text=human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1

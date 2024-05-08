@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from bgstally.constants import CheckStates, DiscordActivity, DiscordPostStyle
+from bgstally.constants import CheckStates, DiscordActivity
 from config import config
 
 
@@ -24,13 +24,13 @@ class State:
         self.AbbreviateFactionNames:tk.StringVar = tk.StringVar(value=config.get_str('XAbbreviate', default=CheckStates.STATE_OFF))
         self.IncludeSecondaryInf:tk.StringVar = tk.StringVar(value=config.get_str('XSecondaryInf', default=CheckStates.STATE_ON))
         self.DiscordUsername:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordUsername', default=""))
-        self.DiscordPostStyle:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordPostStyle', default=DiscordPostStyle.EMBED))
         self.EnableOverlay:tk.StringVar = tk.StringVar(value=config.get_str('XEnableOverlay', default=CheckStates.STATE_ON))
         self.EnableOverlayCurrentTick:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCurrentTick', default=CheckStates.STATE_ON))
         self.EnableOverlayActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayActivity', default=CheckStates.STATE_ON))
         self.EnableOverlayTWProgress:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayTWProgress', default=CheckStates.STATE_ON))
         self.EnableOverlaySystem:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlaySystem', default=CheckStates.STATE_ON))
         self.EnableOverlayWarning:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayWarning', default=CheckStates.STATE_ON))
+        self.EnableOverlayCMDR:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCMDR', default=CheckStates.STATE_ON))
         self.EnableSystemActivityByDefault:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableSystemActivityByDefault', default=CheckStates.STATE_ON))
         self.DetailedInf:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedInf', default=CheckStates.STATE_OFF))
         self.DetailedTrade:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedTrade', default=CheckStates.STATE_ON))
@@ -70,6 +70,7 @@ class State:
         self.enable_overlay_tw_progress:bool = (self.EnableOverlayTWProgress.get() == CheckStates.STATE_ON)
         self.enable_overlay_system:bool = (self.EnableOverlaySystem.get() == CheckStates.STATE_ON)
         self.enable_overlay_warning:bool = (self.EnableOverlayWarning.get() == CheckStates.STATE_ON)
+        self.enable_overlay_cmdr:bool = (self.EnableOverlayCMDR.get() == CheckStates.STATE_ON)
 
         self.abbreviate_faction_names:bool = (self.AbbreviateFactionNames.get() == CheckStates.STATE_ON)
         self.secondary_inf:bool = (self.IncludeSecondaryInf.get() == CheckStates.STATE_ON)
@@ -88,13 +89,13 @@ class State:
         config.set('XAbbreviate', self.AbbreviateFactionNames.get())
         config.set('XSecondaryInf', self.IncludeSecondaryInf.get())
         config.set('XDiscordUsername', self.DiscordUsername.get())
-        config.set('XDiscordPostStyle', self.DiscordPostStyle.get())
         config.set('XEnableOverlay', self.EnableOverlay.get())
         config.set('BGST_EnableOverlayCurrentTick', self.EnableOverlayCurrentTick.get())
         config.set('BGST_EnableOverlayActivity', self.EnableOverlayActivity.get())
         config.set('BGST_EnableOverlayTWProgress', self.EnableOverlayTWProgress.get())
         config.set('BGST_EnableOverlaySystem', self.EnableOverlaySystem.get())
         config.set('BGST_EnableOverlayWarning', self.EnableOverlayWarning.get())
+        config.set('BGST_EnableOverlayCMDR', self.EnableOverlayCMDR.get())
         config.set('BGST_EnableSystemActivityByDefault', self.EnableSystemActivityByDefault.get())
         config.set('BGST_DetailedInf', self.DetailedInf.get())
         config.set('BGST_DetailedTrade', self.DetailedTrade.get())

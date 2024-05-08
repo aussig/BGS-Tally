@@ -16,6 +16,7 @@
     * Enemy propagandist wing kills ✒️ are also tallied as soon as BGS-Tally spots the **first detectable kill** in the propagandist wing, for the same reason.
 * Added tooltips (hover text) to all abbreviations on screen, and a few of the controls and buttons that are not self-explanatory.
 * Added support for different Discord post formats. So if your squadron or group would like your discord activity posts to look different, this can be done. Currently it's a programming job to create a new format (so ask your friendly Python developer to get in touch, or send in a suggestion for a new format to the BGS-Tally Discord server).
+* Added popup CMDR information in in-game overlay when you interact with a CMDR.
 
 ### Changes:
 
@@ -25,6 +26,7 @@
 * Changed the font used in the Discord preview panel on activity windows to a font that supports more emoji and more closely matches Discord posts.
 * Tweaked the discord webhooks layout in settings to include horizontal lines for better clarity.
 * Unfortunately had to remove the functionality to log CMDRs scanned while in a dropship / taxi as we can no longer get the CMDR name from the game journal.
+* The layout of the CMDR information panel in the CMDRs window has been tidied up.
 
 ### Bug Fixes:
 
@@ -32,6 +34,8 @@
 * Was incorrectly reporting BGS activity in TW systems.
 * Was incorrectly reporting TW search and rescue collection in non-TW systems.
 * Activity window wasn't showing all trade purchase and profit bands.
+* If you changed your Discord webhook settings after previously successfully posting to Discord, then tried to post again in the same tick, it would fail.
+* If any Discord post got bigger than the limits imposed by Discord, it would silently fail to post. Now, the post is truncated to the Discord limit and '...' appended to the end.
 
 ### API Changes ([vx.x](https://studio-ws.apicur.io/sharing/xxxxxxxx)):
 

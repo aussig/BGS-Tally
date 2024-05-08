@@ -6,10 +6,22 @@ from requests import Response
 from bgstally.constants import DiscordChannel, RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
-from bgstally.utils import _, __
+from bgstally.utils import _, __, get_by_path
 from thirdparty.colors import *
 
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+# Discord post limits: https://discord.com/developers/docs/resources/channel#create-message-jsonform-params
+DISCORD_LIMIT_CONTENT = 2000
+
+# Discord embed limits: https://discord.com/developers/docs/resources/channel#embed-object-embed-limits
+DISCORD_LIMIT_EMBED_TITLE = 256
+DISCORD_LIMIT_EMBED_DESCRIPTION = 4096
+DISCORD_LIMIT_FIELDS = 25
+DISCORD_LIMIT_EMBED_FIELD_NAME = 256
+DISCORD_LIMIT_EMBED_FIELD_VALUE = 1024
+
+
 URL_CLOCK_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Fxemoji_u1F556.svg/240px-Fxemoji_u1F556.svg.png"
 URL_LOGO = "https://raw.githubusercontent.com/wiki/aussig/BGS-Tally/images/logo-square-white.png"
 
@@ -28,6 +40,9 @@ class Discord:
         """
         # Start with latest webhooks from manager. Will contain True / False for each channel. Copy dict so we don't affect the webhook manager data.
         webhooks:dict = deepcopy(self.bgstally.webhook_manager.get_webhooks_as_dict(channel))
+
+        # Aply Discord limits
+        discord_text = self._truncate(discord_text, DISCORD_LIMIT_CONTENT)
 
         for webhook in webhooks.values():
             webhook_url:str = webhook.get('url')
@@ -71,6 +86,14 @@ class Discord:
         """
         # Start with latest webhooks from manager. Will contain True / False for each channel. Copy dict so we don't affect the webhook manager data.
         webhooks:dict = deepcopy(self.bgstally.webhook_manager.get_webhooks_as_dict(channel))
+
+        # Apply Discord limits
+        title = self._truncate(title, DISCORD_LIMIT_EMBED_TITLE)
+        title = self._truncate(description, DISCORD_LIMIT_EMBED_DESCRIPTION)
+        fields = fields[0 : DISCORD_LIMIT_FIELDS]
+        for field in fields:
+            field['name'] = self._truncate(field.get('name', ""), DISCORD_LIMIT_EMBED_FIELD_NAME)
+            field['value'] = self._truncate(field.get('value', ""), DISCORD_LIMIT_EMBED_FIELD_VALUE)
 
         for webhook in webhooks.values():
             webhook_url:str = webhook.get('url')
@@ -122,7 +145,7 @@ class Discord:
         if not success:
             if request.method == RequestMethod.PATCH:
                 # If a PATCH (message update) fails, we can try again with a POST (message create). Note the URL is not the same.
-                self.bgstally.request_manager.queue_request(request.data.get('webhook_url'), RequestMethod.POST, payload=request.payload, params={'wait': 'true'}, callback=self._request_complete, data=request.data)
+                self.bgstally.request_manager.queue_request(get_by_path(request.data, ['webhookdata', 'url']), RequestMethod.POST, payload=request.payload, params={'wait': 'true'}, callback=self._request_complete, data=request.data)
             else:
                 # If POSTs or DELETEs fail, we can't do anything more
                 Debug.logger.warning(f"Unable to post message to Discord. Reason: '{response.reason}' Content: '{response.content}' URL: '{request.endpoint}'")
@@ -183,3 +206,20 @@ class Discord:
                 or webhook.startswith('https://discord.com/api/webhooks/') \
                 or webhook.startswith('https://ptb.discord.com/api/webhooks/') \
                 or webhook.startswith('https://canary.discord.com/api/webhooks/')
+
+
+    def _truncate(self, text: str, length: int) -> str:
+        """Truncate text with awareness of leading / training ```
+
+        Args:
+            text (str): The text to truncate
+            length (int): The length to truncate at
+
+        Returns:
+            str: The truncated text
+        """
+        if len(text) > length:
+            if text[:3] == "```": return text[:length - 4] + "…```"
+            else: return text[:length - 1] + "…"
+        else:
+            return text

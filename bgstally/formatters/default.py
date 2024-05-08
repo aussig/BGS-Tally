@@ -86,12 +86,12 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
             system_text: str = ""
 
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
-                system_text += self._build_tw_system_text(system, True, lang)
+                system_text += self._build_tw_system(system, True, lang)
 
             if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
                 for faction in system['Factions'].values():
                     if faction['Enabled'] != CheckStates.STATE_ON: continue
-                    system_text += self._build_faction_text(faction, True, lang)
+                    system_text += self._build_faction(faction, True, lang)
 
             if system_text != "":
                 system_text = system_text.replace("'", "")
@@ -129,12 +129,12 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
             system_text: str = ""
 
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
-                system_text += self._build_tw_system_text(system, discord, lang)
+                system_text += self._build_tw_system(system, discord, lang)
 
             if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
                 for faction in system['Factions'].values():
                     if faction['Enabled'] != CheckStates.STATE_ON: continue
-                    system_text += self._build_faction_text(faction, discord, lang)
+                    system_text += self._build_faction(faction, discord, lang)
 
             if system_text != "":
                 if discord: text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}```"
@@ -145,7 +145,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return text.replace("'", "")
 
 
-    def _build_faction_text(self, faction: dict, discord: bool, lang: str) -> str:
+    def _build_faction(self, faction: dict, discord: bool, lang: str) -> str:
         """Generate formatted text for a faction
 
         Args:
@@ -160,10 +160,10 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         # Force plain text if we are not posting to Discord
         fp: bool = not discord
 
-        activity_text += self._build_inf_text(faction['MissionPoints'], faction['MissionPointsSecondary'], faction['FactionState'], discord, lang)
+        activity_text += self._build_inf(faction['MissionPoints'], faction['MissionPointsSecondary'], faction['FactionState'], discord, lang)
         activity_text += red("BVs", fp=fp) + " " + green(human_format(faction['Bounties']), fp=fp) + " " if faction['Bounties'] != 0 else "" # LANG: Discord heading, abbreviation for bounty vouchers
         activity_text += red("CBs", fp=fp) + " " + green(human_format(faction['CombatBonds']), fp=fp) + " " if faction['CombatBonds'] != 0 else "" # LANG: Discord heading, abbreviation for combat bonds
-        activity_text += self._build_trade_text(faction['TradePurchase'], faction['TradeProfit'], faction['TradeBuy'], faction['TradeSell'], discord, lang)
+        activity_text += self._build_trade(faction['TradeBuy'], faction['TradeSell'], discord, lang)
         activity_text += cyan(__("TrdBMProfit", lang), fp=fp) + " " + green(human_format(faction['BlackMarketProfit']), fp=fp) + " " if faction['BlackMarketProfit'] != 0 else "" # LANG: Discord heading, abbreviation for trade black market profit
         activity_text += white(__("Expl", lang), fp=fp) + " " + green(human_format(faction['CartData']), fp=fp) + " " if faction['CartData'] != 0 else "" # LANG: Discord heading, abbreviation for exploration
         # activity_text += grey(__('Exo', lang), fp=fp) + " " + green(human_format(faction['ExoData']), fp=fp) + " " if faction['ExoData'] != 0 else "" # LANG: Discord heading, abbreviation for exobiology
@@ -171,9 +171,9 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         activity_text += red(__("GroundMurders", lang), fp=fp) + " " + green(faction['GroundMurdered'], fp=fp) + " " if faction['GroundMurdered'] != 0 else "" # LANG: Discord heading
         activity_text += yellow(__("Scenarios", lang), fp=fp) + " " + green(faction['Scenarios'], fp=fp) + " " if faction['Scenarios'] != 0 else "" # LANG: Discord heading
         activity_text += magenta(__("Fails", lang), fp=fp) + " " + green(faction['MissionFailed'], fp=fp) + " " if faction['MissionFailed'] != 0 else "" # LANG: Discord heading, abbreviation for failed missions
-        activity_text += self._build_cz_text(faction.get('SpaceCZ', {}), __("SpaceCZs", lang), discord) # LANG: Discord heading, abbreviation for space conflict zones
-        activity_text += self._build_cz_text(faction.get('GroundCZ', {}), __("GroundCZs", lang), discord) # LANG: Discord heading, abbreviation for ground conflict zones
-        activity_text += self._build_sandr_text(faction.get('SandR', {}), discord, lang)
+        activity_text += self._build_cz(faction.get('SpaceCZ', {}), __("SpaceCZs", lang), discord) # LANG: Discord heading, abbreviation for space conflict zones
+        activity_text += self._build_cz(faction.get('GroundCZ', {}), __("GroundCZs", lang), discord) # LANG: Discord heading, abbreviation for ground conflict zones
+        activity_text += self._build_sandr(faction.get('SandR', {}), discord, lang)
 
         faction_name = self._build_faction_name(faction['Faction'])
         faction_text = f"{color_wrap(faction_name, 'yellow', None, 'bold', fp=fp)} {activity_text}\n" if activity_text != "" else ""
@@ -185,7 +185,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return faction_text
 
 
-    def _build_tw_system_text(self, system: dict, discord: bool, lang: str) -> str:
+    def _build_tw_system(self, system: dict, discord: bool, lang: str) -> str:
         """Create formatted text for Thargoid War in a system
 
         Args:
@@ -242,7 +242,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         if kills > 0 or sandr > 0 or reactivate > 0:
             system_text += ("🍀 " if discord else "TW ") + __("System activity", lang) + "\n" # LANG: Discord heading
             if kills > 0:
-                system_text += ("  💀 (" + __("kills", lang) + "): " if discord else "[" + __("kills", lang) + "]: ") + self._build_tw_vessels_text(system['TWKills'], discord) + " \n" # LANG: Discord heading
+                system_text += ("  💀 (" + __("kills", lang) + "): " if discord else "[" + __("kills", lang) + "]: ") + self._build_tw_vessels(system['TWKills'], discord) + " \n" # LANG: Discord heading
 
             if sandr > 0:
                 system_text += "  "
@@ -278,7 +278,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
                 system_text += ("  🧍" if discord else "[" + __("passeng", lang) + "]") + " x " + green(system_station['passengers']['sum'], fp=fp) + " - " + green(system_station['passengers']['count'], fp=fp) + " " # LANG: Discord heading, abbreviation for passengers
                 system_text += __("missions", lang) + "\n" # LANG: Discord heading
             if (sum(x['sum'] for x in system_station['massacre'].values())) > 0:
-                system_text += ("  💀 (" + __("mm", lang) + ")" if discord else "[" + __("mm", lang) + "]") + ": " + self._build_tw_vessels_text(system_station['massacre'], discord) + " - " + green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp) + " " # LANG: Discord heading, abbreviation for massacre (missions)
+                system_text += ("  💀 (" + __("mm", lang) + ")" if discord else "[" + __("mm", lang) + "]") + ": " + self._build_tw_vessels(system_station['massacre'], discord) + " - " + green((sum(x['count'] for x in system_station['massacre'].values())), fp=fp) + " " # LANG: Discord heading, abbreviation for massacre (missions)
                 system_text += __("missions", lang) + "\n" # LANG: Discord heading
             if (system_station['reactivate'] > 0):
                 system_text += ("  🛠️" if discord else "[" + __("reac", lang) + "]") + " x " + green(system_station['reactivate'], fp=fp) + " " # LANG: Discord heading, abbreviation for TW reactivation (missions)
@@ -287,7 +287,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return system_text
 
 
-    def _build_inf_text(self, inf_data: dict, secondary_inf_data: dict, faction_state: str, discord: bool, lang: str) -> str:
+    def _build_inf(self, inf_data: dict, secondary_inf_data: dict, faction_state: str, discord: bool, lang: str) -> str:
         """Create a complete summary of INF for the faction, including both primary and secondary if user has requested
 
         Args:
@@ -347,17 +347,17 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
         if self.bgstally.state.detailed_inf:
             detailed_inf: str = ""
-            if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {inf_data['1']} "
-            if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {inf_data['2']} "
-            if inf_data.get('3', 0) != 0: detailed_inf += f"{'➌' if discord else '+++'} x {inf_data['3']} "
-            if inf_data.get('4', 0) != 0: detailed_inf += f"{'➍' if discord else '++++'} x {inf_data['4']} "
-            if inf_data.get('5', 0) != 0: detailed_inf += f"{'➎' if discord else '+++++'} x {inf_data['5']} "
+            if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {green(inf_data['1'], fp=fp)} "
+            if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {green(inf_data['2'], fp=fp)} "
+            if inf_data.get('3', 0) != 0: detailed_inf += f"{'➌' if discord else '+++'} x {green(inf_data['3'], fp=fp)} "
+            if inf_data.get('4', 0) != 0: detailed_inf += f"{'➍' if discord else '++++'} x {green(inf_data['4'], fp=fp)} "
+            if inf_data.get('5', 0) != 0: detailed_inf += f"{'➎' if discord else '+++++'} x {green(inf_data['5'], fp=fp)} "
             if detailed_inf != "": text += f"({detailed_inf.rstrip()}) "
 
         return text
 
 
-    def _build_trade_text(self, trade_purchase: int, trade_profit: int, trade_buy: list, trade_sell: list, discord: bool, lang: str) -> str:
+    def _build_trade(self, trade_buy: list, trade_sell: list, discord: bool, lang: str) -> str:
         """Create a summary of trade, with detailed breakdown if user has requested
 
         Args:
@@ -376,11 +376,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         # Force plain text if we are not posting to Discord
         fp: bool = not discord
 
-        if trade_purchase > 0:
-            # Legacy - Used a single value for purchase value / profit
-            text += cyan(__("TrdBuy", lang), fp=fp) + " " + green(human_format(trade_purchase), fp=fp) + " " if trade_purchase != 0 else "" # LANG: Discord heading, abbreviation for trade buy
-            text += cyan(__("TrdProfit", lang), fp=fp) + " " + green(human_format(trade_profit), fp=fp) + " " if trade_profit != 0 else "" # LANG: Discord heading, abbreviation for trade profit
-        elif not self.bgstally.state.detailed_trade:
+        if not self.bgstally.state.detailed_trade:
             # Modern, simple trade report - Combine buy at all brackets and profit at all brackets
             buy_total: int = sum(int(d['value']) for d in trade_buy)
             profit_total: int = sum(int(d['profit']) for d in trade_sell)
@@ -405,7 +401,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return text
 
 
-    def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool) -> str:
+    def _build_cz(self, cz_data: dict, prefix: str, discord: bool) -> str:
         """Create a summary of Conflict Zone activity
 
         Args:
@@ -421,9 +417,9 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         # Force plain text if we are not posting to Discord
         fp: bool = not discord
 
-        if 'l' in cz_data and cz_data['l'] != "" and int(cz_data['l']) != 0: text += f"{cz_data['l']}xL "
-        if 'm' in cz_data and cz_data['m'] != "" and int(cz_data['m']) != 0: text += f"{cz_data['m']}xM "
-        if 'h' in cz_data and cz_data['h'] != "" and int(cz_data['h']) != 0: text += f"{cz_data['h']}xH "
+        if 'l' in cz_data and cz_data['l'] != "" and int(cz_data['l']) != 0: text += f"L x {green(cz_data['l'], fp=fp)} "
+        if 'm' in cz_data and cz_data['m'] != "" and int(cz_data['m']) != 0: text += f"M x {green(cz_data['m'], fp=fp)} "
+        if 'h' in cz_data and cz_data['h'] != "" and int(cz_data['h']) != 0: text += f"H x {green(cz_data['h'], fp=fp)} "
 
         objectives: str = ""
         if 'cs' in cz_data and cz_data['cs'] != "" and int(cz_data['cs']) != 0: objectives += f"{'👑' if discord else 'Cap Ship'}:{green(cz_data['cs'], fp=fp)} " # Cap Ship
@@ -436,7 +432,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return text
 
 
-    def _build_tw_vessels_text(self, tw_data: dict, discord: bool) -> str:
+    def _build_tw_vessels(self, tw_data: dict, discord: bool) -> str:
         """Create a summary of TW activity.
 
         Args:
@@ -474,7 +470,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return text
 
 
-    def _build_sandr_text(self, sandr_data: dict, discord: bool, lang: str) -> str:
+    def _build_sandr(self, sandr_data: dict, discord: bool, lang: str) -> str:
         """Create a summary of BGS search and rescue activity
 
         Args:

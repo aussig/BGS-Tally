@@ -180,3 +180,5 @@ class Overlay:
             return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "green", 'x': 0, 'y': 0, 'w': 100, 'h': 100, 'x_center': True, 'ttl': 30, 'text_size': "normal"}
         elif frame == "warning":
             return {'border_colour': "red", 'fill_colour': "red", 'text_colour': "#020202", 'title_colour': "red", 'x': 0, 'y': -100, 'w': 100, 'h': 100, 'x_center': True, 'y_center': True, 'ttl': 5, 'text_size': "large"}
+        elif frame == "cmdr_info":
+            return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "#6600ff", 'x': 0, 'y': 50, 'w': 100, 'h': 100, 'x_center': True, 'ttl': 30, 'text_size': "normal"}

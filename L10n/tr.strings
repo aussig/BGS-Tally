@@ -17,9 +17,9 @@
 "Activity Indicator" = "Etkinlik Göstergesi";
 
 /* Label on activity window. [activity.py] */
-"Activity to post:" = "Activity to post:";
+"Activity to post:" = "Paylaşılacak etkinlikler:";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Added a friend" = "Arkadaş olarak eklendi";
 
 /* Preferences heading. [ui.py] */
@@ -49,16 +49,16 @@
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Aşağıdaki bilgileri sunucu yöneticinize sorun, doldurduktan daha sonra 'Bağlantı Kur' ile devam edin. Popüler sunucular için bazı bilgiler önceden doldurulmuş olarak sağlanmıştır, ancak bu sunucuya ait size özel olan API anahtarınızı girmeniz gerekecektir.";
 
-/* Discord heading, abbreviation for black box. [activity.py] */
+/* Discord heading, abbreviation for black box. [default.py] */
 "bb" = "kk";
 
 /* Discord post title. [activity.py] */
 "BGS Activity after Tick: {tick_time}" = "Döngü sonrası BGS Aktivitesi: {tick_time}";
 
 /* Dropdown menu on activity window. [activity.py] */
-"BGS Only" = "BGS Only";
+"BGS Only" = "Sadece BGS";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "bio-pod" = "bio-pod";
 
 /* Activity window tooltip. [activity.py] */
@@ -66,6 +66,9 @@
 
 /* Activity window column title, abbreviation for black market profit. [activity.py] */
 "BM Prof" = "KB Kznc";
+
+/* Dropdown menu on activity window. [activity.py] */
+"Both BGS and TW" = "Both BGS and TW";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Kelle avcılığı geliri";
@@ -82,7 +85,7 @@
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Buying Materials:" = "Alınan Materyaller:";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "cargo" = "kargo";
 
 /* Label on legend window. [legend.py] */
@@ -96,6 +99,9 @@
 
 /* Discord heading. [cmdrs.py] */
 "CMDR Inara Link" = "CMDR Inara bağlantısı";
+
+/* Preferences checkbox label. [ui.py] */
+"CMDR Info" = "CMDR Info";
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Savaş tahvilleri";
@@ -113,9 +119,9 @@
 "Copy contents" = "İçeriği kopyala";
 
 /* Button label. [activity.py] */
-"Copy to Clipboard (Legacy Format)" = "Panoya kopyala (Eski Format)";
+"Copy to Clipboard" = "Copy to Clipboard";
 
-/* Discord heading, abbreviation for critically injured. [activity.py] */
+/* Discord heading, abbreviation for critically injured. [default.py] */
 "crit" = "krit";
 
 /* Label on legend window. [legend.py] */
@@ -157,6 +163,9 @@
 /* Button on CMDR window. [cmdrs.py] */
 "Delete Selected" = "Seçileni Sil";
 
+/* [demo.py] */
+"Demo Data Only" = "Demo Data Only";
+
 /* Discord heading. [fleetcarrier.py] */
 "Departure Time" = "Hareket saati";
 
@@ -167,7 +176,7 @@
 "Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "Ayrıntılı INF, görevlerden alınan + / ++ / +++ / ++++ / +++++ olarak bölünmüştür.";
 
 /* Label on activity window. [activity.py] */
-"Discord Additional Notes" = "Diskord Ek Notlar";
+"Discord Additional Notes" = "Discord Ek Notlar";
 
 /* [ui.py] */
 "Discord Options" = "Discord Ayarları";
@@ -190,7 +199,7 @@
 /* [_tksheet_main_table.py] */
 "Edit index" = "Dizini düzenle";
 
-/* Discord heading, abbreviation for election INF. [activity.py] */
+/* Discord heading, abbreviation for election INF. [default.py] */
 "ElectionINF" = "SeçimINF";
 
 /* Label on activity window. [activity.py] */
@@ -208,7 +217,7 @@
 /* Checkbox on API settings window. [api.py] */
 "Enable {events_url} Requests" = "{events_url} isteklerini etkinleştir";
 
-/* Discord heading, abbreviation for escape pod. [activity.py] */
+/* Discord heading, abbreviation for escape pod. [default.py] */
 "esc-pod" = "kaç-kap";
 
 /* Label on API settings window. [api.py] */
@@ -220,10 +229,10 @@
 /* Label on API settings window. [api.py] */
 "Events Requested" = "Talep Edilen Etkinlikler";
 
-/* Discord heading, abbreviation for exobiology. [activity.py] */
+/* Discord heading, abbreviation for exobiology. [default.py] */
 "Exo" = "Exo";
 
-/* Discord heading, abbreviation for exploration. [activity.py] */
+/* Discord heading, abbreviation for exploration. [default.py] */
 "Expl" = "Keşif";
 
 /* Activity window tooltip. [activity.py] */
@@ -232,7 +241,7 @@
 /* Activity window column title. [activity.py] */
 "Faction" = "Fraksiyon";
 
-/* Discord heading, abbreviation for failed missions. [activity.py] */
+/* Discord heading, abbreviation for failed missions. [default.py] */
 "Fails" = "İptaller";
 
 /* Preferences table heading, abbreviation for fleet carrier commodities / materials. [ui.py] */
@@ -247,7 +256,10 @@
 /* Appended to tick time if a forced tick. [activity.py] */
 "forced" = "sıfırlandı";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Preferences label. [ui.py] */
+"Format for Discord Posts" = "Format for Discord Posts";
+
+/* Discord CMDR information. [targetmanager.py] */
 "Friend request received from this CMDR" = "Bu CMDR'dan arkadaşlık isteği alındı";
 
 /* Discord carrier docking access. [fleetcarrier.py] */
@@ -268,10 +280,10 @@
 /* Activity window tooltip. [activity.py] */
 "Ground conflict zones" = "Yüzey çatışma bölgeleri";
 
-/* Discord heading, abbreviation for ground conflict zones. [activity.py] */
+/* Discord heading, abbreviation for ground conflict zones. [default.py] */
 "GroundCZs" = "YüzeyÇB'leri";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "GroundMurders" = "YüzeyCinayetleri";
 
 /* Activity window tooltip. [activity.py] */
@@ -283,7 +295,7 @@
 /* Button on API settings window. [api.py] */
 "I Do Not Approve" = "Onaylamıyorum";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "I scanned this CMDR" = "Hedef CMDR taratıldı";
 
 /* Heading on legend window. [legend.py] */
@@ -295,11 +307,17 @@
 /* Discord heading. [cmdrs.py] */
 "In Ship" = "Gemi tipi";
 
+/* Overlay CMDR information report message. [ui.py] */
+"In ship: {ship}" = "In ship: {ship}";
+
 /* Discord heading. [cmdrs.py] */
 "In Squadron" = "Filo İsmi";
 
 /* Discord heading. [cmdrs.py] */
 "In System" = "Sistem ismi";
+
+/* Overlay CMDR information report message. [ui.py] */
+"In system: {system}" = "In system: {system}";
 
 /* Preferences heading. [ui.py] */
 "In-game Overlay" = "Oyun-içi Arayüz";
@@ -322,6 +340,9 @@
 /* Inara URL on CMDR window. [cmdrs.py] */
 "Inara Info Available ⤴" = "Inara Bilgisi Mevcut ⤴";
 
+/* Overlay CMDR information report message. [ui.py] */
+"INARA INFORMATION AVAILABLE" = "INARA INFORMATION AVAILABLE";
+
 /* Inara link. [activity.py] */
 "Inara ⤴" = "Inara ⤴";
 
@@ -334,13 +355,13 @@
 /* Preferences checkbox label. [ui.py] */
 "Include Secondary INF" = "İkincil INF'i dahil et";
 
-/* Discord heading, abbreviation for INF. [activity.py] */
+/* Discord heading, abbreviation for INF. [default.py] */
 "INF" = "INF";
 
 /* Activity window tooltip. [activity.py] */
 "Influence" = "Nüfuz";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "injured" = "yaralı";
 
 /* Label on legend window. [legend.py] */
@@ -376,10 +397,10 @@
 /* Label on CMDR window. [cmdrs.py] */
 "Interaction: " = "Etkileşim: ";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Interdicted by" = "Işık hızından düşürüldü";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "INTERDICTED BY this CMDR" = "IŞIK HIZINDAN bu CMDR tarafından DÜŞÜRÜLDÜ";
 
 /* Discord post title. [fleetcarrier.py] */
@@ -388,13 +409,13 @@
 /* Discord post title. [fleetcarrier.py] */
 "Jump Scheduled for Carrier {carrier_name}" = "Filo Taşıyıcı {carrier_name} için Planlanan Atlama";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Killed by" = "Öldürdü";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "KILLED BY this CMDR" = "BU CMDR TARAFINDAN ÖLDÜRÜLDÜ";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "kills" = "ölü";
 
 /* [legend.py] */
@@ -409,14 +430,14 @@
 /* Button label. [ui.py] */
 "Latest BGS Tally" = "Son BGS Raporu";
 
-/* Preferences radio button label. [ui.py] */
-"Legacy" = "Eski tarz";
-
 /* CMDR window column title. [cmdrs.py] */
 "Legal" = "Legal";
 
 /* Discord heading. [cmdrs.py] */
 "Legal Status" = "Legal Durum";
+
+/* Overlay CMDR information report message. [ui.py] */
+"Legal status: {legal}" = "Legal status: {legal}";
 
 /* Activity window tooltip. [activity.py] */
 "Low" = "Düşük";
@@ -427,22 +448,19 @@
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Orta";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "Message received from this CMDR in local chat" = "Yerel sohbette bu CMDR'dan mesaj alındı";
 
 /* Activity window tooltip. [activity.py] */
 "Mission fails" = "Başarısız görevler";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "missions" = "görevler";
 
-/* Discord heading, abbreviation for massacre (missions). [activity.py] */
+/* Discord heading, abbreviation for massacre (missions). [default.py] */
 "mm" = "kg";
 
-/* Preferences radio button label. [ui.py] */
-"Modern" = "Modern";
-
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "Murders" = "Cinayetler";
 
 /* Label on API settings window. [api.py] */
@@ -475,7 +493,7 @@
 /* [ui.py] */
 "Panels" = "Paneller";
 
-/* Discord heading, abbreviation for passengers. [activity.py] */
+/* Discord heading, abbreviation for passengers. [default.py] */
 "passeng" = "yolcu";
 
 /* Label on legend window. [legend.py] */
@@ -505,9 +523,6 @@
 /* Button on CMDR window. [cmdrs.py] */
 "Post CMDR to Discord" = "CMDR bilgisini Discord'a gönder";
 
-/* Preferences label. [ui.py] */
-"Post Format" = "Gönderi Formatı";
-
 /* Button label. [activity.py] */
 "Post to Discord" = "Discord'a gönder";
 
@@ -533,42 +548,42 @@
 "Prof" = "Kznç";
 
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
-"Profit at Z | L | M | H demand" = "Profit at Z | L | M | H demand";
+"Profit at Z | L | M | H demand" = "Talep üzerinde Z | L | M | H kâr";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */
 "Purch" = "StnAlm";
 
 /* Activity window tooltip for purchase at low | medium | high supply. [activity.py] */
-"Purchase at L | M | H supply" = "Purchase at L | M | H supply";
+"Purchase at L | M | H supply" = "Satın alımda Z | L | M | H kâr";
 
-/* Discord heading, abbreviation for reactivation (TW missions). [activity.py] */
+/* Discord heading, abbreviation for reactivation (TW missions). [default.py] */
 "reac" = "ynet";
 
 /* Label on legend window. [legend.py] */
 "Reactivation missions" = "Yeniden etkinleştirme görevleri";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Received friend request from" = "Şu kişiden arkadaşlık isteği alındı";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Received message from" = "Şu kişiden mesaj alındı";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Received team invite from" = "Şu kişiden ekip daveti alındı";
 
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Yeni Ziyaret Edilen Sistem Etkinliğini Varsayılan Olarak Raporla";
 
-/* Discord heading, abbreviation for search and rescue. [activity.py] */
+/* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "AraVeKur";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Scanned" = "Tarandı";
 
 /* Activity window tooltip. [activity.py] */
 "Scenario wins" = "Senaryo Galibiyetleri";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "Scenarios" = "Senaryolar";
 
 /* Activity window column title, abbreviation for scenarios. [activity.py] */
@@ -616,7 +631,7 @@
 /* Label on API settings window. [api.py] */
 "Server URL" = "Sunucu URL";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "settlements" = "yerleşkeler";
 
 /* Activity window column title. [activity.py] */
@@ -649,7 +664,7 @@
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Uzay Çatışma Bölgesi";
 
-/* Discord heading, abbreviation for space conflict zones. [activity.py] */
+/* Discord heading, abbreviation for space conflict zones. [default.py] */
 "SpaceCZs" = "UzayÇB'leri";
 
 /* Discord carrier docking access. [fleetcarrier.py] */
@@ -657,6 +672,9 @@
 
 /* CMDR window column title. [cmdrs.py] */
 "Squadron ID" = "Filo ID";
+
+/* Overlay CMDR information report message. [ui.py] */
+"Squadron ID: {squadron}" = "Squadron ID: {squadron}";
 
 /* Discord heading. [cmdrs.py] */
 "Squadron Inara Link" = "Filo Inara Bağlantısı";
@@ -670,7 +688,7 @@
 /* CMDR window column title. [cmdrs.py] */
 "System" = "Sistem";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "System activity" = "Sistem etkinliği";
 
 /* Preferences checkbox label. [ui.py] */
@@ -685,8 +703,11 @@
 /* Overlay message. [activity.py] */
 "Targeted Ally!" = "Hedeflenen Dost!";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "Team invite received from this CMDR" = "Bu CMDR'dan ekip daveti alındı";
+
+/* Name of default output formatter. [text.py] */
+"Text Only" = "Text Only";
 
 /* Preferences checkbox label. [ui.py] */
 "Thargoid War Progress" = "Thargoid Savaş Süreci";
@@ -700,7 +721,7 @@
 /* Discord text. [fleetcarrier.py] */
 "The scheduled carrier jump was cancelled" = "Planlanan filo taşıyıcı atlaması iptal edildi";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "This CMDR was added as a friend" = "Bu CMDR arkadaş olarak eklendi";
 
 /* Text on API settings window. [api.py] */
@@ -727,26 +748,29 @@
 /* Activity window column title. [activity.py] */
 "Trade" = "Ticaret";
 
-/* Discord heading, abbreviation for trade black market profit. [activity.py] */
+/* Discord heading, abbreviation for trade black market profit. [default.py] */
 "TrdBMProfit" = "TcrtKBKznc";
 
-/* Discord heading, abbreviation for trade buy. [activity.py] */
+/* Discord heading, abbreviation for trade buy. [default.py] */
 "TrdBuy" = "TcrtAlm";
 
-/* Discord heading, abbreviation for trade profit. [activity.py] */
+/* Discord heading, abbreviation for trade profit. [default.py] */
 "TrdProfit" = "TcrtKznc";
 
-/* Discord heading, abbreviation for tissue sample. [activity.py] */
+/* Discord heading, abbreviation for tissue sample. [default.py] */
 "ts" = "dn";
 
 /* Discord post title. [activity.py] */
 "TW Activity after Tick: {tick_time}" = "Döngü sonrası TW etkinliği: {tick_time}";
 
 /* Dropdown menu on activity window. [activity.py] */
-"TW Only" = "TW Only";
+"TW Only" = "Sadece TW";
 
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "Mevcut sistemdeki TW Savaş Süreci {current_system}: {percent}%";
+
+/* Overlay CMDR information report message. [ui.py] */
+"Unknown" = "Unknown";
 
 /* Main window label. [ui.py] */
 "Update will be installed on shutdown" = "Uygulama kapatıldığında güncelleme yüklenecek";
@@ -757,7 +781,7 @@
 /* Discord message footer, legacy text mode. [discord.py] */
 "Updated at: {date_time} | {plugin_name} v{version}" = "Güncellendi: {date_time} | {plugin_name} v{version}";
 
-/* Discord heading, abbreviation for war INF. [activity.py] */
+/* Discord heading, abbreviation for war INF. [default.py] */
 "WarINF" = "SavaşINF";
 
 /* Preferences force tick popup text. [ui.py] */
@@ -772,7 +796,7 @@
 /* [ui.py] */
 "Within {minutes_to_tick}m of Next Tick (Estimated)" = "Sonraki döngüden sonraki {minutes_to_tick}dk içinde (Tahmini)";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "wounded" = "yaralı";
 
 /* Label on legend window. [legend.py] */

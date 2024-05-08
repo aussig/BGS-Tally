@@ -17,9 +17,9 @@
 "Activity Indicator" = "Indicador de actividad";
 
 /* Label on activity window. [activity.py] */
-"Activity to post:" = "Activity to post:";
+"Activity to post:" = "Actividad a publicar:";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Added a friend" = "Se ha añadido a un amigo";
 
 /* Preferences heading. [ui.py] */
@@ -49,16 +49,16 @@
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Pide al administrador del servidor la información que aparece a continuación, después haz clic en \"Establecer conexión\" para continuar. Se proporcionan botones para pre-rellenar alguna información para servidores populares, pero deberás introducir tu clave de API, que es única para ti.";
 
-/* Discord heading, abbreviation for black box. [activity.py] */
+/* Discord heading, abbreviation for black box. [default.py] */
 "bb" = "cn";
 
 /* Discord post title. [activity.py] */
 "BGS Activity after Tick: {tick_time}" = "Actividad de BGS después del Tick: {tick_time}";
 
 /* Dropdown menu on activity window. [activity.py] */
-"BGS Only" = "BGS Only";
+"BGS Only" = "Sólo BGS";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "bio-pod" = "biocap";
 
 /* Activity window tooltip. [activity.py] */
@@ -66,6 +66,9 @@
 
 /* Activity window column title, abbreviation for black market profit. [activity.py] */
 "BM Prof" = "Benef. MN";
+
+/* Dropdown menu on activity window. [activity.py] */
+"Both BGS and TW" = "Both BGS and TW";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bonos de recompensas";
@@ -82,7 +85,7 @@
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Buying Materials:" = "Comprando Materiales:";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "cargo" = "carga";
 
 /* Label on legend window. [legend.py] */
@@ -96,6 +99,9 @@
 
 /* Discord heading. [cmdrs.py] */
 "CMDR Inara Link" = "Enlace de INARA del CMDR";
+
+/* Preferences checkbox label. [ui.py] */
+"CMDR Info" = "CMDR Info";
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Bonos de combate";
@@ -113,9 +119,9 @@
 "Copy contents" = "Copiar contenido";
 
 /* Button label. [activity.py] */
-"Copy to Clipboard (Legacy Format)" = "Copiar al portapapeles (formato antiguo)";
+"Copy to Clipboard" = "Copy to Clipboard";
 
-/* Discord heading, abbreviation for critically injured. [activity.py] */
+/* Discord heading, abbreviation for critically injured. [default.py] */
 "crit" = "grav";
 
 /* Label on legend window. [legend.py] */
@@ -157,6 +163,9 @@
 /* Button on CMDR window. [cmdrs.py] */
 "Delete Selected" = "Borrar lo seleccionado";
 
+/* [demo.py] */
+"Demo Data Only" = "Demo Data Only";
+
 /* Discord heading. [fleetcarrier.py] */
 "Departure Time" = "Hora de salida";
 
@@ -190,7 +199,7 @@
 /* [_tksheet_main_table.py] */
 "Edit index" = "Editar índice";
 
-/* Discord heading, abbreviation for election INF. [activity.py] */
+/* Discord heading, abbreviation for election INF. [default.py] */
 "ElectionINF" = "EleccionesINF";
 
 /* Label on activity window. [activity.py] */
@@ -208,7 +217,7 @@
 /* Checkbox on API settings window. [api.py] */
 "Enable {events_url} Requests" = "Habilitar {events_url} Solicitudes";
 
-/* Discord heading, abbreviation for escape pod. [activity.py] */
+/* Discord heading, abbreviation for escape pod. [default.py] */
 "esc-pod" = "cap-esc";
 
 /* Label on API settings window. [api.py] */
@@ -220,19 +229,19 @@
 /* Label on API settings window. [api.py] */
 "Events Requested" = "Eventos Solicitados";
 
-/* Discord heading, abbreviation for exobiology. [activity.py] */
+/* Discord heading, abbreviation for exobiology. [default.py] */
 "Exo" = "Exo";
 
-/* Discord heading, abbreviation for exploration. [activity.py] */
+/* Discord heading, abbreviation for exploration. [default.py] */
 "Expl" = "Expl";
 
 /* Activity window tooltip. [activity.py] */
-"Exploration data" = "Exploration data";
+"Exploration data" = "Datos de exploración";
 
 /* Activity window column title. [activity.py] */
 "Faction" = "Facción";
 
-/* Discord heading, abbreviation for failed missions. [activity.py] */
+/* Discord heading, abbreviation for failed missions. [default.py] */
 "Fails" = "Fracasos";
 
 /* Preferences table heading, abbreviation for fleet carrier commodities / materials. [ui.py] */
@@ -247,7 +256,10 @@
 /* Appended to tick time if a forced tick. [activity.py] */
 "forced" = "forzado";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Preferences label. [ui.py] */
+"Format for Discord Posts" = "Format for Discord Posts";
+
+/* Discord CMDR information. [targetmanager.py] */
 "Friend request received from this CMDR" = "Solicitud de amistad recibida de este CMDR";
 
 /* Discord carrier docking access. [fleetcarrier.py] */
@@ -268,10 +280,10 @@
 /* Activity window tooltip. [activity.py] */
 "Ground conflict zones" = "Zonas de conflicto terrestres";
 
-/* Discord heading, abbreviation for ground conflict zones. [activity.py] */
+/* Discord heading, abbreviation for ground conflict zones. [default.py] */
 "GroundCZs" = "CZs Tierra";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "GroundMurders" = "Asesinatos en tierra";
 
 /* Activity window tooltip. [activity.py] */
@@ -283,7 +295,7 @@
 /* Button on API settings window. [api.py] */
 "I Do Not Approve" = "No Apruebo";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "I scanned this CMDR" = "He escaneado a este CMDR";
 
 /* Heading on legend window. [legend.py] */
@@ -295,11 +307,17 @@
 /* Discord heading. [cmdrs.py] */
 "In Ship" = "En Nave";
 
+/* Overlay CMDR information report message. [ui.py] */
+"In ship: {ship}" = "In ship: {ship}";
+
 /* Discord heading. [cmdrs.py] */
 "In Squadron" = "En Flota";
 
 /* Discord heading. [cmdrs.py] */
 "In System" = "En Sistema";
+
+/* Overlay CMDR information report message. [ui.py] */
+"In system: {system}" = "In system: {system}";
 
 /* Preferences heading. [ui.py] */
 "In-game Overlay" = "Overlay en el juego";
@@ -322,6 +340,9 @@
 /* Inara URL on CMDR window. [cmdrs.py] */
 "Inara Info Available ⤴" = "Información de Inara disponible ⤴";
 
+/* Overlay CMDR information report message. [ui.py] */
+"INARA INFORMATION AVAILABLE" = "INARA INFORMATION AVAILABLE";
+
 /* Inara link. [activity.py] */
 "Inara ⤴" = "Irara ⤴";
 
@@ -334,13 +355,13 @@
 /* Preferences checkbox label. [ui.py] */
 "Include Secondary INF" = "Incluir INF secundaria";
 
-/* Discord heading, abbreviation for INF. [activity.py] */
+/* Discord heading, abbreviation for INF. [default.py] */
 "INF" = "INF";
 
 /* Activity window tooltip. [activity.py] */
 "Influence" = "Influencia";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "injured" = "herido(s)";
 
 /* Label on legend window. [legend.py] */
@@ -376,10 +397,10 @@
 /* Label on CMDR window. [cmdrs.py] */
 "Interaction: " = "Interacción: ";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Interdicted by" = "Interdictado por";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "INTERDICTED BY this CMDR" = "INTERDICTADO POR este CMDR";
 
 /* Discord post title. [fleetcarrier.py] */
@@ -388,13 +409,13 @@
 /* Discord post title. [fleetcarrier.py] */
 "Jump Scheduled for Carrier {carrier_name}" = "Salto del portanaves {carrier_name} programado";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Killed by" = "Asesinado por";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "KILLED BY this CMDR" = "ASESINADO POR este CMDR";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "kills" = "bajas";
 
 /* [legend.py] */
@@ -409,14 +430,14 @@
 /* Button label. [ui.py] */
 "Latest BGS Tally" = "Último conteo de BGS";
 
-/* Preferences radio button label. [ui.py] */
-"Legacy" = "Antiguo";
-
 /* CMDR window column title. [cmdrs.py] */
 "Legal" = "Legal";
 
 /* Discord heading. [cmdrs.py] */
 "Legal Status" = "Estatus legal";
+
+/* Overlay CMDR information report message. [ui.py] */
+"Legal status: {legal}" = "Legal status: {legal}";
 
 /* Activity window tooltip. [activity.py] */
 "Low" = "Baja";
@@ -427,22 +448,19 @@
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Media";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "Message received from this CMDR in local chat" = "Mensaje recibido de este CMDR en el chat local";
 
 /* Activity window tooltip. [activity.py] */
 "Mission fails" = "Misiones fallidas";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "missions" = "misiones";
 
-/* Discord heading, abbreviation for massacre (missions). [activity.py] */
+/* Discord heading, abbreviation for massacre (missions). [default.py] */
 "mm" = "mm";
 
-/* Preferences radio button label. [ui.py] */
-"Modern" = "Moderno";
-
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "Murders" = "Asesinatos";
 
 /* Label on API settings window. [api.py] */
@@ -475,7 +493,7 @@
 /* [ui.py] */
 "Panels" = "Paneles";
 
-/* Discord heading, abbreviation for passengers. [activity.py] */
+/* Discord heading, abbreviation for passengers. [default.py] */
 "passeng" = "pasaj";
 
 /* Label on legend window. [legend.py] */
@@ -505,9 +523,6 @@
 /* Button on CMDR window. [cmdrs.py] */
 "Post CMDR to Discord" = "Publicar CMDR en Discord";
 
-/* Preferences label. [ui.py] */
-"Post Format" = "Formato de publicación";
-
 /* Button label. [activity.py] */
 "Post to Discord" = "Publicar en Discord";
 
@@ -533,42 +548,42 @@
 "Prof" = "Benef";
 
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
-"Profit at Z | L | M | H demand" = "Profit at Z | L | M | H demand";
+"Profit at Z | L | M | H demand" = "Beneficio con demanda Z | L | M | H";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */
 "Purch" = "Compra";
 
 /* Activity window tooltip for purchase at low | medium | high supply. [activity.py] */
-"Purchase at L | M | H supply" = "Purchase at L | M | H supply";
+"Purchase at L | M | H supply" = "Compra con oferta L | M | H";
 
-/* Discord heading, abbreviation for reactivation (TW missions). [activity.py] */
+/* Discord heading, abbreviation for reactivation (TW missions). [default.py] */
 "reac" = "reac";
 
 /* Label on legend window. [legend.py] */
 "Reactivation missions" = "Misiones de reactivación";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Received friend request from" = "Solicitud de amistad recibida de";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Received message from" = "Mensaje recibido de";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Received team invite from" = "Invitación de equipo recibida de";
 
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Reportar por defecto actividad de sistemas recientemente visitados";
 
-/* Discord heading, abbreviation for search and rescue. [activity.py] */
+/* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "BusqResc";
 
-/* CMDR information. [cmdrs.py] */
+/* CMDR information. [targetmanager.py] */
 "Scanned" = "Escaneado";
 
 /* Activity window tooltip. [activity.py] */
 "Scenario wins" = "Victorias de escenarios";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "Scenarios" = "Escenarios";
 
 /* Activity window column title, abbreviation for scenarios. [activity.py] */
@@ -616,7 +631,7 @@
 /* Label on API settings window. [api.py] */
 "Server URL" = "URL del servidor";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "settlements" = "asentamientos";
 
 /* Activity window column title. [activity.py] */
@@ -649,7 +664,7 @@
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Zonas de conflicto espaciales";
 
-/* Discord heading, abbreviation for space conflict zones. [activity.py] */
+/* Discord heading, abbreviation for space conflict zones. [default.py] */
 "SpaceCZs" = "CZs Espaciales";
 
 /* Discord carrier docking access. [fleetcarrier.py] */
@@ -657,6 +672,9 @@
 
 /* CMDR window column title. [cmdrs.py] */
 "Squadron ID" = "ID de Flota";
+
+/* Overlay CMDR information report message. [ui.py] */
+"Squadron ID: {squadron}" = "Squadron ID: {squadron}";
 
 /* Discord heading. [cmdrs.py] */
 "Squadron Inara Link" = "Enlace de Inara de la Flota";
@@ -670,7 +688,7 @@
 /* CMDR window column title. [cmdrs.py] */
 "System" = "Sistema";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "System activity" = "Actividad del sistema";
 
 /* Preferences checkbox label. [ui.py] */
@@ -685,8 +703,11 @@
 /* Overlay message. [activity.py] */
 "Targeted Ally!" = "¡Aliado seleccionado como objetivo!";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "Team invite received from this CMDR" = "Invitación de equipo recibida de este CMDR";
+
+/* Name of default output formatter. [text.py] */
+"Text Only" = "Text Only";
 
 /* Preferences checkbox label. [ui.py] */
 "Thargoid War Progress" = "Progreso de Guerra Thargoide";
@@ -700,7 +721,7 @@
 /* Discord text. [fleetcarrier.py] */
 "The scheduled carrier jump was cancelled" = "El salto programado del portanaves ha sido cancelado";
 
-/* Discord CMDR information. [cmdrs.py] */
+/* Discord CMDR information. [targetmanager.py] */
 "This CMDR was added as a friend" = "Se ha añadido a este CMDR como amigo";
 
 /* Text on API settings window. [api.py] */
@@ -727,26 +748,29 @@
 /* Activity window column title. [activity.py] */
 "Trade" = "Comercio";
 
-/* Discord heading, abbreviation for trade black market profit. [activity.py] */
+/* Discord heading, abbreviation for trade black market profit. [default.py] */
 "TrdBMProfit" = "ComMNBenef";
 
-/* Discord heading, abbreviation for trade buy. [activity.py] */
+/* Discord heading, abbreviation for trade buy. [default.py] */
 "TrdBuy" = "ComCompra";
 
-/* Discord heading, abbreviation for trade profit. [activity.py] */
+/* Discord heading, abbreviation for trade profit. [default.py] */
 "TrdProfit" = "ComBenef";
 
-/* Discord heading, abbreviation for tissue sample. [activity.py] */
+/* Discord heading, abbreviation for tissue sample. [default.py] */
 "ts" = "mt";
 
 /* Discord post title. [activity.py] */
 "TW Activity after Tick: {tick_time}" = "Actividad de TW después del Tick: {tick_time}";
 
 /* Dropdown menu on activity window. [activity.py] */
-"TW Only" = "TW Only";
+"TW Only" = "Sólo TW";
 
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "Progreso de la Guerra de TW en {current_system}: {percent}%";
+
+/* Overlay CMDR information report message. [ui.py] */
+"Unknown" = "Unknown";
 
 /* Main window label. [ui.py] */
 "Update will be installed on shutdown" = "La actualización se instalará al apagar";
@@ -757,7 +781,7 @@
 /* Discord message footer, legacy text mode. [discord.py] */
 "Updated at: {date_time} | {plugin_name} v{version}" = "Actualizado el: {date_time} | {plugin_name} v{version}";
 
-/* Discord heading, abbreviation for war INF. [activity.py] */
+/* Discord heading, abbreviation for war INF. [default.py] */
 "WarINF" = "GuerraINF";
 
 /* Preferences force tick popup text. [ui.py] */
@@ -772,7 +796,7 @@
 /* [ui.py] */
 "Within {minutes_to_tick}m of Next Tick (Estimated)" = "Quedan {minutes_to_tick}m para el siguiente Tick (Estimado)";
 
-/* Discord heading. [activity.py] */
+/* Discord heading. [default.py] */
 "wounded" = "heridos";
 
 /* Label on legend window. [legend.py] */

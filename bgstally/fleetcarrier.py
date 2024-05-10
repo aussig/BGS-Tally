@@ -69,8 +69,8 @@ class FleetCarrier:
         self.data = data
 
         # Name is encoded as hex string
-        self.name = bytes.fromhex(self.data.get('name', {}).get('vanityName', "----")).decode('utf-8')
-        self.callsign = self.data.get('name', {}).get('callsign', "----")
+        self.name = bytes.fromhex(get_by_path(self.data, ['name', 'vanityName'], "----")).decode('utf-8')
+        self.callsign = get_by_path(self.data, ['name', 'callsign'], "----")
 
         # Sort microresource sell orders - a Dict of Dicts, or an empty list
         materials:dict|list = get_by_path(self.data, ['orders', 'onfootmicroresources', 'sales'], [])
@@ -271,10 +271,18 @@ class FleetCarrier:
         Get the docking access in human-readable format
         """
         match (self.data.get('dockingAccess')):
-            case "all": return __("All", lang=self.bgstally.state.discord_lang) if discord else _("All") # LANG: Discord carrier docking access
-            case "squadronfriends": return __("Squadron and Friends", lang=self.bgstally.state.discord_lang) if discord else _("Squadron and Friends") # LANG: Discord carrier docking access
-            case "friends": return __("Friends", lang=self.bgstally.state.discord_lang) if discord else _("Friends") # LANG: Discord carrier docking access
-            case _: return __("None", lang=self.bgstally.state.discord_lang) if discord else _("None") # LANG: Discord carrier docking access
+            case "all":
+                if discord: return __("All", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("All") # LANG: Carrier docking access
+            case "squadronfriends":
+                if discord: return __("Squadron and Friends", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("Squadron and Friends") # LANG: Carrier docking access
+            case "friends":
+                if discord: return __("Friends", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("Friends") # LANG: Carrier docking access
+            case _:
+                if discord: return __("None", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("None") # LANG: Carrier docking access
 
 
     def human_format_notorious(self, discord:bool) -> str:

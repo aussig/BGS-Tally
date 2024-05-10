@@ -68,7 +68,7 @@
 "BM Prof" = "Benef. MN";
 
 /* Dropdown menu on activity window. [activity.py] */
-"Both BGS and TW" = "Both BGS and TW";
+"Both BGS and TW" = "BGS y TW";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bonos de recompensas";
@@ -101,7 +101,7 @@
 "CMDR Inara Link" = "Enlace de INARA del CMDR";
 
 /* Preferences checkbox label. [ui.py] */
-"CMDR Info" = "CMDR Info";
+"CMDR Info" = "Información del CMDR";
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Bonos de combate";
@@ -119,7 +119,7 @@
 "Copy contents" = "Copiar contenido";
 
 /* Button label. [activity.py] */
-"Copy to Clipboard" = "Copy to Clipboard";
+"Copy to Clipboard" = "Copiar al portapapeles";
 
 /* Discord heading, abbreviation for critically injured. [default.py] */
 "crit" = "grav";
@@ -164,7 +164,7 @@
 "Delete Selected" = "Borrar lo seleccionado";
 
 /* [demo.py] */
-"Demo Data Only" = "Demo Data Only";
+"Demo Data Only" = "Información solo para demostración";
 
 /* Discord heading. [fleetcarrier.py] */
 "Departure Time" = "Hora de salida";
@@ -257,7 +257,7 @@
 "forced" = "forzado";
 
 /* Preferences label. [ui.py] */
-"Format for Discord Posts" = "Format for Discord Posts";
+"Format for Discord Posts" = "Formato para los posts de Discord";
 
 /* Discord CMDR information. [targetmanager.py] */
 "Friend request received from this CMDR" = "Solicitud de amistad recibida de este CMDR";
@@ -308,7 +308,7 @@
 "In Ship" = "En Nave";
 
 /* Overlay CMDR information report message. [ui.py] */
-"In ship: {ship}" = "In ship: {ship}";
+"In ship: {ship}" = "En nave: {ship}";
 
 /* Discord heading. [cmdrs.py] */
 "In Squadron" = "En Flota";
@@ -317,7 +317,7 @@
 "In System" = "En Sistema";
 
 /* Overlay CMDR information report message. [ui.py] */
-"In system: {system}" = "In system: {system}";
+"In system: {system}" = "En el sistema: {system}";
 
 /* Preferences heading. [ui.py] */
 "In-game Overlay" = "Overlay en el juego";
@@ -341,7 +341,7 @@
 "Inara Info Available ⤴" = "Información de Inara disponible ⤴";
 
 /* Overlay CMDR information report message. [ui.py] */
-"INARA INFORMATION AVAILABLE" = "INARA INFORMATION AVAILABLE";
+"INARA INFORMATION AVAILABLE" = "INFORMACIÓN DE INARA DISPONIBLE";
 
 /* Inara link. [activity.py] */
 "Inara ⤴" = "Irara ⤴";
@@ -437,13 +437,19 @@
 "Legal Status" = "Estatus legal";
 
 /* Overlay CMDR information report message. [ui.py] */
-"Legal status: {legal}" = "Legal status: {legal}";
+"Legal status: {legal}" = "Estado legal: {legal}";
 
 /* Activity window tooltip. [activity.py] */
 "Low" = "Baja";
 
 /* [legend.py] */
 "Massacre missions" = "Misiones de masacre";
+
+/* Discord fleet carrier title. [fleetcarrier.py] */
+"Materials List for Carrier {carrier_name}" = "Materials List for Carrier {carrier_name}";
+
+/* Discord fleet carrier title. [fleetcarrier.py] */
+"Materials List for Carrier {carrier_name} in system: {system}" = "Materials List for Carrier {carrier_name} in system: {system}";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Media";
@@ -674,7 +680,7 @@
 "Squadron ID" = "ID de Flota";
 
 /* Overlay CMDR information report message. [ui.py] */
-"Squadron ID: {squadron}" = "Squadron ID: {squadron}";
+"Squadron ID: {squadron}" = "ID de la flota: {squadron}";
 
 /* Discord heading. [cmdrs.py] */
 "Squadron Inara Link" = "Enlace de Inara de la Flota";
@@ -707,7 +713,7 @@
 "Team invite received from this CMDR" = "Invitación de equipo recibida de este CMDR";
 
 /* Name of default output formatter. [text.py] */
-"Text Only" = "Text Only";
+"Text Only" = "Sólo texto";
 
 /* Preferences checkbox label. [ui.py] */
 "Thargoid War Progress" = "Progreso de Guerra Thargoide";
@@ -770,7 +776,7 @@
 "TW War Progress in {current_system}: {percent}%" = "Progreso de la Guerra de TW en {current_system}: {percent}%";
 
 /* Overlay CMDR information report message. [ui.py] */
-"Unknown" = "Unknown";
+"Unknown" = "Desconocido";
 
 /* Main window label. [ui.py] */
 "Update will be installed on shutdown" = "La actualización se instalará al apagar";

@@ -36,6 +36,7 @@
 * Activity window wasn't showing all trade purchase and profit bands.
 * If you changed your Discord webhook settings after previously successfully posting to Discord, then tried to post again in the same tick, it would fail.
 * If any Discord post got bigger than the limits imposed by Discord, it would silently fail to post. Now, the post is truncated to the Discord limit and '...' appended to the end.
+* The 'Post to Discord' button on the CMDRs information window was sometimes becoming enabled even if there were no valid discord webhooks set up.
 
 ### API Changes ([vx.x](https://studio-ws.apicur.io/sharing/xxxxxxxx)):
 

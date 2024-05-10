@@ -146,13 +146,13 @@ class WindowCMDRs:
         """
         self.selected_items = treeview.selection()
 
-        if len(self.selected_items) == 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
+        if len(self.selected_items) == 1:
             self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
-            self.post_button['state'] = tk.NORMAL
+            self._enable_post_button()
             self.delete_button['state'] = tk.NORMAL
-        elif len(self.selected_items) > 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
+        elif len(self.selected_items) > 1:
             self.post_button.configure(text=_("Post CMDR List to Discord")) # LANG: Button on CMDR window
-            self.post_button['state'] = tk.NORMAL
+            self._enable_post_button()
             self.delete_button['state'] = tk.NORMAL
         else:
             self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window

@@ -612,10 +612,16 @@ class WindowActivity:
 
 
     def _copy_to_clipboard(self, frm_container: tk.Frame, activity: Activity):
-        """
-        Get all text from the Discord field and put it in the Copy buffer
-        """
-        frm_container.clipboard_clear()
-        frm_container.clipboard_append(self.bgstally.formatter_manager.get_current_formatter().get_text(activity, self.bgstally.state.DiscordActivity.get(), lang=self.bgstally.state.discord_lang))
-        frm_container.update()
+        """Get text version of the activity and put it in the Copy buffer
 
+        Args:
+            frm_container (tk.Frame): The parent tk Frame
+            activity (Activity): The Activity object
+        """
+        formatter: BaseActivityFormatterInterface = self.bgstally.formatter_manager.get_current_formatter()
+        if formatter is None: return
+        text: str = formatter.get_text(activity, self.bgstally.state.DiscordActivity.get(), lang=self.bgstally.state.discord_lang)
+
+        frm_container.clipboard_clear()
+        frm_container.clipboard_append(text)
+        frm_container.update()

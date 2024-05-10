@@ -110,10 +110,12 @@ class WindowFleetCarrier:
         items_frame.rowconfigure(1, weight=1) # Make the materials text fill available space
         items_frame.rowconfigure(3, weight=1) # Make the commodities text fill available space
 
+        self.copy_to_clipboard_button: tk.Button = tk.Button(buttons_frame, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, container_frame)) # LANG: Button label
+        self.copy_to_clipboard_button.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.post_button:ttk.Button = ttk.Button(buttons_frame, text=_("Post to Discord"), command=partial(self._post_to_discord)) # LANG: Button
+        self.post_button: tk.Button = tk.Button(buttons_frame, text=_("Post to Discord"), command=partial(self._post_to_discord)) # LANG: Button
         self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
-        self.post_button.config(state=(tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) else tk.DISABLED))
+        self._enable_post_button()
 
 
     def _post_to_discord(self):
@@ -122,25 +124,12 @@ class WindowFleetCarrier:
         """
         self.post_button.config(state=tk.DISABLED)
 
-        fc:FleetCarrier = self.bgstally.fleet_carrier
+        fc: FleetCarrier = self.bgstally.fleet_carrier
 
-        title:str = f"Materials List for Carrier {fc.name} in system: {fc.data['currentStarSystem']}"
-        description:str = ""
-        materials_selling:str = fc.get_items_plaintext(FleetCarrierItemType.MATERIALS_SELLING)
-        materials_buying:str = fc.get_items_plaintext(FleetCarrierItemType.MATERIALS_BUYING)
-        commodities_selling:str = fc.get_items_plaintext(FleetCarrierItemType.COMMODITIES_SELLING)
-        commodities_buying:str = fc.get_items_plaintext(FleetCarrierItemType.COMMODITIES_BUYING)
+        title: str = __("Materials List for Carrier {carrier_name} in system: {system}", lang=self.bgstally.state.discord_lang).format(carrier_name=fc.name, system=fc.data['currentStarSystem']) # LANG: Discord fleet carrier title
+        description: str = self._get_as_text(fc, True)
 
-        if materials_selling != "":
-            description += "**" + __("Selling Materials:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{materials_selling}```\n" # LANG: Discord fleet carrier section heading
-        if materials_buying != "":
-            description += "**" + __("Buying Materials:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{materials_buying}```\n" # LANG: Discord fleet carrier section heading
-        if commodities_selling != "":
-            description += "**" + __("Selling Commodities:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{commodities_selling}```\n" # LANG: Discord fleet carrier section heading
-        if commodities_buying != "":
-            description += "**" + __("Buying Commodities:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{commodities_buying}```\n" # LANG: Discord fleet carrier section heading
-
-        fields = []
+        fields: list = []
         fields.append({'name': __("System", lang=self.bgstally.state.discord_lang), 'value': fc.data['currentStarSystem'], 'inline': True}) # LANG: Discord fleet carrier field heading
         fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': fc.human_format_dockingaccess(True), 'inline': True}) # LANG: Discord fleet carrier field heading
         fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': fc.human_format_notorious(True), 'inline': True}) # LANG: Discord fleet carrier field heading
@@ -150,8 +139,59 @@ class WindowFleetCarrier:
         self.post_button.after(5000, self._enable_post_button)
 
 
+    def _get_as_text(self, fc: FleetCarrier, short: bool = False) -> str:
+        """Get a string containing the fleet carrier information
+
+        Args:
+            fc (FleetCarrier): The FleetCarrier object
+            short (bool): If true, return a short report excluding the carrier name, location and docking access
+
+        Returns:
+            str: The fleet carrier information
+        """
+        text: str = ""
+
+        if not short:
+            text += "**" + __("Materials List for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=fc.name, system=fc.data['currentStarSystem']) + "**\n\n" # LANG: Discord fleet carrier title
+
+        materials_selling: str = fc.get_items_plaintext(FleetCarrierItemType.MATERIALS_SELLING)
+        materials_buying: str = fc.get_items_plaintext(FleetCarrierItemType.MATERIALS_BUYING)
+        commodities_selling: str = fc.get_items_plaintext(FleetCarrierItemType.COMMODITIES_SELLING)
+        commodities_buying: str = fc.get_items_plaintext(FleetCarrierItemType.COMMODITIES_BUYING)
+
+        if materials_selling != "":
+            text += "**" + __("Selling Materials:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{materials_selling}```\n" # LANG: Discord fleet carrier section heading
+        if materials_buying != "":
+            text += "**" + __("Buying Materials:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{materials_buying}```\n" # LANG: Discord fleet carrier section heading
+        if commodities_selling != "":
+            text += "**" + __("Selling Commodities:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{commodities_selling}```\n" # LANG: Discord fleet carrier section heading
+        if commodities_buying != "":
+            text += "**" + __("Buying Commodities:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{commodities_buying}```\n" # LANG: Discord fleet carrier section heading
+
+        if not short:
+            text += "**" + __("System", lang=self.bgstally.state.discord_lang) + "**: " + fc.data['currentStarSystem'] + "\n" # LANG: Discord fleet carrier discord post
+            text += "**" + __("Docking", lang=self.bgstally.state.discord_lang) + "**: " + fc.human_format_dockingaccess(True) + "\n" # LANG: Discord fleet carrier discord post
+            text += "**" + __("Notorious Access", lang=self.bgstally.state.discord_lang) + "**: " + fc.human_format_notorious(True) # LANG: Discord fleet carrier discord post
+
+        return text
+
+
     def _enable_post_button(self):
         """
         Re-enable the post to discord button if it should be enabled
         """
         self.post_button.config(state=(tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) else tk.DISABLED))
+
+
+    def _copy_to_clipboard(self, frm_container: tk.Frame):
+        """Get text version of the fleetcarrier information and put it in the Copy buffer
+
+        Args:
+            frm_container (tk.Frame): The parent tk Frame
+        """
+        fc: FleetCarrier = self.bgstally.fleet_carrier
+        text: str = self._get_as_text(fc, False)
+
+        frm_container.clipboard_clear()
+        frm_container.clipboard_append(text)
+        frm_container.update()

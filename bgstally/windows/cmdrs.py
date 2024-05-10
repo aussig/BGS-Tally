@@ -103,6 +103,10 @@ class WindowCMDRs:
                              self.bgstally.target_manager.get_human_readable_reason(target.get('Reason'), False)]
             treeview.insert("", 'end', values=target_values, iid=target.get('index'))
 
+        self.copy_to_clipboard_button: tk.Button = tk.Button(buttons_frame, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, container_frame)) # LANG: Button label
+        self.copy_to_clipboard_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.copy_to_clipboard_button['state'] = tk.DISABLED
+
         self.post_button = tk.Button(buttons_frame, text=_("Post CMDR to Discord"), command=partial(self._post_to_discord)) # LANG: Button on CMDR window
         self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
         self.post_button['state'] = tk.DISABLED
@@ -150,14 +154,17 @@ class WindowCMDRs:
             self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
             self.delete_button['state'] = tk.NORMAL
+            self.copy_to_clipboard_button['state'] = tk.NORMAL
         elif len(self.selected_items) > 1:
             self.post_button.configure(text=_("Post CMDR List to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
             self.delete_button['state'] = tk.NORMAL
+            self.copy_to_clipboard_button['state'] = tk.NORMAL
         else:
             self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self.post_button['state'] = tk.DISABLED
             self.delete_button['state'] = tk.DISABLED
+            self.copy_to_clipboard_button['state'] = tk.DISABLED
 
 
     def _delete_selected(self, treeview:TreeviewPlus):
@@ -176,6 +183,13 @@ class WindowCMDRs:
         self._cmdr_selection_changed(treeview)
 
 
+    def _enable_post_button(self):
+        """
+        Re-enable the post to discord button if it should be enabled
+        """
+        self.post_button.config(state=(tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION) else tk.DISABLED))
+
+
     def _post_to_discord(self):
         """
         Post the current selected CMDR or multiple CMDR details to discord
@@ -190,78 +204,23 @@ class WindowCMDRs:
         self.post_button.after(5000, self._enable_post_button)
 
 
-    def _enable_post_button(self):
-        """
-        Re-enable the post to discord button if it should be enabled
-        """
-        self.post_button.config(state=(tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION) else tk.DISABLED))
-
-
     def _post_single_cmdr_to_discord(self):
         """
-        Post the current selected cmdr details to discord
+        Post the current selected cmdr details to discord as Discord embed fields
         """
         if not self.selected_cmdr: return
 
-        embed_fields = [
-            {
-                "name": __("Name", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
-                "value": self.selected_cmdr.get('TargetName'),
-                "inline": True
-            },
-            {
-                "name": __("In System", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
-                "value": self.selected_cmdr.get('System'),
-                "inline": True
-            },
-            {
-                "name": __("In Ship", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
-                "value": self.selected_cmdr.get('Ship'),
-                "inline": True
-            },
-            {
-                "name": __("In Squadron", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
-                "value": self.selected_cmdr.get('SquadronID'),
-                "inline": True
-            },
-            {
-                "name": __("Legal Status", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
-                "value": self.selected_cmdr.get('LegalStatus'),
-                "inline": True
-            },
-            {
-                "name": __("Date and Time", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
-                "value": datetime.strptime(self.selected_cmdr.get('Timestamp'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST),
-                "inline": True
-            }
-        ]
+        fields: list = self._get_cmdr_as_discord_fields(self.selected_cmdr)
+        description: str = f"```ansi\n{self.bgstally.target_manager.get_human_readable_reason(self.selected_cmdr.get('Reason'), True)}\n```"
 
-        if 'inaraURL' in self.selected_cmdr:
-            embed_fields.append({
-                "name": __("CMDR Inara Link", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
-                "value": f"[{self.selected_cmdr.get('TargetName')}]({self.selected_cmdr.get('inaraURL')})",
-                "inline": True
-                })
-
-        if 'squadron' in self.selected_cmdr:
-            squadron_info = self.selected_cmdr.get('squadron')
-            if 'squadronName' in squadron_info and 'inaraURL' in squadron_info:
-                embed_fields.append({
-                    "name": __("Squadron Inara Link", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
-                    "value": f"[{squadron_info.get('squadronName')} ({squadron_info.get('squadronMemberRank')})]({squadron_info.get('inaraURL')})",
-                    "inline": True
-                    })
-
-        description = f"```ansi\n{self.bgstally.target_manager.get_human_readable_reason(self.selected_cmdr.get('Reason'), True)}\n```"
-
-        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr.get('TargetName')}", description, embed_fields, None, DiscordChannel.CMDR_INFORMATION, None)
+        self.bgstally.discord.post_embed(f"CMDR {self.selected_cmdr.get('TargetName')}", description, fields, None, DiscordChannel.CMDR_INFORMATION, None)
 
 
     def _post_multiple_CMDRs_to_discord(self):
         """
-        Post the currently selected list of CMDRs to discord
+        Post the currently selected list of CMDRs to discord in a compact format
         """
-        text:str = ""
+        text: str = ""
 
         for selected_iid in self.selected_items:
             if len(text) > 1500:
@@ -270,19 +229,111 @@ class WindowCMDRs:
 
             for cmdr in self.target_data:
                 if int(cmdr['index']) == int(selected_iid):
-                    text += f"{datetime.strptime(cmdr.get('Timestamp'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST)}: "
-
-                    if 'inaraURL' in cmdr:
-                        text += f" - [{cmdr.get('TargetName')}](<{cmdr.get('inaraURL')}>)"
-                    else:
-                        text += f" - {cmdr.get('TargetName')}"
-
-                    text += f" - [{cmdr.get('System')}](<https://inara.cz/elite/starsystem/?search={quote(cmdr.get('System'))}>) - {cmdr.get('Ship')}"
-
-                    if 'squadron' in cmdr:
-                        squadron_info = cmdr.get('squadron')
-                        if 'squadronName' in squadron_info and 'inaraURL' in squadron_info:
-                            text += f" - [{squadron_info.get('squadronName')}](<{squadron_info.get('inaraURL')}>)"
-                    text += "\n"
+                    text += self._get_cmdr_as_text(cmdr) + "\n"
 
         self.bgstally.discord.post_plaintext(text, None, DiscordChannel.CMDR_INFORMATION, None)
+
+
+    def _get_cmdr_as_discord_fields(self, cmdr_info: dict) -> list:
+        """Get a list of Discord embed fields containing the CMDR info
+
+        Args:
+            cmdr_info (dict): The CMDR information object
+
+        Returns:
+            list: A list of dicts, each containing a Discord field
+        """
+        fields: list = [
+            {
+                "name": __("Name", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
+                "value": cmdr_info.get('TargetName'),
+                "inline": True
+            },
+            {
+                "name": __("In System", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
+                "value": cmdr_info.get('System'),
+                "inline": True
+            },
+            {
+                "name": __("In Ship", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
+                "value": cmdr_info.get('Ship'),
+                "inline": True
+            },
+            {
+                "name": __("In Squadron", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
+                "value": cmdr_info.get('SquadronID'),
+                "inline": True
+            },
+            {
+                "name": __("Legal Status", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
+                "value": cmdr_info.get('LegalStatus'),
+                "inline": True
+            },
+            {
+                "name": __("Date and Time", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
+                "value": datetime.strptime(cmdr_info.get('Timestamp'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST),
+                "inline": True
+            }
+        ]
+
+        if 'inaraURL' in cmdr_info:
+            fields.append({
+                "name": __("CMDR Inara Link", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
+                "value": f"[{cmdr_info.get('TargetName')}]({cmdr_info.get('inaraURL')})",
+                "inline": True
+                })
+
+        if 'squadron' in cmdr_info:
+            squadron_info = cmdr_info.get('squadron')
+            if 'squadronName' in squadron_info and 'inaraURL' in squadron_info:
+                fields.append({
+                    "name": __("Squadron Inara Link", lang=self.bgstally.state.discord_lang), # LANG: Discord heading
+                    "value": f"[{squadron_info.get('squadronName')} ({squadron_info.get('squadronMemberRank')})]({squadron_info.get('inaraURL')})",
+                    "inline": True
+                    })
+
+        return fields
+
+
+    def _get_cmdr_as_text(self, cmdr_info: dict) -> str:
+        """Get a string containing the CMDR info
+
+        Args:
+            cmdr_info (dict): The CMDR information object
+
+        Returns:
+            list: A list of dicts, each containing a Discord field
+        """
+        text: str = f"{datetime.strptime(cmdr_info.get('Timestamp'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT_CMDRLIST)}: "
+
+        if 'inaraURL' in cmdr_info:
+            text += f" - [{cmdr_info.get('TargetName')}](<{cmdr_info.get('inaraURL')}>)"
+        else:
+            text += f" - {cmdr_info.get('TargetName')}"
+
+        text += f" - [{cmdr_info.get('System')}](<https://inara.cz/elite/starsystem/?search={quote(cmdr_info.get('System'))}>) - {cmdr_info.get('Ship')}"
+
+        if 'squadron' in cmdr_info:
+            squadron_info: dict = cmdr_info.get('squadron')
+            if 'squadronName' in squadron_info and 'inaraURL' in squadron_info:
+                text += f" - [{squadron_info.get('squadronName')}](<{squadron_info.get('inaraURL')}>)"
+
+        return text
+
+
+    def _copy_to_clipboard(self, frm_container: tk.Frame):
+        """Get text version of the selected CMDR(s) and put it in the Copy buffer
+
+        Args:
+            frm_container (tk.Frame): The parent tk Frame
+        """
+        text: str = ""
+
+        for selected_iid in self.selected_items:
+            for cmdr in self.target_data:
+                if int(cmdr['index']) == int(selected_iid):
+                    text += self._get_cmdr_as_text(cmdr) + "\n"
+
+        frm_container.clipboard_clear()
+        frm_container.clipboard_append(text)
+        frm_container.update()

@@ -16,7 +16,8 @@
     * Enemy propagandist wing kills ✒️ are also tallied as soon as BGS-Tally spots the **first detectable kill** in the propagandist wing, for the same reason.
 * Added tooltips (hover text) to all abbreviations on screen, and a few of the controls and buttons that are not self-explanatory.
 * Added support for different Discord post formats. So if your squadron or group would like your discord activity posts to look different, this can be done. Currently it's a programming job to create a new format (so ask your friendly Python developer to get in touch, or send in a suggestion for a new format to the BGS-Tally Discord server).
-* Added popup CMDR information in in-game overlay when you interact with a CMDR.
+* Added popup CMDR information on the in-game overlay when you interact with a CMDR.
+* Added 'Copy to Clipboard' button on CMDRs information window.
 
 ### Changes:
 

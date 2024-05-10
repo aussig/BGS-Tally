@@ -17,7 +17,7 @@
 "Activity Indicator" = "Indicador de Atividade";
 
 /* Label on activity window. [activity.py] */
-"Activity to post:" = "Activity to post:";
+"Activity to post:" = "Atividade para postar:";
 
 /* CMDR information. [targetmanager.py] */
 "Added a friend" = "Adicionado um amigo";
@@ -56,22 +56,22 @@
 "BGS Activity after Tick: {tick_time}" = "Atividade BGS depois do Tick: {tick_time}";
 
 /* Dropdown menu on activity window. [activity.py] */
-"BGS Only" = "BGS Only";
+"BGS Only" = "Apenas BGS";
 
 /* Discord heading. [default.py] */
 "bio-pod" = "bio-pod";
 
 /* Activity window tooltip. [activity.py] */
-"Black market profit" = "Black market profit";
+"Black market profit" = "Lucro do mercado negro";
 
 /* Activity window column title, abbreviation for black market profit. [activity.py] */
 "BM Prof" = "BM Lucro";
 
 /* Dropdown menu on activity window. [activity.py] */
-"Both BGS and TW" = "Both BGS and TW";
+"Both BGS and TW" = "Tanto BGS quanto TW";
 
 /* Activity window tooltip. [activity.py] */
-"Bounty vouchers" = "Bounty vouchers";
+"Bounty vouchers" = "Cupons de recompensa";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "Buying Commodities" = "Compra de mercadorias";
@@ -101,10 +101,10 @@
 "CMDR Inara Link" = "CMDR Inara Link";
 
 /* Preferences checkbox label. [ui.py] */
-"CMDR Info" = "CMDR Info";
+"CMDR Info" = "Info CMDT";
 
 /* Activity window tooltip. [activity.py] */
-"Combat bonds" = "Combat bonds";
+"Combat bonds" = "Cupons de Combate";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configurar Servidor Remoto";
@@ -119,7 +119,7 @@
 "Copy contents" = "Copiar conteúdo";
 
 /* Button label. [activity.py] */
-"Copy to Clipboard" = "Copy to Clipboard";
+"Copy to Clipboard" = "Copia para a Área de Transferência";
 
 /* Discord heading, abbreviation for critically injured. [default.py] */
 "crit" = "grave";
@@ -164,7 +164,7 @@
 "Delete Selected" = "Apagar Selecionados";
 
 /* [demo.py] */
-"Demo Data Only" = "Demo Data Only";
+"Demo Data Only" = "Apenas Dados Demonstrativos";
 
 /* Discord heading. [fleetcarrier.py] */
 "Departure Time" = "Hora de partida";
@@ -206,10 +206,10 @@
 "Empty System, no BGS Activity Available" = "Sistema Vazio, não há atividade BGS disponível";
 
 /* Activity window tooltip. [activity.py] */
-"Enable / disable all factions" = "Enable / disable all factions";
+"Enable / disable all factions" = "Ativar / desativar todas as facções";
 
 /* Activity window tooltip. [activity.py] */
-"Enable / disable faction" = "Enable / disable faction";
+"Enable / disable faction" = "Ativar / desativar facção";
 
 /* Checkbox on API settings window. [api.py] */
 "Enable {activities_url} Requests" = "Ativar {activities_url} Solicitações";
@@ -236,7 +236,7 @@
 "Expl" = "Expl";
 
 /* Activity window tooltip. [activity.py] */
-"Exploration data" = "Exploration data";
+"Exploration data" = "Dados de exploração";
 
 /* Activity window column title. [activity.py] */
 "Faction" = "Facção";
@@ -257,7 +257,7 @@
 "forced" = "forçado";
 
 /* Preferences label. [ui.py] */
-"Format for Discord Posts" = "Format for Discord Posts";
+"Format for Discord Posts" = "Formato das postagens do Discord";
 
 /* Discord CMDR information. [targetmanager.py] */
 "Friend request received from this CMDR" = "Recebido um pedido de amizade deste CMDR";
@@ -278,7 +278,7 @@
 "Ground" = "Solo";
 
 /* Activity window tooltip. [activity.py] */
-"Ground conflict zones" = "Ground conflict zones";
+"Ground conflict zones" = "Zonas de conflito a pé";
 
 /* Discord heading, abbreviation for ground conflict zones. [default.py] */
 "GroundCZs" = "SoloCZs";
@@ -287,7 +287,7 @@
 "GroundMurders" = "AssassinatosNoSolo";
 
 /* Activity window tooltip. [activity.py] */
-"High" = "High";
+"High" = "Alta";
 
 /* Button on API settings window. [api.py] */
 "I Approve" = "Eu Aprovo";
@@ -308,7 +308,7 @@
 "In Ship" = "Na Nave";
 
 /* Overlay CMDR information report message. [ui.py] */
-"In ship: {ship}" = "In ship: {ship}";
+"In ship: {ship}" = "Na nave: {ship}";
 
 /* Discord heading. [cmdrs.py] */
 "In Squadron" = "No Esquadrão";
@@ -317,7 +317,7 @@
 "In System" = "No Sistema";
 
 /* Overlay CMDR information report message. [ui.py] */
-"In system: {system}" = "In system: {system}";
+"In system: {system}" = "No sistema: {system}";
 
 /* Preferences heading. [ui.py] */
 "In-game Overlay" = "Sobreposição no jogo";
@@ -326,22 +326,22 @@
 "In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information." = "Suporte para a sobreposição no jogo requer que o plugin EDMCOverlay esteja instalado - verificar as instruções para mais informações.";
 
 /* Label on legend window. [legend.py] */
-"In-space Conflict Zone Side Objective: Cap ship" = "In-space Conflict Zone Side Objective: Cap ship";
+"In-space Conflict Zone Side Objective: Cap ship" = "Objetivo Secundário na Zona de Conflito Espacial: Navio Cap";
 
 /* Label on legend window. [legend.py] */
-"In-space Conflict Zone Side Objective: Enemy captain" = "In-space Conflict Zone Side Objective: Enemy captain";
+"In-space Conflict Zone Side Objective: Enemy captain" = "Objetivo Secundário na Zona de Conflito Espacial: Capitão Inimigo";
 
 /* Label on legend window. [legend.py] */
-"In-space Conflict Zone Side Objective: Propaganda wing" = "In-space Conflict Zone Side Objective: Propaganda wing";
+"In-space Conflict Zone Side Objective: Propaganda wing" = "Objetivo Secundário na Zona de Conflito Espacial: Propaganda";
 
 /* Label on legend window. [legend.py] */
-"In-space Conflict Zone Side Objective: Spec ops wing" = "In-space Conflict Zone Side Objective: Spec ops wing";
+"In-space Conflict Zone Side Objective: Spec ops wing" = "Objetivo Secundário na Zona de Conflito Espacial: Forças Especiais";
 
 /* Inara URL on CMDR window. [cmdrs.py] */
 "Inara Info Available ⤴" = "Inara Info Disponível ⤴";
 
 /* Overlay CMDR information report message. [ui.py] */
-"INARA INFORMATION AVAILABLE" = "INARA INFORMATION AVAILABLE";
+"INARA INFORMATION AVAILABLE" = "INFORMAÇÃO INARA DISPONÍVEL";
 
 /* Inara link. [activity.py] */
 "Inara ⤴" = "Inara ⤴";
@@ -359,7 +359,7 @@
 "INF" = "INF";
 
 /* Activity window tooltip. [activity.py] */
-"Influence" = "Influence";
+"Influence" = "Influência";
 
 /* Discord heading. [default.py] */
 "injured" = "ferido";
@@ -437,22 +437,28 @@
 "Legal Status" = "Situação Legal";
 
 /* Overlay CMDR information report message. [ui.py] */
-"Legal status: {legal}" = "Legal status: {legal}";
+"Legal status: {legal}" = "Situação legal: {legal}";
 
 /* Activity window tooltip. [activity.py] */
-"Low" = "Low";
+"Low" = "Baixa";
 
 /* [legend.py] */
 "Massacre missions" = "Missões de Massacre";
 
+/* Discord fleet carrier title. [fleetcarrier.py] */
+"Materials List for Carrier {carrier_name}" = "Materials List for Carrier {carrier_name}";
+
+/* Discord fleet carrier title. [fleetcarrier.py] */
+"Materials List for Carrier {carrier_name} in system: {system}" = "Materials List for Carrier {carrier_name} in system: {system}";
+
 /* Activity window tooltip. [activity.py] */
-"Medium" = "Medium";
+"Medium" = "Média";
 
 /* Discord CMDR information. [targetmanager.py] */
 "Message received from this CMDR in local chat" = "Recebida mensagem deste CMDR no chat local";
 
 /* Activity window tooltip. [activity.py] */
-"Mission fails" = "Mission fails";
+"Mission fails" = "Missão falhou";
 
 /* Discord heading. [default.py] */
 "missions" = "missões";
@@ -539,7 +545,7 @@
 "Pri" = "Pri";
 
 /* Activity window tooltip. [activity.py] */
-"Primary" = "Primary";
+"Primary" = "Primário";
 
 /* Label on legend window. [legend.py] */
 "Primary INF. This is INF gained for the mission issuing faction." = "INF Primária. Este é a INF ganha para a facção emissora da missão.";
@@ -548,13 +554,13 @@
 "Prof" = "Lucro";
 
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
-"Profit at Z | L | M | H demand" = "Profit at Z | L | M | H demand";
+"Profit at Z | L | M | H demand" = "Lucro na demanda B | M | A";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */
 "Purch" = "Compra";
 
 /* Activity window tooltip for purchase at low | medium | high supply. [activity.py] */
-"Purchase at L | M | H supply" = "Purchase at L | M | H supply";
+"Purchase at L | M | H supply" = "Compre em demanda B | M | A";
 
 /* Discord heading, abbreviation for reactivation (TW missions). [default.py] */
 "reac" = "reac";
@@ -575,13 +581,13 @@
 "Report Newly Visited System Activity By Default" = "Relatório da atividade do sistema recentemente visitado por padrão";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
-"SandR" = "SandR";
+"SandR" = "BusResg";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Analisado";
 
 /* Activity window tooltip. [activity.py] */
-"Scenario wins" = "Scenario wins";
+"Scenario wins" = "Vende o conflito";
 
 /* Discord heading. [default.py] */
 "Scenarios" = "Cenários";
@@ -602,13 +608,13 @@
 "Search & Rescue Tissue Samples" = "Pesquisa & Resgate de Tissue Samples";
 
 /* Activity window tooltip. [activity.py] */
-"Search and rescue" = "Search and rescue";
+"Search and rescue" = "Busca e resgate";
 
 /* Activity window column title, abbreviation for secondary. [activity.py] */
 "Sec" = "Sec";
 
 /* Activity window tooltip. [activity.py] */
-"Secondary" = "Secondary";
+"Secondary" = "Secundário";
 
 /* Label on legend window. [legend.py] */
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "INF Secundária. É adquirida como efeito secundário da missão, por exemplo, a facção de destino para missões de entrega.";
@@ -641,7 +647,7 @@
 "Shortcuts for Popular Servers" = "Atalhos para Servidores Populares";
 
 /* Main window tooltip. [ui.py] */
-"Show CMDR information window" = "Show CMDR information window";
+"Show CMDR information window" = "Mostrar janela de informações do CMDR";
 
 /* Preferences checkbox label. [ui.py] */
 "Show Detailed INF" = "Mostrar INF detalhada";
@@ -650,19 +656,19 @@
 "Show Detailed Trade" = "Mostrar Detalhes das Trades";
 
 /* Main window tooltip. [ui.py] */
-"Show fleet carrier window" = "Show fleet carrier window";
+"Show fleet carrier window" = "Mostrar janela do porta-frotas";
 
 /* Preferences checkbox label. [ui.py] */
 "Show In-game Overlay" = "Sobreposição no jogo";
 
 /* Activity window tooltip. [activity.py] */
-"Show legend window" = "Show legend window";
+"Show legend window" = "Mostrar janela de legenda";
 
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Mostrar Sistemas com Zero de Atividade";
 
 /* Activity window tooltip. [activity.py] */
-"Space conflict zones" = "Space conflict zones";
+"Space conflict zones" = "Zonas de conflito espacial";
 
 /* Discord heading, abbreviation for space conflict zones. [default.py] */
 "SpaceCZs" = "EspaçoCZs";
@@ -674,7 +680,7 @@
 "Squadron ID" = "ID do Esquadrão";
 
 /* Overlay CMDR information report message. [ui.py] */
-"Squadron ID: {squadron}" = "Squadron ID: {squadron}";
+"Squadron ID: {squadron}" = "ID da esquadra: {squadron}";
 
 /* Discord heading. [cmdrs.py] */
 "Squadron Inara Link" = "Link Inara do Esquadrão";
@@ -707,7 +713,7 @@
 "Team invite received from this CMDR" = "Recebido um convite deste CMDR para formar equipa";
 
 /* Name of default output formatter. [text.py] */
-"Text Only" = "Text Only";
+"Text Only" = "Apenas Texto";
 
 /* Preferences checkbox label. [ui.py] */
 "Thargoid War Progress" = "Progresso da Guerra Thargoid";
@@ -764,13 +770,13 @@
 "TW Activity after Tick: {tick_time}" = "Atividade TW após o Tick: {tick_time}";
 
 /* Dropdown menu on activity window. [activity.py] */
-"TW Only" = "TW Only";
+"TW Only" = "Apenas TW";
 
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "Progresso da Guerra TW em {current_system}: {percent}%";
 
 /* Overlay CMDR information report message. [ui.py] */
-"Unknown" = "Unknown";
+"Unknown" = "Desconhecido";
 
 /* Main window label. [ui.py] */
 "Update will be installed on shutdown" = "A atualização será instalada ao desligar";

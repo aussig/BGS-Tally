@@ -1,13 +1,14 @@
-![BGS-Tally Logo](https://repository-images.githubusercontent.com/400106152/643acdcc-7be0-4f2b-8ea3-e407c7d27947)
+![BGS-Tally Logo](https://repository-images.githubusercontent.com/400106152/2666ea20-1f4d-4dcb-9ece-686c53a78910)
 
-# BGS-Tally (modified by Aussi)
+# BGS-Tally
 
 [![CodeQL](https://github.com/aussig/BGS-Tally/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/aussig/BGS-Tally/actions/workflows/codeql-analysis.yml)
+[![Crowdin](https://badges.crowdin.net/bgs-tally/localized.svg)](https://crowdin.com/project/bgs-tally)
 [![GitHub Latest Version](https://img.shields.io/github/v/release/aussig/BGS-Tally)](https://github.com/aussig/BGS-Tally/releases/latest)
 [![Github All Releases](https://img.shields.io/github/downloads/aussig/BGS-Tally/total.svg)](https://github.com/aussig/BGS-Tally/releases/latest)
 [![Discord](https://img.shields.io/discord/698438769358929940?label=Discord&color=%2350007f)](https://discord.gg/YDNVtjPnnm)
 
-A tool to track and report your Background Simulation (BGS) and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS Tally counts all the BGS / TW work you do for any faction, in any system.
+A tool to track and report your Background Simulation (BGS) and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS-Tally counts all the BGS / TW work you do for any faction, in any system.
 
 Based on BGS-Tally v2.0 by tezw21: [Original tezw21 BGS-Tally-v2.0 Project](https://github.com/tezw21/BGS-Tally-v2.0)
 
@@ -74,4 +75,21 @@ The plugin makes the following network connections:
 
 # Troubleshooting
 
-If you are having problems with BGS-Tally, check out the **[Troubleshooting page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Troubleshooting)**. If those troubleshooting solutions don't work, feel free to contact me in the `#support` channel on my [Discord server](https://discord.gg/YDNVtjPnnm).
+If you are having problems with BGS-Tally, check out the **[Troubleshooting page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Troubleshooting)**. If those troubleshooting solutions don't work, feel free to contact me in the `#support` channel on the [BGS-Tally Discord server](https://discord.gg/YDNVtjPnnm).
+
+
+# Thank You
+
+And finally, a huge thank you to:
+
+* All the code contributors - listed [here on Github](https://github.com/aussig/BGS-Tally/graphs/contributors).
+* All the CMDRs who have provided their input, bug reports, feedback and ideas.
+* All the translators who have given their time and effort:
+    * French - CMDR Dopeilien and CMDR ThArGos
+    * German - CMDR Ryan Murdoc
+    * Italian - CMDR FrostBit / [@GLWine](https://github.com/GLWine)
+    * Portuguese (Portugal) - CMDR Holy Nothing
+    * Portuguese (Brazil) - CMDR FelaKuti
+    * Russian - CMDR KuzSan
+    * Spanish - CMDR HaLfY47
+    * Turkish - CMDR Yu-gen

@@ -1,15 +1,16 @@
 import json
 import os.path
 import re
-from datetime import datetime, timedelta
-
 from copy import copy
+from datetime import datetime, timedelta
 
 from requests import Response
 
-from bgstally.constants import CmdrInteractionReason, DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA, RequestMethod
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA, CmdrInteractionReason, RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
+from bgstally.utils import _, __
+from thirdparty.colors import *
 
 FILENAME = "targetlog.json"
 TIME_TARGET_LOG_EXPIRY_D = 90
@@ -17,7 +18,7 @@ URL_INARA_API = "https://inara.cz/inapi/v1/"
 DATETIME_FORMAT_INARA = "%Y-%m-%dT%H:%M:%SZ"
 
 
-class TargetLog:
+class TargetManager:
     """
     Handle a log of all targeted players
     """
@@ -89,9 +90,9 @@ class TargetLog:
         if cmdr_match:
             # CMDR in their own ship
             cmdr_name = cmdr_match.group(1)
-        elif "_taxi" in journal_entry.get('Ship', ""):
-            # CMDR in a taxi
-            cmdr_name = journal_entry.get('PilotName_Localised')
+        # elif "_taxi" in journal_entry.get('Ship', ""):
+        #     # CMDR in a taxi. Removed for the moment as it no longer works.
+        #     cmdr_name = journal_entry.get('PilotName_Localised')
 
         if cmdr_name is None: return
 
@@ -103,11 +104,11 @@ class TargetLog:
                     'Ship': ship_type,
                     'LegalStatus': journal_entry.get('LegalStatus', '----'),
                     'Reason': CmdrInteractionReason.SCANNED,
-                    'Notes': "Scanned",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
-        if different and not pending: self.targetlog.append(cmdr_data)
+        if different and not pending:self.targetlog.append(cmdr_data)
+        if not pending: self.bgstally.ui.show_cmdr_report(cmdr_data)
 
 
     def friend_request(self, journal_entry: dict, system: str):
@@ -123,11 +124,11 @@ class TargetLog:
                     'Ship': "----",
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.FRIEND_REQUEST_RECEIVED,
-                    'Notes': "Received friend request from",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
         if different and not pending: self.targetlog.append(cmdr_data)
+        if not pending: self.bgstally.ui.show_cmdr_report(cmdr_data)
 
 
     def friend_added(self, journal_entry: dict, system: str):
@@ -147,11 +148,11 @@ class TargetLog:
                     'Ship': "----",
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.FRIEND_ADDED,
-                    'Notes': "Added a friend",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
         if different and not pending: self.targetlog.append(cmdr_data)
+        if not pending: self.bgstally.ui.show_cmdr_report(cmdr_data)
 
 
     def interdicted(self, journal_entry: dict, system: str):
@@ -169,11 +170,11 @@ class TargetLog:
                     'Ship': "----",
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.INTERDICTED_BY,
-                    'Notes': "Interdicted by",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
         if different and not pending: self.targetlog.append(cmdr_data)
+        if not pending: self.bgstally.ui.show_cmdr_report(cmdr_data)
 
 
     def died(self, journal_entry: dict, system: str):
@@ -197,11 +198,11 @@ class TargetLog:
                     'Ship': killer.get('Ship', "----"),
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.KILLED_BY,
-                    'Notes': "Killed by",
                     'Timestamp': journal_entry['timestamp']}
 
             cmdr_data, different, pending = self._fetch_cmdr_info(killer_name[5:], cmdr_data)
             if different and not pending: self.targetlog.append(cmdr_data)
+            if not pending: self.bgstally.ui.show_cmdr_report(cmdr_data)
 
 
     def received_text(self, journal_entry: dict, system: str):
@@ -220,11 +221,11 @@ class TargetLog:
                     'Ship': "----",
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.MESSAGE_RECEIVED,
-                    'Notes': "Received message from",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
         if different and not pending: self.targetlog.append(cmdr_data)
+        if not pending: self.bgstally.ui.show_cmdr_report(cmdr_data)
 
 
     def team_invite(self, journal_entry: dict, system: str):
@@ -240,11 +241,60 @@ class TargetLog:
                     'Ship': "----",
                     'LegalStatus': "----",
                     'Reason': CmdrInteractionReason.TEAM_INVITE_RECEIVED,
-                    'Notes': "Received team invite from",
                     'Timestamp': journal_entry['timestamp']}
 
         cmdr_data, different, pending = self._fetch_cmdr_info(cmdr_name, cmdr_data)
         if different and not pending: self.targetlog.append(cmdr_data)
+        if not pending: self.bgstally.ui.show_cmdr_report(cmdr_data)
+
+
+    def get_human_readable_reason(self, reason: CmdrInteractionReason, discord: bool) -> str:
+        """Get a human readable version of this interaction reason
+
+        Args:
+            reason (CmdrInteractionReason): The interaction reason
+            discord (bool): True if this message is going to Discord. Defaults to False.
+
+        Returns:
+            str: Descriptive text for reason
+        """
+
+        match reason:
+            case CmdrInteractionReason.FRIEND_REQUEST_RECEIVED:
+                if discord:
+                    return cyan(__("Friend request received from this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
+                else:
+                    return _("Received friend request from") # LANG: CMDR information
+            case CmdrInteractionReason.FRIEND_ADDED:
+                if discord:
+                    return cyan(__("This CMDR was added as a friend", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
+                else:
+                    return _("Added a friend") # LANG: CMDR information
+            case CmdrInteractionReason.INTERDICTED_BY:
+                if discord:
+                    return red(__("INTERDICTED BY this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
+                else:
+                    return _("Interdicted by") # LANG: CMDR information
+            case CmdrInteractionReason.KILLED_BY:
+                if discord:
+                    return red(__("KILLED BY this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
+                else:
+                    return _("Killed by") # LANG: CMDR information
+            case CmdrInteractionReason.MESSAGE_RECEIVED:
+                if discord:
+                    return blue(__("Message received from this CMDR in local chat", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
+                else:
+                    return _("Received message from") # LANG: CMDR information
+            case CmdrInteractionReason.TEAM_INVITE_RECEIVED:
+                if discord:
+                    return green(__("Team invite received from this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
+                else:
+                    return _("Received team invite from") # LANG: CMDR information
+            case _:
+                if discord:
+                    return yellow(__("I scanned this CMDR", lang=self.bgstally.state.discord_lang)) # LANG: Discord CMDR information
+                else:
+                    return _("Scanned") # LANG: CMDR information
 
 
     def _fetch_cmdr_info(self, cmdr_name:str, cmdr_data:dict):
@@ -270,7 +320,6 @@ class TargetLog:
             if cmdr_data.get('Ship') != "----": cmdr_data_copy['Ship'] = cmdr_data.get('Ship')
             if cmdr_data.get('LegalStatus') != "----": cmdr_data_copy['LegalStatus'] = cmdr_data.get('LegalStatus')
             cmdr_data_copy['Reason'] = cmdr_data.get('Reason', CmdrInteractionReason.SCANNED)
-            cmdr_data_copy['Notes'] = cmdr_data.get('Notes')
             cmdr_data_copy['Timestamp'] = cmdr_data.get('Timestamp')
             # Re-cache the data with the latest updates
             self.cmdr_cache[cmdr_name] = cmdr_data_copy
@@ -295,12 +344,12 @@ class TargetLog:
             ]
         }
 
-        self.bgstally.request_manager.queue_request(URL_INARA_API, RequestMethod.POST, callback=self.inara_data_received, payload=payload, data=cmdr_data)
+        self.bgstally.request_manager.queue_request(URL_INARA_API, RequestMethod.POST, callback=self._inara_data_received, payload=payload, data=cmdr_data)
 
         return cmdr_data, True, True
 
 
-    def inara_data_received(self, success:bool, response:Response, request:BGSTallyRequest):
+    def _inara_data_received(self, success:bool, response:Response, request:BGSTallyRequest):
         """
         A queued inara request has returned data, process it
         """
@@ -320,6 +369,7 @@ class TargetLog:
         # In all cases (even Inara failure) add the CMDR to the cache and log because we will at least have in-game data for them
         self.cmdr_cache[cmdr_data['TargetName']] = cmdr_data
         self.targetlog.append(cmdr_data)
+        self.bgstally.ui.show_cmdr_report(cmdr_data)
 
 
     def _expire_old_targets(self):

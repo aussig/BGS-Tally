@@ -6,6 +6,7 @@ from config import config
 from secrets import token_hex
 
 from bgstally.debug import Debug
+from bgstally.utils import _
 
 DATETIME_FORMAT_ELITEBGS = "%Y-%m-%dT%H:%M:%S.%fZ"
 DATETIME_FORMAT_DISPLAY = "%Y-%m-%d %H:%M:%S"
@@ -34,7 +35,7 @@ class Tick:
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             Debug.logger.error(f"Unable to fetch latest tick from elitebgs.app: {str(e)}")
-            plug.show_error(f"BGS-Tally WARNING: Unable to fetch latest tick")
+            plug.show_error(_("{plugin_name} WARNING: Unable to fetch latest tick").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
             return None
         else:
             tick = response.json()

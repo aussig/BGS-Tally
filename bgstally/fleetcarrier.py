@@ -6,7 +6,7 @@ from os import path, remove
 from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierItemType
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
-from bgstally.utils import get_by_path
+from bgstally.utils import _, __, get_by_path
 from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
@@ -69,8 +69,8 @@ class FleetCarrier:
         self.data = data
 
         # Name is encoded as hex string
-        self.name = bytes.fromhex(self.data.get('name', {}).get('vanityName', "----")).decode('utf-8')
-        self.callsign = self.data.get('name', {}).get('callsign', "----")
+        self.name = bytes.fromhex(get_by_path(self.data, ['name', 'vanityName'], "----")).decode('utf-8')
+        self.callsign = get_by_path(self.data, ['name', 'callsign'], "----")
 
         # Sort microresource sell orders - a Dict of Dicts, or an empty list
         materials:dict|list = get_by_path(self.data, ['orders', 'onfootmicroresources', 'sales'], [])
@@ -117,31 +117,33 @@ class FleetCarrier:
         """
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
 
-        title:str = f"Jump Scheduled for Carrier {self.name}"
+        title:str = __("Jump Scheduled for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=self.name) # LANG: Discord post title
+        description:str = __("A carrier jump has been scheduled", lang=self.bgstally.state.discord_lang) # LANG: Discord text
 
         fields = []
-        fields.append({'name': "From System", 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
-        fields.append({'name': "To System", 'value': journal_entry.get('SystemName', "Unknown"), 'inline': True})
-        fields.append({'name': "To Body", 'value': journal_entry.get('Body', "Unknown"), 'inline': True})
-        fields.append({'name': "Departure Time", 'value': datetime.strptime(journal_entry.get('DepartureTime'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT), 'inline': True})
-        fields.append({'name': "Docking", 'value': self.human_format_dockingaccess(), 'inline': True})
-        fields.append({'name': "Notorious Access", 'value': self.human_format_notorious(), 'inline': True})
+        fields.append({'name': __("From System", lang=self.bgstally.state.discord_lang), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("To System", lang=self.bgstally.state.discord_lang), 'value': journal_entry.get('SystemName', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("To Body", lang=self.bgstally.state.discord_lang), 'value': journal_entry.get('Body', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Departure Time", lang=self.bgstally.state.discord_lang), 'value': datetime.strptime(journal_entry.get('DepartureTime'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': self.human_format_dockingaccess(True), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': self.human_format_notorious(True), 'inline': True}) # LANG: Discord heading
 
-        self.bgstally.discord.post_embed(title, "A carrier jump has been scheduled", fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
     def jump_cancelled(self):
         """
         The user cancelled their carrier jump
         """
-        title:str = f"Jump Cancelled for Carrier {self.name}"
+        title:str = __("Jump Cancelled for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=self.name) # LANG: Discord post title
+        description:str = __("The scheduled carrier jump was cancelled", lang=self.bgstally.state.discord_lang) # LANG: Discord text
 
         fields = []
-        fields.append({'name': "Current System", 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
-        fields.append({'name': "Docking", 'value': self.human_format_dockingaccess(), 'inline': True})
-        fields.append({'name': "Notorious Access", 'value': self.human_format_notorious(), 'inline': True})
+        fields.append({'name': __("Current System", lang=self.bgstally.state.discord_lang), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
+        fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': self.human_format_dockingaccess(True), 'inline': True})
+        fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': self.human_format_notorious(True), 'inline': True})
 
-        self.bgstally.discord.post_embed(title, "The scheduled carrier jump was cancelled", fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
     def trade_order(self, journal_entry: dict):
@@ -264,22 +266,33 @@ class FleetCarrier:
             )
 
 
-    def human_format_dockingaccess(self) -> str:
+    def human_format_dockingaccess(self, discord:bool) -> str:
         """
         Get the docking access in human-readable format
         """
         match (self.data.get('dockingAccess')):
-            case "all": return "All"
-            case "squadronfriends": return "Squadron and Friends"
-            case "friends": return "Friends"
-            case _: return "None"
+            case "all":
+                if discord: return __("All", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("All") # LANG: Carrier docking access
+            case "squadronfriends":
+                if discord: return __("Squadron and Friends", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("Squadron and Friends") # LANG: Carrier docking access
+            case "friends":
+                if discord: return __("Friends", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("Friends") # LANG: Carrier docking access
+            case _:
+                if discord: return __("None", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("None") # LANG: Carrier docking access
 
 
-    def human_format_notorious(self) -> str:
+    def human_format_notorious(self, discord:bool) -> str:
         """
         Get the notorious access in human-readable format
         """
-        return 'Yes' if self.data.get('notoriousAccess', False) else 'No'
+        if self.data.get('notoriousAccess', False):
+            return __("Yes", lang=self.bgstally.state.discord_lang) if discord else _("Yes")
+        else:
+            return __("No", lang=self.bgstally.state.discord_lang) if discord else _("No")
 
 
     def _human_format_price(self, num) -> str:
@@ -319,7 +332,7 @@ class FleetCarrier:
         """
         Load the CSV file containing full list of commodities. For our purposes, we build a dict where the key is the commodity
         internal name from the 'symbol' column in the CSV, lowercased, and the value is the localised name. As we are not passed
-        localised names for commodities in the CAPI data, this allows us to show nice human-readable commodity names.
+        localised names for commodities in the CAPI data, this allows us to show nice human-readable commodity names (always in English though).
 
         The CSV file is sourced from the EDCD FDevIDs project https://github.com/EDCD/FDevIDs and should be updated occasionally
         """

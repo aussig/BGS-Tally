@@ -87,6 +87,7 @@ class RequestManager:
         """
         Check whether a URL is well-formed
         """
+        if url is None: return False
         return match(self.re_url, url) is not None
 
 

@@ -1,5 +1,51 @@
 # Change Log
 
+## v4.0.0-a1 - 2024-05-12
+
+### New Features:
+
+* Localisation. The plugin is now translated into French, German, Italian, Portuguese (Portugal), Portuguese (Brazil), Russian, Spanish and Turkish. For the user interface, it will pick up the language you have set EDMC to use. If anyone would like to help translate into other languages, please post a message on the BGS-Tally Discord.
+* Independent language for Discord posts. You can separately set the language that is used for Discord posts, in case the Discord server has a different preferred language to the one you run EDMC in.
+* Added logo to main window and all window icons
+* Added options to only post your BGS activity, only your TW activity or both (defaults to both), for CMDRs who want to selectively post a single type of activity.
+* Now track and report Search and Rescue (SandR) hand-ins for the BGS, tallied against the controlling faction at the station handed in.
+* Now track side objectives in space conflict zones, but with some caveats:
+    * Capital ship defeats 👑 should be 100% reliable
+    * Spec ops wing kills 🔠 are tallied as soon as BGS-Tally finds the **first detectable kill** in the spec ops wing. This may not be the first spec ops kill you make because the order of events logged by the game is not predictable, so we need to tally as soon as we spot a kill. Just make sure you finish off those spec ops wings CMDRs!
+    * Enemy captain kills 👨‍✈️ will sometimes be tallied and sometimes not, for the same reason.
+    * Enemy propagandist wing kills ✒️ are also tallied as soon as BGS-Tally spots the **first detectable kill** in the propagandist wing, for the same reason.
+* Added tooltips (hover text) to all abbreviations on screen, and a few of the controls and buttons that are not self-explanatory.
+* Added support for different Discord post formats. So if your squadron or group would like your discord activity posts to look different, this can be done. Currently it's a programming job to create a new format (so ask your friendly Python developer to get in touch, or send in a suggestion for a new format to the BGS-Tally Discord server).
+* Added popup CMDR information on the in-game overlay when you interact with a CMDR.
+* Added 'Copy to Clipboard' button on CMDRs information window.
+* Added 'Copy to Clipboard' button on Fleet Carrier information window.
+
+### Changes:
+
+* Added new logo as avatar for all posts.
+* Removed 'modified by Aussi' references, as Tez (the original author of BGS-Tally) is now recommending this version to users.
+* Each trade buy / sell band is only reported if it is non-zero, avoiding clutter in the report.
+* Changed the font used in the Discord preview panel on activity windows to a font that supports more emoji and more closely matches Discord posts.
+* Tweaked the discord webhooks layout in settings to include horizontal lines for better clarity.
+* Unfortunately had to remove the functionality to log CMDRs scanned while in a dropship / taxi as we can no longer get the CMDR name from the game journal.
+* The layout of the CMDR information panel in the CMDRs window has been tidied up.
+* Only enable the 'Post to Discord' button on all windows if a Discord username is set in the settings.
+
+### Bug Fixes:
+
+* Thargoid War VIP passenger evac missions weren't being counted.
+* Was incorrectly reporting BGS activity in TW systems.
+* Was incorrectly reporting TW search and rescue collection in non-TW systems.
+* Activity window wasn't showing all trade purchase and profit bands.
+* If you changed your Discord webhook settings after previously successfully posting to Discord, then tried to post again in the same tick, it would fail.
+* If any Discord post got bigger than the limits imposed by Discord, it would silently fail to post. Now, the post is truncated to the Discord limit and '...' appended to the end.
+* The 'Post to Discord' button on the CMDRs information window was sometimes becoming enabled even if there were no valid discord webhooks set up.
+
+### API Changes ([vx.x](https://studio-ws.apicur.io/sharing/xxxxxxxx)):
+
+* `/activities` endpoint: Search and Rescue handins now included at `systems/[system]/factions/[faction]/sandr`, containing `damagedpods`, `occupiedpods`, `thargoidpods`, `blackboxes`, `wreckagecomponents`, `personaleffects`, `politicalprisoners` and `hostages` as properties.
+
+
 ## v3.6.1 - 2024-04-07
 
 ### Bug Fixes:
@@ -34,7 +80,7 @@
 * Fixed a rare crash that would stop the in-game overlay working.
 * Sometimes BGS-Tally wasn't realising you had left a megaship scenario.
 
-### API Changes ([v1.4](https://studio-ws.apicur.io/sharing/xxxxxxxxxx)):
+### API Changes ([v1.4](https://studio-ws.apicur.io/sharing/3164656a-eea9-4588-a9b9-e3f5f7ee66bc)):
 
 * `/activities` endpoint: Added `thargoidpods` to `systems/[system]/twsandr`.
 
@@ -347,7 +393,7 @@
 
 * Now use scrollable tabs and a drop-down tab selector. Tabs for systems are sorted alphabetically by name, prioritising systems that have any BGS activity first.
 * Every Discord post now includes a date and time at the bottom of the post, to make it clear exactly when the user posted (suggested by @Tobytoolbag)
-* There is now a 'FORCE Tick' button in the settings, which can be used if the tick detector has failed to detect a tick but you know one has happened. This can occur on patch days or if the tick detector is down.
+* There is now a 'Force Tick' button in the settings, which can be used if the tick detector has failed to detect a tick but you know one has happened. This can occur on patch days or if the tick detector is down.
 
 ### Changes:
 

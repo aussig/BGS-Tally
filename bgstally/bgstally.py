@@ -15,16 +15,18 @@ from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
 from bgstally.discord import Discord
 from bgstally.fleetcarrier import FleetCarrier
+from bgstally.formatters.default import DefaultActivityFormatter
+from bgstally.formattermanager import ActivityFormatterManager
 from bgstally.market import Market
 from bgstally.missionlog import MissionLog
 from bgstally.overlay import Overlay
 from bgstally.requestmanager import RequestManager
 from bgstally.state import State
-from bgstally.targetlog import TargetLog
+from bgstally.targetmanager import TargetManager
 from bgstally.tick import Tick
 from bgstally.ui import UI
 from bgstally.updatemanager import UpdateManager
-from bgstally.utils import get_by_path
+from bgstally.utils import _, get_by_path
 from bgstally.webhookmanager import WebhookManager
 from config import appversion, config
 
@@ -47,14 +49,18 @@ class BGSTally:
         self.plugin_dir = plugin_dir
 
         # Debug and Config Classes
-        self.debug:Debug = Debug(self)
-        self.config:Config = Config(self)
+        self.debug: Debug = Debug(self)
+        self.config: Config = Config(self)
+
+        # True only if we are running a dev version
+        self.dev_mode: bool = False
 
         # Load sentry to track errors during development - Hard check on "dev" versions ONLY (which never go out to testers)
         # If you are a developer and want to use sentry, install the sentry_sdk inside the ./thirdparty folder and add your full dsn
         # (starting https://) to a 'sentry' entry in config.ini file. Set the plugin version in load.py to include a 'dev' prerelease,
         # e.g. "3.3.0-dev"
         if type(self.version.prerelease) is tuple and len(self.version.prerelease) > 0 and self.version.prerelease[0] == "dev":
+            self.dev_mode = True
             sys.path.append(path.join(plugin_dir, 'thirdparty'))
             try:
                 import sentry_sdk
@@ -69,22 +75,22 @@ class BGSTally:
         if not path.exists(data_filepath): mkdir(data_filepath)
 
         # Main Classes
-        self.state:State = State(self)
-        self.mission_log:MissionLog = MissionLog(self)
-        self.target_log:TargetLog = TargetLog(self)
-        self.discord:Discord = Discord(self)
-        self.tick:Tick = Tick(self, True)
-        self.overlay:Overlay = Overlay(self)
-        self.activity_manager:ActivityManager = ActivityManager(self)
-        self.fleet_carrier:FleetCarrier = FleetCarrier(self)
-        self.market:Market = Market(self)
-        self.request_manager:RequestManager = RequestManager(self)
-        self.api_manager:APIManager = APIManager(self)
-        self.webhook_manager:WebhookManager = WebhookManager(self)
-        self.update_manager:UpdateManager = UpdateManager(self)
-        self.ui:UI = UI(self)
-
-        self.thread:Thread = Thread(target=self._worker, name="BGSTally Main worker")
+        self.state: State = State(self)
+        self.mission_log: MissionLog = MissionLog(self)
+        self.target_manager: TargetManager = TargetManager(self)
+        self.discord: Discord = Discord(self)
+        self.tick: Tick = Tick(self, True)
+        self.overlay: Overlay = Overlay(self)
+        self.activity_manager: ActivityManager = ActivityManager(self)
+        self.fleet_carrier: FleetCarrier = FleetCarrier(self)
+        self.market: Market = Market(self)
+        self.request_manager: RequestManager = RequestManager(self)
+        self.api_manager: APIManager = APIManager(self)
+        self.webhook_manager: WebhookManager = WebhookManager(self)
+        self.update_manager: UpdateManager = UpdateManager(self)
+        self.ui: UI = UI(self)
+        self.formatter_manager: ActivityFormatterManager = ActivityFormatterManager(self)
+        self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True
         self.thread.start()
 
@@ -131,6 +137,10 @@ class BGSTally:
                 activity.bv_received(entry, self.state)
                 dirty = True
 
+            case 'CapShipBond':
+                activity.cap_ship_bond_received(entry)
+                dirty = True
+
             case 'Cargo':
                 activity.cargo(entry)
 
@@ -147,7 +157,7 @@ class BGSTally:
                 self.fleet_carrier.trade_order(entry)
 
             case 'CollectCargo':
-                activity.collect_cargo(entry, self.state)
+                activity.cargo_collected(entry, self.state)
                 dirty = True
 
             case 'CommitCrime':
@@ -155,7 +165,7 @@ class BGSTally:
                 dirty = True
 
             case 'Died':
-                self.target_log.died(entry, system)
+                self.target_manager.died(entry, system)
 
             case 'Docked':
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
@@ -163,7 +173,7 @@ class BGSTally:
                 dirty = True
 
             case 'EjectCargo':
-                activity.eject_cargo(entry)
+                activity.cargo_ejected(entry)
                 dirty = True
 
             case 'FactionKillBond' if state['Odyssey']:
@@ -171,13 +181,13 @@ class BGSTally:
                 dirty = True
 
             case 'Friends' if entry.get('Status') == "Requested":
-                self.target_log.friend_request(entry, system)
+                self.target_manager.friend_request(entry, system)
 
             case 'Friends' if entry.get('Status') == "Added":
-                self.target_log.friend_added(entry, system)
+                self.target_manager.friend_added(entry, system)
 
             case 'Interdicted':
-                self.target_log.interdicted(entry, system)
+                self.target_manager.interdicted(entry, system)
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
@@ -215,7 +225,7 @@ class BGSTally:
                 dirty = True
 
             case 'ReceiveText':
-                self.target_log.received_text(entry, system)
+                self.target_manager.received_text(entry, system)
 
             case 'RedeemVoucher' if entry.get('Type') == 'bounty':
                 activity.bv_redeemed(entry, self.state)
@@ -243,7 +253,7 @@ class BGSTally:
 
             case 'ShipTargeted':
                 activity.ship_targeted(entry, self.state)
-                self.target_log.ship_targeted(entry, system)
+                self.target_manager.ship_targeted(entry, system)
                 dirty = True
 
             case 'SupercruiseDestinationDrop':
@@ -258,7 +268,7 @@ class BGSTally:
                 self.state.station_type = ""
 
             case 'WingInvite':
-                self.target_log.team_invite(entry, system)
+                self.target_manager.team_invite(entry, system)
 
         if dirty:
             self.save_data()
@@ -307,7 +317,7 @@ class BGSTally:
         """
         # TODO: Don't need to save all this all the time, be more selective
         self.mission_log.save()
-        self.target_log.save()
+        self.target_manager.save()
         self.tick.save()
         self.activity_manager.save()
         self.state.save()
@@ -329,7 +339,7 @@ class BGSTally:
             case UpdateUIPolicy.LATER:
                 self.ui.frame.after(1000, self.ui.update_plugin_frame())
 
-        self.overlay.display_message("tickwarn", f"NEW TICK DETECTED!", True, 180, "green")
+        self.overlay.display_message("tickwarn", _("NEW TICK DETECTED!"), True, 180, "green") # LANG: Overlay message
 
 
     def _worker(self) -> None:

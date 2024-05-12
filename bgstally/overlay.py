@@ -2,6 +2,7 @@ import textwrap
 
 from bgstally.constants import CheckStates
 from bgstally.debug import Debug
+from bgstally.utils import _
 
 try:
     from EDMCOverlay import edmcoverlay
@@ -151,7 +152,7 @@ class Overlay:
         if edmcoverlay:
             try:
                 self.edmcoverlay = edmcoverlay.Overlay()
-                self.display_message("info", "BGSTally Ready", True, 30)
+                self.display_message("info", _("{plugin_name} Ready").format(plugin_name=self.bgstally.plugin_name), True, 30) # LANG: Overlay message
             except Exception as e:
                 Debug.logger.warning(f"EDMCOverlay is not running")
             else:
@@ -179,3 +180,5 @@ class Overlay:
             return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "green", 'x': 0, 'y': 0, 'w': 100, 'h': 100, 'x_center': True, 'ttl': 30, 'text_size': "normal"}
         elif frame == "warning":
             return {'border_colour': "red", 'fill_colour': "red", 'text_colour': "#020202", 'title_colour': "red", 'x': 0, 'y': -100, 'w': 100, 'h': 100, 'x_center': True, 'y_center': True, 'ttl': 5, 'text_size': "large"}
+        elif frame == "cmdr_info":
+            return {'border_colour': None, 'fill_colour': None, 'text_colour': "#ffffff", 'title_colour': "#6600ff", 'x': 0, 'y': 50, 'w': 100, 'h': 100, 'x_center': True, 'ttl': 30, 'text_size': "normal"}

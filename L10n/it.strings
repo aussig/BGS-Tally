@@ -446,10 +446,10 @@
 "Massacre missions" = "Missioni di massacro";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name}" = "Materials List for Carrier {carrier_name}";
+"Materials List for Carrier {carrier_name}" = "Elenco materiali per la Carrier {carrier_name}";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name} in system: {system}" = "Materials List for Carrier {carrier_name} in system: {system}";
+"Materials List for Carrier {carrier_name} in system: {system}" = "Elenco materiali per la Carrier {carrier_name} nel sistema: {system}";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Medium";

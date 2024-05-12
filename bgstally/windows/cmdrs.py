@@ -187,7 +187,15 @@ class WindowCMDRs:
         """
         Re-enable the post to discord button if it should be enabled
         """
-        self.post_button.config(state=(tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION) else tk.DISABLED))
+        self.post_button.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
+
+
+    def _discord_button_available(self) -> bool:
+        """
+        Return true if the 'Post to Discord' button should be available
+        """
+        return (self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION)
+                and self.bgstally.state.DiscordUsername.get() != "")
 
 
     def _post_to_discord(self):

@@ -180,7 +180,15 @@ class WindowFleetCarrier:
         """
         Re-enable the post to discord button if it should be enabled
         """
-        self.post_button.config(state=(tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) else tk.DISABLED))
+        self.post_button.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
+
+
+    def _discord_button_available(self) -> bool:
+        """
+        Return true if the 'Post to Discord' button should be available
+        """
+        return (self.bgstally.discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS)
+                and self.bgstally.state.DiscordUsername.get() != "")
 
 
     def _copy_to_clipboard(self, frm_container: tk.Frame):

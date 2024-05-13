@@ -165,6 +165,7 @@ class WindowCMDRs:
         else:
             self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self.post_button['state'] = tk.DISABLED
+            self.delete_button.configure(bg="SystemButtonFace", fg="SystemButtonText")
             self.delete_button['state'] = tk.DISABLED
             self.copy_to_clipboard_button['state'] = tk.DISABLED
 

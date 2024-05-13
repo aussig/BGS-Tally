@@ -17,7 +17,7 @@
 "Activity Indicator" = "Indicatore di attività";
 
 /* Label on activity window. [activity.py] */
-"Activity to post:" = "Attività da pubblicare:";
+"Activity to post:" = "Attività da postare:";
 
 /* CMDR information. [targetmanager.py] */
 "Added a friend" = "Amico aggiunto";
@@ -422,7 +422,7 @@
 "Kills" = "Uccisioni";
 
 /* Preferences label. [ui.py] */
-"Language for Discord Posts" = "Lingua dei messaggi per Discord";
+"Language for Discord Posts" = "Lingua dei post Discord";
 
 /* Main window label. [ui.py] */
 "Last BGS Tick:" = "Ultimo Tick del BGS:";
@@ -524,19 +524,19 @@
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "ACCERTATI che il server a cui invii queste informazioni sia affidabile!";
 
 /* Button on CMDR window. [cmdrs.py] */
-"Post CMDR List to Discord" = "Pubblica l'elenco dei CMDR su Discord";
+"Post CMDR List to Discord" = "Posta l'elenco dei CMDR su Discord";
 
 /* Button on CMDR window. [cmdrs.py] */
 "Post CMDR to Discord" = "Posta il CMDR su Discord";
 
 /* Button label. [activity.py] */
-"Post to Discord" = "Pubblica su Discord";
+"Post to Discord" = "Posta su Discord";
 
 /* Preferences label. [ui.py] */
-"Post to Discord as" = "Pubblica su Discord come";
+"Post to Discord as" = "Posta su Discord come";
 
 /* Discord message footer, legacy text mode. [discord.py] */
-"Posted at: {date_time} | {plugin_name} v{version}" = "Inviato alle: {date_time} | {plugin_name} v{version}";
+"Posted at: {date_time} | {plugin_name} v{version}" = "Postato alle: {date_time} | {plugin_name} v{version}";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Report BGS Precedenti";

@@ -1,5 +1,12 @@
 # Change Log
 
+## v4.0.0-xx - xxxx-xx-xx
+
+### Bug Fixes:
+
+* 'Delete' button was hard to read when disabled on the CMDRs window.
+
+
 ## v4.0.0-a1 - 2024-05-12
 
 ### New Features:

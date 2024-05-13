@@ -1,6 +1,13 @@
 # Change Log
 
-## vx.x.x - xxxx-xx-xx
+## v4.0.0-xx - xxxx-xx-xx
+
+### Bug Fixes:
+
+* 'Delete' button was hard to read when disabled on the CMDRs window.
+
+
+## v4.0.0-a1 - 2024-05-12
 
 ### New Features:
 
@@ -29,6 +36,7 @@
 * Tweaked the discord webhooks layout in settings to include horizontal lines for better clarity.
 * Unfortunately had to remove the functionality to log CMDRs scanned while in a dropship / taxi as we can no longer get the CMDR name from the game journal.
 * The layout of the CMDR information panel in the CMDRs window has been tidied up.
+* Only enable the 'Post to Discord' button on all windows if a Discord username is set in the settings.
 
 ### Bug Fixes:
 

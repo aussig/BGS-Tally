@@ -3,6 +3,7 @@
 # BGS-Tally
 
 [![CodeQL](https://github.com/aussig/BGS-Tally/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/aussig/BGS-Tally/actions/workflows/codeql-analysis.yml)
+[![Crowdin](https://badges.crowdin.net/bgs-tally/localized.svg)](https://crowdin.com/project/bgs-tally)
 [![GitHub Latest Version](https://img.shields.io/github/v/release/aussig/BGS-Tally)](https://github.com/aussig/BGS-Tally/releases/latest)
 [![Github All Releases](https://img.shields.io/github/downloads/aussig/BGS-Tally/total.svg)](https://github.com/aussig/BGS-Tally/releases/latest)
 [![Discord](https://img.shields.io/discord/698438769358929940?label=Discord&color=%2350007f)](https://discord.gg/YDNVtjPnnm)

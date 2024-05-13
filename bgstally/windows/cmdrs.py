@@ -111,7 +111,7 @@ class WindowCMDRs:
         self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
         self.post_button['state'] = tk.DISABLED
 
-        self.delete_button = tk.Button(buttons_frame, text=_("Delete Selected"), bg="red", fg="white", command=partial(self._delete_selected, treeview)) # LANG: Button on CMDR window
+        self.delete_button = tk.Button(buttons_frame, text=_("Delete Selected"), command=partial(self._delete_selected, treeview)) # LANG: Button on CMDR window
         self.delete_button.pack(side=tk.RIGHT, padx=5, pady=5)
         self.delete_button['state'] = tk.DISABLED
 
@@ -153,16 +153,19 @@ class WindowCMDRs:
         if len(self.selected_items) == 1:
             self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
+            self.delete_button.configure(bg="red", fg="white")
             self.delete_button['state'] = tk.NORMAL
             self.copy_to_clipboard_button['state'] = tk.NORMAL
         elif len(self.selected_items) > 1:
             self.post_button.configure(text=_("Post CMDR List to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
+            self.delete_button.configure(bg="red", fg="white")
             self.delete_button['state'] = tk.NORMAL
             self.copy_to_clipboard_button['state'] = tk.NORMAL
         else:
             self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self.post_button['state'] = tk.DISABLED
+            self.delete_button.configure(bg="SystemButtonFace", fg="SystemButtonText")
             self.delete_button['state'] = tk.DISABLED
             self.copy_to_clipboard_button['state'] = tk.DISABLED
 
@@ -187,7 +190,15 @@ class WindowCMDRs:
         """
         Re-enable the post to discord button if it should be enabled
         """
-        self.post_button.config(state=(tk.NORMAL if self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION) else tk.DISABLED))
+        self.post_button.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
+
+
+    def _discord_button_available(self) -> bool:
+        """
+        Return true if the 'Post to Discord' button should be available
+        """
+        return (self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION)
+                and self.bgstally.state.DiscordUsername.get() != "")
 
 
     def _post_to_discord(self):

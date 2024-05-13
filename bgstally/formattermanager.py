@@ -26,8 +26,6 @@ class ActivityFormatterManager:
             instance: BaseActivityFormatterInterface = cls(bgstally)
             self._formatters[cls.__name__] = instance
 
-        Debug.logger.info(f"formatters: {self._formatters}")
-
 
     def get_formatters(self) -> dict[str: str]:
         """Get the available formatters
@@ -52,7 +50,8 @@ class ActivityFormatterManager:
         Returns:
             BaseFormatterInterface | None: The formatter
         """
-        return self._formatters.get(class_name)
+        if class_name is None or class_name == "": return self.get_default_formatter()
+        else: return self._formatters.get(class_name)
 
 
     def get_default_formatter(self) -> DefaultActivityFormatter | None:

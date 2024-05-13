@@ -361,7 +361,9 @@ class WindowActivity:
         """
         Return true if the 'Post to Discord' button should be available
         """
-        return self.bgstally.discord.valid_webhook_available(DiscordChannel.BGS) or self.bgstally.discord.valid_webhook_available(DiscordChannel.THARGOIDWAR)
+        return ((self.bgstally.discord.valid_webhook_available(DiscordChannel.BGS)
+                or self.bgstally.discord.valid_webhook_available(DiscordChannel.THARGOIDWAR))
+                and self.bgstally.state.DiscordUsername.get() != "")
 
 
     def _update_discord_field(self, activity: Activity):

@@ -111,7 +111,7 @@ class WindowCMDRs:
         self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
         self.post_button['state'] = tk.DISABLED
 
-        self.delete_button = tk.Button(buttons_frame, text=_("Delete Selected"), bg="red", fg="white", command=partial(self._delete_selected, treeview)) # LANG: Button on CMDR window
+        self.delete_button = tk.Button(buttons_frame, text=_("Delete Selected"), command=partial(self._delete_selected, treeview)) # LANG: Button on CMDR window
         self.delete_button.pack(side=tk.RIGHT, padx=5, pady=5)
         self.delete_button['state'] = tk.DISABLED
 
@@ -153,11 +153,15 @@ class WindowCMDRs:
         if len(self.selected_items) == 1:
             self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
+            self.delete_button.configure(bg="red")
+            self.delete_button.configure(fg="white")
             self.delete_button['state'] = tk.NORMAL
             self.copy_to_clipboard_button['state'] = tk.NORMAL
         elif len(self.selected_items) > 1:
             self.post_button.configure(text=_("Post CMDR List to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
+            self.delete_button.configure(bg="red")
+            self.delete_button.configure(fg="white")
             self.delete_button['state'] = tk.NORMAL
             self.copy_to_clipboard_button['state'] = tk.NORMAL
         else:

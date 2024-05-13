@@ -91,5 +91,6 @@ And finally, a huge thank you to:
     * Portuguese (Portugal) - CMDR Holy Nothing
     * Portuguese (Brazil) - CMDR FelaKuti
     * Russian - CMDR KuzSan
+    * Serbian (Latin) - CMDR Markovic Vladimir
     * Spanish - CMDR HaLfY47
     * Turkish - CMDR Yu-gen

@@ -153,15 +153,13 @@ class WindowCMDRs:
         if len(self.selected_items) == 1:
             self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
-            self.delete_button.configure(bg="red")
-            self.delete_button.configure(fg="white")
+            self.delete_button.configure(bg="red", fg="white")
             self.delete_button['state'] = tk.NORMAL
             self.copy_to_clipboard_button['state'] = tk.NORMAL
         elif len(self.selected_items) > 1:
             self.post_button.configure(text=_("Post CMDR List to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
-            self.delete_button.configure(bg="red")
-            self.delete_button.configure(fg="white")
+            self.delete_button.configure(bg="red", fg="white")
             self.delete_button['state'] = tk.NORMAL
             self.copy_to_clipboard_button['state'] = tk.NORMAL
         else:

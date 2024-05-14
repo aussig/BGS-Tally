@@ -6,6 +6,10 @@
 
 * Localisation: The plugin is now translated into Serbian (Latin).
 
+### Changes:
+
+* The default +INF assigned for war missions that are missing INF values in the game journal has been increased to 2 (from 1).
+
 ### Bug Fixes:
 
 * 'Delete' button was hard to read when disabled on the CMDRs window.

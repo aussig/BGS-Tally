@@ -344,7 +344,7 @@ class Activity:
                 effect_faction_name = mission.get('TargetFaction', "")
 
             if faction_effect['Influence'] != []:
-                inf_index:str = str(len(faction_effect['Influence'][0]['Influence'])) # Index into dict containing detailed INF breakdown
+                inf_index: str = str(len(faction_effect['Influence'][0]['Influence'])) # Index into dict containing detailed INF breakdown
                 inftrend = faction_effect['Influence'][0]['Trend']
                 for system_address, system in self.systems.items():
                     if str(faction_effect['Influence'][0]['SystemAddress']) != system_address: continue
@@ -372,11 +372,17 @@ class Activity:
                     faction = system['Factions'].get(effect_faction_name)
                     if not faction: continue
 
-                    if (faction['FactionState'] in STATES_ELECTION and journal_entry['Name'] in MISSIONS_ELECTION) \
-                    or (faction['FactionState'] in STATES_WAR and journal_entry['Name'] in MISSIONS_WAR) \
-                    and effect_faction_name == journal_entry['Faction']:
-                        faction['MissionPoints']['1'] += 1
-                        self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
+                    if effect_faction_name == journal_entry['Faction']:
+                        inf_index: str|None = None
+
+                        if faction['FactionState'] in STATES_ELECTION and journal_entry['Name'] in MISSIONS_ELECTION:
+                            inf_index = 1 # Default to +1 INF for election missions
+                        elif faction['FactionState'] in STATES_WAR and journal_entry['Name'] in MISSIONS_WAR:
+                            inf_index = 2 # Default to +2 INF for war missions
+
+                        if inf_index is not None:
+                            faction['MissionPoints'][inf_index] += 1
+                            self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
 
         # Thargoid War
         if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH + MISSIONS_TW_MASSACRE + MISSIONS_TW_REACTIVATE and mission is not None:

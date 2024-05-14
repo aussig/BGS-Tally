@@ -9,6 +9,7 @@
 ### Changes:
 
 * The default +INF assigned for war missions that are missing INF values in the game journal has been increased to 2 (from 1).
+* Replaced 'Active / Paused' status label with icons on main window.
 
 ### Bug Fixes:
 

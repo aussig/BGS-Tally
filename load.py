@@ -5,7 +5,7 @@ from companion import CAPIData
 
 import bgstally.globals
 from bgstally.bgstally import BGSTally
-from bgstally.constants import UpdateUIPolicy
+from bgstally.constants import CheckStates, UpdateUIPolicy
 from bgstally.debug import Debug
 
 PLUGIN_NAME = "BGS-Tally"
@@ -58,7 +58,7 @@ def journal_entry(cmdr, is_beta, system, station, entry, state):
     """
     Parse an incoming journal entry and store the data we need
     """
-    if this.state.Status.get() != "Active": return
+    if this.state.Status.get() != CheckStates.STATE_ON: return
     this.journal_entry(cmdr, is_beta, system, station, entry, state)
 
 
@@ -66,5 +66,5 @@ def capi_fleetcarrier(data: CAPIData):
     """
     Handle Fleet carrier data
     """
-    if this.state.Status.get() != "Active": return
+    if this.state.Status.get() != CheckStates.STATE_ON: return
     this.capi_fleetcarrier(data)

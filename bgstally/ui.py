@@ -415,7 +415,7 @@ class UI:
                 display_text += _("Squadron ID: {squadron}").format(squadron=self.report_cmdr_data.get('SquadronID', _("Unknown"))) + "\n" # LANG: Overlay CMDR information report message
                 display_text += _("In ship: {ship}").format(ship=self.report_cmdr_data.get('Ship', _("Unknown"))) + "  " # LANG: Overlay CMDR information report message
                 display_text += _("Legal status: {legal}").format(legal=self.report_cmdr_data.get('LegalStatus', _("Unknown"))) + "\n" # LANG: Overlay CMDR information report message
-                if 'ranks' in self.report_cmdr_data: display_text += "  " + _("INARA INFORMATION AVAILABLE") # LANG: Overlay CMDR information report message
+                if 'ranks' in self.report_cmdr_data: display_text += _("INARA INFORMATION AVAILABLE") # LANG: Overlay CMDR information report message
 
                 self.bgstally.overlay.display_message("cmdr_info", display_text, fit_to_text=True, text_includes_title=True)
                 self.report_cmdr_data = None

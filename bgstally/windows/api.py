@@ -26,8 +26,8 @@ class WindowAPI:
         self.api:API = api
         self.toplevel:tk.Toplevel = None
 
-        self.image_icon_green_tick = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_green_tick.png"))
-        self.image_icon_red_cross = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_red_cross.png"))
+        self.image_icon_green_tick = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_green_tick_32x32.png"))
+        self.image_icon_red_cross = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_red_cross_32x32.png"))
 
         self.image_logo_comguard = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_comguard.png"))
         self.image_logo_dcoh = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_dcoh.png"))

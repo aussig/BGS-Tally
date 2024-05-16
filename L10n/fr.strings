@@ -446,10 +446,10 @@
 "Massacre missions" = "Missions de massacre";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name}" = "Materials List for Carrier {carrier_name}";
+"Materials List for Carrier {carrier_name}" = "Liste des Matériaux pour le Porte-Vaisseaux {carrier_name}";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name} in system: {system}" = "Materials List for Carrier {carrier_name} in system: {system}";
+"Materials List for Carrier {carrier_name} in system: {system}" = "Liste des matériaux pour le Porte-Vaisseaux {carrier_name} dans le système : {system}";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Moyenne";
@@ -488,7 +488,7 @@
 "None" = "Aucun";
 
 /* Discord heading. [fleetcarrier.py] */
-"Notorious Access" = "Notorious Access";
+"Notorious Access" = "Accès Anonyme";
 
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Zone de conflit au sol";
@@ -539,7 +539,7 @@
 "Posted at: {date_time} | {plugin_name} v{version}" = "Publié à: {date_time} | {plugin_name} v{version}";
 
 /* Button label. [ui.py] */
-"Previous BGS Tallies" = "Previous BGS Tallies";
+"Previous BGS Tallies" = "BGS Tallies précédents";
 
 /* Activity window column title, abbreviation for primary. [activity.py] */
 "Pri" = "Primaire";
@@ -554,13 +554,13 @@
 "Prof" = "Benef";
 
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
-"Profit at Z | L | M | H demand" = "Profit at Z | L | M | H demand";
+"Profit at Z | L | M | H demand" = "Profit pour une demande N | F | M | H";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */
 "Purch" = "Achat";
 
 /* Activity window tooltip for purchase at low | medium | high supply. [activity.py] */
-"Purchase at L | M | H supply" = "Purchase at L | M | H supply";
+"Purchase at L | M | H supply" = "Achat à offre F | M | H";
 
 /* Discord heading, abbreviation for reactivation (TW missions). [default.py] */
 "reac" = "reac";
@@ -596,13 +596,13 @@
 "Scens" = "Scénarios";
 
 /* Label on legend window. [legend.py] */
-"Search & Rescue Bio Pods" = "Search & Rescue Bio Pods";
+"Search & Rescue Bio Pods" = "Recherche et Sauvetage des Bio Pods";
 
 /* Label on legend window. [legend.py] */
-"Search & Rescue Black Boxes" = "Search & Rescue Black Boxes";
+"Search & Rescue Black Boxes" = "Recherche et Sauvetage des Boîtes Noires";
 
 /* Label on legend window. [legend.py] */
-"Search & Rescue Escape Pods" = "Search & Rescue Escape Pods";
+"Search & Rescue Escape Pods" = "Recherche et Sauvetage des Nacelles d’évacuation";
 
 /* Label on legend window. [legend.py] */
 "Search & Rescue Tissue Samples" = "Recherche et Sauvetage d'échantillons de tissue";
@@ -701,7 +701,7 @@
 "System Information" = "Informations du système";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}";
+"System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Système: {current_system} - Appontage : {docking_access} - Notoriété autorisée : {notorious}";
 
 /* Text on API settings window. [api.py] */
 "Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills." = "Faites attention lorsque vous acceptez cela - si vous approuvez ce serveur, {plugin_name} lui enverra vos informations, qui inclura des détails CMDR tels que votre emplacement, vos missions et vos tués.";

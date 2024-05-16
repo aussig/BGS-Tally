@@ -338,10 +338,10 @@
 "In-space Conflict Zone Side Objective: Spec ops wing" = "Dodatni zadatak u Svemirskoj Konflikt Zoni: Neprijateljski Specijalci";
 
 /* Inara URL on CMDR window. [cmdrs.py] */
-"Inara Info Available ⤴" = "Dostupni podaci na Inara ⤴";
+"Inara Info Available ⤴" = "Dostupni podaci na Inari ⤴";
 
 /* Overlay CMDR information report message. [ui.py] */
-"INARA INFORMATION AVAILABLE" = "DOSTUPNI PODACI NA INARA";
+"INARA INFORMATION AVAILABLE" = "DOSTUPNI PODACI NA INARI";
 
 /* Inara link. [activity.py] */
 "Inara ⤴" = "Inara ⤴";

@@ -61,7 +61,7 @@
 * If any Discord post got bigger than the limits imposed by Discord, it would silently fail to post. Now, the post is truncated to the Discord limit and '...' appended to the end.
 * The 'Post to Discord' button on the CMDRs information window was sometimes becoming enabled even if there were no valid discord webhooks set up.
 
-### API Changes ([vx.x](https://studio-ws.apicur.io/sharing/xxxxxxxx)):
+### API Changes ([v1.5](https://studio-ws.apicur.io/sharing/0f4472d2-d6b8-4718-8d38-205fc4539402)):
 
 * `/activities` endpoint: Search and Rescue handins now included at `systems/[system]/factions/[faction]/sandr`, containing `damagedpods`, `occupiedpods`, `thargoidpods`, `blackboxes`, `wreckagecomponents`, `personaleffects`, `politicalprisoners` and `hostages` as properties.
 

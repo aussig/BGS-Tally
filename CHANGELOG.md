@@ -18,6 +18,7 @@
 ### Bug Fixes:
 
 * 'Delete' button was hard to read when disabled on the CMDRs window.
+* Fleet Carrier window was failing to initialise if the carrier's current system wasn't set.
 
 
 ## v4.0.0-a1 - 2024-05-12

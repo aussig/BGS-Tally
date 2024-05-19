@@ -32,14 +32,14 @@ class WindowFleetCarrier:
         fc: FleetCarrier = self.bgstally.fleet_carrier
 
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
-        self.toplevel.title(_("{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=fc.name, carrier_callsign=fc.callsign, system_name=fc.data['currentStarSystem'])) # LANG: Carrier window title
+        self.toplevel.title(_("{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=fc.name, carrier_callsign=fc.callsign, system_name=fc.data.get('currentStarSystem', "Unknown"))) # LANG: Carrier window title
         self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
         self.toplevel.geometry("600x800")
 
         container_frame:ttk.Frame = ttk.Frame(self.toplevel)
         container_frame.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(container_frame, text=_("System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}").format(current_system=fc.data['currentStarSystem'], docking_access=fc.human_format_dockingaccess(False), notorious=fc.human_format_notorious(False)), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on carrier window
+        ttk.Label(container_frame, text=_("System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}").format(current_system=fc.data.get('currentStarSystem', "Unknown"), docking_access=fc.human_format_dockingaccess(False), notorious=fc.human_format_notorious(False)), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on carrier window
 
         items_frame:ttk.Frame = ttk.Frame(container_frame)
         items_frame.pack(fill=tk.BOTH, padx=5, pady=5, expand=True)
@@ -126,11 +126,11 @@ class WindowFleetCarrier:
 
         fc: FleetCarrier = self.bgstally.fleet_carrier
 
-        title: str = __("Materials List for Carrier {carrier_name} in system: {system}", lang=self.bgstally.state.discord_lang).format(carrier_name=fc.name, system=fc.data['currentStarSystem']) # LANG: Discord fleet carrier title
+        title: str = __("Materials List for Carrier {carrier_name} in system: {system}", lang=self.bgstally.state.discord_lang).format(carrier_name=fc.name, system=fc.data.get('currentStarSystem', "Unknown")) # LANG: Discord fleet carrier title
         description: str = self._get_as_text(fc, True)
 
         fields: list = []
-        fields.append({'name': __("System", lang=self.bgstally.state.discord_lang), 'value': fc.data['currentStarSystem'], 'inline': True}) # LANG: Discord fleet carrier field heading
+        fields.append({'name': __("System", lang=self.bgstally.state.discord_lang), 'value': fc.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord fleet carrier field heading
         fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': fc.human_format_dockingaccess(True), 'inline': True}) # LANG: Discord fleet carrier field heading
         fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': fc.human_format_notorious(True), 'inline': True}) # LANG: Discord fleet carrier field heading
 
@@ -152,7 +152,7 @@ class WindowFleetCarrier:
         text: str = ""
 
         if not short:
-            text += "**" + __("Materials List for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=fc.name, system=fc.data['currentStarSystem']) + "**\n\n" # LANG: Discord fleet carrier title
+            text += "**" + __("Materials List for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=fc.name) + "**\n\n" # LANG: Discord fleet carrier title
 
         materials_selling: str = fc.get_items_plaintext(FleetCarrierItemType.MATERIALS_SELLING)
         materials_buying: str = fc.get_items_plaintext(FleetCarrierItemType.MATERIALS_BUYING)
@@ -169,7 +169,7 @@ class WindowFleetCarrier:
             text += "**" + __("Buying Commodities:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{commodities_buying}```\n" # LANG: Discord fleet carrier section heading
 
         if not short:
-            text += "**" + __("System", lang=self.bgstally.state.discord_lang) + "**: " + fc.data['currentStarSystem'] + "\n" # LANG: Discord fleet carrier discord post
+            text += "**" + __("System", lang=self.bgstally.state.discord_lang) + "**: " + fc.data.get('currentStarSystem', "Unknown") + "\n" # LANG: Discord fleet carrier discord post
             text += "**" + __("Docking", lang=self.bgstally.state.discord_lang) + "**: " + fc.human_format_dockingaccess(True) + "\n" # LANG: Discord fleet carrier discord post
             text += "**" + __("Notorious Access", lang=self.bgstally.state.discord_lang) + "**: " + fc.human_format_notorious(True) # LANG: Discord fleet carrier discord post
 

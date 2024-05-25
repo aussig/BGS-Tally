@@ -28,5 +28,12 @@ If applicable, add screenshots to help explain your problem.
  - Plugin Version [e.g. 1.2.0]
  - EDMC Version [e.g. 5.1.3]
 
+**Log Files**
+Please attach the following three log files:
+
+1. %LOCALAPPDATA%\Temp\EDMarketConnector\EDMarketConnector-debug.log - The folder containing this file can be found quickly by going to Help → Open Log Folder in EDMC.
+2. %LOCALAPPDATA%\Temp\EDMarketConnector.log - This is in the parent folder to the file above.
+3. %USERPROFILE%\Saved Games\Frontier Developments\Elite Dangerous\Journal.[latest date/time].log - The folder containing this file can be found quickly by going to File → Settings → Configuration in EDMC and looking at the file path shown in the E:D journal file location box.
+
 **Additional context**
 Add any other context about the problem here.

@@ -279,11 +279,11 @@ class Activity:
         """
         The user has entered a system
         """
-        self.dirty = True
-        current_system = None
-
         # Protect against rare case of null data, not able to trace how this can happen
         if journal_entry.get('SystemAddress') == None or journal_entry.get('StarSystem') == None: return
+
+        self.dirty = True
+        current_system = None
 
         for system_address in self.systems:
             if system_address == str(journal_entry['SystemAddress']):

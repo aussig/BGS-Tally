@@ -2,6 +2,10 @@
 
 ## v4.0.0-xx - xxxx-xx-xx
 
+### Changes:
+
+* Update kill bond values for Thargoid interceptor kills for game version v18.06.
+
 ### Bug Fixes:
 
 * Fleet Carrier window was failing to initialise if the carrier's current system wasn't set.

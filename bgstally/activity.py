@@ -94,7 +94,17 @@ SPACECZ_PILOTNAME_PROPAGAND = '$LUASC_Scenario_Warzone_NPC_WarzoneCorrespondent;
 CZ_GROUND_LOW_CB_MAX = 5000
 CZ_GROUND_MED_CB_MAX = 38000
 
-TW_CBS = {25000: 'r', 65000: 's', 75000: 's', 1000000: 'ba', 4500000: 'sg', 6500000: 'c', 20000000: 'b', 25000000: 'o', 34000000: 'm', 40000000: 'o', 50000000: 'h'}
+TW_CBS = {
+    25000: 'r',                     # Revenant
+    65000: 's', 75000: 's',         # Scout
+    1000000: 'ba',                  # Banshee
+    4500000: 'sg',                  # Scythe and Glaive
+    6500000: 'c', 8000000: 'c',     # Cyclops - 6.5m v14.02 / 8m v18.06
+    20000000: 'b', 24000000: 'b',   # Basilisk - 20m v14.02 / 24m v18.06
+    40000000: 'o', 15000000: 'o',   # Orthrus - 40m 03/2023 / 15m v18.06
+    34000000: 'm', # 40000000: 'm', # Medusa - 34m v14.02 / 40m v18.06
+    50000000: 'h', 60000000: 'h'    # Hydra - 50m v14.02 / 60m v18.06
+}
 
 
 class Activity:

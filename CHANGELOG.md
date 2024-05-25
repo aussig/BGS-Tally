@@ -5,6 +5,7 @@
 ### Bug Fixes:
 
 * Fleet Carrier window was failing to initialise if the carrier's current system wasn't set.
+* Protect against rare situation where null data can cause the Activity window to fail to load.
 
 
 ## v4.0.0-a2 - 2024-05-16

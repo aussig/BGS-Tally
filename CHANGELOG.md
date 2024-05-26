@@ -2,6 +2,9 @@
 
 ## v4.0.0-xx - xxxx-xx-xx
 
+### Changes:
+
+* Tidied up layout of Discord options on activity windows.
 
 
 ## v4.0.0-b1 - 2024-05-25

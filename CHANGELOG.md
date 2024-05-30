@@ -1,5 +1,12 @@
 # Change Log
 
+## v3.6.2 - 2024-05-30
+
+### Changes:
+
+* Update kill bond values for Thargoid interceptor kills for game version v18.06.
+
+
 ## v3.6.1 - 2024-04-07
 
 ### Bug Fixes:

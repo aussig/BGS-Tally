@@ -81,6 +81,13 @@
 * `/activities` endpoint: Search and Rescue handins now included at `systems/[system]/factions/[faction]/sandr`, containing `damagedpods`, `occupiedpods`, `thargoidpods`, `blackboxes`, `wreckagecomponents`, `personaleffects`, `politicalprisoners` and `hostages` as properties.
 
 
+## v3.6.2 - 2024-05-30
+
+### Changes:
+
+* Update kill bond values for Thargoid interceptor kills for game version v18.06.
+
+
 ## v3.6.1 - 2024-04-07
 
 ### Bug Fixes:

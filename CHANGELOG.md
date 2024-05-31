@@ -5,6 +5,7 @@
 ### Changes:
 
 * Tidied up layout of Discord options on activity windows.
+* Minor localisation tweaks to Spanish and Italian.
 
 
 ## v4.0.0-b1 - 2024-05-25

@@ -1,5 +1,9 @@
 # Change Log
 
+## v4.0.0-xx - xxxx-xx-xx
+
+
+
 ## v4.0.0-b2 - 2024-05-31
 
 ### Changes:
@@ -82,7 +86,7 @@
 * `/activities` endpoint: Search and Rescue handins now included at `systems/[system]/factions/[faction]/sandr`, containing `damagedpods`, `occupiedpods`, `thargoidpods`, `blackboxes`, `wreckagecomponents`, `personaleffects`, `politicalprisoners` and `hostages` as properties.
 
 
-## v3.6.2 - 2024-05-30
+## v3.6.2 - 2024-05-31
 
 ### Changes:
 

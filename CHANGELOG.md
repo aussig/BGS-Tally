@@ -1,6 +1,6 @@
 # Change Log
 
-## v4.0.0-xx - xxxx-xx-xx
+## v4.0.0-b2 - 2024-05-31
 
 ### Changes:
 

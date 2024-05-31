@@ -80,10 +80,10 @@
 "Buying Commodities:" = "Acquisto di commodity:";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"Buying Materials" = "Acquisto di Material";
+"Buying Materials" = "Acquisto di Materiali";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Buying Materials:" = "Acquisto di Material:";
+"Buying Materials:" = "Acquisto di Materiali:";
 
 /* Discord heading. [default.py] */
 "cargo" = "carico";

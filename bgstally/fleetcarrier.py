@@ -63,7 +63,7 @@ class FleetCarrier:
         Store the latest data
         """
         # Data directly from CAPI response. Structure documented here:
-        # https://github.com/Athanasius/fd-api/blob/main/docs/FrontierDevelopments-CAPI-endpoints.md#fleetcarrier
+        # https://github.com/EDCD/FDevIDs/blob/master/Frontier%20API/FrontierDevelopments-CAPI-endpoints.md#fleetcarrier
 
         # Store the whole data structure
         self.data = data

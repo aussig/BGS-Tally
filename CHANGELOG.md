@@ -2,6 +2,9 @@
 
 ## v4.0.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
+
+* The fleet carrier info Discord post was breaking because the data was duplicated in the post.
 
 
 ## v4.0.0-b2 - 2024-05-31

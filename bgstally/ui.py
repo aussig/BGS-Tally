@@ -28,6 +28,7 @@ from thirdparty.Tooltip import ToolTip
 
 DATETIME_FORMAT_OVERLAY = "%Y-%m-%d %H:%M"
 SIZE_BUTTON_PIXELS = 30
+SIZE_STATUS_ICON_PIXELS = 16
 TIME_WORKER_PERIOD_S = 2
 TIME_TICK_ALERT_M = 60
 URL_LATEST_RELEASE = "https://github.com/aussig/BGS-Tally/releases/latest"
@@ -50,6 +51,8 @@ class UI:
         self.image_button_dropdown_menu = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_dropdown_menu.png"))
         self.image_button_cmdrs = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_cmdrs.png"))
         self.image_button_carrier = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_carrier.png"))
+        self.image_icon_green_tick = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_green_tick_16x16.png"))
+        self.image_icon_red_cross = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_red_cross_16x16.png"))
 
         self.indicate_activity:bool = False
         self.report_system_address:str = None
@@ -88,8 +91,12 @@ class UI:
         self.lbl_version: HyperlinkLabel = HyperlinkLabel(self.frame, text=f"v{str(self.bgstally.version)}", background=nb.Label().cget('background'), url=URL_LATEST_RELEASE, underline=True)
         self.lbl_version.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
         current_row += 1
-        self.lbl_status: tk.Label = tk.Label(self.frame, text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name) + " " + self.bgstally.state.Status.get()) # LANG: Main window label
-        self.lbl_status.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
+        frm_status: tk.Frame = tk.Frame(self.frame)
+        frm_status.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
+        self.lbl_status: tk.Label = tk.Label(frm_status, text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window label
+        self.lbl_status.pack(side=tk.LEFT)
+        self.lbl_active: tk.Label = tk.Label(frm_status, width=SIZE_STATUS_ICON_PIXELS, height=SIZE_STATUS_ICON_PIXELS, image=self.image_icon_green_tick if self.bgstally.state.Status.get() == CheckStates.STATE_ON else self.image_icon_red_cross)
+        self.lbl_active.pack(side=tk.LEFT)
         current_row += 1
         self.lbl_tick: tk.Label = tk.Label(self.frame, text=_("Last BGS Tick:") + " " + self.bgstally.tick.get_formatted()) # LANG: Main window label
         self.lbl_tick.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
@@ -118,7 +125,7 @@ class UI:
         """
         self.btn_latest_tick.configure(text=_("Latest BGS Tally")) # LANG: Button label
         self.btn_previous_ticks.configure(text=_("Previous BGS Tallies") + " ") # LANG: Button label
-        self.lbl_status.configure(text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name) + " " + self.bgstally.state.Status.get()) # LANG: Main window label
+        self.lbl_active.configure(image=self.image_icon_green_tick if self.bgstally.state.Status.get() == CheckStates.STATE_ON else self.image_icon_red_cross)
         self.lbl_tick.configure(text=_("Last BGS Tick:") + " " + self.bgstally.tick.get_formatted()) # LANG: Main window label
 
         if self.bgstally.update_manager.update_available:
@@ -148,7 +155,7 @@ class UI:
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("General Options"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
-        nb.Checkbutton(frame, text=_("{plugin_name} Active").format(plugin_name=self.bgstally.plugin_name), variable=self.bgstally.state.Status, onvalue="Active", offvalue="Paused").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
+        nb.Checkbutton(frame, text=_("{plugin_name} Active").format(plugin_name=self.bgstally.plugin_name), variable=self.bgstally.state.Status, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.update_plugin_frame).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Show Systems with Zero Activity"), variable=self.bgstally.state.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
@@ -408,7 +415,7 @@ class UI:
                 display_text += _("Squadron ID: {squadron}").format(squadron=self.report_cmdr_data.get('SquadronID', _("Unknown"))) + "\n" # LANG: Overlay CMDR information report message
                 display_text += _("In ship: {ship}").format(ship=self.report_cmdr_data.get('Ship', _("Unknown"))) + "  " # LANG: Overlay CMDR information report message
                 display_text += _("Legal status: {legal}").format(legal=self.report_cmdr_data.get('LegalStatus', _("Unknown"))) + "\n" # LANG: Overlay CMDR information report message
-                if 'ranks' in self.report_cmdr_data: display_text += "  " + _("INARA INFORMATION AVAILABLE") # LANG: Overlay CMDR information report message
+                if 'ranks' in self.report_cmdr_data: display_text += _("INARA INFORMATION AVAILABLE") # LANG: Overlay CMDR information report message
 
                 self.bgstally.overlay.display_message("cmdr_info", display_text, fit_to_text=True, text_includes_title=True)
                 self.report_cmdr_data = None

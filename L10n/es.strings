@@ -89,7 +89,7 @@
 "cargo" = "carga";
 
 /* Label on legend window. [legend.py] */
-"Cargo missions" = "Misiones de Carga";
+"Cargo missions" = "Misiones de carga";
 
 /* [_tksheet_main_table.py] */
 "Clear contents" = "Borrar contenido";
@@ -344,7 +344,7 @@
 "INARA INFORMATION AVAILABLE" = "INFORMACIÓN DE INARA DISPONIBLE";
 
 /* Inara link. [activity.py] */
-"Inara ⤴" = "Irara ⤴";
+"Inara ⤴" = "Inara ⤴";
 
 /* Label on CMDR window. [cmdrs.py] */
 "Inara: " = "Inara: ";

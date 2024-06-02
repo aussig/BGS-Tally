@@ -24,8 +24,8 @@ class ActivityManager:
     def __init__(self, bgstally):
         self.bgstally = bgstally
 
-        self.activity_data = []
-        self.current_activity = None
+        self.activity_data: list[Activity] = []
+        self.current_activity: Activity|None = None
 
         self._load()
         self._archive_old_activity()
@@ -46,14 +46,14 @@ class ActivityManager:
             activity.save(path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, activity.get_filename()))
 
 
-    def get_current_activity(self):
+    def get_current_activity(self) -> Activity|None:
         """
         Get the latest Activity, i.e. current tick
         """
         return self.current_activity
 
 
-    def get_previous_activities(self):
+    def get_previous_activities(self) -> list[Activity]:
         """
         Get a list of previous Activities.
         """
@@ -136,11 +136,12 @@ class ActivityManager:
         if not path.exists(archive_filepath): mkdir(archive_filepath)
 
         # Split list, keep first KEEP_CURRENT_ACTIVITIES in
-        activity_to_archive = self.activity_data[KEEP_CURRENT_ACTIVITIES:]
+        activity_to_archive: list[Activity] = self.activity_data[KEEP_CURRENT_ACTIVITIES:]
         self.activity_data = self.activity_data[:KEEP_CURRENT_ACTIVITIES]
 
         for activity in activity_to_archive:
             try:
+                Debug.logger.info(f"Archiving {activity.get_filename()}")
                 rename(path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, activity.get_filename()),
                        path.join(self.bgstally.plugin_dir, archive_filepath, activity.get_filename()))
             except FileExistsError: # Destination exists

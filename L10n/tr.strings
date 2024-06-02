@@ -446,10 +446,10 @@
 "Massacre missions" = "Katliam görevleri";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name}" = "Materials List for Carrier {carrier_name}";
+"Materials List for Carrier {carrier_name}" = "Filo taşıyıcı için Materyal Listesi{carrier_name}";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name} in system: {system}" = "Materials List for Carrier {carrier_name} in system: {system}";
+"Materials List for Carrier {carrier_name} in system: {system}" = "{system}'i içindeki Filo Taşıyıcı {carrier_name} için Materyal listesi";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Orta";

@@ -19,7 +19,7 @@ class State:
         Load our state
         """
         # UI preference fields
-        self.Status:tk.StringVar = tk.StringVar(value=config.get_str('XStatus', default="Active"))
+        self.Status:tk.StringVar = tk.StringVar(value=config.get_str('BGST_Status', default=CheckStates.STATE_ON))
         self.ShowZeroActivitySystems:tk.StringVar = tk.StringVar(value=config.get_str('XShowZeroActivity', default=CheckStates.STATE_ON))
         self.AbbreviateFactionNames:tk.StringVar = tk.StringVar(value=config.get_str('XAbbreviate', default=CheckStates.STATE_OFF))
         self.IncludeSecondaryInf:tk.StringVar = tk.StringVar(value=config.get_str('XSecondaryInf', default=CheckStates.STATE_ON))
@@ -84,7 +84,7 @@ class State:
         """
 
         # UI preference fields
-        config.set('XStatus', self.Status.get())
+        config.set('BGST_Status', self.Status.get())
         config.set('XShowZeroActivity', self.ShowZeroActivitySystems.get())
         config.set('XAbbreviate', self.AbbreviateFactionNames.get())
         config.set('XSecondaryInf', self.IncludeSecondaryInf.get())

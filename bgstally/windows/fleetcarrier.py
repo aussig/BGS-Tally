@@ -43,7 +43,7 @@ class WindowFleetCarrier:
         ttk.Label(container_frame, text=_("System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}").format(current_system=fc.data.get('currentStarSystem', "Unknown"), docking_access=fc.human_format_dockingaccess(False), notorious=fc.human_format_notorious(False)), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on carrier window
 
         if not config.get_bool('capi_fleetcarrier'):
-            ttk.Label(container_frame, text=_("Some information cannot be updated. Enable Fleetcarrier CAPI Queries in File -> Settings -> Configuration"), foreground='#f00').pack(anchor=tk.NW) # LANG: Label on activity window
+            ttk.Label(container_frame, text=_("Some information cannot be updated. Enable Fleetcarrier CAPI Queries in File -> Settings -> Configuration"), foreground='#f00').pack(anchor=tk.NW) # LANG: Label on carrier window
 
         items_frame:ttk.Frame = ttk.Frame(container_frame)
         items_frame.pack(fill=tk.BOTH, padx=5, pady=5, expand=True)

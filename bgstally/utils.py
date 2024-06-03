@@ -6,6 +6,9 @@ import l10n
 from bgstally.debug import Debug
 from config import config
 
+# Language codes for languages that should be omitted
+BLOCK_LANGS: list = []
+
 # Localisation main translation function
 _ = functools.partial(l10n.Translations.translate, context=__file__)
 
@@ -46,7 +49,10 @@ def available_langs() -> dict[str | None, str]:
     """
 
     plugin_path:str = join(config.plugin_dir_path, "BGS-Tally", l10n.LOCALISATION_DIR)
-    available:set[str] = {x[:-len('.strings')] for x in listdir(plugin_path) if x.endswith('.strings') and "template" not in x}
+    available:set[str] = {x[:-len('.strings')] for x in listdir(plugin_path)
+                          if x.endswith('.strings') and
+                          "template" not in x and
+                          x[:-len('.strings')] not in BLOCK_LANGS}
 
     names: dict[str | None, str] = {
         # LANG: The system default language choice in Settings > Appearance

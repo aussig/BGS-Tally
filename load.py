@@ -9,7 +9,7 @@ from bgstally.constants import CheckStates, UpdateUIPolicy
 from bgstally.debug import Debug
 
 PLUGIN_NAME = "BGS-Tally"
-PLUGIN_VERSION = semantic_version.Version.coerce("4.0.0-b2")
+PLUGIN_VERSION = semantic_version.Version.coerce("4.0.0-b3")
 
 # Initialise the main plugin class
 bgstally.globals.this = this = BGSTally(PLUGIN_NAME, PLUGIN_VERSION)
@@ -48,10 +48,10 @@ def plugin_prefs(parent, cmdr: str, is_beta: bool):
 
 
 def prefs_changed(cmdr: str, is_beta: bool) -> None:
-   """
-   Save settings.
-   """
-   this.ui.save_prefs()
+    """
+    Save settings.
+    """
+    this.ui.save_prefs()
 
 
 def journal_entry(cmdr, is_beta, system, station, entry, state):

@@ -665,7 +665,7 @@
 "Show Systems with Zero Activity" = "Prikaži Sisteme u kojima nema Aktivnosti";
 
 /* [fleetcarrier.py] */
-"Some information cannot be updated. Enable Fleetcarrier CAPI Queries in File -> Settings -> Configuration" = "Neke informacije se ne mogu ažurirati. Omogućite Aktiviraj Fleetcarrier CAPIU Upite na Fajl -> Podešavanja -> Konfiguracija";
+"Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Neke informacije se ne mogu ažurirati. Omogućite Aktiviraj Fleetcarrier CAPIU Upite na Fajl -> Podešavanja -> Konfiguracija";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Svemirske konflikt zone";

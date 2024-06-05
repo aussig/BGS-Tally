@@ -1,5 +1,16 @@
 # Change Log
 
+## v4.0.0-b3 - 2024-06-05
+
+### Changes:
+
+* A warning is now displayed on the Fleet Carrier window if you have not enabled the correct setting in EDMC.
+
+### Bug Fixes:
+
+* The Fleet Carrier info Discord post was breaking because the data was duplicated in the post.
+
+
 ## v4.0.0-b2 - 2024-05-31
 
 ### Changes:
@@ -40,7 +51,7 @@
 
 ### New Features:
 
-* Localisation. The plugin is now translated into French, German, Italian, Portuguese (Portugal), Portuguese (Brazil), Russian (in progress), Spanish and Turkish. For the user interface, it will pick up the language you have set EDMC to use. If anyone would like to help translate into other languages, please post a message on the BGS-Tally Discord.
+* Localisation. The plugin is now translated into French, German, Italian, Portuguese (Portugal), Portuguese (Brazil), Spanish and Turkish. For the user interface, it will pick up the language you have set EDMC to use. If anyone would like to help translate into other languages, please post a message on the BGS-Tally Discord.
 * Independent language for Discord posts. You can separately set the language that is used for Discord posts, in case the Discord server has a different preferred language to the one you run EDMC in.
 * Added logo to main window and all window icons
 * Added options to only post your BGS activity, only your TW activity or both (defaults to both), for CMDRs who want to selectively post a single type of activity.
@@ -82,7 +93,7 @@
 * `/activities` endpoint: Search and Rescue handins now included at `systems/[system]/factions/[faction]/sandr`, containing `damagedpods`, `occupiedpods`, `thargoidpods`, `blackboxes`, `wreckagecomponents`, `personaleffects`, `politicalprisoners` and `hostages` as properties.
 
 
-## v3.6.2 - 2024-05-30
+## v3.6.2 - 2024-05-31
 
 ### Changes:
 
@@ -308,7 +319,7 @@
 ### New Features:
 
 * Plugin auto-update. From this version on, when a new version of the plugin is released, it will automatically be downloaded and update itself the next time you launch EDMarketConnector. You will need to install this version 3.0.0 manually, but that should be the last time you ever have to do a manual update unless you want to test pre-release versions (i.e. alphas or betas).
-* Fleet Carrier materials tracking. BGS-Tally will now track your fleet carrier materials for sale and for purchase, with the ability to post to Discord. For this to work, you need to be using EDMC v5.8.0 or greater, authenticate EDMC with your Frontier account, own a fleet carrier (!) and visit your fleet carrier management screen in-game.
+* Fleet Carrier materials tracking. BGS-Tally will now track your Fleet Carrier materials for sale and for purchase, with the ability to post to Discord. For this to work, you need to be using EDMC v5.8.0 or greater, authenticate EDMC with your Frontier account, own a Fleet Carrier (!) and visit your Fleet Carrier management screen in-game.
 * API. This allows BGS-Tally to send data to a server of your choice, to allow your squadron or another player group to collect and analyse your activity. If the server provides information about itself, this is shown to you and you are **always explicitly asked** to approve the connection.
 * On-foot murders are now tracked and are independent from ship murders.
 * Trade demand. Trade purchase and profit is now tracked and reported against the levels of demand: 🅻 / 🅷 for purchases and 🆉 / 🅻 / 🅷 for sales (🆉 is zero demand, i.e. when you sell cargo that the market doesn't list).

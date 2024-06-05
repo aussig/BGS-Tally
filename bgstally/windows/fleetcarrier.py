@@ -7,6 +7,7 @@ from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.utils import _, __
 from bgstally.widgets import TextPlus
+from config import config
 from thirdparty.colors import *
 
 
@@ -34,12 +35,15 @@ class WindowFleetCarrier:
         self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
         self.toplevel.title(_("{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=fc.name, carrier_callsign=fc.callsign, system_name=fc.data.get('currentStarSystem', "Unknown"))) # LANG: Carrier window title
         self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
-        self.toplevel.geometry("600x800")
+        self.toplevel.geometry("800x800")
 
         container_frame:ttk.Frame = ttk.Frame(self.toplevel)
         container_frame.pack(fill=tk.BOTH, expand=True)
 
         ttk.Label(container_frame, text=_("System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}").format(current_system=fc.data.get('currentStarSystem', "Unknown"), docking_access=fc.human_format_dockingaccess(False), notorious=fc.human_format_notorious(False)), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on carrier window
+
+        if not config.get_bool('capi_fleetcarrier'):
+            ttk.Label(container_frame, text=_("Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration"), foreground='#f00').pack(anchor=tk.NW) # LANG: Label on carrier window
 
         items_frame:ttk.Frame = ttk.Frame(container_frame)
         items_frame.pack(fill=tk.BOTH, padx=5, pady=5, expand=True)

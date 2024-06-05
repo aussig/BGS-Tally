@@ -80,40 +80,47 @@ class Discord:
                     self.bgstally.request_manager.queue_request(url, RequestMethod.DELETE, callback=self._request_complete, data=data)
 
 
-    def post_embed(self, title:str, description:str, fields:list, webhooks_data:dict|None, channel:DiscordChannel, callback:callable):
-        """
-        Post an embed to Discord
+    def post_embed(self, title: str, description: str, fields: list, webhooks_data: dict|None, channel: DiscordChannel, callback: callable):
+        """Post an embed to Discord. All fields are truncated to discord limits before posting.
+
+        Args:
+            title (str): The post title
+            description (str): The post description
+            fields (list): A list of fields to post. Each field should be a `dict` containing a `name` and `value`
+            webhooks_data (dict | None): Previous webhook state if reposting
+            channel (DiscordChannel): The discord channel to post to
+            callback (callable): A callback function to be called once the post is completed
         """
         # Start with latest webhooks from manager. Will contain True / False for each channel. Copy dict so we don't affect the webhook manager data.
-        webhooks:dict = deepcopy(self.bgstally.webhook_manager.get_webhooks_as_dict(channel))
+        webhooks: dict = deepcopy(self.bgstally.webhook_manager.get_webhooks_as_dict(channel))
 
         # Apply Discord limits
         title = self._truncate(title, DISCORD_LIMIT_EMBED_TITLE)
-        title = self._truncate(description, DISCORD_LIMIT_EMBED_DESCRIPTION)
+        description = self._truncate(description, DISCORD_LIMIT_EMBED_DESCRIPTION)
         fields = fields[0 : DISCORD_LIMIT_FIELDS]
         for field in fields:
             field['name'] = self._truncate(field.get('name', ""), DISCORD_LIMIT_EMBED_FIELD_NAME)
             field['value'] = self._truncate(field.get('value', ""), DISCORD_LIMIT_EMBED_FIELD_VALUE)
 
         for webhook in webhooks.values():
-            webhook_url:str = webhook.get('url')
+            webhook_url: str = webhook.get('url')
             if not self._is_webhook_valid(webhook_url): continue
 
             # Get the previous state for this webhook's uuid from the passed in data, if it exists. Default to the state from the webhook manager
-            specific_webhook_data:dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)
+            specific_webhook_data: dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)
 
-            data:dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
+            data: dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
 
             # Fetch the previous post ID, if present, from the webhook data for the channel we're posting in. May be the default True / False value
-            previous_messageid:str = specific_webhook_data.get(channel, None)
+            previous_messageid: str = specific_webhook_data.get(channel, None)
 
             if previous_messageid == "" or previous_messageid == None or previous_messageid == True or previous_messageid == False:
                 # No previous post
                 if fields is None or fields == []: return
 
-                embed:dict = self._get_embed(title, description, fields, False)
-                url:str = webhook_url
-                payload:dict = {
+                embed: dict = self._get_embed(title, description, fields, False)
+                url: str = webhook_url
+                payload: dict = {
                     'content': "",
                     'username': self.bgstally.state.DiscordUsername.get(),
                     'avatar_url': URL_LOGO,
@@ -123,9 +130,9 @@ class Discord:
             else:
                 # Previous post
                 if fields is not None and fields != []:
-                    embed:dict = self._get_embed(title, description, fields, True)
-                    url:str = f"{webhook_url}/messages/{previous_messageid}"
-                    payload:dict = {
+                    embed: dict = self._get_embed(title, description, fields, True)
+                    url: str = f"{webhook_url}/messages/{previous_messageid}"
+                    payload: dict = {
                         'content': "",
                         'username': self.bgstally.state.DiscordUsername.get(),
                         'avatar_url': URL_LOGO,
@@ -133,7 +140,7 @@ class Discord:
 
                     self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, callback=self._request_complete, data=data)
                 else:
-                    url = f"{webhook_url}/messages/{previous_messageid}"
+                    url: str = f"{webhook_url}/messages/{previous_messageid}"
 
                     self.bgstally.request_manager.queue_request(url, RequestMethod.DELETE, callback=self._request_complete, data=data)
 

@@ -63,7 +63,7 @@ class FleetCarrier:
         Store the latest data
         """
         # Data directly from CAPI response. Structure documented here:
-        # https://github.com/Athanasius/fd-api/blob/main/docs/FrontierDevelopments-CAPI-endpoints.md#fleetcarrier
+        # https://github.com/EDCD/FDevIDs/blob/master/Frontier%20API/FrontierDevelopments-CAPI-endpoints.md#fleetcarrier
 
         # Store the whole data structure
         self.data = data
@@ -186,11 +186,16 @@ class FleetCarrier:
                 self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_BUYING)
 
 
-    def get_items_plaintext(self, category: FleetCarrierItemType = None):
+    def get_items_plaintext(self, category: FleetCarrierItemType|None = None) -> str:
+        """Return a multiline text string containing all items of a given type
+
+        Args:
+            category (FleetCarrierItemType | None, optional): The item type to fetch. Defaults to None.
+
+        Returns:
+            str: _description_
         """
-        Return a plain list of items
-        """
-        result:str = ""
+        result: str = ""
         items, name_key, display_name_key, quantity_key = self._get_items(category)
 
         if items is None: return ""
@@ -199,10 +204,10 @@ class FleetCarrier:
         for item in items:
             if category == FleetCarrierItemType.COMMODITIES_BUYING or category == FleetCarrierItemType.COMMODITIES_SELLING:
                 # Look up the display name because we don't have it in CAPI data
-                display_name:str = self.commodities[item[name_key]]
+                display_name: str = self.commodities[item[name_key]]
             else:
                 # Use the localised name from CAPI data
-                display_name:str = item[display_name_key]
+                display_name: str = item[display_name_key]
 
             if int(item[quantity_key]) > 0: result += f"{display_name} x {item[quantity_key]} @ {self._human_format_price(item['price'])}\n"
 
@@ -307,9 +312,14 @@ class FleetCarrier:
         return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
 
 
-    def _get_items(self, category: FleetCarrierItemType = None) -> tuple[list|None, str|None, str|None]:
-        """
-        Return the current items list, lookup name key, display name key and quantity key for the specified category
+    def _get_items(self, category: FleetCarrierItemType = None) -> tuple[list|None, str|None, str|None, str|None]:
+        """Return the current items list, lookup name key, display name key and quantity key for the specified category
+
+        Args:
+            category (FleetCarrierItemType, optional): The type of item to fetch. Defaults to None.
+
+        Returns:
+            tuple[list|None, str|None, str|None, str|None]: Tuple containing the four items
         """
         match category:
             case FleetCarrierItemType.MATERIALS_SELLING:
@@ -325,7 +335,7 @@ class FleetCarrier:
                 # convert the display name later
                 return self.commodities_buying, 'name', 'name', 'outstanding'
             case _:
-                return None, None, None
+                return None, None, None, None
 
 
     def _load_commodities(self):

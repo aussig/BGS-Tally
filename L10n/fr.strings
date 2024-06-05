@@ -665,7 +665,7 @@
 "Show Systems with Zero Activity" = "Afficher les systèmes avec une activité zéro";
 
 /* [fleetcarrier.py] */
-"Some information cannot be updated. Enable Fleetcarrier CAPI Queries in File -> Settings -> Configuration" = "Some information cannot be updated. Enable Fleetcarrier CAPI Queries in File -> Settings -> Configuration";
+"Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Zones de conflit spatial";

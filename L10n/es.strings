@@ -493,9 +493,6 @@
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Zona de conflicto en tierra";
 
-/* Options group title. [activity.py] */
-"Other Options" = "Otras opciones";
-
 /* [ui.py] */
 "Panels" = "Paneles";
 
@@ -666,6 +663,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Mostrar sistemas sin ninguna actividad";
+
+/* [fleetcarrier.py] */
+"Some information cannot be updated. Enable Fleetcarrier CAPI Queries in File -> Settings -> Configuration" = "Alguna información no puede ser actualizada. Habilitar consultas CAPI del portanaves en Archivo -> Ajustes -> Configuración";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Zonas de conflicto espaciales";

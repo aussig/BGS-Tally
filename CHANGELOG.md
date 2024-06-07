@@ -1,62 +1,10 @@
 # Change Log
 
-## v4.0.0-xx - xxxx-xx-xx
-
-
-
-
-## v4.0.0-b3 - 2024-06-05
-
-### Changes:
-
-* A warning is now displayed on the Fleet Carrier window if you have not enabled the correct setting in EDMC.
-
-### Bug Fixes:
-
-* The Fleet Carrier info Discord post was breaking because the data was duplicated in the post.
-
-
-## v4.0.0-b2 - 2024-05-31
-
-### Changes:
-
-* Tidied up layout of Discord options on activity windows.
-* Minor localisation tweaks to Spanish and Italian.
-
-
-## v4.0.0-b1 - 2024-05-25
-
-### Changes:
-
-* Update kill bond values for Thargoid interceptor kills for game version v18.06.
-
-### Bug Fixes:
-
-* Fleet Carrier window was failing to initialise if the carrier's current system wasn't set.
-* Protect against rare situation where null data can cause the Activity window to fail to load.
-
-
-## v4.0.0-a2 - 2024-05-16
+## v4.0.0 - 2024-06-07
 
 ### New Features:
 
-* Localisation: The plugin is now translated into Serbian (Latin).
-
-### Changes:
-
-* The default +INF assigned for war missions that are missing INF values in the game journal has been increased to 2 (from 1).
-* Replaced 'Active / Paused' status label with icons on main window and refresh immediately preference is changed.
-
-### Bug Fixes:
-
-* 'Delete' button was hard to read when disabled on the CMDRs window.
-
-
-## v4.0.0-a1 - 2024-05-12
-
-### New Features:
-
-* Localisation. The plugin is now translated into French, German, Italian, Portuguese (Portugal), Portuguese (Brazil), Spanish and Turkish. For the user interface, it will pick up the language you have set EDMC to use. If anyone would like to help translate into other languages, please post a message on the BGS-Tally Discord.
+* Localisation. The plugin is now translated into French, German, Italian, Portuguese (Portugal), Portuguese (Brazil), Serbian (Latin), Spanish and Turkish. For the user interface, it will pick up the language you have set EDMC to use. If anyone would like to help translate into other languages, please post a message on the BGS-Tally Discord.
 * Independent language for Discord posts. You can separately set the language that is used for Discord posts, in case the Discord server has a different preferred language to the one you run EDMC in.
 * Added logo to main window and all window icons
 * Added options to only post your BGS activity, only your TW activity or both (defaults to both), for CMDRs who want to selectively post a single type of activity.
@@ -82,9 +30,18 @@
 * Unfortunately had to remove the functionality to log CMDRs scanned while in a dropship / taxi as we can no longer get the CMDR name from the game journal.
 * The layout of the CMDR information panel in the CMDRs window has been tidied up.
 * Only enable the 'Post to Discord' button on all windows if a Discord username is set in the settings.
+* A warning is now displayed on the Fleet Carrier window if you have not enabled the correct setting in EDMC.
+* Tidied up layout of Discord options on activity windows.
+* Update kill bond values for Thargoid interceptor kills for game version v18.06.
+* The default +INF assigned for war missions that are missing INF values in the game journal has been increased to 2 (from 1).
+* Replaced 'Active / Paused' status label with icons on main window and refresh immediately preference is changed.
 
 ### Bug Fixes:
 
+* The Fleet Carrier info Discord post was breaking because the data was duplicated in the post.
+* Fleet Carrier window was failing to initialise if the carrier's current system wasn't set.
+* Protect against rare situation where null data can cause the Activity window to fail to load.
+* The 'Delete' button was hard to read when disabled on the CMDRs window.
 * Thargoid War VIP passenger evac missions weren't being counted.
 * Was incorrectly reporting BGS activity in TW systems.
 * Was incorrectly reporting TW search and rescue collection in non-TW systems.

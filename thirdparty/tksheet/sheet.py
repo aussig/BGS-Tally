@@ -18,7 +18,7 @@ from itertools import (
     product,
     repeat,
 )
-from time import default_timer
+from time import perf_counter
 from tkinter import ttk
 from typing import Literal
 
@@ -376,7 +376,7 @@ class Sheet(tk.Frame):
             row_index_canvas=self.RI,
             header_canvas=self.CH,
         )
-        self.unique_id = f"{default_timer()}{self.winfo_id()}".replace(".", "")
+        self.unique_id = f"{perf_counter()}{self.winfo_id()}".replace(".", "")
         style = ttk.Style()
         for orientation in ("Vertical", "Horizontal"):
             style.element_create(

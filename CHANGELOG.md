@@ -2,6 +2,9 @@
 
 ## v4.1.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
+
+* The new font for the Discord preview wasn't working very well for Linux, so it's now only used on Windows.
 
 
 ## v4.0.0 - 2024-06-07

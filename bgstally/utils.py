@@ -3,6 +3,8 @@ from os import listdir
 from os.path import join
 
 import l10n
+
+import bgstally.globals
 from bgstally.debug import Debug
 from config import config
 
@@ -16,7 +18,7 @@ _ = functools.partial(l10n.Translations.translate, context=__file__)
 # __ = functools.partial(l10n.Translations.translate, context=__file__, lang=lang)
 
 # Localisation conditional translation function before PR [2188] is merged in to EDMC
-def __(string: str, lang: str):
+def __(string: str, lang: str) -> str:
     """Translate using our overridden language
 
     Args:
@@ -24,12 +26,12 @@ def __(string: str, lang: str):
         lang (str): The override language
 
     Returns:
-        _type_: Translated string
+        str: Translated string
     """
-    plugin_path:str = join(config.plugin_dir_path, "BGS-Tally", l10n.LOCALISATION_DIR)
+    l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
     if lang == "" or lang is None: return _(string)
 
-    contents:dict[str, str] = l10n.Translations.contents(lang=lang, plugin_path=plugin_path)
+    contents: dict[str, str] = l10n.Translations.contents(lang=lang, plugin_path=l10n_path)
 
     if not contents:
         Debug.logger.debug(f'Failure loading translations for language {lang!r}')
@@ -47,9 +49,8 @@ def available_langs() -> dict[str | None, str]:
     Returns:
         dict[str | None, str]: The available language names indexed by language code
     """
-
-    plugin_path:str = join(config.plugin_dir_path, "BGS-Tally", l10n.LOCALISATION_DIR)
-    available:set[str] = {x[:-len('.strings')] for x in listdir(plugin_path)
+    l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
+    available: set[str] = {x[:-len('.strings')] for x in listdir(l10n_path)
                           if x.endswith('.strings') and
                           "template" not in x and
                           x[:-len('.strings')] not in BLOCK_LANGS}
@@ -59,7 +60,7 @@ def available_langs() -> dict[str | None, str]:
         None: _('Default'),  # Appearance theme and language setting
     }
     names.update(sorted(
-        [(lang, l10n.Translations.contents(lang, plugin_path).get(l10n.LANGUAGE_ID, lang)) for lang in available] +
+        [(lang, l10n.Translations.contents(lang, l10n_path).get(l10n.LANGUAGE_ID, lang)) for lang in available] +
         [(l10n._Translations.FALLBACK, l10n._Translations.FALLBACK_NAME)],
         key=lambda x: x[1]
     ))
@@ -67,9 +68,16 @@ def available_langs() -> dict[str | None, str]:
     return names
 
 
-def get_by_path(dic:dict, keys:list, default:any = None):
-    """
-    Access a nested dict by key sequence
+def get_by_path(dic: dict[str, any], keys: list[str], default: any = None) -> any:
+    """Access a multi-level nested dict by a sequence of keys.
+
+    Args:
+        dic (dict[str, any]): The dict to access
+        keys (list[str]): A list of keys to access in sequence
+        default (any, optional): The default value to be returned if the key cannot be found at any level. Defaults to None.
+
+    Returns:
+        any: The value of the nested key
     """
     try:
         for key in keys:
@@ -80,9 +88,14 @@ def get_by_path(dic:dict, keys:list, default:any = None):
     return dic
 
 
-def human_format(num):
-    """
-    Format a BGS value into shortened human-readable text
+def human_format(num: int) -> str:
+    """Format a number into a shortened human-readable string, using abbreviations for larger values, e.g. 1300 -> 1.3K.
+
+    Args:
+        num (int): The value to convert
+
+    Returns:
+        str: The human-readable result
     """
     num = float('{:.3g}'.format(num))
     magnitude = 0
@@ -92,9 +105,14 @@ def human_format(num):
     return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
 
 
-def is_number(s:str):
-    """
-    Return True if the string represents a number
+def is_number(s: str) -> bool:
+    """Return True if the string represents a number.
+
+    Args:
+        s (str): The string to check
+
+    Returns:
+        bool: True if the string contains a numeric value, False otherwise.
     """
     try:
         float(s)
@@ -103,5 +121,13 @@ def is_number(s:str):
         return False
 
 
-def all_subclasses(cls: type) -> set:
+def all_subclasses(cls: type) -> set[type]:
+    """Find all subclasses of a given Python class
+
+    Args:
+        cls (type): The class to search for subclasses
+
+    Returns:
+        set[type]: A set of Python subclasses
+    """
     return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in all_subclasses(c)])

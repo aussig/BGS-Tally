@@ -5,6 +5,7 @@
 ### Bug Fixes:
 
 * The new font for the Discord preview wasn't working very well for Linux, so it's now only used on Windows.
+* The plugin settings pane was failing to display and translated Discord posts were failing to post if the BGS-Tally folder name was not "BGS-Tally".
 
 
 ## v4.0.0 - 2024-06-07

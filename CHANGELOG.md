@@ -1,5 +1,17 @@
 # Change Log
 
+## v4.0.1 - 2024-06-11
+
+### Changes:
+
+* Updated Thargoid Scout bond value to 80k due to an unannounced change in game version v18.06. This was causing scout kills to not be tallied.
+
+### Bug Fixes:
+
+* The new font for the Discord preview wasn't working very well for some Linux distributions, so it's now only used on Windows.
+* The plugin settings pane was failing to display and translated Discord posts were failing to post if the BGS-Tally folder name was not "BGS-Tally".
+
+
 ## v4.0.0 - 2024-06-07
 
 ### New Features:

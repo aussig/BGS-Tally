@@ -96,7 +96,7 @@ CZ_GROUND_MED_CB_MAX = 38000
 
 TW_CBS = {
     25000: 'r',                     # Revenant
-    65000: 's', 75000: 's',         # Scout
+    80000: 's',                     # Scout - 80k v18.06
     1000000: 'ba',                  # Banshee
     4500000: 'sg',                  # Scythe and Glaive
     8000000: 'c',                   # Cyclops - 8m v18.06

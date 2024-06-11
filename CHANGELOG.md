@@ -7,7 +7,7 @@
 * Updated layout of Discord posts to include link back to BGS-Tally wiki page.
 
 
-## v4.x.x-xx - xxxx-xx-xx
+## v4.0.1 - 2024-06-11
 
 ### Changes:
 

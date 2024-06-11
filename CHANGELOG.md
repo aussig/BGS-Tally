@@ -1,5 +1,12 @@
 # Change Log
 
+## v4.1.0-xx - xxxx-xx-xx
+
+### Changes:
+
+* Updated layout of Discord posts to include link back to BGS-Tally wiki page.
+
+
 ## v4.x.x-xx - xxxx-xx-xx
 
 ### Changes:

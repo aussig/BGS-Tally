@@ -1,5 +1,13 @@
 # Change Log
 
+## v4.1.0-xx - xxxx-xx-xx
+
+### Changes:
+
+* Updated layout of Discord posts to include link back to BGS-Tally wiki page.
+* Switched to a new tick detector created by CMDR Zoy. The old elitebgs.app detector was occasionally unreliable and the new detector also gives further advantages that BGS-Tally may be able to take advantage of in future.
+
+
 ## v4.0.1 - 2024-06-11
 
 ### Changes:

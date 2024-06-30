@@ -2,6 +2,10 @@
 
 ## v4.1.0-xx - xxxx-xx-xx
 
+### New Features:
+
+* Added ability to set the position of all in-game overlay panels. If you are finding you don't like where BGS-Tally positions the in-game information, or they overlap with other plugins, you can now override the default positions. If you would like to do this, take a look at the instructions in the `config\userconfig.template.ini` file.
+
 ### Changes:
 
 * Updated layout of Discord posts to include link back to BGS-Tally wiki page.

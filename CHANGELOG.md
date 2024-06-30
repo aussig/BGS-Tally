@@ -2,9 +2,14 @@
 
 ## v4.1.0-xx - xxxx-xx-xx
 
+### New Features:
+
+* Added ability to set the position of all in-game overlay panels. If you are finding you don't like where BGS-Tally positions the in-game information, or they overlap with other plugins, you can now override the default positions. If you would like to do this, take a look at the instructions in the `config\userconfig.template.ini` file.
+
 ### Changes:
 
 * Updated layout of Discord posts to include link back to BGS-Tally wiki page.
+* Switched to a new tick detector created by CMDR Zoy. The old elitebgs.app detector was occasionally unreliable and the new detector also gives further advantages that BGS-Tally may be able to take advantage of in future.
 
 
 ## v4.0.1 - 2024-06-11

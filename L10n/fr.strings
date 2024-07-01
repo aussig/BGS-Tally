@@ -182,7 +182,7 @@
 "Discord Options" = "Options Discord";
 
 /* Label on activity window. [activity.py] */
-"Discord Report Preview ⓘ" = "Discord Report Preview ⓘ";
+"Discord Report Preview ⓘ" = "Aperçu du rapport Discord ⓘ";
 
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Discord Webhooks";
@@ -855,6 +855,3 @@
 
 /* Main window error message. [updatemanager.py] */
 "{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name} : Impossible de récupérer la dernière version du plugin";
-
-/* Label on activity window. [activity.py] */
-"❓ Discord Report Preview" = "❓ Aperçu du rapport Discord";

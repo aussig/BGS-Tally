@@ -91,7 +91,7 @@
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Teretne misije";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Clear contents" = "Obrišite sadržaj";
 
 /* Label on CMDR window. [cmdrs.py] */
@@ -115,7 +115,7 @@
 /* [widgets.py] */
 "Copy" = "Kopiraj";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Copy contents" = "Kopiraj sadržaj";
 
 /* Button label. [activity.py] */
@@ -139,7 +139,7 @@
 /* [widgets.py] */
 "Cut" = "Iseci";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Cut contents" = "Iseci sadržaj";
 
 /* CMDR window column title. [cmdrs.py] */
@@ -151,13 +151,13 @@
 /* [ui.py] */
 "Default" = "Podrazumevano";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete" = "Obriši";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete columns" = "Obriši kolonu";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete rows" = "Obriši red";
 
 /* Button on CMDR window. [cmdrs.py] */
@@ -181,6 +181,9 @@
 /* [ui.py] */
 "Discord Options" = "Diskord opcije";
 
+/* Label on activity window. [activity.py] */
+"Discord Report Preview ⓘ" = "Discord Report Preview ⓘ";
+
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Diskord Vebhukovi";
 
@@ -190,13 +193,13 @@
 /* [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Proverite pešačke izveštaje KZ, podaci nisu uvek tačno obračunati";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit cell" = "Uredi ćeliju";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit header" = "Uredi zaglavlje";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit index" = "Uredi Indeks";
 
 /* Discord heading, abbreviation for election INF. [default.py] */
@@ -367,22 +370,22 @@
 /* Label on legend window. [legend.py] */
 "Injured evacuation missions" = "Misije evakuisanja ranjenika";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert column" = "Umetni kolonu";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns left" = "Umetni kolone levo";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns right" = "Umetni kolone desno";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert row" = "Umetni red";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows above" = "Umetni redove iznad";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows below" = "Umetni redove ispod";
 
 /* Preferences label. [ui.py] */
@@ -774,6 +777,9 @@
 
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "Napredak u Targoidskom Ratu (TR) u {current_system}: {percent}%";
+
+/* [sheet_options.py] */
+"Undo" = "Undo";
 
 /* Overlay CMDR information report message. [ui.py] */
 "Unknown" = "Nepoznato";

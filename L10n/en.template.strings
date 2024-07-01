@@ -856,6 +856,3 @@
 /* Main window error message. [updatemanager.py] */
 "{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: Unable to fetch latest plugin version";
 
-/* Label on activity window. [activity.py] */
-"❓ Discord Report Preview" = "❓ Discord Report Preview";
-

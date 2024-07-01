@@ -181,6 +181,9 @@
 /* [ui.py] */
 "Discord Options" = "Discord Options";
 
+/* Label on activity window. [activity.py] */
+"Discord Report Preview ⓘ" = "Discord Report Preview ⓘ";
+
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Discord Webhooks";
 

@@ -91,7 +91,7 @@
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Frachtmissionen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Clear contents" = "Inhalt löschen";
 
 /* Label on CMDR window. [cmdrs.py] */
@@ -115,7 +115,7 @@
 /* [widgets.py] */
 "Copy" = "Kopie";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Copy contents" = "Inhalte kopieren";
 
 /* Button label. [activity.py] */
@@ -139,7 +139,7 @@
 /* [widgets.py] */
 "Cut" = "Ausschneiden";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Cut contents" = "Inhalte ausschneiden";
 
 /* CMDR window column title. [cmdrs.py] */
@@ -151,13 +151,13 @@
 /* [ui.py] */
 "Default" = "Standard";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete" = "Löschen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete columns" = "Spalten löschen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete rows" = "Zeilen löschen";
 
 /* Button on CMDR window. [cmdrs.py] */
@@ -181,6 +181,9 @@
 /* [ui.py] */
 "Discord Options" = "Discord Optionen";
 
+/* Label on activity window. [activity.py] */
+"Discord Report Preview ⓘ" = "Discord Report Preview ⓘ";
+
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Discord Webhooks";
 
@@ -190,13 +193,13 @@
 /* [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Doppelte Überprüfung der CZ-Tallies, Größen sind nicht immer korrekt";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit cell" = "Zellen bearbeiten";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit header" = "Kopfzeile bearbeiten";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit index" = "Index bearbeiten";
 
 /* Discord heading, abbreviation for election INF. [default.py] */
@@ -367,22 +370,22 @@
 /* Label on legend window. [legend.py] */
 "Injured evacuation missions" = "Verwundeten-Evakuierungsmissionen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert column" = "Spalte einfügen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns left" = "Spalte links einfügen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns right" = "Spalte rechts einfügen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert row" = "Zeile einfügen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows above" = "Zeile oben einfügen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows below" = "Zeile unterhalb einfügen";
 
 /* Preferences label. [ui.py] */
@@ -774,6 +777,9 @@
 
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "TW-Kriegsfortschritt in {current_system}: {percent}%";
+
+/* [sheet_options.py] */
+"Undo" = "Undo";
 
 /* Overlay CMDR information report message. [ui.py] */
 "Unknown" = "Unbekannt";

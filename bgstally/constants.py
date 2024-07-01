@@ -1,3 +1,4 @@
+import sys
 from enum import Enum
 
 
@@ -78,18 +79,25 @@ class CmdrInteractionReason(int, Enum):
     FRIEND_ADDED = 6
 
 
-DATETIME_FORMAT_JOURNAL = "%Y-%m-%dT%H:%M:%SZ"
-FILE_SUFFIX = ".json"
-FOLDER_ASSETS = "assets"
-FOLDER_BACKUPS = "backups"
-FOLDER_DATA = "data"
-FOLDER_OTHER_DATA = "otherdata"
-FOLDER_UPDATES = "updates"
-FONT_HEADING_1:tuple = ("Helvetica", 13, "bold")
-FONT_HEADING_2:tuple = ("Helvetica", 11, "bold")
-FONT_SMALL:tuple = ("Helvetica", 9, "normal")
-FONT_TEXT:tuple = ("Segoe UI Emoji", 11, "normal")
-FONT_TEXT_BOLD:tuple = ("Segoe UI Emoji", 11, "bold")
-FONT_TEXT_UNDERLINE:tuple = ("Segoe UI Emoji", 11, "underline")
-FONT_TEXT_BOLD_UNDERLINE:tuple = ("Segoe UI Emoji", 11, "bold underline")
-COLOUR_HEADING_1 = "#A300A3"
+DATETIME_FORMAT_JOURNAL: str = "%Y-%m-%dT%H:%M:%SZ"
+FILE_SUFFIX: str = ".json"
+FOLDER_ASSETS: str = "assets"
+FOLDER_BACKUPS: str = "backups"
+FOLDER_DATA: str = "data"
+FOLDER_OTHER_DATA: str = "otherdata"
+FOLDER_UPDATES: str = "updates"
+FONT_HEADING_1: tuple = ("Helvetica", 13, "bold")
+FONT_HEADING_2: tuple = ("Helvetica", 11, "bold")
+FONT_SMALL: tuple = ("Helvetica", 9, "normal")
+if sys.platform == 'win32':
+    FONT_TEXT: tuple = ("Segoe UI Emoji", 11, "normal")
+    FONT_TEXT_BOLD: tuple = ("Segoe UI Emoji", 11, "bold")
+    FONT_TEXT_UNDERLINE: tuple = ("Segoe UI Emoji", 11, "underline")
+    FONT_TEXT_BOLD_UNDERLINE: tuple = ("Segoe UI Emoji", 11, "bold underline")
+else:
+    FONT_TEXT: tuple = ("Helvetica", 11, "normal")
+    FONT_TEXT_BOLD: tuple = ("Helvetica", 11, "bold")
+    FONT_TEXT_UNDERLINE: tuple = ("Helvetica", 11, "underline")
+    FONT_TEXT_BOLD_UNDERLINE: tuple = ("Helvetica", 11, "bold underline")
+
+COLOUR_HEADING_1: str = "#A300A3"

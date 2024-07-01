@@ -91,7 +91,7 @@
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Cargo missions";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Clear contents" = "Clear contents";
 
 /* Label on CMDR window. [cmdrs.py] */
@@ -115,7 +115,7 @@
 /* [widgets.py] */
 "Copy" = "Copy";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Copy contents" = "Copy contents";
 
 /* Button label. [activity.py] */
@@ -139,7 +139,7 @@
 /* [widgets.py] */
 "Cut" = "Cut";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Cut contents" = "Cut contents";
 
 /* CMDR window column title. [cmdrs.py] */
@@ -151,13 +151,13 @@
 /* [ui.py] */
 "Default" = "Default";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete" = "Delete";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete columns" = "Delete columns";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete rows" = "Delete rows";
 
 /* Button on CMDR window. [cmdrs.py] */
@@ -181,6 +181,9 @@
 /* [ui.py] */
 "Discord Options" = "Discord Options";
 
+/* Label on activity window. [activity.py] */
+"Discord Report Preview ⓘ" = "Discord Report Preview ⓘ";
+
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Discord Webhooks";
 
@@ -190,13 +193,13 @@
 /* [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Double-check on-ground CZ tallies, sizes are not always correct";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit cell" = "Edit cell";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit header" = "Edit header";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit index" = "Edit index";
 
 /* Discord heading, abbreviation for election INF. [default.py] */
@@ -367,22 +370,22 @@
 /* Label on legend window. [legend.py] */
 "Injured evacuation missions" = "Injured evacuation missions";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert column" = "Insert column";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns left" = "Insert columns left";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns right" = "Insert columns right";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert row" = "Insert row";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows above" = "Insert rows above";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows below" = "Insert rows below";
 
 /* Preferences label. [ui.py] */
@@ -774,6 +777,9 @@
 
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "TW War Progress in {current_system}: {percent}%";
+
+/* [sheet_options.py] */
+"Undo" = "Undo";
 
 /* Overlay CMDR information report message. [ui.py] */
 "Unknown" = "Unknown";

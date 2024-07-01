@@ -9,21 +9,23 @@ from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import _, __, get_by_path
 from thirdparty.colors import *
 
-DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+DATETIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
+
+DISCORD_COLOUR: int = 10682531
 
 # Discord post limits: https://discord.com/developers/docs/resources/channel#create-message-jsonform-params
-DISCORD_LIMIT_CONTENT = 2000
+DISCORD_LIMIT_CONTENT: int = 2000
 
 # Discord embed limits: https://discord.com/developers/docs/resources/channel#embed-object-embed-limits
-DISCORD_LIMIT_EMBED_TITLE = 256
-DISCORD_LIMIT_EMBED_DESCRIPTION = 4096
-DISCORD_LIMIT_FIELDS = 25
-DISCORD_LIMIT_EMBED_FIELD_NAME = 256
-DISCORD_LIMIT_EMBED_FIELD_VALUE = 1024
+DISCORD_LIMIT_EMBED_TITLE: int = 256
+DISCORD_LIMIT_EMBED_DESCRIPTION: int = 4096
+DISCORD_LIMIT_FIELDS: int = 25
+DISCORD_LIMIT_EMBED_FIELD_NAME: int = 256
+DISCORD_LIMIT_EMBED_FIELD_VALUE: int = 1024
 
-
-URL_CLOCK_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Fxemoji_u1F556.svg/240px-Fxemoji_u1F556.svg.png"
-URL_LOGO = "https://raw.githubusercontent.com/wiki/aussig/BGS-Tally/images/logo-square-white.png"
+URL_CLOCK_IMAGE: str = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Fxemoji_u1F556.svg/240px-Fxemoji_u1F556.svg.png"
+URL_GITHUB: str = "https://github.com/aussig/BGS-Tally/wiki"
+URL_LOGO: str = "https://raw.githubusercontent.com/wiki/aussig/BGS-Tally/images/logo-square-white.png"
 
 
 class Discord:
@@ -169,20 +171,33 @@ class Discord:
                 callback(request.data.get('channel'), request.data.get('webhookdata'), response_json.get('id', ""))
 
 
-    def _get_embed(self, title:str, description:str, fields:list, update:bool) -> dict:
-        """
-        Create a Discord embed JSON structure. If supplied, `fields` should be a List of Dicts, with each Dict containing 'name' (the field title) and
-        'value' (the field contents)
-        """
-        footer_timestamp:str = (__("Updated at {date_time} (game)", lang=self.bgstally.state.discord_lang) if update else __("Posted at {date_time} (game)", lang=self.bgstally.state.discord_lang)).format(date_time=datetime.utcnow().strftime(DATETIME_FORMAT)) # LANG: Discord footer message, modern embed mode
-        footer_version:str = f"{self.bgstally.plugin_name} v{str(self.bgstally.version)}"
-        footer_pad:int = 108 - len(footer_version)
+    def _get_embed(self, title: str | None = None, description: str | None = None, fields: list[dict[str, str]] | None = None, update: bool = False) -> dict[str, any]:
+        """Create a Discord embed as a dict, for posting as JSON
 
-        embed:dict = {
-            "color": 10682531,
-            "footer": {
-                "text": f"{footer_timestamp: <{footer_pad}}{footer_version}",
-                "icon_url": URL_CLOCK_IMAGE
+        Args:
+            title (str | None, optional): The embed title. Defaults to None.
+            description (str | None, optional): The embed description. Defaults to None.
+            fields (list[dict[str, str]] | None, optional): A list of Discord fields, each field being a dict containing 'name'
+            (the field title) and 'value' (the field contents). Defaults to None.
+            update (bool, optional): True if this content is for an updated post, False for a new post. Defaults to False.
+
+        Returns:
+            dict[str, any]: The post structure, for converting to JSON
+        """
+        footer_timestamp: str = (__("Updated at {date_time} (game)", lang=self.bgstally.state.discord_lang) if update else __("Posted at {date_time} (game)", lang=self.bgstally.state.discord_lang)).format(date_time=datetime.utcnow().strftime(DATETIME_FORMAT)) # LANG: Discord footer message, modern embed mode
+        footer_version: str = f"v{str(self.bgstally.version)}"
+        footer_pad: int = 108 - len(footer_version)
+
+        embed: dict = {
+            'color': DISCORD_COLOUR,
+            'author': {
+                'name': self.bgstally.plugin_name,
+                'icon_url': URL_LOGO,
+                'url': URL_GITHUB
+            },
+            'footer': {
+                'text': f"{footer_timestamp: <{footer_pad}}{footer_version}",
+                'icon_url': URL_CLOCK_IMAGE
             }}
 
         if title: embed['title'] = title

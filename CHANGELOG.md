@@ -10,6 +10,7 @@
 
 * Updated layout of Discord posts to include link back to BGS-Tally wiki page.
 * Switched to a new tick detector created by CMDR Zoy. The old elitebgs.app detector was occasionally unreliable and the new detector also gives further advantages that BGS-Tally may be able to take advantage of in future.
+* Changed label on Discord report heading to make it clearer that it's clickable to show the legend / help window.
 
 ### API Changes ([v1.6](xxxxxxx)):
 

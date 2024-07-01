@@ -82,7 +82,7 @@ class WindowActivity:
         frm_discord.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)
         frm_discord.columnconfigure(0, weight=2)
         frm_discord.columnconfigure(1, weight=1)
-        lbl_discord_report:ttk.Label = ttk.Label(frm_discord, text=_("❓ Discord Report Preview"), font=FONT_HEADING_2, cursor="hand2") # LANG: Label on activity window
+        lbl_discord_report:ttk.Label = ttk.Label(frm_discord, text=_("Discord Report Preview ⓘ"), font=FONT_HEADING_2, cursor="hand2") # LANG: Label on activity window
         lbl_discord_report.grid(row=0, column=0, sticky=tk.W)
         lbl_discord_report.bind("<Button-1>", self._show_legend_window)
         ToolTip(lbl_discord_report, text=_("Show legend window")) # LANG: Activity window tooltip

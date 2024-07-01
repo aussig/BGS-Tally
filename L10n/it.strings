@@ -91,7 +91,7 @@
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Missioni di carico";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Clear contents" = "Cancella contenuto";
 
 /* Label on CMDR window. [cmdrs.py] */
@@ -115,7 +115,7 @@
 /* [widgets.py] */
 "Copy" = "Copia";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Copy contents" = "Copia contenuto";
 
 /* Button label. [activity.py] */
@@ -139,7 +139,7 @@
 /* [widgets.py] */
 "Cut" = "Taglia";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Cut contents" = "Taglia contenuto";
 
 /* CMDR window column title. [cmdrs.py] */
@@ -151,13 +151,13 @@
 /* [ui.py] */
 "Default" = "Predefinita";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete" = "Elimina";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete columns" = "Elimina colonna";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete rows" = "Elimina riga";
 
 /* Button on CMDR window. [cmdrs.py] */
@@ -173,13 +173,16 @@
 "Description" = "Descrizione";
 
 /* Label on legend window. [legend.py] */
-"Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "INF dettagliato suddiviso in + / ++ / +++ / ++++ / +++++ ricevuto dalle missioni.";
+"Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "INF dettagliata suddivisa in + / ++ / +++ / ++++ / +++++ ricevuta dalle missioni.";
 
 /* Label on activity window. [activity.py] */
 "Discord Additional Notes" = "Note aggiuntive per Discord";
 
 /* [ui.py] */
 "Discord Options" = "Opzioni Discord";
+
+/* Label on activity window. [activity.py] */
+"Discord Report Preview ⓘ" = "Discord Report Preview ⓘ";
 
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Webhooks Discord";
@@ -190,13 +193,13 @@
 /* [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Ricontrolla i dati delle CZ a terra, le stime non sono sempre corrette";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit cell" = "Modifica cella";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit header" = "Modifica intestazione";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit index" = "Modifica indice";
 
 /* Discord heading, abbreviation for election INF. [default.py] */
@@ -367,22 +370,22 @@
 /* Label on legend window. [legend.py] */
 "Injured evacuation missions" = "Missioni di evacuazione dei feriti";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert column" = "Inserisci colonna";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns left" = "Inserisci colonna a sinistra";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns right" = "Inserisci colonna a destra";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert row" = "Inserisci riga";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows above" = "Inserisci righe sopra";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows below" = "Inserisci riga sotto";
 
 /* Preferences label. [ui.py] */
@@ -575,7 +578,7 @@
 "Received team invite from" = "Invito al team ricevuto da";
 
 /* Preferences checkbox label. [ui.py] */
-"Report Newly Visited System Activity By Default" = "Segnala Attività di Sistema Appena Visitate di Default";
+"Report Newly Visited System Activity By Default" = "Segnala di default attività nei nuovi sistemi";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "SAR";
@@ -774,6 +777,9 @@
 
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "Progressi della Guerra TW a {current_system}: {percent}%";
+
+/* [sheet_options.py] */
+"Undo" = "Undo";
 
 /* Overlay CMDR information report message. [ui.py] */
 "Unknown" = "Sconosciuto";

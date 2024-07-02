@@ -347,11 +347,11 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
         if self.bgstally.state.detailed_inf:
             detailed_inf: str = ""
-            if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {green(inf_data['1'], fp=fp)} "
-            if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {green(inf_data['2'], fp=fp)} "
-            if inf_data.get('3', 0) != 0: detailed_inf += f"{'➌' if discord else '+++'} x {green(inf_data['3'], fp=fp)} "
-            if inf_data.get('4', 0) != 0: detailed_inf += f"{'➍' if discord else '++++'} x {green(inf_data['4'], fp=fp)} "
-            if inf_data.get('5', 0) != 0: detailed_inf += f"{'➎' if discord else '+++++'} x {green(inf_data['5'], fp=fp)} "
+            if inf_data.get('1', 0) != 0: detailed_inf += f"{'1️⃣' if discord else '+'} x {green(inf_data['1'], fp=fp)} "
+            if inf_data.get('2', 0) != 0: detailed_inf += f"{'2️⃣' if discord else '++'} x {green(inf_data['2'], fp=fp)} "
+            if inf_data.get('3', 0) != 0: detailed_inf += f"{'3️⃣' if discord else '+++'} x {green(inf_data['3'], fp=fp)} "
+            if inf_data.get('4', 0) != 0: detailed_inf += f"{'4️⃣' if discord else '++++'} x {green(inf_data['4'], fp=fp)} "
+            if inf_data.get('5', 0) != 0: detailed_inf += f"{'5️⃣' if discord else '+++++'} x {green(inf_data['5'], fp=fp)} "
             if detailed_inf != "": text += f"({detailed_inf.rstrip()}) "
 
         return text

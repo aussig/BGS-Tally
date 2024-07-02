@@ -12,6 +12,7 @@
 * Switched to a new tick detector created by CMDR Zoy. The old elitebgs.app detector was occasionally unreliable and the new detector also gives further advantages that BGS-Tally may be able to take advantage of in future.
 * Changed label on Discord report heading to make it clearer that it's clickable to show the legend / help window.
 * The Legend (help) window is now scrollable.
+* Detailed INF reports now use clearer numbers for the +INF levels: 1️⃣2️⃣3️⃣4️⃣5️⃣ instead of ➊➋➌➍➎
 
 
 ## v4.0.1 - 2024-06-11

@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from bgstally.constants import CheckStates, DiscordActivity
+from bgstally.constants import CheckStates, DiscordActivity, DiscordFleetCarrier
 from config import config
 
 
@@ -35,6 +35,7 @@ class State:
         self.DetailedInf:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedInf', default=CheckStates.STATE_OFF))
         self.DetailedTrade:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedTrade', default=CheckStates.STATE_ON))
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordActivity', default=DiscordActivity.BOTH))
+        self.DiscordFleetCarrier: tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordFleetCarrier', default=DiscordFleetCarrier.BOTH))
 
         # TODO: Legacy values, used to migrate initial state, remove in future version
         self.DiscordBGSWebhook:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordWebhook', default=""))
@@ -100,6 +101,7 @@ class State:
         config.set('BGST_DetailedInf', self.DetailedInf.get())
         config.set('BGST_DetailedTrade', self.DetailedTrade.get())
         config.set('BGST_DiscordActivity', self.DiscordActivity.get())
+        config.set('BGST_DiscordFleetCarrier', self.DiscordFleetCarrier.get())
 
         # Persistent values
         config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")

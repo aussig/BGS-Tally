@@ -53,23 +53,31 @@ class Overlay:
             ttl: int = ttl_override if ttl_override else int(fi['ttl'])
             title_colour: str = title_colour_override if title_colour_override else fi['title_colour']
             text_colour: str = text_colour_override if text_colour_override else fi['text_colour']
-            if fi.get('x_center', False): fi['x'] = int((WIDTH_OVERLAY - message_width) / 2) + int(fi['x'])   # Horizontally centred, offset by 'x'
-            if fi.get('y_center', False): fi['y'] = int((HEIGHT_OVERLAY - message_height) / 2) + int(fi['y']) # Vertically centred, offset by 'y'
+
+            if fi.get('x_center', False):
+                x: int = int((WIDTH_OVERLAY - message_width) / 2) + int(fi['x'])   # Horizontally centred, offset by 'x'
+            else:
+                x: int = int(fi['x'])
+
+            if fi.get('y_center', False):
+                y: int = int((HEIGHT_OVERLAY - message_height) / 2) + int(fi['y']) # Vertically centred, offset by 'y'
+            else:
+                y: int = int(fi['y'])
 
             # Border
             if fi['border_colour'] and fi['fill_colour']:
-                self.edmcoverlay.send_shape(f"bgstally-frame-{frame_name}", "rect", fi['border_colour'], fi['fill_colour'], int(fi['x']), int(fi['y']), message_width + 30 if fit_to_text else fi['w'], message_height + 10 if fit_to_text else fi['h'], ttl=ttl)
+                self.edmcoverlay.send_shape(f"bgstally-frame-{frame_name}", "rect", fi['border_colour'], fi['fill_colour'], x, y, message_width + 30 if fit_to_text else fi['w'], message_height + 10 if fit_to_text else fi['h'], ttl=ttl)
 
             yoffset: int = 0
             index: int = 0
 
             # Title
             if text_includes_title:
-                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], title_colour, int(fi['x']) + 10, int(fi['y']) + 5 + yoffset, ttl=ttl, size="large")
+                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
                 yoffset += HEIGHT_CHARACTER_LARGE
                 index += 1
             elif title is not None:
-                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", title, title_colour, int(fi['x']) + 10, int(fi['y']) + 5 + yoffset, ttl=ttl, size="large")
+                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", title, title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
                 yoffset += HEIGHT_CHARACTER_LARGE
 
             # Text
@@ -77,13 +85,13 @@ class Overlay:
                 if index < len(segments):
                     if index < MAX_LINES_PER_PANEL:
                         # Line has content
-                        self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], text_colour, int(fi['x']) + 10, int(fi['y']) + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                        self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], text_colour, x + 10, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
                     else:
                         # Last line
-                        self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "[...]", text_colour, int(fi['x']) + 10, int(fi['y']) + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                        self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "[...]", text_colour, x + 10, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
                 else:
                     # Unused line, clear
-                    self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "", text_colour, int(fi['x']) + 10, int(fi['y']) + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                    self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "", text_colour, x + 10, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
 
                 yoffset += HEIGHT_CHARACTER_NORMAL if fi['text_size'] == "normal" else HEIGHT_CHARACTER_LARGE
                 index += 1

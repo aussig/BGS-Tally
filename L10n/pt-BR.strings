@@ -70,6 +70,9 @@
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "Tanto BGS quanto TW";
 
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Both Materials and Commodities" = "Both Materials and Commodities";
+
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Cupons de recompensa";
 
@@ -91,6 +94,9 @@
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Missões de carga";
 
+/* Discord fleet carrier title. [fleetcarrier.py] */
+"Carrier {carrier_name}" = "Carrier {carrier_name}";
+
 /* [sheet_options.py] */
 "Clear contents" = "Limpar conteúdos";
 
@@ -105,6 +111,9 @@
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Pagamento de combate";
+
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Commodities Only" = "Commodities Only";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configurar Servidor Remoto";
@@ -448,11 +457,8 @@
 /* [legend.py] */
 "Massacre missions" = "Missões de Massacre";
 
-/* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name}" = "Lista de Materiais no Porta-Frotas {carrier_name}";
-
-/* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name} in system: {system}" = "Lista de Materiais do Porta-Frotas {carrier_name} no sistema: {system}";
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Materials Only" = "Materials Only";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Média";

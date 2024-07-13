@@ -26,16 +26,16 @@ class WindowActivity:
 
     def __init__(self, bgstally, ui, activity: Activity):
         self.bgstally = bgstally
-        self.activity:Activity = activity
-        self.toplevel:tk.Toplevel = None
-        self.window_geometry:dict = None
+        self.activity: Activity = activity
+        self.toplevel: tk.Toplevel = None
+        self.window_geometry: dict = None
 
-        self.image_tab_active_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
-        self.image_tab_active_part_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
-        self.image_tab_active_disabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
-        self.image_tab_inactive_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_enabled.png"))
-        self.image_tab_inactive_part_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_part_enabled.png"))
-        self.image_tab_inactive_disabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_disabled.png"))
+        self.image_tab_active_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
+        self.image_tab_active_part_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
+        self.image_tab_active_disabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
+        self.image_tab_inactive_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_enabled.png"))
+        self.image_tab_inactive_part_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_part_enabled.png"))
+        self.image_tab_inactive_disabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_disabled.png"))
 
         self.show(activity)
 
@@ -62,27 +62,27 @@ class WindowActivity:
         nb_tab=ScrollableNotebook(frm_container, wheelscroll=False, tabmenu=True)
         nb_tab.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
-        frm_buttons:ttk.Frame = ttk.Frame(frm_container)
+        frm_buttons: ttk.Frame = ttk.Frame(frm_container)
         frm_buttons.pack(fill=tk.X, side=tk.BOTTOM)
         ttk.Button(frm_buttons, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, frm_container, activity)).pack(side=tk.LEFT, padx=5, pady=5) # LANG: Button label
         self.btn_post_to_discord: ttk.Button = ttk.Button(frm_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord, activity), # LANG: Button label
                                                           state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
-        activity_type_options: dict = {DiscordActivity.BOTH: _("Both BGS and TW"), # LANG: Dropdown menu on activity window
-                                       DiscordActivity.BGS: _("BGS Only"), # LANG: Dropdown menu on activity window
-                                       DiscordActivity.THARGOIDWAR: _("TW Only")} # LANG: Dropdown menu on activity window
-        activity_type_var: tk.StringVar = tk.StringVar(value=activity_type_options.get(self.bgstally.state.DiscordActivity.get(), DiscordActivity.BOTH))
-        self.mnu_activity_type: ttk.OptionMenu = ttk.OptionMenu(frm_buttons, activity_type_var, activity_type_var.get(),
-                                                               *activity_type_options.values(),
-                                                               command=partial(self._activity_type_selected, activity_type_options, activity), direction='above')
-        self.mnu_activity_type.pack(side=tk.RIGHT, pady=5)
+        post_types: dict = {DiscordActivity.BOTH: _("Both BGS and TW"), # LANG: Dropdown menu on activity window
+                            DiscordActivity.BGS: _("BGS Only"), # LANG: Dropdown menu on activity window
+                            DiscordActivity.THARGOIDWAR: _("TW Only")} # LANG: Dropdown menu on activity window
+        var_post_type: tk.StringVar = tk.StringVar(value=post_types.get(self.bgstally.state.DiscordActivity.get(), DiscordActivity.BOTH))
+        self.mnu_post_type: ttk.OptionMenu = ttk.OptionMenu(frm_buttons, var_post_type, var_post_type.get(),
+                                                            *post_types.values(),
+                                                            command=partial(self._post_type_selected, post_types, activity), direction='above')
+        self.mnu_post_type.pack(side=tk.RIGHT, pady=5)
         ttk.Label(frm_buttons, text=_("Activity to post:")).pack(side=tk.RIGHT, pady=5) # LANG: Label on activity window
 
-        frm_discord = ttk.Frame(frm_container)
+        frm_discord: ttk.Frame = ttk.Frame(frm_container)
         frm_discord.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)
         frm_discord.columnconfigure(0, weight=2)
         frm_discord.columnconfigure(1, weight=1)
-        lbl_discord_report:ttk.Label = ttk.Label(frm_discord, text=_("Discord Report Preview ⓘ"), font=FONT_HEADING_2, cursor="hand2") # LANG: Label on activity window
+        lbl_discord_report: ttk.Label = ttk.Label(frm_discord, text=_("Discord Report Preview ⓘ"), font=FONT_HEADING_2, cursor="hand2") # LANG: Label on activity window
         lbl_discord_report.grid(row=0, column=0, sticky=tk.W)
         lbl_discord_report.bind("<Button-1>", self._show_legend_window)
         ToolTip(lbl_discord_report, text=_("Show legend window")) # LANG: Activity window tooltip
@@ -98,17 +98,17 @@ class WindowActivity:
         sb_discord.pack(fill=tk.Y, side=tk.RIGHT)
         self.txt_discord.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.YES)
 
-        frm_discordnotes = ttk.Frame(frm_discord)
+        frm_discordnotes: ttk.Frame = ttk.Frame(frm_discord)
         frm_discordnotes.grid(row=2, column=1, pady=5, sticky=tk.NSEW)
         self.txt_discordnotes: TextPlus = TextPlus(frm_discordnotes, wrap=tk.WORD, width=30, height=1, font=FONT_TEXT)
         self.txt_discordnotes.insert(tk.END, "" if activity.discord_notes is None else activity.discord_notes)
         self.txt_discordnotes.bind("<<Modified>>", partial(self._discord_notes_change, self.txt_discordnotes, activity))
-        sb_discordnotes = tk.Scrollbar(frm_discordnotes, orient=tk.VERTICAL, command=self.txt_discordnotes.yview)
+        sb_discordnotes: tk.Scrollbar = tk.Scrollbar(frm_discordnotes, orient=tk.VERTICAL, command=self.txt_discordnotes.yview)
         self.txt_discordnotes['yscrollcommand'] = sb_discordnotes.set
         sb_discordnotes.pack(fill=tk.Y, side=tk.RIGHT)
         self.txt_discordnotes.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.YES)
 
-        frm_discordoptions = ttk.Frame(frm_discord)
+        frm_discordoptions: ttk.Frame = ttk.Frame(frm_discord)
         frm_discordoptions.grid(row=2, column=2, padx=5, pady=5, sticky=tk.NW)
         current_row = 1
         ttk.Checkbutton(frm_discordoptions, text=_("Abbreviate Faction Names"), variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
@@ -375,10 +375,10 @@ class WindowActivity:
         self.txt_discord.configure(state=tk.DISABLED)
 
 
-    def _activity_type_selected(self, activity_options: dict, activity: Activity, value: str):
+    def _post_type_selected(self, post_types: dict, activity: Activity, value: str):
         """The user has changed the dropdown to choose the activity type to post
         """
-        k: str = next(k for k, v in activity_options.items() if v == value)
+        k: str = next(k for k, v in post_types.items() if v == value)
         self.bgstally.state.DiscordActivity.set(k)
         self._update_discord_field(activity)
 

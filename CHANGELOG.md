@@ -15,6 +15,10 @@
 * The Legend (help) window is now scrollable.
 * Detailed INF reports now use clearer numbers for the +INF levels: 1️⃣2️⃣3️⃣4️⃣5️⃣ instead of ➊➋➌➍➎
 
+### Bug Fixes:
+
+* In-game overlay would stop working when certain activities were completed (murders, ground murders, scenarios or mission fails)
+
 
 ## v4.0.1 - 2024-06-11
 

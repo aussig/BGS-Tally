@@ -71,7 +71,7 @@
 "Both BGS and TW" = "Tanto BGS quanto TW";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Both Materials and Commodities";
+"Both Materials and Commodities" = "Materiais e matérias-primas";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Cupons de recompensa";
@@ -113,7 +113,7 @@
 "Combat bonds" = "Cupons de Combate";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Commodities Only";
+"Commodities Only" = "Apenas matérias-primas";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configurar Servidor Remoto";
@@ -458,7 +458,7 @@
 "Massacre missions" = "Missões de Massacre";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Materials Only";
+"Materials Only" = "Apenas Materiais";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Média";
@@ -785,7 +785,7 @@
 "TW War Progress in {current_system}: {percent}%" = "Progresso da Guerra TW em {current_system}: {percent}%";
 
 /* [sheet_options.py] */
-"Undo" = "Undo";
+"Undo" = "Anular";
 
 /* Overlay CMDR information report message. [ui.py] */
 "Unknown" = "Desconhecido";

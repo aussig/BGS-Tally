@@ -14,6 +14,7 @@
 * Changed label on Discord report heading to make it clearer that it's clickable to show the legend / help window.
 * The Legend (help) window is now scrollable.
 * Detailed INF reports now use clearer numbers for the +INF levels: 1️⃣2️⃣3️⃣4️⃣5️⃣ instead of ➊➋➌➍➎
+* Translation updates.
 
 ### Bug Fixes:
 

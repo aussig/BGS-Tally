@@ -59,6 +59,12 @@ class DiscordActivity(str, Enum):
     BOTH = 'Both'
 
 
+class DiscordFleetCarrier(str, Enum):
+    MATERIALS = 'Materials'
+    COMMODITIES = 'Commodities'
+    BOTH = 'Both'
+
+
 class RequestMethod(Enum):
     GET = 'get'
     POST = 'post'

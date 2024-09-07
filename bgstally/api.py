@@ -13,7 +13,7 @@ from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import get_by_path
 
-API_VERSION = "1.2.0"
+API_VERSION = "1.5.0"
 
 ENDPOINT_ACTIVITIES = "activities" # Used as both the dict key and default path
 ENDPOINT_DISCOVERY = "discovery"   # Used as the path

@@ -70,6 +70,9 @@
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "Sowohl BGS als auch TW";
 
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Both Materials and Commodities" = "Sowohl Materialien als auch Waren";
+
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Kopfgelder";
 
@@ -91,7 +94,10 @@
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Frachtmissionen";
 
-/* [_tksheet_main_table.py] */
+/* Discord fleet carrier title. [fleetcarrier.py] */
+"Carrier {carrier_name}" = "Flottenträger- {carrier_name}";
+
+/* [sheet_options.py] */
 "Clear contents" = "Inhalt löschen";
 
 /* Label on CMDR window. [cmdrs.py] */
@@ -106,6 +112,9 @@
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Kampfbelohnungen";
 
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Commodities Only" = "Nur Waren";
+
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Konfigurieren Sie den Remote-Server";
 
@@ -115,7 +124,7 @@
 /* [widgets.py] */
 "Copy" = "Kopie";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Copy contents" = "Inhalte kopieren";
 
 /* Button label. [activity.py] */
@@ -139,7 +148,7 @@
 /* [widgets.py] */
 "Cut" = "Ausschneiden";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Cut contents" = "Inhalte ausschneiden";
 
 /* CMDR window column title. [cmdrs.py] */
@@ -151,13 +160,13 @@
 /* [ui.py] */
 "Default" = "Standard";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete" = "Löschen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete columns" = "Spalten löschen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete rows" = "Zeilen löschen";
 
 /* Button on CMDR window. [cmdrs.py] */
@@ -181,6 +190,9 @@
 /* [ui.py] */
 "Discord Options" = "Discord Optionen";
 
+/* Label on activity window. [activity.py] */
+"Discord Report Preview ⓘ" = "Discord Berichtsvorschau ⓘ";
+
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Discord Webhooks";
 
@@ -190,13 +202,13 @@
 /* [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Doppelte Überprüfung der CZ-Tallies, Größen sind nicht immer korrekt";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit cell" = "Zellen bearbeiten";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit header" = "Kopfzeile bearbeiten";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit index" = "Index bearbeiten";
 
 /* Discord heading, abbreviation for election INF. [default.py] */
@@ -367,22 +379,22 @@
 /* Label on legend window. [legend.py] */
 "Injured evacuation missions" = "Verwundeten-Evakuierungsmissionen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert column" = "Spalte einfügen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns left" = "Spalte links einfügen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns right" = "Spalte rechts einfügen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert row" = "Zeile einfügen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows above" = "Zeile oben einfügen";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows below" = "Zeile unterhalb einfügen";
 
 /* Preferences label. [ui.py] */
@@ -445,11 +457,8 @@
 /* [legend.py] */
 "Massacre missions" = "Massakermissionen";
 
-/* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name}" = "Materialliste für Flottenträger {carrier_name}";
-
-/* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name} in system: {system}" = "Materialliste für Flottenträger {carrier_name} in System: {system}";
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Materials Only" = "Nur Materialien";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Mittel";
@@ -536,7 +545,7 @@
 "Posted at: {date_time} | {plugin_name} v{version}" = "Geschrieben am: {date_time} | {plugin_name} v{version}";
 
 /* Button label. [ui.py] */
-"Previous BGS Tallies" = "Vorherige HGS-Tallies";
+"Previous BGS Tallies" = "Vorherige BGS-Tallies";
 
 /* Activity window column title, abbreviation for primary. [activity.py] */
 "Pri" = "Pri";
@@ -665,7 +674,7 @@
 "Show Systems with Zero Activity" = "Systeme mit Null-Aktivität anzeigen";
 
 /* [fleetcarrier.py] */
-"Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration";
+"Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Einige Informationen können nicht aktualisiert werden. Aktiviere CAPI-Abfragen unter Datei -> Einstellungen -> Konfiguration";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Raumkonfliktzonen";
@@ -775,6 +784,9 @@
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "TW-Kriegsfortschritt in {current_system}: {percent}%";
 
+/* [sheet_options.py] */
+"Undo" = "Rückgängig machen";
+
 /* Overlay CMDR information report message. [ui.py] */
 "Unknown" = "Unbekannt";
 
@@ -849,6 +861,3 @@
 
 /* Main window error message. [updatemanager.py] */
 "{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: Konnte die neueste Plugin-Version nicht abrufen";
-
-/* Label on activity window. [activity.py] */
-"❓ Discord Report Preview" = "❓ Discord Berichtsvorschau";

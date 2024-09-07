@@ -70,6 +70,9 @@
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "Objedinjen BGS i TR";
 
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Both Materials and Commodities" = "Both Materials and Commodities";
+
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Baunti vaučeri";
 
@@ -91,7 +94,10 @@
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Teretne misije";
 
-/* [_tksheet_main_table.py] */
+/* Discord fleet carrier title. [fleetcarrier.py] */
+"Carrier {carrier_name}" = "Carrier {carrier_name}";
+
+/* [sheet_options.py] */
 "Clear contents" = "Obrišite sadržaj";
 
 /* Label on CMDR window. [cmdrs.py] */
@@ -106,6 +112,9 @@
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Borbeni bondovi";
 
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Commodities Only" = "Commodities Only";
+
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Konfigurišite udaljeni server";
 
@@ -115,7 +124,7 @@
 /* [widgets.py] */
 "Copy" = "Kopiraj";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Copy contents" = "Kopiraj sadržaj";
 
 /* Button label. [activity.py] */
@@ -139,7 +148,7 @@
 /* [widgets.py] */
 "Cut" = "Iseci";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Cut contents" = "Iseci sadržaj";
 
 /* CMDR window column title. [cmdrs.py] */
@@ -151,13 +160,13 @@
 /* [ui.py] */
 "Default" = "Podrazumevano";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete" = "Obriši";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete columns" = "Obriši kolonu";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete rows" = "Obriši red";
 
 /* Button on CMDR window. [cmdrs.py] */
@@ -181,6 +190,9 @@
 /* [ui.py] */
 "Discord Options" = "Diskord opcije";
 
+/* Label on activity window. [activity.py] */
+"Discord Report Preview ⓘ" = "Pregled Izveštaja za Diskord ⓘ";
+
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Diskord Vebhukovi";
 
@@ -190,13 +202,13 @@
 /* [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Proverite pešačke izveštaje KZ, podaci nisu uvek tačno obračunati";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit cell" = "Uredi ćeliju";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit header" = "Uredi zaglavlje";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit index" = "Uredi Indeks";
 
 /* Discord heading, abbreviation for election INF. [default.py] */
@@ -367,22 +379,22 @@
 /* Label on legend window. [legend.py] */
 "Injured evacuation missions" = "Misije evakuisanja ranjenika";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert column" = "Umetni kolonu";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns left" = "Umetni kolone levo";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns right" = "Umetni kolone desno";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert row" = "Umetni red";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows above" = "Umetni redove iznad";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows below" = "Umetni redove ispod";
 
 /* Preferences label. [ui.py] */
@@ -445,11 +457,8 @@
 /* [legend.py] */
 "Massacre missions" = "Masakr misije";
 
-/* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name}" = "Lista Materijala za Kerijer {carrier_name}";
-
-/* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name} in system: {system}" = "Lista Materijala za Kerijer {carrier_name} u sistemu: {system}";
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Materials Only" = "Materials Only";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Srednji";
@@ -775,6 +784,9 @@
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "Napredak u Targoidskom Ratu (TR) u {current_system}: {percent}%";
 
+/* [sheet_options.py] */
+"Undo" = "Undo";
+
 /* Overlay CMDR information report message. [ui.py] */
 "Unknown" = "Nepoznato";
 
@@ -849,6 +861,3 @@
 
 /* Main window error message. [updatemanager.py] */
 "{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: Ne mogu da preuzmem poslednju verziju plagina";
-
-/* Label on activity window. [activity.py] */
-"❓ Discord Report Preview" = "❓ Pregled Izveštaja za Diskord";

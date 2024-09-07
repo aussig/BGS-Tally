@@ -167,10 +167,10 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         activity_text += cyan(__("TrdBMProfit", lang), fp=fp) + " " + green(human_format(faction['BlackMarketProfit']), fp=fp) + " " if faction['BlackMarketProfit'] != 0 else "" # LANG: Discord heading, abbreviation for trade black market profit
         activity_text += white(__("Expl", lang), fp=fp) + " " + green(human_format(faction['CartData']), fp=fp) + " " if faction['CartData'] != 0 else "" # LANG: Discord heading, abbreviation for exploration
         # activity_text += grey(__('Exo', lang), fp=fp) + " " + green(human_format(faction['ExoData']), fp=fp) + " " if faction['ExoData'] != 0 else "" # LANG: Discord heading, abbreviation for exobiology
-        activity_text += red(__("Murders", lang), fp=fp) + " " + green(faction['Murdered'], fp=fp) + " " if faction['Murdered'] != 0 else "" # LANG: Discord heading
-        activity_text += red(__("GroundMurders", lang), fp=fp) + " " + green(faction['GroundMurdered'], fp=fp) + " " if faction['GroundMurdered'] != 0 else "" # LANG: Discord heading
-        activity_text += yellow(__("Scenarios", lang), fp=fp) + " " + green(faction['Scenarios'], fp=fp) + " " if faction['Scenarios'] != 0 else "" # LANG: Discord heading
-        activity_text += magenta(__("Fails", lang), fp=fp) + " " + green(faction['MissionFailed'], fp=fp) + " " if faction['MissionFailed'] != 0 else "" # LANG: Discord heading, abbreviation for failed missions
+        activity_text += red(__("Murders", lang), fp=fp) + " " + green(str(faction['Murdered']), fp=fp) + " " if faction['Murdered'] != 0 else "" # LANG: Discord heading
+        activity_text += red(__("GroundMurders", lang), fp=fp) + " " + green(str(faction['GroundMurdered']), fp=fp) + " " if faction['GroundMurdered'] != 0 else "" # LANG: Discord heading
+        activity_text += yellow(__("Scenarios", lang), fp=fp) + " " + green(str(faction['Scenarios']), fp=fp) + " " if faction['Scenarios'] != 0 else "" # LANG: Discord heading
+        activity_text += magenta(__("Fails", lang), fp=fp) + " " + green(str(faction['MissionFailed']), fp=fp) + " " if faction['MissionFailed'] != 0 else "" # LANG: Discord heading, abbreviation for failed missions
         activity_text += self._build_cz(faction.get('SpaceCZ', {}), __("SpaceCZs", lang), discord) # LANG: Discord heading, abbreviation for space conflict zones
         activity_text += self._build_cz(faction.get('GroundCZ', {}), __("GroundCZs", lang), discord) # LANG: Discord heading, abbreviation for ground conflict zones
         activity_text += self._build_sandr(faction.get('SandR', {}), discord, lang)
@@ -347,11 +347,11 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
         if self.bgstally.state.detailed_inf:
             detailed_inf: str = ""
-            if inf_data.get('1', 0) != 0: detailed_inf += f"{'➊' if discord else '+'} x {green(inf_data['1'], fp=fp)} "
-            if inf_data.get('2', 0) != 0: detailed_inf += f"{'➋' if discord else '++'} x {green(inf_data['2'], fp=fp)} "
-            if inf_data.get('3', 0) != 0: detailed_inf += f"{'➌' if discord else '+++'} x {green(inf_data['3'], fp=fp)} "
-            if inf_data.get('4', 0) != 0: detailed_inf += f"{'➍' if discord else '++++'} x {green(inf_data['4'], fp=fp)} "
-            if inf_data.get('5', 0) != 0: detailed_inf += f"{'➎' if discord else '+++++'} x {green(inf_data['5'], fp=fp)} "
+            if inf_data.get('1', 0) != 0: detailed_inf += f"{'1️⃣' if discord else '+'} x {green(inf_data['1'], fp=fp)} "
+            if inf_data.get('2', 0) != 0: detailed_inf += f"{'2️⃣' if discord else '++'} x {green(inf_data['2'], fp=fp)} "
+            if inf_data.get('3', 0) != 0: detailed_inf += f"{'3️⃣' if discord else '+++'} x {green(inf_data['3'], fp=fp)} "
+            if inf_data.get('4', 0) != 0: detailed_inf += f"{'4️⃣' if discord else '++++'} x {green(inf_data['4'], fp=fp)} "
+            if inf_data.get('5', 0) != 0: detailed_inf += f"{'5️⃣' if discord else '+++++'} x {green(inf_data['5'], fp=fp)} "
             if detailed_inf != "": text += f"({detailed_inf.rstrip()}) "
 
         return text

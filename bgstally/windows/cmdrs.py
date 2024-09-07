@@ -23,10 +23,10 @@ class WindowCMDRs:
     def __init__(self, bgstally):
         self.bgstally = bgstally
 
-        self.selected_cmdr:dict = None
-        self.selected_items:list = None
-        self.target_data:list = None
-        self.toplevel:tk.Toplevel = None
+        self.selected_cmdr: dict = None
+        self.selected_items: list = None
+        self.target_data: list = None
+        self.toplevel: tk.Toplevel = None
 
 
     def show(self):
@@ -43,51 +43,51 @@ class WindowCMDRs:
         self.toplevel.geometry("1200x800")
         self.toplevel.minsize(750, 500)
 
-        container_frame = ttk.Frame(self.toplevel)
-        container_frame.pack(fill=tk.BOTH, expand=1)
+        frm_container: ttk.Frame = ttk.Frame(self.toplevel)
+        frm_container.pack(fill=tk.BOTH, expand=1)
 
-        list_frame = ttk.Frame(container_frame)
-        list_frame.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)
+        frm_list: ttk.Frame = ttk.Frame(frm_container)
+        frm_list.pack(fill=tk.BOTH, padx=5, pady=5, expand=1)
 
-        buttons_frame = ttk.Frame(container_frame)
-        buttons_frame.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
+        frm_buttons: ttk.Frame = ttk.Frame(frm_container)
+        frm_buttons.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
 
-        details_frame = ttk.Frame(container_frame, relief=tk.GROOVE)
-        details_frame.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
+        frm_details: ttk.Frame = ttk.Frame(frm_container, relief=tk.GROOVE)
+        frm_details.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
 
-        column_info = [{'title': _("Name"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200}, # LANG: CMDR window column title
-                        {'title': _("System"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200}, # LANG: CMDR window column title
-                        {'title': _("Squadron ID"), 'type': "name", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 50}, # LANG: CMDR window column title
-                        {'title': _("Ship"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200}, # LANG: CMDR window column title
-                        {'title': _("Legal"), 'type': "name", 'align': tk.W, 'stretch': tk.NO, 'width': 60}, # LANG: CMDR window column title
-                        {'title': _("Date / Time"), 'type': "datetime", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 150}, # LANG: CMDR window column title
-                        {'title': _("Interaction"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 300}] # LANG: CMDR window column title
+        column_info: list = [{'title': _("Name"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200}, # LANG: CMDR window column title
+                             {'title': _("System"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200}, # LANG: CMDR window column title
+                             {'title': _("Squadron ID"), 'type': "name", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 50}, # LANG: CMDR window column title
+                             {'title': _("Ship"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 200}, # LANG: CMDR window column title
+                             {'title': _("Legal"), 'type': "name", 'align': tk.W, 'stretch': tk.NO, 'width': 60}, # LANG: CMDR window column title
+                             {'title': _("Date / Time"), 'type': "datetime", 'align': tk.CENTER, 'stretch': tk.NO, 'width': 150}, # LANG: CMDR window column title
+                             {'title': _("Interaction"), 'type': "name", 'align': tk.W, 'stretch': tk.YES, 'width': 300}] # LANG: CMDR window column title
         self.target_data = self.bgstally.target_manager.get_targetlog()
 
-        treeview = TreeviewPlus(list_frame, columns=[d['title'] for d in column_info], show="headings", callback=self._cmdr_selected, datetime_format=DATETIME_FORMAT_CMDRLIST)
+        treeview: TreeviewPlus = TreeviewPlus(frm_list, columns=[d['title'] for d in column_info], show="headings", callback=self._cmdr_selected, datetime_format=DATETIME_FORMAT_CMDRLIST)
         treeview.bind('<<TreeviewSelect>>', partial(self._cmdr_selection_changed, treeview))
-        vsb = tk.Scrollbar(list_frame, orient=tk.VERTICAL, command=treeview.yview)
-        vsb.pack(fill=tk.Y, side=tk.RIGHT)
-        treeview.configure(yscrollcommand=vsb.set)
+        sb_treeview: tk.Scrollbar = tk.Scrollbar(frm_list, orient=tk.VERTICAL, command=treeview.yview)
+        sb_treeview.pack(fill=tk.Y, side=tk.RIGHT)
+        treeview.configure(yscrollcommand=sb_treeview.set)
         treeview.pack(fill=tk.BOTH, expand=1)
 
         current_row = 0
-        ttk.Label(details_frame, text=_("CMDR Details"), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, sticky=tk.W, columnspan=4, padx=5, pady=[5, 0]); current_row += 1 # LANG: Label on CMDR window
-        ttk.Label(details_frame, text=_("Name: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W, padx=5) # LANG: Label on CMDR window
-        self.cmdr_details_name = ttk.Label(details_frame, text="", width=50)
-        self.cmdr_details_name.grid(row=current_row, column=1, sticky=tk.W, padx=5)
-        ttk.Label(details_frame, text=_("Inara: "), font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W, padx=5) # LANG: Label on CMDR window
-        self.cmdr_details_name_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/cmdrs/?search=aussi", underline=True)
-        self.cmdr_details_name_inara.grid(row=current_row, column=3, sticky=tk.W, padx=5); current_row += 1
-        ttk.Label(details_frame, text=_("Squadron: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W, padx=5) # LANG: Label on CMDR window
-        self.cmdr_details_squadron = ttk.Label(details_frame, text="")
-        self.cmdr_details_squadron.grid(row=current_row, column=1, sticky=tk.W, padx=5)
-        ttk.Label(details_frame, text=_("Inara: "), font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W, padx=5) # LANG: Label on CMDR window
-        self.cmdr_details_squadron_inara = HyperlinkLabel(details_frame, text="", url="https://inara.cz/elite/squadrons-search/?search=ghst", underline=True)
-        self.cmdr_details_squadron_inara.grid(row=current_row, column=3, sticky=tk.W, padx=5); current_row += 1
-        ttk.Label(details_frame, text=_("Interaction: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W, padx=5) # LANG: Label on CMDR window
-        self.cmdr_details_interaction = ttk.Label(details_frame, text="")
-        self.cmdr_details_interaction.grid(row=current_row, column=1, sticky=tk.W, padx=5, pady=[0, 5]); current_row += 1
+        ttk.Label(frm_details, text=_("CMDR Details"), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, sticky=tk.W, columnspan=4, padx=5, pady=[5, 0]); current_row += 1 # LANG: Label on CMDR window
+        ttk.Label(frm_details, text=_("Name: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W, padx=5) # LANG: Label on CMDR window
+        self.lbl_cmdr_details_name: ttk.Label = ttk.Label(frm_details, text="", width=50)
+        self.lbl_cmdr_details_name.grid(row=current_row, column=1, sticky=tk.W, padx=5)
+        ttk.Label(frm_details, text=_("Inara: "), font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W, padx=5) # LANG: Label on CMDR window
+        self.lbl_cmdr_details_name_inara: HyperlinkLabel = HyperlinkLabel(frm_details, text="", url="https://inara.cz/elite/cmdrs/?search=aussi", underline=True)
+        self.lbl_cmdr_details_name_inara.grid(row=current_row, column=3, sticky=tk.W, padx=5); current_row += 1
+        ttk.Label(frm_details, text=_("Squadron: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W, padx=5) # LANG: Label on CMDR window
+        self.lbl_cmdr_details_squadron: ttk.Label = ttk.Label(frm_details, text="")
+        self.lbl_cmdr_details_squadron.grid(row=current_row, column=1, sticky=tk.W, padx=5)
+        ttk.Label(frm_details, text=_("Inara: "), font=FONT_HEADING_2).grid(row=current_row, column=2, sticky=tk.W, padx=5) # LANG: Label on CMDR window
+        self.lbl_cmdr_details_squadron_inara: HyperlinkLabel = HyperlinkLabel(frm_details, text="", url="https://inara.cz/elite/squadrons-search/?search=ghst", underline=True)
+        self.lbl_cmdr_details_squadron_inara.grid(row=current_row, column=3, sticky=tk.W, padx=5); current_row += 1
+        ttk.Label(frm_details, text=_("Interaction: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W, padx=5) # LANG: Label on CMDR window
+        self.lbl_cmdr_details_interaction: ttk.Label = ttk.Label(frm_details, text="")
+        self.lbl_cmdr_details_interaction.grid(row=current_row, column=1, sticky=tk.W, padx=5, pady=[0, 5]); current_row += 1
 
         for column in column_info:
             treeview.heading(column['title'], text=column['title'].title(), sort_by=column['type'])
@@ -103,41 +103,41 @@ class WindowCMDRs:
                              self.bgstally.target_manager.get_human_readable_reason(target.get('Reason'), False)]
             treeview.insert("", 'end', values=target_values, iid=target.get('index'))
 
-        self.copy_to_clipboard_button: tk.Button = tk.Button(buttons_frame, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, container_frame)) # LANG: Button label
-        self.copy_to_clipboard_button.pack(side=tk.LEFT, padx=5, pady=5)
-        self.copy_to_clipboard_button['state'] = tk.DISABLED
+        self.btn_copy_to_clipboard: tk.Button = tk.Button(frm_buttons, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, frm_container)) # LANG: Button label
+        self.btn_copy_to_clipboard.pack(side=tk.LEFT, padx=5, pady=5)
+        self.btn_copy_to_clipboard['state'] = tk.DISABLED
 
-        self.post_button = tk.Button(buttons_frame, text=_("Post CMDR to Discord"), command=partial(self._post_to_discord)) # LANG: Button on CMDR window
-        self.post_button.pack(side=tk.RIGHT, padx=5, pady=5)
-        self.post_button['state'] = tk.DISABLED
+        self.btn_post: tk.Button = tk.Button(frm_buttons, text=_("Post CMDR to Discord"), command=partial(self._post_to_discord)) # LANG: Button on CMDR window
+        self.btn_post.pack(side=tk.RIGHT, padx=5, pady=5)
+        self.btn_post['state'] = tk.DISABLED
 
-        self.delete_button = tk.Button(buttons_frame, text=_("Delete Selected"), command=partial(self._delete_selected, treeview)) # LANG: Button on CMDR window
-        self.delete_button.pack(side=tk.RIGHT, padx=5, pady=5)
-        self.delete_button['state'] = tk.DISABLED
+        self.btn_delete: tk.Button = tk.Button(frm_buttons, text=_("Delete Selected"), command=partial(self._delete_selected, treeview)) # LANG: Button on CMDR window
+        self.btn_delete.pack(side=tk.RIGHT, padx=5, pady=5)
+        self.btn_delete['state'] = tk.DISABLED
 
 
     def _cmdr_selected(self, values, column, treeview:TreeviewPlus, iid:str):
         """
         A CMDR row has been clicked in the list, show details
         """
-        self.cmdr_details_name.config(text = "")
-        self.cmdr_details_name_inara.configure(text = "", url = "")
-        self.cmdr_details_squadron.config(text = "")
-        self.cmdr_details_squadron_inara.configure(text = "", url = "")
-        self.cmdr_details_interaction.configure(text = "")
+        self.lbl_cmdr_details_name.config(text = "")
+        self.lbl_cmdr_details_name_inara.configure(text = "", url = "")
+        self.lbl_cmdr_details_squadron.config(text = "")
+        self.lbl_cmdr_details_squadron_inara.configure(text = "", url = "")
+        self.lbl_cmdr_details_interaction.configure(text = "")
 
         # Fetch the info for this CMDR. iid is the index into the original (unsorted) CMDR list.
         self.selected_cmdr = self.target_data[int(iid)]
 
-        if 'TargetName' in self.selected_cmdr: self.cmdr_details_name.config(text=self.selected_cmdr.get('TargetName'))
-        if 'inaraURL' in self.selected_cmdr: self.cmdr_details_name_inara.configure(text=_("Inara Info Available ⤴"), url=self.selected_cmdr.get('inaraURL')) # LANG: Inara URL on CMDR window
+        if 'TargetName' in self.selected_cmdr: self.lbl_cmdr_details_name.config(text=self.selected_cmdr.get('TargetName'))
+        if 'inaraURL' in self.selected_cmdr: self.lbl_cmdr_details_name_inara.configure(text=_("Inara Info Available ⤴"), url=self.selected_cmdr.get('inaraURL')) # LANG: Inara URL on CMDR window
         if 'squadron' in self.selected_cmdr:
             squadron_info = self.selected_cmdr.get('squadron')
-            if 'squadronName' in squadron_info: self.cmdr_details_squadron.config(text=f"{squadron_info.get('squadronName')} ({squadron_info.get('squadronMemberRank')})")
-            if 'inaraURL' in squadron_info: self.cmdr_details_squadron_inara.configure(text=_("Inara Info Available ⤴"), url=squadron_info.get('inaraURL')) # LANG: Inara URL on CMDR window
+            if 'squadronName' in squadron_info: self.lbl_cmdr_details_squadron.config(text=f"{squadron_info.get('squadronName')} ({squadron_info.get('squadronMemberRank')})")
+            if 'inaraURL' in squadron_info: self.lbl_cmdr_details_squadron_inara.configure(text=_("Inara Info Available ⤴"), url=squadron_info.get('inaraURL')) # LANG: Inara URL on CMDR window
         elif 'SquadronID' in self.selected_cmdr:
-            self.cmdr_details_squadron.config(text=f"{self.selected_cmdr.get('SquadronID')}")
-        self.cmdr_details_interaction.config(text=self.bgstally.target_manager.get_human_readable_reason(self.selected_cmdr.get('Reason'), False))
+            self.lbl_cmdr_details_squadron.config(text=f"{self.selected_cmdr.get('SquadronID')}")
+        self.lbl_cmdr_details_interaction.config(text=self.bgstally.target_manager.get_human_readable_reason(self.selected_cmdr.get('Reason'), False))
 
 
     def _cmdr_selection_changed(self, treeview:TreeviewPlus, *args):
@@ -151,23 +151,24 @@ class WindowCMDRs:
         self.selected_items = treeview.selection()
 
         if len(self.selected_items) == 1:
-            self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
+            self.btn_post.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
-            self.delete_button.configure(bg="red", fg="white")
-            self.delete_button['state'] = tk.NORMAL
-            self.copy_to_clipboard_button['state'] = tk.NORMAL
+
+            self.btn_delete.configure(bg="red", fg="white")
+            self.btn_delete['state'] = tk.NORMAL
+            self.btn_copy_to_clipboard['state'] = tk.NORMAL
         elif len(self.selected_items) > 1:
-            self.post_button.configure(text=_("Post CMDR List to Discord")) # LANG: Button on CMDR window
+            self.btn_post.configure(text=_("Post CMDR List to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
-            self.delete_button.configure(bg="red", fg="white")
-            self.delete_button['state'] = tk.NORMAL
-            self.copy_to_clipboard_button['state'] = tk.NORMAL
+            self.btn_delete.configure(bg="red", fg="white")
+            self.btn_delete['state'] = tk.NORMAL
+            self.btn_copy_to_clipboard['state'] = tk.NORMAL
         else:
-            self.post_button.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
-            self.post_button['state'] = tk.DISABLED
-            self.delete_button.configure(bg="SystemButtonFace", fg="SystemButtonText")
-            self.delete_button['state'] = tk.DISABLED
-            self.copy_to_clipboard_button['state'] = tk.DISABLED
+            self.btn_post.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
+            self.btn_post['state'] = tk.DISABLED
+            self.btn_delete.configure(bg="SystemButtonFace", fg="SystemButtonText")
+            self.btn_delete['state'] = tk.DISABLED
+            self.btn_copy_to_clipboard['state'] = tk.DISABLED
 
 
     def _delete_selected(self, treeview:TreeviewPlus):
@@ -190,7 +191,7 @@ class WindowCMDRs:
         """
         Re-enable the post to discord button if it should be enabled
         """
-        self.post_button.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
+        self.btn_post.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
 
 
     def _discord_button_available(self) -> bool:
@@ -205,14 +206,14 @@ class WindowCMDRs:
         """
         Post the current selected CMDR or multiple CMDR details to discord
         """
-        self.post_button.config(state=tk.DISABLED)
+        self.btn_post.config(state=tk.DISABLED)
 
         if len(self.selected_items) == 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
             self._post_single_cmdr_to_discord()
         elif len(self.selected_items) > 1 and self.bgstally.discord.valid_webhook_available(DiscordChannel.CMDR_INFORMATION):
             self._post_multiple_CMDRs_to_discord()
 
-        self.post_button.after(5000, self._enable_post_button)
+        self.btn_post.after(5000, self._enable_post_button)
 
 
     def _post_single_cmdr_to_discord(self):

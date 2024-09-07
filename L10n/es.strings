@@ -71,7 +71,7 @@
 "Both BGS and TW" = "BGS y TW";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Both Materials and Commodities";
+"Both Materials and Commodities" = "Materiales y Mercancías";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bonos de recompensas";
@@ -95,7 +95,7 @@
 "Cargo missions" = "Misiones de carga";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
-"Carrier {carrier_name}" = "Carrier {carrier_name}";
+"Carrier {carrier_name}" = "Portanaves {carrier_name}";
 
 /* [sheet_options.py] */
 "Clear contents" = "Borrar contenido";
@@ -113,7 +113,7 @@
 "Combat bonds" = "Bonos de combate";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Commodities Only";
+"Commodities Only" = "Sólo mercancías";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configurar Servidor Remoto";
@@ -458,7 +458,7 @@
 "Massacre missions" = "Misiones de masacre";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Materials Only";
+"Materials Only" = "Sólo materiales";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Media";
@@ -785,7 +785,7 @@
 "TW War Progress in {current_system}: {percent}%" = "Progreso de la Guerra de TW en {current_system}: {percent}%";
 
 /* [sheet_options.py] */
-"Undo" = "Undo";
+"Undo" = "Deshacer";
 
 /* Overlay CMDR information report message. [ui.py] */
 "Unknown" = "Desconocido";

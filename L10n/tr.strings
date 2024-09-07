@@ -71,7 +71,7 @@
 "Both BGS and TW" = "Hem BGS hem TW";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Both Materials and Commodities";
+"Both Materials and Commodities" = "Materyaller ve ürünler";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Kelle avcılığı geliri";
@@ -95,7 +95,7 @@
 "Cargo missions" = "Kargo görevleri";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
-"Carrier {carrier_name}" = "Carrier {carrier_name}";
+"Carrier {carrier_name}" = "Filo Taşıyıcı {carrier_name}";
 
 /* [sheet_options.py] */
 "Clear contents" = "İçeriği temizle";
@@ -113,7 +113,7 @@
 "Combat bonds" = "Savaş tahvilleri";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Commodities Only";
+"Commodities Only" = "Sadece Ürünlenler";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Uzak Sunucuyu Yapılandır";
@@ -458,7 +458,7 @@
 "Massacre missions" = "Katliam görevleri";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Materials Only";
+"Materials Only" = "Sadece Materyaller";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Orta";
@@ -785,7 +785,7 @@
 "TW War Progress in {current_system}: {percent}%" = "Mevcut sistemdeki TW Savaş Süreci {current_system}: {percent}%";
 
 /* [sheet_options.py] */
-"Undo" = "Undo";
+"Undo" = "Geri al";
 
 /* Overlay CMDR information report message. [ui.py] */
 "Unknown" = "Bilinmeyen";

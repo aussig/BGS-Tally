@@ -70,6 +70,9 @@
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS e TW";
 
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Both Materials and Commodities" = "Materiali e Commody";
+
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bounty vouchers";
 
@@ -91,7 +94,10 @@
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Missioni di carico";
 
-/* [_tksheet_main_table.py] */
+/* Discord fleet carrier title. [fleetcarrier.py] */
+"Carrier {carrier_name}" = "Carrier {carrier_name}";
+
+/* [sheet_options.py] */
 "Clear contents" = "Cancella contenuto";
 
 /* Label on CMDR window. [cmdrs.py] */
@@ -106,6 +112,9 @@
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Combat bonds";
 
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Commodities Only" = "Solo Commodity";
+
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configura Server Remoto";
 
@@ -115,7 +124,7 @@
 /* [widgets.py] */
 "Copy" = "Copia";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Copy contents" = "Copia contenuto";
 
 /* Button label. [activity.py] */
@@ -139,7 +148,7 @@
 /* [widgets.py] */
 "Cut" = "Taglia";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Cut contents" = "Taglia contenuto";
 
 /* CMDR window column title. [cmdrs.py] */
@@ -151,13 +160,13 @@
 /* [ui.py] */
 "Default" = "Predefinita";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete" = "Elimina";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete columns" = "Elimina colonna";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Delete rows" = "Elimina riga";
 
 /* Button on CMDR window. [cmdrs.py] */
@@ -173,13 +182,16 @@
 "Description" = "Descrizione";
 
 /* Label on legend window. [legend.py] */
-"Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "INF dettagliato suddiviso in + / ++ / +++ / ++++ / +++++ ricevuto dalle missioni.";
+"Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "INF dettagliata suddivisa in + / ++ / +++ / ++++ / +++++ ricevuta dalle missioni.";
 
 /* Label on activity window. [activity.py] */
 "Discord Additional Notes" = "Note aggiuntive per Discord";
 
 /* [ui.py] */
 "Discord Options" = "Opzioni Discord";
+
+/* Label on activity window. [activity.py] */
+"Discord Report Preview ⓘ" = "Anteprima del report su Discord ⓘ";
 
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Webhooks Discord";
@@ -190,13 +202,13 @@
 /* [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Ricontrolla i dati delle CZ a terra, le stime non sono sempre corrette";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit cell" = "Modifica cella";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit header" = "Modifica intestazione";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Edit index" = "Modifica indice";
 
 /* Discord heading, abbreviation for election INF. [default.py] */
@@ -367,22 +379,22 @@
 /* Label on legend window. [legend.py] */
 "Injured evacuation missions" = "Missioni di evacuazione dei feriti";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert column" = "Inserisci colonna";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns left" = "Inserisci colonna a sinistra";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert columns right" = "Inserisci colonna a destra";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert row" = "Inserisci riga";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows above" = "Inserisci righe sopra";
 
-/* [_tksheet_main_table.py] */
+/* [sheet_options.py] */
 "Insert rows below" = "Inserisci riga sotto";
 
 /* Preferences label. [ui.py] */
@@ -445,11 +457,8 @@
 /* [legend.py] */
 "Massacre missions" = "Missioni di massacro";
 
-/* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name}" = "Elenco materiali per la Carrier {carrier_name}";
-
-/* Discord fleet carrier title. [fleetcarrier.py] */
-"Materials List for Carrier {carrier_name} in system: {system}" = "Elenco materiali per la Carrier {carrier_name} nel sistema: {system}";
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Materials Only" = "Solo Materiali";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Medium";
@@ -575,7 +584,7 @@
 "Received team invite from" = "Invito al team ricevuto da";
 
 /* Preferences checkbox label. [ui.py] */
-"Report Newly Visited System Activity By Default" = "Segnala Attività di Sistema Appena Visitate di Default";
+"Report Newly Visited System Activity By Default" = "Segnala di default attività nei nuovi sistemi";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "SAR";
@@ -775,6 +784,9 @@
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "Progressi della Guerra TW a {current_system}: {percent}%";
 
+/* [sheet_options.py] */
+"Undo" = "Ripristina";
+
 /* Overlay CMDR information report message. [ui.py] */
 "Unknown" = "Sconosciuto";
 
@@ -849,6 +861,3 @@
 
 /* Main window error message. [updatemanager.py] */
 "{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: Impossibile recuperare l'ultima versione del plugin";
-
-/* Label on activity window. [activity.py] */
-"❓ Discord Report Preview" = "❓ Anteprima del report su Discord";

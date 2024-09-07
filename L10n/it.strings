@@ -71,7 +71,7 @@
 "Both BGS and TW" = "BGS e TW";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Both Materials and Commodities";
+"Both Materials and Commodities" = "Materiali e Commody";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bounty vouchers";
@@ -113,7 +113,7 @@
 "Combat bonds" = "Combat bonds";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Commodities Only";
+"Commodities Only" = "Solo Commodity";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configura Server Remoto";
@@ -458,7 +458,7 @@
 "Massacre missions" = "Missioni di massacro";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Materials Only";
+"Materials Only" = "Solo Materiali";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Medium";

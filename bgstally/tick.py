@@ -40,7 +40,7 @@ class Tick:
             return None
         else:
             tick_data: dict[str, str] = response.json()
-            tick_time_raw: str = tick_data.get('lastGalaxyTick')
+            tick_time_raw: str|None = tick_data.get('lastGalaxyTick')
 
             if tick_time_raw is None:
                 Debug.logger.error(f"Invalid tick data from {URL_TICK_DETECTOR}: {tick_data}")

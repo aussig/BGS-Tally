@@ -71,7 +71,7 @@
 "Both BGS and TW" = "Sowohl BGS als auch TW";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Both Materials and Commodities";
+"Both Materials and Commodities" = "Sowohl Materialien als auch Waren";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Kopfgelder";
@@ -95,7 +95,7 @@
 "Cargo missions" = "Frachtmissionen";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
-"Carrier {carrier_name}" = "Carrier {carrier_name}";
+"Carrier {carrier_name}" = "Flottenträger- {carrier_name}";
 
 /* [sheet_options.py] */
 "Clear contents" = "Inhalt löschen";
@@ -113,7 +113,7 @@
 "Combat bonds" = "Kampfbelohnungen";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Commodities Only";
+"Commodities Only" = "Nur Waren";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Konfigurieren Sie den Remote-Server";
@@ -458,7 +458,7 @@
 "Massacre missions" = "Massakermissionen";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Materials Only";
+"Materials Only" = "Nur Materialien";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Mittel";
@@ -545,7 +545,7 @@
 "Posted at: {date_time} | {plugin_name} v{version}" = "Geschrieben am: {date_time} | {plugin_name} v{version}";
 
 /* Button label. [ui.py] */
-"Previous BGS Tallies" = "Vorherige HGS-Tallies";
+"Previous BGS Tallies" = "Vorherige BGS-Tallies";
 
 /* Activity window column title, abbreviation for primary. [activity.py] */
 "Pri" = "Pri";
@@ -674,7 +674,7 @@
 "Show Systems with Zero Activity" = "Systeme mit Null-Aktivität anzeigen";
 
 /* [fleetcarrier.py] */
-"Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration";
+"Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Einige Informationen können nicht aktualisiert werden. Aktiviere CAPI-Abfragen unter Datei -> Einstellungen -> Konfiguration";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Raumkonfliktzonen";
@@ -785,7 +785,7 @@
 "TW War Progress in {current_system}: {percent}%" = "TW-Kriegsfortschritt in {current_system}: {percent}%";
 
 /* [sheet_options.py] */
-"Undo" = "Undo";
+"Undo" = "Rückgängig machen";
 
 /* Overlay CMDR information report message. [ui.py] */
 "Unknown" = "Unbekannt";

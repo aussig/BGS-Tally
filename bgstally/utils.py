@@ -11,7 +11,7 @@ from bgstally.debug import Debug
 from config import appversion
 
 # Language codes for languages that should be omitted
-BLOCK_LANGS: list = ["ru"]
+BLOCK_LANGS: list = []
 
 # Localisation main translation function
 _ = functools.partial(l10n.Translations.translate, context=__file__)

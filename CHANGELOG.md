@@ -1,5 +1,16 @@
 # Change Log
 
+## v4.1.0-b1 - 2024-09-25
+
+### New Features:
+
+* Added Russian translation.
+
+### Bug Fixes:
+
+* A change in the latest release of EDMC (5.12.0) stopped the settings panel from loading
+
+
 ## v4.1.0-a1 - 2024-09-07
 
 ### New Features:

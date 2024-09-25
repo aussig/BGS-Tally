@@ -90,6 +90,7 @@ And finally, a huge thank you to:
     * Italian - CMDR FrostBit / [@GLWine](https://github.com/GLWine)
     * Portuguese (Portugal) - CMDR Holy Nothing
     * Portuguese (Brazil) - CMDR FelaKuti
+    * Russian - CMDR YAD and CMDR KuzSan
     * Serbian (Latin) - CMDR Markovic Vladimir
     * Spanish - CMDR HaLfY47
     * Turkish - CMDR Yu-gen

@@ -1,15 +1,17 @@
 import functools
 from os import listdir
 from os.path import join
+from pathlib import Path
 
-import l10n
+import semantic_version
 
 import bgstally.globals
+import l10n
 from bgstally.debug import Debug
-from config import config
+from config import appversion
 
 # Language codes for languages that should be omitted
-BLOCK_LANGS: list = ["ru"]
+BLOCK_LANGS: list = []
 
 # Localisation main translation function
 _ = functools.partial(l10n.Translations.translate, context=__file__)
@@ -49,7 +51,11 @@ def available_langs() -> dict[str | None, str]:
     Returns:
         dict[str | None, str]: The available language names indexed by language code
     """
-    l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
+    if appversion() < semantic_version.Version('5.12.0'):
+        l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
+    else:
+        l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
+
     available: set[str] = {x[:-len('.strings')] for x in listdir(l10n_path)
                           if x.endswith('.strings') and
                           "template" not in x and

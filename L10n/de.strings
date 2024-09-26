@@ -545,7 +545,7 @@
 "Posted at: {date_time} | {plugin_name} v{version}" = "Geschrieben am: {date_time} | {plugin_name} v{version}";
 
 /* Button label. [ui.py] */
-"Previous BGS Tallies" = "Vorherige BGS-Tallies";
+"Previous BGS Tallies" = "Vorherige BGS Tallies";
 
 /* Activity window column title, abbreviation for primary. [activity.py] */
 "Pri" = "Pri";

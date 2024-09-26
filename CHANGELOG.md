@@ -1,22 +1,12 @@
 # Change Log
 
-## v4.1.0-b1 - 2024-09-25
-
-### New Features:
-
-* Added Russian translation.
-
-### Bug Fixes:
-
-* A change in the latest release of EDMC (5.12.0) stopped the settings panel from loading
-
-
-## v4.1.0-a1 - 2024-09-07
+## v4.1.0 - 2024-09-26
 
 ### New Features:
 
 * Added ability to set the position of all in-game overlay panels. If you are finding you don't like where BGS-Tally positions the in-game information, or they overlap with other plugins, you can now override the default positions. If you would like to do this, take a look at the instructions in the `config\userconfig.template.ini` file.
 * Added options to only post your carrier materials, only your carrier commodities or both (defaults to both).
+* Added Russian translation.
 
 ### Changes:
 
@@ -30,6 +20,7 @@
 ### Bug Fixes:
 
 * In-game overlay would stop working when certain activities were completed (murders, ground murders, scenarios or mission fails)
+* A change in the latest release of EDMC (5.12.0) stopped the settings panel from loading
 
 
 ## v4.0.1 - 2024-06-11

@@ -2,7 +2,9 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### Bug Fixes:
 
+* INF numbers in legend / help window weren't showing the new ones implemented in v4.1.0
 
 
 ## v4.1.0 - 2024-09-26

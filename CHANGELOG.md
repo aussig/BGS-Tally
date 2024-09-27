@@ -1,5 +1,13 @@
 # Change Log
 
+## v4.1.1 - 2024-09-27
+
+### Bug Fixes:
+
+* The Discord report was blank if the Discord language was set to anything other than English
+* INF numbers in legend / help window weren't showing the new ones implemented in v4.1.0
+
+
 ## v4.1.0 - 2024-09-26
 
 ### New Features:

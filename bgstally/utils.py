@@ -30,8 +30,12 @@ def __(string: str, lang: str) -> str:
     Returns:
         str: Translated string
     """
-    l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
     if lang == "" or lang is None: return _(string)
+
+    if appversion() < semantic_version.Version('5.12.0'):
+        l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
+    else:
+        l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
 
     contents: dict[str, str] = l10n.Translations.contents(lang=lang, plugin_path=l10n_path)
 

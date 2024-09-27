@@ -4,6 +4,7 @@
 
 ### Bug Fixes:
 
+* The Discord report was blank if the Discord language was set to anything other than English
 * INF numbers in legend / help window weren't showing the new ones implemented in v4.1.0
 
 

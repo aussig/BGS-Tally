@@ -2,7 +2,9 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### Changes:
 
+* Only check for a new tick once per minute, not on every FSD jump.
 
 
 ## v4.1.1 - 2024-09-27

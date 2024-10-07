@@ -6,6 +6,10 @@
 
 * Only check for a new tick once per minute, not on every FSD jump.
 
+### Bug Fixes:
+
+* If the check for a new plugin version was failing, this would throw several exceptions to the EDMC log.
+
 
 ## v4.1.1 - 2024-09-27
 

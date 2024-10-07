@@ -192,7 +192,8 @@ class WindowActivity:
                 lbl_prof: ttk.Label = ttk.Label(frm_table, text=_("Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for profit
                 lbl_prof.grid(row=1, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_prof, text=_("Profit at Z | L | M | H demand")) # LANG: Activity window tooltip for profit at zero | low | medium | high demand
-                lbl_bmprof: ttk.Label = ttk.Label(frm_table, text=_("BM Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for black market profit
+                ttk.Label(frm_table, text="BM", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, padx=2)
+                lbl_bmprof: ttk.Label = ttk.Label(frm_table, text=_("Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for black market profit
                 lbl_bmprof.grid(row=1, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_bmprof, text=_("Black market profit")) # LANG: Activity window tooltip
                 lbl_bvs: ttk.Label = ttk.Label(frm_table, text="BVs", font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for bounty vouchers

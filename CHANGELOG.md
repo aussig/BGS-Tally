@@ -5,6 +5,7 @@
 ### Changes:
 
 * Only check for a new tick once per minute, not on every FSD jump.
+* Split "BM Prof" heading on activity windows onto two lines for more efficient use of space.
 
 ### Bug Fixes:
 

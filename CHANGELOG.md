@@ -645,7 +645,7 @@ _* Note that the plugin only tracks primary and secondary INF from this version 
 
 ## v1.0.0 - 2021-08-27
 
-Initial release, based on original [BGS-Tally-v2.0 project by tezw21](https://github.com/tezw21/BGS-Tally-v2.0)
+Initial release, based on original BGS-Tally-v2.0 project by tezw21.
 
 ### New features:
 

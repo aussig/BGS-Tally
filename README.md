@@ -10,7 +10,7 @@
 
 A tool to track and report your Background Simulation (BGS) and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS-Tally counts all the BGS / TW work you do for any faction, in any system.
 
-Based on BGS-Tally v2.0 by tezw21: [Original tezw21 BGS-Tally-v2.0 Project](https://github.com/tezw21/BGS-Tally-v2.0)
+Based on BGS-Tally v2.0 by tezw21
 
 As well as all the BGS tracking from Tez's original version, this modified version includes:
 

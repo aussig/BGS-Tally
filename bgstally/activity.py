@@ -205,11 +205,23 @@ class Activity:
             return f"{str(self.tick_time.strftime(DATETIME_FORMAT_TITLE))} (" + (__("game", lang=self.bgstally.state.discord_lang) if discord else _("game")) + ")" # LANG: Appended to tick time if a normal tick
 
 
-    def get_ordered_systems(self):
+    def get_ordered_systems(self) -> list:
         """
         Get an ordered list of the systems we are tracking, with the current system first, followed by those with activity, and finally those without
         """
         return sorted(self.systems.keys(), key=lambda x: (str(x) != self.bgstally.state.current_system_id, self.systems[x]['zero_system_activity'], self.systems[x]['System']))
+
+
+    def get_ordered_factions(self, factions: dict) -> list:
+        """Return the provided factions (values from the dict) as a list, ordered by influence highest first
+
+        Args:
+            factions (dict): A dict containing the factions to order
+
+        Returns:
+            list: An ordered list of factions
+        """
+        return sorted(factions.values(), key = lambda x: x['Influence'], reverse = True)
 
 
     def get_current_system(self) -> dict | None:

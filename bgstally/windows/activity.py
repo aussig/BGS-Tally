@@ -248,7 +248,9 @@ class WindowActivity:
                 header_rows = 3
                 x = 0
 
-                for faction in system['Factions'].values():
+                faction_list: list = activity.get_ordered_factions(system['Factions'])
+
+                for faction in faction_list:
                     chk_enable = ttk.Checkbutton(frm_table)
                     chk_enable.grid(row=x + header_rows, column=0, sticky=tk.N, padx=2, pady=2)
                     chk_enable.configure(command=partial(self._enable_faction_change, nb_tab, tab_index, chk_enable_all, FactionEnableCheckbuttons, activity, system, faction, x))

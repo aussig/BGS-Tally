@@ -1298,20 +1298,6 @@ class Activity:
         if not 'Scenarios' in faction_data: faction_data['Scenarios'] = 0
         # From < v2.2.0 to 2.2.0
         if not 'TWStations' in faction_data: faction_data['TWStations'] = {}
-        # 2.2.0-a1 - 2.2.0-a3 stored a single integer for passengers,  escapepods and cargo in TW station data. 2.2.0-a4 onwards has a dict for each.
-        # Put the previous values for passengers and escapepods into the 'm' 'sum' entries in the dict, for want of a better place.
-        # Put the previous value for cargo into the 'sum' entry in the dict.
-        # The previous mission count value was aggregate across all passengers, escape pods and cargo so just plonk in escapepods for want of a better place.
-        # We can remove all this code on release of final 2.2.0
-        for station in faction_data['TWStations'].values():
-            if not type(station.get('passengers')) == dict:
-                station['passengers'] = {'l': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': station['passengers']}, 'h': {'count': 0, 'sum': 0}}
-            if not type(station.get('escapepods')) == dict:
-                station['escapepods'] = {'l': {'count': 0, 'sum': 0}, 'm': {'count': station['missions'], 'sum': station['escapepods']}, 'h': {'count': 0, 'sum': 0}}
-            if not type(station.get('cargo')) == dict:
-                station['cargo'] = {'count': 0, 'sum': station['cargo']}
-            if not type(station.get('massacre')) == dict:
-                station['massacre'] = {'s': {'count': 0, 'sum': 0}, 'c': {'count': 0, 'sum': 0}, 'b': {'count': 0, 'sum': 0}, 'm': {'count': 0, 'sum': 0}, 'h': {'count': 0, 'sum': 0}, 'o': {'count': 0, 'sum': 0}}
         # From < 3.0.0 to 3.0.0
         if not 'GroundMurdered' in faction_data: faction_data['GroundMurdered'] = 0
         if not 'TradeBuy' in faction_data:

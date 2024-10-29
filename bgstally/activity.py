@@ -704,7 +704,7 @@ class Activity:
             self.recalculate_zero_activity()
 
 
-    def ship_targeted(self, journal_entry: Dict, state: State):
+    def ship_targeted(self, journal_entry: dict, state: State):
         """
         Handle targeting a ship
         """
@@ -719,7 +719,11 @@ class Activity:
             state.last_ship_targeted = {'Faction': journal_entry['Faction'],
                                         'PilotName': journal_entry['PilotName'],
                                         'PilotName_Localised': journal_entry['PilotName_Localised']}
-            state.last_ships_targeted[journal_entry['PilotName_Localised']] = state.last_ship_targeted
+
+            if journal_entry['PilotName'].startswith("$ShipName_Police"):
+                state.last_ships_targeted[journal_entry['PilotName']] = state.last_ship_targeted
+            else:
+                state.last_ships_targeted[journal_entry['PilotName_Localised']] = state.last_ship_targeted
 
         if 'Faction' in journal_entry and state.last_spacecz_approached != {} and state.last_spacecz_approached.get('ally_faction') is not None:
             # In space CZ, check we're targeting the right faction
@@ -727,11 +731,11 @@ class Activity:
                 self.bgstally.ui.show_warning(_("Targeted Ally!")) # LANG: Overlay message
 
 
-    def crime_committed(self, journal_entry: Dict, state: State):
+    def crime_committed(self, journal_entry: dict, state: State):
         """
         Handle a crime
         """
-        current_system = self.systems.get(state.current_system_id)
+        current_system: dict|None = self.systems.get(state.current_system_id)
         if not current_system: return
         self.dirty = True
 
@@ -744,7 +748,7 @@ class Activity:
         match journal_entry['CrimeType']:
             case 'murder':
                 # For ship murders, if we didn't get a previous scan containing ship faction, don't log
-                ship_target_info:dict = state.last_ships_targeted.pop(journal_entry.get('Victim'), None)
+                ship_target_info: dict = state.last_ships_targeted.pop(journal_entry.get('Victim'), None)
                 if ship_target_info is None: return
                 faction = current_system['Factions'].get(ship_target_info.get('Faction'))
 

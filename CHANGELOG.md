@@ -15,6 +15,7 @@
 
 * If the check for a new plugin version was failing, this would throw several exceptions to the EDMC log.
 * Murders of police ships were not being tracked.
+* Any API key entered by the user is now cleaned up and truncated to avoid problems with bad inputs.
 
 
 ## v4.1.1 - 2024-09-27

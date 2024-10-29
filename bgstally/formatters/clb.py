@@ -32,7 +32,7 @@ class CLBActivityFormatter(DefaultActivityFormatter):
 
 
     def is_visible(self) -> bool:
-        """Should this formatter be visible to the user as a choice. 
+        """Should this formatter be visible to the user as a choice.
 
         Returns:
             bool: True if visible, false if not
@@ -72,7 +72,7 @@ class CLBActivityFormatter(DefaultActivityFormatter):
             str: The output text
         """
         return self._build_text(activity, activity_mode, system_names, lang, True)
-    
+
     def get_fields(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> list:
         """Generate a list of discord embed fields, conforming to the embed field spec defined here:
         https://birdie0.github.io/discord-webhooks-guide/structure/embed/fields.html - i.e. each field should be a dict
@@ -120,9 +120,9 @@ class CLBActivityFormatter(DefaultActivityFormatter):
             # Force plain text if we are not posting to Discord
             fp: bool = not discord
             for system in activity.systems.copy().values(): # Use a copy for thread-safe operation
-                if system_names is not None and system['System'] not in system_names: 
+                if system_names is not None and system['System'] not in system_names:
                     continue
-                
+
                 system_text:str = ""
 
                 if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
@@ -130,14 +130,14 @@ class CLBActivityFormatter(DefaultActivityFormatter):
 
                 if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
                     for faction in system['Factions'].values():
-                        if faction['Enabled'] != CheckStates.STATE_ON: 
+                        if faction['Enabled'] != CheckStates.STATE_ON:
                             continue
                         system_text += self._build_faction(faction, DiscordActivity, lang)
 
                 if system_text != "":
                     text += f" {color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
-            
-            if discord and activity.discord_notes is not None and activity.discord_notes != "": 
+
+            if discord and activity.discord_notes is not None and activity.discord_notes != "":
                 text += "\n" + activity.discord_notes
 
             offset = time.mktime(datetime.now().timetuple()) - time.mktime(datetime.now(timezone.utc).timetuple())
@@ -146,10 +146,10 @@ class CLBActivityFormatter(DefaultActivityFormatter):
             #else:
             #    text = "BGS Report - Tick : " + self.tick_time.strftime(DATETIME_FORMAT_TITLE) + "\n\n" + text
             return text.replace("'", "")
-        
+
         except BaseException as error:
             return f"{traceback.format_exc()}\n An exception occurred: {error}"
-            
+
 
     def _build_inf_text(self, inf_data: dict, secondary_inf_data: dict, faction_state: str, discord: bool, lang:str) -> str:
         """
@@ -189,13 +189,13 @@ class CLBActivityFormatter(DefaultActivityFormatter):
                 czs.append(f"{green(str(cz_data[w]), fp=fp)} {red(__(w.upper()+prefix, lang), fp=fp)}")
         if len(czs) == 0:
             return ""
-        
+
         return ", ".join(czs)
 
     def _build_faction(self, faction: dict, discord: bool, lang: str) -> str:
         """
         Generate formatted text for a faction
-        """        
+        """
         # Force plain text if we are not posting to Discord
         fp: bool = not discord
 
@@ -204,9 +204,9 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         inf = self._build_inf_text(faction['MissionPoints'], faction['MissionPointsSecondary'], faction['FactionState'], discord, lang)
         if inf != "":
             activity.append(inf)
-                
+
         for t, d in {'SpaceCZ': 'SCZ', 'GroundCZ': 'GCZ'}.items():
-            cz = self._build_cz_text(faction.get(t, {}), d, discord)
+            cz = self._build_cz_text(faction.get(t, {}), d, discord, lang)
             if cz != "":
                 activity.append(cz)
 
@@ -217,7 +217,7 @@ class CLBActivityFormatter(DefaultActivityFormatter):
                     for t, d in {0 : "[Z]", 1 : "[L]", 2 : "[M]", 3 : "[H]"}.items():
                         if faction[action][t] and faction[action][t]['value'] > 0:
                             tot += faction[action][t]['value']
-                    activity.append(f"{human_format(tot)} {__(desc, lang)}")                    
+                    activity.append(f"{human_format(tot)} {__(desc, lang)}")
                 else:
                     for t, d in {0 : "[Z]", 1 : "[L]", 2 : "[M]", 3 : "[H]"}.items():
                         if faction[action][t] and faction[action][t]['value'] > 0:
@@ -235,7 +235,7 @@ class CLBActivityFormatter(DefaultActivityFormatter):
                       "MissionFailed" : "Failed",
                       "SandR" : "S&R Units"
                       }
-        
+
         for a in activities:
             if faction.get(a):
                 amt = 0
@@ -259,7 +259,7 @@ class CLBActivityFormatter(DefaultActivityFormatter):
                 for i in range(1, 6):
                     if faction['MissionPoints'].get(str(i), 0) != 0:
                         activity_discord_text += grey(f"\n     {faction['MissionPoints'][str(i)]} {__('Inf', lang)}{'+' * i}", fp=fp)
-    
+
         # And the Search and Rescue details
         if 'SandR' in faction:
             for t, d in {'op': 'Occupied Escape Pod', 'dp' : 'Damaged Escape Pod', 'bb' : 'Black Box'}.items():
@@ -268,18 +268,18 @@ class CLBActivityFormatter(DefaultActivityFormatter):
 
         if activity_discord_text == "":
             return ""
-        
+
         # Faction name and summary of activities
         faction_name = self._process_faction_name(faction['Faction'])
         faction_discord_text = f"   {color_wrap(faction_name, 'yellow', None, 'bold', fp=fp)}: {activity_discord_text}\n"
-        
+
         # Add ground settlement details further indented
         for settlement_name in faction.get('GroundCZSettlements', {}):
             if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON:
                 faction_discord_text += grey(f"     {faction['GroundCZSettlements'][settlement_name]['count']} {settlement_name}\n")
 
         return faction_discord_text
-    
+
     def _process_faction_name(self, faction_name):
         """
         Shorten the faction name if the user has chosen to
@@ -287,4 +287,4 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         if self.bgstally.state.abbreviate_faction_names:
             return "".join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
         else:
-            return faction_name    
+            return faction_name

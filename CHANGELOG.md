@@ -5,6 +5,7 @@
 ### New Features:
 
 * Added new Discord formatter supporting the Celestial Light Brigade's preferred Discord structure and layout for BGS reports.
+* Each faction now has its influence % shown in the on-screen activity window.
 
 ### Changes:
 

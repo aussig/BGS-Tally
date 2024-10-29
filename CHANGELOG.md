@@ -2,6 +2,10 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### New Features:
+
+* Added new Discord formatter supporting the Celestial Light Brigade's preferred Discord structure and layout for BGS reports.
+
 ### Changes:
 
 * Only check for a new tick once per minute, not on every FSD jump.

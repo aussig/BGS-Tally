@@ -14,6 +14,7 @@
 ### Bug Fixes:
 
 * If the check for a new plugin version was failing, this would throw several exceptions to the EDMC log.
+* Murders of police ships were not being tracked.
 
 
 ## v4.1.1 - 2024-09-27

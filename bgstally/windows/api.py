@@ -8,7 +8,7 @@ from os import path
 from bgstally.api import API
 from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2
 from bgstally.debug import Debug
-from bgstally.utils import _
+from bgstally.utils import _, string_to_alphanumeric
 from bgstally.widgets import CollapsibleFrame, EntryPlus, HyperlinkManager
 from requests import Response
 from bgstally.requestmanager import BGSTallyRequest
@@ -162,7 +162,7 @@ class WindowAPI:
             self.discovery_done = False
 
         self.api.url = self.entry_apiurl.get().rstrip('/') + '/'
-        self.api.key = self.entry_apikey.get()
+        self.api.key = string_to_alphanumeric(self.entry_apikey.get())[:128]
         self.api.activities_enabled = self.cb_apiactivities.instate(['selected'])
         self.api.events_enabled = self.cb_apievents.instate(['selected'])
         self._update()

@@ -11,7 +11,7 @@ from requests import Response
 from bgstally.constants import RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
-from bgstally.utils import get_by_path
+from bgstally.utils import get_by_path, string_to_alphanumeric
 
 API_VERSION = "1.5.0"
 
@@ -97,23 +97,23 @@ class API:
         }
 
 
-    def from_dict(self, data:dict):
+    def from_dict(self, data: dict):
         """
         Populate our user and discovery state from a dict
         """
         # User state
-        self.url:str = data['url']
-        self.key:str = data['key']
-        self.activities_enabled:bool = data['activities_enabled']
-        self.events_enabled:bool = data['events_enabled']
-        self.user_approved:bool = data['user_approved']
+        self.url: str = data['url']
+        self.key: str = string_to_alphanumeric(data['key'])[:128]
+        self.activities_enabled: bool = data['activities_enabled']
+        self.events_enabled: bool = data['events_enabled']
+        self.user_approved: bool = data['user_approved']
 
         # Discovery state
-        self.name:str = data['name']
-        self.version:semantic_version = semantic_version.Version.coerce(data['version'])
-        self.description:str = data['description']
-        self.endpoints:dict = data['endpoints']
-        self.events:dict = data['events']
+        self.name: str = data['name']
+        self.version: semantic_version = semantic_version.Version.coerce(data['version'])
+        self.description: str = data['description']
+        self.endpoints: dict = data['endpoints']
+        self.events: dict = data['events']
 
 
     def discover(self, callback:callable):

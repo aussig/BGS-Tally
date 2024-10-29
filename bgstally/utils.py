@@ -1,4 +1,5 @@
 import functools
+import re
 from os import listdir
 from os.path import join
 from pathlib import Path
@@ -141,3 +142,16 @@ def all_subclasses(cls: type) -> set[type]:
         set[type]: A set of Python subclasses
     """
     return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in all_subclasses(c)])
+
+
+def string_to_alphanumeric(s: str) -> str:
+    """Clean a string so it only contains alphanumeric characters
+
+    Args:
+        s (str): The string to clean
+
+    Returns:
+        str: The cleaned string
+    """
+    pattern: re.Pattern = re.compile('[\W_]+')
+    return pattern.sub('', s)

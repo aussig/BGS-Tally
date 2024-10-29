@@ -271,7 +271,7 @@ class Activity:
                     sum(int(d['scooped']) for d in system['TWSandR'].values()) > 0:
                 # The system has a current mission, or it's the current system, or it has TWSandR scoops - zero, don't delete
                 for faction_name, faction_data in system['Factions'].items():
-                    system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'])
+                    system['Factions'][faction_name] = self._get_new_faction_data(faction_name, faction_data['FactionState'], faction_data['Influence'])
                 system['TWKills'] = self._get_new_tw_kills_data()
                 # Note: system['TWSandR'] scooped data is carried forward, delivered data is cleared
                 for d in system['TWSandR'].values():
@@ -313,15 +313,16 @@ class Activity:
                 if faction['Name'] == "Pilots' Federation Local Branch": continue
 
                 # Ignore conflict states in FactionState as we can't trust they always come in pairs. We deal with conflicts separately below.
-                faction_state = faction['FactionState'] if faction['FactionState'] not in STATES_WAR and faction['FactionState'] not in STATES_ELECTION else "None"
+                faction_state: str = faction['FactionState'] if faction['FactionState'] not in STATES_WAR and faction['FactionState'] not in STATES_ELECTION else "None"
+                faction_inf: float = faction['Influence']
 
                 if faction['Name'] in current_system['Factions']:
                     # We have this faction, ensure it's up to date with latest state
                     faction_data = current_system['Factions'][faction['Name']]
-                    self._update_faction_data(faction_data, faction_state)
+                    self._update_faction_data(faction_data, faction_state, faction_inf)
                 else:
                     # We do not have this faction, create a new clean entry
-                    current_system['Factions'][faction['Name']] = self._get_new_faction_data(faction['Name'], faction_state)
+                    current_system['Factions'][faction['Name']] = self._get_new_faction_data(faction['Name'], faction_state, faction_inf)
 
             # Set war states for pairs of factions in War / Civil War / Elections
             for conflict in journal_entry.get('Conflicts', []):
@@ -1126,9 +1127,9 @@ class Activity:
         return {'System': "Sample System Name",
                 'SystemAddress': 1,
                 'zero_system_activity': False,
-                'Factions': {"Sample Faction Name 1": self._get_new_faction_data("Sample Faction Name 1", "None", True),
-                             "Sample Faction Name 2": self._get_new_faction_data("Sample Faction Name 2", "None", True),
-                             "Sample Faction Name 3": self._get_new_faction_data("Sample Faction Name 3", "None", True)},
+                'Factions': {"Sample Faction Name 1": self._get_new_faction_data("Sample Faction Name 1", "None", 40, True),
+                             "Sample Faction Name 2": self._get_new_faction_data("Sample Faction Name 2", "None", 30, True),
+                             "Sample Faction Name 3": self._get_new_faction_data("Sample Faction Name 3", "None", 30, True)},
                 'TWKills': self._get_new_tw_kills_data(True),
                 'TWSandR': self._get_new_tw_sandr_data(True),
                 'TWReactivate': 5}
@@ -1154,7 +1155,7 @@ class Activity:
                 'TWReactivate': 0}
 
 
-    def _get_new_faction_data(self, faction_name: str, faction_state: str, sample: bool = False) -> dict:
+    def _get_new_faction_data(self, faction_name: str, faction_state: str, faction_inf: float, sample: bool = False) -> dict:
         """Get a new data structure for storing faction data
 
         Args:
@@ -1166,7 +1167,7 @@ class Activity:
             dict: The faction data
         """
         s: bool = sample # Shorter
-        return {'Faction': faction_name, 'FactionState': faction_state, 'Enabled': self.bgstally.state.EnableSystemActivityByDefault.get(),
+        return {'Faction': faction_name, 'FactionState': faction_state, 'Influence': faction_inf, 'Enabled': self.bgstally.state.EnableSystemActivityByDefault.get(),
                 'MissionPoints': {'1': 3 if s else 0, '2': 4 if s else 0, '3': 5 if s else 0, '4': 6 if s else 0, '5': 7 if s else 0, 'm': 8 if s else 0},
                 'MissionPointsSecondary': {'1': 3 if s else 0, '2': 4 if s else 0, '3': 5 if s else 0, '4': 6 if s else 0, '5': 7 if s else 0, 'm': 8 if s else 0},
                 'BlackMarketProfit': 50000 if s else 0, 'Bounties': 1000000 if s else 0, 'CartData': 2000000 if s else 0, 'ExoData': 3000000 if s else 0,
@@ -1260,12 +1261,13 @@ class Activity:
         if not 'tp' in system_data['TWSandR']: system_data['TWSandR']['tp'] = {'scooped': 0, 'delivered': 0}
 
 
-    def _update_faction_data(self, faction_data: Dict, faction_state: str = None):
+    def _update_faction_data(self, faction_data: dict, faction_state: str|None = None, faction_inf: float|None = None):
         """
         Update faction data structure for elements not present in previous versions of plugin
         """
-        # Update faction state as it can change at any time post-tick
+        # Update faction state and influence as it can change at any time post-tick
         if faction_state: faction_data['FactionState'] = faction_state
+        if faction_inf: faction_data['Influence'] = faction_inf
 
         # From < v1.2.0 to 1.2.0
         if not 'SpaceCZ' in faction_data: faction_data['SpaceCZ'] = {}
@@ -1314,6 +1316,8 @@ class Activity:
             faction_data['MissionPointsSecondary'] = {'1': 0, '2': 0, '3': 0, '4': 0, '5': 0, 'm': int(faction_data.get('MissionPointsSecondary', 0))}
         # From < 4.0.0 to 4.0.0
         if not 'SandR' in faction_data: faction_data['SandR'] = {'dp': 0, 'op': 0, 'tp': 0, 'bb': 0, 'wc': 0, 'pe': 0, 'pp': 0, 'h': 0}
+        # From < 4.2.0 to 4.2.0
+        if not 'Influence' in faction_data: faction_data['Influence'] = 0
 
 
     def _is_faction_data_zero(self, faction_data: Dict):

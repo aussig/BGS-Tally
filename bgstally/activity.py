@@ -723,7 +723,6 @@ class Activity:
         """
         # Always clear last targeted on new target lock
         if journal_entry.get('TargetLocked', False) == True:
-            Debug.logger.info("Cleared last ship targeted")
             state.last_ship_targeted = {}
 
         if 'Faction' in journal_entry and 'PilotName_Localised' in journal_entry and 'PilotName' in journal_entry:

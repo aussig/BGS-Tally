@@ -6,6 +6,7 @@ from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import CheckStates, DiscordActivity
 from bgstally.debug import Debug
 from bgstally.formatters.default import DefaultActivityFormatter
+#from bgstally.formatters.base import FieldActivityFormatterInterface
 from bgstally.utils import _, __, human_format, is_number
 from thirdparty.colors import *
 
@@ -29,7 +30,6 @@ class CLBActivityFormatter(DefaultActivityFormatter):
             str: The name of this formatter for choosing in the UI
         """
         return 'Celestial Light Brigade'
-
 
     def is_visible(self) -> bool:
         """Should this formatter be visible to the user as a choice.
@@ -89,22 +89,22 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         """
 
         discord_fields = []
-        for system in activity.systems.copy().values(): # Use a copy for thread-safe operation
-            if system_names is not None and system['System'] not in system_names: continue
-            system_text: str = ""
 
+        for system in sorted(activity.systems.copy().values(), key=lambda d: d['System']): # Use a copy for thread-safe operation
+            if system_names is not None and system['System'] not in system_names:
+                continue
+            system_text: str = ""
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
                 system_text += self._build_tw_system(system, True, lang)
 
             if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
-                for faction in system['Factions'].values():
+                for faction in sorted(system['Factions'].values(), key=lambda d: d['Faction']):
                     if faction['Enabled'] != CheckStates.STATE_ON: continue
                     system_text += self._build_faction(faction, True, lang)
 
             if system_text != "":
-                system_text = system_text.replace("'", "")
-                system_text = system_text.replace("     ", " ")
-                system_text = system_text.replace("   ", "")
+#                system_text = system_text.replace("     ", " ")
+#                system_text = system_text.replace("   ", "")
                 discord_field = {'name': system['System'], 'value': f"```ansi\n{system_text}```"}
                 discord_fields.append(discord_field)
 
@@ -119,7 +119,8 @@ class CLBActivityFormatter(DefaultActivityFormatter):
             text:str = ""
             # Force plain text if we are not posting to Discord
             fp: bool = not discord
-            for system in activity.systems.copy().values(): # Use a copy for thread-safe operation
+
+            for system in sorted(activity.systems.copy().values(), key=lambda d: d['System']): # Use a copy for thread-safe operation
                 if system_names is not None and system['System'] not in system_names:
                     continue
 
@@ -129,29 +130,28 @@ class CLBActivityFormatter(DefaultActivityFormatter):
                     system_text += self._build_tw_system(system, True, lang)
 
                 if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
-                    for faction in system['Factions'].values():
+                    for faction in sorted(system['Factions'].values(), key=lambda d: d['Faction']):
                         if faction['Enabled'] != CheckStates.STATE_ON:
                             continue
                         system_text += self._build_faction(faction, DiscordActivity, lang)
 
                 if system_text != "":
-                    text += f" {color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
+                    text += f"\n {color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
 
             if discord and activity.discord_notes is not None and activity.discord_notes != "":
                 text += "\n" + activity.discord_notes
 
             offset = time.mktime(datetime.now().timetuple()) - time.mktime(datetime.now(timezone.utc).timetuple())
             tick = round(time.mktime(activity.tick_time.timetuple()) + offset)
-            text = f"### {__('BGS Report', lang)} - {__('Tick', lang)} : <t:{tick}>\n```ansi\n{text}```"
+            text = f"### {__('BGS Report', lang)} - {__('Tick', lang)} : <t:{tick}>\n```ansi{text}```"
             #else:
             #    text = "BGS Report - Tick : " + self.tick_time.strftime(DATETIME_FORMAT_TITLE) + "\n\n" + text
-            return text.replace("'", "")
+            return text
 
         except BaseException as error:
             return f"{traceback.format_exc()}\n An exception occurred: {error}"
 
-
-    def _build_inf_text(self, inf_data: dict, secondary_inf_data: dict, faction_state: str, discord: bool, lang:str) -> str:
+    def _build_inf_text(self, inf_data: dict, secondary_inf_data: dict, faction_state: str, discord: bool, lang: str) -> str:
         """
         Create a complete summary of INF for the faction, including both primary and secondary if user has requested
 
@@ -170,27 +170,16 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         if self.bgstally.state.secondary_inf:
             inf += sum((1 if k == 'm' else int(k)) * int(v) for k, v in secondary_inf_data.items())
 
+        if faction_state in STATES_ELECTION:
+            type = __("Election Inf", lang)
+        elif faction_state in STATES_WAR:
+            type = __("War Inf", lang)
+        else:
+            type = __("Inf", lang)
         if inf > 0:
-            return f"{green('+' + str(inf), fp=fp)} {blue(__('Inf', lang), fp=fp)}"
+            return f"{green('+' + str(inf), fp=fp)} {type}"
 
         return ""
-
-    def _build_cz_text(self, cz_data: dict, prefix: str, discord: bool, lang: str) -> str:
-        """
-        Create a summary of Conflict Zone activity
-        """
-        if cz_data == {}: return ""
-        fp: bool = not discord
-        text:str = ""
-
-        czs = []
-        for w in ['h', 'm', 'l']:
-            if w in cz_data and int(cz_data[w]) != 0:
-                czs.append(f"{green(str(cz_data[w]), fp=fp)} {red(__(w.upper()+prefix, lang), fp=fp)}")
-        if len(czs) == 0:
-            return ""
-
-        return ", ".join(czs)
 
     def _build_faction(self, faction: dict, discord: bool, lang: str) -> str:
         """
@@ -199,33 +188,18 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         # Force plain text if we are not posting to Discord
         fp: bool = not discord
 
-        # Store the different item types in a list, we'll join them at the end to create a csv string
+        # Start with the main influence items.
+
         activity = []
         inf = self._build_inf_text(faction['MissionPoints'], faction['MissionPointsSecondary'], faction['FactionState'], discord, lang)
         if inf != "":
             activity.append(inf)
 
-        for t, d in {'SpaceCZ': 'SCZ', 'GroundCZ': 'GCZ'}.items():
-            cz = self._build_cz_text(faction.get(t, {}), d, discord, lang)
-            if cz != "":
-                activity.append(cz)
-
-        for action, desc in {'TradeBuy': 'Spend', 'TradeSell': "Profit"}.items():
-            if sum(int(d['value']) for d in faction[action]) > 0:
-                if not self.bgstally.state.detailed_trade:
-                    tot = 0
-                    for t, d in {0 : "[Z]", 1 : "[L]", 2 : "[M]", 3 : "[H]"}.items():
-                        if faction[action][t] and faction[action][t]['value'] > 0:
-                            tot += faction[action][t]['value']
-                    activity.append(f"{human_format(tot)} {__(desc, lang)}")
-                else:
-                    for t, d in {0 : "[Z]", 1 : "[L]", 2 : "[M]", 3 : "[H]"}.items():
-                        if faction[action][t] and faction[action][t]['value'] > 0:
-                            activity.append(f"{human_format(faction[action][t]['value'])} {__(desc, lang)} {d} ({str(faction[action][t]['items'])}T)")
-
-        # These are simple we can just loop through them
-        activities = {"Bounties" : "Bounties",
+        # For all the other high level actions just loop through these and sum them up.
+        actions = {"Bounties" : "Bounties",
                       "CombatBonds" : "Bonds",
+                      "SpaceCZ" : "SCZ",
+                      "GroundCZ" : "GCZ",
                       "BlackMarketProfit" : "BlackMarket",
                       "CartData" : "Carto",
                       "ExoData" : "Exo",
@@ -233,52 +207,84 @@ class CLBActivityFormatter(DefaultActivityFormatter):
                       "GroundMurdered" : "Foot Murders",
                       "Scenarios" : "Scenarios",
                       "MissionFailed" : "Failed",
+                      'TradeBuy': 'Spent',
+                      'TradeSell': "Profit",
                       "SandR" : "S&R Units"
                       }
 
-        for a in activities:
+        for a in actions:
             if faction.get(a):
                 amt = 0
+                # The total value depends on the data type.
                 if isinstance(faction[a], int):
                     amt = faction[a]
+                if isinstance(faction[a], list):
+                    amt: int = sum(int(d['value']) for d in faction[a]) # Sum the value
                 if isinstance(faction[a], dict):
-                    amt: int = sum(int(v) for k, v in faction[a].items())
+                    amt: int = sum(int(v) for k, v in faction[a].items()) # Count the records
                 if amt > 0:
-                    activity.append(f"{green(human_format(amt), fp=fp)} {__(activities[a], lang)}")
+                    activity.append(f"{green(human_format(amt), fp=fp)} {__(actions[a], lang)}")
 
         activity_discord_text = ', '.join(activity)
 
         # Now do the detailed sections
         if self.bgstally.state.detailed_inf:
-            if self.bgstally.state.secondary_inf:
-                for t, d in {'MissionPoints' : '[P]', 'MissionPointsSecondary' : '[S]'}.items():
-                    for i in range(1, 6):
-                        if faction[t].get(str(i), 0) != 0:
-                            activity_discord_text += grey(f"\n     {faction[t][str(i)]} {d} {__('Inf', lang)}{'+' * i}", fp=fp)
-            else:
-                for i in range(1, 6):
-                    if faction['MissionPoints'].get(str(i), 0) != 0:
-                        activity_discord_text += grey(f"\n     {faction['MissionPoints'][str(i)]} {__('Inf', lang)}{'+' * i}", fp=fp)
-
-        # And the Search and Rescue details
-        if 'SandR' in faction:
-            for t, d in {'op': 'Occupied Escape Pod', 'dp' : 'Damaged Escape Pod', 'bb' : 'Black Box'}.items():
-                if faction['SandR'][t]:
-                    activity_discord_text += grey(f"\n     {faction['SandR'][t]} {__(d, lang)}", fp=fp)
+            activity_discord_text += self._build_faction_details(faction, discord, lang)
 
         if activity_discord_text == "":
             return ""
 
         # Faction name and summary of activities
         faction_name = self._process_faction_name(faction['Faction'])
-        faction_discord_text = f"   {color_wrap(faction_name, 'yellow', None, 'bold', fp=fp)}: {activity_discord_text}\n"
-
-        # Add ground settlement details further indented
-        for settlement_name in faction.get('GroundCZSettlements', {}):
-            if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON:
-                faction_discord_text += grey(f"     {faction['GroundCZSettlements'][settlement_name]['count']} {settlement_name}\n")
+        if faction['Faction'] == self.get_name():
+            faction_discord_text = f"   {yellow(faction_name, fp=fp)} : {activity_discord_text}\n"
+        else:
+            faction_discord_text = f"   {blue(faction_name, fp=fp)} : {activity_discord_text}\n"
 
         return faction_discord_text
+
+    def _build_faction_details(self, faction: dict, discord: bool, lang: str) -> str:
+        """
+          Build the detailed faction information if required
+        """
+        activity = []
+        fp: bool = not discord
+
+        # Breakdown of Space CZs
+        scz = faction.get('SpaceCZ')
+        for w in ['h', 'm', 'l']:
+            if w in scz and int(scz[w]) != 0:
+                activity.append(grey(f"     {str(scz[w])} [{w.upper()}] {__('Space', lang)}"))
+
+        # Details of Ground CZs so we know where folks have and haven't fought
+        for settlement_name in faction.get('GroundCZSettlements', {}):
+            if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON:
+                activity.append(grey(f"     {faction['GroundCZSettlements'][settlement_name]['count']} [{faction['GroundCZSettlements'][settlement_name]['type'].upper()}] {__('Ground', lang)} - {settlement_name}"))
+
+        # Trade details
+        if self.bgstally.state.detailed_trade:
+            for action, desc in {'TradeBuy': 'Spent', 'TradeSell': "Profit"}.items():
+                for t, d in {3 : "H", 2 : "M", 1 : "L", 0 : "Z"}.items():
+                    if faction[action][t] and faction[action][t]['value'] > 0:
+                        activity.append(grey(f"     {human_format(faction[action][t]['value'])} [{d}] {__(desc, lang)} ({str(faction[action][t]['items'])}T)"))
+
+        # Breakdown of mission influence
+        for t, d in {'MissionPoints' : 'P', 'MissionPointsSecondary' : 'S'}.items():
+            if self.bgstally.state.secondary_inf or t != 'MissionPointsSecondary':
+                for i in range(1, 6):
+                    if faction[t].get(str(i), 0) != 0:
+                        activity.append(grey(f"     {faction[t][str(i)]} [{d}] {__('Inf', lang)}{'+' * i}", fp=fp))
+
+        # Search and rescue, we treat this as detailed inf
+        if 'SandR' in faction:
+            for t, d in {'op': 'Occupied Escape Pod', 'dp' : 'Damaged Escape Pod', 'bb' : 'Black Box'}.items():
+                if faction['SandR'][t]:
+                    activity.append(grey(f"     {faction['SandR'][t]} {__(d, lang)}", fp=fp))
+
+        if len(activity) == 0:
+            return ""
+
+        return "\n" + "\n".join(activity)
 
     def _process_faction_name(self, faction_name):
         """

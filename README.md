@@ -10,7 +10,7 @@
 
 A tool to track and report your Background Simulation (BGS) and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS-Tally counts all the BGS / TW work you do for any faction, in any system.
 
-Based on BGS-Tally v2.0 by tezw21: [Original tezw21 BGS-Tally-v2.0 Project](https://github.com/tezw21/BGS-Tally-v2.0)
+Based on BGS-Tally v2.0 by tezw21
 
 As well as all the BGS tracking from Tez's original version, this modified version includes:
 
@@ -66,7 +66,7 @@ All of these files use the JSON format, so can be easily viewed in a text editor
 
 The plugin makes the following network connections:
 
-1. To [EliteBGS](https://elitebgs.app/api/ebgs/v5/ticks) to grab the date and time of the lastest tick.
+1. To [CMDR Zoy's Tick Detector](http://tick.infomancer.uk/galtick.json) to grab the date and time of the lastest tick.
 2. To [GitHub](https://api.github.com/repos/aussig/BGS-Tally/releases/latest) to check the version of the plugin to see whether there is a newer version available.
 3. To [Inara](https://inara.cz/elite/) to anonymously check for available information on targeted CMDRs.
 4. **Only if configured by you** to a specific Discord webhook on a Discord server of your choice, and only when you explicitly click the _Post to Discord_ button.

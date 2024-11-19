@@ -153,5 +153,5 @@ def string_to_alphanumeric(s: str) -> str:
     Returns:
         str: The cleaned string
     """
-    pattern: re.Pattern = re.compile('[\W_]+')
+    pattern: re.Pattern = re.compile(r'[\W_]+')
     return pattern.sub('', s)

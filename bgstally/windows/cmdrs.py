@@ -72,7 +72,7 @@ class WindowCMDRs:
         treeview.pack(fill=tk.BOTH, expand=1)
 
         current_row = 0
-        ttk.Label(frm_details, text=_("CMDR Details"), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, sticky=tk.W, columnspan=4, padx=5, pady=[5, 0]); current_row += 1 # LANG: Label on CMDR window
+        ttk.Label(frm_details, text=_("CMDR Details"), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=current_row, column=0, sticky=tk.W, columnspan=4, padx=5, pady=(5, 0)); current_row += 1 # LANG: Label on CMDR window
         ttk.Label(frm_details, text=_("Name: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W, padx=5) # LANG: Label on CMDR window
         self.lbl_cmdr_details_name: ttk.Label = ttk.Label(frm_details, text="", width=50)
         self.lbl_cmdr_details_name.grid(row=current_row, column=1, sticky=tk.W, padx=5)
@@ -87,7 +87,7 @@ class WindowCMDRs:
         self.lbl_cmdr_details_squadron_inara.grid(row=current_row, column=3, sticky=tk.W, padx=5); current_row += 1
         ttk.Label(frm_details, text=_("Interaction: "), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W, padx=5) # LANG: Label on CMDR window
         self.lbl_cmdr_details_interaction: ttk.Label = ttk.Label(frm_details, text="")
-        self.lbl_cmdr_details_interaction.grid(row=current_row, column=1, sticky=tk.W, padx=5, pady=[0, 5]); current_row += 1
+        self.lbl_cmdr_details_interaction.grid(row=current_row, column=1, sticky=tk.W, padx=5, pady=(0, 5)); current_row += 1
 
         for column in column_info:
             treeview.heading(column['title'], text=column['title'].title(), sort_by=column['type'])

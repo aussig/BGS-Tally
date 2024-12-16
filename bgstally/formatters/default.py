@@ -64,7 +64,6 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         """
         return self._build_text(activity, activity_mode, system_names, lang, True)
 
-
     def get_fields(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> list:
         """Generate a list of discord embed fields, conforming to the embed field spec defined here:
         https://birdie0.github.io/discord-webhooks-guide/structure/embed/fields.html - i.e. each field should be a dict
@@ -139,9 +138,12 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
             if system_text != "":
                 if discord: text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}```"
                 else: text += f"{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
-
+        
+        if self.bgstally.state.showmerits: 
+            merits = "Merits "
+            text += f"{color_wrap(merits, 'blue', None, 'bold', fp=fp)}"
+            text += f"{color_wrap(activity.merits_gained, 'green', None, 'bold', fp=fp)}"
         if discord and activity.discord_notes is not None and activity.discord_notes != "": text += "\n" + activity.discord_notes
-
         return text.replace("'", "")
 
 

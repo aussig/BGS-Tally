@@ -486,6 +486,18 @@ class Activity:
         self.recalculate_zero_activity()
         mission_log.delete_mission_by_id(journal_entry['MissionID'])
 
+    def update_merits_gained(self, power, merits_gained):
+        """
+        Handle mertis gained
+        """
+        self.power = power
+        self.merits_gained = merits_gained
+    
+    def get_merits_gained(self):
+        """
+        Handle mertis gained
+        """
+        return self.merits_gained
 
     def mission_failed(self, journal_entry: dict, mission_log: MissionLog):
         """

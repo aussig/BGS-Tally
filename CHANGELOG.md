@@ -610,7 +610,7 @@ _* Note that the plugin only tracks primary and secondary INF from this version 
 
 ### New features:
 
-* Ability to manually add High, Medium and Low on-foot and in-space Combat Zone wins to the Discord report by clicking on-screen buttons.
+* Ability to manually add High, Medium and Low on-foot and in-space Conflict Zone wins to the Discord report by clicking on-screen buttons.
 
 ### Changes:
 

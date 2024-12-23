@@ -119,10 +119,6 @@ class BGSTally:
         dirty: bool = False
 
         if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
-            if self.check_tick(UpdateUIPolicy.IMMEDIATE):
-                # New activity will be generated with a new tick
-                activity = self.activity_manager.get_current_activity()
-
             activity.system_entered(entry, self.state)
             dirty = True
 

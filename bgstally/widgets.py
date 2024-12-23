@@ -60,8 +60,8 @@ class DiscordAnsiColorText(tk.Text):
 
     # define some regexes which will come in handy in filtering
     # out the ansi color codes
-    color_pat = re.compile("\x01?\x1b(\[[\d;]*m?)\x02?")
-    inner_color_pat = re.compile("^\[([\d;]*)m$")
+    color_pat = re.compile(r'\x01?\x1b(\[[\d;]*m?)\x02?')
+    inner_color_pat = re.compile(r'^\[([\d;]*)m$')
 
     def __init__(self, *args, **kwargs):
         """

@@ -1,5 +1,26 @@
 # Change Log
 
+## v4.2.0 - 2024-12-22
+
+### New Features:
+
+* Added new Discord formatter supporting the Celestial Light Brigade's preferred Discord structure and layout for BGS reports.
+* Each faction now has its influence % shown in the on-screen activity window.
+* Factions are shown ordered by % influence, highest first in the on-screen activity window.
+* Added Hungarian translation.
+
+### Changes:
+
+* Only check for a new tick once per minute, not on every FSD jump.
+* Split "BM Prof" heading on activity windows onto two lines for more efficient use of space.
+
+### Bug Fixes:
+
+* If the check for a new plugin version was failing, this would throw several exceptions to the EDMC log.
+* Murders of police ships were not being tracked.
+* Any API key entered by the user is now cleaned up and truncated to avoid problems with bad inputs.
+
+
 ## v4.1.1 - 2024-09-27
 
 ### Bug Fixes:
@@ -590,7 +611,7 @@ _* Note that the plugin only tracks primary and secondary INF from this version 
 
 ### New features:
 
-* Ability to manually add High, Medium and Low on-foot and in-space Combat Zone wins to the Discord report by clicking on-screen buttons.
+* Ability to manually add High, Medium and Low on-foot and in-space Conflict Zone wins to the Discord report by clicking on-screen buttons.
 
 ### Changes:
 
@@ -629,7 +650,7 @@ _* Note that the plugin only tracks primary and secondary INF from this version 
 
 ## v1.0.0 - 2021-08-27
 
-Initial release, based on original [BGS-Tally-v2.0 project by tezw21](https://github.com/tezw21/BGS-Tally-v2.0)
+Initial release, based on original BGS-Tally-v2.0 project by tezw21.
 
 ### New features:
 

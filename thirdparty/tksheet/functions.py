@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-import bisect
 import csv
 import io
 import pickle
 import re
 import tkinter as tk
 import zlib
+from bisect import (
+    bisect_left,
+)
 from collections import deque
 from collections.abc import (
     Callable,
@@ -35,8 +37,17 @@ unpickle_obj = pickle.loads
 
 
 def get_csv_str_dialect(s: str, delimiters: str) -> csv.Dialect:
+    if len(s) > 6000:
+        try:
+            _upto = next(
+                match.start() + 1 for i, match in enumerate(re.finditer("\n", s), 1) if i == 300 or match.start() > 6000
+            )
+        except Exception:
+            _upto = len(s)
+    else:
+        _upto = len(s)
     try:
-        return csv.Sniffer().sniff(s[:5000] if len(s) > 5000 else s, delimiters=delimiters)
+        return csv.Sniffer().sniff(s[:_upto] if len(s) > 6000 else s, delimiters=delimiters)
     except Exception:
         return csv.excel_tab
 
@@ -206,6 +217,16 @@ def len_to_idx(n: int) -> int:
     if n < 1:
         return 0
     return n - 1
+
+
+def b_index(sorted_seq: Sequence[int], num_to_index: int) -> int:
+    """
+    Designed to be a faster way of finding the index of an int
+    in a sorted list of ints than list.index()
+    """
+    if (idx := bisect_left(sorted_seq, num_to_index)) == len(sorted_seq) or sorted_seq[idx] != num_to_index:
+        raise ValueError(f"{num_to_index} is not in Sequence")
+    return idx
 
 
 def get_dropdown_kwargs(
@@ -379,7 +400,7 @@ def get_seq_without_gaps_at_index(
     position: int,
     get_st_end: bool = False,
 ) -> tuple[int, int] | list[int]:
-    start_idx = bisect.bisect_left(seq, position)
+    start_idx = bisect_left(seq, position)
     forward_gap = get_index_of_gap_in_sorted_integer_seq_forward(seq, start_idx)
     reverse_gap = get_index_of_gap_in_sorted_integer_seq_reverse(seq, start_idx)
     if forward_gap is not None:
@@ -416,6 +437,58 @@ def is_contiguous(iterable: Iterator[int]) -> bool:
     itr = iter(iterable)
     prev = next(itr)
     return all(i == (prev := prev + 1) for i in itr)
+
+
+def down_cell_within_box(
+    r: int,
+    c: int,
+    r1: int,
+    c1: int,
+    r2: int,
+    c2: int,
+    numrows: int,
+    numcols: int,
+) -> tuple[int, int]:
+    moved = False
+    new_r = r
+    new_c = c
+    if r + 1 == r2:
+        new_r = r1
+    elif numrows > 1:
+        new_r = r + 1
+        moved = True
+    if not moved:
+        if c + 1 == c2:
+            new_c = c1
+        elif numcols > 1:
+            new_c = c + 1
+    return new_r, new_c
+
+
+def cell_right_within_box(
+    r: int,
+    c: int,
+    r1: int,
+    c1: int,
+    r2: int,
+    c2: int,
+    numrows: int,
+    numcols: int,
+) -> tuple[int, int]:
+    moved = False
+    new_r = r
+    new_c = c
+    if c + 1 == c2:
+        new_c = c1
+    elif numcols > 1:
+        new_c = c + 1
+        moved = True
+    if not moved:
+        if r + 1 == r2:
+            new_r = r1
+        elif numrows > 1:
+            new_r = r + 1
+    return new_r, new_c
 
 
 def get_last(

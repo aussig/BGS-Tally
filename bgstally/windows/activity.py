@@ -175,6 +175,7 @@ class WindowActivity:
 
                 col: int = 1
                 ttk.Label(frm_table, text=_("Faction"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frm_table, text="%", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
                 ttk.Label(frm_table, text=_("State"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 lbl_inf: ttk.Label = ttk.Label(frm_table, text="INF", font=FONT_HEADING_2, anchor=tk.CENTER) # LANG: Activity window column title, abbreviation for influence
                 lbl_inf.grid(row=0, column=col, columnspan=2, padx=2)
@@ -192,7 +193,8 @@ class WindowActivity:
                 lbl_prof: ttk.Label = ttk.Label(frm_table, text=_("Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for profit
                 lbl_prof.grid(row=1, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_prof, text=_("Profit at Z | L | M | H demand")) # LANG: Activity window tooltip for profit at zero | low | medium | high demand
-                lbl_bmprof: ttk.Label = ttk.Label(frm_table, text=_("BM Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for black market profit
+                ttk.Label(frm_table, text="BM", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, padx=2)
+                lbl_bmprof: ttk.Label = ttk.Label(frm_table, text=_("Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for black market profit
                 lbl_bmprof.grid(row=1, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_bmprof, text=_("Black market profit")) # LANG: Activity window tooltip
                 lbl_bvs: ttk.Label = ttk.Label(frm_table, text="BVs", font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for bounty vouchers
@@ -246,7 +248,9 @@ class WindowActivity:
                 header_rows = 3
                 x = 0
 
-                for faction in system['Factions'].values():
+                faction_list: list = activity.get_ordered_factions(system['Factions'])
+
+                for faction in faction_list:
                     chk_enable = ttk.Checkbutton(frm_table)
                     chk_enable.grid(row=x + header_rows, column=0, sticky=tk.N, padx=2, pady=2)
                     chk_enable.configure(command=partial(self._enable_faction_change, nb_tab, tab_index, chk_enable_all, FactionEnableCheckbuttons, activity, system, faction, x))
@@ -271,6 +275,7 @@ class WindowActivity:
                         settlement_row_index += 1
 
                     col = 2
+                    ttk.Label(frm_table, text="{0:.2f}".format(faction['Influence'] * 100)).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(frm_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     MissionPointsVar = tk.IntVar(value=faction['MissionPoints']['m'])
                     ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1

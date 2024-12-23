@@ -67,7 +67,7 @@ class ActivityManager:
 
         if tick.tick_time < self.current_activity.tick_time:
             # An inbound tick is older than the current tick. The only valid situation for this is if the user has done a Force Tick
-            # but an elitebgs.app tick was then detected with an earlier timestamp. Ignore the tick in this situation.
+            # but a new tick was then detected with an earlier timestamp. Ignore the tick in this situation.
             return False
         else:
             # An inbound tick is newer than the current tick. Create a new Activity object.

@@ -2,7 +2,9 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### New Features:
 
+* Highlight conflict states in the on-screen activity window: Elections in orange and wars in red.
 
 
 ## v4.2.0 - 2024-12-22

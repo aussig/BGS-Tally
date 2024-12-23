@@ -5,7 +5,7 @@ from tkinter import PhotoImage, ttk
 
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from bgstally.activity import STATES_WAR, Activity
+from bgstally.activity import STATES_WAR, STATES_ELECTION, Activity
 from bgstally.constants import (COLOUR_HEADING_1, FOLDER_ASSETS, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, CheckStates, CZs, DiscordActivity, DiscordChannel,
                                 DiscordPostStyle)
 from bgstally.debug import Debug
@@ -275,8 +275,13 @@ class WindowActivity:
                         settlement_row_index += 1
 
                     col = 2
+
                     ttk.Label(frm_table, text="{0:.2f}".format(faction['Influence'] * 100)).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                    ttk.Label(frm_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+
+                    if (faction['FactionState'] in STATES_WAR): ttk.Label(frm_table, foreground="red", text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    elif (faction['FactionState'] in STATES_ELECTION): ttk.Label(frm_table, foreground="orange", text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    else: ttk.Label(frm_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+
                     MissionPointsVar = tk.IntVar(value=faction['MissionPoints']['m'])
                     ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     MissionPointsVar.trace('w', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsVar, True, chk_enable_all, activity, system, faction, x))

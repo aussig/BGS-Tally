@@ -73,11 +73,11 @@ class Overlay:
 
             # Title
             if text_includes_title:
-                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
+                self.edmcoverlay.send_message(f"bgstally-msg-title-{frame_name}-{index}", segments[index], title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
                 yoffset += HEIGHT_CHARACTER_LARGE
                 index += 1
             elif title is not None:
-                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", title, title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
+                self.edmcoverlay.send_message(f"bgstally-msg-title-{frame_name}-{index}", title, title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
                 yoffset += HEIGHT_CHARACTER_LARGE
 
             # Text

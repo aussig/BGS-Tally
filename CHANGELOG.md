@@ -1,6 +1,6 @@
 # Change Log
 
-## vx.x.x - xxxx-xx-xx
+## v4.2.0 - 2024-12-22
 
 ### New Features:
 

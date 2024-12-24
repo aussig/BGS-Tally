@@ -2,7 +2,19 @@ from enum import Enum
 
 from bgstally.utils import human_format
 
+class MissionType(str, Enum):
+    RECON = 'recon'
+    WIN_WAR = 'win_war'
+    DRAW_WAR = 'draw_war'
+    WIN_ELECTION = 'win_election'
+    DRAW_ELECTION = 'draw_election'
+    BOOST = 'boost'
+    EXPAND = 'expand'
+    REDUCE = 'reduce'
+    RETREAT = 'retreat'
+    EQUALISE = 'equalise'
 class MissionTargetType(str, Enum):
+    VISIT = 'visit'
     INF = 'inf'
     BV = 'bv'
     CB = 'cb'
@@ -55,16 +67,29 @@ class ObjectivesManager:
 
         for objective in self._objectives:
             result += objective.get('title', "<untitled objective>") + "\n"
+            result += "  › " + objective.get('description', "") + "\n"
+
             for mission in objective.get('missions', []):
-                result += mission.get('title', "<untitled mission>") + " (" + mission.get('type', "") + ")" + "\n"
-                result += "  " + mission.get('description', "") + "\n"
-                target_system: str = mission.get('system', "<unknown system>")
-                faction: str = mission.get('faction', "<unknown faction>")
-                opposing_faction: str = mission.get('opposing_faction', "<unknown faction>")
+                mission_system: str = mission.get('system')
+                mission_station: str = mission.get('station')
+                mission_faction: str = mission.get('faction')
+
+                match mission.get('type'):
+                    case MissionType.RECON: result += "  º " + "Recon Mission" + "\n"
+                    case MissionType.WIN_WAR: result += "  º " + "Win a War" + "\n"
+                    case MissionType.DRAW_WAR: result += "  º " + "Draw a War" + "\n"
+                    case MissionType.WIN_ELECTION: result += "  º " + "Win an Election" + "\n"
+                    case MissionType.DRAW_ELECTION: result += "  º " + "Draw an Election" + "\n"
+                    case MissionType.BOOST: result += "  º " + "Boost a Faction" + "\n"
+                    case MissionType.EXPAND: result += "  º " + "Expand from a System" + "\n"
+                    case MissionType.REDUCE: result += "  º " + "Reduce a Faction" + "\n"
+                    case MissionType.RETREAT: result += "  º " + "Retreat a Faction from a System" + "\n"
+                    case MissionType.EQUALISE: result += "  º " + "Equalise two Factions" + "\n"
 
                 for target in mission.get('global_targets', []):
-                    target_faction: str = target.get('faction') if target.get('faction') else faction
-                    opposing_target_faction: str = target.get('faction') if target.get('faction') else opposing_faction
+                    target_system = target.get('system', mission_system)
+                    target_station = target.get('station', mission_station)
+                    target_faction = target.get('faction', mission_faction)
 
                     try:
                         value: int = int(target.get('value', 0))
@@ -72,44 +97,50 @@ class ObjectivesManager:
                         value: int = 0
 
                     match target.get('type'):
+                        case MissionTargetType.VISIT:
+                            if target_station:
+                                result += f"    • Access the market in station '{target_station}' in '{target_system}'" + "\n"
+                            else:
+                                result += f"    • Visit system '{target_system}'" + "\n"
+
                         case MissionTargetType.INF:
                             if value > 0:
-                                result += f"    Boost '{target_faction}' in '{target_system}' by {value} INF" + "\n"
+                                result += f"    • Boost '{target_faction}' in '{target_system}' by {value} INF" + "\n"
                             elif value < 0:
-                                result += f"    Undermine '{target_faction}' in '{target_system}' by {value} INF" + "\n"
+                                result += f"    • Undermine '{target_faction}' in '{target_system}' by {value} INF" + "\n"
                             else:
-                                result += f"    Boost '{target_faction}' in '{target_system}' with as much INF as possible" + "\n"
+                                result += f"    • Boost '{target_faction}' in '{target_system}' with as much INF as possible" + "\n"
 
                         case MissionTargetType.BV:
-                            result += f"    Hand in {human_format(value)} CR of Bounty Vouchers for '{target_faction}' in '{target_system}'" + "\n"
+                            result += f"    • Hand in {human_format(value)} CR of Bounty Vouchers for '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.CB:
-                            result += f"    Hand in {human_format(value)} CR of Combat Bonds for '{target_faction}' in '{target_system}'" + "\n"
+                            result += f"    • Hand in {human_format(value)} CR of Combat Bonds for '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.EXPL:
-                            result += f"    Hand in {human_format(value)} CR of Exploration Data for '{target_faction}' in '{target_system}'" + "\n"
+                            result += f"    • Hand in {human_format(value)} CR of Exploration Data for '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.TRADE_PROFIT:
-                            result += f"    Generate {human_format(value)} CR of Trade Profit '{target_faction}' in '{target_system}'" + "\n"
+                            result += f"    • Generate {human_format(value)} CR of Trade Profit '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.BM_PROF:
-                            result += f"    Generate {human_format(value)} CR of Black Market Profit '{target_faction}' in '{target_system}'" + "\n"
+                            result += f"    • Generate {human_format(value)} CR of Black Market Profit '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.GROUND_CZ:
-                            result += f"    Fight for '{target_faction}' at on-ground CZs in '{target_system}' ({value} wins)" + "\n"
+                            result += f"    • Fight for '{target_faction}' at on-ground CZs in '{target_system}' ({value} wins)" + "\n"
 
                             if target.get('settlements'):
                                 for settlement in target.get('settlements', []):
                                     settlement_value: str = settlement.get('value', "0")
-                                    result += f"      Fight at '{settlement.get('name', '<unknown>')} ({settlement_value} wins)" + "\n"
+                                    result += f"      • Fight at '{settlement.get('name', '<unknown>')}' ({settlement_value} wins)" + "\n"
 
                         case MissionTargetType.SPACE_CZ:
-                            result += f"    Fight for '{target_faction}' at in-space CZs in '{target_system}' ({value} wins)" + "\n"
+                            result += f"    • Fight for '{target_faction}' at in-space CZs in '{target_system}' ({value} wins)" + "\n"
 
                         case MissionTargetType.MURDER:
-                            result += f"    Murder {value} ships of the '{opposing_target_faction}' in '{target_system}'" + "\n"
+                            result += f"    • Murder {value} ships of the '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.MISSION_FAIL:
-                            result += f"    Fail {value} missions for the '{opposing_target_faction}' in '{target_system}'" + "\n"
+                            result += f"    • Fail {value} missions for the '{target_faction}' in '{target_system}'" + "\n"
 
         return result

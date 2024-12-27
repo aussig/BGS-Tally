@@ -26,16 +26,13 @@ class MissionTargetType(str, Enum):
     MURDER = 'murder'
     MISSION_FAIL = 'mission_fail'
 
-
 class ObjectivesManager:
     """
     Handles the management of objectives
     """
-
     def __init__(self, bgstally):
         self.bgstally = bgstally
 
-        # Create list of instances of each subclass of FormatterInterface
         self._objectives: list[dict] = []
 
 
@@ -43,7 +40,7 @@ class ObjectivesManager:
         """Get the available objectives
 
         Returns:
-            dict: key = formatter class name, value = formatter public name
+            list: current list of objectives
         """
         return self._objectives
 
@@ -86,61 +83,94 @@ class ObjectivesManager:
                     case MissionType.RETREAT: result += "  º " + "Retreat a Faction from a System" + "\n"
                     case MissionType.EQUALISE: result += "  º " + "Equalise two Factions" + "\n"
 
-                for target in mission.get('global_targets', []):
+                for target in mission.get('targets', []):
                     target_system = target.get('system', mission_system)
                     target_station = target.get('station', mission_station)
                     target_faction = target.get('faction', mission_faction)
 
                     try:
-                        value: int = int(target.get('value', 0))
+                        value: int = int(target.get('value', 1))
                     except ValueError:
-                        value: int = 0
+                        value: int = 1
+                    try:
+                        progress: int = int(target.get('progress', 0))
+                    except ValueError:
+                        progress: int = 0
+
+                    if value > 0 and progress >= value:
+                        flag: str = "√ [done]"
+                        complete: bool = True
+                    else:
+                        flag: str = "•"
+                        complete: bool = False
 
                     match target.get('type'):
                         case MissionTargetType.VISIT:
                             if target_station:
-                                result += f"    • Access the market in station '{target_station}' in '{target_system}'" + "\n"
+                                result += f"    {flag} Access the market in station '{target_station}' in '{target_system}'" + "\n"
                             else:
-                                result += f"    • Visit system '{target_system}'" + "\n"
+                                result += f"    {flag} Visit system '{target_system}'" + "\n"
 
                         case MissionTargetType.INF:
+                            status: str = flag if complete else f"{flag} [{progress} / {value} INF]"
                             if value > 0:
-                                result += f"    • Boost '{target_faction}' in '{target_system}' by {value} INF" + "\n"
+                                result += f"    {status} Boost '{target_faction}' in '{target_system}'" + "\n"
                             elif value < 0:
-                                result += f"    • Undermine '{target_faction}' in '{target_system}' by {value} INF" + "\n"
+                                result += f"    {status} Undermine '{target_faction}' in '{target_system}'" + "\n"
                             else:
-                                result += f"    • Boost '{target_faction}' in '{target_system}' with as much INF as possible" + "\n"
+                                result += f"    {flag} Boost '{target_faction}' in '{target_system}' with as much INF as possible" + "\n"
 
                         case MissionTargetType.BV:
-                            result += f"    • Hand in {human_format(value)} CR of Bounty Vouchers for '{target_faction}' in '{target_system}'" + "\n"
+                            status: str = flag if complete else f"{flag} [{human_format(progress)} / {human_format(value)} CR]"
+                            result += f"    {status} Hand in Bounty Vouchers for '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.CB:
-                            result += f"    • Hand in {human_format(value)} CR of Combat Bonds for '{target_faction}' in '{target_system}'" + "\n"
+                            status: str = flag if complete else f"{flag} [{human_format(progress)} / {human_format(value)} CR]"
+                            result += f"    {status} Hand in Combat Bonds for '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.EXPL:
-                            result += f"    • Hand in {human_format(value)} CR of Exploration Data for '{target_faction}' in '{target_system}'" + "\n"
+                            status: str = flag if complete else f"{flag} [{human_format(progress)} / {human_format(value)} CR]"
+                            result += f"    {status} Hand in Exploration Data for '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.TRADE_PROFIT:
-                            result += f"    • Generate {human_format(value)} CR of Trade Profit '{target_faction}' in '{target_system}'" + "\n"
+                            status: str = flag if complete else f"{flag} [{human_format(progress)} / {human_format(value)} CR]"
+                            result += f"    {status} Generate Trade Profit for '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.BM_PROF:
-                            result += f"    • Generate {human_format(value)} CR of Black Market Profit '{target_faction}' in '{target_system}'" + "\n"
+                            status: str = flag if complete else f"{flag} [{human_format(progress)} / {human_format(value)} CR]"
+                            result += f"    {status} Generate Black Market Profit for '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.GROUND_CZ:
-                            result += f"    • Fight for '{target_faction}' at on-ground CZs in '{target_system}' ({value} wins)" + "\n"
+                            status: str = flag if complete else f"{flag} [{progress} / {value} wins]"
+                            result += f"    {status} Fight for '{target_faction}' at on-ground CZs in '{target_system}'" + "\n"
 
                             if target.get('settlements'):
                                 for settlement in target.get('settlements', []):
                                     settlement_value: str = settlement.get('value', "0")
-                                    result += f"      • Fight at '{settlement.get('name', '<unknown>')}' ({settlement_value} wins)" + "\n"
+                                    settlement_progress: str = settlement.get('progress', "0")
+
+                                    if settlement_value > 0 and settlement_progress >= settlement_value:
+                                        flag: str = "√ [done]"
+                                        complete: bool = True
+                                    else:
+                                        flag: str = "•"
+                                        complete: bool = False
+
+                                    status: str = flag if complete else f"{flag} [{settlement_progress} / {settlement_value} wins]"
+
+                                    result += f"      {status} Fight at '{settlement.get('name', '<unknown>')}'" + "\n"
 
                         case MissionTargetType.SPACE_CZ:
-                            result += f"    • Fight for '{target_faction}' at in-space CZs in '{target_system}' ({value} wins)" + "\n"
+                            status: str = flag if complete else f"{flag} [{progress} / {value} wins]"
+                            result += f"    {status} Fight for '{target_faction}' at in-space CZs in '{target_system}'" + "\n"
 
                         case MissionTargetType.MURDER:
-                            result += f"    • Murder {value} ships of the '{target_faction}' in '{target_system}'" + "\n"
+                            status: str = flag if complete else f"{flag} [{progress} / {value} kills]"
+                            result += f"    {status} Murder ships of the '{target_faction}' in '{target_system}'" + "\n"
 
                         case MissionTargetType.MISSION_FAIL:
-                            result += f"    • Fail {value} missions for the '{target_faction}' in '{target_system}'" + "\n"
+                            status: str = flag if complete else f"{flag} [{progress} / {value} fails]"
+                            result += f"    {status} Fail missions against the '{target_faction}' in '{target_system}'" + "\n"
+
 
         return result

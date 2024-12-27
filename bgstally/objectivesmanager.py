@@ -142,11 +142,11 @@ class ObjectivesManager:
 
                         case MissionTargetType.MURDER:
                             status, value = self._get_status(target, label="kills")
-                            result += f"    {status} Murder ships of the '{target_faction}' in '{target_system}'" + "\n"
+                            result += f"    {status} Murder '{target_faction}' ships in '{target_system}'" + "\n"
 
                         case MissionTargetType.MISSION_FAIL:
                             status, value = self._get_status(target, label="fails")
-                            result += f"    {status} Fail missions against the '{target_faction}' in '{target_system}'" + "\n"
+                            result += f"    {status} Fail missions against '{target_faction}' in '{target_system}'" + "\n"
 
 
         return result

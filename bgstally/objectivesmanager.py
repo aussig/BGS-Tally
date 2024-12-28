@@ -99,18 +99,21 @@ class ObjectivesManager:
                 target_station: str|None = target.get('station', mission_station)
                 target_faction: str|None = target.get('faction', mission_faction)
                 system_activity: dict|None = mission_activity.get_system_by_name(target_system)
-                Debug.logger.debug(f"SYSTEM {target_system}: {system_activity}")
                 faction_activity: dict|None = None if system_activity is None else get_by_path(system_activity, ['Factions', target_faction])
-                Debug.logger.debug(f"FACTION {target_faction}: {faction_activity}")
                 status: str
                 value: int
 
                 match target.get('type'):
                     case MissionTargetType.VISIT:
-                        status, value = self._get_status(target, numeric=False)
+                        # Progress on 'visit' targets should be handled server-side as it should account for all users visiting system / station
+                        # by looking at the EDDN stream.
                         if target_station:
+                            status, value = self._get_status(target, numeric=False)
                             result += f"  {status} Access the market in station '{target_station}' in '{target_system}'" + "\n"
                         else:
+                            # Fudge system visiting locally by just looking for the system in user activity.
+                            user_progress: int|None = None if system_activity is None else 1
+                            status, value = self._get_status(target, user_progress=user_progress, numeric=False)
                             result += f"  {status} Visit system '{target_system}'" + "\n"
 
                     case MissionTargetType.INF:

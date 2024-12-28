@@ -4,7 +4,7 @@ from os import path
 
 from bgstally.activity import Activity
 from bgstally.api import API
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA
+from bgstally.constants import DATETIME_FORMAT_API, FOLDER_OTHER_DATA
 from bgstally.debug import Debug
 from bgstally.utils import get_by_path
 
@@ -85,8 +85,8 @@ class APIManager:
         api_activity:dict = {
             'cmdr': cmdr,
             'tickid': activity.tick_id,
-            'ticktime': activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL),
-            'timestamp': datetime.utcnow().strftime(DATETIME_FORMAT_JOURNAL),
+            'ticktime': activity.tick_time.strftime(DATETIME_FORMAT_API),
+            'timestamp': datetime.utcnow().strftime(DATETIME_FORMAT_API),
             'systems': []
         }
 
@@ -265,7 +265,7 @@ class APIManager:
         # BGS-Tally specific global enhancements
         event['cmdr'] = cmdr
         event['tickid'] = activity.tick_id
-        event['ticktime']: activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL)
+        event['ticktime']: activity.tick_time.strftime(DATETIME_FORMAT_API)
 
         # Other global enhancements
         if 'StationFaction' not in event: event['StationFaction'] = {'Name': self.bgstally.state.station_faction}

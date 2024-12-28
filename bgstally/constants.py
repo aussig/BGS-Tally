@@ -86,6 +86,7 @@ class CmdrInteractionReason(int, Enum):
 
 
 DATETIME_FORMAT_JOURNAL: str = "%Y-%m-%dT%H:%M:%SZ"
+DATETIME_FORMAT_API: str = "%Y-%m-%dT%H:%M:%SZ"
 FILE_SUFFIX: str = ".json"
 FOLDER_ASSETS: str = "assets"
 FOLDER_BACKUPS: str = "backups"

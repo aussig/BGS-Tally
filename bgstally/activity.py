@@ -9,7 +9,7 @@ from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
 from bgstally.tick import Tick
-from bgstally.utils import _, __
+from bgstally.utils import _, __, add_dicts
 from thirdparty.colors import *
 
 DATETIME_FORMAT_ACTIVITY = "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -105,6 +105,17 @@ TW_CBS = {
     40000000: 'm',                  # Medusa - 40m v18.06
     60000000: 'h'                   # Hydra - 60m v18.06
 }
+
+
+class SystemActivity(dict):
+    """
+    Utility class for working with system activity. Adds some accessor methods for ease of use.
+    """
+    def get_trade_profit_total(self):
+        try:
+            return sum(int(d['profit']) for d in dict.__getitem__(self, 'TradeSell'))
+        except KeyError:
+            return 0
 
 
 class Activity:
@@ -1389,6 +1400,10 @@ class Activity:
     def __repr__(self):
         return f"{self.tick_id} ({self.tick_time}): {self._as_dict()}"
 
+
+    def __add__(self, other):
+        self.systems = add_dicts(self.systems, other.systems)
+        return self
 
     # Deep copy override function - we don't deep copy any class references, just data
 

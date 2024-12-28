@@ -1,6 +1,11 @@
+from datetime import datetime, UTC
 from enum import Enum
 
-from bgstally.utils import human_format
+from bgstally.activity import Activity
+from bgstally.constants import DATETIME_FORMAT_API
+from bgstally.debug import Debug
+from bgstally.utils import get_by_path, human_format
+
 
 class MissionType(str, Enum):
     RECON = 'recon'
@@ -62,103 +67,128 @@ class ObjectivesManager:
         """
         result: str = ""
 
-        for objective in self._objectives:
-            result += objective.get('title', "<untitled objective>") + "\n"
-            result += "  › " + objective.get('description', "") + "\n"
+        for mission in self._objectives:
+            mission_title: str = mission.get('title')
+            mission_description: str = mission.get('description')
+            mission_system: str = mission.get('system')
+            mission_station: str = mission.get('station')
+            mission_faction: str = mission.get('faction')
+            mission_startdate: datetime = datetime.strptime(mission.get('startdate', datetime.now(UTC).strftime(DATETIME_FORMAT_API)), DATETIME_FORMAT_API)
+            mission_activity: Activity = self.bgstally.activity_manager.query_activity(mission_startdate)
 
-            for mission in objective.get('missions', []):
-                mission_system: str = mission.get('system')
-                mission_station: str = mission.get('station')
-                mission_faction: str = mission.get('faction')
-
+            if mission_title:
+                result += "º " + mission_title + "\n"
+            else:
                 match mission.get('type'):
-                    case MissionType.RECON: result += "  º " + "Recon Mission" + "\n"
-                    case MissionType.WIN_WAR: result += "  º " + "Win a War" + "\n"
-                    case MissionType.DRAW_WAR: result += "  º " + "Draw a War" + "\n"
-                    case MissionType.WIN_ELECTION: result += "  º " + "Win an Election" + "\n"
-                    case MissionType.DRAW_ELECTION: result += "  º " + "Draw an Election" + "\n"
-                    case MissionType.BOOST: result += "  º " + "Boost a Faction" + "\n"
-                    case MissionType.EXPAND: result += "  º " + "Expand from a System" + "\n"
-                    case MissionType.REDUCE: result += "  º " + "Reduce a Faction" + "\n"
-                    case MissionType.RETREAT: result += "  º " + "Retreat a Faction from a System" + "\n"
-                    case MissionType.EQUALISE: result += "  º " + "Equalise two Factions" + "\n"
+                    case MissionType.RECON: result += "º " + "Recon Mission" + "\n"
+                    case MissionType.WIN_WAR: result += "º " + "Win a War" + "\n"
+                    case MissionType.DRAW_WAR: result += "º " + "Draw a War" + "\n"
+                    case MissionType.WIN_ELECTION: result += "º " + "Win an Election" + "\n"
+                    case MissionType.DRAW_ELECTION: result += "º " + "Draw an Election" + "\n"
+                    case MissionType.BOOST: result += "º " + "Boost a Faction" + "\n"
+                    case MissionType.EXPAND: result += "º " + "Expand from a System" + "\n"
+                    case MissionType.REDUCE: result += "º " + "Reduce a Faction" + "\n"
+                    case MissionType.RETREAT: result += "º " + "Retreat a Faction from a System" + "\n"
+                    case MissionType.EQUALISE: result += "º " + "Equalise two Factions" + "\n"
 
-                for target in mission.get('targets', []):
-                    target_system: str = target.get('system', mission_system)
-                    target_station: str = target.get('station', mission_station)
-                    target_faction: str = target.get('faction', mission_faction)
-                    status: str
-                    value: int
+            if mission_description:
+                result += "› " + mission_description + "\n"
 
-                    match target.get('type'):
-                        case MissionTargetType.VISIT:
-                            status, value = self._get_status(target, numeric=False)
-                            if target_station:
-                                result += f"    {status} Access the market in station '{target_station}' in '{target_system}'" + "\n"
-                            else:
-                                result += f"    {status} Visit system '{target_system}'" + "\n"
+            for target in mission.get('targets', []):
+                target_system: str|None = target.get('system', mission_system)
+                target_station: str|None = target.get('station', mission_station)
+                target_faction: str|None = target.get('faction', mission_faction)
+                system_activity: dict|None = mission_activity.get_system_by_name(target_system)
+                Debug.logger.debug(f"SYSTEM {target_system}: {system_activity}")
+                faction_activity: dict|None = None if system_activity is None else get_by_path(system_activity, ['Factions', target_faction])
+                Debug.logger.debug(f"FACTION {target_faction}: {faction_activity}")
+                status: str
+                value: int
 
-                        case MissionTargetType.INF:
-                            status, value = self._get_status(target, label="INF")
-                            if value > 0:
-                                result += f"    {status} Boost '{target_faction}' in '{target_system}'" + "\n"
-                            elif value < 0:
-                                result += f"    {status} Undermine '{target_faction}' in '{target_system}'" + "\n"
-                            else:
-                                result += f"    {status} Boost '{target_faction}' in '{target_system}' with as much INF as possible" + "\n"
+                match target.get('type'):
+                    case MissionTargetType.VISIT:
+                        status, value = self._get_status(target, numeric=False)
+                        if target_station:
+                            result += f"  {status} Access the market in station '{target_station}' in '{target_system}'" + "\n"
+                        else:
+                            result += f"  {status} Visit system '{target_system}'" + "\n"
 
-                        case MissionTargetType.BV:
-                            status, value = self._get_status(target, label="CR")
-                            result += f"    {status} Hand in Bounty Vouchers for '{target_faction}' in '{target_system}'" + "\n"
+                    case MissionTargetType.INF:
+                        user_progress: int|None = None if faction_activity is None else \
+                            sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPoints'].items()) + \
+                            sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPointsSecondary'].items())
+                        status, value = self._get_status(target, user_progress=user_progress, label="INF")
+                        if value > 0:
+                            result += f"  {status} Boost '{target_faction}' in '{target_system}'" + "\n"
+                        elif value < 0:
+                            result += f"  {status} Undermine '{target_faction}' in '{target_system}'" + "\n"
+                        else:
+                            result += f"  {status} Boost '{target_faction}' in '{target_system}' with as much INF as possible" + "\n"
 
-                        case MissionTargetType.CB:
-                            status, value = self._get_status(target, label="CR")
-                            result += f"    {status} Hand in Combat Bonds for '{target_faction}' in '{target_system}'" + "\n"
+                    case MissionTargetType.BV:
+                        user_progress: int|None = None if faction_activity is None else faction_activity.get('Bounties')
+                        status, value = self._get_status(target, user_progress=user_progress, label="CR")
+                        result += f"  {status} Bounty Vouchers for '{target_faction}' in '{target_system}'" + "\n"
 
-                        case MissionTargetType.EXPL:
-                            status, value = self._get_status(target, label="CR")
-                            result += f"    {status} Hand in Exploration Data for '{target_faction}' in '{target_system}'" + "\n"
+                    case MissionTargetType.CB:
+                        user_progress: int|None = None if faction_activity is None else faction_activity.get('CombatBonds')
+                        status, value = self._get_status(target, user_progress=user_progress, label="CR")
+                        result += f"  {status} Combat Bonds for '{target_faction}' in '{target_system}'" + "\n"
 
-                        case MissionTargetType.TRADE_PROFIT:
-                            status, value = self._get_status(target, label="CR")
-                            result += f"    {status} Generate Trade Profit for '{target_faction}' in '{target_system}'" + "\n"
+                    case MissionTargetType.EXPL:
+                        user_progress: int|None = None if faction_activity is None else faction_activity.get('CartData')
+                        status, value = self._get_status(target, user_progress=user_progress, label="CR")
+                        result += f"  {status} Exploration Data for '{target_faction}' in '{target_system}'" + "\n"
 
-                        case MissionTargetType.BM_PROF:
-                            status, value = self._get_status(target, label="CR")
-                            result += f"    {status} Generate Black Market Profit for '{target_faction}' in '{target_system}'" + "\n"
+                    case MissionTargetType.TRADE_PROFIT:
+                        user_progress: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity['TradeSell'])
+                        status, value = self._get_status(target, user_progress=user_progress, label="CR")
+                        result += f"  {status} Trade Profit for '{target_faction}' in '{target_system}'" + "\n"
 
-                        case MissionTargetType.GROUND_CZ:
-                            status, value = self._get_status(target, label="wins")
-                            result += f"    {status} Fight for '{target_faction}' at on-ground CZs in '{target_system}'" + "\n"
+                    case MissionTargetType.BM_PROF:
+                        user_progress: int|None = None if faction_activity is None else faction_activity.get('BlackMarketProfit')
+                        status, value = self._get_status(target, user_progress=user_progress, label="CR")
+                        result += f"  {status} Black Market Profit for '{target_faction}' in '{target_system}'" + "\n"
 
-                            if target.get('settlements'):
-                                for settlement in target.get('settlements', []):
-                                    status, value = self._get_status(settlement, label="wins")
-                                    result += f"      {status} Fight at '{settlement.get('name', '<unknown>')}'" + "\n"
+                    case MissionTargetType.GROUND_CZ:
+                        user_progress: int|None = None if faction_activity is None else sum(faction_activity.get('GroundCZ', {}).values())
+                        status, value = self._get_status(target, user_progress=user_progress, label="wins")
+                        result += f"  {status} Fight for '{target_faction}' at on-ground CZs in '{target_system}'" + "\n"
 
-                        case MissionTargetType.SPACE_CZ:
-                            status, value = self._get_status(target, label="wins")
-                            result += f"    {status} Fight for '{target_faction}' at in-space CZs in '{target_system}'" + "\n"
+                        for settlement in target.get('settlements', []):
+                            settlement_name: str|None = settlement.get('name')
+                            settlement_activity: dict|None = None if faction_activity is None else get_by_path(faction_activity, ['GroundCZSettlements', settlement_name], None)
+                            user_progress: int|None = None if settlement_activity is None else settlement_activity.get('count')
+                            status, value = self._get_status(settlement, user_progress=user_progress, label="wins")
+                            result += f"    {status} Fight at '{settlement_name}'" + "\n"
 
-                        case MissionTargetType.MURDER:
-                            status, value = self._get_status(target, label="kills")
-                            result += f"    {status} Murder '{target_faction}' ships in '{target_system}'" + "\n"
+                    case MissionTargetType.SPACE_CZ:
+                        user_progress: int|None = None if faction_activity is None else sum(faction_activity.get('SpaceCZ', {}).values())
+                        status, value = self._get_status(target, user_progress=user_progress, label="wins")
+                        result += f"  {status} Fight for '{target_faction}' at in-space CZs in '{target_system}'" + "\n"
 
-                        case MissionTargetType.MISSION_FAIL:
-                            status, value = self._get_status(target, label="fails")
-                            result += f"    {status} Fail missions against '{target_faction}' in '{target_system}'" + "\n"
+                    case MissionTargetType.MURDER:
+                        user_progress: int|None = None if faction_activity is None else faction_activity.get('Murdered')
+                        status, value = self._get_status(target, user_progress=user_progress, label="kills")
+                        result += f"  {status} Murder '{target_faction}' ships in '{target_system}'" + "\n"
+
+                    case MissionTargetType.MISSION_FAIL:
+                        user_progress: int|None = None if faction_activity is None else faction_activity.get('MissionFailed')
+                        status, value = self._get_status(target, user_progress=user_progress, label="fails")
+                        result += f"  {status} Fail missions against '{target_faction}' in '{target_system}'" + "\n"
 
 
         return result
 
 
-    def _get_status(self, target: dict, numeric: bool = True, label: str|None = None) -> tuple[str, int]:
+    def _get_status(self, target: dict, numeric: bool = True, user_progress: int|None = None, label: str|None = None) -> tuple[str, int]:
         """Get a string showing the status of a particular mission or sub-mission
 
         Args:
-            target (dict): A dict containing information about the mission or sub-mission
+            target (dict): A dict containing information about the mission or sub-mission, including global progress from server.
             just_flag (bool): If True, only show a status flag, not the numeric progress. Defaults to False.
             numeric (bool): If True, track as progress towards a numeric target. Defaults to True.
+            user_progress (int | None, optional: Progress made by user. Defaults to None.
             label (str | None, optional): A label suffix for the values. Defaults to None.
 
         Returns:
@@ -170,16 +200,18 @@ class ObjectivesManager:
             value: int = 0
 
         try:
-            progress: int = int(target.get('progress', 0))
+            # For the moment, just show user progess. May want to show both global and user progress in future.
+            progress: int|None = user_progress # or int(target.get('progress', 0))
         except ValueError:
-            progress: int = 0
+            progress: int|None = 0
 
         if value == 0 and numeric:
             flag: str = "∞"
             complete: bool = False
-        elif (numeric and value > 0 and progress >= value) or \
+        elif progress is not None and ( \
+             (numeric and value > 0 and progress >= value) or \
              (numeric and value < 0 and progress <= value) or \
-             (not numeric and progress > 0):
+             (not numeric and progress > 0)):
             flag: str = "√ [done]"
             complete: bool = True
         else:
@@ -191,7 +223,9 @@ class ObjectivesManager:
             return flag, value
         elif value == 0:
             # Infinite target value
-            return f"{flag} [{human_format(progress)} / ∞ {label}]", value
+            if progress: return f"{flag} [{human_format(progress)} / ∞ {label}]", value
+            else: return f"{flag} [∞ {label}]", value
         else:
             # Integer target value
-            return f"{flag} [{human_format(progress)} / {human_format(value)} {label}]", value
+            if progress: return f"{flag} [{human_format(progress)} / {human_format(value)} {label}]", value
+            else: return f"{flag} [{human_format(progress)} / {human_format(value)} {label}]", value

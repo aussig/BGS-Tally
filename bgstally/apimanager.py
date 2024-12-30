@@ -1,6 +1,7 @@
 import json
-from datetime import datetime
+from datetime import datetime, UTC
 from os import path
+from enum import Enum
 
 from bgstally.activity import Activity
 from bgstally.api import API
@@ -9,6 +10,18 @@ from bgstally.debug import Debug
 from bgstally.utils import get_by_path
 
 FILENAME = "apis.json"
+
+class SyntheticEvent(str, Enum):
+    CZ = 'SyntheticCZ'
+    GROUNDCZ = 'SyntheticGroundCZ'
+    CZOBJECTIVE = 'SyntheticCZObjective'
+    SCENARIO = 'SyntheticScenario'
+
+class SyntheticCZObjectiveType(str, Enum):
+    CAPSHIP = 'CapShip'
+    SPECOPS = 'SpecOps'
+    GENERAL = 'WarzoneGeneral'
+    CORRESPONDENT = 'WarzoneCorrespondent'
 
 
 class APIManager:
@@ -69,11 +82,16 @@ class APIManager:
             api.send_activity(api_activity)
 
 
-    def send_event(self, event:dict, activity:Activity, cmdr:str, mission:dict):
+    def send_event(self, event: dict, activity: Activity, cmdr: str, mission: dict = {}):
+        """Event has been received. Add it to the events queue.
+
+        Args:
+            event (dict): A dict containing all the event fields
+            activity (Activity): The activity object
+            cmdr (str): The CMDR name
+            mission (dict, optional): Information about the mission, if applicable. Defaults to {}.
         """
-        Event has been received. Add it to the events queue.
-        """
-        api_event:dict = self._build_api_event(event, activity, cmdr, mission)
+        api_event: dict = self._build_api_event(event, activity, cmdr, mission)
         for api in self.apis:
             api.send_event(api_event)
 
@@ -253,7 +271,7 @@ class APIManager:
         return api_activity
 
 
-    def _build_api_event(self, event:dict, activity:Activity, cmdr:str, mission:dict):
+    def _build_api_event(self, event:dict, activity:Activity, cmdr:str, mission:dict = {}):
         """
         Build an API-ready event ready for sending. This just involves enhancing the event with some
         additional data
@@ -271,6 +289,7 @@ class APIManager:
         if 'StationFaction' not in event: event['StationFaction'] = {'Name': self.bgstally.state.station_faction}
         if 'StarSystem' not in event: event['StarSystem'] = get_by_path(activity.systems, [self.bgstally.state.current_system_id, 'System'], "")
         if 'SystemAddress' not in event: event['SystemAddress'] = self.bgstally.state.current_system_id
+        if 'timestamp' not in event: event['timestamp'] = datetime.now(UTC).strftime(DATETIME_FORMAT_JOURNAL),
 
         # Event-specific enhancements
         match event.get('event'):

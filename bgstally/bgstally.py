@@ -134,7 +134,7 @@ class BGSTally:
                 dirty = True
 
             case 'CapShipBond':
-                activity.cap_ship_bond_received(entry)
+                activity.cap_ship_bond_received(entry, cmdr)
                 dirty = True
 
             case 'Cargo':
@@ -173,7 +173,7 @@ class BGSTally:
                 dirty = True
 
             case 'FactionKillBond' if state['Odyssey']:
-                activity.cb_received(entry, self.state)
+                activity.cb_received(entry, self.state, cmdr)
                 dirty = True
 
             case 'Friends' if entry.get('Status') == "Requested":

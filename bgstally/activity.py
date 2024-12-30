@@ -1,10 +1,11 @@
 import json
 import re
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Dict
 
-from bgstally.constants import FILE_SUFFIX, CheckStates
+from bgstally.apimanager import SyntheticEvent, SyntheticCZObjectiveType
+from bgstally.constants import FILE_SUFFIX, CheckStates, DATETIME_FORMAT_JOURNAL
 from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
@@ -585,9 +586,13 @@ class Activity:
                 self.recalculate_zero_activity()
 
 
-    def cb_received(self, journal_entry: dict, state: State):
-        """
-        Handle a combat bond received for a kill
+    def cb_received(self, journal_entry: dict, state: State, cmdr: str):
+        """Handle a combat bond received for a kill
+
+        Args:
+            journal_entry (dict): The journal data
+            state (State): The state data
+            cmdr (str): The CMDR name
         """
         current_system = self.systems.get(state.current_system_id)
         if not current_system: return
@@ -617,7 +622,7 @@ class Activity:
             else:
                 # We're within the timeout, refresh timestamp and handle the CB
                 state.last_spacecz_approached['timestamp'] = journal_entry['timestamp']
-                self._cb_space_cz(journal_entry, current_system, state)
+                self._cb_space_cz(journal_entry, current_system, state, cmdr)
 
 
     def cb_redeemed(self, journal_entry: Dict, state: State):
@@ -636,7 +641,7 @@ class Activity:
             self.recalculate_zero_activity()
 
 
-    def cap_ship_bond_received(self, journal_entry: dict):
+    def cap_ship_bond_received(self, journal_entry: dict, cmdr: str):
         """Handle a capital ship bond
 
         Args:
@@ -652,6 +657,14 @@ class Activity:
             self.dirty = True
 
             faction['SpaceCZ']['cs'] = int(faction['SpaceCZ'].get('cs', '0')) + 1
+
+            event: dict = {
+                'event': SyntheticEvent.CZOBJECTIVE,
+                'count': 1,
+                'type': SyntheticCZObjectiveType.CAPSHIP,
+                'Faction': faction
+            }
+            self.bgstally.api_manager.send_event(event, self, cmdr)
 
             self.bgstally.ui.show_system_report(current_system['SystemAddress'])
             self.recalculate_zero_activity()
@@ -1022,16 +1035,18 @@ class Activity:
         self.recalculate_zero_activity()
 
 
-    def _cb_space_cz(self, journal_entry:dict, current_system:dict, state:State):
+    def _cb_space_cz(self, journal_entry: dict, current_system: dict, state: State, cmdr: str):
         """Combat bond received while we are in an active space CZ
 
         Args:
             journal_entry (dict): The journal entry data
             current_system (dict): The current system dict
             state (State): The bgstally state object
+            cmdr (str): The CMDR name
         """
 
-        faction = current_system['Factions'].get(journal_entry.get('AwardingFaction', ""))
+        faction_name: str = journal_entry.get('AwardingFaction', "")
+        faction: dict = current_system['Factions'].get(faction_name)
         if not faction: return
 
         # Check for side objectives detected by CBs
@@ -1040,18 +1055,45 @@ class Activity:
                 # Tally a captain kill. Unreliable because of journal order unpredictability.
                 state.last_spacecz_approached['capt'] = True
                 faction['SpaceCZ']['cp'] = int(faction['SpaceCZ'].get('cp', '0')) + 1
+
+                event: dict = {
+                    'event': SyntheticEvent.CZOBJECTIVE,
+                    'count': 1,
+                    'type': SyntheticCZObjectiveType.GENERAL,
+                    'Faction': faction_name
+                }
+                self.bgstally.api_manager.send_event(event, self, cmdr)
+
                 self.bgstally.ui.show_system_report(current_system['SystemAddress'])
             elif state.last_ship_targeted.get('PilotName', "") in SPACECZ_PILOTNAMES_SPECOPS and not state.last_spacecz_approached.get('specops'):
                 # Tally a specops kill. We would like to only tally this after 4 kills in a CZ, but sadly due to journal order
                 # unpredictability we tally as soon as we spot a kill after targeting a spec ops
                 state.last_spacecz_approached['specops'] = True
                 faction['SpaceCZ']['so'] = int(faction['SpaceCZ'].get('so', '0')) + 1
+
+                event: dict = {
+                    'event': SyntheticEvent.CZOBJECTIVE,
+                    'count': 1,
+                    'type': SyntheticCZObjectiveType.SPECOPS,
+                    'Faction': faction_name
+                }
+                self.bgstally.api_manager.send_event(event, self, cmdr)
+
                 self.bgstally.ui.show_system_report(current_system['SystemAddress'])
             elif state.last_ship_targeted.get('PilotName', "") == SPACECZ_PILOTNAME_PROPAGAND and not state.last_spacecz_approached.get('propagand'):
                 # Tally a propagandist kill. We would like to only tally this after 3 kills in a CZ, but sadly due to journal order
                 # unpredictability we tally as soon as we spot a kill after targeting a propagandist
                 state.last_spacecz_approached['propagand'] = True
                 faction['SpaceCZ']['pr'] = int(faction['SpaceCZ'].get('pr', '0')) + 1
+
+                event: dict = {
+                    'event': SyntheticEvent.CZOBJECTIVE,
+                    'count': 1,
+                    'type': SyntheticCZObjectiveType.CORRESPONDENT,
+                    'Faction': faction_name
+                }
+                self.bgstally.api_manager.send_event(event, self, cmdr)
+
                 self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
         # If we've already counted this CZ, exit
@@ -1061,8 +1103,19 @@ class Activity:
         state.last_spacecz_approached['ally_faction'] = faction.get('Faction', "")
         self.dirty = True
 
-        type:str = state.last_spacecz_approached.get('type', 'l')
+        type: str = state.last_spacecz_approached.get('type', 'l')
         faction['SpaceCZ'][type] = int(faction['SpaceCZ'].get(type, '0')) + 1
+
+        event: dict = {
+            'event': SyntheticEvent.CZ,
+            'Faction': faction_name
+        }
+        match type:
+            case 'l': event['low'] = 1
+            case 'm': event['medium'] = 1
+            case 'h': event['high'] = 1
+
+        self.bgstally.api_manager.send_event(event, self, cmdr)
 
         self.bgstally.ui.show_system_report(current_system['SystemAddress'])
         self.recalculate_zero_activity()

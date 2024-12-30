@@ -6,6 +6,10 @@
 
 * Highlight conflict states in the on-screen activity window: Elections in orange and wars in red.
 
+### Bug Fixes:
+
+* The tick time was not being sent in /event API calls.
+
 
 ## v4.2.0 - 2024-12-22
 

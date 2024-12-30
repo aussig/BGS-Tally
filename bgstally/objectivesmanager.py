@@ -68,12 +68,13 @@ class ObjectivesManager:
         result: str = ""
 
         for mission in self._objectives:
-            mission_title: str = mission.get('title')
-            mission_description: str = mission.get('description')
-            mission_system: str = mission.get('system')
-            mission_station: str = mission.get('station')
-            mission_faction: str = mission.get('faction')
+            mission_title: str|None = mission.get('title')
+            mission_description: str|None = mission.get('description')
+            mission_system: str|None = mission.get('system')
+            mission_faction: str|None = mission.get('faction')
             mission_startdate: datetime = datetime.strptime(mission.get('startdate', datetime.now(UTC).strftime(DATETIME_FORMAT_API)), DATETIME_FORMAT_API)
+            mission_enddate: datetime|None = datetime.strptime(mission.get('enddate', None), DATETIME_FORMAT_API)
+            if mission_enddate < datetime.now(UTC): continue
             mission_activity: Activity = self.bgstally.activity_manager.query_activity(mission_startdate)
 
             if mission_title:
@@ -96,8 +97,8 @@ class ObjectivesManager:
 
             for target in mission.get('targets', []):
                 target_system: str|None = target.get('system', mission_system)
-                target_station: str|None = target.get('station', mission_station)
                 target_faction: str|None = target.get('faction', mission_faction)
+                target_station: str|None = target.get('station')
                 system_activity: dict|None = mission_activity.get_system_by_name(target_system)
                 faction_activity: dict|None = None if system_activity is None else get_by_path(system_activity, ['Factions', target_faction])
                 status: str
@@ -105,15 +106,15 @@ class ObjectivesManager:
 
                 match target.get('type'):
                     case MissionTargetType.VISIT:
-                        # Progress on 'visit' targets should be handled server-side as it should account for all users visiting system / station
-                        # by looking at the EDDN stream.
                         if target_station:
-                            status, value = self._get_status(target, numeric=False)
+                            # Progress on 'visit station' targets is handled server-side
+                            server_progress: int|None = int(target.get('progress', 0))
+                            status, value = self._get_status(target, user_progress=server_progress, numeric=False)
                             result += f"  {status} Access the market in station '{target_station}' in '{target_system}'" + "\n"
                         else:
-                            # Fudge system visiting locally by just looking for the system in user activity.
-                            user_progress: int|None = None if system_activity is None else 1
-                            status, value = self._get_status(target, user_progress=user_progress, numeric=False)
+                            # Progress on 'visit system' targets is handled server-side
+                            server_progress: int|None = int(target.get('progress', 0))
+                            status, value = self._get_status(target, user_progress=server_progress, numeric=False)
                             result += f"  {status} Visit system '{target_system}'" + "\n"
 
                     case MissionTargetType.INF:
@@ -204,7 +205,7 @@ class ObjectivesManager:
 
         try:
             # For the moment, just show user progess. May want to show both global and user progress in future.
-            progress: int|None = user_progress # or int(target.get('progress', 0))
+            progress: int|None = user_progress
         except ValueError:
             progress: int|None = 0
 

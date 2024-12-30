@@ -4,7 +4,12 @@
 
 ### New Features:
 
+* Objectives!  If you use the API to connect to a server that supports them (API ≥ v1.6.0) then your squadron or group can define shared missions that multiple CMDRs can work towards. Missions can be of various types (for example - `win a war` or `boost a faction`) and each mission can have one or more targets (for example - `win xx space CZs` or `generate yyy CR in trade profit`).
 * Highlight conflict states in the on-screen activity window: Elections in orange and wars in red.
+
+### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxxxxxxx)):
+
+* New `/objectives` endpoint.
 
 
 ## v4.2.0 - 2024-12-22

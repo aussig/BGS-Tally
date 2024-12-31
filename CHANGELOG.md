@@ -4,8 +4,8 @@
 
 ### New Features:
 
-* Objectives!  If you use the API to connect to a server that supports them (API ≥ v1.6.0) then your squadron or group can define shared missions that multiple CMDRs can work towards. Missions can be of various types (for example - `win a war` or `boost a faction`) and each mission can have one or more targets (for example - `win xx space CZs` or `generate yyy CR in trade profit`).
-* Highlight conflict states in the on-screen activity window: Elections in orange and wars in red.
+* Objectives!  If you use the API to connect to a server that supports them (API ≥ v1.6.0) then your squadron or group can define shared missions that multiple CMDRs can work towards. Missions can be of various types (for example - `win a war` or `boost a faction`) and each mission can have one or more targets (for example - `win xx space CZs` or `generate yyy CR in trade profit`). The objectives are shown on the overlay in-game if you have it enabled.
+* Conflict states are highlighted in the activity window: Elections in orange and wars in red.
 
 ### Bug Fixes:
 

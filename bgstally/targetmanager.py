@@ -377,6 +377,10 @@ class TargetManager:
         Clear out all old targets from the target log
         """
         for target in reversed(self.targetlog):
-            timedifference = datetime.now(UTC) - datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL)
+            # Need to do this shenanegans to parse a tz-aware timestamp from a string
+            target_timestamp: datetime = datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL)
+            target_timestamp = target_timestamp.replace(tzinfo=UTC)
+
+            timedifference: datetime = datetime.now(UTC) - target_timestamp
             if timedifference > timedelta(days = TIME_TARGET_LOG_EXPIRY_D):
                 self.targetlog.remove(target)

@@ -73,7 +73,9 @@ class ObjectivesManager:
             mission_system: str|None = mission.get('system')
             mission_faction: str|None = mission.get('faction')
             mission_startdate: datetime = datetime.strptime(mission.get('startdate', datetime.now(UTC).strftime(DATETIME_FORMAT_API)), DATETIME_FORMAT_API)
-            mission_enddate: datetime|None = datetime.strptime(mission.get('enddate', None), DATETIME_FORMAT_API)
+            mission_startdate = mission_startdate.replace(tzinfo=UTC)
+            mission_enddate: datetime = datetime.strptime(mission.get('enddate', datetime(3999, 12, 31, 23, 59, 59, 0, UTC).strftime(DATETIME_FORMAT_API)), DATETIME_FORMAT_API)
+            mission_enddate = mission_enddate.replace(tzinfo=UTC)
             if mission_enddate < datetime.now(UTC): continue
             mission_activity: Activity = self.bgstally.activity_manager.query_activity(mission_startdate)
 

@@ -1,10 +1,10 @@
 import json
 import re
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Dict
 
-from bgstally.constants import ApiSizeLookup, ApiSyntheticEvent, ApiSyntheticCZObjectiveType, ApiSyntheticScenarioType, FILE_SUFFIX, CheckStates
+from bgstally.constants import ApiSizeLookup, ApiSyntheticEvent, ApiSyntheticCZObjectiveType, ApiSyntheticScenarioType, DATETIME_FORMAT_JOURNAL, FILE_SUFFIX, CheckStates
 from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
@@ -570,7 +570,7 @@ class Activity:
 
         # Check whether in megaship scenario for scenario tracking
         if state.last_megaship_approached != {}:
-            timedifference: datetime = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_megaship_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+            timedifference: datetime = datetime.strptime(journal_entry['timestamp'], DATETIME_FORMAT_JOURNAL) - datetime.strptime(state.last_megaship_approached['timestamp'], DATETIME_FORMAT_JOURNAL)
             if timedifference > timedelta(minutes=5):
                 # Too long since we last entered a megaship scenario, we can't be sure we're fighting at that scenario, clear down
                 state.last_megaship_approached = {}
@@ -618,7 +618,7 @@ class Activity:
 
         # Otherwise, must be on-ground or in-space CZ for CB kill tracking
         if state.last_settlement_approached != {}:
-            timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_settlement_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+            timedifference = datetime.strptime(journal_entry['timestamp'], DATETIME_FORMAT_JOURNAL) - datetime.strptime(state.last_settlement_approached['timestamp'], DATETIME_FORMAT_JOURNAL)
             if timedifference > timedelta(minutes=5):
                 # Too long since we last approached a settlement, we can't be sure we're fighting at that settlement, clear down
                 state.last_settlement_approached = {}
@@ -629,7 +629,7 @@ class Activity:
                 self._cb_ground_cz(journal_entry, current_system, state, cmdr)
 
         elif state.last_spacecz_approached != {}:
-            timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_spacecz_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+            timedifference = datetime.strptime(journal_entry['timestamp'], DATETIME_FORMAT_JOURNAL) - datetime.strptime(state.last_spacecz_approached['timestamp'], DATETIME_FORMAT_JOURNAL)
             if timedifference > timedelta(minutes=5):
                 # Too long since we last entered a space cz, we can't be sure we're fighting at that cz, clear down
                 state.last_spacecz_approached = {}
@@ -1476,6 +1476,7 @@ class Activity:
         """
         self.tick_id = dict.get('tickid')
         self.tick_time = datetime.strptime(dict.get('ticktime'), DATETIME_FORMAT_ACTIVITY)
+        self.tick_time = self.tick_time.replace(tzinfo=UTC)
         self.tick_forced = dict.get('tickforced', False)
         self.discord_webhook_data = dict.get('discordwebhookdata', {})
         self.discord_notes = dict.get('discordnotes', "")

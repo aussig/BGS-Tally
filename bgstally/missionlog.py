@@ -120,7 +120,11 @@ class MissionLog:
             # Old missions pre v1.11.0 and missions with missing expiry dates don't have Expiry stored. Set to 7 days ahead for safety
             if not 'Expiry' in mission or mission['Expiry'] == "": mission['Expiry'] = (datetime.now(UTC) + timedelta(days = TIME_MISSION_EXPIRY_D)).strftime(DATETIME_FORMAT_JOURNAL)
 
-            timedifference = datetime.now(UTC) - datetime.strptime(mission['Expiry'], DATETIME_FORMAT_JOURNAL)
+            # Need to do this shenanegans to parse a tz-aware timestamp from a string
+            expiry_timestamp: datetime = datetime.strptime(mission['Expiry'], DATETIME_FORMAT_JOURNAL)
+            expiry_timestamp = expiry_timestamp.replace(tzinfo=UTC)
+
+            timedifference = datetime.now(UTC) - expiry_timestamp
             if timedifference > timedelta(days = TIME_MISSION_EXPIRY_D):
                 # Keep missions for a while after they have expired, so we can log failed missions correctly
                 self.missionlog.remove(mission)

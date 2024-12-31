@@ -118,6 +118,12 @@ class BGSTally:
             return
 
         activity: Activity = self.activity_manager.get_current_activity()
+
+        # Total hack for now. We need cmdr in Activity to allow us to send it to the API when the user changes values in the UI.
+        # What **should** happen is each Activity object should be associated with a single CMDR, and then all reporting
+        # kept separate per CMDR.
+        activity.cmdr = cmdr
+
         dirty: bool = False
 
         if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
@@ -132,11 +138,11 @@ class BGSTally:
                 dirty = True
 
             case 'Bounty':
-                activity.bv_received(entry, self.state)
+                activity.bv_received(entry, self.state, cmdr)
                 dirty = True
 
             case 'CapShipBond':
-                activity.cap_ship_bond_received(entry)
+                activity.cap_ship_bond_received(entry, cmdr)
                 dirty = True
 
             case 'Cargo':
@@ -175,7 +181,7 @@ class BGSTally:
                 dirty = True
 
             case 'FactionKillBond' if state['Odyssey']:
-                activity.cb_received(entry, self.state)
+                activity.cb_received(entry, self.state, cmdr)
                 dirty = True
 
             case 'Friends' if entry.get('Status') == "Requested":

@@ -28,7 +28,8 @@ ENDPOINTS_DEFAULT = {ENDPOINT_ACTIVITIES: {'path': ENDPOINT_ACTIVITIES},
                      ENDPOINT_OBJECTIVES: {'path': ENDPOINT_OBJECTIVES}}
 EVENTS_FILTER_DEFAULTS = {'ApproachSettlement': {}, 'CarrierJump': {}, 'CommitCrime': {}, 'Died': {}, 'Docked': {}, 'FactionKillBond': {},
     'FSDJump': {}, 'Location': {}, 'MarketBuy': {}, 'MarketSell': {}, 'MissionAbandoned': {}, 'MissionAccepted': {}, 'MissionCompleted': {},
-    'MissionFailed': {}, 'MultiSellExplorationData': {}, 'RedeemVoucher': {}, 'SellExplorationData': {}, 'StartUp': {}}
+    'MissionFailed': {}, 'MultiSellExplorationData': {}, 'RedeemVoucher': {}, 'SellExplorationData': {}, 'StartUp': {},
+    'SyntheticCZ': {}, 'SyntheticGroundCZ': {}, 'SyntheticCZObjective': {}, 'SyntheticScenario': {}}
 
 HEADER_APIKEY = "apikey"
 HEADER_APIVERSION = "apiversion"

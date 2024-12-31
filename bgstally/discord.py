@@ -1,5 +1,5 @@
 from copy import deepcopy
-from datetime import datetime
+from datetime import UTC, datetime
 
 from requests import Response
 
@@ -53,7 +53,7 @@ class Discord:
             # Get the previous state for this webhook's uuid from the passed in data, if it exists. Default to the state from the webhook manager
             specific_webhook_data:dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)
 
-            utc_time_now:str = datetime.utcnow().strftime(DATETIME_FORMAT) + " " + __("game", lang=self.bgstally.state.discord_lang) # LANG: Discord date/time suffix for game time
+            utc_time_now:str = datetime.now(UTC).strftime(DATETIME_FORMAT) + " " + __("game", lang=self.bgstally.state.discord_lang) # LANG: Discord date/time suffix for game time
             data:dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
 
             # Fetch the previous post ID, if present, from the webhook data for the channel we're posting in. May be the default True / False value
@@ -184,7 +184,7 @@ class Discord:
         Returns:
             dict[str, any]: The post structure, for converting to JSON
         """
-        footer_timestamp: str = (__("Updated at {date_time} (game)", lang=self.bgstally.state.discord_lang) if update else __("Posted at {date_time} (game)", lang=self.bgstally.state.discord_lang)).format(date_time=datetime.utcnow().strftime(DATETIME_FORMAT)) # LANG: Discord footer message, modern embed mode
+        footer_timestamp: str = (__("Updated at {date_time} (game)", lang=self.bgstally.state.discord_lang) if update else __("Posted at {date_time} (game)", lang=self.bgstally.state.discord_lang)).format(date_time=datetime.now(UTC).strftime(DATETIME_FORMAT)) # LANG: Discord footer message, modern embed mode
         footer_version: str = f"v{str(self.bgstally.version)}"
         footer_pad: int = 108 - len(footer_version)
 

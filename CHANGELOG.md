@@ -14,6 +14,11 @@
 ### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxxxxxxx)):
 
 * New `/objectives` endpoint.
+* `/events` endpoint: Synthetic events added for certain activities in game that the game itself doesn't log in the journal:
+    - `SyntheticCZ`: Sent when a Space CZ is won.
+    - `SyntheticCZObjective`: Sent when an objective is completed in a Space CZ (cap ship / spec ops / enemy captain / enemy correspondent).
+    - `SyntheticGroundCZ`: Sent when a Ground CZ is won.
+    - `SyntheticScenario`: Sent when a scenario is won (only Megaship scenarios for the moment, Installation scenarios cannot be tracked).
 
 
 ## v4.2.0 - 2024-12-22

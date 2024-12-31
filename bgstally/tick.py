@@ -1,6 +1,5 @@
 import hashlib
-from datetime import datetime, timedelta
-from secrets import token_hex
+from datetime import UTC, datetime, timedelta
 
 import plug
 import requests
@@ -23,7 +22,7 @@ class Tick:
     def __init__(self, bgstally, load: bool = False):
         self.bgstally = bgstally
         self.tick_id: str = TICKID_UNKNOWN
-        self.tick_time: datetime = (datetime.utcnow() - timedelta(days = 30)) # Default to a tick a month old
+        self.tick_time: datetime = (datetime.now(UTC) - timedelta(days = 30)) # Default to a tick a month old
         if load: self.load()
 
 
@@ -48,6 +47,7 @@ class Tick:
                 return None
 
             tick_time: datetime = datetime.strptime(tick_time_raw, DATETIME_FORMAT_TICK_DETECTOR)
+            tick_time = tick_time.replace(tzinfo=UTC)
 
             if tick_time > self.tick_time:
                 # There is a newer tick
@@ -76,6 +76,7 @@ class Tick:
         """
         self.tick_id = config.get_str("XLastTick")
         self.tick_time = datetime.strptime(config.get_str("XTickTime", default=self.tick_time.strftime(DATETIME_FORMAT_TICK_DETECTOR)), DATETIME_FORMAT_TICK_DETECTOR)
+        self.tick_time = self.tick_time.replace(tzinfo=UTC)
 
 
     def save(self):

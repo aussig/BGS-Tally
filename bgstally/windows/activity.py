@@ -5,9 +5,9 @@ from tkinter import PhotoImage, ttk
 
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from bgstally.activity import STATES_WAR, STATES_ELECTION, Activity
-from bgstally.constants import (COLOUR_HEADING_1, FOLDER_ASSETS, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, CheckStates, CZs, DiscordActivity, DiscordChannel,
-                                DiscordPostStyle)
+from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
+from bgstally.constants import (COLOUR_HEADING_1, FOLDER_ASSETS, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, ApiSizeLookup, ApiSyntheticEvent, CheckStates, CZs,
+                                DiscordActivity, DiscordChannel, DiscordPostStyle)
 from bgstally.debug import Debug
 from bgstally.formatters.base import BaseActivityFormatterInterface
 from bgstally.utils import _, __, human_format
@@ -560,18 +560,45 @@ class WindowActivity:
         """
         Callback (set as a variable trace) for when a CZ Variable is changed
         """
-        if cz_type == CZs.SPACE_LOW:
-            faction['SpaceCZ']['l'] = CZVar.get()
-        elif cz_type == CZs.SPACE_MED:
-            faction['SpaceCZ']['m'] = CZVar.get()
-        elif cz_type == CZs.SPACE_HIGH:
-            faction['SpaceCZ']['h'] = CZVar.get()
-        elif cz_type == CZs.GROUND_LOW:
-            faction['GroundCZ']['l'] = CZVar.get()
-        elif cz_type == CZs.GROUND_MED:
-            faction['GroundCZ']['m'] = CZVar.get()
-        elif cz_type == CZs.GROUND_HIGH:
-            faction['GroundCZ']['h'] = CZVar.get()
+        match cz_type:
+            case CZs.SPACE_LOW:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZ
+                event_size: str = ApiSizeLookup['l']
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ']['l'])
+                faction['SpaceCZ']['l'] = CZVar.get()
+            case CZs.SPACE_MED:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZ
+                event_size: str = ApiSizeLookup['m']
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ']['m'])
+                faction['SpaceCZ']['m'] = CZVar.get()
+            case CZs.SPACE_HIGH:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZ
+                event_size: str = ApiSizeLookup['h']
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ']['h'])
+                faction['SpaceCZ']['h'] = CZVar.get()
+            case CZs.GROUND_LOW:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.GROUNDCZ
+                event_size: str = ApiSizeLookup['l']
+                event_diff: int = int(CZVar.get()) - int(faction['GroundCZ']['l'])
+                faction['GroundCZ']['l'] = CZVar.get()
+            case CZs.GROUND_MED:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.GROUNDCZ
+                event_size: str = ApiSizeLookup['m']
+                event_diff: int = int(CZVar.get()) - int(faction['GroundCZ']['m'])
+                faction['GroundCZ']['m'] = CZVar.get()
+            case CZs.GROUND_HIGH:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.GROUNDCZ
+                event_size: str = ApiSizeLookup['h']
+                event_diff: int = int(CZVar.get()) - int(faction['GroundCZ']['h'])
+                faction['GroundCZ']['h'] = CZVar.get()
+
+        # Send to API
+        event: dict = {
+            'event': event_type,
+            event_size: event_diff,
+            'Faction': faction['Faction']
+        }
+        if activity.cmdr is not None: self.bgstally.api_manager.send_event(event, activity, activity.cmdr)
 
         activity.recalculate_zero_activity()
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)

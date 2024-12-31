@@ -130,7 +130,7 @@ class BGSTally:
                 dirty = True
 
             case 'Bounty':
-                activity.bv_received(entry, self.state)
+                activity.bv_received(entry, self.state, cmdr)
                 dirty = True
 
             case 'CapShipBond':

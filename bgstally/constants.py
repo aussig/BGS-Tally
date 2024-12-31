@@ -84,6 +84,27 @@ class CmdrInteractionReason(int, Enum):
     TEAM_INVITE_RECEIVED = 5
     FRIEND_ADDED = 6
 
+class ApiSyntheticEvent(str, Enum):
+    CZ = 'SyntheticCZ'
+    GROUNDCZ = 'SyntheticGroundCZ'
+    CZOBJECTIVE = 'SyntheticCZObjective'
+    SCENARIO = 'SyntheticScenario'
+
+class ApiSyntheticCZObjectiveType(str, Enum):
+    CAPSHIP = 'CapShip'
+    SPECOPS = 'SpecOps'
+    GENERAL = 'WarzoneGeneral'
+    CORRESPONDENT = 'WarzoneCorrespondent'
+
+class ApiSyntheticScenarioType(str, Enum):
+    MEGASHIP = 'Megaship'
+    INSTALLATION = 'Installation'
+
+ApiSizeLookup: dict = {
+    'l': 'low',
+    'm': 'medium',
+    'h': 'high'
+}
 
 DATETIME_FORMAT_JOURNAL: str = "%Y-%m-%dT%H:%M:%SZ"
 FILE_SUFFIX: str = ".json"

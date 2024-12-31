@@ -11,19 +11,6 @@ from bgstally.utils import get_by_path
 
 FILENAME = "apis.json"
 
-class SyntheticEvent(str, Enum):
-    CZ = 'SyntheticCZ'
-    GROUNDCZ = 'SyntheticGroundCZ'
-    CZOBJECTIVE = 'SyntheticCZObjective'
-    SCENARIO = 'SyntheticScenario'
-
-class SyntheticCZObjectiveType(str, Enum):
-    CAPSHIP = 'CapShip'
-    SPECOPS = 'SpecOps'
-    GENERAL = 'WarzoneGeneral'
-    CORRESPONDENT = 'WarzoneCorrespondent'
-
-
 class APIManager:
     """
     Handles a list of API objects.

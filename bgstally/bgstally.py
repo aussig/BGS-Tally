@@ -19,6 +19,7 @@ from bgstally.formatters.default import DefaultActivityFormatter
 from bgstally.formattermanager import ActivityFormatterManager
 from bgstally.market import Market
 from bgstally.missionlog import MissionLog
+from bgstally.objectivesmanager import ObjectivesManager
 from bgstally.overlay import Overlay
 from bgstally.requestmanager import RequestManager
 from bgstally.state import State
@@ -90,6 +91,7 @@ class BGSTally:
         self.update_manager: UpdateManager = UpdateManager(self)
         self.ui: UI = UI(self)
         self.formatter_manager: ActivityFormatterManager = ActivityFormatterManager(self)
+        self.objectives_manager: ObjectivesManager = ObjectivesManager(self)
         self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True
         self.thread.start()

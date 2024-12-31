@@ -1,6 +1,5 @@
 import hashlib
-from datetime import datetime, timedelta
-from secrets import token_hex
+from datetime import UTC, datetime, timedelta
 
 import plug
 import requests
@@ -23,7 +22,7 @@ class Tick:
     def __init__(self, bgstally, load: bool = False):
         self.bgstally = bgstally
         self.tick_id: str = TICKID_UNKNOWN
-        self.tick_time: datetime = (datetime.utcnow() - timedelta(days = 30)) # Default to a tick a month old
+        self.tick_time: datetime = (datetime.now(UTC) - timedelta(days = 30)) # Default to a tick a month old
         if load: self.load()
 
 

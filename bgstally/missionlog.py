@@ -1,6 +1,6 @@
 import json
+from datetime import UTC, datetime, timedelta
 from os import path, remove
-from datetime import datetime, timedelta
 
 from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA
 from bgstally.debug import Debug
@@ -118,9 +118,9 @@ class MissionLog:
         """
         for mission in reversed(self.missionlog):
             # Old missions pre v1.11.0 and missions with missing expiry dates don't have Expiry stored. Set to 7 days ahead for safety
-            if not 'Expiry' in mission or mission['Expiry'] == "": mission['Expiry'] = (datetime.utcnow() + timedelta(days = TIME_MISSION_EXPIRY_D)).strftime(DATETIME_FORMAT_JOURNAL)
+            if not 'Expiry' in mission or mission['Expiry'] == "": mission['Expiry'] = (datetime.now(UTC) + timedelta(days = TIME_MISSION_EXPIRY_D)).strftime(DATETIME_FORMAT_JOURNAL)
 
-            timedifference = datetime.utcnow() - datetime.strptime(mission['Expiry'], DATETIME_FORMAT_JOURNAL)
+            timedifference = datetime.now(UTC) - datetime.strptime(mission['Expiry'], DATETIME_FORMAT_JOURNAL)
             if timedifference > timedelta(days = TIME_MISSION_EXPIRY_D):
                 # Keep missions for a while after they have expired, so we can log failed missions correctly
                 self.missionlog.remove(mission)

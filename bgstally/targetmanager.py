@@ -2,7 +2,7 @@ import json
 import os.path
 import re
 from copy import copy
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from requests import Response
 
@@ -336,7 +336,7 @@ class TargetManager:
             'events': [
                 {
                     'eventName': "getCommanderProfile",
-                    'eventTimestamp': datetime.utcnow().strftime(DATETIME_FORMAT_INARA),
+                    'eventTimestamp': datetime.now(UTC).strftime(DATETIME_FORMAT_INARA),
                     'eventData': {
                         'searchName': cmdr_name
                     }
@@ -377,6 +377,6 @@ class TargetManager:
         Clear out all old targets from the target log
         """
         for target in reversed(self.targetlog):
-            timedifference = datetime.utcnow() - datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL)
+            timedifference = datetime.now(UTC) - datetime.strptime(target['Timestamp'], DATETIME_FORMAT_JOURNAL)
             if timedifference > timedelta(days = TIME_TARGET_LOG_EXPIRY_D):
                 self.targetlog.remove(target)

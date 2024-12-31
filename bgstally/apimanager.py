@@ -1,7 +1,7 @@
 import json
-from datetime import datetime, UTC
-from os import path
+from datetime import UTC, datetime
 from enum import Enum
+from os import path
 
 from bgstally.activity import Activity
 from bgstally.api import API
@@ -91,7 +91,7 @@ class APIManager:
             'cmdr': cmdr,
             'tickid': activity.tick_id,
             'ticktime': activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL),
-            'timestamp': datetime.utcnow().strftime(DATETIME_FORMAT_JOURNAL),
+            'timestamp': datetime.now(UTC).strftime(DATETIME_FORMAT_JOURNAL),
             'systems': []
         }
 

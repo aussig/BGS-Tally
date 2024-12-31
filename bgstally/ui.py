@@ -1,5 +1,5 @@
 import tkinter as tk
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from functools import partial
 from os import path
 from threading import Thread
@@ -11,7 +11,6 @@ from typing import List, Optional
 import myNotebook as nb
 from ttkHyperlinkLabel import HyperlinkLabel
 
-import l10n
 from bgstally.activity import Activity
 from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL, CheckStates, DiscordActivity, DiscordPostStyle, UpdateUIPolicy
 from bgstally.debug import Debug
@@ -368,13 +367,13 @@ class UI:
                 self.bgstally.overlay.display_message("tick", _("Curr Tick:") + " " + self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY), True) # Overlay tick message
 
             # Tick Warning
-            minutes_delta:int = int((datetime.utcnow() - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
+            minutes_delta:int = int((datetime.now(UTC) - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
             if self.bgstally.state.enable_overlay_current_tick:
-                if datetime.utcnow() > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
+                if datetime.now(UTC) > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
                     self.bgstally.overlay.display_message("tickwarn", _("Tick {minutes_delta}m Overdue (Estimated)").format(minutes_delta=minutes_delta), True) # Overlay tick message
-                elif datetime.utcnow() > self.bgstally.tick.next_predicted():
+                elif datetime.now(UTC) > self.bgstally.tick.next_predicted():
                     self.bgstally.overlay.display_message("tickwarn", _("Past Estimated Tick Time"), True, text_colour_override="#FFA500") # Overlay tick message
-                elif datetime.utcnow() > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
+                elif datetime.now(UTC) > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
                     self.bgstally.overlay.display_message("tickwarn", _("Within {minutes_to_tick}m of Next Tick (Estimated)").format(minutes_to_tick=TIME_TICK_ALERT_M), True, text_colour_override="yellow") # Overlay tick message
 
             # Activity Indicator

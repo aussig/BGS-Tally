@@ -276,7 +276,7 @@ class APIManager:
         if 'StationFaction' not in event: event['StationFaction'] = {'Name': self.bgstally.state.station_faction}
         if 'StarSystem' not in event: event['StarSystem'] = get_by_path(activity.systems, [self.bgstally.state.current_system_id, 'System'], "")
         if 'SystemAddress' not in event: event['SystemAddress'] = self.bgstally.state.current_system_id
-        if 'timestamp' not in event: event['timestamp'] = datetime.now(UTC).strftime(DATETIME_FORMAT_JOURNAL),
+        if 'timestamp' not in event: event['timestamp'] = datetime.now(UTC).strftime(DATETIME_FORMAT_API),
 
         # Event-specific enhancements
         match event.get('event'):

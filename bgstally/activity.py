@@ -126,13 +126,14 @@ class Activity:
     factions with their activity
     """
 
-    def __init__(self, bgstally, tick: Tick = None, sample: bool = False):
+    def __init__(self, bgstally, tick: Tick = None, sample: bool = False, cmdr = None):
         """Constructor
 
         Args:
             bgstally (BGSTally): The BGSTally object
             tick (Tick, optional): The Tick object to instantiate from. If None, the last known tick is used. Defaults to None.
             sample (bool, optional): Populate with sample data. Defaults to False.
+            cmdr (str, optional): The CMDR name. This is not done properly (yet) - the cmdr name is simply updated often to be the latest cmdr seen.
         """
         self.bgstally = bgstally
         if tick == None: tick = Tick(self.bgstally)
@@ -144,6 +145,8 @@ class Activity:
         self.discord_webhook_data:dict = {} # key = webhook uuid, value = dict containing webhook data
         self.discord_notes: str = ""
         self.dirty: bool = False
+
+        self.cmdr: str = cmdr  # Not saved / loaded (yet) because it's not implemented properly
 
         if sample:
             self.systems: dict = {"Sample System ID": self.get_sample_system_data()}

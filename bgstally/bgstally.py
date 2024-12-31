@@ -118,6 +118,12 @@ class BGSTally:
             return
 
         activity: Activity = self.activity_manager.get_current_activity()
+
+        # Total hack for now. We need cmdr in Activity to allow us to send it to the API when the user changes values in the UI.
+        # What **should** happen is each Activity object should be associated with a single CMDR, and then all reporting
+        # kept separate per CMDR.
+        activity.cmdr = cmdr
+
         dirty: bool = False
 
         if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:

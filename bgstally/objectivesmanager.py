@@ -104,91 +104,89 @@ class ObjectivesManager:
                 system_activity: dict|None = mission_activity.get_system_by_name(target_system)
                 faction_activity: dict|None = None if system_activity is None else get_by_path(system_activity, ['Factions', target_faction])
                 status: str
-                value: int
+                target_overall: int
 
                 match target.get('type'):
                     case MissionTargetType.VISIT:
                         if target_station:
                             # Progress on 'visit station' targets is handled server-side
-                            server_progress: int|None = int(target.get('progress', 0))
-                            status, value = self._get_status(target, user_progress=server_progress, numeric=False)
+                            status, target_overall = self._get_status(target, numeric=False)
                             result += f"  {status} Access the market in station '{target_station}' in '{target_system}'" + "\n"
                         else:
                             # Progress on 'visit system' targets is handled server-side
-                            server_progress: int|None = int(target.get('progress', 0))
-                            status, value = self._get_status(target, user_progress=server_progress, numeric=False)
+                            status, target_overall = self._get_status(target, numeric=False)
                             result += f"  {status} Visit system '{target_system}'" + "\n"
 
                     case MissionTargetType.INF:
-                        user_progress: int|None = None if faction_activity is None else \
+                        progress_individual: int|None = None if faction_activity is None else \
                             sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPoints'].items()) + \
                             sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPointsSecondary'].items())
-                        status, value = self._get_status(target, user_progress=user_progress, label="INF")
-                        if value > 0:
+                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="INF")
+                        if target_overall > 0:
                             result += f"  {status} Boost '{target_faction}' in '{target_system}'" + "\n"
-                        elif value < 0:
+                        elif target_overall < 0:
                             result += f"  {status} Undermine '{target_faction}' in '{target_system}'" + "\n"
                         else:
                             result += f"  {status} Boost '{target_faction}' in '{target_system}' with as much INF as possible" + "\n"
 
                     case MissionTargetType.BV:
-                        user_progress: int|None = None if faction_activity is None else faction_activity.get('Bounties')
-                        status, value = self._get_status(target, user_progress=user_progress, label="CR")
+                        progress_individual: int|None = None if faction_activity is None else faction_activity.get('Bounties')
+                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="CR")
                         result += f"  {status} Bounty Vouchers for '{target_faction}' in '{target_system}'" + "\n"
 
                     case MissionTargetType.CB:
-                        user_progress: int|None = None if faction_activity is None else faction_activity.get('CombatBonds')
-                        status, value = self._get_status(target, user_progress=user_progress, label="CR")
+                        progress_individual: int|None = None if faction_activity is None else faction_activity.get('CombatBonds')
+                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="CR")
                         result += f"  {status} Combat Bonds for '{target_faction}' in '{target_system}'" + "\n"
 
                     case MissionTargetType.EXPL:
-                        user_progress: int|None = None if faction_activity is None else faction_activity.get('CartData')
-                        status, value = self._get_status(target, user_progress=user_progress, label="CR")
+                        progress_individual: int|None = None if faction_activity is None else faction_activity.get('CartData')
+                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="CR")
                         result += f"  {status} Exploration Data for '{target_faction}' in '{target_system}'" + "\n"
 
                     case MissionTargetType.TRADE_PROFIT:
-                        user_progress: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity['TradeSell'])
-                        status, value = self._get_status(target, user_progress=user_progress, label="CR")
+                        progress_individual: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity['TradeSell'])
+                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="CR")
                         result += f"  {status} Trade Profit for '{target_faction}' in '{target_system}'" + "\n"
 
                     case MissionTargetType.BM_PROF:
-                        user_progress: int|None = None if faction_activity is None else faction_activity.get('BlackMarketProfit')
-                        status, value = self._get_status(target, user_progress=user_progress, label="CR")
+                        progress_individual: int|None = None if faction_activity is None else faction_activity.get('BlackMarketProfit')
+                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="CR")
                         result += f"  {status} Black Market Profit for '{target_faction}' in '{target_system}'" + "\n"
 
                     case MissionTargetType.GROUND_CZ:
-                        user_progress: int|None = None if faction_activity is None else sum(faction_activity.get('GroundCZ', {}).values())
-                        status, value = self._get_status(target, user_progress=user_progress, label="wins")
+                        progress_individual: int|None = None if faction_activity is None else sum(faction_activity.get('GroundCZ', {}).values())
+                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="wins")
                         result += f"  {status} Fight for '{target_faction}' at on-ground CZs in '{target_system}'" + "\n"
 
                         for settlement in target.get('settlements', []):
                             settlement_name: str|None = settlement.get('name')
                             settlement_activity: dict|None = None if faction_activity is None else get_by_path(faction_activity, ['GroundCZSettlements', settlement_name], None)
-                            user_progress: int|None = None if settlement_activity is None else settlement_activity.get('count')
-                            status, value = self._get_status(settlement, user_progress=user_progress, label="wins")
+                            progress_individual: int|None = None if settlement_activity is None else settlement_activity.get('count')
+                            status, target_overall = self._get_status(settlement, progress_individual=progress_individual, label="wins")
                             result += f"    {status} Fight at '{settlement_name}'" + "\n"
 
                     case MissionTargetType.SPACE_CZ:
-                        user_progress: int|None = None if faction_activity is None else sum(faction_activity.get('SpaceCZ', {}).values())
-                        status, value = self._get_status(target, user_progress=user_progress, label="wins")
+                        progress_individual: int|None = None if faction_activity is None else sum(faction_activity.get('SpaceCZ', {}).values())
+                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="wins")
                         result += f"  {status} Fight for '{target_faction}' at in-space CZs in '{target_system}'" + "\n"
 
                     case MissionTargetType.MURDER:
-                        user_progress: int|None = None if faction_activity is None else faction_activity.get('Murdered')
-                        status, value = self._get_status(target, user_progress=user_progress, label="kills")
+                        progress_individual: int|None = None if faction_activity is None else faction_activity.get('Murdered')
+                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="kills")
                         result += f"  {status} Murder '{target_faction}' ships in '{target_system}'" + "\n"
 
                     case MissionTargetType.MISSION_FAIL:
-                        user_progress: int|None = None if faction_activity is None else faction_activity.get('MissionFailed')
-                        status, value = self._get_status(target, user_progress=user_progress, label="fails")
+                        progress_individual: int|None = None if faction_activity is None else faction_activity.get('MissionFailed')
+                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="fails")
                         result += f"  {status} Fail missions against '{target_faction}' in '{target_system}'" + "\n"
 
 
         return result
 
 
-    def _get_status(self, target: dict, numeric: bool = True, user_progress: int|None = None, label: str|None = None) -> tuple[str, int]:
-        """Get a string showing the status of a particular mission or sub-mission
+    def _get_status(self, target: dict, numeric: bool = True, progress_individual: int|None = None, label: str|None = None) -> tuple[str, int]:
+        """Build a string showing the status of a particular mission or sub-mission, showing both overall and individual progress
 
         Args:
             target (dict): A dict containing information about the mission or sub-mission, including global progress from server.
@@ -201,37 +199,75 @@ class ObjectivesManager:
             tuple[str, int]: The description and the numeric target value
         """
         try:
-            value: int = int(target.get('value', 0))
+            target_overall: int = int(target.get('targetoverall', 0))
         except ValueError:
-            value: int = 0
+            target_overall: int = 0
 
         try:
-            # For the moment, just show user progess. May want to show both global and user progress in future.
-            progress: int|None = user_progress
+            target_individual: int = int(target.get('targetindividual', 0))
         except ValueError:
-            progress: int|None = 0
+            target_individual: int = 0
 
-        if value == 0 and numeric:
-            flag: str = "∞"
-            complete: bool = False
-        elif progress is not None and ( \
-             (numeric and value > 0 and progress >= value) or \
-             (numeric and value < 0 and progress <= value) or \
-             (not numeric and progress > 0)):
-            flag: str = "√ [done]"
-            complete: bool = True
-        else:
-            flag: str = "•"
-            complete: bool = False
+        try:
+            progress_overall: int|None = int(target.get('progress', 0))
+        except ValueError:
+            progress_overall: int|None = 0
 
-        if complete or not numeric:
-            # Don't show target value
-            return flag, value
-        elif value == 0:
-            # Infinite target value
-            if progress: return f"{flag} [{human_format(progress)} / ∞ {label}]", value
-            else: return f"{flag} [∞ {label}]", value
+        if target_overall > 0 and target_individual == 0:
+            # If no individual target is set, use the overall target
+            target_individual = target_overall
+
+        # Calculate overall completeness
+        complete_overall: bool = False
+        if progress_overall is not None and ( \
+             (numeric and target_overall > 0 and progress_overall >= target_overall) or \
+             (numeric and target_overall < 0 and progress_overall <= target_overall) or \
+             (not numeric and progress_overall > 0)):
+            # For numeric targets, positive or negative - if we've met or exceeded the target then mark as done
+            # For non-numeric targets - if we've made any progress, mark as done
+            complete_overall = True
+
+        # Calculate individual completeness
+        complete_individual: bool = False
+        if progress_individual is not None and ( \
+             (numeric and target_individual > 0 and progress_individual >= target_individual) or \
+             (numeric and target_individual < 0 and progress_individual <= target_individual) or \
+             (not numeric and progress_individual > 0)):
+            # For numeric targets, positive or negative - if we've met or exceeded the target then mark as done
+            # For non-numeric targets - if we've made any progress, mark as done
+            complete_individual = True
+        elif progress_individual is None:
+            # If no individual progress is passed in, progress is not tracked client side for this target, so use
+            # the overall progress instead
+            complete_individual = complete_overall
+            progress_individual = 0
+
+        if complete_overall or complete_individual:
+            # If the target is complete, just show an indicator
+            # [√]
+            return f"[√]", target_overall
+        elif not numeric:
+            # If the target is not complete and not numeric, just show an indicator
+            # [•]
+            return f"[•]", target_overall
         else:
-            # Integer target value
-            if progress: return f"{flag} [{human_format(progress)} / {human_format(value)} {label}]", value
-            else: return f"{flag} [{human_format(progress)} / {human_format(value)} {label}]", value
+            # Otherwise build a progress report including individual and overall progress:
+            # [123 / 456 | 789 / 1000 CR] or
+            # [123 / 456 | 789 / ∞ CR] or
+            # [123 / ∞ | 789 / ∞ CR]
+            result: str = "["
+
+            if target_individual == 0:
+                result += f"{human_format(progress_individual)} / ∞ | "
+            else:
+                result += f"{human_format(progress_individual)} / {human_format(target_individual)} | "
+
+            if target_overall == 0:
+                result += f"{human_format(progress_overall)} / ∞"
+            else:
+                result += f"{human_format(progress_overall)} / {human_format(target_overall)}"
+
+            result += f" {label}]"
+
+            return result, target_overall
+

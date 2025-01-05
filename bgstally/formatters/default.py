@@ -488,7 +488,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         value: int = int(sum(sandr_data.values()))
         if value == 0: return ""
 
-        return white(__("SandR", lang), fp=fp) + " " + green(value, fp=fp) + " " # LANG: Discord heading, abbreviation for search and rescue
+        return white(__("SandR", lang), fp=fp) + " " + green(str(value), fp=fp) + " " # LANG: Discord heading, abbreviation for search and rescue
 
 
     def _build_faction_name(self, faction_name: str) -> str:

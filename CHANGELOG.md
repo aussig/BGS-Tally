@@ -10,6 +10,7 @@
 ### Bug Fixes:
 
 * The tick time was not being sent in /event API calls.
+* Any Search and Rescue (e.g. excape pods) would cause the overlay to stop displaying your work in that system.
 
 ### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxxxxxxx)):
 

@@ -98,8 +98,10 @@ class ObjectivesManager:
                 result += "› " + mission_description + "\n"
 
             for target in mission.get('targets', []):
-                target_system: str|None = target.get('system', mission_system)
-                target_faction: str|None = target.get('faction', mission_faction)
+                target_system: str|None = target.get('system')
+                if target_system == "" or target_system is None: target_system = mission_system
+                target_faction: str|None = target.get('faction')
+                if target_faction == "" or target_faction is None: target_faction = mission_faction
                 target_station: str|None = target.get('station')
                 system_activity: dict|None = mission_activity.get_system_by_name(target_system)
                 faction_activity: dict|None = None if system_activity is None else get_by_path(system_activity, ['Factions', target_faction])

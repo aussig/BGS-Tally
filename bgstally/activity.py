@@ -4,7 +4,8 @@ from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from typing import Dict
 
-from bgstally.constants import ApiSizeLookup, ApiSyntheticEvent, ApiSyntheticCZObjectiveType, ApiSyntheticScenarioType, DATETIME_FORMAT_JOURNAL, FILE_SUFFIX, CheckStates
+from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_TITLE, FILE_SUFFIX, ApiSizeLookup,
+                                ApiSyntheticCZObjectiveType, ApiSyntheticEvent, ApiSyntheticScenarioType, CheckStates)
 from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
@@ -12,8 +13,6 @@ from bgstally.tick import Tick
 from bgstally.utils import _, __, add_dicts
 from thirdparty.colors import *
 
-DATETIME_FORMAT_ACTIVITY = "%Y-%m-%dT%H:%M:%S.%fZ"
-DATETIME_FORMAT_TITLE = "%Y-%m-%d %H:%M:%S"
 STATES_WAR = ['War', 'CivilWar']
 STATES_ELECTION = ['Election']
 
@@ -311,7 +310,7 @@ class Activity:
     # Player Journal Log Handling
     #
 
-    def system_entered(self, journal_entry: Dict, state: State):
+    def system_entered(self, journal_entry: dict, state: State):
         """
         The user has entered a system
         """
@@ -362,6 +361,15 @@ class Activity:
                     current_system['Factions'][faction_1]['Opponent'] = faction_2
                     current_system['Factions'][faction_2]['FactionState'] = conflict_state
                     current_system['Factions'][faction_2]['Opponent'] = faction_1
+
+        # System tick handling
+        system_tick: str = current_system.get('TickTime')
+        system_tick_datetime: datetime|None = datetime.strptime(system_tick, DATETIME_FORMAT_ACTIVITY) if system_tick is not None and system_tick != "" else None
+        if system_tick_datetime is not None:
+            system_tick_datetime = system_tick_datetime.replace(tzinfo=UTC)
+            if system_tick_datetime < self.bgstally.tick.tick_time:
+                # System tick is older than the current tick, fetch it
+                self.bgstally.tick.fetch_system_tick(str(current_system['SystemAddress']))
 
         self.recalculate_zero_activity()
         state.current_system_id = str(current_system['SystemAddress'])
@@ -1265,7 +1273,9 @@ class Activity:
                              "Sample Faction Name 3": self._get_new_faction_data("Sample Faction Name 3", "None", 30, True)},
                 'TWKills': self._get_new_tw_kills_data(True),
                 'TWSandR': self._get_new_tw_sandr_data(True),
-                'TWReactivate': 5}
+                'TWReactivate': 5,
+                'TickTime': datetime.now(UTC).strftime(DATETIME_FORMAT_ACTIVITY)
+                }
 
 
     def _get_new_system_data(self, system_name: str, system_address: str, faction_data: dict) -> dict:
@@ -1285,7 +1295,9 @@ class Activity:
                 'Factions': faction_data,
                 'TWKills': self._get_new_tw_kills_data(),
                 'TWSandR': self._get_new_tw_sandr_data(),
-                'TWReactivate': 0}
+                'TWReactivate': 0,
+                'TickTime': ""
+                }
 
 
     def _get_new_faction_data(self, faction_name: str, faction_state: str, faction_inf: float, sample: bool = False) -> dict:
@@ -1392,6 +1404,8 @@ class Activity:
         # From < 3.6.0 to 3.6.0
         if not 'PinToOverlay' in system_data: system_data['PinToOverlay'] = CheckStates.STATE_OFF
         if not 'tp' in system_data['TWSandR']: system_data['TWSandR']['tp'] = {'scooped': 0, 'delivered': 0}
+        # From < 4.3.0 to 4.3.0
+        if not 'TickTime' in system_data: system_data['TickTime'] = ""
 
 
     def _update_faction_data(self, faction_data: dict, faction_state: str|None = None, faction_inf: float|None = None):

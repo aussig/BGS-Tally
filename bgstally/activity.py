@@ -370,6 +370,9 @@ class Activity:
             if system_tick_datetime < self.bgstally.tick.tick_time:
                 # System tick is older than the current tick, fetch it
                 self.bgstally.tick.fetch_system_tick(str(current_system['SystemAddress']))
+        else:
+            # No system tick, fetch it
+            self.bgstally.tick.fetch_system_tick(str(current_system['SystemAddress']))
 
         self.recalculate_zero_activity()
         state.current_system_id = str(current_system['SystemAddress'])

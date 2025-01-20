@@ -112,10 +112,11 @@ class Tick:
         if tick_time < self.tick_time:
             # The system tick we've just fetched is older than the current galaxy tick, which must mean it hasn't been updated yet. Trigger another fetch
             # after a period of time.
-            Debug.logger.warning(f"System tick is older than the current galaxy tick - trigger another deferred fetch")
-            if self.bgstally.ui.frame:
+            Debug.logger.warning(f"System tick is older than the current galaxy tick - triggering another deferred fetch")
+            if self.bgstally.ui.frame and request.attempts < 2:
                 params: dict[str, str] = {'sysAddr': system_address}
-                self.bgstally.ui.frame.after(10000, partial(self.bgstally.request_manager.queue_request, URL_SYSTEM_TICK_DETECTOR, RequestMethod.POST, params=params, data=request.data, callback=self._system_tick_received))
+                self.bgstally.ui.frame.after(10000, partial(self.bgstally.request_manager.queue_request, URL_SYSTEM_TICK_DETECTOR, RequestMethod.POST, params=params, data=request.data, callback=self._system_tick_received, attempts=request.attempts + 1))
+            # Note we fall through here so that even though the tick is old, we still store it
 
         # Store the system tick in the system activity.
         current_activity: Activity = self.bgstally.activity_manager.get_current_activity()

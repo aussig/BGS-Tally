@@ -203,13 +203,6 @@ class API:
         self.events_queue.put(event)
 
 
-    def get_objectives(self) -> dict:
-        """Fetch objectives from the server
-
-        Returns:
-            dict: _description_
-        """
-
     def _revert_discovery_to_defaults(self):
         """
         Revert all API information to default values

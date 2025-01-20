@@ -1,4 +1,5 @@
 import tkinter as tk
+from datetime import UTC, datetime
 from functools import partial
 from os import path
 from tkinter import PhotoImage, ttk
@@ -6,8 +7,9 @@ from tkinter import PhotoImage, ttk
 from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import (COLOUR_HEADING_1, FOLDER_ASSETS, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, ApiSizeLookup, ApiSyntheticEvent, CheckStates, CZs,
-                                DiscordActivity, DiscordChannel, DiscordPostStyle)
+from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_TITLE, FOLDER_ASSETS, FONT_HEADING_1,
+                                FONT_HEADING_2, FONT_TEXT, ApiSizeLookup, ApiSyntheticEvent, CheckStates, CZs, DiscordActivity, DiscordChannel,
+                                DiscordPostStyle)
 from bgstally.debug import Debug
 from bgstally.formatters.base import BaseActivityFormatterInterface
 from bgstally.utils import _, __, human_format
@@ -88,7 +90,7 @@ class WindowActivity:
         ToolTip(lbl_discord_report, text=_("Show legend window")) # LANG: Activity window tooltip
         ttk.Label(frm_discord, text=_("Discord Additional Notes"), font=FONT_HEADING_2).grid(row=0, column=1, sticky=tk.W) # LANG: Label on activity window
         ttk.Label(frm_discord, text=_("Discord Options"), font=FONT_HEADING_2).grid(row=0, column=2, sticky=tk.W) # LANG: Label on activity window
-        ttk.Label(frm_discord, text=_("Double-check on-ground CZ tallies, sizes are not always correct"), foreground='#f00').grid(row=1, column=0, columnspan=3, sticky=tk.W) # LANG: Label on activity window
+        ttk.Label(frm_discord, text=_("Double-check on-ground CZ tallies, sizes are not always correct"), foreground=COLOUR_WARNING).grid(row=1, column=0, columnspan=3, sticky=tk.W) # LANG: Label on activity window
 
         frm_discordtext: ttk.Frame = ttk.Frame(frm_discord)
         frm_discordtext.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
@@ -133,24 +135,33 @@ class WindowActivity:
                 and str(system_id) != self.bgstally.state.current_system_id:
                 continue
 
-            tab:ttk.Frame = ttk.Frame(nb_tab)
+            tab: ttk.Frame = ttk.Frame(nb_tab)
             nb_tab.add(tab, text=system['System'], compound='right', image=self.image_tab_active_enabled)
 
-            frm_header:ttk.Frame = ttk.Frame(tab)
+            frm_header: ttk.Frame = ttk.Frame(tab)
             frm_header.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
-            ttk.Label(frm_header, text=system['System'], font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=0, column=0, padx=2, pady=2, sticky=tk.W)
-            HyperlinkLabel(frm_header, text=_("Inara ⤴"), url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=1, padx=2, pady=2, sticky=tk.W) # LANG: Inara link
+            header_column: int = 0
+            ttk.Label(frm_header, text=system['System'], font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+            HyperlinkLabel(frm_header, text=_("Inara ⤴"), url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1 # LANG: Inara link
+            system_tick: str = system.get('TickTime')
+            system_tick_datetime: datetime|None = datetime.strptime(system_tick, DATETIME_FORMAT_ACTIVITY) if system_tick is not None and system_tick != "" else None
+            if system_tick_datetime is not None:
+                system_tick_datetime = system_tick_datetime.replace(tzinfo=UTC)
+                if system_tick_datetime > activity.tick_time:
+                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime)), font=FONT_HEADING_2).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+                else:
+                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime)), font=FONT_HEADING_2, foreground=COLOUR_WARNING).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
 
             if self.activity == self.bgstally.activity_manager.get_current_activity():
                 # Current tick activity
                 chk_pin_to_overlay:ttk.Checkbutton = ttk.Checkbutton(frm_header, text=_("Pin {system_name} to Overlay").format(system_name=system['System'])) # LANG: Checkbox label
-                chk_pin_to_overlay.grid(row=0, column=2, padx=2, pady=2, sticky=tk.E)
+                chk_pin_to_overlay.grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.E)
                 chk_pin_to_overlay.configure(command=partial(self._pin_overlay_change, chk_pin_to_overlay, system), state=self.bgstally.ui.overlay_options_state())
                 chk_pin_to_overlay.state(['selected', '!alternate'] if system.get('PinToOverlay') == CheckStates.STATE_ON else ['!selected', '!alternate'])
-                frm_header.columnconfigure(2, weight=1) # Make the final column (pin checkbutton) fill available space
+                frm_header.columnconfigure(header_column, weight=1) # Make the final column (pin checkbutton) fill available space
             else:
                 # Previous tick activity
-                frm_header.columnconfigure(1, weight=1) # Make the final column (Inara link) fill available space
+                frm_header.columnconfigure(header_column, weight=1) # Make the final column (Inara link) fill available space
 
             if system.get('tw_status') is not None:
                 # TW system, skip all BGS

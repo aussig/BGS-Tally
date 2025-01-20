@@ -12,7 +12,7 @@ import myNotebook as nb
 from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.activity import Activity
-from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL, CheckStates, DiscordActivity, DiscordPostStyle, UpdateUIPolicy
+from bgstally.constants import DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL, CheckStates, DiscordActivity, UpdateUIPolicy
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, get_by_path
 from bgstally.widgets import EntryPlus
@@ -360,11 +360,26 @@ class UI:
                 Debug.logger.debug("Shutting down UI Worker...")
                 return
 
-            current_activity:Activity = self.bgstally.activity_manager.get_current_activity()
+            current_activity: Activity = self.bgstally.activity_manager.get_current_activity()
 
-            # Current Tick Time
+            # Current Galaxy and System Tick Times
             if self.bgstally.state.enable_overlay_current_tick:
-                self.bgstally.overlay.display_message("tick", _("Curr Tick:") + " " + self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY), True) # Overlay tick message
+                self.bgstally.overlay.display_message("tick", _("Galaxy Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)), True) # LANG: Overlay galaxy tick message
+
+                if current_activity is not None:
+                    current_system: dict = current_activity.get_current_system()
+                    system_tick: str = current_system.get('TickTime')
+
+                    if system_tick is not None and system_tick != "":
+                        system_tick_datetime: datetime = datetime.strptime(system_tick, DATETIME_FORMAT_ACTIVITY)
+                        system_tick_datetime = system_tick_datetime.replace(tzinfo=UTC)
+
+                        tick_text: str = _("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY, tick_time = system_tick_datetime)) # LANG: Overlay system tick message
+
+                        if system_tick_datetime < self.bgstally.tick.tick_time:
+                            self.bgstally.overlay.display_message("system_tick", tick_text, True, text_colour_override="#FF0000")
+                        else:
+                            self.bgstally.overlay.display_message("system_tick", tick_text, True)
 
             # Tick Warning
             minutes_delta:int = int((datetime.now(UTC) - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))

@@ -263,6 +263,7 @@ class APIManager:
         Build an API-ready event ready for sending. This just involves enhancing the event with some
         additional data
         """
+        if mission is None: mission = {}
 
         # Remove all '_Localised' event parameters
         event = self._filter_localised(event)

@@ -41,6 +41,15 @@ class ObjectivesManager:
         self._objectives: list[dict] = []
 
 
+    def objectives_available(self) -> bool:
+        """Check whether any objectives are available
+
+        Returns:
+            bool: True if there are objectives
+        """
+        return len(self._objectives) > 0
+
+
     def get_objectives(self) -> list:
         """Get the available objectives
 
@@ -56,7 +65,12 @@ class ObjectivesManager:
         Args:
             objectives (dict): The list of objectives
         """
+        previous_available: bool = self.objectives_available()
         self._objectives = objectives
+
+        if previous_available != self.objectives_available():
+            # We've flipped from having objectives to not having objectives or vice versa. Refresh the plugin frame.
+            self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
 
 
     def get_human_readable_objectives(self) -> str:

@@ -82,7 +82,9 @@ If you are having problems with BGS-Tally, check out the **[Troubleshooting page
 
 And finally, a huge thank you to:
 
-* All the code contributors - listed [here on Github](https://github.com/aussig/BGS-Tally/graphs/contributors).
+* CMDR Tez, who wrote the original version of BGS-Tally - this simply wouldn't exist without his work.
+
+* All the code contributors to this version - listed [here on Github](https://github.com/aussig/BGS-Tally/graphs/contributors).
 * All the CMDRs who have provided their input, bug reports, feedback and ideas.
 * All the translators who have given their time and effort:
     * French - CMDR Dopeilien and CMDR ThArGos

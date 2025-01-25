@@ -58,14 +58,14 @@
 /* Dropdown menu on activity window. [activity.py] */
 "BGS Only" = "BGS uniquement";
 
+/* [clb.py] */
+"BGS Report" = "BGS Report";
+
 /* Discord heading. [default.py] */
 "bio-pod" = "bio-pod";
 
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Bénéfices du marché noir";
-
-/* Activity window column title, abbreviation for black market profit. [activity.py] */
-"BM Prof" = "Profit BM";
 
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS et TW";
@@ -136,9 +136,6 @@
 /* Label on legend window. [legend.py] */
 "Critically wounded evacuation missions" = "Missions d'évacuation de blessés critiques";
 
-/* [ui.py] */
-"Curr Tick:" = "Tick actuel :";
-
 /* [fleetcarrier.py] */
 "Current System" = "Système actuel";
 
@@ -199,7 +196,7 @@
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Amarrage";
 
-/* [activity.py] */
+/* Label on activity window. [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Double vérification du comptage des CZ au sol, les tailles ne sont pas toujours correctes";
 
 /* [sheet_options.py] */
@@ -210,6 +207,9 @@
 
 /* [sheet_options.py] */
 "Edit index" = "Éditer l'index";
+
+/* [clb.py] */
+"Election Inf" = "Election Inf";
 
 /* Discord heading, abbreviation for election INF. [default.py] */
 "ElectionINF" = "INF élection";
@@ -280,13 +280,16 @@
 /* Discord heading. [fleetcarrier.py] */
 "From System" = "Depuis le système";
 
+/* Overlay galaxy tick message. [ui.py] */
+"Galaxy Tick: {tick_time}" = "Galaxy Tick: {tick_time}";
+
 /* Appended to tick time if a normal tick. [activity.py] */
 "game" = "jeu";
 
 /* Preferences heading. [ui.py] */
 "General Options" = "Options générales";
 
-/* Activity window column title. [activity.py] */
+/* [clb.py] */
 "Ground" = "Sol";
 
 /* Activity window tooltip. [activity.py] */
@@ -366,6 +369,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "Include Secondary INF" = "Inclure les INF secondaires";
+
+/* [clb.py] */
+"Inf" = "Inf";
 
 /* Discord heading, abbreviation for INF. [default.py] */
 "INF" = "INF";
@@ -498,6 +504,9 @@
 
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Accès Anonyme";
+
+/* Objectives title. [objectivesmanager.py] */
+"Objectives" = "Objectives";
 
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Zone de conflit au sol";
@@ -670,11 +679,17 @@
 /* Activity window tooltip. [activity.py] */
 "Show legend window" = "Afficher la fenêtre de légende";
 
+/* Main window tooltip. [ui.py] */
+"Show objectives / missions window" = "Show objectives / missions window";
+
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Afficher les systèmes avec une activité zéro";
 
-/* [fleetcarrier.py] */
+/* Label on carrier window. [fleetcarrier.py] */
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration";
+
+/* [clb.py] */
+"Space" = "Space";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Zones de conflit spatial";
@@ -708,6 +723,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "System Information" = "Informations du système";
+
+/* Overlay system tick message. [ui.py] */
+"System Tick: {tick_time}" = "System Tick: {tick_time}";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Système: {current_system} - Appontage : {docking_access} - Notoriété autorisée : {notorious}";
@@ -799,6 +817,9 @@
 /* Discord message footer, legacy text mode. [discord.py] */
 "Updated at: {date_time} | {plugin_name} v{version}" = "Mis à jour à : {date_time} | {plugin_name} v{version}";
 
+/* [clb.py] */
+"War Inf" = "War Inf";
+
 /* Discord heading, abbreviation for war INF. [default.py] */
 "WarINF" = "InfGuerre";
 
@@ -841,6 +862,9 @@
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Légende de l'icône";
 
+/* Objectives window title. [objectives.py] */
+"{plugin_name} - Objectives" = "{plugin_name} - Objectives";
+
 /* Preferences checkbox label. [ui.py] */
 "{plugin_name} Active" = "{plugin_name} Actif";
 
@@ -853,11 +877,8 @@
 /* Main window error message. [tick.py] */
 "{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} Attention : Impossible de récupérer le dernier tick";
 
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: There was a problem saving the new version" = "{plugin_name} : Il y a eu un problème d'enregistrement de la nouvelle version";
+/* [tick.py] */
+"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} WARNING: Unable to fetch system tick";
 
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin download" = "{plugin_name} : Impossible de télécharger la dernière version du plugin";
-
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name} : Impossible de récupérer la dernière version du plugin";
+/* Objectives title. [objectivesmanager.py] */
+"{server_name} Objectives" = "{server_name} Objectives";

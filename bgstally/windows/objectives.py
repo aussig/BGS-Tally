@@ -1,10 +1,10 @@
 import tkinter as tk
-from functools import partial
 from tkinter import ttk
 
-from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, DiscordChannel)
+from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_1, FONT_TEXT
 from bgstally.debug import Debug
 from bgstally.utils import _, __
+from bgstally.widgets import TextPlus
 from config import config
 from thirdparty.colors import *
 
@@ -43,3 +43,24 @@ class WindowObjectives:
 
         current_row: int = 0
 
+        self.txt_objectives: TextPlus = TextPlus(frm_items, wrap=tk.WORD, height=1, font=FONT_TEXT)
+        sb_objectives: tk.Scrollbar = tk.Scrollbar(frm_items, orient=tk.VERTICAL, command=self.txt_objectives.yview)
+        self.txt_objectives['yscrollcommand'] = sb_objectives.set
+        sb_objectives.pack(fill=tk.Y, side=tk.RIGHT)
+        self.txt_objectives.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+
+        self.txt_objectives.insert(tk.INSERT, self.bgstally.objectives_manager.get_human_readable_objectives())
+        self.txt_objectives.configure(state='disabled')
+
+        self.toplevel.after(5000, self._update_objectives)
+
+
+    def _update_objectives(self):
+        """Refresh the objectives
+        """
+        self.txt_objectives.configure(state=tk.NORMAL)
+        self.txt_objectives.delete('1.0', 'end-1c')
+        self.txt_objectives.insert(tk.INSERT, self.bgstally.objectives_manager.get_human_readable_objectives())
+        self.txt_objectives.configure(state=tk.DISABLED)
+
+        self.toplevel.after(5000, self._update_objectives)

@@ -2,9 +2,10 @@ from datetime import datetime, UTC
 from enum import Enum
 
 from bgstally.activity import Activity
+from bgstally.api import API
 from bgstally.constants import DATETIME_FORMAT_API
 from bgstally.debug import Debug
-from bgstally.utils import get_by_path, human_format
+from bgstally.utils import _, get_by_path, human_format
 
 
 class MissionType(str, Enum):
@@ -52,6 +53,11 @@ class ObjectivesManager:
         """
         if self.api is None: return False
         else: return len(self.api.objectives) > 0
+
+
+    def get_title(self) -> str:
+        if self.api is None: return _("Objectives") # LANG: Objectives title
+        else: return _("{server_name} Objectives".format(server_name=self.api.name)) # LANG: Objectives title
 
 
     def get_objectives(self) -> list:

@@ -78,6 +78,13 @@
 * In-game overlay would stop working when certain activities were completed (murders, ground murders, scenarios or mission fails)
 * A change in the latest release of EDMC (5.12.0) stopped the settings panel from loading
 
+### API Changes ([v1.6](xxxxxxx)):
+
+* `/events` endpoint: Added synthetic events for certain in-game activities that don't have journal events:
+    * `Synthetic_CZ`
+    * `Synthetic_GroundCZ`
+    * `Synthetic_Scenario`
+
 
 ## v4.0.1 - 2024-06-11
 

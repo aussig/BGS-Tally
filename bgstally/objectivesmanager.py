@@ -33,12 +33,25 @@ class MissionTargetType(str, Enum):
 
 class ObjectivesManager:
     """
-    Handles the management of objectives
+    Handles the management of objectives.
+
+    Note that the objectives are stored inside the API object and there is only a single API tracked here.  So, if multiple APIs
+    are implemented in future, it will flip-flop between them and we either need to handle that or limit objectives to a single API.
     """
     def __init__(self, bgstally):
         self.bgstally = bgstally
 
-        self._objectives: list[dict] = []
+        self.api: API = None
+
+
+    def objectives_available(self) -> bool:
+        """Check whether any objectives are available
+
+        Returns:
+            bool: True if there are objectives
+        """
+        if self.api is None: return False
+        else: return len(self.api.objectives) > 0
 
 
     def get_objectives(self) -> list:
@@ -47,16 +60,22 @@ class ObjectivesManager:
         Returns:
             list: current list of objectives
         """
-        return self._objectives
+        if self.api is None: return []
+        else: return self.api.objectives
 
 
-    def set_objectives(self, objectives: list):
-        """Set the current objectives
+    def objectives_received(self, api: API):
+        """Objectives have been received from the API
 
         Args:
-            objectives (dict): The list of objectives
+            api (API): The API object
         """
-        self._objectives = objectives
+        previous_available: bool = self.objectives_available()
+        self.api = api
+
+        if previous_available != self.objectives_available():
+            # We've flipped from having objectives to not having objectives or vice versa. Refresh the plugin frame.
+            self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
 
 
     def get_human_readable_objectives(self) -> str:
@@ -66,8 +85,9 @@ class ObjectivesManager:
             str: The human readable objectives
         """
         result: str = ""
+        if self.api is None: return result
 
-        for mission in self._objectives:
+        for mission in self.api.objectives:
             mission_title: str|None = mission.get('title')
             mission_description: str|None = mission.get('description')
             mission_system: str|None = mission.get('system')

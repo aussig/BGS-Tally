@@ -21,6 +21,7 @@ from bgstally.windows.api import WindowAPI
 from bgstally.windows.cmdrs import WindowCMDRs
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
 from bgstally.windows.legend import WindowLegend
+from bgstally.windows.objectives import WindowObjectives
 from config import config
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
@@ -50,6 +51,7 @@ class UI:
         self.image_button_dropdown_menu = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_dropdown_menu.png"))
         self.image_button_cmdrs = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_cmdrs.png"))
         self.image_button_carrier = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_carrier.png"))
+        self.image_button_objectives = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_objectives.png"))
         self.image_icon_green_tick = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_green_tick_16x16.png"))
         self.image_icon_red_cross = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_red_cross_16x16.png"))
 
@@ -62,6 +64,8 @@ class UI:
         self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally)
         self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally)
         self.window_legend:WindowLegend = WindowLegend(self.bgstally)
+        self.window_objectives:WindowObjectives = WindowObjectives(self.bgstally)
+
         # TODO: When we support multiple APIs, this will no longer be a single instance window
         self.window_api:WindowAPI = WindowAPI(self.bgstally, self.bgstally.api_manager.apis[0])
 
@@ -85,34 +89,48 @@ class UI:
         """
         self.frame: tk.Frame = tk.Frame(parent_frame)
 
+        column_count: int = 3
+        if self.bgstally.capi_fleetcarrier_available(): column_count += 1
+
         current_row: int = 0
         tk.Label(self.frame, image=self.image_logo_bgstally_100).grid(row=current_row, column=0, rowspan=3, sticky=tk.W)
         self.lbl_version: HyperlinkLabel = HyperlinkLabel(self.frame, text=f"v{str(self.bgstally.version)}", background=nb.Label().cget('background'), url=URL_LATEST_RELEASE, underline=True)
-        self.lbl_version.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
+        self.lbl_version.grid(row=current_row, column=1, columnspan=column_count, sticky=tk.W)
         current_row += 1
         frm_status: tk.Frame = tk.Frame(self.frame)
-        frm_status.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
+        frm_status.grid(row=current_row, column=1, columnspan=column_count, sticky=tk.W)
         self.lbl_status: tk.Label = tk.Label(frm_status, text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window label
         self.lbl_status.pack(side=tk.LEFT)
         self.lbl_active: tk.Label = tk.Label(frm_status, width=SIZE_STATUS_ICON_PIXELS, height=SIZE_STATUS_ICON_PIXELS, image=self.image_icon_green_tick if self.bgstally.state.Status.get() == CheckStates.STATE_ON else self.image_icon_red_cross)
         self.lbl_active.pack(side=tk.LEFT)
         current_row += 1
         self.lbl_tick: tk.Label = tk.Label(self.frame, text=_("Last BGS Tick:") + " " + self.bgstally.tick.get_formatted()) # LANG: Main window label
-        self.lbl_tick.grid(row=current_row, column=1, columnspan=3 if self.bgstally.capi_fleetcarrier_available() else 2, sticky=tk.W)
+        self.lbl_tick.grid(row=current_row, column=1, columnspan=column_count, sticky=tk.W)
         current_row += 1
+        current_column: int = 0
         self.btn_latest_tick: tk.Button = tk.Button(self.frame, text=_("Latest BGS Tally"), height=SIZE_BUTTON_PIXELS-2, image=self.image_blank, compound=tk.RIGHT, command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity())) # LANG: Button label
-        self.btn_latest_tick.grid(row=current_row, column=0, padx=3)
+        self.btn_latest_tick.grid(row=current_row, column=current_column, padx=3)
+        current_column += 1
         self.btn_previous_ticks: tk.Button = tk.Button(self.frame, text=_("Previous BGS Tallies") + " ", height=SIZE_BUTTON_PIXELS-2, image=self.image_button_dropdown_menu, compound=tk.RIGHT, command=self._previous_ticks_popup) # LANG: Button label
-        self.btn_previous_ticks.grid(row=current_row, column=1, padx=3, sticky=tk.W)
+        self.btn_previous_ticks.grid(row=current_row, column=current_column, padx=3, sticky=tk.W)
+        current_column += 1
         self.btn_cmdrs: tk.Button = tk.Button(self.frame, image=self.image_button_cmdrs, height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_cmdr_list_window)
-        self.btn_cmdrs.grid(row=current_row, column=2, padx=3)
+        self.btn_cmdrs.grid(row=current_row, column=current_column, padx=3)
+        current_column += 1
         ToolTip(self.btn_cmdrs, text=_("Show CMDR information window")) # LANG: Main window tooltip
         if self.bgstally.capi_fleetcarrier_available():
             self.btn_carrier: tk.Button = tk.Button(self.frame, image=self.image_button_carrier, state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_fc_window)
-            self.btn_carrier.grid(row=current_row, column=3, padx=3)
+            self.btn_carrier.grid(row=current_row, column=current_column, padx=3)
             ToolTip(self.btn_carrier, text=_("Show fleet carrier window")) # LANG: Main window tooltip
+            current_column += 1
         else:
             self.btn_carrier: tk.Button = None
+
+        self.btn_objectives: tk.Button = tk.Button(self.frame, image=self.image_button_objectives, state=('normal' if self.bgstally.objectives_manager.objectives_available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_objectives_window)
+        self.btn_objectives.grid(row=current_row, column=current_column, padx=3)
+        ToolTip(self.btn_objectives, text=_("Show objectives / missions window")) # LANG: Main window tooltip
+        current_column += 1
+
         current_row += 1
 
         return self.frame
@@ -137,6 +155,7 @@ class UI:
         self.btn_latest_tick.config(command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity()))
         if self.btn_carrier is not None:
             self.btn_carrier.config(state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'))
+        self.btn_objectives.config(state=('normal' if self.bgstally.objectives_manager.objectives_available() else 'disabled'))
 
 
     def get_prefs_frame(self, parent_frame: tk.Frame):
@@ -487,6 +506,12 @@ class UI:
         Display the Fleet Carrier Window
         """
         self.window_fc.show()
+
+
+    def _show_objectives_window(self):
+        """Display the Objectives Window
+        """
+        self.window_objectives.show()
 
 
     def _show_api_window(self, parent_frame:tk.Frame):

@@ -36,7 +36,7 @@ class WindowObjectives:
         frm_container: ttk.Frame = ttk.Frame(self.toplevel)
         frm_container.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(frm_container, text=_("Objectives from {server_name}".format(server_name=self.bgstally.objectives_manager.api.name)), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on objectives window
+        ttk.Label(frm_container, text=_("{server_name} Objectives".format(server_name=self.bgstally.objectives_manager.api.name)), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on objectives window
 
         frm_items: ttk.Frame = ttk.Frame(frm_container)
         frm_items.pack(fill=tk.BOTH, padx=5, pady=5, expand=True)

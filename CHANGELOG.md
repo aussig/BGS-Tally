@@ -1,11 +1,68 @@
 # Change Log
 
-## v4.1.0-xx - xxxx-xx-xx
+## vx.x.x - xxxx-xx-xx
+
+### New Features:
+
+* Objectives!  If you use the API to connect to a server that supports them (API ≥ v1.6.0) then your squadron or group can define shared missions that multiple CMDRs can work towards.
+    - Missions can be of various types (for example - `win a war` or `boost a faction`) and each mission can have one or more targets (for example - `win xx space CZs` or `generate yyy CR in trade profit`).
+    - Objectives are shown in a new window accessible from the main EDMC window - click the 𖦏 button. The layout is a bit basic at the moment, it will probably improve in future.
+    - If you use the in-game overlay, Objectives are also displayed on a new overlay panel in-game.
+* Conflict states are highlighted in the activity window: Elections in orange and wars in red.
+* The individual tick time for each system is now reported on the activity window and on the overlay in-game.
+
+### Bug Fixes:
+
+* The tick time was not being sent in /event API calls.
+* Any Search and Rescue (e.g. excape pods) would cause the overlay to stop displaying your work in that system.
+* When abandoning of failing a mission that was not logged when it was originally accepted (e.g. when BGS-Tally was not running), and sending events to an API, the API call would fail.
+
+### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxxxxxxx)):
+
+* New `/objectives` endpoint.
+* `/events` endpoint: Synthetic events added for certain activities in game that the game itself doesn't log in the journal:
+    - `SyntheticCZ`: Sent when a Space CZ is won.
+    - `SyntheticCZObjective`: Sent when an objective is completed in a Space CZ (cap ship / spec ops / enemy captain / enemy correspondent).
+    - `SyntheticGroundCZ`: Sent when a Ground CZ is won.
+    - `SyntheticScenario`: Sent when a scenario is won (only Megaship scenarios for the moment, Installation scenarios cannot be tracked).
+
+
+## v4.2.0 - 2024-12-22
+
+### New Features:
+
+* Added new Discord formatter supporting the Celestial Light Brigade's preferred Discord structure and layout for BGS reports.
+* Each faction now has its influence % shown in the on-screen activity window.
+* Factions are shown ordered by % influence, highest first in the on-screen activity window.
+* Added Hungarian translation.
+
+### Changes:
+
+* Only check for a new tick once per minute, not on every FSD jump.
+* Split "BM Prof" heading on activity windows onto two lines for more efficient use of space.
+
+### Bug Fixes:
+
+* If the check for a new plugin version was failing, this would throw several exceptions to the EDMC log.
+* Murders of police ships were not being tracked.
+* Any API key entered by the user is now cleaned up and truncated to avoid problems with bad inputs.
+
+
+## v4.1.1 - 2024-09-27
+
+### Bug Fixes:
+
+* The Discord report was blank if the Discord language was set to anything other than English
+* INF numbers in legend / help window weren't showing the new ones implemented in v4.1.0
+
+
+## v4.1.0 - 2024-09-26
 
 ### New Features:
 
 * Added ability to set the position of all in-game overlay panels. If you are finding you don't like where BGS-Tally positions the in-game information, or they overlap with other plugins, you can now override the default positions. If you would like to do this, take a look at the instructions in the `config\userconfig.template.ini` file.
 * Added options to only post your carrier materials, only your carrier commodities or both (defaults to both).
+* Added Russian translation.
 
 ### Changes:
 
@@ -14,6 +71,12 @@
 * Changed label on Discord report heading to make it clearer that it's clickable to show the legend / help window.
 * The Legend (help) window is now scrollable.
 * Detailed INF reports now use clearer numbers for the +INF levels: 1️⃣2️⃣3️⃣4️⃣5️⃣ instead of ➊➋➌➍➎
+* Translation updates.
+
+### Bug Fixes:
+
+* In-game overlay would stop working when certain activities were completed (murders, ground murders, scenarios or mission fails)
+* A change in the latest release of EDMC (5.12.0) stopped the settings panel from loading
 
 
 ## v4.0.1 - 2024-06-11
@@ -575,7 +638,7 @@ _* Note that the plugin only tracks primary and secondary INF from this version 
 
 ### New features:
 
-* Ability to manually add High, Medium and Low on-foot and in-space Combat Zone wins to the Discord report by clicking on-screen buttons.
+* Ability to manually add High, Medium and Low on-foot and in-space Conflict Zone wins to the Discord report by clicking on-screen buttons.
 
 ### Changes:
 
@@ -614,7 +677,7 @@ _* Note that the plugin only tracks primary and secondary INF from this version 
 
 ## v1.0.0 - 2021-08-27
 
-Initial release, based on original [BGS-Tally-v2.0 project by tezw21](https://github.com/tezw21/BGS-Tally-v2.0)
+Initial release, based on original BGS-Tally-v2.0 project by tezw21.
 
 ### New features:
 

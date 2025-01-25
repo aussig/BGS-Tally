@@ -1,15 +1,19 @@
 import functools
+import re
+from copy import deepcopy
 from os import listdir
 from os.path import join
+from pathlib import Path
 
-import l10n
+import semantic_version
 
 import bgstally.globals
+import l10n
 from bgstally.debug import Debug
-from config import config
+from config import appversion
 
 # Language codes for languages that should be omitted
-BLOCK_LANGS: list = ["ru"]
+BLOCK_LANGS: list = []
 
 # Localisation main translation function
 _ = functools.partial(l10n.Translations.translate, context=__file__)
@@ -28,8 +32,12 @@ def __(string: str, lang: str) -> str:
     Returns:
         str: Translated string
     """
-    l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
     if lang == "" or lang is None: return _(string)
+
+    if appversion() < semantic_version.Version('5.12.0'):
+        l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
+    else:
+        l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
 
     contents: dict[str, str] = l10n.Translations.contents(lang=lang, plugin_path=l10n_path)
 
@@ -49,7 +57,11 @@ def available_langs() -> dict[str | None, str]:
     Returns:
         dict[str | None, str]: The available language names indexed by language code
     """
-    l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
+    if appversion() < semantic_version.Version('5.12.0'):
+        l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
+    else:
+        l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
+
     available: set[str] = {x[:-len('.strings')] for x in listdir(l10n_path)
                           if x.endswith('.strings') and
                           "template" not in x and
@@ -117,7 +129,7 @@ def is_number(s: str) -> bool:
     try:
         float(s)
         return True
-    except ValueError:
+    except (TypeError, ValueError):
         return False
 
 
@@ -131,3 +143,56 @@ def all_subclasses(cls: type) -> set[type]:
         set[type]: A set of Python subclasses
     """
     return set(cls.__subclasses__()).union([s for c in cls.__subclasses__() for s in all_subclasses(c)])
+
+
+def string_to_alphanumeric(s: str) -> str:
+    """Clean a string so it only contains alphanumeric characters
+
+    Args:
+        s (str): The string to clean
+
+    Returns:
+        str: The cleaned string
+    """
+    pattern: re.Pattern = re.compile(r'[\W_]+')
+    return pattern.sub('', s)
+
+
+def add_dicts(d1: dict, d2: dict) -> dict:
+    """Sum each individual numeric value from two dicts. For non-numeric values,
+    The result is the value from dict d1. Neither d1 nor d2 are modified by this function.
+
+    Args:
+        d1 (dict): The first dict
+        d2 (dict): The second dict
+
+    Returns:
+        dict: The summed dict
+    """
+
+    # Copy on first entry to the function
+    result: dict = deepcopy(d1)
+
+    def _recursive_add(d1: dict, d2: dict) -> dict:
+        for d2k, d2v in d2.items():
+            d1v = d1.get(d2k)
+            if isinstance(d1v, dict):
+                # We have a dict in d1
+                if isinstance(d2v, dict):
+                    # We have a dict in d2. Recursively merge nested dictionaries (otherwise, just use d1 dict).
+                    d1[d2k] = _recursive_add(d1v, d2v)
+            elif isinstance(d2v, dict):
+                # We have a dict in d2, but not in d1. Copy the d2 dict into d1.
+                d1[d2k] = deepcopy(d2v)
+            elif d1v is None:
+                # No matching key in d1. Copy the d2 value into d1.
+                d1[d2k] = deepcopy(d2v)
+            elif is_number(d1v) and is_number(d2v):
+                # Add numeric values
+                d1[d2k] = d1v + d2v
+
+            # For non-numeric values, do nothing so d1 wins
+
+        return d1
+
+    return _recursive_add(result, d2)

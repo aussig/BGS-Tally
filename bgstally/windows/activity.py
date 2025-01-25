@@ -1,12 +1,14 @@
 import tkinter as tk
+from datetime import UTC, datetime
 from functools import partial
 from os import path
 from tkinter import PhotoImage, ttk
 
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from bgstally.activity import STATES_WAR, Activity
-from bgstally.constants import (COLOUR_HEADING_1, FOLDER_ASSETS, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, CheckStates, CZs, DiscordActivity, DiscordChannel,
+from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
+from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_TITLE, FOLDER_ASSETS, FONT_HEADING_1,
+                                FONT_HEADING_2, FONT_TEXT, ApiSizeLookup, ApiSyntheticEvent, CheckStates, CZs, DiscordActivity, DiscordChannel,
                                 DiscordPostStyle)
 from bgstally.debug import Debug
 from bgstally.formatters.base import BaseActivityFormatterInterface
@@ -88,7 +90,7 @@ class WindowActivity:
         ToolTip(lbl_discord_report, text=_("Show legend window")) # LANG: Activity window tooltip
         ttk.Label(frm_discord, text=_("Discord Additional Notes"), font=FONT_HEADING_2).grid(row=0, column=1, sticky=tk.W) # LANG: Label on activity window
         ttk.Label(frm_discord, text=_("Discord Options"), font=FONT_HEADING_2).grid(row=0, column=2, sticky=tk.W) # LANG: Label on activity window
-        ttk.Label(frm_discord, text=_("Double-check on-ground CZ tallies, sizes are not always correct"), foreground='#f00').grid(row=1, column=0, columnspan=3, sticky=tk.W) # LANG: Label on activity window
+        ttk.Label(frm_discord, text=_("Double-check on-ground CZ tallies, sizes are not always correct"), foreground=COLOUR_WARNING).grid(row=1, column=0, columnspan=3, sticky=tk.W) # LANG: Label on activity window
 
         frm_discordtext: ttk.Frame = ttk.Frame(frm_discord)
         frm_discordtext.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
@@ -133,24 +135,33 @@ class WindowActivity:
                 and str(system_id) != self.bgstally.state.current_system_id:
                 continue
 
-            tab:ttk.Frame = ttk.Frame(nb_tab)
+            tab: ttk.Frame = ttk.Frame(nb_tab)
             nb_tab.add(tab, text=system['System'], compound='right', image=self.image_tab_active_enabled)
 
-            frm_header:ttk.Frame = ttk.Frame(tab)
+            frm_header: ttk.Frame = ttk.Frame(tab)
             frm_header.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
-            ttk.Label(frm_header, text=system['System'], font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=0, column=0, padx=2, pady=2, sticky=tk.W)
-            HyperlinkLabel(frm_header, text=_("Inara ⤴"), url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=1, padx=2, pady=2, sticky=tk.W) # LANG: Inara link
+            header_column: int = 0
+            ttk.Label(frm_header, text=system['System'], font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+            system_tick: str = system.get('TickTime')
+            system_tick_datetime: datetime|None = datetime.strptime(system_tick, DATETIME_FORMAT_ACTIVITY) if system_tick is not None and system_tick != "" else None
+            if system_tick_datetime is not None:
+                system_tick_datetime = system_tick_datetime.replace(tzinfo=UTC)
+                if system_tick_datetime > activity.tick_time:
+                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime))).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+                else:
+                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime)), foreground=COLOUR_WARNING).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+            HyperlinkLabel(frm_header, text=_("Inara ⤴"), url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1 # LANG: Inara link
 
             if self.activity == self.bgstally.activity_manager.get_current_activity():
                 # Current tick activity
                 chk_pin_to_overlay:ttk.Checkbutton = ttk.Checkbutton(frm_header, text=_("Pin {system_name} to Overlay").format(system_name=system['System'])) # LANG: Checkbox label
-                chk_pin_to_overlay.grid(row=0, column=2, padx=2, pady=2, sticky=tk.E)
+                chk_pin_to_overlay.grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.E)
                 chk_pin_to_overlay.configure(command=partial(self._pin_overlay_change, chk_pin_to_overlay, system), state=self.bgstally.ui.overlay_options_state())
                 chk_pin_to_overlay.state(['selected', '!alternate'] if system.get('PinToOverlay') == CheckStates.STATE_ON else ['!selected', '!alternate'])
-                frm_header.columnconfigure(2, weight=1) # Make the final column (pin checkbutton) fill available space
+                frm_header.columnconfigure(header_column, weight=1) # Make the final column (pin checkbutton) fill available space
             else:
                 # Previous tick activity
-                frm_header.columnconfigure(1, weight=1) # Make the final column (Inara link) fill available space
+                frm_header.columnconfigure(header_column, weight=1) # Make the final column (Inara link) fill available space
 
             if system.get('tw_status') is not None:
                 # TW system, skip all BGS
@@ -175,6 +186,7 @@ class WindowActivity:
 
                 col: int = 1
                 ttk.Label(frm_table, text=_("Faction"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frm_table, text="%", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
                 ttk.Label(frm_table, text=_("State"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 lbl_inf: ttk.Label = ttk.Label(frm_table, text="INF", font=FONT_HEADING_2, anchor=tk.CENTER) # LANG: Activity window column title, abbreviation for influence
                 lbl_inf.grid(row=0, column=col, columnspan=2, padx=2)
@@ -192,7 +204,8 @@ class WindowActivity:
                 lbl_prof: ttk.Label = ttk.Label(frm_table, text=_("Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for profit
                 lbl_prof.grid(row=1, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_prof, text=_("Profit at Z | L | M | H demand")) # LANG: Activity window tooltip for profit at zero | low | medium | high demand
-                lbl_bmprof: ttk.Label = ttk.Label(frm_table, text=_("BM Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for black market profit
+                ttk.Label(frm_table, text="BM", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, padx=2)
+                lbl_bmprof: ttk.Label = ttk.Label(frm_table, text=_("Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for black market profit
                 lbl_bmprof.grid(row=1, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_bmprof, text=_("Black market profit")) # LANG: Activity window tooltip
                 lbl_bvs: ttk.Label = ttk.Label(frm_table, text="BVs", font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for bounty vouchers
@@ -246,7 +259,9 @@ class WindowActivity:
                 header_rows = 3
                 x = 0
 
-                for faction in system['Factions'].values():
+                faction_list: list = activity.get_ordered_factions(system['Factions'])
+
+                for faction in faction_list:
                     chk_enable = ttk.Checkbutton(frm_table)
                     chk_enable.grid(row=x + header_rows, column=0, sticky=tk.N, padx=2, pady=2)
                     chk_enable.configure(command=partial(self._enable_faction_change, nb_tab, tab_index, chk_enable_all, FactionEnableCheckbuttons, activity, system, faction, x))
@@ -271,7 +286,13 @@ class WindowActivity:
                         settlement_row_index += 1
 
                     col = 2
-                    ttk.Label(frm_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+
+                    ttk.Label(frm_table, text="{0:.2f}".format(faction['Influence'] * 100)).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+
+                    if (faction['FactionState'] in STATES_WAR): ttk.Label(frm_table, foreground="red", text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    elif (faction['FactionState'] in STATES_ELECTION): ttk.Label(frm_table, foreground="orange", text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    else: ttk.Label(frm_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+
                     MissionPointsVar = tk.IntVar(value=faction['MissionPoints']['m'])
                     ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     MissionPointsVar.trace('w', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsVar, True, chk_enable_all, activity, system, faction, x))
@@ -550,18 +571,45 @@ class WindowActivity:
         """
         Callback (set as a variable trace) for when a CZ Variable is changed
         """
-        if cz_type == CZs.SPACE_LOW:
-            faction['SpaceCZ']['l'] = CZVar.get()
-        elif cz_type == CZs.SPACE_MED:
-            faction['SpaceCZ']['m'] = CZVar.get()
-        elif cz_type == CZs.SPACE_HIGH:
-            faction['SpaceCZ']['h'] = CZVar.get()
-        elif cz_type == CZs.GROUND_LOW:
-            faction['GroundCZ']['l'] = CZVar.get()
-        elif cz_type == CZs.GROUND_MED:
-            faction['GroundCZ']['m'] = CZVar.get()
-        elif cz_type == CZs.GROUND_HIGH:
-            faction['GroundCZ']['h'] = CZVar.get()
+        match cz_type:
+            case CZs.SPACE_LOW:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZ
+                event_size: str = ApiSizeLookup['l']
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ']['l'])
+                faction['SpaceCZ']['l'] = CZVar.get()
+            case CZs.SPACE_MED:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZ
+                event_size: str = ApiSizeLookup['m']
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ']['m'])
+                faction['SpaceCZ']['m'] = CZVar.get()
+            case CZs.SPACE_HIGH:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZ
+                event_size: str = ApiSizeLookup['h']
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ']['h'])
+                faction['SpaceCZ']['h'] = CZVar.get()
+            case CZs.GROUND_LOW:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.GROUNDCZ
+                event_size: str = ApiSizeLookup['l']
+                event_diff: int = int(CZVar.get()) - int(faction['GroundCZ']['l'])
+                faction['GroundCZ']['l'] = CZVar.get()
+            case CZs.GROUND_MED:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.GROUNDCZ
+                event_size: str = ApiSizeLookup['m']
+                event_diff: int = int(CZVar.get()) - int(faction['GroundCZ']['m'])
+                faction['GroundCZ']['m'] = CZVar.get()
+            case CZs.GROUND_HIGH:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.GROUNDCZ
+                event_size: str = ApiSizeLookup['h']
+                event_diff: int = int(CZVar.get()) - int(faction['GroundCZ']['h'])
+                faction['GroundCZ']['h'] = CZVar.get()
+
+        # Send to API
+        event: dict = {
+            'event': event_type,
+            event_size: event_diff,
+            'Faction': faction['Faction']
+        }
+        if activity.cmdr is not None: self.bgstally.api_manager.send_event(event, activity, activity.cmdr)
 
         activity.recalculate_zero_activity()
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)

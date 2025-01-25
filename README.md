@@ -10,7 +10,7 @@
 
 A tool to track and report your Background Simulation (BGS) and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS-Tally counts all the BGS / TW work you do for any faction, in any system.
 
-Based on BGS-Tally v2.0 by tezw21: [Original tezw21 BGS-Tally-v2.0 Project](https://github.com/tezw21/BGS-Tally-v2.0)
+Based on BGS-Tally v2.0 by tezw21
 
 As well as all the BGS tracking from Tez's original version, this modified version includes:
 
@@ -66,7 +66,7 @@ All of these files use the JSON format, so can be easily viewed in a text editor
 
 The plugin makes the following network connections:
 
-1. To [EliteBGS](https://elitebgs.app/api/ebgs/v5/ticks) to grab the date and time of the lastest tick.
+1. To [CMDR Zoy's Tick Detector](http://tick.infomancer.uk/galtick.json) to grab the date and time of the lastest tick.
 2. To [GitHub](https://api.github.com/repos/aussig/BGS-Tally/releases/latest) to check the version of the plugin to see whether there is a newer version available.
 3. To [Inara](https://inara.cz/elite/) to anonymously check for available information on targeted CMDRs.
 4. **Only if configured by you** to a specific Discord webhook on a Discord server of your choice, and only when you explicitly click the _Post to Discord_ button.
@@ -82,14 +82,18 @@ If you are having problems with BGS-Tally, check out the **[Troubleshooting page
 
 And finally, a huge thank you to:
 
-* All the code contributors - listed [here on Github](https://github.com/aussig/BGS-Tally/graphs/contributors).
+* CMDR Tez, who wrote the original version of BGS-Tally - this simply wouldn't exist without his work.
+
+* All the code contributors to this version - listed [here on Github](https://github.com/aussig/BGS-Tally/graphs/contributors).
 * All the CMDRs who have provided their input, bug reports, feedback and ideas.
 * All the translators who have given their time and effort:
     * French - CMDR Dopeilien and CMDR ThArGos
     * German - CMDR Ryan Murdoc
+    * Hungarian - CMDR Lazy Creature and CMDR xtl
     * Italian - CMDR FrostBit / [@GLWine](https://github.com/GLWine)
     * Portuguese (Portugal) - CMDR Holy Nothing
     * Portuguese (Brazil) - CMDR FelaKuti
+    * Russian - CMDR YAD and CMDR KuzSan
     * Serbian (Latin) - CMDR Markovic Vladimir
     * Spanish - CMDR HaLfY47
     * Turkish - CMDR Yu-gen

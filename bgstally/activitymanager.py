@@ -1,7 +1,6 @@
 from copy import deepcopy
+from datetime import datetime, timedelta
 from os import listdir, mkdir, path, remove, rename
-
-from config import config
 
 from bgstally.activity import Activity
 from bgstally.constants import FILE_SUFFIX
@@ -60,6 +59,31 @@ class ActivityManager:
         return self.activity_data[1:]
 
 
+    def query_activity(self, start_date: datetime) -> Activity:
+        """Aggregate all activity back to and including the tick encompassing a given start date
+
+        Args:
+            start_date (datetime): The start date
+
+        Returns:
+            Activity: A new Activity object containing the aggregated data.
+        """
+        result: Activity = Activity(self.bgstally)
+
+        # Iterate activities (already kept sorted by date, newest first)
+        for activity in self.activity_data:
+
+            result = result + activity
+
+            if activity.tick_time <= start_date:
+                # Once we reach an activity that is older than our start date, stop. Note that we have INCLUDED the
+                # activity which overlaps with the start_date
+                break
+
+        return result
+
+
+
     def new_tick(self, tick: Tick, forced: bool) -> bool:
         """
         New tick detected, duplicate the current Activity object or ignore if it's older than current tick.
@@ -67,7 +91,7 @@ class ActivityManager:
 
         if tick.tick_time < self.current_activity.tick_time:
             # An inbound tick is older than the current tick. The only valid situation for this is if the user has done a Force Tick
-            # but an elitebgs.app tick was then detected with an earlier timestamp. Ignore the tick in this situation.
+            # but a new tick was then detected with an earlier timestamp. Ignore the tick in this situation.
             return False
         else:
             # An inbound tick is newer than the current tick. Create a new Activity object.

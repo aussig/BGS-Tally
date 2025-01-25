@@ -18,7 +18,7 @@ class BGSTallyRequest:
     """
     Encapsulates a request that can be queued and processed in a thread
     """
-    def __init__(self, endpoint:str, method:RequestMethod, callback:callable, params:dict, headers:dict, stream:bool, payload:dict|None, data:dict|None):
+    def __init__(self, endpoint:str, method:RequestMethod, callback:callable, params:dict, headers:dict, stream:bool, payload:dict|None, data:dict|None, attempts:int):
         # The endpoint to call
         self.endpoint:str = endpoint
         # The type of request
@@ -35,6 +35,8 @@ class BGSTallyRequest:
         self.payload:dict|None = payload
         # Any additional data required to be passed to the callback function when the response is received
         self.data:dict|None = data
+        # The number of attempts made to send this request
+        self.attempts:int = attempts
 
     def __str__(self):
         """
@@ -47,7 +49,8 @@ class BGSTallyRequest:
                     f"  headers: {self.headers} \n" \
                     f"  stream: {self.stream} \n" \
                     f"  payload: {self.payload} \n" \
-                    f"  data: {self.data} \n"
+                    f"  data: {self.data} \n" \
+                    f"  attempts: {self.attempts} \n"
 
 
 class RequestManager:
@@ -70,7 +73,7 @@ class RequestManager:
         self.request_thread.start()
 
 
-    def queue_request(self, endpoint:str, method:RequestMethod, callback:callable = None, params:dict = {}, headers:dict = {}, stream:bool = False, payload:dict|None = None, data:dict|None = None):
+    def queue_request(self, endpoint:str, method:RequestMethod, callback:callable = None, params:dict = {}, headers:dict = {}, stream:bool = False, payload:dict|None = None, data:dict|None = None, attempts:int = 0) -> None:
         """
         Add a request to the queue
         """
@@ -80,7 +83,7 @@ class RequestManager:
 
         headers:dict = {'User-Agent': f"{self.bgstally.plugin_name}/{self.bgstally.version}"} | headers
 
-        self.request_queue.put(BGSTallyRequest(endpoint, method, callback, params, headers, stream, payload, data))
+        self.request_queue.put(BGSTallyRequest(endpoint, method, callback, params, headers, stream, payload, data, attempts))
 
 
     def url_valid(self, url:str) -> bool:

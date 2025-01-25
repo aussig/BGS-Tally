@@ -167,10 +167,10 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         activity_text += cyan(__("TrdBMProfit", lang), fp=fp) + " " + green(human_format(faction['BlackMarketProfit']), fp=fp) + " " if faction['BlackMarketProfit'] != 0 else "" # LANG: Discord heading, abbreviation for trade black market profit
         activity_text += white(__("Expl", lang), fp=fp) + " " + green(human_format(faction['CartData']), fp=fp) + " " if faction['CartData'] != 0 else "" # LANG: Discord heading, abbreviation for exploration
         # activity_text += grey(__('Exo', lang), fp=fp) + " " + green(human_format(faction['ExoData']), fp=fp) + " " if faction['ExoData'] != 0 else "" # LANG: Discord heading, abbreviation for exobiology
-        activity_text += red(__("Murders", lang), fp=fp) + " " + green(faction['Murdered'], fp=fp) + " " if faction['Murdered'] != 0 else "" # LANG: Discord heading
-        activity_text += red(__("GroundMurders", lang), fp=fp) + " " + green(faction['GroundMurdered'], fp=fp) + " " if faction['GroundMurdered'] != 0 else "" # LANG: Discord heading
-        activity_text += yellow(__("Scenarios", lang), fp=fp) + " " + green(faction['Scenarios'], fp=fp) + " " if faction['Scenarios'] != 0 else "" # LANG: Discord heading
-        activity_text += magenta(__("Fails", lang), fp=fp) + " " + green(faction['MissionFailed'], fp=fp) + " " if faction['MissionFailed'] != 0 else "" # LANG: Discord heading, abbreviation for failed missions
+        activity_text += red(__("Murders", lang), fp=fp) + " " + green(str(faction['Murdered']), fp=fp) + " " if faction['Murdered'] != 0 else "" # LANG: Discord heading
+        activity_text += red(__("GroundMurders", lang), fp=fp) + " " + green(str(faction['GroundMurdered']), fp=fp) + " " if faction['GroundMurdered'] != 0 else "" # LANG: Discord heading
+        activity_text += yellow(__("Scenarios", lang), fp=fp) + " " + green(str(faction['Scenarios']), fp=fp) + " " if faction['Scenarios'] != 0 else "" # LANG: Discord heading
+        activity_text += magenta(__("Fails", lang), fp=fp) + " " + green(str(faction['MissionFailed']), fp=fp) + " " if faction['MissionFailed'] != 0 else "" # LANG: Discord heading, abbreviation for failed missions
         activity_text += self._build_cz(faction.get('SpaceCZ', {}), __("SpaceCZs", lang), discord) # LANG: Discord heading, abbreviation for space conflict zones
         activity_text += self._build_cz(faction.get('GroundCZ', {}), __("GroundCZs", lang), discord) # LANG: Discord heading, abbreviation for ground conflict zones
         activity_text += self._build_sandr(faction.get('SandR', {}), discord, lang)
@@ -488,7 +488,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         value: int = int(sum(sandr_data.values()))
         if value == 0: return ""
 
-        return white(__("SandR", lang), fp=fp) + " " + green(value, fp=fp) + " " # LANG: Discord heading, abbreviation for search and rescue
+        return white(__("SandR", lang), fp=fp) + " " + green(str(value), fp=fp) + " " # LANG: Discord heading, abbreviation for search and rescue
 
 
     def _build_faction_name(self, faction_name: str) -> str:

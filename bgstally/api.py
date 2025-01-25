@@ -71,6 +71,9 @@ class API:
         # Events queue is used to batch up events API messages. All batched messages are sent when the worker works.
         self.events_queue: Queue = Queue()
 
+        # Received data state (transient, we don't save or load this)
+        self.objectives: list = []
+
         self.activities_thread: Thread = Thread(target=self._activities_worker, name=f"BGSTally Activities API Worker ({self.url})")
         self.activities_thread.daemon = True
         self.activities_thread.start()
@@ -338,7 +341,8 @@ class API:
             Debug.logger.warning(f"Objectives data is invalid (not a list)")
             return
 
-        self.bgstally.objectives_manager.set_objectives(objectives_data)
+        self.objectives = objectives_data
+        self.bgstally.objectives_manager.objectives_received(self)
 
 
     def _get_headers(self) -> dict:

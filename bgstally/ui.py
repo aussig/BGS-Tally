@@ -460,7 +460,7 @@ class UI:
 
             # Objectives
             if self.bgstally.state.enable_overlay_objectives and self.bgstally.objectives_manager.get_objectives() != []:
-                objectives_text: str = self.bgstally.objectives_manager.get_human_readable_objectives()
+                objectives_text: str = self.bgstally.objectives_manager.get_human_readable_objectives(False)
                 self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
 
             sleep(TIME_WORKER_PERIOD_S)

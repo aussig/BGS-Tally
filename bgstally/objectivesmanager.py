@@ -84,7 +84,7 @@ class ObjectivesManager:
             self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
 
 
-    def get_human_readable_objectives(self) -> str:
+    def get_human_readable_objectives(self, discord: bool) -> str:
         """Get the objectives nicely formatted
 
         Returns:
@@ -138,18 +138,18 @@ class ObjectivesManager:
                     case MissionTargetType.VISIT:
                         if target_station:
                             # Progress on 'visit station' targets is handled server-side
-                            status, target_overall = self._get_status(target, numeric=False)
+                            status, target_overall = self._get_status(target, discord, numeric=False)
                             result += f"  {status} Access the market in station '{target_station}' in '{target_system}'" + "\n"
                         else:
                             # Progress on 'visit system' targets is handled server-side
-                            status, target_overall = self._get_status(target, numeric=False)
+                            status, target_overall = self._get_status(target, discord, numeric=False)
                             result += f"  {status} Visit system '{target_system}'" + "\n"
 
                     case MissionTargetType.INF:
                         progress_individual: int|None = None if faction_activity is None else \
                             sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPoints'].items()) + \
                             sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPointsSecondary'].items())
-                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="INF")
+                        status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="INF")
                         if target_overall > 0:
                             result += f"  {status} Boost '{target_faction}' in '{target_system}'" + "\n"
                         elif target_overall < 0:
@@ -159,61 +159,61 @@ class ObjectivesManager:
 
                     case MissionTargetType.BV:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('Bounties')
-                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="CR")
+                        status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="CR")
                         result += f"  {status} Bounty Vouchers for '{target_faction}' in '{target_system}'" + "\n"
 
                     case MissionTargetType.CB:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('CombatBonds')
-                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="CR")
+                        status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="CR")
                         result += f"  {status} Combat Bonds for '{target_faction}' in '{target_system}'" + "\n"
 
                     case MissionTargetType.EXPL:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('CartData')
-                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="CR")
+                        status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="CR")
                         result += f"  {status} Exploration Data for '{target_faction}' in '{target_system}'" + "\n"
 
                     case MissionTargetType.TRADE_PROFIT:
                         progress_individual: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity['TradeSell'])
-                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="CR")
+                        status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="CR")
                         result += f"  {status} Trade Profit for '{target_faction}' in '{target_system}'" + "\n"
 
                     case MissionTargetType.BM_PROF:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('BlackMarketProfit')
-                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="CR")
+                        status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="CR")
                         result += f"  {status} Black Market Profit for '{target_faction}' in '{target_system}'" + "\n"
 
                     case MissionTargetType.GROUND_CZ:
                         progress_individual: int|None = None if faction_activity is None else sum(faction_activity.get('GroundCZ', {}).values())
-                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="wins")
+                        status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="wins")
                         result += f"  {status} Fight for '{target_faction}' at on-ground CZs in '{target_system}'" + "\n"
 
                         for settlement in target.get('settlements', []):
                             settlement_name: str|None = settlement.get('name')
                             settlement_activity: dict|None = None if faction_activity is None else get_by_path(faction_activity, ['GroundCZSettlements', settlement_name], None)
                             progress_individual: int|None = None if settlement_activity is None else settlement_activity.get('count')
-                            status, target_overall = self._get_status(settlement, progress_individual=progress_individual, label="wins")
+                            status, target_overall = self._get_status(settlement, discord, progress_individual=progress_individual, label="wins")
                             result += f"    {status} Fight at '{settlement_name}'" + "\n"
 
                     case MissionTargetType.SPACE_CZ:
                         progress_individual: int|None = None if faction_activity is None else sum(faction_activity.get('SpaceCZ', {}).values())
-                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="wins")
+                        status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="wins")
                         result += f"  {status} Fight for '{target_faction}' at in-space CZs in '{target_system}'" + "\n"
 
                     case MissionTargetType.MURDER:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('Murdered')
-                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="kills")
+                        status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="kills")
                         result += f"  {status} Murder '{target_faction}' ships in '{target_system}'" + "\n"
 
                     case MissionTargetType.MISSION_FAIL:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('MissionFailed')
-                        status, target_overall = self._get_status(target, progress_individual=progress_individual, label="fails")
+                        status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="fails")
                         result += f"  {status} Fail missions against '{target_faction}' in '{target_system}'" + "\n"
 
 
         return result
 
 
-    def _get_status(self, target: dict, numeric: bool = True, progress_individual: int|None = None, label: str|None = None) -> tuple[str, int]:
+    def _get_status(self, target: dict, discord: bool, numeric: bool = True, progress_individual: int|None = None, label: str|None = None) -> tuple[str, int]:
         """Build a string showing the status of a particular mission or sub-mission, showing both overall and individual progress
 
         Args:
@@ -273,7 +273,7 @@ class ObjectivesManager:
         if complete_overall or complete_individual:
             # If the target is complete, just show an indicator
             # [√]
-            return f"[√]", target_overall
+            return (f"[✓]" if discord else "[√]"), target_overall
         elif not numeric:
             # If the target is not complete and not numeric, just show an indicator
             # [•]

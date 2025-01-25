@@ -58,14 +58,14 @@
 /* Dropdown menu on activity window. [activity.py] */
 "BGS Only" = "Samo BGS";
 
+/* [clb.py] */
+"BGS Report" = "BGS Report";
+
 /* Discord heading. [default.py] */
 "bio-pod" = "bio-kapsula";
 
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Zarada na crnom tržištu";
-
-/* Activity window column title, abbreviation for black market profit. [activity.py] */
-"BM Prof" = "CT Zarada";
 
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "Objedinjen BGS i TR";
@@ -136,9 +136,6 @@
 /* Label on legend window. [legend.py] */
 "Critically wounded evacuation missions" = "Misije evakuacije kritično ranjenih";
 
-/* [ui.py] */
-"Curr Tick:" = "Posl. Tik:";
-
 /* [fleetcarrier.py] */
 "Current System" = "Trenutni sistem";
 
@@ -199,7 +196,7 @@
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Pristajanje";
 
-/* [activity.py] */
+/* Label on activity window. [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Proverite pešačke izveštaje KZ, podaci nisu uvek tačno obračunati";
 
 /* [sheet_options.py] */
@@ -210,6 +207,9 @@
 
 /* [sheet_options.py] */
 "Edit index" = "Uredi Indeks";
+
+/* [clb.py] */
+"Election Inf" = "Election Inf";
 
 /* Discord heading, abbreviation for election INF. [default.py] */
 "ElectionINF" = "Izborni INF";
@@ -280,13 +280,16 @@
 /* Discord heading. [fleetcarrier.py] */
 "From System" = "Iz Sistema";
 
+/* Overlay galaxy tick message. [ui.py] */
+"Galaxy Tick: {tick_time}" = "Galaxy Tick: {tick_time}";
+
 /* Appended to tick time if a normal tick. [activity.py] */
 "game" = "igra";
 
 /* Preferences heading. [ui.py] */
 "General Options" = "Opšte Opcije";
 
-/* Activity window column title. [activity.py] */
+/* [clb.py] */
 "Ground" = "Zemlja";
 
 /* Activity window tooltip. [activity.py] */
@@ -366,6 +369,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "Include Secondary INF" = "Uračunaj i Sekundarni INF";
+
+/* [clb.py] */
+"Inf" = "Inf";
 
 /* Discord heading, abbreviation for INF. [default.py] */
 "INF" = "INF";
@@ -498,6 +504,9 @@
 
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Pristup za Ozloglašene";
+
+/* Objectives title. [objectivesmanager.py] */
+"Objectives" = "Objectives";
 
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Planetarna Konflikt Zona";
@@ -670,11 +679,17 @@
 /* Activity window tooltip. [activity.py] */
 "Show legend window" = "Prikaži prozor sa legendom";
 
+/* Main window tooltip. [ui.py] */
+"Show objectives / missions window" = "Show objectives / missions window";
+
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Prikaži Sisteme u kojima nema Aktivnosti";
 
-/* [fleetcarrier.py] */
+/* Label on carrier window. [fleetcarrier.py] */
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Neke informacije se ne mogu ažurirati. Omogućite Aktiviraj Fleetcarrier CAPIU Upite na Fajl -> Podešavanja -> Konfiguracija";
+
+/* [clb.py] */
+"Space" = "Space";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Svemirske konflikt zone";
@@ -708,6 +723,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "System Information" = "Informacije o sistemu";
+
+/* Overlay system tick message. [ui.py] */
+"System Tick: {tick_time}" = "System Tick: {tick_time}";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistem: {current_system} - Pristajanje: {docking_access} - Dozvoljeno Ozloglašenima: {notorious}";
@@ -799,6 +817,9 @@
 /* Discord message footer, legacy text mode. [discord.py] */
 "Updated at: {date_time} | {plugin_name} v{version}" = "Ažurirano: {date_time} | {plugin_name} v{version}";
 
+/* [clb.py] */
+"War Inf" = "War Inf";
+
 /* Discord heading, abbreviation for war INF. [default.py] */
 "WarINF" = "RatniINF";
 
@@ -841,6 +862,9 @@
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Legenda Ikona";
 
+/* Objectives window title. [objectives.py] */
+"{plugin_name} - Objectives" = "{plugin_name} - Objectives";
+
 /* Preferences checkbox label. [ui.py] */
 "{plugin_name} Active" = "{plugin_name} Aktivan";
 
@@ -853,11 +877,8 @@
 /* Main window error message. [tick.py] */
 "{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} PAŽNJA: Nemoguće pribaviti informacije o poslednjem tiku";
 
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: There was a problem saving the new version" = "{plugin_name}: Dogodio se problem pri snimanju nove verzije";
+/* [tick.py] */
+"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} WARNING: Unable to fetch system tick";
 
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin download" = "{plugin_name}: Ne mogu da preuzmem poslednju verziju plagina";
-
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: Ne mogu da preuzmem poslednju verziju plagina";
+/* Objectives title. [objectivesmanager.py] */
+"{server_name} Objectives" = "{server_name} Objectives";

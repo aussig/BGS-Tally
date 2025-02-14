@@ -18,6 +18,7 @@ from bgstally.fleetcarrier import FleetCarrier
 from bgstally.formatters.default import DefaultActivityFormatter
 from bgstally.formattermanager import ActivityFormatterManager
 from bgstally.market import Market
+from bgstally.powerplay import Merits
 from bgstally.missionlog import MissionLog
 from bgstally.objectivesmanager import ObjectivesManager
 from bgstally.overlay import Overlay
@@ -85,6 +86,7 @@ class BGSTally:
         self.activity_manager: ActivityManager = ActivityManager(self)
         self.fleet_carrier: FleetCarrier = FleetCarrier(self)
         self.market: Market = Market(self)
+        self.merits: Merits = Merits(self)
         self.request_manager: RequestManager = RequestManager(self)
         self.api_manager: APIManager = APIManager(self)
         self.webhook_manager: WebhookManager = WebhookManager(self)
@@ -197,6 +199,9 @@ class BGSTally:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
                 self.state.station_type = entry.get('StationType', "")
                 dirty = True
+
+            case 'Powerplay':
+                self.merits.update(entry)
 
             case 'Market':
                 self.market.load()
@@ -320,6 +325,7 @@ class BGSTally:
         Save all data structures
         """
         # TODO: Don't need to save all this all the time, be more selective
+        self.merits.save()
         self.mission_log.save()
         self.target_manager.save()
         self.tick.save()

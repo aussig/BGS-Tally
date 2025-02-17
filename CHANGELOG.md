@@ -10,6 +10,7 @@
     - If you use the in-game overlay, Objectives are also displayed on a new overlay panel in-game.
 * Conflict states are highlighted in the activity window: Elections in orange and wars in red.
 * The individual tick time for each system is now reported on the activity window and on the overlay in-game.
+* You can now customise the Discord avatar image for your Discord posts, if you want to override the default BGS-Tally icon.
 
 ### Bug Fixes:
 

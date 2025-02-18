@@ -59,7 +59,7 @@
 "BGS Only" = "Nur für BGS";
 
 /* [clb.py] */
-"BGS Report" = "BGS Report";
+"BGS Report" = "BGS-Bericht";
 
 /* Discord heading. [default.py] */
 "bio-pod" = "Bio-Pod";
@@ -184,6 +184,9 @@
 /* Label on activity window. [activity.py] */
 "Discord Additional Notes" = "Discord Zusätzliche Notizen";
 
+/* Preferences label. [ui.py] */
+"Discord Avatar URL" = "Discord Avatar URL";
+
 /* [ui.py] */
 "Discord Options" = "Discord Optionen";
 
@@ -209,7 +212,7 @@
 "Edit index" = "Index bearbeiten";
 
 /* [clb.py] */
-"Election Inf" = "Election Inf";
+"Election Inf" = "Wahl Inf";
 
 /* Discord heading, abbreviation for election INF. [default.py] */
 "ElectionINF" = "WahlINF";
@@ -506,7 +509,7 @@
 "Notorious Access" = "Berüchtigter Zugang";
 
 /* Objectives title. [objectivesmanager.py] */
-"Objectives" = "Objectives";
+"Objectives" = "Ziele";
 
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Bodenkampfzone";
@@ -680,7 +683,7 @@
 "Show legend window" = "Legendenfenster anzeigen";
 
 /* Main window tooltip. [ui.py] */
-"Show objectives / missions window" = "Show objectives / missions window";
+"Show objectives / missions window" = "Ziele / Missionsfenster anzeigen";
 
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Systeme mit Null-Aktivität anzeigen";
@@ -689,7 +692,7 @@
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Einige Informationen können nicht aktualisiert werden. Aktiviere CAPI-Abfragen unter Datei -> Einstellungen -> Konfiguration";
 
 /* [clb.py] */
-"Space" = "Space";
+"Space" = "Weltraum";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Raumkonfliktzonen";
@@ -725,7 +728,7 @@
 "System Information" = "Systeminformationen";
 
 /* Overlay system tick message. [ui.py] */
-"System Tick: {tick_time}" = "System Tick: {tick_time}";
+"System Tick: {tick_time}" = "System-Tick: {tick_time}";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "System: {current_system} - Andockerlaubnis: {docking_access} - Berüchtigt erlaubt: {notorious}";
@@ -818,7 +821,7 @@
 "Updated at: {date_time} | {plugin_name} v{version}" = "Aktualisiert am: {date_time} | {plugin_name} v{version}";
 
 /* [clb.py] */
-"War Inf" = "War Inf";
+"War Inf" = "Kriegs-Inf";
 
 /* Discord heading, abbreviation for war INF. [default.py] */
 "WarINF" = "KriegINF";
@@ -863,7 +866,7 @@
 "{plugin_name} - Icon Legend" = "{plugin_name} - Symbol-Legende";
 
 /* Objectives window title. [objectives.py] */
-"{plugin_name} - Objectives" = "{plugin_name} - Objectives";
+"{plugin_name} - Objectives" = "{plugin_name} - Ziele";
 
 /* Preferences checkbox label. [ui.py] */
 "{plugin_name} Active" = "{plugin_name} Aktiv";
@@ -878,7 +881,7 @@
 "{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} WARNUNG: Letzter Tick kann nicht abgerufen werden";
 
 /* [tick.py] */
-"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} WARNING: Unable to fetch system tick";
+"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} WARNUNG: System-Tick kann nicht abgerufen werden";
 
 /* Objectives title. [objectivesmanager.py] */
-"{server_name} Objectives" = "{server_name} Objectives";
+"{server_name} Objectives" = "{server_name} - Ziele";

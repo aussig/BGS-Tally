@@ -185,6 +185,8 @@ class UI:
         nb.Checkbutton(frame, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
+        nb.Label(frame, text=_("Discord Avatar URL")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
+        EntryPlus(frame, textvariable=self.bgstally.state.DiscordAvatarURL, width=80).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
         self.languages: dict[str: str] = available_langs()
         self.language:tk.StringVar = tk.StringVar(value=self.languages.get(self.bgstally.state.discord_lang, _('Default')))
         self.formatters: dict[str: str] = self.bgstally.formatter_manager.get_formatters()

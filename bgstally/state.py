@@ -37,6 +37,7 @@ class State:
         self.DetailedTrade:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedTrade', default=CheckStates.STATE_ON))
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordActivity', default=DiscordActivity.BOTH))
         self.DiscordFleetCarrier: tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordFleetCarrier', default=DiscordFleetCarrier.BOTH))
+        self.DiscordAvatarURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordAvatarURL', default=""))
 
         # TODO: Legacy values, used to migrate initial state, remove in future version
         self.DiscordBGSWebhook:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordWebhook', default=""))
@@ -105,6 +106,7 @@ class State:
         config.set('BGST_DetailedTrade', self.DetailedTrade.get())
         config.set('BGST_DiscordActivity', self.DiscordActivity.get())
         config.set('BGST_DiscordFleetCarrier', self.DiscordFleetCarrier.get())
+        config.set('BGST_DiscordAvatarURL', self.DiscordAvatarURL.get())
 
         # Persistent values
         config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")

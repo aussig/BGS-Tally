@@ -46,6 +46,11 @@ class Discord:
         # Aply Discord limits
         discord_text = self._truncate(discord_text, DISCORD_LIMIT_CONTENT)
 
+        if self.bgstally.request_manager.url_valid(self.bgstally.state.DiscordAvatarURL.get()):
+            avatar_url:str = self.bgstally.state.DiscordAvatarURL.get()
+        else:
+            avatar_url:str = URL_LOGO
+
         for webhook in webhooks.values():
             webhook_url:str = webhook.get('url')
             if not self._is_webhook_valid(webhook_url): continue
@@ -65,7 +70,10 @@ class Discord:
 
                 discord_text += ("```ansi\n" + blue(__("Posted at: {date_time} | {plugin_name} v{version}", lang=self.bgstally.state.discord_lang)) + "```").format(date_time=utc_time_now, plugin_name=self.bgstally.plugin_name, version=str(self.bgstally.version)) # LANG: Discord message footer, legacy text mode
                 url:str = webhook_url
-                payload:dict = {'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []}
+                payload:dict = {'content': discord_text,
+                                'username': self.bgstally.state.DiscordUsername.get(),
+                                'avatar_url': avatar_url,
+                                'embeds': []}
 
                 self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, callback=self._request_complete, data=data)
             else:
@@ -73,7 +81,10 @@ class Discord:
                 if discord_text != "":
                     discord_text += ("```ansi\n" + green(__("Updated at: {date_time} | {plugin_name} v{version}", lang=self.bgstally.state.discord_lang)) + "```").format(date_time=utc_time_now, plugin_name=self.bgstally.plugin_name, version=str(self.bgstally.version)) # LANG: Discord message footer, legacy text mode
                     url:str = f"{webhook_url}/messages/{previous_messageid}"
-                    payload:dict = {'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []}
+                    payload:dict = {'content': discord_text,
+                                    'username': self.bgstally.state.DiscordUsername.get(),
+                                    'avatar_url': avatar_url,
+                                    'embeds': []}
 
                     self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, callback=self._request_complete, data=data)
                 else:
@@ -104,6 +115,11 @@ class Discord:
             field['name'] = self._truncate(field.get('name', ""), DISCORD_LIMIT_EMBED_FIELD_NAME)
             field['value'] = self._truncate(field.get('value', ""), DISCORD_LIMIT_EMBED_FIELD_VALUE)
 
+        if self.bgstally.request_manager.url_valid(self.bgstally.state.DiscordAvatarURL.get()):
+            avatar_url:str = self.bgstally.state.DiscordAvatarURL.get()
+        else:
+            avatar_url:str = URL_LOGO
+
         for webhook in webhooks.values():
             webhook_url: str = webhook.get('url')
             if not self._is_webhook_valid(webhook_url): continue
@@ -125,7 +141,7 @@ class Discord:
                 payload: dict = {
                     'content': "",
                     'username': self.bgstally.state.DiscordUsername.get(),
-                    'avatar_url': URL_LOGO,
+                    'avatar_url': avatar_url,
                     'embeds': [embed]}
 
                 self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, params={'wait': 'true'}, callback=self._request_complete, data=data)
@@ -137,7 +153,7 @@ class Discord:
                     payload: dict = {
                         'content': "",
                         'username': self.bgstally.state.DiscordUsername.get(),
-                        'avatar_url': URL_LOGO,
+                        'avatar_url': avatar_url,
                         'embeds': [embed]}
 
                     self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, callback=self._request_complete, data=data)

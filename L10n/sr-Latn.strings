@@ -184,6 +184,9 @@
 /* Label on activity window. [activity.py] */
 "Discord Additional Notes" = "Dodatne beleške za Diskord";
 
+/* Preferences label. [ui.py] */
+"Discord Avatar URL" = "Discord Avatar URL";
+
 /* [ui.py] */
 "Discord Options" = "Diskord opcije";
 

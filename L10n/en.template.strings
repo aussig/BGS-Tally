@@ -184,6 +184,9 @@
 /* Label on activity window. [activity.py] */
 "Discord Additional Notes" = "Discord Additional Notes";
 
+/* Preferences label. [ui.py] */
+"Discord Avatar URL" = "Discord Avatar URL";
+
 /* [ui.py] */
 "Discord Options" = "Discord Options";
 

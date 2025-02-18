@@ -59,7 +59,7 @@
 "BGS Only" = "BGS uniquement";
 
 /* [clb.py] */
-"BGS Report" = "BGS Report";
+"BGS Report" = "Rapport BGS";
 
 /* Discord heading. [default.py] */
 "bio-pod" = "bio-pod";
@@ -71,7 +71,7 @@
 "Both BGS and TW" = "BGS et TW";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Both Materials and Commodities";
+"Both Materials and Commodities" = "Matériaux et marchandises";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Prime de combat";
@@ -95,7 +95,7 @@
 "Cargo missions" = "Mission de transport";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
-"Carrier {carrier_name}" = "Carrier {carrier_name}";
+"Carrier {carrier_name}" = "Porte-Vaisseau {carrier_name}";
 
 /* [sheet_options.py] */
 "Clear contents" = "Effacer le contenu";
@@ -113,7 +113,7 @@
 "Combat bonds" = "Récompenses de combat";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Commodities Only";
+"Commodities Only" = "Seulement les marchandises";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configurer le serveur distant";
@@ -183,6 +183,9 @@
 
 /* Label on activity window. [activity.py] */
 "Discord Additional Notes" = "Notes supplémentaires de Discord";
+
+/* Preferences label. [ui.py] */
+"Discord Avatar URL" = "Discord Avatar URL";
 
 /* [ui.py] */
 "Discord Options" = "Options Discord";
@@ -281,7 +284,7 @@
 "From System" = "Depuis le système";
 
 /* Overlay galaxy tick message. [ui.py] */
-"Galaxy Tick: {tick_time}" = "Galaxy Tick: {tick_time}";
+"Galaxy Tick: {tick_time}" = "Tick de Galaxie : {tick_time}";
 
 /* Appended to tick time if a normal tick. [activity.py] */
 "game" = "jeu";
@@ -317,13 +320,13 @@
 "Icons in BGS Reports" = "Icônes dans les rapports de BGS";
 
 /* Heading on legend window. [legend.py] */
-"Icons in Thargoid War Reports" = "Icônes dans le rapport de guerre thargoïde";
+"Icons in Thargoid War Reports" = "Icônes dans le rapport de guerre Thargoïde";
 
 /* Discord heading. [cmdrs.py] */
 "In Ship" = "Dans le vaisseau";
 
 /* Overlay CMDR information report message. [ui.py] */
-"In ship: {ship}" = "Vaisseau utilisé:{ship}";
+"In ship: {ship}" = "Vaisseau utilisé : {ship}";
 
 /* Discord heading. [cmdrs.py] */
 "In Squadron" = "Dans l'escadron";
@@ -464,7 +467,7 @@
 "Massacre missions" = "Missions de massacre";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Materials Only";
+"Materials Only" = "Matériaux uniquement";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Moyenne";
@@ -746,7 +749,7 @@
 "Thargoid War Progress" = "Progrès de la guerre thargoïde";
 
 /* Label on activity window. [activity.py] */
-"Thargoid War System, no BGS Activity is Counted" = "Système en guerre de thargoïde, aucune activité BGS n'est comptabilisée";
+"Thargoid War System, no BGS Activity is Counted" = "Système en guerre de Thargoïde, aucune activité BGS n'est comptabilisée";
 
 /* Text on API settings window. [api.py] */
 "The exact set of Events that will be sent is listed in the 'Events Requested' section below. Further information about these Events and what they contain is provided here: " = "L'ensemble exact des événements qui seront envoyés est listé dans la section « Événements demandés » ci-dessous. Des informations supplémentaires sur ces événements et ce qu'ils contiennent sont fournies ici : ";
@@ -800,7 +803,7 @@
 "TW Only" = "TW uniquement";
 
 /* [ui.py] */
-"TW War Progress in {current_system}: {percent}%" = "Progression de la guerre Thargoid (TW) dans {current_system}: {percent}%";
+"TW War Progress in {current_system}: {percent}%" = "Progression de la guerre Thargoid dans {current_system} : {percent}%";
 
 /* [sheet_options.py] */
 "Undo" = "Undo";

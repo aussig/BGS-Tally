@@ -205,7 +205,8 @@ class FleetCarrier:
         for item in items:
             if category == FleetCarrierItemType.COMMODITIES_BUYING or category == FleetCarrierItemType.COMMODITIES_SELLING:
                 # Look up the display name because we don't have it in CAPI data
-                display_name: str = self.commodities[item[name_key]]
+                # Fall back to the internal name if we don't have a display name (probably out of date commodity.csv or rare_commodity.csv)
+                display_name: str = self.commodities.get(item[name_key], item[name_key])
             else:
                 # Use the localised name from CAPI data
                 display_name: str = item[display_name_key]
@@ -358,7 +359,7 @@ class FleetCarrier:
                     self.commodities[rows.get('symbol', "").lower()] = rows.get('name', "")
         except Exception as e:
                 Debug.logger.error(f"Unable to load {filepath}")
-        
+
         rare_filepath:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, RARE_COMMODITIES_CSV_FILENAME)
         try:
             with open(rare_filepath, encoding = 'utf-8') as csv_file_handler:

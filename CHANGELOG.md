@@ -17,6 +17,7 @@
 * The tick time was not being sent in /event API calls.
 * Any Search and Rescue (e.g. excape pods) would cause the overlay to stop displaying your work in that system.
 * When abandoning of failing a mission that was not logged when it was originally accepted (e.g. when BGS-Tally was not running), and sending events to an API, the API call would fail.
+* Fixed bug which would cause the Fleetcarrier window to fail to load properly if newer Trailblazers or Thargoid war commodities had buy or sell orders set.
 
 ### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxxxxxxx)):
 

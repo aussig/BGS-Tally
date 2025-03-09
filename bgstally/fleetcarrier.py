@@ -11,6 +11,7 @@ from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
 COMMODITIES_CSV_FILENAME = "commodity.csv"
+RARE_COMMODITIES_CSV_FILENAME = "rare_commodity.csv"
 
 
 class FleetCarrier:
@@ -357,6 +358,16 @@ class FleetCarrier:
                     self.commodities[rows.get('symbol', "").lower()] = rows.get('name', "")
         except Exception as e:
                 Debug.logger.error(f"Unable to load {filepath}")
+        
+        rare_filepath:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, RARE_COMMODITIES_CSV_FILENAME)
+        try:
+            with open(rare_filepath, encoding = 'utf-8') as csv_file_handler:
+                csv_reader = csv.DictReader(csv_file_handler)
+
+                for rows in csv_reader:
+                    self.commodities[rows.get('symbol', "").lower()] = rows.get('name', "")
+        except Exception as e:
+                Debug.logger.error(f"Unable to load {rare_filepath}")
 
 
     def _as_dict(self):

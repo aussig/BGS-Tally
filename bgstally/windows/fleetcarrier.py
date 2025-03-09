@@ -2,7 +2,8 @@ import tkinter as tk
 from functools import partial
 from tkinter import ttk
 
-from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, DiscordFleetCarrier, DiscordChannel, FleetCarrierItemType
+from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, DiscordChannel, DiscordFleetCarrier,
+                                FleetCarrierItemType)
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.utils import _, __
@@ -43,7 +44,7 @@ class WindowFleetCarrier:
         ttk.Label(frm_container, text=_("System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}").format(current_system=fc.data.get('currentStarSystem', "Unknown"), docking_access=fc.human_format_dockingaccess(False), notorious=fc.human_format_notorious(False)), font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).pack(anchor=tk.NW) # LANG: Label on carrier window
 
         if not config.get_bool('capi_fleetcarrier'):
-            ttk.Label(frm_container, text=_("Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration"), foreground='#f00').pack(anchor=tk.NW) # LANG: Label on carrier window
+            ttk.Label(frm_container, text=_("Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration"), foreground=COLOUR_WARNING).pack(anchor=tk.NW) # LANG: Label on carrier window
 
         frm_items: ttk.Frame = ttk.Frame(frm_container)
         frm_items.pack(fill=tk.BOTH, padx=5, pady=5, expand=True)

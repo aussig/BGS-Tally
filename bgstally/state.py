@@ -31,11 +31,13 @@ class State:
         self.EnableOverlaySystem:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlaySystem', default=CheckStates.STATE_ON))
         self.EnableOverlayWarning:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayWarning', default=CheckStates.STATE_ON))
         self.EnableOverlayCMDR:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCMDR', default=CheckStates.STATE_ON))
+        self.EnableOverlayObjectives:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayObjectives', default=CheckStates.STATE_ON))
         self.EnableSystemActivityByDefault:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableSystemActivityByDefault', default=CheckStates.STATE_ON))
         self.DetailedInf:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedInf', default=CheckStates.STATE_OFF))
         self.DetailedTrade:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedTrade', default=CheckStates.STATE_ON))
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordActivity', default=DiscordActivity.BOTH))
         self.DiscordFleetCarrier: tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordFleetCarrier', default=DiscordFleetCarrier.BOTH))
+        self.DiscordAvatarURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordAvatarURL', default=""))
 
         # TODO: Legacy values, used to migrate initial state, remove in future version
         self.DiscordBGSWebhook:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordWebhook', default=""))
@@ -72,6 +74,7 @@ class State:
         self.enable_overlay_system:bool = (self.EnableOverlaySystem.get() == CheckStates.STATE_ON)
         self.enable_overlay_warning:bool = (self.EnableOverlayWarning.get() == CheckStates.STATE_ON)
         self.enable_overlay_cmdr:bool = (self.EnableOverlayCMDR.get() == CheckStates.STATE_ON)
+        self.enable_overlay_objectives:bool = (self.EnableOverlayObjectives.get() == CheckStates.STATE_ON)
 
         self.abbreviate_faction_names:bool = (self.AbbreviateFactionNames.get() == CheckStates.STATE_ON)
         self.secondary_inf:bool = (self.IncludeSecondaryInf.get() == CheckStates.STATE_ON)
@@ -97,11 +100,13 @@ class State:
         config.set('BGST_EnableOverlaySystem', self.EnableOverlaySystem.get())
         config.set('BGST_EnableOverlayWarning', self.EnableOverlayWarning.get())
         config.set('BGST_EnableOverlayCMDR', self.EnableOverlayCMDR.get())
+        config.set('BGST_EnableOverlayObjectives', self.EnableOverlayObjectives.get())
         config.set('BGST_EnableSystemActivityByDefault', self.EnableSystemActivityByDefault.get())
         config.set('BGST_DetailedInf', self.DetailedInf.get())
         config.set('BGST_DetailedTrade', self.DetailedTrade.get())
         config.set('BGST_DiscordActivity', self.DiscordActivity.get())
         config.set('BGST_DiscordFleetCarrier', self.DiscordFleetCarrier.get())
+        config.set('BGST_DiscordAvatarURL', self.DiscordAvatarURL.get())
 
         # Persistent values
         config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")

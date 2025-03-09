@@ -1,5 +1,6 @@
 import functools
 import re
+from copy import deepcopy
 from os import listdir
 from os.path import join
 from pathlib import Path
@@ -128,7 +129,7 @@ def is_number(s: str) -> bool:
     try:
         float(s)
         return True
-    except ValueError:
+    except (TypeError, ValueError):
         return False
 
 
@@ -153,5 +154,45 @@ def string_to_alphanumeric(s: str) -> str:
     Returns:
         str: The cleaned string
     """
-    pattern: re.Pattern = re.compile('[\W_]+')
+    pattern: re.Pattern = re.compile(r'[\W_]+')
     return pattern.sub('', s)
+
+
+def add_dicts(d1: dict, d2: dict) -> dict:
+    """Sum each individual numeric value from two dicts. For non-numeric values,
+    The result is the value from dict d1. Neither d1 nor d2 are modified by this function.
+
+    Args:
+        d1 (dict): The first dict
+        d2 (dict): The second dict
+
+    Returns:
+        dict: The summed dict
+    """
+
+    # Copy on first entry to the function
+    result: dict = deepcopy(d1)
+
+    def _recursive_add(d1: dict, d2: dict) -> dict:
+        for d2k, d2v in d2.items():
+            d1v = d1.get(d2k)
+            if isinstance(d1v, dict):
+                # We have a dict in d1
+                if isinstance(d2v, dict):
+                    # We have a dict in d2. Recursively merge nested dictionaries (otherwise, just use d1 dict).
+                    d1[d2k] = _recursive_add(d1v, d2v)
+            elif isinstance(d2v, dict):
+                # We have a dict in d2, but not in d1. Copy the d2 dict into d1.
+                d1[d2k] = deepcopy(d2v)
+            elif d1v is None:
+                # No matching key in d1. Copy the d2 value into d1.
+                d1[d2k] = deepcopy(d2v)
+            elif is_number(d1v) and is_number(d2v):
+                # Add numeric values
+                d1[d2k] = d1v + d2v
+
+            # For non-numeric values, do nothing so d1 wins
+
+        return d1
+
+    return _recursive_add(result, d2)

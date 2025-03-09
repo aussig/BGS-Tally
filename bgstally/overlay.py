@@ -55,12 +55,16 @@ class Overlay:
             text_colour: str = text_colour_override if text_colour_override else fi['text_colour']
 
             if fi.get('x_center', False):
-                x: int = int((WIDTH_OVERLAY - message_width) / 2) + int(fi['x'])   # Horizontally centred, offset by 'x'
+                x: int = int((WIDTH_OVERLAY - message_width) / 2) + int(fi['x'])   # Horizontally centred, offset by 'x' where 'x' can be negative
+            elif int(fi['x']) < 0:
+                x: int = WIDTH_OVERLAY + int(fi['x']) # Negative 'x', offset from right of overlay
             else:
                 x: int = int(fi['x'])
 
             if fi.get('y_center', False):
-                y: int = int((HEIGHT_OVERLAY - message_height) / 2) + int(fi['y']) # Vertically centred, offset by 'y'
+                y: int = int((HEIGHT_OVERLAY - message_height) / 2) + int(fi['y']) # Vertically centred, offset by 'y' where 'y' can be negative
+            elif int(fi['y']) < 0:
+                y: int = HEIGHT_OVERLAY + int(fi['y']) # Negative 'y', offset from bottom of overlay
             else:
                 y: int = int(fi['y'])
 
@@ -73,11 +77,11 @@ class Overlay:
 
             # Title
             if text_includes_title:
-                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
+                self.edmcoverlay.send_message(f"bgstally-msg-title-{frame_name}-{index}", segments[index], title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
                 yoffset += HEIGHT_CHARACTER_LARGE
                 index += 1
             elif title is not None:
-                self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", title, title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
+                self.edmcoverlay.send_message(f"bgstally-msg-title-{frame_name}-{index}", title, title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
                 yoffset += HEIGHT_CHARACTER_LARGE
 
             # Text

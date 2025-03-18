@@ -3,7 +3,7 @@ from functools import partial
 from tkinter import ttk
 
 from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, CheckStates,
-                                DiscordChannel, DiscordFleetCarrier, FleetCarrierItemType)
+                                DiscordChannel, FleetCarrierItemType)
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.utils import _, __
@@ -263,7 +263,6 @@ class WindowFleetCarrier:
         fc: FleetCarrier = self.bgstally.fleet_carrier
         text: str = self._get_as_text(fc, False)
 
-        Debug.logger.error(text)
         frm_container.clipboard_clear()
         frm_container.clipboard_append(text)
         frm_container.update()

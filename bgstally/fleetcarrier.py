@@ -31,7 +31,6 @@ class FleetCarrier:
         self._load_commodities()
         self.load()
 
-
     def load(self):
         """
         Load state from file
@@ -83,7 +82,7 @@ class FleetCarrier:
             self.onfoot_mats_selling = []
 
         # Sort microresource buy orders - a List of Dicts
-        materials = get_by_path(self.data, ['orders', 'onfootmicroresources', 'purchases'], [])
+        materials:dict|list = get_by_path(self.data, ['orders', 'onfootmicroresources', 'purchases'], [])
         if materials is not None and materials != []:
             self.onfoot_mats_buying = materials
         else:
@@ -97,21 +96,21 @@ class FleetCarrier:
             self.commodities_selling = []
 
         # Sort commodity buy orders - a List of Dicts
-        commodities = get_by_path(self.data, ['orders', 'commodities', 'purchases'], [])
+        commodities:list = get_by_path(self.data, ['orders', 'commodities', 'purchases'], [])
         if commodities is not None and commodities != []:
             self.commodities_buying = commodities
         else:
             self.commodities_buying = []
 
         # Sort cargo commodities - a List of Dicts
-        cargo = get_by_path(self.data, ['cargo'], [])
+        cargo:list = get_by_path(self.data, ['cargo'], [])
         if cargo is not None and cargo != []:
             self.cargo = cargo
         else:
             self.cargo = []
 
         # Sort cargo commodities - a List of Dicts
-        locker = get_by_path(self.data, ['carrierlocker'], [])
+        locker:dict|list = get_by_path(self.data, ['carrierLocker'], [])
         if locker is not None and locker != []:
             self.locker = locker
         else:
@@ -231,24 +230,25 @@ class FleetCarrier:
             return result
 
         if category == FleetCarrierItemType.LOCKER:
+            # Locker is a special case because it's sub-divided into types
             for type in items:
                 result += f"{type.title()}:\n"
-                #Debug.logger.error(items[type])
                 items[type] = sorted(items[type], key=lambda x: x[display_name_key])
                 for item in items[type]:
-                    #if int(item[quantity_key]) > 0: # This one includes zero quantities for some reason
-                    result += f"    {item[display_name_key]} x {item[quantity_key]}\n"
+                    if int(item[quantity_key]) > 0: # This one includes zero quantities for some reason
+                        result += f"    {item[display_name_key]} x {item[quantity_key]}\n"
             return result
 
         items = sorted(items, key=lambda x: x[name_key])
         for item in items:
             if display_name_key in item:
                 # Use the localised name from CAPI data
-                display_name: str = item[display_name_key]
-            else:
+                display_name:str = item[display_name_key]
+            elif item[name_key] in self.commodities:
                 # Look up the display name because we don't have it in CAPI data
-                # Fall back to the internal name if we don't have a display name (probably out of date commodity.csv or rare_commodity.csv)
-                display_name: str = self.commodities.get(item[name_key], item[name_key])
+                display_name:str = self.commodities[item[name_key]]
+            else:
+                display_name:str = item[name_key]
 
             if int(item[quantity_key]) > 0:
                 result += f"{display_name} x {item[quantity_key]} @ {self._human_format_price(item['price'])}\n"
@@ -263,6 +263,30 @@ class FleetCarrier:
         items, name_key, display_name_key, quantity_key = self._get_items(category)
 
         if items is None: return ""
+
+        if category == FleetCarrierItemType.CARGO:
+            # Cargo is a special case because it can have multiple items with the same name so we have to sum them together
+            cargo = dict()
+            items = sorted(items, key=lambda x: x[display_name_key])
+            for item in items:
+                if item[name_key] in cargo:
+                    cargo[item[display_name_key]] += int(item[quantity_key])
+                else:
+                    cargo[item[display_name_key]] = int(item[quantity_key])
+            for key, value in cargo.items():
+                result += f"cyan({key}) x green({value})\n"
+            return result
+
+        if category == FleetCarrierItemType.LOCKER:
+            # Locker is a special case because it's sub-divided into types
+            for type in items:
+                result += f"{type.title()}:\n"
+                items[type] = sorted(items[type], key=lambda x: x[display_name_key])
+                for item in items[type]:
+                    if int(item[quantity_key]) > 0: # This one includes zero quantities for some reason
+                        result += f"    {cyan(item[display_name_key])} x {green(item[quantity_key])}\n"
+            return result
+
         items = sorted(items, key=lambda x: x[name_key])
 
         for item in items:
@@ -383,6 +407,8 @@ class FleetCarrier:
                 return self.cargo, 'commodity', 'locName', 'qty'
             case FleetCarrierItemType.LOCKER:
                 # Return locker items
+                Debug.logger.error(f"Locker: {get_by_path(self.data, ['carrierLocker'], [])} ")
+
                 return self.locker, 'name', 'locName', 'quantity'
             case _:
                 return None, None, None, None
@@ -417,7 +443,6 @@ class FleetCarrier:
         except Exception as e:
                 Debug.logger.error(f"Unable to load {rare_filepath}")
 
-
     def _as_dict(self):
         """
         Return a Dictionary representation of our data, suitable for serializing
@@ -429,6 +454,8 @@ class FleetCarrier:
             'onfoot_mats_buying': self.onfoot_mats_buying,
             'commodities_selling': self.commodities_selling,
             'commodities_buying': self.commodities_buying,
+            'cargo': self.cargo,
+            'locker': self.locker,
             'data': self.data}
 
 
@@ -442,4 +469,6 @@ class FleetCarrier:
         self.onfoot_mats_buying = dict.get('onfoot_mats_buying', [])
         self.commodities_selling = dict.get('commodities_selling', [])
         self.commodities_buying = dict.get('commodities_buying', [])
+        self.cargo = dict.get('cargo', [])
+        self.locker = dict.get('locker', [])
         self.data = dict.get('data')

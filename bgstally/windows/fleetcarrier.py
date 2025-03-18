@@ -54,11 +54,7 @@ class WindowFleetCarrier:
 
         current_row = 0
 
-        #ttk.Checkbutton(frm_discordoptions, text=_("Abbreviate Faction Names"), variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
-        dummy = ""
-        a = ""
-        b = ""
-        s = ttk.Style() # LANG: Checkbox label
+        s: ttk.Style = ttk.Style()
         s.configure('This.TCheckbutton', font=FONT_HEADING_2)
 
         ttk.Checkbutton(frm_items, text=_("Selling Materials"), style='This.TCheckbutton', variable=self.bgstally.state.FcSellingMaterials, onvalue=CheckStates.STATE_ON, \

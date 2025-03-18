@@ -25,7 +25,7 @@ class FleetCarrier:
         self.commodities_selling:list = []
         self.commodities_buying:list = []
         self.cargo:list = {}
-        self.mats:dict = {}
+        self.locker:dict = {}
         self.commodities:dict = {}
 
         self._load_commodities()
@@ -111,11 +111,11 @@ class FleetCarrier:
             self.cargo = []
 
         # Sort cargo commodities - a List of Dicts
-        mats = get_by_path(self.data, ['carrierlocker'], [])
-        if mats is not None and mats  != []:
-            self.mats = mats
+        locker = get_by_path(self.data, ['carrierlocker'], [])
+        if locker is not None and locker != []:
+            self.locker = locker
         else:
-            self.mats = []
+            self.locker = []
 
     def stats_received(self, journal_entry: dict):
         """
@@ -212,53 +212,48 @@ class FleetCarrier:
             str: _description_
         """
 
-        try:
-            #Debug.logger.error(f"{category}")
-            items, name_key, display_name_key, quantity_key = self._get_items(category)
-            if items is None: return ""
+        items, name_key, display_name_key, quantity_key = self._get_items(category)
+        if items is None: return ""
 
-            result: str = ""
+        result: str = ""
 
-            if category == FleetCarrierItemType.CARGO:
-                # Cargo is a special case because it can have multiple items with the same name so we have to sum them together
-                cargo = dict()
-                items = sorted(items, key=lambda x: x[display_name_key])
-                for item in items:
-                    if item[name_key] in cargo:
-                        cargo[item[display_name_key]] += int(item[quantity_key])
-                    else:
-                        cargo[item[display_name_key]] = int(item[quantity_key])
-                for key, value in cargo.items():
-                    result += f"{key} x {value}\n"
-                return result
-
-            if category == FleetCarrierItemType.LOCKER:
-                for type in items:
-                    result += f"{type.title()}:\n"
-                    #Debug.logger.error(items[type])
-                    items[type] = sorted(items[type], key=lambda x: x[display_name_key])
-                    for item in items[type]:
-                        #if int(item[quantity_key]) > 0: # This one includes zero quantities for some reason
-                        result += f"    {item[display_name_key]} x {item[quantity_key]}\n"
-                return result
-
-            items = sorted(items, key=lambda x: x[name_key])
+        if category == FleetCarrierItemType.CARGO:
+            # Cargo is a special case because it can have multiple items with the same name so we have to sum them together
+            cargo = dict()
+            items = sorted(items, key=lambda x: x[display_name_key])
             for item in items:
-                if display_name_key in item:
-                    # Use the localised name from CAPI data
-                    display_name: str = item[display_name_key]
+                if item[name_key] in cargo:
+                    cargo[item[display_name_key]] += int(item[quantity_key])
                 else:
-                    # Look up the display name because we don't have it in CAPI data
-                    # Fall back to the internal name if we don't have a display name (probably out of date commodity.csv or rare_commodity.csv)
-                    display_name: str = self.commodities.get(item[name_key], item[name_key])
-
-                if int(item[quantity_key]) > 0:
-                    result += f"{display_name} x {item[quantity_key]} @ {self._human_format_price(item['price'])}\n"
-
+                    cargo[item[display_name_key]] = int(item[quantity_key])
+            for key, value in cargo.items():
+                result += f"{key} x {value}\n"
             return result
 
-        except Exception as e:
-            Debug.logger.error(f"Error in get_items_plaintext: {e}")
+        if category == FleetCarrierItemType.LOCKER:
+            for type in items:
+                result += f"{type.title()}:\n"
+                #Debug.logger.error(items[type])
+                items[type] = sorted(items[type], key=lambda x: x[display_name_key])
+                for item in items[type]:
+                    #if int(item[quantity_key]) > 0: # This one includes zero quantities for some reason
+                    result += f"    {item[display_name_key]} x {item[quantity_key]}\n"
+            return result
+
+        items = sorted(items, key=lambda x: x[name_key])
+        for item in items:
+            if display_name_key in item:
+                # Use the localised name from CAPI data
+                display_name: str = item[display_name_key]
+            else:
+                # Look up the display name because we don't have it in CAPI data
+                # Fall back to the internal name if we don't have a display name (probably out of date commodity.csv or rare_commodity.csv)
+                display_name: str = self.commodities.get(item[name_key], item[name_key])
+
+            if int(item[quantity_key]) > 0:
+                result += f"{display_name} x {item[quantity_key]} @ {self._human_format_price(item['price'])}\n"
+
+        return result
 
     def get_items_discord(self, category: FleetCarrierItemType = None) -> str:
         """
@@ -271,12 +266,14 @@ class FleetCarrier:
         items = sorted(items, key=lambda x: x[name_key])
 
         for item in items:
-            if category == FleetCarrierItemType.COMMODITIES_BUYING or category == FleetCarrierItemType.COMMODITIES_SELLING:
+            if display_name_key in item:
+                # Use the localised name from CAPI data
+                display_name:str = item[display_name_key]
+            elif item[name_key] in self.commodities:
                 # Look up the display name because we don't have it in CAPI data
                 display_name:str = self.commodities[item[name_key]]
             else:
-                # Use the localised name from CAPI data
-                display_name:str = item[display_name_key]
+                display_name:str = item[name_key]
 
             if int(item[quantity_key]) > 0: result += f"{cyan(display_name)} x {green(item[quantity_key])} @ {red(self._human_format_price(item['price']))}\n"
 
@@ -383,10 +380,10 @@ class FleetCarrier:
                 return self.commodities_buying, 'name', 'locName', 'outstanding'
             case FleetCarrierItemType.CARGO:
                 # Return cargo items
-                return get_by_path(self.data, ['cargo'], []), 'commodity', 'locName', 'qty'
+                return self.cargo, 'commodity', 'locName', 'qty'
             case FleetCarrierItemType.LOCKER:
                 # Return locker items
-                return get_by_path(self.data, ['carrierLocker'], []), 'name', 'locName', 'quantity'
+                return self.locker, 'name', 'locName', 'quantity'
             case _:
                 return None, None, None, None
 

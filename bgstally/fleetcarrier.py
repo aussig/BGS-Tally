@@ -24,6 +24,8 @@ class FleetCarrier:
         self.onfoot_mats_buying:list = []
         self.commodities_selling:list = []
         self.commodities_buying:list = []
+        self.cargo:list = {}
+        self.mats:dict = {}
         self.commodities:dict = {}
 
         self._load_commodities()
@@ -101,6 +103,19 @@ class FleetCarrier:
         else:
             self.commodities_buying = []
 
+        # Sort cargo commodities - a List of Dicts
+        cargo = get_by_path(self.data, ['cargo'], [])
+        if cargo is not None and cargo != []:
+            self.cargo = cargo
+        else:
+            self.cargo = []
+
+        # Sort cargo commodities - a List of Dicts
+        mats = get_by_path(self.data, ['carrierlocker'], [])
+        if mats is not None and mats  != []:
+            self.mats = mats
+        else:
+            self.mats = []
 
     def stats_received(self, journal_entry: dict):
         """
@@ -196,25 +211,54 @@ class FleetCarrier:
         Returns:
             str: _description_
         """
-        result: str = ""
-        items, name_key, display_name_key, quantity_key = self._get_items(category)
 
-        if items is None: return ""
-        items = sorted(items, key=lambda x: x[name_key])
+        try:
+            #Debug.logger.error(f"{category}")
+            items, name_key, display_name_key, quantity_key = self._get_items(category)
+            if items is None: return ""
 
-        for item in items:
-            if category == FleetCarrierItemType.COMMODITIES_BUYING or category == FleetCarrierItemType.COMMODITIES_SELLING:
-                # Look up the display name because we don't have it in CAPI data
-                # Fall back to the internal name if we don't have a display name (probably out of date commodity.csv or rare_commodity.csv)
-                display_name: str = self.commodities.get(item[name_key], item[name_key])
-            else:
-                # Use the localised name from CAPI data
-                display_name: str = item[display_name_key]
+            result: str = ""
 
-            if int(item[quantity_key]) > 0: result += f"{display_name} x {item[quantity_key]} @ {self._human_format_price(item['price'])}\n"
+            if category == FleetCarrierItemType.CARGO:
+                # Cargo is a special case because it can have multiple items with the same name so we have to sum them together
+                cargo = dict()
+                items = sorted(items, key=lambda x: x[display_name_key])
+                for item in items:
+                    if item[name_key] in cargo:
+                        cargo[item[display_name_key]] += int(item[quantity_key])
+                    else:
+                        cargo[item[display_name_key]] = int(item[quantity_key])
+                for key, value in cargo.items():
+                    result += f"{key} x {value}\n"
+                return result
 
-        return result
+            if category == FleetCarrierItemType.LOCKER:
+                for type in items:
+                    result += f"{type.title()}:\n"
+                    #Debug.logger.error(items[type])
+                    items[type] = sorted(items[type], key=lambda x: x[display_name_key])
+                    for item in items[type]:
+                        #if int(item[quantity_key]) > 0: # This one includes zero quantities for some reason
+                        result += f"    {item[display_name_key]} x {item[quantity_key]}\n"
+                return result
 
+            items = sorted(items, key=lambda x: x[name_key])
+            for item in items:
+                if display_name_key in item:
+                    # Use the localised name from CAPI data
+                    display_name: str = item[display_name_key]
+                else:
+                    # Look up the display name because we don't have it in CAPI data
+                    # Fall back to the internal name if we don't have a display name (probably out of date commodity.csv or rare_commodity.csv)
+                    display_name: str = self.commodities.get(item[name_key], item[name_key])
+
+                if int(item[quantity_key]) > 0:
+                    result += f"{display_name} x {item[quantity_key]} @ {self._human_format_price(item['price'])}\n"
+
+            return result
+
+        except Exception as e:
+            Debug.logger.error(f"Error in get_items_plaintext: {e}")
 
     def get_items_discord(self, category: FleetCarrierItemType = None) -> str:
         """
@@ -314,7 +358,7 @@ class FleetCarrier:
         return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
 
 
-    def _get_items(self, category: FleetCarrierItemType = None) -> tuple[list|None, str|None, str|None, str|None]:
+    def _get_items(self, category: FleetCarrierItemType = None) -> tuple[list|dict|None, str|None, str|None, str|None]:
         """Return the current items list, lookup name key, display name key and quantity key for the specified category
 
         Args:
@@ -323,6 +367,7 @@ class FleetCarrier:
         Returns:
             tuple[list|None, str|None, str|None, str|None]: Tuple containing the four items
         """
+
         match category:
             case FleetCarrierItemType.MATERIALS_SELLING:
                 return self.onfoot_mats_selling, 'name', 'locName', 'stock'
@@ -331,14 +376,19 @@ class FleetCarrier:
             case FleetCarrierItemType.COMMODITIES_SELLING:
                 # Lookup name and display name are the same for commodities as we are not passed localised name from CAPI. We
                 # convert the display name later
-                return self.commodities_selling, 'name', 'name', 'stock'
+                return self.commodities_selling, 'name', 'locName', 'stock'
             case FleetCarrierItemType.COMMODITIES_BUYING:
                 # Lookup name and display name are the same for commodities as we are not passed localised name from CAPI. We
                 # convert the display name later
-                return self.commodities_buying, 'name', 'name', 'outstanding'
+                return self.commodities_buying, 'name', 'locName', 'outstanding'
+            case FleetCarrierItemType.CARGO:
+                # Return cargo items
+                return get_by_path(self.data, ['cargo'], []), 'commodity', 'locName', 'qty'
+            case FleetCarrierItemType.LOCKER:
+                # Return locker items
+                return get_by_path(self.data, ['carrierLocker'], []), 'name', 'locName', 'quantity'
             case _:
                 return None, None, None, None
-
 
     def _load_commodities(self):
         """

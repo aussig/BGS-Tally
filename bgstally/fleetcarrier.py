@@ -221,12 +221,13 @@ class FleetCarrier:
             cargo = dict()
             items = sorted(items, key=lambda x: x[display_name_key])
             for item in items:
-                if item[name_key] in cargo:
+                if item[display_name_key] in cargo:
                     cargo[item[display_name_key]] += int(item[quantity_key])
                 else:
                     cargo[item[display_name_key]] = int(item[quantity_key])
             for key, value in cargo.items():
                 result += f"{key} x {value}\n"
+
             return result
 
         if category == FleetCarrierItemType.LOCKER:
@@ -254,6 +255,7 @@ class FleetCarrier:
                 result += f"{display_name} x {item[quantity_key]} @ {self._human_format_price(item['price'])}\n"
 
         return result
+
 
     def get_items_discord(self, category: FleetCarrierItemType = None) -> str:
         """
@@ -302,7 +304,6 @@ class FleetCarrier:
             if int(item[quantity_key]) > 0: result += f"{cyan(display_name)} x {green(item[quantity_key])} @ {red(self._human_format_price(item['price']))}\n"
 
         return result
-
 
 
     def _update_item(self, name: str, display_name: str, quantity: int, price: int, category: FleetCarrierItemType):
@@ -407,8 +408,6 @@ class FleetCarrier:
                 return self.cargo, 'commodity', 'locName', 'qty'
             case FleetCarrierItemType.LOCKER:
                 # Return locker items
-                Debug.logger.error(f"Locker: {get_by_path(self.data, ['carrierLocker'], [])} ")
-
                 return self.locker, 'name', 'locName', 'quantity'
             case _:
                 return None, None, None, None

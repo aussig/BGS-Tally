@@ -14,6 +14,8 @@ from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import _
 from config import config
 
+DATETIME_FORMAT_TICK_DETECTOR = "%Y-%m-%dT%H:%M:%S.%fZ"
+DATETIME_FORMAT_DISPLAY = "%Y-%m-%d %H:%M:%S"
 TICKID_UNKNOWN = "unknown_tickid"
 URL_GALAXY_TICK_DETECTOR = "http://tick.infomancer.uk/galtick.json"
 URL_SYSTEM_TICK_DETECTOR = "http://tickapi.infomancer.uk/system/tick_by_addr"

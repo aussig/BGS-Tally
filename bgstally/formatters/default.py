@@ -137,9 +137,18 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
                     system_text += self._build_faction(faction, discord, lang)
 
             if system_text != "":
-                if discord: text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}```"
+                if discord: text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
                 else: text += f"{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
-
+        
+        if self.bgstally.state.showmerits: 
+            if int(activity.powerplay.get("merits", 0)):
+                merits = "Merits "
+                if discord: text += f"{color_wrap(merits, 'blue', None, 'bold', fp=fp)}"
+                else: text += f"{color_wrap(merits, 'blue', None, 'bold', fp=fp)}"
+                if discord: text += f"{color_wrap(activity.powerplay['merits'], 'green', None, 'bold', fp=fp)}```"
+                else: text += f"{color_wrap(activity.powerplay['merits'], 'green', None, 'bold', fp=fp)}"
+        else:
+            if discord: text += "```"
         if discord and activity.discord_notes is not None and activity.discord_notes != "": text += "\n" + activity.discord_notes
 
         return text.replace("'", "")

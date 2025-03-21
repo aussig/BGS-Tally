@@ -13,6 +13,8 @@ from bgstally.tick import Tick
 from bgstally.utils import _, __, add_dicts
 from thirdparty.colors import *
 
+DATETIME_FORMAT_ACTIVITY = "%Y-%m-%dT%H:%M:%S.%fZ"
+DATETIME_FORMAT_TITLE = "%Y-%m-%d %H:%M:%S"
 STATES_WAR = ['War', 'CivilWar']
 STATES_ELECTION = ['Election']
 
@@ -154,6 +156,7 @@ class Activity:
 
         # Non-stored instance data. Remember to modify __deepcopy__() if these are changed or new data added.
         self.megaship_pat:re.Pattern = re.compile("^[a-z]{3}-[0-9]{3} ")  # e.g. kar-314 aquarius-class tanker
+        self.powerplay: dict = {}
 
 
     def load_legacy_data(self, filepath: str):
@@ -511,6 +514,30 @@ class Activity:
         self.recalculate_zero_activity()
         mission_log.delete_mission_by_id(journal_entry['MissionID'])
 
+    def update_power(self, power):
+        #this should reset the data inside the Merits object if it changes from the previous value
+        """
+        Handle power
+        """
+        self.powerplay["power"] = power
+
+    def update_merits_gained(self, merits_gained):
+        """
+        Handle mertis
+        """
+        self.powerplay["merits"] = merits_gained
+    
+    def get_merits_gained(self):
+        """
+        Get mertis
+        """
+        return self.powerplay["merits"]
+    
+    def get_power(self):
+        """
+        Get power
+        """
+        return self.powerplay["power"]
 
     def mission_failed(self, journal_entry: dict, mission_log: MissionLog):
         """

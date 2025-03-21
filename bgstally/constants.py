@@ -46,6 +46,8 @@ class FleetCarrierItemType(Enum):
     MATERIALS_BUYING = 1
     COMMODITIES_SELLING = 2
     COMMODITIES_BUYING = 3
+    CARGO = 4
+    LOCKER = 5
 
 
 class DiscordPostStyle(str, Enum):

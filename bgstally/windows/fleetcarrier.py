@@ -2,8 +2,8 @@ import tkinter as tk
 from functools import partial
 from tkinter import ttk
 
-from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, DiscordChannel, DiscordFleetCarrier,
-                                FleetCarrierItemType)
+from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, CheckStates,
+                                DiscordChannel, FleetCarrierItemType)
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.utils import _, __
@@ -54,8 +54,14 @@ class WindowFleetCarrier:
 
         current_row = 0
 
-        ttk.Label(frm_items, text=_("Selling Materials"), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W) # LANG: Label on carrier window
-        ttk.Label(frm_items, text=_("Buying Materials"), font=FONT_HEADING_2).grid(row=current_row, column=1, sticky=tk.W) # LANG: Label on carrier window
+        s: ttk.Style = ttk.Style()
+        s.configure('This.TCheckbutton', font=FONT_HEADING_2)
+
+        ttk.Checkbutton(frm_items, text=_("Selling Materials"), style='This.TCheckbutton', variable=self.bgstally.state.FcSellingMaterials, onvalue=CheckStates.STATE_ON, \
+                        offvalue=CheckStates.STATE_OFF, command=partial(self.bgstally.state.FcSellingMaterials.set)).grid(row=current_row, column=0, padx=10, sticky=tk.W)
+
+        ttk.Checkbutton(frm_items, text=_("Buying Materials"), style='This.TCheckbutton', variable=self.bgstally.state.FcBuyingMaterials, onvalue=CheckStates.STATE_ON, \
+                        offvalue=CheckStates.STATE_OFF, command=partial(self.bgstally.state.FcBuyingMaterials.set)).grid(row=current_row, column=1, padx=10, sticky=tk.W)
 
         current_row += 1
 
@@ -83,8 +89,11 @@ class WindowFleetCarrier:
 
         current_row += 1
 
-        ttk.Label(frm_items, text=_("Selling Commodities"), font=FONT_HEADING_2).grid(row=current_row, column=0, sticky=tk.W) # LANG: Label on carrier window
-        ttk.Label(frm_items, text=_("Buying Commodities"), font=FONT_HEADING_2).grid(row=current_row, column=1, sticky=tk.W) # LANG: Label on carrier window
+        ttk.Checkbutton(frm_items, text=_("Selling Commodities"), style='This.TCheckbutton', variable=self.bgstally.state.FcSellingCommodities, onvalue=CheckStates.STATE_ON, \
+                        offvalue=CheckStates.STATE_OFF, command=partial(self.bgstally.state.FcSellingCommodities.set)).grid(row=current_row, column=0, padx=10, sticky=tk.W)
+
+        ttk.Checkbutton(frm_items, text=_("Buying Commodities"), style='This.TCheckbutton', variable=self.bgstally.state.FcBuyingCommodities, onvalue=CheckStates.STATE_ON, \
+                        offvalue=CheckStates.STATE_OFF, command=partial(self.bgstally.state.FcBuyingCommodities.set)).grid(row=current_row, column=1, padx=10, sticky=tk.W)
 
         current_row += 1
 
@@ -110,25 +119,49 @@ class WindowFleetCarrier:
         txt_commodities_buying.configure(state='disabled')
         frm_commodities_buying.grid(row=current_row, column=1, sticky=tk.NSEW)
 
+        current_row += 1
+        ttk.Checkbutton(frm_items, text=_("Cargo"), style='This.TCheckbutton', variable=self.bgstally.state.FcCargo, onvalue=CheckStates.STATE_ON, \
+                        offvalue=CheckStates.STATE_OFF, command=partial(self.bgstally.state.FcCargo.set)).grid(row=current_row, column=0, padx=10, sticky=tk.W)
+
+        ttk.Checkbutton(frm_items, text=_("Locker"), style='This.TCheckbutton', variable=self.bgstally.state.FcLocker, onvalue=CheckStates.STATE_ON, \
+                        offvalue=CheckStates.STATE_OFF, command=partial(self.bgstally.state.FcLocker.set)).grid(row=current_row, column=1, padx=10, sticky=tk.W)
+
+
+        current_row += 1
+
+        frm_cargo: ttk.Frame = ttk.Frame(frm_items)
+        txt_cargo: TextPlus = TextPlus(frm_cargo, wrap=tk.WORD, height=1, font=FONT_TEXT)
+        sb_cargo: tk.Scrollbar = tk.Scrollbar(frm_cargo, orient=tk.VERTICAL, command=txt_cargo.yview)
+        txt_cargo['yscrollcommand'] = sb_cargo.set
+        sb_cargo.pack(fill=tk.Y, side=tk.RIGHT)
+        txt_cargo.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+
+        txt_cargo.insert(tk.INSERT, fc.get_items_plaintext(FleetCarrierItemType.CARGO))
+        txt_cargo.configure(state='disabled')
+        frm_cargo.grid(row=current_row, column=0, sticky=tk.NSEW)
+
+        frm_locker: ttk.Frame = ttk.Frame(frm_items)
+        txt_locker: TextPlus = TextPlus(frm_locker, wrap=tk.WORD, height=1, font=FONT_TEXT)
+        sb_locker: tk.Scrollbar = tk.Scrollbar(frm_locker, orient=tk.VERTICAL, command=txt_locker.yview)
+        txt_locker['yscrollcommand'] = sb_locker.set
+        sb_locker.pack(fill=tk.Y, side=tk.RIGHT)
+        txt_locker.pack(fill=tk.BOTH, side=tk.LEFT, expand=True)
+
+        txt_locker.insert(tk.INSERT, fc.get_items_plaintext(FleetCarrierItemType.LOCKER))
+        txt_locker.configure(state='disabled')
+        frm_locker.grid(row=current_row, column=1, sticky=tk.NSEW)
+
         frm_items.columnconfigure(0, weight=1) # Make the first column fill available space
         frm_items.columnconfigure(1, weight=1) # Make the second column fill available space
         frm_items.rowconfigure(1, weight=1) # Make the materials text fill available space
         frm_items.rowconfigure(3, weight=1) # Make the commodities text fill available space
+        frm_items.rowconfigure(5, weight=1) # Make the cargo/locker text fill available space
 
         self.btn_copy_to_clipboard: tk.Button = tk.Button(frm_buttons, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, frm_container)) # LANG: Button label
         self.btn_copy_to_clipboard.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.btn_post_to_discord: tk.Button = tk.Button(frm_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord)) # LANG: Button
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
-        post_types: dict = {DiscordFleetCarrier.BOTH: _("Both Materials and Commodities"), # LANG: Dropdown menu on activity window
-                            DiscordFleetCarrier.MATERIALS: _("Materials Only"), # LANG: Dropdown menu on activity window
-                            DiscordFleetCarrier.COMMODITIES: _("Commodities Only")} # LANG: Dropdown menu on activity window
-        var_post_type: tk.StringVar = tk.StringVar(value=post_types.get(self.bgstally.state.DiscordFleetCarrier.get(), DiscordFleetCarrier.BOTH))
-        self.mnu_post_type: ttk.OptionMenu = ttk.OptionMenu(frm_buttons, var_post_type, var_post_type.get(),
-                                                            *post_types.values(),
-                                                            command=partial(self._post_type_selected, post_types), direction='above')
-        self.mnu_post_type.pack(side=tk.RIGHT, pady=5)
-        ttk.Label(frm_buttons, text=_("Activity to post:")).pack(side=tk.RIGHT, pady=5) # LANG: Label on activity window
 
         self._enable_post_button()
 
@@ -180,15 +213,21 @@ class WindowFleetCarrier:
         materials_buying: str = fc.get_items_plaintext(FleetCarrierItemType.MATERIALS_BUYING)
         commodities_selling: str = fc.get_items_plaintext(FleetCarrierItemType.COMMODITIES_SELLING)
         commodities_buying: str = fc.get_items_plaintext(FleetCarrierItemType.COMMODITIES_BUYING)
+        cargo: str = fc.get_items_plaintext(FleetCarrierItemType.CARGO)
+        locker: str = fc.get_items_plaintext(FleetCarrierItemType.LOCKER)
 
-        if self.bgstally.state.DiscordFleetCarrier.get() != DiscordFleetCarrier.COMMODITIES and materials_selling != "":
+        if self.bgstally.state.FcSellingMaterials.get() == CheckStates.STATE_ON and materials_selling != "":
             text += "**" + __("Selling Materials:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{materials_selling}```\n" # LANG: Discord fleet carrier section heading
-        if self.bgstally.state.DiscordFleetCarrier.get() != DiscordFleetCarrier.COMMODITIES and materials_buying != "":
+        if self.bgstally.state.FcBuyingMaterials.get() == CheckStates.STATE_ON and materials_buying != "":
             text += "**" + __("Buying Materials:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{materials_buying}```\n" # LANG: Discord fleet carrier section heading
-        if self.bgstally.state.DiscordFleetCarrier.get() != DiscordFleetCarrier.MATERIALS and commodities_selling != "":
+        if self.bgstally.state.FcSellingCommodities.get() == CheckStates.STATE_ON  and commodities_selling != "":
             text += "**" + __("Selling Commodities:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{commodities_selling}```\n" # LANG: Discord fleet carrier section heading
-        if self.bgstally.state.DiscordFleetCarrier.get() != DiscordFleetCarrier.MATERIALS and commodities_buying != "":
+        if self.bgstally.state.FcBuyingCommodities.get() == CheckStates.STATE_ON  and commodities_buying != "":
             text += "**" + __("Buying Commodities:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{commodities_buying}```\n" # LANG: Discord fleet carrier section heading
+        if self.bgstally.state.FcCargo.get() == CheckStates.STATE_ON  and cargo != "":
+            text += "**" + __("Cargo:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{cargo}```\n" # LANG: Discord fleet carrier section heading
+        if self.bgstally.state.FcLocker.get() == CheckStates.STATE_ON  and locker != "":
+            text += "**" + __("Locker:", lang=self.bgstally.state.discord_lang) + f"**\n```css\n{locker}```\n" # LANG: Discord fleet carrier section heading
 
         if not short:
             text += "**" + __("System", lang=self.bgstally.state.discord_lang) + "**: " + fc.data.get('currentStarSystem', "Unknown") + "\n" # LANG: Discord fleet carrier discord post
@@ -219,6 +258,8 @@ class WindowFleetCarrier:
         Args:
             frm_container (tk.Frame): The parent tk Frame
         """
+
+
         fc: FleetCarrier = self.bgstally.fleet_carrier
         text: str = self._get_as_text(fc, False)
 

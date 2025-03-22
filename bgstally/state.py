@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from bgstally.constants import CheckStates, DiscordActivity, DiscordFleetCarrier
+from bgstally.constants import CheckStates, DiscordActivity
 from config import config
 
 
@@ -31,11 +31,19 @@ class State:
         self.EnableOverlaySystem:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlaySystem', default=CheckStates.STATE_ON))
         self.EnableOverlayWarning:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayWarning', default=CheckStates.STATE_ON))
         self.EnableOverlayCMDR:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCMDR', default=CheckStates.STATE_ON))
+        self.EnableOverlayObjectives:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayObjectives', default=CheckStates.STATE_ON))
         self.EnableSystemActivityByDefault:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableSystemActivityByDefault', default=CheckStates.STATE_ON))
         self.DetailedInf:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedInf', default=CheckStates.STATE_OFF))
         self.DetailedTrade:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedTrade', default=CheckStates.STATE_ON))
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordActivity', default=DiscordActivity.BOTH))
-        self.DiscordFleetCarrier: tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordFleetCarrier', default=DiscordFleetCarrier.BOTH))
+        self.DiscordAvatarURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordAvatarURL', default=""))
+
+        self.FcSellingCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcSellingCommodities', default=CheckStates.STATE_ON))
+        self.FcBuyingCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcBuyingCommodities', default=CheckStates.STATE_ON))
+        self.FcSellingMaterials:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcSellingMaterials', default=CheckStates.STATE_ON))
+        self.FcBuyingMaterials:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcBuyingMaterials', default=CheckStates.STATE_ON))
+        self.FcCargo:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcCargo', default=CheckStates.STATE_ON))
+        self.FcLocker:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcLocker', default=CheckStates.STATE_ON))
 
         # TODO: Legacy values, used to migrate initial state, remove in future version
         self.DiscordBGSWebhook:tk.StringVar = tk.StringVar(value=config.get_str('XDiscordWebhook', default=""))
@@ -72,6 +80,14 @@ class State:
         self.enable_overlay_system:bool = (self.EnableOverlaySystem.get() == CheckStates.STATE_ON)
         self.enable_overlay_warning:bool = (self.EnableOverlayWarning.get() == CheckStates.STATE_ON)
         self.enable_overlay_cmdr:bool = (self.EnableOverlayCMDR.get() == CheckStates.STATE_ON)
+        self.enable_overlay_objectives:bool = (self.EnableOverlayObjectives.get() == CheckStates.STATE_ON)
+
+        self.buying_commodities:bool = (self.FcBuyingCommodities.get() == CheckStates.STATE_ON)
+        self.selling_commodities:bool = (self.FcSellingCommodities.get() == CheckStates.STATE_ON)
+        self.buying_materials:bool = (self.FcBuyingMaterials.get() == CheckStates.STATE_ON)
+        self.selling_materials:bool = (self.FcSellingMaterials.get() == CheckStates.STATE_ON)
+        self.cargo:bool = (self.FcCargo.get() == CheckStates.STATE_ON)
+        self.locker:bool = (self.FcLocker.get() == CheckStates.STATE_ON)
 
         self.abbreviate_faction_names:bool = (self.AbbreviateFactionNames.get() == CheckStates.STATE_ON)
         self.secondary_inf:bool = (self.IncludeSecondaryInf.get() == CheckStates.STATE_ON)
@@ -97,11 +113,18 @@ class State:
         config.set('BGST_EnableOverlaySystem', self.EnableOverlaySystem.get())
         config.set('BGST_EnableOverlayWarning', self.EnableOverlayWarning.get())
         config.set('BGST_EnableOverlayCMDR', self.EnableOverlayCMDR.get())
+        config.set('BGST_EnableOverlayObjectives', self.EnableOverlayObjectives.get())
         config.set('BGST_EnableSystemActivityByDefault', self.EnableSystemActivityByDefault.get())
         config.set('BGST_DetailedInf', self.DetailedInf.get())
         config.set('BGST_DetailedTrade', self.DetailedTrade.get())
         config.set('BGST_DiscordActivity', self.DiscordActivity.get())
-        config.set('BGST_DiscordFleetCarrier', self.DiscordFleetCarrier.get())
+        config.set('BGST_DiscordAvatarURL', self.DiscordAvatarURL.get())
+        config.set('BGST_FcSellingCommodities', self.FcSellingCommodities.get())
+        config.set('BGST_FcBuyingCommodities', self.FcBuyingCommodities.get())
+        config.set('BGST_FcSellingMaterials', self.FcSellingMaterials.get())
+        config.set('BGST_FcBuyingMaterials', self.FcBuyingMaterials.get())
+        config.set('BGST_FcCargo', self.FcCargo.get())
+        config.set('BGST_FcLocker', self.FcLocker.get())
 
         # Persistent values
         config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")

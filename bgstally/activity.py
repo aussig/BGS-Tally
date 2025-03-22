@@ -1,19 +1,18 @@
 import json
 import re
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Dict
 
-from bgstally.constants import FILE_SUFFIX, CheckStates
+from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_TITLE, FILE_SUFFIX, ApiSizeLookup,
+                                ApiSyntheticCZObjectiveType, ApiSyntheticEvent, ApiSyntheticScenarioType, CheckStates)
 from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
 from bgstally.tick import Tick
-from bgstally.utils import _, __
+from bgstally.utils import _, __, add_dicts
 from thirdparty.colors import *
 
-DATETIME_FORMAT_ACTIVITY = "%Y-%m-%dT%H:%M:%S.%fZ"
-DATETIME_FORMAT_TITLE = "%Y-%m-%d %H:%M:%S"
 STATES_WAR = ['War', 'CivilWar']
 STATES_ELECTION = ['Election']
 
@@ -89,7 +88,7 @@ SPACECZ_PILOTNAMES_SPECOPS = [
     '$LUASC_Scenario_Warzone_NPC_SpecOps_D;'
 ]
 
-SPACECZ_PILOTNAME_PROPAGAND = '$LUASC_Scenario_Warzone_NPC_WarzoneCorrespondent;'
+SPACECZ_PILOTNAME_CORRESPONDENT = '$LUASC_Scenario_Warzone_NPC_WarzoneCorrespondent;'
 
 CZ_GROUND_LOW_CB_MAX = 5000
 CZ_GROUND_MED_CB_MAX = 38000
@@ -107,6 +106,17 @@ TW_CBS = {
 }
 
 
+class SystemActivity(dict):
+    """
+    Utility class for working with system activity. Adds some accessor methods for ease of use.
+    """
+    def get_trade_profit_total(self):
+        try:
+            return sum(int(d['profit']) for d in dict.__getitem__(self, 'TradeSell'))
+        except KeyError:
+            return 0
+
+
 class Activity:
     """
     User activity for a single tick
@@ -115,13 +125,14 @@ class Activity:
     factions with their activity
     """
 
-    def __init__(self, bgstally, tick: Tick = None, sample: bool = False):
+    def __init__(self, bgstally, tick: Tick = None, sample: bool = False, cmdr = None):
         """Constructor
 
         Args:
             bgstally (BGSTally): The BGSTally object
             tick (Tick, optional): The Tick object to instantiate from. If None, the last known tick is used. Defaults to None.
             sample (bool, optional): Populate with sample data. Defaults to False.
+            cmdr (str, optional): The CMDR name. This is not done properly (yet) - the cmdr name is simply updated often to be the latest cmdr seen.
         """
         self.bgstally = bgstally
         if tick == None: tick = Tick(self.bgstally)
@@ -133,6 +144,8 @@ class Activity:
         self.discord_webhook_data:dict = {} # key = webhook uuid, value = dict containing webhook data
         self.discord_notes: str = ""
         self.dirty: bool = False
+
+        self.cmdr: str = cmdr  # Not saved / loaded (yet) because it's not implemented properly
 
         if sample:
             self.systems: dict = {"Sample System ID": self.get_sample_system_data()}
@@ -297,7 +310,7 @@ class Activity:
     # Player Journal Log Handling
     #
 
-    def system_entered(self, journal_entry: Dict, state: State):
+    def system_entered(self, journal_entry: dict, state: State):
         """
         The user has entered a system
         """
@@ -348,6 +361,18 @@ class Activity:
                     current_system['Factions'][faction_1]['Opponent'] = faction_2
                     current_system['Factions'][faction_2]['FactionState'] = conflict_state
                     current_system['Factions'][faction_2]['Opponent'] = faction_1
+
+        # System tick handling
+        system_tick: str = current_system.get('TickTime')
+        system_tick_datetime: datetime|None = datetime.strptime(system_tick, DATETIME_FORMAT_ACTIVITY) if system_tick is not None and system_tick != "" else None
+        if system_tick_datetime is not None:
+            system_tick_datetime = system_tick_datetime.replace(tzinfo=UTC)
+            if system_tick_datetime < self.bgstally.tick.tick_time:
+                # System tick is older than the current tick, fetch it
+                self.bgstally.tick.fetch_system_tick(str(current_system['SystemAddress']))
+        else:
+            # No system tick, fetch it
+            self.bgstally.tick.fetch_system_tick(str(current_system['SystemAddress']))
 
         self.recalculate_zero_activity()
         state.current_system_id = str(current_system['SystemAddress'])
@@ -546,23 +571,27 @@ class Activity:
             self.recalculate_zero_activity()
 
 
-    def bv_received(self, journal_entry: Dict, state: State):
+    def bv_received(self, journal_entry: Dict, state: State, cmdr: str):
+        """Handle a bounty voucher for a kill
+
+        Args:
+            journal_entry (Dict): The journal data
+            state (State): The bgstally State object
+            cmdr (str): The CMDR name
         """
-        Handle a bounty voucher for a kill
-        """
-        current_system = self.systems.get(state.current_system_id)
+        current_system: dict = self.systems.get(state.current_system_id)
         if not current_system: return
 
         # Check whether in megaship scenario for scenario tracking
         if state.last_megaship_approached != {}:
-            timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_megaship_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+            timedifference: datetime = datetime.strptime(journal_entry['timestamp'], DATETIME_FORMAT_JOURNAL) - datetime.strptime(state.last_megaship_approached['timestamp'], DATETIME_FORMAT_JOURNAL)
             if timedifference > timedelta(minutes=5):
                 # Too long since we last entered a megaship scenario, we can't be sure we're fighting at that scenario, clear down
                 state.last_megaship_approached = {}
             else:
                 # We're within the timeout, refresh timestamp and handle the CB
                 state.last_megaship_approached['timestamp'] = journal_entry['timestamp']
-                self._bv_megaship_scenario(journal_entry, current_system, state)
+                self._bv_megaship_scenario(journal_entry, current_system, state, cmdr)
 
 
     def bv_redeemed(self, journal_entry: Dict, state: State):
@@ -585,9 +614,13 @@ class Activity:
                 self.recalculate_zero_activity()
 
 
-    def cb_received(self, journal_entry: dict, state: State):
-        """
-        Handle a combat bond received for a kill
+    def cb_received(self, journal_entry: dict, state: State, cmdr: str):
+        """Handle a combat bond received for a kill
+
+        Args:
+            journal_entry (dict): The journal data
+            state (State): The bgstally State object
+            cmdr (str): The CMDR name
         """
         current_system = self.systems.get(state.current_system_id)
         if not current_system: return
@@ -599,7 +632,7 @@ class Activity:
 
         # Otherwise, must be on-ground or in-space CZ for CB kill tracking
         if state.last_settlement_approached != {}:
-            timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_settlement_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+            timedifference = datetime.strptime(journal_entry['timestamp'], DATETIME_FORMAT_JOURNAL) - datetime.strptime(state.last_settlement_approached['timestamp'], DATETIME_FORMAT_JOURNAL)
             if timedifference > timedelta(minutes=5):
                 # Too long since we last approached a settlement, we can't be sure we're fighting at that settlement, clear down
                 state.last_settlement_approached = {}
@@ -607,17 +640,17 @@ class Activity:
             else:
                 # We're within the timeout, refresh timestamp and handle the CB
                 state.last_settlement_approached['timestamp'] = journal_entry['timestamp']
-                self._cb_ground_cz(journal_entry, current_system, state)
+                self._cb_ground_cz(journal_entry, current_system, state, cmdr)
 
         elif state.last_spacecz_approached != {}:
-            timedifference = datetime.strptime(journal_entry['timestamp'], "%Y-%m-%dT%H:%M:%SZ") - datetime.strptime(state.last_spacecz_approached['timestamp'], "%Y-%m-%dT%H:%M:%SZ")
+            timedifference = datetime.strptime(journal_entry['timestamp'], DATETIME_FORMAT_JOURNAL) - datetime.strptime(state.last_spacecz_approached['timestamp'], DATETIME_FORMAT_JOURNAL)
             if timedifference > timedelta(minutes=5):
                 # Too long since we last entered a space cz, we can't be sure we're fighting at that cz, clear down
                 state.last_spacecz_approached = {}
             else:
                 # We're within the timeout, refresh timestamp and handle the CB
                 state.last_spacecz_approached['timestamp'] = journal_entry['timestamp']
-                self._cb_space_cz(journal_entry, current_system, state)
+                self._cb_space_cz(journal_entry, current_system, state, cmdr)
 
 
     def cb_redeemed(self, journal_entry: Dict, state: State):
@@ -636,7 +669,7 @@ class Activity:
             self.recalculate_zero_activity()
 
 
-    def cap_ship_bond_received(self, journal_entry: dict):
+    def cap_ship_bond_received(self, journal_entry: dict, cmdr: str):
         """Handle a capital ship bond
 
         Args:
@@ -652,6 +685,14 @@ class Activity:
             self.dirty = True
 
             faction['SpaceCZ']['cs'] = int(faction['SpaceCZ'].get('cs', '0')) + 1
+
+            event: dict = {
+                'event': ApiSyntheticEvent.CZOBJECTIVE,
+                'count': 1,
+                'type': ApiSyntheticCZObjectiveType.CAPSHIP,
+                'Faction': faction
+            }
+            self.bgstally.api_manager.send_event(event, self, cmdr)
 
             self.bgstally.ui.show_system_report(current_system['SystemAddress'])
             self.recalculate_zero_activity()
@@ -962,11 +1003,17 @@ class Activity:
         self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
 
-    def _cb_ground_cz(self, journal_entry:dict, current_system:dict, state:State):
+    def _cb_ground_cz(self, journal_entry: dict, current_system: dict, state: State, cmdr: str):
+        """Combat bond received while we are in an active ground CZ
+
+        Args:
+            journal_entry (dict): The journal entry data
+            current_system (dict): The current system data
+            state (State): The bgstally State object
+            cmdr (str): The CMDR name
         """
-        Combat bond received while we are in an active ground CZ
-        """
-        faction = current_system['Factions'].get(journal_entry['AwardingFaction'])
+        faction_name: str = journal_entry.get('AwardingFaction', "")
+        faction: dict = current_system['Factions'].get(faction_name)
         if not faction: return
 
         self.dirty = True
@@ -978,7 +1025,7 @@ class Activity:
             faction['GroundCZSettlements'][state.last_settlement_approached['name']] = self._get_new_groundcz_settlement_data()
 
         # Store the previously counted size of this settlement
-        previous_size = state.last_settlement_approached['size']
+        previous_size: str = state.last_settlement_approached['size']
 
         # Increment this settlement's overall count if this is the first bond counted
         if state.last_settlement_approached['size'] == None:
@@ -996,6 +1043,16 @@ class Activity:
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'l'
                 # Store last settlement type
                 state.last_settlement_approached['size'] = 'l'
+
+                # Send to API
+                event: dict = {
+                    'event': ApiSyntheticEvent.GROUNDCZ,
+                    'low': 1,
+                    'settlement': state.last_settlement_approached['name'],
+                    'Faction': faction_name
+                }
+                self.bgstally.api_manager.send_event(event, self, cmdr)
+
         elif journal_entry['Reward'] < CZ_GROUND_MED_CB_MAX:
             # Handle as 'Med' if this is either the first CB or we've counted this settlement as a 'Low' before
             if state.last_settlement_approached['size'] == None or state.last_settlement_approached['size'] == 'l':
@@ -1007,6 +1064,16 @@ class Activity:
                 faction['GroundCZSettlements'][state.last_settlement_approached['name']]['type'] = 'm'
                 # Store last settlement type
                 state.last_settlement_approached['size'] = 'm'
+
+                # Send to API
+                event: dict = {
+                    'event': ApiSyntheticEvent.GROUNDCZ,
+                    'medium': 1,
+                    'settlement': state.last_settlement_approached['name'],
+                    'Faction': faction_name
+                }
+                if previous_size != None: event[ApiSizeLookup[previous_size]] = -1
+                self.bgstally.api_manager.send_event(event, self, cmdr)
         else:
             # Handle as 'High' if this is either the first CB or we've counted this settlement as a 'Low' or 'Med' before
             if state.last_settlement_approached['size'] == None or state.last_settlement_approached['size'] == 'l' or state.last_settlement_approached['size'] == 'm':
@@ -1019,19 +1086,31 @@ class Activity:
                 # Store last settlement type
                 state.last_settlement_approached['size'] = 'h'
 
+                # Send to API
+                event: dict = {
+                    'event': ApiSyntheticEvent.GROUNDCZ,
+                    'high': 1,
+                    'settlement': state.last_settlement_approached['name'],
+                    'Faction': faction_name
+                }
+                if previous_size != None: event[ApiSizeLookup[previous_size]] = -1
+                self.bgstally.api_manager.send_event(event, self, cmdr)
+
         self.recalculate_zero_activity()
 
 
-    def _cb_space_cz(self, journal_entry:dict, current_system:dict, state:State):
+    def _cb_space_cz(self, journal_entry: dict, current_system: dict, state: State, cmdr: str):
         """Combat bond received while we are in an active space CZ
 
         Args:
             journal_entry (dict): The journal entry data
-            current_system (dict): The current system dict
+            current_system (dict): The current system data
             state (State): The bgstally state object
+            cmdr (str): The CMDR name
         """
 
-        faction = current_system['Factions'].get(journal_entry.get('AwardingFaction', ""))
+        faction_name: str = journal_entry.get('AwardingFaction', "")
+        faction: dict = current_system['Factions'].get(faction_name)
         if not faction: return
 
         # Check for side objectives detected by CBs
@@ -1040,18 +1119,48 @@ class Activity:
                 # Tally a captain kill. Unreliable because of journal order unpredictability.
                 state.last_spacecz_approached['capt'] = True
                 faction['SpaceCZ']['cp'] = int(faction['SpaceCZ'].get('cp', '0')) + 1
+
+                # Send to API
+                event: dict = {
+                    'event': ApiSyntheticEvent.CZOBJECTIVE,
+                    'count': 1,
+                    'type': ApiSyntheticCZObjectiveType.GENERAL,
+                    'Faction': faction_name
+                }
+                self.bgstally.api_manager.send_event(event, self, cmdr)
+
                 self.bgstally.ui.show_system_report(current_system['SystemAddress'])
             elif state.last_ship_targeted.get('PilotName', "") in SPACECZ_PILOTNAMES_SPECOPS and not state.last_spacecz_approached.get('specops'):
                 # Tally a specops kill. We would like to only tally this after 4 kills in a CZ, but sadly due to journal order
                 # unpredictability we tally as soon as we spot a kill after targeting a spec ops
                 state.last_spacecz_approached['specops'] = True
                 faction['SpaceCZ']['so'] = int(faction['SpaceCZ'].get('so', '0')) + 1
+
+                # Send to API
+                event: dict = {
+                    'event': ApiSyntheticEvent.CZOBJECTIVE,
+                    'count': 1,
+                    'type': ApiSyntheticCZObjectiveType.SPECOPS,
+                    'Faction': faction_name
+                }
+                self.bgstally.api_manager.send_event(event, self, cmdr)
+
                 self.bgstally.ui.show_system_report(current_system['SystemAddress'])
-            elif state.last_ship_targeted.get('PilotName', "") == SPACECZ_PILOTNAME_PROPAGAND and not state.last_spacecz_approached.get('propagand'):
+            elif state.last_ship_targeted.get('PilotName', "") == SPACECZ_PILOTNAME_CORRESPONDENT and not state.last_spacecz_approached.get('propagand'):
                 # Tally a propagandist kill. We would like to only tally this after 3 kills in a CZ, but sadly due to journal order
                 # unpredictability we tally as soon as we spot a kill after targeting a propagandist
                 state.last_spacecz_approached['propagand'] = True
                 faction['SpaceCZ']['pr'] = int(faction['SpaceCZ'].get('pr', '0')) + 1
+
+                # Send to API
+                event: dict = {
+                    'event': ApiSyntheticEvent.CZOBJECTIVE,
+                    'count': 1,
+                    'type': ApiSyntheticCZObjectiveType.CORRESPONDENT,
+                    'Faction': faction_name
+                }
+                self.bgstally.api_manager.send_event(event, self, cmdr)
+
                 self.bgstally.ui.show_system_report(current_system['SystemAddress'])
 
         # If we've already counted this CZ, exit
@@ -1061,20 +1170,35 @@ class Activity:
         state.last_spacecz_approached['ally_faction'] = faction.get('Faction', "")
         self.dirty = True
 
-        type:str = state.last_spacecz_approached.get('type', 'l')
+        type: str = state.last_spacecz_approached.get('type', 'l')
         faction['SpaceCZ'][type] = int(faction['SpaceCZ'].get(type, '0')) + 1
+
+        # Send to API
+        event: dict = {
+            'event': ApiSyntheticEvent.CZ,
+            ApiSizeLookup[type]: 1,
+            'Faction': faction_name
+        }
+        self.bgstally.api_manager.send_event(event, self, cmdr)
 
         self.bgstally.ui.show_system_report(current_system['SystemAddress'])
         self.recalculate_zero_activity()
 
 
-    def _bv_megaship_scenario(self, journal_entry:dict, current_system:dict, state:State):
+    def _bv_megaship_scenario(self, journal_entry: dict, current_system: dict, state: State, cmdr: str):
+        """We are in an active megaship scenario
+
+        Args:
+            journal_entry (dict): The journal entry data
+            current_system (dict): The current system data
+            state (State): The bgstally State object
+            cmdr (str): The CMDR name
         """
-        We are in an active megaship scenario
-        """
-        faction:dict = current_system['Factions'].get(journal_entry['VictimFaction'])
+        faction_name: str = journal_entry.get('VictimFaction', "")
+        faction: dict = current_system['Factions'].get(faction_name)
         if not faction: return
-        opponent_faction:dict = current_system['Factions'].get(faction.get('Opponent', ""))
+        opponent_faction_name: str = faction.get('Opponent', "")
+        opponent_faction: dict = current_system['Factions'].get(opponent_faction_name)
         if not opponent_faction: return
 
         # If we've already counted this scenario, exit
@@ -1085,6 +1209,15 @@ class Activity:
 
         # The scenario should be counted against the opponent faction of the ship just killed
         opponent_faction['Scenarios'] += 1
+
+        # Send to API
+        event: dict = {
+            'event': ApiSyntheticEvent.SCENARIO,
+            'type': ApiSyntheticScenarioType.MEGASHIP,
+            'count': 1,
+            'Faction': opponent_faction_name
+        }
+        self.bgstally.api_manager.send_event(event, self, cmdr)
 
         self.bgstally.ui.show_system_report(current_system['SystemAddress'])
         self.recalculate_zero_activity()
@@ -1143,7 +1276,9 @@ class Activity:
                              "Sample Faction Name 3": self._get_new_faction_data("Sample Faction Name 3", "None", 30, True)},
                 'TWKills': self._get_new_tw_kills_data(True),
                 'TWSandR': self._get_new_tw_sandr_data(True),
-                'TWReactivate': 5}
+                'TWReactivate': 5,
+                'TickTime': datetime.now(UTC).strftime(DATETIME_FORMAT_ACTIVITY)
+                }
 
 
     def _get_new_system_data(self, system_name: str, system_address: str, faction_data: dict) -> dict:
@@ -1163,7 +1298,9 @@ class Activity:
                 'Factions': faction_data,
                 'TWKills': self._get_new_tw_kills_data(),
                 'TWSandR': self._get_new_tw_sandr_data(),
-                'TWReactivate': 0}
+                'TWReactivate': 0,
+                'TickTime': ""
+                }
 
 
     def _get_new_faction_data(self, faction_name: str, faction_state: str, faction_inf: float, sample: bool = False) -> dict:
@@ -1270,6 +1407,8 @@ class Activity:
         # From < 3.6.0 to 3.6.0
         if not 'PinToOverlay' in system_data: system_data['PinToOverlay'] = CheckStates.STATE_OFF
         if not 'tp' in system_data['TWSandR']: system_data['TWSandR']['tp'] = {'scooped': 0, 'delivered': 0}
+        # From < 4.3.0 to 4.3.0
+        if not 'TickTime' in system_data: system_data['TickTime'] = ""
 
 
     def _update_faction_data(self, faction_data: dict, faction_state: str|None = None, faction_inf: float|None = None):
@@ -1357,6 +1496,7 @@ class Activity:
         """
         self.tick_id = dict.get('tickid')
         self.tick_time = datetime.strptime(dict.get('ticktime'), DATETIME_FORMAT_ACTIVITY)
+        self.tick_time = self.tick_time.replace(tzinfo=UTC)
         self.tick_forced = dict.get('tickforced', False)
         self.discord_webhook_data = dict.get('discordwebhookdata', {})
         self.discord_notes = dict.get('discordnotes', "")
@@ -1389,6 +1529,10 @@ class Activity:
     def __repr__(self):
         return f"{self.tick_id} ({self.tick_time}): {self._as_dict()}"
 
+
+    def __add__(self, other):
+        self.systems = add_dicts(self.systems, other.systems)
+        return self
 
     # Deep copy override function - we don't deep copy any class references, just data
 

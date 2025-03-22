@@ -46,6 +46,8 @@ class FleetCarrierItemType(Enum):
     MATERIALS_BUYING = 1
     COMMODITIES_SELLING = 2
     COMMODITIES_BUYING = 3
+    CARGO = 4
+    LOCKER = 5
 
 
 class DiscordPostStyle(str, Enum):
@@ -84,8 +86,36 @@ class CmdrInteractionReason(int, Enum):
     TEAM_INVITE_RECEIVED = 5
     FRIEND_ADDED = 6
 
+class ApiSyntheticEvent(str, Enum):
+    CZ = 'SyntheticCZ'
+    GROUNDCZ = 'SyntheticGroundCZ'
+    CZOBJECTIVE = 'SyntheticCZObjective'
+    SCENARIO = 'SyntheticScenario'
 
+class ApiSyntheticCZObjectiveType(str, Enum):
+    CAPSHIP = 'CapShip'
+    SPECOPS = 'SpecOps'
+    GENERAL = 'WarzoneGeneral'
+    CORRESPONDENT = 'WarzoneCorrespondent'
+
+class ApiSyntheticScenarioType(str, Enum):
+    MEGASHIP = 'Megaship'
+    INSTALLATION = 'Installation'
+
+ApiSizeLookup: dict = {
+    'l': 'low',
+    'm': 'medium',
+    'h': 'high'
+}
+
+DATETIME_FORMAT_ACTIVITY: str = "%Y-%m-%dT%H:%M:%S.%fZ"
+DATETIME_FORMAT_API: str = "%Y-%m-%dT%H:%M:%SZ"
+DATETIME_FORMAT_DISPLAY = "%Y-%m-%d %H:%M:%S"
 DATETIME_FORMAT_JOURNAL: str = "%Y-%m-%dT%H:%M:%SZ"
+DATETIME_FORMAT_TICK_DETECTOR_GALAXY = "%Y-%m-%dT%H:%M:%S.%fZ"
+DATETIME_FORMAT_TICK_DETECTOR_SYSTEM = "%Y-%m-%dT%H:%M:%SZ"
+DATETIME_FORMAT_TITLE: str = "%Y-%m-%d %H:%M:%S"
+
 FILE_SUFFIX: str = ".json"
 FOLDER_ASSETS: str = "assets"
 FOLDER_BACKUPS: str = "backups"
@@ -105,7 +135,6 @@ else:
     FONT_TEXT_BOLD: tuple = ("Helvetica", 11, "bold")
     FONT_TEXT_UNDERLINE: tuple = ("Helvetica", 11, "underline")
     FONT_TEXT_BOLD_UNDERLINE: tuple = ("Helvetica", 11, "bold underline")
-
 COLOUR_HEADING_1: str = "#A300A3"
-
 TAG_OVERLAY_HIGHLIGHT: str = "<H>"
+COLOUR_WARNING: str = "#F00"

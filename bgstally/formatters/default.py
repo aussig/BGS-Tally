@@ -1,5 +1,5 @@
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import CheckStates, DiscordActivity
+from bgstally.constants import CheckStates, DiscordActivity, TAG_OVERLAY_HIGHLIGHT
 from bgstally.debug import Debug
 from bgstally.formatters.base import FieldActivityFormatterInterface
 from bgstally.utils import _, __, human_format, is_number
@@ -138,7 +138,9 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
             if system_text != "":
                 if discord: text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}```"
-                else: text += f"{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
+                else:
+                    system_name: str = TAG_OVERLAY_HIGHLIGHT + system['System']
+                    text += f"{color_wrap(system_name, 'white', None, 'bold', fp=fp)}\n{system_text}"
 
         if discord and activity.discord_notes is not None and activity.discord_notes != "": text += "\n" + activity.discord_notes
 

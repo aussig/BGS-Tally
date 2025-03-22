@@ -34,7 +34,6 @@ TIME_TICK_ALERT_M = 60
 URL_LATEST_RELEASE = "https://github.com/aussig/BGS-Tally/releases/latest"
 URL_WIKI = "https://github.com/aussig/BGS-Tally/wiki"
 
-
 class UI:
     """
     Display the user's activity
@@ -402,10 +401,7 @@ class UI:
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
-                    if len(pinned_systems) == 1:
-                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
-                    elif len(pinned_systems) > 1:
-                        self.bgstally.overlay.display_message("system_info", _("Pinned Systems") + "\n" + self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
+                    self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
 
             # CMDR Information
             if self.bgstally.state.enable_overlay_cmdr and self.report_cmdr_data is not None:

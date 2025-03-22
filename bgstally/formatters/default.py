@@ -137,10 +137,11 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
                     system_text += self._build_faction(faction, discord, lang)
 
             if system_text != "":
-                if discord: text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}```"
+                if discord:
+                    text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}```"
                 else:
                     system_name: str = TAG_OVERLAY_HIGHLIGHT + system['System']
-                    text += f"{color_wrap(system_name, 'white', None, 'bold', fp=fp)}\n{system_text}"
+                    text += f"{system_name}\n{system_text}"
 
         if discord and activity.discord_notes is not None and activity.discord_notes != "": text += "\n" + activity.discord_notes
 

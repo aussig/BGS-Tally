@@ -29,7 +29,7 @@ class Overlay:
         self._check_overlay()
 
 
-    def display_message(self, frame_name: str, message: str, fit_to_text: bool = False, ttl_override: int = None, text_colour_override: str = None, title_colour_override: str = None, text_includes_title: bool = False, title: str = None):
+    def display_message(self, frame_name: str, message: str, fit_to_text: bool = False, ttl_override: int = None, text_colour_override: str = None, title_colour_override: str = None, title: str = None):
         """
         Display a message in the overlay
         """
@@ -120,6 +120,8 @@ class Overlay:
             border_colour: str = border_colour_override if border_colour_override else fi['border_colour']
             self.edmcoverlay.send_shape(f"bgstally-frame-{frame_name}", "rect", border_colour, fill_colour, int(fi['x']), int(fi['y']), int(fi['w']), int(fi['h']), ttl=ttl)
 
+            self.problem_displaying = False
+            
         except Exception as e:
             if not self.problem_displaying:
                 # Only log a warning about failure once

@@ -135,6 +135,7 @@ else:
     FONT_TEXT_BOLD: tuple = ("Helvetica", 11, "bold")
     FONT_TEXT_UNDERLINE: tuple = ("Helvetica", 11, "underline")
     FONT_TEXT_BOLD_UNDERLINE: tuple = ("Helvetica", 11, "bold underline")
+
 COLOUR_HEADING_1: str = "#A300A3"
-TAG_OVERLAY_HIGHLIGHT: str = "<H>"
 COLOUR_WARNING: str = "#F00"
+TAG_OVERLAY_HIGHLIGHT: str = "<H>"

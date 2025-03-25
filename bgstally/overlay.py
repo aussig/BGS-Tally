@@ -1,6 +1,6 @@
 import textwrap
 
-from bgstally.constants import CheckStates
+from bgstally.constants import CheckStates, TAG_OVERLAY_HIGHLIGHT
 from bgstally.debug import Debug
 from bgstally.utils import _
 
@@ -18,7 +18,6 @@ MAX_LINES_PER_PANEL = 30
 WIDTH_OVERLAY = 1280  # Virtual screen width of overlay
 HEIGHT_OVERLAY = 960  # Virtual screen height of overlay
 
-
 class Overlay:
     """
     Handles the game overlay. Provides purpose-agnostic functions to display information and data in frames on screen.
@@ -30,7 +29,7 @@ class Overlay:
         self._check_overlay()
 
 
-    def display_message(self, frame_name: str, message: str, fit_to_text: bool = False, ttl_override: int = None, text_colour_override: str = None, title_colour_override: str = None, text_includes_title: bool = False, title: str = None):
+    def display_message(self, frame_name: str, message: str, fit_to_text: bool = False, ttl_override: int = None, text_colour_override: str = None, title_colour_override: str = None, title: str = None):
         """
         Display a message in the overlay
         """
@@ -75,29 +74,25 @@ class Overlay:
             yoffset: int = 0
             index: int = 0
 
-            # Title
-            if text_includes_title:
-                self.edmcoverlay.send_message(f"bgstally-msg-title-{frame_name}-{index}", segments[index], title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
-                yoffset += HEIGHT_CHARACTER_LARGE
-                index += 1
-            elif title is not None:
-                self.edmcoverlay.send_message(f"bgstally-msg-title-{frame_name}-{index}", title, title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
-                yoffset += HEIGHT_CHARACTER_LARGE
-
-            # Text
             while index <= MAX_LINES_PER_PANEL:
                 if index < len(segments):
-                    if index < MAX_LINES_PER_PANEL:
-                        # Line has content
-                        self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], text_colour, x + 10, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                    if segments[index].find(TAG_OVERLAY_HIGHLIGHT) > -1:
+                        self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index].replace(TAG_OVERLAY_HIGHLIGHT, ''), title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
+                        yoffset += HEIGHT_CHARACTER_LARGE
                     else:
-                        # Last line
-                        self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "[...]", text_colour, x + 10, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                        if index < MAX_LINES_PER_PANEL:
+                            # Line has content
+                            self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], text_colour, x + 10, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                        else:
+                            # Last line
+                            self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "[...]", text_colour, x + 10, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+
+                        yoffset += HEIGHT_CHARACTER_NORMAL
                 else:
                     # Unused line, clear
                     self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "", text_colour, x + 10, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                    yoffset += HEIGHT_CHARACTER_NORMAL
 
-                yoffset += HEIGHT_CHARACTER_NORMAL if fi['text_size'] == "normal" else HEIGHT_CHARACTER_LARGE
                 index += 1
 
             self.problem_displaying = False
@@ -126,7 +121,7 @@ class Overlay:
             self.edmcoverlay.send_shape(f"bgstally-frame-{frame_name}", "rect", border_colour, fill_colour, int(fi['x']), int(fi['y']), int(fi['w']), int(fi['h']), ttl=ttl)
 
             self.problem_displaying = False
-
+            
         except Exception as e:
             if not self.problem_displaying:
                 # Only log a warning about failure once

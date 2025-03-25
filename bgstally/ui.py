@@ -12,7 +12,7 @@ import myNotebook as nb
 from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.activity import Activity
-from bgstally.constants import DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL, CheckStates, DiscordActivity, UpdateUIPolicy
+from bgstally.constants import DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL, CheckStates, DiscordActivity, UpdateUIPolicy, TAG_OVERLAY_HIGHLIGHT
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, get_by_path
 from bgstally.widgets import EntryPlus
@@ -33,7 +33,6 @@ TIME_WORKER_PERIOD_S = 2
 TIME_TICK_ALERT_M = 60
 URL_LATEST_RELEASE = "https://github.com/aussig/BGS-Tally/releases/latest"
 URL_WIKI = "https://github.com/aussig/BGS-Tally/wiki"
-
 
 class UI:
     """
@@ -432,27 +431,24 @@ class UI:
                     # Report recent activity in a designated system, overrides pinned systems
                     report_system:dict = current_activity.get_system_by_address(self.report_system_address)
                     if report_system is not None:
-                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True)
+                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True)
                     self.report_system_address = None
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
-                    if len(pinned_systems) == 1:
-                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2)
-                    elif len(pinned_systems) > 1:
-                        self.bgstally.overlay.display_message("system_info", _("Pinned Systems") + "\n" + self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, text_includes_title=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
+                    self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
 
             # CMDR Information
             if self.bgstally.state.enable_overlay_cmdr and self.report_cmdr_data is not None:
                 # Report recent interaction with a CMDR
-                display_text: str = self.bgstally.target_manager.get_human_readable_reason(self.report_cmdr_data.get('Reason', 0), False) + ": " + self.report_cmdr_data.get('TargetName', _("Unknown")) + "\n" # LANG: Overlay CMDR information report message
+                display_text: str = TAG_OVERLAY_HIGHLIGHT + self.bgstally.target_manager.get_human_readable_reason(self.report_cmdr_data.get('Reason', 0), False) + ": " + self.report_cmdr_data.get('TargetName', _("Unknown")) + "\n" # LANG: Overlay CMDR information report message
                 display_text += _("In system: {system}").format(system=self.report_cmdr_data.get('System', _("Unknown"))) + "  " # LANG: Overlay CMDR information report message
                 display_text += _("Squadron ID: {squadron}").format(squadron=self.report_cmdr_data.get('SquadronID', _("Unknown"))) + "\n" # LANG: Overlay CMDR information report message
                 display_text += _("In ship: {ship}").format(ship=self.report_cmdr_data.get('Ship', _("Unknown"))) + "  " # LANG: Overlay CMDR information report message
                 display_text += _("Legal status: {legal}").format(legal=self.report_cmdr_data.get('LegalStatus', _("Unknown"))) + "\n" # LANG: Overlay CMDR information report message
                 if 'ranks' in self.report_cmdr_data: display_text += _("INARA INFORMATION AVAILABLE") # LANG: Overlay CMDR information report message
 
-                self.bgstally.overlay.display_message("cmdr_info", display_text, fit_to_text=True, text_includes_title=True)
+                self.bgstally.overlay.display_message("cmdr_info", display_text, fit_to_text=True)
                 self.report_cmdr_data = None
 
             # Warning

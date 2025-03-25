@@ -70,9 +70,6 @@
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS és TW egyben";
 
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Anyagok és árucikkek";
-
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Vérdíjak";
 
@@ -91,8 +88,14 @@
 /* Discord heading. [default.py] */
 "cargo" = "rakomány";
 
+/* Heading on fleetcarrier window. [fleetcarrier.py] */
+"Cargo" = "Cargo";
+
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Rakomány küldetések";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Cargo:" = "Cargo:";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
 "Carrier {carrier_name}" = "Anyahajó {carrier_name}";
@@ -111,9 +114,6 @@
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Harci kötvények";
-
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Csak Árúcikkek";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Távoli Szerver Konfigurálása";
@@ -185,7 +185,7 @@
 "Discord Additional Notes" = "További Discord jegyzetek";
 
 /* Preferences label. [ui.py] */
-"Discord Avatar URL" = "Discord Avatar URL";
+"Discord Avatar URL" = "Discord avatár URL";
 
 /* [ui.py] */
 "Discord Options" = "Discord opciók";
@@ -460,14 +460,17 @@
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Legalitás helyzete: {legal}";
 
+/* Heading on fleetcarrier window. [fleetcarrier.py] */
+"Locker" = "Locker";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Locker:" = "Locker:";
+
 /* Activity window tooltip. [activity.py] */
 "Low" = "Alacsony";
 
 /* [legend.py] */
 "Massacre missions" = "Mészároló küldetések";
-
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Csak Anyagok";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Közepes";
@@ -531,9 +534,6 @@
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "{system_name} kitűzése az Átfedésre";
-
-/* [ui.py] */
-"Pinned Systems" = "Kitűzött rendszerek";
 
 /* URL label on API settings window. [api.py] */
 "Player Journal Documentation" = "Játékosnapló dokumentáció";

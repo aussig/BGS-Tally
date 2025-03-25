@@ -9,14 +9,20 @@
     - Objectives are shown in a new window accessible from the main EDMC window - click the 𖦏 button. The layout is a bit basic at the moment, it will probably improve in future.
     - If you use the in-game overlay, Objectives are also displayed on a new overlay panel in-game.
 * Conflict states are highlighted in the activity window: Elections in orange and wars in red.
-* The individual tick time for each system is now reported on the activity window and on the overlay in-game.
+* The individual tick time **for each system** is now reported on the activity window and on the overlay in-game.
 * You can now customise the Discord avatar image for your Discord posts, if you want to override the default BGS-Tally icon.
+* The Fleet Carrier window now lists your full cargo and materials, in addition to those with buy or sell orders. You have the choice of what to post to Discord across all the inventory windows.
+
+### Changes:
+
+* When multiple systems are pinned to the in-game overlay, they are now formatted more elegantly, with all system names shown as coloured titles.
 
 ### Bug Fixes:
 
-* The tick time was not being sent in /event API calls.
+* The tick time was not being sent in `/event` API calls.
 * Any Search and Rescue (e.g. excape pods) would cause the overlay to stop displaying your work in that system.
 * When abandoning of failing a mission that was not logged when it was originally accepted (e.g. when BGS-Tally was not running), and sending events to an API, the API call would fail.
+* Fixed bug which would cause the Fleetcarrier window to fail to load properly if newer Trailblazers or Thargoid war commodities had buy or sell orders set.
 
 ### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxxxxxxx)):
 

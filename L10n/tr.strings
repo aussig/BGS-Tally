@@ -70,9 +70,6 @@
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "Hem BGS hem TW";
 
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Materyaller ve ürünler";
-
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Kelle avcılığı geliri";
 
@@ -91,8 +88,14 @@
 /* Discord heading. [default.py] */
 "cargo" = "kargo";
 
+/* Heading on fleetcarrier window. [fleetcarrier.py] */
+"Cargo" = "Cargo";
+
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Kargo görevleri";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Cargo:" = "Cargo:";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
 "Carrier {carrier_name}" = "Filo Taşıyıcı {carrier_name}";
@@ -111,9 +114,6 @@
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Savaş tahvilleri";
-
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Sadece Ürünlenler";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Uzak Sunucuyu Yapılandır";
@@ -460,14 +460,17 @@
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Yasal durum: {legal}";
 
+/* Heading on fleetcarrier window. [fleetcarrier.py] */
+"Locker" = "Locker";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Locker:" = "Locker:";
+
 /* Activity window tooltip. [activity.py] */
 "Low" = "Düşük";
 
 /* [legend.py] */
 "Massacre missions" = "Katliam görevleri";
-
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Sadece Materyaller";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Orta";
@@ -531,9 +534,6 @@
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "{system_name} arayüze sabitle";
-
-/* [ui.py] */
-"Pinned Systems" = "Sabitlenmiş Sistemler";
 
 /* URL label on API settings window. [api.py] */
 "Player Journal Documentation" = "Oyuncu Günlüğü Belgeleri";

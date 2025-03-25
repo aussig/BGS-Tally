@@ -70,9 +70,6 @@
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS e TW";
 
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Materiali e Commody";
-
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bounty vouchers";
 
@@ -91,8 +88,14 @@
 /* Discord heading. [default.py] */
 "cargo" = "carico";
 
+/* Heading on fleetcarrier window. [fleetcarrier.py] */
+"Cargo" = "Cargo";
+
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Missioni di carico";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Cargo:" = "Cargo:";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
 "Carrier {carrier_name}" = "Carrier {carrier_name}";
@@ -111,9 +114,6 @@
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Combat bonds";
-
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Solo Commodity";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configura Server Remoto";
@@ -185,7 +185,7 @@
 "Discord Additional Notes" = "Note aggiuntive per Discord";
 
 /* Preferences label. [ui.py] */
-"Discord Avatar URL" = "Discord Avatar URL";
+"Discord Avatar URL" = "URL Discord Avatar";
 
 /* [ui.py] */
 "Discord Options" = "Opzioni Discord";
@@ -460,14 +460,17 @@
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Stato giuridico: {legal}";
 
+/* Heading on fleetcarrier window. [fleetcarrier.py] */
+"Locker" = "Locker";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Locker:" = "Locker:";
+
 /* Activity window tooltip. [activity.py] */
 "Low" = "Low";
 
 /* [legend.py] */
 "Massacre missions" = "Missioni di massacro";
-
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Solo Materiali";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Medium";
@@ -531,9 +534,6 @@
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "Pinna {system_name} nell'overlay";
-
-/* [ui.py] */
-"Pinned Systems" = "Sistemi Pinnati";
 
 /* URL label on API settings window. [api.py] */
 "Player Journal Documentation" = "Documentazione del Diario del Giocatore";

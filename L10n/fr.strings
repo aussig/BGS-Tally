@@ -70,9 +70,6 @@
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS et TW";
 
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Matériaux et marchandises";
-
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Prime de combat";
 
@@ -91,8 +88,14 @@
 /* Discord heading. [default.py] */
 "cargo" = "cargo";
 
+/* Heading on fleetcarrier window. [fleetcarrier.py] */
+"Cargo" = "Cargo";
+
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Mission de transport";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Cargo:" = "Cargo:";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
 "Carrier {carrier_name}" = "Porte-Vaisseau {carrier_name}";
@@ -111,9 +114,6 @@
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Récompenses de combat";
-
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Seulement les marchandises";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configurer le serveur distant";
@@ -460,14 +460,17 @@
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Statut légal : {legal}";
 
+/* Heading on fleetcarrier window. [fleetcarrier.py] */
+"Locker" = "Locker";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Locker:" = "Locker:";
+
 /* Activity window tooltip. [activity.py] */
 "Low" = "Faible";
 
 /* [legend.py] */
 "Massacre missions" = "Missions de massacre";
-
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Matériaux uniquement";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Moyenne";
@@ -531,9 +534,6 @@
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "Épingler {system_name} à l'overlay";
-
-/* [ui.py] */
-"Pinned Systems" = "Systèmes épinglés";
 
 /* URL label on API settings window. [api.py] */
 "Player Journal Documentation" = "Documentation du journal du joueur";

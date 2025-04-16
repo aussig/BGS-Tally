@@ -109,7 +109,7 @@ class FleetCarrier:
         else:
             self.cargo = []
 
-        # Sort cargo commodities - a List of Dicts
+        # Sort locker materials
         locker:dict|list = get_by_path(self.data, ['carrierLocker'], [])
         if locker is not None and locker != []:
             self.locker = locker
@@ -159,6 +159,67 @@ class FleetCarrier:
         fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': self.human_format_notorious(True), 'inline': True})
 
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+
+
+    def cargo_transfer(self, journal_entry: dict):
+        """
+        The user transferred cargo to or from the carrier
+
+        Args:
+            journal_entry (dict): The journal entry data
+        """
+        # { "timestamp":"2025-03-22T15:15:21Z", "event":"CargoTransfer", "Transfers":[ { "Type":"steel", "Count":728, "Direction":"toship" }, { "Type":"titanium", "Count":56, "Direction":"toship" } ] }
+
+        # Unfortunately we don't get the localized name for transfers so we'll do without.
+        cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
+        Debug.logger.debug(f"cargo_transfer: {journal_entry}")
+        for i in journal_entry.get('Transfers', []):
+            type:str = i.get('Type', "")
+            display_type:str = i.get('Type_Localised', "")
+            if display_type == "" and type in self.commodities:
+                display_type = self.commodities[type]
+
+            count:int = i.get('Count', 0)
+            direction:str = i.get('Direction', "")
+
+            found = False
+            for c in cargo:
+                # For some reason the event is lower case but the cargo is mixed case
+                if count > 0 and c[name_key].lower() == type:
+                    found = True
+                    if direction == "toship":
+                        if c[quantity_key] > count: # May have to do this in multiple bits.
+                            Debug.logger.debug(f"Removing {count} {type} from cargo")
+                            c[quantity_key] -= count
+                            count = 0
+                            break
+                        else:
+                            Debug.logger.debug(f"Deleting {count} {type} {c[quantity_key]} from cargo")
+                            count -= c[quantity_key]
+                            cargo.remove(c)
+
+                    else:
+                        Debug.logger.debug(f"Adding {count} {type} to cargo")
+                        c[quantity_key] += count
+                        count = 0
+                        break
+
+            if not found:
+                Debug.logger.debug(f"Creating {count} {type} cargo")
+                cargo.append({name_key: type, display_name_key: display_type, quantity_key: count})
+
+
+    def ship_locker(self, journal_entry: dict):
+        """
+        Event that lists everything in the locker. We'll use it to update the locker data to keep it fresh.
+
+        Args:
+            journal_entry (dict): The journal entry data
+        """
+        # Log current locker & journal entry to see if they align.
+        #Debug.logger.info(f"{self.locker}")
+        #Debug.logger.info(f"{journal_entry}")
+        #self.locker = journal_entry
 
 
     def trade_order(self, journal_entry: dict):
@@ -271,7 +332,7 @@ class FleetCarrier:
             cargo = dict()
             items = sorted(items, key=lambda x: x[display_name_key])
             for item in items:
-                if item[name_key] in cargo:
+                if item[display_name_key] in cargo:
                     cargo[item[display_name_key]] += int(item[quantity_key])
                 else:
                     cargo[item[display_name_key]] = int(item[quantity_key])

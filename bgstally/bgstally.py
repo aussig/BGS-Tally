@@ -148,6 +148,10 @@ class BGSTally:
             case 'Cargo':
                 activity.cargo(entry)
 
+            case 'CargoTransfer':
+                self.fleet_carrier.cargo_transfer(entry)
+                dirty = True
+
             case 'CarrierJumpCancelled':
                 self.fleet_carrier.jump_cancelled()
 

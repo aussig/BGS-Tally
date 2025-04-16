@@ -11,6 +11,11 @@
 * Conflict states are highlighted in the activity window: Elections in orange and wars in red.
 * The individual tick time **for each system** is now reported on the activity window and on the overlay in-game.
 * You can now customise the Discord avatar image for your Discord posts, if you want to override the default BGS-Tally icon.
+* The Fleet Carrier window now lists your full cargo and materials, in addition to those with buy or sell orders. You have the choice of what to post to Discord across all the inventory windows.
+
+### Changes:
+
+* When multiple systems are pinned to the in-game overlay, they are now formatted more elegantly, with all system names shown as coloured titles.
 
 ### Bug Fixes:
 

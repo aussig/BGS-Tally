@@ -19,6 +19,8 @@ from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
 from bgstally.windows.cmdrs import WindowCMDRs
+from bgstally.windows.colonisation import ColonisationWindow
+from bgstally.windows.progress import ProgressWindow
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
 from bgstally.windows.legend import WindowLegend
 from bgstally.windows.objectives import WindowObjectives
@@ -51,6 +53,7 @@ class UI:
         self.image_button_cmdrs = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_cmdrs.png"))
         self.image_button_carrier = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_carrier.png"))
         self.image_button_objectives = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_objectives.png"))
+        self.image_button_colonisation = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_colonisation.png"))
         self.image_icon_green_tick = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_green_tick_16x16.png"))
         self.image_icon_red_cross = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_red_cross_16x16.png"))
 
@@ -64,6 +67,8 @@ class UI:
         self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally)
         self.window_legend:WindowLegend = WindowLegend(self.bgstally)
         self.window_objectives:WindowObjectives = WindowObjectives(self.bgstally)
+        self.window_colonisation:ColonisationWindow = None
+        self.window_progress:ProgressWindow = None
 
         # TODO: When we support multiple APIs, this will no longer be a single instance window
         self.window_api:WindowAPI = WindowAPI(self.bgstally, self.bgstally.api_manager.apis[0])
@@ -130,6 +135,77 @@ class UI:
         ToolTip(self.btn_objectives, text=_("Show objectives / missions window")) # LANG: Main window tooltip
         current_column += 1
 
+        self.btn_colonisation: tk.Button = tk.Button(self.frame, image=self.image_button_colonisation, height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_colonisation_window)
+        self.btn_colonisation.grid(row=current_row, column=current_column, padx=3)
+        ToolTip(self.btn_colonisation, text=_("Show colonisation window")) # LANG: Main window tooltip
+        current_column += 1
+
+        current_row += 1
+
+        # Add commodities frame below the buttons
+        self.commodities_frame = tk.Frame(self.frame)
+        self.commodities_frame.grid(row=current_row, column=0, columnspan=column_count+1, sticky=tk.EW, padx=5, pady=5)
+
+        # Create navigation frame
+        nav_frame = tk.Frame(self.commodities_frame)
+        nav_frame.pack(fill=tk.X)
+
+        # Left arrow button
+        self.commodities_left_button = tk.Button(nav_frame, text="←", width=2, command=self._commodities_prev_build)
+        self.commodities_left_button.pack(side=tk.LEFT, padx=2)
+
+        # Current build label
+        self.commodities_build_label = tk.Label(nav_frame, text=_("Total"))
+        self.commodities_build_label.pack(side=tk.LEFT, padx=5, expand=True)
+
+        # Right arrow button
+        self.commodities_right_button = tk.Button(nav_frame, text="→", width=2, command=self._commodities_next_build)
+        self.commodities_right_button.pack(side=tk.LEFT, padx=2)
+
+        # Create progress frame
+        progress_frame = tk.Frame(self.commodities_frame)
+        progress_frame.pack(fill=tk.X)
+
+        # Progress label
+        tk.Label(progress_frame, text=_("Progress:")).pack(side=tk.LEFT, padx=2)
+        self.commodities_progress_label = tk.Label(progress_frame, text="0%")
+        self.commodities_progress_label.pack(side=tk.LEFT, padx=2)
+
+        # Ship loads label
+        tk.Label(progress_frame, text=_("Ship Loads:")).pack(side=tk.LEFT, padx=(10, 2))
+        self.commodities_loads_label = tk.Label(progress_frame, text="0")
+        self.commodities_loads_label.pack(side=tk.LEFT, padx=2)
+
+        # Create commodities table frame
+        table_frame = tk.Frame(self.commodities_frame)
+        table_frame.pack(fill=tk.BOTH)
+
+        # Create headers
+        tk.Label(table_frame, text=_("Commodity"), font=FONT_SMALL).grid(row=0, column=0, sticky=tk.W, padx=2)
+        tk.Label(table_frame, text=_("Required"), font=FONT_SMALL).grid(row=0, column=1, sticky=tk.W, padx=2)
+        tk.Label(table_frame, text=_("Remaining"), font=FONT_SMALL).grid(row=0, column=2, sticky=tk.W, padx=2)
+        self.carrier_header = tk.Label(table_frame, text=_("Carrier"), font=FONT_SMALL)
+        self.carrier_header.grid(row=0, column=3, sticky=tk.W, padx=2)
+
+        # Create commodity rows (will be populated in update_commodities_display)
+        self.commodity_rows = []
+        for i in range(5):  # Show up to 5 commodities
+            row = {
+                "name": tk.Label(table_frame, text="", font=FONT_SMALL),
+                "required": tk.Label(table_frame, text="", font=FONT_SMALL),
+                "remaining": tk.Label(table_frame, text="", font=FONT_SMALL),
+                "carrier": tk.Label(table_frame, text="", font=FONT_SMALL)
+            }
+            row["name"].grid(row=i+1, column=0, sticky=tk.W, padx=2)
+            row["required"].grid(row=i+1, column=1, sticky=tk.W, padx=2)
+            row["remaining"].grid(row=i+1, column=2, sticky=tk.W, padx=2)
+            row["carrier"].grid(row=i+1, column=3, sticky=tk.W, padx=2)
+            self.commodity_rows.append(row)
+
+        # Initialize commodities state
+        self.current_build_index = -1  # -1 means "Total" view
+        self.current_system = None
+
         current_row += 1
 
         return self.frame
@@ -155,6 +231,9 @@ class UI:
         if self.btn_carrier is not None:
             self.btn_carrier.config(state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'))
         self.btn_objectives.config(state=('normal' if self.bgstally.objectives_manager.objectives_available() else 'disabled'))
+
+        # Update commodities display
+        self.update_commodities_display()
 
 
     def get_prefs_frame(self, parent_frame: tk.Frame):
@@ -517,6 +596,274 @@ class UI:
         Display the API configuration window
         """
         self.window_api.show(parent_frame)
+
+    def _show_colonisation_window(self):
+        """
+        Display the Colonisation Window
+        """
+        if self.window_colonisation is None:
+            self.window_colonisation = ColonisationWindow(self.frame, self.bgstally.colonisation)
+        else:
+            self.window_colonisation.window.lift()
+
+    def _show_commodities_window(self):
+        """
+        Display the Progress Window
+        """
+        if self.window_progress is None:
+            self.window_progress = ProgressWindow(self.frame, self.bgstally.colonisation, self.bgstally.state)
+        else:
+            self.window_progress.window.lift()
+
+    def _commodities_prev_build(self):
+        """
+        Navigate to the previous build in the commodities display
+        """
+        if not self.current_system:
+            return
+
+        builds = self.current_system.get('Builds', [])
+        if not builds:
+            return
+
+        if self.current_build_index == -1:
+            # From "Total" go to last build
+            self.current_build_index = len(builds) - 1
+        else:
+            # Go to previous build or to "Total" if at first build
+            self.current_build_index = (self.current_build_index - 1) % (len(builds) + 1) - 1
+
+        self.update_commodities_display()
+
+    def _commodities_next_build(self):
+        """
+        Navigate to the next build in the commodities display
+        """
+        if not self.current_system:
+            return
+
+        builds = self.current_system.get('Builds', [])
+        if not builds:
+            return
+
+        if self.current_build_index == len(builds) - 1:
+            # From last build go to "Total"
+            self.current_build_index = -1
+        else:
+            # Go to next build
+            self.current_build_index = (self.current_build_index + 1) % (len(builds) + 1) - 1
+            if self.current_build_index < -1:
+                self.current_build_index = 0
+
+        self.update_commodities_display()
+
+    def update_commodities_display(self):
+        """
+        Update the commodities display with data from the selected build or total
+        """
+        # Always hide the commodities frame first
+        self.commodities_frame.grid_remove()
+        Debug.logger.debug("Commodities frame hidden at start of update_commodities_display")
+
+        # Get current system from colonisation
+        systems = self.bgstally.colonisation.get_all_systems()
+        if not systems:
+            Debug.logger.debug("No colonisation systems found, keeping commodities frame hidden")
+            return
+
+        # Use the first system for now
+        self.current_system = self.bgstally.colonisation.get_system(systems[0]['address'])
+        if not self.current_system:
+            Debug.logger.debug("No current system data, keeping commodities frame hidden")
+            return
+
+        # Get builds for the current system
+        builds = self.current_system.get('Builds', [])
+        if not builds:
+            Debug.logger.debug("No builds found for system, keeping commodities frame hidden")
+            return
+
+        # Get commodity requirements
+        commodity_data = self.get_commodity_requirements(builds)
+
+        # Calculate total progress
+        total_required = sum(data['required'] for data in commodity_data.values())
+        total_remaining = sum(data['remaining'] for data in commodity_data.values())
+
+        # If there's nothing required, nothing to display
+        if total_required == 0:
+            Debug.logger.debug(f"No commodities required (total_required={total_required}), keeping commodities frame hidden")
+            return
+
+        # If all commodities are delivered, nothing to display
+        if total_remaining == 0:
+            Debug.logger.debug(f"All commodities delivered (total_remaining={total_remaining}), keeping commodities frame hidden")
+            return
+
+        Debug.logger.debug(f"Found active builds with commodities: required={total_required}, remaining={total_remaining}")
+        total_delivered = total_required - total_remaining
+
+        # Check if we should show the carrier column
+        has_carrier = self.bgstally.fleet_carrier.available()
+        self.carrier_header.grid_remove() if not has_carrier else self.carrier_header.grid()
+        for row in self.commodity_rows:
+            row["carrier"].grid_remove() if not has_carrier else row["carrier"].grid()
+
+        # Get carrier cargo data if available
+        carrier_cargo = {}
+        if has_carrier:
+            for cargo_item in self.bgstally.fleet_carrier.cargo:
+                commodity_name = cargo_item.get('commodity', '')
+                if commodity_name in self.bgstally.fleet_carrier.commodities:
+                    # Use the display name from the commodities dictionary
+                    display_name = self.bgstally.fleet_carrier.commodities[commodity_name]
+                    if display_name in carrier_cargo:
+                        carrier_cargo[display_name] += int(cargo_item.get('qty', 0))
+                    else:
+                        carrier_cargo[display_name] = int(cargo_item.get('qty', 0))
+
+        # Update navigation label
+        if self.current_build_index == -1:
+            self.commodities_build_label.config(text=_("Total"))
+        elif 0 <= self.current_build_index < len(builds):
+            build = builds[self.current_build_index]
+            build_name = build.get('Name', '')
+            # Truncate name if too long
+            if len(build_name) > 20:
+                build_name = build_name[:17] + "..."
+            self.commodities_build_label.config(text=build_name)
+        else:
+            self.commodities_build_label.config(text=_("Unknown"))
+
+        # Update progress display
+        progress_percent = (total_delivered / total_required) * 100 if total_required > 0 else 0
+        self.commodities_progress_label.config(text=f"{progress_percent:.1f}%")
+
+        # Calculate ship loads
+        ship_loads = total_remaining / self.bgstally.state.cargo_capacity if self.bgstally.state.cargo_capacity > 0 and total_remaining > 0 else 0
+        self.commodities_loads_label.config(text=f"{ship_loads:.1f}")
+
+        # Update commodity rows
+        sorted_commodities = sorted(commodity_data.items(), key=lambda x: x[1]['required'], reverse=True)
+
+        # Clear all rows first
+        for row in self.commodity_rows:
+            row["name"].config(text="")
+            row["required"].config(text="")
+            row["remaining"].config(text="")
+            row["carrier"].config(text="")
+
+        # Fill in rows with data
+        has_commodities_to_display = False
+        for i, (commodity, data) in enumerate(sorted_commodities):
+            if i >= len(self.commodity_rows):
+                break
+
+            if data['required'] > 0 and data['remaining'] > 0:  # Only show commodities that are required and not fully delivered
+                has_commodities_to_display = True
+                row = self.commodity_rows[i]
+                row["name"].config(text=commodity)
+                row["required"].config(text=str(data['required']))
+                row["remaining"].config(text=str(data['remaining']))
+
+                # Add carrier cargo quantity if available
+                if has_carrier and commodity in carrier_cargo:
+                    row["carrier"].config(text=str(carrier_cargo[commodity]))
+                else:
+                    row["carrier"].config(text="0")
+
+        # Only show the commodities frame if there are commodities to display
+        if has_commodities_to_display:
+            Debug.logger.debug("Showing commodities frame - found commodities that need delivery")
+            self.commodities_frame.grid()
+        else:
+            Debug.logger.debug("Keeping commodities frame hidden - no commodities need delivery")
+
+    def get_commodity_requirements(self, builds):
+        """
+        Get the commodity requirements for the selected build or total
+
+        Args:
+            builds: List of builds
+
+        Returns:
+            Dictionary of commodity requirements
+        """
+        commodity_data = {}
+
+        # Determine which builds to process
+        if self.current_build_index == -1:
+            # Process all tracked builds
+            builds_to_process = [build for build in builds if build.get('Tracked', 'No') == 'Yes']
+        elif 0 <= self.current_build_index < len(builds):
+            # Process only the selected build if it's tracked
+            build = builds[self.current_build_index]
+            if build.get('Tracked', 'No') == 'Yes':
+                builds_to_process = [build]
+            else:
+                builds_to_process = []
+        else:
+            builds_to_process = []
+
+        # Process each build
+        for build in builds_to_process:
+            base_type_name = build.get('Type', '')
+
+            # Find the base cost data for this type
+            base_cost = None
+            for cost_entry in self.bgstally.colonisation.base_costs:
+                if cost_entry.get('base_type') == base_type_name:
+                    base_cost = cost_entry
+                    break
+
+            if base_cost:
+                # Process each commodity
+                for commodity, amount in base_cost.items():
+                    if commodity != 'base_type' and amount:
+                        # Convert string values with commas to integers
+                        try:
+                            if isinstance(amount, str) and ',' in amount:
+                                amount = amount.replace(',', '')
+                            amount = int(amount)
+                        except (ValueError, TypeError):
+                            amount = 0
+
+                        if amount > 0:
+                            # Initialize commodity data if not exists
+                            if commodity not in commodity_data:
+                                commodity_data[commodity] = {
+                                    'required': 0,
+                                    'remaining': 0
+                                }
+
+                            # Add to required amount
+                            commodity_data[commodity]['required'] += amount
+
+                            # Check if this build is being tracked
+                            if build.get('Tracked', 'No') == 'Yes':
+                                # Get progress from construction depot data
+                                market_id = build.get('MarketID')
+                                if market_id:
+                                    # Find the depot in progress data
+                                    for depot in self.bgstally.colonisation.progress:
+                                        if depot.get('MarketID') == market_id:
+                                            # Find the resource in the depot
+                                            for resource in depot.get('ResourcesRequired', []):
+                                                if resource.get('Name') == commodity:
+                                                    # Calculate remaining
+                                                    required = resource.get('RequiredAmount', 0)
+                                                    provided = resource.get('ProvidedAmount', 0)
+                                                    remaining = max(0, required - provided)
+
+                                                    # Update commodity data
+                                                    commodity_data[commodity]['remaining'] += remaining
+                                                    break
+                                            break
+                            else:
+                                # If not tracked, all is remaining
+                                commodity_data[commodity]['remaining'] += amount
+
+        return commodity_data
 
 
     def _confirm_force_tick(self):

@@ -10,6 +10,7 @@ from monitor import monitor
 from bgstally.activity import Activity
 from bgstally.activitymanager import ActivityManager
 from bgstally.apimanager import APIManager
+from bgstally.colonisation import Colonisation
 from bgstally.config import Config
 from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
@@ -92,6 +93,7 @@ class BGSTally:
         self.ui: UI = UI(self)
         self.formatter_manager: ActivityFormatterManager = ActivityFormatterManager(self)
         self.objectives_manager: ObjectivesManager = ObjectivesManager(self)
+        self.colonisation: Colonisation = Colonisation(self)
         self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True
         self.thread.start()
@@ -128,6 +130,7 @@ class BGSTally:
 
         if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
             activity.system_entered(entry, self.state)
+            self.colonisation.update_system_info(entry, self.state)
             dirty = True
 
         mission:dict = self.mission_log.get_mission(entry.get('MissionID'))
@@ -197,6 +200,12 @@ class BGSTally:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
                 self.state.station_type = entry.get('StationType', "")
                 dirty = True
+
+            case 'Loadout':
+                # Update cargo capacity from Loadout event
+                if 'CargoCapacity' in entry:
+                    self.state.cargo_capacity = entry.get('CargoCapacity')
+                    self.ui.update_plugin_frame()
 
             case 'Market':
                 self.market.load()
@@ -274,6 +283,23 @@ class BGSTally:
             case 'WingInvite':
                 self.target_manager.team_invite(entry, system)
 
+            # Colonisation events
+            case 'ColonisationSystemClaim':
+                self.colonisation.system_claimed(entry, self.state)
+                dirty = True
+
+            case 'ColonisationBeaconDeployed':
+                self.colonisation.beacon_deployed(entry, self.state)
+                dirty = True
+
+            case 'ColonisationConstructionDepot':
+                self.colonisation.construction_depot(entry, self.state)
+                dirty = True
+
+            case 'ColonisationContribution':
+                self.colonisation.contribution(entry, self.state)
+                dirty = True
+
         if dirty:
             self.save_data()
             self.api_manager.send_activity(activity, cmdr)
@@ -328,6 +354,7 @@ class BGSTally:
         self.fleet_carrier.save()
         self.api_manager.save()
         self.webhook_manager.save()
+        self.colonisation.save()
 
 
     def new_tick(self, force: bool, uipolicy: UpdateUIPolicy):

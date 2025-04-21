@@ -102,6 +102,11 @@ class ApiSyntheticScenarioType(str, Enum):
     MEGASHIP = 'Megaship'
     INSTALLATION = 'Installation'
 
+class ColonisationStatus(str, Enum):
+    PLANNED = 'Planned'
+    PROGRESS = 'Progress'
+    COMPLETE = 'Complete'
+
 ApiSizeLookup: dict = {
     'l': 'low',
     'm': 'medium',

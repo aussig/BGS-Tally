@@ -177,6 +177,7 @@ class BGSTally:
             case 'Docked':
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
                 self.state.station_type = entry.get('StationType', "")
+                self.colonisation.docked(entry, self.state)
                 dirty = True
 
             case 'EjectCargo':
@@ -288,9 +289,9 @@ class BGSTally:
                 self.colonisation.system_claimed(entry, self.state)
                 dirty = True
 
-            case 'ColonisationBeaconDeployed':
-                self.colonisation.beacon_deployed(entry, self.state)
-                dirty = True
+            #case 'ColonisationBeaconDeployed':
+            #    self.colonisation.beacon_deployed(entry, self.state)
+            #    dirty = True
 
             case 'ColonisationConstructionDepot':
                 self.colonisation.construction_depot(entry, self.state)

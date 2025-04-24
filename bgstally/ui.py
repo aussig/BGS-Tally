@@ -67,8 +67,8 @@ class UI:
         self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally)
         self.window_legend:WindowLegend = WindowLegend(self.bgstally)
         self.window_objectives:WindowObjectives = WindowObjectives(self.bgstally)
-        self.window_colonisation:ColonisationWindow = None
-        self.window_progress:ProgressWindow = None
+        self.window_colonisation:ColonisationWindow = ColonisationWindow(self.bgstally)
+        #self.window_progress:ProgressWindow = ProgressWindow(self.bgstally)
 
         # TODO: When we support multiple APIs, this will no longer be a single instance window
         self.window_api:WindowAPI = WindowAPI(self.bgstally, self.bgstally.api_manager.apis[0])
@@ -601,17 +601,14 @@ class UI:
         """
         Display the Colonisation Window
         """
-        if self.window_colonisation is None:
-            self.window_colonisation = ColonisationWindow(self.frame, self.bgstally.colonisation)
-        else:
-            self.window_colonisation.window.lift()
+        self.window_colonisation.show()
 
     def _show_commodities_window(self):
         """
         Display the Progress Window
         """
         if self.window_progress is None:
-            self.window_progress = ProgressWindow(self.frame, self.bgstally.colonisation, self.bgstally.state)
+            self.window_progress = ProgressWindow(self.frame, self.bgstallycolonisation, self.bgstally.state)
         else:
             self.window_progress.window.lift()
 

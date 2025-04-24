@@ -27,6 +27,9 @@ SuperCruiseExit -> Body, BodyType,
 Docked -> StationName '$EXT_PANEL_ColonisationShip:#index=1;' -> primary port!,
                       'Orbital Construction Site: <name>',
 		      'Planetary Construction Site: <name>'
+          StationType 'SpaceConstructionDepot', 'PlanetaryConstructionDepot', 'SurfaceStation' (primary port) 
+          MarketID
+	
 ColonisationConstructionDepot -> MarketID, ConstructionProgress, ResourcesRequired
 ColonisationContribution -> MarketID, Contributions
 
@@ -37,3 +40,11 @@ if the user has a fleet carrier add a carrier column, get the cargo quantities f
 carrier cargo quantity for each commodity
 
 add support for saving the entire progress on each base when a ColonisationConstructionDepot event occurs.
+
+
+
+tab_frame.pack(fill=tk.BOTH, expand=tk.YES)
+nb_tab=ScrollableNotebook(tab_frame, wheelscroll=False, tabmenu=True)
+nb_tab.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
+nb_tab.add(tab, text=system['System'], compound='right', image=self.image_tab_active_enabled)
+                

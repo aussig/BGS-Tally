@@ -102,7 +102,7 @@ class ApiSyntheticScenarioType(str, Enum):
     MEGASHIP = 'Megaship'
     INSTALLATION = 'Installation'
 
-class ColonisationStatus(str, Enum):
+class BuildStatus(str, Enum):
     PLANNED = 'Planned'
     PROGRESS = 'Progress'
     COMPLETE = 'Complete'

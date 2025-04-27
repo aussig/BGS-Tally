@@ -130,7 +130,7 @@ class BGSTally:
 
         if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
             activity.system_entered(entry, self.state)
-            self.colonisation.update_system_info(entry, self.state)
+            self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
             dirty = True
 
         mission:dict = self.mission_log.get_mission(entry.get('MissionID'))
@@ -149,6 +149,7 @@ class BGSTally:
                 dirty = True
 
             case 'Cargo':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 activity.cargo(entry)
 
             case 'CarrierJumpCancelled':
@@ -177,7 +178,9 @@ class BGSTally:
             case 'Docked':
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
                 self.state.station_type = entry.get('StationType', "")
-                self.colonisation.docked(entry, self.state)
+                self.state.current_system_id = entry.get('SystemAddress' ,"")
+                self.state.current_system = entry.get('SystemName' ,"")
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'EjectCargo':
@@ -194,12 +197,16 @@ class BGSTally:
             case 'Friends' if entry.get('Status') == "Added":
                 self.target_manager.friend_added(entry, system)
 
+            case 'FSDJump':
+                self.state.current_system_id = entry.get('SystemAddress')
+                self.state.current_system = entry.get('SystemSystem')
+                self.dirty = True
+
             case 'Interdicted':
                 self.target_manager.interdicted(entry, system)
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
-                self.state.station_type = entry.get('StationType', "")
                 dirty = True
 
             case 'Loadout':
@@ -275,7 +282,12 @@ class BGSTally:
                 dirty = True
 
             case 'SupercruiseEntry':
+                self.state.current_body = None
                 activity.supercruise(entry, self.state)
+
+            case 'SupercruiseExit':
+                self.state.current_body = entry.get('Body')
+                dirty = True
 
             case 'Undocked' if entry.get('Taxi') == False:
                 self.state.station_faction = ""
@@ -286,19 +298,19 @@ class BGSTally:
 
             # Colonisation events
             case 'ColonisationSystemClaim':
-                self.colonisation.system_claimed(entry, self.state)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
-            #case 'ColonisationBeaconDeployed':
-            #    self.colonisation.beacon_deployed(entry, self.state)
-            #    dirty = True
+            case 'ColonisationBeaconDeployed':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                dirty = True
 
             case 'ColonisationConstructionDepot':
-                self.colonisation.construction_depot(entry, self.state)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'ColonisationContribution':
-                self.colonisation.contribution(entry, self.state)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
         if dirty:

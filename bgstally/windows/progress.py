@@ -1,17 +1,24 @@
 import tkinter as tk
 from tkinter import ttk
 from typing import Dict, List, Optional
+from enum import Enum
+from functools import partial
 
 from bgstally.constants import FONT_TEXT_BOLD
 from bgstally.debug import Debug
 from bgstally.utils import _
 
+class View(Enum):
+    FULL = 0
+    FILTERED = 1
+
+MAX_ROWS = 35
 
 class ProgressWindow:
     """
     Window for displaying construction progress for Elite Dangerous colonisation
     """
-    def __init__(self, parent, colonisation, state):
+    def __init__(self, bgstally):
         """
         Initialize the progress window
 
@@ -20,529 +27,205 @@ class ProgressWindow:
             colonisation: The Colonisation instance
             state: The BGSTally state
         """
-        self.parent = parent
-        self.colonisation = colonisation
-        self.state = state
-        self.window = None
-        self.current_build_index = -1  # -1 means "Total" view
-        self.current_system = None
-        self.ship_cargo_capacity = 100  # Default cargo capacity
-        self.show_percentage = True  # Toggle between percentage and ship loads
+        self.bgstally = bgstally
+        self.colonisation = None
+
+        self.columns = {'Commodity': tk.W, 'Required': tk.E, 'Delivered':tk.E, 'Cargo':tk.E, 'Carrier': tk.E}
+
+#       # our tracking data
+        self.tracked = []
+        self.required = []
+        self.delivered = []
 
         # UI components
-        self.header_frame = None
-        self.navigation_frame = None
-        self.commodities_frame = None
-        self.progress_frame = None
-        self.commodity_labels = {}
-        self.required_labels = {}
-        self.remaining_labels = {}
-        self.carrier_labels = {}
+        self.parent_frame = None
+        self.frame_row = 5
+        self.rows = []
+        self.build_index = 0
+        self.show_percentage = True  # Toggle between percentage and ship loads
+        self.minimal = False #
+        self.carrier_col = False
 
-        # Create the window
-        self.create_window()
+    def create_frame(self, parent_frame, row, column_count):
+        """
+        Create the progress frame
+        """
+        Debug.logger.debug("Creating progress frame")
+        self.colonisation = self.bgstally.colonisation
+        self.tracked = self.colonisation.get_tracked_builds()
 
-    def create_window(self):
-        """
-        Create the commodities window
-        """
-        if self.window is not None:
-            self.window.lift()
+        self.frame = tk.Frame(parent_frame)
+        self.frame.grid(row=row, column=0, columnspan=20, sticky=tk.EW)
+        self.frame_row = row
+        row = 0
+
+        tk.Label(self.frame, text="Builds:", anchor=tk.W).grid(row=row, column=0, sticky=tk.W)
+        self.frame.columnconfigure(1, weight=1)
+        self.prev_btn = tk.Label(self.frame, image=self.bgstally.ui.image_icon_left_arrow, cursor="hand2")
+        self.prev_btn.bind("<Button-1>", partial(self.event, "prev"))
+        self.prev_btn.grid(row=row, column=2, sticky=tk.W)
+
+        self.title = tk.Label(self.frame, text="None", justify=tk.CENTER, anchor=tk.CENTER)
+        self.title.grid(row=row, column=1, sticky=tk.EW)
+
+        self.next_btn = tk.Label(self.frame, image=self.bgstally.ui.image_icon_right_arrow, cursor="hand2")
+        self.next_btn.bind("<Button-1>", partial(self.event, "next"))
+        self.next_btn.grid(row=row, column=3, sticky=tk.E)
+        row += 1
+        #self.view_btn = tk.Label(self.frame, image=self.icons['view_close'], cursor="hand2")
+        #self.view_btn.bind("<Button-1>", self.changeView)
+        #self.view_btn.grid(row=0, column=4, sticky=tk.E)
+
+        #self.table_frame = tk.Frame(self.frame, borderwidth=1, relief="solid")
+        self.table_frame = tk.Frame(self.frame)
+        self.table_frame.columnconfigure(0, weight=1)
+        self.table_frame.grid(row=row, column=0, columnspan=4, sticky=tk.NSEW)
+
+        row = 0
+        for i, col in enumerate(self.columns.keys()):
+            c = tk.Label(self.table_frame, text=col)
+            c.grid(row=row, column=i, sticky=self.columns[col])
+
+        self.carrier_col = c
+        row += 1
+
+        ttk.Separator(self.table_frame, orient=tk.HORIZONTAL).grid(row=row, column=0, columnspan=5, pady=2, sticky=tk.EW)
+        row += 1
+
+        # Go through the complete list of possible commodities and make a row for each and hide it.
+        for c in self.colonisation.base_costs['All'].keys():
+            # If any of them are required display a row.
+            r = {}
+
+            for i, col in enumerate(self.columns.keys()):
+                r[col] = tk.Label(self.table_frame, text='')
+                r[col].grid(row=row, column=i, sticky=self.columns[col])
+            self.rows.append(r)
+            row += 1
+
+        # Totals at the bottom
+        r = {}
+        for i, col in enumerate(self.columns.keys()):
+            r[col] = tk.Label(self.table_frame, text='Total')
+            r[col].grid(row=row, column=i, sticky=self.columns[col])
+        self.rows.append(r)
+
+        if len(self.tracked) == 0:
+            Debug.logger.info('No tracked builds')
+            self.frame.grid_forget()
             return
 
-        self.window = tk.Toplevel(self.parent)
-        self.window.title(_("Colonisation Commodities"))
-        self.window.geometry("800x600")
-        self.window.minsize(600, 400)
-        self.window.protocol("WM_DELETE_WINDOW", self.close)
+        self.required = self.colonisation.get_required(self.tracked)
+        if len(self.required) == 0:
+            Debug.logger.info('No commodities to track')
+            self.frame.grid_forget()
+            return
 
-        # Create main frames
-        self.create_header_frame()
-        self.create_navigation_frame()
-        self.create_progress_frame()
-        self.create_commodities_frame()
+        self.update_display()
 
-        # Load systems and select the first one if available
-        systems = self.colonisation.get_all_systems()
-        if systems:
-            self.select_system(systems[0]['address'])
-        else:
-            # No systems yet, show empty state
+    def event(self, event, tkEvent):
+        Debug.logger.debug(f"Processing event {event}")
+
+        curr = self.build_index
+        max = len(self.tracked) -1 if len(self.tracked) < 2 else len(self.tracked) # "All" if more than one build
+        match event:
+            case 'next':
+                self.build_index += 1
+                if self.build_index > max:
+                    self.build_index = 0
+
+            case 'prev':
+                self.build_index -= 1
+                if self.build_index < 0:
+                    self.build_index = max
+
+            #case 'view':
+            #    if (self.view_mode == View.FULL):
+            #        self.view_btn['image'] = self.icons['view_open']
+            #        self.view_mode = View.FILTERED
+            #    elif (self.view_mode == View.FILTERED):
+            #        self.view_btn['image'] = self.icons['view_close']
+            #        self.view_mode = View.FULL
+
+        if self.build_index != curr:
             self.update_display()
 
-    def create_header_frame(self):
-        """
-        Create the header frame with title
-        """
-        self.header_frame = ttk.Frame(self.window)
-        self.header_frame.pack(fill=tk.X, padx=5, pady=5)
-
-        # System name label
-        self.system_name_label = ttk.Label(
-            self.header_frame,
-            text=_("Colonisation Commodities"),
-            font=("TkDefaultFont", 12, "bold")
-        )
-        self.system_name_label.pack(side=tk.LEFT, padx=10)
-
-        # Ship cargo capacity entry
-        cargo_frame = ttk.Frame(self.header_frame)
-        cargo_frame.pack(side=tk.RIGHT, padx=10)
-
-        ttk.Label(cargo_frame, text=_("Ship Cargo Capacity:")).pack(side=tk.LEFT, padx=(0, 5))
-
-        self.cargo_var = tk.StringVar(value=str(self.ship_cargo_capacity))
-        cargo_entry = ttk.Entry(cargo_frame, textvariable=self.cargo_var, width=5)
-        cargo_entry.pack(side=tk.LEFT)
-        cargo_entry.bind("<FocusOut>", self.update_cargo_capacity)
-        cargo_entry.bind("<Return>", self.update_cargo_capacity)
-
-    def create_navigation_frame(self):
-        """
-        Create the navigation frame with base selection
-        """
-        self.navigation_frame = ttk.Frame(self.window)
-        self.navigation_frame.pack(fill=tk.X, padx=5, pady=5)
-
-        # Left arrow button
-        self.left_button = ttk.Button(
-            self.navigation_frame,
-            text="←",
-            width=3,
-            command=self.previous_build
-        )
-        self.left_button.pack(side=tk.LEFT, padx=5)
-
-        # Current build label
-        self.build_label = ttk.Label(
-            self.navigation_frame,
-            text=_("Total"),
-            font=FONT_TEXT_BOLD
-        )
-        self.build_label.pack(side=tk.LEFT, padx=10, expand=True)
-
-        # Right arrow button
-        self.right_button = ttk.Button(
-            self.navigation_frame,
-            text="→",
-            width=3,
-            command=self.next_build
-        )
-        self.right_button.pack(side=tk.LEFT, padx=5)
-
-    def create_progress_frame(self):
-        """
-        Create the progress frame with total progress
-        """
-        self.progress_frame = ttk.Frame(self.window)
-        self.progress_frame.pack(fill=tk.X, padx=5, pady=5)
-
-        # Progress label
-        self.progress_label = ttk.Label(
-            self.progress_frame,
-            text=_("Total Progress:"),
-            font=FONT_TEXT_BOLD
-        )
-        self.progress_label.pack(side=tk.LEFT, padx=10)
-
-        # Progress value
-        self.progress_value = ttk.Label(
-            self.progress_frame,
-            text="0%"
-        )
-        self.progress_value.pack(side=tk.LEFT, padx=5)
-
-        # Toggle button
-        self.toggle_button = ttk.Button(
-            self.progress_frame,
-            text=_("Show Ship Loads"),
-            command=self.toggle_progress_display
-        )
-        self.toggle_button.pack(side=tk.RIGHT, padx=10)
-
-    def create_commodities_frame(self):
-        """
-        Create the commodities frame with scrollable table
-        """
-        # Create a frame for the table
-        table_frame = ttk.Frame(self.window)
-        table_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-
-        # Create a canvas with scrollbar
-        canvas = tk.Canvas(table_frame)
-        scrollbar = ttk.Scrollbar(table_frame, orient=tk.VERTICAL, command=canvas.yview)
-
-        # Configure the canvas
-        canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # Create a frame inside the canvas
-        self.commodities_frame = ttk.Frame(canvas)
-        canvas.create_window((0, 0), window=self.commodities_frame, anchor=tk.NW)
-
-        # Configure the canvas to resize with the frame
-        self.commodities_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-
-        # Create the table headers
-        self.create_table_headers()
-
-    def create_table_headers(self):
-        """
-        Create the table headers
-        """
-        # Clear existing headers
-        for widget in self.commodities_frame.winfo_children():
-            widget.destroy()
-
-        # Reset label dictionaries
-        self.commodity_labels = {}
-        self.required_labels = {}
-        self.remaining_labels = {}
-        self.carrier_labels = {}
-
-        # Create headers
-        ttk.Label(
-            self.commodities_frame,
-            text=_("Commodity"),
-            font=FONT_TEXT_BOLD
-        ).grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
-
-        ttk.Label(
-            self.commodities_frame,
-            text=_("Required"),
-            font=FONT_TEXT_BOLD
-        ).grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
-
-        ttk.Label(
-            self.commodities_frame,
-            text=_("Remaining"),
-            font=FONT_TEXT_BOLD
-        ).grid(row=0, column=2, padx=5, pady=5, sticky=tk.W)
-
-        ttk.Label(
-            self.commodities_frame,
-            text=_("Carrier"),
-            font=FONT_TEXT_BOLD
-        ).grid(row=0, column=3, padx=5, pady=5, sticky=tk.W)
-
-        # Add a separator
-        separator = ttk.Separator(self.commodities_frame, orient=tk.HORIZONTAL)
-        separator.grid(row=1, column=0, columnspan=4, sticky=tk.EW, pady=5)
-
     def update_display(self):
-        """
-        Update the display with current system data
-        """
-        if not self.current_system:
-            # No system selected, show empty state
-            self.system_name_label.config(text=_("No System Selected"))
-            self.build_label.config(text=_("Total"))
-            self.progress_value.config(text="0%")
-            self.clear_commodities_table()
+        Debug.logger.debug(f"Updating table")
+
+        self.tracked = self.colonisation.get_tracked_builds()
+        self.required = self.colonisation.get_required(self.tracked)
+        self.delivered = self.colonisation.get_delivered(self.tracked)
+
+        if len(self.tracked) == 0:
+            Debug.logger.debug("No progress to display")
+            #if self.frame != None:
+            #    Debug.logger.debug(f"Hiding frame")
+            #    self.frame.grid_forget()
             return
 
-        # Update system name
-        display_name = self.current_system.get('Name', '')
-        system_name = self.current_system.get('System', '')
+        Debug.logger.debug(f"Updating display for {self.build_index} of {len(self.tracked)} builds")
+        # Show frame.
+        #self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
 
-        if display_name and display_name != system_name:
-            title_text = f"{display_name} ({system_name})"
-        else:
-            title_text = system_name
+        name = ', '.join([self.tracked[self.build_index].get('Plan', 'Unknown'), self.tracked[self.build_index].get('Name', 'Unnamed')]) if self.build_index < len(self.tracked) else _('All')
+        self.title.config(text=name)
 
-        self.system_name_label.config(text=title_text)
+        totals = {}
+        for col in self.columns.keys():
+            totals[col] = 0
+        totals['Commodity'] = 'Total'
 
-        # Get builds for the current system
-        builds = self.current_system.get('Builds', [])
+        for i, c in enumerate(self.colonisation.base_costs['All'].keys()):
+            # If any of them are required display a row.
+            row = self.rows[i]
+            req = self.required[self.build_index].get(c, 0) if len(self.required) > self.build_index else 0
+            if req > 0:
+                row['Commodity']['text'] = c
+                row['Commodity'].grid()
 
-        # Update navigation
-        if self.current_build_index == -1:
-            self.build_label.config(text=_("Total"))
-        elif 0 <= self.current_build_index < len(builds):
-            build = builds[self.current_build_index]
-            build_name = build.get('Name', '')
-            build_type = build.get('Type', '')
-            self.build_label.config(text=f"{build_name} ({build_type})")
-        else:
-            self.build_label.config(text=_("Unknown"))
+                v = self.required[self.build_index].get(c, 0) if len(self.required) > self.build_index else 0
+                totals['Required'] += v
+                row['Required']['text'] = f"{v:,}"
+                row['Required'].grid()
 
-        # Update commodities table
-        self.update_commodities_table(builds)
+                v = self.delivered[self.build_index].get(c, 0) if len(self.delivered) >= self.build_index else 0
+                totals['Delivered'] += v
+                row['Delivered']['text'] = f"{v:,}"
+                row['Delivered'].grid()
 
-    def update_commodities_table(self, builds):
-        """
-        Update the commodities table with data from the selected build or total
-        """
-        # Clear existing table
-        self.clear_commodities_table()
+                v = self.colonisation.cargo.get(c, 0)
+                totals['Cargo'] += v
+                row['Cargo']['text'] = f"{v:,}"
+                row['Cargo'].grid()
 
-        # Get commodity requirements
-        commodity_data = self.get_commodity_requirements(builds)
+                v = self.colonisation.carrier_cargo.get(c, 0)
+                totals['Carrier'] += v
+                row['Carrier']['text'] = f"{v:,}"
+                row['Carrier'].grid()
 
-        # Calculate total progress
-        total_required = sum(data['required'] for data in commodity_data.values())
-        total_remaining = sum(data['remaining'] for data in commodity_data.values())
-        total_delivered = total_required - total_remaining
+                self.colorRow(row, c, req)
 
-        if total_required > 0:
-            progress_percent = (total_delivered / total_required) * 100
-        else:
-            progress_percent = 0
-
-        # Update progress display
-        if self.show_percentage:
-            self.progress_value.config(text=f"{progress_percent:.1f}%")
-        else:
-            if self.ship_cargo_capacity > 0:
-                ship_loads = total_remaining / self.ship_cargo_capacity
-                self.progress_value.config(text=f"{ship_loads:.1f} loads")
             else:
-                self.progress_value.config(text="N/A")
+                for col in self.columns.keys():
+                    row[col].grid_remove()
 
-        # Add commodities to the table
-        row = 2  # Start after the header and separator
-        for commodity, data in sorted(commodity_data.items()):
-            if data['required'] > 0:  # Only show commodities that are required
-                # Commodity name
-                commodity_label = ttk.Label(
-                    self.commodities_frame,
-                    text=commodity
-                )
-                commodity_label.grid(row=row, column=0, padx=5, pady=2, sticky=tk.W)
-                self.commodity_labels[commodity] = commodity_label
+        row = self.rows[i+1]
+        for c in totals.keys():
+            if c == 'Commodity':
+                row[c]['text'] = totals[c]
+            else:
+                row[c]['text'] = f"{totals[c]:,}"
+            row[c].grid()
 
-                # Required amount
-                required_label = ttk.Label(
-                    self.commodities_frame,
-                    text=str(data['required'])
-                )
-                required_label.grid(row=row, column=1, padx=5, pady=2, sticky=tk.W)
-                self.required_labels[commodity] = required_label
+    def colorRow(self, row, c, qty):
+        #Debug.logger.debug(f"Coloring row for {commodity}")
 
-                # Remaining amount
-                remaining_label = ttk.Label(
-                    self.commodities_frame,
-                    text=str(data['remaining'])
-                )
-                remaining_label.grid(row=row, column=2, padx=5, pady=2, sticky=tk.W)
-                self.remaining_labels[commodity] = remaining_label
-
-                # Carrier amount
-                carrier_label = ttk.Label(
-                    self.commodities_frame,
-                    text=str(data['carrier'])
-                )
-                carrier_label.grid(row=row, column=3, padx=5, pady=2, sticky=tk.W)
-                self.carrier_labels[commodity] = carrier_label
-
-                row += 1
-
-    def get_commodity_requirements(self, builds):
-        """
-        Get the commodity requirements for the selected build or total
-
-        Args:
-            builds: List of builds
-
-        Returns:
-            Dictionary of commodity requirements
-        """
-        commodity_data = {}
-
-        # Determine which builds to process
-        if self.current_build_index == -1:
-            # Process all builds
-            builds_to_process = builds
-        elif 0 <= self.current_build_index < len(builds):
-            # Process only the selected build
-            builds_to_process = [builds[self.current_build_index]]
-        else:
-            builds_to_process = []
-
-        # Process each build
-        for build in builds_to_process:
-            base_type_name = build.get('Type', '')
-
-            # Find the base cost data for this type
-            base_cost = None
-            for cost_entry in self.colonisation.base_costs:
-                if cost_entry.get('base_type') == base_type_name:
-                    base_cost = cost_entry
-                    break
-
-            if base_cost:
-                # Process each commodity
-                for commodity, amount in base_cost.items():
-                    if commodity != 'base_type' and amount:
-                        # Convert string values with commas to integers
-                        try:
-                            if isinstance(amount, str) and ',' in amount:
-                                amount = amount.replace(',', '')
-                            amount = int(amount)
-                        except (ValueError, TypeError):
-                            amount = 0
-
-                        if amount > 0:
-                            # Initialize commodity data if not exists
-                            if commodity not in commodity_data:
-                                commodity_data[commodity] = {
-                                    'required': 0,
-                                    'remaining': 0,
-                                    'carrier': 0
-                                }
-
-                            # Add to required amount
-                            commodity_data[commodity]['required'] += amount
-
-                            # Check if this build is being tracked
-                            if build.get('Tracked', 'No') == 'Yes':
-                                # Get progress from construction depot data
-                                market_id = build.get('MarketID')
-                                if market_id:
-                                    # Find the depot in progress data
-                                    for depot in self.colonisation.progress:
-                                        if depot.get('MarketID') == market_id:
-                                            # Find the resource in the depot
-                                            for resource in depot.get('ResourcesRequired', []):
-                                                if resource.get('Name') == commodity:
-                                                    # Calculate remaining
-                                                    required = resource.get('RequiredAmount', 0)
-                                                    provided = resource.get('ProvidedAmount', 0)
-                                                    remaining = max(0, required - provided)
-
-                                                    # Update commodity data
-                                                    commodity_data[commodity]['remaining'] += remaining
-                                                    break
-                                            break
-                            else:
-                                # If not tracked, all is remaining
-                                commodity_data[commodity]['remaining'] += amount
-
-        # Get carrier inventory
-        carrier_inventory = self.get_carrier_inventory()
-
-        # Update carrier amounts
-        for commodity, inventory in carrier_inventory.items():
-            if commodity in commodity_data:
-                commodity_data[commodity]['carrier'] = inventory
-
-        return commodity_data
-
-    def get_carrier_inventory(self):
-        """
-        Get the carrier inventory
-
-        Returns:
-            Dictionary of commodity amounts on the carrier
-        """
-        # This would normally come from the fleet carrier data
-        # For now, return an empty dictionary
-        return {}
-
-    def clear_commodities_table(self):
-        """
-        Clear the commodities table
-        """
-        # Keep the headers (first two rows)
-        for widget in list(self.commodities_frame.winfo_children())[2:]:
-            widget.destroy()
-
-        # Reset label dictionaries
-        self.commodity_labels = {}
-        self.required_labels = {}
-        self.remaining_labels = {}
-        self.carrier_labels = {}
-
-    def select_system(self, system_address):
-        """
-        Select a system to display
-
-        Args:
-            system_address: The system address to select
-        """
-        self.current_system = self.colonisation.get_system(system_address)
-        self.current_build_index = -1  # Reset to "Total" view
-        self.update_display()
-
-    def previous_build(self):
-        """
-        Navigate to the previous build
-        """
-        if not self.current_system:
-            return
-
-        builds = self.current_system.get('Builds', [])
-        if not builds:
-            return
-
-        if self.current_build_index == -1:
-            # From "Total" go to last build
-            self.current_build_index = len(builds) - 1
-        else:
-            # Go to previous build or to "Total" if at first build
-            self.current_build_index = (self.current_build_index - 1) % (len(builds) + 1) - 1
-
-        self.update_display()
-
-    def next_build(self):
-        """
-        Navigate to the next build
-        """
-        if not self.current_system:
-            return
-
-        builds = self.current_system.get('Builds', [])
-        if not builds:
-            return
-
-        if self.current_build_index == len(builds) - 1:
-            # From last build go to "Total"
-            self.current_build_index = -1
-        else:
-            # Go to next build
-            self.current_build_index = (self.current_build_index + 1) % (len(builds) + 1) - 1
-            if self.current_build_index < -1:
-                self.current_build_index = 0
-
-        self.update_display()
-
-    def toggle_progress_display(self):
-        """
-        Toggle between percentage and ship loads display
-        """
-        self.show_percentage = not self.show_percentage
-
-        if self.show_percentage:
-            self.toggle_button.config(text=_("Show Ship Loads"))
-        else:
-            self.toggle_button.config(text=_("Show Percentage"))
-
-        self.update_display()
-
-    def update_cargo_capacity(self, event=None):
-        """
-        Update the ship cargo capacity
-
-        Args:
-            event: The event that triggered this function
-        """
-        try:
-            capacity = int(self.cargo_var.get())
-            if capacity > 0:
-                self.ship_cargo_capacity = capacity
-                self.update_display()
-        except ValueError:
-            # Reset to previous value
-            self.cargo_var.set(str(self.ship_cargo_capacity))
-
-    def close(self):
-        """
-        Close the window
-        """
-        if self.window:
-            self.window.destroy()
-            self.window = None
+        for col in self.columns.keys():
+            row[col]['fg'] = 'black'
+            if c in self.colonisation.market: # market!
+                row[col]['fg'] = 'cyan'
+            if self.colonisation.carrier_cargo.get(c, 0) > qty:
+                row[col]['fg'] = 'darkgreen'
+            if self.required[self.build_index].get(c, 0) == 0:
+                row[col]['fg'] = 'green'

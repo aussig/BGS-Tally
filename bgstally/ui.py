@@ -56,6 +56,8 @@ class UI:
         self.image_button_colonisation = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_colonisation.png"))
         self.image_icon_green_tick = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_green_tick_16x16.png"))
         self.image_icon_red_cross = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_red_cross_16x16.png"))
+        self.image_icon_left_arrow = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_left_arrow.png"))
+        self.image_icon_right_arrow = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_right_arrow.png"))
 
         self.indicate_activity:bool = False
         self.report_system_address:str = None
@@ -68,7 +70,7 @@ class UI:
         self.window_legend:WindowLegend = WindowLegend(self.bgstally)
         self.window_objectives:WindowObjectives = WindowObjectives(self.bgstally)
         self.window_colonisation:ColonisationWindow = ColonisationWindow(self.bgstally)
-        #self.window_progress:ProgressWindow = ProgressWindow(self.bgstally)
+        self.window_progress:ProgressWindow = ProgressWindow(self.bgstally)
 
         # TODO: When we support multiple APIs, this will no longer be a single instance window
         self.window_api:WindowAPI = WindowAPI(self.bgstally, self.bgstally.api_manager.apis[0])
@@ -139,74 +141,9 @@ class UI:
         self.btn_colonisation.grid(row=current_row, column=current_column, padx=3)
         ToolTip(self.btn_colonisation, text=_("Show colonisation window")) # LANG: Main window tooltip
         current_column += 1
-
         current_row += 1
 
-        # Add commodities frame below the buttons
-        self.commodities_frame = tk.Frame(self.frame)
-        self.commodities_frame.grid(row=current_row, column=0, columnspan=column_count+1, sticky=tk.EW, padx=5, pady=5)
-
-        # Create navigation frame
-        nav_frame = tk.Frame(self.commodities_frame)
-        nav_frame.pack(fill=tk.X)
-
-        # Left arrow button
-        self.commodities_left_button = tk.Button(nav_frame, text="←", width=2, command=self._commodities_prev_build)
-        self.commodities_left_button.pack(side=tk.LEFT, padx=2)
-
-        # Current build label
-        self.commodities_build_label = tk.Label(nav_frame, text=_("Total"))
-        self.commodities_build_label.pack(side=tk.LEFT, padx=5, expand=True)
-
-        # Right arrow button
-        self.commodities_right_button = tk.Button(nav_frame, text="→", width=2, command=self._commodities_next_build)
-        self.commodities_right_button.pack(side=tk.LEFT, padx=2)
-
-        # Create progress frame
-        progress_frame = tk.Frame(self.commodities_frame)
-        progress_frame.pack(fill=tk.X)
-
-        # Progress label
-        tk.Label(progress_frame, text=_("Progress:")).pack(side=tk.LEFT, padx=2)
-        self.commodities_progress_label = tk.Label(progress_frame, text="0%")
-        self.commodities_progress_label.pack(side=tk.LEFT, padx=2)
-
-        # Ship loads label
-        tk.Label(progress_frame, text=_("Ship Loads:")).pack(side=tk.LEFT, padx=(10, 2))
-        self.commodities_loads_label = tk.Label(progress_frame, text="0")
-        self.commodities_loads_label.pack(side=tk.LEFT, padx=2)
-
-        # Create commodities table frame
-        table_frame = tk.Frame(self.commodities_frame)
-        table_frame.pack(fill=tk.BOTH)
-
-        # Create headers
-        tk.Label(table_frame, text=_("Commodity"), font=FONT_SMALL).grid(row=0, column=0, sticky=tk.W, padx=2)
-        tk.Label(table_frame, text=_("Required"), font=FONT_SMALL).grid(row=0, column=1, sticky=tk.W, padx=2)
-        tk.Label(table_frame, text=_("Remaining"), font=FONT_SMALL).grid(row=0, column=2, sticky=tk.W, padx=2)
-        self.carrier_header = tk.Label(table_frame, text=_("Carrier"), font=FONT_SMALL)
-        self.carrier_header.grid(row=0, column=3, sticky=tk.W, padx=2)
-
-        # Create commodity rows (will be populated in update_commodities_display)
-        self.commodity_rows = []
-        for i in range(5):  # Show up to 5 commodities
-            row = {
-                "name": tk.Label(table_frame, text="", font=FONT_SMALL),
-                "required": tk.Label(table_frame, text="", font=FONT_SMALL),
-                "remaining": tk.Label(table_frame, text="", font=FONT_SMALL),
-                "carrier": tk.Label(table_frame, text="", font=FONT_SMALL)
-            }
-            row["name"].grid(row=i+1, column=0, sticky=tk.W, padx=2)
-            row["required"].grid(row=i+1, column=1, sticky=tk.W, padx=2)
-            row["remaining"].grid(row=i+1, column=2, sticky=tk.W, padx=2)
-            row["carrier"].grid(row=i+1, column=3, sticky=tk.W, padx=2)
-            self.commodity_rows.append(row)
-
-        # Initialize commodities state
-        self.current_build_index = -1  # -1 means "Total" view
-        self.current_system = None
-
-        current_row += 1
+        self.window_progress.create_frame(self.frame, current_row, column_count)
 
         return self.frame
 

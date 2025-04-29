@@ -1,10 +1,10 @@
 import tkinter as tk
+import tkinter.font as tkFont
 from tkinter import ttk
 from typing import Dict, List, Optional
 from enum import Enum
 from functools import partial
 
-from bgstally.constants import FONT_TEXT_BOLD
 from bgstally.debug import Debug
 from bgstally.utils import _
 
@@ -30,7 +30,7 @@ class ProgressWindow:
         self.bgstally = bgstally
         self.colonisation = None
 
-        self.columns = {'Commodity': tk.W, 'Required': tk.E, 'Delivered':tk.E, 'Cargo':tk.E, 'Carrier': tk.E}
+        self.columns = {'Commodity': tk.W, 'Required': tk.E, 'Remaining':tk.E, 'Cargo':tk.E, 'Carrier': tk.E}
 
 #       # our tracking data
         self.tracked = []
@@ -59,8 +59,10 @@ class ProgressWindow:
         self.frame_row = row
         row = 0
 
-        tk.Label(self.frame, text="Builds:", anchor=tk.W).grid(row=row, column=0, sticky=tk.W)
+        lbl = tk.Label(self.frame, text="Builds:", anchor=tk.W)
+        lbl.grid(row=row, column=0, sticky=tk.W)
         self.frame.columnconfigure(1, weight=1)
+        self.weight(lbl)
         self.prev_btn = tk.Label(self.frame, image=self.bgstally.ui.image_icon_left_arrow, cursor="hand2")
         self.prev_btn.bind("<Button-1>", partial(self.event, "prev"))
         self.prev_btn.grid(row=row, column=2, sticky=tk.W)
@@ -81,16 +83,18 @@ class ProgressWindow:
         self.table_frame.columnconfigure(0, weight=1)
         self.table_frame.grid(row=row, column=0, columnspan=4, sticky=tk.NSEW)
 
+        # Column headings
         row = 0
         for i, col in enumerate(self.columns.keys()):
             c = tk.Label(self.table_frame, text=col)
             c.grid(row=row, column=i, sticky=self.columns[col])
+            self.weight(c)
 
         self.carrier_col = c
         row += 1
 
-        ttk.Separator(self.table_frame, orient=tk.HORIZONTAL).grid(row=row, column=0, columnspan=5, pady=2, sticky=tk.EW)
-        row += 1
+        #ttk.Separator(self.table_frame, orient=tk.HORIZONTAL).grid(row=row, column=0, columnspan=5, pady=2, sticky=tk.EW)
+        #row += 1
 
         # Go through the complete list of possible commodities and make a row for each and hide it.
         for c in self.colonisation.base_costs['All'].keys():
@@ -108,6 +112,7 @@ class ProgressWindow:
         for i, col in enumerate(self.columns.keys()):
             r[col] = tk.Label(self.table_frame, text='Total')
             r[col].grid(row=row, column=i, sticky=self.columns[col])
+            self.weight(r[col])
         self.rows.append(r)
 
         if len(self.tracked) == 0:
@@ -147,21 +152,30 @@ class ProgressWindow:
             #        self.view_btn['image'] = self.icons['view_close']
             #        self.view_mode = View.FULL
 
+            case 'link':
+                # Open the system in Inara
+                sys = self.bgstally.state.current_system
+                if not sys:
+                    return
+
+                url = f":https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1={comm_id}&ps1={sys}&pi10=3&pi11=0&pi3=1&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7=0&pi8=0&pi13=0"
+                url = f"https://inara.cz/elite/search/?search={star}"
+                webbrowser.open(url)
+
         if self.build_index != curr:
             self.update_display()
 
     def update_display(self):
-        Debug.logger.debug(f"Updating table")
+        Debug.logger.debug(f"Updating progress display")
 
         self.tracked = self.colonisation.get_tracked_builds()
         self.required = self.colonisation.get_required(self.tracked)
         self.delivered = self.colonisation.get_delivered(self.tracked)
 
+        #Debug.logger.debug(f"Carrier cargo: {self.colonisation.carrier_cargo}")
+        #Debug.logger.debug(f"Cargo: {self.colonisation.cargo}")
         if len(self.tracked) == 0:
             Debug.logger.debug("No progress to display")
-            #if self.frame != None:
-            #    Debug.logger.debug(f"Hiding frame")
-            #    self.frame.grid_forget()
             return
 
         Debug.logger.debug(f"Updating display for {self.build_index} of {len(self.tracked)} builds")
@@ -177,22 +191,26 @@ class ProgressWindow:
         totals['Commodity'] = 'Total'
 
         for i, c in enumerate(self.colonisation.base_costs['All'].keys()):
-            # If any of them are required display a row.
+            # If any of them are required display the cell and the amount.
             row = self.rows[i]
             req = self.required[self.build_index].get(c, 0) if len(self.required) > self.build_index else 0
             if req > 0:
-                row['Commodity']['text'] = c
+                row['Commodity']['text'] = self.colonisation.local_names.get(c, c)
                 row['Commodity'].grid()
 
                 v = self.required[self.build_index].get(c, 0) if len(self.required) > self.build_index else 0
                 totals['Required'] += v
                 row['Required']['text'] = f"{v:,}"
+                row['Required']['fg'] = 'lightgrey' if self.delivered[self.build_index].get(c, 0) > 0 else 'black'
                 row['Required'].grid()
 
-                v = self.delivered[self.build_index].get(c, 0) if len(self.delivered) >= self.build_index else 0
-                totals['Delivered'] += v
-                row['Delivered']['text'] = f"{v:,}"
-                row['Delivered'].grid()
+                v = self.required[self.build_index].get(c, 0)
+                if len(self.delivered) > self.build_index:
+                    v -= self.delivered[self.build_index].get(c, 0)
+
+                totals['Remaining'] += v
+                row['Remaining']['text'] = f"{v:,}"
+                row['Remaining'].grid()
 
                 v = self.colonisation.cargo.get(c, 0)
                 totals['Cargo'] += v
@@ -204,7 +222,7 @@ class ProgressWindow:
                 row['Carrier']['text'] = f"{v:,}"
                 row['Carrier'].grid()
 
-                self.colorRow(row, c, req)
+                self.color_row(row, c, req)
 
             else:
                 for col in self.columns.keys():
@@ -216,16 +234,28 @@ class ProgressWindow:
                 row[c]['text'] = totals[c]
             else:
                 row[c]['text'] = f"{totals[c]:,}"
+                self.weight(row[c])
             row[c].grid()
 
-    def colorRow(self, row, c, qty):
-        #Debug.logger.debug(f"Coloring row for {commodity}")
+    def weight(self, item, w='bold'):
+        fnt = tkFont.Font(font=item['font']).actual()
+        item.configure(font=(fnt['family'], fnt['size'], w))
+
+    def color_row(self, row, c, qty):
+        #Debug.logger.debug(f"Coloring row for {c} {self.colonisation.carrier_cargo.get(c, 0)} {}")
 
         for col in self.columns.keys():
             row[col]['fg'] = 'black'
-            if c in self.colonisation.market: # market!
-                row[col]['fg'] = 'cyan'
-            if self.colonisation.carrier_cargo.get(c, 0) > qty:
+            self.weight(row[col], 'normal')
+            if self.colonisation.carrier_cargo.get(c, 0) > 0:
                 row[col]['fg'] = 'darkgreen'
-            if self.required[self.build_index].get(c, 0) == 0:
+                self.weight(row[col], 'normal')
+            if c in self.colonisation.market: # market!
+                row[col]['fg'] = 'steelblue'
+                self.weight(row[col])
+            if self.colonisation.cargo.get(c, 0) > 0:
+                row[col]['fg'] = 'darkslategrey'
+                self.weight(row[col])
+            if self.required[self.build_index].get(c, 0) < self.colonisation.carrier_cargo.get(c, 0) + self.colonisation.cargo.get(c, 0):
                 row[col]['fg'] = 'green'
+                self.weight(row[col], 'normal')

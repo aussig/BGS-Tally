@@ -130,7 +130,7 @@ class State:
         config.set('BGST_FcLocker', self.FcLocker.get())
 
         # Persistent values
-        config.set('XCurrentSystemID', self.current_system_id if self.current_system_id != None else "")
+        config.set('XCurrentSystemID', str(self.current_system_id) if self.current_system_id != None else "")
         config.set('XCurrentSystem', self.current_system if self.current_system != None else "")
         config.set('XCurrentBody', self.current_body if self.current_body != None else "")
         config.set('XStationFaction', self.station_faction if self.station_faction != None else "")

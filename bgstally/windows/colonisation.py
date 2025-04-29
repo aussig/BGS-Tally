@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.font as tkFont
 from os import path
 from math import ceil
 import traceback
@@ -7,7 +8,7 @@ import webbrowser
 from typing import Dict, List, Optional
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 
-from bgstally.constants import FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, FOLDER_ASSETS, BuildStatus
+from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_HEADING_2, FONT_TEXT, FOLDER_ASSETS, BuildStatus
 from bgstally.debug import Debug
 from bgstally.utils import _
 
@@ -31,13 +32,33 @@ class ColonisationWindow:
         self.image_tab_untracked: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
 
         # Create summary section (frozen at the top)
+        #self.summary_cols = {
+        #    "Total": "lightgoldenrod", "Orbital":"lightgoldenrod", "Surface":"lightgoldenrod",
+        #    # "Requirements": "lightgrey",
+        #    "State": "lightgoldenrod", "T2":"lightgrey", "T3":"lightgrey", "Cost":"firebrick3", "Trips":"firebrick3", "Pad": "lightgrey", "Economy":"lightgrey",
+        #    "Pop Inc": "lightgrey", "Pop Max": "lightgrey", "Economy Inf": "lightgrey", "Security": "lightgrey",
+            # "Tech Level": "lightgrey", "Wealth": "lightgrey", "SoL": "lightgrey", "Dev Level": "lightgrey"
+        # }
         self.summary_cols = {
-            "Total":"lightgoldenrod", "Orbital":"lightgoldenrod", "Surface":"lightgoldenrod", "State": "lightgoldenrod",
-            "T2":"lightgrey", "T3":"lightgrey", "Cost":"firebrick3", "Trips":"firebrick3", "Pad": "lightgrey", "Economy":"lightgrey",
-            "Pop Inc": "lightgrey", "Pop Max": "lightgrey", "Economy Inf": "lightgrey", "Security": "lightgrey",
-            "Tech Level": "lightgrey", "Wealth": "lightgrey", "SoL": "lightgrey", "Dev Level": "lightgrey"
+            'Total': {'background': False, 'number': True},
+            'Orbital': {'background': False, 'number': True},
+            'Surface': {'background': False, 'number': True},
+            'State': {'background': False, 'hide': True},
+            'T2': {'background': True, 'number': True, 'min': -1, 'max': 1},
+            'T3': {'background': True, 'number': True, 'min': -1, 'max': 1},
+            'Cost': {'background': None, 'number': True},
+            'Trips': {'background': None, 'number': True},
+            'Pad': {'background': None, 'hide': True},
+            'Economy': {'background': None, 'hide': True},
+            'Pop Inc': {'background': True, 'number': True, 'min': -10, 'max': 20},
+            'Pop Max': {'background': True, 'number': True, 'min': -10, 'max': 20},
+            'Economy Inf': {'background': True, 'number': True, 'hide': True, 'min': -10, 'max': 20},
+            'Security': {'background': True, 'number': True, 'min': -10, 'max': 20},
+            'Tech Level' : {'background': True, 'number': True, 'min': -10, 'max': 20},
+            'Wealth' : {'background': True, 'number': True, 'min': -10, 'max': 20},
+            'SoL' : {'background': True, 'number': True, 'min': -10, 'max': 20},
+            'Dev Level' : {'background': True, 'number': True, 'min': -10, 'max': 20}
         }
-
         self.detail_cols = [
             "Track", "Base Type", "Name", "Body", "Requirements", "State", "T2", "T3",
             "Cost", "Trips", "Pad", "Economy", "Pop Inc", "Pop Max",
@@ -54,10 +75,8 @@ class ColonisationWindow:
         # UI components
         self.tabbar = None
         self.content_frames = []
-        self.plan_name_labels = []
+        self.plan_titles = []
         self.track_all_vars = []
-
-        # Data storage
         self.summary_labels = []
         self.detail_labels = []
         self.srow = 5 # Starting row for builds table
@@ -73,8 +92,8 @@ class ColonisationWindow:
             self.colonisation = self.bgstally.colonisation
             self.window = tk.Toplevel(self.bgstally.ui.frame)
             self.window.title(_("Elite Dangerous Colonisation"))
-            self.window.geometry("1200x800")
-            self.window.minsize(1000, 600)
+            self.window.minsize(400, 100)
+            self.window.geometry("1200x300")
             self.window.protocol("WM_DELETE_WINDOW", self.close)
 
             # Create main frames
@@ -90,14 +109,14 @@ class ColonisationWindow:
         Create the header frame with system tabs
         """
         try:
-            Debug.logger.debug("Creating main frames")
+            #Debug.logger.debug("Creating main frames")
 
             # Create system tabs notebook
             self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=True)
             self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
             self.add_system_dialog()
 
-            Debug.logger.debug("Creating tabs for systems")
+            #Debug.logger.debug("Creating tabs for systems")
 
             # Add tabs for each system
             systems = self.colonisation.get_all_systems()
@@ -116,16 +135,17 @@ class ColonisationWindow:
                 self.create_title_frame(tab, i)
                 self.create_unified_table_frame(tab, i, system)
 
+                Debug.logger.debug(f"Creating tab {i+1} {system.get('Name')} {system.get('StarSystem')}")
                 self.tabbar.add(tab, text=system['Name'], compound='right', image=self.image_tab_tracked if tracking_status == "All" else self.image_tab_part_tracked if tracking_status == "Partial" else self.image_tab_untracked)
                 #self.system_tabs.append(tab)
 
             if i > 0:
-                Debug.logger.debug(f"Setting current tab to {self.current_tab}")
+                #Debug.logger.debug(f"Setting current tab to {self.current_tab}")
                 self.tabbar.select(1)
                 self.current_tab = 1
                 self.current_system = self.colonisation.get_system('Name', systems[0]['Name'])
 
-            Debug.logger.debug(f"Created {i} system tabs {self.tabbar.tabs()}")
+            #Debug.logger.debug(f"Created {i} system tabs {self.tabbar.tabs()}")
 
         except Exception as e:
             Debug.logger.error(f"Error in colonisation.show(): {e}")
@@ -144,23 +164,43 @@ class ColonisationWindow:
         style.configure("Title.TFrame")
 
         # System name label
+        while len(self.plan_titles) <= tabnum:
+            self.plan_titles.append({})
 
-        plan_name_label = ttk.Label(title_frame, text="", font=FONT_HEADING_1)
-        plan_name_label.pack(side=tk.LEFT, padx=10, pady=5)
-        while len(self.plan_name_labels) <= tabnum:
-            self.plan_name_labels.append(None)
+        name_label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
+        name_label.pack(side=tk.LEFT, padx=10, pady=5)
 
-        self.plan_name_labels[tabnum] = plan_name_label
+        self.plan_titles[tabnum]['Name'] = name_label
 
-        self.inara_link = ttk.Label(
+        sys_label = ttk.Label(title_frame, text="")
+        sys_label.pack(side=tk.LEFT, padx=10, pady=5)
+        self.weight(sys_label)
+
+        self.plan_titles[tabnum]['System'] = sys_label
+
+        inara = ttk.Label(
             title_frame,
             text="Inara ⤴",
             font=FONT_TEXT,
             foreground="blue",
             cursor="hand2"
         )
-        self.inara_link.pack(side=tk.LEFT, padx=10, pady=5)
-        self.inara_link.bind("<Button-1>", self.open_inara)
+        inara.pack(side=tk.LEFT, padx=10, pady=5)
+        def inara_click(event, tab=tabnum):
+            try:
+                if tab >= len(self.plan_titles):
+                    Debug.logger.info(f"on_inara_click invalid tab: {tab}")
+                    return
+                star = self.plan_titles[tab]['System']['text']
+                url = f"https://inara.cz/elite/starsystem/search/?search={star}"
+                Debug.logger.debug(f"Opening star {tab} [{star}]")
+                webbrowser.open(url)
+            except Exception as e:
+                Debug.logger.error(f"Error in update_display() {e}")
+                Debug.logger.error(traceback.format_exc())
+
+        inara.bind("<Button-1>", inara_click)
+        self.plan_titles[tabnum]['Inara'] = inara
 
         btn = ttk.Button(title_frame, text=_("Delete"), command=lambda: self.delete_system(tab, tabnum))
         btn.pack(side=tk.RIGHT, padx=10, pady=5)
@@ -211,7 +251,7 @@ class ColonisationWindow:
 
 
         self.create_summary_section(content_frame, tabnum, 0)
-        self.create_detail_section(content_frame, tabnum, 2, system)
+        self.create_detail_section(content_frame, tabnum, 3, system)
 
         # Bind canvas resize to update the window width
         main_canvas.bind("<Configure>", self._on_canvas_configure)
@@ -228,27 +268,38 @@ class ColonisationWindow:
         """
         Create the summary section with planned and progress rows
         """
-        Debug.logger.debug(f"Creating summary section for tab {tabnum}")
+        #Debug.logger.debug(f"Creating summary section for tab {tabnum}")
 
+        # Header column
         scol=1
+        for j, (header, col) in enumerate(self.summary_cols.items()):
+            # Special case for "Track" header - add a checkbox
+            cell = ttk.Label(content_frame, background='lightgrey', anchor=tk.CENTER)
+            if col.get('hide') is not True:
+                cell['text'] = header
+            self.weight(cell)
+            cell.grid(row=rnum, column=j+scol+1, padx=2, pady=2, ipadx=2, ipady=2, sticky=tk.NSEW)
+        rnum += 1
+
         self.summary_labels.append([]) # New entry for this tab
         self.summary_labels[tabnum] = {}
         for i, r in enumerate(["Planned", "Progress"]):
             # Add "Planned"/"Progress" label
-            ttk.Label(
+            lbl = ttk.Label(
                 content_frame,
+                background='',
                 text=r,
-                font=FONT_HEADING_2,
-                background="palegreen",
                 anchor=tk.E
-            ).grid(row=rnum+i, column=scol, padx=2, pady=2, ipady=2, sticky=tk.NSEW)
+            )
+            lbl.grid(row=rnum+i, column=scol, padx=2, pady=2, ipady=2, ipadx=2, sticky=tk.NSEW)
+            self.weight(lbl)
 
             # Now do the value columns
             self.summary_labels[tabnum][r] = {} # new row for our progress.
-            for j, col in enumerate(self.summary_cols.keys()):
-                label = ttk.Label(content_frame, text="", background=self.summary_cols[col], font=FONT_HEADING_2, anchor=tk.CENTER)
-                label.grid(row=rnum+i, column=scol+j+1, padx=2, pady=2, ipady=2, sticky=tk.NSEW)
-                self.summary_labels[tabnum][r][col] = label
+            for j, name in enumerate(self.summary_cols.keys()):
+                label = ttk.Label(content_frame, text="", background='', anchor=tk.CENTER)
+                label.grid(row=rnum+i, column=scol+j+1, padx=2, pady=2, ipadx=2, ipady=2, sticky=tk.NSEW)
+                self.summary_labels[tabnum][r][name] = label
 
             #content_frame.grid_rowconfigure(rnum, weight=1)
 
@@ -257,18 +308,19 @@ class ColonisationWindow:
         Create the header row with column titles
         """
 
-        Debug.logger.debug(f"Creating detail section for tab {tabnum}")
+        #Debug.logger.debug(f"Creating detail section for tab {tabnum}")
         # Create headers with wrapping for long or multi-word headers
         for j, header in enumerate(self.detail_cols):
             # Special case for "Track" header - add a checkbox
             if j == 0:  # First column is "Track"
                 # Add the header text
-                ttk.Label(
+                lbl = ttk.Label(
                     content_frame,
                     text=header,
-                    font=FONT_HEADING_2,
                     anchor=tk.CENTER,
-                    ).grid(row=rnum-1, column=0, padx=2, pady=2, ipady=2, sticky=tk.W)
+                    )
+                self.weight(lbl)
+                lbl.grid(row=rnum-1, column=0, padx=2, pady=2, ipady=4, sticky=tk.W)
 
                 # Add the "check all" checkbox
                 while tabnum >= len(self.track_all_vars):
@@ -283,7 +335,8 @@ class ColonisationWindow:
 
             else:
                 # Single line header
-                cell = ttk.Label(content_frame, text=header, font=FONT_HEADING_2, background="lightgrey", anchor=tk.CENTER)
+                cell = ttk.Label(content_frame, text=header, background="lightgrey", anchor=tk.CENTER)
+                self.weight(cell)
                 cell.grid(row=rnum, column=j, padx=2, pady=2, ipady=2, sticky=tk.NSEW)
 
         self.detail_labels.append([])
@@ -291,13 +344,14 @@ class ColonisationWindow:
         for i, build in enumerate(system.get('Builds')):
             self.add_build_row(build, content_frame, tabnum, i)
 
-        self.add_build_row({}, content_frame, tabnum, len(system.get('Builds')))
+        if len(system.get('Builds')) != 1 or system['Builds'][0].get('State') == BuildStatus.COMPLETE:
+            self.add_build_row({}, content_frame, tabnum, len(system.get('Builds')))
 
     def add_build_row(self, build, content_frame, tabnum, row):
         #Debug.logger.debug(f"Adding build row {index} for tab {tabnum} {build}")
         # Check if the build is completed
 
-        Debug.logger.debug(f"Entering add_build_row for tab {tabnum}")
+        #Debug.logger.debug(f"Entering add_build_row for tab {tabnum}")
         is_completed = False
         if build != {}:
             is_completed = self.is_build_completed(build)
@@ -322,7 +376,6 @@ class ColonisationWindow:
                 case 'Base Type':
                     # Type dropdown
                     types = self.colonisation.get_base_types('Any')
-                    types.append('<delete me>')
                     if row == 0:
                         types = self.colonisation.get_base_types('Initial')
 
@@ -375,22 +428,15 @@ class ColonisationWindow:
         """
         Update the display with current system data
         """
-        Debug.logger.debug("Updating display")
+        #Debug.logger.debug("Updating display")
         try:
             systems = self.colonisation.get_all_systems()
             if len(systems) != len(self.tabbar.tabs())-1:
-                Debug.logger.debug(f"Mismatch in system count {len(systems)} vs {len(self.tabbar.tabs())} {self.tabbar.tabs()}")
+                Debug.logger.info(f"Mismatch in system count {len(systems)} vs {len(self.tabbar.tabs())} {self.tabbar.tabs()}")
                 return
 
             for t, system in enumerate(systems):
-                # Update title with both display name and actual system name
-                title = systems[t].get('Name', '')
-                sysname = systems[t].get('StarSystem', '')
-                if sysname and sysname != title:
-                    title += f" ({sysname})"
-                Debug.logger.debug(f"Updating tab {t} {title}")
-                self.plan_name_labels[t]['text'] = title
-
+                self.update_title(t, system)
                 builds = self.colonisation.get_system_builds(system) # We do it this way so the build requirements get filled in for us.
                 self.update_summary(t, system, builds)
                 self.update_builds(t, system, builds)
@@ -400,72 +446,102 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
+    def update_title(self, t, system):
+            # Update title with both display name and actual system name
+            name = system.get('Name', '')
+            sysname = system.get('StarSystem', '')
+            if name == '':
+                name = sysname
+            if sysname == '':
+                sysname = '(Unknown)'
+
+            self.plan_titles[t]['Name']['text'] = name
+            self.plan_titles[t]['System']['text'] = sysname
+
+            if name == sysname:
+                Debug.logger.debug(f"Hiding systemname {name} {sysname}")
+                self.plan_titles[t]['System'].pack_forget()
+            else:
+                self.plan_titles[t]['System'].pack()
+
+            if sysname == '(Unknown)':
+                Debug.logger.debug(f"Hiding systemname and inara {name} {sysname}")
+                self.plan_titles[t]['System'].pack_forget()
+                self.plan_titles[t]['Inara'].pack_forget()
+            else:
+                self.plan_titles[t]['Inara'].pack()
+
     def update_summary(self, t, system, builds):
         """
         Update the summary section with current system data
         """
         # Calculate the totals
         totals = {'Planned': {}, 'Progress': {}}
-        for j, col in enumerate(self.summary_cols.keys()):
-            if col in ['State', 'Pad', 'Economy', 'Economy Inf']:
-                 continue
+        required = self.colonisation.get_required(builds)
+        for j, (name, col) in enumerate(self.summary_cols.items()):
+            if col.get('hide') == True:
+                continue
 
-            totals['Planned'][col] = 0
-            totals['Progress'][col] = 0
+            totals['Planned'][name] = 0
+            totals['Progress'][name] = 0
             # Calculate summary values
-            for build in builds:
+            for row, build in enumerate(builds):
                 bt = self.colonisation.get_base_type(build.get('Base Type', ''))
-                match col:
+                match name:
                     case 'Total':
-                        totals['Planned'][col] += 1
-                        totals['Progress'][col] += 1 if self.is_build_completed(build) else 0
+                        totals['Planned'][name] += 1
+                        totals['Progress'][name] += 1 if self.is_build_completed(build) else 0
                     case 'Orbital'|'Surface':
-                        if bt.get('Location') == col:
-                            totals['Planned'][col] += 1
-                            totals['Progress'][col] += 1 if self.is_build_completed(build) else 0
+                        if bt.get('Location') == name:
+                            totals['Planned'][name] += 1
+                            totals['Progress'][name] += 1 if self.is_build_completed(build) else 0
                     case 'T2':
                         t2 = bt.get('T2 Reward', 0)
-                        sp = self.count_starports(builds[1:j])
+                        sp = self.count_starports(builds[1:row])
                         cost = bt.get('T2 Cost', 0) + (2 * sp)
-                        if j > 0:
+                        if row > 0:
                             t2 -= cost
-                        totals['Planned'][col] += t2
-                        totals['Progress'][col] += t2 if self.is_build_completed(build) else 0
+                        totals['Planned'][name] += t2
+                        totals['Progress'][name] += t2 if self.is_build_completed(build) else 0
                     case 'T3':
                         t3 = bt.get('T3 Reward', 0)
-                        sp = self.count_starports(builds[1:j])
+                        sp = self.count_starports(builds[1:row])
                         cost = bt.get('T3 Cost', 0) + (bt.get('T3 Cost', 0) * sp)
-                        if j > 0:
+                        if row > 0:
                             t3 -= cost
-                        totals['Planned'][col] += t3
-                        totals['Progress'][col] += t3 if self.is_build_completed(build) else 0
+                        totals['Planned'][name] += t3
+                        totals['Progress'][name] += t3 if self.is_build_completed(build) else 0
                     case 'Cost':
-                        res = build.get('ResourcesRequired', {})
-                        cost = sum(res.values())
-                        totals['Planned'][col] += cost
-                        totals['Progress'][col] += cost if self.is_build_completed(build) else 0
+                        if row >= len(required):
+                            Debug.logger.debug(f" No required for summary {row} {build}")
+                            continue
+                        res = required[row]
+                        res = sum(res.values())
+                        totals['Planned'][name] += res
+                        totals['Progress'][name] += res if self.is_build_completed(build) else 0
                     case 'Trips':
-                        res = build.get('ResourcesRequired', {})
+                        if j >= len(required):
+                            continue
+                        res = required[j]
                         trips = ceil(sum(res.values()) / self.bgstally.state.cargo_capacity)
-                        totals['Planned'][col] += trips
-                        totals['Progress'][col] += trips if self.is_build_completed(build) else 0
-                    #case 'State'|'Pad'|'Economy'|'Economy Inf':
-                    case _:
-                        totals['Planned'][col] += bt.get(col, 0)
-                        totals['Progress'][col] += bt.get(col, 0) if self.is_build_completed(build) else 0
+                        totals['Planned'][name] += trips
+                        totals['Progress'][name] += trips if self.is_build_completed(build) else 0
+                    case _ if col.get('number') == True:
+                        totals['Planned'][name] += bt.get(name, 0)
+                        totals['Progress'][name] += bt.get(name, 0) if self.is_build_completed(build) else 0
 
-        Debug.logger.debug(f"Summary: {totals}")
         # Update the values in the cells.
         for i, r in enumerate(['Planned', 'Progress']):
-            for j, c in enumerate(self.summary_cols.keys()):
-                v = totals[r].get(c, 0)
-                if isinstance(v, int) and v != 0:
-                    v = f"{v:}"
-                    self.summary_labels[t][r][c]['background'] = self.get_color(v, -10, 10)
-                self.summary_labels[t][r][c]['text'] = v
+            for j, (name, col) in enumerate(self.summary_cols.items()):
+                if col.get('hide', False) == True: continue
 
-                #self.summary_labels[t][r][c]['text'] = f"{totals[r][c]:,}" if totals[r][c] > 0 else ''
-                #self.summary_labels[t][r][c]['background'] = self.get_color(totals[r][c], -10, 10)
+                v = totals[r].get(name, 0)
+                if col.get('background') == True:
+                    self.summary_labels[t][r][name]['background'] = self.get_color(v, col.get('min', -1), col.get('max', 1))
+                if col.get('number', False) == True and v != 0:
+                    v = f"{v:,}"
+
+                self.summary_labels[t][r][name]['text'] = v
 
     def update_builds(self, t, system, builds):
         """
@@ -479,30 +555,46 @@ class ColonisationWindow:
                 Debug.logger.info(f"Update builds, too many rows: row {len(builds)} of {len(self.detail_labels[t])}")
                 return
 
+            required = self.colonisation.get_required(builds)
+            delivered = self.colonisation.get_delivered(builds)
+            #Debug.logger.debug(f"Reqauired {required}")
+
             for i, build in enumerate(builds):
-                Debug.logger.debug(f"Build: {build}")
                 bt = self.colonisation.get_base_type(build.get('Base Type', ''))
                 for j, c in enumerate(self.detail_cols):
-                    #Debug.logger.debug(f"Updating detail tab {t} row {i} col {c} [{build.get(c, '')}]")
                     match c:
                         case 'Track':
                             if self.is_build_completed(build) == True:
                                 continue
-
                             if build.get('Track') == 'Yes':
                                 self.detail_labels[t][i][c] = True
                             else:
                                 self.detail_labels[t][i][c] = False
                         case 'Base Type':
                             self.detail_labels[t][i][c].set(build.get('Base Type', ''))
-                        case 'Name'|'Body':
+                        case 'Name':
                             self.detail_labels[t][i][c].set(build.get(c, ''))
+                        case 'Body':
+                            body = build.get('Body', '')
+                            star = system.get('StarSystem')
+                            body = body.replace(star + ' ', '') if star else body
+                            self.detail_labels[t][i][c].set(body)
+                        case 'State':
+                            if build.get('State', '') == BuildStatus.PROGRESS and i < len(required):
+                                req = required[i]
+                                req = sum(req.values())
+                                deliv = delivered[i]
+                                deliv = sum(deliv.values())
+                                self.detail_labels[t][i][c]['text'] = f"{int(deliv * 100 / (req+deliv))}%"
+                            else:
+                                self.detail_labels[t][i][c]['text'] = build.get('State', '')
                         case 'T2':
                             t2 = bt.get('T2 Reward', 0)
                             sp = self.count_starports(builds[1:i])
                             cost = bt.get('T2 Cost', 0) + (2 * sp)
                             if i > 0:
                                 t2 -= cost
+                            #Debug.logger.debug(f"t2: {t2} {cost}")
                             self.detail_labels[t][i][c]['text'] = t2
                         case 'T3':
                             t3 = bt.get('T3 Reward', 0)
@@ -511,19 +603,27 @@ class ColonisationWindow:
                             if i > 0:
                                 t3 -= cost
                             self.detail_labels[t][i][c]['text'] = t3
-                        case 'Total':
-                            res = build.get('ResourcesRequired', {})
-                            cost = sum(res.values())
-                            self.detail_labels[t][i][c]['text'] = f"{cost:,}"
+                        case 'Cost':
+                            if i >= len(required):
+                                self.detail_labels[t][i][c]['text'] = ""
+                                continue
+                            req = required[i]
+                            req = sum(req.values())
+                            self.detail_labels[t][i][c]['text'] = f"{req:,}"
                         case 'Trips':
-                            res = build.get('ResourcesRequired', {})
-                            trips = ceil(sum(res.values()) / self.bgstally.state.cargo_capacity)
+                            if j >= len(required):
+                                continue
+                            req = required[j]
+                            trips = ceil(sum(req.values()) / self.bgstally.state.cargo_capacity)
                             self.detail_labels[t][i][c]['text'] = f"{trips:,}"
                         case _:
                             v = bt.get(c, 0)
                             if isinstance(v, int) and v != 0:
+                                if c not in ['Total', 'Cost', 'Orbital', 'Surface']:
+                                    self.detail_labels[t][i][c]['background'] = self.get_color(v, -10, 10)
                                 v = f"{v:}"
-                                self.detail_labels[t][i][c]['background'] = self.get_color(v, -10, 10)
+                            elif v == 0:
+                                v = ""
                             self.detail_labels[t][i][c]['text'] = v
 
         except Exception as e:
@@ -551,7 +651,7 @@ class ColonisationWindow:
             systems = self.colonisation.get_all_systems()
             builds = systems[tabnum].get('Builds', [])
             if not builds:
-                Debug.logger.debug(f"No builds found for tab {tabnum}")
+                #Debug.logger.debug(f"No builds found for tab {tabnum}")
                 return
 
             # Determine the new state based on the header checkbox
@@ -595,7 +695,7 @@ class ColonisationWindow:
             index: The build index
             var: The checkbox variable
         """
-        Debug.logger.debug(f"Toggling build {tab} {index} to {var.get()}")
+        #Debug.logger.debug(f"Toggling build {tab} {index} to {var.get()}")
         systems = self.colonisation.get_all_systems()
         builds = systems[tab].get('Builds', [])
         if index < 0 or index >= len(builds):
@@ -617,27 +717,21 @@ class ColonisationWindow:
             var: The type variable
         """
         try:
-            Debug.logger.debug(f"Updating build type tab {tab} row {index} to {var.get()}")
+            #Debug.logger.debug(f"Updating build type tab {tab} row {index} to {var.get()}")
 
             if index >= len(self.colonisation.systems[tab]['Builds']):
                 self.colonisation.add_build(self.colonisation.systems[tab])
                 self.add_build_row({}, self.content_frames[tab], tab, index+1)
 
             self.colonisation.systems[tab]['Builds'][index]['Base Type'] = var.get()
-            self.colonisation.dirty = True
 
             if var.get() == '<delete me>':
                 # Delete the build
                 del self.colonisation.systems[tab]['Builds'][index]
-
-            # Update the build, we just set the last one so add another
-            if index == len(self.colonisation.systems[tab]['Builds']):
-                self.add_build_row({}, self.content_frames[tab], tab, self.colonisation.systems[tab]['Builds'])
-
+                del self.detail_labels[tab][index]
             # Save changes
+            self.colonisation.dirty = True
             self.colonisation.save()
-
-            # Update the display
             self.update_display()
 
         except Exception as e:
@@ -657,7 +751,7 @@ class ColonisationWindow:
         builds = systems[tab].get('Builds', [])
 
         if index < 0 or index >= len(builds):
-            Debug.logger.debug(f"Invalid build index {index} for tab {tab} (add new?)")
+            #(f"Invalid build index {index} for tab {tab} (add new?)")
             return
 
         # Update the build
@@ -734,12 +828,11 @@ class ColonisationWindow:
                 messagebox.showerror(_("Error"), _("Plan name is required"))
                 return
 
-            Debug.logger.debug(f"Adding system {plan_name} {system_name}")
+            #Debug.logger.debug(f"Adding system {plan_name} {system_name}")
 
             # Add the system
             system = self.colonisation.add_system(plan_name, system_name)
-            self.colonisation.save()
-            systems = self.colonisation.get_all_systems()
+            #systems = self.colonisation.get_all_systems()
 
             if not plan_name:
                 messagebox.showerror(_("Error"), _("Failed to add system"))
@@ -748,8 +841,9 @@ class ColonisationWindow:
             tab = ttk.Frame(self.tabbar)
             tab.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
-            self.create_title_frame(tab, len(systems)-1)
-            self.create_unified_table_frame(tab, len(systems)-1, system)
+            tabnum = len(self.plan_titles)
+            self.create_title_frame(tab, tabnum)
+            self.create_unified_table_frame(tab, tabnum, system)
             self.tabbar.add(tab, text=system['Name'], compound='right', image=self.image_tab_untracked)
             self.update_display()
         except Exception as e:
@@ -843,7 +937,7 @@ class ColonisationWindow:
             self.tabbar.forget(tabs[tabnum+1]) # +1 for the add tab
             self.colonisation.remove_system(tabnum)
             del self.content_frames[tabnum]
-            del self.plan_name_labels[tabnum]
+            del self.plan_titles[tabnum]
             del self.track_all_vars[tabnum]
             del self.summary_labels[tabnum]
             del self.detail_labels[tabnum]
@@ -854,23 +948,6 @@ class ColonisationWindow:
             Debug.logger.error(f"Error in delete_system(): {e}")
             Debug.logger.error(traceback.format_exc())
 
-    def open_inara(self, event):
-        """
-        Open the system in Inara
-
-        Args:
-            event: The event that triggered this
-        """
-        if not self.get_current_system():
-            return
-
-        star = self.current_system.get('StarSystem', '')
-        if not star:
-            return
-
-        # Open the system in Inara
-        url = f"https://inara.cz/elite/search/?search={star}"
-        webbrowser.open(url)
 
     def close(self):
         """
@@ -886,13 +963,16 @@ class ColonisationWindow:
         self.tabbar = None
         self.system_tabs = []
         self.content_frames = []
-        self.plan_name_labels = []
+        self.plan_titles = []
         self.track_all_vars = []
 
         # Data storage
         self.planned_labels = []
         self.progress_labels = []
 
+    def weight(self, item, w='bold'):
+        fnt = tkFont.Font(font=item['font']).actual()
+        item.configure(font=(fnt['family'], fnt['size'], w))
 
     def get_color(self, value, min_value, max_value):
         """

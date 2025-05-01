@@ -5,7 +5,7 @@ import traceback
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildStatus, CheckStates
+from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CheckStates
 from bgstally.debug import Debug
 from bgstally.utils import _
 from config import config
@@ -57,7 +57,6 @@ class Colonisation:
             base_types_path = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_TYPES_FILENAME)
             with open(base_types_path, 'r') as f:
                 self.base_types = json.load(f)
-                self.base_types['<delete me>'] = {}
                 Debug.logger.info(f"Loaded {len(self.base_types)} base types for colonisation")
         except Exception as e:
             Debug.logger.error(f"Error loading base types: {e}")
@@ -153,7 +152,7 @@ class Colonisation:
                     #    p['ContributionEvents'] = contribution_event
 
                 case 'Docked':
-                    status = None
+                    state = None
                     self.update_market(entry.get('MarketID'))
                     self.update_cargo()
                     self.update_carrier()
@@ -163,30 +162,30 @@ class Colonisation:
                         Debug.logger.debug(f"Docked at Colonisation ship")
                         name = entry.get('StationName_Localised')
                         type = 'Orbital'
-                        status = BuildStatus.PROGRESS
+                        state = BuildState.PROGRESS
                     elif 'Orbital Construction Site: ' in entry.get('StationName', ''):
                         name = entry.get('StationName', '')
                         name = name.replace('Orbital Construction Site: ', '')
                         type = 'Orbital'
-                        status = BuildStatus.PROGRESS
+                        state = BuildState.PROGRESS
                     elif 'Planetary Construction Site: ' in entry.get('StationName', ''):
                         name = entry.get('StationName', '')
                         name = name.replace('Planetary Construction Site: ', '')
                         type = 'Planetary'
-                        status = BuildStatus.PROGRESS
+                        state = BuildState.PROGRESS
                     elif self.find_system(entry.get('StarSystem'), entry.get('SystemAddress')) != None:
                         s = self.find_system(entry.get('StarSystem'), entry.get('SystemAddress'))
                         Debug.logger.debug(f"Found system: {s}")
                         name = entry.get('StationName_Localised')
-                        status = BuildStatus.COMPLETE
+                        state = BuildState.COMPLETE
 
-                    Debug.logger.debug(f"Docked progress: {status}")
-                    if status == None:
+                    Debug.logger.debug(f"Docked progress: {state}")
+                    if state == None:
                         self.bgstally.ui.window_progress.update_display()
                         Debug.logger.debug(f"Not a construction or a system we're building")
                         return
 
-                    if status == BuildStatus.PROGRESS:
+                    if state == BuildState.PROGRESS:
                         system = self.find_or_create_system(entry.get('StarSystem'), entry.get('SystemAddress'))
                         # Just in case
                         if not 'Name' in system:
@@ -198,23 +197,24 @@ class Colonisation:
                         build['Name'] = entry.get('StationName')
                         build['MarketID'] = entry.get('MarketID')
                         build['Location'] = type
-                        build['State'] = status
+                        build['State'] = state
                         build['StationEconomy'] = entry.get('StationEconomy_Localised', '')
-                        if self.bgstally.state.current_body != None:
-                            build['Body'] = self.bgstally.state.current_body
+                        #if self.bgstally.state.current_body != None:
+                        #    build['Body'] = self.bgstally.state.current_body.replace(entry.get('StarSystem')+' ', '')
 
                     # A build of ours that's completed so update it.
-                    if status == BuildStatus.COMPLETE:
+                    if state == BuildState.COMPLETE:
                         Debug.logger.debug("Found a complete build in a system of ours, updating it")
                         system = self.find_system(entry.get('StarSystem'), entry.get('SystemAddress'))
                         system['StarSystem'] = entry.get('StarSystem')
                         system['SystemAddress'] = entry.get('SystemAddress')
                         build = self.find_or_create_build(system, entry.get('MarketID'), entry.get('StationName'))
-                        Debug.logger.debug(f"Setting build name to {name}")
+                        Debug.logger.debug(f"Setting build name to {entry.get('StationName')}")
                         build['Name'] = entry.get('StationName')
-                        build['State'] = status
-                        if self.bgstally.state.current_body != None:
-                            build['Body'] = self.bgstally.state.current_body
+                        build['State'] = state
+                        build['Track'] = False
+                        #if self.bgstally.state.current_body != None:
+                        #    build['Body'] = self.bgstally.state.current_body.replace(entry.get('StarSystem')+' ', '')
 
                     self.dirty = True
 
@@ -258,7 +258,7 @@ class Colonisation:
         Returns:
             List of base type names
         """
-        if category == 'Any':
+        if category in ['Any', 'All']:
             return list(self.base_types.keys())
 
         if category == 'Initial':
@@ -299,7 +299,7 @@ class Colonisation:
         status = 'All'
         any = False
         for b in system['Builds']:
-            if b.get('Track', 'No') == 'Yes':
+            if b.get('Track', False) == True:
                 any = True
             else:
                 status = 'Partial'
@@ -384,7 +384,7 @@ class Colonisation:
     def get_tracked_builds(self) -> List[Dict]:
         tracked = []
         for build in self.get_all_builds():
-            if build.get("Track") == 'Yes':
+            if build.get("Track") == True and build.get('State', '') != BuildState.COMPLETE:
                 tracked.append(build)
 
         return tracked
@@ -412,6 +412,7 @@ class Colonisation:
             The build data or None if not found
         """
         builds = self.get_system_builds(system)
+
         if name == 'System Colonisation Ship' and len(builds) > 0:
             return builds[0]
 
@@ -437,8 +438,9 @@ class Colonisation:
             build = {
                 'StationName' : name,
                 'Name': name,
+                'Plan': system.get('Name'),
                 'MarketID': marketid,
-                'State': BuildStatus.PLANNED
+                'State': BuildState.PLANNED
             }
             system['Builds'].append(build)
             self.dirty = True
@@ -455,7 +457,8 @@ class Colonisation:
         """
 
         system['Builds'].append({
-            'Track': 'No',
+            'Plan': system.get('Name'),
+            'Track': False,
             'State': 'Planned',
         })
 
@@ -463,7 +466,7 @@ class Colonisation:
         return True
 
 
-    def remove_build(self, plan_name: str, build_index: int) -> bool:
+    def remove_build(self, system, build_index: int) -> bool:
         """
         Remove a build from a system
 
@@ -474,9 +477,8 @@ class Colonisation:
         Returns:
             True if successful, False otherwise
         """
-        system = self.get_system('Name', plan_name)
         if system is None:
-            Debug.logger.warning(f"Cannot remove build - unknown system: {plan_name}")
+            Debug.logger.warning(f"Cannot remove build - unknown system")
             return False
 
         builds = system['Builds']
@@ -486,10 +488,19 @@ class Colonisation:
 
         # Remove build
         builds.pop(build_index)
-
+        Debug.logger.debug(f"Removed build {build_index} from {system}")
         self.dirty = True
         return True
 
+
+    def update_build_tracking(self, build, state):
+        '''
+        Change a builds tracked status
+        '''
+        if build.get('Track') != state:
+            build['Track'] = state
+            self.dirty = True
+            self.bgstally.ui.window_progress.update_display()
 
     def get_required(self, builds:Dict) -> Dict:
         try:
@@ -564,7 +575,7 @@ class Colonisation:
         try:
             carrier = {}
             if self.bgstally.fleet_carrier.available() == True:
-                Debug.logger.info(f"{self.bgstally.fleet_carrier.cargo}")
+                #Debug.logger.info(f"{self.bgstally.fleet_carrier.cargo}")
                 for item in self.bgstally.fleet_carrier.cargo:
                     n = item.get('commodity')
                     n = f"${n.lower()}_name;"
@@ -575,9 +586,7 @@ class Colonisation:
                     else:
                         Debug.logger.info(f"Guessed cargo name wrong. {n} does not exist")
 
-
             self.carrier_cargo = carrier
-            Debug.logger.debug(f"carrier updated; {self.carrier_cargo}")
 
         except Exception as e:
             Debug.logger.info(f"Carrier upodate error")

@@ -286,7 +286,9 @@ class BGSTally:
                 activity.supercruise(entry, self.state)
 
             case 'SupercruiseExit':
-                self.state.current_body = entry.get('Body')
+                # This doesn't work. There has to be a way to figure out which body we're orbiting/near
+                #self.state.current_body = entry.get('Body', None)
+                #Debug.logger.debug(f"Setting current body to {entry.get('Body')}")
                 dirty = True
 
             case 'Undocked' if entry.get('Taxi') == False:

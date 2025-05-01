@@ -1,3 +1,4 @@
+import traceback
 import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import ttk
@@ -53,6 +54,7 @@ class ProgressWindow:
         Debug.logger.debug("Creating progress frame")
         self.colonisation = self.bgstally.colonisation
         self.tracked = self.colonisation.get_tracked_builds()
+        Debug.logger.debug(f"Tracking builds: {self.tracked}")
 
         self.frame = tk.Frame(parent_frame)
         self.frame.grid(row=row, column=0, columnspan=20, sticky=tk.EW)
@@ -129,7 +131,7 @@ class ProgressWindow:
         self.update_display()
 
     def event(self, event, tkEvent):
-        Debug.logger.debug(f"Processing event {event}")
+        #Debug.logger.debug(f"Processing event {event}")
 
         curr = self.build_index
         max = len(self.tracked) -1 if len(self.tracked) < 2 else len(self.tracked) # "All" if more than one build
@@ -166,76 +168,85 @@ class ProgressWindow:
             self.update_display()
 
     def update_display(self):
-        Debug.logger.debug(f"Updating progress display")
+        try:
+            Debug.logger.debug(f"Updating progress display")
 
-        self.tracked = self.colonisation.get_tracked_builds()
-        self.required = self.colonisation.get_required(self.tracked)
-        self.delivered = self.colonisation.get_delivered(self.tracked)
+            self.tracked = self.colonisation.get_tracked_builds()
+            self.required = self.colonisation.get_required(self.tracked)
+            self.delivered = self.colonisation.get_delivered(self.tracked)
 
-        #Debug.logger.debug(f"Carrier cargo: {self.colonisation.carrier_cargo}")
-        #Debug.logger.debug(f"Cargo: {self.colonisation.cargo}")
-        if len(self.tracked) == 0:
-            Debug.logger.debug("No progress to display")
-            return
+            #Debug.logger.debug(f"Carrier cargo: {self.colonisation.carrier_cargo}")
+            #Debug.logger.debug(f"Cargo: {self.colonisation.cargo}")
+            if len(self.tracked) == 0:
+                Debug.logger.debug("No progress to display")
+                return
 
-        Debug.logger.debug(f"Updating display for {self.build_index} of {len(self.tracked)} builds")
-        # Show frame.
-        #self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
+            Debug.logger.debug(f"Updating display for {self.build_index} of {len(self.tracked)} builds")
+            # Show frame.
+            #self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
 
-        name = ', '.join([self.tracked[self.build_index].get('Plan', 'Unknown'), self.tracked[self.build_index].get('Name', 'Unnamed')]) if self.build_index < len(self.tracked) else _('All')
-        self.title.config(text=name)
+            if self.build_index >= len(self.tracked):
+                self.build_index = 0
 
-        totals = {}
-        for col in self.columns.keys():
-            totals[col] = 0
-        totals['Commodity'] = 'Total'
+            Debug.logger.debug(f"{self.tracked}")
+            name = ', '.join([self.tracked[self.build_index].get('Plan', 'Unknown'), self.tracked[self.build_index].get('Name', 'Unnamed')]) if self.build_index < len(self.tracked) else _('All')
+            self.title.config(text=name)
 
-        for i, c in enumerate(self.colonisation.base_costs['All'].keys()):
-            # If any of them are required display the cell and the amount.
-            row = self.rows[i]
-            req = self.required[self.build_index].get(c, 0) if len(self.required) > self.build_index else 0
-            if req > 0:
-                row['Commodity']['text'] = self.colonisation.local_names.get(c, c)
-                row['Commodity'].grid()
+            totals = {}
+            for col in self.columns.keys():
+                totals[col] = 0
+            totals['Commodity'] = 'Total'
 
-                v = self.required[self.build_index].get(c, 0) if len(self.required) > self.build_index else 0
-                totals['Required'] += v
-                row['Required']['text'] = f"{v:,}"
-                row['Required']['fg'] = 'lightgrey' if self.delivered[self.build_index].get(c, 0) > 0 else 'black'
-                row['Required'].grid()
+            for i, c in enumerate(self.colonisation.base_costs['All'].keys()):
+                # If any of them are required display the cell and the amount.
+                row = self.rows[i]
+                req = self.required[self.build_index].get(c, 0) if len(self.required) > self.build_index else 0
+                if req > 0:
+                    row['Commodity']['text'] = self.colonisation.local_names.get(c, c)
+                    row['Commodity'].grid()
 
-                v = self.required[self.build_index].get(c, 0)
-                if len(self.delivered) > self.build_index:
-                    v -= self.delivered[self.build_index].get(c, 0)
+                    v = self.required[self.build_index].get(c, 0) if len(self.required) > self.build_index else 0
+                    totals['Required'] += v
+                    row['Required']['text'] = f"{v:,}"
+                    row['Required']['fg'] = 'lightgrey' if self.delivered[self.build_index].get(c, 0) > 0 else 'black'
+                    row['Required'].grid()
 
-                totals['Remaining'] += v
-                row['Remaining']['text'] = f"{v:,}"
-                row['Remaining'].grid()
+                    v = self.required[self.build_index].get(c, 0)
+                    if len(self.delivered) > self.build_index:
+                        v -= self.delivered[self.build_index].get(c, 0)
 
-                v = self.colonisation.cargo.get(c, 0)
-                totals['Cargo'] += v
-                row['Cargo']['text'] = f"{v:,}"
-                row['Cargo'].grid()
+                    totals['Remaining'] += v
+                    row['Remaining']['text'] = f"{v:,}"
+                    row['Remaining'].grid()
 
-                v = self.colonisation.carrier_cargo.get(c, 0)
-                totals['Carrier'] += v
-                row['Carrier']['text'] = f"{v:,}"
-                row['Carrier'].grid()
+                    v = self.colonisation.cargo.get(c, 0)
+                    totals['Cargo'] += v
+                    row['Cargo']['text'] = f"{v:,}"
+                    row['Cargo'].grid()
 
-                self.color_row(row, c, req)
+                    v = self.colonisation.carrier_cargo.get(c, 0)
+                    totals['Carrier'] += v
+                    row['Carrier']['text'] = f"{v:,}"
+                    row['Carrier'].grid()
 
-            else:
-                for col in self.columns.keys():
-                    row[col].grid_remove()
+                    self.color_row(row, c, req)
 
-        row = self.rows[i+1]
-        for c in totals.keys():
-            if c == 'Commodity':
-                row[c]['text'] = totals[c]
-            else:
-                row[c]['text'] = f"{totals[c]:,}"
-                self.weight(row[c])
-            row[c].grid()
+                else:
+                    for col in self.columns.keys():
+                        row[col].grid_remove()
+
+            row = self.rows[i+1]
+            for c in totals.keys():
+                if c == 'Commodity':
+                    row[c]['text'] = totals[c]
+                else:
+                    row[c]['text'] = f"{totals[c]:,}"
+                    self.weight(row[c])
+                row[c].grid()
+        except Exception as e:
+            Debug.logger.info(f"Error updating display")
+            Debug.logger.error(traceback.format_exc())
+
 
     def weight(self, item, w='bold'):
         fnt = tkFont.Font(font=item['font']).actual()

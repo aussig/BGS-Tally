@@ -19,6 +19,7 @@ from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
 from bgstally.windows.cmdrs import WindowCMDRs
+#from bgstally.windows.colonisation import ColonisationWindow
 from bgstally.windows.colonisation import ColonisationWindow
 from bgstally.windows.progress import ProgressWindow
 from bgstally.windows.fleetcarrier import WindowFleetCarrier

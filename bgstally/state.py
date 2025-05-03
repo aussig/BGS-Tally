@@ -67,7 +67,6 @@ class State:
         self.last_megaship_approached:dict = {}
         self.last_ships_targeted:dict = {}
         self.last_ship_targeted:dict = {}
-        self.cargo_capacity:int = 784  # Default cargo capacity for ship loads calculation
 
         self.refresh()
 

@@ -1,3 +1,4 @@
+import csv
 import json
 from os import path
 from os.path import join
@@ -15,7 +16,7 @@ BASE_TYPES_FILENAME = 'base_types.json'
 BASE_COSTS_FILENAME = 'base_costs.json'
 CARGO_FILENAME = 'Cargo.json'
 MARKET_FILENAME = 'Market.json'
-LOCAL_NAMES_FILENAME = 'local_names.json'
+COMMODITY_FILENAME = 'commodity.csv'
 
 class Colonisation:
     """
@@ -33,6 +34,7 @@ class Colonisation:
         self.docked = False
         self.base_types = {}  # Loaded from base_types.json
         self.base_costs = {}  # Loaded from base_costs.json
+        self.commodities = {} # Loaded from commodity.csv
         self.systems:list = []     # Systems with colonisation data
         self.progress:dict = {}    # Construction progress data
         self.dirty = False
@@ -40,11 +42,12 @@ class Colonisation:
         self.cargo = {}
         self.carrier_cargo = {}
         self.market = {}
+        self.cargo_capacity = 784
         # Mappinng of commodity internal names to local names. Over time this should update to each user's local names
-        self.local_names = {}
+        self.commodities = {}
 
         # Load base types, costs, and saved data
-        self.load_local_names()
+        self.load_commodities()
         self.load_base_types()
         self.load_base_costs()
         self.load()
@@ -83,32 +86,38 @@ class Colonisation:
             self.base_costs = {}
 
 
-    def load_local_names(self):
+    def load_commodities(self):
         try:
-            file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, LOCAL_NAMES_FILENAME)
-            with open(file, 'r') as f:
-                self.local_names = json.load(f)
+            file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, COMMODITY_FILENAME)
+            with open(file, encoding = 'utf-8') as csv_file_handler:
+                csv_reader = csv.DictReader(csv_file_handler)
 
+                for rows in csv_reader:
+                    self.commodities[f"${rows.get('symbol', '').lower()}_name;"] = rows.get('name', '')
         except Exception as e:
-            Debug.logger.error(f"Error loading local names: {e}")
-            Debug.logger.error(traceback.format_exc())
-            self.local_names = {}
+                Debug.logger.error(f"Unable to load {file}")
+
 
     def journal_entry(self, cmdr, is_beta, system, station, entry, state):
         """
         Parse an incoming journal entry and store the data we need
         """
-        Debug.logger.debug(f"journal_entry called {entry.get('event')}")
+        Debug.logger.debug(f"journal_entry called {entry.get('event')} {state}")
         try:
             match entry.get('event'):
                 case 'StartUp':
                     # Synthetic event.
                     self.update_cargo()
+                    self.update_market()
                     self.update_carrier()
                     self.dirty = True
 
-                case 'Cargo':
+                case 'Cargo' | 'ColonisationContribution':
                     self.update_cargo()
+                    self.dirty = True
+
+                case 'CargoTransfer':
+                    self.update_carrier()
                     self.dirty = True
 
                 case 'ColonisationSystemClaim':
@@ -134,28 +143,9 @@ class Colonisation:
                         progress[f] = entry.get(f)
                     self.dirty = True
 
-                #case 'ColonisationContribution':
-                    # Not sure we even want to track this.
-                #    return
-                    #progress = self.find_or_create_progress(entry.get('MarketID')):
-                    # Store the contribution event
-                    #if 'ContributionEvents' not in p:
-                    #    p['ContributionEvents'] = []
-
-                        # Add this contribution to the history
-                    #   contribution_event = {
-                    #        'Timestamp': entry.get('TimeStamp'),
-                    #        'Commodity': entry.get('Commodity'),
-                    #        'Quantity': entry.get('Quantity'),
-                    #        'EventData': entry  # Store the complete event data
-                    #    }
-                    #    p['ContributionEvents'] = contribution_event
-
                 case 'Docked':
                     state = None
                     self.update_market(entry.get('MarketID'))
-                    self.update_cargo()
-                    self.update_carrier()
                     self.docked = True
 
                     if entry.get('StationName', '') == '$EXT_PANEL_ColonisationShip:#index=1;':
@@ -179,7 +169,6 @@ class Colonisation:
                         name = entry.get('StationName_Localised')
                         state = BuildState.COMPLETE
 
-                    Debug.logger.debug(f"Docked progress: {state}")
                     if state == None:
                         self.bgstally.ui.window_progress.update_display()
                         Debug.logger.debug(f"Not a construction or a system we're building")
@@ -194,13 +183,12 @@ class Colonisation:
                         system['StarSystem'] = entry.get('StarSystem')
 
                         build = self.find_or_create_build(system, entry.get('MarketID'), name)
-                        build['Name'] = entry.get('StationName')
+                        Debug.logger.debug(f"Updating build name to {name}")
+                        build['Name'] = name
                         build['MarketID'] = entry.get('MarketID')
                         build['Location'] = type
                         build['State'] = state
                         build['StationEconomy'] = entry.get('StationEconomy_Localised', '')
-                        #if self.bgstally.state.current_body != None:
-                        #    build['Body'] = self.bgstally.state.current_body.replace(entry.get('StarSystem')+' ', '')
 
                     # A build of ours that's completed so update it.
                     if state == BuildState.COMPLETE:
@@ -213,16 +201,21 @@ class Colonisation:
                         build['Name'] = entry.get('StationName')
                         build['State'] = state
                         build['Track'] = False
-                        #if self.bgstally.state.current_body != None:
-                        #    build['Body'] = self.bgstally.state.current_body.replace(entry.get('StarSystem')+' ', '')
 
                     self.dirty = True
 
-                case 'Undocked':
-                    self.update_market()
-                    self.update_cargo()
-                    self.update_carrier()
+                case 'LoadOut':
+                    # Let's not consider tiny capacities as they'll create silly numbers and you're probably not
+                    # hauling right now.
+                    self.cargo_capacity = entry.get('CargoCapacity') if entry.get('CargoCapacity') > 16 else 784
+                    self.dirty = True
 
+                case 'ColonisationContribution':
+                    self.update_cargo()
+                    self.dirty = True
+
+                case 'Undocked':
+                    self.market = {}
                     self.docked = False
                     self.dirty = True
 
@@ -233,6 +226,7 @@ class Colonisation:
                 self.save()
             else:
                 Debug.logger.debug(f"No update")
+
         except Exception as e:
             Debug.logger.error(f"Error processing event: {e}")
             Debug.logger.error(traceback.format_exc())
@@ -505,7 +499,6 @@ class Colonisation:
     def get_required(self, builds:Dict) -> Dict:
         try:
             reqs = []
-            total = {}
             found = False
             for i, b in enumerate(builds):
                 res = {}
@@ -516,17 +509,17 @@ class Colonisation:
                         res[c.get('Name')] = c.get('RequiredAmount')
                 # No actual data so we'll use the estimates
                 if res == {}: res = self.base_costs.get(b.get('Base Type'), {})
-
-
                 if res != {}: found = True
 
                 reqs.append(res)
 
+            # Add an "all" total at the end of the list.
             if found:
-                for c in res.keys():
-                    if c not in total:
-                        total[c] = 0
-                        total[c] += res[c]
+                total = {}
+                for res in reqs:
+                    for c, v in res.items():
+                        if c not in total: total[c] = 0
+                        total[c] += v
 
                 reqs.append(total)
 
@@ -575,17 +568,15 @@ class Colonisation:
         try:
             carrier = {}
             if self.bgstally.fleet_carrier.available() == True:
-                #Debug.logger.info(f"{self.bgstally.fleet_carrier.cargo}")
+                #Debug.logger.debug(f"Updating carrier data {self.bgstally.fleet_carrier.cargo}")
                 for item in self.bgstally.fleet_carrier.cargo:
                     n = item.get('commodity')
-                    n = f"${n.lower()}_name;"
-                    if n in self.local_names:
-                        if n not in carrier:
-                            carrier[n] = 0
-                        carrier[n] += int(item['qty'])
-                    else:
-                        Debug.logger.info(f"Guessed cargo name wrong. {n} does not exist")
+                    n = f"${n.lower().replace(' ', '')}_name;"
+                    if n not in carrier:
+                        carrier[n] = 0
+                    carrier[n] += int(item['qty'])
 
+            Debug.logger.debug(f"Carrier: {carrier}")
             self.carrier_cargo = carrier
 
         except Exception as e:
@@ -595,6 +586,7 @@ class Colonisation:
 
     def update_cargo(self):
         try:
+            Debug.logger.debug(f"Updating cargo")
             cargo = {}
             journal_dir:str = config.get_str('journaldir') or config.default_journal_dir
             if not journal_dir: return
@@ -622,33 +614,44 @@ class Colonisation:
             if marketid == None:
                 self.market = {}
                 Debug.logger.debug(f"Market cleared: {market}")
+                return
 
-            if marketid and self.bgstally.market.available(marketid):
-                market = self.bgstally.market.commodities
+            if self.bgstally.market.available(marketid):
+                self.market = self.bgstally.market.commodities
+                return
 
-            if marketid:
-                Debug.logger.debug("Getting market ourselves then!")
-                journal_dir:str = config.get_str('journaldir') or config.default_journal_Name_dir
-                if not journal_dir: return
+            Debug.logger.debug("Getting market ourselves then!")
+            journal_dir:str = config.get_str('journaldir') or config.default_journal_Name_dir
+            if not journal_dir: return
 
-                with open(join(journal_dir, MARKET_FILENAME), 'rb') as file:
-                    #data:bytes = file.read().strip()
-                    #if not data: return
+            with open(join(journal_dir, MARKET_FILENAME), 'rb') as file:
+                #data:bytes = file.read().strip()
+                #if not data: return
 
-                    json_data = json.load(file)
-                    if marketid == json_data['MarketID']:
-                        for item in json_data['Items']:
-                            if item.get('Stock') > 0:
-                                market[item.get('Name')] = item.get('Stock')
-                            if item.get('Name_Localised'):
-                                self.local_names[item.get('Name')] = item.get('Name_Localised')
-
+                json_data = json.load(file)
+                if marketid == json_data['MarketID']:
+                    for item in json_data['Items']:
+                        if item.get('Stock') > 0:
+                            market[item.get('Name')] = item.get('Stock')
             self.market = market
+
             Debug.logger.debug(f"Market updated: {market}")
 
         except Exception as e:
             Debug.logger.info(f"Unable to load {MARKET_FILENAME} from the player journal folder")
             Debug.logger.error(traceback.format_exc())
+
+
+    def get_commmodity(self, name, source, default=None):
+        '''
+        Commodities have a cargo/carrier symbol, a colonisation/internal name, and a local name.
+        Find the commodity regardless of which one is being used.
+        '''
+        for n in [name , name.lower(), f"${name.lower().replace(' ', '')}_name;"]:
+            if n in source:
+                return source[n]
+
+        return default
 
     def load(self):
         """
@@ -675,10 +678,6 @@ class Colonisation:
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile, indent=4)
 
-        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, LOCAL_NAMES_FILENAME)
-        with open(file, 'w') as outfile:
-            json.dump(self.local_names, outfile, indent=4)
-
     def _as_dict(self):
         """
         Return a Dictionary representation of our data, suitable for serializing
@@ -688,6 +687,10 @@ class Colonisation:
             'System' : self.system_id,
             'Progress': self.progress,
             'Systems': self.systems,
+            'CargoCapacity': self.cargo_capacity,
+            'Carrier' : self.carrier_cargo,
+            'Cargo' : self.cargo,
+            'Market' : self.market
             }
 
 
@@ -699,3 +702,7 @@ class Colonisation:
         self.system_id = dict.get('Sytstem')
         self.progress = dict.get('Progress', [])
         self.systems = dict.get('Systems', [])
+        self.carrier_cargo = dict.get('Carrier', {})
+        self.cargo = dict.get('Cargo', {})
+        self.market = dict.get('Market', {})
+        self.cargo_capacity = dict.get('CargoCapacity', 784)

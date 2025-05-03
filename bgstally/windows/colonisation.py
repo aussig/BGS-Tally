@@ -33,28 +33,28 @@ class ColonisationWindow:
         self.bgstally = bgstally
         self.colonisation = None
         self.window = None
-        self.image_tab_tracked: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
-        self.image_tab_part_tracked: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
-        self.image_tab_untracked: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
+        self.image_tab_complete: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
+        self.image_tab_progress: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
+        self.image_tab_planned: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
 
         self.summary_cols = {
             'Total': {'header': 'Total', 'background': False, 'format': 'int'},
             'Orbital': {'header': 'Orbital', 'background': False, 'format': 'int'},
             'Surface': {'header': 'Surface', 'background': False, 'format': 'int'},
-            'T2': {'header': 'T2', 'background': True, 'format': 'int', 'min': -1, 'max': 1},
-            'T3': {'header': 'T3', 'background': True, 'format': 'int', 'min': -1, 'max': 1},
+            'T2': {'header': 'T2', 'background': True, 'format': 'int', 'max': 1},
+            'T3': {'header': 'T3', 'background': True, 'format': 'int', 'max': 1},
             'Cost': {'header': 'Cost', 'background': False, 'format': 'int'},
             'Trips': {'header': 'Trips', 'background': False, 'format': 'int'},
             'Pad': {'header': 'Pad', 'background': False, 'hide': True, 'format': 'hidden'},
-            'Economy': {'header': 'Econ', 'background': False, 'hide': True, 'format': 'hidden'},
-            'Pop Inc': {'header': 'Pop Inc', 'background': True, 'format': 'int', 'min': -20, 'max': 20},
-            'Pop Max': {'header': 'Pop Max', 'background': True, 'format': 'int', 'min': -20, 'max': 20},
+            'Facility Economy': {'header': 'Econ', 'background': False, 'hide': True, 'format': 'hidden'},
+            'Pop Inc': {'header': 'Pop Inc', 'background': True, 'format': 'int', 'max': 20},
+            'Pop Max': {'header': 'Pop Max', 'background': True, 'format': 'int', 'max': 20},
             'Economy Inf': {'header': 'Econ Inf', 'background': True, 'hide': True},
-            'Security': {'header': 'Security', 'background': True, 'format': 'int', 'min': -20, 'max': 20},
-            'Technology Level' : {'header': 'Tech Lvl', 'background': True, 'format': 'int', 'min': -20, 'max': 20},
-            'Wealth' : {'header': 'Wealth', 'background': True, 'format': 'int', 'min': -20, 'max': 20},
-            'Standard of Living' : {'header': 'SoL', 'background': True, 'format': 'int', 'min': -20, 'max': 20},
-            'Development Level' : {'header': 'Dev Lvl', 'background': True, 'format': 'int', 'min': -20, 'max': 20}
+            'Security': {'header': 'Security', 'background': True, 'format': 'int', 'max': 20},
+            'Technology Level' : {'header': 'Tech Lvl', 'background': True, 'format': 'int', 'max': 20},
+            'Wealth' : {'header': 'Wealth', 'background': True, 'format': 'int', 'max': 20},
+            'Standard of Living' : {'header': 'SoL', 'background': True, 'format': 'int', 'max': 20},
+            'Development Level' : {'header': 'Dev Lvl', 'background': True, 'format': 'int', 'max': 20}
         }
         self.detail_cols = {
             "Track": {'header': 'Track', 'background': None, 'format': 'checkbox', 'width':50},
@@ -63,20 +63,20 @@ class ColonisationWindow:
             "Body": {'header': 'Body', 'background': None, 'format': 'string', 'width': 100},
             "Prerequisites": {'header': 'Requirements', 'background': None, 'format': 'string', 'width': 100},
             "State": {'header': 'State', 'background': None, 'format': 'string', 'width': 100},
-            "T2": {'header': 'T2', 'background': True, 'format': 'int', 'min':-1, 'max':1, 'width': 30},
+            "T2": {'header': 'T2', 'background': True, 'format': 'int', 'max':1, 'width': 30},
             "T3": {'header': 'T3', 'background': True, 'format': 'int', 'min':-1, 'max':1, 'width': 30},
-            "Cost": {'header': 'Cost', 'background': False, 'format': 'int', 'min':0, 'max':200000, 'width': 75},
-            "Trips":{'header': 'Trips', 'background': False, 'format': 'int', 'min':0, 'max':100, 'width': 40},
-            "Pad": {'header': 'Pad', 'background': None, 'format': 'string', 'width': 40},
-            "Economy": {'header': 'Economy', 'background': None, 'format': 'string', 'width': 75},
-            "Pop Inc": {'header': 'Pop Inc', 'background': True, 'format': 'int', 'min':0, 'max':10, 'width': 75},
-            "Pop Max": {'header': 'Pop Max', 'background': True, 'format': 'int', 'min':0, 'max':10, 'width': 75},
-            "Econony Inf": {'header': 'Econ Inf', 'background': None, 'format': 'string', 'width': 75},
-            "Security": {'header': 'Security', 'background': True, 'format': 'int', 'min':-10, 'max':10, 'width': 75},
-            "Technology Level": {'header': 'Tech Lvl', 'background': True, 'format': 'int', 'min':-10, 'max':10, 'width': 75},
-            "Wealth": {'header': 'Wealth', 'background': True, 'format': 'int', 'min':-10, 'max':10, 'width': 75},
-            "Standard of Living": {'header': 'SoL', 'background': True, 'format': 'int', 'min':-10, 'max':10, 'width': 75},
-            "Development Level": {'header': 'Dev Lvl', 'background': True, 'format': 'int', 'min':-10, 'max':10, 'width': 75}
+            "Cost": {'header': 'Cost', 'background': False, 'format': 'int', 'max':200000, 'width': 75},
+            "Trips":{'header': 'Trips', 'background': False, 'format': 'int', 'max':100, 'width': 40},
+            "Pad": {'header': 'Pad', 'background': None, 'format': 'string', 'width': 55},
+            "Facility Economy": {'header': 'Economy', 'background': None, 'format': 'string', 'width': 80},
+            "Pop Inc": {'header': 'Pop Inc', 'background': True, 'format': 'int', 'max':5, 'width': 60},
+            "Pop Max": {'header': 'Pop Max', 'background': True, 'format': 'int', 'max':5, 'width': 60},
+            "Economy Influence": {'header': 'Econ Inf', 'background': None, 'format': 'string', 'width': 80},
+            "Security": {'header': 'Security', 'background': True, 'format': 'int', 'max':8, 'width': 60},
+            "Technology Level": {'header': 'Tech Lvl', 'background': True, 'format': 'int', 'max':8, 'width': 60},
+            "Wealth": {'header': 'Wealth', 'background': True, 'format': 'int', 'max':8, 'width': 60},
+            "Standard of Living": {'header': 'SoL', 'background': True, 'format': 'int', 'max':8, 'width': 60},
+            "Development Level": {'header': 'Dev Lvl', 'background': True, 'format': 'int', 'max':8, 'width': 60}
         }
         self.checkall = None
         self.current_system = None
@@ -84,6 +84,7 @@ class ColonisationWindow:
 
         # UI components
         self.tabbar = None
+        self.tabs = []
         self.sheets = []
         self.content_frames = []
         self.plan_titles = []
@@ -125,11 +126,8 @@ class ColonisationWindow:
             self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
             self.add_system_dialog()
 
-            #Debug.logger.debug("Creating tabs for systems")
-
             # Add tabs for each system
             systems = self.colonisation.get_all_systems()
-
             if len(systems) == 0:
                 return
 
@@ -151,7 +149,6 @@ class ColonisationWindow:
 
 
     def create_system_tab(self, system, tabnum):
-        tracking_status = self.colonisation.get_system_tracking(system)
         tab = ttk.Frame(self.tabbar)
         tab.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
@@ -159,7 +156,30 @@ class ColonisationWindow:
         self.create_table_frame(tab, tabnum, system)
 
         Debug.logger.debug(f"Creating tab {tabnum+1} {system.get('Name')} {system.get('StarSystem')}")
-        self.tabbar.add(tab, text=system['Name'], compound='right', image=self.image_tab_tracked if tracking_status == "All" else self.image_tab_part_tracked if tracking_status == "Partial" else self.image_tab_untracked)
+
+        self.tabbar.add(tab, text=system['Name'], compound='right', image=self.image_tab_planned)
+
+        self.set_system_progress(tabnum, system)
+
+    def set_system_progress(self, tabnum, system):
+        state = BuildState.COMPLETE
+        for b in system['Builds']:
+            if b.get('State') == BuildState.PLANNED and state != BuildState.PROGRESS:
+                state = BuildState.PLANNED
+            if b.get('State') == BuildState.PROGRESS:
+                state = BuildState.PROGRESS
+
+        match state:
+            case BuildState.COMPLETE:
+                Debug.logger.debug(f"{tabnum} {state} {self.image_tab_complete}")
+                self.tabbar.notebookTab.tab(tabnum+1, image=self.image_tab_complete)
+            case BuildState.PROGRESS:
+                Debug.logger.debug(f"{tabnum} {state} {self.image_tab_progress}")
+                self.tabbar.notebookTab.tab(tabnum+1, image=self.image_tab_progress)
+            case BuildState.PLANNED:
+                self.tabbar.notebookTab.tab(tabnum+1, image=self.image_tab_planned)
+                Debug.logger.debug(f"{tabnum} {state} {self.image_tab_planned}")
+
 
     def create_title_frame(self, tab, tabnum):
         """
@@ -228,19 +248,12 @@ class ColonisationWindow:
         table_frame.columnconfigure(0, weight=1)
         table_frame.rowconfigure(0, weight=1)
 
-        # Hack to figure out the default font.
-        #tmp = ttk.Label(table_frame)
-        #fnt = tkFont.Font(font=tmp['font']).actual()
-        #bld = (fnt['family'], fnt['size'], 'bold')
-
-        Debug.logger.debug("Creating tab {tabnum}")
         sheet:Sheet = Sheet(table_frame, show_row_index=False, cell_auto_resize_enabled=True, height=600,
                             show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
                             align="center", table_selected_cells_border_fg=None, show_dropdown_borders=False,
                             empty_vertical=15, empty_horizontal=0, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                            show_header=False)
+                            show_header=False, set_all_heights_and_widths=True, default_row_height=21)
         sheet.pack(fill=tk.BOTH, padx=0, pady=(0, 5))
-        #sheet.set_sheet_data(data=self.get_summary(system.get('Builds')))
 
         # Initial cell population
         data = []
@@ -252,8 +265,6 @@ class ColonisationWindow:
         sheet.set_sheet_data(data)
         self.config_sheet(sheet)
         sheet.enable_bindings('single_select', 'edit_cell', 'up', 'down', 'left', 'right', 'copy', 'paste')
-        #command=partial(self._copy_to_clipboard, frm_container, activity)
-        #sheet.edit_validation(self.validate_edits).bind("<<SheetModified>>", self.sheet_modified)
         sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, tabnum))
 
         if len(self.sheets) <= tabnum:
@@ -366,10 +377,10 @@ class ColonisationWindow:
                         totals['Planned'][name] += res
                         totals['Completed'][name] += res if self.is_build_completed(build) else 0
                     case 'Trips':
-                        if j >= len(required):
+                        if row >= len(required):
                             continue
-                        res = required[j]
-                        trips = ceil(sum(res.values()) / self.bgstally.state.cargo_capacity)
+                        res = required[row]
+                        trips = ceil(sum(res.values()) / self.colonisation.cargo_capacity)
                         totals['Planned'][name] += trips
                         totals['Completed'][name] += trips if self.is_build_completed(build) else 0
                     case _ if col.get('format') == 'int':
@@ -409,7 +420,7 @@ class ColonisationWindow:
                 tab[i+srow,j].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
 
                 if new[i][j] and new[i][j] != ' ' and new[i][j] != 0 and details.get('background') == True:
-                    color = self.get_color(new[i][j], details.get('min', -1), details.get('max', 1))
+                    color = self.get_color(new[i][j], details.get('max', 1))
                     tab[i+srow,j+scol].highlight(bg=color)
                     if color != '':
                         tab[i+srow,j+scol].highlight(bg=color)
@@ -453,7 +464,7 @@ class ColonisationWindow:
                         if name == 'Cost' and i < len(reqs):
                             v = sum(reqs[i].values())
                         if name == 'Trips' and i < len(reqs):
-                            v = ceil(sum(reqs[i].values()) / self.bgstally.state.cargo_capacity)
+                            v = ceil(sum(reqs[i].values()) / self.colonisation.cargo_capacity)
                         row.append(v if v != 0 else ' ')
 
                     case _:
@@ -471,7 +482,7 @@ class ColonisationWindow:
                             row.append(build.get('Body').replace(system.get('StarSystem') + ' ', ''))
                             continue
 
-                        row.append(build.get(name, ' '))
+                        row.append(build.get(name) if build.get(name, ' ') != ' ' else bt.get(name, ' '))
 
             details.append(row)
 
@@ -479,8 +490,6 @@ class ColonisationWindow:
         if details[-1][1] != ' ':
             row:list = [' '] * (len(list(self.detail_cols.keys())) -1)
             details.append(row)
-        else:
-            Debug.logger.debug(f"Not adding empty base row [{details[-1][1]}]")
 
         return details
 
@@ -501,16 +510,17 @@ class ColonisationWindow:
                     tab[i+srow,j].highlight(bg=None)
 
                     if details.get('background') == True and new[i][j] != 0:
-                        color = self.get_color(new[i][j], details.get('min', -1), details.get('max', 1))
+                        color = self.get_color(new[i][j], details.get('max', 1))
                         tab[i+srow,j].highlight(bg=color)
 
                 # Mark completed builds as readonly
                 if j == 5 and new[i][j] == BuildState.COMPLETE:
                     tab[i+srow,0].del_checkbox(); tab[i+srow,0].data = ' '; tab[i+srow,0].readonly()
-                    # Base type has been set so make it readonly
-                    if new[i][1] != ' ':
+
+                    if new[i][1] != ' ': # Base type has been set so make it readonly
                         tab[i+srow,1].readonly()
                         tab[i+srow,1].del_dropdown()
+                        tab[i+srow,1].align(align='left')
 
                     tab[i+srow,2].readonly()
 
@@ -750,11 +760,6 @@ class ColonisationWindow:
             tabs = self.tabbar.tabs()
             self.tabbar.forget(tabs[tabnum+1]) # +1 for the add tab
             self.colonisation.remove_system(tabnum)
-            del self.content_frames[tabnum]
-            del self.plan_titles[tabnum]
-            del self.track_all_vars[tabnum]
-            del self.summary_labels[tabnum]
-            del self.detail_labels[tabnum]
 
             self.update_display()
 
@@ -805,14 +810,14 @@ class ColonisationWindow:
         item.configure(font=(fnt['family'], fnt['size'], w))
 
 
-    def get_color(self, value:int, min_value:int = -1, max_value:int = 1):
+    def get_color(self, value:int, limit:int = 1):
         """
-        Get a color based on the value and its range
+        Get a color based on the value and its range.
 
         Args:
-            value: The value to color
-            min_value: The minimum value for the range
-            max_value: The maximum value for the range
+            value: The value to color. Positive will be green, negative red.
+            limit: The size of the range.
+
 
         Returns:
             A hex color string
@@ -820,21 +825,13 @@ class ColonisationWindow:
         if not isinstance(value, int) and not value.isdigit():
             return '#550055'
 
-        if value == 0:
-            return '#005500'
-
+        gradient = self.create_gradient(limit)
         # keep it within the limits
-        value = min(max(int(value), int(min_value)), int(max_value))
+        value = min(max(int(value), int(-limit)), int(limit))
 
-        gradient = self.create_gradient(max_value - min_value + 1)
-        # Normalize the value to a range of 0-1
-        normalized_value = (value - min_value) / (max_value - min_value)
-        normalized_value = max(0, min(1, normalized_value))
-
-        # Calculate the gradient color
-        gradient_index = int(normalized_value * (len(gradient) - 1))
-        # Debug.logger.debug(f"Gradient: min {min_value} max {max_value} val {value} norm {normalized_value} {gradient_index} {gradient[gradient_index]}")
-        return gradient[gradient_index]
+        index = int(value + limit)
+        #Debug.logger.debug(f"value: {value} range: {limit} index {index} color {gradient[index]}")
+        return gradient[int(value + limit)]
 
 
     def create_gradient(self, steps):
@@ -848,78 +845,24 @@ class ColonisationWindow:
             A list of RGB color tuples.
         """
         try:
+            base = 235 # smaller = overall darker
+            scale = 70 # larger = wider range (light to dark)
+            multi = 0.01 # Smaller = more intense
             gradient = []
-            ulim=25
-            llim=200
-            for i in range(steps):
-                #if i == 0:
-                #    red = ulim
-                #    green=llim
-                #    blue=llim
-                if i == int(steps/2):
-                    red=255
-                    green=255
-                    blue=255
-                elif i > steps / 2:
-                    green = int(ulim * (steps-i) / (steps -1)) + llim
-                    red = int(green/2)
-                    blue = int(green/2)
-                else:
-                    red = int(ulim * i / (steps - 1)) + llim
-                    green = int(red/2)
-                    blue = int(red/2)
+            for i in range(steps+1):
+                r = base - (i * scale / steps); g = base - (i * scale * multi / steps); b = base - (i * scale / steps)
+                gradient.append(f"#{int(r):02x}{int(g):02x}{int(b):02x}")
+            for i in range(1, steps+1):
+                r = base - (i * scale * multi / steps); g = base - (i * scale / steps); b = base - (i * scale / steps)
+                gradient.insert(0, f"#{int(r):02x}{int(g):02x}{int(b):02x}")
 
-                gradient.append(f"#{red:02x}{green:02x}{blue:02x}")
+            return gradient
 
         except Exception as e:
             Debug.logger.error(f"Error in gradient: {e}")
             Debug.logger.error(traceback.format_exc())
-            gradient = ["#CCCCCC"]
+            return ["#CCCCCC"]
 
-        return gradient
-
-
-    def get_system_tracking_status(self, plan_name):
-        """
-        Get the tracking status for a system
-
-        Args:
-            system_name: The system address
-
-        Returns:
-            "all" if all non-completed builds are tracked
-            "partial" if some non-completed builds are tracked
-            "none" if no non-completed builds are tracked
-        """
-        system = self.colonisation.get_system('Name', plan_name)
-        if not system:
-            return "none"
-
-        builds = system.get('Builds', [])
-        if not builds:
-            return "none"
-
-        # Count tracked and non-tracked builds (excluding completed builds)
-        tracked_count = 0
-        non_tracked_count = 0
-
-        for build in builds:
-            # Skip completed builds
-            if self.is_build_completed(build):
-                continue
-
-            if build.get('Track', False) == True:
-                tracked_count += 1
-            else:
-                non_tracked_count += 1
-
-        # Determine status
-        if tracked_count > 0 and non_tracked_count == 0:
-            return "all"
-        elif tracked_count > 0:
-            return "partial"
-        else:
-            return "none"
 
     def count_starports(self, builds) -> int:
         i = 0
@@ -928,6 +871,7 @@ class ColonisationWindow:
             i += 1 if b.get('Base Type') in starports else 0
 
         return i
+
 
     def is_build_completed(self, build):
         """

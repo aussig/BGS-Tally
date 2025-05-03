@@ -19,7 +19,6 @@ from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
 from bgstally.windows.cmdrs import WindowCMDRs
-#from bgstally.windows.colonisation import ColonisationWindow
 from bgstally.windows.colonisation import ColonisationWindow
 from bgstally.windows.progress import ProgressWindow
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
@@ -57,8 +56,9 @@ class UI:
         self.image_button_colonisation = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_colonisation.png"))
         self.image_icon_green_tick = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_green_tick_16x16.png"))
         self.image_icon_red_cross = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_red_cross_16x16.png"))
-        self.image_icon_left_arrow = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_left_arrow.png"))
-        self.image_icon_right_arrow = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_right_arrow.png"))
+        self.image_icon_left_arrow = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_left_arrow.png"))
+        self.image_icon_right_arrow = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_right_arrow.png"))
+        self.image_icon_change_view = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_change_view.png"))
 
         self.indicate_activity:bool = False
         self.report_system_address:str = None

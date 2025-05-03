@@ -201,6 +201,56 @@ class FleetCarrier:
                 self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_BUYING)
 
 
+    def cargo_transfer(self, journal_entry: dict):
+        """
+        The user transferred cargo to or from the carrier.
+
+        We shouldn't do this. If the EDMC CAPI cooldown worked properly we'd just query the CAPI and get the accurate data!
+
+        Args:
+            journal_entry (dict): The journal entry data
+        """
+        # { "timestamp":"2025-03-22T15:15:21Z", "event":"CargoTransfer", "Transfers":[ { "Type":"steel", "Count":728, "Direction":"toship" }, { "Type":"titanium", "Count":56, "Direction":"toship" } ] }
+
+        # Unfortunately we don't get the localized name for transfers so we'll do without.
+        cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
+        Debug.logger.debug(f"cargo_transfer: {journal_entry}")
+        for i in journal_entry.get('Transfers', []):
+            type:str = i.get('Type', "")
+            display_type:str = i.get('Type_Localised', "")
+            if display_type == "" and type in self.commodities:
+                display_type = self.commodities[type]
+
+            count:int = i.get('Count', 0)
+            direction:str = i.get('Direction', "")
+
+            found = False
+            for c in cargo:
+                # For some reason the event is lower case but the cargo is mixed case
+                if count > 0 and c[name_key].lower() == type:
+                    found = True
+                    if direction == "toship":
+                        if c[quantity_key] > count: # May have to do this in multiple bits.
+                            Debug.logger.debug(f"Removing {count} {type} from cargo")
+                            c[quantity_key] -= count
+                            count = 0
+                            break
+                        else:
+                            Debug.logger.debug(f"Deleting {count} {type} {c[quantity_key]} from cargo")
+                            count -= c[quantity_key]
+                            cargo.remove(c)
+
+                    else:
+                        Debug.logger.debug(f"Adding {count} {type} to cargo")
+                        c[quantity_key] += count
+                        count = 0
+                        break
+
+            if not found:
+                Debug.logger.debug(f"Creating {count} {type} cargo")
+                cargo.append({name_key: type, display_name_key: display_type, quantity_key: count})
+
+
     def get_items_plaintext(self, category: FleetCarrierItemType|None = None) -> str:
         """Return a multiline text string containing all items of a given type
 

@@ -149,8 +149,8 @@ class BGSTally:
                 dirty = True
 
             case 'Cargo':
-                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 activity.cargo(entry)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'CarrierJumpCancelled':
                 self.fleet_carrier.jump_cancelled()
@@ -163,6 +163,11 @@ class BGSTally:
 
             case 'CarrierTradeOrder':
                 self.fleet_carrier.trade_order(entry)
+
+            case 'CargoTransfer':
+                self.fleet_carrier.cargo_transfer(entry)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                dirty = True
 
             case 'CollectCargo':
                 activity.cargo_collected(entry, self.state)
@@ -210,13 +215,11 @@ class BGSTally:
                 dirty = True
 
             case 'Loadout':
-                # Update cargo capacity from Loadout event
-                if 'CargoCapacity' in entry:
-                    self.state.cargo_capacity = entry.get('CargoCapacity')
-                    self.ui.update_plugin_frame()
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'Market':
                 self.market.load()
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'MarketBuy':
                 activity.trade_purchased(entry, self.state)

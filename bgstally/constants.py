@@ -20,7 +20,6 @@ class CheckStates(str, Enum):
     STATE_PARTIAL = 'Partial'
     STATE_PENDING = 'Pending'
 
-
 class Ticks(Enum):
     TICK_CURRENT = 0
     TICK_PREVIOUS = 1
@@ -30,6 +29,7 @@ class UpdateUIPolicy(Enum):
     NEVER = 0
     IMMEDIATE = 1
     LATER = 2
+
 
 # Discord channels
 # Subclassing from str as well as Enum means json.load and json.dump work seamlessly
@@ -102,10 +102,19 @@ class ApiSyntheticScenarioType(str, Enum):
     MEGASHIP = 'Megaship'
     INSTALLATION = 'Installation'
 
+
+# State of colonisation build
 class BuildState(str, Enum):
-    PLANNED = 'Planned'
     PROGRESS = 'Progress'
+    PLANNED = 'Planned'
     COMPLETE = 'Complete'
+
+
+# Commodity sort order
+class CommodityOrder(Enum):
+    DEFAULT = 0
+    CATEGORY = 1
+    REVERSE = 2
 
 ApiSizeLookup: dict = {
     'l': 'low',

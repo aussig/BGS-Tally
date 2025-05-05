@@ -138,6 +138,7 @@ class BGSTally:
         match entry.get('event'):
             case 'ApproachSettlement' if state['Odyssey']:
                 activity.settlement_approached(entry, self.state)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'Bounty':
@@ -183,8 +184,6 @@ class BGSTally:
             case 'Docked':
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
                 self.state.station_type = entry.get('StationType', "")
-                self.state.current_system_id = entry.get('SystemAddress' ,"")
-                self.state.current_system = entry.get('SystemName' ,"")
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
@@ -201,11 +200,6 @@ class BGSTally:
 
             case 'Friends' if entry.get('Status') == "Added":
                 self.target_manager.friend_added(entry, system)
-
-            case 'FSDJump':
-                self.state.current_system_id = entry.get('SystemAddress')
-                self.state.current_system = entry.get('SystemSystem')
-                self.dirty = True
 
             case 'Interdicted':
                 self.target_manager.interdicted(entry, system)
@@ -282,16 +276,16 @@ class BGSTally:
 
             case 'SupercruiseDestinationDrop':
                 activity.destination_dropped(entry, self.state)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'SupercruiseEntry':
-                self.state.current_body = None
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 activity.supercruise(entry, self.state)
 
             case 'SupercruiseExit':
                 # This doesn't work. There has to be a way to figure out which body we're orbiting/near
-                #self.state.current_body = entry.get('Body', None)
-                #Debug.logger.debug(f"Setting current body to {entry.get('Body')}")
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'Undocked' if entry.get('Taxi') == False:

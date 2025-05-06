@@ -3,6 +3,7 @@ import json
 from os import path
 from os.path import join
 import traceback
+import inspect
 import re
 from datetime import datetime
 from enum import Enum
@@ -26,6 +27,7 @@ class Colonisation:
     def __init__(self, bgstally):
         self.bgstally = bgstally
         self.system_id = None
+        self.current_system = None
         self.body = None
         self.station = None
         self.marketid = None
@@ -114,6 +116,7 @@ class Colonisation:
                 case 'StartUp': # Synthetic event.
                     #Debug.logger.debug(f"StartUp event: {entry}")
                     self.system_id = entry.get('SystemAddress', None)
+                    self.current_system = entry.get('StarSystem', None)
                     self.body = entry.get('Body', None)
                     self.station = entry.get('StationName', None)
                     self.marketid = entry.get('MarketID', None)
@@ -121,42 +124,33 @@ class Colonisation:
                     self.update_cargo(state.get('Cargo'))
                     self.update_market(self.marketid)
                     self.update_carrier()
-                    self.dirty = True
 
                 case 'Cargo':
                     self.update_cargo(state.get('Cargo'))
                     if self.marketid == self.bgstally.fleet_carrier.carrier_id:
                         self.update_carrier()
 
-                    self.dirty = True
-
                 case 'CargoTransfer':
+                    self.update_cargo(state.get('Cargo'))
                     self.update_carrier()
-                    self.dirty = True
 
                 case 'ColonisationSystemClaim':
+                    Debug.logger.info(f"System claimed: {entry.get('StarSystem', '')}")
                     system:dict = self.find_or_create_system(entry.get('StarSystem', ''), entry.get('SystemAddress', ''))
-
                     system['StarSystem'] = entry.get('StarSystem', '')
                     system['SystemAddress'] = entry.get('SystemAddress', '')
                     system['Claimed'] = entry.get('timestamp', datetime.now().isoformat())
-
                     self.dirty = True
-                    Debug.logger.info(f"System claimed: {entry.get('StarSystem', '')}")
 
                 case 'ColonisationConstructionDepot':
-                    Debug.logger.info(f"ColonisationConstructionDepot event: {entry}")
                     if not entry.get('MarketID'):
                         Debug.logger.info(f"Invalid ColonisationConstructionDepot event: {entry}")
                         return
 
                     progress:dict = self.find_or_create_progress(entry.get('MarketID'))
-
                     progress['Updated'] = entry.get('timestamp')
                     for f in ['ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ResourcesRequired']:
                         progress[f] = entry.get(f)
-
-                    Debug.logger.info(f"Progress updated: {progress}")
                     self.dirty = True
 
                 case 'Docked':
@@ -201,17 +195,18 @@ class Colonisation:
                     #Debug.logger.debug(f"Setting {name} build state {build_state} and track {(build_state != BuildState.COMPLETE)}")
                     self.dirty = True
 
-                case 'Market':
-                    self.update_market(entry.get('MarketID'))
-                    if entry.get('MarketID') == self.bgstally.fleet_carrier.carrier_id:
-                        self.update_carrier()
-
                 case 'LoadOut':
                     # Let's not consider tiny capacities as they'll create silly numbers and you're probably not
                     # hauling right now.
                     # state.get('CargoCapacity') is supposed to work!
                     self.cargo_capacity = entry.get('CargoCapacity') if entry.get('CargoCapacity') > 16 else 784
                     self.dirty = True
+
+                case 'Market'|'MarketBuy'|'MarketSell':
+                    self.update_market(entry.get('MarketID'))
+                    self.update_cargo(state.get('Cargo'))
+                    if entry.get('MarketID') == self.bgstally.fleet_carrier.carrier_id:
+                        self.update_carrier()
 
                 case 'SupercruiseDestinationDrop' | 'ApproachSettlement':
                     if entry.get('Type') : self.station = entry.get('Type')
@@ -220,12 +215,14 @@ class Colonisation:
 
                 case 'SuperCruiseEntry' | 'FSDJump':
                     self.system_id = entry.get('SystemAddress')
+                    self.current_system = entry.get('StarSystem', None)
                     self.body = None
                     self.station = None
                     self.marketid = None
 
                 case 'SupercruiseExit':
                     self.system_id = entry.get('SystemAddress')
+                    self.current_system = entry.get('StarSystem', None)
                     self.body = entry.get('Body')
 
                     if 'Construction Site' in self.station or 'ColonisationShip' in self.station or entry.get('BodyType') == 'Fleetcarrier':
@@ -249,7 +246,7 @@ class Colonisation:
                         build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
                     build['Track'] = False
                     #Debug.logger.debug(f"SEExit updating build info for: {entry.get('StarSystem')} {self.body} {self.station} {build}")
-                    self.dirty
+                    self.dirty = True
 
                 case 'Undocked':
                     self.market = {}
@@ -259,8 +256,8 @@ class Colonisation:
 
             # Save immediately to ensure we don't lose any data
             if self.dirty == True:
-                self.save()
-                self.bgstally.ui.window_progress.update_display()
+                self.save(entry.get('event'))
+            self.bgstally.ui.window_progress.update_display()
 
 
         except Exception as e:
@@ -604,7 +601,7 @@ class Colonisation:
                         carrier[n] = 0
                     carrier[n] += int(item['qty'])
 
-            #Debug.logger.debug(f"Carrier: {carrier}")
+            #Debug.logger.debug(f"Carrier updated")
             self.carrier_cargo = carrier
 
         except Exception as e:
@@ -632,22 +629,21 @@ class Colonisation:
 
     def update_market(self, marketid=None):
         try:
-            market = {}
-
-            if marketid == None:
+            if marketid == None or self.docked == False:
                 self.market = {}
                 #Debug.logger.debug(f"Market cleared: {market}")
                 return
 
+            market = {}
             if self.bgstally.market.available(marketid):
                 for name, item in self.bgstally.market.commodities.items():
                     if item.get('Stock') > 0:
                         market[item.get('Name')] = item.get('Stock')
-                Debug.logger.debug(f"Market copied from bgstally.market: {self.market}")
                 if market != {}:
                     return
 
-            # The market object doesn't have a market for us so we'll load it ourselves.
+            # The market object doesn't have a market for us so we'll try loading it ourselves.
+            # Ideally we wouldn't do this but it seems necessary
             journal_dir:str = config.get_str('journaldir') or config.default_journal_Name_dir
             if not journal_dir: return
 
@@ -659,7 +655,7 @@ class Colonisation:
                             market[item.get('Name')] = item.get('Stock')
             self.market = market
 
-            #Debug.logger.debug(f"Market updated: {market}")
+            Debug.logger.debug(f"Market loaded directly: {market}")
 
         except Exception as e:
             Debug.logger.info(f"Unable to load {MARKET_FILENAME} from the player journal folder")
@@ -694,7 +690,7 @@ class Colonisation:
         Debug.logger.debug(f"Loaded progress: {len(self.progress.keys())} systems: {len(self.systems)}")
 
 
-    def save(self):
+    def save(self, cause:str = 'Unknown'):
         """
         Save state to file
         """
@@ -702,6 +698,16 @@ class Colonisation:
         file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile, indent=4)
+
+        self.dirty = False
+
+        #Debug.logger.debug(f"Saved {cause}.")
+        #if cause == 'Unknown':
+        #    STACK_FMT = "%s, line %d in function %s."
+        #    Debug.logger.debug(f"Saved.")
+        #    for frame in inspect.stack():
+        #        file, line, func = frame[1:4]
+        #        Debug.logger.debug(STACK_FMT % (file, line, func))
 
 
     def _as_dict(self):
@@ -711,15 +717,16 @@ class Colonisation:
         return {
             'Docked': self.docked,
             'SystemID': self.system_id,
+            'CurrentSystem': self.current_system,
             'Body': self.body,
             'Station': self.station,
             'MarketID': self.marketid,
             'Progress': self.progress,
             'Systems': self.systems,
             'CargoCapacity': self.cargo_capacity,
-            'Carrier': self.carrier_cargo,
-            'Cargo': self.cargo,
-            'Market': self.market
+#            'Carrier': self.carrier_cargo,
+#            'Cargo': self.cargo,
+#            'Market': self.market
             }
 
 
@@ -729,12 +736,13 @@ class Colonisation:
         """
         self.docked = dict.get('Docked', False)
         self.system_id = dict.get('SystemID', None)
+        self.current_system = dict.get('CurrentSystem', None)
         self.body = dict.get('Body', None)
         self.station = dict.get('Station', None)
         self.marketid = dict.get('MarketID', None)
         self.progress = dict.get('Progress', [])
         self.systems = dict.get('Systems', [])
-        self.carrier_cargo = dict.get('Carrier', {})
-        self.cargo = dict.get('Cargo', {})
-        self.market = dict.get('Market', {})
+#        self.carrier_cargo = dict.get('Carrier', {})
+#        self.cargo = dict.get('Cargo', {})
+#        self.market = dict.get('Market', {})
         self.cargo_capacity = dict.get('CargoCapacity', 784)

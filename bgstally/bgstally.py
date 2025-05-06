@@ -218,11 +218,14 @@ class BGSTally:
             case 'MarketBuy':
                 activity.trade_purchased(entry, self.state)
                 self.fleet_carrier.market_activity(entry)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+
                 dirty = True
 
             case 'MarketSell':
                 activity.trade_sold(entry, self.state)
                 self.fleet_carrier.market_activity(entry)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'MissionAbandoned':
@@ -368,7 +371,6 @@ class BGSTally:
         self.fleet_carrier.save()
         self.api_manager.save()
         self.webhook_manager.save()
-        self.colonisation.save()
 
 
     def new_tick(self, force: bool, uipolicy: UpdateUIPolicy):

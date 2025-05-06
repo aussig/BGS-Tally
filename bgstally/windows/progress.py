@@ -43,10 +43,10 @@ class ProgressWindow:
         self.columns:dict = {'Commodity': tk.W, 'Required': tk.E, 'Delivered':tk.E, 'Cargo':tk.E, 'Carrier': tk.E}
         self.units:dict = {'Commodity': Units.TONNES, 'Required': Units.TONNES, 'Delivered':Units.TONNES, 'Cargo':Units.TONNES, 'Carrier': Units.TONNES}
         self.headings:dict = {'Commodity': {Units.TONNES: f"{_('Commodity'):<11}", Units.REMAINING: f"{_('Commodity'):<11}", Units.PERCENT: f"{_('Commodity'):<11}", Units.LOADS: f"{_('Commodity'):<11}"},
-                         'Required': {Units.TONNES: f"{_('Required'):>10}", Units.REMAINING: f"{_('Needed'):>10}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Trips'):>11}"},
-                         'Delivered': {Units.TONNES: f"{_('Delivered'):>10}", Units.REMAINING: f"{_('To Buy'):>11}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Trips'):>11}"},
-                         'Cargo': {Units.TONNES: f"{_('Cargo'):>1}", Units.REMAINING: f"{_('Needed'):>9}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Trips'):>11}"},
-                         'Carrier': {Units.TONNES: f"{_('Carrier'):>11}", Units.REMAINING: f"{_('Needed'):>9}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Trips'):>11}"}
+                         'Required': {Units.TONNES: f"{_('Required'):>10}", Units.REMAINING: f"{_('Needed'):>10}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Loads'):>12}"},
+                         'Delivered': {Units.TONNES: f"{_('Delivered'):>10}", Units.REMAINING: f"{_('To Buy'):>11}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Loads'):>12}"},
+                         'Cargo': {Units.TONNES: f"{_('Cargo'):>1}", Units.REMAINING: f"{_('Needed'):>9}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Loads'):>12}"},
+                         'Carrier': {Units.TONNES: f"{_('Carrier'):>11}", Units.REMAINING: f"{_('Needed'):>9}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Loads'):>12}"}
                         }
 
         # UI components
@@ -236,7 +236,7 @@ class ProgressWindow:
         try:
             Debug.logger.debug(f"Link called")
             comm_id = self.colonisation.base_costs['All'].get(comm)
-            sys:str = self.bgstally.state.current_system if self.bgstally.state.current_system != None else 'sol'
+            sys:str = self.colonisation.current_system if self.colonisation.current_system != None else 'sol'
             # pi3=3 - large, pi3=2 - medium
             size:int = 2 if self.colonisation.cargo_capacity < 407 else 3
 
@@ -262,13 +262,9 @@ class ProgressWindow:
         Main display update function.
         '''
         try:
-            #Debug.logger.debug(f"Updating progress display")
             tracked:list = self.colonisation.get_tracked_builds()
-            #Debug.logger.debug(f"{tracked}")
             required:dict = self.colonisation.get_required(tracked)
-            #Debug.logger.debug(f"{required}")
             delivered:dict = self.colonisation.get_delivered(tracked)
-            #Debug.logger.debug(f"{delivered}")
 
             if len(tracked) == 0:
                 Debug.logger.debug("No progress to display")

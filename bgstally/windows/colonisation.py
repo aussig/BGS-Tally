@@ -38,7 +38,7 @@ class ColonisationWindow:
             'T2': {'header': _("T2"), 'background': True, 'format': 'int', 'max': 1},
             'T3': {'header': _("T3"), 'background': True, 'format': 'int', 'max': 1},
             'Cost': {'header': _("Cost"), 'background': False, 'format': 'int'},
-            'Trips': {'header': _("Trips"), 'background': False, 'format': 'int'},
+            'Trips': {'header': _("Loads"), 'background': False, 'format': 'int'},
             'Pad': {'header': _("Pad"), 'background': False, 'hide': True, 'format': 'hidden'},
             'Facility Economy': {'header': _("Econ"), 'background': False, 'hide': True, 'format': 'hidden'},
             'Pop Inc': {'header': _("Pop Inc"), 'background': True, 'format': 'int', 'max': 20},
@@ -60,7 +60,7 @@ class ColonisationWindow:
             "T2": {'header': _("T2"), 'background': True, 'format': 'int', 'max':1, 'width': 30},
             "T3": {'header': _("T3"), 'background': True, 'format': 'int', 'min':-1, 'max':1, 'width': 30},
             "Cost": {'header': _("Cost"), 'background': False, 'format': 'int', 'max':200000, 'width': 75},
-            "Trips":{'header': _("Trips"), 'background': False, 'format': 'int', 'max':100, 'width': 40},
+            "Trips":{'header': _("Loads"), 'background': False, 'format': 'int', 'max':100, 'width': 40},
             "Pad": {'header': _("Pad"), 'background': None, 'format': 'string', 'width': 55},
             "Facility Economy": {'header': _("Economy"), 'background': None, 'format': 'string', 'width': 80},
             "Pop Inc": {'header': _("Pop Inc"), 'background': True, 'format': 'int', 'max':5, 'width': 60},
@@ -744,7 +744,7 @@ class ColonisationWindow:
         self.tabbar = None
         self.sheets = []
         self.plan_titles = []
-
+        self.colonisation.save()
 
     def calc_points(self, type, builds, row):
         '''

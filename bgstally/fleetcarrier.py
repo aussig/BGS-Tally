@@ -259,10 +259,8 @@ class FleetCarrier:
         We bought or sold to/from our carrier
         '''
         if journal_entry.get('MarketID') != self.carrier_id: # Not buying from us.
-            Debug.logger.debug(f"irrelevant market activity {journal_entry.get('MarketID')} {self.carrier_id}")
             return
 
-        Debug.logger.debug(f"market_activity: {journal_entry}")
         cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
         type:str = journal_entry.get('Type', "")
         count:int = journal_entry.get('Count', 0)
@@ -273,23 +271,19 @@ class FleetCarrier:
                 found = True
                 if journal_entry.get('event') == "MarketBuy":
                     if c[quantity_key] > count: # May have to do this in multiple bits.
-                        Debug.logger.debug(f"Removing {count} {type} from cargo")
                         c[quantity_key] -= count
                         count = 0
                         break
                     else:
-                        Debug.logger.debug(f"Deleting {count} {type} {c[quantity_key]} from cargo")
                         count -= c[quantity_key]
                         cargo.remove(c)
 
                 else:
-                    Debug.logger.debug(f"Adding {count} {type} to cargo")
                     c[quantity_key] += count
                     count = 0
                     break
 
         if not found:
-            Debug.logger.debug(f"Creating {count} {type} cargo")
             cargo.append({name_key: type, display_name_key: self.commodities[type], quantity_key: count})
 
 

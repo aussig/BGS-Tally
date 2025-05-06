@@ -217,10 +217,12 @@ class BGSTally:
 
             case 'MarketBuy':
                 activity.trade_purchased(entry, self.state)
+                self.fleet_carrier.market_activity(entry)
                 dirty = True
 
             case 'MarketSell':
                 activity.trade_sold(entry, self.state)
+                self.fleet_carrier.market_activity(entry)
                 dirty = True
 
             case 'MissionAbandoned':

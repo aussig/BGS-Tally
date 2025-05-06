@@ -407,12 +407,12 @@ class ColonisationWindow:
         Build a data cube of info to update the table
         '''
         details:list = []
-        builds = system.get('Builds', [])
-        reqs = self.colonisation.get_required(builds)
-        delivs = self.colonisation.get_delivered(builds)
+        builds:list = system.get('Builds', [])
+        reqs:dict = self.colonisation.get_required(builds)
+        delivs:dict = self.colonisation.get_delivered(builds)
 
         for i, build in enumerate(builds):
-            bt = self.colonisation.get_base_type(build.get('Base Type', ' '))
+            bt:dict = self.colonisation.get_base_type(build.get('Base Type', ' '))
             row:list = []
             for name, col in self.detail_cols.items():
                 match col.get('format'):
@@ -436,7 +436,7 @@ class ColonisationWindow:
                             if build.get('State', '') == BuildState.PROGRESS and i < len(reqs):
                                 req = sum(reqs[i].values())
                                 deliv = sum(delivs[i].values())
-                                row.append(f"{int(deliv * 100 / (req+deliv))}%")
+                                row.append(f"{int(deliv * 100 / req)}%")
                             elif build.get('State', '') == BuildState.COMPLETE:
                                 row.append('Complete')
                             else:
@@ -499,7 +499,7 @@ class ColonisationWindow:
         '''
         Update the display with current system data
         '''
-        systems = self.colonisation.get_all_systems()
+        systems:list = self.colonisation.get_all_systems()
         for i, tab in enumerate(self.sheets):
             system = systems[i]
             #Debug.logger.debug(f"Updating system {i} {system.get('Name')}")
@@ -538,10 +538,13 @@ class ColonisationWindow:
             fields = list(self.detail_cols.keys())
             field = fields[col]
 
+            systems:list = self.colonisation.get_all_systems()
+
             # If they set the base type to empty remove the build
             if field == 'Base Type' and val == ' ':
                 Debug.logger.debug(f" Removing build {row} from system {tabnum}")
-                self.colonisation.remove_build(self.colonisation.systems[tabnum], row)
+
+                self.colonisation.remove_build(systems[tabnum], row)
                 data = self.sheets[tabnum].data
                 data.pop(row + FIRST_BUILD_ROW)
                 self.sheets[tabnum].set_sheet_data(data)
@@ -552,18 +555,18 @@ class ColonisationWindow:
             # Toggle the tracked status.
             if field == 'Track':
                 # Make sure the plan name is up to date.
-                self.colonisation.systems[tabnum]['Builds'][row]['Plan'] = self.colonisation.systems[tabnum].get('Name')
-                self.colonisation.update_build_tracking(self.colonisation.systems[tabnum]['Builds'][row], val)
+                systems[tabnum]['Builds'][row]['Plan'] = systems[tabnum].get('Name')
+                self.colonisation.update_build_tracking(systems[tabnum]['Builds'][row], val)
                 self.update_display()
                 return
 
-            if row >= len(self.colonisation.systems[tabnum]['Builds']):
-                self.colonisation.add_build(self.colonisation.systems[tabnum])
+            if row >= len(systems[tabnum]['Builds']):
+                self.colonisation.add_build(systems[tabnum])
                 Debug.logger.debug(f"Added build")
 
             # Any other fields, just update the build data and market it as dirty.
             Debug.logger.debug(f"Updated {row} {field} to {val}")
-            self.colonisation.systems[tabnum]['Builds'][row][field] = val
+            systems[tabnum]['Builds'][row][field] = val
             self.colonisation.dirty = True
             self.update_display()
 
@@ -580,7 +583,7 @@ class ColonisationWindow:
         dialog.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
         # System name
-        ttk.Label(dialog, text=_("Plan Name:")).grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
         plan_name_var = tk.StringVar()
         plan_name_entry = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
         plan_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
@@ -617,12 +620,12 @@ class ColonisationWindow:
             Debug.logger.debug(f"Adding system {plan_name} {system_name}")
 
             # Add the system
-            system = self.colonisation.add_system(plan_name, system_name)
+            system:dict = self.colonisation.add_system(plan_name, system_name)
             if system == False:
                 messagebox.showerror(_("Error"), f"Unable to create system.")
                 return
 
-            systems = self.colonisation.get_all_systems()
+            systems:list = self.colonisation.get_all_systems()
             self.create_system_tab(system, len(systems)-1)
             self.update_display()
 

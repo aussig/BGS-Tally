@@ -262,13 +262,13 @@ class ProgressWindow:
         Main display update function.
         '''
         try:
-            Debug.logger.debug(f"Updating progress display")
+            #Debug.logger.debug(f"Updating progress display")
             tracked:list = self.colonisation.get_tracked_builds()
-            Debug.logger.debug(f"{tracked}")
+            #Debug.logger.debug(f"{tracked}")
             required:dict = self.colonisation.get_required(tracked)
-            Debug.logger.debug(f"{required}")
+            #Debug.logger.debug(f"{required}")
             delivered:dict = self.colonisation.get_delivered(tracked)
-            Debug.logger.debug(f"{delivered}")
+            #Debug.logger.debug(f"{delivered}")
 
             if len(tracked) == 0:
                 Debug.logger.debug("No progress to display")
@@ -292,7 +292,7 @@ class ProgressWindow:
             if comms == None or comms == []:
                 Debug.logger.info(f"No commodities found")
                 return
-
+#tobuy > 0 and self.colonisation.docked == True
             for i, c in enumerate(comms):
                 row = self.rows[i]
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
@@ -428,9 +428,10 @@ class ProgressWindow:
         fnt = tkFont.Font(font=item['font']).actual()
         item.configure(font=(fnt['family'], fnt['size'], w))
 
+
     def highlight_row(self, row, c, qty = 0) -> None:
         '''
-        Highlight rows depending on the state of the row.
+        Highlight rows depending on the state
         '''
         tobuy = qty - self.colonisation.carrier_cargo.get(c, 0) - self.colonisation.cargo.get(c, 0)
         space = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
@@ -446,10 +447,10 @@ class ProgressWindow:
                 row[col]['fg'] = 'darkslategrey'; self.weight(row[col], 'normal')
 
             # What's available at this market if we need any and have room
-            if self.colonisation.docked == True and c in self.colonisation.market: # market!
+            if tobuy > 0 and self.colonisation.docked == True and c in self.colonisation.market: # market!
                 row[col]['fg'] = 'steelblue'
                 self.weight(row[col], 'bold' if qty > 0 and space > 0 else 'normal')
 
-            # Nothing left to buy
-            if tobuy <= 0:
+            # Nothing left to do
+            if qty <= 0:
                 row[col]['fg'] = 'grey'; self.weight(row[col], 'normal')

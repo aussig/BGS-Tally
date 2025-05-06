@@ -63,6 +63,7 @@ class Colonisation:
             Debug.logger.error(f"Error loading base types: {e}")
             self.base_types = {}
 
+
     def load_base_costs(self):
         """
         Load base cost definitions from base_costs.json
@@ -111,18 +112,22 @@ class Colonisation:
         try:
             match entry.get('event'):
                 case 'StartUp': # Synthetic event.
-                    Debug.logger.debug(f"StartUp event: {entry}")
+                    #Debug.logger.debug(f"StartUp event: {entry}")
+                    self.system_id = entry.get('SystemAddress', None)
+                    self.body = entry.get('Body', None)
+                    self.station = entry.get('StationName', None)
+                    self.marketid = entry.get('MarketID', None)
+
                     self.update_cargo(state.get('Cargo'))
-                    self.update_market()
+                    self.update_market(self.marketid)
                     self.update_carrier()
-                    #self.system_id = entry.get('SystemAddress')
-                    #self.body = None
-                    #self.station = None
-                    #self.marketid = None
                     self.dirty = True
 
                 case 'Cargo':
                     self.update_cargo(state.get('Cargo'))
+                    if self.marketid == self.bgstally.fleet_carrier.carrier_id:
+                        self.update_carrier()
+
                     self.dirty = True
 
                 case 'CargoTransfer':
@@ -137,28 +142,32 @@ class Colonisation:
                     system['Claimed'] = entry.get('timestamp', datetime.now().isoformat())
 
                     self.dirty = True
-                    Debug.logger.debug(f"System claimed: {entry.get('StarSystem', '')}")
+                    Debug.logger.info(f"System claimed: {entry.get('StarSystem', '')}")
 
                 case 'ColonisationConstructionDepot':
+                    Debug.logger.info(f"ColonisationConstructionDepot event: {entry}")
                     if not entry.get('MarketID'):
                         Debug.logger.info(f"Invalid ColonisationConstructionDepot event: {entry}")
                         return
 
                     progress:dict = self.find_or_create_progress(entry.get('MarketID'))
 
-                    progress['Updated'] = entry.get('TimeStamp')
+                    progress['Updated'] = entry.get('timestamp')
                     for f in ['ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ResourcesRequired']:
                         progress[f] = entry.get(f)
+
+                    Debug.logger.info(f"Progress updated: {progress}")
                     self.dirty = True
 
                 case 'Docked':
                     build_state:BuildState = None
                     self.update_market(entry.get('MarketID'))
+                    self.station = entry.get('StationName')
                     self.docked = True
 
                     # Figure out the station name, location, and if it's one we are or should have recorded
                     name:str = ''; type:str = ''; state:BuildState = None
-                    if re.match('(Construction Site|ColonisationShip)', entry.get('StationName', '')):
+                    if 'Construction Site' in entry.get('StationName', '') or 'ColonisationShip' in entry.get('StationName', ''):
                         build_state = BuildState.PROGRESS
                         name = re.sub('^.* Construction Site: ', '', entry['StationName'])
                         type = re.sub('^(.*) Construction Site: .*$', '\1', entry['StationName'])
@@ -174,7 +183,7 @@ class Colonisation:
                     # If this isn't a colonisation ship or a system we're building, or a carrier, ignore it.
                     if build_state == None or entry.get('StationType') == 'FleetCarrier':
                         self.bgstally.ui.window_progress.update_display()
-                        Debug.logger.debug(f"Not a construction or a system we're building")
+                        #Debug.logger.debug(f"Not a construction or a system we're building")
                         return
 
                     system:dict = self.find_or_create_system(entry.get('StarSystem'), entry.get('SystemAddress'))
@@ -189,8 +198,13 @@ class Colonisation:
                     build['Location'] = type
                     build['State'] = build_state
                     build['Track'] = (build_state != BuildState.COMPLETE)
-
+                    #Debug.logger.debug(f"Setting {name} build state {build_state} and track {(build_state != BuildState.COMPLETE)}")
                     self.dirty = True
+
+                case 'Market':
+                    self.update_market(entry.get('MarketID'))
+                    if entry.get('MarketID') == self.bgstally.fleet_carrier.carrier_id:
+                        self.update_carrier()
 
                 case 'LoadOut':
                     # Let's not consider tiny capacities as they'll create silly numbers and you're probably not
@@ -214,7 +228,8 @@ class Colonisation:
                     self.system_id = entry.get('SystemAddress')
                     self.body = entry.get('Body')
 
-                    if entry.get('BodyType') == 'Fleetcarrier': return
+                    if 'Construction Site' in self.station or 'ColonisationShip' in self.station or entry.get('BodyType') == 'Fleetcarrier':
+                        return
 
                     system = self.find_system(entry.get('StarSystem'), entry.get('SystemAddress'))
                     if system == None: return
@@ -233,7 +248,7 @@ class Colonisation:
                     if self.body and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
                         build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
                     build['Track'] = False
-                    Debug.logger.debug(f"Updating build info for: {entry.get('StarSystem')} {self.body} {self.station} {build}")
+                    #Debug.logger.debug(f"SEExit updating build info for: {entry.get('StarSystem')} {self.body} {self.station} {build}")
                     self.dirty
 
                 case 'Undocked':
@@ -244,8 +259,9 @@ class Colonisation:
 
             # Save immediately to ensure we don't lose any data
             if self.dirty == True:
-                self.bgstally.ui.window_progress.update_display()
                 self.save()
+                self.bgstally.ui.window_progress.update_display()
+
 
         except Exception as e:
             Debug.logger.error(f"Error processing event: {e}")
@@ -315,6 +331,7 @@ class Colonisation:
 
         return status
 
+
     def find_system(self, name=None, addr=None) -> dict:
         """
         Find a system by addres, name, or plan name
@@ -325,6 +342,7 @@ class Colonisation:
         if system == None:
             system = self.get_system('Name', name)
         return system
+
 
     def find_or_create_system(self, name, addr) -> dict:
         """
@@ -345,6 +363,7 @@ class Colonisation:
             Debug.logger.warning(f"Cannot add system - already exists: {plan_name}")
             return False
 
+
         # Create new system
         system_data:dict = {
             'Name': plan_name,
@@ -360,7 +379,8 @@ class Colonisation:
 
 
     def remove_system(self, index: int) -> bool:
-        del self.systems[index]
+        systems = self.get_all_systems() # It's a sorted list, index isn't reliable unless sorted!
+        del systems[index]
         self.dirty = True
 
         return True
@@ -389,6 +409,7 @@ class Colonisation:
                 tracked.append(build)
 
         return tracked
+
 
     def get_system_builds(self, system:dict) -> list[dict]:
         '''
@@ -463,8 +484,8 @@ class Colonisation:
             Debug.logger.warning(f"Cannot remove build - unknown system")
             return False
 
-        if build_index not in range(0, len(system['Builds']-1)):
-            Debug.logger.warning(f"Cannot remove build - invalid build index: {build_index}")
+        if build_index >= len(system['Builds']):
+            Debug.logger.warning(f"Cannot remove build - invalid build index: {build_index} {len(system['Builds'])} {system['Builds']}")
             return False
 
         # Remove build
@@ -565,7 +586,7 @@ class Colonisation:
             self.progress[id] = { 'MarketID': id }
         self.dirty = True
 
-        return self.progress.get(id)
+        return self.progress[id]
 
 
     def update_carrier(self):
@@ -583,7 +604,7 @@ class Colonisation:
                         carrier[n] = 0
                     carrier[n] += int(item['qty'])
 
-            Debug.logger.debug(f"Carrier: {carrier}")
+            #Debug.logger.debug(f"Carrier: {carrier}")
             self.carrier_cargo = carrier
 
         except Exception as e:
@@ -597,15 +618,13 @@ class Colonisation:
         '''
         try:
             tmp = {}
-            Debug.logger.debug(f"cargo updated: {cargo}")
             for k, v in cargo.items():
-                Debug.logger.debug(f"{k} {v}")
                 if v > 0:
                     k = f"${k.lower()}_name;"
                     tmp[k] = v
             self.cargo = tmp
+            #Debug.logger.debug(f"cargo updated: {self.cargo}")
 
-            Debug.logger.debug(f"cargo updated: {self.cargo}")
         except Exception as e:
             Debug.logger.info(f"Unable update the cargo data")
             Debug.logger.error(traceback.format_exc())
@@ -617,13 +636,16 @@ class Colonisation:
 
             if marketid == None:
                 self.market = {}
-                Debug.logger.debug(f"Market cleared: {market}")
+                #Debug.logger.debug(f"Market cleared: {market}")
                 return
 
             if self.bgstally.market.available(marketid):
-                self.market = self.bgstally.market.commodities
-                Debug.logger.debug(f"Market copied: {self.market}")
-                return
+                for name, item in self.bgstally.market.commodities.items():
+                    if item.get('Stock') > 0:
+                        market[item.get('Name')] = item.get('Stock')
+                Debug.logger.debug(f"Market copied from bgstally.market: {self.market}")
+                if market != {}:
+                    return
 
             # The market object doesn't have a market for us so we'll load it ourselves.
             journal_dir:str = config.get_str('journaldir') or config.default_journal_Name_dir
@@ -637,7 +659,7 @@ class Colonisation:
                             market[item.get('Name')] = item.get('Stock')
             self.market = market
 
-            Debug.logger.debug(f"Market updated: {market}")
+            #Debug.logger.debug(f"Market updated: {market}")
 
         except Exception as e:
             Debug.logger.info(f"Unable to load {MARKET_FILENAME} from the player journal folder")
@@ -654,6 +676,7 @@ class Colonisation:
                 return source[n]
 
         return default
+
 
     def load(self):
         """
@@ -680,19 +703,23 @@ class Colonisation:
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile, indent=4)
 
+
     def _as_dict(self):
         """
         Return a Dictionary representation of our data, suitable for serializing
         """
         return {
-            'Docked' : self.docked,
-            'System' : self.system_id,
+            'Docked': self.docked,
+            'SystemID': self.system_id,
+            'Body': self.body,
+            'Station': self.station,
+            'MarketID': self.marketid,
             'Progress': self.progress,
             'Systems': self.systems,
             'CargoCapacity': self.cargo_capacity,
-            'Carrier' : self.carrier_cargo,
-            'Cargo' : self.cargo,
-            'Market' : self.market
+            'Carrier': self.carrier_cargo,
+            'Cargo': self.cargo,
+            'Market': self.market
             }
 
 
@@ -701,7 +728,10 @@ class Colonisation:
         Populate our data from a Dictionary that has been deserialized
         """
         self.docked = dict.get('Docked', False)
-        self.system_id = dict.get('Sytstem')
+        self.system_id = dict.get('SystemID', None)
+        self.body = dict.get('Body', None)
+        self.station = dict.get('Station', None)
+        self.marketid = dict.get('MarketID', None)
         self.progress = dict.get('Progress', [])
         self.systems = dict.get('Systems', [])
         self.carrier_cargo = dict.get('Carrier', {})

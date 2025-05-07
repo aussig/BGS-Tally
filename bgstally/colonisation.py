@@ -287,18 +287,7 @@ class Colonisation:
         """
         Get all systems being tracked for colonisation
         """
-        def sort_order(item:dict):
-            state:BuildState = BuildState.COMPLETE
-            for b in item['Builds']:
-                if b.get('State') == BuildState.PLANNED and state != BuildState.PROGRESS:
-                    state = BuildState.PLANNED
-                if b.get('State') == BuildState.PROGRESS:
-                    state = BuildState.PROGRESS
-
-            return state.value
-
-        # Fortuitously our desired order matches the reverse alpha of the states
-        return list(sorted(self.systems, key=sort_order, reverse=True))
+        return self.systems
 
 
     def get_system(self, key: str, value: str) -> dict:
@@ -714,6 +703,21 @@ class Colonisation:
         """
         Return a Dictionary representation of our data, suitable for serializing
         """
+
+        def sort_order(item:dict):
+            state:BuildState = BuildState.COMPLETE
+            for b in item['Builds']:
+                if b.get('State') == BuildState.PLANNED and state != BuildState.PROGRESS:
+                    state = BuildState.PLANNED
+                if b.get('State') == BuildState.PROGRESS:
+                    state = BuildState.PROGRESS
+            return state.value
+
+        # We sort the order of systems when saving so that in progress systems are first, then planned, then complete.
+        # Fortuitously our desired order matches the reverse alpha of the states
+        systems = list(sorted(self.systems, key=sort_order, reverse=True))
+
+        Debug.logger.debug(f"Systems {systems}")
         return {
             'Docked': self.docked,
             'SystemID': self.system_id,
@@ -722,7 +726,7 @@ class Colonisation:
             'Station': self.station,
             'MarketID': self.marketid,
             'Progress': self.progress,
-            'Systems': self.systems,
+            'Systems': systems,
             'CargoCapacity': self.cargo_capacity,
 #            'Carrier': self.carrier_cargo,
 #            'Cargo': self.cargo,

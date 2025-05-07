@@ -537,42 +537,42 @@ class ColonisationWindow:
             Debug.logger.debug(f"Changed {tabnum} {row} {col}: {val} ")
             fields = list(self.detail_cols.keys())
             field = fields[col]
-
             systems:list = self.colonisation.get_all_systems()
-
-            # If they set the base type to empty remove the build
-            if field == 'Base Type' and val == ' ':
-                Debug.logger.debug(f" Removing build {row} from system {tabnum}")
-
-                self.colonisation.remove_build(systems[tabnum], row)
-                data = self.sheets[tabnum].data
-                data.pop(row + FIRST_BUILD_ROW)
-                self.sheets[tabnum].set_sheet_data(data)
-                self.config_sheet(self.sheets[tabnum])
-                self.update_display()
-                return
-
-            # Toggle the tracked status.
-            if field == 'Track':
-                # Make sure the plan name is up to date.
-                systems[tabnum]['Builds'][row]['Plan'] = systems[tabnum].get('Name')
-                self.colonisation.update_build_tracking(systems[tabnum]['Builds'][row], val)
-                self.update_display()
-                return
 
             if row >= len(systems[tabnum]['Builds']):
                 self.colonisation.add_build(systems[tabnum])
                 Debug.logger.debug(f"Added build")
 
-            # Any other fields, just update the build data and market it as dirty.
-            Debug.logger.debug(f"Updated {row} {field} to {val}")
-            systems[tabnum]['Builds'][row][field] = val
+            match field:
+                case 'Base Type' if val == ' ':
+                    # If they set the base type to empty remove the build
+                    Debug.logger.debug(f" Removing build {row} from system {tabnum}")
+
+                    self.colonisation.remove_build(systems[tabnum], row)
+                    data = self.sheets[tabnum].data
+                    data.pop(row + FIRST_BUILD_ROW)
+                    self.sheets[tabnum].set_sheet_data(data)
+                    self.config_sheet(self.sheets[tabnum])
+                case 'Track':
+                    # Toggle the tracked status.
+                    # Make sure the plan name is up to date.
+                    systems[tabnum]['Builds'][row]['Plan'] = systems[tabnum].get('Name')
+                    self.colonisation.update_build_tracking(systems[tabnum]['Builds'][row], val)
+
+                case _:
+                    # Any other fields, just update the build data and market it as dirty.
+                    Debug.logger.debug(f"Updated {row} {field} to {val}")
+                    systems[tabnum]['Builds'][row][field] = val
+
             self.colonisation.dirty = True
+            self.colonisation.save()
             self.update_display()
+            return
 
         except Exception as e:
             Debug.logger.error(f"Error in sheet_modified(): {e}")
             Debug.logger.error(traceback.format_exc())
+
 
 
     def add_system_dialog(self) -> None:

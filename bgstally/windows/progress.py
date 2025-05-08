@@ -50,6 +50,7 @@ class ProgressWindow:
                         }
 
         # UI components
+        self.frame = None
         self.title:tk.Label = None # Title object
         self.colheadings:dict = {} # Column headings
         self.rows:dict = []
@@ -70,6 +71,7 @@ class ProgressWindow:
 
             frame:tk.Frame = tk.Frame(parent_frame)
             frame.grid(row=row, column=0, columnspan=20, sticky=tk.EW)
+            self.frame = frame
 
             row:int = 0; col:int = 0
 
@@ -122,11 +124,14 @@ class ProgressWindow:
             # Column headings
             row = 0
             for i, col in enumerate(self.columns.keys()):
+                if col == 'Carrier' and not self.bgstally.fleet_carrier.available():
+                    continue
                 c = tk.Label(table_frame, text=_(col), cursor='hand2', fg='black')
                 c.grid(row=row, column=i, sticky=self.columns[col])
                 c.bind("<Button-1>", partial(self.change_view, col))
                 self.weight(c)
                 self.colheadings[col] = c
+
             row += 1
 
             for i, col in enumerate(self.columns.keys()):
@@ -234,7 +239,6 @@ class ProgressWindow:
         Open the link to Inara for nearest location for the commodity.
         '''
         try:
-            Debug.logger.debug(f"Link called")
             comm_id = self.colonisation.base_costs['All'].get(comm)
             sys:str = self.colonisation.current_system if self.colonisation.current_system != None else 'sol'
             # pi3=3 - large, pi3=2 - medium
@@ -266,7 +270,8 @@ class ProgressWindow:
             required:dict = self.colonisation.get_required(tracked)
             delivered:dict = self.colonisation.get_delivered(tracked)
 
-            if len(tracked) == 0:
+            if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
+                self.frame.pack_forget()
                 Debug.logger.debug("No progress to display")
                 return
 
@@ -370,7 +375,8 @@ class ProgressWindow:
                             carrierstr = f"{carrier:,} t"
 
                     row['Carrier']['text'] = carrierstr
-                    row['Carrier'].grid()
+                    if self.bgstally.fleet_carrier.available():
+                        row['Carrier'].grid()
 
                     self.highlight_row(row, c, remaining)
 
@@ -410,7 +416,8 @@ class ProgressWindow:
             self.progcols['Required'].set(remaining * 100 / reqcnt)
             self.progcols['Delivered'].set(delcnt * 100 / reqcnt)
             self.progcols['Cargo'].set(cargo * 100 / self.colonisation.cargo_capacity)
-            self.progcols['Carrier'].set(carrier * 100 / remaining) # Need to figure out carrier space
+            if remaining > 0:
+                self.progcols['Carrier'].set(carrier * 100 / remaining) # Need to figure out carrier space
 
         except Exception as e:
             Debug.logger.info(f"Error updating display")

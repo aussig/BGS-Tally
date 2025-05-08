@@ -531,7 +531,7 @@ class Colonisation:
                         res[c.get('Name')] = c.get(type)
 
                 # No actual data so we use the estimates from the base costs
-                if res == {}: res = self.base_costs.get(b.get('Base Type'), {})
+                if res == {} and type != 'ProvidedAmount': res = self.base_costs.get(b.get('Base Type'), {})
                 if res != {}: found += 1
 
                 prog.append(res)
@@ -676,8 +676,6 @@ class Colonisation:
                 Debug.logger.warning(f"Unable to load {file}")
                 Debug.logger.error(traceback.format_exc())
 
-        Debug.logger.debug(f"Loaded progress: {len(self.progress.keys())} systems: {len(self.systems)}")
-
 
     def save(self, cause:str = 'Unknown'):
         """
@@ -716,8 +714,6 @@ class Colonisation:
         # We sort the order of systems when saving so that in progress systems are first, then planned, then complete.
         # Fortuitously our desired order matches the reverse alpha of the states
         systems = list(sorted(self.systems, key=sort_order, reverse=True))
-
-        Debug.logger.debug(f"Systems {systems}")
         return {
             'Docked': self.docked,
             'SystemID': self.system_id,

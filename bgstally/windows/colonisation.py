@@ -32,9 +32,9 @@ class ColonisationWindow:
 
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
         self.summary_cols:dict = {
-            'Total': {'header': _("Total"), 'background': False, 'format': 'int'},
-            'Orbital': {'header': _("Orbital"), 'background': False, 'format': 'int'},
-            'Surface': {'header': _("Surface"), 'background': False, 'format': 'int'},
+            'Total': {'header': _("Total"), 'background': 'lightgoldenrod', 'format': 'int'},
+            'Orbital': {'header': _("Orbital"), 'background': 'lightgoldenrod', 'format': 'int'},
+            'Surface': {'header': _("Surface"), 'background': 'lightgoldenrod', 'format': 'int'},
             'T2': {'header': _("T2"), 'background': True, 'format': 'int', 'max': 1},
             'T3': {'header': _("T3"), 'background': True, 'format': 'int', 'max': 1},
             'Cost': {'header': _("Cost"), 'background': False, 'format': 'int'},
@@ -122,12 +122,13 @@ class ColonisationWindow:
                 Debug.logger.debug(f"No systems so not creating colonisation section")
                 return
 
-            for i, system in enumerate(systems):
+            for sysnum, system in enumerate(systems):
                 # Create a frame for the sytem
-                self.create_system_tab(i, system)
+                tabnum = sysnum +1
+                self.create_system_tab(tabnum, system)
 
             # Select the first tab
-            if i > 0:
+            if tabnum > 0:
                 self.tabbar.select(1)
                 self.current_system = self.colonisation.get_system('Name', systems[0]['Name'])
 
@@ -162,17 +163,18 @@ class ColonisationWindow:
 
         match state:
             case BuildState.COMPLETE:
-                self.tabbar.notebookTab.tab(tabnum+1, image=self.image_tab_complete)
+                self.tabbar.notebookTab.tab(tabnum, image=self.image_tab_complete)
             case BuildState.PROGRESS:
-                self.tabbar.notebookTab.tab(tabnum+1, image=self.image_tab_progress)
+                self.tabbar.notebookTab.tab(tabnum, image=self.image_tab_progress)
             case BuildState.PLANNED:
-                self.tabbar.notebookTab.tab(tabnum+1, image=self.image_tab_planned)
+                self.tabbar.notebookTab.tab(tabnum, image=self.image_tab_planned)
 
 
     def create_title_frame(self, tabnum:int, tab:ttk.Frame) -> None:
         """
         Create the title frame with system name and tick info
         """
+        sysnum = tabnum -1
         #Debug.logger.debug(f"Creating title frame for tab {tabnum}")
         title_frame:ttk.Frame = ttk.Frame(tab, style="Title.TFrame")
         title_frame.pack(fill=tk.X, padx=0, pady=(0, 5))
@@ -182,20 +184,20 @@ class ColonisationWindow:
         style.configure("Title.TFrame")
 
         # System name label
-        while len(self.plan_titles) <= tabnum:
+        while len(self.plan_titles) <= sysnum:
             self.plan_titles.append({})
 
         name_label:ttk.Label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
         name_label.pack(side=tk.LEFT, padx=10, pady=5)
 
-        self.plan_titles[tabnum]['Name'] = name_label
+        self.plan_titles[sysnum]['Name'] = name_label
 
         sys_label:ttk.Label = ttk.Label(title_frame, text="", cursor="hand2")
         sys_label.pack(side=tk.LEFT, padx=10, pady=5)
         self.weight(sys_label)
         sys_label.bind("<Button-1>", partial(self.inara_click, tabnum))
 
-        self.plan_titles[tabnum]['System'] = sys_label
+        self.plan_titles[sysnum]['System'] = sys_label
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), command=lambda: self.delete_system(tabnum, tab))
         btn.pack(side=tk.RIGHT, padx=10, pady=5)
@@ -206,10 +208,11 @@ class ColonisationWindow:
         Execute the click event for the Inara link
         '''
         try:
-            if tabnum >= len(self.plan_titles):
+            sysnum = tabnum -1
+            if sysnum > len(self.plan_titles):
                 Debug.logger.info(f"on_inara_click invalid tab: {tabnum}")
                 return
-            star:str = self.plan_titles[tabnum]['System']['text'].replace(' ⤴', '')
+            star:str = self.plan_titles[sysnum]['System']['text'].replace(' ⤴', '')
             webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={star}")
 
         except Exception as e:
@@ -249,25 +252,25 @@ class ColonisationWindow:
         sheet.enable_bindings('single_select', 'edit_cell', 'up', 'down', 'left', 'right', 'copy', 'paste')
         sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, tabnum))
 
-        if len(self.sheets) <= tabnum:
+        if len(self.sheets) < tabnum:
             self.sheets.append(sheet)
         else:
-            self.sheets[tabnum] = sheet
+            self.sheets[tabnum-1] = sheet
 
 
-    def update_title(self, t, system) -> None:
+    def update_title(self, index:int, system:dict) -> None:
             '''
             Update title with both display name and actual system name
             '''
             name:str = system.get('Name') if system.get('Name') != None else system.get('StarSystem', _('Unknown'))
-            sysname:str = system.get('StarSystem', '') + ' ⤴' if system.get('StarSystem') != None else None
+            sysname:str = system.get('StarSystem', '') + ' ⤴' if system.get('StarSystem') != '' else ''
 
-            self.plan_titles[t]['Name']['text'] = name
-            self.plan_titles[t]['System']['text'] = sysname
+            self.plan_titles[index]['Name']['text'] = name
+            self.plan_titles[index]['System']['text'] = sysname
 
             # Hide the system name if it is unknown
             if sysname == None:
-                self.plan_titles[t]['System'].pack_forget()
+                self.plan_titles[index]['System'].pack_forget()
 
 
     def config_sheet(self, sheet:Sheet) -> None:
@@ -339,6 +342,10 @@ class ColonisationWindow:
                         v = self.calc_points(name, builds, row)
                         totals['Planned'][name] += v
                         totals['Completed'][name] += v if self.is_build_completed(build) else 0
+                    case 'Development Level':
+                        res = bt.get(name, 0) if row > 0 else 37 # They give 37 as a baseline apparently
+                        totals['Planned'][name] += res
+                        totals['Completed'][name] += res if self.is_build_completed(build) else 0
                     case 'Cost' if row < len(required):
                         res = sum(required[row].values())
                         totals['Planned'][name] += res
@@ -391,6 +398,9 @@ class ColonisationWindow:
                     tab[i+srow,j+scol].highlight(bg=color)
                     if color != '':
                         tab[i+srow,j+scol].highlight(bg=color)
+                elif details.get('background') != False and details.get('background') != True:
+                    Debug.logger.debug(f"Manual bg color for {details.get('header')} {details.get('background')}")
+                    tab[i+srow,j+scol].highlight(bg=details.get('background'))
                 else:
                     tab[i+srow,j+scol].highlight(bg=None)
 
@@ -442,6 +452,7 @@ class ColonisationWindow:
                             else:
                                 row.append('Planned')
                             continue
+
                         if name == 'Body' and build.get('Body', None) != None and system.get('StarSystem', None) != None:
                             row.append(build.get('Body').replace(system.get('StarSystem') + ' ', ''))
                             continue
@@ -451,7 +462,7 @@ class ColonisationWindow:
             details.append(row)
 
         # Is the last line an uncategorized base? If not add another
-        if details[-1][1] != ' ':
+        if len(details) == 0 or details[-1][1] != ' ':
             row:list = [' '] * (len(list(self.detail_cols.keys())) -1)
             details.append(row)
 
@@ -491,22 +502,22 @@ class ColonisationWindow:
                     # Base name
                     tab[i+srow,2].readonly()
 
-        if len(tab.data) > len(system.get('Builds', [])) + FIRST_BUILD_ROW + 1:
-            Debug.logger.debug(f"Too many build rows in the sheet {len(tab.data)} {len(system.get('Builds', [])) + FIRST_BUILD_ROW}")
-
 
     def update_display(self) -> None:
         '''
         Update the display with current system data
         '''
-        systems:list = self.colonisation.get_all_systems()
-        for i, tab in enumerate(self.sheets):
-            system = systems[i]
-            #Debug.logger.debug(f"Updating system {i} {system.get('Name')}")
-            self.update_title(i, system)
-            self.update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
-            self.update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
-
+        try:
+            systems:list = self.colonisation.get_all_systems()
+            for i, tab in enumerate(self.sheets):
+                system = systems[i]
+                #Debug.logger.debug(f"Updating system {i} {system.get('Name')}")
+                self.update_title(i, system)
+                self.update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
+                self.update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
+        except Exception as e:
+            Debug.logger.error(f"Error in validate_edits(): {e}")
+            Debug.logger.error(traceback.format_exc())
 
     def validate_edits(self, event) -> bool:
         '''
@@ -528,41 +539,55 @@ class ColonisationWindow:
 
     def sheet_modified(self, tabnum:int, event) -> None:
         try:
+            sysnum = tabnum -1
+
             # We only deal with edits.
             if not event.eventname.endswith('edit_table'):
                 return
 
             row = event.row - FIRST_BUILD_ROW; col = event.column; val = event.value
 
-            Debug.logger.debug(f"Changed {tabnum} {row} {col}: {val} ")
             fields = list(self.detail_cols.keys())
             field = fields[col]
             systems:list = self.colonisation.get_all_systems()
 
-            if row >= len(systems[tabnum]['Builds']):
-                self.colonisation.add_build(systems[tabnum])
-                Debug.logger.debug(f"Added build")
-
             match field:
                 case 'Base Type' if val == ' ':
                     # If they set the base type to empty remove the build
-                    Debug.logger.debug(f" Removing build {row} from system {tabnum}")
-
-                    self.colonisation.remove_build(systems[tabnum], row)
-                    data = self.sheets[tabnum].data
+                    self.colonisation.remove_build(systems[sysnum], row)
+                    data = self.sheets[sysnum].data
                     data.pop(row + FIRST_BUILD_ROW)
-                    self.sheets[tabnum].set_sheet_data(data)
-                    self.config_sheet(self.sheets[tabnum])
+                    self.sheets[sysnum].set_sheet_data(data)
+                    self.config_sheet(self.sheets[sysnum])
+
+                case 'Base Type' if val != ' ':
+                    if row >= len(systems[sysnum]['Builds']):
+                        self.colonisation.add_build(systems[sysnum])
+                        systems[sysnum]['Builds'][row][field] = val
+
+                        # Initial cell population
+                        data:list = []
+                        data.append(self.get_summary_header())
+                        data += self.get_summary(systems[sysnum])
+
+                        data.append(self.get_detail_header())
+                        data += self.get_detail(systems[sysnum])
+
+                        self.sheets[sysnum].set_sheet_data(data)
+                        self.config_sheet(self.sheets[sysnum])
+
+                    systems[sysnum]['Builds'][row][field] = val
+
+
                 case 'Track':
                     # Toggle the tracked status.
                     # Make sure the plan name is up to date.
-                    systems[tabnum]['Builds'][row]['Plan'] = systems[tabnum].get('Name')
-                    self.colonisation.update_build_tracking(systems[tabnum]['Builds'][row], val)
+                    systems[sysnum]['Builds'][row]['Plan'] = systems[sysnum].get('Name')
+                    self.colonisation.update_build_tracking(systems[sysnum]['Builds'][row], val)
 
                 case _:
-                    # Any other fields, just update the build data and market it as dirty.
-                    Debug.logger.debug(f"Updated {row} {field} to {val}")
-                    systems[tabnum]['Builds'][row][field] = val
+                    # Any other fields, just update the build data and mark it as dirty.
+                    systems[sysnum]['Builds'][row][field] = val
 
             self.colonisation.dirty = True
             self.colonisation.save()
@@ -617,8 +642,6 @@ class ColonisationWindow:
                 messagebox.showerror(_("Error"), _("Plan name is required"))
                 return
 
-            Debug.logger.debug(f"Adding system {plan_name} {system_name}")
-
             # Add the system
             system:dict = self.colonisation.add_system(plan_name, system_name)
             if system == False:
@@ -626,7 +649,7 @@ class ColonisationWindow:
                 return
 
             systems:list = self.colonisation.get_all_systems()
-            self.create_system_tab(system, len(systems)-1)
+            self.create_system_tab(len(systems), system)
             self.update_display()
 
         except Exception as e:
@@ -709,6 +732,7 @@ class ColonisationWindow:
         Remove the current system
         """
         try:
+            sysnum = tabnum -1
             # Confirm removal
             if not messagebox.askyesno(
                 _("Confirm Removal"),
@@ -716,13 +740,15 @@ class ColonisationWindow:
             ):
                 return
 
-            if tabnum >= len(self.colonisation.get_all_systems()):
-                Debug.logger.info(f"Invalid tab {tabnum}")
+            if sysnum > len(self.colonisation.get_all_systems()):
+                Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
             Debug.logger.info(f"Deleting system {tabnum}")
             tabs = self.tabbar.tabs()
-            self.tabbar.forget(tabs[tabnum+1]) # +1 for the add tab
-            self.colonisation.remove_system(tabnum)
+            self.tabbar.forget(tabs[tabnum])
+            del self.sheets[sysnum]
+            del self.plan_titles[sysnum]
+            self.colonisation.remove_system(sysnum)
 
             self.update_display()
 

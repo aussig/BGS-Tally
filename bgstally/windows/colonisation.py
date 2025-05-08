@@ -343,7 +343,7 @@ class ColonisationWindow:
                         totals['Planned'][name] += v
                         totals['Completed'][name] += v if self.is_build_completed(build) else 0
                     case 'Development Level':
-                        res = bt.get(name, 0) if row > 0 else 37 # They give 37 as a baseline apparently
+                        res = bt.get(name, 0)
                         totals['Planned'][name] += res
                         totals['Completed'][name] += res if self.is_build_completed(build) else 0
                     case 'Cost' if row < len(required):
@@ -357,6 +357,9 @@ class ColonisationWindow:
                     case _ if col.get('format') == 'int':
                         totals['Planned'][name] += bt.get(name, 0)
                         totals['Completed'][name] += bt.get(name, 0) if self.is_build_completed(build) else 0
+
+        totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], 35)
+        totals['Completed']['Technology Level'] = max(totals['Planned']['Technology Level'], 35)
 
         return totals
 

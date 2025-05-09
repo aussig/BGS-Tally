@@ -312,8 +312,8 @@ class ProgressWindow:
                 # If the view is reduced we don't show ones that are complete. Also,
                 # If we're docked at a station, and in reduced view, we only show locally available commodities
                 if reqcnt > 0 and \
-                   (self.view == View.FULL or remaining > 0) and \
-                   (self.view == View.FULL or self.colonisation.docked == False or self.colonisation.market == {} or c in self.colonisation.market):
+                   (self.view == View.FULL or remaining > 0) #and \
+                   #(self.view == View.FULL or self.colonisation.docked == False or self.colonisation.market == {} or c in self.colonisation.market):
 
                     # Shorten and display the commodity name
                     colstr = self.colonisation.commodities[c].get('Name', c)
@@ -450,8 +450,7 @@ class ProgressWindow:
                 row[col]['fg'] = 'darkslategrey'; self.weight(row[col], 'normal')
 
             # What's available at this market if we need any and have room
-            #Debug.logger.debug(f"{c} {tobuy} {self.colonisation.docked} {c in self.colonisation.market}")
-            if tobuy > 0 and self.colonisation.docked == True and c in self.colonisation.market: # market!
+            if tobuy > 0 and self.colonisation.docked == True and self.colonisation.market.get(c, 0): # market!
                 row[col]['fg'] = 'steelblue'
                 self.weight(row[col], 'bold' if qty > 0 and space > 0 else 'normal')
 

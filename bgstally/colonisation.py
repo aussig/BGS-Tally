@@ -630,6 +630,7 @@ class Colonisation:
                     if item.get('Stock') > 0:
                         market[item.get('Name')] = item.get('Stock')
                 if market != {}:
+                    self.market = market
                     Debug.logger.debug(f"Market retrieved market: {market}")
                     return
 

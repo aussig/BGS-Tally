@@ -293,7 +293,7 @@ class ProgressWindow:
             if comms == None or comms == []:
                 Debug.logger.info(f"No commodities found")
                 return
-#tobuy > 0 and self.colonisation.docked == True
+
             for i, c in enumerate(comms):
                 row = self.rows[i]
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
@@ -450,6 +450,7 @@ class ProgressWindow:
                 row[col]['fg'] = 'darkslategrey'; self.weight(row[col], 'normal')
 
             # What's available at this market if we need any and have room
+            #Debug.logger.debug(f"{c} {tobuy} {self.colonisation.docked} {c in self.colonisation.market}")
             if tobuy > 0 and self.colonisation.docked == True and c in self.colonisation.market: # market!
                 row[col]['fg'] = 'steelblue'
                 self.weight(row[col], 'bold' if qty > 0 and space > 0 else 'normal')

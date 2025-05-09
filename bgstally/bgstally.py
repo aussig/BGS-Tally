@@ -296,6 +296,7 @@ class BGSTally:
             case 'Undocked' if entry.get('Taxi') == False:
                 self.state.station_faction = ""
                 self.state.station_type = ""
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'WingInvite':
                 self.target_manager.team_invite(entry, system)

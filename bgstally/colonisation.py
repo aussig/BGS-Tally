@@ -216,6 +216,7 @@ class Colonisation:
                 case 'SuperCruiseEntry' | 'FSDJump':
                     self.system_id = entry.get('SystemAddress')
                     self.current_system = entry.get('StarSystem', None)
+                    self.market = {}
                     self.body = None
                     self.station = None
                     self.marketid = None
@@ -629,6 +630,7 @@ class Colonisation:
                     if item.get('Stock') > 0:
                         market[item.get('Name')] = item.get('Stock')
                 if market != {}:
+                    Debug.logger.debug(f"Market retrieved market: {market}")
                     return
 
             # The market object doesn't have a market for us so we'll try loading it ourselves.

@@ -119,7 +119,7 @@ class ColonisationWindow:
             systems:list = self.colonisation.get_all_systems()
 
             if len(systems) == 0:
-                Debug.logger.debug(f"No systems so not creating colonisation section")
+                Debug.logger.info(f"No systems so not creating colonisation section")
                 return
 
             for sysnum, system in enumerate(systems):
@@ -358,8 +358,12 @@ class ColonisationWindow:
                         totals['Planned'][name] += bt.get(name, 0)
                         totals['Completed'][name] += bt.get(name, 0) if self.is_build_completed(build) else 0
 
-        totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], 35)
-        totals['Completed']['Technology Level'] = max(totals['Planned']['Technology Level'], 35)
+        # Deal with the "if you have a starport (t2 orbital) your tech level will be at least 35" rule
+        starports = self.colonisation.get_base_types('Starport')
+        min = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
+        totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
+        min = 35 if len([1 for build in builds if build.get('Base Type') in starports and build.get('State') == BuildState.COMPLETE]) > 0 else 0
+        totals['Completed']['Technology Level'] = max(totals['Completed']['Technology Level'], min)
 
         return totals
 
@@ -402,7 +406,6 @@ class ColonisationWindow:
                     if color != '':
                         tab[i+srow,j+scol].highlight(bg=color)
                 elif details.get('background') != False and details.get('background') != True:
-                    Debug.logger.debug(f"Manual bg color for {details.get('header')} {details.get('background')}")
                     tab[i+srow,j+scol].highlight(bg=details.get('background'))
                 else:
                     tab[i+srow,j+scol].highlight(bg=None)

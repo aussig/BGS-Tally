@@ -312,7 +312,7 @@ class ProgressWindow:
                 # If the view is reduced we don't show ones that are complete. Also,
                 # If we're docked at a station, and in reduced view, we only show locally available commodities
                 if reqcnt > 0 and \
-                   (self.view == View.FULL or remaining > 0) #and \
+                   (self.view == View.FULL or remaining > 0):
                    #(self.view == View.FULL or self.colonisation.docked == False or self.colonisation.market == {} or c in self.colonisation.market):
 
                     # Shorten and display the commodity name

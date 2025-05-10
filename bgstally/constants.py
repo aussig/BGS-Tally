@@ -20,6 +20,7 @@ class CheckStates(str, Enum):
     STATE_PARTIAL = 'Partial'
     STATE_PENDING = 'Pending'
 
+
 class Ticks(Enum):
     TICK_CURRENT = 0
     TICK_PREVIOUS = 1

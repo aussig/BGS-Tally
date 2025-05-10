@@ -210,6 +210,7 @@ class BGSTally:
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
+                self.state.station_type = entry.get('StationType', "")
                 dirty = True
 
             case 'Loadout':

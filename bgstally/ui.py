@@ -19,6 +19,8 @@ from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
 from bgstally.windows.cmdrs import WindowCMDRs
+from bgstally.windows.colonisation import ColonisationWindow
+from bgstally.windows.progress import ProgressWindow
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
 from bgstally.windows.legend import WindowLegend
 from bgstally.windows.objectives import WindowObjectives
@@ -51,8 +53,12 @@ class UI:
         self.image_button_cmdrs = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_cmdrs.png"))
         self.image_button_carrier = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_carrier.png"))
         self.image_button_objectives = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_objectives.png"))
+        self.image_button_colonisation = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_colonisation.png"))
         self.image_icon_green_tick = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_green_tick_16x16.png"))
         self.image_icon_red_cross = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_red_cross_16x16.png"))
+        self.image_icon_left_arrow = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_left_arrow.png"))
+        self.image_icon_right_arrow = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_right_arrow.png"))
+        self.image_icon_change_view = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_change_view.png"))
 
         self.indicate_activity:bool = False
         self.report_system_address:str = None
@@ -64,6 +70,8 @@ class UI:
         self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally)
         self.window_legend:WindowLegend = WindowLegend(self.bgstally)
         self.window_objectives:WindowObjectives = WindowObjectives(self.bgstally)
+        self.window_colonisation:ColonisationWindow = ColonisationWindow(self.bgstally)
+        self.window_progress:ProgressWindow = ProgressWindow(self.bgstally)
 
         # TODO: When we support multiple APIs, this will no longer be a single instance window
         self.window_api:WindowAPI = WindowAPI(self.bgstally, self.bgstally.api_manager.apis[0])
@@ -130,7 +138,13 @@ class UI:
         ToolTip(self.btn_objectives, text=_("Show objectives / missions window")) # LANG: Main window tooltip
         current_column += 1
 
+        self.btn_colonisation: tk.Button = tk.Button(self.frame, image=self.image_button_colonisation, height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_colonisation_window)
+        self.btn_colonisation.grid(row=current_row, column=current_column, padx=3)
+        ToolTip(self.btn_colonisation, text=_("Show colonisation window")) # LANG: Main window tooltip
+        current_column += 1
         current_row += 1
+
+        self.window_progress.create_frame(self.frame, current_row, column_count)
 
         return self.frame
 
@@ -518,6 +532,11 @@ class UI:
         """
         self.window_api.show(parent_frame)
 
+    def _show_colonisation_window(self):
+        """
+        Display the Colonisation Window
+        """
+        self.window_colonisation.show()
 
     def _confirm_force_tick(self):
         """

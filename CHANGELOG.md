@@ -13,10 +13,10 @@
     - Objectives are shown in a new window accessible from the main EDMC window - click the 𖦏 button. The layout is a bit basic at the moment, it will probably improve in future.
     - If you use the in-game overlay, Objectives are also displayed on a new overlay panel in-game.
 
-
 ### Changes:
 
 * When multiple systems are pinned to the in-game overlay, they are now formatted more elegantly, with all system names shown as coloured titles.
+* Fleet carrier cargo is now updated whenever you transfer cargo to/from your carrier. This gives a more up to date cargo manifest than just relying on CAPI (with it's 15 minute cooldown and reliance on visiting your carrier management screen) but it is still not perfect as doesn't account for other players using your carrier.
 
 ### Bug Fixes:
 

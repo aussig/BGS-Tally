@@ -40,14 +40,45 @@ class ProgressWindow:
         self.bgstally = bgstally
         self.colonisation = None
 
-        self.columns:dict = {'Commodity': tk.W, 'Required': tk.E, 'Delivered':tk.E, 'Cargo':tk.E, 'Carrier': tk.E}
         self.units:dict = {'Commodity': Units.TONNES, 'Required': Units.TONNES, 'Delivered':Units.TONNES, 'Cargo':Units.TONNES, 'Carrier': Units.TONNES}
-        self.headings:dict = {'Commodity': {Units.TONNES: f"{_('Commodity'):<11}", Units.REMAINING: f"{_('Commodity'):<11}", Units.PERCENT: f"{_('Commodity'):<11}", Units.LOADS: f"{_('Commodity'):<11}"},
-                         'Required': {Units.TONNES: f"{_('Required'):>10}", Units.REMAINING: f"{_('Needed'):>10}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Loads'):>12}"},
-                         'Delivered': {Units.TONNES: f"{_('Delivered'):>10}", Units.REMAINING: f"{_('To Buy'):>11}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Loads'):>12}"},
-                         'Cargo': {Units.TONNES: f"{_('Cargo'):>1}", Units.REMAINING: f"{_('Needed'):>9}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Loads'):>12}"},
-                         'Carrier': {Units.TONNES: f"{_('Carrier'):>11}", Units.REMAINING: f"{_('Needed'):>9}", Units.PERCENT: f"{_('Percent'):>11}", Units.LOADS: f"{_('Loads'):>12}"}
-                        }
+
+        self.headings:dict = {
+            'Commodity': {
+                Units.TONNES: f"{_('Commodity'):<11}", # LANG: Your helpful context goes here
+                Units.REMAINING: f"{_('Commodity'):<11}", # LANG: Your helpful context goes here
+                Units.PERCENT: f"{_('Commodity'):<11}", # LANG: Your helpful context goes here
+                Units.LOADS: f"{_('Commodity'):<11}", # LANG: Your helpful context goes here
+                'Sticky': tk.W
+                },
+            'Required': {
+                Units.TONNES: f"{_('Required'):>10}", # LANG: Your helpful context goes here
+                Units.REMAINING: f"{_('Needed'):>10}", # LANG: Your helpful context goes here
+                Units.PERCENT: f"{_('Percent'):>11}", # LANG: Your helpful context goes here
+                Units.LOADS: f"{_('Loads'):>12}", # LANG: Your helpful context goes here
+                'Sticky': tk.E
+                },
+            'Delivered': {
+                Units.TONNES: f"{_('Delivered'):>10}", # LANG: Your helpful context goes here
+                Units.REMAINING: f"{_('To Buy'):>11}", # LANG: Your helpful context goes here
+                Units.PERCENT: f"{_('Percent'):>11}", # LANG: Your helpful context goes here
+                Units.LOADS: f"{_('Loads'):>12}", # LANG: Your helpful context goes here
+                'Sticky': tk.E
+                },
+            'Cargo': {
+                Units.TONNES: f"{_('Cargo'):>1}", # LANG: Your helpful context goes here
+                Units.REMAINING: f"{_('Needed'):>9}", # LANG: Your helpful context goes here
+                Units.PERCENT: f"{_('Percent'):>11}", # LANG: Your helpful context goes here
+                Units.LOADS: f"{_('Loads'):>12}", # LANG: Your helpful context goes here
+                'Sticky': tk.E
+                },
+            'Carrier': {
+                Units.TONNES: f"{_('Carrier'):>11}", # LANG: Your helpful context goes here
+                Units.REMAINING: f"{_('Needed'):>9}", # LANG: Your helpful context goes here
+                Units.PERCENT: f"{_('Percent'):>11}", # LANG: Your helpful context goes here
+                Units.LOADS: f"{_('Loads'):>12}", # LANG: Your helpful context goes here
+                'Sticky': tk.E
+                }
+            }
 
         # UI components
         self.frame = None
@@ -78,12 +109,12 @@ class ProgressWindow:
             ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=row, column=0, columnspan=5, pady=2, sticky=tk.EW)
             row += 1
 
-            lbl:tk.Label = tk.Label(frame, text=_("Builds") + ":", anchor=tk.W)
+            lbl:tk.Label = tk.Label(frame, text=_("Builds") + ":", anchor=tk.W) # LANG: Your helpful context goes here
             lbl.grid(row=row, column=0, sticky=tk.W)
             self.weight(lbl)
             col += 1
 
-            self.title = tk.Label(frame, text="None", justify=tk.CENTER, anchor=tk.CENTER)
+            self.title = tk.Label(frame, text=_("None"), justify=tk.CENTER, anchor=tk.CENTER) # LANG: Your helpful context goes here
             self.title.grid(row=row, column=col, sticky=tk.EW)
             frame.columnconfigure(col, weight=1)
             col += 1
@@ -123,18 +154,18 @@ class ProgressWindow:
 
             # Column headings
             row = 0
-            for i, col in enumerate(self.columns.keys()):
-                if col == 'Carrier' and not self.bgstally.fleet_carrier.available():
+            for i, (k, v) in enumerate(self.headings.items()):
+                if k == 'Carrier' and not self.bgstally.fleet_carrier.available():
                     continue
-                c = tk.Label(table_frame, text=_(col), cursor='hand2', fg='black')
-                c.grid(row=row, column=i, sticky=self.columns[col])
-                c.bind("<Button-1>", partial(self.change_view, col))
+                c = tk.Label(table_frame, text=_(v.get(Units.TONNES)), cursor='hand2', fg='black')
+                c.grid(row=row, column=i, sticky=v.get('Sticky'))
+                c.bind("<Button-1>", partial(self.change_view, k))
                 self.weight(c)
-                self.colheadings[col] = c
+                self.colheadings[k] = c
 
             row += 1
 
-            for i, col in enumerate(self.columns.keys()):
+            for i, col in enumerate(self.headings.keys()):
                 # Progress bar chart
                 if col == 'Commodity':
                     continue
@@ -152,13 +183,13 @@ class ProgressWindow:
             for c in self.colonisation.get_comodity_list('All'):
                 r:dict = {}
 
-                for i, col in enumerate(self.columns.keys()):
+                for i, (col, val) in enumerate(self.headings.items()):
                     lbl:tk.Label = tk.Label(table_frame, text='')
                     if col == 'Commodity':
                         lbl.bind("<Button-1>", partial(self.link, c))
                         lbl.config(cursor='hand2')
 
-                    lbl.grid(row=row, column=i, sticky=self.columns[col])
+                    lbl.grid(row=row, column=i, sticky=val.get('Sticky'))
                     r[col] = lbl
                 self.rows.append(r)
                 row += 1
@@ -166,9 +197,9 @@ class ProgressWindow:
 
             # Totals at the bottom
             r:dict = {}
-            for i, (col, val) in enumerate(self.columns.items()):
-                r[col] = tk.Label(table_frame, text=_("Total"))
-                r[col].grid(row=row, column=i, sticky=val)
+            for i, (col, val) in enumerate(self.headings.items()):
+                r[col] = tk.Label(table_frame, text=_("Total")) # LANG: Your helpful context goes here
+                r[col].grid(row=row, column=i, sticky=val.get('Sticky'))
                 self.weight(r[col])
             self.rows.append(r)
 
@@ -276,17 +307,17 @@ class ProgressWindow:
                 return
 
             # Set the title
-            name = ', '.join([tracked[self.build_index].get('Plan', 'Unknown'), tracked[self.build_index].get('Name', 'Unnamed')]) if self.build_index < len(tracked) else _('All')
+            name = ', '.join([tracked[self.build_index].get('Plan', 'Unknown'), tracked[self.build_index].get('Name', 'Unnamed')]) if self.build_index < len(tracked) else _('All') # LANG: Your helpful context goes here
             self.title.config(text=name[-50:])
 
             # Set the column headings according to the selected units
             totals = {}
-            for col in self.columns.keys():
+            for col in self.headings.keys():
                 self.colheadings[col]['text'] = self.headings[col][self.units[col]]
                 totals[col] = 0
 
             totals['Delivered'] = 0
-            totals['Commodity'] = _("Total")
+            totals['Commodity'] = _("Total")  # LANG: Your helpful context goes here
 
             # Go through eacy commodity and show or hide it as appropriate and display the appropriate values
             comms = self.colonisation.get_comodity_list('All', self.comm_order)
@@ -326,7 +357,7 @@ class ProgressWindow:
                         case Units.REMAINING:
                             reqstr = f"{remaining:,} t"
                         case Units.LOADS:
-                            reqstr = f"{ceil(reqcnt / self.colonisation.cargo_capacity)} L"
+                            reqstr = f"{ceil(reqcnt / self.colonisation.cargo_capacity)} {_('L')}" # LANG: Your helpful context goes here
                         case Units.PERCENT:
                             reqstr = f"{delcnt * 100 / reqcnt:.0f}%"
                         case _:
@@ -340,7 +371,7 @@ class ProgressWindow:
                         case Units.REMAINING:
                             remstr = f"{max(remaining-cargo-carrier, 0):,} t"
                         case Units.LOADS: # Trips
-                            remstr = f"{ceil(delcnt / self.colonisation.cargo_capacity)} L"
+                            remstr = f"{ceil(delcnt / self.colonisation.cargo_capacity)} {_('L')}" # LANG: Your helpful context goes here
                         case Units.PERCENT: # Percentage
                             remstr = f"{delcnt * 100 / reqcnt:.0f}%"
                         case _: # Tonnes
@@ -354,7 +385,7 @@ class ProgressWindow:
                         case Units.REMAINING:
                             cargostr = f"{max(remaining-cargo, 0):,} t"
                         case Units.LOADS: # Trips
-                            cargostr = f"{ceil(cargo / self.colonisation.cargo_capacity)} L"
+                            cargostr = f"{ceil(cargo / self.colonisation.cargo_capacity)} {_('L')}" # LANG: Your helpful context goes here
                         case Units.PERCENT: # Percentage
                             cargostr = f"{cargo * 100 / reqcnt:.0f}%"
                         case _: # Tonnes
@@ -368,7 +399,7 @@ class ProgressWindow:
                         case Units.REMAINING:
                             carrierstr = f"{max(remaining-carrier, 0):,} t"
                         case Units.LOADS: # Trips
-                            carrierstr = f"{ceil(carrier / self.colonisation.cargo_capacity)} L"
+                            carrierstr = f"{ceil(carrier / self.colonisation.cargo_capacity)} {_('L')}" # LANG: Your helpful context goes here
                         case Units.PERCENT: # Percentage
                             carrierstr = f"{carrier * 100 / reqcnt:.0f}%"
                         case _: # Tonnes
@@ -381,36 +412,36 @@ class ProgressWindow:
                     self.highlight_row(row, c, remaining)
 
                 else:
-                    for col in self.columns.keys():
+                    for col in self.headings.keys():
                         row[col].grid_remove()
 
             # Set the totals for each column depending on the selected unit view
             row = self.rows[i+1]
 
             reqcnt = totals['Required']; delcnt = totals['Delivered']; remaining = reqcnt - delcnt; cargo = totals['Cargo']; carrier = totals['Carrier']
-            for col in self.columns.keys():
+            for col in self.headings.keys():
                 valstr = "Total"
                 match self.units[col]:
                     case Units.REMAINING:
-                        if col == 'Required': valstr = f"{remaining:,} t"
-                        if col == 'Delivered': valstr = f"{max(remaining-cargo-carrier, 0):,} t"
-                        if col == 'Cargo': valstr = f"{max(remaining-cargo, 0):,} t"
-                        if col == 'Carrier': valstr = f"{max(remaining-carrier,0):,} t"
+                        if col == 'Required': valstr = f"{remaining:,} {_('t')}" # LANG: Your helpful context goes here
+                        if col == 'Delivered': valstr = f"{max(remaining-cargo-carrier, 0):,} {_('t')}" # LANG: Your helpful context goes here
+                        if col == 'Cargo': valstr = f"{max(remaining-cargo, 0):,} {_('t')}" # LANG: Your helpful context goes here
+                        if col == 'Carrier': valstr = f"{max(remaining-carrier,0):,} {_('t')}" # LANG: Your helpful context goes here
                     case Units.LOADS: # Trips
-                        if col == 'Required': valstr = f"{ceil(reqcnt / self.colonisation.cargo_capacity)} L"
-                        if col == 'Delivered': valstr = f"{ceil(delcnt / self.colonisation.cargo_capacity)} L"
-                        if col == 'Cargo': valstr = f"{ceil(cargo / self.colonisation.cargo_capacity)} L"
-                        if col == 'Carrier': valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)} L"
+                        if col == 'Required': valstr = f"{ceil(reqcnt / self.colonisation.cargo_capacity)} {_('L')}" # LANG: Your helpful context goes here
+                        if col == 'Delivered': valstr = f"{ceil(delcnt / self.colonisation.cargo_capacity)} {_('L')}" # LANG: Your helpful context goes here
+                        if col == 'Cargo': valstr = f"{ceil(cargo / self.colonisation.cargo_capacity)} {_('L')}" # LANG: Your helpful context goes here
+                        if col == 'Carrier': valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)} {_('L')}" # LANG: Your helpful context goes here
                     case Units.PERCENT: # Percentage
                         if col == 'Required': valstr = f"{delcnt * 100 / reqcnt:.0f}%"
                         if col == 'Delivered': valstr = f"{delcnt * 100 / reqcnt:.0f}%"
                         if col == 'Cargo': valstr = f"{cargo * 100 / cargo:.0f}%"
                         if col == 'Carrier': valstr = f"{carrier * 100 / reqcnt:.0f}%"
                     case _: # Tonnes
-                        if col == 'Required': valstr = f"{reqcnt:,} t"
-                        if col == 'Delivered': valstr = f"{delcnt:,} t"
-                        if col == 'Cargo': valstr = f"{cargo:,} t"
-                        if col == 'Carrier': valstr = f"{carrier:,} t"
+                        if col == 'Required': valstr = f"{reqcnt:,} {_('t')}" # LANG: Your helpful context goes here
+                        if col == 'Delivered': valstr = f"{delcnt:,} {_('t')}" # LANG: Your helpful context goes here
+                        if col == 'Cargo': valstr = f"{cargo:,} {_('t')}" # LANG: Your helpful context goes here
+                        if col == 'Carrier': valstr = f"{carrier:,} {_('t')}" # LANG: Your helpful context goes here
                 row[col]['text'] = valstr
 
             self.progcols['Required'].set(remaining * 100 / reqcnt)
@@ -439,7 +470,7 @@ class ProgressWindow:
         tobuy = qty - self.colonisation.carrier_cargo.get(c, 0) - self.colonisation.cargo.get(c, 0)
         space = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
 
-        for col in self.columns.keys():
+        for col in self.headings.keys():
             row[col]['fg'] = 'black'; self.weight(row[col], 'normal') # Start black & normal
 
             if self.colonisation.carrier_cargo.get(c, 0) >= qty: # Have relevant carrier cargo

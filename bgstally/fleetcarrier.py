@@ -17,6 +17,7 @@ RARE_COMMODITIES_CSV_FILENAME = "rare_commodity.csv"
 class FleetCarrier:
     def __init__(self, bgstally):
         self.bgstally = bgstally
+        self.carrier_id:int = None
         self.data:dict = {}
         self.name:str = None
         self.callsign:str = None
@@ -73,6 +74,7 @@ class FleetCarrier:
         # Name is encoded as hex string
         self.name = bytes.fromhex(get_by_path(self.data, ['name', 'vanityName'], "----")).decode('utf-8')
         self.callsign = get_by_path(self.data, ['name', 'callsign'], "----")
+        self.carrier_id = get_by_path(self.data, ['market', 'id'], "")
 
         # Sort microresource sell orders - a Dict of Dicts, or an empty list
         materials:dict|list = get_by_path(self.data, ['orders', 'onfootmicroresources', 'sales'], [])
@@ -123,6 +125,7 @@ class FleetCarrier:
         if self.name is None:
             self.name = journal_entry.get("Name")
             self.callsign = journal_entry.get("Callsign")
+            self.carrier_id = journal_entry.get('CarrierID')
             self.data['dockingAccess'] = journal_entry.get("DockingAccess")
 
 
@@ -217,7 +220,7 @@ class FleetCarrier:
         # { "timestamp":"2024-02-17T16:35:57Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "CancelTrade":true }
 
         item_name:str = journal_entry.get('Commodity', "").lower()
-
+        self.carrier_id = journal_entry.get('CarrierID')
         if item_name in self.commodities:
             # The order is for a commodity. Note we pass the item_name as the display name because Commodity_Localised is not always present for commodities,
             # and anyway we don't get localised names in CAPI data so generally they are not present. So, we look display name up later for commodities.
@@ -242,6 +245,89 @@ class FleetCarrier:
             elif journal_entry.get('CancelTrade') == True:
                 self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_SELLING)
                 self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_BUYING)
+
+
+    def cargo_transfer(self, journal_entry: dict):
+        """
+        The user transferred cargo to or from the carrier.
+
+        We shouldn't do this. If the EDMC CAPI cooldown worked properly we'd just query the CAPI and get the accurate data!
+
+        Args:
+            journal_entry (dict): The journal entry data
+        """
+        # { "timestamp":"2025-03-22T15:15:21Z", "event":"CargoTransfer", "Transfers":[ { "Type":"steel", "Count":728, "Direction":"toship" }, { "Type":"titanium", "Count":56, "Direction":"toship" } ] }
+
+        # Unfortunately we don't get the localized name for transfers so we'll do without.
+        cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
+        Debug.logger.debug(f"cargo_transfer: {journal_entry}")
+        for i in journal_entry.get('Transfers', []):
+            type:str = i.get('Type', "")
+            display_type:str = i.get('Type_Localised', "")
+            if display_type == "" and type in self.commodities:
+                display_type = self.commodities[type]
+
+            count:int = i.get('Count', 0)
+            direction:str = i.get('Direction', "")
+
+            found = False
+            for c in cargo:
+                # For some reason the event is lower case but the cargo is mixed case
+                if count > 0 and c[name_key].lower() == type:
+                    found = True
+                    if direction == "toship":
+                        if c[quantity_key] > count: # May have to do this in multiple bits.
+                            Debug.logger.debug(f"Removing {count} {type} from cargo")
+                            c[quantity_key] -= count
+                            count = 0
+                            break
+                        else:
+                            Debug.logger.debug(f"Deleting {count} {type} {c[quantity_key]} from cargo")
+                            count -= c[quantity_key]
+                            cargo.remove(c)
+
+                    else:
+                        Debug.logger.debug(f"Adding {count} {type} to cargo")
+                        c[quantity_key] += count
+                        count = 0
+                        break
+
+            if not found:
+                Debug.logger.debug(f"Creating {count} {type} cargo")
+                cargo.append({name_key: type, display_name_key: display_type, quantity_key: count})
+
+
+    def market_activity(self, journal_entry:dict):
+        '''
+        We bought or sold to/from our carrier
+        '''
+        if journal_entry.get('MarketID') != self.carrier_id: # Not buying from us.
+            return
+
+        cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
+        type:str = journal_entry.get('Type', "")
+        count:int = journal_entry.get('Count', 0)
+
+        for c in cargo:
+            # For some reason the event is lower case but the cargo is mixed case
+            if c[name_key].lower() == type:
+                found = True
+                if journal_entry.get('event') == "MarketBuy":
+                    if c[quantity_key] > count: # May have to do this in multiple bits.
+                        c[quantity_key] -= count
+                        count = 0
+                        break
+                    else:
+                        count -= c[quantity_key]
+                        cargo.remove(c)
+
+                else:
+                    c[quantity_key] += count
+                    count = 0
+                    break
+
+        if not found:
+            cargo.append({name_key: type, display_name_key: self.commodities[type], quantity_key: count})
 
 
     def get_items_plaintext(self, category: FleetCarrierItemType|None = None) -> str:
@@ -492,6 +578,7 @@ class FleetCarrier:
         return {
             'name': self.name,
             'callsign': self.callsign,
+            'carrier_id': self.carrier_id,
             'onfoot_mats_selling': self.onfoot_mats_selling,
             'onfoot_mats_buying': self.onfoot_mats_buying,
             'commodities_selling': self.commodities_selling,
@@ -507,6 +594,7 @@ class FleetCarrier:
         """
         self.name = dict.get('name')
         self.callsign = dict.get('callsign')
+        self.carrier_id = dict.get('carrier_id')
         self.onfoot_mats_selling = dict.get('onfoot_mats_selling', [])
         self.onfoot_mats_buying = dict.get('onfoot_mats_buying', [])
         self.commodities_selling = dict.get('commodities_selling', [])

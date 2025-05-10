@@ -62,7 +62,7 @@ class WindowActivity:
         frm_container: ttk.Frame = ttk.Frame(self.toplevel)
         frm_container.pack(fill=tk.BOTH, expand=tk.YES)
         nb_tab=ScrollableNotebook(frm_container, wheelscroll=False, tabmenu=True)
-        nb_tab.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
+        nb_tab.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5)
 
         frm_buttons: ttk.Frame = ttk.Frame(frm_container)
         frm_buttons.pack(fill=tk.X, side=tk.BOTTOM)

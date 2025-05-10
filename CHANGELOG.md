@@ -4,6 +4,7 @@
 
 ### New Features:
 
+* Colonisation Tracking. Your active builds in progress, with targets, are summarised on the main EDMC window and all your colonisation plans are available in a separate window accessed from a button on the main EDMC window.
 * Conflict states are highlighted in the activity window: Elections in orange and wars in red.
 * The individual tick time **for each system** is now reported on the activity window and on the overlay in-game.
 * You can now customise the Discord avatar image for your Discord posts, if you want to override the default BGS-Tally icon.

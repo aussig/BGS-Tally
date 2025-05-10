@@ -19,6 +19,9 @@
 /* Label on activity window. [activity.py] */
 "Activity to post:" = "Actividad a publicar:";
 
+/* [colonisation.py] */
+"Add" = "Add";
+
 /* CMDR information. [targetmanager.py] */
 "Added a friend" = "Se ha añadido a un amigo";
 
@@ -46,8 +49,17 @@
 /* Preferences force tick text. [ui.py] */
 "Are you sure that you want to do this?" = "¿Estás seguro de que quieres hacer esto?";
 
+/* [colonisation.py] */
+"Are you sure you want to remove this system?" = "Are you sure you want to remove this system?";
+
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Pide al administrador del servidor la información que aparece a continuación, después haz clic en \"Establecer conexión\" para continuar. Se proporcionan botones para pre-rellenar alguna información para servidores populares, pero deberás introducir tu clave de API, que es única para ti.";
+
+/* [colonisation.py] */
+"Base Name" = "Base Name";
+
+/* [colonisation.py] */
+"Base Type" = "Base Type";
 
 /* Discord heading, abbreviation for black box. [default.py] */
 "bb" = "cn";
@@ -67,28 +79,37 @@
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Beneficios de mercado negro";
 
+/* [colonisation.py] */
+"Body" = "Body";
+
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS y TW";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bonos de recompensas";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* [progress.py] */
+"Builds" = "Builds";
+
+/* [fleetcarrier.py] */
 "Buying Commodities" = "Comprando Mercancías";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Buying Commodities:" = "Comprando Mercancías:";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* [fleetcarrier.py] */
 "Buying Materials" = "Comprando Materiales";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Buying Materials:" = "Comprando Materiales:";
 
+/* [colonisation.py] */
+"Cancel" = "Cancel";
+
 /* Discord heading. [default.py] */
 "cargo" = "carga";
 
-/* Heading on fleetcarrier window. [fleetcarrier.py] */
+/* [fleetcarrier.py] */
 "Cargo" = "Cargo";
 
 /* Label on legend window. [legend.py] */
@@ -96,6 +117,9 @@
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Cargo:" = "Cargo:";
+
+/* [progress.py] */
+"Carrier" = "Carrier";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
 "Carrier {carrier_name}" = "Portanaves {carrier_name}";
@@ -115,11 +139,17 @@
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Bonos de combate";
 
+/* [progress.py] */
+"Commodity" = "Commodity";
+
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configurar Servidor Remoto";
 
 /* Preferences force tick popup title. [ui.py] */
 "Confirm Force a New Tick" = "Confirmar el forzado de un nuevo Tick";
+
+/* [colonisation.py] */
+"Confirm Removal" = "Confirm Removal";
 
 /* [widgets.py] */
 "Copy" = "Copiar";
@@ -129,6 +159,9 @@
 
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Copiar al portapapeles";
+
+/* [colonisation.py] */
+"Cost" = "Cost";
 
 /* Discord heading, abbreviation for critically injured. [default.py] */
 "crit" = "grav";
@@ -157,7 +190,7 @@
 /* [ui.py] */
 "Default" = "Por defecto";
 
-/* [sheet_options.py] */
+/* [colonisation.py] */
 "Delete" = "Borrar";
 
 /* [sheet_options.py] */
@@ -168,6 +201,9 @@
 
 /* Button on CMDR window. [cmdrs.py] */
 "Delete Selected" = "Borrar lo seleccionado";
+
+/* [progress.py] */
+"Delivered" = "Delivered";
 
 /* [demo.py] */
 "Demo Data Only" = "Información solo para demostración";
@@ -180,6 +216,9 @@
 
 /* Label on legend window. [legend.py] */
 "Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "INF obtenida en misiones separada en + / ++ / +++ / ++++ / +++++.";
+
+/* [colonisation.py] */
+"Dev Lvl" = "Dev Lvl";
 
 /* Label on activity window. [activity.py] */
 "Discord Additional Notes" = "Notas adicionales de Discord";
@@ -196,11 +235,23 @@
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Webhooks de Discord";
 
+/* [colonisation.py] */
+"Display Name:" = "Display Name:";
+
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Atraque";
 
 /* Label on activity window. [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Comprueba los conteos de las CZ de tierra, los tamaños no siempre son correctos";
+
+/* [colonisation.py] */
+"Econ" = "Econ";
+
+/* [colonisation.py] */
+"Econ Inf" = "Econ Inf";
+
+/* [colonisation.py] */
+"Economy" = "Economy";
 
 /* [sheet_options.py] */
 "Edit cell" = "Editar celda";
@@ -217,6 +268,9 @@
 /* Discord heading, abbreviation for election INF. [default.py] */
 "ElectionINF" = "EleccionesINF";
 
+/* [colonisation.py] */
+"Elite Dangerous Colonisation" = "Elite Dangerous Colonisation";
+
 /* Label on activity window. [activity.py] */
 "Empty System, no BGS Activity Available" = "Sistema deshabitado, no hay actividad de BGS disponible";
 
@@ -231,6 +285,9 @@
 
 /* Checkbox on API settings window. [api.py] */
 "Enable {events_url} Requests" = "Habilitar {events_url} Solicitudes";
+
+/* [colonisation.py] */
+"Error" = "Error";
 
 /* Discord heading, abbreviation for escape pod. [default.py] */
 "esc-pod" = "cap-esc";
@@ -460,7 +517,10 @@
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Estado legal: {legal}";
 
-/* Heading on fleetcarrier window. [fleetcarrier.py] */
+/* [colonisation.py] */
+"Loads" = "Loads";
+
+/* [fleetcarrier.py] */
 "Locker" = "Locker";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
@@ -517,6 +577,12 @@
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Zona de conflicto en tierra";
 
+/* [colonisation.py] */
+"Orbital" = "Orbital";
+
+/* [colonisation.py] */
+"Pad" = "Pad";
+
 /* [ui.py] */
 "Panels" = "Paneles";
 
@@ -535,11 +601,20 @@
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "Anclar {system_name} a la superposición";
 
+/* [colonisation.py] */
+"Plan Name" = "Plan Name";
+
 /* URL label on API settings window. [api.py] */
 "Player Journal Documentation" = "Documentación del diario del jugador";
 
 /* Text on API settings window. [api.py] */
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "¡POR FAVOR ASEGÚRATE DE QUE CONFÍAS en el servidor al que envíes esta información!";
+
+/* [colonisation.py] */
+"Pop Inc" = "Pop Inc";
+
+/* [colonisation.py] */
+"Pop Max" = "Pop Max";
 
 /* Button on CMDR window. [cmdrs.py] */
 "Post CMDR List to Discord" = "Publicar lista de CMDRs en Discord";
@@ -595,8 +670,20 @@
 /* CMDR information. [targetmanager.py] */
 "Received team invite from" = "Invitación de equipo recibida de";
 
+/* [colonisation.py] */
+"Rename" = "Rename";
+
+/* [colonisation.py] */
+"Rename System" = "Rename System";
+
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Reportar por defecto actividad de sistemas recientemente visitados";
+
+/* [progress.py] */
+"Required" = "Required";
+
+/* [colonisation.py] */
+"Requirements" = "Requirements";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "BusqResc";
@@ -637,16 +724,19 @@
 /* Label on legend window. [legend.py] */
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "INF secundaria. Ésta es la INF obtenida como un efecto secundario de la misión, como por ejemplo la facción de destino de las misiones de mensajería/entrega de carga.";
 
+/* [colonisation.py] */
+"Security" = "Security";
+
 /* [widgets.py] */
 "Select all" = "Seleccionar todo";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* [fleetcarrier.py] */
 "Selling Commodities" = "Vendiendo Mercancías";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Selling Commodities:" = "Vendiendo Mercancías:";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* [fleetcarrier.py] */
 "Selling Materials" = "Vendiendo Materiales";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
@@ -666,6 +756,9 @@
 
 /* Main window tooltip. [ui.py] */
 "Show CMDR information window" = "Mostrar ventana de información del CMDR";
+
+/* Main window tooltip. [ui.py] */
+"Show colonisation window" = "Show colonisation window";
 
 /* Preferences checkbox label. [ui.py] */
 "Show Detailed INF" = "Mostrar INF detallada";
@@ -687,6 +780,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Mostrar sistemas sin ninguna actividad";
+
+/* [colonisation.py] */
+"SoL" = "SoL";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Alguna información no puede ser actualizada. Habilitar consultas CAPI del portanaves en Archivo -> Ajustes -> Configuración";
@@ -718,6 +814,9 @@
 /* Activity window column title. [activity.py] */
 "State" = "Estado";
 
+/* [colonisation.py] */
+"Surface" = "Surface";
+
 /* CMDR window column title. [cmdrs.py] */
 "System" = "Sistema";
 
@@ -727,11 +826,20 @@
 /* Preferences checkbox label. [ui.py] */
 "System Information" = "Información del Sistema";
 
+/* [colonisation.py] */
+"System Name (optional):" = "System Name (optional):";
+
 /* Overlay system tick message. [ui.py] */
 "System Tick: {tick_time}" = "Tick de sistemas: {tick_time}";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistema: {current_system} - Atraque: {docking_access} - Acceso con notoriedad: {notorious}";
+
+/* [colonisation.py] */
+"T2" = "T2";
+
+/* [colonisation.py] */
+"T3" = "T3";
 
 /* Text on API settings window. [api.py] */
 "Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills." = "Ten precaución al aceptar esto - si apruebas este servidor, {plugin_name} le enviarás tu información que incluirá detalles de CMDR como tu ubicación, misiones y asesinatos.";
@@ -741,6 +849,9 @@
 
 /* Discord CMDR information. [targetmanager.py] */
 "Team invite received from this CMDR" = "Invitación de equipo recibida de este CMDR";
+
+/* [colonisation.py] */
+"Tech Lvl" = "Tech Lvl";
 
 /* Name of default output formatter. [text.py] */
 "Text Only" = "Sólo texto";
@@ -780,6 +891,12 @@
 
 /* Discord heading. [fleetcarrier.py] */
 "To System" = "Al Sistema";
+
+/* [colonisation.py] */
+"Total" = "Total";
+
+/* [colonisation.py] */
+"Track" = "Track";
 
 /* Activity window column title. [activity.py] */
 "Trade" = "Comercio";
@@ -831,6 +948,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "Warnings" = "Alertas";
+
+/* [colonisation.py] */
+"Wealth" = "Wealth";
 
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "URL de Webhook";

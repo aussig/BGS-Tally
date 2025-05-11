@@ -1,5 +1,41 @@
 # Change Log
 
+## v5.0.0-a1 - 2025-05-11
+
+### New Features:
+
+* Colonisation Tracking. Your active builds in progress, with targets, are summarised on the main EDMC window and all your colonisation plans are available in a separate window accessed from a button on the main EDMC window.
+* Conflict states are highlighted in the activity window: Elections in orange and wars in red.
+* The individual tick time **for each system** is now reported on the activity window and on the overlay in-game.
+* You can now customise the Discord avatar image for your Discord posts, if you want to override the default BGS-Tally icon.
+* The Fleet Carrier window now lists your full cargo and materials, in addition to those with buy or sell orders. You have the choice of what to post to Discord across all the inventory windows.
+* Objectives. If you use the API to connect to a server that supports them (API ≥ v1.6.0) then your squadron or group can define shared missions that multiple CMDRs can work towards. _Note that this feature was developed before Frontier announced the upcoming Vanguards. We don't know what's coming in that update, but will adapt when the time comes._
+    - Missions can be of various types (for example - `win a war` or `boost a faction`) and each mission can have one or more targets (for example - `win xx space CZs` or `generate yyy CR in trade profit`).
+    - Objectives are shown in a new window accessible from the main EDMC window - click the 𖦏 button. The layout is a bit basic at the moment, it will probably improve in future.
+    - If you use the in-game overlay, Objectives are also displayed on a new overlay panel in-game.
+
+### Changes:
+
+* When multiple systems are pinned to the in-game overlay, they are now formatted more elegantly, with all system names shown as coloured titles.
+* Fleet carrier cargo is now updated whenever you transfer cargo to/from your carrier. This gives a more up to date cargo manifest than just relying on CAPI (with it's 15 minute cooldown and reliance on visiting your carrier management screen) but it is still not perfect as doesn't account for other players using your carrier.
+
+### Bug Fixes:
+
+* The tick time was not being sent in `/event` API calls.
+* Any Search and Rescue (e.g. escape pods) would cause the overlay to stop displaying your work in that system.
+* When abandoning of failing a mission that was not logged when it was originally accepted (e.g. when BGS-Tally was not running), and sending events to an API, the API call would fail.
+* Fixed bug which would cause the Fleetcarrier window to fail to load properly if newer Trailblazers or Thargoid war commodities had buy or sell orders set.
+
+### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/4cc039a5-fcdf-4bdb-adb3-1cd4b78f70d8)):
+
+* New `/objectives` endpoint.
+* `/events` endpoint: Synthetic events added for certain activities in game that the game itself doesn't log in the journal:
+    - `SyntheticCZ`: Sent when a Space CZ is won.
+    - `SyntheticCZObjective`: Sent when an objective is completed in a Space CZ (cap ship / spec ops / enemy captain / enemy correspondent).
+    - `SyntheticGroundCZ`: Sent when a Ground CZ is won.
+    - `SyntheticScenario`: Sent when a scenario is won (only Megaship scenarios for the moment, Installation scenarios cannot be tracked).
+
+
 ## v4.2.0 - 2024-12-22
 
 ### New Features:

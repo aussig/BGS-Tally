@@ -1,5 +1,5 @@
 from copy import deepcopy
-from datetime import datetime
+from datetime import UTC, datetime
 
 from requests import Response
 
@@ -46,6 +46,11 @@ class Discord:
         # Aply Discord limits
         discord_text = self._truncate(discord_text, DISCORD_LIMIT_CONTENT)
 
+        if self.bgstally.request_manager.url_valid(self.bgstally.state.DiscordAvatarURL.get()):
+            avatar_url:str = self.bgstally.state.DiscordAvatarURL.get()
+        else:
+            avatar_url:str = URL_LOGO
+
         for webhook in webhooks.values():
             webhook_url:str = webhook.get('url')
             if not self._is_webhook_valid(webhook_url): continue
@@ -53,7 +58,7 @@ class Discord:
             # Get the previous state for this webhook's uuid from the passed in data, if it exists. Default to the state from the webhook manager
             specific_webhook_data:dict = {} if webhooks_data is None else webhooks_data.get(webhook.get('uuid', ""), webhook)
 
-            utc_time_now:str = datetime.utcnow().strftime(DATETIME_FORMAT) + " " + __("game", lang=self.bgstally.state.discord_lang) # LANG: Discord date/time suffix for game time
+            utc_time_now:str = datetime.now(UTC).strftime(DATETIME_FORMAT) + " " + __("game", lang=self.bgstally.state.discord_lang) # LANG: Discord date/time suffix for game time
             data:dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
 
             # Fetch the previous post ID, if present, from the webhook data for the channel we're posting in. May be the default True / False value
@@ -65,7 +70,10 @@ class Discord:
 
                 discord_text += ("```ansi\n" + blue(__("Posted at: {date_time} | {plugin_name} v{version}", lang=self.bgstally.state.discord_lang)) + "```").format(date_time=utc_time_now, plugin_name=self.bgstally.plugin_name, version=str(self.bgstally.version)) # LANG: Discord message footer, legacy text mode
                 url:str = webhook_url
-                payload:dict = {'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []}
+                payload:dict = {'content': discord_text,
+                                'username': self.bgstally.state.DiscordUsername.get(),
+                                'avatar_url': avatar_url,
+                                'embeds': []}
 
                 self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, callback=self._request_complete, data=data)
             else:
@@ -73,7 +81,10 @@ class Discord:
                 if discord_text != "":
                     discord_text += ("```ansi\n" + green(__("Updated at: {date_time} | {plugin_name} v{version}", lang=self.bgstally.state.discord_lang)) + "```").format(date_time=utc_time_now, plugin_name=self.bgstally.plugin_name, version=str(self.bgstally.version)) # LANG: Discord message footer, legacy text mode
                     url:str = f"{webhook_url}/messages/{previous_messageid}"
-                    payload:dict = {'content': discord_text, 'username': self.bgstally.state.DiscordUsername.get(), 'embeds': []}
+                    payload:dict = {'content': discord_text,
+                                    'username': self.bgstally.state.DiscordUsername.get(),
+                                    'avatar_url': avatar_url,
+                                    'embeds': []}
 
                     self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, callback=self._request_complete, data=data)
                 else:
@@ -104,6 +115,11 @@ class Discord:
             field['name'] = self._truncate(field.get('name', ""), DISCORD_LIMIT_EMBED_FIELD_NAME)
             field['value'] = self._truncate(field.get('value', ""), DISCORD_LIMIT_EMBED_FIELD_VALUE)
 
+        if self.bgstally.request_manager.url_valid(self.bgstally.state.DiscordAvatarURL.get()):
+            avatar_url:str = self.bgstally.state.DiscordAvatarURL.get()
+        else:
+            avatar_url:str = URL_LOGO
+
         for webhook in webhooks.values():
             webhook_url: str = webhook.get('url')
             if not self._is_webhook_valid(webhook_url): continue
@@ -125,7 +141,7 @@ class Discord:
                 payload: dict = {
                     'content': "",
                     'username': self.bgstally.state.DiscordUsername.get(),
-                    'avatar_url': URL_LOGO,
+                    'avatar_url': avatar_url,
                     'embeds': [embed]}
 
                 self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, params={'wait': 'true'}, callback=self._request_complete, data=data)
@@ -137,7 +153,7 @@ class Discord:
                     payload: dict = {
                         'content': "",
                         'username': self.bgstally.state.DiscordUsername.get(),
-                        'avatar_url': URL_LOGO,
+                        'avatar_url': avatar_url,
                         'embeds': [embed]}
 
                     self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, callback=self._request_complete, data=data)
@@ -184,7 +200,7 @@ class Discord:
         Returns:
             dict[str, any]: The post structure, for converting to JSON
         """
-        footer_timestamp: str = (__("Updated at {date_time} (game)", lang=self.bgstally.state.discord_lang) if update else __("Posted at {date_time} (game)", lang=self.bgstally.state.discord_lang)).format(date_time=datetime.utcnow().strftime(DATETIME_FORMAT)) # LANG: Discord footer message, modern embed mode
+        footer_timestamp: str = (__("Updated at {date_time} (game)", lang=self.bgstally.state.discord_lang) if update else __("Posted at {date_time} (game)", lang=self.bgstally.state.discord_lang)).format(date_time=datetime.now(UTC).strftime(DATETIME_FORMAT)) # LANG: Discord footer message, modern embed mode
         footer_version: str = f"v{str(self.bgstally.version)}"
         footer_pad: int = 108 - len(footer_version)
 

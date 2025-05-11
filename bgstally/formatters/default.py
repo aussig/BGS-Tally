@@ -1,5 +1,5 @@
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import CheckStates, DiscordActivity
+from bgstally.constants import CheckStates, DiscordActivity, TAG_OVERLAY_HIGHLIGHT
 from bgstally.debug import Debug
 from bgstally.formatters.base import FieldActivityFormatterInterface
 from bgstally.utils import _, __, human_format, is_number
@@ -137,8 +137,11 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
                     system_text += self._build_faction(faction, discord, lang)
 
             if system_text != "":
-                if discord: text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}```"
-                else: text += f"{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
+                if discord:
+                    text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}```"
+                else:
+                    system_name: str = TAG_OVERLAY_HIGHLIGHT + system['System']
+                    text += f"{system_name}\n{system_text}"
 
         if discord and activity.discord_notes is not None and activity.discord_notes != "": text += "\n" + activity.discord_notes
 
@@ -488,7 +491,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         value: int = int(sum(sandr_data.values()))
         if value == 0: return ""
 
-        return white(__("SandR", lang), fp=fp) + " " + green(value, fp=fp) + " " # LANG: Discord heading, abbreviation for search and rescue
+        return white(__("SandR", lang), fp=fp) + " " + green(str(value), fp=fp) + " " # LANG: Discord heading, abbreviation for search and rescue
 
 
     def _build_faction_name(self, faction_name: str) -> str:

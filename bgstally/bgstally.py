@@ -10,6 +10,7 @@ from monitor import monitor
 from bgstally.activity import Activity
 from bgstally.activitymanager import ActivityManager
 from bgstally.apimanager import APIManager
+from bgstally.colonisation import Colonisation
 from bgstally.config import Config
 from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
@@ -19,6 +20,7 @@ from bgstally.formatters.default import DefaultActivityFormatter
 from bgstally.formattermanager import ActivityFormatterManager
 from bgstally.market import Market
 from bgstally.missionlog import MissionLog
+from bgstally.objectivesmanager import ObjectivesManager
 from bgstally.overlay import Overlay
 from bgstally.requestmanager import RequestManager
 from bgstally.state import State
@@ -90,6 +92,8 @@ class BGSTally:
         self.update_manager: UpdateManager = UpdateManager(self)
         self.ui: UI = UI(self)
         self.formatter_manager: ActivityFormatterManager = ActivityFormatterManager(self)
+        self.objectives_manager: ObjectivesManager = ObjectivesManager(self)
+        self.colonisation: Colonisation = Colonisation(self)
         self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
         self.thread.daemon = True
         self.thread.start()
@@ -116,10 +120,17 @@ class BGSTally:
             return
 
         activity: Activity = self.activity_manager.get_current_activity()
+
+        # Total hack for now. We need cmdr in Activity to allow us to send it to the API when the user changes values in the UI.
+        # What **should** happen is each Activity object should be associated with a single CMDR, and then all reporting
+        # kept separate per CMDR.
+        activity.cmdr = cmdr
+
         dirty: bool = False
 
         if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
             activity.system_entered(entry, self.state)
+            self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
             dirty = True
 
         mission:dict = self.mission_log.get_mission(entry.get('MissionID'))
@@ -127,18 +138,24 @@ class BGSTally:
         match entry.get('event'):
             case 'ApproachSettlement' if state['Odyssey']:
                 activity.settlement_approached(entry, self.state)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'Bounty':
-                activity.bv_received(entry, self.state)
+                activity.bv_received(entry, self.state, cmdr)
                 dirty = True
 
             case 'CapShipBond':
-                activity.cap_ship_bond_received(entry)
+                activity.cap_ship_bond_received(entry, cmdr)
                 dirty = True
 
             case 'Cargo':
                 activity.cargo(entry)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+
+            case 'CargoTransfer':
+                self.fleet_carrier.cargo_transfer(entry)
+                dirty = True
 
             case 'CarrierJumpCancelled':
                 self.fleet_carrier.jump_cancelled()
@@ -151,6 +168,11 @@ class BGSTally:
 
             case 'CarrierTradeOrder':
                 self.fleet_carrier.trade_order(entry)
+
+            case 'CargoTransfer':
+                self.fleet_carrier.cargo_transfer(entry)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                dirty = True
 
             case 'CollectCargo':
                 activity.cargo_collected(entry, self.state)
@@ -166,6 +188,7 @@ class BGSTally:
             case 'Docked':
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
                 self.state.station_type = entry.get('StationType', "")
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'EjectCargo':
@@ -173,7 +196,7 @@ class BGSTally:
                 dirty = True
 
             case 'FactionKillBond' if state['Odyssey']:
-                activity.cb_received(entry, self.state)
+                activity.cb_received(entry, self.state, cmdr)
                 dirty = True
 
             case 'Friends' if entry.get('Status') == "Requested":
@@ -187,18 +210,26 @@ class BGSTally:
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
-                self.state.station_type = entry.get('StationType', "")
                 dirty = True
+
+            case 'Loadout':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'Market':
                 self.market.load()
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'MarketBuy':
                 activity.trade_purchased(entry, self.state)
+                self.fleet_carrier.market_activity(entry)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+
                 dirty = True
 
             case 'MarketSell':
                 activity.trade_sold(entry, self.state)
+                self.fleet_carrier.market_activity(entry)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'MissionAbandoned':
@@ -254,17 +285,42 @@ class BGSTally:
 
             case 'SupercruiseDestinationDrop':
                 activity.destination_dropped(entry, self.state)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'SupercruiseEntry':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 activity.supercruise(entry, self.state)
+
+            case 'SupercruiseExit':
+                # This doesn't work. There has to be a way to figure out which body we're orbiting/near
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                dirty = True
 
             case 'Undocked' if entry.get('Taxi') == False:
                 self.state.station_faction = ""
                 self.state.station_type = ""
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'WingInvite':
                 self.target_manager.team_invite(entry, system)
+
+            # Colonisation events
+            case 'ColonisationSystemClaim':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                dirty = True
+
+            case 'ColonisationBeaconDeployed':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                dirty = True
+
+            case 'ColonisationConstructionDepot':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                dirty = True
+
+            case 'ColonisationContribution':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                dirty = True
 
         if dirty:
             self.save_data()

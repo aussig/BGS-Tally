@@ -26,17 +26,17 @@ class Colonisation:
     """
     def __init__(self, bgstally):
         self.bgstally = bgstally
-        self.system_id = None
-        self.current_system = None
-        self.body = None
-        self.station = None
-        self.marketid = None
-        self.docked = False
+        self.system_id:str = None
+        self.current_system:str = None
+        self.body:str = None
+        self.station:str = None
+        self.marketid:str = None
+        self.docked:bool = False
         self.base_types = {}  # Loaded from base_types.json
         self.base_costs = {}  # Loaded from base_costs.json
         self.commodities = {} # Loaded from commodity.csv
         self.systems:list = []     # Systems with colonisation data
-        self.progress:dict = {}    # Construction progress data
+        self.progress:list = []    # Construction progress data
         self.dirty = False
 
         self.cargo = {} # Local store of our current cargo
@@ -127,7 +127,7 @@ class Colonisation:
 
                 case 'Cargo':
                     self.update_cargo(state.get('Cargo'))
-                    if self.marketid == self.bgstally.fleet_carrier.carrier_id:
+                    if self.marketid == str(self.bgstally.fleet_carrier.carrier_id):
                         self.update_carrier()
 
                 case 'CargoTransfer':
@@ -527,15 +527,18 @@ class Colonisation:
                 res = {}
                 # See if we have actual data
                 if b.get('MarketID') != None:
-                    p = self.progress.get(str(b.get('MarketID')), {})
-                    for c in p.get('ResourcesRequired', []):
-                        res[c.get('Name')] = c.get(type)
-
+                    for p in self.progress:
+                        if p.get('MarketID') == b.get('MarketID'):
+                            for c in p.get('ResourcesRequired', []):
+                                res[c.get('Name')] = c.get(type)
+                            break
+                #Debug.logger.debug(f"Progress for {b.get('Name')} {b.get('MarketID')} {type} {res}")
                 # No actual data so we use the estimates from the base costs
                 if res == {} and type != 'ProvidedAmount': res = self.base_costs.get(b.get('Base Type'), {})
                 if res != {}: found += 1
 
                 prog.append(res)
+
 
             # Add an "all" total at the end of the list if there's more than one bulid found.
             if found > 1:
@@ -568,12 +571,24 @@ class Colonisation:
         return self._get_progress(builds, 'ProvidedAmount')
 
 
-    def find_or_create_progress(self, id:int) -> dict:
-        if id not in self.progress:
-            self.progress[id] = { 'MarketID': id }
-        self.dirty = True
+    def find_or_create_progress(self, id:str) -> dict:
+        p = self.find_progress(id)
+        if p != None:
+            return p
 
-        return self.progress[id]
+        prog = { 'MarketID': id }
+        self.progress.append(prog)
+
+        self.dirty = True
+        return prog
+
+
+    def find_progress(self, id:str) -> dict:
+        for p in self.progress:
+            if p.get('MarketID') == id:
+                return p
+
+        return None
 
 
     def update_carrier(self):
@@ -599,7 +614,7 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
-    def update_cargo(self, cargo):
+    def update_cargo(self, cargo:dict) -> None:
         '''
         Update the cargo data.
         '''
@@ -617,7 +632,7 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
-    def update_market(self, marketid=None):
+    def update_market(self, marketid:str=None) -> None:
         try:
             if marketid == None or self.docked == False:
                 self.market = {}
@@ -726,10 +741,7 @@ class Colonisation:
             'MarketID': self.marketid,
             'Progress': self.progress,
             'Systems': systems,
-            'CargoCapacity': self.cargo_capacity,
-#            'Carrier': self.carrier_cargo,
-#            'Cargo': self.cargo,
-#            'Market': self.market
+            'CargoCapacity': self.cargo_capacity
             }
 
 
@@ -745,7 +757,4 @@ class Colonisation:
         self.marketid = dict.get('MarketID', None)
         self.progress = dict.get('Progress', [])
         self.systems = dict.get('Systems', [])
-#        self.carrier_cargo = dict.get('Carrier', {})
-#        self.cargo = dict.get('Cargo', {})
-#        self.market = dict.get('Market', {})
         self.cargo_capacity = dict.get('CargoCapacity', 784)

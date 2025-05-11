@@ -181,7 +181,6 @@ class ColonisationWindow:
         Create the title frame with system name and tick info
         """
         sysnum = tabnum -1
-        #Debug.logger.debug(f"Creating title frame for tab {tabnum}")
         title_frame:ttk.Frame = ttk.Frame(tab, style="Title.TFrame")
         title_frame.pack(fill=tk.X, padx=0, pady=(0, 5))
 
@@ -541,7 +540,6 @@ class ColonisationWindow:
             systems:list = self.colonisation.get_all_systems()
             for i, tab in enumerate(self.sheets):
                 system = systems[i]
-                #Debug.logger.debug(f"Updating system {i} {system.get('Name')}")
                 self.update_title(i, system)
                 self.update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
                 self.update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
@@ -825,7 +823,6 @@ class ColonisationWindow:
                 sp:int = max(self.count_starports(builds[1:row])-1, 0)
                 cost += (2 * sp) if type == 'T2' else (cost * sp)
             val -= cost
-        #Debug.logger.debug(f"{build.get('Base Type')} {name} row {i} reward {bt.get(name+' Reward', 0)} sp {sp} cost {bt.get(name+' Cost', 0)} actual {cost} {v}")
 
         return val
 
@@ -855,7 +852,6 @@ class ColonisationWindow:
         # keep it within the limits
         value:int = min(max(int(value), int(-limit)), int(limit))
 
-        #Debug.logger.debug(f"value: {value} range: {limit} index {int(value + limit)} color {gradient[index]}")
         return gradient[int(value + limit)]
 
 

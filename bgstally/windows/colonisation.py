@@ -8,11 +8,13 @@ from tkinter import ttk, messagebox, PhotoImage
 import webbrowser
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet
+from thirdparty.Tooltip import ToolTip
 
-from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_SMALL, FONT_TEXT, FOLDER_ASSETS, BuildState
+from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_SMALL, FONT_TEXT, FOLDER_DATA, FOLDER_ASSETS, BuildState
 from bgstally.debug import Debug
 from bgstally.utils import _
 
+FILENAME = "colonisation_legend.txt" # LANG: Not sure how we handle file localistion.
 SUMMARY_HEADER_ROW = 0
 FIRST_SUMMARY_ROW = 1
 FIRST_SUMMARY_COLUMN = 3
@@ -31,55 +33,54 @@ class ColonisationWindow:
         self.image_tab_planned:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
 
         self.summary_rows:dict = {
-            'Planned': _("Planned"), # LANG: Your helpful context goes here
-            'Completed': _("Completed") # LANG: Your helpful context goes here
+            'Planned': _("Planned"), # LANG: Totals of planned builds i.e. ones that aren't completed
+            'Completed': _("Completed") # LANG: totals of completed builds i.e. ones that are done
         }
 
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
         self.summary_cols:dict = {
-            'Total': {'header': _("Total"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Your helpful context goes here
-            'Orbital': {'header': _("Orbital"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Your helpful context goes here
-            'Surface': {'header': _("Surface"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Your helpful context goes here
-            'T2': {'header': _("T2"), 'background': True, 'format': 'int', 'max': 1}, # LANG: Your helpful context goes here
-            'T3': {'header': _("T3"), 'background': True, 'format': 'int', 'max': 1}, # LANG: Your helpful context goes here
-            'Cost': {'header': _("Cost"), 'background': False, 'format': 'int'}, # LANG: Your helpful context goes here
-            'Trips': {'header': _("Loads"), 'background': False, 'format': 'int'}, # LANG: Your helpful context goes here
-            'Pad': {'header': _("Pad"), 'background': False, 'hide': True, 'format': 'hidden'}, # LANG: Your helpful context goes here
-            'Facility Economy': {'header': _("Econ"), 'background': False, 'hide': True, 'format': 'hidden'}, # LANG: Your helpful context goes here
-            'Pop Inc': {'header': _("Pop Inc"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Your helpful context goes here
-            'Pop Max': {'header': _("Pop Max"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Your helpful context goes here
-            'Economy Inf': {'header': _("Econ Inf"), 'background': True, 'hide': True}, # LANG: Your helpful context goes here
-            'Security': {'header': _("Security"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Your helpful context goes here
-            'Technology Level' : {'header': _("Tech Lvl"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Your helpful context goes here
-            'Wealth' : {'header': _("Wealth"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Your helpful context goes here
-            'Standard of Living' : {'header': _("SoL"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Your helpful context goes here
-            'Development Level' : {'header': _("Dev Lvl"), 'background': True, 'format': 'int', 'max': 20} # LANG: Your helpful context goes here
+            'Total': {'header': _("Total"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Total number of builds
+            'Orbital': {'header': _("Orbital"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Number of orbital/space builds
+            'Surface': {'header': _("Surface"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Number of ground/surface builds
+            'T2': {'header': _("T2"), 'background': True, 'format': 'int', 'max': 1}, # LANG: Tier 2 points
+            'T3': {'header': _("T3"), 'background': True, 'format': 'int', 'max': 1}, # LANG: Tier 3 points
+            'Cost': {'header': _("Cost"), 'background': False, 'format': 'int'}, # LANG: Cost in tonnes of cargo
+            'Trips': {'header': _("Loads"), 'background': False, 'format': 'int'}, # LANG: Number of loads of cargo
+            'Pad': {'header': _("Pad"), 'background': False, 'hide': True, 'format': 'hidden'}, # LANG: Pad size
+            'Facility Economy': {'header': _("Econ"), 'background': False, 'hide': True, 'format': 'hidden'}, # LANG: facility economy
+            'Pop Inc': {'header': _("Pop Inc"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Population increase
+            'Pop Max': {'header': _("Pop Max"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Population Maximum
+            'Economy Inf': {'header': _("Econ Inf"), 'background': True, 'hide': True}, # LANG: Economy influence
+            'Security': {'header': _("Security"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Security impact
+            'Technology Level' : {'header': _("Tech Lvl"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Technology level
+            'Wealth' : {'header': _("Wealth"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Wealth impact
+            'Standard of Living' : {'header': _("SoL"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Standard of living impact
+            'Development Level' : {'header': _("Dev Lvl"), 'background': True, 'format': 'int', 'max': 20} # LANG: Development level impact
         }
-        # LANG: Your helpful context goes here
+        # Table has two sections: summary and builds. This dict defines attributes for each build column
         self.detail_cols:dict = {
-            "Track": {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Your helpful context goes here
-            "Base Type" : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: Your helpful context goes here
-            "Name" : {'header': _("Base Name"), 'background': None, 'format': 'string', 'width': 175}, # LANG: Your helpful context goes here
-            "Body": {'header': _("Body"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Your helpful context goes here
-            "Prerequisites": {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Your helpful context goes here
-            "State": {'header': _("State"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Your helpful context goes here
-            "T2": {'header': _("T2"), 'background': True, 'format': 'int', 'max':1, 'width': 30}, # LANG: Your helpful context goes here
-            "T3": {'header': _("T3"), 'background': True, 'format': 'int', 'min':-1, 'max':1, 'width': 30}, # LANG: Your helpful context goes here
-            "Cost": {'header': _("Cost"), 'background': False, 'format': 'int', 'max':200000, 'width': 75}, # LANG: Your helpful context goes here
-            "Trips":{'header': _("Loads"), 'background': False, 'format': 'int', 'max':100, 'width': 40}, # LANG: Your helpful context goes here
-            "Pad": {'header': _("Pad"), 'background': None, 'format': 'string', 'width': 55}, # LANG: Your helpful context goes here
-            "Facility Economy": {'header': _("Economy"), 'background': None, 'format': 'string', 'width': 80}, # LANG: Your helpful context goes here
-            "Pop Inc": {'header': _("Pop Inc"), 'background': True, 'format': 'int', 'max':5, 'width': 60}, # LANG: Your helpful context goes here
-            "Pop Max": {'header': _("Pop Max"), 'background': True, 'format': 'int', 'max':5, 'width': 60}, # LANG: Your helpful context goes here
-            "Economy Influence": {'header': _("Econ Inf"), 'background': None, 'format': 'string', 'width': 80}, # LANG: Your helpful context goes here
-            "Security": {'header': _("Security"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: Your helpful context goes here
-            "Technology Level": {'header': _("Tech Lvl"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: Your helpful context goes here
-            "Wealth": {'header': _("Wealth"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: Your helpful context goes here
-            "Standard of Living": {'header': _("SoL"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: Your helpful context goes here
-            "Development Level": {'header': _("Dev Lvl"), 'background': True, 'format': 'int', 'max':8, 'width': 60} # LANG: Your helpful context goes here
+            "Track": {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Track this build?
+            "Base Type" : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
+            "Name" : {'header': _("Base Name"), 'background': None, 'format': 'string', 'width': 175}, # LANG: name of the base
+            "Body": {'header': _("Body"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Body the base is on or around
+            "Prerequisites": {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 100}, # LANG: any prerequisites for the base
+            "State": {'header': _("State"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Current build state
+            "T2": {'header': _("T2"), 'background': True, 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 2 points
+            "T3": {'header': _("T3"), 'background': True, 'format': 'int', 'min':-1, 'max':1, 'width': 30}, # LANG: Tier 3
+            "Cost": {'header': _("Cost"), 'background': False, 'format': 'int', 'max':200000, 'width': 75}, # LANG: As above
+            "Trips":{'header': _("Loads"), 'background': False, 'format': 'int', 'max':100, 'width': 50}, # LANG: As above
+            "Pad": {'header': _("Pad"), 'background': None, 'format': 'string', 'width': 55}, # LANG: Landing pad size
+            "Facility Economy": {'header': _("Economy"), 'background': None, 'format': 'string', 'width': 80}, # LANG: facility economy
+            "Pop Inc": {'header': _("Pop Inc"), 'background': True, 'format': 'int', 'max':5, 'width': 60}, # LANG: As above
+            "Pop Max": {'header': _("Pop Max"), 'background': True, 'format': 'int', 'max':5, 'width': 60}, # LANG: As above
+            "Economy Influence": {'header': _("Econ Inf"), 'background': None, 'format': 'string', 'width': 80}, # LANG: economy influence
+            "Security": {'header': _("Security"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: As above
+            "Technology Level": {'header': _("Tech Lvl"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: As above
+            "Wealth": {'header': _("Wealth"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: As above
+            "Standard of Living": {'header': _("SoL"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: As above
+            "Development Level": {'header': _("Dev Lvl"), 'background': True, 'format': 'int', 'max':8, 'width': 60} # LANG: As above
         }
         self.current_system = None
-
         # UI components
         self.window:tk.Toplevel = None
         self.tabbar:ScrollableNotebook = None
@@ -204,9 +205,14 @@ class ColonisationWindow:
 
         self.plan_titles[sysnum]['System'] = sys_label
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), command=lambda: self.delete_system(tabnum, tab)) # LANG: Your helpful context goes here
-        btn.pack(side=tk.RIGHT, padx=10, pady=5)
+        btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, command=lambda: self.legend_popup())
+        btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        ToolTip(btn, text=_("Show legend window")) # LANG: Show legend tooltip
 
+
+        btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
+        ToolTip(btn, text=_("Delete system plan")) # LANG: Show legend tooltip
+        btn.pack(side=tk.RIGHT, padx=10, pady=5)
 
     def inara_click(self, tabnum:int, event) -> None:
         '''
@@ -269,7 +275,7 @@ class ColonisationWindow:
             '''
             Update title with both display name and actual system name
             '''
-            name:str = system.get('Name') if system.get('Name') != None else system.get('StarSystem', _('Unknown')) # LANG: Your helpful context goes here
+            name:str = system.get('Name') if system.get('Name') != None else system.get('StarSystem', _('Unknown')) # LANG: Default when we don't know the name
             sysname:str = system.get('StarSystem', '') + ' ⤴' if system.get('StarSystem') != '' else ''
 
             self.plan_titles[index]['Name']['text'] = name
@@ -598,16 +604,16 @@ class ColonisationWindow:
                         self.colonisation.add_build(systems[sysnum])
                         systems[sysnum]['Builds'][row][field] = val
 
-                        # Initial cell population
-                        data:list = []
-                        data.append(self.get_summary_header())
-                        data += self.get_summary(systems[sysnum])
+                    # Initial cell population
+                    data:list = []
+                    data.append(self.get_summary_header())
+                    data += self.get_summary(systems[sysnum])
 
-                        data.append(self.get_detail_header())
-                        data += self.get_detail(systems[sysnum])
+                    data.append(self.get_detail_header())
+                    data += self.get_detail(systems[sysnum])
 
-                        self.sheets[sysnum].set_sheet_data(data)
-                        self.config_sheet(self.sheets[sysnum])
+                    self.sheets[sysnum].set_sheet_data(data)
+                    self.config_sheet(self.sheets[sysnum])
 
                     systems[sysnum]['Builds'][row][field] = val
 
@@ -641,25 +647,27 @@ class ColonisationWindow:
         dialog.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
         # System name
-        ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Your helpful context goes here
+        ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
         plan_name_var = tk.StringVar()
         plan_name_entry = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
         plan_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
 
         # Display name
-        ttk.Label(dialog, text=_("System Name (optional)"+":")).grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Your helpful context goes here
+        ttk.Label(dialog, text=_("System Name (optional)"+":")).grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
         system_name_var = tk.StringVar()
         system_name_entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
         system_name_entry.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)
 
+        ttk.Label(dialog, text=_("When planning your system the first base is special, make sure that it is the first on the list.")).grid(row=2, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Words about the first base
+
         # Buttons
         button_frame = ttk.Frame(dialog)
-        button_frame.grid(row=2, column=0, columnspan=2, pady=10)
+        button_frame.grid(row=3, column=0, columnspan=2, pady=10)
 
         # Add button
         add_button = ttk.Button(
             button_frame,
-            text=_("Add"), # LANG: Your helpful context goes here
+            text=_("Add"), # LANG: Add/create a new system
             command=lambda: self.add_system(plan_name_var.get(), system_name_var.get())
         )
         add_button.pack(side=tk.LEFT, padx=5)
@@ -672,13 +680,13 @@ class ColonisationWindow:
         """
         try:
             if not plan_name:
-                messagebox.showerror(_("Error"), _("Plan name is required")) # LANG: Your helpful context goes here
+                messagebox.showerror(_("Error"), _("Plan name is required")) # LANG: A plan name is required
                 return
 
             # Add the system
             system:dict = self.colonisation.add_system(plan_name, system_name)
             if system == False:
-                messagebox.showerror(_("Error"), f"Unable to create system.") # LANG: Your helpful context goes here
+                messagebox.showerror(_("Error"), f"Unable to create system.") # LANG: Failure error
                 return
 
             systems:list = self.colonisation.get_all_systems()
@@ -706,7 +714,7 @@ class ColonisationWindow:
         dialog.grab_set()
 
         # Display name
-        ttk.Label(dialog, text=_("Display Name"+":")).grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Your helpful context goes here
+        ttk.Label(dialog, text=_("Display Name"+":")).grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: The name to show in the UI
         system_name_var = tk.StringVar(value=self.current_system.get('Name', ''))
         system_name_entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
         system_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
@@ -770,7 +778,7 @@ class ColonisationWindow:
             if not messagebox.askyesno(
                 _("Confirm Removal"),
                 _("Are you sure you want to remove this system?")
-            ): # LANG: Your helpful context goes here
+            ): # LANG: request confirmation
                 return
 
             if sysnum > len(self.colonisation.get_all_systems()):
@@ -907,3 +915,43 @@ class ColonisationWindow:
                 build['State'] = BuildState.COMPLETE
 
         return build['State'] == BuildState.COMPLETE
+
+    def load_legend(self) -> str:
+        """
+        Load the legend text from the file
+        """
+        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        if path.exists(file):
+            try:
+                with open(file) as file:
+                    legend = file.read()
+                return legend
+            except Exception as e:
+                Debug.logger.warning(f"Unable to load {file}")
+                Debug.logger.error(traceback.format_exc())
+
+    def legend_popup(self) -> None:
+        """
+        Show the legend popup window
+        """
+        try:
+            popup:tk.Tk = tk.Tk()
+
+            def leavemini():
+                popup.destroy()
+
+            popup.wm_title(_("Legend")) # LANG: Legend title
+            popup.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+            popup.wm_attributes('-toolwindow', True) # makes it a tool window
+            popup.geometry("600x600")
+            popup.config(bd=2, relief=tk.FLAT)
+            scr:tk.Scrollbar = tk.Scrollbar(popup, orient=tk.VERTICAL)
+            scr.pack(side=tk.RIGHT, fill=tk.Y)
+
+            text:tk.Text = tk.Text(popup, font=FONT_SMALL, yscrollcommand=scr.set)
+            text.insert(tk.END, self.load_legend())
+            text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+
+        except Exception as e:
+            Debug.logger.error(f"Error in colonisation.show(): {e}")
+            Debug.logger.error(traceback.format_exc())

@@ -1,6 +1,6 @@
 # Change Log
 
-## vx.x.x - xxxx-xx-xx
+## v5.0.0-a1 - 2025-05-11
 
 ### New Features:
 
@@ -26,7 +26,7 @@
 * When abandoning of failing a mission that was not logged when it was originally accepted (e.g. when BGS-Tally was not running), and sending events to an API, the API call would fail.
 * Fixed bug which would cause the Fleetcarrier window to fail to load properly if newer Trailblazers or Thargoid war commodities had buy or sell orders set.
 
-### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxxxxxxx)):
+### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/4cc039a5-fcdf-4bdb-adb3-1cd4b78f70d8)):
 
 * New `/objectives` endpoint.
 * `/events` endpoint: Synthetic events added for certain activities in game that the game itself doesn't log in the journal:

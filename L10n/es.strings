@@ -19,6 +19,9 @@
 /* Label on activity window. [activity.py] */
 "Activity to post:" = "Actividad a publicar:";
 
+/* Add/create a new system. [colonisation.py] */
+"Add" = "Añadir";
+
 /* CMDR information. [targetmanager.py] */
 "Added a friend" = "Se ha añadido a un amigo";
 
@@ -46,8 +49,17 @@
 /* Preferences force tick text. [ui.py] */
 "Are you sure that you want to do this?" = "¿Estás seguro de que quieres hacer esto?";
 
+/* [colonisation.py] */
+"Are you sure you want to remove this system?" = "¿Estás seguro de que quieres eliminar este sistema?";
+
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Pide al administrador del servidor la información que aparece a continuación, después haz clic en \"Establecer conexión\" para continuar. Se proporcionan botones para pre-rellenar alguna información para servidores populares, pero deberás introducir tu clave de API, que es única para ti.";
+
+/* name of the base. [colonisation.py] */
+"Base Name" = "Nombre de Base";
+
+/* type of base. [colonisation.py] */
+"Base Type" = "Tipo de Base";
 
 /* Discord heading, abbreviation for black box. [default.py] */
 "bb" = "cn";
@@ -58,41 +70,56 @@
 /* Dropdown menu on activity window. [activity.py] */
 "BGS Only" = "Sólo BGS";
 
+/* [clb.py] */
+"BGS Report" = "Informe de BGS";
+
 /* Discord heading. [default.py] */
 "bio-pod" = "biocap";
 
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Beneficios de mercado negro";
 
-/* Activity window column title, abbreviation for black market profit. [activity.py] */
-"BM Prof" = "Benef. MN";
+/* Body the base is on or around. [colonisation.py] */
+"Body" = "Cuerpo";
 
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS y TW";
 
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Materiales y Mercancías";
-
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bonos de recompensas";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* Builds/bases. [progress.py] */
+"Builds" = "Construcciones";
+
+/* [fleetcarrier.py] */
 "Buying Commodities" = "Comprando Mercancías";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Buying Commodities:" = "Comprando Mercancías:";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* [fleetcarrier.py] */
 "Buying Materials" = "Comprando Materiales";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Buying Materials:" = "Comprando Materiales:";
 
+/* [colonisation.py] */
+"Cancel" = "Cancelar";
+
 /* Discord heading. [default.py] */
 "cargo" = "carga";
 
+/* [fleetcarrier.py] */
+"Cargo" = "Carga";
+
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Misiones de carga";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Cargo:" = "Carga:";
+
+/* Amount in your Fleet Carrier. [progress.py] */
+"Carrier" = "Portanaves";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
 "Carrier {carrier_name}" = "Portanaves {carrier_name}";
@@ -112,14 +139,20 @@
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Bonos de combate";
 
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Sólo mercancías";
+/* Commodity. [progress.py] */
+"Commodity" = "Mercancía";
+
+/* totals of completed builds i.e. ones that are done. [colonisation.py] */
+"Completed" = "Completed";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configurar Servidor Remoto";
 
 /* Preferences force tick popup title. [ui.py] */
 "Confirm Force a New Tick" = "Confirmar el forzado de un nuevo Tick";
+
+/* [colonisation.py] */
+"Confirm Removal" = "Confirmar eliminación";
 
 /* [widgets.py] */
 "Copy" = "Copiar";
@@ -130,14 +163,14 @@
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Copiar al portapapeles";
 
+/* Cost in tonnes of cargo. [colonisation.py] */
+"Cost" = "Coste";
+
 /* Discord heading, abbreviation for critically injured. [default.py] */
 "crit" = "grav";
 
 /* Label on legend window. [legend.py] */
 "Critically wounded evacuation missions" = "Misiones de evacuación de heridos graves";
-
-/* [ui.py] */
-"Curr Tick:" = "Tick actual:";
 
 /* [fleetcarrier.py] */
 "Current System" = "Sistema Actual";
@@ -160,7 +193,7 @@
 /* [ui.py] */
 "Default" = "Por defecto";
 
-/* [sheet_options.py] */
+/* Delete button. [colonisation.py] */
 "Delete" = "Borrar";
 
 /* [sheet_options.py] */
@@ -171,6 +204,12 @@
 
 /* Button on CMDR window. [cmdrs.py] */
 "Delete Selected" = "Borrar lo seleccionado";
+
+/* Show legend tooltip. [colonisation.py] */
+"Delete system plan" = "Delete system plan";
+
+/* Amount delivered. [progress.py] */
+"Delivered" = "Entregado";
 
 /* [demo.py] */
 "Demo Data Only" = "Información solo para demostración";
@@ -184,8 +223,14 @@
 /* Label on legend window. [legend.py] */
 "Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "INF obtenida en misiones separada en + / ++ / +++ / ++++ / +++++.";
 
+/* Development level impact. [colonisation.py] */
+"Dev Lvl" = "Niv Des.";
+
 /* Label on activity window. [activity.py] */
 "Discord Additional Notes" = "Notas adicionales de Discord";
+
+/* Preferences label. [ui.py] */
+"Discord Avatar URL" = "URL de avatar de Discord";
 
 /* [ui.py] */
 "Discord Options" = "Opciones de Discord";
@@ -196,11 +241,23 @@
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Webhooks de Discord";
 
+/* The name to show in the UI. [colonisation.py] */
+"Display Name" = "Display Name";
+
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Atraque";
 
-/* [activity.py] */
+/* Label on activity window. [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Comprueba los conteos de las CZ de tierra, los tamaños no siempre son correctos";
+
+/* facility economy. [colonisation.py] */
+"Econ" = "Econ";
+
+/* Economy influence. [colonisation.py] */
+"Econ Inf" = "Econ Inf";
+
+/* facility economy. [colonisation.py] */
+"Economy" = "Economía";
 
 /* [sheet_options.py] */
 "Edit cell" = "Editar celda";
@@ -211,8 +268,14 @@
 /* [sheet_options.py] */
 "Edit index" = "Editar índice";
 
+/* [clb.py] */
+"Election Inf" = "Inf de Elecciones";
+
 /* Discord heading, abbreviation for election INF. [default.py] */
 "ElectionINF" = "EleccionesINF";
+
+/* Your helpful context goes here. [colonisation.py] */
+"Elite Dangerous Colonisation" = "Elite Dangerous Colonisation";
 
 /* Label on activity window. [activity.py] */
 "Empty System, no BGS Activity Available" = "Sistema deshabitado, no hay actividad de BGS disponible";
@@ -228,6 +291,9 @@
 
 /* Checkbox on API settings window. [api.py] */
 "Enable {events_url} Requests" = "Habilitar {events_url} Solicitudes";
+
+/* A plan name is required. [colonisation.py] */
+"Error" = "Error";
 
 /* Discord heading, abbreviation for escape pod. [default.py] */
 "esc-pod" = "cap-esc";
@@ -280,13 +346,16 @@
 /* Discord heading. [fleetcarrier.py] */
 "From System" = "Del Sistema";
 
+/* Overlay galaxy tick message. [ui.py] */
+"Galaxy Tick: {tick_time}" = "Tick galáctico: {tick_time}";
+
 /* Appended to tick time if a normal tick. [activity.py] */
 "game" = "juego";
 
 /* Preferences heading. [ui.py] */
 "General Options" = "Opciones generales";
 
-/* Activity window column title. [activity.py] */
+/* [clb.py] */
 "Ground" = "Tierra";
 
 /* Activity window tooltip. [activity.py] */
@@ -367,6 +436,9 @@
 /* Preferences checkbox label. [ui.py] */
 "Include Secondary INF" = "Incluir INF secundaria";
 
+/* [clb.py] */
+"Inf" = "Inf";
+
 /* Discord heading, abbreviation for INF. [default.py] */
 "INF" = "INF";
 
@@ -433,6 +505,9 @@
 /* [legend.py] */
 "Kills" = "Bajas";
 
+/* Letter to indicate cargo loads. [progress.py] */
+"L" = "L";
+
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Idioma para las publicaciones de Discord";
 
@@ -451,14 +526,23 @@
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Estado legal: {legal}";
 
+/* Legend title. [colonisation.py] */
+"Legend" = "Legend";
+
+/* Number of loads of cargo. [colonisation.py] */
+"Loads" = "Viajes";
+
+/* [fleetcarrier.py] */
+"Locker" = "Almacén";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Locker:" = "Almacén:";
+
 /* Activity window tooltip. [activity.py] */
 "Low" = "Baja";
 
 /* [legend.py] */
 "Massacre missions" = "Misiones de masacre";
-
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Sólo materiales";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Media";
@@ -484,6 +568,9 @@
 /* Label on CMDR window. [cmdrs.py] */
 "Name: " = "Nombre: ";
 
+/* Amount still needed. [progress.py] */
+"Needed" = "Needed";
+
 /* Overlay message. [bgstally.py] */
 "NEW TICK DETECTED!" = "¡NUEVO TICK DETECTADO!";
 
@@ -499,8 +586,17 @@
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Acceso con notoriedad";
 
+/* Objectives title. [objectivesmanager.py] */
+"Objectives" = "Objetivos";
+
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Zona de conflicto en tierra";
+
+/* Number of orbital/space builds. [colonisation.py] */
+"Orbital" = "Orbital";
+
+/* Pad size. [colonisation.py] */
+"Pad" = "Pad";
 
 /* [ui.py] */
 "Panels" = "Paneles";
@@ -517,17 +613,29 @@
 /* [widgets.py] */
 "Paste" = "Pegar";
 
+/* Percentage. [progress.py] */
+"Percent" = "Percent";
+
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "Anclar {system_name} a la superposición";
 
-/* [ui.py] */
-"Pinned Systems" = "Sistemas anclados";
+/* the name you want to give your plan. [colonisation.py] */
+"Plan Name" = "Nombre del plan";
+
+/* Totals of planned builds i.e. ones that aren't completed. [colonisation.py] */
+"Planned" = "Planned";
 
 /* URL label on API settings window. [api.py] */
 "Player Journal Documentation" = "Documentación del diario del jugador";
 
 /* Text on API settings window. [api.py] */
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "¡POR FAVOR ASEGÚRATE DE QUE CONFÍAS en el servidor al que envíes esta información!";
+
+/* Population increase. [colonisation.py] */
+"Pop Inc" = "Pob Inc";
+
+/* Population Maximum. [colonisation.py] */
+"Pop Max" = "Pob Max";
 
 /* Button on CMDR window. [cmdrs.py] */
 "Post CMDR List to Discord" = "Publicar lista de CMDRs en Discord";
@@ -583,8 +691,20 @@
 /* CMDR information. [targetmanager.py] */
 "Received team invite from" = "Invitación de equipo recibida de";
 
+/* [colonisation.py] */
+"Rename" = "Renombrar";
+
+/* Your helpful context goes here. [colonisation.py] */
+"Rename System" = "Renombrar sistema";
+
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Reportar por defecto actividad de sistemas recientemente visitados";
+
+/* Required amount. [progress.py] */
+"Required" = "Requerido";
+
+/* any prerequisites for the base. [colonisation.py] */
+"Requirements" = "Requisitos";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "BusqResc";
@@ -625,16 +745,19 @@
 /* Label on legend window. [legend.py] */
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "INF secundaria. Ésta es la INF obtenida como un efecto secundario de la misión, como por ejemplo la facción de destino de las misiones de mensajería/entrega de carga.";
 
+/* Security impact. [colonisation.py] */
+"Security" = "Seguridad";
+
 /* [widgets.py] */
 "Select all" = "Seleccionar todo";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* [fleetcarrier.py] */
 "Selling Commodities" = "Vendiendo Mercancías";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Selling Commodities:" = "Vendiendo Mercancías:";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* [fleetcarrier.py] */
 "Selling Materials" = "Vendiendo Materiales";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
@@ -655,6 +778,9 @@
 /* Main window tooltip. [ui.py] */
 "Show CMDR information window" = "Mostrar ventana de información del CMDR";
 
+/* Main window tooltip. [ui.py] */
+"Show colonisation window" = "Mostrar ventana de colonización";
+
 /* Preferences checkbox label. [ui.py] */
 "Show Detailed INF" = "Mostrar INF detallada";
 
@@ -670,11 +796,20 @@
 /* Activity window tooltip. [activity.py] */
 "Show legend window" = "Mostrar ventana de leyenda";
 
+/* Main window tooltip. [ui.py] */
+"Show objectives / missions window" = "Mostrar objetivos / ventana de misiones";
+
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Mostrar sistemas sin ninguna actividad";
 
-/* [fleetcarrier.py] */
+/* Standard of living impact. [colonisation.py] */
+"SoL" = "";
+
+/* Label on carrier window. [fleetcarrier.py] */
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Alguna información no puede ser actualizada. Habilitar consultas CAPI del portanaves en Archivo -> Ajustes -> Configuración";
+
+/* [clb.py] */
+"Space" = "Espacio";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Zonas de conflicto espaciales";
@@ -700,6 +835,9 @@
 /* Activity window column title. [activity.py] */
 "State" = "Estado";
 
+/* Number of ground/surface builds. [colonisation.py] */
+"Surface" = "Superficie";
+
 /* CMDR window column title. [cmdrs.py] */
 "System" = "Sistema";
 
@@ -709,8 +847,23 @@
 /* Preferences checkbox label. [ui.py] */
 "System Information" = "Información del Sistema";
 
+/* Elite dangerous system name. [colonisation.py] */
+"System Name (optional)" = "System Name (optional)";
+
+/* Overlay system tick message. [ui.py] */
+"System Tick: {tick_time}" = "Tick de sistemas: {tick_time}";
+
 /* Label on carrier window. [fleetcarrier.py] */
 "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistema: {current_system} - Atraque: {docking_access} - Acceso con notoriedad: {notorious}";
+
+/* Letter to indicate tonnes. [progress.py] */
+"t" = "t";
+
+/* Tier 2 points. [colonisation.py] */
+"T2" = "T2";
+
+/* Tier 3 points. [colonisation.py] */
+"T3" = "T3";
 
 /* Text on API settings window. [api.py] */
 "Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills." = "Ten precaución al aceptar esto - si apruebas este servidor, {plugin_name} le enviarás tu información que incluirá detalles de CMDR como tu ubicación, misiones y asesinatos.";
@@ -720,6 +873,9 @@
 
 /* Discord CMDR information. [targetmanager.py] */
 "Team invite received from this CMDR" = "Invitación de equipo recibida de este CMDR";
+
+/* Technology level. [colonisation.py] */
+"Tech Lvl" = "Niv Tec.";
 
 /* Name of default output formatter. [text.py] */
 "Text Only" = "Sólo texto";
@@ -754,11 +910,20 @@
 /* Discord heading. [fleetcarrier.py] */
 "To Body" = "Al Cuerpo";
 
+/* Amount still left to buy. [progress.py] */
+"To Buy" = "To Buy";
+
 /* [ui.py] */
 "To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Para eliminar un webhook: Haz clic derecho en un número de fila y selecciona 'Eliminar filas'.";
 
 /* Discord heading. [fleetcarrier.py] */
 "To System" = "Al Sistema";
+
+/* Total number of builds. [colonisation.py] */
+"Total" = "Total";
+
+/* Track this build?. [colonisation.py] */
+"Track" = "Seguir";
 
 /* Activity window column title. [activity.py] */
 "Trade" = "Comercio";
@@ -799,6 +964,9 @@
 /* Discord message footer, legacy text mode. [discord.py] */
 "Updated at: {date_time} | {plugin_name} v{version}" = "Actualizado el: {date_time} | {plugin_name} v{version}";
 
+/* [clb.py] */
+"War Inf" = "Inf de Guerra";
+
 /* Discord heading, abbreviation for war INF. [default.py] */
 "WarINF" = "GuerraINF";
 
@@ -808,8 +976,14 @@
 /* Preferences checkbox label. [ui.py] */
 "Warnings" = "Alertas";
 
+/* Wealth impact. [colonisation.py] */
+"Wealth" = "Riqueza";
+
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "URL de Webhook";
+
+/* Words about the first base. [colonisation.py] */
+"When planning your system the first base is special, make sure that it is the first on the list." = "When planning your system the first base is special, make sure that it is the first on the list.";
 
 /* [ui.py] */
 "Within {minutes_to_tick}m of Next Tick (Estimated)" = "Quedan {minutes_to_tick}m para el siguiente Tick (Estimado)";
@@ -841,6 +1015,9 @@
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Leyenda de los iconos";
 
+/* Objectives window title. [objectives.py] */
+"{plugin_name} - Objectives" = "{plugin_name} - Objetivos";
+
 /* Preferences checkbox label. [ui.py] */
 "{plugin_name} Active" = "Activar {plugin_name}";
 
@@ -853,11 +1030,11 @@
 /* Main window error message. [tick.py] */
 "{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} ATENCIÓN: No ha sido posible obtener el último tick";
 
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: There was a problem saving the new version" = "{plugin_name}: Ha habido un problema al guardar la nueva versión";
+/* [tick.py] */
+"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} ATENCIÓN: No ha sido posible obtener el último tick de sistemas";
 
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin download" = "{plugin_name}: No se pudo obtener la última descarga del plugin";
+/* Objectives title. [objectivesmanager.py] */
+"{server_name} Objectives" = "{server_name} - Objetivos";
 
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: No se pudo obtener la última versión del plugin";
+/* [colonisation.py] */
+"ⓘ" = "ⓘ";

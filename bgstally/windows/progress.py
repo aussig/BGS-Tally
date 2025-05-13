@@ -82,6 +82,7 @@ class ProgressWindow:
 
         # UI components
         self.frame = None
+        self.table_frame = None # Table frame
         self.frame_row = None # Frame row
         self.title:tk.Label = None # Title object
         self.colheadings:dict = {} # Column headings
@@ -202,6 +203,7 @@ class ProgressWindow:
                 r[col].grid(row=row, column=i, sticky=val.get('Sticky'))
                 self.weight(r[col])
             self.rows.append(r)
+            self.table_frame = table_frame
 
             if len(tracked) == 0:
                 Debug.logger.info("No tracked builds")
@@ -306,6 +308,7 @@ class ProgressWindow:
                 return
 
             self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
+            self.table_frame.grid(row=2, column=0, columnspan=5, sticky=tk.NSEW)
 
             # Set the title
             name = ', '.join([tracked[self.build_index].get('Plan', _('Unknown')), tracked[self.build_index].get('Name', _('Unnamed'))]) if self.build_index < len(tracked) else _('All') # LANG: unknown or unnamed
@@ -453,6 +456,15 @@ class ProgressWindow:
             self.progcols['Cargo'].set(cargo * 100 / self.colonisation.cargo_capacity)
             if remaining > 0:
                 self.progcols['Carrier'].set(carrier * 100 / remaining) # Need to figure out carrier space
+
+            if remaining == 0:
+                if len(tracked) == 1:
+                    self.frame.grid_forget()
+                else:
+                    self.table_frame.grid_forget()
+
+                Debug.logger.debug(f"No progress to display {reqcnt} {delcnt} {remaining} {cargo} {carrier}")
+                return
 
         except Exception as e:
             Debug.logger.info(f"Error updating display")

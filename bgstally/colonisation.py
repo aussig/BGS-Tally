@@ -151,6 +151,7 @@ class Colonisation:
                     progress['Updated'] = entry.get('timestamp')
                     for f in ['ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ResourcesRequired']:
                         progress[f] = entry.get(f)
+
                     self.dirty = True
 
                 case 'Docked':
@@ -388,13 +389,38 @@ class Colonisation:
         return all
 
 
+    def get_build_state(self, build: dict) -> BuildState:
+        '''
+        Get the state of a build from either the build or the progress data
+        '''
+        Debug.logger.debug(f"Getting build state for {build.get('Name', '')} {build}")
+        if build.get('State', None) == BuildState.COMPLETE:
+            return BuildState.COMPLETE
+
+        if build == None or build.get('MarketID', None) == None:
+            Debug.logger.info(f"Cannot get build state - invalid build: {build}")
+            return build.get('State', BuildState.PLANNED)
+
+        # If we have a progress entry, use that
+        for p in self.progress:
+            if p.get('MarketID') == build.get('MarketID'):
+                if p.get('ConstructionComplete', False) == True or p.get('ConstructionFailed', False) == True:
+                    build['State'] = BuildState.COMPLETE
+                    build['Track'] = False
+                    self.dirty = True
+                    return BuildState.COMPLETE
+                return BuildState.PROGRESS
+
+        # Otherwise, use the state of the build
+        return build.get('State', BuildState.PLANNED)
+
     def get_tracked_builds(self) -> list[dict]:
         '''
         Get all builds that are being tracked
         '''
         tracked:list = []
         for build in self.get_all_builds():
-            if build.get("Track") == True and build.get('State', '') != BuildState.COMPLETE:
+            if build.get("Track") == True and self.get_build_state(build) != BuildState.COMPLETE:
                 tracked.append(build)
 
         return tracked
@@ -530,7 +556,7 @@ class Colonisation:
                 # See if we have actual data
                 if b.get('MarketID') != None:
                     for p in self.progress:
-                        if p.get('MarketID') == b.get('MarketID'):
+                        if p.get('MarketID') == b.get('MarketID') and p.get('ConstructionComplete', False) == False and p.get('ConstructionFailed', False) != True:
                             for c in p.get('ResourcesRequired', []):
                                 res[c.get('Name')] = c.get(type)
                             break
@@ -725,9 +751,10 @@ class Colonisation:
         def sort_order(item:dict):
             state:BuildState = BuildState.COMPLETE
             for b in item['Builds']:
-                if b.get('State') == BuildState.PLANNED and state != BuildState.PROGRESS:
+                bs = self.get_build_state(b)
+                if bs == BuildState.PLANNED and state != BuildState.PROGRESS:
                     state = BuildState.PLANNED
-                if b.get('State') == BuildState.PROGRESS:
+                if bs == BuildState.PROGRESS:
                     state = BuildState.PROGRESS
             return state.value
 

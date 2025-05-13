@@ -161,9 +161,10 @@ class ColonisationWindow:
         """
         state:BuildState = BuildState.COMPLETE
         for b in system['Builds']:
-            if b.get('State') == BuildState.PLANNED and state != BuildState.PROGRESS:
+            build_state = self.colonisation.get_build_state(b)
+            if build_state == BuildState.PLANNED and state != BuildState.PROGRESS:
                 state = BuildState.PLANNED
-            if b.get('State') == BuildState.PROGRESS:
+            if build_state == BuildState.PROGRESS:
                 state = BuildState.PROGRESS
 
         match state:
@@ -380,7 +381,7 @@ class ColonisationWindow:
         starports = self.colonisation.get_base_types('Starport')
         min = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
         totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
-        min = 35 if len([1 for build in builds if build.get('Base Type') in starports and build.get('State') == BuildState.COMPLETE]) > 0 else 0
+        min = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.colonisation.get_build_state(build) == BuildState.COMPLETE]) > 0 else 0
         totals['Completed']['Technology Level'] = max(totals['Completed']['Technology Level'], min)
 
         return totals
@@ -469,11 +470,11 @@ class ColonisationWindow:
                     case _:
                         if name == 'State':
                             # @TODO: Make this a progress bar
-                            if build.get('State', '') == BuildState.PROGRESS and i < len(reqs):
+                            if self.colonisation.get_build_state(build) == BuildState.PROGRESS and i < len(reqs):
                                 req = sum(reqs[i].values())
                                 deliv = sum(delivs[i].values())
                                 row.append(f"{int(deliv * 100 / req)}%")
-                            elif build.get('State', '') == BuildState.COMPLETE:
+                            elif self.colonisation.get_build_state(build) == BuildState.COMPLETE:
                                 row.append('Complete')
                             else:
                                 row.append('Planned')
@@ -927,27 +928,13 @@ class ColonisationWindow:
         '''
         return len([b for b in builds if b.get('Base Type') in self.colonisation.get_base_types('Initial')])
 
+
     def is_build_completed(self, build:list[dict]) -> bool:
         """
         Check if a build is completed
         """
+        return (self.colonisation.get_build_state(build) == BuildState.COMPLETE)
 
-        # If it has a state setting we're golden.
-        if build.get('State', '') != '':
-            return build.get('State', '') == BuildState.COMPLETE
-
-        # Not state so figure it out from its progress.
-        marketid:int = build.get('MarketID')
-        if marketid == None:
-            build['State'] = BuildState.PLANNED
-            return False
-
-        build['State'] = BuildState.PROGRESS
-        for depot in self.colonisation.progress:
-            if depot.get('MarketID') == marketid and depot.get('ConstructionComplete', False):
-                build['State'] = BuildState.COMPLETE
-
-        return build['State'] == BuildState.COMPLETE
 
     def load_legend(self) -> str:
         """

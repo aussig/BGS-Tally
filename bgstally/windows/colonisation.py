@@ -33,8 +33,8 @@ class ColonisationWindow:
         self.image_tab_planned:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
 
         self.summary_rows:dict = {
-            'Planned': _("Planned"), # LANG: Totals of planned builds i.e. ones that aren't completed
-            'Completed': _("Completed") # LANG: totals of completed builds i.e. ones that are done
+            'Planned': _("Planned"), # LANG: Row heading of planned build totals i.e. ones that aren't completed
+            'Completed': _("Completed") # LANG: Row heading of completed build totals i.e. ones that are done
         }
 
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
@@ -80,7 +80,7 @@ class ColonisationWindow:
             "Standard of Living": {'header': _("SoL"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: As above
             "Development Level": {'header': _("Dev Lvl"), 'background': True, 'format': 'int', 'max':8, 'width': 60} # LANG: As above
         }
-        self.current_system = None
+
         # UI components
         self.window:tk.Toplevel = None
         self.tabbar:ScrollableNotebook = None
@@ -136,7 +136,6 @@ class ColonisationWindow:
             # Select the first tab
             if tabnum > 0:
                 self.tabbar.select(1)
-                self.current_system = self.colonisation.get_system('Name', systems[0]['Name'])
 
         except Exception as e:
             Debug.logger.error(f"Error in colonisation.show(): {e}")
@@ -207,12 +206,16 @@ class ColonisationWindow:
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, command=lambda: self.legend_popup())
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
-        ToolTip(btn, text=_("Show legend window")) # LANG: Show legend tooltip
+        ToolTip(btn, text=_("Show legend window")) # LANG: tooltip for the show legend button
 
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
-        ToolTip(btn, text=_("Delete system plan")) # LANG: Show legend tooltip
-        btn.pack(side=tk.RIGHT, padx=10, pady=5)
+        ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
+        btn.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        btn:ttk.Button = ttk.Button(title_frame, text=_("Rename"), command=lambda: self.rename_system_dialog(tabnum, tab)) # LANG: Rename button
+        ToolTip(btn, text=_("Rename system plan")) # LANG: tooltip for the rename system button
+        btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
     def inara_click(self, tabnum:int, event) -> None:
         '''
@@ -313,9 +316,8 @@ class ColonisationWindow:
         s4 = sheet.span('E4:T', type_='readonly')
         sheet.named_span(s4)
 
-        # types, names and prerequisites left.
+        # types and names left.
         sheet[f"B{FIRST_BUILD_ROW}:C"].align(align='left')
-        sheet[f"E{FIRST_BUILD_ROW}:E"].align(align='left')
 
 
     def get_summary_header(self) -> list[str]:
@@ -482,6 +484,10 @@ class ColonisationWindow:
                             row.append(build.get('Body').replace(system.get('StarSystem') + ' ', ''))
                             continue
 
+                        if name == 'Facility Economy' and build.get('StationEconomy', None) != None:
+                            row.append(build.get('StationEconomy').replace(' ', ''))
+                            continue
+
                         row.append(build.get(name) if build.get(name, ' ') != ' ' else bt.get(name, ' '))
 
             details.append(row)
@@ -612,6 +618,10 @@ class ColonisationWindow:
                     data.append(self.get_detail_header())
                     data += self.get_detail(systems[sysnum])
 
+                    # Get the existing name & body if they've been set
+                    name = systems[sysnum]['Builds'][row].get('Name', ' ')
+                    body = systems[sysnum]['Builds'][row].get('Body', ' ')
+
                     self.sheets[sysnum].set_sheet_data(data)
                     self.config_sheet(self.sheets[sysnum])
 
@@ -648,17 +658,19 @@ class ColonisationWindow:
 
         # System name
         ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
-        plan_name_var = tk.StringVar()
-        plan_name_entry = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
+        plan_name_var:tk.StringVar = tk.StringVar()
+        plan_name_entry:ttk.Entr = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
         plan_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
 
         # Display name
-        ttk.Label(dialog, text=_("System Name (optional)"+":")).grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
-        system_name_var = tk.StringVar()
-        system_name_entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
+        syslabel = _("System Name") # LANG: Label for the system's name field in the UI
+        optionlabel = _("optional") # LANG: Indicates the field is optional
+        ttk.Label(dialog, text=f"{syslabel} ({optionlabel}):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        system_name_var:tk.StringVar = tk.StringVar()
+        system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
         system_name_entry.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)
 
-        ttk.Label(dialog, text=_("When planning your system the first base is special, make sure that it is the first on the list.")).grid(row=2, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Words about the first base
+        ttk.Label(dialog, text=_("When planning your system the first base is special, make sure that it is the first on the list.")).grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky=tk.W) # LANG: Notice about the first base being special
 
         # Buttons
         button_frame = ttk.Frame(dialog)
@@ -680,13 +692,13 @@ class ColonisationWindow:
         """
         try:
             if not plan_name:
-                messagebox.showerror(_("Error"), _("Plan name is required")) # LANG: A plan name is required
+                messagebox.showerror(_("Error"), _("Plan name is required")) # LANG: Error when no plan name is given
                 return
 
             # Add the system
             system:dict = self.colonisation.add_system(plan_name, system_name)
             if system == False:
-                messagebox.showerror(_("Error"), f"Unable to create system.") # LANG: Failure error
+                messagebox.showerror(_("Error"), f"Unable to create system.") # LANG: General failure to create system error
                 return
 
             systems:list = self.colonisation.get_all_systems()
@@ -699,51 +711,65 @@ class ColonisationWindow:
             return
 
 
-    def rename_system_dialog(self):
+    def rename_system_dialog(self, tabnum:int, tab:ttk.Frame) -> None:
         """
-        @TODO: Implement this.
         Show dialog to rename a system
         """
-        if not self.current_system:
-            return
+        try:
+            sysnum = tabnum -1
+            systems = self.colonisation.get_all_systems()
+            if sysnum > len(systems):
+                Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
-        dialog = tk.Toplevel(self.window)
-        dialog.title(_("Rename System")) # LANG: Your helpful context goes here
-        dialog.geometry("400x150")
-        dialog.transient(self.window)
-        dialog.grab_set()
-
-        # Display name
-        ttk.Label(dialog, text=_("Display Name"+":")).grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: The name to show in the UI
-        system_name_var = tk.StringVar(value=self.current_system.get('Name', ''))
-        system_name_entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
-        system_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
-
-        # Buttons
-        button_frame = ttk.Frame(dialog)
-        button_frame.grid(row=1, column=0, columnspan=2, pady=10)
-
-        # Rename button
-        rename_button = ttk.Button(
-            button_frame,
-            text=_("Rename"),
-            command=lambda: self.rename_system(system_name_var.get(), dialog)
-        ) # LANG: Your helpful context goes here
-        rename_button.pack(side=tk.LEFT, padx=5)
-
-        # Cancel button
-        cancel_button = ttk.Button(
-            button_frame,
-            text=_("Cancel"),
-            command=dialog.destroy
-        ) # LANG: Your helpful context goes here
-        cancel_button.pack(side=tk.LEFT, padx=5)
-
-        # Focus on display name entry
-        system_name_entry.focus_set()
+            system = systems[sysnum]
+            dialog:tk.Toplevel = tk.Toplevel(self.window)
+            dialog.title(_("Rename System")) # LANG: Your helpful context goes here
+            dialog.geometry("500x150")
+            dialog.transient(self.window)
+            dialog.grab_set()
 
 
-    def rename_system(self, system_name:str, dialog) -> None:
+        # System name
+            ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
+            plan_name_var:tk.StringVar = tk.StringVar(value=system.get('Name', ''))
+            plan_name_entry:ttk.Entr = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
+            plan_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
+
+            # Display name
+            ttk.Label(dialog, text=_("System Name (optional)"+":")).grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
+            system_name_var:tk.StringVar = tk.StringVar(value=system.get('StarSystem', ''))
+            system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
+            system_name_entry.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)
+
+
+            # Buttons
+            button_frame = ttk.Frame(dialog)
+            button_frame.grid(row=2, column=0, columnspan=2, pady=10)
+
+            # Rename button
+            rename_button = ttk.Button(
+                button_frame,
+                text=_("Rename"),
+                command=lambda: self.rename_system(tabnum, tab, plan_name_var.get(), system_name_var.get(), dialog)
+            ) # LANG: Rename
+            rename_button.pack(side=tk.LEFT, padx=5)
+
+            # Cancel button
+            cancel_button = ttk.Button(
+                button_frame,
+                text=_("Cancel"),
+                command=dialog.destroy
+            ) # LANG: Cancel
+            cancel_button.pack(side=tk.LEFT, padx=5)
+
+            # Focus on display name entry
+            system_name_entry.focus_set()
+        except Exception as e:
+            Debug.logger.error(f"Error in rename_system_dialog(): {e}")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def rename_system(self, tabnum:int, tab:ttk.Frame, name:str, sysname:str, dialog:tk.Toplevel) -> None:
         """
         Rename a system
 
@@ -751,21 +777,33 @@ class ColonisationWindow:
             system_name: The new display name
             dialog: The dialog to close
         """
-        if not self.get_current_system():
-            return
+        try:
+            sysnum = tabnum -1
+            systems = self.colonisation.get_all_systems()
+            if sysnum > len(systems):
+                Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
-        # Update the system
-        self.current_system['Name'] = system_name
+            system = systems[sysnum]
 
-        # Close the dialog
-        dialog.destroy()
+            # Update the system
+            system['Name'] = name
+            system['StarSystem'] = sysname
 
-        # Update the display
-        self.update_display()
+            self.tabbar.notebookTab.tab(tabnum, text=name)
 
-        # Save changes
-        self.colonisation.dirty = True
-        self.colonisation.save()
+            # Close the dialog
+            dialog.destroy()
+
+            # Update the display
+            self.update_display()
+
+            # Save changes
+            self.colonisation.dirty = True
+            self.colonisation.save()
+
+        except Exception as e:
+            Debug.logger.error(f"Error in rename_system_dialog(): {e}")
+            Debug.logger.error(traceback.format_exc())
 
 
     def delete_system(self, tabnum:int, tab: ttk.Frame) -> None:
@@ -806,7 +844,6 @@ class ColonisationWindow:
             self.window.destroy()
             self.window = None
 
-        self.current_system = None
         # UI components
         self.tabbar = None
         self.sheets = []
@@ -940,7 +977,7 @@ class ColonisationWindow:
             def leavemini():
                 popup.destroy()
 
-            popup.wm_title(_("Legend")) # LANG: Legend title
+            popup.wm_title(_("Legend")) # LANG: Title of the legend popup window
             popup.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
             popup.wm_attributes('-toolwindow', True) # makes it a tool window
             popup.geometry("600x600")

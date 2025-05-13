@@ -170,8 +170,7 @@ class Colonisation:
                             name = entry.get('StationName_Localised')
 
                     elif self.find_system(entry.get('StarSystem'), entry.get('SystemAddress')) != None:
-                        s = self.find_system(entry.get('StarSystem'), entry.get('SystemAddress'))
-                        name = entry.get('StationName_Localised')
+                        name = entry.get('StationName')
                         build_state = BuildState.COMPLETE
 
                     # If this isn't a colonisation ship or a system we're building, or a carrier, ignore it.
@@ -192,6 +191,9 @@ class Colonisation:
                     build['Location'] = type
                     build['State'] = build_state
                     build['Track'] = (build_state != BuildState.COMPLETE)
+                    if self.body and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
+                        build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
+
                     #Debug.logger.debug(f"Setting {name} build state {build_state} and track {(build_state != BuildState.COMPLETE)}")
                     self.dirty = True
 
@@ -224,7 +226,7 @@ class Colonisation:
                 case 'SupercruiseExit':
                     self.system_id = entry.get('SystemAddress')
                     self.current_system = entry.get('StarSystem', None)
-                    self.body = entry.get('Body')
+                    self.body = entry.get('Body', None)
 
                     if 'Construction Site' in self.station or 'ColonisationShip' in self.station or entry.get('BodyType') == 'Fleetcarrier':
                         return
@@ -492,7 +494,7 @@ class Colonisation:
             self.bgstally.ui.window_progress.update_display()
 
 
-    def get_comodity_list(self, base_type: str, order: CommodityOrder = CommodityOrder.DEFAULT) -> list:
+    def get_commodity_list(self, base_type: str, order: CommodityOrder = CommodityOrder.DEFAULT) -> list:
         '''
         Return an ordered list of base commodity costs for a base type
         '''

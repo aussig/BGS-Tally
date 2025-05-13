@@ -16,7 +16,7 @@ from config import config
 
 TICKID_UNKNOWN = "unknown_tickid"
 URL_GALAXY_TICK_DETECTOR = "http://tick.infomancer.uk/galtick.json"
-URL_SYSTEM_TICK_DETECTOR = "http://tickapi.infomancer.uk/system/tick_by_addr"
+URL_SYSTEM_TICK_DETECTOR = "http://tick-api.sjly.co.uk/system/tick_by_addr"
 
 class Tick:
     """

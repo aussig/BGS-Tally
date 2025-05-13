@@ -96,10 +96,8 @@ class ProgressWindow:
         Create the progress frame
         """
         try:
-            Debug.logger.debug("Creating progress frame")
             self.colonisation = self.bgstally.colonisation
             tracked:dict = self.colonisation.get_tracked_builds()
-            Debug.logger.debug(f"Tracking builds: {tracked}")
 
             self.frame_row = row
             frame:tk.Frame = tk.Frame(parent_frame)
@@ -286,7 +284,6 @@ class ProgressWindow:
                 if rem < min: break
 
             url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={sys}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
-            Debug.logger.debug(f"Opening URL {url}")
             webbrowser.open(url)
 
         except Exception as e:

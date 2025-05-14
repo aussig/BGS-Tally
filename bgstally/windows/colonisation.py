@@ -217,6 +217,10 @@ class ColonisationWindow:
         ToolTip(btn, text=_("Rename system plan")) # LANG: tooltip for the rename system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
+        btn:ttk.Button = ttk.Button(title_frame, text=_("📓"), width=3, command=partial(self.notes_popup, tabnum))
+        btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        ToolTip(btn, text=_("Show notes window")) # LANG: tooltip for the show notes window
+
     def inara_click(self, tabnum:int, event) -> None:
         '''
         Execute the click event for the Inara link
@@ -974,4 +978,43 @@ class ColonisationWindow:
 
         except Exception as e:
             Debug.logger.error(f"Error in colonisation.show(): {e}")
+            Debug.logger.error(traceback.format_exc())
+
+    def notes_popup(self, tabnum:int) -> None:
+        """
+        Show the notes popup window
+        """
+        try:
+            def leavemini(system:dict, text:tk.Text):
+                if sysnum > len(self.plan_titles):
+                    Debug.logger.info(f"Saving notes invalid tab: {tabnum}")
+                    return
+                notes:str = text.get("1.0", tk.END)
+                system['Notes'] = notes
+                self.colonisation.save()
+                popup.destroy()
+
+            systems = self.colonisation.get_all_systems()
+            sysnum = tabnum -1
+
+            popup:tk.Tk = tk.Tk()
+            popup.wm_title(_("Notes for ") + systems[sysnum].get('Name', '')) # LANG: Title of the notes popup window
+            popup.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+            popup.wm_attributes('-toolwindow', True) # makes it a tool window
+            popup.geometry("600x600")
+            popup.config(bd=2, relief=tk.FLAT)
+            scr:tk.Scrollbar = tk.Scrollbar(popup, orient=tk.VERTICAL)
+            scr.pack(side=tk.RIGHT, fill=tk.Y)
+
+            text:tk.Text = tk.Text(popup, font=FONT_SMALL, yscrollcommand=scr.set)
+            notes:str = systems[sysnum].get('Notes', '')
+            text.insert(tk.END, notes)
+            text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+
+            # Save button
+            save = ttk.Button(popup, text=_("Save"), command=partial(leavemini, systems[sysnum], text)) # LANG: Save the notes
+            save.pack(side=tk.RIGHT, padx=5)
+
+        except Exception as e:
+            Debug.logger.error(f"Error in notes_opup(): {e}")
             Debug.logger.error(traceback.format_exc())

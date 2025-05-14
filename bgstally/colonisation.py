@@ -393,12 +393,11 @@ class Colonisation:
         '''
         Get the state of a build from either the build or the progress data
         '''
-        Debug.logger.debug(f"Getting build state for {build.get('Name', '')} {build}")
         if build.get('State', None) == BuildState.COMPLETE:
             return BuildState.COMPLETE
 
         if build == None or build.get('MarketID', None) == None:
-            Debug.logger.info(f"Cannot get build state - invalid build: {build}")
+            #Debug.logger.info(f"Cannot get build state - invalid build: {build}")
             return build.get('State', BuildState.PLANNED)
 
         # If we have a progress entry, use that

@@ -34,7 +34,7 @@ class ColonisationWindow:
 
         self.summary_rows:dict = {
             'Planned': _("Planned"), # LANG: Row heading of planned build totals i.e. ones that aren't completed
-            'Completed': _("Completed") # LANG: Row heading of completed build totals i.e. ones that are done
+            'Completed': _("Completed") # LANG: Row heading of  build totals i.e. ones that are done
         }
 
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
@@ -42,20 +42,20 @@ class ColonisationWindow:
             'Total': {'header': _("Total"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Total number of builds
             'Orbital': {'header': _("Orbital"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Number of orbital/space builds
             'Surface': {'header': _("Surface"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Number of ground/surface builds
-            'T2': {'header': _("T2"), 'background': True, 'format': 'int', 'max': 1}, # LANG: Tier 2 points
-            'T3': {'header': _("T3"), 'background': True, 'format': 'int', 'max': 1}, # LANG: Tier 3 points
-            'Cost': {'header': _("Cost"), 'background': False, 'format': 'int'}, # LANG: Cost in tonnes of cargo
-            'Trips': {'header': _("Loads"), 'background': False, 'format': 'int'}, # LANG: Number of loads of cargo
+            'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 2 points
+            'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 3 points
+            'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max': 200000}, # LANG: Cost in tonnes of cargo
+            'Trips': {'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max': 260}, # LANG: Number of loads of cargo
             'Pad': {'header': _("Pad"), 'background': False, 'hide': True, 'format': 'hidden'}, # LANG: Pad size
             'Facility Economy': {'header': _("Econ"), 'background': False, 'hide': True, 'format': 'hidden'}, # LANG: facility economy
-            'Pop Inc': {'header': _("Pop Inc"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Population increase
-            'Pop Max': {'header': _("Pop Max"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Population Maximum
-            'Economy Inf': {'header': _("Econ Inf"), 'background': True, 'hide': True}, # LANG: Economy influence
-            'Security': {'header': _("Security"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Security impact
-            'Technology Level' : {'header': _("Tech Lvl"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Technology level
-            'Wealth' : {'header': _("Wealth"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Wealth impact
-            'Standard of Living' : {'header': _("SoL"), 'background': True, 'format': 'int', 'max': 20}, # LANG: Standard of living impact
-            'Development Level' : {'header': _("Dev Lvl"), 'background': True, 'format': 'int', 'max': 20} # LANG: Development level impact
+            'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population increase
+            'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population Maximum
+            'Economy Inf': {'header': _("Econ Inf"), 'background': 'rwg', 'hide': True}, # LANG: Economy influence
+            'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Security impact
+            'Technology Level' : {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Technology level
+            'Wealth' : {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Wealth impact
+            'Standard of Living' : {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Standard of living impact
+            'Development Level' : {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20} # LANG: Development level impact
         }
         # Table has two sections: summary and builds. This dict defines attributes for each build column
         self.detail_cols:dict = {
@@ -65,20 +65,20 @@ class ColonisationWindow:
             "Body": {'header': _("Body"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Body the base is on or around
             "Prerequisites": {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 100}, # LANG: any prerequisites for the base
             "State": {'header': _("State"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Current build state
-            "T2": {'header': _("T2"), 'background': True, 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 2 points
-            "T3": {'header': _("T3"), 'background': True, 'format': 'int', 'min':-1, 'max':1, 'width': 30}, # LANG: Tier 3
-            "Cost": {'header': _("Cost"), 'background': False, 'format': 'int', 'max':200000, 'width': 75}, # LANG: As above
-            "Trips":{'header': _("Loads"), 'background': False, 'format': 'int', 'max':100, 'width': 50}, # LANG: As above
+            "T2": {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 2 points
+            "T3": {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'min':-1, 'max':1, 'width': 30}, # LANG: Tier 3
+            "Cost": {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':100000, 'width': 75}, # LANG: As above
+            "Trips":{'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max':120, 'width': 50}, # LANG: As above
             "Pad": {'header': _("Pad"), 'background': None, 'format': 'string', 'width': 55}, # LANG: Landing pad size
             "Facility Economy": {'header': _("Economy"), 'background': None, 'format': 'string', 'width': 80}, # LANG: facility economy
-            "Pop Inc": {'header': _("Pop Inc"), 'background': True, 'format': 'int', 'max':5, 'width': 60}, # LANG: As above
-            "Pop Max": {'header': _("Pop Max"), 'background': True, 'format': 'int', 'max':5, 'width': 60}, # LANG: As above
+            "Pop Inc": {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 65}, # LANG: As above
+            "Pop Max": {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 65}, # LANG: As above
             "Economy Influence": {'header': _("Econ Inf"), 'background': None, 'format': 'string', 'width': 80}, # LANG: economy influence
-            "Security": {'header': _("Security"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: As above
-            "Technology Level": {'header': _("Tech Lvl"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: As above
-            "Wealth": {'header': _("Wealth"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: As above
-            "Standard of Living": {'header': _("SoL"), 'background': True, 'format': 'int', 'max':8, 'width': 60}, # LANG: As above
-            "Development Level": {'header': _("Dev Lvl"), 'background': True, 'format': 'int', 'max':8, 'width': 60} # LANG: As above
+            "Security": {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
+            "Technology Level": {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
+            "Wealth": {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
+            "Standard of Living": {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
+            "Development Level": {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65} # LANG: As above
         }
 
         # UI components
@@ -219,7 +219,7 @@ class ColonisationWindow:
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("📓"), width=3, command=partial(self.notes_popup, tabnum))
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
-        ToolTip(btn, text=_("Show notes window")) # LANG: tooltip for the show notes window
+        ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
     def inara_click(self, tabnum:int, event) -> None:
         '''
@@ -252,7 +252,8 @@ class ColonisationWindow:
 
         sheet:Sheet = Sheet(table_frame, show_row_index=False, cell_auto_resize_enabled=True, height=600,
                             show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
-                            align="center", table_selected_cells_border_fg=None, show_dropdown_borders=False,
+                            align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
+                            show_dropdown_borders=False,
                             empty_vertical=15, empty_horizontal=0, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
                             show_header=False, set_all_heights_and_widths=True, default_row_height=21)
         sheet.pack(fill=tk.BOTH, padx=0, pady=(0, 5))
@@ -270,7 +271,7 @@ class ColonisationWindow:
         sheet.enable_bindings('single_select', 'edit_cell', 'up', 'down', 'left', 'right', 'copy', 'paste')
         sheet.edit_validation(self.validate_edits)
         sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, tabnum))
-
+        sheet.extra_bindings('cell_select', func=partial(self.sheet_modified, tabnum))
 
         if len(self.sheets) < tabnum:
             self.sheets.append(sheet)
@@ -305,6 +306,7 @@ class ColonisationWindow:
 
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')
+        sheet['A2:C3'].highlight(bg='paleturquoise1')
         sheet[HEADER_ROW].highlight(bg='lightgrey')
 
         # Tracking checkboxes
@@ -423,15 +425,16 @@ class ColonisationWindow:
                 j += FIRST_SUMMARY_COLUMN
                 tab[i+srow,j].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
 
-                if new[i][j] and new[i][j] != ' ' and new[i][j] != 0 and details.get('background') == True:
-                    color = self.get_color(new[i][j], details.get('max', 1))
-                    tab[i+srow,j+scol].highlight(bg=color)
-                    if color != '':
+                if new[i][j] and new[i][j] != ' ' and new[i][j] != 0:
+                    if details.get('background') in('rwg','gyr'):
+                        color = self.get_color(new[i][j], details.get('max', 1), details.get('background'))
                         tab[i+srow,j+scol].highlight(bg=color)
-                elif details.get('background') != False and details.get('background') != True:
-                    tab[i+srow,j+scol].highlight(bg=details.get('background'))
-                else:
-                    tab[i+srow,j+scol].highlight(bg=None)
+                        if color != '':
+                            tab[i+srow,j+scol].highlight(bg=color)
+                    elif details.get('background') != False:
+                        tab[i+srow,j+scol].highlight(bg=details.get('background'))
+                    else:
+                        tab[i+srow,j+scol].highlight(bg=None)
 
 
     def get_detail_header(self) -> list[str]:
@@ -458,7 +461,6 @@ class ColonisationWindow:
             for name, col in self.detail_cols.items():
                 match col.get('format'):
                     case 'checkbox':
-                        check = self.is_build_completed(build) != True and build.get(name, False) == True
                         row.append(self.is_build_completed(build) != True and build.get(name, False) == True)
 
                     case 'int':
@@ -519,14 +521,14 @@ class ColonisationWindow:
                 if tab[i+srow,j].data != new[i][j]:
                     tab[i+srow,j].highlight(bg=None)
 
-                    if details.get('background') == True and new[i][j] != 0:
-                        color = self.get_color(new[i][j], details.get('max', 1))
+                    if details.get('background') in ('rwg', 'gyr') and new[i][j] != ' ':
+                        color = self.get_color(new[i][j], details.get('max', 1), details.get('background'))
                         tab[i+srow,j].highlight(bg=color)
 
                 # Mark completed builds as readonly
                 if j == 5 and new[i][j] == BuildState.COMPLETE:
                     # Tracking
-                    tab[i+srow,0].del_checkbox(); tab[i+srow,0].data = ' '; tab[i+srow,0].readonly()
+                    tab[i+srow,0].checkbox(state='disabled'); tab[i+srow,0].data = ' '; tab[i+srow,0].readonly()
 
                     # Base tyoe
                     if new[i][1] != ' ': # Base type has been set so make it readonly
@@ -536,6 +538,18 @@ class ColonisationWindow:
 
                     # Base name
                     tab[i+srow,2].readonly()
+                elif j ==5:
+                    # Tracking
+                    tab[i+srow,0].checkbox(state='normal'); tab[i+srow,0].data = ' '; tab[i+srow,0].readonly(False)
+
+                    # Base tyoe
+                    if new[i][1] != ' ': # Base type has been set so make it readonly
+                        tab[i+srow,1].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
+                        tab[i+srow,1].align(align='left')
+                        tab[i+srow,1].readonly(False)
+                        tab[i+srow,1].data = new[i][1]
+                    # Base name
+                    tab[i+srow,2].readonly(False)
 
         # Clear the highlights on the empty last row
         if len(new) > len(system.get('Builds', [])):
@@ -584,11 +598,35 @@ class ColonisationWindow:
         try:
             sysnum = tabnum -1
 
+            if event.eventname == 'select' and len(event.selected) == 6:
+                # No editing the summary/headers
+                if event.selected.row < FIRST_BUILD_ROW:
+                    return
+
+                row = event.selected.row - FIRST_BUILD_ROW; col = event.selected.column
+
+                fields = list(self.detail_cols.keys())
+                field = fields[col]
+                systems:list = self.colonisation.get_all_systems()
+
+                if field == 'State' and row < len(systems[sysnum]['Builds']):
+                    Debug.logger.debug(f"System: {systems[sysnum]['Builds'][row]['State']} {event}")
+                    if systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
+                        systems[sysnum]['Builds'][row]['State'] = BuildState.PLANNED
+                    else:
+                        systems[sysnum]['Builds'][row]['State'] = BuildState.COMPLETE
+
+                        Debug.logger.debug(f"System set to: {systems[sysnum]['Builds'][row]['State']}")
+
+                    self.colonisation.dirty = True
+                    self.colonisation.save()
+                    self.update_display()
+                return
+
             # We only deal with edits.
             if not event.eventname.endswith('edit_table'):
                 return
 
-            Debug.logger.debug(f"Sheet modified: {tabnum}{event}")
             row = event.row - FIRST_BUILD_ROW; col = event.column; val = event.value
 
             fields = list(self.detail_cols.keys())
@@ -629,7 +667,6 @@ class ColonisationWindow:
                     self.config_sheet(self.sheets[sysnum])
 
                     systems[sysnum]['Builds'][row][field] = val
-
 
                 case 'Track':
                     # Toggle the tracked status.
@@ -876,56 +913,6 @@ class ColonisationWindow:
         item.configure(font=(fnt['family'], fnt['size'], wght))
 
 
-    def get_color(self, value:int, limit:int = 1) -> str:
-        """
-        Get a color based on the value and its range.
-
-        Args:
-            value: The value to color. Positive will be green, negative red.
-            limit: The size of the range (technically half as we do negative & positive).
-
-        Returns:
-            A hex color string
-        """
-        if not isinstance(value, int) and not value.isdigit():
-            return '#550055'
-
-        gradient:list = self.create_gradient(limit)
-        # keep it within the limits
-        value:int = min(max(int(value), int(-limit)), int(limit))
-
-        return gradient[int(value + limit)]
-
-
-    def create_gradient(self, steps:int) -> list[str]:
-        """
-        Generates a list of RGB color tuples representing a gradient from green to red.
-        """
-        try:
-            hbase:int = 220 # larger = stronger color, less range
-            base:int = 190 # smaller = overall darker
-            scale:int = 255 - hbase # larger = wider range (light to dark)
-            multi:int = 0.01 # Smaller = more intense
-            gradient:list = []
-            for i in range(steps+1): # zero up (white to green)
-                r = max(min(base - (i * scale / steps), 255), 0)
-                g = max(min(hbase - (i * scale * multi / steps), 255), 0)
-                b = max(min(base - (i * scale / steps), 255), 0)
-                gradient.append(f"#{int(r):02x}{int(g):02x}{int(b):02x}")
-            for i in range(1, steps+1): # -1 down (white to red)
-                r = max(min(hbase - (i * scale * multi / steps), 255), 0)
-                g = max(min(base - (i * scale / steps), 255), 0)
-                b = max(min(base - (i * scale / steps), 255), 0)
-                gradient.insert(0, f"#{int(r):02x}{int(g):02x}{int(b):02x}")
-
-            return gradient
-
-        except Exception as e:
-            Debug.logger.error(f"Error in gradient: {e}")
-            Debug.logger.error(traceback.format_exc())
-            return ["#CCCCCC"]
-
-
     def count_starports(self, builds:list[dict]) -> int:
         '''
         We need to know how many startports have been built already to calculate the T2/T3 cost of the next one.
@@ -954,6 +941,7 @@ class ColonisationWindow:
                 Debug.logger.warning(f"Unable to load {file}")
                 Debug.logger.error(traceback.format_exc())
 
+
     def legend_popup(self) -> None:
         """
         Show the legend popup window
@@ -979,6 +967,7 @@ class ColonisationWindow:
         except Exception as e:
             Debug.logger.error(f"Error in colonisation.show(): {e}")
             Debug.logger.error(traceback.format_exc())
+
 
     def notes_popup(self, tabnum:int) -> None:
         """
@@ -1018,3 +1007,119 @@ class ColonisationWindow:
         except Exception as e:
             Debug.logger.error(f"Error in notes_opup(): {e}")
             Debug.logger.error(traceback.format_exc())
+
+
+    def get_color(self, value:int, limit:int = 1, color:str='rwg') -> str:
+        """
+        Get a color based on the value and its range.
+
+        Args:
+            value: The value to color. Positive will be green, negative red.
+            limit: The size of the range (technically half as we do negative & positive).
+
+        Returns:
+            A hex color string
+        """
+        try:
+            if not isinstance(value, int) and not value.isdigit():
+                return '#550055'
+
+            # Scale it to a sensible range
+            if limit > 50:
+                value = int(value * 50 / limit)
+                limit = 50
+            value = min(value, limit)
+
+            # Red White Green, or Green, Yellow, Red
+            if color == 'rwg':
+                gradient:list = self.create_gradient(limit)
+                value:int = min(max(int(value), -limit), limit)
+                return gradient[int(value + limit)]
+            else:
+                # keep it within the limits
+                gradient:list = self.create_gradient2(limit)
+                if value < len(gradient):
+                    return gradient[int(value)]
+                else:
+                    return ["#ccccff"]
+
+
+        except Exception as e:
+            Debug.logger.error(f"Error in gradient: {e}")
+            Debug.logger.error(traceback.format_exc())
+            return ["#CCCCCC"]
+
+
+    def create_gradient(self, steps:int) -> list[str]:
+        """
+        Generates a list of RGB color tuples representing a gradient from green to red.
+        """
+        try:
+            hbase:int = 220 # larger = stronger color, less range
+            base:int = 190 # smaller = overall darker
+            scale:int = 255 - hbase # larger = wider range (light to dark)
+            multi:float = 0.01 # Smaller = more intense
+            gradient:list = []
+            for i in range(steps+1): # zero up (white to green)
+                r = max(min(base - (i * scale / steps), 255), 0)
+                g = max(min(hbase - (i * scale * multi / steps), 255), 0)
+                b = max(min(base - (i * scale / steps), 255), 0)
+                gradient.append(f"#{int(r):02x}{int(g):02x}{int(b):02x}")
+            for i in range(1, steps+1): # -1 down (white to red)
+                r = max(min(hbase - (i * scale * multi / steps), 255), 0)
+                g = max(min(base - (i * scale / steps), 255), 0)
+                b = max(min(base - (i * scale / steps), 255), 0)
+                gradient.insert(0, f"#{int(r):02x}{int(g):02x}{int(b):02x}")
+
+            return gradient
+
+        except Exception as e:
+            Debug.logger.error(f"Error in gradient: {e}")
+            Debug.logger.error(traceback.format_exc())
+            return ["#CCCCCC"]
+
+
+
+    def create_gradient2(self, steps:int) -> list[str]:
+        """
+        Generates a list of RGB color tuples representing a gradient from green to red.
+        """
+        try:
+            # Define RGB values
+            g = (150, 200, 150) #1
+            y = (230, 230, 125) #2
+            r = (190, 30, 100) #3
+
+            # Define gradient parameters
+            gradient_colors = []
+
+            # Calculate interpolation steps
+            r_step_1 = (y[0] - g[0]) / steps
+            g_step_1 = (y[1] - g[1]) / steps
+            b_step_1 = (y[2] - g[2]) / steps
+
+            r_step_2 = (r[0] - y[0]) / steps
+            g_step_2 = (r[1] - y[1]) / steps
+            b_step_2 = (r[2] - y[2]) / steps
+
+            # Iterate and interpolate
+            for i in range(steps+1):
+                # Interpolate between pastel green and yellow
+                if i < steps/2:
+                    cr = min(max(g[0] + r_step_1 * i, 0), 255)
+                    cg = min(max(g[1] + g_step_1 * i, 0), 255)
+                    cb = min(max(g[2] + b_step_1 * i, 0), 255)
+                else: # Interpolate between yellow and red
+                    cr = min(max(y[0] + r_step_2 * (i - steps/2), 0), 255)
+                    cg = min(max(y[1] + g_step_2 * (i - steps/2), 0), 255)
+                    cb = min(max(y[2] + b_step_2 * (i - steps/2), 0), 255)
+
+                # Add the interpolated color to the gradient
+                gradient_colors.append(f"#{int(cr):02x}{int(cg):02x}{int(cb):02x}")
+
+            return gradient_colors
+
+        except Exception as e:
+            Debug.logger.error(f"Error in gradient: {e}")
+            Debug.logger.error(traceback.format_exc())
+            return ["#CCCCCC"]

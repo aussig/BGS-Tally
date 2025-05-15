@@ -81,18 +81,18 @@ class ProgressWindow:
             }
 
         # UI components
-        self.frame = None
-        self.table_frame = None # Table frame
-        self.frame_row = None # Frame row
+        self.frame:tk.Frame = None
+        self.frame_row:int = 0 # Row in the parent frame
+        self.table_frame:tk.Frame = None # Table frame
         self.title:tk.Label = None # Title object
         self.colheadings:dict = {} # Column headings
-        self.rows:dict = []
+        self.rows:list = []
         self.progcols:dict = {} # Progress bar variables
         self.build_index:int = 0 # Which build we're showing
         self.view:View = View.REDUCED # Full or reduced list of commodities
         self.comm_order:CommodityOrder = CommodityOrder.DEFAULT # Commodity order
 
-    def create_frame(self, parent_frame:tk.Frame, row:int, column_count:int) -> None:
+    def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
         """
         Create the progress frame
         """
@@ -100,13 +100,12 @@ class ProgressWindow:
             self.colonisation = self.bgstally.colonisation
             tracked:dict = self.colonisation.get_tracked_builds()
 
-            self.frame_row = row
             frame:tk.Frame = tk.Frame(parent_frame)
-            frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
+            frame.grid(row=start_row, column=0, columnspan=20, sticky=tk.EW)
             self.frame = frame
+            self.frame_row = start_row
 
             row:int = 0; col:int = 0
-
             ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=row, column=0, columnspan=5, pady=2, sticky=tk.EW)
             row += 1
 

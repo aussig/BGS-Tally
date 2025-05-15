@@ -211,11 +211,6 @@ class Colonisation:
                     if entry.get('MarketID') == self.bgstally.fleet_carrier.carrier_id:
                         self.update_carrier()
 
-                case 'SupercruiseDestinationDrop' | 'ApproachSettlement':
-                    if entry.get('Type') : self.station = entry.get('Type')
-                    if entry.get('Name'): self.station = entry.get('Name')
-                    self.marketid = entry.get('MarketID')
-
                 case 'SuperCruiseEntry' | 'FSDJump':
                     self.system_id = entry.get('SystemAddress')
                     self.current_system = entry.get('StarSystem', None)
@@ -224,23 +219,35 @@ class Colonisation:
                     self.station = None
                     self.marketid = None
 
-                case 'SupercruiseExit':
+                case 'SupercruiseDestinationDrop':
+                    self.station = entry.get('Type')
+                    self.marketid = entry.get('MarketID')
+
+                case 'ApproachBody':
+                    self.current_system = entry.get('StarSystem')
                     self.system_id = entry.get('SystemAddress')
-                    self.current_system = entry.get('StarSystem', None)
                     self.body = entry.get('Body', None)
 
+
+                case 'SupercruiseExit' | 'ApproachSettlement':
+                    self.system_id = entry.get('SystemAddress')
+                    if entry.get('StarSystem', None): self.current_system = entry.get('StarSystem')
+                    if entry.get('BodyType', 'Station') != 'Station': self.body = entry.get('Body', None)
+                    if entry.get('BodyType', None) == 'Station': self.station = entry.get('Body')
+                    if entry.get('Name', None) != None: self.station = entry.get('Name')
+                    if entry.get('MarketID', None) != None: self.marketid = entry.get('MarketID')
+
+                    # If it's a construction site or coolonisation ship wait til we dock. If it's a carrier we ignore it.
                     if 'Construction Site' in self.station or 'ColonisationShip' in self.station or entry.get('BodyType') == 'Fleetcarrier':
                         return
 
+                    # If we don't have this system in our list, we don't care about it.
                     system = self.find_system(entry.get('StarSystem'), entry.get('SystemAddress'))
                     if system == None: return
 
-                    # Should we create it? It's in a colonisation system we're contributing to...
-                    #build = self.find_or_create_build(system, self.marketid, self.station)
-                    build = self.find_build(system, self.marketid, self.station)
-                    if build == None: return
+                    # It's in a system we're building in, so we should create it.
+                    build = self.find_or_create_build(system, self.marketid, self.station)
 
-                    # This is a base in one of our plans but we don't know its details.
                     # We update them here because it's not possible to land at installations once they're complete so
                     # you may miss their completion.
                     if build.get('MarketID', None) == None: build['MarketID'] = self.marketid
@@ -249,7 +256,7 @@ class Colonisation:
                     if self.body and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
                         build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
                     build['Track'] = False
-                    #Debug.logger.debug(f"SEExit updating build info for: {entry.get('StarSystem')} {self.body} {self.station} {build}")
+                    Debug.logger.debug(f"Updating build info for: {entry.get('StarSystem')} {self.body} {self.station} {build}")
                     self.dirty = True
 
                 case 'Undocked':
@@ -393,11 +400,7 @@ class Colonisation:
         '''
         Get the state of a build from either the build or the progress data
         '''
-        if build.get('State', None) == BuildState.COMPLETE:
-            return BuildState.COMPLETE
-
-        if build == None or build.get('MarketID', None) == None:
-            #Debug.logger.info(f"Cannot get build state - invalid build: {build}")
+        if build.get('State', None) == BuildState.COMPLETE or build.get('MarketID', None) == None:
             return build.get('State', BuildState.PLANNED)
 
         # If we have a progress entry, use that
@@ -753,7 +756,7 @@ class Colonisation:
                 bs = self.get_build_state(b)
                 if bs == BuildState.PLANNED and state != BuildState.PROGRESS:
                     state = BuildState.PLANNED
-                if bs == BuildState.PROGRESS:
+                if bs == BuildState.PROGRESS and b['Track'] == True:
                     state = BuildState.PROGRESS
             return state.value
 

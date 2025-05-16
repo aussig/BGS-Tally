@@ -100,8 +100,10 @@ class ProgressWindow:
             self.colonisation = self.bgstally.colonisation
             tracked:dict = self.colonisation.get_tracked_builds()
 
+            self.frame_row = row
             frame:tk.Frame = tk.Frame(parent_frame)
             frame.grid(row=start_row, column=0, columnspan=20, sticky=tk.EW)
+
             self.frame = frame
             self.frame_row = start_row
 
@@ -157,6 +159,7 @@ class ProgressWindow:
             for i, (k, v) in enumerate(self.headings.items()):
                 if k == 'Carrier' and not self.bgstally.fleet_carrier.available():
                     continue
+
                 c = tk.Label(table_frame, text=_(v.get(Units.TONNES)))#, cursor='hand2')
                 c.grid(row=row, column=i, sticky=v.get('Sticky'))
                 c.bind("<Button-1>", partial(self.change_view, k))

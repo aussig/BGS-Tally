@@ -19,6 +19,9 @@
 /* Label on activity window. [activity.py] */
 "Activity to post:" = "Aktivnost za objavu:";
 
+/* Add/create a new system. [colonisation.py] */
+"Add" = "Add";
+
 /* CMDR information. [targetmanager.py] */
 "Added a friend" = "Dodat za prijatelja";
 
@@ -46,8 +49,17 @@
 /* Preferences force tick text. [ui.py] */
 "Are you sure that you want to do this?" = "Da li ste sigurni da to želite?";
 
+/* [colonisation.py] */
+"Are you sure you want to remove this system?" = "Are you sure you want to remove this system?";
+
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Pitajte administratora servera za donje informacije, a zatim kliknite na „Uspostavi vezu“ da biste nastavili. Dugmad za automatsko popunjavanje nekih informacija za popularnije servere su ponuđena, ali ćete morati da unesete svoj jedinstveni API ključ.";
+
+/* name of the base. [colonisation.py] */
+"Base Name" = "Base Name";
+
+/* type of base. [colonisation.py] */
+"Base Type" = "Base Type";
 
 /* Discord heading, abbreviation for black box. [default.py] */
 "bb" = "bb";
@@ -58,41 +70,56 @@
 /* Dropdown menu on activity window. [activity.py] */
 "BGS Only" = "Samo BGS";
 
+/* [clb.py] */
+"BGS Report" = "BGS Report";
+
 /* Discord heading. [default.py] */
 "bio-pod" = "bio-kapsula";
 
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Zarada na crnom tržištu";
 
-/* Activity window column title, abbreviation for black market profit. [activity.py] */
-"BM Prof" = "CT Zarada";
+/* Body the base is on or around. [colonisation.py] */
+"Body" = "Body";
 
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "Objedinjen BGS i TR";
 
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both Materials and Commodities" = "Both Materials and Commodities";
-
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Baunti vaučeri";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* Builds/bases. [progress.py] */
+"Builds" = "Builds";
+
+/* [fleetcarrier.py] */
 "Buying Commodities" = "Kupujem robu";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Buying Commodities:" = "Kupujem robu:";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* [fleetcarrier.py] */
 "Buying Materials" = "Kupujem materijale";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Buying Materials:" = "Kupujem materijale:";
 
+/* [colonisation.py] */
+"Cancel" = "Cancel";
+
 /* Discord heading. [default.py] */
 "cargo" = "tovar";
 
+/* [fleetcarrier.py] */
+"Cargo" = "Cargo";
+
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Teretne misije";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Cargo:" = "Cargo:";
+
+/* Amount in your Fleet Carrier. [progress.py] */
+"Carrier" = "Carrier";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
 "Carrier {carrier_name}" = "Carrier {carrier_name}";
@@ -112,14 +139,20 @@
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Borbeni bondovi";
 
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Commodities Only" = "Commodities Only";
+/* Commodity. [progress.py] */
+"Commodity" = "Commodity";
+
+/* totals of completed builds i.e. ones that are done. [colonisation.py] */
+"Completed" = "Completed";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Konfigurišite udaljeni server";
 
 /* Preferences force tick popup title. [ui.py] */
 "Confirm Force a New Tick" = "Potvrdite nasilno označeni Tik";
+
+/* [colonisation.py] */
+"Confirm Removal" = "Confirm Removal";
 
 /* [widgets.py] */
 "Copy" = "Kopiraj";
@@ -130,14 +163,14 @@
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Kopiraj u međumemoriju";
 
+/* Cost in tonnes of cargo. [colonisation.py] */
+"Cost" = "Cost";
+
 /* Discord heading, abbreviation for critically injured. [default.py] */
 "crit" = "krit";
 
 /* Label on legend window. [legend.py] */
 "Critically wounded evacuation missions" = "Misije evakuacije kritično ranjenih";
-
-/* [ui.py] */
-"Curr Tick:" = "Posl. Tik:";
 
 /* [fleetcarrier.py] */
 "Current System" = "Trenutni sistem";
@@ -160,7 +193,7 @@
 /* [ui.py] */
 "Default" = "Podrazumevano";
 
-/* [sheet_options.py] */
+/* Delete button. [colonisation.py] */
 "Delete" = "Obriši";
 
 /* [sheet_options.py] */
@@ -171,6 +204,12 @@
 
 /* Button on CMDR window. [cmdrs.py] */
 "Delete Selected" = "Obrišite označeno";
+
+/* Show legend tooltip. [colonisation.py] */
+"Delete system plan" = "Delete system plan";
+
+/* Amount delivered. [progress.py] */
+"Delivered" = "Delivered";
 
 /* [demo.py] */
 "Demo Data Only" = "Samo Demo Podaci";
@@ -184,8 +223,14 @@
 /* Label on legend window. [legend.py] */
 "Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "Detaljan prikay INF podeljeno u + / ++ / +++ / ++++ / +++++ dobijen iz misija.";
 
+/* Development level impact. [colonisation.py] */
+"Dev Lvl" = "Dev Lvl";
+
 /* Label on activity window. [activity.py] */
 "Discord Additional Notes" = "Dodatne beleške za Diskord";
+
+/* Preferences label. [ui.py] */
+"Discord Avatar URL" = "Discord Avatar URL";
 
 /* [ui.py] */
 "Discord Options" = "Diskord opcije";
@@ -196,11 +241,23 @@
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Diskord Vebhukovi";
 
+/* The name to show in the UI. [colonisation.py] */
+"Display Name" = "Display Name";
+
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Pristajanje";
 
-/* [activity.py] */
+/* Label on activity window. [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Proverite pešačke izveštaje KZ, podaci nisu uvek tačno obračunati";
+
+/* facility economy. [colonisation.py] */
+"Econ" = "Econ";
+
+/* Economy influence. [colonisation.py] */
+"Econ Inf" = "Econ Inf";
+
+/* facility economy. [colonisation.py] */
+"Economy" = "Economy";
 
 /* [sheet_options.py] */
 "Edit cell" = "Uredi ćeliju";
@@ -211,8 +268,14 @@
 /* [sheet_options.py] */
 "Edit index" = "Uredi Indeks";
 
+/* [clb.py] */
+"Election Inf" = "Election Inf";
+
 /* Discord heading, abbreviation for election INF. [default.py] */
 "ElectionINF" = "Izborni INF";
+
+/* Your helpful context goes here. [colonisation.py] */
+"Elite Dangerous Colonisation" = "Elite Dangerous Colonisation";
 
 /* Label on activity window. [activity.py] */
 "Empty System, no BGS Activity Available" = "Prazan sistem, nema zabeleženih BGS aktivnosti";
@@ -228,6 +291,9 @@
 
 /* Checkbox on API settings window. [api.py] */
 "Enable {events_url} Requests" = "Omogući {events_url} Zahteve";
+
+/* A plan name is required. [colonisation.py] */
+"Error" = "Error";
 
 /* Discord heading, abbreviation for escape pod. [default.py] */
 "esc-pod" = "kap-beg";
@@ -280,13 +346,16 @@
 /* Discord heading. [fleetcarrier.py] */
 "From System" = "Iz Sistema";
 
+/* Overlay galaxy tick message. [ui.py] */
+"Galaxy Tick: {tick_time}" = "Galaxy Tick: {tick_time}";
+
 /* Appended to tick time if a normal tick. [activity.py] */
 "game" = "igra";
 
 /* Preferences heading. [ui.py] */
 "General Options" = "Opšte Opcije";
 
-/* Activity window column title. [activity.py] */
+/* [clb.py] */
 "Ground" = "Zemlja";
 
 /* Activity window tooltip. [activity.py] */
@@ -367,6 +436,9 @@
 /* Preferences checkbox label. [ui.py] */
 "Include Secondary INF" = "Uračunaj i Sekundarni INF";
 
+/* [clb.py] */
+"Inf" = "Inf";
+
 /* Discord heading, abbreviation for INF. [default.py] */
 "INF" = "INF";
 
@@ -433,6 +505,9 @@
 /* [legend.py] */
 "Kills" = "Ubistva";
 
+/* Letter to indicate cargo loads. [progress.py] */
+"L" = "L";
+
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Jezik za objave na Diskordu";
 
@@ -451,14 +526,23 @@
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Pravni status: {legal}";
 
+/* Legend title. [colonisation.py] */
+"Legend" = "Legend";
+
+/* Number of loads of cargo. [colonisation.py] */
+"Loads" = "Loads";
+
+/* [fleetcarrier.py] */
+"Locker" = "Locker";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Locker:" = "Locker:";
+
 /* Activity window tooltip. [activity.py] */
 "Low" = "Nizak";
 
 /* [legend.py] */
 "Massacre missions" = "Masakr misije";
-
-/* Dropdown menu on activity window. [fleetcarrier.py] */
-"Materials Only" = "Materials Only";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Srednji";
@@ -484,6 +568,9 @@
 /* Label on CMDR window. [cmdrs.py] */
 "Name: " = "Ime: ";
 
+/* Amount still needed. [progress.py] */
+"Needed" = "Needed";
+
 /* Overlay message. [bgstally.py] */
 "NEW TICK DETECTED!" = "NOV TIK DETEKTOVAN!";
 
@@ -499,8 +586,17 @@
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Pristup za Ozloglašene";
 
+/* Objectives title. [objectivesmanager.py] */
+"Objectives" = "Objectives";
+
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Planetarna Konflikt Zona";
+
+/* Number of orbital/space builds. [colonisation.py] */
+"Orbital" = "Orbital";
+
+/* Pad size. [colonisation.py] */
+"Pad" = "Pad";
 
 /* [ui.py] */
 "Panels" = "Paneli";
@@ -517,17 +613,29 @@
 /* [widgets.py] */
 "Paste" = "Nalepi";
 
+/* Percentage. [progress.py] */
+"Percent" = "Percent";
+
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "Zakači {system_name} za Overlej";
 
-/* [ui.py] */
-"Pinned Systems" = "Zakačeni Sistemi";
+/* the name you want to give your plan. [colonisation.py] */
+"Plan Name" = "Plan Name";
+
+/* Totals of planned builds i.e. ones that aren't completed. [colonisation.py] */
+"Planned" = "Planned";
 
 /* URL label on API settings window. [api.py] */
 "Player Journal Documentation" = "Dokumentacija Igračevog Žurnala";
 
 /* Text on API settings window. [api.py] */
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "MOLIMO PROVERITE VERUJETE LI serveru na koji šaljete informacije!";
+
+/* Population increase. [colonisation.py] */
+"Pop Inc" = "Pop Inc";
+
+/* Population Maximum. [colonisation.py] */
+"Pop Max" = "Pop Max";
 
 /* Button on CMDR window. [cmdrs.py] */
 "Post CMDR List to Discord" = "Objavi listu CMDR-a na Diskord";
@@ -583,8 +691,20 @@
 /* CMDR information. [targetmanager.py] */
 "Received team invite from" = "Primljen poziv u tim od";
 
+/* [colonisation.py] */
+"Rename" = "Rename";
+
+/* Your helpful context goes here. [colonisation.py] */
+"Rename System" = "Rename System";
+
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Podrazumevano Prijavi Aktivnost o Novoposećenim Sistemima";
+
+/* Required amount. [progress.py] */
+"Required" = "Required";
+
+/* any prerequisites for the base. [colonisation.py] */
+"Requirements" = "Requirements";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "PiS";
@@ -625,16 +745,19 @@
 /* Label on legend window. [legend.py] */
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "Sekundarni INF. Ovo je INF dobijen kao sekundarni efekat misije, na primer odredišna frakcija kod kurirskih misija.";
 
+/* Security impact. [colonisation.py] */
+"Security" = "Security";
+
 /* [widgets.py] */
 "Select all" = "Izaberi sve";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* [fleetcarrier.py] */
 "Selling Commodities" = "Prodajem robu";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Selling Commodities:" = "Prodajem robu:";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* [fleetcarrier.py] */
 "Selling Materials" = "Prodajem materijale";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
@@ -655,6 +778,9 @@
 /* Main window tooltip. [ui.py] */
 "Show CMDR information window" = "Prikaži prozor sa informacijama o CMDR-u";
 
+/* Main window tooltip. [ui.py] */
+"Show colonisation window" = "Show colonisation window";
+
 /* Preferences checkbox label. [ui.py] */
 "Show Detailed INF" = "Prikaži Detaljan INF";
 
@@ -670,11 +796,20 @@
 /* Activity window tooltip. [activity.py] */
 "Show legend window" = "Prikaži prozor sa legendom";
 
+/* Main window tooltip. [ui.py] */
+"Show objectives / missions window" = "Show objectives / missions window";
+
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Prikaži Sisteme u kojima nema Aktivnosti";
 
-/* [fleetcarrier.py] */
+/* Standard of living impact. [colonisation.py] */
+"SoL" = "SoL";
+
+/* Label on carrier window. [fleetcarrier.py] */
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Neke informacije se ne mogu ažurirati. Omogućite Aktiviraj Fleetcarrier CAPIU Upite na Fajl -> Podešavanja -> Konfiguracija";
+
+/* [clb.py] */
+"Space" = "Space";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Svemirske konflikt zone";
@@ -700,6 +835,9 @@
 /* Activity window column title. [activity.py] */
 "State" = "Stanje";
 
+/* Number of ground/surface builds. [colonisation.py] */
+"Surface" = "Surface";
+
 /* CMDR window column title. [cmdrs.py] */
 "System" = "Sistem";
 
@@ -709,8 +847,23 @@
 /* Preferences checkbox label. [ui.py] */
 "System Information" = "Informacije o sistemu";
 
+/* Elite dangerous system name. [colonisation.py] */
+"System Name (optional)" = "System Name (optional)";
+
+/* Overlay system tick message. [ui.py] */
+"System Tick: {tick_time}" = "System Tick: {tick_time}";
+
 /* Label on carrier window. [fleetcarrier.py] */
 "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistem: {current_system} - Pristajanje: {docking_access} - Dozvoljeno Ozloglašenima: {notorious}";
+
+/* Letter to indicate tonnes. [progress.py] */
+"t" = "t";
+
+/* Tier 2 points. [colonisation.py] */
+"T2" = "T2";
+
+/* Tier 3 points. [colonisation.py] */
+"T3" = "T3";
 
 /* Text on API settings window. [api.py] */
 "Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills." = "Budite pažljivi kada pristajete na ovo – ako odobrite ovaj server, {plugin_name} će mu poslati vaše podatke, koji će uključivati detalje CMDR-a kao što su vaša lokacija, misije i ubistva.";
@@ -720,6 +873,9 @@
 
 /* Discord CMDR information. [targetmanager.py] */
 "Team invite received from this CMDR" = "Poziv u Tim primljen od ovog KMDR-a";
+
+/* Technology level. [colonisation.py] */
+"Tech Lvl" = "Tech Lvl";
 
 /* Name of default output formatter. [text.py] */
 "Text Only" = "Samo text";
@@ -754,11 +910,20 @@
 /* Discord heading. [fleetcarrier.py] */
 "To Body" = "U Telo";
 
+/* Amount still left to buy. [progress.py] */
+"To Buy" = "To Buy";
+
 /* [ui.py] */
 "To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Za brisanje vebhuka: Kliknite desnim tasterom na broj reda i odaberite 'Izbriši redove'.";
 
 /* Discord heading. [fleetcarrier.py] */
 "To System" = "U Sistem";
+
+/* Total number of builds. [colonisation.py] */
+"Total" = "Total";
+
+/* Track this build?. [colonisation.py] */
+"Track" = "Track";
 
 /* Activity window column title. [activity.py] */
 "Trade" = "Trgovina";
@@ -799,6 +964,9 @@
 /* Discord message footer, legacy text mode. [discord.py] */
 "Updated at: {date_time} | {plugin_name} v{version}" = "Ažurirano: {date_time} | {plugin_name} v{version}";
 
+/* [clb.py] */
+"War Inf" = "War Inf";
+
 /* Discord heading, abbreviation for war INF. [default.py] */
 "WarINF" = "RatniINF";
 
@@ -808,8 +976,14 @@
 /* Preferences checkbox label. [ui.py] */
 "Warnings" = "Upozorenja";
 
+/* Wealth impact. [colonisation.py] */
+"Wealth" = "Wealth";
+
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "Adresa Vebhuka";
+
+/* Words about the first base. [colonisation.py] */
+"When planning your system the first base is special, make sure that it is the first on the list." = "When planning your system the first base is special, make sure that it is the first on the list.";
 
 /* [ui.py] */
 "Within {minutes_to_tick}m of Next Tick (Estimated)" = "Oko {minutes_to_tick}min do Sledećeg Tika (Procenjeno)";
@@ -841,6 +1015,9 @@
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Legenda Ikona";
 
+/* Objectives window title. [objectives.py] */
+"{plugin_name} - Objectives" = "{plugin_name} - Objectives";
+
 /* Preferences checkbox label. [ui.py] */
 "{plugin_name} Active" = "{plugin_name} Aktivan";
 
@@ -853,11 +1030,11 @@
 /* Main window error message. [tick.py] */
 "{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} PAŽNJA: Nemoguće pribaviti informacije o poslednjem tiku";
 
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: There was a problem saving the new version" = "{plugin_name}: Dogodio se problem pri snimanju nove verzije";
+/* [tick.py] */
+"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} WARNING: Unable to fetch system tick";
 
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin download" = "{plugin_name}: Ne mogu da preuzmem poslednju verziju plagina";
+/* Objectives title. [objectivesmanager.py] */
+"{server_name} Objectives" = "{server_name} Objectives";
 
-/* Main window error message. [updatemanager.py] */
-"{plugin_name}: Unable to fetch latest plugin version" = "{plugin_name}: Ne mogu da preuzmem poslednju verziju plagina";
+/* [colonisation.py] */
+"ⓘ" = "ⓘ";

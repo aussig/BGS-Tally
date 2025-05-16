@@ -34,7 +34,7 @@ class ColonisationWindow:
 
         self.summary_rows:dict = {
             'Planned': _("Planned"), # LANG: Row heading of planned build totals i.e. ones that aren't completed
-            'Completed': _("Completed") # LANG: Row heading of  build totals i.e. ones that are done
+            'Completed': _("Completed") # LANG: Row heading of build totals i.e. ones that are done
         }
 
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
@@ -221,6 +221,7 @@ class ColonisationWindow:
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
+
     def inara_click(self, tabnum:int, event) -> None:
         '''
         Execute the click event for the Inara link
@@ -272,6 +273,7 @@ class ColonisationWindow:
         sheet.edit_validation(self.validate_edits)
         sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, tabnum))
         sheet.extra_bindings('cell_select', func=partial(self.sheet_modified, tabnum))
+
 
         if len(self.sheets) < tabnum:
             self.sheets.append(sheet)
@@ -556,6 +558,11 @@ class ColonisationWindow:
             for j, details in enumerate(self.detail_cols.values()):
                 tab[len(new)+srow-1,j].highlight(bg=None)
 
+        # Clear the highlights on the empty last row
+        if len(new) > len(system.get('Builds', [])):
+            for j, details in enumerate(self.detail_cols.values()):
+                tab[len(new)+srow-1,j].highlight(bg=None)
+
 
     def update_display(self) -> None:
         '''
@@ -627,6 +634,7 @@ class ColonisationWindow:
             if not event.eventname.endswith('edit_table'):
                 return
 
+            Debug.logger.debug(f"Sheet modified: {tabnum}{event}")
             row = event.row - FIRST_BUILD_ROW; col = event.column; val = event.value
 
             fields = list(self.detail_cols.keys())
@@ -767,7 +775,6 @@ class ColonisationWindow:
             dialog.geometry("500x150")
             dialog.transient(self.window)
             dialog.grab_set()
-
 
         # System name
             ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan

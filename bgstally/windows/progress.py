@@ -81,17 +81,18 @@ class ProgressWindow:
             }
 
         # UI components
-        self.frame = None
-        self.frame_row = None # Frame row
+        self.frame:tk.Frame = None
+        self.frame_row:int = 0 # Row in the parent frame
+        self.table_frame:tk.Frame = None # Table frame
         self.title:tk.Label = None # Title object
         self.colheadings:dict = {} # Column headings
-        self.rows:dict = []
+        self.rows:list = []
         self.progcols:dict = {} # Progress bar variables
         self.build_index:int = 0 # Which build we're showing
         self.view:View = View.REDUCED # Full or reduced list of commodities
         self.comm_order:CommodityOrder = CommodityOrder.DEFAULT # Commodity order
 
-    def create_frame(self, parent_frame:tk.Frame, row:int, column_count:int) -> None:
+    def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
         """
         Create the progress frame
         """
@@ -101,11 +102,12 @@ class ProgressWindow:
 
             self.frame_row = row
             frame:tk.Frame = tk.Frame(parent_frame)
-            frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
+            frame.grid(row=start_row, column=0, columnspan=20, sticky=tk.EW)
+
             self.frame = frame
+            self.frame_row = start_row
 
             row:int = 0; col:int = 0
-
             ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=row, column=0, columnspan=5, pady=2, sticky=tk.EW)
             row += 1
 
@@ -157,9 +159,11 @@ class ProgressWindow:
             for i, (k, v) in enumerate(self.headings.items()):
                 if k == 'Carrier' and not self.bgstally.fleet_carrier.available():
                     continue
-                c = tk.Label(table_frame, text=_(v.get(Units.TONNES)), cursor='hand2', fg='black')
+
+                c = tk.Label(table_frame, text=_(v.get(Units.TONNES)))#, cursor='hand2')
                 c.grid(row=row, column=i, sticky=v.get('Sticky'))
                 c.bind("<Button-1>", partial(self.change_view, k))
+
                 self.weight(c)
                 self.colheadings[k] = c
 
@@ -174,26 +178,25 @@ class ProgressWindow:
                 fr.grid_propagate(0)
 
                 self.progcols[col] = tk.IntVar()
-                pbar:ttk.Progressbar = ttk.Progressbar(fr, orient=tk.HORIZONTAL, variable=self.progcols[col], maximum=100, length=70, mode='determinate', style='Horizontal.TProgressbar')
+                pbar:ttk.Progressbar = ttk.Progressbar(fr, orient=tk.HORIZONTAL, variable=self.progcols[col], maximum=100, length=70, mode='determinate', style='blue.Horizontal.TProgressbar')
                 pbar.grid(row=0, column=i, pady=0, ipady=0, sticky=tk.NSEW)
 
             row += 1
 
             # Go through the complete list of possible commodities and make a row for each and hide it.
-            for c in self.colonisation.get_comodity_list('All'):
+            for c in self.colonisation.get_commodity_list('All'):
                 r:dict = {}
 
                 for i, (col, val) in enumerate(self.headings.items()):
                     lbl:tk.Label = tk.Label(table_frame, text='')
+                    lbl.grid(row=row, column=i, sticky=val.get('Sticky'))
                     if col == 'Commodity':
                         lbl.bind("<Button-1>", partial(self.link, c))
-                        lbl.config(cursor='hand2')
+                        #lbl.config(cursor='hand2')
 
-                    lbl.grid(row=row, column=i, sticky=val.get('Sticky'))
                     r[col] = lbl
                 self.rows.append(r)
                 row += 1
-
 
             # Totals at the bottom
             r:dict = {}
@@ -202,6 +205,7 @@ class ProgressWindow:
                 r[col].grid(row=row, column=i, sticky=val.get('Sticky'))
                 self.weight(r[col])
             self.rows.append(r)
+            self.table_frame = table_frame
 
             if len(tracked) == 0:
                 Debug.logger.info("No tracked builds")
@@ -306,6 +310,7 @@ class ProgressWindow:
                 return
 
             self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
+            self.table_frame.grid(row=2, column=0, columnspan=5, sticky=tk.NSEW)
 
             # Set the title
             name = ', '.join([tracked[self.build_index].get('Plan', _('Unknown')), tracked[self.build_index].get('Name', _('Unnamed'))]) if self.build_index < len(tracked) else _('All') # LANG: unknown or unnamed
@@ -323,7 +328,7 @@ class ProgressWindow:
             totals['Commodity'] = _("Total")  # LANG: total
 
             # Go through eacy commodity and show or hide it as appropriate and display the appropriate values
-            comms = self.colonisation.get_comodity_list('All', self.comm_order)
+            comms = self.colonisation.get_commodity_list('All', self.comm_order)
             if comms == None or comms == []:
                 Debug.logger.info(f"No commodities found")
                 return
@@ -339,6 +344,7 @@ class ProgressWindow:
                 if reqcnt > 0:
                     totals['Required'] += reqcnt
                     totals['Delivered'] += delcnt
+                if remaining > 0:
                     totals['Cargo'] += cargo
                     totals['Carrier'] += carrier
 
@@ -360,7 +366,7 @@ class ProgressWindow:
                         case Units.REMAINING:
                             reqstr = f"{remaining:,} {_('t')}" # LANG: Letter to indicate tonnes
                         case Units.LOADS:
-                            reqstr = f"{ceil(reqcnt / self.colonisation.cargo_capacity)} {_('L')}" # LANG: Letter to indicate cargo loads
+                            reqstr = f"{ceil(remaining / self.colonisation.cargo_capacity)} {_('L')}" # LANG: Letter to indicate cargo loads
                         case Units.PERCENT:
                             reqstr = f"{delcnt * 100 / reqcnt:.0f}%"
                         case _:
@@ -431,7 +437,7 @@ class ProgressWindow:
                         if col == 'Cargo': valstr = f"{max(remaining-cargo, 0):,} {_('t')}"
                         if col == 'Carrier': valstr = f"{max(remaining-carrier,0):,} {_('t')}"
                     case Units.LOADS: # Trips
-                        if col == 'Required': valstr = f"{ceil(reqcnt / self.colonisation.cargo_capacity)} {_('L')}"
+                        if col == 'Required': valstr = f"{ceil(remaining / self.colonisation.cargo_capacity)} {_('L')}"
                         if col == 'Delivered': valstr = f"{ceil(delcnt / self.colonisation.cargo_capacity)} {_('L')}"
                         if col == 'Cargo': valstr = f"{ceil(cargo / self.colonisation.cargo_capacity)} {_('L')}"
                         if col == 'Carrier': valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)} {_('L')}"
@@ -452,6 +458,15 @@ class ProgressWindow:
             self.progcols['Cargo'].set(cargo * 100 / self.colonisation.cargo_capacity)
             if remaining > 0:
                 self.progcols['Carrier'].set(carrier * 100 / remaining) # Need to figure out carrier space
+
+            if remaining == 0:
+                if len(tracked) == 1:
+                    self.frame.grid_forget()
+                else:
+                    self.table_frame.grid_forget()
+
+                Debug.logger.debug(f"No progress to display {reqcnt} {delcnt} {remaining} {cargo} {carrier}")
+                return
 
         except Exception as e:
             Debug.logger.info(f"Error updating display")
@@ -474,7 +489,7 @@ class ProgressWindow:
         space = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
 
         for col in self.headings.keys():
-            row[col]['fg'] = 'black'; self.weight(row[col], 'normal') # Start black & normal
+            row[col]['fg'] = None; self.weight(row[col], 'normal') # Start black & normal
 
             if self.colonisation.carrier_cargo.get(c, 0) >= qty: # Have relevant carrier cargo
                 row[col]['fg'] = 'darkgreen'; self.weight(row[col], 'normal')

@@ -143,7 +143,7 @@
 "Commodity" = "Handelsware";
 
 /* totals of completed builds i.e. ones that are done. [colonisation.py] */
-"Completed" = "Completed";
+"Completed" = "Abgeschlossen";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Konfigurieren Sie den Remote-Server";
@@ -206,7 +206,7 @@
 "Delete Selected" = "Ausgewählte löschen";
 
 /* Show legend tooltip. [colonisation.py] */
-"Delete system plan" = "Delete system plan";
+"Delete system plan" = "Systemplan löschen";
 
 /* Amount delivered. [progress.py] */
 "Delivered" = "Geliefert";
@@ -242,7 +242,7 @@
 "Discord Webhooks" = "Discord Webhooks";
 
 /* The name to show in the UI. [colonisation.py] */
-"Display Name" = "Display Name";
+"Display Name" = "Anzeigename";
 
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Andocken";
@@ -527,7 +527,7 @@
 "Legal status: {legal}" = "Rechtlicher Status: {legal}";
 
 /* Legend title. [colonisation.py] */
-"Legend" = "Legend";
+"Legend" = "Legende";
 
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Ladungen";
@@ -569,7 +569,7 @@
 "Name: " = "Name: ";
 
 /* Amount still needed. [progress.py] */
-"Needed" = "Needed";
+"Needed" = "Benötigt";
 
 /* Overlay message. [bgstally.py] */
 "NEW TICK DETECTED!" = "Neuer Tick erkannt!";
@@ -614,7 +614,7 @@
 "Paste" = "Einfügen";
 
 /* Percentage. [progress.py] */
-"Percent" = "Percent";
+"Percent" = "Prozent";
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "{system_name} an Overlay anheften";
@@ -623,7 +623,7 @@
 "Plan Name" = "Plan Name";
 
 /* Totals of planned builds i.e. ones that aren't completed. [colonisation.py] */
-"Planned" = "Planned";
+"Planned" = "Geplant";
 
 /* URL label on API settings window. [api.py] */
 "Player Journal Documentation" = "Spielerjournal Dokumentation";
@@ -848,7 +848,7 @@
 "System Information" = "Systeminformationen";
 
 /* Elite dangerous system name. [colonisation.py] */
-"System Name (optional)" = "System Name (optional)";
+"System Name (optional)" = "Systemname (optional)";
 
 /* Overlay system tick message. [ui.py] */
 "System Tick: {tick_time}" = "System-Tick: {tick_time}";
@@ -911,7 +911,7 @@
 "To Body" = "Zum Körper";
 
 /* Amount still left to buy. [progress.py] */
-"To Buy" = "To Buy";
+"To Buy" = "Zu kaufen";
 
 /* [ui.py] */
 "To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Um einen Webhook zu löschen: Klicken Sie mit der rechten Maustaste auf eine Zeilennummer und wählen Sie \"Zeilen löschen\".";
@@ -983,7 +983,7 @@
 "Webhook URL" = "Webhook-URL";
 
 /* Words about the first base. [colonisation.py] */
-"When planning your system the first base is special, make sure that it is the first on the list." = "When planning your system the first base is special, make sure that it is the first on the list.";
+"When planning your system the first base is special, make sure that it is the first on the list." = "Wenn Sie Ihr System planen, ist die erste Basis besonders, stellen Sie sicher, dass sie die erste auf der Liste ist.";
 
 /* [ui.py] */
 "Within {minutes_to_tick}m of Next Tick (Estimated)" = "Innerhalb von {minutes_to_tick}m des nächsten Ticks (geschätzt)";

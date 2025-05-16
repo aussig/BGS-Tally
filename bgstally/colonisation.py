@@ -151,6 +151,7 @@ class Colonisation:
                     progress['Updated'] = entry.get('timestamp')
                     for f in ['ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ResourcesRequired']:
                         progress[f] = entry.get(f)
+
                     self.dirty = True
 
                 case 'Docked':
@@ -170,8 +171,7 @@ class Colonisation:
                             name = entry.get('StationName_Localised')
 
                     elif self.find_system(entry.get('StarSystem'), entry.get('SystemAddress')) != None:
-                        s = self.find_system(entry.get('StarSystem'), entry.get('SystemAddress'))
-                        name = entry.get('StationName_Localised')
+                        name = entry.get('StationName')
                         build_state = BuildState.COMPLETE
 
                     # If this isn't a colonisation ship or a system we're building, or a carrier, ignore it.
@@ -192,6 +192,9 @@ class Colonisation:
                     build['Location'] = type
                     build['State'] = build_state
                     build['Track'] = (build_state != BuildState.COMPLETE)
+                    if self.body and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
+                        build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
+
                     #Debug.logger.debug(f"Setting {name} build state {build_state} and track {(build_state != BuildState.COMPLETE)}")
                     self.dirty = True
 
@@ -208,11 +211,6 @@ class Colonisation:
                     if entry.get('MarketID') == self.bgstally.fleet_carrier.carrier_id:
                         self.update_carrier()
 
-                case 'SupercruiseDestinationDrop' | 'ApproachSettlement':
-                    if entry.get('Type') : self.station = entry.get('Type')
-                    if entry.get('Name'): self.station = entry.get('Name')
-                    self.marketid = entry.get('MarketID')
-
                 case 'SuperCruiseEntry' | 'FSDJump':
                     self.system_id = entry.get('SystemAddress')
                     self.current_system = entry.get('StarSystem', None)
@@ -221,23 +219,35 @@ class Colonisation:
                     self.station = None
                     self.marketid = None
 
-                case 'SupercruiseExit':
-                    self.system_id = entry.get('SystemAddress')
-                    self.current_system = entry.get('StarSystem', None)
-                    self.body = entry.get('Body')
+                case 'SupercruiseDestinationDrop':
+                    self.station = entry.get('Type')
+                    self.marketid = entry.get('MarketID')
 
+                case 'ApproachBody':
+                    self.current_system = entry.get('StarSystem')
+                    self.system_id = entry.get('SystemAddress')
+                    self.body = entry.get('Body', None)
+
+
+                case 'SupercruiseExit' | 'ApproachSettlement':
+                    self.system_id = entry.get('SystemAddress')
+                    if entry.get('StarSystem', None): self.current_system = entry.get('StarSystem')
+                    if entry.get('BodyType', 'Station') != 'Station': self.body = entry.get('Body', None)
+                    if entry.get('BodyType', None) == 'Station': self.station = entry.get('Body')
+                    if entry.get('Name', None) != None: self.station = entry.get('Name')
+                    if entry.get('MarketID', None) != None: self.marketid = entry.get('MarketID')
+
+                    # If it's a construction site or coolonisation ship wait til we dock. If it's a carrier we ignore it.
                     if 'Construction Site' in self.station or 'ColonisationShip' in self.station or entry.get('BodyType') == 'Fleetcarrier':
                         return
 
+                    # If we don't have this system in our list, we don't care about it.
                     system = self.find_system(entry.get('StarSystem'), entry.get('SystemAddress'))
                     if system == None: return
 
-                    # Should we create it? It's in a colonisation system we're contributing to...
-                    #build = self.find_or_create_build(system, self.marketid, self.station)
-                    build = self.find_build(system, self.marketid, self.station)
-                    if build == None: return
+                    # It's in a system we're building in, so we should create it.
+                    build = self.find_or_create_build(system, self.marketid, self.station)
 
-                    # This is a base in one of our plans but we don't know its details.
                     # We update them here because it's not possible to land at installations once they're complete so
                     # you may miss their completion.
                     if build.get('MarketID', None) == None: build['MarketID'] = self.marketid
@@ -246,7 +256,7 @@ class Colonisation:
                     if self.body and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
                         build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
                     build['Track'] = False
-                    #Debug.logger.debug(f"SEExit updating build info for: {entry.get('StarSystem')} {self.body} {self.station} {build}")
+                    Debug.logger.debug(f"Updating build info for: {entry.get('StarSystem')} {self.body} {self.station} {build}")
                     self.dirty = True
 
                 case 'Undocked':
@@ -386,13 +396,33 @@ class Colonisation:
         return all
 
 
+    def get_build_state(self, build: dict) -> BuildState:
+        '''
+        Get the state of a build from either the build or the progress data
+        '''
+        if build.get('State', None) == BuildState.COMPLETE or build.get('MarketID', None) == None:
+            return build.get('State', BuildState.PLANNED)
+
+        # If we have a progress entry, use that
+        for p in self.progress:
+            if p.get('MarketID') == build.get('MarketID'):
+                if p.get('ConstructionComplete', False) == True or p.get('ConstructionFailed', False) == True:
+                    build['State'] = BuildState.COMPLETE
+                    build['Track'] = False
+                    self.dirty = True
+                    return BuildState.COMPLETE
+                return BuildState.PROGRESS
+
+        # Otherwise, use the state of the build
+        return build.get('State', BuildState.PLANNED)
+
     def get_tracked_builds(self) -> list[dict]:
         '''
         Get all builds that are being tracked
         '''
         tracked:list = []
         for build in self.get_all_builds():
-            if build.get("Track") == True and build.get('State', '') != BuildState.COMPLETE:
+            if build.get("Track") == True and self.get_build_state(build) != BuildState.COMPLETE:
                 tracked.append(build)
 
         return tracked
@@ -492,7 +522,7 @@ class Colonisation:
             self.bgstally.ui.window_progress.update_display()
 
 
-    def get_comodity_list(self, base_type: str, order: CommodityOrder = CommodityOrder.DEFAULT) -> list:
+    def get_commodity_list(self, base_type: str, order: CommodityOrder = CommodityOrder.DEFAULT) -> list:
         '''
         Return an ordered list of base commodity costs for a base type
         '''
@@ -528,7 +558,7 @@ class Colonisation:
                 # See if we have actual data
                 if b.get('MarketID') != None:
                     for p in self.progress:
-                        if p.get('MarketID') == b.get('MarketID'):
+                        if p.get('MarketID') == b.get('MarketID') and p.get('ConstructionComplete', False) == False and p.get('ConstructionFailed', False) != True:
                             for c in p.get('ResourcesRequired', []):
                                 res[c.get('Name')] = c.get(type)
                             break
@@ -723,9 +753,10 @@ class Colonisation:
         def sort_order(item:dict):
             state:BuildState = BuildState.COMPLETE
             for b in item['Builds']:
-                if b.get('State') == BuildState.PLANNED and state != BuildState.PROGRESS:
+                bs = self.get_build_state(b)
+                if bs == BuildState.PLANNED and state != BuildState.PROGRESS:
                     state = BuildState.PLANNED
-                if b.get('State') == BuildState.PROGRESS:
+                if bs == BuildState.PROGRESS and b['Track'] == True:
                     state = BuildState.PROGRESS
             return state.value
 

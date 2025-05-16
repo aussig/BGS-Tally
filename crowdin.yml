@@ -2,12 +2,6 @@ files:
   - source: /L10n/en.template.strings
     translation: /L10n/%two_letters_code%.strings
 
-  - source: /data/base_types.json
-    translation: /data/L10n/%two_letters_code%.base_types.json
-    file_type: json
-    key_path_filter: '$..'
-  
   - source: /data/colonisation_legend.txt
     translation: /data/L10n/%two_letters_code%.colonisation_legend.txt
     file_type: text
-    

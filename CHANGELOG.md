@@ -1,6 +1,6 @@
 # Change Log
 
-## v5.0.0-xx - xx-xx-xx
+## v5.0.0-a2 - 2025-05-17
 
 ### Changes:
 
@@ -20,6 +20,10 @@
     - Base type instead of 'Unnamed' when a build hasn't been named
     - Commodities can be listed alphabetically or by category (like they are in markets)
     - A full/condensed list icon that aligns more closely to the colonisation icon
+
+### Bug Fixes:
+
+* Various bugs fixed with colonisation.
 
 
 ## v5.0.0-a1 - 2025-05-11

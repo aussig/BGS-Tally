@@ -142,7 +142,7 @@
 /* Commodity. [progress.py] */
 "Commodity" = "Commodity";
 
-/* totals of completed builds i.e. ones that are done. [colonisation.py] */
+/* Row heading of build totals i.e. ones that are done. [colonisation.py] */
 "Completed" = "Completato/i";
 
 /* Preferences button label. [ui.py] */
@@ -205,7 +205,7 @@
 /* Button on CMDR window. [cmdrs.py] */
 "Delete Selected" = "Cancella Selezionato";
 
-/* Show legend tooltip. [colonisation.py] */
+/* tooltip for the delete system button. [colonisation.py] */
 "Delete system plan" = "Elimina il progetto del system";
 
 /* Amount delivered. [progress.py] */
@@ -240,9 +240,6 @@
 
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Webhooks Discord";
-
-/* The name to show in the UI. [colonisation.py] */
-"Display Name" = "Nome Mostrato";
 
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Attracco";
@@ -292,7 +289,7 @@
 /* Checkbox on API settings window. [api.py] */
 "Enable {events_url} Requests" = "Abilita le richieste di {events_url}";
 
-/* A plan name is required. [colonisation.py] */
+/* Error when no plan name is given. [colonisation.py] */
 "Error" = "Error";
 
 /* Discord heading, abbreviation for escape pod. [default.py] */
@@ -526,7 +523,7 @@
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Stato giuridico: {legal}";
 
-/* Legend title. [colonisation.py] */
+/* Title of the legend popup window. [colonisation.py] */
 "Legend" = "Legenda";
 
 /* Number of loads of cargo. [colonisation.py] */
@@ -583,6 +580,9 @@
 /* Discord carrier docking access. [fleetcarrier.py] */
 "None" = "No";
 
+/* Title of the notes popup window. [colonisation.py] */
+"Notes for " = "Notes for ";
+
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Accesso per Notorietà";
 
@@ -591,6 +591,9 @@
 
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Zona di conflitto a terra";
+
+/* Indicates the field is optional. [colonisation.py] */
+"optional" = "optional";
 
 /* Number of orbital/space builds. [colonisation.py] */
 "Orbital" = "Orbitale";
@@ -622,7 +625,7 @@
 /* the name you want to give your plan. [colonisation.py] */
 "Plan Name" = "Nome del Progetto";
 
-/* Totals of planned builds i.e. ones that aren't completed. [colonisation.py] */
+/* Row heading of planned build totals i.e. ones that aren't completed. [colonisation.py] */
 "Planned" = "Pianificato/i";
 
 /* URL label on API settings window. [api.py] */
@@ -691,11 +694,14 @@
 /* CMDR information. [targetmanager.py] */
 "Received team invite from" = "Invito al team ricevuto da";
 
-/* [colonisation.py] */
+/* Rename button. [colonisation.py] */
 "Rename" = "Rinomina";
 
 /* Your helpful context goes here. [colonisation.py] */
 "Rename System" = "Rinomina System";
+
+/* tooltip for the rename system button. [colonisation.py] */
+"Rename system plan" = "Rename system plan";
 
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Segnala di default attività nei nuovi sistemi";
@@ -708,6 +714,9 @@
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "SAR";
+
+/* Save the notes. [colonisation.py] */
+"Save" = "Save";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Scannerizzato";
@@ -799,6 +808,9 @@
 /* Main window tooltip. [ui.py] */
 "Show objectives / missions window" = "Mostra obiettivi / finestra missioni";
 
+/* tooltip for the show notes window. [colonisation.py] */
+"Show system notes window" = "Show system notes window";
+
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Mostra Sistemi con Zero Attività";
 
@@ -846,6 +858,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "System Information" = "Informazioni Sul Sistema";
+
+/* Label for the system's name field in the UI. [colonisation.py] */
+"System Name" = "System Name";
 
 /* Elite dangerous system name. [colonisation.py] */
 "System Name (optional)" = "Nome del System (opzionale)";
@@ -982,7 +997,7 @@
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "Webhook URL";
 
-/* Words about the first base. [colonisation.py] */
+/* Notice about the first base being special. [colonisation.py] */
 "When planning your system the first base is special, make sure that it is the first on the list." = "When planning your system the first base is special, make sure that it is the first on the list.";
 
 /* [ui.py] */
@@ -1038,3 +1053,6 @@
 
 /* [colonisation.py] */
 "ⓘ" = "ⓘ";
+
+/* [colonisation.py] */
+"📓" = "📓";

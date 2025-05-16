@@ -1,0 +1,56 @@
+Summary Rows
+
+  • Planned: Information about builds/bases that have been planned but not yet completed
+  • Completed: Information about builds/bases that have been completed
+
+Summary Columns
+
+  • Total: total number of bases
+  • Orbital: number of orbital bases
+  • Surface: number of surface bases
+  • T2: The net Tier 2 point cost or reward
+  • T3: The net Tier 3 point cost or reward
+  • Cost: The cost of the builds in tonnes required
+  • Loads: The number of ship loads based on your current cargo capacity
+
+  • Pop Inc: population increase impact
+  • Pop Max: maximum population impact
+  • Security: system security impact
+  • Tech Lvl: system technology level impact
+  • Wealth: system wealth impact
+  • SoL: system standard of living impact
+  • Dev Lvl: system development level impact
+
+Detail Rows
+
+  • One row per base.
+  • The first row should be the initial base
+  • Other bases can be in any order but the cost of starports depends on their order
+    so if you put then in the wrong order their cost may be incorrect
+
+Detail Columns
+
+  • Track: Whether to track progress of this base in the main ED:MC progress display
+  • Base Type: The type of base to be built.
+  • Base Name: The name of the base
+  • Body: The body on (or around) which the base is or will be
+  • Requirements: Any prerequisites to building this type of base
+  • State: How far along is the base: Planned, Percentage completed, Completed
+  • T2: The net Tier 2 point cost or reward
+  • T3: The net Tier 3 point cost or reward
+  • Cost: The cost of the builds in tonnes required
+  • Loads: The number of ship loads based on your current cargo capacity
+  • Pad: The maximum landing pad size
+  • Economy: Base economy type
+
+  • Pop Inc: population increase impact
+  • Pop Max: maximum population impact
+
+  • Econ Inf: The influence this base has on the system economy
+
+  • Security: system security impact
+  • Tech Lvl: system technology level impact
+  • Wealth: system wealth impact
+  • SoL: system standard of living impact
+  • Dev Lvl: system development level impact
+

@@ -28,6 +28,30 @@
 /* Preferences heading. [ui.py] */
 "Advanced" = "Napredno";
 
+/* Colonisation 'Facility Economy' [base_types.json] */
+"Agricultural" = "Agricultural";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Agricultural Installation" = "Agricultural Installation";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Agriculture Settlement" = "Agriculture Settlement";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Agriculture Tier 1" = "Agriculture Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Agriculture Tier 1 Med" = "Agriculture Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Agriculture Tier 1 Sml" = "Agriculture Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Agriculture Tier 2" = "Agriculture Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Agriculture Tier 2 Lrg" = "Agriculture Tier 2 Lrg";
+
 /* Discord carrier docking access. [fleetcarrier.py] */
 "All" = "Svi";
 
@@ -55,6 +79,12 @@
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Pitajte administratora servera za donje informacije, a zatim kliknite na „Uspostavi vezu“ da biste nastavili. Dugmad za automatsko popunjavanje nekih informacija za popularnije servere su ponuđena, ali ćete morati da unesete svoj jedinstveni API ključ.";
 
+/* Colonisation 'Type' [base_types.json] */
+"Asteroid Base" = "Asteroid Base";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Bar" = "Bar";
+
 /* name of the base. [colonisation.py] */
 "Base Name" = "Base Name";
 
@@ -75,6 +105,9 @@
 
 /* Discord heading. [default.py] */
 "bio-pod" = "bio-kapsula";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Biological Research Installation" = "Biological Research Installation";
 
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Zarada na crnom tržištu";
@@ -124,6 +157,15 @@
 /* Discord fleet carrier title. [fleetcarrier.py] */
 "Carrier {carrier_name}" = "Carrier {carrier_name}";
 
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Civilian" = "Civilian";
+
+/* Colonisation 'Type' [base_types.json] */
+"Civilian Outpost" = "Civilian Outpost";
+
+/* Colonisation 'Type' [base_types.json] */
+"Civilian Settlement" = "Civilian Settlement";
+
 /* [sheet_options.py] */
 "Clear contents" = "Obrišite sadržaj";
 
@@ -136,13 +178,31 @@
 /* Preferences checkbox label. [ui.py] */
 "CMDR Info" = "Info o CMDR-u";
 
+/* Colonisation 'Facility Economy' [base_types.json] */
+"Colony" = "Colony";
+
+/* Colonisation 'Type' [base_types.json] */
+"Colony Planetary Outpost" = "Colony Planetary Outpost";
+
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Borbeni bondovi";
+
+/* Colonisation 'Type' [base_types.json] */
+"Commercial Outpost" = "Commercial Outpost";
 
 /* Commodity. [progress.py] */
 "Commodity" = "Commodity";
 
-/* totals of completed builds i.e. ones that are done. [colonisation.py] */
+/* Colonisation 'Building Type' [base_types.json] */
+"Comms Installation" = "Comms Installation";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Communication Installation" = "Communication Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Communication Station" = "Communication Station";
+
+/* Row heading of build totals i.e. ones that are done. [colonisation.py] */
 "Completed" = "Completed";
 
 /* Preferences button label. [ui.py] */
@@ -154,6 +214,9 @@
 /* [colonisation.py] */
 "Confirm Removal" = "Confirm Removal";
 
+/* Colonisation 'Economy Influence' [base_types.json] */
+"Contraband" = "Contraband";
+
 /* [widgets.py] */
 "Copy" = "Kopiraj";
 
@@ -163,8 +226,17 @@
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Kopiraj u međumemoriju";
 
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Coriolis" = "Coriolis";
+
+/* Colonisation 'Type' [base_types.json] */
+"Coriolis Starport" = "Coriolis Starport";
+
 /* Cost in tonnes of cargo. [colonisation.py] */
 "Cost" = "Cost";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Criminal Outpost" = "Criminal Outpost";
 
 /* Discord heading, abbreviation for critically injured. [default.py] */
 "crit" = "krit";
@@ -205,7 +277,7 @@
 /* Button on CMDR window. [cmdrs.py] */
 "Delete Selected" = "Obrišite označeno";
 
-/* Show legend tooltip. [colonisation.py] */
+/* tooltip for the delete system button. [colonisation.py] */
 "Delete system plan" = "Delete system plan";
 
 /* Amount delivered. [progress.py] */
@@ -240,9 +312,6 @@
 
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Diskord Vebhukovi";
-
-/* The name to show in the UI. [colonisation.py] */
-"Display Name" = "Display Name";
 
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Pristajanje";
@@ -292,7 +361,7 @@
 /* Checkbox on API settings window. [api.py] */
 "Enable {events_url} Requests" = "Omogući {events_url} Zahteve";
 
-/* A plan name is required. [colonisation.py] */
+/* Error when no plan name is given. [colonisation.py] */
 "Error" = "Error";
 
 /* Discord heading, abbreviation for escape pod. [default.py] */
@@ -313,8 +382,38 @@
 /* Discord heading, abbreviation for exploration. [default.py] */
 "Expl" = "Istr";
 
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Exploration" = "Exploration";
+
 /* Activity window tooltip. [activity.py] */
 "Exploration data" = "Istraživački podaci";
+
+/* Colonisation 'Type' [base_types.json] */
+"Exploration Hub" = "Exploration Hub";
+
+/* Colonisation 'Facility Economy' [base_types.json] */
+"Extraction" = "Extraction";
+
+/* Colonisation 'Type' [base_types.json] */
+"Extraction Hub" = "Extraction Hub";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Extraction Settlement" = "Extraction Settlement";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Extraction Tier 1" = "Extraction Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Extraction Tier 1 Med" = "Extraction Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Extraction Tier 1 Sml" = "Extraction Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Extraction Tier 2" = "Extraction Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Extraction Tier 2 Lrg" = "Extraction Tier 2 Lrg";
 
 /* Activity window column title. [activity.py] */
 "Faction" = "Frakcija";
@@ -355,6 +454,12 @@
 /* Preferences heading. [ui.py] */
 "General Options" = "Opšte Opcije";
 
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Government" = "Government";
+
+/* Colonisation 'Type' [base_types.json] */
+"Government Installation" = "Government Installation";
+
 /* [clb.py] */
 "Ground" = "Zemlja";
 
@@ -369,6 +474,21 @@
 
 /* Activity window tooltip. [activity.py] */
 "High" = "Viši";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"High Tech" = "High Tech";
+
+/* Colonisation 'Economy Influence' [base_types.json] */
+"Hightech" = "Hightech";
+
+/* Colonisation 'Type' [base_types.json] */
+"Hightech Hub" = "Hightech Hub";
+
+/* Colonisation 'Type' [base_types.json] */
+"Hightech Planetary Outpost" = "Hightech Planetary Outpost";
+
+/* Colonisation 'Category' [base_types.json] */
+"Hub" = "Hub";
 
 /* Button on API settings window. [api.py] */
 "I Approve" = "Odobravam";
@@ -436,6 +556,36 @@
 /* Preferences checkbox label. [ui.py] */
 "Include Secondary INF" = "Uračunaj i Sekundarni INF";
 
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Industrial" = "Industrial";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Hub" = "Industrial Hub";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Industrial Installation" = "Industrial Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Outpost" = "Industrial Outpost";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Planetary Outpost" = "Industrial Planetary Outpost";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Industrial Tier 1" = "Industrial Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Tier 1 Med" = "Industrial Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Tier 1 Sml" = "Industrial Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Industrial Tier 2" = "Industrial Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Tier 2 Lrg" = "Industrial Tier 2 Lrg";
+
 /* [clb.py] */
 "Inf" = "Inf";
 
@@ -468,6 +618,9 @@
 
 /* [sheet_options.py] */
 "Insert rows below" = "Umetni redove ispod";
+
+/* Colonisation 'Category' [base_types.json] */
+"Installation" = "Installation";
 
 /* Preferences label. [ui.py] */
 "Instructions for Use" = "Uputstva za upotrebu";
@@ -511,6 +664,9 @@
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Jezik za objave na Diskordu";
 
+/* Colonisation 'Building Type' [base_types.json] */
+"Large" = "Large";
+
 /* Main window label. [ui.py] */
 "Last BGS Tick:" = "Poslednji BGS Tik:";
 
@@ -526,7 +682,7 @@
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Pravni status: {legal}";
 
-/* Legend title. [colonisation.py] */
+/* Title of the legend popup window. [colonisation.py] */
 "Legend" = "Legend";
 
 /* Number of loads of cargo. [colonisation.py] */
@@ -544,11 +700,53 @@
 /* [legend.py] */
 "Massacre missions" = "Masakr misije";
 
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Medical" = "Medical";
+
+/* Colonisation 'Type' [base_types.json] */
+"Medical Installation" = "Medical Installation";
+
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Srednji";
 
 /* Discord CMDR information. [targetmanager.py] */
 "Message received from this CMDR in local chat" = "Poruka primljena od ovog CMDR-a u lokalnom četu";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Military" = "Military";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Hub" = "Military Hub";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Installation" = "Military Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Outpost" = "Military Outpost";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Military Settlement" = "Military Settlement";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Military Tier 1" = "Military Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Tier 1 Med" = "Military Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Tier 1 Sml" = "Military Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Military Tier 2" = "Military Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Tier 2 Lrg" = "Military Tier 2 Lrg";
+
+/* Colonisation 'Type' [base_types.json] */
+"Mining Outpost" = "Mining Outpost";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Mining Outpost Installation" = "Mining Outpost Installation";
 
 /* Activity window tooltip. [activity.py] */
 "Mission fails" = "Propale misije";
@@ -583,17 +781,41 @@
 /* Discord carrier docking access. [fleetcarrier.py] */
 "None" = "Niko";
 
+/* Title of the notes popup window. [colonisation.py] */
+"Notes for " = "Notes for ";
+
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Pristup za Ozloglašene";
 
 /* Objectives title. [objectivesmanager.py] */
 "Objectives" = "Objectives";
 
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Ocellus" = "Ocellus";
+
+/* Colonisation 'Type' [base_types.json] */
+"Ocellus Starport" = "Ocellus Starport";
+
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Planetarna Konflikt Zona";
 
+/* Indicates the field is optional. [colonisation.py] */
+"optional" = "optional";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Orbis" = "Orbis";
+
+/* Colonisation 'Type' [base_types.json] */
+"Orbis Starport" = "Orbis Starport";
+
 /* Number of orbital/space builds. [colonisation.py] */
 "Orbital" = "Orbital";
+
+/* Colonisation 'Category' [base_types.json] */
+"Outpost" = "Outpost";
+
+/* Colonisation 'Type' [base_types.json] */
+"Outpost Hub" = "Outpost Hub";
 
 /* Pad size. [colonisation.py] */
 "Pad" = "Pad";
@@ -619,10 +841,22 @@
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "Zakači {system_name} za Overlej";
 
+/* Colonisation 'Type' [base_types.json] */
+"Pirate Base" = "Pirate Base";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Pirate Installation" = "Pirate Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Pirate Outpost" = "Pirate Outpost";
+
 /* the name you want to give your plan. [colonisation.py] */
 "Plan Name" = "Plan Name";
 
-/* Totals of planned builds i.e. ones that aren't completed. [colonisation.py] */
+/* Colonisation 'Category' [base_types.json] */
+"Planetary Port" = "Planetary Port";
+
+/* Row heading of planned build totals i.e. ones that aren't completed. [colonisation.py] */
 "Planned" = "Planned";
 
 /* URL label on API settings window. [api.py] */
@@ -636,6 +870,9 @@
 
 /* Population Maximum. [colonisation.py] */
 "Pop Max" = "Pop Max";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Port" = "Port";
 
 /* Button on CMDR window. [cmdrs.py] */
 "Post CMDR List to Discord" = "Objavi listu CMDR-a na Diskord";
@@ -691,11 +928,29 @@
 /* CMDR information. [targetmanager.py] */
 "Received team invite from" = "Primljen poziv u tim od";
 
-/* [colonisation.py] */
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Refinery" = "Refinery";
+
+/* Colonisation 'Type' [base_types.json] */
+"Refinery Hub" = "Refinery Hub";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Relay Installation" = "Relay Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Relay Station" = "Relay Station";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Relay Station Installation" = "Relay Station Installation";
+
+/* Rename button. [colonisation.py] */
 "Rename" = "Rename";
 
 /* Your helpful context goes here. [colonisation.py] */
 "Rename System" = "Rename System";
+
+/* tooltip for the rename system button. [colonisation.py] */
+"Rename system plan" = "Rename system plan";
 
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Podrazumevano Prijavi Aktivnost o Novoposećenim Sistemima";
@@ -706,8 +961,35 @@
 /* any prerequisites for the base. [colonisation.py] */
 "Requirements" = "Requirements";
 
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Research Bio Tier 1" = "Research Bio Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Research Bio Tier 1 Med" = "Research Bio Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Research Bio Tier 1 Sml" = "Research Bio Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Research Bio Tier 2" = "Research Bio Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Research Bio Tier 2 Lrg" = "Research Bio Tier 2 Lrg";
+
+/* Colonisation 'Type' [base_types.json] */
+"Research Station" = "Research Station";
+
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "PiS";
+
+/* Colonisation 'Type' [base_types.json] */
+"Satellite" = "Satellite";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Satellite Installation" = "Satellite Installation";
+
+/* Save the notes. [colonisation.py] */
+"Save" = "Save";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Skenirano";
@@ -720,6 +1002,18 @@
 
 /* Activity window column title, abbreviation for scenarios. [activity.py] */
 "Scens" = "Scenar";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Scientific" = "Scientific";
+
+/* Colonisation 'Type' [base_types.json] */
+"Scientific Hub" = "Scientific Hub";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Scientific Installation" = "Scientific Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Scientific Outpost" = "Scientific Outpost";
 
 /* Label on legend window. [legend.py] */
 "Search & Rescue Bio Pods" = "Pronađi i Spasi Bio Kapsule";
@@ -748,6 +1042,12 @@
 /* Security impact. [colonisation.py] */
 "Security" = "Security";
 
+/* Colonisation 'Building Type' [base_types.json] */
+"Security Installation" = "Security Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Security Station" = "Security Station";
+
 /* [widgets.py] */
 "Select all" = "Izaberi sve";
 
@@ -765,6 +1065,9 @@
 
 /* Label on API settings window. [api.py] */
 "Server URL" = "URL adresa servera";
+
+/* Colonisation 'Category' [base_types.json] */
+"Settlement" = "Settlement";
 
 /* Discord heading. [default.py] */
 "settlements" = "naselja";
@@ -799,8 +1102,14 @@
 /* Main window tooltip. [ui.py] */
 "Show objectives / missions window" = "Show objectives / missions window";
 
+/* tooltip for the show notes window. [colonisation.py] */
+"Show system notes window" = "Show system notes window";
+
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Prikaži Sisteme u kojima nema Aktivnosti";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Small" = "Small";
 
 /* Standard of living impact. [colonisation.py] */
 "SoL" = "SoL";
@@ -811,8 +1120,17 @@
 /* [clb.py] */
 "Space" = "Space";
 
+/* Colonisation 'Type' [base_types.json] */
+"Space Bar" = "Space Bar";
+
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Svemirske konflikt zone";
+
+/* Colonisation 'Type' [base_types.json] */
+"Space Farm" = "Space Farm";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Space Farm Installation" = "Space Farm Installation";
 
 /* Discord heading, abbreviation for space conflict zones. [default.py] */
 "SpaceCZs" = "SvemirskeKZ";
@@ -832,6 +1150,9 @@
 /* Label on CMDR window. [cmdrs.py] */
 "Squadron: " = "Eskadrila: ";
 
+/* Colonisation 'Category' [base_types.json] */
+"Starport" = "Starport";
+
 /* Activity window column title. [activity.py] */
 "State" = "Stanje";
 
@@ -846,6 +1167,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "System Information" = "Informacije o sistemu";
+
+/* Label for the system's name field in the UI. [colonisation.py] */
+"System Name" = "System Name";
 
 /* Elite dangerous system name. [colonisation.py] */
 "System Name (optional)" = "System Name (optional)";
@@ -922,6 +1246,33 @@
 /* Total number of builds. [colonisation.py] */
 "Total" = "Total";
 
+/* Colonisation 'Economy Influence' [base_types.json] */
+"Tourism" = "Tourism";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Tourism Settlement" = "Tourism Settlement";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Tourism Tier 1" = "Tourism Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Tourism Tier 1 Med" = "Tourism Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Tourism Tier 1 Sml" = "Tourism Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Tourism Tier 2" = "Tourism Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Tourism Tier 2 Lrg" = "Tourism Tier 2 Lrg";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Tourist" = "Tourist";
+
+/* Colonisation 'Type' [base_types.json] */
+"Tourist Installation" = "Tourist Installation";
+
 /* Track this build?. [colonisation.py] */
 "Track" = "Track";
 
@@ -982,7 +1333,7 @@
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "Adresa Vebhuka";
 
-/* Words about the first base. [colonisation.py] */
+/* Notice about the first base being special. [colonisation.py] */
 "When planning your system the first base is special, make sure that it is the first on the list." = "When planning your system the first base is special, make sure that it is the first on the list.";
 
 /* [ui.py] */
@@ -1038,3 +1389,6 @@
 
 /* [colonisation.py] */
 "ⓘ" = "ⓘ";
+
+/* [colonisation.py] */
+"📓" = "📓";

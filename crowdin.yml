@@ -1,3 +1,7 @@
 files:
   - source: /L10n/en.template.strings
     translation: /L10n/%two_letters_code%.strings
+
+  - source: /data/colonisation_legend.txt
+    translation: /data/L10n/%two_letters_code%.colonisation_legend.txt
+    file_type: text

@@ -5,6 +5,7 @@ from math import ceil
 from tkinter import ttk
 from enum import Enum, auto
 from functools import partial
+from thirdparty.Tooltip import ToolTip
 import webbrowser
 from bgstally.constants import CommodityOrder
 
@@ -14,6 +15,7 @@ from bgstally.utils import _
 class View(Enum):
     FULL = 0
     REDUCED = auto()
+    NONE = auto()
 
 class Units(Enum):
     TONNES = 0
@@ -89,7 +91,7 @@ class ProgressWindow:
         self.rows:list = []
         self.progcols:dict = {} # Progress bar variables
         self.build_index:int = 0 # Which build we're showing
-        self.view:View = View.REDUCED # Full or reduced list of commodities
+        self.view:View = View.REDUCED # Full, reduced, or no list of commodities
         self.comm_order:CommodityOrder = CommodityOrder.DEFAULT # Commodity order
 
     def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
@@ -122,17 +124,19 @@ class ProgressWindow:
             prev_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_left_arrow, cursor="hand2")
             prev_btn.bind("<Button-1>", partial(self.event, "prev"))
             prev_btn.grid(row=row, column=col, sticky=tk.W)
+            ToolTip(prev_btn, text=_("Show previous build")) # LANG: tooltip for the previous build icon
             col += 1
 
             view_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_change_view, cursor="hand2")
             view_btn.bind("<Button-1>", partial(self.event, "change"))
             view_btn.grid(row=row, column=col, sticky=tk.E)
+            ToolTip(view_btn, text=_("Cycle view detail")) # LANG: tooltip for the change view icon (full, reduced, none)
             col += 1
 
             next_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_right_arrow, cursor="hand2")
             next_btn.bind("<Button-1>", partial(self.event, "next"))
             next_btn.grid(row=row, column=col, sticky=tk.E)
-
+            ToolTip(next_btn, text=_("Show next build")) # LANG: tooltip for the next build icon
             row += 1; col = 0
 
             # Progress bar chart
@@ -161,7 +165,7 @@ class ProgressWindow:
                 c = tk.Label(table_frame, text=_(v.get(Units.TONNES)))#, cursor='hand2')
                 c.grid(row=row, column=i, sticky=v.get('Sticky'))
                 c.bind("<Button-1>", partial(self.change_view, k))
-
+                ToolTip(c, text=_("Cycle column views")) # LANG: tooltip for the column views
                 self.weight(c)
                 self.colheadings[k] = c
 
@@ -190,6 +194,7 @@ class ProgressWindow:
                     lbl.grid(row=row, column=i, sticky=val.get('Sticky'))
                     if col == 'Commodity':
                         lbl.bind("<Button-1>", partial(self.link, c))
+                        ToolTip(lbl, text=_("Click for Inara market")) # LANG: tooltip for the inara market commodity links
                         #lbl.config(cursor='hand2')
 
                     r[col] = lbl
@@ -202,17 +207,18 @@ class ProgressWindow:
                 r[col] = tk.Label(table_frame, text=_("Total")) # LANG: Total amounts
                 r[col].grid(row=row, column=i, sticky=val.get('Sticky'))
                 self.weight(r[col])
+
             self.rows.append(r)
             self.table_frame = table_frame
 
             if len(tracked) == 0:
                 Debug.logger.info("No tracked builds")
-                frame.grid_forget()
+                frame.grid_remove()
                 return
 
             if len(self.colonisation.get_required(tracked)) == 0:
                 Debug.logger.info("No commodities to track")
-                frame.grid_forget()
+                frame.grid_remove()
                 return
 
             self.update_display()
@@ -303,7 +309,7 @@ class ProgressWindow:
             delivered:dict = self.colonisation.get_delivered(tracked)
 
             if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
-                self.frame.grid_forget()
+                self.frame.grid_remove()
                 Debug.logger.debug("No progress to display")
                 return
 
@@ -320,12 +326,19 @@ class ProgressWindow:
 
             self.title.config(text=name[-50:])
 
+            if self.view == View.NONE:
+                self.table_frame.grid_remove()
+                Debug.logger.debug("No view, hiding table")
+                return
+
             # Set the column headings according to the selected units
             totals:dict = {}
             for col in self.headings.keys():
                 if col == 'Carrier' and not self.bgstally.fleet_carrier.available():
                     continue
+
                 self.colheadings[col]['text'] = self.headings[col][self.units[col]]
+                self.colheadings[col].grid()
                 totals[col] = 0
 
             totals['Delivered'] = 0
@@ -424,7 +437,7 @@ class ProgressWindow:
 
                     self.highlight_row(row, c, remaining)
 
-                else:
+                else: # Hide this row
                     for col in self.headings.keys():
                         row[col].grid_remove()
 
@@ -463,11 +476,12 @@ class ProgressWindow:
             if remaining > 0:
                 self.progcols['Carrier'].set(carrier * 100 / remaining) # Need to figure out carrier space
 
+            # We're down to having nothing remaining.
             if remaining == 0:
-                if len(tracked) == 1:
-                    self.frame.grid_forget()
-                else:
-                    self.table_frame.grid_forget()
+                if len(tracked) == 1: # Nothing at all, remove the entire frame
+                    self.frame.grid_remove()
+                else: # Just this one build? Hide the table
+                    self.table_frame.grid_remove()
 
                 Debug.logger.debug(f"No progress to display {reqcnt} {delcnt} {remaining} {cargo} {carrier}")
                 return

@@ -11,6 +11,7 @@
 ### Bug Fixes:
 
 * Typo fixes to the colonisation main window legend
+* The columns in the settings panel Discord webhooks table now scale with EDMC UI scaling
 
 
 ## v5.0.0-a2 - 2025-05-17

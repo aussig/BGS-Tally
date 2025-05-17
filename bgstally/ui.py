@@ -211,6 +211,7 @@ class UI:
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("Discord Webhooks"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
+        ui_scaling:float = self.frame.tk.call('tk', 'scaling')
         sheet_headings:list = ["UUID",
                                _("Nickname"), # LANG: Preferences table heading
                                _("Webhook URL"), # LANG: Preferences table heading
@@ -220,15 +221,15 @@ class UI:
                                _("FC Ops"), # LANG: Preferences table heading, abbreviation for fleet carrier operations
                                "CMDR"]
         self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, cell_auto_resize_enabled=False, height=140, width=880,
-                                     column_width=55, header_align="left", empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
+                                     column_width=int(55 * ui_scaling), header_align="left", empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
                                      show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
                                      headers=sheet_headings)
         self.sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
         self.sheet_webhooks.hide_columns(columns=[0])                       # Visible column indexes
         self.sheet_webhooks.checkbox_column(c=[3, 4, 5, 6, 7])              # Data column indexes
         self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks_as_list())
-        self.sheet_webhooks.column_width(column=0, width=150, redraw=False) # Visible column indexes
-        self.sheet_webhooks.column_width(column=1, width=400, redraw=True)  # Visible column indexes
+        self.sheet_webhooks.column_width(column=0, width=int(150 * ui_scaling), redraw=False) # Visible column indexes
+        self.sheet_webhooks.column_width(column=1, width=int(400 * ui_scaling), redraw=True)  # Visible column indexes
         self.sheet_webhooks.enable_bindings(('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select', 'rc_insert_row',
                             'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell', 'modified'))
         self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)

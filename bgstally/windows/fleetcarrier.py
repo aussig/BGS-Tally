@@ -10,7 +10,7 @@ from bgstally.utils import _, __
 from bgstally.widgets import TextPlus
 from config import config
 from thirdparty.colors import *
-
+from thirdparty.Tooltip import ToolTip
 
 class WindowFleetCarrier:
     """
@@ -162,8 +162,11 @@ class WindowFleetCarrier:
 
         self.btn_post_to_discord: tk.Button = tk.Button(frm_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord)) # LANG: Button
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
+        if not self._discord_button_available():
+            ToolTip(self.btn_post_to_discord, text=_("Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord")) # LANG: Post to Discord button tooltip
 
         self._enable_post_button()
+
 
 
     def _post_type_selected(self, post_types: dict, value: str):

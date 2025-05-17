@@ -68,6 +68,8 @@ class WindowActivity:
         self.btn_post_to_discord: ttk.Button = ttk.Button(frm_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord, activity), # LANG: Button label
                                                           state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
+        if not self._discord_button_available():
+            ToolTip(self.btn_post_to_discord, text=_("Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord")) # LANG: Post to Discord button tooltip
         post_types: dict = {DiscordActivity.BOTH: _("Both BGS and TW"), # LANG: Dropdown menu on activity window
                             DiscordActivity.BGS: _("BGS Only"), # LANG: Dropdown menu on activity window
                             DiscordActivity.THARGOIDWAR: _("TW Only")} # LANG: Dropdown menu on activity window

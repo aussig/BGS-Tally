@@ -7,6 +7,7 @@
 * The colonisation progress window now features
     - Commodity view can now cycle between full, reduced, no commodities
     - Added tooltips
+* Added a tooltop to the 'Post to Discord' button giving reasons why it's disabled
 
 ### Bug Fixes:
 

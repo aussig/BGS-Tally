@@ -11,6 +11,7 @@ from bgstally.debug import Debug
 from bgstally.utils import _, __
 from bgstally.widgets import TreeviewPlus
 from thirdparty.colors import *
+from thirdparty.Tooltip import ToolTip
 
 DATETIME_FORMAT_CMDRLIST = "%Y-%m-%d %H:%M:%S"
 
@@ -110,6 +111,9 @@ class WindowCMDRs:
         self.btn_post: tk.Button = tk.Button(frm_buttons, text=_("Post CMDR to Discord"), command=partial(self._post_to_discord)) # LANG: Button on CMDR window
         self.btn_post.pack(side=tk.RIGHT, padx=5, pady=5)
         self.btn_post['state'] = tk.DISABLED
+        if not self._discord_button_available():
+            ToolTip(self.btn_post, text=_("Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord")) # LANG: Post to Discord button tooltip
+
 
         self.btn_delete: tk.Button = tk.Button(frm_buttons, text=_("Delete Selected"), command=partial(self._delete_selected, treeview)) # LANG: Button on CMDR window
         self.btn_delete.pack(side=tk.RIGHT, padx=5, pady=5)

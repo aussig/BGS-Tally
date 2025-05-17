@@ -25,6 +25,8 @@
     - Base type instead of 'Unnamed' when a build hasn't been named
     - Commodities can be listed alphabetically or by category (like they are in markets)
     - A full/condensed list icon that aligns more closely to the colonisation icon
+    - Commodity view can now cycle between full, reduced, no commodities
+    - Added tooltips
 
 * Colonisation Tracking. Your active builds in progress, with targets, are summarised on the main EDMC window and all your colonisation plans are available in a separate window accessed from a button on the main EDMC window.
 * Conflict states are highlighted in the activity window: Elections in orange and wars in red.

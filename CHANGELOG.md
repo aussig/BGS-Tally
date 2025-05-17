@@ -11,6 +11,7 @@
 ### Bug Fixes:
 
 * Typo fixes to the colonisation main window legend
+* Fix failure of BGS preview and discord reporting when running with EDMC 5.13 and above
 
 
 ## v5.0.0-a2 - 2025-05-17

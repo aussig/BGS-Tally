@@ -1,10 +1,17 @@
 # Change Log
 
-## v4.2.1 - 2025-05-17
+## v4.2.2 - 2025-05-17
 
 ### Bug Fixes:
 
 * Fix failure of BGS preview and discord reporting when running with EDMC 5.13 and above
+
+
+## v4.2.1 - 2025-05-17
+
+### Changes:
+
+* Added a tooltop to the 'Post to Discord' button giving reasons why it's disabled
 
 
 ## v4.2.0 - 2024-12-22

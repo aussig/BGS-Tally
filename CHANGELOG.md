@@ -2,18 +2,22 @@
 
 ## v5.0.0-xx - xxxx-xx-xx
 
-* The colonisation window now features
-    - Typo fixes to the legend
+### Changes:
 
-* The progress window now features
+* The colonisation progress window now features
     - Commodity view can now cycle between full, reduced, no commodities
     - Added tooltips
+
+### Bug Fixes:
+
+* Typo fixes to the colonisation main window legend
+
 
 ## v5.0.0-a2 - 2025-05-17
 
 ### Changes:
 
-* The colonisation window now features
+* The colonisation main window now features
     - A legend popup to explain the brief column headings
     - A rename button to rename a plan or add the actual system name once known
     - A notes popup to record free text notes about the system
@@ -22,7 +26,7 @@
     - While build statuses are still determined from they journal they can also be manually updated by clicking on them
     - Adding and removing builds at any point in the list should work correctly and appropriately update the column colors
 
-* The progress window now features
+* The colonisation progress window now features
     - The ED:MC default colors so it will display better in dark or transparent mode
     - Complete and immediate hiding if there are no tracked builds or no commodities to get
     - Totals updating to correctly reflect the column data being shown

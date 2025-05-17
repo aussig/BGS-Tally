@@ -422,7 +422,7 @@ class Colonisation:
         '''
         tracked:list = []
         for build in self.get_all_builds():
-            if build.get("Track") == True and self.get_build_state(build) != BuildState.COMPLETE:
+            if build.get("Track", False) == True and self.get_build_state(build) != BuildState.COMPLETE:
                 tracked.append(build)
 
         return tracked
@@ -433,11 +433,6 @@ class Colonisation:
         Get all builds for a system
         '''
         try:
-            # Cleanup missing names
-            for build in system.get('Builds', []):
-                if build.get('Name') == '' or build.get('Name') == None:
-                    build['Name'] = 'Unnamed'
-
             return system.get('Builds', [])
 
         except Exception as e:
@@ -476,7 +471,7 @@ class Colonisation:
         return build
 
 
-    def add_build(self, system:dict, marketid: int = None, name: str = 'Unnamed') -> dict:
+    def add_build(self, system:dict, marketid: int = None, name: str = '') -> dict:
         """
         Add a new build to a system
         """

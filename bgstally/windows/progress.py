@@ -5,6 +5,7 @@ from math import ceil
 from tkinter import ttk
 from enum import Enum, auto
 from functools import partial
+from thirdparty.Tooltip import ToolTip
 import webbrowser
 from bgstally.constants import CommodityOrder
 
@@ -14,6 +15,7 @@ from bgstally.utils import _
 class View(Enum):
     FULL = 0
     REDUCED = auto()
+    NONE = auto()
 
 class Units(Enum):
     TONNES = 0
@@ -89,7 +91,7 @@ class ProgressWindow:
         self.rows:list = []
         self.progcols:dict = {} # Progress bar variables
         self.build_index:int = 0 # Which build we're showing
-        self.view:View = View.REDUCED # Full or reduced list of commodities
+        self.view:View = View.REDUCED # Full, reduced, or no list of commodities
         self.comm_order:CommodityOrder = CommodityOrder.DEFAULT # Commodity order
 
     def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
@@ -100,12 +102,10 @@ class ProgressWindow:
             self.colonisation = self.bgstally.colonisation
             tracked:dict = self.colonisation.get_tracked_builds()
 
-            self.frame_row = row
+            self.frame_row = start_row
             frame:tk.Frame = tk.Frame(parent_frame)
             frame.grid(row=start_row, column=0, columnspan=20, sticky=tk.EW)
-
             self.frame = frame
-            self.frame_row = start_row
 
             row:int = 0; col:int = 0
             ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=row, column=0, columnspan=5, pady=2, sticky=tk.EW)
@@ -124,17 +124,19 @@ class ProgressWindow:
             prev_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_left_arrow, cursor="hand2")
             prev_btn.bind("<Button-1>", partial(self.event, "prev"))
             prev_btn.grid(row=row, column=col, sticky=tk.W)
+            ToolTip(prev_btn, text=_("Show previous build")) # LANG: tooltip for the previous build icon
             col += 1
 
             view_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_change_view, cursor="hand2")
             view_btn.bind("<Button-1>", partial(self.event, "change"))
             view_btn.grid(row=row, column=col, sticky=tk.E)
+            ToolTip(view_btn, text=_("Cycle view detail")) # LANG: tooltip for the change view icon (full, reduced, none)
             col += 1
 
             next_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_right_arrow, cursor="hand2")
             next_btn.bind("<Button-1>", partial(self.event, "next"))
             next_btn.grid(row=row, column=col, sticky=tk.E)
-
+            ToolTip(next_btn, text=_("Show next build")) # LANG: tooltip for the next build icon
             row += 1; col = 0
 
             # Progress bar chart
@@ -163,7 +165,7 @@ class ProgressWindow:
                 c = tk.Label(table_frame, text=_(v.get(Units.TONNES)))#, cursor='hand2')
                 c.grid(row=row, column=i, sticky=v.get('Sticky'))
                 c.bind("<Button-1>", partial(self.change_view, k))
-
+                ToolTip(c, text=_("Cycle column views")) # LANG: tooltip for the column views
                 self.weight(c)
                 self.colheadings[k] = c
 
@@ -192,6 +194,7 @@ class ProgressWindow:
                     lbl.grid(row=row, column=i, sticky=val.get('Sticky'))
                     if col == 'Commodity':
                         lbl.bind("<Button-1>", partial(self.link, c))
+                        ToolTip(lbl, text=_("Click for Inara market")) # LANG: tooltip for the inara market commodity links
                         #lbl.config(cursor='hand2')
 
                     r[col] = lbl
@@ -204,17 +207,18 @@ class ProgressWindow:
                 r[col] = tk.Label(table_frame, text=_("Total")) # LANG: Total amounts
                 r[col].grid(row=row, column=i, sticky=val.get('Sticky'))
                 self.weight(r[col])
+
             self.rows.append(r)
             self.table_frame = table_frame
 
             if len(tracked) == 0:
                 Debug.logger.info("No tracked builds")
-                frame.grid_forget()
+                frame.grid_remove()
                 return
 
             if len(self.colonisation.get_required(tracked)) == 0:
                 Debug.logger.info("No commodities to track")
-                frame.grid_forget()
+                frame.grid_remove()
                 return
 
             self.update_display()
@@ -305,7 +309,7 @@ class ProgressWindow:
             delivered:dict = self.colonisation.get_delivered(tracked)
 
             if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
-                self.frame.grid_forget()
+                self.frame.grid_remove()
                 Debug.logger.debug("No progress to display")
                 return
 
@@ -313,33 +317,46 @@ class ProgressWindow:
             self.table_frame.grid(row=2, column=0, columnspan=5, sticky=tk.NSEW)
 
             # Set the title
-            name = ', '.join([tracked[self.build_index].get('Plan', _('Unknown')), tracked[self.build_index].get('Name', _('Unnamed'))]) if self.build_index < len(tracked) else _('All') # LANG: unknown or unnamed
+            name = _('All') # LANG: all builds
+            if self.build_index < len(tracked):
+                b:dict = tracked[self.build_index]
+                bn = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
+                pn = b.get('Plan', _('Unknown')) # Unknown system name
+                name:str = ', '.join([pn, bn])
+
             self.title.config(text=name[-50:])
 
+            if self.view == View.NONE:
+                self.table_frame.grid_remove()
+                Debug.logger.debug("No view, hiding table")
+                return
+
             # Set the column headings according to the selected units
-            totals = {}
+            totals:dict = {}
             for col in self.headings.keys():
                 if col == 'Carrier' and not self.bgstally.fleet_carrier.available():
                     continue
+
                 self.colheadings[col]['text'] = self.headings[col][self.units[col]]
+                self.colheadings[col].grid()
                 totals[col] = 0
 
             totals['Delivered'] = 0
             totals['Commodity'] = _("Total")  # LANG: total
 
-            # Go through eacy commodity and show or hide it as appropriate and display the appropriate values
-            comms = self.colonisation.get_commodity_list('All', self.comm_order)
+            # Go through each commodity and show or hide it as appropriate and display the appropriate values
+            comms:list = self.colonisation.get_commodity_list('All', self.comm_order)
             if comms == None or comms == []:
                 Debug.logger.info(f"No commodities found")
                 return
 
             for i, c in enumerate(comms):
-                row = self.rows[i]
+                row:dict = self.rows[i]
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
                 remaining:int = reqcnt - delcnt
-                cargo = self.colonisation.cargo.get(c, 0)
-                carrier = self.colonisation.carrier_cargo.get(c, 0)
+                cargo:int = self.colonisation.cargo.get(c, 0)
+                carrier:int = self.colonisation.carrier_cargo.get(c, 0)
 
                 if reqcnt > 0:
                     totals['Required'] += reqcnt
@@ -356,7 +373,7 @@ class ProgressWindow:
                    #(self.view == View.FULL or self.colonisation.docked == False or self.colonisation.market == {} or c in self.colonisation.market):
 
                     # Shorten and display the commodity name
-                    colstr = self.colonisation.commodities[c].get('Name', c)
+                    colstr:str = self.colonisation.commodities[c].get('Name', c)
                     if len(colstr) > 25: colstr = colstr[0:23] + '…'
                     row['Commodity']['text'] = colstr
                     row['Commodity'].grid()
@@ -420,16 +437,16 @@ class ProgressWindow:
 
                     self.highlight_row(row, c, remaining)
 
-                else:
+                else: # Hide this row
                     for col in self.headings.keys():
                         row[col].grid_remove()
 
             # Set the totals for each column depending on the selected unit view
-            row = self.rows[i+1]
+            row:dict = self.rows[i+1]
 
-            reqcnt = totals['Required']; delcnt = totals['Delivered']; remaining = reqcnt - delcnt; cargo = totals['Cargo']; carrier = totals['Carrier']
+            reqcnt:int = totals['Required']; delcnt = totals['Delivered']; remaining:int = reqcnt - delcnt; cargo:int = totals['Cargo']; carrier:int = totals['Carrier']
             for col in self.headings.keys():
-                valstr = "Total"
+                valstr:str = "Total"
                 match self.units[col]:
                     case Units.REMAINING:
                         if col == 'Required': valstr = f"{remaining:,} {_('t')}"
@@ -459,11 +476,12 @@ class ProgressWindow:
             if remaining > 0:
                 self.progcols['Carrier'].set(carrier * 100 / remaining) # Need to figure out carrier space
 
+            # We're down to having nothing remaining.
             if remaining == 0:
-                if len(tracked) == 1:
-                    self.frame.grid_forget()
-                else:
-                    self.table_frame.grid_forget()
+                if len(tracked) == 1: # Nothing at all, remove the entire frame
+                    self.frame.grid_remove()
+                else: # Just this one build? Hide the table
+                    self.table_frame.grid_remove()
 
                 Debug.logger.debug(f"No progress to display {reqcnt} {delcnt} {remaining} {cargo} {carrier}")
                 return
@@ -477,16 +495,16 @@ class ProgressWindow:
         '''
         Set font weight, defaults to bold
         '''
-        fnt = tkFont.Font(font=item['font']).actual()
+        fnt:tkFont.Font = tkFont.Font(font=item['font']).actual()
         item.configure(font=(fnt['family'], fnt['size'], w))
 
 
-    def highlight_row(self, row, c, qty = 0) -> None:
+    def highlight_row(self, row:dict, c:str, qty:int = 0) -> None:
         '''
         Highlight rows depending on the state
         '''
-        tobuy = qty - self.colonisation.carrier_cargo.get(c, 0) - self.colonisation.cargo.get(c, 0)
-        space = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
+        tobuy:int = qty - self.colonisation.carrier_cargo.get(c, 0) - self.colonisation.cargo.get(c, 0)
+        space:int = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
 
         for col in self.headings.keys():
             row[col]['fg'] = None; self.weight(row[col], 'normal') # Start black & normal

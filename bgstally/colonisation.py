@@ -3,12 +3,10 @@ import json
 from os import path
 from os.path import join
 import traceback
-import inspect
 import re
 from datetime import datetime
-from enum import Enum
 
-from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder
+from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
 from bgstally.utils import _
 from config import config
@@ -35,7 +33,7 @@ class Colonisation:
         self.base_types = {}  # Loaded from base_types.json
         self.base_costs = {}  # Loaded from base_costs.json
         self.commodities = {} # Loaded from commodity.csv
-        self.systems:list = []     # Systems with colonisation data
+        self.systems:list = []     # Systems with colonisation tobuy:int = qty - self.colonisation.carrier_cargo.get(c, 0) - self.colonisation.cargo.get(c, 0)data
         self.progress:list = []    # Construction progress data
         self.dirty = False
 
@@ -112,7 +110,7 @@ class Colonisation:
         Parse and process incoming journal entry
         """
         try:
-            if state.get('CargoCapacity') > 16 and state.get('CargoCapacity') != self.cargo_capacity:
+            if state.get('CargoCapacity', 0) > 16 and state.get('CargoCapacity', 0) != self.cargo_capacity:
                 self.cargo_capacity = state.get('CargoCapacity')
                 self.dirty = True
 
@@ -514,7 +512,7 @@ class Colonisation:
             self.bgstally.ui.window_progress.update_display()
 
 
-    def get_commodity_list(self, base_type: str, order: CommodityOrder = CommodityOrder.DEFAULT) -> list:
+    def get_commodity_list(self, base_type: str, order: CommodityOrder = CommodityOrder.ALPHA) -> list:
         '''
         Return an ordered list of base commodity costs for a base type
         '''
@@ -528,8 +526,9 @@ class Colonisation:
                     # dict(sorted(dict_of_dicts.items(), key=lambda item: item[1][key_to_sort_by]))
                     ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Category']))
 
-                case CommodityOrder.REVERSE:
-                    ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Name'], reverse=True))
+                # This didn't seem worthwhile
+                #case CommodityOrder.REVERSE:
+                #    ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Name'], reverse=True))
 
                 case _:
                     ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Name']))
@@ -562,14 +561,13 @@ class Colonisation:
                 prog.append(res)
 
 
-            # Add an "all" total at the end of the list if there's more than one bulid found.
+            # Add an 'All' total at the end of the list if there's more than one bulid found.
             if found > 1:
                 total = {}
                 for res in prog:
                     for c, v in res.items():
                         if c not in total: total[c] = 0
                         total[c] += v
-
                 prog.append(total)
 
             return prog
@@ -668,7 +666,6 @@ class Colonisation:
                         market[item.get('Name')] = item.get('Stock')
                 if market != {}:
                     self.market = market
-                    Debug.logger.debug(f"Market retrieved market: {market}")
                     return
 
             # The market object doesn't have a market for us so we'll try loading it ourselves.
@@ -755,6 +752,10 @@ class Colonisation:
         # We sort the order of systems when saving so that in progress systems are first, then planned, then complete.
         # Fortuitously our desired order matches the reverse alpha of the states
         systems = list(sorted(self.systems, key=sort_order, reverse=True))
+        units = {}
+        for k, v in self.bgstally.ui.window_progress.units.items():
+            units[k] = v.value
+
         return {
             'Docked': self.docked,
             'SystemID': self.system_id,
@@ -764,7 +765,9 @@ class Colonisation:
             'MarketID': self.marketid,
             'Progress': self.progress,
             'Systems': systems,
-            'CargoCapacity': self.cargo_capacity
+            'CargoCapacity': self.cargo_capacity,
+            'ProgressView' : self.bgstally.ui.window_progress.view.value,
+            'ProgressUnits': units
             }
 
 
@@ -781,3 +784,7 @@ class Colonisation:
         self.progress = dict.get('Progress', [])
         self.systems = dict.get('Systems', [])
         self.cargo_capacity = dict.get('CargoCapacity', 784)
+        self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
+        units = dict.get('ProgressUnits', {})
+        for k, v in units.items():
+            self.bgstally.ui.window_progress.units[k] = ProgressUnits(v)

@@ -4,10 +4,15 @@
 
 * The colonisation window now features
     - Typo fixes to the legend
+    - Fixed scaling issue at high ranges
 
 * The progress window now features
-    - Commodity view can now cycle between full, reduced, no commodities
+    - Commodity view can now cycle between full (all), reduced (only remaining), minimal (nothing left to buy) and none
+    - Commodity sort orders are now Default, Alpha, and Material
+    - Default sorting is alpha but will switch to Material at a base with a market
     - Added tooltips
+    - Fixed bug where the inara link didn't update with the commodity sort order
+    - Column order and commodity display are now saved between sessions
 
 ## v5.0.0-a1 - 2025-05-11
 

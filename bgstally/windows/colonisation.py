@@ -302,8 +302,9 @@ class ColonisationWindow:
         sheet.dehighlight_all()
 
         # Column widths
+        scale = self.bgstally.ui.frame.tk.call('tk', 'scaling') - 0.6 # Don't know why there's an extra .6
         for i, (name, value) in enumerate(self.detail_cols.items()):
-            sheet.column_width(i, value.get('width', 100))
+            sheet.column_width(i, int(value.get('width', 100) * scale))
 
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')

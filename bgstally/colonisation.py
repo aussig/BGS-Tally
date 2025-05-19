@@ -50,7 +50,7 @@ class Colonisation:
         self.load_base_types()
         self.load_base_costs()
         self.load()
-
+        self.update_carrier()
 
     def load_base_types(self):
         """
@@ -112,6 +112,10 @@ class Colonisation:
         Parse and process incoming journal entry
         """
         try:
+            if state.get('CargoCapacity') > 16 and state.get('CargoCapacity') != self.cargo_capacity:
+                self.cargo_capacity = state.get('CargoCapacity')
+                self.dirty = True
+
             match entry.get('event'):
                 case 'StartUp': # Synthetic event.
                     #Debug.logger.debug(f"StartUp event: {entry}")
@@ -196,13 +200,6 @@ class Colonisation:
                         build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
 
                     #Debug.logger.debug(f"Setting {name} build state {build_state} and track {(build_state != BuildState.COMPLETE)}")
-                    self.dirty = True
-
-                case 'LoadOut':
-                    # Let's not consider tiny capacities as they'll create silly numbers and you're probably not
-                    # hauling right now.
-                    # state.get('CargoCapacity') is supposed to work!
-                    self.cargo_capacity = entry.get('CargoCapacity') if entry.get('CargoCapacity') > 16 else 784
                     self.dirty = True
 
                 case 'Market'|'MarketBuy'|'MarketSell':

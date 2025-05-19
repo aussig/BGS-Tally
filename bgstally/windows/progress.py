@@ -383,6 +383,7 @@ class ProgressWindow:
                         case Units.REMAINING:
                             reqstr = f"{remaining:,} {_('t')}" # LANG: Letter to indicate tonnes
                         case Units.LOADS:
+                            Debug.logger.debug(f"Remaining: {remaining} capacity: {self.colonisation.cargo_capacity} loads {ceil(remaining / self.colonisation.cargo_capacity)}")
                             reqstr = f"{ceil(remaining / self.colonisation.cargo_capacity)} {_('L')}" # LANG: Letter to indicate cargo loads
                         case Units.PERCENT:
                             reqstr = f"{delcnt * 100 / reqcnt:.0f}%"
@@ -517,9 +518,9 @@ class ProgressWindow:
                 row[col]['fg'] = 'darkslategrey'; self.weight(row[col], 'normal')
 
             # What's available at this market if we need any and have room
-            if tobuy > 0 and self.colonisation.docked == True and self.colonisation.market.get(c, 0): # market!
+            if qty > 0 and self.colonisation.docked == True and self.colonisation.market.get(c, 0): # market!
                 row[col]['fg'] = 'steelblue'
-                self.weight(row[col], 'bold' if qty > 0 and space > 0 else 'normal')
+                self.weight(row[col], 'bold' if tobuy > 0 and space > 0 else 'normal')
 
             # Nothing left to do
             if qty <= 0:

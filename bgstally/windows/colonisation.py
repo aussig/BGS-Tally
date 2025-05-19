@@ -208,7 +208,6 @@ class ColonisationWindow:
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show legend window")) # LANG: tooltip for the show legend button
 
-
         btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
         ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -492,9 +491,9 @@ class ColonisationWindow:
                             row.append(build.get('Body').replace(system.get('StarSystem') + ' ', ''))
                             continue
 
-                        if name == 'Facility Economy' and build.get('StationEconomy', None) != None:
-                            row.append(build.get('StationEconomy').replace(' ', ''))
-                            continue
+                        #if name == 'Facility Economy' and build.get('StationEconomy', None) != None:
+                        #    row.append(build.get('StationEconomy').replace(' ', ''))
+                        #    continue
 
                         row.append(build.get(name) if build.get(name, ' ') != ' ' else bt.get(name, ' '))
 

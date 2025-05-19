@@ -1,6 +1,6 @@
 # Change Log
 
-## v5.0.0-xx - xx-xx-xx
+## v5.0.0-xx - xxxx-xx-xx
 
 * The colonisation window now features
     - Typo fixes to the legend
@@ -13,6 +13,32 @@
     - Added tooltips
     - Fixed bug where the inara link didn't update with the commodity sort order
     - Column order and commodity display are now saved between sessions
+
+## v5.0.0-a2 - 2025-05-17
+
+### Changes:
+
+* The colonisation window now features
+    - A legend popup to explain the brief column headings
+    - A rename button to rename a plan or add the actual system name once known
+    - A notes popup to record free text notes about the system
+    - colored commodity requirements from green to red
+    - Improved system and market identification
+    - While build statuses are still determined from they journal they can also be manually updated by clicking on them
+    - Adding and removing builds at any point in the list should work correctly and appropriately update the column colors
+
+* The progress window now features
+    - The ED:MC default colors so it will display better in dark or transparent mode
+    - Complete and immediate hiding if there are no tracked builds or no commodities to get
+    - Totals updating to correctly reflect the column data being shown
+    - Base type instead of 'Unnamed' when a build hasn't been named
+    - Commodities can be listed alphabetically or by category (like they are in markets)
+    - A full/condensed list icon that aligns more closely to the colonisation icon
+
+### Bug Fixes:
+
+* Various bugs fixed with colonisation.
+
 
 ## v5.0.0-a1 - 2025-05-11
 

@@ -255,7 +255,7 @@ class ColonisationWindow:
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
                             show_dropdown_borders=False,
                             empty_vertical=15, empty_horizontal=0, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                            show_header=False, set_all_heights_and_widths=True, default_row_height=21)
+                            show_header=False, set_all_heights_and_widths=True) #, default_row_height=21)
         sheet.pack(fill=tk.BOTH, padx=0, pady=(0, 5))
 
         # Initial cell population

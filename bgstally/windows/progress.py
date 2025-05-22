@@ -72,6 +72,9 @@ class ProgressWindow:
                 'Sticky': tk.E
                 }
             }
+        # By removing the carrier from here we remove it everywhere
+        if not self.bgstally.fleet_carrier.available():
+            del self.headings['Carrier']
 
         # UI components
         self.frame:tk.Frame = None
@@ -151,12 +154,10 @@ class ProgressWindow:
             # Column headings
             row = 0
             for i, (k, v) in enumerate(self.headings.items()):
-                if k == 'Carrier' and not self.bgstally.fleet_carrier.available():
-                    continue
-
-                c = tk.Label(table_frame, text=_(v.get(ProgressUnits.TONNES)))#, cursor='hand2')
+                c = tk.Label(table_frame, text=_(v.get(ProgressUnits.TONNES)), cursor='hand2')
                 c.grid(row=row, column=i, sticky=v.get('Sticky'))
                 c.bind("<Button-1>", partial(self.change_view, k))
+                c.config('foreground', self.bgstally.config.get_str('dark_text') if self.bgstally.config.get_int('theme') == 1 else 'black')
                 ToolTip(c, text=_("Cycle column views")) # LANG: tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views
                 self.weight(c)
                 self.colheadings[k] = c
@@ -308,7 +309,7 @@ class ProgressWindow:
             self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
             self.table_frame.grid(row=2, column=0, columnspan=5, sticky=tk.NSEW)
 
-            # Set the title
+            # Set the build name (system name and plan name)
             name = _('All') # LANG: all builds
             if self.build_index < len(tracked):
                 b:dict = tracked[self.build_index]
@@ -318,6 +319,7 @@ class ProgressWindow:
 
             self.title.config(text=name[-50:])
 
+            # Hide the table but not the progress frame so the change view icon is still available
             if self.view == ProgressView.NONE:
                 self.table_frame.grid_remove()
                 Debug.logger.debug("No view, hiding table")
@@ -326,16 +328,12 @@ class ProgressWindow:
             # Set the column headings according to the selected units
             totals:dict = {}
             for col in self.headings.keys():
-                if col == 'Carrier' and not self.bgstally.fleet_carrier.available():
-                    continue
-
                 self.colheadings[col]['text'] = self.headings[col][self.units[col]]
                 self.colheadings[col].grid()
                 totals[col] = 0
 
-            totals['Delivered'] = 0
             totals['Commodity'] = _("Total")  # LANG: total commodities
-
+            
             # Go through each commodity and show or hide it as appropriate and display the appropriate values
             comms:list = []
             if self.colonisation.docked == True and self.colonisation.market != {} and self.comm_order == CommodityOrder.DEFAULT:
@@ -348,6 +346,8 @@ class ProgressWindow:
                 return
 
             for i, c in enumerate(comms):
+                if i > MAX_ROWS: break # Stop it getting crazy long
+
                 row:dict = self.rows[i]
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
@@ -363,88 +363,31 @@ class ProgressWindow:
                     totals['Delivered'] += delcnt
                 if remaining > 0:
                     totals['Cargo'] += cargo
-                    totals['Carrier'] += carrier
+                    if 'Carrier' in totals: totals['Carrier'] += carrier
 
-                # We only show required items. But.
-                # If the view is reduced we don't show ones that are complete. Also,
-                # If we're docked at a station, and in reduced view, we only show locally available commodities
-
+                # We only show relevant (required) items. But.
+                # If the view is reduced we don't show ones that are complete. Also.
+                # If we're in minimal view we only show ones we still need to buy.
                 if (reqcnt <= 0) or \
                     (remaining <= 0 and self.view != ProgressView.FULL) or \
                     (tobuy <= 0 and self.view == ProgressView.MINIMAL):
-                    # Hide this row
                     for col in self.headings.keys():
                         row[col].grid_remove()
                     continue
 
-                # Shorten and display the commodity name
-                colstr:str = self.colonisation.commodities[c].get('Name', c)
-                if len(colstr) > 25: colstr = colstr[0:23] + '…'
-                row['Commodity']['text'] = colstr
-                row['Commodity'].bind("<Button-1>", partial(self.link, c))
-                row['Commodity'].grid()
+                for col in self.headings.keys():
+                    if col == 'Commodity':
+                        # Shorten and display the commodity name
+                        colstr:str = self.colonisation.commodities[c].get('Name', c)
+                        if len(colstr) > 25: colstr = colstr[0:23] + '…'
+                        row['Commodity']['text'] = colstr
+                        row['Commodity'].bind("<Button-1>", partial(self.link, c))
+                        row['Commodity'].grid()
+                        continue
 
-                # Required
-                match self.units['Required']:
-                    case ProgressUnits.REMAINING:
-                        reqstr = f"{remaining:,} {_('t')}" # LANG: Letter to indicate tonnes
-                    case ProgressUnits.LOADS:
-                        l = ceil(5 * remaining / self.colonisation.cargo_capacity) / 5 # to the nearest 5th
-                        l = ceil(l) if l >= 1 or l < 0.05 else f"{l:.1f}"
-
-                        reqstr = f"{l} {_('L')}" # LANG: Letter to indicate cargo loads
-                    case ProgressUnits.PERCENT:
-                        reqstr = f"{delcnt * 100 / reqcnt:.0f}%"
-                    case _:
-                        reqstr = f"{reqcnt:,} t"
-
-                row['Required']['text'] = reqstr
-                row['Required'].grid()
-
-                # Delivered
-                match self.units['Delivered']:
-                    case ProgressUnits.REMAINING:
-                        remstr = f"{max(remaining-cargo-carrier, 0):,} {_('t')}"
-                    case ProgressUnits.LOADS: # Trips
-                        remstr = f"{ceil(delcnt / self.colonisation.cargo_capacity)} {_('L')}"
-                    case ProgressUnits.PERCENT: # Percentage
-                        remstr = f"{delcnt * 100 / reqcnt:.0f}%"
-                    case _: # Tonnes
-                        remstr = f"{delcnt:,} {_('t')}"
-
-                row['Delivered']['text'] = remstr
-                row['Delivered'].grid()
-
-                # Cargo
-                match self.units['Cargo']:
-                    case ProgressUnits.REMAINING:
-                        cargostr = f"{max(remaining-cargo, 0):,} {_('t')}"
-                    case ProgressUnits.LOADS: # Trips
-                        cargostr = f"{ceil(cargo / self.colonisation.cargo_capacity)} {_('L')}"
-                    case ProgressUnits.PERCENT: # Percentage
-                        cargostr = f"{cargo * 100 / reqcnt:.0f}%"
-                    case _: # Tonnes
-                        cargostr = f"{cargo:,} {_('t')}"
-
-                row['Cargo']['text'] = cargostr
-                row['Cargo'].grid()
-
-                # Carrier
-                match self.units['Carrier']:
-                    case ProgressUnits.REMAINING:
-                        carrierstr = f"{max(remaining-carrier, 0):,} {_('t')}"
-                    case ProgressUnits.LOADS: # Trips
-                        carrierstr = f"{ceil(carrier / self.colonisation.cargo_capacity)} {_('L')}"
-                    case ProgressUnits.PERCENT: # Percentage
-                        carrierstr = f"{carrier * 100 / reqcnt:.0f}%"
-                    case _: # Tonnes
-                        carrierstr = f"{carrier:,} {_('t')}"
-
-                row['Carrier']['text'] = carrierstr
-                if self.bgstally.fleet_carrier.available():
-                    row['Carrier'].grid()
-
-                self.highlight_row(row, c, remaining)
+                    row[col]['text'] = self.get_value(col, reqcnt, delcnt, cargo, carrier)
+                    row[col].grid()
+                    self.highlight_row(row, c, reqcnt - delcnt)
 
             self.display_totals(self.rows[i+1], tracked, totals)
             return
@@ -455,48 +398,58 @@ class ProgressWindow:
 
 
     def display_totals(self, row:dict, tracked:list, totals:dict) -> None:
-        # Set the totals for each column depending on the selected unit view
+        '''
+        Display the totals at the bottom of the table
+        '''
 
-        reqcnt:int = totals['Required']; delcnt = totals['Delivered']; remaining:int = reqcnt - delcnt; cargo:int = totals['Cargo']; carrier:int = totals['Carrier']
-        for col in self.headings.keys():
-            valstr:str = "Total"
-            match self.units[col]:
-                case ProgressUnits.REMAINING:
-                    if col == 'Required': valstr = f"{remaining:,} {_('t')}"
-                    if col == 'Delivered': valstr = f"{max(remaining-cargo-carrier, 0):,} {_('t')}"
-                    if col == 'Cargo': valstr = f"{max(remaining-cargo, 0):,} {_('t')}"
-                    if col == 'Carrier': valstr = f"{max(remaining-carrier,0):,} {_('t')}"
-                case ProgressUnits.LOADS: # Trips
-                    if col == 'Required': valstr = f"{ceil(remaining / self.colonisation.cargo_capacity)} {_('L')}"
-                    if col == 'Delivered': valstr = f"{ceil(delcnt / self.colonisation.cargo_capacity)} {_('L')}"
-                    if col == 'Cargo': valstr = f"{ceil(cargo / self.colonisation.cargo_capacity)} {_('L')}"
-                    if col == 'Carrier': valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)} {_('L')}"
-                case ProgressUnits.PERCENT: # Percentage
-                    if col == 'Required': valstr = f"{delcnt * 100 / reqcnt:.0f}%"
-                    if col == 'Delivered': valstr = f"{delcnt * 100 / reqcnt:.0f}%"
-                    if col == 'Cargo': valstr = f"{cargo * 100 / cargo:.0f}%"
-                    if col == 'Carrier': valstr = f"{carrier * 100 / reqcnt:.0f}%"
-                case _: # Tonnes
-                    if col == 'Required': valstr = f"{reqcnt:,} {_('t')}"
-                    if col == 'Delivered': valstr = f"{delcnt:,} {_('t')}"
-                    if col == 'Cargo': valstr = f"{cargo:,} {_('t')}"
-                    if col == 'Carrier': valstr = f"{carrier:,} {_('t')}"
-            row[col]['text'] = valstr
-
-        self.progcols['Required'].set(remaining * 100 / reqcnt)
-        self.progcols['Delivered'].set(delcnt * 100 / reqcnt)
-        self.progcols['Cargo'].set(cargo * 100 / self.colonisation.cargo_capacity)
-        if remaining > 0:
-            self.progcols['Carrier'].set(carrier * 100 / remaining) # Need to figure out carrier space
-
-        # We're down to having nothing remaining.
-        if remaining == 0:
+        # We're down to having nothing left to deliver.
+        if (totals['Required'] - totals['Delivered']) == 0:
             if len(tracked) == 1: # Nothing at all, remove the entire frame
                 self.frame.grid_remove()
             else: # Just this one build? Hide the table
                 self.table_frame.grid_remove()
-            Debug.logger.debug(f"No progress to display {reqcnt} {delcnt} {remaining} {cargo} {carrier}")
+            return
+
+        for col in self.headings.keys():
+            row[col]['text'] = self.get_value(col, totals['Required'], totals['Delivered'], totals['Cargo'], totals['Carrier']) if col != 'Commodity' else col
+            row[col].grid()
+
+        self.progcols['Required'].set((totals['Required'] - totals['Delivered']) * 100 / totals['Required'])
+        self.progcols['Delivered'].set(totals['Delivered'] * 100 / totals['Required'])
+        self.progcols['Cargo'].set(totals['Cargo'] * 100 / self.colonisation.cargo_capacity)
+        if (totals['Required'] - totals['Delivered']) > 0:
+            # @TODO: Figure out carrier space for a better progress display
+            self.progcols['Carrier'].set(totals['Carrier'] * 100 / (totals['Required'] - totals['Delivered']))
         return
+
+
+    def get_value(self, column: str, required:int, delivered:int, cargo:int, carrier:int) -> str:
+        '''
+        Calculate and format the commodity amount depending on the column and the units
+        '''
+        remaining:int = required - delivered
+
+        match self.units[column]:
+            case ProgressUnits.REMAINING if column == 'Required': valstr = f"{remaining:,} {_('t')}"
+            case ProgressUnits.REMAINING if column == 'Delivered': valstr = f"{max(remaining-cargo-carrier, 0):,} {_('t')}"
+            case ProgressUnits.REMAINING if column == 'Cargo': valstr = f"{max(remaining-cargo, 0):,} {_('t')}"
+            case ProgressUnits.REMAINING if column == 'Carrier': valstr = f"{max(remaining-carrier,0):,} {_('t')}"
+
+            case ProgressUnits.LOADS if column == 'Required': valstr = f"{ceil(remaining / self.colonisation.cargo_capacity)} {_('L')}"
+            case ProgressUnits.LOADS if column == 'Delivered': valstr = f"{ceil(delivered / self.colonisation.cargo_capacity)} {_('L')}"
+            case ProgressUnits.LOADS if column == 'Cargo': valstr = f"{ceil(cargo / self.colonisation.cargo_capacity)} {_('L')}"
+            case ProgressUnits.LOADS if column == 'Carrier': valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)} {_('L')}"
+
+            case ProgressUnits.PERCENT if column == 'Required': valstr = f"{delivered * 100 / required:.0f}%"
+            case ProgressUnits.PERCENT if column == 'Delivered': valstr = f"{delivered * 100 / required:.0f}%"
+            case ProgressUnits.PERCENT if column == 'Cargo': valstr = f"{cargo * 100 / cargo:.0f}%"
+            case ProgressUnits.PERCENT if column == 'Carrier': valstr = f"{carrier * 100 / required:.0f}%"
+            
+            case _ if column == 'Required': valstr = f"{delivered:,} {_('t')}"
+            case _ if column == 'Delivered': valstr = f"{delivered:,} {_('t')}"
+            case _ if column == 'Cargo': valstr = f"{cargo:,} {_('t')}"
+            case _ if column == 'Carrier': valstr = f"{carrier:,} {_('t')}"
+        return valstr
 
 
     def weight(self, item, w='bold') -> None:
@@ -509,35 +462,34 @@ class ProgressWindow:
 
     def highlight_row(self, row:dict, c:str, qty:int = 0) -> None:
         '''
-        Highlight rows depending on the state
+        Color rows depending on the state
         '''
         tobuy:int = qty - self.colonisation.carrier_cargo.get(c, 0) - self.colonisation.cargo.get(c, 0)
         space:int = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
 
-
         for col in self.headings.keys():
 
-            # This is a problem. Can't find out the _actual_ foreground color and black is a problem.
-            #row[col]['fg'] = 'black'; self.weight(row[col], 'normal') # Start black & normal
+            # Get the ed:mc default color
+            row[col]['fg'] = self.bgstally.config.get_str('dark_text') if self.bgstally.config.get_int('theme') == 1 else 'black'
+            self.weight(row[col], 'normal')
 
-            if qty <= 0: # Nothing left to deliver
+            if qty <= 0: # Nothing left to deliver, grey it out
                 row[col]['fg'] = 'grey'; self.weight(row[col], 'normal')
                 return
 
-            if self.colonisation.cargo.get(c, 0) >= qty: # Amount we have in our hold
+            if qty < self.colonisation.cargo.get(c, 0): # Have enough in our hold? green and bold
                 row[col]['fg'] = 'darkgreen'; self.weight(row[col], 'bold')
                 return
 
-            if tobuy <= 0 : # Have relevant total cargo
+            if tobuy <= 0 : # Gave enough between our hold and the carrier? green and normal
                 row[col]['fg'] = 'darkgreen'; self.weight(row[col], 'normal')
                 return
 
-            # What's available at this market if we need any and have room
+            # What's available at this market? 
             if self.colonisation.docked == True and self.colonisation.market.get(c, 0): # market!
                 row[col]['fg'] = 'steelblue'
+                # bold if need any and have room, otherwise normal
                 self.weight(row[col], 'bold' if tobuy > 0 and space > 0 else 'normal')
                 return
 
         return
-
-

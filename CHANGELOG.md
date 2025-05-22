@@ -2,9 +2,7 @@
 
 ## v5.0.0-xx - xxxx-xx-xx
 
-* The colonisation window now features
-    - Typo fixes to the legend
-    - Fixed scaling issue at high ranges
+### Changes
 
 * The progress window now features
     - Commodity view can now cycle between full (all), reduced (only remaining), minimal (nothing left to buy) and none
@@ -13,6 +11,14 @@
     - Added tooltips
     - Fixed bug where the inara link didn't update with the commodity sort order
     - Column order and commodity display are now saved between sessions
+    - Tidied/refactored code
+
+### Bug fixes:
+    - Fixed issue with resetting progress column to theme foreground color
+    - Fixed scaling issue at high ranges
+    - Fixed issue with the carrier getting added to the completed builds list
+    - Fixed issue with not showing completed bases that were found but we don't know the build type
+    - Typo fixes to the legend
 
 ## v5.0.0-a2 - 2025-05-17
 

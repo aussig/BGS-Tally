@@ -161,7 +161,7 @@ class ProgressWindow:
                 c.grid(row=row, column=i, sticky=v.get('Sticky'))
                 c.bind("<Button-1>", partial(self.change_view, k))
                 c.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
-                ToolTip(c, text=_("Cycle column views")) # LANG: tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views
+                ToolTip(c, text=_("Cycle commodity list filter views")) # LANG: tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views
                 self.weight(c)
                 self.colheadings[k] = c
 
@@ -330,6 +330,9 @@ class ProgressWindow:
             # Set the column headings according to the selected units
             totals:dict = {}
             for col in self.headings.keys():
+                if col == 'Carrier' and not self.bgstally.fleet_carrier.available():
+                    continue
+                    
                 self.colheadings[col]['text'] = self.headings[col][self.units[col]]
                 self.colheadings[col].grid()
                 totals[col] = 0

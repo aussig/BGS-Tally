@@ -29,7 +29,7 @@
 
 ### Changes:
 
-* The colonisation window now features
+* The colonisation main window now features
     - A legend popup to explain the brief column headings
     - A rename button to rename a plan or add the actual system name once known
     - A notes popup to record free text notes about the system
@@ -38,7 +38,7 @@
     - While build statuses are still determined from they journal they can also be manually updated by clicking on them
     - Adding and removing builds at any point in the list should work correctly and appropriately update the column colors
 
-* The progress window now features
+* The colonisation progress window now features
     - The ED:MC default colors so it will display better in dark or transparent mode
     - Complete and immediate hiding if there are no tracked builds or no commodities to get
     - Totals updating to correctly reflect the column data being shown
@@ -102,6 +102,20 @@
     - `SyntheticCZObjective`: Sent when an objective is completed in a Space CZ (cap ship / spec ops / enemy captain / enemy correspondent).
     - `SyntheticGroundCZ`: Sent when a Ground CZ is won.
     - `SyntheticScenario`: Sent when a scenario is won (only Megaship scenarios for the moment, Installation scenarios cannot be tracked).
+
+
+## v4.2.2 - 2025-05-17
+
+### Bug Fixes:
+
+* Fix failure of BGS preview and discord reporting when running with EDMC 5.13 and above
+
+
+## v4.2.1 - 2025-05-17
+
+### Changes:
+
+* Added a tooltop to the 'Post to Discord' button giving reasons why it's disabled
 
 
 ## v4.2.0 - 2024-12-22

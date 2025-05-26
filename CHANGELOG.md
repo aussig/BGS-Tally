@@ -6,7 +6,7 @@
 
 ## v5.0.0-a3 - 2025-05-26
 
-### Changes
+### Changes:
 
 * The progress window now features
     - Commodity view can now cycle between full (all), reduced (only remaining), minimal (nothing left to buy) and none
@@ -28,6 +28,7 @@
     - Fixed issue with the carrier getting added to the completed builds list
     - Fixed issue with not showing completed bases that were found but we don't know the build type
     - Typo fixes to the legend
+
 
 ## v5.0.0-a2 - 2025-05-17
 

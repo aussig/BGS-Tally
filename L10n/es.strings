@@ -118,6 +118,9 @@
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS y TW";
 
+/* Post to Discord button tooltip. [activity.py] */
+"Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord" = "Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord";
+
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bonos de recompensas";
 
@@ -259,11 +262,11 @@
 /* [sheet_options.py] */
 "Cut contents" = "Cortar contenido";
 
-/* tooltip for the column views. [progress.py] */
-"Cycle column views" = "Cambiar vista de columnas";
+/* tooltip for the change view icon (full, reduced, minimal, none). [progress.py] */
+"Cycke commodity list filter views" = "Cycke commodity list filter views";
 
-/* tooltip for the change view icon (full, reduced, none). [progress.py] */
-"Cycle view detail" = "Cambiar vista de detalles";
+/* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
+"Cycle commodity list filter views" = "Cycle commodity list filter views";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Fecha / Hora";
@@ -667,7 +670,7 @@
 /* [legend.py] */
 "Kills" = "Bajas";
 
-/* Letter to indicate cargo loads. [progress.py] */
+/* [progress.py] */
 "L" = "V";
 
 /* Preferences label. [ui.py] */
@@ -997,7 +1000,7 @@
 /* Colonisation 'Building Type' [base_types.json] */
 "Satellite Installation" = "Instalación de satélites";
 
-/* Save the notes. [colonisation.py] */
+/* Save notes button. [colonisation.py] */
 "Save" = "Guardar";
 
 /* CMDR information. [targetmanager.py] */
@@ -1195,7 +1198,7 @@
 /* Label on carrier window. [fleetcarrier.py] */
 "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistema: {current_system} - Atraque: {docking_access} - Acceso con notoriedad: {notorious}";
 
-/* Letter to indicate tonnes. [progress.py] */
+/* [progress.py] */
 "t" = "t";
 
 /* Tier 2 points. [colonisation.py] */

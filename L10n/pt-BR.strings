@@ -169,6 +169,9 @@
 /* [sheet_options.py] */
 "Clear contents" = "Limpar conteúdos";
 
+/* tooltip for the inara market commodity links. [progress.py] */
+"Click for Inara market" = "Click for Inara market";
+
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "Detalhes CMDT";
 
@@ -255,6 +258,12 @@
 
 /* [sheet_options.py] */
 "Cut contents" = "Cortar conteúdo";
+
+/* tooltip for the column views. [progress.py] */
+"Cycle column views" = "Cycle column views";
+
+/* tooltip for the change view icon (full, reduced, none). [progress.py] */
+"Cycle view detail" = "Cycle view detail";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Data / Hora";
@@ -1099,8 +1108,14 @@
 /* Activity window tooltip. [activity.py] */
 "Show legend window" = "Mostrar janela de legenda";
 
+/* tooltip for the next build icon. [progress.py] */
+"Show next build" = "Show next build";
+
 /* Main window tooltip. [ui.py] */
 "Show objectives / missions window" = "Show objectives / missions window";
+
+/* tooltip for the previous build icon. [progress.py] */
+"Show previous build" = "Show previous build";
 
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Show system notes window";

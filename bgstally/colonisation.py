@@ -234,14 +234,18 @@ class Colonisation:
 
                     # If it's a construction site or coolonisation ship wait til we dock.
                     # If it's a carrier or other non-standard location we ignore it. Bet there are other options!
-                    if 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
-                       re.match('^$', self.station) or re.match(' [A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
+                    if self.station == None or 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
+                       re.search('^$', self.station) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
                         return
+
+                    if not re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
+                        Debug.logger.debug(f"Station {self.station} does not match Regexp")
 
                     # If we don't have this system in our list, we don't care about it.
                     system = self.find_system(entry.get('StarSystem'), entry.get('SystemAddress'))
                     if system == None: return
 
+                    Debug.logger.debug(f"SuperCruiseExit finding or adding build {self.station}")
                     # It's in a system we're building in, so we should create it.
                     build = self.find_or_create_build(system, self.marketid, self.station)
 
@@ -250,7 +254,7 @@ class Colonisation:
                     if build.get('MarketID', None) == None: build['MarketID'] = self.marketid
                     build['State'] = BuildState.COMPLETE
                     build['Name'] = self.station
-                    if self.body and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
+                    if self.body != None and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
                         build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
                     build['Track'] = False
                     Debug.logger.debug(f"Updating build info for: {entry.get('StarSystem')} {self.body} {self.station} {build}")
@@ -472,6 +476,7 @@ class Colonisation:
         """
         Add a new build to a system
         """
+        Debug.logger.debug(f"Adding build {name}")
         build:dict = {
                 'Name': name,
                 'Plan': system.get('Name'),

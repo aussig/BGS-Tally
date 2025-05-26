@@ -6,6 +6,8 @@ import traceback
 from functools import partial
 from tkinter import ttk, messagebox, PhotoImage
 import webbrowser
+from config import config
+import plug
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
@@ -200,7 +202,7 @@ class ColonisationWindow:
         sys_label:ttk.Label = ttk.Label(title_frame, text="", cursor="hand2")
         sys_label.pack(side=tk.LEFT, padx=10, pady=5)
         self.weight(sys_label)
-        sys_label.bind("<Button-1>", partial(self.inara_click, tabnum))
+        sys_label.bind("<Button-1>", partial(self.system_click, tabnum))
 
         self.plan_titles[sysnum]['System'] = sys_label
 
@@ -221,17 +223,21 @@ class ColonisationWindow:
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
 
-    def inara_click(self, tabnum:int, event) -> None:
+    def system_click(self, tabnum:int, event) -> None:
         '''
-        Execute the click event for the Inara link
+        Execute the click event for the system link
         '''
         try:
             sysnum = tabnum -1
             if sysnum > len(self.plan_titles):
-                Debug.logger.info(f"on_inara_click invalid tab: {tabnum}")
+                Debug.logger.info(f"on_system_click invalid tab: {tabnum}")
                 return
             star:str = self.plan_titles[sysnum]['System']['text'].replace(' ⤴', '')
-            webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={star}")
+            opener = plug.invoke(config.get_str('system_provider'), 'EDSM', 'system_url', star)
+            if opener:
+                return webbrowser.open(opener)
+            else:
+                webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={star}")
 
         except Exception as e:
             Debug.logger.error(f"Error in create_title_frame() {e}")
@@ -584,7 +590,6 @@ class ColonisationWindow:
         Validate edits to the sheet. This just prevents the user from deleting the primary base type.
         '''
         try:
-            Debug.logger.debug(f"Validating edits: {event}")
             row = event.row - FIRST_BUILD_ROW; col = event.column; val = event.value
             fields = list(self.detail_cols.keys())
             field = fields[col]
@@ -593,7 +598,6 @@ class ColonisationWindow:
                 # Don't delete the primary base or let it have no type
                 Debug.logger.debug(f"returning none")
                 return None
-            Debug.logger.debug(f"returning value")
             return event.value
 
         except Exception as e:
@@ -619,10 +623,12 @@ class ColonisationWindow:
                 field = fields[col]
                 systems:list = self.colonisation.get_all_systems()
 
-                # If the user clicks on the state column, toggle the state between planned and complete. 
+                # If the user clicks on the state column, toggle the state between planned and complete.
                 # If it's in progress we'll update to that on our next delivery
                 if field == 'State' and row < len(systems[sysnum]['Builds']):
-                    if systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
+                    if systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE or \
+                        'Base Type' not in systems[sysnum]['Builds'][row] or \
+                        systems[sysnum]['Builds'][row]['Base Type'] == ' ':
                         systems[sysnum]['Builds'][row]['State'] = BuildState.PLANNED
                     else:
                         systems[sysnum]['Builds'][row]['State'] = BuildState.COMPLETE
@@ -630,6 +636,12 @@ class ColonisationWindow:
                     self.colonisation.dirty = True
                     self.colonisation.save()
                     self.update_display()
+
+                if field in ['Name', 'Base Type'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
+                    opener = plug.invoke(config.get_str('station_provider'), 'EDSM', 'station_url', systems[sysnum]['StarSystem'], systems[sysnum]['Builds'][row]['Name'])
+                    if opener:
+                        return webbrowser.open(opener)
+
                 return
 
             # We only deal with edits.
@@ -643,6 +655,7 @@ class ColonisationWindow:
 
             match field:
                 case 'Base Type' if val == ' ':
+                    Debug.logger.debug(f"Maybe removing build {row} from {sysnum}")
                     # If they set the base type to empty remove the build
                     if row < len(systems[sysnum]['Builds']):
                         Debug.logger.debug(f"Removing build {row} from {sysnum}")
@@ -655,6 +668,8 @@ class ColonisationWindow:
                     self.config_sheet(self.sheets[sysnum])
 
                 case 'Base Type' if val != ' ':
+                    Debug.logger.debug(f"Setting base type")
+
                     if row >= len(systems[sysnum]['Builds']):
                         self.colonisation.add_build(systems[sysnum])
                         systems[sysnum]['Builds'][row][field] = val
@@ -927,6 +942,14 @@ class ColonisationWindow:
         """
         # @TODO: Need to modify this to check the user's language and look for a translated file
         file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        lang = config.get_str('language')
+        if lang and lang != 'en':
+            file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, "L10n", f"{lang}.{FILENAME}")
+
+        if not path.exists(file):
+            Debug.logger.debug(f"Missing translation {file} for {lang}, using default legend file")
+            file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+
         if path.exists(file):
             try:
                 with open(file) as file:
@@ -935,6 +958,8 @@ class ColonisationWindow:
             except Exception as e:
                 Debug.logger.warning(f"Unable to load {file}")
                 Debug.logger.error(traceback.format_exc())
+
+        return f"Unable to load {file}"
 
 
     def legend_popup(self) -> None:

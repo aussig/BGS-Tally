@@ -7,8 +7,9 @@ from enum import Enum, auto
 from functools import partial
 from thirdparty.Tooltip import ToolTip
 import webbrowser
+from urllib.parse import quote
 from bgstally.constants import CommodityOrder, ProgressUnits, ProgressView
-
+from config import config
 from bgstally.debug import Debug
 from bgstally.utils import _
 
@@ -126,7 +127,7 @@ class ProgressWindow:
             view_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_change_view, cursor="hand2")
             view_btn.bind("<Button-1>", partial(self.event, "change"))
             view_btn.grid(row=row, column=col, sticky=tk.E)
-            ToolTip(view_btn, text=_("Cycle commodity list detail")) # LANG: tooltip for the change view icon (full, reduced, none)
+            ToolTip(view_btn, text=_("Cycke commodity list filter views")) # LANG: tooltip for the change view icon (full, reduced, minimal, none)
             col += 1
 
             next_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_right_arrow, cursor="hand2")
@@ -135,7 +136,7 @@ class ProgressWindow:
             ToolTip(next_btn, text=_("Show next build")) # LANG: tooltip for the next build icon
             row += 1; col = 0
 
-            # Progress bar chart
+            # Overall progress bar chart
             #y=tk.LabelFrame(frame, border=0, height=10)
             #y.grid(row=row, column=col, columnspan=5, pady=0, sticky=tk.EW)
             #y.grid_rowconfigure(0, weight=1)
@@ -151,13 +152,15 @@ class ProgressWindow:
             table_frame:tk.Frame = tk.Frame(frame)
             table_frame.columnconfigure(0, weight=1)
             table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
+            self.table_frame = table_frame
+
             # Column headings
             row = 0
             for i, (k, v) in enumerate(self.headings.items()):
                 c = tk.Label(table_frame, text=_(v.get(ProgressUnits.TONNES)), cursor='hand2')
                 c.grid(row=row, column=i, sticky=v.get('Sticky'))
                 c.bind("<Button-1>", partial(self.change_view, k))
-                c.config('foreground', self.bgstally.config.get_str('dark_text') if self.bgstally.config.get_int('theme') == 1 else 'black')
+                c.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
                 ToolTip(c, text=_("Cycle column views")) # LANG: tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views
                 self.weight(c)
                 self.colheadings[k] = c
@@ -188,7 +191,7 @@ class ProgressWindow:
                     if col == 'Commodity':
                         lbl.bind("<Button-1>", partial(self.link, c))
                         ToolTip(lbl, text=_("Click for Inara market")) # LANG: tooltip for the inara market commodity links
-                        #lbl.config(cursor='hand2')
+                        lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
 
                     r[col] = lbl
                 self.rows.append(r)
@@ -202,7 +205,6 @@ class ProgressWindow:
                 self.weight(r[col])
 
             self.rows.append(r)
-            self.table_frame = table_frame
 
             if len(tracked) == 0:
                 Debug.logger.info("No tracked builds")
@@ -284,7 +286,7 @@ class ProgressWindow:
             for min in [500, 1000, 2500, 5000, 10000, 50000]:
                 if rem < min: break
 
-            url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={sys}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
+            url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
             webbrowser.open(url)
 
         except Exception as e:
@@ -333,7 +335,7 @@ class ProgressWindow:
                 totals[col] = 0
 
             totals['Commodity'] = _("Total")  # LANG: total commodities
-            
+
             # Go through each commodity and show or hide it as appropriate and display the appropriate values
             comms:list = []
             if self.colonisation.docked == True and self.colonisation.market != {} and self.comm_order == CommodityOrder.DEFAULT:
@@ -346,8 +348,6 @@ class ProgressWindow:
                 return
 
             for i, c in enumerate(comms):
-                if i > MAX_ROWS: break # Stop it getting crazy long
-
                 row:dict = self.rows[i]
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
@@ -411,9 +411,11 @@ class ProgressWindow:
             return
 
         for col in self.headings.keys():
-            row[col]['text'] = self.get_value(col, totals['Required'], totals['Delivered'], totals['Cargo'], totals['Carrier']) if col != 'Commodity' else col
+            row[col]['text'] = self.get_value(col, totals['Required'], totals['Delivered'], totals['Cargo'], totals['Carrier']) if col != 'Commodity' else _("Total")
+            self.weight(row[col])
             row[col].grid()
 
+        # Update the progress graphs
         self.progcols['Required'].set((totals['Required'] - totals['Delivered']) * 100 / totals['Required'])
         self.progcols['Delivered'].set(totals['Delivered'] * 100 / totals['Required'])
         self.progcols['Cargo'].set(totals['Cargo'] * 100 / self.colonisation.cargo_capacity)
@@ -444,8 +446,8 @@ class ProgressWindow:
             case ProgressUnits.PERCENT if column == 'Delivered': valstr = f"{delivered * 100 / required:.0f}%"
             case ProgressUnits.PERCENT if column == 'Cargo': valstr = f"{cargo * 100 / cargo:.0f}%"
             case ProgressUnits.PERCENT if column == 'Carrier': valstr = f"{carrier * 100 / required:.0f}%"
-            
-            case _ if column == 'Required': valstr = f"{delivered:,} {_('t')}"
+
+            case _ if column == 'Required': valstr = f"{required:,} {_('t')}"
             case _ if column == 'Delivered': valstr = f"{delivered:,} {_('t')}"
             case _ if column == 'Cargo': valstr = f"{cargo:,} {_('t')}"
             case _ if column == 'Carrier': valstr = f"{carrier:,} {_('t')}"
@@ -470,22 +472,22 @@ class ProgressWindow:
         for col in self.headings.keys():
 
             # Get the ed:mc default color
-            row[col]['fg'] = self.bgstally.config.get_str('dark_text') if self.bgstally.config.get_int('theme') == 1 else 'black'
+            row[col]['fg'] = config.get_str('dark_text') if config.get_int('theme') == 1 else 'black'
             self.weight(row[col], 'normal')
 
             if qty <= 0: # Nothing left to deliver, grey it out
                 row[col]['fg'] = 'grey'; self.weight(row[col], 'normal')
                 continue
 
-            if qty < self.colonisation.cargo.get(c, 0): # Have enough in our hold? green and bold
-                row[col]['fg'] = 'darkgreen'; self.weight(row[col], 'bold')
+            if qty <= self.colonisation.cargo.get(c, 0): # Have enough in our hold? green and bold
+                row[col]['fg'] = 'green'; self.weight(row[col], 'bold')
                 continue
 
             if tobuy <= 0 : # Gave enough between our hold and the carrier? green and normal
-                row[col]['fg'] = 'darkgreen'; self.weight(row[col], 'normal')
+                row[col]['fg'] = 'green'; self.weight(row[col], 'normal')
                 continue
 
-            # What's available at this market? 
+            # What's available at this market?
             if self.colonisation.docked == True and self.colonisation.market.get(c, 0): # market!
                 row[col]['fg'] = 'steelblue'
                 # bold if need any and have room, otherwise normal

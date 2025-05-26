@@ -12,9 +12,14 @@
     - Fixed bug where the inara link didn't update with the commodity sort order
     - Column order and commodity display are now saved between sessions
     - Tidied/refactored code
+    - Added support for legend translations
+    - Updated colonisation window to use ED:MC preferred system link (Inara, EDSM, or Spansh)
+    - Updated colonisation window so the name and type of a completed base link to the preferred ED:SM station link
 
 ### Bug fixes:
     - Fixed issue with resetting progress column to theme foreground color
+    - Reinstated hand2 icon for links without causing them to all be highlighted
+    - Lightened the green progress for easier viewing in dark mode
     - Fixed scaling issue at high ranges
     - Fixed issue with the carrier getting added to the completed builds list
     - Fixed issue with not showing completed bases that were found but we don't know the build type

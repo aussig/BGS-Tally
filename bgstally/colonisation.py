@@ -110,7 +110,7 @@ class Colonisation:
         Parse and process incoming journal entry
         """
         try:
-            if state.get('CargoCapacity', 0) > 16 and state.get('CargoCapacity', 0) != self.cargo_capacity:
+            if state.get('CargoCapacity', 0) != None and state.get('CargoCapacity', 0) > 16 and state.get('CargoCapacity', 0) != self.cargo_capacity:
                 self.cargo_capacity = state.get('CargoCapacity')
                 self.dirty = True
 

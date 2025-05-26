@@ -32,7 +32,7 @@ def __(string: str, lang: str) -> str:
     Returns:
         str: Translated string
     """
-    if lang == "" or lang is None: return _(string)
+    if lang == "" or lang is None or lang == l10n.Translations.FALLBACK: return _(string)
 
     if appversion() < semantic_version.Version('5.12.0'):
         l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)

@@ -2,16 +2,28 @@
 
 ## v5.0.0-xx - xxxx-xx-xx
 
-### Changes:
+### Changes
 
-* The colonisation progress window now features
-    - Commodity view can now cycle between full, reduced, no commodities
+* The progress window now features
+    - Commodity view can now cycle between full (all), reduced (only remaining), minimal (nothing left to buy) and none
+    - Commodity sort orders are now Default, Alpha, and Material
+    - Default sorting is alpha but will switch to Material at a base with a market
     - Added tooltips
+    - Fixed bug where the inara link didn't update with the commodity sort order
+    - Column order and commodity display are now saved between sessions
+    - Tidied/refactored code
+    - Added support for legend translations
+    - Updated colonisation window to use ED:MC preferred system link (Inara, EDSM, or Spansh)
+    - Updated colonisation window so the name and type of a completed base link to the preferred ED:SM station link
 
-### Bug Fixes:
-
-* Typo fixes to the colonisation main window legend
-
+### Bug fixes:
+    - Fixed issue with resetting progress column to theme foreground color
+    - Reinstated hand2 icon for links without causing them to all be highlighted
+    - Lightened the green progress for easier viewing in dark mode
+    - Fixed scaling issue at high ranges
+    - Fixed issue with the carrier getting added to the completed builds list
+    - Fixed issue with not showing completed bases that were found but we don't know the build type
+    - Typo fixes to the legend
 
 ## v5.0.0-a2 - 2025-05-17
 
@@ -90,6 +102,20 @@
     - `SyntheticCZObjective`: Sent when an objective is completed in a Space CZ (cap ship / spec ops / enemy captain / enemy correspondent).
     - `SyntheticGroundCZ`: Sent when a Ground CZ is won.
     - `SyntheticScenario`: Sent when a scenario is won (only Megaship scenarios for the moment, Installation scenarios cannot be tracked).
+
+
+## v4.2.2 - 2025-05-17
+
+### Bug Fixes:
+
+* Fix failure of BGS preview and discord reporting when running with EDMC 5.13 and above
+
+
+## v4.2.1 - 2025-05-17
+
+### Changes:
+
+* Added a tooltop to the 'Post to Discord' button giving reasons why it's disabled
 
 
 ## v4.2.0 - 2024-12-22

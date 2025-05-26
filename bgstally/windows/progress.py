@@ -522,21 +522,21 @@ class ProgressWindow:
 
             if qty <= 0: # Nothing left to deliver
                 row[col]['fg'] = 'grey'; self.weight(row[col], 'normal')
-                return
+                continue
 
             if self.colonisation.cargo.get(c, 0) >= qty: # Amount we have in our hold
                 row[col]['fg'] = 'darkgreen'; self.weight(row[col], 'bold')
-                return
+                continue
 
             if tobuy <= 0 : # Have relevant total cargo
                 row[col]['fg'] = 'darkgreen'; self.weight(row[col], 'normal')
-                return
+                continue
 
             # What's available at this market if we need any and have room
             if self.colonisation.docked == True and self.colonisation.market.get(c, 0): # market!
                 row[col]['fg'] = 'steelblue'
                 self.weight(row[col], 'bold' if tobuy > 0 and space > 0 else 'normal')
-                return
+                continue
 
         return
 

@@ -232,8 +232,10 @@ class Colonisation:
                     if entry.get('Name', None) != None: self.station = entry.get('Name')
                     if entry.get('MarketID', None) != None: self.marketid = entry.get('MarketID')
 
-                    # If it's a construction site or coolonisation ship wait til we dock. If it's a carrier we ignore it.
-                    if 'Construction Site' in self.station or 'ColonisationShip' in self.station or entry.get('BodyType') == 'Fleetcarrier':
+                    # If it's a construction site or coolonisation ship wait til we dock.
+                    # If it's a carrier or other non-standard location we ignore it. Bet there are other options!
+                    if 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
+                       re.match('^$', self.station) or re.match(' [A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
                         return
 
                     # If we don't have this system in our list, we don't care about it.

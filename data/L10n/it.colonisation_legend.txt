@@ -1,56 +1,57 @@
-Summary Rows
+Riepilogo Righe
 
-  • Planned: Information about builds/bases that have been planned but not yet completed
-  • Completed: Information about builds/bases that have been completed
+  • Pianificato: informazioni su build/basi pianificate ma non ancora completate
+  • Completato: informazioni sulle build/basi completate
 
-Summary Columns
+Riepilogo Colonne
 
-  • Total: total number of bases
-  • Orbital: number of orbital bases
-  • Surface: number of surface bases
-  • T2: The net Tier 2 point cost or reward
-  • T3: The net Tier 3 point cost or reward
-  • Cost: The cost of the builds in tonnes required
-  • Loads: The number of ship loads based on your current cargo capacity
+  • Totale: numero totale di basi
+  • Orbitali: numero di basi orbitali
+  • Planetarie: numero di basi Presenti sulla superficie
+  T2: Il costo o la ricompensa netto in punti del Livello 2
+  T3: Il costo o la ricompensa netto in punti del Livello 3
+  • Costo: il costo delle costruzioni richieste in tonnellate
+  • Carichi: Il numero di carichi della nave in base alla tua attuale capacità di carico
 
-  • Pop Inc: population increase impact
-  • Pop Max: maximum population impact
-  • Security: system security impact
-  • Tech Lvl: system technology level impact
-  • Wealth: system wealth impact
-  • SoL: system standard of living impact
-  • Dev Lvl: system development level impact
+  • Aum Pop: impatto complessivo sull’aumento della popolazione
+  • Pop Max: impatto complessivo sulla popolazione massima
 
-Detail Rows
+  • Securez: impatto complessivo sulla sicurezza del sistema
+  • Lv Tech: impatto complessivo sul livello tecnologico del sistema
+  • Ricchez: impatto complessivo sulla ricchezza del sistema
+  • SoL: impatto complessivo sullo standard di vita del sistema
+  • Lv Svilup: impatto complessivo sullo sviluppo del sistema
 
-  • One row per base.
-  • The first row should be the initial base
-  • Other bases can be in any order but the cost of starports depends on their order
-    so if you put then in the wrong order their cost may be incorrect
+Dettaglio delle Righe
 
-Detail Columns
+  • Una riga per base
+  • Alla prima riga dovrebbe esserci la base iniziale
+  • Le altre basi possono essere in qualsiasi ordine, ma il costo degli starport dipende dal loro ordine
+    quindi se li metti nell'ordine sbagliato il loro costo potrebbe essere errato
 
-  • Track: Whether to track progress of this base in the main ED:MC progress display
-  • Base Type: The type of base to be built.
-  • Base Name: The name of the base
-  • Body: The body on (or around) which the base is or will be
-  • Requirements: Any prerequisites to building this type of base
-  • State: How far along is the base: Planned, Percentage completed, Completed
-  • T2: The net Tier 2 point cost or reward
-  • T3: The net Tier 3 point cost or reward
-  • Cost: The cost of the builds in tonnes required
-  • Loads: The number of ship loads based on your current cargo capacity
-  • Pad: The maximum landing pad size
-  • Economy: Base economy type
+Dettaglio delle Colonne
 
-  • Pop Inc: population increase impact
-  • Pop Max: maximum population impact
+  • Traccia: se attivo traccia i progressi della base nella visualizzazione principale dei progressi ED:MC
+  • Tipo di Base: il tipo di base da costruire
+  • Nome della Base: il nome della base
+  • Corpo: il corpo sul (o intorno al) quale si trova o si troverà la base
+  • Requisiti: eventuali prerequisiti per costruire questo tipo di base
+  • Stato: livello di avanzamento della base — Pianificata, Percentuale completata, Completata
+  • T2: Il costo o la ricompensa netto in punti del Livello 2
+  • T3: Il costo o la ricompensa netto in punti del Livello 3
+  • Costo: quantità in tonnellate necessaria per la costruzione
+  • Carichi: Il numero di carichi della nave in base alla tua attuale capacità di carico
+  • Pad: la dimensione massima della baia di atterraggio
+  • Economia: tipo di economia della base
 
-  • Econ Inf: The influence this base has on the system economy
+  • Aum Pop: impatto sull'aumento della popolazione
+  • Pop Max: impatto sulla popolazione massima
 
-  • Security: system security impact
-  • Tech Lvl: system technology level impact
-  • Wealth: system wealth impact
-  • SoL: system standard of living impact
-  • Dev Lvl: system development level impact
+  Inf Econ: l'influenza che questa base ha sull'economia del sistema
+
+  • Sicurez: impatto sulla sicurezza del sistema
+  • Lv Tech: impatto sul livello tecnologico del sistema
+  • Ricchezza: impatto sulla ricchezza del sistema
+  • SoL: impatto sullo standard di vita del sistema
+  • Lv Svilup: impatto sul livello di sviluppo del sistema
 

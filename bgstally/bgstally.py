@@ -155,6 +155,7 @@ class BGSTally:
 
             case 'CargoTransfer':
                 self.fleet_carrier.cargo_transfer(entry)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'CarrierJumpCancelled':

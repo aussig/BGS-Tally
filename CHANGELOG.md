@@ -2,17 +2,28 @@
 
 ## v5.0.0-xx - xxxx-xx-xx
 
-### Changes:
+### Changes
 
-* The colonisation progress window now features
-    - Commodity view can now cycle between full, reduced, no commodities
+* The progress window now features
+    - Commodity view can now cycle between full (all), reduced (only remaining), minimal (nothing left to buy) and none
+    - Commodity sort orders are now Default, Alpha, and Material
+    - Default sorting is alpha but will switch to Material at a base with a market
     - Added tooltips
+    - Fixed bug where the inara link didn't update with the commodity sort order
+    - Column order and commodity display are now saved between sessions
+    - Tidied/refactored code
+    - Added support for legend translations
+    - Updated colonisation window to use ED:MC preferred system link (Inara, EDSM, or Spansh)
+    - Updated colonisation window so the name and type of a completed base link to the preferred ED:SM station link
 
-### Bug Fixes:
-
-* Typo fixes to the colonisation main window legend
-* The columns in the settings panel Discord webhooks table now scale with EDMC UI scaling
-
+### Bug fixes:
+    - Fixed issue with resetting progress column to theme foreground color
+    - Reinstated hand2 icon for links without causing them to all be highlighted
+    - Lightened the green progress for easier viewing in dark mode
+    - Fixed scaling issue at high ranges
+    - Fixed issue with the carrier getting added to the completed builds list
+    - Fixed issue with not showing completed bases that were found but we don't know the build type
+    - Typo fixes to the legend
 
 ## v5.0.0-a2 - 2025-05-17
 
@@ -43,6 +54,23 @@
 ## v5.0.0-a1 - 2025-05-11
 
 ### New Features:
+
+* The colonisation window now features
+    - A legend popup to explain the brief column headings
+    - A rename button to rename a plan or add the actual system name once known
+    - A notes popup to record free text notes about the system
+    - colored commodity requirements from green to red
+    - Improved system and market identification
+    - While build statuses are still determined from they journal they can also be manually updated by clicking on them
+    - Adding and removing builds at any point in the list should work correctly and appropriately update the column colors
+
+* The progress window now features
+    - The ED:MC default colors so it will display better in dark or transparent mode
+    - Complete and immediate hiding if there are no tracked builds or no commodities to get
+    - Totals updating to correctly reflect the column data being shown
+    - Base type instead of 'Unnamed' when a build hasn't been named
+    - Commodities can be listed alphabetically or by category (like they are in markets)
+    - A full/condensed list icon that aligns more closely to the colonisation icon
 
 * Colonisation Tracking. Your active builds in progress, with targets, are summarised on the main EDMC window and all your colonisation plans are available in a separate window accessed from a button on the main EDMC window.
 * Conflict states are highlighted in the activity window: Elections in orange and wars in red.

@@ -2,6 +2,10 @@
 
 ## v5.0.0-xx - xxxx-xx-xx
 
+
+
+## v5.0.0-a3 - 2025-05-26
+
 ### Changes
 
 * The progress window now features

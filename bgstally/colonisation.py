@@ -30,17 +30,17 @@ class Colonisation:
         self.station:str = None
         self.marketid:str = None
         self.docked:bool = False
-        self.base_types = {}  # Loaded from base_types.json
-        self.base_costs = {}  # Loaded from base_costs.json
+        self.base_types:dict = {}  # Loaded from base_types.json
+        self.base_costs:dict = {}  # Loaded from base_costs.json
         self.commodities = {} # Loaded from commodity.csv
         self.systems:list = []     # Systems with colonisation tobuy:int = qty - self.colonisation.carrier_cargo.get(c, 0) - self.colonisation.cargo.get(c, 0)data
         self.progress:list = []    # Construction progress data
-        self.dirty = False
+        self.dirty:bool = False
 
-        self.cargo = {} # Local store of our current cargo
-        self.carrier_cargo = {} # Local store of our current carrier cargo
-        self.market = {} # Local store of the current market data
-        self.cargo_capacity = 784 # Default cargo capacity
+        self.cargo:dict = {} # Local store of our current cargo
+        self.carrier_cargo:dict = {} # Local store of our current carrier cargo
+        self.market:dict = {} # Local store of the current market data
+        self.cargo_capacity:int = 784 # Default cargo capacity
         # Mappinng of commodity internal names to local names. Over time this should update to each user's local names
 
         # Load base commodities, types, costs, and saved data
@@ -328,7 +328,7 @@ class Colonisation:
 
     def find_system(self, name=None, addr=None) -> dict:
         """
-        Find a system by addres, name, or plan name
+        Find a system by addres, name, or 'plan' name
         """
         system:dict = self.get_system('SystemAddress', addr)
         if system == None:

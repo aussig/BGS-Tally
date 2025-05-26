@@ -74,7 +74,7 @@
 "Are you sure that you want to do this?" = "Sei sicuro di volerlo fare?";
 
 /* [colonisation.py] */
-"Are you sure you want to remove this system?" = "Sei sicuro di voler rimuovere questo system?";
+"Are you sure you want to remove this system?" = "Sei sicuro di voler rimuovere questo sistema?";
 
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Chiedi all'amministratore del server le informazioni riportate di seguito, quindi fai clic su 'Stabilisci connessione' per continuare. Vengono forniti dei pulsanti per precompilare alcune informazioni per i server più popolari, ma è necessario inserire la propria chiave API, che è unica per l'utente.";
@@ -169,6 +169,9 @@
 /* [sheet_options.py] */
 "Clear contents" = "Cancella contenuto";
 
+/* tooltip for the inara market commodity links. [progress.py] */
+"Click for Inara market" = "Clicca per il mercato di Inara";
+
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "Dettagli CMDR";
 
@@ -256,6 +259,12 @@
 /* [sheet_options.py] */
 "Cut contents" = "Taglia contenuto";
 
+/* tooltip for the column views. [progress.py] */
+"Cycle column views" = "Cambia vista colonne";
+
+/* tooltip for the change view icon (full, reduced, none). [progress.py] */
+"Cycle view detail" = "Cambia vista dettaglio";
+
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Data / Ora";
 
@@ -278,7 +287,7 @@
 "Delete Selected" = "Cancella Selezionato";
 
 /* tooltip for the delete system button. [colonisation.py] */
-"Delete system plan" = "Elimina il progetto del system";
+"Delete system plan" = "Elimina il progetto del sistema";
 
 /* Amount delivered. [progress.py] */
 "Delivered" = "Consegnato";
@@ -782,7 +791,7 @@
 "None" = "No";
 
 /* Title of the notes popup window. [colonisation.py] */
-"Notes for " = "Notes for ";
+"Notes for " = "Appunti su ";
 
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Accesso per Notorietà";
@@ -800,7 +809,7 @@
 "On-ground Conflict Zone" = "Zona di conflitto a terra";
 
 /* Indicates the field is optional. [colonisation.py] */
-"optional" = "optional";
+"optional" = "opzionale";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Orbis" = "Orbis";
@@ -947,10 +956,10 @@
 "Rename" = "Rinomina";
 
 /* Your helpful context goes here. [colonisation.py] */
-"Rename System" = "Rinomina System";
+"Rename System" = "Rinomina il Sistema";
 
 /* tooltip for the rename system button. [colonisation.py] */
-"Rename system plan" = "Rename system plan";
+"Rename system plan" = "Rinomina il progetto del sistema";
 
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Segnala di default attività nei nuovi sistemi";
@@ -989,7 +998,7 @@
 "Satellite Installation" = "Satellite Installation";
 
 /* Save the notes. [colonisation.py] */
-"Save" = "Save";
+"Save" = "Salva";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Scannerizzato";
@@ -1099,11 +1108,17 @@
 /* Activity window tooltip. [activity.py] */
 "Show legend window" = "Mostra la finestra della legenda";
 
+/* tooltip for the next build icon. [progress.py] */
+"Show next build" = "Mostra la costruzione successiva";
+
 /* Main window tooltip. [ui.py] */
 "Show objectives / missions window" = "Mostra obiettivi / finestra missioni";
 
+/* tooltip for the previous build icon. [progress.py] */
+"Show previous build" = "Mostra la costruzione precedente";
+
 /* tooltip for the show notes window. [colonisation.py] */
-"Show system notes window" = "Show system notes window";
+"Show system notes window" = "Mostra la finestra delle note del sistema";
 
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Mostra Sistemi con Zero Attività";
@@ -1166,13 +1181,13 @@
 "System activity" = "Attività del sistema";
 
 /* Preferences checkbox label. [ui.py] */
-"System Information" = "Informazioni Sul Sistema";
+"System Information" = "Informazioni sul System";
 
 /* Label for the system's name field in the UI. [colonisation.py] */
-"System Name" = "System Name";
+"System Name" = "Nome System";
 
 /* Elite dangerous system name. [colonisation.py] */
-"System Name (optional)" = "Nome del System (opzionale)";
+"System Name (optional)" = "Nome del Sistema (opzionale)";
 
 /* Overlay system tick message. [ui.py] */
 "System Tick: {tick_time}" = "Ticket Di Sistema: {tick_time}";
@@ -1334,7 +1349,7 @@
 "Webhook URL" = "Webhook URL";
 
 /* Notice about the first base being special. [colonisation.py] */
-"When planning your system the first base is special, make sure that it is the first on the list." = "When planning your system the first base is special, make sure that it is the first on the list.";
+"When planning your system the first base is special, make sure that it is the first on the list." = "Quando pianifichi il tuo system, la prima base è speciale: assicurati che sia la prima nella lista.";
 
 /* [ui.py] */
 "Within {minutes_to_tick}m of Next Tick (Estimated)" = "Entro {minutes_to_tick}m dal Prossimo Tick (stimato)";

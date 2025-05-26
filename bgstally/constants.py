@@ -1,5 +1,5 @@
 import sys
-from enum import Enum
+from enum import Enum, auto
 
 
 # Conflict Zones
@@ -114,7 +114,19 @@ class BuildState(str, Enum):
 class CommodityOrder(Enum):
     DEFAULT = 0
     CATEGORY = 1
-    REVERSE = 2
+    ALPHA = 2
+
+class ProgressUnits(Enum):
+    TONNES = 0
+    REMAINING = auto()
+    LOADS = auto()
+    PERCENT = auto()
+
+class ProgressView(Enum):
+    FULL = 0
+    REDUCED = auto()
+    MINIMAL = auto()
+    NONE = auto()
 
 ApiSizeLookup: dict = {
     'l': 'low',

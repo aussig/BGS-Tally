@@ -6,6 +6,8 @@ import traceback
 from functools import partial
 from tkinter import ttk, messagebox, PhotoImage
 import webbrowser
+from config import config
+import plug
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
@@ -200,14 +202,13 @@ class ColonisationWindow:
         sys_label:ttk.Label = ttk.Label(title_frame, text="", cursor="hand2")
         sys_label.pack(side=tk.LEFT, padx=10, pady=5)
         self.weight(sys_label)
-        sys_label.bind("<Button-1>", partial(self.inara_click, tabnum))
+        sys_label.bind("<Button-1>", partial(self.system_click, tabnum))
 
         self.plan_titles[sysnum]['System'] = sys_label
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, command=lambda: self.legend_popup())
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show legend window")) # LANG: tooltip for the show legend button
-
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
         ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
@@ -222,17 +223,21 @@ class ColonisationWindow:
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
 
-    def inara_click(self, tabnum:int, event) -> None:
+    def system_click(self, tabnum:int, event) -> None:
         '''
-        Execute the click event for the Inara link
+        Execute the click event for the system link
         '''
         try:
             sysnum = tabnum -1
             if sysnum > len(self.plan_titles):
-                Debug.logger.info(f"on_inara_click invalid tab: {tabnum}")
+                Debug.logger.info(f"on_system_click invalid tab: {tabnum}")
                 return
             star:str = self.plan_titles[sysnum]['System']['text'].replace(' ⤴', '')
-            webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={star}")
+            opener = plug.invoke(config.get_str('system_provider'), 'EDSM', 'system_url', star)
+            if opener:
+                return webbrowser.open(opener)
+            else:
+                webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={star}")
 
         except Exception as e:
             Debug.logger.error(f"Error in create_title_frame() {e}")
@@ -256,7 +261,7 @@ class ColonisationWindow:
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
                             show_dropdown_borders=False,
                             empty_vertical=15, empty_horizontal=0, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                            show_header=False, set_all_heights_and_widths=True, default_row_height=21)
+                            show_header=False, set_all_heights_and_widths=True) #, default_row_height=21)
         sheet.pack(fill=tk.BOTH, padx=0, pady=(0, 5))
 
         # Initial cell population
@@ -303,8 +308,9 @@ class ColonisationWindow:
         sheet.dehighlight_all()
 
         # Column widths
+        scale = self.bgstally.ui.frame.tk.call('tk', 'scaling') - 0.6 # Don't know why there's an extra .6
         for i, (name, value) in enumerate(self.detail_cols.items()):
-            sheet.column_width(i, value.get('width', 100))
+            sheet.column_width(i, int(value.get('width', 100) * scale))
 
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')
@@ -457,8 +463,8 @@ class ColonisationWindow:
 
         for i, build in enumerate(builds):
             bt:dict = self.colonisation.get_base_type(build.get('Base Type', ' '))
-            if bt == {}:
-                continue
+            #if bt == {}:
+            #    continue
             row:list = []
             for name, col in self.detail_cols.items():
                 match col.get('format'):
@@ -492,9 +498,9 @@ class ColonisationWindow:
                             row.append(build.get('Body').replace(system.get('StarSystem') + ' ', ''))
                             continue
 
-                        if name == 'Facility Economy' and build.get('StationEconomy', None) != None:
-                            row.append(build.get('StationEconomy').replace(' ', ''))
-                            continue
+                        #if name == 'Facility Economy' and build.get('StationEconomy', None) != None:
+                        #    row.append(build.get('StationEconomy').replace(' ', ''))
+                        #    continue
 
                         row.append(build.get(name) if build.get(name, ' ') != ' ' else bt.get(name, ' '))
 
@@ -584,7 +590,6 @@ class ColonisationWindow:
         Validate edits to the sheet. This just prevents the user from deleting the primary base type.
         '''
         try:
-            Debug.logger.debug(f"Validating edits: {event}")
             row = event.row - FIRST_BUILD_ROW; col = event.column; val = event.value
             fields = list(self.detail_cols.keys())
             field = fields[col]
@@ -593,7 +598,6 @@ class ColonisationWindow:
                 # Don't delete the primary base or let it have no type
                 Debug.logger.debug(f"returning none")
                 return None
-            Debug.logger.debug(f"returning value")
             return event.value
 
         except Exception as e:
@@ -602,6 +606,9 @@ class ColonisationWindow:
 
 
     def sheet_modified(self, tabnum:int, event) -> None:
+        '''
+        Handle edits to the sheet. This is where we update the system data.
+        '''
         try:
             sysnum = tabnum -1
 
@@ -616,33 +623,39 @@ class ColonisationWindow:
                 field = fields[col]
                 systems:list = self.colonisation.get_all_systems()
 
+                # If the user clicks on the state column, toggle the state between planned and complete.
+                # If it's in progress we'll update to that on our next delivery
                 if field == 'State' and row < len(systems[sysnum]['Builds']):
-                    Debug.logger.debug(f"System: {systems[sysnum]['Builds'][row]['State']} {event}")
-                    if systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
+                    if systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE or \
+                        'Base Type' not in systems[sysnum]['Builds'][row] or \
+                        systems[sysnum]['Builds'][row]['Base Type'] == ' ':
                         systems[sysnum]['Builds'][row]['State'] = BuildState.PLANNED
                     else:
                         systems[sysnum]['Builds'][row]['State'] = BuildState.COMPLETE
 
-                        Debug.logger.debug(f"System set to: {systems[sysnum]['Builds'][row]['State']}")
-
                     self.colonisation.dirty = True
                     self.colonisation.save()
                     self.update_display()
+
+                if field in ['Name', 'Base Type'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
+                    opener = plug.invoke(config.get_str('station_provider'), 'EDSM', 'station_url', systems[sysnum]['StarSystem'], systems[sysnum]['Builds'][row]['Name'])
+                    if opener:
+                        return webbrowser.open(opener)
+
                 return
 
             # We only deal with edits.
             if not event.eventname.endswith('edit_table'):
                 return
 
-            Debug.logger.debug(f"Sheet modified: {tabnum}{event}")
-            row = event.row - FIRST_BUILD_ROW; col = event.column; val = event.value
-
             fields = list(self.detail_cols.keys())
-            field = fields[col]
+            field = fields[event.column]
             systems:list = self.colonisation.get_all_systems()
+            row = event.row - FIRST_BUILD_ROW; val = event.value
 
             match field:
                 case 'Base Type' if val == ' ':
+                    Debug.logger.debug(f"Maybe removing build {row} from {sysnum}")
                     # If they set the base type to empty remove the build
                     if row < len(systems[sysnum]['Builds']):
                         Debug.logger.debug(f"Removing build {row} from {sysnum}")
@@ -655,6 +668,8 @@ class ColonisationWindow:
                     self.config_sheet(self.sheets[sysnum])
 
                 case 'Base Type' if val != ' ':
+                    Debug.logger.debug(f"Setting base type")
+
                     if row >= len(systems[sysnum]['Builds']):
                         self.colonisation.add_build(systems[sysnum])
                         systems[sysnum]['Builds'][row][field] = val
@@ -666,10 +681,6 @@ class ColonisationWindow:
 
                     data.append(self.get_detail_header())
                     data += self.get_detail(systems[sysnum])
-
-                    # Get the existing name & body if they've been set
-                    name = systems[sysnum]['Builds'][row].get('Name', ' ')
-                    body = systems[sysnum]['Builds'][row].get('Body', ' ')
 
                     self.sheets[sysnum].set_sheet_data(data)
                     self.config_sheet(self.sheets[sysnum])
@@ -683,7 +694,7 @@ class ColonisationWindow:
                     self.colonisation.update_build_tracking(systems[sysnum]['Builds'][row], val)
 
                 case _:
-                    # Any other fields, just update the build data and mark it as dirty.
+                    # Any other fields, just update the build data
                     systems[sysnum]['Builds'][row][field] = val
 
             self.colonisation.dirty = True
@@ -736,7 +747,7 @@ class ColonisationWindow:
 
     def add_system(self, plan_name: str, system_name: str) -> None:
         """
-        Add a new system
+        Add the new system from the dialog
         """
         try:
             if not plan_name:
@@ -746,7 +757,7 @@ class ColonisationWindow:
             # Add the system
             system:dict = self.colonisation.add_system(plan_name, system_name)
             if system == False:
-                messagebox.showerror(_("Error"), f"Unable to create system.") # LANG: General failure to create system error
+                messagebox.showerror(_("Error"), _("Unable to create system")) # LANG: General failure to create system error
                 return
 
             systems:list = self.colonisation.get_all_systems()
@@ -776,7 +787,7 @@ class ColonisationWindow:
             dialog.transient(self.window)
             dialog.grab_set()
 
-        # System name
+            # System name
             ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
             plan_name_var:tk.StringVar = tk.StringVar(value=system.get('Name', ''))
             plan_name_entry:ttk.Entr = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
@@ -788,7 +799,6 @@ class ColonisationWindow:
             system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
             system_name_entry.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)
 
-
             # Buttons
             button_frame = ttk.Frame(dialog)
             button_frame.grid(row=2, column=0, columnspan=2, pady=10)
@@ -798,7 +808,7 @@ class ColonisationWindow:
                 button_frame,
                 text=_("Rename"),
                 command=lambda: self.rename_system(tabnum, tab, plan_name_var.get(), system_name_var.get(), dialog)
-            ) # LANG: Rename
+            ) # LANG: Rename button
             rename_button.pack(side=tk.LEFT, padx=5)
 
             # Cancel button
@@ -806,11 +816,12 @@ class ColonisationWindow:
                 button_frame,
                 text=_("Cancel"),
                 command=dialog.destroy
-            ) # LANG: Cancel
+            ) # LANG: Cancel button
             cancel_button.pack(side=tk.LEFT, padx=5)
 
             # Focus on display name entry
             system_name_entry.focus_set()
+
         except Exception as e:
             Debug.logger.error(f"Error in rename_system_dialog(): {e}")
             Debug.logger.error(traceback.format_exc())
@@ -819,10 +830,6 @@ class ColonisationWindow:
     def rename_system(self, tabnum:int, tab:ttk.Frame, name:str, sysname:str, dialog:tk.Toplevel) -> None:
         """
         Rename a system
-
-        Args:
-            system_name: The new display name
-            dialog: The dialog to close
         """
         try:
             sysnum = tabnum -1
@@ -831,22 +838,15 @@ class ColonisationWindow:
                 Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
             system = systems[sysnum]
-
-            # Update the system
             system['Name'] = name
             system['StarSystem'] = sysname
 
             self.tabbar.notebookTab.tab(tabnum, text=name)
 
-            # Close the dialog
-            dialog.destroy()
-
-            # Update the display
-            self.update_display()
-
-            # Save changes
             self.colonisation.dirty = True
             self.colonisation.save()
+            dialog.destroy()
+            self.update_display()
 
         except Exception as e:
             Debug.logger.error(f"Error in rename_system_dialog(): {e}")
@@ -863,7 +863,7 @@ class ColonisationWindow:
             if not messagebox.askyesno(
                 _("Confirm Removal"),
                 _("Are you sure you want to remove this system?")
-            ): # LANG: request confirmation
+            ): # LANG: request system removal confirmation
                 return
 
             if sysnum > len(self.colonisation.get_all_systems()):
@@ -897,7 +897,8 @@ class ColonisationWindow:
         self.plan_titles = []
         self.colonisation.save()
 
-    def calc_points(self, type, builds, row):
+
+    def calc_points(self, type:str, builds:list, row:int) -> int:
         '''
         Calculate the T2 or T3 base point cost/reward. It depends on the type of base and what's planned/built so far
         '''
@@ -911,6 +912,7 @@ class ColonisationWindow:
             val -= cost
 
         return val
+
 
     def weight(self, item:tuple, wght:str = 'bold') -> None:
         '''
@@ -938,7 +940,16 @@ class ColonisationWindow:
         """
         Load the legend text from the file
         """
+        # @TODO: Need to modify this to check the user's language and look for a translated file
         file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        lang = config.get_str('language')
+        if lang and lang != 'en':
+            file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, "L10n", f"{lang}.{FILENAME}")
+
+        if not path.exists(file):
+            Debug.logger.debug(f"Missing translation {file} for {lang}, using default legend file")
+            file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+
         if path.exists(file):
             try:
                 with open(file) as file:
@@ -947,6 +958,8 @@ class ColonisationWindow:
             except Exception as e:
                 Debug.logger.warning(f"Unable to load {file}")
                 Debug.logger.error(traceback.format_exc())
+
+        return f"Unable to load {file}"
 
 
     def legend_popup(self) -> None:
@@ -1008,24 +1021,17 @@ class ColonisationWindow:
             text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
             # Save button
-            save = ttk.Button(popup, text=_("Save"), command=partial(leavemini, systems[sysnum], text)) # LANG: Save the notes
+            save = ttk.Button(popup, text=_("Save"), command=partial(leavemini, systems[sysnum], text)) # LANG: Save notes button
             save.pack(side=tk.RIGHT, padx=5)
 
         except Exception as e:
-            Debug.logger.error(f"Error in notes_opup(): {e}")
+            Debug.logger.error(f"Error in notes_popup(): {e}")
             Debug.logger.error(traceback.format_exc())
 
 
     def get_color(self, value:int, limit:int = 1, color:str='rwg') -> str:
         """
         Get a color based on the value and its range.
-
-        Args:
-            value: The value to color. Positive will be green, negative red.
-            limit: The size of the range (technically half as we do negative & positive).
-
-        Returns:
-            A hex color string
         """
         try:
             if not isinstance(value, int) and not value.isdigit():
@@ -1037,7 +1043,7 @@ class ColonisationWindow:
                 limit = 50
             value = min(value, limit)
 
-            # Red White Green, or Green, Yellow, Red
+            # Red, White, Green or Green, Yellow, Red
             if color == 'rwg':
                 gradient:list = self.create_gradient(limit)
                 value:int = min(max(int(value), -limit), limit)
@@ -1050,7 +1056,6 @@ class ColonisationWindow:
                 else:
                     return ["#ccccff"]
 
-
         except Exception as e:
             Debug.logger.error(f"Error in gradient: {e}")
             Debug.logger.error(traceback.format_exc())
@@ -1059,7 +1064,7 @@ class ColonisationWindow:
 
     def create_gradient(self, steps:int) -> list[str]:
         """
-        Generates a list of RGB color tuples representing a gradient from green to red.
+        Generates a list of RGB color tuples representing a gradient from red (-steps) to white (0) to green (+steps)
         """
         try:
             hbase:int = 220 # larger = stronger color, less range
@@ -1086,10 +1091,9 @@ class ColonisationWindow:
             return ["#CCCCCC"]
 
 
-
     def create_gradient2(self, steps:int) -> list[str]:
         """
-        Generates a list of RGB color tuples representing a gradient from green to red.
+        Generates a list of RGB color tuples representing a gradient from green (0) to red (steps).
         """
         try:
             # Define RGB values

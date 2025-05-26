@@ -3,12 +3,10 @@ import json
 from os import path
 from os.path import join
 import traceback
-import inspect
 import re
 from datetime import datetime
-from enum import Enum
 
-from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder
+from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
 from bgstally.utils import _
 from config import config
@@ -32,17 +30,17 @@ class Colonisation:
         self.station:str = None
         self.marketid:str = None
         self.docked:bool = False
-        self.base_types = {}  # Loaded from base_types.json
-        self.base_costs = {}  # Loaded from base_costs.json
+        self.base_types:dict = {}  # Loaded from base_types.json
+        self.base_costs:dict = {}  # Loaded from base_costs.json
         self.commodities = {} # Loaded from commodity.csv
-        self.systems:list = []     # Systems with colonisation data
+        self.systems:list = []     # Systems with colonisation tobuy:int = qty - self.colonisation.carrier_cargo.get(c, 0) - self.colonisation.cargo.get(c, 0)data
         self.progress:list = []    # Construction progress data
-        self.dirty = False
+        self.dirty:bool = False
 
-        self.cargo = {} # Local store of our current cargo
-        self.carrier_cargo = {} # Local store of our current carrier cargo
-        self.market = {} # Local store of the current market data
-        self.cargo_capacity = 784 # Default cargo capacity
+        self.cargo:dict = {} # Local store of our current cargo
+        self.carrier_cargo:dict = {} # Local store of our current carrier cargo
+        self.market:dict = {} # Local store of the current market data
+        self.cargo_capacity:int = 784 # Default cargo capacity
         # Mappinng of commodity internal names to local names. Over time this should update to each user's local names
 
         # Load base commodities, types, costs, and saved data
@@ -50,7 +48,7 @@ class Colonisation:
         self.load_base_types()
         self.load_base_costs()
         self.load()
-
+        self.update_carrier()
 
     def load_base_types(self):
         """
@@ -112,6 +110,10 @@ class Colonisation:
         Parse and process incoming journal entry
         """
         try:
+            if state.get('CargoCapacity', 0) > 16 and state.get('CargoCapacity', 0) != self.cargo_capacity:
+                self.cargo_capacity = state.get('CargoCapacity')
+                self.dirty = True
+
             match entry.get('event'):
                 case 'StartUp': # Synthetic event.
                     #Debug.logger.debug(f"StartUp event: {entry}")
@@ -198,13 +200,6 @@ class Colonisation:
                     #Debug.logger.debug(f"Setting {name} build state {build_state} and track {(build_state != BuildState.COMPLETE)}")
                     self.dirty = True
 
-                case 'LoadOut':
-                    # Let's not consider tiny capacities as they'll create silly numbers and you're probably not
-                    # hauling right now.
-                    # state.get('CargoCapacity') is supposed to work!
-                    self.cargo_capacity = entry.get('CargoCapacity') if entry.get('CargoCapacity') > 16 else 784
-                    self.dirty = True
-
                 case 'Market'|'MarketBuy'|'MarketSell':
                     self.update_market(entry.get('MarketID'))
                     self.update_cargo(state.get('Cargo'))
@@ -237,14 +232,20 @@ class Colonisation:
                     if entry.get('Name', None) != None: self.station = entry.get('Name')
                     if entry.get('MarketID', None) != None: self.marketid = entry.get('MarketID')
 
-                    # If it's a construction site or coolonisation ship wait til we dock. If it's a carrier we ignore it.
-                    if 'Construction Site' in self.station or 'ColonisationShip' in self.station or entry.get('BodyType') == 'Fleetcarrier':
+                    # If it's a construction site or coolonisation ship wait til we dock.
+                    # If it's a carrier or other non-standard location we ignore it. Bet there are other options!
+                    if self.station == None or 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
+                       re.search('^$', self.station) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
                         return
+
+                    if not re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
+                        Debug.logger.debug(f"Station {self.station} does not match Regexp")
 
                     # If we don't have this system in our list, we don't care about it.
                     system = self.find_system(entry.get('StarSystem'), entry.get('SystemAddress'))
                     if system == None: return
 
+                    Debug.logger.debug(f"SuperCruiseExit finding or adding build {self.station}")
                     # It's in a system we're building in, so we should create it.
                     build = self.find_or_create_build(system, self.marketid, self.station)
 
@@ -253,7 +254,7 @@ class Colonisation:
                     if build.get('MarketID', None) == None: build['MarketID'] = self.marketid
                     build['State'] = BuildState.COMPLETE
                     build['Name'] = self.station
-                    if self.body and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
+                    if self.body != None and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
                         build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
                     build['Track'] = False
                     Debug.logger.debug(f"Updating build info for: {entry.get('StarSystem')} {self.body} {self.station} {build}")
@@ -331,7 +332,7 @@ class Colonisation:
 
     def find_system(self, name=None, addr=None) -> dict:
         """
-        Find a system by addres, name, or plan name
+        Find a system by addres, name, or 'plan' name
         """
         system:dict = self.get_system('SystemAddress', addr)
         if system == None:
@@ -475,6 +476,7 @@ class Colonisation:
         """
         Add a new build to a system
         """
+        Debug.logger.debug(f"Adding build {name}")
         build:dict = {
                 'Name': name,
                 'Plan': system.get('Name'),
@@ -517,7 +519,7 @@ class Colonisation:
             self.bgstally.ui.window_progress.update_display()
 
 
-    def get_commodity_list(self, base_type: str, order: CommodityOrder = CommodityOrder.DEFAULT) -> list:
+    def get_commodity_list(self, base_type: str, order: CommodityOrder = CommodityOrder.ALPHA) -> list:
         '''
         Return an ordered list of base commodity costs for a base type
         '''
@@ -531,8 +533,9 @@ class Colonisation:
                     # dict(sorted(dict_of_dicts.items(), key=lambda item: item[1][key_to_sort_by]))
                     ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Category']))
 
-                case CommodityOrder.REVERSE:
-                    ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Name'], reverse=True))
+                # This didn't seem worthwhile
+                #case CommodityOrder.REVERSE:
+                #    ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Name'], reverse=True))
 
                 case _:
                     ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Name']))
@@ -565,14 +568,13 @@ class Colonisation:
                 prog.append(res)
 
 
-            # Add an "all" total at the end of the list if there's more than one bulid found.
+            # Add an 'All' total at the end of the list if there's more than one bulid found.
             if found > 1:
                 total = {}
                 for res in prog:
                     for c, v in res.items():
                         if c not in total: total[c] = 0
                         total[c] += v
-
                 prog.append(total)
 
             return prog
@@ -671,7 +673,6 @@ class Colonisation:
                         market[item.get('Name')] = item.get('Stock')
                 if market != {}:
                     self.market = market
-                    Debug.logger.debug(f"Market retrieved market: {market}")
                     return
 
             # The market object doesn't have a market for us so we'll try loading it ourselves.
@@ -758,6 +759,10 @@ class Colonisation:
         # We sort the order of systems when saving so that in progress systems are first, then planned, then complete.
         # Fortuitously our desired order matches the reverse alpha of the states
         systems = list(sorted(self.systems, key=sort_order, reverse=True))
+        units = {}
+        for k, v in self.bgstally.ui.window_progress.units.items():
+            units[k] = v.value
+
         return {
             'Docked': self.docked,
             'SystemID': self.system_id,
@@ -767,7 +772,9 @@ class Colonisation:
             'MarketID': self.marketid,
             'Progress': self.progress,
             'Systems': systems,
-            'CargoCapacity': self.cargo_capacity
+            'CargoCapacity': self.cargo_capacity,
+            'ProgressView' : self.bgstally.ui.window_progress.view.value,
+            'ProgressUnits': units
             }
 
 
@@ -784,3 +791,7 @@ class Colonisation:
         self.progress = dict.get('Progress', [])
         self.systems = dict.get('Systems', [])
         self.cargo_capacity = dict.get('CargoCapacity', 784)
+        self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
+        units = dict.get('ProgressUnits', {})
+        for k, v in units.items():
+            self.bgstally.ui.window_progress.units[k] = ProgressUnits(v)

@@ -100,7 +100,7 @@ class ColonisationWindow:
                 return
             self.colonisation = self.bgstally.colonisation
             self.window = tk.Toplevel(self.bgstally.ui.frame)
-            self.window.title(_("Elite Dangerous Colonisation")) # LANG: Your helpful context goes here
+            self.window.title(_("BGS-Tally - Colonisation")) # LANG: window title
             self.window.minsize(400, 100)
             self.window.geometry("1200x600")
             self.window.protocol("WM_DELETE_WINDOW", self.close)
@@ -972,7 +972,7 @@ class ColonisationWindow:
             def leavemini():
                 popup.destroy()
 
-            popup.wm_title(_("Legend")) # LANG: Title of the legend popup window
+            popup.wm_title(_("BGS-Tally - Colonisation Legend")) # LANG: Title of the legend popup window
             popup.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
             popup.wm_attributes('-toolwindow', True) # makes it a tool window
             popup.geometry("600x600")
@@ -1007,7 +1007,7 @@ class ColonisationWindow:
             sysnum = tabnum -1
 
             popup:tk.Tk = tk.Tk()
-            popup.wm_title(_("Notes for ") + systems[sysnum].get('Name', '')) # LANG: Title of the notes popup window
+            popup.wm_title(_("BGS-Tally - Colonisation Notes for ") + systems[sysnum].get('Name', '')) # LANG: Title of the notes popup window
             popup.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
             popup.wm_attributes('-toolwindow', True) # makes it a tool window
             popup.geometry("600x600")

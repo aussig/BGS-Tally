@@ -4,6 +4,7 @@ from copy import deepcopy
 from os import listdir
 from os.path import join
 from pathlib import Path
+from typing import Callable, Any, Tuple
 
 import semantic_version
 
@@ -15,11 +16,81 @@ from config import appversion
 # Language codes for languages that should be omitted
 BLOCK_LANGS: list = []
 
-# Localisation main translation function
-_ = functools.partial(l10n.Translations.translate, context=__file__)
+
+def _get_core_version(appversion) -> semantic_version.Version:
+    """
+    Return the core version as a semantic_version.Version object.
+
+    This function determines the core version of the application based on the type of `appversion`.
+    For versions up to 5.0.0-beta1, `appversion` is expected to be a string.
+    From 5.0.0-beta1 onwards, `appversion` is expected to be a callable that returns a semantic_version.Version object.
+
+    Args:
+        appversion (str | Callable[[], semantic_version.Version]): The application version, either as a string or a callable.
+
+    Returns:
+        semantic_version.Version: The parsed core version.
+
+    Raises:
+        TypeError: If the callable does not return a semantic_version.Version object.
+        ValueError: If `appversion` is neither a string nor a callable.
+    """
+    # Up until version 5.0.0-beta1, appversion is a string.
+    if isinstance(appversion, str):
+        return semantic_version.Version(appversion)
+    # From 5.0.0-beta1 onwards, appversion is a function returning semantic_version.Version.
+    elif callable(appversion):
+        version = appversion()
+        if not isinstance(version, semantic_version.Version):
+            Debug.logger.error(
+                "The appversion function must return a semantic_version.Version object, got %r.",
+                type(version)
+            )
+            raise TypeError("The appversion function must return a semantic_version.Version object.")
+        return version
+    Debug.logger.error(
+        "appversion must be a string or a callable returning semantic_version.Version, got %r.",
+        type(appversion)
+    )
+    raise ValueError("appversion must be a string or a callable returning semantic_version.Version.")
+
+
+# Holds the parsed core version of the application.
+core_version: semantic_version.Version = _get_core_version(appversion)
+
+
+def _get_tl_func(core_version: semantic_version.Version) -> Tuple[Callable[[str], str], Any]:
+    """
+    Returns the appropriate translation function and translations object based on the EDMC core version.
+
+    Starting from EDMC version 5.11.0, the translation API changed: the old method
+    `l10n.Translations.translate` was deprecated in favor of the new function
+    `l10n.translations.tl`. The legacy method is officially deprecated as of 5.11.0 and
+    will be removed or made private (thus inaccessible) in version 6.0.
+    This function abstracts this difference, returning both a translation function with the
+    same interface and the correct translations object, so the rest of the code can always use
+    the same call regardless of the EDMC version.
+
+    Args:
+        core_version (semantic_version.Version): The already parsed core version.
+
+    Returns:
+        tuple: (translation function, translations object)
+            - Callable[[str], str]: The translation function to use.
+            - Any: The translations object to use (l10n.Translations or l10n.translations).
+    """
+    if core_version < semantic_version.Version('5.11.0'):
+        return functools.partial(l10n.Translations.translate, context=__file__), l10n.Translations
+    else:
+        return functools.partial(l10n.translations.tl, context=__file__), l10n.translations
+
+
+# Assign the translation function and the translations object based on the current EDMC core version.
+_, translations_obj = _get_tl_func(core_version)
 
 # Localisation conditional translation function for when PR [2188] is merged in to EDMC
 # __ = functools.partial(l10n.Translations.translate, context=__file__, lang=lang)
+
 
 # Localisation conditional translation function before PR [2188] is merged in to EDMC
 def __(string: str, lang: str) -> str:
@@ -32,14 +103,15 @@ def __(string: str, lang: str) -> str:
     Returns:
         str: Translated string
     """
-    if lang == "" or lang is None or lang == l10n.Translations.FALLBACK: return _(string)
+    if lang == "" or lang is None or lang == translations_obj.FALLBACK:
+        return _(string)
 
-    if appversion() < semantic_version.Version('5.12.0'):
+    if core_version < semantic_version.Version('5.12.0'):
         l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
     else:
         l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
 
-    contents: dict[str, str] = l10n.Translations.contents(lang=lang, plugin_path=l10n_path)
+    contents: dict[str, str] = translations_obj.contents(lang=lang, plugin_path=l10n_path)
 
     if not contents:
         Debug.logger.debug(f'Failure loading translations for language {lang!r}')
@@ -57,30 +129,30 @@ def available_langs() -> dict[str | None, str]:
     Returns:
         dict[str | None, str]: The available language names indexed by language code
     """
-    if appversion() < semantic_version.Version('5.12.0'):
+    if core_version < semantic_version.Version('5.12.0'):
         l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
     else:
         l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
 
     available: set[str] = {x[:-len('.strings')] for x in listdir(l10n_path)
-                          if x.endswith('.strings') and
-                          "template" not in x and
-                          x[:-len('.strings')] not in BLOCK_LANGS}
+                           if x.endswith('.strings')
+                           and "template" not in x
+                           and x[:-len('.strings')] not in BLOCK_LANGS}
 
     names: dict[str | None, str] = {
         # LANG: The system default language choice in Settings > Appearance
         None: _('Default'),  # Appearance theme and language setting
     }
     names.update(sorted(
-        [(lang, l10n.Translations.contents(lang, l10n_path).get(l10n.LANGUAGE_ID, lang)) for lang in available] +
-        [(l10n._Translations.FALLBACK, l10n._Translations.FALLBACK_NAME)],
+        [(lang, translations_obj.contents(lang, l10n_path).get(l10n.LANGUAGE_ID, lang)) for lang in available]
+        + [(l10n._Translations.FALLBACK, l10n._Translations.FALLBACK_NAME)],
         key=lambda x: x[1]
     ))
 
     return names
 
 
-def get_by_path(dic: dict[str, any], keys: list[str], default: any = None) -> any:
+def get_by_path(dic: dict[str, Any], keys: list[str], default: Any = None) -> Any:
     """Access a multi-level nested dict by a sequence of keys.
 
     Args:

@@ -1,14 +1,17 @@
 import csv
 import json
+from json import JSONDecodeError
+from urllib.parse import quote
 from os import path
 from os.path import join
 import traceback
 import re
 from datetime import datetime
-
-from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
+from requests import Response
+from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView, RequestMethod
+from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
-from bgstally.utils import _
+from bgstally.utils import _, get_by_path
 from config import config
 
 FILENAME = "colonisation.json"
@@ -17,7 +20,8 @@ BASE_COSTS_FILENAME = 'base_costs.json'
 CARGO_FILENAME = 'Cargo.json'
 MARKET_FILENAME = 'Market.json'
 COMMODITY_FILENAME = 'commodity.csv'
-
+EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
+EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
 class Colonisation:
     """
     Manages colonisation data and events for Elite Dangerous colonisation
@@ -307,7 +311,7 @@ class Colonisation:
         Get a system by any attribute
         """
         for i, system in enumerate(self.systems):
-            if system.get(key) == value:
+            if system.get(key) != None and system.get(key) == value:
                 return system
 
         return None
@@ -339,6 +343,7 @@ class Colonisation:
             system = self.get_system('StarSystem', name)
         if system == None:
             system = self.get_system('Name', name)
+
         return system
 
 
@@ -357,10 +362,10 @@ class Colonisation:
         """
         Add a new system for colonisation planning
         """
-        if self.get_system('Name', plan_name) is not None:
-            Debug.logger.warning(f"Cannot add system - already exists: {plan_name}")
-            return False
 
+        if self.get_system('Name', plan_name) is not None or self.get_system('StarSystem', system_name) is not None:
+            Debug.logger.warning(f"Cannot add system - already exists: {plan_name} {system_name}")
+            return False
 
         # Create new system
         system_data:dict = {
@@ -372,15 +377,126 @@ class Colonisation:
         if system_address != None: system_data['SystemAddress'] = system_address
         self.systems.append(system_data)
 
+        # If we have a system address, we can try to get the bodies from EDSM
+        if system_name != None:
+            Debug.logger.debug(f"Requesting EDSM bodies for {system_name}")
+            self.bgstally.request_manager.queue_request(EDSM_STATIONS+quote(system_name), RequestMethod.GET, callback=self._edsm_stations)
+            self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system_name), RequestMethod.GET, callback=self._edsm_bodies)
+
         self.dirty = True
+        self.save()
         return system_data
 
 
-    def remove_system(self, index: int) -> bool:
+    def _edsm_stations(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+        ''' Process the results of querying ESDM for the stations in a system '''
+        Debug.logger.debug(f"EDSM discovery response received: {success}")
+        try:
+            data:dict = response.json()
+            if data.get('name', None) == None:
+                Debug.logger.debug(f"EDSM stations did not contain a name, ignoring")
+                return
+            system:dict = self.find_system(data.get('name'))
+            if system == None:
+                Debug.logger.debug(f"Didn't find system {data.get('name')}")
+                return
+
+            Debug.logger.debug(f"Received stations: {data.get('stations')}")
+            stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['id']))
+            for base in stations:
+                if base.get('type', '') in ['Fleet Carrier']:
+                    continue
+
+                name:str = base.get('name', '')
+                type:str = base.get('type', '')
+                state:BuildState = BuildState.COMPLETE
+                if name == '$EXT_PANEL_ColonisationShip:#index=1;':
+                    if len(stations) != 1: # This hangs around but only matters if it's the only station in the system.
+                        continue
+                    type = 'Orbital'
+                    name = 'Unknown'
+                    state = BuildState.PROGRESS
+
+                if 'Construction Site' in name:
+                    name = re.sub('^.* Construction Site: ', '', name)
+                    type = re.sub('^(.*) Construction Site: .*$', '\1', name)
+                    state = BuildState.PROGRESS
+
+                if self.find_build(system, base.get('marketId'), name) != None:
+                    Debug.logger.debug(f"Build {name} already exists in system {data.get('name')}, skipping")
+                    continue
+
+                body = get_by_path(base, ['body', 'name'], '')
+                body = body.replace(system.get('StarSystem', '') + ' ', '')
+                build:dict = {
+                    'Build Type': '',
+                    'State': state,
+                    'Name': name,
+                    'MarketID': base.get('marketId'),
+                    'Location': type,
+                    'Body': body,
+                    }
+                system['Builds'].append(build)
+                Debug.logger.debug(f"Added station {build} to system {data.get('name')}")
+
+            Debug.logger.debug(f"System: {system['Builds']}")
+            self.dirty = True
+            self.save()
+
+        except JSONDecodeError:
+            Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
+            return
+        except Exception as e:
+            Debug.logger.info(f"Error recording response")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def _edsm_bodies(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+        ''' Process the results of querying ESDM for the bodies in a system '''
+        Debug.logger.debug(f"EDSM bodies response received: {success}")
+        try:
+            data:dict = response.json()
+            if data.get('name', None) == None:
+                Debug.logger.debug(f"EDSM bodies did not contain a name, ignoring")
+                return
+            system:dict = self.find_system(data.get('name'))
+            if system == None:
+                Debug.logger.debug(f"Didn't find system {data.get('name')}")
+                return
+
+            # Only record the body details that we need since EDSM returns an enormous amount of data.
+            system['Bodies'] = []
+            for b in data.get('bodies'):
+                v:dict = {}
+                for k in ['name', 'type', 'subType', 'terraformingState', 'isLandable', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']:
+                    if b.get(k, None): v[k] = b.get(k)
+                if b.get('parents', None) != None:
+                    v['parents'] = len(b.get('parents', []))
+                system['Bodies'].append(v)
+            self.dirty = True
+            self.save()
+
+        except JSONDecodeError:
+            Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
+            return
+        except Exception as e:
+            Debug.logger.info(f"Error recording response")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def get_bodies(self, system:dict) -> list:
+        ''' Return a list of bodies in the system '''
+        bodies:list = []
+        for b in system['Bodies']:
+            name = b.get('name') if b.get('name') != system['StarSystem'] else 'A'
+            bodies.append(name.replace(system['StarSystem'] + ' ', ''))
+        return bodies
+
+    def remove_system(self, index:int) -> bool:
         systems = self.get_all_systems() # It's a sorted list, index isn't reliable unless sorted!
         del systems[index]
         self.dirty = True
-
+        self.save()
         return True
 
 
@@ -416,6 +532,7 @@ class Colonisation:
 
         # Otherwise, use the state of the build
         return build.get('State', BuildState.PLANNED)
+
 
     def get_tracked_builds(self) -> list[dict]:
         '''
@@ -487,6 +604,7 @@ class Colonisation:
         system['Builds'].append(build)
 
         self.dirty = True
+        self.save()
         return build
 
 
@@ -719,6 +837,12 @@ class Colonisation:
             except Exception as e:
                 Debug.logger.warning(f"Unable to load {file}")
                 Debug.logger.error(traceback.format_exc())
+
+        # Sometimes a system gets its name later so play catchup on the list of Bodies
+        for system in self.systems:
+            if system.get('StarSystem', None) != None and system.get('Bodies', None) == None:
+                Debug.logger.debug(f"Requesting EDSM bodies for {system.get('StarSystem')}")
+                self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_bodies)
 
 
     def save(self, cause:str = 'Unknown'):

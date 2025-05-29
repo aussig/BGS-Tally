@@ -14,7 +14,7 @@ from thirdparty.Tooltip import ToolTip
 
 from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_SMALL, FONT_TEXT, FOLDER_DATA, FOLDER_ASSETS, BuildState
 from bgstally.debug import Debug
-from bgstally.utils import _
+from bgstally.utils import _, human_format
 
 FILENAME = "colonisation_legend.txt" # LANG: Not sure how we handle file localistion.
 SUMMARY_HEADER_ROW = 0
@@ -63,7 +63,7 @@ class ColonisationWindow:
         self.detail_cols:dict = {
             "Track": {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Track this build?
             "Base Type" : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
-            "Name" : {'header': _("Base Name"), 'background': None, 'format': 'string', 'width': 175}, # LANG: name of the base
+            "Name" : {'header': _("Base Name"), 'background': None, 'format': 'dropdown', 'width': 175}, # LANG: name of the base
             "Body": {'header': _("Body"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Body the base is on or around
             "Prerequisites": {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 100}, # LANG: any prerequisites for the base
             "State": {'header': _("State"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Current build state
@@ -222,6 +222,10 @@ class ColonisationWindow:
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
+        btn:ttk.Button = ttk.Button(title_frame, text=_("🔍"), width=3, command=partial(self.bodies_popup, tabnum))
+        btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show notes window
+
 
     def system_click(self, tabnum:int, event) -> None:
         '''
@@ -229,15 +233,26 @@ class ColonisationWindow:
         '''
         try:
             sysnum = tabnum -1
-            if sysnum > len(self.plan_titles):
+            systems:list = self.colonisation.get_all_systems()
+            if sysnum > len(systems):
                 Debug.logger.info(f"on_system_click invalid tab: {tabnum}")
                 return
-            star:str = self.plan_titles[sysnum]['System']['text'].replace(' ⤴', '')
-            opener = plug.invoke(config.get_str('system_provider'), 'EDSM', 'system_url', star)
-            if opener:
-                return webbrowser.open(opener)
-            else:
-                webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={star}")
+            star:str = systems[sysnum]['StarSystem']
+
+            # Can't use this because the stupid function overrides the passed in system name in favor of the local one. FFS
+            #opener = plug.invoke(config.get_str('system_provider'), 'EDSM', 'system_url', star)
+            #if opener:
+            #    Debug.logger.debug(f"{opener}")
+            #    return webbrowser.open(opener)
+            #else:
+
+            Debug.logger.debug(f"{config.get_str('system_provider')} Link to {star}")
+            match config.get_str('system_provider'):
+                case 'Inara':
+                    webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={star}")
+                case _:
+                    webbrowser.open(f"https://www.edsm.net/en/system?systemName={star}")
+
 
         except Exception as e:
             Debug.logger.error(f"Error in create_title_frame() {e}")
@@ -273,7 +288,7 @@ class ColonisationWindow:
         data += self.get_detail(system)
 
         sheet.set_sheet_data(data)
-        self.config_sheet(sheet)
+        self.config_sheet(sheet, system)
         sheet.enable_bindings('single_select', 'edit_cell', 'up', 'down', 'left', 'right', 'copy', 'paste')
         sheet.edit_validation(self.validate_edits)
         sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, tabnum))
@@ -301,7 +316,7 @@ class ColonisationWindow:
                 self.plan_titles[index]['System'].pack_forget()
 
 
-    def config_sheet(self, sheet:Sheet) -> None:
+    def config_sheet(self, sheet:Sheet, system:dict) -> None:
         '''
         Initial sheet configuration.
         '''
@@ -323,6 +338,7 @@ class ColonisationWindow:
         # Base types
         sheet['B5'].dropdown(values=[' '] + self.colonisation.get_base_types('Initial'))
         sheet['B6:B'].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
+        sheet['D5:D'].dropdown(values=self.colonisation.get_bodies(system))
 
         # Make the sections readonly that users can't edit.
         s3 = sheet.span('A1:4', type_='readonly')
@@ -1026,6 +1042,75 @@ class ColonisationWindow:
 
         except Exception as e:
             Debug.logger.error(f"Error in notes_popup(): {e}")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def bodies_popup(self, tabnum:int) -> None:
+        """
+        Show the bodies popup window
+        """
+        try:
+            popup:tk.Tk = tk.Tk()
+
+            def leavemini():
+                popup.destroy()
+
+            popup.wm_title(_("BGS-Tally - Colonisation Bodies")) # LANG: Title of the legend popup window
+            popup.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+            popup.wm_attributes('-toolwindow', True) # makes it a tool window
+            popup.geometry("600x600")
+            popup.config(bd=2, relief=tk.FLAT)
+            scr:tk.Scrollbar = tk.Scrollbar(popup, orient=tk.VERTICAL)
+            scr.pack(side=tk.RIGHT, fill=tk.Y)
+            text:tk.Text = tk.Text(popup, font=FONT_SMALL, yscrollcommand=scr.set)
+            text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+
+            systems = self.colonisation.get_all_systems()
+            sysnum = tabnum -1
+
+            bodies = systems[sysnum].get('Bodies', None)
+            if bodies == None:
+                return
+
+            bstr:str = ""
+            first:bool = True
+            for b in bodies:
+                indent:int = 0 if b.get('parents', None) == None else b.get('parents') * 4
+                name:str = b.get('name')
+                if first != True:
+                    name = name.replace(systems[sysnum]['StarSystem'] + ' ', '')
+                else:
+                    first = False
+
+                bstr += f"{' ' * indent}{name} - {b.get('subType')}\n"
+                if b.get('type') == 'Planet':
+                    attrs:list = []
+                    if b.get('terraformingState') == 'Terraformable': attrs.append(_("Terraformable"))
+                    if b.get('isLandable') == True: attrs.append(_("Landable"))
+                    if b.get('atmosphereType') != 'No atmosphere' or len(attrs):
+                        astr:str = b.get('atmosphereType')
+                        if b.get('atmosphereType') != 'No atmosphere': astr += " atmosphere"
+                        attrs.append(astr)
+                    if b.get('volcanismType', 'No volcanism') != 'No volcanism' or len(attrs): attrs.append(b.get('volcanismType'))
+
+                    rings:list = []
+                    for r in b.get('rings', []):
+                        if r.get('type', None) != None: rings.append(r.get('type'))
+                    if len(rings):
+                        attrs.append(b.get('reserveLevel') + " " +_("rings") + ": " + ", ".join(rings))
+
+                    if len(attrs):
+                        if b.get('distanceToArrival'): attrs.insert(0, f"{human_format(b.get('distanceToArrival'))}Ls")
+
+                    if len(attrs):
+                        bstr += f"{' ' * indent}  "
+                        bstr += ", ".join(attrs)
+                        bstr += "\n"
+                bstr += "\n"
+            text.insert(tk.END, bstr)
+
+        except Exception as e:
+            Debug.logger.error(f"Error in colonisation.show(): {e}")
             Debug.logger.error(traceback.format_exc())
 
 

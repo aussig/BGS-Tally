@@ -1,6 +1,11 @@
 # Change Log
-
 ## v5.0.0-xx - xxxx-xx-xx
+
+### Changes
+
+* Added querying of EDSM for existing bases and for body information
+
+## v5.0.0-a3 - xxxx-xx-xx
 
 ### Changes
 

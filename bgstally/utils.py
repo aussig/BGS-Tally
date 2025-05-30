@@ -15,48 +15,8 @@ from config import appversion
 
 # Language codes for languages that should be omitted
 BLOCK_LANGS: list = []
-
-
-def _get_edmc_version(appversion) -> semantic_version.Version:
-    """
-    Return the EDNC version as a semantic_version.Version object.
-
-    Determines the EDMC version based on the type of `appversion`:
-    - For versions up to 5.0.0-beta1, `appversion` is expected to be a string.
-    - From 5.0.0-beta1 onwards, `appversion` is expected to be a callable that returns a semantic_version.Version object.
-
-    Args:
-        appversion (str | Callable[[], semantic_version.Version]): The application version, either as a string or a callable.
-
-    Returns:
-        semantic_version.Version: The parsed EDMC version.
-
-    Raises:
-        TypeError: If the callable does not return a semantic_version.Version object.
-        ValueError: If `appversion` is neither a string nor a callable.
-    """
-    # Up until version 5.0.0-beta1, appversion is a string.
-    if isinstance(appversion, str):
-        return semantic_version.Version(appversion)
-    # From 5.0.0-beta1 onwards, appversion is a function returning semantic_version.Version.
-    elif callable(appversion):
-        version = appversion()
-        if not isinstance(version, semantic_version.Version):
-            Debug.logger.error(
-                "The appversion function must return a semantic_version.Version object, got %r.",
-                type(version)
-            )
-            raise TypeError("The appversion function must return a semantic_version.Version object.")
-        return version
-    Debug.logger.error(
-        "appversion must be a string or a callable returning semantic_version.Version, got %r.",
-        type(appversion)
-    )
-    raise ValueError("appversion must be a string or a callable returning semantic_version.Version.")
-
-
-# Parse and store the current EDMC version.
-edmc_version: semantic_version.Version = _get_edmc_version(appversion)
+# Assign the current EDMC version to the variable.
+edmc_version: semantic_version.Version = appversion()
 
 
 def _get_tl_func(edmc_version: semantic_version.Version) -> Tuple[Callable[[str], str], Any]:

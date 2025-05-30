@@ -17,19 +17,19 @@ from config import appversion
 BLOCK_LANGS: list = []
 
 
-def _get_core_version(appversion) -> semantic_version.Version:
+def _get_edmc_version(appversion) -> semantic_version.Version:
     """
-    Return the core version as a semantic_version.Version object.
+    Return the EDNC version as a semantic_version.Version object.
 
-    This function determines the core version of the application based on the type of `appversion`.
-    For versions up to 5.0.0-beta1, `appversion` is expected to be a string.
-    From 5.0.0-beta1 onwards, `appversion` is expected to be a callable that returns a semantic_version.Version object.
+    Determines the EDMC version based on the type of `appversion`:
+    - For versions up to 5.0.0-beta1, `appversion` is expected to be a string.
+    - From 5.0.0-beta1 onwards, `appversion` is expected to be a callable that returns a semantic_version.Version object.
 
     Args:
         appversion (str | Callable[[], semantic_version.Version]): The application version, either as a string or a callable.
 
     Returns:
-        semantic_version.Version: The parsed core version.
+        semantic_version.Version: The parsed EDMC version.
 
     Raises:
         TypeError: If the callable does not return a semantic_version.Version object.
@@ -55,13 +55,13 @@ def _get_core_version(appversion) -> semantic_version.Version:
     raise ValueError("appversion must be a string or a callable returning semantic_version.Version.")
 
 
-# Holds the parsed core version of the application.
-core_version: semantic_version.Version = _get_core_version(appversion)
+# Parse and store the current EDMC version.
+edmc_version: semantic_version.Version = _get_edmc_version(appversion)
 
 
-def _get_tl_func(core_version: semantic_version.Version) -> Tuple[Callable[[str], str], Any]:
+def _get_tl_func(edmc_version: semantic_version.Version) -> Tuple[Callable[[str], str], Any]:
     """
-    Returns the appropriate translation function and translations object based on the EDMC core version.
+    Returns the appropriate translation function and translations object based on the EDMC version.
 
     Starting from EDMC version 5.11.0, the translation API changed: the old method
     `l10n.Translations.translate` was deprecated in favor of the new function
@@ -72,21 +72,21 @@ def _get_tl_func(core_version: semantic_version.Version) -> Tuple[Callable[[str]
     the same call regardless of the EDMC version.
 
     Args:
-        core_version (semantic_version.Version): The already parsed core version.
+        edmc_version (semantic_version.Version): The already parsed EDMC version.
 
     Returns:
         tuple: (translation function, translations object)
             - Callable[[str], str]: The translation function to use.
             - Any: The translations object to use (l10n.Translations or l10n.translations).
     """
-    if core_version < semantic_version.Version('5.11.0'):
+    if edmc_version < semantic_version.Version('5.11.0'):
         return functools.partial(l10n.Translations.translate, context=__file__), l10n.Translations
     else:
         return functools.partial(l10n.translations.tl, context=__file__), l10n.translations
 
 
-# Assign the translation function and the translations object based on the current EDMC core version.
-_, translations_obj = _get_tl_func(core_version)
+# Assign the translation function and the translations object based on the current EDMC version.
+_, translations_obj = _get_tl_func(edmc_version)
 
 
 def __(string: str, lang: str) -> str:
@@ -135,7 +135,7 @@ def available_langs() -> dict[str | None, str]:
     Returns:
         dict[str | None, str]: The available language names indexed by language code
     """
-    if core_version < semantic_version.Version('5.12.0'):
+    if edmc_version < semantic_version.Version('5.12.0'):
         l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
     else:
         l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))

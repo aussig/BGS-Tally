@@ -6,6 +6,7 @@ from os import path
 from os.path import join
 import traceback
 import re
+import time
 from datetime import datetime
 from requests import Response
 from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView, RequestMethod
@@ -22,6 +23,8 @@ MARKET_FILENAME = 'Market.json'
 COMMODITY_FILENAME = 'commodity.csv'
 EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
 EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
+EDSM_SYSTEM = 'https://www.edsm.net/api-v1/system?showInformation=1&systemName='
+EDSM_DELAY = (3600 * 24)
 class Colonisation:
     """
     Manages colonisation data and events for Elite Dangerous colonisation
@@ -451,6 +454,38 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
+    def _edsm_system(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+        ''' Process the results of querying ESDM for the system details '''
+        Debug.logger.debug(f"EDSM system response received: {success}")
+        try:
+            data:dict = response.json()
+            if data.get('name', None) == None:
+                Debug.logger.debug(f"EDSM system did not contain a name, ignoring")
+                return
+            system:dict = self.find_system(data.get('name'))
+            if system == None:
+                Debug.logger.debug(f"Didn't find system {data.get('name')}")
+                return
+
+            Debug.logger.debug(f"system: {data}")
+            system['Population'] = get_by_path(data, ['information', 'population'], None)
+            system['Economy'] = get_by_path(data, ['information', 'economy'], None)
+            #if get_by_path(data, ['information', 'secondEconomy'], None):
+            #    system['Economy'] += "/" + get_by_path(data, ['information', 'secondEconomy'], None)
+            system['Security'] = get_by_path(data, ['information', 'security'], None)
+            system['EDSMUpdated'] = int(time.time())
+
+            self.dirty = True
+            self.save()
+
+        except JSONDecodeError:
+            Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
+            return
+        except Exception as e:
+            Debug.logger.info(f"Error recording response")
+            Debug.logger.error(traceback.format_exc())
+
+
     def _edsm_bodies(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Process the results of querying ESDM for the bodies in a system '''
         Debug.logger.debug(f"EDSM bodies response received: {success}")
@@ -838,11 +873,15 @@ class Colonisation:
                 Debug.logger.warning(f"Unable to load {file}")
                 Debug.logger.error(traceback.format_exc())
 
-        # Sometimes a system gets its name later so play catchup on the list of Bodies
+        # Update the EDSM data if appropriate and no more than once a day.
         for system in self.systems:
-            if system.get('StarSystem', None) != None and system.get('Bodies', None) == None:
-                Debug.logger.debug(f"Requesting EDSM bodies for {system.get('StarSystem')}")
-                self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_bodies)
+            if system.get('StarSystem', None) != None and time.time() > int(system.get('EDSMUpdated', 0)) + EDSM_DELAY:
+                if system.get('Bodies', None) == None:
+                    Debug.logger.debug(f"Requesting EDSM bodies for {system.get('StarSystem')}")
+                    self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_bodies)
+
+                self.bgstally.request_manager.queue_request(EDSM_STATIONS+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_stations)
+                self.bgstally.request_manager.queue_request(EDSM_SYSTEM+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_system)
 
 
     def save(self, cause:str = 'Unknown'):

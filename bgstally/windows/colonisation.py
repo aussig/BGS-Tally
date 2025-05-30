@@ -48,11 +48,11 @@ class ColonisationWindow:
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 3 points
             'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max': 200000}, # LANG: Cost in tonnes of cargo
             'Trips': {'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max': 260}, # LANG: Number of loads of cargo
-            'Pad': {'header': _("Pad"), 'background': False, 'hide': True, 'format': 'hidden'}, # LANG: Pad size
-            'Facility Economy': {'header': _("Econ"), 'background': False, 'hide': True, 'format': 'hidden'}, # LANG: facility economy
+            'Population': {'header': _("Pop"), 'background': 'paleturquoise1', 'format': 'number'}, # LANG: Poulation
+            'Economy': {'header': _("Economy"), 'background': 'paleturquoise1', 'format': 'string'}, # LANG: System economy
             'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population increase
             'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population Maximum
-            'Economy Inf': {'header': _("Econ Inf"), 'background': 'rwg', 'hide': True}, # LANG: Economy influence
+            'Economy Influence': {'header': _("Econ Inf"), 'background': False, 'hide': True, 'format': 'hidden'}, # LANG: Economy influence
             'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Security impact
             'Technology Level' : {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Technology level
             'Wealth' : {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Wealth impact
@@ -183,6 +183,8 @@ class ColonisationWindow:
         Create the title frame with system name and tick info
         """
         sysnum = tabnum -1
+        systems:list = self.colonisation.get_all_systems()
+
         title_frame:ttk.Frame = ttk.Frame(tab, style="Title.TFrame")
         title_frame.pack(fill=tk.X, padx=0, pady=(0, 5))
 
@@ -205,6 +207,12 @@ class ColonisationWindow:
         sys_label.bind("<Button-1>", partial(self.system_click, tabnum))
 
         self.plan_titles[sysnum]['System'] = sys_label
+
+        if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
+            bodies = str(len(systems[sysnum]['Bodies'])) + " " + _("Bodies") # LANG: bodies in the system
+            sys_bodies:ttk.Label = ttk.Label(title_frame, text=bodies)
+            sys_bodies.pack(side=tk.LEFT, padx=10, pady=5)
+            self.weight(sys_bodies)
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, command=lambda: self.legend_popup())
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -330,6 +338,7 @@ class ColonisationWindow:
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')
         sheet['A2:C3'].highlight(bg='paleturquoise1')
+        sheet['K2:L3'].highlight(bg='paleturquoise1')
         sheet[HEADER_ROW].highlight(bg='lightgrey')
 
         # Tracking checkboxes
@@ -338,7 +347,7 @@ class ColonisationWindow:
         # Base types
         sheet['B5'].dropdown(values=[' '] + self.colonisation.get_base_types('Initial'))
         sheet['B6:B'].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
-        sheet['D5:D'].dropdown(values=self.colonisation.get_bodies(system))
+        sheet['D5:D'].dropdown(values=[' '] + self.colonisation.get_bodies(system))
 
         # Make the sections readonly that users can't edit.
         s3 = sheet.span('A1:4', type_='readonly')
@@ -391,6 +400,12 @@ class ColonisationWindow:
                         v = self.calc_points(name, builds, row)
                         totals['Planned'][name] += v
                         totals['Completed'][name] += v if self.is_build_completed(build) else 0
+                    case 'Economy':
+                        totals['Planned'][name] = ' '
+                        totals['Completed'][name] = system['Economy']
+                    case 'Population':
+                        totals['Planned'][name] = ' '
+                        totals['Completed'][name] = human_format(system['Population'])
                     case 'Development Level':
                         res = bt.get(name, 0)
                         totals['Planned'][name] += res

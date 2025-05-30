@@ -88,38 +88,44 @@ def _get_tl_func(core_version: semantic_version.Version) -> Tuple[Callable[[str]
 # Assign the translation function and the translations object based on the current EDMC core version.
 _, translations_obj = _get_tl_func(core_version)
 
-# Localisation conditional translation function for when PR [2188] is merged in to EDMC
-# __ = functools.partial(l10n.Translations.translate, context=__file__, lang=lang)
 
-
-# Localisation conditional translation function before PR [2188] is merged in to EDMC
 def __(string: str, lang: str) -> str:
-    """Translate using our overridden language
+    """
+    Translate a string using the specified language, compatible with all EDMC versions.
+
+    This wrapper handles the KeyError that occurs if the requested language
+    or translation file is missing, ensuring the original string is returned
+    as a fallback instead of raising an exception.
 
     Args:
-        string (str): The string to translate
-        lang (str): The override language
+        string (str): The string to translate.
+        lang (str): The language code to use for translation.
 
     Returns:
-        str: Translated string
+        str: The translated string. If the language is empty, None, the fallback language,
+             or if translation fails, returns the original string.
     """
-    if lang == "" or lang is None or lang == translations_obj.FALLBACK:
-        return _(string)
-
-    if core_version < semantic_version.Version('5.12.0'):
-        l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
-    else:
-        l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
-
-    contents: dict[str, str] = translations_obj.contents(lang=lang, plugin_path=l10n_path)
-
-    if not contents:
-        Debug.logger.debug(f'Failure loading translations for language {lang!r}')
+    # Return the original string if the language is empty, None, or the fallback language.
+    if lang == "":
+        Debug.logger.warning("Translation requested with empty language, returning original string.\n"
+                             + f">>> {string} <<<")
         return string
-    elif string in contents.keys():
-        return contents[string]
-    else:
-        Debug.logger.debug(f'Missing translation: {string!r} in language {lang!r}')
+    elif lang is None:
+        Debug.logger.warning("Translation requested with None language, returning original string.\n"
+                             + f">>> {string} <<<")
+        return string
+    elif lang == translations_obj.FALLBACK:
+        # If the requested language is the fallback (usually 'en'), return the original string.
+        return string
+
+    # Attempt to translate the string using the translations object.
+    try:
+        return translations_obj.translate(string, context=__file__, lang=lang)
+    except KeyError as e:
+        # If the translation file or language is not found, log the error and return the original string.
+        Debug.logger.error(
+            f"Translation file missing or language not available for '{string}' in '{lang}': {e}"
+        )
         return string
 
 
@@ -145,7 +151,7 @@ def available_langs() -> dict[str | None, str]:
     }
     names.update(sorted(
         [(lang, translations_obj.contents(lang, l10n_path).get(l10n.LANGUAGE_ID, lang)) for lang in available]
-        + [(l10n._Translations.FALLBACK, l10n._Translations.FALLBACK_NAME)],
+        + [(translations_obj.FALLBACK, translations_obj.FALLBACK_NAME)],
         key=lambda x: x[1]
     ))
 

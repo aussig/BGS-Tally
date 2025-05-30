@@ -324,7 +324,7 @@ class ColonisationWindow:
                 self.plan_titles[index]['System'].pack_forget()
 
 
-    def config_sheet(self, sheet:Sheet, system:dict) -> None:
+    def config_sheet(self, sheet:Sheet, system:dict = None) -> None:
         '''
         Initial sheet configuration.
         '''
@@ -347,7 +347,10 @@ class ColonisationWindow:
         # Base types
         sheet['B5'].dropdown(values=[' '] + self.colonisation.get_base_types('Initial'))
         sheet['B6:B'].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
-        sheet['D5:D'].dropdown(values=[' '] + self.colonisation.get_bodies(system))
+        if system != None and 'Bodies' in system:
+            bodies:list = self.colonisation.get_bodies(system)
+            if len(bodies) > 0:
+                sheet['D5:D'].dropdown(values=[' '] + bodies)
 
         # Make the sections readonly that users can't edit.
         s3 = sheet.span('A1:4', type_='readonly')
@@ -402,10 +405,10 @@ class ColonisationWindow:
                         totals['Completed'][name] += v if self.is_build_completed(build) else 0
                     case 'Economy':
                         totals['Planned'][name] = ' '
-                        totals['Completed'][name] = system['Economy']
+                        totals['Completed'][name] = system.get('Economy', _("None")) # HINT: No economy
                     case 'Population':
                         totals['Planned'][name] = ' '
-                        totals['Completed'][name] = human_format(system['Population'])
+                        totals['Completed'][name] = human_format(system.get('Population', 0))
                     case 'Development Level':
                         res = bt.get(name, 0)
                         totals['Planned'][name] += res
@@ -525,7 +528,7 @@ class ColonisationWindow:
                                 row.append('Planned')
                             continue
 
-                        if name == 'Body' and build.get('Body', None) != None and system.get('StarSystem', None) != None:
+                        if name == 'Body' and build.get('Body', None) != None and system.get('StarSystem', '') != '':
                             row.append(build.get('Body').replace(system.get('StarSystem') + ' ', ''))
                             continue
 
@@ -696,7 +699,7 @@ class ColonisationWindow:
                     data = self.sheets[sysnum].data
                     data.pop(row + FIRST_BUILD_ROW)
                     self.sheets[sysnum].set_sheet_data(data)
-                    self.config_sheet(self.sheets[sysnum])
+                    self.config_sheet(self.sheets[sysnum], systems[sysnum])
 
                 case 'Base Type' if val != ' ':
                     Debug.logger.debug(f"Setting base type")
@@ -714,7 +717,7 @@ class ColonisationWindow:
                     data += self.get_detail(systems[sysnum])
 
                     self.sheets[sysnum].set_sheet_data(data)
-                    self.config_sheet(self.sheets[sysnum])
+                    self.config_sheet(self.sheets[sysnum], systems[sysnum])
 
                     systems[sysnum]['Builds'][row][field] = val
 

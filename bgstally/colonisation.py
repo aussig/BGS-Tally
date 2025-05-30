@@ -522,9 +522,10 @@ class Colonisation:
     def get_bodies(self, system:dict) -> list:
         ''' Return a list of bodies in the system '''
         bodies:list = []
-        for b in system['Bodies']:
+        for b in system.get('Bodies', []):
             name = b.get('name') if b.get('name') != system['StarSystem'] else 'A'
             bodies.append(name.replace(system['StarSystem'] + ' ', ''))
+
         return bodies
 
     def remove_system(self, index:int) -> bool:
@@ -875,7 +876,8 @@ class Colonisation:
 
         # Update the EDSM data if appropriate and no more than once a day.
         for system in self.systems:
-            if system.get('StarSystem', None) != None and time.time() > int(system.get('EDSMUpdated', 0)) + EDSM_DELAY:
+            if system.get('StarSystem', '') != '' and time.time() > int(system.get('EDSMUpdated', 0)) + EDSM_DELAY:
+                Debug.logger.debug(f"Getting details for {system.get('StarSystem', '')}")
                 if system.get('Bodies', None) == None:
                     Debug.logger.debug(f"Requesting EDSM bodies for {system.get('StarSystem')}")
                     self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_bodies)

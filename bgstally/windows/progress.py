@@ -17,18 +17,8 @@ MAX_ROWS = 35
 
 #@TODO: replace f"{}:," with string_from_number()
 class ProgressWindow:
-    """
-    Window for displaying construction progress for Elite Dangerous colonisation
-    """
+    ''' Window for displaying construction progress for Elite Dangerous colonisation '''
     def __init__(self, bgstally):
-        """
-        Initialize the progress window
-
-        Args:
-            parent: The parent window
-            colonisation: The Colonisation instance
-            state: The BGSTally state
-        """
         self.bgstally = bgstally
         self.colonisation = None
 
@@ -92,9 +82,7 @@ class ProgressWindow:
 
 
     def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
-        """
-        Create the progress frame
-        """
+        ''' Create the progress frame '''
         try:
             self.colonisation = self.bgstally.colonisation
             tracked:dict = self.colonisation.get_tracked_builds()
@@ -224,9 +212,7 @@ class ProgressWindow:
 
 
     def event(self, event:str, tkEvent) -> None:
-        '''
-        Process events from the buttons in the progress window.
-        '''
+        ''' Process events from the buttons in the progress window. '''
         try:
             tracked:dict = self.colonisation.get_tracked_builds()
             max:int = len(tracked) -1 if len(tracked) < 2 else len(tracked) # "All" if more than one build
@@ -241,6 +227,7 @@ class ProgressWindow:
 
                 case 'change':
                     self.view = ProgressView((self.view.value + 1) % len(ProgressView))
+                    self.colonisation.save()
 
             self.update_display()
 
@@ -250,9 +237,7 @@ class ProgressWindow:
 
 
     def change_view(self, column:str, tkEvent) -> None:
-        '''
-        Change the view of the column when clicked. This is a toggle between tonnes, remaining, and loads.
-        '''
+        ''' Change the view of the column when clicked. This is a toggle between tonnes, remaining, and loads. '''
         try:
             match column:
                 case 'Commodity':
@@ -269,9 +254,7 @@ class ProgressWindow:
 
 
     def link(self, comm:str, tkEvent) -> None:
-        '''
-        Open the link to Inara for nearest location for the commodity.
-        '''
+        ''' Open the link to Inara for nearest location for the commodity. '''
         try:
             comm_id = self.colonisation.base_costs['All'].get(comm)
             sys:str = self.colonisation.current_system if self.colonisation.current_system != None else 'sol'
@@ -295,9 +278,7 @@ class ProgressWindow:
 
 
     def update_display(self):
-        '''
-        Main display update function.
-        '''
+        ''' Main display update function. '''
         try:
             tracked:list = self.colonisation.get_tracked_builds()
             required:dict = self.colonisation.get_required(tracked)
@@ -332,7 +313,7 @@ class ProgressWindow:
             for col in self.headings.keys():
                 if col == 'Carrier' and not self.bgstally.fleet_carrier.available():
                     continue
-                    
+
                 self.colheadings[col]['text'] = self.headings[col][self.units[col]]
                 self.colheadings[col].grid()
                 totals[col] = 0
@@ -401,9 +382,7 @@ class ProgressWindow:
 
 
     def display_totals(self, row:dict, tracked:list, totals:dict) -> None:
-        '''
-        Display the totals at the bottom of the table
-        '''
+        ''' Display the totals at the bottom of the table '''
 
         # We're down to having nothing left to deliver.
         if (totals['Required'] - totals['Delivered']) == 0:
@@ -428,10 +407,8 @@ class ProgressWindow:
         return
 
 
-    def get_value(self, column: str, required:int, delivered:int, cargo:int, carrier:int) -> str:
-        '''
-        Calculate and format the commodity amount depending on the column and the units
-        '''
+    def get_value(self, column:str, required:int, delivered:int, cargo:int, carrier:int) -> str:
+        ''' Calculate and format the commodity amount depending on the column and the units '''
         remaining:int = required - delivered
 
         match self.units[column]:
@@ -458,17 +435,13 @@ class ProgressWindow:
 
 
     def weight(self, item, w='bold') -> None:
-        '''
-        Set font weight, defaults to bold
-        '''
+        ''' Set font weight, defaults to bold '''
         fnt:tkFont.Font = tkFont.Font(font=item['font']).actual()
         item.configure(font=(fnt['family'], fnt['size'], w))
 
 
     def highlight_row(self, row:dict, c:str, qty:int = 0) -> None:
-        '''
-        Color rows depending on the state
-        '''
+        ''' Color rows depending on the state '''
         tobuy:int = qty - self.colonisation.carrier_cargo.get(c, 0) - self.colonisation.cargo.get(c, 0)
         space:int = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
 

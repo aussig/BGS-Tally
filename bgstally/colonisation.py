@@ -26,9 +26,7 @@ EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
 EDSM_SYSTEM = 'https://www.edsm.net/api-v1/system?showInformation=1&systemName='
 EDSM_DELAY = (3600 * 24)
 class Colonisation:
-    """
-    Manages colonisation data and events for Elite Dangerous colonisation
-    """
+    ''' Manages colonisation data and events for Elite Dangerous colonisation '''
     def __init__(self, bgstally):
         self.bgstally = bgstally
         self.system_id:str = None
@@ -39,8 +37,8 @@ class Colonisation:
         self.docked:bool = False
         self.base_types:dict = {}  # Loaded from base_types.json
         self.base_costs:dict = {}  # Loaded from base_costs.json
-        self.commodities = {} # Loaded from commodity.csv
-        self.systems:list = []     # Systems with colonisation tobuy:int = qty - self.colonisation.carrier_cargo.get(c, 0) - self.colonisation.cargo.get(c, 0)data
+        self.commodities = {}      # Loaded from commodity.csv
+        self.systems:list = []     # Systems with colonisation
         self.progress:list = []    # Construction progress data
         self.dirty:bool = False
 
@@ -48,7 +46,6 @@ class Colonisation:
         self.carrier_cargo:dict = {} # Local store of our current carrier cargo
         self.market:dict = {} # Local store of the current market data
         self.cargo_capacity:int = 784 # Default cargo capacity
-        # Mappinng of commodity internal names to local names. Over time this should update to each user's local names
 
         # Load base commodities, types, costs, and saved data
         self.load_commodities()
@@ -58,9 +55,9 @@ class Colonisation:
         self.update_carrier()
 
     def load_base_types(self):
-        """
+        '''
         Load base type definitions from base_types.json
-        """
+        '''
         try:
             base_types_path = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_TYPES_FILENAME)
             with open(base_types_path, 'r') as f:
@@ -72,10 +69,10 @@ class Colonisation:
 
 
     def load_base_costs(self):
-        """
+        '''
         Load base cost definitions from base_costs.json
         The 'All' category is used to list all the colonisation commodities and their inara IDs
-        """
+        '''
         try:
             base_costs_path = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_COSTS_FILENAME)
             with open(base_costs_path, 'r') as f:
@@ -93,9 +90,7 @@ class Colonisation:
 
 
     def load_commodities(self):
-        '''
-        Load the commodities from the CSV file. This is used to map the internal name to the local name.
-        '''
+        ''' Load the commodities from the CSV file. This is used to map the internal name to the local name. '''
         try:
             file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, COMMODITY_FILENAME)
             with open(file, encoding = 'utf-8') as csv_file_handler:
@@ -113,9 +108,7 @@ class Colonisation:
 
 
     def journal_entry(self, cmdr, is_beta, system, station, entry, state) -> None:
-        """
-        Parse and process incoming journal entry
-        """
+        ''' Parse and process incoming journal entries '''
         try:
             if state.get('CargoCapacity', 0) != None and state.get('CargoCapacity', 0) > 16 and state.get('CargoCapacity', 0) != self.cargo_capacity:
                 self.cargo_capacity = state.get('CargoCapacity')
@@ -285,13 +278,12 @@ class Colonisation:
 
 
     def get_base_type(self, type_name:str) -> dict:
+        ''' Return the details of a particular type of base '''
         return self.base_types.get(type_name, {})
 
 
     def get_base_types(self, category:str = 'Any') -> list[str]:
-        """
-        Get a list of base type names
-        """
+        ''' Get a list of base type names '''
         if category in ['Any', 'All']:
             return list(self.base_types.keys())
 
@@ -303,16 +295,12 @@ class Colonisation:
 
 
     def get_all_systems(self) -> list[dict]:
-        """
-        Get all systems being tracked for colonisation
-        """
+        ''' Get all systems being tracked for colonisation '''
         return self.systems
 
 
-    def get_system(self, key: str, value: str) -> dict:
-        """
-        Get a system by any attribute
-        """
+    def get_system(self, key:str, value:str) -> dict:
+        ''' Get a system by any attribute '''
         for i, system in enumerate(self.systems):
             if system.get(key) != None and system.get(key) == value:
                 return system
@@ -320,9 +308,7 @@ class Colonisation:
         return None
 
     def get_system_tracking(self, system:dict) -> str:
-        """
-        Get the tracking status of a system (All, Partial or None)
-        """
+        ''' Get the tracking status of a system (All, Partial or None) '''
         status:str = 'All'
         any:bool = False
         for b in system['Builds']:
@@ -337,10 +323,8 @@ class Colonisation:
         return status
 
 
-    def find_system(self, name=None, addr=None) -> dict:
-        """
-        Find a system by addres, name, or 'plan' name
-        """
+    def find_system(self, name:str = None, addr:str = None) -> dict:
+        ''' Find a system by address, name, or 'plan' name '''
         system:dict = self.get_system('SystemAddress', addr)
         if system == None:
             system = self.get_system('StarSystem', name)
@@ -350,10 +334,8 @@ class Colonisation:
         return system
 
 
-    def find_or_create_system(self, name, addr) -> dict:
-        """
-        Find a system by name or plan, or create it if it doesn't exist
-        """
+    def find_or_create_system(self, nam:str, addr:str) -> dict:
+        ''' Find a system by name or plan, or create it if it doesn't exist '''
         system:dict = self.find_system(name, addr)
         if system is None:
             return self.add_system(name, name, addr)
@@ -361,10 +343,8 @@ class Colonisation:
         return system
 
 
-    def add_system(self, plan_name: str, system_name: str = None, system_address: str = None) -> dict:
-        """
-        Add a new system for colonisation planning
-        """
+    def add_system(self, plan_name:str, system_name:str = None, system_address:str = None) -> dict:
+        ''' Add a new system for colonisation planning '''
 
         if self.get_system('Name', plan_name) is not None or self.get_system('StarSystem', system_name) is not None:
             Debug.logger.warning(f"Cannot add system - already exists: {plan_name} {system_name}")
@@ -528,7 +508,9 @@ class Colonisation:
 
         return bodies
 
+
     def remove_system(self, index:int) -> bool:
+        ''' Delete a system '''
         systems = self.get_all_systems() # It's a sorted list, index isn't reliable unless sorted!
         del systems[index]
         self.dirty = True
@@ -537,9 +519,7 @@ class Colonisation:
 
 
     def get_all_builds(self) -> list[dict]:
-        '''
-        Get all builds from all systems
-        '''
+        ''' Get all builds from all systems '''
         all:list = []
         for system in self.systems:
             b = self.get_system_builds(system)
@@ -549,10 +529,8 @@ class Colonisation:
         return all
 
 
-    def get_build_state(self, build: dict) -> BuildState:
-        '''
-        Get the state of a build from either the build or the progress data
-        '''
+    def get_build_state(self, build:dict) -> BuildState:
+        ''' Get the state of a build from either the build or the progress data '''
         if build.get('State', None) == BuildState.COMPLETE or build.get('MarketID', None) == None:
             return build.get('State', BuildState.PLANNED)
 
@@ -571,9 +549,7 @@ class Colonisation:
 
 
     def get_tracked_builds(self) -> list[dict]:
-        '''
-        Get all builds that are being tracked
-        '''
+        ''' Get all builds that are being tracked '''
         tracked:list = []
         for build in self.get_all_builds():
             if build.get("Track", False) == True and self.get_build_state(build) != BuildState.COMPLETE:
@@ -583,9 +559,7 @@ class Colonisation:
 
 
     def get_system_builds(self, system:dict) -> list[dict]:
-        '''
-        Get all builds for a system
-        '''
+        ''' Get all builds for a system '''
         try:
             return system.get('Builds', [])
 
@@ -594,9 +568,7 @@ class Colonisation:
 
 
     def find_build(self, system:dict, marketid:int = None, name: str = None) -> dict:
-        """
-        Get a build by marketid or name
-        """
+        ''' Get a build by marketid or name '''
         builds:list = self.get_system_builds(system)
 
         if name == 'System Colonisation Ship' and len(builds) > 0:
@@ -613,10 +585,8 @@ class Colonisation:
         return None
 
 
-    def find_or_create_build(self, system:dict, marketid: int = None, name: str = None) -> dict:
-        '''
-        Find a build by marketid or name, or create it if it doesn't exist
-        '''
+    def find_or_create_build(self, system:dict, marketid:int = None, name:str = None) -> dict:
+        ''' Find a build by marketid or name, or create it if it doesn't exist '''
         build = self.find_build(system, marketid, name)
 
         if build == None:
@@ -625,10 +595,8 @@ class Colonisation:
         return build
 
 
-    def add_build(self, system:dict, marketid: int = None, name: str = '') -> dict:
-        """
-        Add a new build to a system
-        """
+    def add_build(self, system:dict, marketid:int = None, name:str = '') -> dict:
+        ''' Add a new build to a system '''
         Debug.logger.debug(f"Adding build {name}")
         build:dict = {
                 'Name': name,
@@ -644,10 +612,8 @@ class Colonisation:
         return build
 
 
-    def remove_build(self, system:dict, build_index: int) -> bool:
-        """
-        Remove a build from a system
-        """
+    def remove_build(self, system:dict, build_index:int) -> bool:
+        ''' Remove a build from a system '''
         if system is None:
             Debug.logger.warning(f"Cannot remove build - unknown system")
             return False
@@ -663,20 +629,16 @@ class Colonisation:
         return True
 
 
-    def update_build_tracking(self, build:dict, state: bool) -> None:
-        '''
-        Change a build's tracked status
-        '''
+    def update_build_tracking(self, build:dict, state:bool) -> None:
+        ''' Change a build's tracked status '''
         if build.get('Track') != state:
             build['Track'] = state
             self.dirty = True
             self.bgstally.ui.window_progress.update_display()
 
 
-    def get_commodity_list(self, base_type: str, order: CommodityOrder = CommodityOrder.ALPHA) -> list:
-        '''
-        Return an ordered list of base commodity costs for a base type
-        '''
+    def get_commodity_list(self, base_type:str, order:CommodityOrder = CommodityOrder.ALPHA) -> list:
+        ''' Return an ordered list of base commodity costs for a base type '''
         try:
             comms = self.base_costs.get(base_type, None)
             if comms == None:
@@ -701,7 +663,8 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
-    def _get_progress(self, builds:list[dict], type: str) -> dict:
+    def _get_progress(self, builds:list[dict], type:str) -> dict:
+        ''' Internal function to get progress details '''
         try:
             prog = []
             found = 0
@@ -739,20 +702,17 @@ class Colonisation:
 
 
     def get_required(self, builds:list[dict]) -> dict:
-        '''
-        Return the commodities required for the builds listed
-        '''
+        ''' Return the commodities required for the builds listed '''
         return self._get_progress(builds, 'RequiredAmount')
 
 
     def get_delivered(self, builds:list[dict]) -> dict:
-        '''
-        Return the commodities delivered for the builds listed
-        '''
+        ''' Return the commodities delivered for the builds listed '''
         return self._get_progress(builds, 'ProvidedAmount')
 
 
     def find_or_create_progress(self, id:str) -> dict:
+        ''' Find or if necessary create progress for a given market '''
         p = self.find_progress(id)
         if p != None:
             return p
@@ -765,6 +725,7 @@ class Colonisation:
 
 
     def find_progress(self, id:str) -> dict:
+        ''' Find and return progress for a given market '''
         for p in self.progress:
             if p.get('MarketID') == id:
                 return p
@@ -773,9 +734,7 @@ class Colonisation:
 
 
     def update_carrier(self):
-        '''
-        Update the carrier cargo data.
-        '''
+        ''' Update the carrier cargo data. '''
         try:
             carrier = {}
             if self.bgstally.fleet_carrier.available() == True:
@@ -796,9 +755,7 @@ class Colonisation:
 
 
     def update_cargo(self, cargo:dict) -> None:
-        '''
-        Update the cargo data.
-        '''
+        ''' Update the cargo data. '''
         try:
             tmp = {}
             for k, v in cargo.items():
@@ -813,7 +770,8 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
-    def update_market(self, marketid:str=None) -> None:
+    def update_market(self, marketid:str = None) -> None:
+        ''' Update market info from the market object or directly '''
         try:
             if marketid == None or self.docked == False:
                 self.market = {}
@@ -862,9 +820,7 @@ class Colonisation:
 
 
     def load(self):
-        """
-        Load state from file
-        """
+        ''' Load state from file '''
         file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         if path.exists(file):
             try:
@@ -887,9 +843,7 @@ class Colonisation:
 
 
     def save(self, cause:str = 'Unknown'):
-        """
-        Save state to file
-        """
+        ''' Save state to file '''
 
         file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
@@ -907,9 +861,7 @@ class Colonisation:
 
 
     def _as_dict(self):
-        """
-        Return a Dictionary representation of our data, suitable for serializing
-        """
+        ''' Return a Dictionary representation of our data, suitable for serializing '''
 
         def sort_order(item:dict):
             state:BuildState = BuildState.COMPLETE
@@ -944,9 +896,9 @@ class Colonisation:
 
 
     def _from_dict(self, dict:dict):
-        """
+        '''
         Populate our data from a Dictionary that has been deserialized
-        """
+        '''
         self.docked = dict.get('Docked', False)
         self.system_id = dict.get('SystemID', None)
         self.current_system = dict.get('CurrentSystem', None)

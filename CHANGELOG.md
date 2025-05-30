@@ -3,7 +3,7 @@
 
 ### Changes
 
-* Added querying of EDSM for existing bases and for body information
+* Added querying of EDSM for body information, existing bases, and system information
 
 ## v5.0.0-a3 - xxxx-xx-xx
 

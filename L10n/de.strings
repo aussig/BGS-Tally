@@ -29,28 +29,28 @@
 "Advanced" = "Fortschrittlich";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
-"Agricultural" = "Agricultural";
+"Agricultural" = "Landwirtschaft";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Agricultural Installation" = "Agricultural Installation";
+"Agricultural Installation" = "Landwirtschaftliche Installation";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Agriculture Settlement" = "Agriculture Settlement";
+"Agriculture Settlement" = "Landwirtschaftliche Siedlung";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Agriculture Tier 1" = "Agriculture Tier 1";
+"Agriculture Tier 1" = "Landwirtschaft Stufe 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Agriculture Tier 1 Med" = "Agriculture Tier 1 Med";
+"Agriculture Tier 1 Med" = "Landwirtschaft Stufe 1 Mittel";
 
 /* Colonisation 'Type' [base_types.json] */
-"Agriculture Tier 1 Sml" = "Agriculture Tier 1 Sml";
+"Agriculture Tier 1 Sml" = "Landwirtschaft Stufe 1 Klein";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Agriculture Tier 2" = "Agriculture Tier 2";
+"Agriculture Tier 2" = "Landwirtschaft Stufe 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Agriculture Tier 2 Lrg" = "Agriculture Tier 2 Lrg";
+"Agriculture Tier 2 Lrg" = "Landwirtschaft Stufe 2 Groß";
 
 /* Discord carrier docking access. [fleetcarrier.py] */
 "All" = "Alle";
@@ -80,7 +80,7 @@
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Bitten Sie den Serveradministrator um die folgenden Informationen und klicken Sie dann auf „Verbindung herstellen“, um fortzufahren. Es stehen Schaltflächen zur Verfügung, mit denen Sie einige Informationen für gängige Server vorab ausfüllen können. Sie müssen jedoch Ihren für Sie eindeutigen API-Schlüssel eingeben.";
 
 /* Colonisation 'Type' [base_types.json] */
-"Asteroid Base" = "Asteroid Base";
+"Asteroid Base" = "Asteroidenbasis";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Bar" = "Bar";
@@ -107,7 +107,7 @@
 "bio-pod" = "Bio-Pod";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Biological Research Installation" = "Biological Research Installation";
+"Biological Research Installation" = "Biologische Forschungs-Installation";
 
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Schwarzmarktgewinne";
@@ -158,16 +158,19 @@
 "Carrier {carrier_name}" = "Flottenträger- {carrier_name}";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Civilian" = "Civilian";
+"Civilian" = "Zivil";
 
 /* Colonisation 'Type' [base_types.json] */
-"Civilian Outpost" = "Civilian Outpost";
+"Civilian Outpost" = "Ziviler Außenposten";
 
 /* Colonisation 'Type' [base_types.json] */
-"Civilian Settlement" = "Civilian Settlement";
+"Civilian Settlement" = "Zivile Siedlung";
 
 /* [sheet_options.py] */
 "Clear contents" = "Inhalt löschen";
+
+/* tooltip for the inara market commodity links. [progress.py] */
+"Click for Inara market" = "Click for Inara market";
 
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "CMDR Details";
@@ -179,28 +182,28 @@
 "CMDR Info" = "CMDR Info";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
-"Colony" = "Colony";
+"Colony" = "Kolonie";
 
 /* Colonisation 'Type' [base_types.json] */
-"Colony Planetary Outpost" = "Colony Planetary Outpost";
+"Colony Planetary Outpost" = "Kolonie Planeten-Außenposten";
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Kampfbelohnungen";
 
 /* Colonisation 'Type' [base_types.json] */
-"Commercial Outpost" = "Commercial Outpost";
+"Commercial Outpost" = "Kommerzielle Außenposten";
 
 /* Commodity. [progress.py] */
 "Commodity" = "Handelsware";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Comms Installation" = "Comms Installation";
+"Comms Installation" = "Comms-Installation";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Communication Installation" = "Communication Installation";
+"Communication Installation" = "Kommunikations-Installation";
 
 /* Colonisation 'Type' [base_types.json] */
-"Communication Station" = "Communication Station";
+"Communication Station" = "Kommunikationsstation";
 
 /* Row heading of build totals i.e. ones that are done. [colonisation.py] */
 "Completed" = "Abgeschlossen";
@@ -215,7 +218,7 @@
 "Confirm Removal" = "Entfernung bestätigen";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
-"Contraband" = "Contraband";
+"Contraband" = "Schmuggelware";
 
 /* [widgets.py] */
 "Copy" = "Kopie";
@@ -230,13 +233,13 @@
 "Coriolis" = "Coriolis";
 
 /* Colonisation 'Type' [base_types.json] */
-"Coriolis Starport" = "Coriolis Starport";
+"Coriolis Starport" = "Coriolis Sternenhafen";
 
 /* Cost in tonnes of cargo. [colonisation.py] */
 "Cost" = "Kosten";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Criminal Outpost" = "Criminal Outpost";
+"Criminal Outpost" = "Krimineller Außenposten";
 
 /* Discord heading, abbreviation for critically injured. [default.py] */
 "crit" = "krit";
@@ -255,6 +258,12 @@
 
 /* [sheet_options.py] */
 "Cut contents" = "Inhalte ausschneiden";
+
+/* tooltip for the column views. [progress.py] */
+"Cycle column views" = "Cycle column views";
+
+/* tooltip for the change view icon (full, reduced, none). [progress.py] */
+"Cycle view detail" = "Cycle view detail";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Datum / Uhrzeit";
@@ -383,16 +392,16 @@
 "Expl" = "Expl";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Exploration" = "Exploration";
+"Exploration" = "Erkundung";
 
 /* Activity window tooltip. [activity.py] */
 "Exploration data" = "Explorationsdaten";
 
 /* Colonisation 'Type' [base_types.json] */
-"Exploration Hub" = "Exploration Hub";
+"Exploration Hub" = "Erkundungszentrum";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
-"Extraction" = "Extraction";
+"Extraction" = "Extraktion";
 
 /* Colonisation 'Type' [base_types.json] */
 "Extraction Hub" = "Extraction Hub";
@@ -1099,8 +1108,14 @@
 /* Activity window tooltip. [activity.py] */
 "Show legend window" = "Legendenfenster anzeigen";
 
+/* tooltip for the next build icon. [progress.py] */
+"Show next build" = "Show next build";
+
 /* Main window tooltip. [ui.py] */
 "Show objectives / missions window" = "Ziele / Missionsfenster anzeigen";
+
+/* tooltip for the previous build icon. [progress.py] */
+"Show previous build" = "Show previous build";
 
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Show system notes window";

@@ -29,28 +29,28 @@
 "Advanced" = "Gelişmiş";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
-"Agricultural" = "Agricultural";
+"Agricultural" = "Tarım";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Agricultural Installation" = "Agricultural Installation";
+"Agricultural Installation" = "Tarım Üssü";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Agriculture Settlement" = "Agriculture Settlement";
+"Agriculture Settlement" = "Tarım Yerleşkesi";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Agriculture Tier 1" = "Agriculture Tier 1";
+"Agriculture Tier 1" = "Tarım Tier 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Agriculture Tier 1 Med" = "Agriculture Tier 1 Med";
+"Agriculture Tier 1 Med" = "Tarım Tier 1 Med";
 
 /* Colonisation 'Type' [base_types.json] */
-"Agriculture Tier 1 Sml" = "Agriculture Tier 1 Sml";
+"Agriculture Tier 1 Sml" = "Tarım Tier 1 Sml";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Agriculture Tier 2" = "Agriculture Tier 2";
+"Agriculture Tier 2" = "Tarım Tier 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Agriculture Tier 2 Lrg" = "Agriculture Tier 2 Lrg";
+"Agriculture Tier 2 Lrg" = "Tarım Tier 2 Lrg";
 
 /* Discord carrier docking access. [fleetcarrier.py] */
 "All" = "Hepsi";
@@ -80,7 +80,7 @@
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Aşağıdaki bilgileri sunucu yöneticinize sorun, doldurduktan daha sonra 'Bağlantı Kur' ile devam edin. Popüler sunucular için bazı bilgiler önceden doldurulmuş olarak sağlanmıştır, ancak bu sunucuya ait size özel olan API anahtarınızı girmeniz gerekecektir.";
 
 /* Colonisation 'Type' [base_types.json] */
-"Asteroid Base" = "Asteroid Base";
+"Asteroid Base" = "Astroid Üssü";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Bar" = "Bar";
@@ -107,7 +107,7 @@
 "bio-pod" = "bio-pod";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Biological Research Installation" = "Biological Research Installation";
+"Biological Research Installation" = "Biyolojik Araştırma Üssü";
 
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Karaborsa kazancı";
@@ -158,16 +158,19 @@
 "Carrier {carrier_name}" = "Filo Taşıyıcı {carrier_name}";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Civilian" = "Civilian";
+"Civilian" = "Sivil";
 
 /* Colonisation 'Type' [base_types.json] */
-"Civilian Outpost" = "Civilian Outpost";
+"Civilian Outpost" = "Sivil Karakol";
 
 /* Colonisation 'Type' [base_types.json] */
-"Civilian Settlement" = "Civilian Settlement";
+"Civilian Settlement" = "Sivil Yerleşkesi";
 
 /* [sheet_options.py] */
 "Clear contents" = "İçeriği temizle";
+
+/* tooltip for the inara market commodity links. [progress.py] */
+"Click for Inara market" = "Inara market için tıklayın";
 
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "CMDR Detayları";
@@ -179,28 +182,28 @@
 "CMDR Info" = "CMDR bilgisi";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
-"Colony" = "Colony";
+"Colony" = "Koloni";
 
 /* Colonisation 'Type' [base_types.json] */
-"Colony Planetary Outpost" = "Colony Planetary Outpost";
+"Colony Planetary Outpost" = "Koloni gezegen karakolu";
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Savaş tahvilleri";
 
 /* Colonisation 'Type' [base_types.json] */
-"Commercial Outpost" = "Commercial Outpost";
+"Commercial Outpost" = "Ticari Karakol";
 
 /* Commodity. [progress.py] */
 "Commodity" = "Emtia";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Comms Installation" = "Comms Installation";
+"Comms Installation" = "İletişim Üssü";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Communication Installation" = "Communication Installation";
+"Communication Installation" = "İletişim Yerleşkesi";
 
 /* Colonisation 'Type' [base_types.json] */
-"Communication Station" = "Communication Station";
+"Communication Station" = "İletişim İstasyonu";
 
 /* Row heading of build totals i.e. ones that are done. [colonisation.py] */
 "Completed" = "Tamamlandı";
@@ -215,7 +218,7 @@
 "Confirm Removal" = "Kaldırmayı Onayla";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
-"Contraband" = "Contraband";
+"Contraband" = "Kaçakçılık";
 
 /* [widgets.py] */
 "Copy" = "Kopyala";
@@ -230,13 +233,13 @@
 "Coriolis" = "Coriolis";
 
 /* Colonisation 'Type' [base_types.json] */
-"Coriolis Starport" = "Coriolis Starport";
+"Coriolis Starport" = "Coriolis Yıldızlimanı";
 
 /* Cost in tonnes of cargo. [colonisation.py] */
 "Cost" = "Maliyet";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Criminal Outpost" = "Criminal Outpost";
+"Criminal Outpost" = "Suçlu Barınağı";
 
 /* Discord heading, abbreviation for critically injured. [default.py] */
 "crit" = "krit";
@@ -255,6 +258,12 @@
 
 /* [sheet_options.py] */
 "Cut contents" = "İçeriği kes";
+
+/* tooltip for the column views. [progress.py] */
+"Cycle column views" = "Cycle column views";
+
+/* tooltip for the change view icon (full, reduced, none). [progress.py] */
+"Cycle view detail" = "Cycle view detail";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Tarih / Saat";
@@ -1099,8 +1108,14 @@
 /* Activity window tooltip. [activity.py] */
 "Show legend window" = "Geçmiş penceresini göster";
 
+/* tooltip for the next build icon. [progress.py] */
+"Show next build" = "Show next build";
+
 /* Main window tooltip. [ui.py] */
 "Show objectives / missions window" = "Hedefler / Görevler penceresini göster";
+
+/* tooltip for the previous build icon. [progress.py] */
+"Show previous build" = "Show previous build";
 
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Show system notes window";

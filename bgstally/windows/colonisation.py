@@ -46,7 +46,7 @@ class ColonisationWindow:
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 3 points
             'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max': 200000}, # LANG: Cost in tonnes of cargo
             'Trips': {'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max': 260}, # LANG: Number of loads of cargo
-            'Population': {'header': _("Pop"), 'background': 'paleturquoise1', 'format': 'number'}, # LANG: Poulation
+            'Population': {'header': _("Pop"), 'background': False, 'hide': True, 'format': 'hidden'},
             'Economy': {'header': _("Economy"), 'background': 'paleturquoise1', 'format': 'string'}, # LANG: System economy
             'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population increase
             'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population Maximum
@@ -203,6 +203,12 @@ class ColonisationWindow:
             ToolTip(sys_bodies, text=_("Show system bodies window")) # LANG: tooltip for the show notes window
             self.weight(sys_bodies)
             sys_bodies.bind("<Button-1>", partial(self.bodies_popup, tabnum))
+
+        if systems[sysnum].get('Population', 0) > 0:
+            popstr = f"{human_format(systems[sysnum].get('Population', 0))} {_('Inhabitants')}"
+            pop:ttk.Label = ttk.Label(title_frame, text=popstr)
+            self.weight(pop)
+            pop.pack(side=tk.LEFT, padx=10, pady=5)
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, cursor="hand2", command=lambda: self.legend_popup())
         btn.pack(side=tk.RIGHT, padx=5, pady=5)

@@ -13,7 +13,7 @@ from config import config
 from bgstally.debug import Debug
 from bgstally.utils import _
 
-MAX_ROWS = 35
+MAX_ROWS = 20
 
 #@TODO: replace f"{}:," with string_from_number()
 class ProgressWindow:
@@ -71,6 +71,7 @@ class ProgressWindow:
         self.frame:tk.Frame = None
         self.frame_row:int = 0 # Row in the parent frame
         self.table_frame:tk.Frame = None # Table frame
+        self.scrollbar:tk.Scrollbar = None # Scrollbar for the commodity list
         self.title:tk.Label = None # Title object
         self.colheadings:dict = {} # Column headings
         self.rows:list = []
@@ -93,8 +94,8 @@ class ProgressWindow:
             self.frame = frame
 
             row:int = 0; col:int = 0
-            ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=row, column=0, columnspan=5, pady=2, sticky=tk.EW)
-            row += 1
+            #ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=row, column=0, columnspan=5, pady=2, sticky=tk.EW)
+            #row += 1
 
             # Overall progress bar chart
             y=tk.LabelFrame(frame, border=1, height=10)
@@ -138,6 +139,8 @@ class ProgressWindow:
             table_frame:tk.Frame = tk.Frame(frame)
             table_frame.columnconfigure(0, weight=1)
             table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
+            scr:tk.Scrollbar = tk.Scrollbar(table_frame, orient=tk.VERTICAL)
+            self.scrollbar = scr
             self.table_frame = table_frame
 
             # Column headings
@@ -312,7 +315,7 @@ class ProgressWindow:
             for col in self.headings.keys():
                 if col == 'Carrier' and not self.bgstally.fleet_carrier.available():
                     continue
-                    
+
                 self.colheadings[col]['text'] = self.headings[col][self.units[col]]
                 self.colheadings[col].grid()
                 totals[col] = 0
@@ -330,6 +333,7 @@ class ProgressWindow:
                 Debug.logger.info(f"No commodities found")
                 return
 
+            rc:int = 0
             for i, c in enumerate(comms):
                 row:dict = self.rows[i]
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
@@ -353,7 +357,8 @@ class ProgressWindow:
                 # If we're in minimal view we only show ones we still need to buy.
                 if (reqcnt <= 0) or \
                     (remaining <= 0 and self.view != ProgressView.FULL) or \
-                    (tobuy <= 0 and self.view == ProgressView.MINIMAL):
+                    (tobuy <= 0 and self.view == ProgressView.MINIMAL) or \
+                    rc > MAX_ROWS:
                     for col in self.headings.keys():
                         row[col].grid_remove()
                     continue
@@ -371,8 +376,7 @@ class ProgressWindow:
                     row[col]['text'] = self.get_value(col, reqcnt, delcnt, cargo, carrier)
                     row[col].grid()
                     self.highlight_row(row, c, reqcnt - delcnt)
-
-            self.display_totals(self.rows[i+1], tracked, totals)
+                rc += 1
             return
 
         except Exception as e:
@@ -392,7 +396,7 @@ class ProgressWindow:
             return
 
         for col in self.headings.keys():
-            row[col]['text'] = self.get_value(col, totals['Required'], totals['Delivered'], totals['Cargo'], totals['Carrier']) if col != 'Commodity' else _("Total")
+            row[col]['text'] = self.get_value(col, totals['Required'], totals['Delivered'], totals['Cargo'], 0 if 'Carrier' not in totals else totals['Carrier']) if col != 'Commodity' else _("Total")
             self.weight(row[col])
             row[col].grid()
 

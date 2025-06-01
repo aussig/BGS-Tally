@@ -793,7 +793,7 @@ class Colonisation:
 
             # The market object doesn't have a market for us so we'll try loading it ourselves.
             # Ideally we wouldn't do this but it seems necessary
-            journal_dir:str = config.get_str('journaldir') or config.default_journal_Name_dir
+            journal_dir:str = config.get_str('journaldir') or config.default_journal_dir
             if not journal_dir: return
 
             with open(join(journal_dir, MARKET_FILENAME), 'rb') as file:

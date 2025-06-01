@@ -245,7 +245,6 @@ class ColonisationWindow:
                 case _:
                     webbrowser.open(f"https://www.edsm.net/en/system?systemName={star}")
 
-
         except Exception as e:
             Debug.logger.error(f"Error in create_title_frame() {e}")
             Debug.logger.error(traceback.format_exc())

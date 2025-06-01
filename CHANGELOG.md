@@ -5,9 +5,9 @@
 
 * Added querying of EDSM for body information, existing bases, and system information
 
-## v5.0.0-a3 - xxxx-xx-xx
+## v5.0.0-a3 - 2025-05-26
 
-### Changes
+### Changes:
 
 * The progress window now features
     - Commodity view can now cycle between full (all), reduced (only remaining), minimal (nothing left to buy) and none

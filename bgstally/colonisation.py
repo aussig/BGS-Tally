@@ -182,7 +182,7 @@ class Colonisation:
                         #Debug.logger.debug(f"Not a construction or a system we're building")
                         return
 
-                    system:dict = self.find_or_create_system(entry.get('StarSystem'), entry.get('SystemAddress'))
+                    system:dict = self.find_or_create_system(entry.get('StarSystem', ''), entry.get('SystemAddress', ''))
                     if not 'Name' in system: system['Name'] = entry.get('StarSystem')
                     system['StarSystem'] = entry.get('StarSystem')
                     system['SystemAddress'] = entry.get('SystemAddress')
@@ -191,7 +191,8 @@ class Colonisation:
                     build['Name'] = name
                     build['MarketID'] = entry.get('MarketID')
                     build['StationEconomy'] = entry.get('StationEconomy_Localised', '')
-                    build['Location'] = type
+                    if type != '':
+                        build['Location'] = type
                     build['State'] = build_state
                     build['Track'] = (build_state != BuildState.COMPLETE)
                     if self.body and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
@@ -334,7 +335,7 @@ class Colonisation:
         return system
 
 
-    def find_or_create_system(self, nam:str, addr:str) -> dict:
+    def find_or_create_system(self, name:str, addr:str) -> dict:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
         system:dict = self.find_system(name, addr)
         if system is None:
@@ -387,7 +388,8 @@ class Colonisation:
             Debug.logger.debug(f"Received stations: {data.get('stations')}")
             stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['id']))
             for base in stations:
-                if base.get('type', '') in ['Fleet Carrier']:
+                # Ignore these
+                if base.get('type', '') in ['Fleet Carrier'] or 'Construction Site' in base.get('name', '') or 'ColonisationShip' in base.get('name', ''):
                     continue
 
                 name:str = base.get('name', '')
@@ -412,7 +414,8 @@ class Colonisation:
                 body = get_by_path(base, ['body', 'name'], '')
                 body = body.replace(system.get('StarSystem', '') + ' ', '')
                 build:dict = {
-                    'Build Type': '',
+                    'Base Type': base.get('type'),
+                    'StationEconomy': base.get('economy'),
                     'State': state,
                     'Name': name,
                     'MarketID': base.get('marketId'),
@@ -423,6 +426,7 @@ class Colonisation:
                 Debug.logger.debug(f"Added station {build} to system {data.get('name')}")
 
             Debug.logger.debug(f"System: {system['Builds']}")
+            self.bgstally.ui.window_colonisation.update_display()
             self.dirty = True
             self.save()
 
@@ -869,7 +873,7 @@ class Colonisation:
                 bs = self.get_build_state(b)
                 if bs == BuildState.PLANNED and state != BuildState.PROGRESS:
                     state = BuildState.PLANNED
-                if bs == BuildState.PROGRESS and b['Track'] == True:
+                if bs == BuildState.PROGRESS and b.get('Track', False) == True:
                     state = BuildState.PROGRESS
             return state.value
 

@@ -61,7 +61,7 @@ class ColonisationWindow:
         self.detail_cols:dict = {
             "Track": {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Track this build?
             "Base Type" : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
-            "Name" : {'header': _("Base Name"), 'background': None, 'format': 'dropdown', 'width': 175}, # LANG: name of the base
+            "Name" : {'header': _("Base Name"), 'background': None, 'format': 'dropdown', 'width': 200}, # LANG: name of the base
             "Body": {'header': _("Body"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Body the base is on or around
             "Prerequisites": {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 100}, # LANG: any prerequisites for the base
             "State": {'header': _("State"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Current build state
@@ -198,29 +198,27 @@ class ColonisationWindow:
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
             bodies = str(len(systems[sysnum]['Bodies'])) + " " + _("Bodies") # LANG: bodies in the system
-            sys_bodies:ttk.Label = ttk.Label(title_frame, text=bodies)
+            sys_bodies:ttk.Label = ttk.Label(title_frame, text=bodies, cursor="hand2")
             sys_bodies.pack(side=tk.LEFT, padx=10, pady=5)
+            ToolTip(sys_bodies, text=_("Show system bodies window")) # LANG: tooltip for the show notes window
             self.weight(sys_bodies)
+            sys_bodies.bind("<Button-1>", partial(self.bodies_popup, tabnum))
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, command=lambda: self.legend_popup())
+        btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, cursor="hand2", command=lambda: self.legend_popup())
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show legend window")) # LANG: tooltip for the show legend button
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
+        btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
         ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("Rename"), command=lambda: self.rename_system_dialog(tabnum, tab)) # LANG: Rename button
+        btn:ttk.Button = ttk.Button(title_frame, text=_("Rename"), cursor="hand2", command=lambda: self.rename_system_dialog(tabnum, tab)) # LANG: Rename button
         ToolTip(btn, text=_("Rename system plan")) # LANG: tooltip for the rename system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("📓"), width=3, command=partial(self.notes_popup, tabnum))
+        btn:ttk.Button = ttk.Button(title_frame, text=_("📓"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
-
-        btn:ttk.Button = ttk.Button(title_frame, text=_("🔍"), width=3, command=partial(self.bodies_popup, tabnum))
-        btn.pack(side=tk.RIGHT, padx=5, pady=5)
-        ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show notes window
 
 
     def system_click(self, tabnum:int, event) -> None:
@@ -250,6 +248,73 @@ class ColonisationWindow:
 
         except Exception as e:
             Debug.logger.error(f"Error in create_title_frame() {e}")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def bodies_popup(self, tabnum:int, event) -> None:
+        ''' Show the bodies popup window '''
+        try:
+            popup:tk.Tk = tk.Tk()
+
+            def leavemini():
+                popup.destroy()
+
+            popup.wm_title(_("BGS-Tally - Colonisation Bodies")) # LANG: Title of the legend popup window
+            popup.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+            popup.wm_attributes('-toolwindow', True) # makes it a tool window
+            popup.geometry("600x600")
+            popup.config(bd=2, relief=tk.FLAT)
+            scr:tk.Scrollbar = tk.Scrollbar(popup, orient=tk.VERTICAL)
+            scr.pack(side=tk.RIGHT, fill=tk.Y)
+            text:tk.Text = tk.Text(popup, font=FONT_SMALL, yscrollcommand=scr.set)
+            text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+
+            sysnum:int = tabnum -1
+            systems:list = self.colonisation.get_all_systems()
+
+            bodies:list = systems[sysnum].get('Bodies', None)
+            if bodies == None:
+                return
+
+            bstr:str = ""
+            first:bool = True
+            for b in bodies:
+                indent:int = 0 if b.get('parents', None) == None else b.get('parents') * 4
+                name:str = b.get('name')
+                if first != True:
+                    name = name.replace(systems[sysnum]['StarSystem'] + ' ', '')
+                else:
+                    first = False
+
+                bstr += f"{' ' * indent}{name} - {b.get('subType')}\n"
+                if b.get('type') == 'Planet':
+                    attrs:list = []
+                    if b.get('terraformingState') == 'Terraformable': attrs.append(_("Terraformable"))
+                    if b.get('isLandable') == True: attrs.append(_("Landable"))
+                    if b.get('atmosphereType') != 'No atmosphere' or len(attrs):
+                        astr:str = b.get('atmosphereType')
+                        if b.get('atmosphereType') != 'No atmosphere': astr += " atmosphere"
+                        attrs.append(astr)
+                    if b.get('volcanismType', 'No volcanism') != 'No volcanism' or len(attrs): attrs.append(b.get('volcanismType'))
+
+                    rings:list = []
+                    for r in b.get('rings', []):
+                        if r.get('type', None) != None: rings.append(r.get('type'))
+                    if len(rings):
+                        attrs.append(b.get('reserveLevel') + " " +_("rings") + ": " + ", ".join(rings))
+
+                    if len(attrs) > 0:
+                        if b.get('distanceToArrival'): attrs.insert(0, f"{human_format(b.get('distanceToArrival'))}Ls")
+
+                    if len(attrs) > 0:
+                        bstr += f"{' ' * indent}  "
+                        bstr += ", ".join(attrs)
+                        bstr += "\n"
+                bstr += "\n"
+            text.insert(tk.END, bstr)
+
+        except Exception as e:
+            Debug.logger.error(f"Error in colonisation.show(): {e}")
             Debug.logger.error(traceback.format_exc())
 
 
@@ -285,7 +350,6 @@ class ColonisationWindow:
         sheet.edit_validation(self.validate_edits)
         sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, tabnum))
         sheet.extra_bindings('cell_select', func=partial(self.sheet_modified, tabnum))
-
 
         if len(self.sheets) < tabnum:
             self.sheets.append(sheet)
@@ -431,7 +495,7 @@ class ColonisationWindow:
         return summary
 
 
-    def update_summary(self, srow:int, tab:ttk.Frame, system:dict) -> None:
+    def update_summary(self, srow:int, sheet:Sheet, system:dict) -> None:
         ''' Update the summary section with current system data '''
         scol = 0
         new = self._build_summary(system)
@@ -439,18 +503,18 @@ class ColonisationWindow:
         for i, x in enumerate(self.summary_rows.keys()):
             for j, details in enumerate(self.summary_cols.values()):
                 j += FIRST_SUMMARY_COLUMN
-                tab[i+srow,j].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
+                sheet[i+srow,j].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
 
                 if new[i][j] and new[i][j] != ' ' and new[i][j] != 0:
                     if details.get('background') in('rwg','gyr'):
                         color = self.get_color(new[i][j], details.get('max', 1), details.get('background'))
-                        tab[i+srow,j+scol].highlight(bg=color)
+                        sheet[i+srow,j+scol].highlight(bg=color)
                         if color != '':
-                            tab[i+srow,j+scol].highlight(bg=color)
+                            sheet[i+srow,j+scol].highlight(bg=color)
                     elif details.get('background') != False:
-                        tab[i+srow,j+scol].highlight(bg=details.get('background'))
+                        sheet[i+srow,j+scol].highlight(bg=details.get('background'))
                     else:
-                        tab[i+srow,j+scol].highlight(bg=None)
+                        sheet[i+srow,j+scol].highlight(bg=None)
 
 
     def get_detail_header(self) -> list[str]:
@@ -494,7 +558,7 @@ class ColonisationWindow:
                             if self.colonisation.get_build_state(build) == BuildState.PROGRESS and i < len(reqs):
                                 req = sum(reqs[i].values())
                                 deliv = sum(delivs[i].values())
-                                row.append(f"{int(deliv * 100 / req)}%")
+                                row.append(f"{int(deliv * 100 / req)}%" if req > 0 else 0)
                             elif self.colonisation.get_build_state(build) == BuildState.COMPLETE:
                                 row.append('Complete')
                             else:
@@ -504,10 +568,6 @@ class ColonisationWindow:
                         if name == 'Body' and build.get('Body', None) != None and system.get('StarSystem', '') != '':
                             row.append(build.get('Body').replace(system.get('StarSystem') + ' ', ''))
                             continue
-
-                        #if name == 'Facility Economy' and build.get('StationEconomy', None) != None:
-                        #    row.append(build.get('StationEconomy').replace(' ', ''))
-                        #    continue
 
                         row.append(build.get(name) if build.get(name, ' ') != ' ' else bt.get(name, ' '))
 
@@ -521,7 +581,7 @@ class ColonisationWindow:
         return details
 
 
-    def update_detail(self, srow:int, tab:ttk.Frame, system:dict) -> None:
+    def update_detail(self, srow:int, sheet:Sheet, system:dict) -> None:
         ''' update the details section of the table '''
         new = self._build_detail(system)
 
@@ -531,51 +591,52 @@ class ColonisationWindow:
                     continue
 
                 # Set or clear the cell value
-                tab[i+srow,j].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
+                sheet[i+srow,j].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
 
                 # Clear the highlight
-                if tab[i+srow,j].data != new[i][j]:
-                    tab[i+srow,j].highlight(bg=None)
+                if sheet[i+srow,j].data != new[i][j]:
+                    sheet[i+srow,j].highlight(bg=None)
 
                     if details.get('background') in ('rwg', 'gyr') and new[i][j] != ' ':
                         color = self.get_color(new[i][j], details.get('max', 1), details.get('background'))
-                        tab[i+srow,j].highlight(bg=color)
+                        sheet[i+srow,j].highlight(bg=color)
 
-                # Mark completed builds as readonly
-                if j == 5 and new[i][j] == BuildState.COMPLETE:
-                    # Tracking
-                    tab[i+srow,0].checkbox(state='disabled'); tab[i+srow,0].data = ' '; tab[i+srow,0].readonly()
+            # Handle build states
+            if new[i][5] == BuildState.COMPLETE: # Mark completed builds as readonly
+                # Tracking
+                sheet[i+srow,0].checkbox(state='disabled'); sheet[i+srow,0].data = ' '; sheet[i+srow,0].readonly()
 
-                    # Base tyoe
-                    if new[i][1] != ' ': # Base type has been set so make it readonly
-                        tab[i+srow,1].del_dropdown()
-                        tab[i+srow,1].align(align='left')
-                        tab[i+srow,1].readonly()
+                # Base tyoe
+                if new[i][1] != ' ': # Base type has been set so make it readonly
+                    sheet[i+srow,1].del_dropdown()
+                    sheet[i+srow,1].align(align='left')
+                    sheet[i+srow,1].readonly()
 
-                    # Base name
-                    tab[i+srow,2].readonly()
-                elif j ==5:
-                    # Tracking
-                    tab[i+srow,0].checkbox(state='normal'); tab[i+srow,0].data = ' '; tab[i+srow,0].readonly(False)
+                # Base name
+                sheet[i+srow,2].readonly()
+                continue
 
-                    # Base tyoe
-                    if new[i][1] != ' ': # Base type has been set so make it readonly
-                        tab[i+srow,1].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
-                        tab[i+srow,1].align(align='left')
-                        tab[i+srow,1].readonly(False)
-                        tab[i+srow,1].data = new[i][1]
-                    # Base name
-                    tab[i+srow,2].readonly(False)
+            #if isinstance(new[i][5], int):
+            #    sheet.create_progress_bar(row=i+srow, column=5, bg='red', fg='green', percent=new[i][5], name=f"{i}")
+            #    Debug.logger.debug("Creating progress bar {sheet[i+srow,5]}")
+
+            #  Tracking
+            sheet[i+srow,0].checkbox(state='normal'); sheet[i+srow,0].data = ' '; sheet[i+srow,0].readonly(False)
+
+            # Base tyoe
+            if new[i][1] != ' ': # Base type has been set so make it readonly
+                sheet[i+srow,1].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
+                sheet[i+srow,1].align(align='left')
+                sheet[i+srow,1].readonly(False)
+                sheet[i+srow,1].data = new[i][1]
+            # Base name
+            sheet[i+srow,2].readonly(False)
 
         # Clear the highlights on the empty last row
         if len(new) > len(system.get('Builds', [])):
             for j, details in enumerate(self.detail_cols.values()):
-                tab[len(new)+srow-1,j].highlight(bg=None)
-
-        # Clear the highlights on the empty last row
-        if len(new) > len(system.get('Builds', [])):
-            for j, details in enumerate(self.detail_cols.values()):
-                tab[len(new)+srow-1,j].highlight(bg=None)
+                sheet[len(new)+srow-1,j].highlight(bg=None)
+            sheet[len(new)+srow-1,5].data = ' '
 
 
     def update_display(self) -> None:
@@ -664,6 +725,7 @@ class ColonisationWindow:
                         Debug.logger.debug(f"Removing build {row} from {sysnum}")
                         self.colonisation.remove_build(systems[sysnum], row)
                     else:
+                        Debug.logger.debug(f"Clearing build {row} of {len(systems[sysnum]['Builds'])} from {sysnum}")
                         systems[sysnum]['Builds'][row][field] = val
                     data = self.sheets[sysnum].data
                     data.pop(row + FIRST_BUILD_ROW)
@@ -683,7 +745,7 @@ class ColonisationWindow:
                     data += self._build_summary(systems[sysnum])
 
                     data.append(self.get_detail_header())
-                    data += self.get_detail(systems[sysnum])
+                    data += self._build_detail(systems[sysnum])
 
                     self.sheets[sysnum].set_sheet_data(data)
                     self.config_sheet(self.sheets[sysnum], systems[sysnum])
@@ -778,7 +840,7 @@ class ColonisationWindow:
                 Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
             system:dict = systems[sysnum]
-            dialog:tk.Toplevel = tk.Toplevel(self.window)
+            dialog:tk.Toplevel = tk.Toplevel(self.windows)
             dialog.title(_("Rename System")) # LANG: Your helpful context goes here
             dialog.geometry("500x150")
             dialog.transient(self.window)
@@ -1003,73 +1065,6 @@ class ColonisationWindow:
 
         except Exception as e:
             Debug.logger.error(f"Error in notes_popup(): {e}")
-            Debug.logger.error(traceback.format_exc())
-
-
-    def bodies_popup(self, tabnum:int) -> None:
-        ''' Show the bodies popup window '''
-        try:
-            popup:tk.Tk = tk.Tk()
-
-            def leavemini():
-                popup.destroy()
-
-            popup.wm_title(_("BGS-Tally - Colonisation Bodies")) # LANG: Title of the legend popup window
-            popup.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-            popup.wm_attributes('-toolwindow', True) # makes it a tool window
-            popup.geometry("600x600")
-            popup.config(bd=2, relief=tk.FLAT)
-            scr:tk.Scrollbar = tk.Scrollbar(popup, orient=tk.VERTICAL)
-            scr.pack(side=tk.RIGHT, fill=tk.Y)
-            text:tk.Text = tk.Text(popup, font=FONT_SMALL, yscrollcommand=scr.set)
-            text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-
-            sysnum:int = tabnum -1
-            systems:list = self.colonisation.get_all_systems()
-
-            bodies:list = systems[sysnum].get('Bodies', None)
-            if bodies == None:
-                return
-
-            bstr:str = ""
-            first:bool = True
-            for b in bodies:
-                indent:int = 0 if b.get('parents', None) == None else b.get('parents') * 4
-                name:str = b.get('name')
-                if first != True:
-                    name = name.replace(systems[sysnum]['StarSystem'] + ' ', '')
-                else:
-                    first = False
-
-                bstr += f"{' ' * indent}{name} - {b.get('subType')}\n"
-                if b.get('type') == 'Planet':
-                    attrs:list = []
-                    if b.get('terraformingState') == 'Terraformable': attrs.append(_("Terraformable"))
-                    if b.get('isLandable') == True: attrs.append(_("Landable"))
-                    if b.get('atmosphereType') != 'No atmosphere' or len(attrs):
-                        astr:str = b.get('atmosphereType')
-                        if b.get('atmosphereType') != 'No atmosphere': astr += " atmosphere"
-                        attrs.append(astr)
-                    if b.get('volcanismType', 'No volcanism') != 'No volcanism' or len(attrs): attrs.append(b.get('volcanismType'))
-
-                    rings:list = []
-                    for r in b.get('rings', []):
-                        if r.get('type', None) != None: rings.append(r.get('type'))
-                    if len(rings):
-                        attrs.append(b.get('reserveLevel') + " " +_("rings") + ": " + ", ".join(rings))
-
-                    if len(attrs):
-                        if b.get('distanceToArrival'): attrs.insert(0, f"{human_format(b.get('distanceToArrival'))}Ls")
-
-                    if len(attrs):
-                        bstr += f"{' ' * indent}  "
-                        bstr += ", ".join(attrs)
-                        bstr += "\n"
-                bstr += "\n"
-            text.insert(tk.END, bstr)
-
-        except Exception as e:
-            Debug.logger.error(f"Error in colonisation.show(): {e}")
             Debug.logger.error(traceback.format_exc())
 
 

@@ -74,12 +74,12 @@ class ProgressWindow:
         self.title:tk.Label = None # Title object
         self.colheadings:dict = {} # Column headings
         self.rows:list = []
+        self.progvar:tk.IntVar = None
         self.progcols:dict = {} # Progress bar variables
         self.build_index:int = 0 # Which build we're showing
         self.view:ProgressView = ProgressView.REDUCED # Full, reduced, or no list of commodities
         self.comm_order:CommodityOrder = CommodityOrder.DEFAULT # Commodity order
         self.default_fg = None
-
 
     def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
         ''' Create the progress frame '''
@@ -95,6 +95,17 @@ class ProgressWindow:
             row:int = 0; col:int = 0
             ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=row, column=0, columnspan=5, pady=2, sticky=tk.EW)
             row += 1
+
+            # Overall progress bar chart
+            y=tk.LabelFrame(frame, border=1, height=10)
+            y.grid(row=row, column=col, columnspan=5, pady=0, sticky=tk.EW)
+            y.grid_rowconfigure(0, weight=1)
+            y.grid_propagate(0)
+            self.progvar = tk.IntVar()
+            progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=450, mode='determinate')
+            progbar.grid(row=0, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW)
+            progbar.rowconfigure(0, weight=1)
+            row += 1; col = 0
 
             lbl:tk.Label = tk.Label(frame, text=_("Builds") + ":", anchor=tk.W) # LANG: Builds/bases
             lbl.grid(row=row, column=0, sticky=tk.W)
@@ -124,19 +135,6 @@ class ProgressWindow:
             ToolTip(next_btn, text=_("Show next build")) # LANG: tooltip for the next build icon
             row += 1; col = 0
 
-            # Overall progress bar chart
-            #y=tk.LabelFrame(frame, border=0, height=10)
-            #y.grid(row=row, column=col, columnspan=5, pady=0, sticky=tk.EW)
-            #y.grid_rowconfigure(0, weight=1)
-            #y.grid_propagate(0)
-            #self.progvar = tk.IntVar()
-            #style = ttk.Style()
-            #style.configure("blue.Horizontal.TProgressbar", background='blue', lightcolor='blue', darkcolor='blue')
-            #self.progbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=450, mode='determinate', style='blue.Horizontal.TProgressbar')
-            #self.progbar.grid(row=0, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW)
-            #self.progbar.rowconfigure(0, weight=1)
-            #row += 1; col = 0
-
             table_frame:tk.Frame = tk.Frame(frame)
             table_frame.columnconfigure(0, weight=1)
             table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
@@ -161,11 +159,12 @@ class ProgressWindow:
                     continue
                 fr:tk.LabelFrame = tk.LabelFrame(table_frame, border=1, height=10, width=70)
                 fr.grid(row=row, column=i, pady=0, sticky=tk.EW)
+                fr.grid_rowconfigure(0, weight=1)
                 fr.grid_propagate(0)
 
                 self.progcols[col] = tk.IntVar()
                 pbar:ttk.Progressbar = ttk.Progressbar(fr, orient=tk.HORIZONTAL, variable=self.progcols[col], maximum=100, length=70, mode='determinate', style='blue.Horizontal.TProgressbar')
-                pbar.grid(row=0, column=i, pady=0, ipady=0, sticky=tk.NSEW)
+                pbar.grid(row=0, column=i, pady=0, ipady=0, sticky=tk.EW)
 
             row += 1
 
@@ -290,7 +289,7 @@ class ProgressWindow:
                 return
 
             self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
-            self.table_frame.grid(row=2, column=0, columnspan=5, sticky=tk.NSEW)
+            self.table_frame.grid(row=3, column=0, columnspan=5, sticky=tk.NSEW)
 
             # Set the build name (system name and plan name)
             name = _('All') # LANG: all builds
@@ -398,6 +397,7 @@ class ProgressWindow:
             row[col].grid()
 
         # Update the progress graphs
+        self.progvar.set(totals['Delivered'] * 100 / totals['Required'])
         self.progcols['Required'].set((totals['Required'] - totals['Delivered']) * 100 / totals['Required'])
         self.progcols['Delivered'].set(totals['Delivered'] * 100 / totals['Required'])
         self.progcols['Cargo'].set(totals['Cargo'] * 100 / self.colonisation.cargo_capacity)

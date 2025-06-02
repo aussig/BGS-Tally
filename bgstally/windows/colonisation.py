@@ -845,7 +845,7 @@ class ColonisationWindow:
                 Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
             system:dict = systems[sysnum]
-            dialog:tk.Toplevel = tk.Toplevel(self.windows)
+            dialog:tk.Toplevel = tk.Toplevel(self.window)
             dialog.title(_("Rename System")) # LANG: Your helpful context goes here
             dialog.geometry("500x150")
             dialog.transient(self.window)

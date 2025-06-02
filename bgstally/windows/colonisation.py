@@ -47,7 +47,7 @@ class ColonisationWindow:
             'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max': 200000}, # LANG: Cost in tonnes of cargo
             'Trips': {'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max': 260}, # LANG: Number of loads of cargo
             'Population': {'header': _("Pop"), 'background': False, 'hide': True, 'format': 'hidden'},
-            'Economy': {'header': _("Economy"), 'background': 'paleturquoise1', 'format': 'string'}, # LANG: System economy
+            'Economy': {'header': _("Economy"), 'background': False, 'hide': True, 'format': 'hidden'},
             'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population increase
             'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population Maximum
             'Economy Influence': {'header': _("Econ Inf"), 'background': False, 'hide': True, 'format': 'hidden'}, # LANG: Economy influence
@@ -98,7 +98,7 @@ class ColonisationWindow:
             self.window = tk.Toplevel(self.bgstally.ui.frame)
             self.window.title(_("BGS-Tally - Colonisation")) # LANG: window title
             self.window.minsize(400, 100)
-            self.window.geometry("1200x600")
+            self.window.geometry("1400x600")
             self.window.protocol("WM_DELETE_WINDOW", self.close)
 
             self.create_frames()    # Create main frames
@@ -204,11 +204,16 @@ class ColonisationWindow:
             self.weight(sys_bodies)
             sys_bodies.bind("<Button-1>", partial(self.bodies_popup, tabnum))
 
-        if systems[sysnum].get('Population', 0) > 0:
-            popstr = f"{human_format(systems[sysnum].get('Population', 0))} {_('Inhabitants')}"
-            pop:ttk.Label = ttk.Label(title_frame, text=popstr)
-            self.weight(pop)
-            pop.pack(side=tk.LEFT, padx=10, pady=5)
+        attrs = []
+        for attr in ['Population', 'Economy', 'Security']:
+            if systems[sysnum].get(attr, '') != '':
+                if isinstance(systems[sysnum].get(attr), int):
+                    attrs.append(f"{human_format(systems[sysnum].get(attr))} {_(attr)}")
+                else:
+                    attrs.append(f"{systems[sysnum].get(attr)} {_(attr)}")
+        details:ttk.Label = ttk.Label(title_frame, text="   ".join(attrs))
+        self.weight(details)
+        details.pack(side=tk.LEFT, padx=10, pady=5)
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, cursor="hand2", command=lambda: self.legend_popup())
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -450,9 +455,6 @@ class ColonisationWindow:
                         v = self.calc_points(name, builds, row)
                         totals['Planned'][name] += v
                         totals['Completed'][name] += v if self.is_build_completed(build) else 0
-                    case 'Economy':
-                        totals['Planned'][name] = ' '
-                        totals['Completed'][name] = system.get('Economy', _("None")) # HINT: No economy
                     case 'Population':
                         totals['Planned'][name] = ' '
                         totals['Completed'][name] = human_format(system.get('Population', 0))
@@ -846,7 +848,7 @@ class ColonisationWindow:
 
             system:dict = systems[sysnum]
             dialog:tk.Toplevel = tk.Toplevel(self.window)
-            dialog.title(_("Rename System")) # LANG: Your helpful context goes here
+            dialog.title(_("Rename System")) # LANG: Rename a system
             dialog.geometry("500x150")
             dialog.transient(self.window)
             dialog.grab_set()

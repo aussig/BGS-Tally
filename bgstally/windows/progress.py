@@ -377,6 +377,7 @@ class ProgressWindow:
                     row[col].grid()
                     self.highlight_row(row, c, reqcnt - delcnt)
                 rc += 1
+            self.display_totals(self.rows[i+1], tracked, totals)
             return
 
         except Exception as e:

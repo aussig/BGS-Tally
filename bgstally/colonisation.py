@@ -842,7 +842,8 @@ class Colonisation:
                     Debug.logger.debug(f"Requesting EDSM bodies for {system.get('StarSystem')}")
                     self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_bodies)
 
-                self.bgstally.request_manager.queue_request(EDSM_STATIONS+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_stations)
+                # Currently disabled. There are so many shortcomings with trying to do this I'm not sure it's helpful.
+                #self.bgstally.request_manager.queue_request(EDSM_STATIONS+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_stations)
                 self.bgstally.request_manager.queue_request(EDSM_SYSTEM+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_system)
 
 

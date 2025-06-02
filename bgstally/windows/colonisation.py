@@ -59,26 +59,26 @@ class ColonisationWindow:
         }
         # Table has two sections: summary and builds. This dict defines attributes for each build column
         self.detail_cols:dict = {
-            "Track": {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Track this build?
-            "Base Type" : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
-            "Name" : {'header': _("Base Name"), 'background': None, 'format': 'dropdown', 'width': 200}, # LANG: name of the base
-            "Body": {'header': _("Body"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Body the base is on or around
-            "Prerequisites": {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 100}, # LANG: any prerequisites for the base
-            "State": {'header': _("State"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Current build state
-            "T2": {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 2 points
-            "T3": {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'min':-1, 'max':1, 'width': 30}, # LANG: Tier 3
-            "Cost": {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':100000, 'width': 75}, # LANG: As above
-            "Trips":{'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max':120, 'width': 50}, # LANG: As above
-            "Pad": {'header': _("Pad"), 'background': None, 'format': 'string', 'width': 55}, # LANG: Landing pad size
-            "Facility Economy": {'header': _("Economy"), 'background': None, 'format': 'string', 'width': 80}, # LANG: facility economy
-            "Pop Inc": {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 65}, # LANG: As above
-            "Pop Max": {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 65}, # LANG: As above
-            "Economy Influence": {'header': _("Econ Inf"), 'background': None, 'format': 'string', 'width': 80}, # LANG: economy influence
-            "Security": {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
-            "Technology Level": {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
-            "Wealth": {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
-            "Standard of Living": {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
-            "Development Level": {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65} # LANG: As above
+            'Track': {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Track this build?
+            'Base Type' : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
+            'Name' : {'header': _("Base Name"), 'background': None, 'format': 'dropdown', 'width': 200}, # LANG: name of the base
+            'Body': {'header': _("Body"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Body the base is on or around
+            'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 100}, # LANG: any prerequisites for the base
+            'State': {'header': _("State"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Current build state
+            'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 2 points
+            'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'min':-1, 'max':1, 'width': 30}, # LANG: Tier 3
+            'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':100000, 'width': 75}, # LANG: As above
+            'Trips':{'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max':120, 'width': 50}, # LANG: As above
+            'Pad': {'header': _("Pad"), 'background': None, 'format': 'string', 'width': 55}, # LANG: Landing pad size
+            'Facility Economy': {'header': _("Economy"), 'background': None, 'format': 'string', 'width': 80}, # LANG: facility economy
+            'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 65}, # LANG: As above
+            'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 65}, # LANG: As above
+            'Economy Influence': {'header': _("Econ Inf"), 'background': None, 'format': 'string', 'width': 80}, # LANG: economy influence
+            'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
+            'Technology Level': {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
+            'Wealth': {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
+            'Standard of Living': {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
+            'Development Level': {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65} # LANG: As above
         }
 
         # UI components
@@ -412,8 +412,8 @@ class ColonisationWindow:
         s4 = sheet.span('E4:T', type_='readonly')
         sheet.named_span(s4)
 
-        # types and names left.
-        sheet[f"B{FIRST_BUILD_ROW}:C"].align(align='left')
+        # track, types and names left.
+        sheet[f"A{FIRST_BUILD_ROW}:C"].align(align='left')
 
 
     def get_summary_header(self) -> list[str]:
@@ -611,7 +611,11 @@ class ColonisationWindow:
             # Handle build states
             if new[i][5] == BuildState.COMPLETE: # Mark completed builds as readonly
                 # Tracking
-                sheet[i+srow,0].checkbox(state='disabled'); sheet[i+srow,0].data = ' '; sheet[i+srow,0].readonly()
+                sheet[i+srow,0].del_checkbox()
+                sheet[i+srow,0].data = ' ⤴'
+                sheet[i+srow,0].align(align='left')
+                #sheet[i+srow,0].checkbox(state='disabled'); sheet[i+srow,0].data = ' ';
+                sheet[i+srow,0].readonly()
 
                 # Base tyoe
                 if new[i][1] != ' ': # Base type has been set so make it readonly
@@ -621,6 +625,11 @@ class ColonisationWindow:
 
                 # Base name
                 sheet[i+srow,2].readonly()
+                sheet[i+srow,2].align(align='left')
+
+                # Body
+                sheet[i+srow,3].del_dropdown()
+                sheet[i+srow,3].readonly()
                 continue
 
             #if isinstance(new[i][5], int):
@@ -636,8 +645,17 @@ class ColonisationWindow:
                 sheet[i+srow,1].align(align='left')
                 sheet[i+srow,1].readonly(False)
                 sheet[i+srow,1].data = new[i][1]
+
             # Base name
             sheet[i+srow,2].readonly(False)
+
+            # Body
+            if system != None and 'Bodies' in system:
+                bodies:list = self.colonisation.get_bodies(system)
+                if len(bodies) > 0:
+                    sheet[i+srow,3].dropdown(values=[' '] + bodies)
+            sheet[i+srow,3].readonly(False)
+            sheet[i+srow,3].data = new[i][3]
 
         # Clear the highlights on the empty last row
         if len(new) > len(system.get('Builds', [])):
@@ -688,10 +706,8 @@ class ColonisationWindow:
                 if event.selected.row < FIRST_BUILD_ROW:
                     return
 
-                row = event.selected.row - FIRST_BUILD_ROW; col = event.selected.column
-
-                fields:list = list(self.detail_cols.keys())
-                field:str = fields[col]
+                row:int = event.selected.row - FIRST_BUILD_ROW; col:int = event.selected.column
+                fields:list = list(self.detail_cols.keys()); field:str = fields[col]
                 systems:list = self.colonisation.get_all_systems()
 
                 # If the user clicks on the state column, toggle the state between planned and complete.
@@ -708,7 +724,8 @@ class ColonisationWindow:
                     self.colonisation.save()
                     self.update_display()
 
-                if field in ['Name', 'Base Type'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
+                #if field in ['Name', 'Base Type'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
+                if field in ['Track'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
                     opener:str = plug.invoke(config.get_str('station_provider'), 'EDSM', 'station_url', systems[sysnum]['StarSystem'], systems[sysnum]['Builds'][row]['Name'])
                     if opener:
                         return webbrowser.open(opener)
@@ -726,13 +743,10 @@ class ColonisationWindow:
 
             match field:
                 case 'Base Type' if val == ' ':
-                    Debug.logger.debug(f"Maybe removing build {row} from {sysnum}")
                     # If they set the base type to empty remove the build
                     if row < len(systems[sysnum]['Builds']):
-                        Debug.logger.debug(f"Removing build {row} from {sysnum}")
                         self.colonisation.remove_build(systems[sysnum], row)
                     else:
-                        Debug.logger.debug(f"Clearing build {row} of {len(systems[sysnum]['Builds'])} from {sysnum}")
                         systems[sysnum]['Builds'][row][field] = val
                     data = self.sheets[sysnum].data
                     data.pop(row + FIRST_BUILD_ROW)

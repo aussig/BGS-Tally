@@ -25,6 +25,7 @@ EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
 EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
 EDSM_SYSTEM = 'https://www.edsm.net/api-v1/system?showInformation=1&systemName='
 EDSM_DELAY = (3600 * 24)
+EDSM_DELAY = 30
 class Colonisation:
     ''' Manages colonisation data and events for Elite Dangerous colonisation '''
     def __init__(self, bgstally):
@@ -164,7 +165,7 @@ class Colonisation:
 
                     # Figure out the station name, location, and if it's one we are or should have recorded
                     name:str = ''; type:str = ''; state:BuildState = None
-                    if 'Construction Site' in entry.get('StationName', '') or 'ColonisationShip' in entry.get('StationName', ''):
+                    if 'Construction Site' in entry.get('StationName', '') or 'ColonisationShip' in entry.get('StationName', '') or 'MULTIPLAYER_SCENARIO' in entry.get('Stationname', ''):
                         build_state = BuildState.PROGRESS
                         name = re.sub('^.* Construction Site: ', '', entry['StationName'])
                         type = re.sub('^(.*) Construction Site: .*$', '\1', entry['StationName'])
@@ -413,6 +414,7 @@ class Colonisation:
 
                 body = get_by_path(base, ['body', 'name'], '')
                 body = body.replace(system.get('StarSystem', '') + ' ', '')
+
                 build:dict = {
                     'Base Type': base.get('type'),
                     'StationEconomy': base.get('economy'),
@@ -454,8 +456,9 @@ class Colonisation:
             Debug.logger.debug(f"system: {data}")
             system['Population'] = get_by_path(data, ['information', 'population'], None)
             system['Economy'] = get_by_path(data, ['information', 'economy'], None)
-            #if get_by_path(data, ['information', 'secondEconomy'], None):
-            #    system['Economy'] += "/" + get_by_path(data, ['information', 'secondEconomy'], None)
+            Debug.logger.debug(f"{data}")
+            if get_by_path(data, ['information', 'secondEconomy'], 'None') != 'None':
+                system['Economy'] += "/" + get_by_path(data, ['information', 'secondEconomy'])
             system['Security'] = get_by_path(data, ['information', 'security'], None)
             system['EDSMUpdated'] = int(time.time())
 

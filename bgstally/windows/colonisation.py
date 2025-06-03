@@ -134,7 +134,7 @@ class ColonisationWindow:
                 self.tabbar.select(1)
 
         except Exception as e:
-            Debug.logger.error(f"Error in colonisation.show(): {e}")
+            Debug.logger.error(f"Error in create_frames(): {e}")
             Debug.logger.error(traceback.format_exc())
 
 
@@ -190,11 +190,16 @@ class ColonisationWindow:
         self.plan_titles[sysnum]['Name'] = name_label
 
         sys_label:ttk.Label = ttk.Label(title_frame, text="", cursor="hand2")
-        sys_label.pack(side=tk.LEFT, padx=10, pady=5)
+        sys_label.pack(side=tk.LEFT, padx=5, pady=5)
         self.weight(sys_label)
         sys_label.bind("<Button-1>", partial(self.system_click, tabnum))
-
         self.plan_titles[sysnum]['System'] = sys_label
+
+        sys_copy:ttk.Label = ttk.Label(title_frame, text='⮺   ', cursor='hand2')
+        sys_copy.pack(side=tk.LEFT, padx=(0,10), pady=5)
+        self.weight(sys_copy)
+        sys_copy.bind("<Button-1>", partial(self.ctc, tabnum))
+        ToolTip(sys_copy, text=_("Copy system name to clipboard")) # LANG: tooltip for the copy to clipboard icon
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
             bodies = str(len(systems[sysnum]['Bodies'])) + " " + _("Bodies") # LANG: bodies in the system
@@ -232,6 +237,17 @@ class ColonisationWindow:
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
 
+    def ctc(self, tabnum:int, event) -> None:
+        ''' Copy to clipboard '''
+        try:
+            systems:list = self.colonisation.get_all_systems()
+            self.window.clipboard_clear()
+            self.window.clipboard_append(systems[tabnum-1].get('StarSystem', ''))
+        except Exception as e:
+            Debug.logger.error(f"Error in ctc() {e}")
+            Debug.logger.error(traceback.format_exc())
+
+
     def system_click(self, tabnum:int, event) -> None:
         ''' Execute the click event for the system link '''
         try:
@@ -249,15 +265,16 @@ class ColonisationWindow:
             #    return webbrowser.open(opener)
             #else:
 
-            Debug.logger.debug(f"{config.get_str('system_provider')} Link to {star}")
             match config.get_str('system_provider'):
                 case 'Inara':
                     webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={star}")
+                case 'spansh':
+                    webbrowser.open(f"https://www.spansh.co.uk/search/{star}")
                 case _:
                     webbrowser.open(f"https://www.edsm.net/en/system?systemName={star}")
 
         except Exception as e:
-            Debug.logger.error(f"Error in create_title_frame() {e}")
+            Debug.logger.error(f"Error in system_click() {e}")
             Debug.logger.error(traceback.format_exc())
 
 
@@ -296,30 +313,31 @@ class ColonisationWindow:
                 else:
                     first = False
 
-                bstr += f"{' ' * indent}{name} - {b.get('subType')}\n"
+                bstr += f"{' ' * indent}{name} - {b.get('subType')}"
+                if b.get('distanceToArrival'):
+                    bstr += (f", {human_format(b.get('distanceToArrival'))}Ls")
+                bstr += "\n"
+
+                attrs:list = []
+                if b.get('isLandable') == True: attrs.append(f"{_('Landable')}")
+                rings:list = []
+                for r in b.get('rings', []):
+                    if r.get('type', None) != None: rings.append(r.get('type'))
+                if len(rings):
+                    attrs.append(b.get('reserveLevel') + " " +_("rings") + ": " + ", ".join(rings))
+
                 if b.get('type') == 'Planet':
-                    attrs:list = []
                     if b.get('terraformingState') == 'Terraformable': attrs.append(_("Terraformable"))
-                    if b.get('isLandable') == True: attrs.append(_("Landable"))
                     if b.get('atmosphereType') != 'No atmosphere' or len(attrs):
-                        astr:str = b.get('atmosphereType')
-                        if b.get('atmosphereType') != 'No atmosphere': astr += " atmosphere"
+                        astr:str = b.get('atmosphereType', 'No atmosphere')
+                        if astr != 'No atmosphere': astr += " atmosphere"
                         attrs.append(astr)
-                    if b.get('volcanismType', 'No volcanism') != 'No volcanism' or len(attrs): attrs.append(b.get('volcanismType'))
+                    if b.get('volcanismType', 'No volcanism') != 'No volcanism': attrs.append(b.get('volcanismType'))
 
-                    rings:list = []
-                    for r in b.get('rings', []):
-                        if r.get('type', None) != None: rings.append(r.get('type'))
-                    if len(rings):
-                        attrs.append(b.get('reserveLevel') + " " +_("rings") + ": " + ", ".join(rings))
-
-                    if len(attrs) > 0:
-                        if b.get('distanceToArrival'): attrs.insert(0, f"{human_format(b.get('distanceToArrival'))}Ls")
-
-                    if len(attrs) > 0:
-                        bstr += f"{' ' * indent}  "
-                        bstr += ", ".join(attrs)
-                        bstr += "\n"
+                if len(attrs) > 0:
+                    bstr += f"{' ' * (indent+8)}"
+                    bstr += ", ".join(attrs)
+                    bstr += "\n"
                 bstr += "\n"
             text.insert(tk.END, bstr)
 
@@ -612,7 +630,7 @@ class ColonisationWindow:
             if new[i][5] == BuildState.COMPLETE: # Mark completed builds as readonly
                 # Tracking
                 sheet[i+srow,0].del_checkbox()
-                sheet[i+srow,0].data = ' ⤴'
+                sheet[i+srow,0].data = '⇒' #' 🔍'
                 sheet[i+srow,0].align(align='left')
                 #sheet[i+srow,0].checkbox(state='disabled'); sheet[i+srow,0].data = ' ';
                 sheet[i+srow,0].readonly()

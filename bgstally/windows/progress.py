@@ -245,9 +245,14 @@ class ProgressWindow:
                 case 'Commodity':
                     self.comm_order = CommodityOrder((self.comm_order.value + 1) % len(CommodityOrder))
                 case _:
-                    # Units -1 because PERCENT is disabled.
-                    self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)-1))
 
+                    self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
+                    # Loads is meaningless for cargo!
+                    if column == 'Cargo' and self.units[column] == ProgressUnits.LOADS:
+                        self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
+                    # Percent is only meaningful for Delivered and Carrier
+                    if column not in ['Delivered', 'Carrier'] and self.units[column] == ProgressUnits.PERCENT:
+                        self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
             self.update_display()
 
         except Exception as e:
@@ -367,7 +372,7 @@ class ProgressWindow:
                     if col == 'Commodity':
                         # Shorten and display the commodity name
                         colstr:str = self.colonisation.commodities[c].get('Name', c)
-                        if len(colstr) > 25: colstr = colstr[0:23] + '…'
+                        if len(colstr) > 22: colstr = colstr[0:20] + '…'
                         row['Commodity']['text'] = colstr
                         row['Commodity'].bind("<Button-1>", partial(self.link, c))
                         row['Commodity'].grid()
@@ -422,11 +427,22 @@ class ProgressWindow:
             case ProgressUnits.REMAINING if column == 'Cargo': valstr = f"{max(remaining-cargo, 0):,} {_('t')}"
             case ProgressUnits.REMAINING if column == 'Carrier': valstr = f"{max(remaining-carrier,0):,} {_('t')}"
 
-            case ProgressUnits.LOADS if column == 'Required': valstr = f"{ceil(remaining / self.colonisation.cargo_capacity)} {_('L')}"
-            case ProgressUnits.LOADS if column == 'Delivered': valstr = f"{ceil(delivered / self.colonisation.cargo_capacity)} {_('L')}"
+            case ProgressUnits.LOADS if column == 'Required':
+                if ceil(remaining / self.colonisation.cargo_capacity) > 1:
+                    valstr = f"{ceil(remaining / self.colonisation.cargo_capacity)} {_('L')}"
+                else:
+                    valstr = f"{remaining:,} {_('t')}"
+            case ProgressUnits.LOADS if column == 'Delivered':
+                if ceil(delivered / self.colonisation.cargo_capacity) > 1:
+                    valstr = f"{ceil(delivered / self.colonisation.cargo_capacity)} {_('L')}"
+                else:
+                    valstr = f"{delivered:,} {_('t')}"
             case ProgressUnits.LOADS if column == 'Cargo': valstr = f"{ceil(cargo / self.colonisation.cargo_capacity)} {_('L')}"
-            case ProgressUnits.LOADS if column == 'Carrier': valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)} {_('L')}"
-
+            case ProgressUnits.LOADS if column == 'Carrier':
+                if ceil(carrier / self.colonisation.cargo_capacity) > 1:
+                    valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)} {_('L')}"
+                else:
+                    valstr = f"{carrier:,} {_('t')}"
             case ProgressUnits.PERCENT if column == 'Required': valstr = f"{delivered * 100 / required:.0f}%"
             case ProgressUnits.PERCENT if column == 'Delivered': valstr = f"{delivered * 100 / required:.0f}%"
             case ProgressUnits.PERCENT if column == 'Cargo': valstr = f"{cargo * 100 / cargo:.0f}%"

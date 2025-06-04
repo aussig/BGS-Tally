@@ -1,6 +1,7 @@
 files:
-  - source: /L10n/en.template.strings
+  - source: /L10n/en.strings
     translation: /L10n/%two_letters_code%.strings
+    update_option: update_without_changes
 
   - source: /data/colonisation_legend.txt
     translation: /data/L10n/%two_letters_code%.colonisation_legend.txt

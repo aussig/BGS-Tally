@@ -69,6 +69,7 @@ The plugin makes the following network connections:
 1. To [CMDR Zoy's Tick Detector](http://tick.infomancer.uk/galtick.json) to grab the date and time of the lastest tick.
 2. To [GitHub](https://api.github.com/repos/aussig/BGS-Tally/releases/latest) to check the version of the plugin to see whether there is a newer version available.
 3. To [Inara](https://inara.cz/elite/) to anonymously check for available information on targeted CMDRs.
+4. To [EDSM](https://edsm.net/) to anonymously retrieve information about systems, bodies, and stations for colonisation.
 4. **Only if configured by you** to a specific Discord webhook on a Discord server of your choice, and only when you explicitly click the _Post to Discord_ button.
 5. **Only if configured by you** to a specific web application of your choice to send your BGS / TW data for aggregation and analysis, via an API. You have control over whether you approve the initial connection, and can choose to terminate the connection at any time.
 

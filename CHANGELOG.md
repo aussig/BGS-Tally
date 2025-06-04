@@ -1,8 +1,10 @@
 # Change Log
-
 ## v5.0.0-xx - xxxx-xx-xx
 
+### Changes
 
+* Added querying of EDSM for body information, existing bases, and system information
+* Modified the "loads" view to use tonnes if it's less than one load.
 
 ## v5.0.0-a3 - 2025-05-26
 
@@ -28,7 +30,6 @@
     - Fixed issue with the carrier getting added to the completed builds list
     - Fixed issue with not showing completed bases that were found but we don't know the build type
     - Typo fixes to the legend
-
 
 ## v5.0.0-a2 - 2025-05-17
 

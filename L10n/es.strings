@@ -112,6 +112,9 @@
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Beneficios de mercado negro";
 
+/* bodies in the system. [colonisation.py] */
+"Bodies" = "Bodies";
+
 /* Body the base is on or around. [colonisation.py] */
 "Body" = "Cuerpo";
 
@@ -119,7 +122,7 @@
 "Both BGS and TW" = "BGS y TW";
 
 /* Post to Discord button tooltip. [activity.py] */
-"Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord" = "Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord";
+"Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord" = "Tanto el campo 'Post en Discord como' como un webhookde Discord\n deben ser configurados en la configuración para permitir publicar en Discord";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bonos de recompensas";
@@ -229,6 +232,9 @@
 /* [sheet_options.py] */
 "Copy contents" = "Copiar contenido";
 
+/* tooltip for the copy to clipboard icon. [colonisation.py] */
+"Copy system name to clipboard" = "Copy system name to clipboard";
+
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Copiar al portapapeles";
 
@@ -263,10 +269,10 @@
 "Cut contents" = "Cortar contenido";
 
 /* tooltip for the change view icon (full, reduced, minimal, none). [progress.py] */
-"Cycke commodity list filter views" = "Cycke commodity list filter views";
+"Cycke commodity list filter views" = "Cambiar vista del filtro de lista de mercancías";
 
 /* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
-"Cycle commodity list filter views" = "Cycle commodity list filter views";
+"Cycle commodity list filter views" = "Cambiar vista del filtro de lista de mercancías";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Fecha / Hora";
@@ -331,13 +337,10 @@
 /* Label on activity window. [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Comprueba los conteos de las CZ de tierra, los tamaños no siempre son correctos";
 
-/* facility economy. [colonisation.py] */
-"Econ" = "Econ";
-
 /* Economy influence. [colonisation.py] */
 "Econ Inf" = "Econ Inf";
 
-/* facility economy. [colonisation.py] */
+/* [colonisation.py] */
 "Economy" = "Economía";
 
 /* [sheet_options.py] */
@@ -354,9 +357,6 @@
 
 /* Discord heading, abbreviation for election INF. [default.py] */
 "ElectionINF" = "EleccionesINF";
-
-/* Your helpful context goes here. [colonisation.py] */
-"Elite Dangerous Colonisation" = "Elite Dangerous Colonisation";
 
 /* Label on activity window. [activity.py] */
 "Empty System, no BGS Activity Available" = "Sistema deshabitado, no hay actividad de BGS disponible";
@@ -673,6 +673,9 @@
 /* [progress.py] */
 "L" = "V";
 
+/* [colonisation.py] */
+"Landable" = "Landable";
+
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Idioma para las publicaciones de Discord";
 
@@ -693,9 +696,6 @@
 
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Estado legal: {legal}";
-
-/* Title of the legend popup window. [colonisation.py] */
-"Legend" = "Leyenda";
 
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Viajes";
@@ -793,9 +793,6 @@
 /* Discord carrier docking access. [fleetcarrier.py] */
 "None" = "Nadie";
 
-/* Title of the notes popup window. [colonisation.py] */
-"Notes for " = "Notas para ";
-
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Acceso con notoriedad";
 
@@ -829,7 +826,7 @@
 /* Colonisation 'Type' [base_types.json] */
 "Outpost Hub" = "Hub de Outpost";
 
-/* Pad size. [colonisation.py] */
+/* Landing pad size. [colonisation.py] */
 "Pad" = "Pad";
 
 /* [ui.py] */
@@ -876,6 +873,9 @@
 
 /* Text on API settings window. [api.py] */
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "¡POR FAVOR ASEGÚRATE DE QUE CONFÍAS en el servidor al que envíes esta información!";
+
+/* [colonisation.py] */
+"Pop" = "Pop";
 
 /* Population increase. [colonisation.py] */
 "Pop Inc" = "Pob Inc";
@@ -958,7 +958,7 @@
 /* Rename button. [colonisation.py] */
 "Rename" = "Renombrar";
 
-/* Your helpful context goes here. [colonisation.py] */
+/* Rename a system. [colonisation.py] */
 "Rename System" = "Renombrar sistema";
 
 /* tooltip for the rename system button. [colonisation.py] */
@@ -990,6 +990,9 @@
 
 /* Colonisation 'Type' [base_types.json] */
 "Research Station" = "Investigación de investigación";
+
+/* [colonisation.py] */
+"rings" = "rings";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "BusqResc";
@@ -1120,6 +1123,9 @@
 /* tooltip for the previous build icon. [progress.py] */
 "Show previous build" = "Mostrar construcción anterior";
 
+/* tooltip for the show bodies window. [colonisation.py] */
+"Show system bodies window" = "Show system bodies window";
+
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Mostrar ventana de notas del sistema";
 
@@ -1218,6 +1224,9 @@
 
 /* Technology level. [colonisation.py] */
 "Tech Lvl" = "Niv Tec.";
+
+/* [colonisation.py] */
+"Terraformable" = "Terraformable";
 
 /* Name of default output formatter. [text.py] */
 "Text Only" = "Sólo texto";
@@ -1380,6 +1389,18 @@
 
 /* CMDR window title. [cmdrs.py] */
 "{plugin_name} - CMDR Interactions" = "{plugin_name} - Interacciones del CMDR";
+
+/* Colonisation window title. [colonisation.py] */
+"{plugin_name} - Colonisation" = "{plugin_name} - Colonisation";
+
+/* Colonisation bodies popup window title. [colonisation.py] */
+"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Colonisation Bodies";
+
+/* Colonisation legend popup window title. [colonisation.py] */
+"{plugin_name} - Colonisation Legend" = "{plugin_name} - Colonisation Legend";
+
+/* Colonisation notes popup window title. [colonisation.py] */
+"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - Colonisation Notes for {system_name}";
 
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Leyenda de los iconos";

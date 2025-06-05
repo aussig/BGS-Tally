@@ -630,7 +630,7 @@ class ColonisationWindow:
             if new[i][5] == BuildState.COMPLETE: # Mark completed builds as readonly
                 # Tracking
                 sheet[i+srow,0].del_checkbox()
-                sheet[i+srow,0].data = '⇒' #' 🔍'
+                sheet[i+srow,0].data = ' ⇒' #' 🔍'
                 sheet[i+srow,0].align(align='left')
                 #sheet[i+srow,0].checkbox(state='disabled'); sheet[i+srow,0].data = ' ';
                 sheet[i+srow,0].readonly()

@@ -127,7 +127,7 @@ class ProgressWindow:
             view_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_change_view, cursor="hand2")
             view_btn.bind("<Button-1>", partial(self.event, "change"))
             view_btn.grid(row=row, column=col, sticky=tk.E)
-            ToolTip(view_btn, text=_("Cycke commodity list filter views")) # LANG: tooltip for the change view icon (full, reduced, minimal, none)
+            ToolTip(view_btn, text=_("Cycle commodity list filter views")) # LANG: tooltip for the change view icon (full, reduced, minimal, none)
             col += 1
 
             next_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_right_arrow, cursor="hand2")

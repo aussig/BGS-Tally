@@ -113,7 +113,7 @@
 "Black market profit" = "Profitto del mercato nero";
 
 /* bodies in the system. [colonisation.py] */
-"Bodies" = "Bodies";
+"Bodies" = "Corpi";
 
 /* Body the base is on or around. [colonisation.py] */
 "Body" = "Corpo";
@@ -233,7 +233,7 @@
 "Copy contents" = "Copia contenuto";
 
 /* tooltip for the copy to clipboard icon. [colonisation.py] */
-"Copy system name to clipboard" = "Copy system name to clipboard";
+"Copy system name to clipboard" = "Copia il nome di sistema negli appunti";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Copia negli appunti";
@@ -272,7 +272,7 @@
 "Cycke commodity list filter views" = "Cycke commodity list filter views";
 
 /* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
-"Cycle commodity list filter views" = "Cycle commodity list filter views";
+"Cycle commodity list filter views" = "Scorri le viste dell’elenco commodity";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Data / Ora";
@@ -674,7 +674,7 @@
 "L" = "L";
 
 /* [colonisation.py] */
-"Landable" = "Landable";
+"Landable" = "Atterrabile";
 
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Lingua dei post Discord";
@@ -992,7 +992,7 @@
 "Research Station" = "Research Station";
 
 /* [colonisation.py] */
-"rings" = "rings";
+"rings" = "anelli";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "SAR";
@@ -1124,7 +1124,7 @@
 "Show previous build" = "Mostra la costruzione precedente";
 
 /* tooltip for the show bodies window. [colonisation.py] */
-"Show system bodies window" = "Show system bodies window";
+"Show system bodies window" = "Mostra finestra corpi di sistema";
 
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Mostra la finestra delle note del sistema";
@@ -1226,7 +1226,7 @@
 "Tech Lvl" = "Lv Tech";
 
 /* [colonisation.py] */
-"Terraformable" = "Terraformable";
+"Terraformable" = "Terraformabile";
 
 /* Name of default output formatter. [text.py] */
 "Text Only" = "Solo testo";
@@ -1391,16 +1391,16 @@
 "{plugin_name} - CMDR Interactions" = "{plugin_name} - Interazioni CMDR";
 
 /* Colonisation window title. [colonisation.py] */
-"{plugin_name} - Colonisation" = "{plugin_name} - Colonisation";
+"{plugin_name} - Colonisation" = "{plugin_name} - Colonizzazione";
 
 /* Colonisation bodies popup window title. [colonisation.py] */
-"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Colonisation Bodies";
+"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Colonizzazione Corpi";
 
 /* Colonisation legend popup window title. [colonisation.py] */
-"{plugin_name} - Colonisation Legend" = "{plugin_name} - Colonisation Legend";
+"{plugin_name} - Colonisation Legend" = "{plugin_name} - Leggenda Colonizzazione";
 
 /* Colonisation notes popup window title. [colonisation.py] */
-"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - Colonisation Notes for {system_name}";
+"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - Note di Colonizzazione per {system_name}";
 
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Legenda Delle Icone";

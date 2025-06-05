@@ -61,24 +61,24 @@ class ColonisationWindow:
         self.detail_cols:dict = {
             'Track': {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Track this build?
             'Base Type' : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
-            'Name' : {'header': _("Base Name"), 'background': None, 'format': 'dropdown', 'width': 200}, # LANG: name of the base
-            'Body': {'header': _("Body"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Body the base is on or around
-            'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 100}, # LANG: any prerequisites for the base
-            'State': {'header': _("State"), 'background': None, 'format': 'string', 'width': 100}, # LANG: Current build state
+            'Name' : {'header': _("Base Name"), 'background': None, 'format': 'dropdown', 'width': 225}, # LANG: name of the base
+            'Body': {'header': _("Body"), 'background': None, 'format': 'string', 'width': 115}, # LANG: Body the base is on or around
+            'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 115}, # LANG: any prerequisites for the base
+            'State': {'header': _("State"), 'background': None, 'format': 'string', 'width': 115}, # LANG: Current build state
             'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 2 points
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'min':-1, 'max':1, 'width': 30}, # LANG: Tier 3
             'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':100000, 'width': 75}, # LANG: As above
-            'Trips':{'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max':120, 'width': 50}, # LANG: As above
-            'Pad': {'header': _("Pad"), 'background': None, 'format': 'string', 'width': 55}, # LANG: Landing pad size
+            'Trips':{'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max':120, 'width': 60}, # LANG: As above
+            'Pad': {'header': _("Pad"), 'background': None, 'format': 'string', 'width': 75}, # LANG: Landing pad size
             'Facility Economy': {'header': _("Economy"), 'background': None, 'format': 'string', 'width': 80}, # LANG: facility economy
-            'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 65}, # LANG: As above
-            'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 65}, # LANG: As above
-            'Economy Influence': {'header': _("Econ Inf"), 'background': None, 'format': 'string', 'width': 80}, # LANG: economy influence
-            'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
-            'Technology Level': {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
-            'Wealth': {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
-            'Standard of Living': {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65}, # LANG: As above
-            'Development Level': {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 65} # LANG: As above
+            'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 75}, # LANG: As above
+            'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 75}, # LANG: As above
+            'Economy Influence': {'header': _("Econ Inf"), 'background': None, 'format': 'string', 'width': 100}, # LANG: economy influence
+            'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
+            'Technology Level': {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
+            'Wealth': {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
+            'Standard of Living': {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
+            'Development Level': {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70} # LANG: As above
         }
 
         # UI components
@@ -209,13 +209,16 @@ class ColonisationWindow:
             self.weight(sys_bodies)
             sys_bodies.bind("<Button-1>", partial(self.bodies_popup, tabnum))
 
-        attrs = []
-        for attr in ['Population', 'Economy', 'Security']:
-            if systems[sysnum].get(attr, '') != '':
-                if isinstance(systems[sysnum].get(attr), int):
-                    attrs.append(f"{human_format(systems[sysnum].get(attr))} {_(attr)}")
+        allattrs:dict = {'Population': _('Population'), # HINT: Population heading
+                         'Economy' : _('Economy'), # HINT: Economy heading
+                         'Security' : _('Security')} # HINT: Security heading
+        attrs:list = []
+        for k, v in allattrs.items():
+            if systems[sysnum].get(k, '') != '':
+                if isinstance(systems[sysnum].get(k), int):
+                    attrs.append(f"{human_format(systems[sysnum].get(k))} {v}")
                 else:
-                    attrs.append(f"{systems[sysnum].get(attr)} {_(attr)}")
+                    attrs.append(f"{systems[sysnum].get(k)} {_(v)}")
         details:ttk.Label = ttk.Label(title_frame, text="   ".join(attrs))
         self.weight(details)
         details.pack(side=tk.LEFT, padx=10, pady=5)

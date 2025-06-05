@@ -269,9 +269,6 @@
 "Cut contents" = "Cut contents";
 
 /* tooltip for the change view icon (full, reduced, minimal, none). [progress.py] */
-"Cycke commodity list filter views" = "Cycke commodity list filter views";
-
-/* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
 "Cycle commodity list filter views" = "Cycle commodity list filter views";
 
 /* CMDR window column title. [cmdrs.py] */

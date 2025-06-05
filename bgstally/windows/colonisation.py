@@ -475,7 +475,10 @@ class ColonisationWindow:
                     case 'T2' | 'T3':
                         v = self.calc_points(name, builds, row)
                         totals['Planned'][name] += v
+                        totals['Completed'][name] += v if self.is_build_started(build) and v < 1 else 0 # Need to substract points as soon as build starts as the points are nolonger available
                         totals['Completed'][name] += v if self.is_build_completed(build) else 0
+
+                        Debug.logger.debug(f"{build.get('Name')}: {name} - {v} {self.is_build_started(build)} {self.is_build_completed(build)} P:{totals['Planned'][name]} c:{totals['Completed'][name]}")
                     case 'Population':
                         totals['Planned'][name] = ' '
                         totals['Completed'][name] = human_format(system.get('Population', 0))
@@ -1022,6 +1025,9 @@ class ColonisationWindow:
         ''' Check if a build is completed '''
         return (self.colonisation.get_build_state(build) == BuildState.COMPLETE)
 
+    def is_build_started(self, build:list[dict]) -> bool:
+        ''' Check if a build is in progress '''
+        return (self.colonisation.get_build_state(build) == BuildState.PROGRESS)
 
     def load_legend(self) -> str:
         ''' Load the legend text from the file '''

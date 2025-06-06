@@ -6,6 +6,7 @@
 * Added querying of EDSM for body information, existing bases, and system information
 * Modified the "loads" view to use tonnes if it's less than one load.
 * Reinstated the percentage view for approprite columns
+* Added a window to show all possible bases and their impacts
 
 ## v5.0.0-a3 - 2025-05-26
 

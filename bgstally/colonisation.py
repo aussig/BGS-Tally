@@ -73,7 +73,7 @@ class Colonisation:
         The 'All' category is used to list all the colonisation commodities and their inara IDs
         '''
         try:
-            base_costs_path = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_COSTS_FILENAME)
+            base_costs_path:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_COSTS_FILENAME)
             with open(base_costs_path, 'r') as f:
                 self.base_costs = json.load(f)
                 Debug.logger.info(f"Loaded {len(self.base_costs)} base costs for colonisation")
@@ -525,7 +525,7 @@ class Colonisation:
         for system in self.systems:
             b = self.get_system_builds(system)
             if b != None:
-                all = all + b
+                all.append(b)
 
         return all
 
@@ -561,11 +561,7 @@ class Colonisation:
 
     def get_system_builds(self, system:dict) -> list[dict]:
         ''' Get all builds for a system '''
-        try:
-            return system.get('Builds', [])
-
-        except Exception as e:
-            Debug.logger.error(f"Error getting builds: {e}")
+        return system.get('Builds', [])
 
 
     def find_build(self, system:dict, marketid:int = None, name:str = None) -> dict:
@@ -678,7 +674,7 @@ class Colonisation:
                 if res != {}: found += 1
                 prog.append(res)
 
-            # Add an 'All' total at the end of the list if there's more than one bulid found.
+            # Add an 'All' total at the end of the list if there's more than one build found.
             if found > 1:
                 total:dict = {}
                 for res in prog:
@@ -731,15 +727,12 @@ class Colonisation:
         try:
             carrier:dict = {}
             if self.bgstally.fleet_carrier.available() == True:
-                #Debug.logger.debug(f"Updating carrier data {self.bgstally.fleet_carrier.cargo}")
                 for item in self.bgstally.fleet_carrier.cargo:
                     n = item.get('commodity')
                     n = f"${n.lower().replace(' ', '')}_name;"
                     if n not in carrier:
                         carrier[n] = 0
                     carrier[n] += int(item['qty'])
-
-            #Debug.logger.debug(f"Carrier updated")
             self.carrier_cargo = carrier
 
         except Exception as e:
@@ -756,7 +749,6 @@ class Colonisation:
                     k = f"${k.lower()}_name;"
                     tmp[k] = v
             self.cargo = tmp
-            #Debug.logger.debug(f"cargo updated: {self.cargo}")
 
         except Exception as e:
             Debug.logger.info(f"Unable update the cargo data")
@@ -768,7 +760,6 @@ class Colonisation:
         try:
             if marketid == None or self.docked == False:
                 self.market = {}
-                #Debug.logger.debug(f"Market cleared: {market}")
                 return
 
             market:dict = {}
@@ -813,9 +804,7 @@ class Colonisation:
         # Update the EDSM data if appropriate and no more than once a day.
         for system in self.systems:
             if system.get('StarSystem', '') != '' and time.time() > int(system.get('EDSMUpdated', 0)) + EDSM_DELAY:
-                Debug.logger.debug(f"Getting details for {system.get('StarSystem', '')}")
                 if system.get('Bodies', None) == None:
-                    Debug.logger.debug(f"Requesting EDSM bodies for {system.get('StarSystem')}")
                     self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_bodies)
 
                 # Currently disabled. There are so many shortcomings with trying to do this I'm not sure it's helpful.
@@ -856,8 +845,8 @@ class Colonisation:
 
         # We sort the order of systems when saving so that in progress systems are first, then planned, then complete.
         # Fortuitously our desired order matches the reverse alpha of the states
-        systems = list(sorted(self.systems, key=sort_order, reverse=True))
-        units = {}
+        systems:list = list(sorted(self.systems, key=sort_order, reverse=True))
+        units:dict = {}
         for k, v in self.bgstally.ui.window_progress.units.items():
             units[k] = v.value
 

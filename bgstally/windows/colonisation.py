@@ -110,6 +110,10 @@ class ColonisationWindow:
         self.tabbar:ScrollableNotebook = None
         self.sheets:list = []
         self.plan_titles:list = []
+        self.legend_fr:tk.Toplevel = None
+        self.notes_fr:tk.Toplevel = None
+        self.bases_fr:tk.Toplevel = None
+        self.bodies_fr:tk.Toplevel = None
 
 
     def show(self) -> None:
@@ -314,12 +318,12 @@ class ColonisationWindow:
         ''' Show a popup with all the base types '''
         try:
             scale:float = self.bgstally.ui.frame.tk.call('tk', 'scaling') - 0.6 # Don't know why there's an extra .6
-            popup:tk.Tk = tk.Tk()
-            popup.wm_title(_("BGS-Tally - Colonisation Base Types")) # LANG: Title of the base type popup window
-            popup.wm_attributes('-toolwindow', True) # makes it a tool window
-            popup.geometry(f"{int(800*scale)}x{int(500*scale)}")
-            popup.config(bd=2, relief=tk.FLAT)
-            sheet:Sheet = Sheet(popup, show_row_index=False, cell_auto_resize_enabled=True, height=600,
+            self.bases_fr = tk.Tk()
+            self.bases_fr.wm_title(_("BGS-Tally - Colonisation Base Types")) # LANG: Title of the base type popup window
+            self.bases_fr.wm_attributes('-toolwindow', True) # makes it a tool window
+            self.bases_fr.geometry(f"{int(800*scale)}x{int(500*scale)}")
+            self.bases_fr.config(bd=2, relief=tk.FLAT)
+            sheet:Sheet = Sheet(self.bases, show_row_index=False, cell_auto_resize_enabled=True, height=600,
                             show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
                             show_dropdown_borders=False, header_bg='lightgrey',
@@ -363,19 +367,15 @@ class ColonisationWindow:
     def bodies_popup(self, tabnum:int, event) -> None:
         ''' Show the bodies popup window '''
         try:
-            popup:tk.Tk = tk.Tk()
-
-            def leavemini():
-                popup.destroy()
-
-            popup.wm_title(_("BGS-Tally - Colonisation Bodies")) # LANG: Title of the bodies popup window
-            popup.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-            popup.wm_attributes('-toolwindow', True) # makes it a tool window
-            popup.geometry("600x600")
-            popup.config(bd=2, relief=tk.FLAT)
-            scr:tk.Scrollbar = tk.Scrollbar(popup, orient=tk.VERTICAL)
+            self.bodies_fr = tk.Tk()
+            self.bodies_fr.wm_title(_("BGS-Tally - Colonisation Bodies")) # LANG: Title of the bodies popup window
+            self.bodies_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+            self.bodies_fr.wm_attributes('-toolwindow', True) # makes it a tool window
+            self.bodies_fr.geometry("600x600")
+            self.bodies_fr.config(bd=2, relief=tk.FLAT)
+            scr:tk.Scrollbar = tk.Scrollbar(self.bodies_fr, orient=tk.VERTICAL)
             scr.pack(side=tk.RIGHT, fill=tk.Y)
-            text:tk.Text = tk.Text(popup, font=FONT_SMALL, yscrollcommand=scr.set)
+            text:tk.Text = tk.Text(self.bodies_fr, font=FONT_SMALL, yscrollcommand=scr.set)
             text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
             sysnum:int = tabnum - 1
@@ -1059,11 +1059,13 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def close(self):
+    def close(self) -> None:
         ''' Close the window '''
-        if self.window:
-            self.window.destroy()
-            self.window = None
+        if self.legend_fr: self.legend_fr.destroy()
+        if self.notes_fr: self.notes_fr.destroy()
+        if self.bases_fr: self.bases_fr.destroy()
+        if self.bodies_fr: self.bodies_fr.destroy()
+        if self.window: self.window.destroy()
 
         # UI components
         self.tabbar:ScrollableNotebook = None
@@ -1133,20 +1135,16 @@ class ColonisationWindow:
     def legend_popup(self) -> None:
         ''' Show the legend popup window '''
         try:
-            popup:tk.Tk = tk.Tk()
-
-            def leavemini():
-                popup.destroy()
-
-            popup.wm_title(_("BGS-Tally - Colonisation Legend")) # LANG: Title of the legend popup window
-            popup.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-            popup.wm_attributes('-toolwindow', True) # makes it a tool window
-            popup.geometry("600x600")
-            popup.config(bd=2, relief=tk.FLAT)
-            scr:tk.Scrollbar = tk.Scrollbar(popup, orient=tk.VERTICAL)
+            self.legend_fr = tk.Tk()
+            self.legend_fr.wm_title(_("BGS-Tally - Colonisation Legend")) # LANG: Title of the legend popup window
+            self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+            self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
+            self.legend_fr.geometry("600x600")
+            self.legend_fr.config(bd=2, relief=tk.FLAT)
+            scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
             scr.pack(side=tk.RIGHT, fill=tk.Y)
 
-            text:tk.Text = tk.Text(popup, font=FONT_SMALL, yscrollcommand=scr.set)
+            text:tk.Text = tk.Text(self.legend_fr, font=FONT_SMALL, yscrollcommand=scr.set)
             text.insert(tk.END, self.load_legend())
             text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
@@ -1158,34 +1156,36 @@ class ColonisationWindow:
     def notes_popup(self, tabnum:int) -> None:
         ''' Show the notes popup window '''
         try:
-            def leavemini(system:dict, text:tk.Text):
+            def savenotes(system:dict, text:tk.Text):
+                ''' Save the notes and close the popup window '''
                 if sysnum > len(self.plan_titles):
                     Debug.logger.info(f"Saving notes invalid tab: {tabnum}")
                     return
                 notes:str = text.get("1.0", tk.END)
                 system['Notes'] = notes
                 self.colonisation.save()
-                popup.destroy()
-
+                self.notes_fr.destroy()
+                self.notes_fr = None
+                
             sysnum:int = tabnum -1
             systems:list = self.colonisation.get_all_systems()
 
-            popup:tk.Tk = tk.Tk()
-            popup.wm_title(_("BGS-Tally - Colonisation Notes for ") + systems[sysnum].get('Name', '')) # LANG: Title of the notes popup window
-            popup.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-            popup.wm_attributes('-toolwindow', True) # makes it a tool window
-            popup.geometry("600x600")
-            popup.config(bd=2, relief=tk.FLAT)
-            scr:tk.Scrollbar = tk.Scrollbar(popup, orient=tk.VERTICAL)
+            self.notes_fr = tk.Tk()
+            self.notes_fr.wm_title(_("BGS-Tally - Colonisation Notes for ") + systems[sysnum].get('Name', '')) # LANG: Title of the notes popup window
+            self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+            self.notes_fr.wm_attributes('-toolwindow', True) # makes it a tool window
+            self.notes_fr.geometry("600x600")
+            self.notes_fr.config(bd=2, relief=tk.FLAT)
+            scr:tk.Scrollbar = tk.Scrollbar(self.notes, orient=tk.VERTICAL)
             scr.pack(side=tk.RIGHT, fill=tk.Y)
 
-            text:tk.Text = tk.Text(popup, font=FONT_SMALL, yscrollcommand=scr.set)
+            text:tk.Text = tk.Text(self.notes_fr, font=FONT_SMALL, yscrollcommand=scr.set)
             notes:str = systems[sysnum].get('Notes', '')
             text.insert(tk.END, notes)
             text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
             # Save button
-            save:ttk.Button = ttk.Button(popup, text=_("Save"), command=partial(leavemini, systems[sysnum], text)) # LANG: Save notes button
+            save:ttk.Button = ttk.Button(self.notes_fr, text=_("Save"), command=partial(savenotes, systems[sysnum], text)) # LANG: Save notes button
             save.pack(side=tk.RIGHT, padx=5)
 
         except Exception as e:

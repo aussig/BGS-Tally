@@ -422,25 +422,25 @@ class ProgressWindow:
         remaining:int = required - delivered
 
         match self.units[column]:
-            case ProgressUnits.REMAINING if column == 'Required': valstr = f"{remaining:,} {_('t')}"
-            case ProgressUnits.REMAINING if column == 'Delivered': valstr = f"{max(remaining-cargo-carrier, 0):,} {_('t')}"
-            case ProgressUnits.REMAINING if column == 'Cargo': valstr = f"{max(remaining-cargo, 0):,} {_('t')}"
-            case ProgressUnits.REMAINING if column == 'Carrier': valstr = f"{max(remaining-carrier,0):,} {_('t')}"
+            case ProgressUnits.REMAINING if column == 'Required': valstr = f"{remaining:,}{_('t')}"
+            case ProgressUnits.REMAINING if column == 'Delivered': valstr = f"{max(remaining-cargo-carrier, 0):,}{_('t')}"
+            case ProgressUnits.REMAINING if column == 'Cargo': valstr = f"{max(remaining-cargo, 0):,}{_('t')}"
+            case ProgressUnits.REMAINING if column == 'Carrier': valstr = f"{max(remaining-carrier,0):,}{_('t')}"
 
             case ProgressUnits.LOADS if column == 'Required':
                 if ceil(remaining / self.colonisation.cargo_capacity) > 1:
-                    valstr = f"{ceil(remaining / self.colonisation.cargo_capacity)} {_('L')}"
+                    valstr = f"{ceil(remaining / self.colonisation.cargo_capacity)}{_('L')}"
                 else:
                     valstr = f"{remaining:,} {_('t')}"
             case ProgressUnits.LOADS if column == 'Delivered':
                 if ceil(delivered / self.colonisation.cargo_capacity) > 1:
-                    valstr = f"{ceil(delivered / self.colonisation.cargo_capacity)} {_('L')}"
+                    valstr = f"{ceil(delivered / self.colonisation.cargo_capacity)}{_('L')}"
                 else:
                     valstr = f"{delivered:,} {_('t')}"
-            case ProgressUnits.LOADS if column == 'Cargo': valstr = f"{ceil(cargo / self.colonisation.cargo_capacity)} {_('L')}"
+            case ProgressUnits.LOADS if column == 'Cargo': valstr = f"{ceil(cargo / self.colonisation.cargo_capacity)}{_('L')}"
             case ProgressUnits.LOADS if column == 'Carrier':
                 if ceil(carrier / self.colonisation.cargo_capacity) > 1:
-                    valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)} {_('L')}"
+                    valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)}{_('L')}"
                 else:
                     valstr = f"{carrier:,} {_('t')}"
             case ProgressUnits.PERCENT if column == 'Required': valstr = f"{delivered * 100 / required:.0f}%"
@@ -448,10 +448,10 @@ class ProgressWindow:
             case ProgressUnits.PERCENT if column == 'Cargo': valstr = f"{cargo * 100 / cargo:.0f}%"
             case ProgressUnits.PERCENT if column == 'Carrier': valstr = f"{carrier * 100 / required:.0f}%"
 
-            case _ if column == 'Required': valstr = f"{required:,} {_('t')}"
-            case _ if column == 'Delivered': valstr = f"{delivered:,} {_('t')}"
-            case _ if column == 'Cargo': valstr = f"{cargo:,} {_('t')}"
-            case _ if column == 'Carrier': valstr = f"{carrier:,} {_('t')}"
+            case _ if column == 'Required': valstr = f"{required:,}{_('t')}"
+            case _ if column == 'Delivered': valstr = f"{delivered:,}{_('t')}"
+            case _ if column == 'Cargo': valstr = f"{cargo:,}{_('t')}"
+            case _ if column == 'Carrier': valstr = f"{carrier:,}{_('t')}"
         return valstr
 
 

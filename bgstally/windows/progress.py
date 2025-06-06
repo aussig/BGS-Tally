@@ -153,7 +153,6 @@ class ProgressWindow:
                 ToolTip(c, text=_("Cycle commodity list filter views")) # LANG: tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views
                 self.weight(c)
                 self.colheadings[k] = c
-
             row += 1
 
             for i, col in enumerate(self.headings.keys()):
@@ -168,7 +167,6 @@ class ProgressWindow:
                 self.progcols[col] = tk.IntVar()
                 pbar:ttk.Progressbar = ttk.Progressbar(fr, orient=tk.HORIZONTAL, variable=self.progcols[col], maximum=100, length=70, mode='determinate', style='blue.Horizontal.TProgressbar')
                 pbar.grid(row=0, column=i, pady=0, ipady=0, sticky=tk.EW)
-
             row += 1
 
             # Go through the complete list of possible commodities and make a row for each and hide it.
@@ -222,15 +220,12 @@ class ProgressWindow:
                 case 'next':
                     self.build_index += 1
                     if self.build_index > max: self.build_index = 0
-
                 case 'prev':
                     self.build_index -= 1
                     if self.build_index < 0: self.build_index = max
-
                 case 'change':
                     self.view = ProgressView((self.view.value + 1) % len(ProgressView))
                     self.colonisation.save()
-
             self.update_display()
 
         except Exception as e:
@@ -245,7 +240,6 @@ class ProgressWindow:
                 case 'Commodity':
                     self.comm_order = CommodityOrder((self.comm_order.value + 1) % len(CommodityOrder))
                 case _:
-
                     self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
                     # Loads is meaningless for cargo!
                     if column == 'Cargo' and self.units[column] == ProgressUnits.LOADS:
@@ -264,7 +258,7 @@ class ProgressWindow:
         ''' Open the link to Inara for nearest location for the commodity. '''
         try:
             comm_id = self.colonisation.base_costs['All'].get(comm)
-            sys:str = self.colonisation.current_system if self.colonisation.current_system != None else 'sol'
+            sys:str = self.colonisation.current_system if self.colonisation.current_system != None else 'Sol'
             # pi3=3 - large, pi3=2 - medium
             size:int = 2 if self.colonisation.cargo_capacity < 407 else 3
 
@@ -274,7 +268,7 @@ class ProgressWindow:
             delivered:dict = self.colonisation.get_delivered(tracked)
             rem:int = (required[self.build_index].get(comm, 0) if len(required) > self.build_index else 0) - (delivered[self.build_index].get(comm, 0) if len(delivered) > self.build_index else 0)
             for min in [500, 1000, 2500, 5000, 10000, 50000]:
-                if rem < min: break
+                if min > rem: break
 
             url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
             webbrowser.open(url)
@@ -303,8 +297,8 @@ class ProgressWindow:
             name = _('All') # LANG: all builds
             if self.build_index < len(tracked):
                 b:dict = tracked[self.build_index]
-                bn = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
-                pn = b.get('Plan', _('Unknown')) # Unknown system name
+                bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
+                pn:str = b.get('Plan', _('Unknown')) # Unknown system name
                 name:str = ', '.join([pn, bn])
 
             self.title.config(text=name[-50:])
@@ -382,6 +376,7 @@ class ProgressWindow:
                     row[col].grid()
                     self.highlight_row(row, c, reqcnt - delcnt)
                 rc += 1
+            
             self.display_totals(self.rows[i+1], tracked, totals)
             return
 
@@ -431,18 +426,18 @@ class ProgressWindow:
                 if ceil(remaining / self.colonisation.cargo_capacity) > 1:
                     valstr = f"{ceil(remaining / self.colonisation.cargo_capacity)}{_('L')}"
                 else:
-                    valstr = f"{remaining:,} {_('t')}"
+                    valstr = f"{remaining:,}{_('t')}"
             case ProgressUnits.LOADS if column == 'Delivered':
                 if ceil(delivered / self.colonisation.cargo_capacity) > 1:
                     valstr = f"{ceil(delivered / self.colonisation.cargo_capacity)}{_('L')}"
                 else:
-                    valstr = f"{delivered:,} {_('t')}"
+                    valstr = f"{delivered:,}{_('t')}"
             case ProgressUnits.LOADS if column == 'Cargo': valstr = f"{ceil(cargo / self.colonisation.cargo_capacity)}{_('L')}"
             case ProgressUnits.LOADS if column == 'Carrier':
                 if ceil(carrier / self.colonisation.cargo_capacity) > 1:
                     valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)}{_('L')}"
                 else:
-                    valstr = f"{carrier:,} {_('t')}"
+                    valstr = f"{carrier:,}{_('t')}"
             case ProgressUnits.PERCENT if column == 'Required': valstr = f"{delivered * 100 / required:.0f}%"
             case ProgressUnits.PERCENT if column == 'Delivered': valstr = f"{delivered * 100 / required:.0f}%"
             case ProgressUnits.PERCENT if column == 'Cargo': valstr = f"{cargo * 100 / cargo:.0f}%"

@@ -195,7 +195,7 @@ class ColonisationWindow:
 
     def create_title_frame(self, tabnum:int, tab:ttk.Frame) -> None:
         ''' Create the title frame with system name and tick info '''
-        sysnum = tabnum -1
+        sysnum:int = tabnum -1
         systems:list = self.colonisation.get_all_systems()
 
         title_frame:ttk.Frame = ttk.Frame(tab, style="Title.TFrame")
@@ -283,7 +283,7 @@ class ColonisationWindow:
     def system_click(self, tabnum:int, event) -> None:
         ''' Execute the click event for the system link '''
         try:
-            sysnum = tabnum -1
+            sysnum:int = tabnum -1
             systems:list = self.colonisation.get_all_systems()
             if sysnum > len(systems):
                 Debug.logger.info(f"on_system_click invalid tab: {tabnum}")
@@ -354,6 +354,7 @@ class ColonisationWindow:
                             sheet[i,j].data = bt.get(name) if bt.get(name, ' ') != ' ' else bt.get(name, ' ')
                             if col.get('background') != False:
                                 sheet[i,j].highlight(bg=col.get('background'))
+
         except Exception as e:
             Debug.logger.error(f"Error in bases_popup(): {e}")
             Debug.logger.error(traceback.format_exc())
@@ -377,7 +378,7 @@ class ColonisationWindow:
             text:tk.Text = tk.Text(popup, font=FONT_SMALL, yscrollcommand=scr.set)
             text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
-            sysnum:int = tabnum -1
+            sysnum:int = tabnum - 1
             systems:list = self.colonisation.get_all_systems()
 
             bodies:list = systems[sysnum].get('Bodies', None)
@@ -548,28 +549,26 @@ class ColonisationWindow:
                         totals['Planned'][name] += 1
                         totals['Completed'][name] += 1 if self.is_build_completed(build) else 0
                     case 'Orbital'|'Surface' if bt.get('Location') == name:
-                            totals['Planned'][name] += 1
-                            totals['Completed'][name] += 1 if self.is_build_completed(build) else 0
+                        totals['Planned'][name] += 1
+                        totals['Completed'][name] += 1 if self.is_build_completed(build) else 0
                     case 'T2' | 'T3':
-                        v = self.calc_points(name, builds, row)
+                        v:int = self.calc_points(name, builds, row)
                         totals['Planned'][name] += v
                         totals['Completed'][name] += v if self.is_build_started(build) and v < 1 else 0 # Need to substract points as soon as build starts as the points are nolonger available
                         totals['Completed'][name] += v if self.is_build_completed(build) else 0
-
-                        #Debug.logger.debug(f"{build.get('Name')}: {name} - {v} {self.is_build_started(build)} {self.is_build_completed(build)} P:{totals['Planned'][name]} c:{totals['Completed'][name]}")
                     case 'Population':
                         totals['Planned'][name] = ' '
                         totals['Completed'][name] = human_format(system.get('Population', 0))
                     case 'Development Level':
-                        res = bt.get(name, 0)
+                        res:int = bt.get(name, 0)
                         totals['Planned'][name] += res
                         totals['Completed'][name] += res if self.is_build_completed(build) else 0
                     case 'Cost' if row < len(required):
-                        res = sum(required[row].values())
+                        res:int = sum(required[row].values())
                         totals['Planned'][name] += res
                         totals['Completed'][name] += res if self.is_build_completed(build) else 0
                     case 'Trips' if row < len(required):
-                        trips = ceil(sum(required[row].values()) / self.colonisation.cargo_capacity)
+                        trips:int = ceil(sum(required[row].values()) / self.colonisation.cargo_capacity)
                         totals['Planned'][name] += trips
                         totals['Completed'][name] += trips if self.is_build_completed(build) else 0
                     case _ if col.get('format') == 'int':
@@ -577,10 +576,10 @@ class ColonisationWindow:
                         totals['Completed'][name] += bt.get(name, 0) if self.is_build_completed(build) else 0
 
         # Deal with the "if you have a starport (t2 orbital) your tech level will be at least 35" rule
-        starports = self.colonisation.get_base_types('Starport')
-        min = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
+        starports:list = self.colonisation.get_base_types('Starport')
+        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
         totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
-        min = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.colonisation.get_build_state(build) == BuildState.COMPLETE]) > 0 else 0
+        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.colonisation.get_build_state(build) == BuildState.COMPLETE]) > 0 else 0
         totals['Completed']['Technology Level'] = max(totals['Completed']['Technology Level'], min)
 
         return totals
@@ -606,8 +605,8 @@ class ColonisationWindow:
 
     def update_summary(self, srow:int, sheet:Sheet, system:dict) -> None:
         ''' Update the summary section with current system data '''
-        scol = 0
-        new = self._build_summary(system)
+        scol:int = 0
+        new:list = self._build_summary(system)
 
         for i, x in enumerate(self.summary_rows.keys()):
             for j, details in enumerate(self.summary_cols.values()):
@@ -692,7 +691,7 @@ class ColonisationWindow:
 
     def update_detail(self, srow:int, sheet:Sheet, system:dict) -> None:
         ''' update the details section of the table '''
-        new = self._build_detail(system)
+        new:list = self._build_detail(system)
 
         for i, build in enumerate(system.get('Builds', [])):
             for j, details in enumerate(self.detail_cols.values()):
@@ -850,7 +849,7 @@ class ColonisationWindow:
                         self.colonisation.remove_build(systems[sysnum], row)
                     else:
                         systems[sysnum]['Builds'][row][field] = val
-                    data = self.sheets[sysnum].data
+                    data:list = self.sheets[sysnum].data
                     data.pop(row + FIRST_BUILD_ROW)
                     self.sheets[sysnum].set_sheet_data(data)
                     self.config_sheet(self.sheets[sysnum], systems[sysnum])
@@ -893,7 +892,6 @@ class ColonisationWindow:
         except Exception as e:
             Debug.logger.error(f"Error in sheet_modified(): {e}")
             Debug.logger.error(traceback.format_exc())
-
 
 
     def add_system_dialog(self) -> None:
@@ -1090,7 +1088,7 @@ class ColonisationWindow:
 
     def weight(self, item:tuple, wght:str = 'bold') -> None:
         ''' Set font weight '''
-        fnt = tkFont.Font(font=item['font']).actual()
+        fnt:tkFont = tkFont.Font(font=item['font']).actual()
         item.configure(font=(fnt['family'], fnt['size'], wght))
 
 
@@ -1103,13 +1101,14 @@ class ColonisationWindow:
         ''' Check if a build is completed '''
         return (self.colonisation.get_build_state(build) == BuildState.COMPLETE)
 
+
     def is_build_started(self, build:list[dict]) -> bool:
         ''' Check if a build is in progress '''
         return (self.colonisation.get_build_state(build) == BuildState.PROGRESS)
 
+
     def load_legend(self) -> str:
         ''' Load the legend text from the file '''
-        # @TODO: Need to modify this to check the user's language and look for a translated file
         file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
         lang:str = config.get_str('language')
         if lang and lang != 'en':
@@ -1186,7 +1185,7 @@ class ColonisationWindow:
             text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
             # Save button
-            save = ttk.Button(popup, text=_("Save"), command=partial(leavemini, systems[sysnum], text)) # LANG: Save notes button
+            save:ttk.Button = ttk.Button(popup, text=_("Save"), command=partial(leavemini, systems[sysnum], text)) # LANG: Save notes button
             save.pack(side=tk.RIGHT, padx=5)
 
         except Exception as e:
@@ -1234,14 +1233,14 @@ class ColonisationWindow:
             multi:float = 0.01 # Smaller = more intense
             gradient:list = []
             for i in range(steps+1): # zero up (white to green)
-                r = max(min(base - (i * scale / steps), 255), 0)
-                g = max(min(hbase - (i * scale * multi / steps), 255), 0)
-                b = max(min(base - (i * scale / steps), 255), 0)
+                r:int = max(min(base - (i * scale / steps), 255), 0)
+                g:int = max(min(hbase - (i * scale * multi / steps), 255), 0)
+                b:int = max(min(base - (i * scale / steps), 255), 0)
                 gradient.append(f"#{int(r):02x}{int(g):02x}{int(b):02x}")
             for i in range(1, steps+1): # -1 down (white to red)
-                r = max(min(hbase - (i * scale * multi / steps), 255), 0)
-                g = max(min(base - (i * scale / steps), 255), 0)
-                b = max(min(base - (i * scale / steps), 255), 0)
+                r:int = max(min(hbase - (i * scale * multi / steps), 255), 0)
+                g:int = max(min(base - (i * scale / steps), 255), 0)
+                b:int = max(min(base - (i * scale / steps), 255), 0)
                 gradient.insert(0, f"#{int(r):02x}{int(g):02x}{int(b):02x}")
 
             return gradient
@@ -1256,21 +1255,21 @@ class ColonisationWindow:
         ''' Generates a list of RGB color tuples representing a gradient from green (0) to red (steps). '''
         try:
             # Define RGB values
-            g = (150, 200, 150) #1
-            y = (230, 230, 125) #2
-            r = (190, 30, 100) #3
+            g:int = (150, 200, 150) #1
+            y:int = (230, 230, 125) #2
+            r:int = (190, 30, 100) #3
 
             # Define gradient parameters
-            gradient_colors = []
+            gradient_colors:list = []
 
             # Calculate interpolation steps
-            r_step_1 = (y[0] - g[0]) / steps
-            g_step_1 = (y[1] - g[1]) / steps
-            b_step_1 = (y[2] - g[2]) / steps
+            r_step_1:int = (y[0] - g[0]) / steps
+            g_step_1:int = (y[1] - g[1]) / steps
+            b_step_1:int = (y[2] - g[2]) / steps
 
-            r_step_2 = (r[0] - y[0]) / steps
-            g_step_2 = (r[1] - y[1]) / steps
-            b_step_2 = (r[2] - y[2]) / steps
+            r_step_2:int = (r[0] - y[0]) / steps
+            g_step_2:int = (r[1] - y[1]) / steps
+            b_step_2:int = (r[2] - y[2]) / steps
 
             # Iterate and interpolate
             for i in range(steps+1):

@@ -1,5 +1,13 @@
 # Change Log
 
+## v5.0.0-b1 - 2025-06-07
+
+### Changes
+
+* Added querying of EDSM for body information, existing bases, and system information
+* Modified the "loads" view to use tonnes if it's less than one load.
+
+
 ## v5.0.0-a3 - 2025-05-26
 
 ### Changes:

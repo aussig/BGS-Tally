@@ -4,6 +4,7 @@ from copy import deepcopy
 from os import listdir
 from os.path import join
 from pathlib import Path
+from typing import Callable, Any, Tuple
 
 import semantic_version
 
@@ -14,40 +15,78 @@ from config import appversion
 
 # Language codes for languages that should be omitted
 BLOCK_LANGS: list = []
+# Assign the current EDMC version to the variable.
+edmc_version: semantic_version.Version = appversion()
 
-# Localisation main translation function
-_ = functools.partial(l10n.Translations.translate, context=__file__)
 
-# Localisation conditional translation function for when PR [2188] is merged in to EDMC
-# __ = functools.partial(l10n.Translations.translate, context=__file__, lang=lang)
+def _get_tl_func(edmc_version: semantic_version.Version) -> Tuple[Callable[[str], str], Any]:
+    """
+    Returns the appropriate translation function and translations object based on the EDMC version.
 
-# Localisation conditional translation function before PR [2188] is merged in to EDMC
-def __(string: str, lang: str) -> str:
-    """Translate using our overridden language
+    Starting from EDMC version 5.11.0, the translation API changed: the old method
+    `l10n.Translations.translate` was deprecated in favor of the new function
+    `l10n.translations.tl`. The legacy method is officially deprecated as of 5.11.0 and
+    will be removed or made private (thus inaccessible) in version 6.0.
+    This function abstracts this difference, returning both a translation function with the
+    same interface and the correct translations object, so the rest of the code can always use
+    the same call regardless of the EDMC version.
 
     Args:
-        string (str): The string to translate
-        lang (str): The override language
+        edmc_version (semantic_version.Version): The already parsed EDMC version.
 
     Returns:
-        str: Translated string
+        tuple: (translation function, translations object)
+            - Callable[[str], str]: The translation function to use.
+            - Any: The translations object to use (l10n.Translations or l10n.translations).
     """
-    if lang == "" or lang is None or lang == l10n.Translations.FALLBACK: return _(string)
-
-    if appversion() < semantic_version.Version('5.12.0'):
-        l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
+    if edmc_version < semantic_version.Version('5.11.0'):
+        return functools.partial(l10n.Translations.translate, context=__file__), l10n.Translations
     else:
-        l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
+        return functools.partial(l10n.translations.tl, context=__file__), l10n.translations
 
-    contents: dict[str, str] = l10n.Translations.contents(lang=lang, plugin_path=l10n_path)
 
-    if not contents:
-        Debug.logger.debug(f'Failure loading translations for language {lang!r}')
+# Assign the translation function and the translations object based on the current EDMC version.
+_, translations_obj = _get_tl_func(edmc_version)
+
+
+def __(string: str, lang: str) -> str:
+    """
+    Translate a string using the specified language, compatible with all EDMC versions.
+
+    This function attempts to translate the given string into the specified language.
+    If the language is None, empty, or the fallback language, or if translation fails,
+    it safely returns the string translated in the plugin's currently active language
+    or falls back to the original string.
+
+    Args:
+        string (str): The string to translate.
+        lang (str): The language code to use for translation.
+
+    Returns:
+        str: The translated string, or the original string if translation is not possible.
+    """
+    # Return the original string if the language is empty, None, or the fallback language.
+    if lang == "":
+        return _(string)
+    
+    # Return original string and log warning if language is None.
+    elif lang is None:
+        Debug.logger.warning("Translation requested with None language, returning original string.\n"
+                             + f">>> {string} <<<")
         return string
-    elif string in contents.keys():
-        return contents[string]
-    else:
-        Debug.logger.debug(f'Missing translation: {string!r} in language {lang!r}')
+    
+    # Return original string if the requested language is the fallback (e.g., 'en').
+    elif lang == translations_obj.FALLBACK:
+        return string
+
+    # Attempt to translate the string using the translations object.
+    try:
+        return translations_obj.translate(string, context=__file__, lang=lang)
+    except KeyError as e:
+        # If the translation file or language is not found, log the error and return the original string.
+        Debug.logger.error(
+            f"Translation file missing or language not available for '{string}' in '{lang}': {e}"
+        )
         return string
 
 
@@ -57,30 +96,30 @@ def available_langs() -> dict[str | None, str]:
     Returns:
         dict[str | None, str]: The available language names indexed by language code
     """
-    if appversion() < semantic_version.Version('5.12.0'):
+    if edmc_version < semantic_version.Version('5.12.0'):
         l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
     else:
         l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
 
     available: set[str] = {x[:-len('.strings')] for x in listdir(l10n_path)
-                          if x.endswith('.strings') and
-                          "template" not in x and
-                          x[:-len('.strings')] not in BLOCK_LANGS}
+                           if x.endswith('.strings')
+                           and "template" not in x
+                           and x[:-len('.strings')] not in BLOCK_LANGS}
 
     names: dict[str | None, str] = {
         # LANG: The system default language choice in Settings > Appearance
         None: _('Default'),  # Appearance theme and language setting
     }
     names.update(sorted(
-        [(lang, l10n.Translations.contents(lang, l10n_path).get(l10n.LANGUAGE_ID, lang)) for lang in available] +
-        [(l10n._Translations.FALLBACK, l10n._Translations.FALLBACK_NAME)],
+        [(lang, translations_obj.contents(lang, l10n_path).get(l10n.LANGUAGE_ID, lang)) for lang in available]
+        + [(translations_obj.FALLBACK, translations_obj.FALLBACK_NAME)],
         key=lambda x: x[1]
     ))
 
     return names
 
 
-def get_by_path(dic: dict[str, any], keys: list[str], default: any = None) -> any:
+def get_by_path(dic: dict[str, Any], keys: list[str], default: Any = None) -> Any:
     """Access a multi-level nested dict by a sequence of keys.
 
     Args:

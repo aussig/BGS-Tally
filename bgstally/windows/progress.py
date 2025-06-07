@@ -15,7 +15,6 @@ from bgstally.utils import _
 
 MAX_ROWS = 20
 
-#@TODO: replace f"{}:," with string_from_number()
 class ProgressWindow:
     ''' Window for displaying construction progress for Elite Dangerous colonisation '''
     def __init__(self, bgstally):
@@ -94,8 +93,6 @@ class ProgressWindow:
             self.frame = frame
 
             row:int = 0; col:int = 0
-            #ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=row, column=0, columnspan=5, pady=2, sticky=tk.EW)
-            #row += 1
 
             # Overall progress bar chart
             y=tk.LabelFrame(frame, border=1, height=10)
@@ -155,18 +152,18 @@ class ProgressWindow:
                 self.colheadings[k] = c
             row += 1
 
-            for i, col in enumerate(self.headings.keys()):
+            #for i, col in enumerate(self.headings.keys()):
                 # Progress bar chart
-                if col == 'Commodity':
-                    continue
-                fr:tk.LabelFrame = tk.LabelFrame(table_frame, border=1, height=10, width=70)
-                fr.grid(row=row, column=i, pady=0, sticky=tk.EW)
-                fr.grid_rowconfigure(0, weight=1)
-                fr.grid_propagate(0)
+                #if col == 'Commodity':
+                #    continue
+                #fr:tk.LabelFrame = tk.LabelFrame(table_frame, border=1, height=10, width=70)
+                #fr.grid(row=row, column=i, pady=0, sticky=tk.EW)
+                #fr.grid_rowconfigure(0, weight=1)
+                #fr.grid_propagate(0)
 
-                self.progcols[col] = tk.IntVar()
-                pbar:ttk.Progressbar = ttk.Progressbar(fr, orient=tk.HORIZONTAL, variable=self.progcols[col], maximum=100, length=70, mode='determinate', style='blue.Horizontal.TProgressbar')
-                pbar.grid(row=0, column=i, pady=0, ipady=0, sticky=tk.EW)
+                #self.progcols[col] = tk.IntVar()
+                #pbar:ttk.Progressbar = ttk.Progressbar(fr, orient=tk.HORIZONTAL, variable=self.progcols[col], maximum=100, length=70, mode='determinate', style='blue.Horizontal.TProgressbar')
+                #pbar.grid(row=0, column=i, pady=0, ipady=0, sticky=tk.EW)
             row += 1
 
             # Go through the complete list of possible commodities and make a row for each and hide it.
@@ -376,7 +373,7 @@ class ProgressWindow:
                     row[col].grid()
                     self.highlight_row(row, c, reqcnt - delcnt)
                 rc += 1
-            
+
             self.display_totals(self.rows[i+1], tracked, totals)
             return
 
@@ -403,12 +400,12 @@ class ProgressWindow:
 
         # Update the progress graphs
         self.progvar.set(totals['Delivered'] * 100 / totals['Required'])
-        self.progcols['Required'].set((totals['Required'] - totals['Delivered']) * 100 / totals['Required'])
-        self.progcols['Delivered'].set(totals['Delivered'] * 100 / totals['Required'])
-        self.progcols['Cargo'].set(totals['Cargo'] * 100 / self.colonisation.cargo_capacity)
-        if (totals['Required'] - totals['Delivered']) > 0:
+        #self.progcols['Required'].set((totals['Required'] - totals['Delivered']) * 100 / totals['Required'])
+        #self.progcols['Delivered'].set(totals['Delivered'] * 100 / totals['Required'])
+        #self.progcols['Cargo'].set(totals['Cargo'] * 100 / self.colonisation.cargo_capacity)
+        #if (totals['Required'] - totals['Delivered']) > 0:
             # @TODO: Figure out carrier space for a better progress display
-            self.progcols['Carrier'].set(totals['Carrier'] * 100 / (totals['Required'] - totals['Delivered']))
+        #    self.progcols['Carrier'].set(totals['Carrier'] * 100 / (totals['Required'] - totals['Delivered']))
         return
 
 

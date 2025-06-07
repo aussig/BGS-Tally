@@ -525,7 +525,7 @@ class Colonisation:
         for system in self.systems:
             b = self.get_system_builds(system)
             if b != None:
-                all.append(b)
+                all += b
 
         return all
 

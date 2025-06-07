@@ -122,7 +122,7 @@
 "Both BGS and TW" = "BGS e TW";
 
 /* Post to Discord button tooltip. [activity.py] */
-"Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord" = "Sia il campo \"Pubblica su Discord come\" che un webhook Discord\ndevono essere configurati nelle impostazioni per consentire la pubblicazione su Discord";
+"Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord" = "Sia il campo 'Pubblica su Discord come' che un webhook Discord\ndevono essere configurati nelle impostazioni per consentire la pubblicazione su Discord";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bounty vouchers";
@@ -218,7 +218,7 @@
 "Configure Remote Server" = "Configura Server Remoto";
 
 /* Preferences force tick popup title. [ui.py] */
-"Confirm Force a New Tick" = "Conferma la forzatura di un nuovo Tick";
+"Confirm Force a New Tick" = "Conferma la Forzatura di un Nuovo Tick";
 
 /* [colonisation.py] */
 "Confirm Removal" = "Conferma Rimozione";
@@ -326,7 +326,7 @@
 "Discord Report Preview ⓘ" = "Anteprima del report su Discord ⓘ";
 
 /* Preferences heading. [ui.py] */
-"Discord Webhooks" = "Webhooks Discord";
+"Discord Webhooks" = "Webhook Discord";
 
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Attracco";
@@ -836,7 +836,7 @@
 "Passenger missions" = "Missioni passeggeri";
 
 /* [ui.py] */
-"Past Estimated Tick Time" = "Tempo stimato dal tick passato";
+"Past Estimated Tick Time" = "Tempo Stimato dal Tick Passato";
 
 /* [widgets.py] */
 "Paste" = "Incolla";
@@ -1187,16 +1187,16 @@
 "System activity" = "Attività del sistema";
 
 /* Preferences checkbox label. [ui.py] */
-"System Information" = "Informazioni sul System";
+"System Information" = "Informazioni sul Sistema";
 
 /* Label for the system's name field in the UI. [colonisation.py] */
-"System Name" = "Nome System";
+"System Name" = "Nome del Sistema";
 
 /* Elite dangerous system name. [colonisation.py] */
 "System Name (optional)" = "Nome del Sistema (opzionale)";
 
 /* Overlay system tick message. [ui.py] */
-"System Tick: {tick_time}" = "Ticket Di Sistema: {tick_time}";
+"System Tick: {tick_time}" = "Tick di Sistema: {tick_time}";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistema: {current_system} - Attracco: {docking_access} - Accesso per Notorietà: {notorious}";
@@ -1250,7 +1250,7 @@
 "This will move your current activity into the previous tick, and clear activity for the current tick." = "Questo sposta l'attività corrente nel tick precedente e cancella l'attività del tick corrente.";
 
 /* [ui.py] */
-"Tick {minutes_delta}m Overdue (Estimated)" = "Tick {minutes_delta}m In Ritardo (Stimato)";
+"Tick {minutes_delta}m Overdue (Estimated)" = "Tick {minutes_delta}m in Ritardo (Stimato)";
 
 /* [ui.py] */
 "To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "Per aggiungere al webhook: Click destro del mouse sul numero della riga e selezionare \"Inserisci righe sopra/sotto\".";
@@ -1358,7 +1358,7 @@
 "Webhook URL" = "Webhook URL";
 
 /* Notice about the first base being special. [colonisation.py] */
-"When planning your system the first base is special, make sure that it is the first on the list." = "Quando pianifichi il tuo system, la prima base è speciale: assicurati che sia la prima nella lista.";
+"When planning your system the first base is special, make sure that it is the first on the list." = "Quando pianifichi il tuo sistema, la prima base è speciale: assicurati che sia la prima nella lista.";
 
 /* [ui.py] */
 "Within {minutes_to_tick}m of Next Tick (Estimated)" = "Entro {minutes_to_tick}m dal Prossimo Tick (stimato)";
@@ -1415,10 +1415,10 @@
 "{plugin_name} Status:" = "Stato {plugin_name}:";
 
 /* Main window error message. [tick.py] */
-"{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo Tick";
+"{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo tick";
 
 /* [tick.py] */
-"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo Tick";
+"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo tick";
 
 /* Objectives title. [objectivesmanager.py] */
 "{server_name} Objectives" = "{server_name} - Obiettivi";

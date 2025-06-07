@@ -27,7 +27,6 @@ class ColonisationWindow:
     def __init__(self, bgstally):
         self.bgstally = bgstally
         self.colonisation = None
-        self.window:tk.Toplevel = None
         self.image_tab_complete:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
         self.image_tab_progress:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
         self.image_tab_planned:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
@@ -89,14 +88,14 @@ class ColonisationWindow:
             'Location' : {'header': _("Location"), 'background': None, 'format': 'string', 'width': 80}, # LANG: base location surface/orbital
             'Building Type' : {'header': _("Building Type"), 'background': None, 'format': 'string', 'width': 175}, # LANG: Building type
             'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 200}, # LANG: any prerequisites for the base
-            'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':4, 'width': 30}, # LANG: Tier 2 points
-            'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':4, 'width': 30}, # LANG: Tier 3
+            'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':3, 'width': 30}, # LANG: Tier 2 points
+            'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':3, 'width': 30}, # LANG: Tier 3
             'Total Comm': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':75000, 'width': 75}, # LANG: As above
             'Trips':{'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max':100, 'width': 60}, # LANG: As above
             'Pad': {'header': _("Pad"), 'background': None, 'format': 'string', 'width': 75}, # LANG: Landing pad size
             'Facility Economy': {'header': _("Economy"), 'background': None, 'format': 'string', 'width': 80}, # LANG: facility economy
-            'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max':10, 'width': 75}, # LANG: As above
-            'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max':10, 'width': 75}, # LANG: As above
+            'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max':7, 'width': 75}, # LANG: As above
+            'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max':7, 'width': 75}, # LANG: As above
             'Economy Influence': {'header': _("Econ Inf"), 'background': None, 'format': 'string', 'width': 100}, # LANG: economy influence
             'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Technology Level': {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
@@ -129,7 +128,6 @@ class ColonisationWindow:
             self.window.minsize(400, 100)
             self.window.geometry(f"{int(1500*scale)}x{int(500*scale)}")
             self.window.protocol("WM_DELETE_WINDOW", self.close)
-
             self.create_frames()    # Create main frames
             self.update_display()   # Populate them
 
@@ -318,12 +316,12 @@ class ColonisationWindow:
         ''' Show a popup with all the base types '''
         try:
             scale:float = self.bgstally.ui.frame.tk.call('tk', 'scaling') - 0.6 # Don't know why there's an extra .6
-            self.bases_fr = tk.Tk()
+            self.bases_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.bases_fr.wm_title(_("BGS-Tally - Colonisation Base Types")) # LANG: Title of the base type popup window
-            self.bases_fr.wm_attributes('-toolwindow', True) # makes it a tool window
-            self.bases_fr.geometry(f"{int(800*scale)}x{int(500*scale)}")
+            self.bases_fr.geometry(f"{int(1000*scale)}x{int(500*scale)}")
+            self.bases_fr.protocol("WM_DELETE_WINDOW", self.bases_fr.destroy)
             self.bases_fr.config(bd=2, relief=tk.FLAT)
-            sheet:Sheet = Sheet(self.bases_fr, show_row_index=False, cell_auto_resize_enabled=True, height=600,
+            sheet:Sheet = Sheet(self.bases_fr, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
                             show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
                             show_dropdown_borders=False, header_bg='lightgrey',
@@ -339,7 +337,6 @@ class ColonisationWindow:
             sheet["E1:F100"].align(align='left')
 
             for i, bt in enumerate(self.colonisation.base_types.values()):
-                Debug.logger.debug(f"bt {bt}")
                 for j, (name, col) in enumerate(self.bases.items()):
                     sheet.column_width(j, int(col.get('width', 100) * scale))
                     match col.get('format'):
@@ -367,7 +364,7 @@ class ColonisationWindow:
     def bodies_popup(self, tabnum:int, event) -> None:
         ''' Show the bodies popup window '''
         try:
-            self.bodies_fr = tk.Tk()
+            self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.bodies_fr.wm_title(_("BGS-Tally - Colonisation Bodies")) # LANG: Title of the bodies popup window
             self.bodies_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
             self.bodies_fr.wm_attributes('-toolwindow', True) # makes it a tool window
@@ -438,7 +435,7 @@ class ColonisationWindow:
         table_frame.columnconfigure(0, weight=1)
         table_frame.rowconfigure(0, weight=1)
 
-        sheet:Sheet = Sheet(table_frame, show_row_index=False, cell_auto_resize_enabled=True, height=600,
+        sheet:Sheet = Sheet(table_frame, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
                             show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
                             show_dropdown_borders=False,
@@ -1061,18 +1058,23 @@ class ColonisationWindow:
 
     def close(self) -> None:
         ''' Close the window '''
-        if self.legend_fr: self.legend_fr.destroy()
-        if self.notes_fr: self.notes_fr.destroy()
-        if self.bases_fr: self.bases_fr.destroy()
-        if self.bodies_fr: self.bodies_fr.destroy()
-        if self.window: self.window.destroy()
+        try:
+            if self.window: self.window.destroy()
+            if self.legend_fr: self.legend_fr.destroy()
+            if self.notes_fr: self.notes_fr.destroy()
+            if self.bases_fr: self.bases_fr.destroy()
+            if self.bodies_fr: self.bodies_fr.destroy()
 
-        # UI components
-        self.tabbar:ScrollableNotebook = None
-        self.sheets:list = []
-        self.plan_titles:list = []
-        self.colonisation.save()
 
+            # UI components
+            self.tabbar:ScrollableNotebook = None
+            self.sheets:list = []
+            self.plan_titles:list = []
+            self.colonisation.save()
+
+        except Exception as e:
+            Debug.logger.error(f"Error in close(): {e}")
+            Debug.logger.error(traceback.format_exc())
 
     def calc_points(self, type:str, builds:list, row:int) -> int:
         ''' Calculate the T2 or T3 base point cost/reward. It depends on the type of base and what's planned/built so far '''
@@ -1135,7 +1137,7 @@ class ColonisationWindow:
     def legend_popup(self) -> None:
         ''' Show the legend popup window '''
         try:
-            self.legend_fr = tk.Tk()
+            self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.legend_fr.wm_title(_("BGS-Tally - Colonisation Legend")) # LANG: Title of the legend popup window
             self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
             self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
@@ -1170,13 +1172,13 @@ class ColonisationWindow:
             sysnum:int = tabnum -1
             systems:list = self.colonisation.get_all_systems()
 
-            self.notes_fr = tk.Tk()
+            self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.notes_fr.wm_title(_("BGS-Tally - Colonisation Notes for ") + systems[sysnum].get('Name', '')) # LANG: Title of the notes popup window
             self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-            self.notes_fr.wm_attributes('-toolwindow', True) # makes it a tool window
             self.notes_fr.geometry("600x600")
+            self.notes_fr.protocol("WM_DELETE_WINDOW", self.notes_fr.destroy)
             self.notes_fr.config(bd=2, relief=tk.FLAT)
-            scr:tk.Scrollbar = tk.Scrollbar(self.notes, orient=tk.VERTICAL)
+            scr:tk.Scrollbar = tk.Scrollbar(self.notes_fr, orient=tk.VERTICAL)
             scr.pack(side=tk.RIGHT, fill=tk.Y)
 
             text:tk.Text = tk.Text(self.notes_fr, font=FONT_SMALL, yscrollcommand=scr.set)
@@ -1207,12 +1209,12 @@ class ColonisationWindow:
 
             # Red, White, Green or Green, Yellow, Red
             if color == 'rwg':
-                gradient:list = self.create_gradient(limit)
+                gradient:list = self.create_gradient(limit, 'rwg')
                 value:int = min(max(int(value), -limit), limit)
                 return gradient[int(value + limit)]
             else:
                 # keep it within the limits
-                gradient:list = self.create_gradient2(limit)
+                gradient:list = self.create_gradient(limit, 'gyr')
                 if value < len(gradient):
                     return gradient[int(value)]
                 else:
@@ -1224,68 +1226,48 @@ class ColonisationWindow:
             return ["#CCCCCC"]
 
 
-    def create_gradient(self, steps:int) -> list[str]:
-        ''' Generates a list of RGB color tuples representing a gradient from red (-steps) to white (0) to green (+steps) '''
+    def create_gradient(self, steps:int, type:str = 'rwg') -> list[str]:
+        ''' Generates a list of RGB color tuples representing a gradient. '''
         try:
-            hbase:int = 220 # larger = stronger color, less range
-            base:int = 190 # smaller = overall darker
-            scale:int = 255 - hbase # larger = wider range (light to dark)
-            multi:float = 0.01 # Smaller = more intense
-            gradient:list = []
-            for i in range(steps+1): # zero up (white to green)
-                r:int = max(min(base - (i * scale / steps), 255), 0)
-                g:int = max(min(hbase - (i * scale * multi / steps), 255), 0)
-                b:int = max(min(base - (i * scale / steps), 255), 0)
-                gradient.append(f"#{int(r):02x}{int(g):02x}{int(b):02x}")
-            for i in range(1, steps+1): # -1 down (white to red)
-                r:int = max(min(hbase - (i * scale * multi / steps), 255), 0)
-                g:int = max(min(base - (i * scale / steps), 255), 0)
-                b:int = max(min(base - (i * scale / steps), 255), 0)
-                gradient.insert(0, f"#{int(r):02x}{int(g):02x}{int(b):02x}")
-
-            return gradient
-
-        except Exception as e:
-            Debug.logger.error(f"Error in gradient: {e}")
-            Debug.logger.error(traceback.format_exc())
-            return ["#CCCCCC"]
-
-
-    def create_gradient2(self, steps:int) -> list[str]:
-        ''' Generates a list of RGB color tuples representing a gradient from green (0) to red (steps). '''
-        try:
-            # Define RGB values
-            g:int = (150, 200, 150) #1
-            y:int = (230, 230, 125) #2
-            r:int = (190, 30, 100) #3
+            # Green, Yellow, Red (0:steps)
+            s:int = (150, 200, 150) # start
+            m:int = (230, 230, 125) # middle
+            e:int = (190, 30, 100) # end
+            if type == 'rwg': # Red, White, Green (-steps:steps)
+                steps *= 2
+                # Define RGB values
+                s:int = (200, 125, 100) #1
+                m:int = (255, 255, 255)
+                e:int = (75, 175, 75)
 
             # Define gradient parameters
             gradient_colors:list = []
 
             # Calculate interpolation steps
-            r_step_1:int = (y[0] - g[0]) / steps
-            g_step_1:int = (y[1] - g[1]) / steps
-            b_step_1:int = (y[2] - g[2]) / steps
+            r_step_1:int = (m[0] - s[0]) / steps
+            g_step_1:int = (m[1] - s[1]) / steps
+            b_step_1:int = (m[2] - s[2]) / steps
 
-            r_step_2:int = (r[0] - y[0]) / steps
-            g_step_2:int = (r[1] - y[1]) / steps
-            b_step_2:int = (r[2] - y[2]) / steps
+            r_step_2:int = (e[0] - m[0]) / steps
+            g_step_2:int = (e[1] - m[1]) / steps
+            b_step_2:int = (e[2] - m[2]) / steps
 
             # Iterate and interpolate
             for i in range(steps+1):
                 # Interpolate between pastel green and yellow
                 if i < steps/2:
-                    cr = min(max(g[0] + r_step_1 * i, 0), 255)
-                    cg = min(max(g[1] + g_step_1 * i, 0), 255)
-                    cb = min(max(g[2] + b_step_1 * i, 0), 255)
+                    cr = min(max(s[0] + r_step_1 * i, 0), 255)
+                    cg = min(max(s[1] + g_step_1 * i, 0), 255)
+                    cb = min(max(s[2] + b_step_1 * i, 0), 255)
                 else: # Interpolate between yellow and red
-                    cr = min(max(y[0] + r_step_2 * (i - steps/2), 0), 255)
-                    cg = min(max(y[1] + g_step_2 * (i - steps/2), 0), 255)
-                    cb = min(max(y[2] + b_step_2 * (i - steps/2), 0), 255)
+                    cr = min(max(m[0] + r_step_2 * (i - steps/2), 0), 255)
+                    cg = min(max(m[1] + g_step_2 * (i - steps/2), 0), 255)
+                    cb = min(max(m[2] + b_step_2 * (i - steps/2), 0), 255)
 
                 # Add the interpolated color to the gradient
                 gradient_colors.append(f"#{int(cr):02x}{int(cg):02x}{int(cb):02x}")
 
+            #Debug.logger.debug(f"{steps} {gradient_colors}")
             return gradient_colors
 
         except Exception as e:

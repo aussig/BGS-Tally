@@ -323,7 +323,7 @@ class ColonisationWindow:
             self.bases_fr.wm_attributes('-toolwindow', True) # makes it a tool window
             self.bases_fr.geometry(f"{int(800*scale)}x{int(500*scale)}")
             self.bases_fr.config(bd=2, relief=tk.FLAT)
-            sheet:Sheet = Sheet(self.bases, show_row_index=False, cell_auto_resize_enabled=True, height=600,
+            sheet:Sheet = Sheet(self.bases_fr, show_row_index=False, cell_auto_resize_enabled=True, height=600,
                             show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
                             show_dropdown_borders=False, header_bg='lightgrey',
@@ -1166,7 +1166,7 @@ class ColonisationWindow:
                 self.colonisation.save()
                 self.notes_fr.destroy()
                 self.notes_fr = None
-                
+
             sysnum:int = tabnum -1
             systems:list = self.colonisation.get_all_systems()
 

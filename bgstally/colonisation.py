@@ -162,7 +162,7 @@ class Colonisation:
 
                     # Figure out the station name, location, and if it's one we are or should have recorded
                     name:str = ''; type:str = ''; state:BuildState = None
-                    if 'Construction Site' in entry.get('StationName', '') or 'ColonisationShip' in entry.get('StationName', '') or 'MULTIPLAYER_SCENARIO' in entry.get('StationName', ''):
+                    if 'Construction Site' in entry.get('StationName', '') or 'ColonisationShip' in entry.get('StationName', ''):
                         build_state = BuildState.PROGRESS
                         name = re.sub('^.* Construction Site: ', '', entry['StationName'])
                         type = re.sub('^(.*) Construction Site: .*$', '\1', entry['StationName'])
@@ -174,8 +174,8 @@ class Colonisation:
                         name = entry.get('StationName')
                         build_state = BuildState.COMPLETE
 
-                    # If this isn't a colonisation ship or a system we're building, or a carrier, ignore it.
-                    if build_state == None or entry.get('StationType') == 'FleetCarrier':
+                    # If this isn't a colonisation ship or a system we're building, or it's a carrier ir a scenario, ignore it.
+                    if build_state == None or entry.get('StationType') == 'FleetCarrier' or 'MULTIPLAYER_SCENARIO' in entry.get('StationName', ''):
                         self.bgstally.ui.window_progress.update_display()
                         #Debug.logger.debug(f"Not a construction or a system we're building")
                         return

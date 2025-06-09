@@ -900,10 +900,12 @@ class ColonisationWindow:
         dialog.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
         # System name
+        row:int = 0
         ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
         plan_name_var:tk.StringVar = tk.StringVar()
         plan_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
-        plan_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
+        plan_name_entry.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+        row += 1
 
         # Display name
         syslabel:str = _("System Name") # LANG: Label for the system's name field in the UI
@@ -911,25 +913,36 @@ class ColonisationWindow:
         ttk.Label(dialog, text=f"{syslabel} ({optionlabel}):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
         system_name_var:tk.StringVar = tk.StringVar()
         system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
-        system_name_entry.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)
+        system_name_entry.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+        row += 1
 
-        ttk.Label(dialog, text=_("When planning your system the first base is special, make sure that it is the first on the list.")).grid(row=2, column=0, columnspan=2, padx=10, pady=10, sticky=tk.W) # LANG: Notice about the first base being special
+        prepop_var = tk.IntVar()
+        chk = tk.Checkbutton(dialog, text=_("Pre-fill bases from EDSM"), variable=prepop_var, onvalue=True, offvalue=False)
+        chk.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+        row += 1
+
+        lbl = ttk.Label(dialog, text=_("When planning your system the first base is special, make sure that it is the first on the list.")) # LANG: Notice about the first base being special
+        lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=(10,0), sticky=tk.W)
+        row += 1
+        lbl = ttk.Label(dialog, text=_("Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!")) # LANG: Notice about prepopulation being challenging
+        lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=(0,10), sticky=tk.W)
+        row += 1
 
         # Buttons
         button_frame:ttk.Frame = ttk.Frame(dialog)
-        button_frame.grid(row=3, column=0, columnspan=2, pady=10)
+        button_frame.grid(row=row, column=0, columnspan=2, pady=10)
 
         # Add button
         add_button:ttk.Button = ttk.Button(
             button_frame,
             text=_("Add"), # LANG: Add/create a new system
-            command=lambda: self.add_system(plan_name_var.get(), system_name_var.get())
+            command=lambda: self.add_system(plan_name_var.get(), system_name_var.get(), prepop_var.get())
         )
         add_button.pack(side=tk.LEFT, padx=5)
         self.tabbar.add(dialog, text='+')
 
 
-    def add_system(self, plan_name:str, system_name:str) -> None:
+    def add_system(self, plan_name:str, system_name:str, prepop:bool = False) -> None:
         ''' Add the new system from the dialog '''
         try:
             if not plan_name:
@@ -937,7 +950,7 @@ class ColonisationWindow:
                 return
 
             # Add the system
-            system:dict = self.colonisation.add_system(plan_name, system_name)
+            system:dict = self.colonisation.add_system(plan_name, system_name, system_name, prepop)
             if system == False:
                 messagebox.showerror(_("Error"), _("Unable to create system")) # LANG: General failure to create system error
                 return

@@ -176,7 +176,7 @@ class ProgressWindow:
                     if col == 'Commodity':
                         lbl.bind("<Button-1>", partial(self.link, c))
                         lbl.bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
-                        ToolTip(lbl, text=_("Left click for Inara market, right top copy")) # LANG: tooltip for the inara market commodity links
+                        ToolTip(lbl, text=_("Left click for Inara market, right click to copy")) # LANG: tooltip for the inara market commodity links and copy to clipboard
                         lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
 
                     r[col] = lbl
@@ -377,6 +377,7 @@ class ProgressWindow:
                         if len(colstr) > 22: colstr = colstr[0:20] + '…'
                         row['Commodity']['text'] = colstr
                         row['Commodity'].bind("<Button-1>", partial(self.link, c))
+                        row['Commodity'].bind("<Button-1>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
                         row['Commodity'].grid()
                         continue
 

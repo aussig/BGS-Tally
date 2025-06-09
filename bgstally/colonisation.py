@@ -339,7 +339,7 @@ class Colonisation:
         return system
 
 
-    def add_system(self, plan_name:str, system_name:str = None, system_address:str = None) -> dict|None:
+    def add_system(self, plan_name:str, system_name:str = None, system_address:str = None, prepop:bool = False) -> dict|None:
         ''' Add a new system for colonisation planning '''
 
         if self.get_system('Name', plan_name) is not None or self.get_system('StarSystem', system_name) is not None:
@@ -359,7 +359,8 @@ class Colonisation:
         # If we have a system address, we can try to get the bodies from EDSM
         if system_name != None:
             Debug.logger.debug(f"Requesting EDSM bodies for {system_name}")
-            self.bgstally.request_manager.queue_request(EDSM_STATIONS+quote(system_name), RequestMethod.GET, callback=self._edsm_stations)
+            if prepop == True:
+                self.bgstally.request_manager.queue_request(EDSM_STATIONS+quote(system_name), RequestMethod.GET, callback=self._edsm_stations)
             self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system_name), RequestMethod.GET, callback=self._edsm_bodies)
 
         self.dirty = True

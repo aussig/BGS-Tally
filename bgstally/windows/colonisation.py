@@ -716,13 +716,12 @@ class ColonisationWindow:
                 sheet[i+srow,0].readonly()
                 sheet[i+srow,0].align(align='left')
 
-
                 # Base tyoe
                 if new[i][1] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
                     sheet[i+srow,1].del_dropdown()
                     sheet[i+srow,1].readonly()
                     sheet[i+srow,1].highlight(bg=None)
-                elif new[i][1] != ' ' or new[i,2] != ' ': # Base type is invalid or not set & name is set
+                elif new[i][1] != ' ' or new[i][2] != ' ': # Base type is invalid or not set & name is set
                     sheet[i+srow,1].highlight(bg='red2')
                 sheet[i+srow,1].align(align='left')
 

@@ -234,7 +234,7 @@ class Colonisation:
                     # If it's a construction site or colonisation ship wait til we dock.
                     # If it's a carrier or other non-standard location we ignore it. Bet there are other options!
                     if self.station == None or 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
-                        re.search('^$', self.station) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
+                       'MULTIPLAYER_SCENARIO' in self.station or re.search('^$', self.station) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
                         return
 
                     # If we don't have this system in our list, we don't care about it.

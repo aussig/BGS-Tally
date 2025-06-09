@@ -175,7 +175,8 @@ class ProgressWindow:
                     lbl.grid(row=row, column=i, sticky=val.get('Sticky'))
                     if col == 'Commodity':
                         lbl.bind("<Button-1>", partial(self.link, c))
-                        ToolTip(lbl, text=_("Click for Inara market")) # LANG: tooltip for the inara market commodity links
+                        lbl.bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
+                        ToolTip(lbl, text=_("Left click for Inara market, right top copy")) # LANG: tooltip for the inara market commodity links
                         lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
 
                     r[col] = lbl
@@ -272,6 +273,16 @@ class ProgressWindow:
 
         except Exception as e:
             Debug.logger.info(f"Error processing link {e}")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def ctc(self, comm:str, event) -> None:
+        ''' Copy to clipboard '''
+        try:
+            self.frame.clipboard_clear()
+            self.frame.clipboard_append(comm)
+        except Exception as e:
+            Debug.logger.error(f"Error in ctc() {e}")
             Debug.logger.error(traceback.format_exc())
 
 

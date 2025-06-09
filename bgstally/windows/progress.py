@@ -192,13 +192,8 @@ class ProgressWindow:
 
             self.rows.append(r)
 
-            if len(tracked) == 0:
-                Debug.logger.info("No tracked builds")
-                frame.grid_remove()
-                return
-
-            if len(self.colonisation.get_required(tracked)) == 0:
-                Debug.logger.info("No commodities to track")
+            # No builds or no commodities so hide the frame entirely
+            if len(tracked) == 0 or len(self.colonisation.get_required(tracked)) == 0:
                 frame.grid_remove()
                 return
 
@@ -248,7 +243,7 @@ class ProgressWindow:
             self.update_display()
 
         except Exception as e:
-            Debug.logger.info(f"Error processing link {e}")
+            Debug.logger.info(f"Error changing view {e}")
             Debug.logger.error(traceback.format_exc())
 
 
@@ -295,7 +290,6 @@ class ProgressWindow:
 
             if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
                 self.frame.grid_remove()
-                Debug.logger.debug("No progress to display")
                 return
 
             self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
@@ -314,7 +308,6 @@ class ProgressWindow:
             # Hide the table but not the progress frame so the change view icon is still available
             if self.view == ProgressView.NONE:
                 self.table_frame.grid_remove()
-                Debug.logger.debug("No view, hiding table")
                 return
 
             # Set the column headings according to the selected units

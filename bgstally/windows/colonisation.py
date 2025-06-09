@@ -332,7 +332,7 @@ class ColonisationWindow:
             data:list = [[0 for _ in range(len(self.bases.keys()))] for _ in range(len(self.colonisation.get_base_types()))]
             sheet.set_header_data([h['header'] for h in self.bases.values()])
             sheet.set_sheet_data(data)
-            Debug.logger.debug(f"Data: {len(data)} {len(data[0])}")
+            #Debug.logger.debug(f"Data: {len(data)} {len(data[0])}")
             sheet["A1:A100"].align(align='left')
             sheet["E1:F100"].align(align='left')
 
@@ -787,7 +787,6 @@ class ColonisationWindow:
 
             if field == 'Base Type' and val == ' ' and row == 0:
                 # Don't delete the primary base or let it have no type
-                Debug.logger.debug(f"returning none")
                 return None
 
             return event.value
@@ -855,8 +854,6 @@ class ColonisationWindow:
                     self.config_sheet(self.sheets[sysnum], systems[sysnum])
 
                 case 'Base Type' if val != ' ':
-                    Debug.logger.debug(f"Setting base type")
-
                     if row >= len(systems[sysnum]['Builds']):
                         self.colonisation.add_build(systems[sysnum])
                         systems[sysnum]['Builds'][row][field] = val
@@ -1040,7 +1037,7 @@ class ColonisationWindow:
             self.update_display()
 
         except Exception as e:
-            Debug.logger.error(f"Error in rename_system_dialog(): {e}")
+            Debug.logger.error(f"Error in rename_system(): {e}")
             Debug.logger.error(traceback.format_exc())
 
 
@@ -1130,25 +1127,26 @@ class ColonisationWindow:
 
     def load_legend(self) -> str:
         ''' Load the legend text from the file '''
-        file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
-        lang:str = config.get_str('language')
-        if lang and lang != 'en':
-            file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, "L10n", f"{lang}.{FILENAME}")
+        try:
+            file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+            lang:str = config.get_str('language')
+            if lang and lang != 'en':
+                file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, "L10n", f"{lang}.{FILENAME}")
 
-        if not path.exists(file):
-            Debug.logger.debug(f"Missing translation {file} for {lang}, using default legend file")
-            file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+            if not path.exists(file):
+                Debug.logger.info(f"Missing translation {file} for {lang}, using default legend file")
+                file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
 
-        if path.exists(file):
-            try:
+            if path.exists(file):
                 with open(file) as file:
                     legend:str = file.read()
                 return legend
-            except Exception as e:
-                Debug.logger.warning(f"Unable to load {file}")
-                Debug.logger.error(traceback.format_exc())
 
-        return f"Unable to load {file}"
+            return f"Unable to load {file}"
+
+        except Exception as e:
+            Debug.logger.warning(f"Unable to load legend {file}")
+            Debug.logger.error(traceback.format_exc())
 
 
     def legend_popup(self) -> None:
@@ -1175,11 +1173,12 @@ class ColonisationWindow:
     def notes_popup(self, tabnum:int) -> None:
         ''' Show the notes popup window '''
         try:
-            def savenotes(system:dict, text:tk.Text):
+            def savenotes(system:dict, text:tk.Text) -> None:
                 ''' Save the notes and close the popup window '''
                 if sysnum > len(self.plan_titles):
                     Debug.logger.info(f"Saving notes invalid tab: {tabnum}")
                     return
+
                 notes:str = text.get("1.0", tk.END)
                 system['Notes'] = notes
                 self.colonisation.save()
@@ -1238,7 +1237,7 @@ class ColonisationWindow:
                     return ["#ccccff"]
 
         except Exception as e:
-            Debug.logger.error(f"Error in gradient: {e}")
+            Debug.logger.error(f"Error in get_color: {e}")
             Debug.logger.error(traceback.format_exc())
             return ["#CCCCCC"]
 

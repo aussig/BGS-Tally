@@ -275,7 +275,7 @@ class ProgressWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def update_display(self):
+    def update_display(self) -> None:
         ''' Main display update function. '''
         try:
             tracked:list = self.colonisation.get_tracked_builds()
@@ -444,6 +444,7 @@ class ProgressWindow:
             case _ if column == 'Delivered': valstr = f"{delivered:,}{_('t')}"
             case _ if column == 'Cargo': valstr = f"{cargo:,}{_('t')}"
             case _ if column == 'Carrier': valstr = f"{carrier:,}{_('t')}"
+
         return valstr
 
 

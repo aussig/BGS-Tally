@@ -687,7 +687,7 @@ class ColonisationWindow:
 
 
     def update_detail(self, srow:int, sheet:Sheet, system:dict) -> None:
-        ''' update the details section of the table '''
+        ''' Update the details section of the table '''
         new:list = self._build_detail(system)
 
         for i, build in enumerate(system.get('Builds', [])):
@@ -705,7 +705,6 @@ class ColonisationWindow:
                     if details.get('background') in ('rwg', 'gyr') and new[i][j] != ' ':
                         color = self.get_color(new[i][j], details.get('max', 1), details.get('background'))
                         sheet[i+srow,j].highlight(bg=color)
-
 
             # Handle build states
             if new[i][5] == BuildState.COMPLETE: # Mark completed builds as readonly
@@ -779,10 +778,10 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def validate_edits(self, event) ->bool|dict:
+    def validate_edits(self, event):
         ''' Validate edits to the sheet. This just prevents the user from deleting the primary base type. '''
         try:
-            row:int = event.row - FIRST_BUILD_ROW; col:inr = event.column; val = event.value
+            row:int = event.row - FIRST_BUILD_ROW; col:int = event.column; val = event.value
             fields:list = list(self.detail_cols.keys())
             field:str = fields[col]
 
@@ -790,6 +789,7 @@ class ColonisationWindow:
                 # Don't delete the primary base or let it have no type
                 Debug.logger.debug(f"returning none")
                 return None
+
             return event.value
 
         except Exception as e:
@@ -1079,6 +1079,7 @@ class ColonisationWindow:
             Debug.logger.error(f"Error in close(): {e}")
             Debug.logger.error(traceback.format_exc())
 
+
     def calc_points(self, type:str, builds:list, row:int) -> int:
         ''' Calculate the T2 or T3 base point cost/reward. It depends on the type of base and what's planned/built so far '''
         bt:dict = self.colonisation.get_base_type(builds[row].get('Base Type', ''))
@@ -1257,12 +1258,12 @@ class ColonisationWindow:
 
             # Iterate and interpolate
             for i in range(steps+1):
-                # Interpolate between pastel green and yellow
+                # Interpolate between start and middle
                 if i < steps/2:
                     cr = min(max(s[0] + r_step_1 * i, 0), 255)
                     cg = min(max(s[1] + g_step_1 * i, 0), 255)
                     cb = min(max(s[2] + b_step_1 * i, 0), 255)
-                else: # Interpolate between yellow and red
+                else: # Interpolate between middle and end
                     cr = min(max(m[0] + r_step_2 * (i - steps/2), 0), 255)
                     cg = min(max(m[1] + g_step_2 * (i - steps/2), 0), 255)
                     cb = min(max(m[2] + b_step_2 * (i - steps/2), 0), 255)

@@ -339,12 +339,12 @@ class Colonisation:
         return system
 
 
-    def add_system(self, plan_name:str, system_name:str = None, system_address:str = None) -> dict:
+    def add_system(self, plan_name:str, system_name:str = None, system_address:str = None) -> dict|None:
         ''' Add a new system for colonisation planning '''
 
         if self.get_system('Name', plan_name) is not None or self.get_system('StarSystem', system_name) is not None:
             Debug.logger.warning(f"Cannot add system - already exists: {plan_name} {system_name}")
-            return False
+            return
 
         # Create new system
         system_data:dict = {
@@ -510,13 +510,12 @@ class Colonisation:
         return bodies
 
 
-    def remove_system(self, index:int) -> bool:
+    def remove_system(self, index:int) -> None:
         ''' Delete a system '''
         systems = self.get_all_systems() # It's a sorted list, index isn't reliable unless sorted!
         del systems[index]
         self.dirty = True
         self.save()
-        return True
 
 
     def get_all_builds(self) -> list[dict]:
@@ -564,7 +563,7 @@ class Colonisation:
         return system.get('Builds', [])
 
 
-    def find_build(self, system:dict, marketid:int = None, name:str = None) -> dict:
+    def find_build(self, system:dict, marketid:int = None, name:str = None) -> dict|None:
         ''' Get a build by marketid or name '''
         builds:list = self.get_system_builds(system)
 
@@ -608,21 +607,19 @@ class Colonisation:
         return build
 
 
-    def remove_build(self, system:dict, build_index:int) -> bool:
+    def remove_build(self, system:dict, build_index:int) -> None:
         ''' Remove a build from a system '''
         if system is None:
             Debug.logger.warning(f"Cannot remove build - unknown system")
-            return False
+            return
 
         if build_index >= len(system['Builds']):
             Debug.logger.warning(f"Cannot remove build - invalid build index: {build_index} {len(system['Builds'])} {system['Builds']}")
-            return False
+            return
 
         # Remove build
         system['Builds'].pop(build_index)
         self.dirty = True
-
-        return True
 
 
     def update_build_tracking(self, build:dict, state:bool) -> None:
@@ -654,7 +651,7 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
-    def _get_progress(self, builds:list[dict], type:str) -> dict:
+    def _get_progress(self, builds:list[dict], type:str) -> list[dict]:
         ''' Internal function to get progress details '''
         try:
             prog:list = []
@@ -713,7 +710,7 @@ class Colonisation:
         return prog
 
 
-    def find_progress(self, id:str) -> dict:
+    def find_progress(self, id:str) -> dict|None:
         ''' Find and return progress for a given market '''
         for p in self.progress:
             if p.get('MarketID') == id:
@@ -792,24 +789,25 @@ class Colonisation:
 
     def load(self) -> None:
         ''' Load state from file '''
-        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
-        if path.exists(file):
-            try:
+        try:
+            file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
+            if path.exists(file):
                 with open(file) as json_file:
                     self._from_dict(json.load(json_file))
-            except Exception as e:
-                Debug.logger.warning(f"Unable to load {file}")
-                Debug.logger.error(traceback.format_exc())
 
-        # Update the EDSM data if appropriate and no more than once a day.
-        for system in self.systems:
-            if system.get('StarSystem', '') != '' and time.time() > int(system.get('EDSMUpdated', 0)) + EDSM_DELAY:
-                if system.get('Bodies', None) == None:
-                    self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_bodies)
+            # Update the EDSM data if appropriate and no more than once a day.
+            for system in self.systems:
+                if system.get('StarSystem', '') != '' and time.time() > int(system.get('EDSMUpdated', 0)) + EDSM_DELAY:
+                    if system.get('Bodies', None) == None:
+                        self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_bodies)
 
-                # Currently disabled. There are so many shortcomings with trying to do this I'm not sure it's helpful.
-                #self.bgstally.request_manager.queue_request(EDSM_STATIONS+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_stations)
-                self.bgstally.request_manager.queue_request(EDSM_SYSTEM+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_system)
+                    # Currently disabled. There are so many shortcomings with trying to do this I'm not sure it's helpful.
+                    #self.bgstally.request_manager.queue_request(EDSM_STATIONS+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_stations)
+                    self.bgstally.request_manager.queue_request(EDSM_SYSTEM+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_system)
+
+        except Exception as e:
+            Debug.logger.warning(f"Unable to load {file}")
+            Debug.logger.error(traceback.format_exc())
 
 
     def save(self, cause:str = 'Unknown') -> None:
@@ -833,7 +831,7 @@ class Colonisation:
     def _as_dict(self) -> dict:
         ''' Return a Dictionary representation of our data, suitable for serializing '''
 
-        def sort_order(item:dict):
+        def sort_order(item:dict) -> BuildState:
             state:BuildState = BuildState.COMPLETE
             for b in item['Builds']:
                 bs = self.get_build_state(b)

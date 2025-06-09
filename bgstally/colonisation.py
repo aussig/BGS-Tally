@@ -384,11 +384,11 @@ class Colonisation:
             stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['id']))
             for base in stations:
                 # Ignore these
-                if base.get('type', '') in ['Fleet Carrier'] or 'Construction Site' in base.get('name', '') or 'ColonisationShip' in base.get('name', ''):
+                if base.get('type', '') in ['Fleet Carrier'] or 'ColonisationShip' in base.get('name', ''):
                     continue
 
                 name:str = base.get('name', '')
-                type:str = base.get('type', '')
+                type:str = base.get('type', 'Unknown')
                 state:BuildState = BuildState.COMPLETE
                 if name == '$EXT_PANEL_ColonisationShip:#index=1;':
                     if len(stations) != 1: # This hangs around but only matters if it's the only station in the system.

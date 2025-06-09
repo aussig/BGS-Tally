@@ -403,7 +403,7 @@ class ProgressWindow:
         #self.progcols['Required'].set((totals['Required'] - totals['Delivered']) * 100 / totals['Required'])
         #self.progcols['Delivered'].set(totals['Delivered'] * 100 / totals['Required'])
         #self.progcols['Cargo'].set(totals['Cargo'] * 100 / self.colonisation.cargo_capacity)
-        #if (totals['Required'] - totals['Delivered']) > 0:
+        #if (totals['Required'] - totals['Delivered']) > 0 'Carrier' in self.progcols:
             # @TODO: Figure out carrier space for a better progress display
         #    self.progcols['Carrier'].set(totals['Carrier'] * 100 / (totals['Required'] - totals['Delivered']))
         return

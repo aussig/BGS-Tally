@@ -601,7 +601,6 @@ class Colonisation:
         Debug.logger.debug(f"Adding build {name}")
         build:dict = {
                 'Name': name,
-                'Plan': system.get('Name'),
                 'State': BuildState.PLANNED
                 }
         if marketid != None: build['MarketID'] = marketid

@@ -1205,7 +1205,7 @@ class ColonisationWindow:
                 case False|None:
                     return None
                 case 'gyr' | 'rwg':
-                    return self.get_color(int(value), int(limit), type)
+                    return None if value == ' ' else self.get_color(int(value), int(limit), type)
 
                 case 'type':
                     colors = {'Contraband': '#ebc296', #'#dce9cb',

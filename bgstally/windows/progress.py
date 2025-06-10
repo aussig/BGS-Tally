@@ -370,7 +370,7 @@ class ProgressWindow:
                         if len(colstr) > 22: colstr = colstr[0:20] + '…'
                         row['Commodity']['text'] = colstr
                         row['Commodity'].bind("<Button-1>", partial(self.link, c))
-                        row['Commodity'].bind("<Button-1>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
+                        row['Commodity'].bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
                         row['Commodity'].grid()
                         continue
 

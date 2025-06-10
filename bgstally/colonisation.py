@@ -214,6 +214,11 @@ class Colonisation:
                     self.marketid = None
 
                 case 'SupercruiseDestinationDrop':
+                    # Ignore fleet carriers and other specials (warzones, scenarios etc.)
+                    if re.search('^$', entry.get('Type')) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', entry.get('Type')):
+                        self.station = None
+                        self.marketid = None
+                        return
                     self.station = entry.get('Type')
                     self.marketid = entry.get('MarketID')
 
@@ -221,7 +226,6 @@ class Colonisation:
                     self.current_system = entry.get('StarSystem')
                     self.system_id = entry.get('SystemAddress')
                     self.body = entry.get('Body', None)
-
 
                 case 'SupercruiseExit' | 'ApproachSettlement':
                     self.system_id = entry.get('SystemAddress')
@@ -233,9 +237,9 @@ class Colonisation:
 
                     # If it's a construction site or colonisation ship wait til we dock.
                     # If it's a carrier or other non-standard location we ignore it. Bet there are other options!
-                    if self.station == None or 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
-                       'MULTIPLAYER_SCENARIO' in self.station or re.search('^$', self.station) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
-                        return
+                    #if self.station == None or 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
+                    #   'MULTIPLAYER_SCENARIO' in self.station or re.search('^$', self.station) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
+                    #    return
 
                     # If we don't have this system in our list, we don't care about it.
                     system:dict = self.find_system(entry.get('StarSystem'), entry.get('SystemAddress'))

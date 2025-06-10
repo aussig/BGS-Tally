@@ -32,24 +32,24 @@ class ColonisationWindow:
         self.image_tab_planned:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
 
         self.summary_rows:dict = {
-            'Planned': _("Planned"), # LANG: Row heading of planned build totals i.e. ones that aren't completed
-            'Completed': _("Completed") # LANG: Row heading of build totals i.e. ones that are done
+            'Complete': _("Complete"), # LANG: Row heading of build totals i.e. ones that are done
+            'Planned': _("Planned") # LANG: Row heading of planned build totals i.e. ones that aren't complete
         }
 
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
         self.summary_cols:dict = {
-            'Total': {'header': _("Total"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Total number of builds
-            'Orbital': {'header': _("Orbital"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Number of orbital/space builds
-            'Surface': {'header': _("Surface"), 'background': 'lightgoldenrod', 'format': 'int'}, # LANG: Number of ground/surface builds
+            'Total': {'header': _("Total"), 'background': None, 'format': 'int'}, # LANG: Total number of builds
+            'Orbital': {'header': _("Orbital"), 'background': None, 'format': 'int'}, # LANG: Number of orbital/space builds
+            'Surface': {'header': _("Surface"), 'background': None, 'format': 'int'}, # LANG: Number of ground/surface builds
             'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 2 points
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 3 points
             'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max': 200000}, # LANG: Cost in tonnes of cargo
             'Trips': {'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max': 260}, # LANG: Number of loads of cargo
-            'Population': {'header': _("Pop"), 'background': False, 'hide': True, 'format': 'hidden'},
-            'Economy': {'header': _("Economy"), 'background': False, 'hide': True, 'format': 'hidden'},
+            'Population': {'header': _("Pop"), 'background': None, 'hide': True, 'format': 'hidden'},
+            'Economy': {'header': _("Economy"), 'background': None, 'hide': True, 'format': 'hidden'},
             'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population increase
             'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population Maximum
-            'Economy Influence': {'header': _("Econ Inf"), 'background': False, 'hide': True, 'format': 'hidden'}, # LANG: Economy influence
+            'Economy Influence': {'header': _("Econ Inf"), 'background': None, 'hide': True, 'format': 'hidden'}, # LANG: Economy influence
             'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Security impact
             'Technology Level' : {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Technology level
             'Wealth' : {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Wealth impact
@@ -63,16 +63,16 @@ class ColonisationWindow:
             'Name' : {'header': _("Base Name"), 'background': None, 'format': 'dropdown', 'width': 225}, # LANG: name of the base
             'Body': {'header': _("Body"), 'background': None, 'format': 'string', 'width': 115}, # LANG: Body the base is on or around
             'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 115}, # LANG: any prerequisites for the base
-            'State': {'header': _("State"), 'background': None, 'format': 'string', 'width': 115}, # LANG: Current build state
+            'State': {'header': _("State"), 'background': 'type', 'format': 'string', 'width': 115}, # LANG: Current build state
             'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 2 points
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 3
             'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':75000, 'width': 75}, # LANG: As above
             'Trips':{'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max':100, 'width': 60}, # LANG: As above
-            'Pad': {'header': _("Pad"), 'background': None, 'format': 'string', 'width': 75}, # LANG: Landing pad size
-            'Facility Economy': {'header': _("Economy"), 'background': None, 'format': 'string', 'width': 80}, # LANG: facility economy
+            'Pad': {'header': _("Pad"), 'background': 'type', 'format': 'string', 'width': 75}, # LANG: Landing pad size
+            'Facility Economy': {'header': _("Economy"), 'background': 'type', 'format': 'string', 'width': 80}, # LANG: facility economy
             'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 75}, # LANG: As above
             'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 75}, # LANG: As above
-            'Economy Influence': {'header': _("Econ Inf"), 'background': None, 'format': 'string', 'width': 100}, # LANG: economy influence
+            'Economy Influence': {'header': _("Econ Inf"), 'background': 'type', 'format': 'string', 'width': 100}, # LANG: economy influence
             'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Technology Level': {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Wealth': {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
@@ -82,21 +82,21 @@ class ColonisationWindow:
 
         # Table has two sections: summary and builds. This dict defines attributes for each build column
         self.bases:dict = {
-            'Type' : {'header': _("Base Type"), 'background': None, 'format': 'string', 'width': 200}, # LANG: type of base
-            'Tier' : {'header': _("Tier"), 'background': None, 'format': 'string', 'width': 40}, # LANG: tier of base
-            'Category' : {'header': _("Category"), 'background': None, 'format': 'string', 'width': 100}, # LANG: category of base
-            'Location' : {'header': _("Location"), 'background': None, 'format': 'string', 'width': 80}, # LANG: base location surface/orbital
+            'Type' : {'header': _("Base Type"), 'background': 'type', 'format': 'string', 'width': 200}, # LANG: type of base
+            'Tier' : {'header': _("Tier"), 'background': 'type', 'format': 'string', 'width': 40}, # LANG: tier of base
+            'Category' : {'header': _("Category"), 'background': 'type', 'format': 'string', 'width': 100}, # LANG: category of base
+            'Location' : {'header': _("Location"), 'background': 'type', 'format': 'string', 'width': 80}, # LANG: base location surface/orbital
             'Building Type' : {'header': _("Building Type"), 'background': None, 'format': 'string', 'width': 175}, # LANG: Building type
             'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 200}, # LANG: any prerequisites for the base
             'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':3, 'width': 30}, # LANG: Tier 2 points
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':3, 'width': 30}, # LANG: Tier 3
             'Total Comm': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':75000, 'width': 75}, # LANG: As above
             'Trips':{'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max':100, 'width': 60}, # LANG: As above
-            'Pad': {'header': _("Pad"), 'background': None, 'format': 'string', 'width': 75}, # LANG: Landing pad size
-            'Facility Economy': {'header': _("Economy"), 'background': None, 'format': 'string', 'width': 80}, # LANG: facility economy
+            'Pad': {'header': _("Pad"), 'background': 'type', 'format': 'string', 'width': 75}, # LANG: Landing pad size
+            'Facility Economy': {'header': _("Economy"), 'background': 'type', 'format': 'string', 'width': 80}, # LANG: facility economy
             'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max':7, 'width': 75}, # LANG: As above
             'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max':7, 'width': 75}, # LANG: As above
-            'Economy Influence': {'header': _("Econ Inf"), 'background': None, 'format': 'string', 'width': 100}, # LANG: economy influence
+            'Economy Influence': {'header': _("Econ Inf"), 'background': 'type', 'format': 'string', 'width': 100}, # LANG: economy influence
             'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Technology Level': {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Wealth': {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
@@ -346,15 +346,15 @@ class ColonisationWindow:
                                 v = bt.get(name+' Reward', 0) - bt.get(name + ' Cost', 0)
                             if name == 'Trips':
                                 v = ceil(bt['Total Comm'] / self.colonisation.cargo_capacity)
-                            if col.get('background') in ('rwg','gyr'):
-                                if v != 0:
-                                    sheet[i,j].highlight(bg=self.get_color(v, col.get('max', 1), col.get('background')))
                             sheet[i,j].data = ' ' if v == 0 else f"{v:,}"
-
+                            sheet[i,j].highlight(bg=self.background(col.get('background'), v, col.get('max')))
                         case _:
                             sheet[i,j].data = bt.get(name) if bt.get(name, ' ') != ' ' else bt.get(name, ' ')
-                            if col.get('background') != False:
-                                sheet[i,j].highlight(bg=col.get('background'))
+                            if name == 'Type': # Special case.
+                                econ = bt.get('Economy Influence') if bt.get('Economy Influence') != "" else bt.get('Facility Economy')
+                                sheet[i,j].highlight(bg=self.background(col.get('background'), econ if econ else 'None'))
+                            else:
+                                sheet[i,j].highlight(bg=self.background(col.get('background'), bt.get(name, ' ')))
 
         except Exception as e:
             Debug.logger.error(f"Error in bases_popup(): {e}")
@@ -488,8 +488,12 @@ class ColonisationWindow:
 
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')
-        sheet['A2:C3'].highlight(bg='paleturquoise1')
-        sheet['K2:L3'].highlight(bg='paleturquoise1')
+        #sheet['A2:C2'].highlight(bg=self.background('type', 'Complete', 1))
+        #sheet['K2:L2'].highlight(bg=self.background('type', 'Complete', 1))
+        #sheet['A3:C3'].highlight(bg=self.background('type', 'Planned', 1))
+        #sheet['K3:L3'].highlight(bg=self.background('type', 'Planned', 1))
+        sheet['A2:F2'].highlight(bg=self.background('type', 'Complete', 1))
+        sheet['A3:F3'].highlight(bg=self.background('type', 'Planned', 1))
         sheet[HEADER_ROW].highlight(bg='lightgrey')
 
         # Tracking checkboxes
@@ -523,18 +527,18 @@ class ColonisationWindow:
 
     def calc_totals(self, system:dict) -> dict[str, dict[str, int]]:
         ''' Build a summary of the system's builds and status. '''
-        totals:dict = {'Planned': {}, 'Completed': {}}
+        totals:dict = {'Planned': {}, 'Complete': {}}
         builds:list = system.get('Builds', [])
         required:dict = self.colonisation.get_required(builds)
 
         for name, col in self.summary_cols.items():
             if col.get('hide') == True:
                 totals['Planned'][name] = ' '
-                totals['Completed'][name] = ' '
+                totals['Complete'][name] = ' '
                 continue
 
             totals['Planned'][name] = 0
-            totals['Completed'][name] = 0
+            totals['Complete'][name] = 0
 
             # Calculate summary values
             for row, build in enumerate(builds):
@@ -544,40 +548,40 @@ class ColonisationWindow:
                 match name:
                     case 'Total':
                         totals['Planned'][name] += 1
-                        totals['Completed'][name] += 1 if self.is_build_completed(build) else 0
+                        totals['Complete'][name] += 1 if self.is_build_complete(build) else 0
                     case 'Orbital'|'Surface' if bt.get('Location') == name:
                         totals['Planned'][name] += 1
-                        totals['Completed'][name] += 1 if self.is_build_completed(build) else 0
+                        totals['Complete'][name] += 1 if self.is_build_complete(build) else 0
                     case 'T2' | 'T3':
                         v:int = self.calc_points(name, builds, row)
                         totals['Planned'][name] += v
-                        totals['Completed'][name] += v if self.is_build_started(build) and v < 1 else 0 # Need to substract points as soon as build starts as the points are nolonger available
-                        totals['Completed'][name] += v if self.is_build_completed(build) else 0
+                        totals['Complete'][name] += v if self.is_build_started(build) and v < 1 else 0 # Need to substract points as soon as build starts as the points are nolonger available
+                        totals['Complete'][name] += v if self.is_build_complete(build) else 0
                     case 'Population':
                         totals['Planned'][name] = ' '
-                        totals['Completed'][name] = human_format(system.get('Population', 0))
+                        totals['Complete'][name] = human_format(system.get('Population', 0))
                     case 'Development Level':
                         res:int = bt.get(name, 0)
                         totals['Planned'][name] += res
-                        totals['Completed'][name] += res if self.is_build_completed(build) else 0
+                        totals['Complete'][name] += res if self.is_build_complete(build) else 0
                     case 'Cost' if row < len(required):
                         res:int = sum(required[row].values())
                         totals['Planned'][name] += res
-                        totals['Completed'][name] += res if self.is_build_completed(build) else 0
+                        totals['Complete'][name] += res if self.is_build_complete(build) else 0
                     case 'Trips' if row < len(required):
                         trips:int = ceil(sum(required[row].values()) / self.colonisation.cargo_capacity)
                         totals['Planned'][name] += trips
-                        totals['Completed'][name] += trips if self.is_build_completed(build) else 0
+                        totals['Complete'][name] += trips if self.is_build_complete(build) else 0
                     case _ if col.get('format') == 'int':
                         totals['Planned'][name] += bt.get(name, 0)
-                        totals['Completed'][name] += bt.get(name, 0) if self.is_build_completed(build) else 0
+                        totals['Complete'][name] += bt.get(name, 0) if self.is_build_complete(build) else 0
 
         # Deal with the "if you have a starport (t2 orbital) your tech level will be at least 35" rule
         starports:list = self.colonisation.get_base_types('Starport')
         min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
         totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
         min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.colonisation.get_build_state(build) == BuildState.COMPLETE]) > 0 else 0
-        totals['Completed']['Technology Level'] = max(totals['Completed']['Technology Level'], min)
+        totals['Complete']['Technology Level'] = max(totals['Complete']['Technology Level'], min)
 
         return totals
 
@@ -609,18 +613,10 @@ class ColonisationWindow:
             for j, details in enumerate(self.summary_cols.values()):
                 j += FIRST_SUMMARY_COLUMN
                 sheet[i+srow,j].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
-
-                if new[i][j] and new[i][j] != ' ' and new[i][j] != 0:
-                    if details.get('background') in('rwg','gyr'):
-                        color = self.get_color(new[i][j], details.get('max', 1), details.get('background'))
-                        sheet[i+srow,j+scol].highlight(bg=color)
-                        #if color != '':
-                        #    sheet[i+srow,j+scol].highlight(bg=color)
-                    elif details.get('background') != False:
-                        sheet[i+srow,j+scol].highlight(bg=details.get('background'))
-                    else:
-                        sheet[i+srow,j+scol].highlight(bg=None)
-
+                if details.get('background') != None:
+                    sheet[i+srow,j+scol].highlight(bg=self.background(details.get('background'), new[i][j], details.get('max', 1)))
+                #else:
+                #    sheet[i+srow,j+scol].highlight(bg=self.background('type', x, 1))
 
     def get_detail_header(self) -> list[str]:
         ''' Return the details header row '''
@@ -645,7 +641,7 @@ class ColonisationWindow:
             for name, col in self.detail_cols.items():
                 match col.get('format'):
                     case 'checkbox':
-                        row.append(self.is_build_completed(build) != True and build.get(name, False) == True)
+                        row.append(self.is_build_complete(build) != True and build.get(name, False) == True)
 
                     case 'int':
                         v = bt.get(name, 0)
@@ -694,23 +690,14 @@ class ColonisationWindow:
             for j, details in enumerate(self.detail_cols.values()):
                 if i >= len(new) or j >= len(new[i]):
                     continue
-
-                # Set or clear the cell value
                 sheet[i+srow,j].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
-
-                # Clear the highlight
-                if sheet[i+srow,j].data != new[i][j]:
-                    sheet[i+srow,j].highlight(bg=None)
-
-                    if details.get('background') in ('rwg', 'gyr') and new[i][j] != ' ':
-                        color = self.get_color(new[i][j], details.get('max', 1), details.get('background'))
-                        sheet[i+srow,j].highlight(bg=color)
+                sheet[i+srow,j].highlight(bg=self.background(details.get('background'), new[i][j], details.get('max', 1)))
 
             # Handle build states
-            if new[i][5] == BuildState.COMPLETE: # Mark completed builds as readonly
+            if new[i][5] == BuildState.COMPLETE: # Mark complete builds as readonly
                 # Tracking
                 sheet[i+srow,0].del_checkbox()
-                sheet[i+srow,0].data = ' ⇒'
+                sheet[i+srow,0].data = ' 🢅' #⇒
                 #sheet[i+srow,0].checkbox(state='disabled'); sheet[i+srow,0].data = ' ';
                 sheet[i+srow,0].readonly()
                 sheet[i+srow,0].align(align='left')
@@ -1115,8 +1102,8 @@ class ColonisationWindow:
         return len([b for b in builds if b.get('Base Type') in self.colonisation.get_base_types('Initial')])
 
 
-    def is_build_completed(self, build:list[dict]) -> bool:
-        ''' Check if a build is completed '''
+    def is_build_complete(self, build:list[dict]) -> bool:
+        ''' Check if a build is complete '''
         return (self.colonisation.get_build_state(build) == BuildState.COMPLETE)
 
 
@@ -1208,6 +1195,53 @@ class ColonisationWindow:
 
         except Exception as e:
             Debug.logger.error(f"Error in notes_popup(): {e}")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def background(self, type: str|None, value: str, limit:int = 1) -> str|None:
+        ''' Return the appropriate background '''
+        try:
+            match type:
+                case False|None:
+                    return None
+                case 'gyr' | 'rwg':
+                    return self.get_color(int(value), int(limit), type)
+
+                case 'type':
+                    colors = {'Contraband': '#ebc296', #'#dce9cb',
+                                'Agricultural': '#bbe1ba', #'#ddebff',
+                                'Extraction' : '#dbeeef',
+                                'High Tech' : '#c0e1ff',
+                                'Military' : '#94A590', #'#bbe1ba',
+                                'Tourism' : '#bac9e5',
+                                'Industrial' : '#d1c3b7', #'#ccddcc',
+                                'Refinery' : '#92bbe0',
+                                'Colony' : '#d4f2cc',
+                                'None': '#e8eaed',
+                                'Small' : '#d4edbc',
+                                'Medium' : '#dbe5ff',
+                                'Large': '#dbceff',
+                                '1' : '#d4edbc',#'#c6dbe1',
+                                '2' : '#dbe5ff',#'#e6cff2',
+                                '3' : '#dbceff',#'#5a3286',
+                                'Orbital' : '#d5deeb',
+                                'Surface' : '#ebe6db',
+                                'Starport' : '#dce9cb',
+                                'Outpost' : '#ddebff',
+                                'Installation' : '#ffe5a0', #'#dbeeef',
+                                'Planetary Port': '#c0e1ff',
+                                'Settlement' : '#bbe1ba',
+                                'Hub' : '#bac9e5',
+                                'Planned' : '#ffe5a0',#'#c6dbe1',
+                                'Progress' : '#f5b60d',#'#e6cff2',
+                                'Complete' : '#d4edbc' #'#5a3286',
+                                }
+                    return colors.get(str(value), None)
+                case _:
+                    return type
+
+        except Exception as e:
+            Debug.logger.error(f"Error in background: {e}")
             Debug.logger.error(traceback.format_exc())
 
 

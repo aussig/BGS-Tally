@@ -848,6 +848,13 @@ class Colonisation:
         # We sort the order of systems when saving so that in progress systems are first, then planned, then complete.
         # Fortuitously our desired order matches the reverse alpha of the states
         systems:list = list(sorted(self.systems, key=sort_order, reverse=True))
+
+        # Remove empty build entries
+        #for system in systems:
+        #    for i, b in enumerate(system.get('Builds', [])):
+        #        if b.get('Base Type', '') == '' and b.get('Name', '') == '':
+        #            del system['Builds'][i]
+
         units:dict = {}
         for k, v in self.bgstally.ui.window_progress.units.items():
             units[k] = v.value

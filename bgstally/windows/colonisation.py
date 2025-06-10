@@ -635,8 +635,6 @@ class ColonisationWindow:
 
         for i, build in enumerate(builds):
             bt:dict = self.colonisation.get_base_type(build.get('Base Type', ' '))
-            #if bt == {}:
-            #    continue
             row:list = []
             for name, col in self.detail_cols.items():
                 match col.get('format'):
@@ -662,7 +660,7 @@ class ColonisationWindow:
                                 row.append(f"{int(deliv * 100 / req)}%" if req > 0 else 0)
                             elif self.colonisation.get_build_state(build) == BuildState.COMPLETE:
                                 row.append('Complete')
-                            else:
+                            elif build.get('Base Type', '') != '':
                                 row.append('Planned')
                             continue
 
@@ -866,6 +864,8 @@ class ColonisationWindow:
 
                 case _:
                     # Any other fields, just update the build data
+                    if row >= len(systems[sysnum]['Builds']):
+                        self.colonisation.add_build(systems[sysnum])
                     systems[sysnum]['Builds'][row][field] = val
 
             self.colonisation.dirty = True

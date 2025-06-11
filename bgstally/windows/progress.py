@@ -218,7 +218,7 @@ class ProgressWindow:
                     if self.build_index < 0: self.build_index = max
                 case 'change':
                     self.view = ProgressView((self.view.value + 1) % len(ProgressView))
-                    self.colonisation.save()
+            self.colonisation.save()
             self.update_display()
 
         except Exception as e:
@@ -357,10 +357,19 @@ class ProgressWindow:
                 # If we're in minimal view we only show ones we still need to buy.
                 if (reqcnt <= 0) or \
                     (remaining <= 0 and self.view != ProgressView.FULL) or \
-                    (tobuy <= 0 and self.view == ProgressView.MINIMAL) or \
+                    (tobuy <= 0 and self.view == ProgressView.REDUCED) or \
+                    (self.colonisation.docked == False and tobuy <= 0 and self.view == ProgressView.MINIMAL) or \
+                    (self.colonisation.docked == True and self.colonisation.market.get(c, 0) == 0 and self.view == ProgressView.MINIMAL)or \
                     rc > MAX_ROWS:
                     for col in self.headings.keys():
                         row[col].grid_remove()
+                    continue
+
+                if rc == MAX_ROWS:
+                    for col in self.headings.keys():
+                        row[col]['text'] = '...'
+                        row[col].grid()
+                    rc += 1
                     continue
 
                 for col in self.headings.keys():

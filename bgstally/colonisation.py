@@ -249,7 +249,7 @@ class Colonisation:
                     # It's in a system we're building in, so we should create it.
                     build:dict = self.find_or_create_build(system, self.marketid, self.station)
 
-                    # We update them here because it's not possible to land at installations once they're complete so
+                    # We update them here because it's not possible to dock at installations once they're complete so
                     # you may miss their completion.
                     if build.get('MarketID', None) == None: build['MarketID'] = self.marketid
                     build['State'] = BuildState.COMPLETE
@@ -870,7 +870,8 @@ class Colonisation:
             'Systems': systems,
             'CargoCapacity': self.cargo_capacity,
             'ProgressView' : self.bgstally.ui.window_progress.view.value,
-            'ProgressUnits': units
+            'ProgressUnits': units,
+            'BuildIndex'   : self.bgstally.ui.window_progress.build_index
             }
 
 
@@ -889,3 +890,4 @@ class Colonisation:
         units = dict.get('ProgressUnits', {})
         for k, v in units.items():
             self.bgstally.ui.window_progress.units[k] = ProgressUnits(v)
+        self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)

@@ -122,7 +122,7 @@
 "Both BGS and TW" = "BGS y TW";
 
 /* Post to Discord button tooltip. [activity.py] */
-"Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord" = "Tanto el campo 'Post en Discord como' como un webhookde Discord\n deben ser configurados en la configuración para permitir publicar en Discord";
+"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Tanto el campo 'Post en Discord como' como un webhookde Discord{CR}deben ser configurados en la configuración para permitir publicar en Discord";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bonos de recompensas";

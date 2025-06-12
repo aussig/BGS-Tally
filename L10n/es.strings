@@ -113,7 +113,7 @@
 "Black market profit" = "Beneficios de mercado negro";
 
 /* bodies in the system. [colonisation.py] */
-"Bodies" = "Bodies";
+"Bodies" = "Cuerpos";
 
 /* Body the base is on or around. [colonisation.py] */
 "Body" = "Cuerpo";
@@ -122,7 +122,7 @@
 "Both BGS and TW" = "BGS y TW";
 
 /* Post to Discord button tooltip. [activity.py] */
-"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Tanto el campo 'Post en Discord como' como un webhookde Discord{CR}deben ser configurados en la configuración para permitir publicar en Discord";
+"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bonos de recompensas";
@@ -233,7 +233,7 @@
 "Copy contents" = "Copiar contenido";
 
 /* tooltip for the copy to clipboard icon. [colonisation.py] */
-"Copy system name to clipboard" = "Copy system name to clipboard";
+"Copy system name to clipboard" = "Copiar nombre del sistema al portapapeles";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Copiar al portapapeles";
@@ -671,7 +671,7 @@
 "L" = "V";
 
 /* [colonisation.py] */
-"Landable" = "Landable";
+"Landable" = "Aterrizable";
 
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Idioma para las publicaciones de Discord";
@@ -872,7 +872,7 @@
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "¡POR FAVOR ASEGÚRATE DE QUE CONFÍAS en el servidor al que envíes esta información!";
 
 /* [colonisation.py] */
-"Pop" = "Pop";
+"Pop" = "Pob";
 
 /* Population increase. [colonisation.py] */
 "Pop Inc" = "Pob Inc";
@@ -989,7 +989,7 @@
 "Research Station" = "Investigación de investigación";
 
 /* [colonisation.py] */
-"rings" = "rings";
+"rings" = "anillos";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "BusqResc";
@@ -1121,7 +1121,7 @@
 "Show previous build" = "Mostrar construcción anterior";
 
 /* tooltip for the show bodies window. [colonisation.py] */
-"Show system bodies window" = "Show system bodies window";
+"Show system bodies window" = "Mostrar ventana de cuerpos del sistema";
 
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Mostrar ventana de notas del sistema";
@@ -1133,7 +1133,7 @@
 "Small" = "Pequeño";
 
 /* Standard of living impact. [colonisation.py] */
-"SoL" = "";
+"SoL" = "NdV";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Alguna información no puede ser actualizada. Habilitar consultas CAPI del portanaves en Archivo -> Ajustes -> Configuración";
@@ -1388,16 +1388,16 @@
 "{plugin_name} - CMDR Interactions" = "{plugin_name} - Interacciones del CMDR";
 
 /* Colonisation window title. [colonisation.py] */
-"{plugin_name} - Colonisation" = "{plugin_name} - Colonisation";
+"{plugin_name} - Colonisation" = "{plugin_name} - Colonización";
 
 /* Colonisation bodies popup window title. [colonisation.py] */
-"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Colonisation Bodies";
+"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Cuerpos de Colonización";
 
 /* Colonisation legend popup window title. [colonisation.py] */
-"{plugin_name} - Colonisation Legend" = "{plugin_name} - Colonisation Legend";
+"{plugin_name} - Colonisation Legend" = "{plugin_name} - Leyenda de Colonización";
 
 /* Colonisation notes popup window title. [colonisation.py] */
-"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - Colonisation Notes for {system_name}";
+"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - Notas de colonización para {system_name}";
 
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Leyenda de los iconos";

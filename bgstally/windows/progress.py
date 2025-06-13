@@ -357,9 +357,8 @@ class ProgressWindow:
                 # If we're in minimal view we only show ones we still need to buy.
                 if (reqcnt <= 0) or \
                     (remaining <= 0 and self.view != ProgressView.FULL) or \
-                    (tobuy <= 0 and self.view == ProgressView.REDUCED) or \
-                    (self.colonisation.docked == False and tobuy <= 0 and self.view == ProgressView.MINIMAL) or \
-                    (self.colonisation.docked == True and self.colonisation.market.get(c, 0) == 0 and self.view == ProgressView.MINIMAL)or \
+                    (tobuy <= 0 and self.view == ProgressView.MINIMAL) or \
+                    (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) == 0 and self.view == ProgressView.MINIMAL) or \
                     rc > MAX_ROWS:
                     for col in self.headings.keys():
                         row[col].grid_remove()
@@ -367,7 +366,7 @@ class ProgressWindow:
 
                 if rc == MAX_ROWS:
                     for col in self.headings.keys():
-                        row[col]['text'] = '...'
+                        row[col]['text'] = '… '
                         row[col].grid()
                     rc += 1
                     continue

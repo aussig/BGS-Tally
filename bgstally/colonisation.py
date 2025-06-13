@@ -185,6 +185,7 @@ class Colonisation:
                     system['StarSystem'] = entry.get('StarSystem')
                     system['SystemAddress'] = entry.get('SystemAddress')
 
+                    Debug.logger.debug(f"Docked, adding build {name}")
                     build:dict = self.find_or_create_build(system, entry.get('MarketID'), name)
                     build['Name'] = name
                     build['MarketID'] = entry.get('MarketID')
@@ -214,13 +215,13 @@ class Colonisation:
                     self.marketid = None
 
                 case 'SupercruiseDestinationDrop':
-                    # Ignore fleet carriers and other specials (warzones, scenarios etc.)
-                    if re.search('^$', entry.get('Type')) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', entry.get('Type')):
-                        self.station = None
-                        self.marketid = None
-                        return
                     self.station = entry.get('Type')
                     self.marketid = entry.get('MarketID')
+
+                    # Ignore fleet carriers and other specials (warzones, scenarios etc.)
+                    if re.search('^\$', entry.get('Type')) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', entry.get('Type')):
+                        self.station = None
+                        self.marketid = None
 
                 case 'ApproachBody':
                     self.current_system = entry.get('StarSystem')
@@ -237,9 +238,9 @@ class Colonisation:
 
                     # If it's a construction site or colonisation ship wait til we dock.
                     # If it's a carrier or other non-standard location we ignore it. Bet there are other options!
-                    #if self.station == None or 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
-                    #   'MULTIPLAYER_SCENARIO' in self.station or re.search('^$', self.station) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
-                    #    return
+                    if self.station == None or 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
+                        re.search('^\$', self.station) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
+                        return
 
                     # If we don't have this system in our list, we don't care about it.
                     system:dict = self.find_system(entry.get('StarSystem'), entry.get('SystemAddress'))

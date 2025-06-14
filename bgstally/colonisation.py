@@ -162,7 +162,7 @@ class Colonisation:
 
                     # Figure out the station name, location, and if it's one we are or should have recorded
                     name:str = ''; type:str = ''; state:BuildState = None
-                    if 'Construction Site' in entry.get('StationName', '') or 'ColonisationShip' in entry.get('StationName', ''):
+                    if 'Construction Site' in entry.get('StationName', '') or 'ColonisationShip' in entry.get('StationName', '') or 'MULTIPLAYER_SCENARIO' in entry.get('Stationname', ''):
                         build_state = BuildState.PROGRESS
                         name = re.sub('^.* Construction Site: ', '', entry['StationName'])
                         type = re.sub('^(.*) Construction Site: .*$', '\1', entry['StationName'])

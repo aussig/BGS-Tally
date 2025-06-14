@@ -386,7 +386,6 @@ class ProgressWindow:
                     row[col].grid()
                     self.highlight_row(row, c, reqcnt - delcnt)
                 rc += 1
-
             self.display_totals(self.rows[i+1], tracked, totals)
             return
 
@@ -448,6 +447,7 @@ class ProgressWindow:
                     valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)}{_('L')}"
                 else:
                     valstr = f"{carrier:,}{_('t')}"
+
             case ProgressUnits.PERCENT if column == 'Required': valstr = f"{delivered * 100 / required:.0f}%"
             case ProgressUnits.PERCENT if column == 'Delivered': valstr = f"{delivered * 100 / required:.0f}%"
             case ProgressUnits.PERCENT if column == 'Cargo': valstr = f"{cargo * 100 / cargo:.0f}%"

@@ -618,6 +618,7 @@ class ColonisationWindow:
                 #else:
                 #    sheet[i+srow,j+scol].highlight(bg=self.background('type', x, 1))
 
+                
     def get_detail_header(self) -> list[str]:
         ''' Return the details header row '''
         cols:list = []

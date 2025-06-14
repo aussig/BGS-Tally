@@ -112,11 +112,17 @@
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Profitto del mercato nero";
 
+/* bodies in the system. [colonisation.py] */
+"Bodies" = "Corpi";
+
 /* Body the base is on or around. [colonisation.py] */
 "Body" = "Corpo";
 
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS e TW";
+
+/* Post to Discord button tooltip. [activity.py] */
+"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Sia il campo 'Pubblica su Discord come' che un webhook Discord{CR}devono essere configurati nelle impostazioni per consentire la pubblicazione su Discord";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bounty vouchers";
@@ -212,7 +218,7 @@
 "Configure Remote Server" = "Configura Server Remoto";
 
 /* Preferences force tick popup title. [ui.py] */
-"Confirm Force a New Tick" = "Conferma la forzatura di un nuovo Tick";
+"Confirm Force a New Tick" = "Conferma la Forzatura di un Nuovo Tick";
 
 /* [colonisation.py] */
 "Confirm Removal" = "Conferma Rimozione";
@@ -225,6 +231,9 @@
 
 /* [sheet_options.py] */
 "Copy contents" = "Copia contenuto";
+
+/* tooltip for the copy to clipboard icon. [colonisation.py] */
+"Copy system name to clipboard" = "Copia il nome di sistema negli appunti";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Copia negli appunti";
@@ -259,11 +268,8 @@
 /* [sheet_options.py] */
 "Cut contents" = "Taglia contenuto";
 
-/* tooltip for the column views. [progress.py] */
-"Cycle column views" = "Cambia vista colonne";
-
-/* tooltip for the change view icon (full, reduced, none). [progress.py] */
-"Cycle view detail" = "Cambia vista dettaglio";
+/* tooltip for the change view icon (full, reduced, minimal, none). [progress.py] */
+"Cycle commodity list filter views" = "Scorri le viste dell’elenco commodity";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Data / Ora";
@@ -320,7 +326,7 @@
 "Discord Report Preview ⓘ" = "Anteprima del report su Discord ⓘ";
 
 /* Preferences heading. [ui.py] */
-"Discord Webhooks" = "Webhooks Discord";
+"Discord Webhooks" = "Webhook Discord";
 
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Attracco";
@@ -328,13 +334,10 @@
 /* Label on activity window. [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Ricontrolla i dati delle CZ a terra, le stime non sono sempre corrette";
 
-/* facility economy. [colonisation.py] */
-"Econ" = "Econ";
-
 /* Economy influence. [colonisation.py] */
 "Econ Inf" = "Inf Econ";
 
-/* facility economy. [colonisation.py] */
+/* [colonisation.py] */
 "Economy" = "Economia";
 
 /* [sheet_options.py] */
@@ -351,9 +354,6 @@
 
 /* Discord heading, abbreviation for election INF. [default.py] */
 "ElectionINF" = "INF Elezione";
-
-/* Your helpful context goes here. [colonisation.py] */
-"Elite Dangerous Colonisation" = "Elite Dangerous Colonisation";
 
 /* Label on activity window. [activity.py] */
 "Empty System, no BGS Activity Available" = "Sistema vuoto, nessuna attività BGS disponibile";
@@ -667,8 +667,11 @@
 /* [legend.py] */
 "Kills" = "Uccisioni";
 
-/* Letter to indicate cargo loads. [progress.py] */
+/* [progress.py] */
 "L" = "L";
+
+/* [colonisation.py] */
+"Landable" = "Atterrabile";
 
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Lingua dei post Discord";
@@ -690,9 +693,6 @@
 
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Stato giuridico: {legal}";
-
-/* Title of the legend popup window. [colonisation.py] */
-"Legend" = "Legenda";
 
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Carichi";
@@ -790,9 +790,6 @@
 /* Discord carrier docking access. [fleetcarrier.py] */
 "None" = "No";
 
-/* Title of the notes popup window. [colonisation.py] */
-"Notes for " = "Appunti su ";
-
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Accesso per Notorietà";
 
@@ -826,7 +823,7 @@
 /* Colonisation 'Type' [base_types.json] */
 "Outpost Hub" = "Outpost Hub";
 
-/* Pad size. [colonisation.py] */
+/* Landing pad size. [colonisation.py] */
 "Pad" = "Pad";
 
 /* [ui.py] */
@@ -839,7 +836,7 @@
 "Passenger missions" = "Missioni passeggeri";
 
 /* [ui.py] */
-"Past Estimated Tick Time" = "Tempo stimato dal tick passato";
+"Past Estimated Tick Time" = "Tempo Stimato dal Tick Passato";
 
 /* [widgets.py] */
 "Paste" = "Incolla";
@@ -873,6 +870,9 @@
 
 /* Text on API settings window. [api.py] */
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "ACCERTATI che il server a cui invii queste informazioni sia affidabile!";
+
+/* [colonisation.py] */
+"Pop" = "Pop";
 
 /* Population increase. [colonisation.py] */
 "Pop Inc" = "Aum Pop";
@@ -955,7 +955,7 @@
 /* Rename button. [colonisation.py] */
 "Rename" = "Rinomina";
 
-/* Your helpful context goes here. [colonisation.py] */
+/* Rename a system. [colonisation.py] */
 "Rename System" = "Rinomina il Sistema";
 
 /* tooltip for the rename system button. [colonisation.py] */
@@ -988,6 +988,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Research Station" = "Research Station";
 
+/* [colonisation.py] */
+"rings" = "anelli";
+
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "SAR";
 
@@ -997,7 +1000,7 @@
 /* Colonisation 'Building Type' [base_types.json] */
 "Satellite Installation" = "Satellite Installation";
 
-/* Save the notes. [colonisation.py] */
+/* Save notes button. [colonisation.py] */
 "Save" = "Salva";
 
 /* CMDR information. [targetmanager.py] */
@@ -1117,6 +1120,9 @@
 /* tooltip for the previous build icon. [progress.py] */
 "Show previous build" = "Mostra la costruzione precedente";
 
+/* tooltip for the show bodies window. [colonisation.py] */
+"Show system bodies window" = "Mostra finestra corpi di sistema";
+
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Mostra la finestra delle note del sistema";
 
@@ -1181,21 +1187,21 @@
 "System activity" = "Attività del sistema";
 
 /* Preferences checkbox label. [ui.py] */
-"System Information" = "Informazioni sul System";
+"System Information" = "Informazioni sul Sistema";
 
 /* Label for the system's name field in the UI. [colonisation.py] */
-"System Name" = "Nome System";
+"System Name" = "Nome del Sistema";
 
 /* Elite dangerous system name. [colonisation.py] */
 "System Name (optional)" = "Nome del Sistema (opzionale)";
 
 /* Overlay system tick message. [ui.py] */
-"System Tick: {tick_time}" = "Ticket Di Sistema: {tick_time}";
+"System Tick: {tick_time}" = "Tick di Sistema: {tick_time}";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistema: {current_system} - Attracco: {docking_access} - Accesso per Notorietà: {notorious}";
 
-/* Letter to indicate tonnes. [progress.py] */
+/* [progress.py] */
 "t" = "ton";
 
 /* Tier 2 points. [colonisation.py] */
@@ -1215,6 +1221,9 @@
 
 /* Technology level. [colonisation.py] */
 "Tech Lvl" = "Lv Tech";
+
+/* [colonisation.py] */
+"Terraformable" = "Terraformabile";
 
 /* Name of default output formatter. [text.py] */
 "Text Only" = "Solo testo";
@@ -1241,7 +1250,7 @@
 "This will move your current activity into the previous tick, and clear activity for the current tick." = "Questo sposta l'attività corrente nel tick precedente e cancella l'attività del tick corrente.";
 
 /* [ui.py] */
-"Tick {minutes_delta}m Overdue (Estimated)" = "Tick {minutes_delta}m In Ritardo (Stimato)";
+"Tick {minutes_delta}m Overdue (Estimated)" = "Tick {minutes_delta}m in Ritardo (Stimato)";
 
 /* [ui.py] */
 "To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "Per aggiungere al webhook: Click destro del mouse sul numero della riga e selezionare \"Inserisci righe sopra/sotto\".";
@@ -1349,7 +1358,7 @@
 "Webhook URL" = "Webhook URL";
 
 /* Notice about the first base being special. [colonisation.py] */
-"When planning your system the first base is special, make sure that it is the first on the list." = "Quando pianifichi il tuo system, la prima base è speciale: assicurati che sia la prima nella lista.";
+"When planning your system the first base is special, make sure that it is the first on the list." = "Quando pianifichi il tuo sistema, la prima base è speciale: assicurati che sia la prima nella lista.";
 
 /* [ui.py] */
 "Within {minutes_to_tick}m of Next Tick (Estimated)" = "Entro {minutes_to_tick}m dal Prossimo Tick (stimato)";
@@ -1378,6 +1387,18 @@
 /* CMDR window title. [cmdrs.py] */
 "{plugin_name} - CMDR Interactions" = "{plugin_name} - Interazioni CMDR";
 
+/* Colonisation window title. [colonisation.py] */
+"{plugin_name} - Colonisation" = "{plugin_name} - Colonizzazione";
+
+/* Colonisation bodies popup window title. [colonisation.py] */
+"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Colonizzazione Corpi";
+
+/* Colonisation legend popup window title. [colonisation.py] */
+"{plugin_name} - Colonisation Legend" = "{plugin_name} - Leggenda Colonizzazione";
+
+/* Colonisation notes popup window title. [colonisation.py] */
+"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - Note di Colonizzazione per {system_name}";
+
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Legenda Delle Icone";
 
@@ -1394,10 +1415,10 @@
 "{plugin_name} Status:" = "Stato {plugin_name}:";
 
 /* Main window error message. [tick.py] */
-"{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo Tick";
+"{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo tick";
 
 /* [tick.py] */
-"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo Tick";
+"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo tick";
 
 /* Objectives title. [objectivesmanager.py] */
 "{server_name} Objectives" = "{server_name} - Obiettivi";

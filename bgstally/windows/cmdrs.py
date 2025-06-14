@@ -112,7 +112,7 @@ class WindowCMDRs:
         self.btn_post.pack(side=tk.RIGHT, padx=5, pady=5)
         self.btn_post['state'] = tk.DISABLED
         if not self._discord_button_available():
-            ToolTip(self.btn_post, text=_("Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord")) # LANG: Post to Discord button tooltip
+            ToolTip(self.btn_post, text=_("Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord").format(CR="\n")) # LANG: Post to Discord button tooltip
 
 
         self.btn_delete: tk.Button = tk.Button(frm_buttons, text=_("Delete Selected"), command=partial(self._delete_selected, treeview)) # LANG: Button on CMDR window

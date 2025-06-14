@@ -1,7 +1,18 @@
 # Change Log
 ## v5.0.0-xx - xxxx-xx-xx
 
+
+### Bug Fixes:
+
+* Tweak to tooltip that had a carriage return to allow translation
+
+
+## v5.0.0-b1 - 2025-06-07
+
 ### Changes
+
+* Added querying of EDSM for body information, existing bases, and system information
+* Modified the "loads" view to use tonnes if it's less than one load.
 
 * Added querying of EDSM for body information, existing bases, and system information
 * Modified the "loads" view to use tonnes if it's less than one load.

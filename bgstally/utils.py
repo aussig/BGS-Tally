@@ -53,29 +53,30 @@ def __(string: str, lang: str) -> str:
     """
     Translate a string using the specified language, compatible with all EDMC versions.
 
-    This wrapper handles the KeyError that occurs if the requested language
-    or translation file is missing, ensuring the original string is returned
-    as a fallback instead of raising an exception.
+    This function attempts to translate the given string into the specified language.
+    If the language is None, empty, or the fallback language, or if translation fails,
+    it safely returns the string translated in the plugin's currently active language
+    or falls back to the original string.
 
     Args:
         string (str): The string to translate.
         lang (str): The language code to use for translation.
 
     Returns:
-        str: The translated string. If the language is empty, None, the fallback language,
-             or if translation fails, returns the original string.
+        str: The translated string, or the original string if translation is not possible.
     """
     # Return the original string if the language is empty, None, or the fallback language.
     if lang == "":
-        Debug.logger.warning("Translation requested with empty language, returning original string.\n"
-                             + f">>> {string} <<<")
-        return string
+        return _(string)
+    
+    # Return original string and log warning if language is None.
     elif lang is None:
         Debug.logger.warning("Translation requested with None language, returning original string.\n"
                              + f">>> {string} <<<")
         return string
+    
+    # Return original string if the requested language is the fallback (e.g., 'en').
     elif lang == translations_obj.FALLBACK:
-        # If the requested language is the fallback (usually 'en'), return the original string.
         return string
 
     # Attempt to translate the string using the translations object.

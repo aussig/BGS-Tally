@@ -112,11 +112,17 @@
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Lucro do mercado negro";
 
+/* bodies in the system. [colonisation.py] */
+"Bodies" = "Bodies";
+
 /* Body the base is on or around. [colonisation.py] */
 "Body" = "Corpo";
 
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "Tanto BGS quanto TW";
+
+/* Post to Discord button tooltip. [activity.py] */
+"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Cupons de recompensa";
@@ -226,6 +232,9 @@
 /* [sheet_options.py] */
 "Copy contents" = "Copiar conteúdo";
 
+/* tooltip for the copy to clipboard icon. [colonisation.py] */
+"Copy system name to clipboard" = "Copy system name to clipboard";
+
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Copia para a Área de Transferência";
 
@@ -259,11 +268,8 @@
 /* [sheet_options.py] */
 "Cut contents" = "Cortar Conteúdo";
 
-/* tooltip for the column views. [progress.py] */
-"Cycle column views" = "Alternar visualização da coluna";
-
-/* tooltip for the change view icon (full, reduced, none). [progress.py] */
-"Cycle view detail" = "Alternar visualização do detalhe";
+/* tooltip for the change view icon (full, reduced, minimal, none). [progress.py] */
+"Cycle commodity list filter views" = "Cycle commodity list filter views";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Data / Hora";
@@ -328,13 +334,10 @@
 /* Label on activity window. [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Verificar duas vezes as contagens CZ no solo, nem sempre estão corretas";
 
-/* facility economy. [colonisation.py] */
-"Econ" = "Econ";
-
 /* Economy influence. [colonisation.py] */
 "Econ Inf" = "Inf do Econ";
 
-/* facility economy. [colonisation.py] */
+/* [colonisation.py] */
 "Economy" = "Economia";
 
 /* [sheet_options.py] */
@@ -351,9 +354,6 @@
 
 /* Discord heading, abbreviation for election INF. [default.py] */
 "ElectionINF" = "EleiçãoINF";
-
-/* Your helpful context goes here. [colonisation.py] */
-"Elite Dangerous Colonisation" = "Colonização Elite Dangerous";
 
 /* Label on activity window. [activity.py] */
 "Empty System, no BGS Activity Available" = "Sistema Vazio, não há atividade BGS disponível";
@@ -667,8 +667,11 @@
 /* [legend.py] */
 "Kills" = "Mortes";
 
-/* Letter to indicate cargo loads. [progress.py] */
+/* [progress.py] */
 "L" = "L";
+
+/* [colonisation.py] */
+"Landable" = "Landable";
 
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Idioma para as publicações do Discord";
@@ -690,9 +693,6 @@
 
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Situação legal: {legal}";
-
-/* Title of the legend popup window. [colonisation.py] */
-"Legend" = "Legenda";
 
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Carregamento";
@@ -790,9 +790,6 @@
 /* Discord carrier docking access. [fleetcarrier.py] */
 "None" = "Nenhum";
 
-/* Title of the notes popup window. [colonisation.py] */
-"Notes for " = "Notas para ";
-
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Acesso Notório";
 
@@ -826,7 +823,7 @@
 /* Colonisation 'Type' [base_types.json] */
 "Outpost Hub" = "Hub do posto avançado";
 
-/* Pad size. [colonisation.py] */
+/* Landing pad size. [colonisation.py] */
 "Pad" = "Pad";
 
 /* [ui.py] */
@@ -873,6 +870,9 @@
 
 /* Text on API settings window. [api.py] */
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "POR FAVOR, CERTIFICA-TE DE CONFIAR no servidor para o qual envias estas informações!";
+
+/* [colonisation.py] */
+"Pop" = "Pop";
 
 /* Population increase. [colonisation.py] */
 "Pop Inc" = "Pop Inc";
@@ -955,7 +955,7 @@
 /* Rename button. [colonisation.py] */
 "Rename" = "Renomear";
 
-/* Your helpful context goes here. [colonisation.py] */
+/* Rename a system. [colonisation.py] */
 "Rename System" = "Renomear sistema";
 
 /* tooltip for the rename system button. [colonisation.py] */
@@ -988,6 +988,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Research Station" = "Centro de Investigação";
 
+/* [colonisation.py] */
+"rings" = "rings";
+
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "BusResg";
 
@@ -997,7 +1000,7 @@
 /* Colonisation 'Building Type' [base_types.json] */
 "Satellite Installation" = "Instalação Satélite";
 
-/* Save the notes. [colonisation.py] */
+/* Save notes button. [colonisation.py] */
 "Save" = "Guardar";
 
 /* CMDR information. [targetmanager.py] */
@@ -1117,6 +1120,9 @@
 /* tooltip for the previous build icon. [progress.py] */
 "Show previous build" = "Mostrar construção anterior";
 
+/* tooltip for the show bodies window. [colonisation.py] */
+"Show system bodies window" = "Show system bodies window";
+
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Mostrar janela de notas do sistema";
 
@@ -1195,7 +1201,7 @@
 /* Label on carrier window. [fleetcarrier.py] */
 "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistema: {current_system} - Ancoragem: {docking_access} - Notório Permitido: {notorious}";
 
-/* Letter to indicate tonnes. [progress.py] */
+/* [progress.py] */
 "t" = "t";
 
 /* Tier 2 points. [colonisation.py] */
@@ -1215,6 +1221,9 @@
 
 /* Technology level. [colonisation.py] */
 "Tech Lvl" = "Nível Tecnológico";
+
+/* [colonisation.py] */
+"Terraformable" = "Terraformable";
 
 /* Name of default output formatter. [text.py] */
 "Text Only" = "Apenas Texto";
@@ -1377,6 +1386,18 @@
 
 /* CMDR window title. [cmdrs.py] */
 "{plugin_name} - CMDR Interactions" = "{plugin_name} - Interações de CMDR";
+
+/* Colonisation window title. [colonisation.py] */
+"{plugin_name} - Colonisation" = "{plugin_name} - Colonisation";
+
+/* Colonisation bodies popup window title. [colonisation.py] */
+"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Colonisation Bodies";
+
+/* Colonisation legend popup window title. [colonisation.py] */
+"{plugin_name} - Colonisation Legend" = "{plugin_name} - Colonisation Legend";
+
+/* Colonisation notes popup window title. [colonisation.py] */
+"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - Colonisation Notes for {system_name}";
 
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Legenda do Ícone";

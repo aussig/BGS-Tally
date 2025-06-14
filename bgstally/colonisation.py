@@ -185,7 +185,7 @@ class Colonisation:
                     system['StarSystem'] = entry.get('StarSystem')
                     system['SystemAddress'] = entry.get('SystemAddress')
 
-                    Debug.logger.debug(f"Docked, adding build {name}")
+                    Debug.logger.debug(f"Docked, find or adding build {name}")
                     build:dict = self.find_or_create_build(system, entry.get('MarketID'), name)
                     build['Name'] = name
                     build['MarketID'] = entry.get('MarketID')

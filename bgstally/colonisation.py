@@ -505,6 +505,15 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
+    def get_body(self, system:dict, body_name:str) -> dict|None:
+        ''' Get a body by name from a system '''
+        for b in system['Bodies']:
+            if body_name in [b.get('name', None), b.get('name', '').replace(system['StarSystem'] + ' ', '')]:
+                return b
+
+        return None
+
+
     def get_bodies(self, system:dict) -> list:
         ''' Return a list of bodies in the system '''
         bodies:list = []

@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.font as tkFont
+import re
 from os import path
 from math import ceil
 import traceback
@@ -62,7 +63,7 @@ class ColonisationWindow:
             'Base Type' : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
             'Name' : {'header': _("Base Name"), 'background': None, 'format': 'dropdown', 'width': 225}, # LANG: name of the base
             'Body': {'header': _("Body"), 'background': None, 'format': 'string', 'width': 115}, # LANG: Body the base is on or around
-            'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 115}, # LANG: any prerequisites for the base
+            'Prerequisites': {'header': _("Type"), 'background': None, 'format': 'string', 'width': 115}, # LANG: body type details
             'State': {'header': _("State"), 'background': 'type', 'format': 'string', 'width': 115}, # LANG: Current build state
             'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 2 points
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 3
@@ -86,8 +87,6 @@ class ColonisationWindow:
             'Tier' : {'header': _("Tier"), 'background': 'type', 'format': 'string', 'width': 40}, # LANG: tier of base
             'Category' : {'header': _("Category"), 'background': 'type', 'format': 'string', 'width': 100}, # LANG: category of base
             'Location' : {'header': _("Location"), 'background': 'type', 'format': 'string', 'width': 80}, # LANG: base location surface/orbital
-            'Building Type' : {'header': _("Building Type"), 'background': None, 'format': 'string', 'width': 175}, # LANG: Building type
-            'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 200}, # LANG: any prerequisites for the base
             'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':3, 'width': 30}, # LANG: Tier 2 points
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':3, 'width': 30}, # LANG: Tier 3
             'Total Comm': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':75000, 'width': 75}, # LANG: As above
@@ -101,7 +100,11 @@ class ColonisationWindow:
             'Technology Level': {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Wealth': {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Standard of Living': {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
-            'Development Level': {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70} # LANG: As above
+            'Development Level': {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
+            'Building Type' : {'header': _("Building Type"), 'background': None, 'format': 'string', 'width': 175}, # LANG: Building type
+            'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 200}, # LANG: any prerequisites for the base
+            'Boosted By': {'header': _("Boosted By"), 'background': None, 'format': 'string', 'width': 300}, # LANG: any boost effects for the base
+            'Decreased By': {'header': _("Decreased By"), 'background': None, 'format': 'string', 'width': 250}, # LANG: any decrease effects for the base
         }
 
         # UI components
@@ -254,10 +257,6 @@ class ColonisationWindow:
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show legend window")) # LANG: tooltip for the show legend button
 
-        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
-        btn.pack(side=tk.RIGHT, padx=5, pady=5)
-        ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
-
         btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
         ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -265,6 +264,10 @@ class ColonisationWindow:
         btn:ttk.Button = ttk.Button(title_frame, text=_("Rename"), cursor="hand2", command=lambda: self.rename_system_dialog(tabnum, tab)) # LANG: Rename button
         ToolTip(btn, text=_("Rename system plan")) # LANG: tooltip for the rename system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
+        btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("📓"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -334,7 +337,7 @@ class ColonisationWindow:
             sheet.set_sheet_data(data)
             #Debug.logger.debug(f"Data: {len(data)} {len(data[0])}")
             sheet["A1:A100"].align(align='left')
-            sheet["E1:F100"].align(align='left')
+            sheet["S1:V100"].align(align='left')
 
             for i, bt in enumerate(self.colonisation.base_types.values()):
                 for j, (name, col) in enumerate(self.bases.items()):
@@ -687,10 +690,26 @@ class ColonisationWindow:
 
         for i, build in enumerate(system.get('Builds', [])):
             for j, details in enumerate(self.detail_cols.values()):
-                if i >= len(new) or j >= len(new[i]):
-                    continue
+                if i >= len(new) or j >= len(new[i]): continue # Just in case
+
+                # Set or clear the data in the cell and the highlight
                 sheet[i+srow,j].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
                 sheet[i+srow,j].highlight(bg=self.background(details.get('background'), new[i][j], details.get('max', 1)))
+
+            # Body type details
+            if system != None and 'Bodies' in system and new[i][3] != ' ':
+                b = self.colonisation.get_body(system, new[i][3])
+                desc:str = b.get('subType', 'Unknown')
+                if b.get('type') == 'Star': desc = re.sub(r".*\((.+)\).*", r"\1", desc)
+                if b.get('subType') == 'High metal content world': desc = 'HMC World' # LANG: HMC World is a high metal content world
+
+                #attrs:list = []
+                #if b.get('terraformingState', 'Not terraformable') != 'Not terraformable': attrs.append("T")
+                #if b.get('volcanismType', 'None') != 'None': attrs.append("V")
+                #if len(attrs) > 0:
+                #    desc += " (" + ", ".join(attrs) + ")"
+                sheet[i+srow,4].data = desc
+                #sheet[i+srow,4].align(align='left')
 
             # Handle build states
             if new[i][5] == BuildState.COMPLETE: # Mark complete builds as readonly

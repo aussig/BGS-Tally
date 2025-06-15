@@ -25,7 +25,7 @@ class FleetCarrier:
         self.onfoot_mats_buying:list = []
         self.commodities_selling:list = []
         self.commodities_buying:list = []
-        self.cargo:list = {}
+        self.cargo:list = []
         self.locker:dict = {}
         self.commodities:dict = {}
 

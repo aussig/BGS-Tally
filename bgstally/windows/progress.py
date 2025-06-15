@@ -110,9 +110,12 @@ class ProgressWindow:
             self.weight(lbl)
             col += 1
 
-            self.title = tk.Label(frame, text=_("None"), justify=tk.CENTER, anchor=tk.CENTER) # LANG: None
+            self.title = tk.Label(frame, text=_("None"), justify=tk.CENTER, anchor=tk.CENTER, cursor="hand2") # LANG: None
+            self.title.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
+            self.title.bind("<Button-1>", partial(self.event, "copy"))
             self.title.grid(row=row, column=col, sticky=tk.EW)
             frame.columnconfigure(col, weight=1)
+            ToolTip(self.title, text=_("Current build, click to copy to clipboard")) # LANG: tooltip for the build name
             col += 1
 
             prev_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_left_arrow, cursor="hand2")
@@ -204,6 +207,42 @@ class ProgressWindow:
             Debug.logger.error(traceback.format_exc())
 
 
+    def as_text(self) -> str:
+        ''' Return a text representation of the progress window '''
+        try:
+
+            tracked:list = self.colonisation.get_tracked_builds()
+            required:dict = self.colonisation.get_required(tracked)
+            delivered:dict = self.colonisation.get_delivered(tracked)
+            output:str = "```"
+            if self.build_index < len(tracked):
+                b:dict = tracked[self.build_index]
+                sn:str = b.get('Plan', _('Unknown')) # Unknown system name
+                bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
+                output += f"{sn}, {bn}\n"
+            else:
+                output += _("All builds") + "\n" # LANG: all tracked builds
+
+            output += f"{_('Progress')}: {self.progvar.get():.0f}%\n"
+            output += "\n"
+            output += f"{_('Commodity'): <30} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
+            output += "-" * 67 + "\n"
+            for i, c in enumerate(self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)):
+                reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
+                delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
+                remaining:int = reqcnt - delcnt
+                if remaining > 0:
+                    name:str = self.colonisation.commodities[c].get('Name', c)
+                    cat:str = self.colonisation.commodities[c].get('Category', c)
+                    output += f"{name: <30} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
+            output += "```\n"
+            return output.strip()
+
+        except Exception as e:
+            Debug.logger.info(f"Error generating text output {e}")
+            Debug.logger.error(traceback.format_exc())
+
+
     def event(self, event:str, tkEvent) -> None:
         ''' Process events from the buttons in the progress window. '''
         try:
@@ -218,6 +257,10 @@ class ProgressWindow:
                     if self.build_index < 0: self.build_index = max
                 case 'change':
                     self.view = ProgressView((self.view.value + 1) % len(ProgressView))
+                case 'copy':
+                    self.title.clipboard_clear()
+                    self.title.clipboard_append(self.as_text())
+
             self.colonisation.save()
             self.update_display()
 

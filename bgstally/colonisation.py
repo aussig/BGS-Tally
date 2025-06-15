@@ -601,6 +601,7 @@ class Colonisation:
         ''' Add a new build to a system '''
         Debug.logger.debug(f"Adding build {name}")
         build:dict = {
+                'Plan': system.get('Name', ''),
                 'Name': name,
                 'State': BuildState.PLANNED
                 }

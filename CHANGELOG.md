@@ -5,7 +5,7 @@
 ### Bug Fixes:
 
 * Tweak to tooltip that had a carriage return to allow translation
-
+* Added discord postable text
 
 ## v5.0.0-b1 - 2025-06-07
 

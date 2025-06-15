@@ -174,7 +174,7 @@ class Colonisation:
                         name = entry.get('StationName')
                         build_state = BuildState.COMPLETE
 
-                    # If this isn't a colonisation ship or a system we're building, or it's a carrier ir a scenario, ignore it.
+                    # If this isn't a colonisation ship or a system we're building, or it's a carrier, scenario, ignore it.
                     if build_state == None or entry.get('StationType') == 'FleetCarrier' or 'MULTIPLAYER_SCENARIO' in entry.get('StationName', ''):
                         self.bgstally.ui.window_progress.update_display()
                         #Debug.logger.debug(f"Not a construction or a system we're building")
@@ -185,7 +185,6 @@ class Colonisation:
                     system['StarSystem'] = entry.get('StarSystem')
                     system['SystemAddress'] = entry.get('SystemAddress')
 
-                    Debug.logger.debug(f"Docked, find or adding build {name}")
                     build:dict = self.find_or_create_build(system, entry.get('MarketID'), name)
                     build['Name'] = name
                     build['MarketID'] = entry.get('MarketID')
@@ -578,8 +577,6 @@ class Colonisation:
 
         for build in builds:
             if marketid and build.get('MarketID') == marketid:
-                return build
-            if name and build.get('StationName') == name:
                 return build
             if name and build.get('Name') == name:
                 return build

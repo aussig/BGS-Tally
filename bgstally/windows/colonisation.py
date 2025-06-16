@@ -493,10 +493,6 @@ class ColonisationWindow:
 
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')
-        #sheet['A2:C2'].highlight(bg=self.background('type', 'Complete', 1))
-        #sheet['K2:L2'].highlight(bg=self.background('type', 'Complete', 1))
-        #sheet['A3:C3'].highlight(bg=self.background('type', 'Planned', 1))
-        #sheet['K3:L3'].highlight(bg=self.background('type', 'Planned', 1))
         sheet['A2:F2'].highlight(bg=self.background('type', 'Complete', 1))
         sheet['A3:F3'].highlight(bg=self.background('type', 'Planned', 1))
         sheet[HEADER_ROW].highlight(bg='lightgrey')

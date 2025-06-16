@@ -87,6 +87,7 @@ class ColonisationWindow:
             'Tier' : {'header': _("Tier"), 'background': 'type', 'format': 'string', 'width': 40}, # LANG: tier of base
             'Category' : {'header': _("Category"), 'background': 'type', 'format': 'string', 'width': 100}, # LANG: category of base
             'Location' : {'header': _("Location"), 'background': 'type', 'format': 'string', 'width': 80}, # LANG: base location surface/orbital
+            'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 200}, # LANG: any prerequisites for the base
             'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':3, 'width': 30}, # LANG: Tier 2 points
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':3, 'width': 30}, # LANG: Tier 3
             'Total Comm': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':75000, 'width': 75}, # LANG: As above
@@ -101,8 +102,8 @@ class ColonisationWindow:
             'Wealth': {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Standard of Living': {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Development Level': {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
-            'Building Type' : {'header': _("Building Type"), 'background': None, 'format': 'string', 'width': 175}, # LANG: Building type
-            'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 200}, # LANG: any prerequisites for the base
+            #'Building Type' : {'header': _("Building Type"), 'background': None, 'format': 'string', 'width': 175}, # LANG: Building type
+            'Layouts' : {'header': _("Building Layouts"), 'background': None, 'format': 'string', 'width': 200}, # LANG: Building layout types
             'Boosted By': {'header': _("Boosted By"), 'background': None, 'format': 'string', 'width': 300}, # LANG: any boost effects for the base
             'Decreased By': {'header': _("Decreased By"), 'background': None, 'format': 'string', 'width': 250}, # LANG: any decrease effects for the base
         }
@@ -337,7 +338,8 @@ class ColonisationWindow:
             sheet.set_sheet_data(data)
             #Debug.logger.debug(f"Data: {len(data)} {len(data[0])}")
             sheet["A1:A100"].align(align='left')
-            sheet["S1:V100"].align(align='left')
+            sheet["E1:E100"].align(align='left')
+            sheet["T1:V100"].align(align='left')
 
             for i, bt in enumerate(self.colonisation.base_types.values()):
                 for j, (name, col) in enumerate(self.bases.items()):

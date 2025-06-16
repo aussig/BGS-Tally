@@ -117,7 +117,7 @@ class ColonisationWindow:
         self.notes_fr:tk.Toplevel = None
         self.bases_fr:tk.Toplevel = None
         self.bodies_fr:tk.Toplevel = None
-
+        self.scale:float = 0
 
     def show(self) -> None:
         ''' Create and display the colonisation window '''
@@ -125,12 +125,17 @@ class ColonisationWindow:
             if self.window is not None and self.window.winfo_exists():
                 self.window.lift()
                 return
+
+            # We do this once because it seems to get lost over time
+            if self.scale == 0:
+                self.scale = self.bgstally.ui.frame.tk.call('tk', 'scaling') - 0.6
+
             self.colonisation = self.bgstally.colonisation
             self.window:tk.Toplevel = tk.Toplevel(self.bgstally.ui.frame)
             self.window.title(_("BGS-Tally - Colonisation")) # LANG: window title
-            scale:float = self.bgstally.ui.frame.tk.call('tk', 'scaling') - 0.6
+
             self.window.minsize(400, 100)
-            self.window.geometry(f"{int(1500*scale)}x{int(500*scale)}")
+            self.window.geometry(f"{int(1500*self.scale)}x{int(500*self.scale)}")
             self.window.protocol("WM_DELETE_WINDOW", self.close)
             self.create_frames()    # Create main frames
             self.update_display()   # Populate them
@@ -319,10 +324,9 @@ class ColonisationWindow:
     def bases_popup(self) -> None:
         ''' Show a popup with all the base types '''
         try:
-            scale:float = self.bgstally.ui.frame.tk.call('tk', 'scaling') - 0.6 # Don't know why there's an extra .6
             self.bases_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.bases_fr.wm_title(_("BGS-Tally - Colonisation Base Types")) # LANG: Title of the base type popup window
-            self.bases_fr.geometry(f"{int(1000*scale)}x{int(500*scale)}")
+            self.bases_fr.geometry(f"{int(1000*self.scale)}x{int(500*self.scale)}")
             self.bases_fr.protocol("WM_DELETE_WINDOW", self.bases_fr.destroy)
             self.bases_fr.config(bd=2, relief=tk.FLAT)
             sheet:Sheet = Sheet(self.bases_fr, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
@@ -343,7 +347,7 @@ class ColonisationWindow:
 
             for i, bt in enumerate(self.colonisation.base_types.values()):
                 for j, (name, col) in enumerate(self.bases.items()):
-                    sheet.column_width(j, int(col.get('width', 100) * scale))
+                    sheet.column_width(j, int(col.get('width', 100) * self.scale))
                     match col.get('format'):
                         case 'int':
                             v = bt.get(name, 0)
@@ -487,9 +491,8 @@ class ColonisationWindow:
         sheet.dehighlight_all()
 
         # Column widths
-        scale:float = self.bgstally.ui.frame.tk.call('tk', 'scaling') - 0.6 # Don't know why there's an extra .6
         for i, (name, value) in enumerate(self.detail_cols.items()):
-            sheet.column_width(i, int(value.get('width', 100) * scale))
+            sheet.column_width(i, int(value.get('width', 100) * self.scale))
 
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')

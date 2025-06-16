@@ -80,7 +80,6 @@ class ColonisationWindow:
             'Standard of Living': {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Development Level': {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70} # LANG: As above
         }
-
         # Table has two sections: summary and builds. This dict defines attributes for each build column
         self.bases:dict = {
             'Type' : {'header': _("Base Type"), 'background': 'type', 'format': 'string', 'width': 200}, # LANG: type of base
@@ -107,7 +106,18 @@ class ColonisationWindow:
             'Boosted By': {'header': _("Boosted By"), 'background': None, 'format': 'string', 'width': 300}, # LANG: any boost effects for the base
             'Decreased By': {'header': _("Decreased By"), 'background': None, 'format': 'string', 'width': 250}, # LANG: any decrease effects for the base
         }
-
+        # Colours for the various types of bases, states, and sizes
+        self.colors = {'Contraband': '#ebc296', 'Agricultural': '#bbe1ba', 'Extraction' : '#dbeeef',
+                       'High Tech' : '#c0e1ff', 'Military' : '#94A590', 'Tourism' : '#bac9e5',
+                       'Industrial' : '#d1c3b7', 'Refinery' : '#92bbe0', 'Colony' : '#d4f2cc', 'None': '#e8eaed',
+                       'Small' : '#d4edbc', 'Medium' : '#dbe5ff', 'Large': '#dbceff',
+                       '1' : '#d4edbc', '2' : '#dbe5ff', '3' : '#dbceff',
+                       'Orbital' : '#d5deeb', 'Surface' : '#ebe6db',
+                       'Starport' : '#dce9cb', 'Outpost' : '#ddebff', 'Installation' : '#ffe5a0',
+                       'Planetary Port': '#c0e1ff', 'Settlement' : '#bbe1ba', 'Hub' : '#bac9e5',
+                       'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc' #'#5a3286',
+                       }
+        
         # UI components
         self.window:tk.Toplevel = None
         self.tabbar:ScrollableNotebook = None
@@ -496,10 +506,6 @@ class ColonisationWindow:
 
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')
-        #sheet['A2:C2'].highlight(bg=self.background('type', 'Complete', 1))
-        #sheet['K2:L2'].highlight(bg=self.background('type', 'Complete', 1))
-        #sheet['A3:C3'].highlight(bg=self.background('type', 'Planned', 1))
-        #sheet['K3:L3'].highlight(bg=self.background('type', 'Planned', 1))
         sheet['A2:F2'].highlight(bg=self.background('type', 'Complete', 1))
         sheet['A3:F3'].highlight(bg=self.background('type', 'Planned', 1))
         sheet[HEADER_ROW].highlight(bg='lightgrey')
@@ -651,7 +657,7 @@ class ColonisationWindow:
                         row.append(self.is_build_complete(build) != True and build.get(name, False) == True)
 
                     case 'int':
-                        v = bt.get(name, 0)
+                        v:int = bt.get(name, 0)
                         if name in ['T2', 'T3']:
                             v = self.calc_points(name, builds, i)
                         if name == 'Cost' and i < len(reqs):
@@ -725,7 +731,7 @@ class ColonisationWindow:
                 sheet[i+srow,0].readonly()
                 sheet[i+srow,0].align(align='left')
 
-                # Base tyoe
+                # Base type
                 if new[i][1] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
                     sheet[i+srow,1].del_dropdown()
                     sheet[i+srow,1].readonly()
@@ -810,15 +816,14 @@ class ColonisationWindow:
         ''' Handle edits to the sheet. This is where we update the system data. '''
         try:
             sysnum:int = tabnum -1
+            systems:list = self.colonisation.get_all_systems()
 
             if event.eventname == 'select' and len(event.selected) == 6:
                 # No editing the summary/headers
-                if event.selected.row < FIRST_BUILD_ROW:
-                    return
+                if event.selected.row < FIRST_BUILD_ROW: return
 
                 row:int = event.selected.row - FIRST_BUILD_ROW; col:int = event.selected.column
                 fields:list = list(self.detail_cols.keys()); field:str = fields[col]
-                systems:list = self.colonisation.get_all_systems()
 
                 # If the user clicks on the state column, toggle the state between planned and complete.
                 # If it's in progress we'll update to that on our next delivery
@@ -839,7 +844,6 @@ class ColonisationWindow:
                     opener:str = plug.invoke(config.get_str('station_provider'), 'EDSM', 'station_url', systems[sysnum]['StarSystem'], systems[sysnum]['Builds'][row]['Name'])
                     if opener:
                         return webbrowser.open(opener)
-
                 return
 
             # We only deal with edits.
@@ -848,7 +852,6 @@ class ColonisationWindow:
 
             fields:list = list(self.detail_cols.keys())
             field:str = fields[event.column]
-            systems:list = self.colonisation.get_all_systems()
             row:int = event.row - FIRST_BUILD_ROW; val = event.value
 
             match field:
@@ -896,7 +899,6 @@ class ColonisationWindow:
             self.colonisation.dirty = True
             self.colonisation.save()
             self.update_display()
-            return
 
         except Exception as e:
             Debug.logger.error(f"Error in sheet_modified(): {e}")
@@ -971,7 +973,6 @@ class ColonisationWindow:
         except Exception as e:
             Debug.logger.error(f"Error in add_system: {e}")
             Debug.logger.error(traceback.format_exc())
-            return
 
 
     def rename_system_dialog(self, tabnum:int, tab:ttk.Frame) -> None:
@@ -1093,7 +1094,6 @@ class ColonisationWindow:
             if self.bases_fr: self.bases_fr.destroy()
             if self.bodies_fr: self.bodies_fr.destroy()
 
-
             # UI components
             self.tabbar:ScrollableNotebook = None
             self.sheets:list = []
@@ -1110,6 +1110,7 @@ class ColonisationWindow:
         bt:dict = self.colonisation.get_base_type(builds[row].get('Base Type', ''))
         val:int = bt.get(type+' Reward', 0)
         cost:int = bt.get(type + ' Cost', 0)
+        
         if row > 0:
             if bt.get('Category') == 'Starport': # Increasing point costs for starports
                 sp:int = max(self.count_starports(builds[1:row])-1, 0)
@@ -1234,37 +1235,8 @@ class ColonisationWindow:
                     return None
                 case 'gyr' | 'rwg':
                     return None if value == ' ' else self.get_color(int(value), int(limit), type)
-
                 case 'type':
-                    colors = {'Contraband': '#ebc296', #'#dce9cb',
-                                'Agricultural': '#bbe1ba', #'#ddebff',
-                                'Extraction' : '#dbeeef',
-                                'High Tech' : '#c0e1ff',
-                                'Military' : '#94A590', #'#bbe1ba',
-                                'Tourism' : '#bac9e5',
-                                'Industrial' : '#d1c3b7', #'#ccddcc',
-                                'Refinery' : '#92bbe0',
-                                'Colony' : '#d4f2cc',
-                                'None': '#e8eaed',
-                                'Small' : '#d4edbc',
-                                'Medium' : '#dbe5ff',
-                                'Large': '#dbceff',
-                                '1' : '#d4edbc',#'#c6dbe1',
-                                '2' : '#dbe5ff',#'#e6cff2',
-                                '3' : '#dbceff',#'#5a3286',
-                                'Orbital' : '#d5deeb',
-                                'Surface' : '#ebe6db',
-                                'Starport' : '#dce9cb',
-                                'Outpost' : '#ddebff',
-                                'Installation' : '#ffe5a0', #'#dbeeef',
-                                'Planetary Port': '#c0e1ff',
-                                'Settlement' : '#bbe1ba',
-                                'Hub' : '#bac9e5',
-                                'Planned' : '#ffe5a0',#'#c6dbe1',
-                                'Progress' : '#f5b60d',#'#e6cff2',
-                                'Complete' : '#d4edbc' #'#5a3286',
-                                }
-                    return colors.get(str(value), None)
+                    return self.colors.get(str(value), None)
                 case _:
                     return type
 
@@ -1283,12 +1255,12 @@ class ColonisationWindow:
             if limit > 50:
                 value = int(value * 50 / limit)
                 limit = 50
-            value = min(value, limit)
+            value:int = min(value, limit)
 
             # Red, White, Green or Green, Yellow, Red
             if color == 'rwg':
                 gradient:list = self.create_gradient(limit, 'rwg')
-                value:int = min(max(int(value), -limit), limit)
+                value = min(max(int(value), -limit), limit)
                 return gradient[int(value + limit)]
             else:
                 # keep it within the limits
@@ -1345,7 +1317,6 @@ class ColonisationWindow:
                 # Add the interpolated color to the gradient
                 gradient_colors.append(f"#{int(cr):02x}{int(cg):02x}{int(cb):02x}")
 
-            #Debug.logger.debug(f"{steps} {gradient_colors}")
             return gradient_colors
 
         except Exception as e:

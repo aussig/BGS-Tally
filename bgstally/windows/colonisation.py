@@ -117,7 +117,7 @@ class ColonisationWindow:
                        'Planetary Port': '#c0e1ff', 'Settlement' : '#bbe1ba', 'Hub' : '#bac9e5',
                        'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc' #'#5a3286',
                        }
-        
+
         # UI components
         self.window:tk.Toplevel = None
         self.tabbar:ScrollableNotebook = None
@@ -385,7 +385,6 @@ class ColonisationWindow:
         try:
             self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.bodies_fr.wm_title(_("BGS-Tally - Colonisation Bodies")) # LANG: Title of the bodies popup window
-            self.bodies_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
             self.bodies_fr.wm_attributes('-toolwindow', True) # makes it a tool window
             self.bodies_fr.geometry("600x600")
             self.bodies_fr.config(bd=2, relief=tk.FLAT)
@@ -1110,7 +1109,7 @@ class ColonisationWindow:
         bt:dict = self.colonisation.get_base_type(builds[row].get('Base Type', ''))
         val:int = bt.get(type+' Reward', 0)
         cost:int = bt.get(type + ' Cost', 0)
-        
+
         if row > 0:
             if bt.get('Category') == 'Starport': # Increasing point costs for starports
                 sp:int = max(self.count_starports(builds[1:row])-1, 0)

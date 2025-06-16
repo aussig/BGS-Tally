@@ -33,7 +33,7 @@ class Colonisation:
         self.current_system:str = None
         self.body:str = None
         self.station:str = None
-        self.marketid:str = None
+        self.market_id:str = None
         self.docked:bool = False
         self.base_types:dict = {}  # Loaded from base_types.json
         self.base_costs:dict = {}  # Loaded from base_costs.json
@@ -120,15 +120,15 @@ class Colonisation:
                     self.current_system = entry.get('StarSystem', None)
                     self.body = entry.get('Body', None)
                     self.station = entry.get('StationName', None)
-                    self.marketid = entry.get('MarketID', None)
+                    self.market_id = entry.get('MarketID', None)
 
                     self.update_cargo(state.get('Cargo'))
-                    self.update_market(self.marketid)
+                    self.update_market(self.market_id)
                     self.update_carrier()
 
                 case 'Cargo':
                     self.update_cargo(state.get('Cargo'))
-                    if self.marketid == str(self.bgstally.fleet_carrier.carrier_id):
+                    if self.market_id == str(self.bgstally.fleet_carrier.carrier_id):
                         self.update_carrier()
 
                 case 'CargoTransfer':
@@ -162,7 +162,7 @@ class Colonisation:
 
                     # Figure out the station name, location, and if it's one we are or should have recorded
                     name:str = ''; type:str = ''; state:BuildState = None
-                    if 'Construction Site' in entry.get('StationName', '') or 'ColonisationShip' in entry.get('StationName', '') or 'MULTIPLAYER_SCENARIO' in entry.get('Stationname', ''):
+                    if 'Construction Site' in entry.get('StationName', '') or 'ColonisationShip' in entry.get('StationName', ''):
                         build_state = BuildState.PROGRESS
                         name = re.sub('^.* Construction Site: ', '', entry['StationName'])
                         type = re.sub('^(.*) Construction Site: .*$', '\1', entry['StationName'])
@@ -211,16 +211,14 @@ class Colonisation:
                     self.market = {}
                     self.body = None
                     self.station = None
-                    self.marketid = None
+                    self.market_id = None
 
                 case 'SupercruiseDestinationDrop':
-                    self.station = entry.get('Type')
-                    self.marketid = entry.get('MarketID')
-
                     # Ignore fleet carriers and other specials (warzones, scenarios etc.)
                     if re.search('^\$', entry.get('Type')) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', entry.get('Type')):
-                        self.station = None
-                        self.marketid = None
+                        return
+                    self.station = entry.get('Type')
+                    self.market_id = entry.get('MarketID')
 
                 case 'ApproachBody':
                     self.current_system = entry.get('StarSystem')
@@ -233,7 +231,7 @@ class Colonisation:
                     if entry.get('BodyType', 'Station') != 'Station': self.body = entry.get('Body', None)
                     if entry.get('BodyType', None) == 'Station': self.station = entry.get('Body')
                     if entry.get('Name', None) != None: self.station = entry.get('Name')
-                    if entry.get('MarketID', None) != None: self.marketid = entry.get('MarketID')
+                    if entry.get('MarketID', None) != None: self.market_id = entry.get('MarketID')
 
                     # If it's a construction site or colonisation ship wait til we dock.
                     # If it's a carrier or other non-standard location we ignore it. Bet there are other options!
@@ -247,11 +245,11 @@ class Colonisation:
 
                     Debug.logger.debug(f"SuperCruiseExit finding or adding build {self.station}")
                     # It's in a system we're building in, so we should create it.
-                    build:dict = self.find_or_create_build(system, self.marketid, self.station)
+                    build:dict = self.find_or_create_build(system, self.market_id, self.station)
 
                     # We update them here because it's not possible to dock at installations once they're complete so
                     # you may miss their completion.
-                    if build.get('MarketID', None) == None: build['MarketID'] = self.marketid
+                    if build.get('MarketID', None) == None: build['MarketID'] = self.market_id
                     build['State'] = BuildState.COMPLETE
                     build['Name'] = self.station
                     if self.body != None and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
@@ -262,9 +260,10 @@ class Colonisation:
 
                 case 'Undocked':
                     self.market = {}
-                    self.marketid = None
+                    self.station = None
+                    self.market_id = None
+                    self.body = None
                     self.docked = False
-                    self.dirty = True
 
             # Save immediately to ensure we don't lose any data
             if self.dirty == True:
@@ -577,7 +576,7 @@ class Colonisation:
         return system.get('Builds', [])
 
 
-    def find_build(self, system:dict, marketid:int = None, name:str = None) -> dict|None:
+    def find_build(self, system:dict, market_id:int = None, name:str = None) -> dict|None:
         ''' Get a build by marketid or name '''
         builds:list = self.get_system_builds(system)
 
@@ -585,7 +584,7 @@ class Colonisation:
             return builds[0]
 
         for build in builds:
-            if marketid and build.get('MarketID') == marketid:
+            if market_id and build.get('MarketID') == market_id:
                 return build
             if name and build.get('Name') == name:
                 return build
@@ -593,17 +592,17 @@ class Colonisation:
         return None
 
 
-    def find_or_create_build(self, system:dict, marketid:int = None, name:str = None) -> dict:
+    def find_or_create_build(self, system:dict, market_id:int = None, name:str = None) -> dict:
         ''' Find a build by marketid or name, or create it if it doesn't exist '''
-        build:dict = self.find_build(system, marketid, name)
+        build:dict = self.find_build(system, market_id, name)
 
         if build == None:
-            return self.add_build(system, marketid, name)
+            return self.add_build(system, market_id, name)
 
         return build
 
 
-    def add_build(self, system:dict, marketid:int = None, name:str = '') -> dict:
+    def add_build(self, system:dict, market_id:int = None, name:str = '') -> dict:
         ''' Add a new build to a system '''
         Debug.logger.debug(f"Adding build {name}")
         build:dict = {
@@ -611,7 +610,7 @@ class Colonisation:
                 'Name': name,
                 'State': BuildState.PLANNED
                 }
-        if marketid != None: build['MarketID'] = marketid
+        if market_id != None: build['MarketID'] = market_id
         system['Builds'].append(build)
 
         self.dirty = True
@@ -764,15 +763,15 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
-    def update_market(self, marketid:str = None) -> None:
+    def update_market(self, market_id:str = None) -> None:
         ''' Update market info from the market object or directly '''
         try:
-            if marketid == None or self.docked == False:
+            if market_id == None or self.docked == False:
                 self.market = {}
                 return
 
             market:dict = {}
-            if self.bgstally.market.available(marketid):
+            if self.bgstally.market.available(market_id):
                 for name, item in self.bgstally.market.commodities.items():
                     if item.get('Stock') > 0:
                         market[item.get('Name')] = item.get('Stock')
@@ -787,7 +786,7 @@ class Colonisation:
 
             with open(join(journal_dir, MARKET_FILENAME), 'rb') as file:
                 json_data = json.load(file)
-                if marketid == json_data['MarketID']:
+                if market_id == json_data['MarketID']:
                     for item in json_data['Items']:
                         if item.get('Stock') > 0:
                             market[item.get('Name')] = item.get('Stock')
@@ -873,7 +872,7 @@ class Colonisation:
             'CurrentSystem': self.current_system,
             'Body': self.body,
             'Station': self.station,
-            'MarketID': self.marketid,
+            'MarketID': self.market_id,
             'Progress': self.progress,
             'Systems': systems,
             'CargoCapacity': self.cargo_capacity,
@@ -890,7 +889,7 @@ class Colonisation:
         self.current_system = dict.get('CurrentSystem', None)
         self.body = dict.get('Body', None)
         self.station = dict.get('Station', None)
-        self.marketid = dict.get('MarketID', None)
+        self.market_id = dict.get('MarketID', None)
         self.progress = dict.get('Progress', [])
         self.systems = dict.get('Systems', [])
         self.cargo_capacity = dict.get('CargoCapacity', 784)

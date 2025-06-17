@@ -282,14 +282,16 @@ class Colonisation:
 
     def get_base_types(self, category:str = 'Any') -> list[str]:
         ''' Get a list of base type names '''
-        if category in ['Any', 'All']:
-            return list(self.base_types.keys())
-
-        if category == 'Initial': # Just the inital build starports
-            return [base_type for base_type in self.base_types if self.base_types[base_type].get('Category') in ['Starport', 'Outpost']]
-
-        # Category (Settlement, Outpost, Starport, etc)
-        return [base_type for base_type in self.base_types if self.base_types[base_type].get('Category') == category]
+        match category:
+            case 'Any' | 'All':
+                return list(self.base_types.keys())
+            case 'Initial' | 'Starports': # Just the inital build starports
+                return [base_type for base_type in self.base_types if self.base_types[base_type].get('Category') in ['Starport', 'Outpost']]
+            case 'Ports':
+                return [base_type for base_type in self.base_types if self.base_types[base_type].get('Category') in ['Starport', 'Planetary Port']]
+            case _:
+                # Category (Settlement, Outpost, etc)
+                return [base_type for base_type in self.base_types if self.base_types[base_type].get('Category') == category]
 
 
     def get_all_systems(self) -> list[dict]:

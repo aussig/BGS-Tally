@@ -1110,24 +1110,23 @@ class ColonisationWindow:
         val:int = bt.get(type+' Reward', 0)
         cost:int = bt.get(type + ' Cost', 0)
 
-        if row > 0:
-            if bt.get('Category') == 'Starport': # Increasing point costs for starports
-                sp:int = max(self.count_starports(builds[1:row])-1, 0)
-                cost += (2 * sp) if type == 'T2' else (cost * sp)
-            val -= cost
+        if row == 0 or cost == 0:
+            return val - cost
 
-        return val
+        # Do the weird increasing point costs for ports
+        sp = -1
+        if bt.get('Type') in self.colonisation.get_base_types('Ports'):
+            sp:int = max(len([b for b in builds[1:row] if b.get('Base Type') in self.colonisation.get_base_types('Ports')])-1, 0)
+            cost += (2 * sp) if type == 'T2' else (cost * sp)
+
+        Debug.logger.debug(f"Calculating {type} points for {bt.get('Type', 'Unknown')} at row {row}: sp{sp}: {val} - {cost} = {val - cost} {bt}")
+        return val - cost
 
 
     def weight(self, item:tuple, wght:str = 'bold') -> None:
         ''' Set font weight '''
         fnt:tkFont = tkFont.Font(font=item['font']).actual()
         item.configure(font=(fnt['family'], fnt['size'], wght))
-
-
-    def count_starports(self, builds:list[dict]) -> int:
-        ''' We need to know how many startports have been built already to calculate the T2/T3 cost of the next one. '''
-        return len([b for b in builds if b.get('Base Type') in self.colonisation.get_base_types('Initial')])
 
 
     def is_build_complete(self, build:list[dict]) -> bool:

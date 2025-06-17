@@ -367,7 +367,7 @@ class ProgressWindow:
 
             # Go through each commodity and show or hide it as appropriate and display the appropriate values
             comms:list = []
-            if self.colonisation.docked == True and self.colonisation.market != {} and self.comm_order == CommodityOrder.DEFAULT:
+            if self.colonisation.docked == True and self.comm_order == CommodityOrder.DEFAULT:
                 comms = self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)
             else:
                 comms = self.colonisation.get_commodity_list('All', self.comm_order)

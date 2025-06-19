@@ -375,7 +375,7 @@ class ProgressWindow:
                     row[col].grid()
                     self._highlight_row(row, c, reqcnt - delcnt)
                 rc += 1
-            
+
             self._display_totals(self.rows[i+1], tracked, totals)
             return
 
@@ -401,13 +401,13 @@ class ProgressWindow:
             row[col].grid()
 
         # Update the progress graphs
-        self.progvar.set(totals['Delivered'] * 100 / totals['Required'])
-        self.progcols['Required'].set((totals['Required'] - totals['Delivered']) * 100 / totals['Required'])
-        self.progcols['Delivered'].set(totals['Delivered'] * 100 / totals['Required'])
-        self.progcols['Cargo'].set(totals['Cargo'] * 100 / self.colonisation.cargo_capacity)
-        if (totals['Required'] - totals['Delivered']) > 0:
-            # @TODO: Figure out carrier space for a better progress display
-            self.progcols['Carrier'].set(totals['Carrier'] * 100 / (totals['Required'] - totals['Delivered']))
+        #self.progvar.set(totals['Delivered'] * 100 / totals['Required'])
+        #self.progcols['Required'].set((totals['Required'] - totals['Delivered']) * 100 / totals['Required'])
+        #self.progcols['Delivered'].set(totals['Delivered'] * 100 / totals['Required'])
+        #self.progcols['Cargo'].set(totals['Cargo'] * 100 / self.colonisation.cargo_capacity)
+        #if (totals['Required'] - totals['Delivered']) > 0:
+        #    # @TODO: Figure out carrier space for a better progress display
+        #    self.progcols['Carrier'].set(totals['Carrier'] * 100 / (totals['Required'] - totals['Delivered']))
         return
 
 

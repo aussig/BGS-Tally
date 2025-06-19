@@ -24,7 +24,7 @@ COMMODITY_FILENAME = 'commodity.csv'
 EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
 EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
 EDSM_SYSTEM = 'https://www.edsm.net/api-v1/system?showInformation=1&systemName='
-EDSM_DELAY = (3600 * 24)
+EDSM_DELAY = (3600 * 12)
 class Colonisation:
     ''' Manages colonisation data and events for Elite Dangerous colonisation '''
     def __init__(self, bgstally):

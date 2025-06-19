@@ -84,7 +84,7 @@ class ColonisationWindow:
         self.bases:dict = {
             'Type' : {'header': _("Base Type"), 'background': 'type', 'format': 'string', 'width': 200}, # LANG: type of base
             'Tier' : {'header': _("Tier"), 'background': 'type', 'format': 'string', 'width': 40}, # LANG: tier of base
-            'Category' : {'header': _("Category"), 'background': 'type', 'format': 'string', 'width': 100}, # LANG: category of base
+            'Category' : {'header': _("Category"), 'background': 'type', 'format': 'string', 'width': 125}, # LANG: category of base
             'Location' : {'header': _("Location"), 'background': 'type', 'format': 'string', 'width': 80}, # LANG: base location surface/orbital
             'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 200}, # LANG: any prerequisites for the base
             'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':3, 'width': 30}, # LANG: Tier 2 points
@@ -114,7 +114,7 @@ class ColonisationWindow:
                        '1' : '#d4edbc', '2' : '#dbe5ff', '3' : '#dbceff',
                        'Orbital' : '#d5deeb', 'Surface' : '#ebe6db',
                        'Starport' : '#dce9cb', 'Outpost' : '#ddebff', 'Installation' : '#ffe5a0',
-                       'Planetary Port': '#c0e1ff', 'Settlement' : '#bbe1ba', 'Hub' : '#bac9e5',
+                       'Planetary Outpost' : "#ddf5f5", 'Planetary Port': '#c0e1ff', 'Settlement' : '#bbe1ba', 'Hub' : '#bac9e5',
                        'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc' #'#5a3286',
                        }
 
@@ -1119,7 +1119,6 @@ class ColonisationWindow:
             sp:int = max(len([b for b in builds[1:row] if b.get('Base Type') in self.colonisation.get_base_types('Ports')])-1, 0)
             cost += (2 * sp) if type == 'T2' else (cost * sp)
 
-        Debug.logger.debug(f"Calculating {type} points for {bt.get('Type', 'Unknown')} at row {row}: sp{sp}: {val} - {cost} = {val - cost} {bt}")
         return val - cost
 
 

@@ -197,6 +197,7 @@ class ProgressWindow:
 
             # No builds or no commodities so hide the frame entirely
             if len(tracked) == 0 or len(self.colonisation.get_required(tracked)) == 0:
+                Debug.logger.info("No builds or commodities, hiding progress frame")
                 frame.grid_remove()
                 return
 
@@ -332,6 +333,7 @@ class ProgressWindow:
             delivered:dict = self.colonisation.get_delivered(tracked)
 
             if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
+                Debug.logger.info("No builds or commodities, hiding progress frame")
                 self.frame.grid_remove()
                 return
 
@@ -350,6 +352,7 @@ class ProgressWindow:
 
             # Hide the table but not the progress frame so the change view icon is still available
             if self.view == ProgressView.NONE:
+                Debug.logger.info("Progress view none, hiding table")
                 self.table_frame.grid_remove()
                 return
 
@@ -387,7 +390,6 @@ class ProgressWindow:
                 carrier:int = self.colonisation.carrier_cargo.get(c, 0)
                 tobuy:int = reqcnt - carrier - cargo
 
-                #Debug.logger.debug(f"{name} {c} R:{reqcnt} D:{delcnt} r:{remaining} T:{tobuy} c:{cargo} C:{carrier}")
                 if reqcnt > 0:
                     totals['Required'] += reqcnt
                     totals['Delivered'] += delcnt
@@ -430,7 +432,6 @@ class ProgressWindow:
                     self.highlight_row(row, c, reqcnt - delcnt)
                 rc += 1
             self.display_totals(self.rows[i+1], tracked, totals)
-            return
 
         except Exception as e:
             Debug.logger.info(f"Error updating display")

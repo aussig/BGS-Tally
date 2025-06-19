@@ -48,14 +48,14 @@ class Colonisation:
         self.cargo_capacity:int = 784 # Default cargo capacity
 
         # Load base commodities, types, costs, and saved data
-        self.load_commodities()
-        self.load_base_types()
-        self.load_base_costs()
-        self.load()
-        self.update_carrier()
+        self._load_commodities()
+        self._load_base_types()
+        self._load_base_costs()
+        self._load()
+        self._update_carrier()
 
 
-    def load_base_types(self) -> None:
+    def _load_base_types(self) -> None:
         ''' Load base type definitions from base_types.json '''
         try:
             base_types_path = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_TYPES_FILENAME)
@@ -67,7 +67,7 @@ class Colonisation:
             self.base_types = {}
 
 
-    def load_base_costs(self) -> None:
+    def _load_base_costs(self) -> None:
         '''
         Load base cost definitions from base_costs.json
         The 'All' category is used to list all the colonisation commodities and their inara IDs
@@ -88,7 +88,7 @@ class Colonisation:
             self.base_costs = {}
 
 
-    def load_commodities(self) -> None:
+    def _load_commodities(self) -> None:
         ''' Load the commodities from the CSV file. This is used to map the internal name to the local name. '''
         try:
             file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, COMMODITY_FILENAME)
@@ -122,18 +122,18 @@ class Colonisation:
                     self.station = entry.get('StationName', None)
                     self.market_id = entry.get('MarketID', None)
 
-                    self.update_cargo(state.get('Cargo'))
-                    self.update_market(self.market_id)
-                    self.update_carrier()
+                    self._update_cargo(state.get('Cargo'))
+                    self._update_market(self.market_id)
+                    self._update_carrier()
 
                 case 'Cargo':
-                    self.update_cargo(state.get('Cargo'))
+                    self._update_cargo(state.get('Cargo'))
                     if self.market_id == str(self.bgstally.fleet_carrier.carrier_id):
-                        self.update_carrier()
+                        self._update_carrier()
 
                 case 'CargoTransfer':
-                    self.update_cargo(state.get('Cargo'))
-                    self.update_carrier()
+                    self._update_cargo(state.get('Cargo'))
+                    self._update_carrier()
 
                 case 'ColonisationSystemClaim':
                     Debug.logger.info(f"System claimed: {entry.get('StarSystem', '')}")
@@ -145,7 +145,7 @@ class Colonisation:
 
                 case 'ColonisationConstructionDepot':
                     if not entry.get('MarketID'):
-                        Debug.logger.info(f"Invalid ColonisationConstructionDepot event: {entry}")
+                        Debug.logger.warning(f"Invalid ColonisationConstructionDepot event: {entry}")
                         return
 
                     progress:dict = self.find_or_create_progress(entry.get('MarketID'))
@@ -156,7 +156,7 @@ class Colonisation:
 
                 case 'Docked':
                     build_state:BuildState = None
-                    self.update_market(entry.get('MarketID'))
+                    self._update_market(entry.get('MarketID'))
                     self.station = entry.get('StationName')
                     self.docked = True
 
@@ -177,7 +177,6 @@ class Colonisation:
                     # If this isn't a colonisation ship or a system we're building, or it's a carrier, scenario, ignore it.
                     if build_state == None or entry.get('StationType') == 'FleetCarrier' or 'MULTIPLAYER_SCENARIO' in entry.get('StationName', ''):
                         self.bgstally.ui.window_progress.update_display()
-                        #Debug.logger.debug(f"Not a construction or a system we're building")
                         return
 
                     system:dict = self.find_or_create_system(entry.get('StarSystem', ''), entry.get('SystemAddress', ''))
@@ -196,14 +195,13 @@ class Colonisation:
                     if self.body and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
                         build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
 
-                    #Debug.logger.debug(f"Setting {name} build state {build_state} and track {(build_state != BuildState.COMPLETE)}")
                     self.dirty = True
 
                 case 'Market'|'MarketBuy'|'MarketSell':
-                    self.update_market(entry.get('MarketID'))
-                    self.update_cargo(state.get('Cargo'))
+                    self._update_market(entry.get('MarketID'))
+                    self._update_cargo(state.get('Cargo'))
                     if entry.get('MarketID') == self.bgstally.fleet_carrier.carrier_id:
-                        self.update_carrier()
+                        self._update_carrier()
 
                 case 'SuperCruiseEntry' | 'FSDJump':
                     self.system_id = entry.get('SystemAddress')
@@ -255,7 +253,6 @@ class Colonisation:
                     if self.body != None and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
                         build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
                     build['Track'] = False
-                    Debug.logger.debug(f"Updating build info for: {entry.get('StarSystem')} {self.body} {self.station} {build}")
                     self.dirty = True
 
                 case 'Undocked':
@@ -287,7 +284,7 @@ class Colonisation:
                 return list(self.base_types.keys())
             case 'Initial' | 'Starports': # Just the inital build starports
                 return [base_type for base_type in self.base_types if self.base_types[base_type].get('Category') in ['Starport', 'Outpost']]
-            case 'Ports':
+            case 'Ports': # Ports that have the multiple cost penalty
                 return [base_type for base_type in self.base_types if self.base_types[base_type].get('Category') in ['Starport', 'Planetary Port']]
             case _:
                 # Category (Settlement, Outpost, etc)
@@ -295,7 +292,7 @@ class Colonisation:
 
 
     def get_all_systems(self) -> list[dict]:
-        ''' Get all systems being tracked for colonisation '''
+        ''' Get all systems being monitored/planned for colonisation '''
         return self.systems
 
 
@@ -325,7 +322,7 @@ class Colonisation:
 
 
     def find_system(self, name:str = None, addr:str = None) -> dict:
-        ''' Find a system by address, name, or 'plan' name '''
+        ''' Find a system by address, system name, or plan name '''
         system:dict = self.get_system('SystemAddress', addr)
         if system == None:
             system = self.get_system('StarSystem', name)
@@ -363,7 +360,7 @@ class Colonisation:
 
         # If we have a system address, we can try to get the bodies from EDSM
         if system_name != None:
-            Debug.logger.debug(f"Requesting EDSM bodies for {system_name}")
+            Debug.logger.info(f"Requesting EDSM bodies for {system_name}")
             if prepop == True:
                 self.bgstally.request_manager.queue_request(EDSM_STATIONS+quote(system_name), RequestMethod.GET, callback=self._edsm_stations)
             self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system_name), RequestMethod.GET, callback=self._edsm_bodies)
@@ -375,18 +372,17 @@ class Colonisation:
 
     def _edsm_stations(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Process the results of querying ESDM for the stations in a system '''
-        Debug.logger.debug(f"EDSM discovery response received: {success}")
+        Debug.logger.info(f"EDSM discovery response received: {success}")
         try:
             data:dict = response.json()
             if data.get('name', None) == None:
-                Debug.logger.debug(f"EDSM stations did not contain a name, ignoring")
+                Debug.logger.warning(f"EDSM stations response did not contain a name, ignoring")
                 return
             system:dict = self.find_system(data.get('name'))
             if system == None:
-                Debug.logger.debug(f"Didn't find system {data.get('name')}")
+                Debug.logger.warning(f"EDSM stations didn't find system {data.get('name')}")
                 return
 
-            Debug.logger.debug(f"Received stations: {data.get('stations')}")
             stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['id']))
             for base in stations:
                 # Ignore these
@@ -397,15 +393,16 @@ class Colonisation:
                 type:str = base.get('type', 'Unknown')
                 state:BuildState = BuildState.COMPLETE
                 if name == '$EXT_PANEL_ColonisationShip:#index=1;':
-                    if len(stations) != 1: # This hangs around but only matters if it's the only station in the system.
+                    if len(stations) > 1: # This hangs around but only matters if it's the only station in the system.
                         continue
                     type = 'Orbital'
                     name = 'Unknown'
                     state = BuildState.PROGRESS
 
                 if 'Construction Site' in name:
-                    name = re.sub('^.* Construction Site: ', '', name)
-                    type = re.sub('^(.*) Construction Site: .*$', '\1', name)
+                    match:list = re.match(r'^(.*) Construction Site: (.*)$', name)
+                    name = match.group(1)
+                    type = match.group(0)
                     state = BuildState.PROGRESS
 
                 if self.find_build(system, base.get('marketId'), name) != None:
@@ -425,16 +422,12 @@ class Colonisation:
                     'Body': body,
                     }
                 system['Builds'].append(build)
-                Debug.logger.debug(f"Added station {build} to system {data.get('name')}")
+                Debug.logger.info(f"Added station {build} to system {data.get('name')}")
 
-            Debug.logger.debug(f"System: {system['Builds']}")
             self.bgstally.ui.window_colonisation.update_display()
             self.dirty = True
             self.save()
 
-        except JSONDecodeError:
-            Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
-            return
         except Exception as e:
             Debug.logger.info(f"Error recording stations")
             Debug.logger.error(traceback.format_exc())
@@ -442,21 +435,19 @@ class Colonisation:
 
     def _edsm_system(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Process the results of querying ESDM for the system details '''
-        Debug.logger.debug(f"EDSM system response received: {success}")
+        Debug.logger.info(f"EDSM system response received: {success}")
         try:
             data:dict = response.json()
             if data.get('name', None) == None:
-                Debug.logger.debug(f"EDSM system did not contain a name, ignoring")
+                Debug.logger.warning(f"EDSM system didn't contain a name, ignoring")
                 return
             system:dict = self.find_system(data.get('name'))
             if system == None:
-                Debug.logger.debug(f"Didn't find system {data.get('name')}")
+                Debug.logger.warning(f"EDSM system didn't find system {data.get('name')}")
                 return
 
-            Debug.logger.debug(f"system: {data}")
             system['Population'] = get_by_path(data, ['information', 'population'], None)
             system['Economy'] = get_by_path(data, ['information', 'economy'], None)
-            Debug.logger.debug(f"{data}")
             if get_by_path(data, ['information', 'secondEconomy'], 'None') != 'None':
                 system['Economy'] += "/" + get_by_path(data, ['information', 'secondEconomy'])
             system['Security'] = get_by_path(data, ['information', 'security'], None)
@@ -465,9 +456,6 @@ class Colonisation:
             self.dirty = True
             self.save()
 
-        except JSONDecodeError:
-            Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
-            return
         except Exception as e:
             Debug.logger.info(f"Error recording response")
             Debug.logger.error(traceback.format_exc())
@@ -475,15 +463,15 @@ class Colonisation:
 
     def _edsm_bodies(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Process the results of querying ESDM for the bodies in a system '''
-        Debug.logger.debug(f"EDSM bodies response received: {success}")
+        Debug.logger.info(f"EDSM bodies response received: {success}")
         try:
             data:dict = response.json()
             if data.get('name', None) == None:
-                Debug.logger.debug(f"EDSM bodies did not contain a name, ignoring")
+                Debug.logger.warning(f"EDSM bodies didn't contain a name, ignoring")
                 return
             system:dict = self.find_system(data.get('name'))
             if system == None:
-                Debug.logger.debug(f"Didn't find system {data.get('name')}")
+                Debug.logger.warning(f"EDSM bodies didn't find system {data.get('name')}")
                 return
 
             # Only record the body details that we need since EDSM returns an enormous amount of data.
@@ -498,9 +486,6 @@ class Colonisation:
             self.dirty = True
             self.save()
 
-        except JSONDecodeError:
-            Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
-            return
         except Exception as e:
             Debug.logger.info(f"Error recording bodies")
             Debug.logger.error(traceback.format_exc())
@@ -597,7 +582,6 @@ class Colonisation:
     def find_or_create_build(self, system:dict, market_id:int = None, name:str = None) -> dict:
         ''' Find a build by marketid or name, or create it if it doesn't exist '''
         build:dict = self.find_build(system, market_id, name)
-
         if build == None:
             return self.add_build(system, market_id, name)
 
@@ -606,7 +590,7 @@ class Colonisation:
 
     def add_build(self, system:dict, market_id:int = None, name:str = '') -> dict:
         ''' Add a new build to a system '''
-        Debug.logger.debug(f"Adding build {name}")
+        Debug.logger.info(f"Adding build {name} to {system.get('Name', 'Unknown')} {market_id}")
         build:dict = {
                 'Plan': system.get('Name', ''),
                 'Name': name,
@@ -732,7 +716,7 @@ class Colonisation:
         return None
 
 
-    def update_carrier(self) -> None:
+    def _update_carrier(self) -> None:
         ''' Update the carrier cargo data. '''
         try:
             carrier:dict = {}
@@ -750,7 +734,7 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
-    def update_cargo(self, cargo:dict) -> None:
+    def _update_cargo(self, cargo:dict) -> None:
         ''' Update the cargo data. '''
         try:
             tmp:dict = {}
@@ -765,7 +749,7 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
-    def update_market(self, market_id:str = None) -> None:
+    def _update_market(self, market_id:str = None) -> None:
         ''' Update market info from the market object or directly '''
         try:
             if market_id == None or self.docked == False:
@@ -800,7 +784,7 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
-    def load(self) -> None:
+    def _load(self) -> None:
         ''' Load state from file '''
         try:
             file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)

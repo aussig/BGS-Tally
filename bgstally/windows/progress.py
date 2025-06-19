@@ -434,7 +434,6 @@ class ProgressWindow:
                 rc += 1
 
             self._display_totals(self.rows[i+1], tracked, totals)
-            return
 
         except Exception as e:
             Debug.logger.info(f"Error updating display")
@@ -542,4 +541,3 @@ class ProgressWindow:
                 self._set_weight(row[col], 'bold' if tobuy > 0 and space > 0 else 'normal')
                 continue
 
-        return

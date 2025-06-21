@@ -106,16 +106,17 @@ class ColonisationWindow:
             'Decreased By': {'header': _("Decreased By"), 'background': None, 'format': 'string', 'width': 250}, # LANG: any decrease effects for the base
         }
         # Colours for the various types of bases, states, and sizes
-        self.colors = {'Contraband': '#ebc296', 'Agricultural': '#bbe1ba', 'Extraction' : '#dbeeef',
-                       'High Tech' : '#c0e1ff', 'Military' : '#94A590', 'Tourism' : '#bac9e5',
-                       'Industrial' : '#d1c3b7', 'Refinery' : '#92bbe0', 'Colony' : '#d4f2cc', 'None': '#e8eaed',
-                       'Small' : '#d4edbc', 'Medium' : '#dbe5ff', 'Large': '#dbceff',
-                       '1' : '#d4edbc', '2' : '#dbe5ff', '3' : '#dbceff',
-                       'Orbital' : '#d5deeb', 'Surface' : '#ebe6db',
-                       'Starport' : '#dce9cb', 'Outpost' : '#ddebff', 'Installation' : '#ffe5a0',
-                       'Planetary Outpost' : "#ddf5f5", 'Planetary Port': '#c0e1ff', 'Settlement' : '#bbe1ba', 'Hub' : '#bac9e5',
-                       'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc' #'#5a3286',
-                       }
+        self.colors = {
+            'Contraband': '#ebc296', 'Agricultural': '#bbe1ba', 'Extraction' : '#dbeeef',
+            'High Tech' : '#c0e1ff', 'Military' : '#94A590', 'Tourism' : '#bac9e5',
+            'Industrial' : '#d1c3b7', 'Refinery' : '#92bbe0', 'Colony' : '#d4f2cc', 'None': '#e8eaed',
+            'Small' : '#d4edbc', 'Medium' : '#dbe5ff', 'Large': '#dbceff',
+            '1' : '#d4edbc', '2' : '#dbe5ff', '3' : '#dbceff',
+            'Orbital' : '#d5deeb', 'Surface' : '#ebe6db',
+            'Starport' : '#dce9cb', 'Outpost' : '#ddebff', 'Installation' : '#ffe5a0',
+            'Planetary Outpost' : "#ddf5f5", 'Planetary Port': '#c0e1ff', 'Settlement' : '#bbe1ba', 'Hub' : '#bac9e5',
+            'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc' #'#5a3286',
+        }
 
         # UI components
         self.window:tk.Toplevel = None
@@ -431,7 +432,7 @@ class ColonisationWindow:
                     bstr += ", ".join(attrs)
                     bstr += "\n"
                 bstr += "\n"
-            
+
             text.insert(tk.END, bstr)
 
         except Exception as e:

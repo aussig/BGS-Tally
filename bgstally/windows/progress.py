@@ -390,14 +390,6 @@ class ProgressWindow:
                 carrier:int = self.colonisation.carrier_cargo.get(c, 0)
                 tobuy:int = reqcnt - carrier - cargo
 
-                #Debug.logger.debug(f"{name} {c} R:{reqcnt} D:{delcnt} r:{remaining} T:{tobuy} c:{cargo} C:{carrier}")
-                if reqcnt > 0:
-                    totals['Required'] += reqcnt
-                    totals['Delivered'] += delcnt
-                if remaining > 0:
-                    totals['Cargo'] += cargo
-                    if 'Carrier' in totals: totals['Carrier'] += carrier
-
                 # We only show relevant (required) items. But.
                 # If the view is reduced we don't show ones that are complete. Also.
                 # If we're in minimal view we only show ones we still need to buy.
@@ -409,6 +401,13 @@ class ProgressWindow:
                     for col in self.headings.keys():
                         row[col].grid_remove()
                     continue
+
+                if reqcnt > 0:
+                    totals['Required'] += reqcnt
+                    totals['Delivered'] += delcnt
+                if remaining > 0:
+                    totals['Cargo'] += cargo
+                    if 'Carrier' in totals: totals['Carrier'] += min(carrier, remaining-cargo)
 
                 if rc == MAX_ROWS:
                     for col in self.headings.keys():

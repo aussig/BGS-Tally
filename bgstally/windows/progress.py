@@ -379,12 +379,17 @@ class ProgressWindow:
                 Debug.logger.info(f"No commodities found")
                 return
 
+            all_req:int = 0
+            all_deliv:int = 0
             rc:int = 0
             for i, c in enumerate(comms):
                 row:dict = self.rows[i]
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
                 remaining:int = reqcnt - delcnt
+
+                all_deliv += delcnt
+                all_req += reqcnt
 
                 cargo:int = self.colonisation.cargo.get(c, 0)
                 carrier:int = self.colonisation.carrier_cargo.get(c, 0)
@@ -433,6 +438,7 @@ class ProgressWindow:
                 rc += 1
 
             self._display_totals(self.rows[i+1], tracked, totals)
+            self.progvar.set(all_deliv * 100 / all_req)
 
         except Exception as e:
             Debug.logger.info(f"Error updating display")
@@ -456,7 +462,6 @@ class ProgressWindow:
             row[col].grid()
 
         # Update the progress graphs
-        self.progvar.set(totals['Delivered'] * 100 / totals['Required'])
         #self.progcols['Required'].set((totals['Required'] - totals['Delivered']) * 100 / totals['Required'])
         #self.progcols['Delivered'].set(totals['Delivered'] * 100 / totals['Required'])
         #self.progcols['Cargo'].set(totals['Cargo'] * 100 / self.colonisation.cargo_capacity)

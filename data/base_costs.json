@@ -903,7 +903,7 @@
         "$emergencypowercells_name;": 45,
         "$survivalequipment_name;": 45
     },
-    "Colony Planetary Outpost": {
+    "Civilian Planetary Outpost": {
         "$aluminium_name;": 7047,
         "$ceramiccomposites_name;": 814,
         "$cmmcomposite_name;": 6776,
@@ -1243,7 +1243,7 @@
         "$resonatingseparators_name;": 69,
         "$bioreducinglichen_name;": 16,
         "$surfacestabilisers_name;": 96,
-        "$geologicalequipment_name;": 104,
+        "$geologicalequipment_name;": 103,
         "$thermalcoolingunits_name;": 105,
         "$buildingfabricators_name;": 102,
         "$mutomimager_name;": 119,

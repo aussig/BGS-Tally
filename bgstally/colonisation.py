@@ -664,11 +664,11 @@ class Colonisation:
                             break
                 # No actual data so we use the estimates from the base costs
                 if res == {} and type != 'ProvidedAmount': res = self.base_costs.get(b.get('Base Type'), {})
-                if res != {}: found += 1
+                found += 1
                 prog.append(res)
 
             # Add an 'All' total at the end of the list if there's more than one build found.
-            if found >= 1:
+            if found > 1:
                 total:dict = {}
                 for res in prog:
                     for c, v in res.items():

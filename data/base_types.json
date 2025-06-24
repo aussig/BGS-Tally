@@ -3,7 +3,7 @@
   {
     "Type": "Agriculture Tier 1 Sml",
     "Type (Listed as/under)": "Agriculture Tier 1",
-    "Tier": 1,
+    "Tier": 2,
     "Category": "Settlement",
     "Location": "Surface",
     "Building Type": "Small",
@@ -27,7 +27,7 @@
   {
     "Type": "Agriculture Tier 1 Med",
     "Type (Listed as/under)": "Agriculture Tier 1",
-    "Tier": 1,
+    "Tier": 2,
     "Category": "Settlement",
     "Location": "Surface",
     "Building Type": "Medium",
@@ -171,9 +171,9 @@
     "Standard of Living": 2,
     "Development Level": 1
   },
-  "Colony Planetary Outpost":
+  "Civilian Planetary Outpost":
   {
-    "Type": "Colony Planetary Outpost",
+    "Type": "Civilian Planetary Outpost",
     "Type (Listed as/under)": "Outpost",
     "Tier": 1,
     "Category": "Planetary Outpost",
@@ -258,7 +258,6 @@
     "T2 Cost": 3,
     "T3 Reward": 1,
     "Pad": "Large",
-    "Facility Economy": "Colony",
     "Pop Inc": 1,
     "Pop Max": 1,
     "Economy Influence": "",
@@ -738,7 +737,7 @@
   {
     "Type": "Military Tier 1 Sml",
     "Type (Listed as/under)": "Military Tier 1",
-    "Tier": 1,
+    "Tier": 2,
     "Category": "Settlement",
     "Location": "Surface",
     "Building Type": "Small",
@@ -762,7 +761,7 @@
   {
     "Type": "Military Tier 1 Med",
     "Type (Listed as/under)": "Military Tier 1",
-    "Tier": 1,
+    "Tier": 2,
     "Category": "Settlement",
     "Location": "Surface",
     "Building Type": "Medium",
@@ -1005,7 +1004,7 @@
   {
     "Type": "Research Bio Tier 1 Sml",
     "Type (Listed as/under)": "Research Bio Tier 1",
-    "Tier": 1,
+    "Tier": 2,
     "Category": "Settlement",
     "Location": "Surface",
     "Building Type": "Small",
@@ -1030,7 +1029,7 @@
   {
     "Type": "Research Bio Tier 1 Med",
     "Type (Listed as/under)": "Research Bio Tier 1",
-    "Tier": 1,
+    "Tier": 2,
     "Category": "Settlement",
     "Location": "Surface",
     "Building Type": "Medium",

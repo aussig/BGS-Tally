@@ -162,14 +162,14 @@ class Colonisation:
 
                     # Figure out the station name, location, and if it's one we are or should have recorded
                     name:str = ''; type:str = ''; state:BuildState = None
-                    if 'Construction Site' in entry.get('StationName', '') or 'ColonisationShip' in entry.get('StationName', ''):
+                    if '$EXT_PANEL_ColonisationShip' in entry.get('StationName', ''):
+                        build_state = BuildState.PROGRESS
+                        type = 'Orbital'
+                        name = re.sub(r'^\$EXT_PANEL_ColonisationShip.*; ', '', entry.get('StationName', ''))
+                    elif 'Construction Site' in entry.get('StationName', ''):
                         build_state = BuildState.PROGRESS
                         name = re.sub('^.* Construction Site: ', '', entry['StationName'])
                         type = re.sub('^(.*) Construction Site: .*$', '\1', entry['StationName'])
-                        if entry.get('StationName', '') == '$EXT_PANEL_ColonisationShip:#index=1;':
-                            type = 'Orbital'
-                            name = entry.get('StationName_Localised')
-
                     elif self.find_system(entry.get('StarSystem'), entry.get('SystemAddress')) != None:
                         name = entry.get('StationName')
                         build_state = BuildState.COMPLETE
@@ -184,7 +184,13 @@ class Colonisation:
                     system['StarSystem'] = entry.get('StarSystem')
                     system['SystemAddress'] = entry.get('SystemAddress')
 
-                    build:dict = self.find_or_create_build(system, entry.get('MarketID'), name)
+                    build:dict = None
+                    # Colonisation ship has to be the first build in the system.
+                    if '$EXT_PANEL_ColonisationShip' in entry.get('StationName', '') and len(system['Builds']) > 0:
+                        build = system['Builds'][0]
+                    else:
+                        build = self.find_or_create_build(system, entry.get('MarketID'), name)
+
                     build['Name'] = name
                     build['MarketID'] = entry.get('MarketID')
                     build['StationEconomy'] = entry.get('StationEconomy_Localised', '')
@@ -194,7 +200,6 @@ class Colonisation:
                     build['Track'] = (build_state != BuildState.COMPLETE)
                     if self.body and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
                         build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
-
                     self.dirty = True
 
                 case 'Market'|'MarketBuy'|'MarketSell':
@@ -323,7 +328,9 @@ class Colonisation:
 
     def find_system(self, name:str = None, addr:str = None) -> dict:
         ''' Find a system by address, system name, or plan name '''
-        system:dict = self.get_system('SystemAddress', addr)
+        system:dict = None
+        if addr != None:
+            system = self.get_system('SystemAddress', addr)
         if system == None:
             system = self.get_system('StarSystem', name)
         if system == None:
@@ -590,7 +597,7 @@ class Colonisation:
 
     def add_build(self, system:dict, market_id:int = None, name:str = '') -> dict:
         ''' Add a new build to a system '''
-        Debug.logger.info(f"Adding build {name} to {system.get('Name', 'Unknown')} {market_id}")
+        Debug.logger.info(f"Adding build '{name}' to {system.get('Name', 'Unknown')} {market_id}")
         build:dict = {
                 'Plan': system.get('Name', ''),
                 'Name': name,

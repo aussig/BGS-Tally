@@ -751,7 +751,7 @@ class ColonisationWindow:
             sheet[i+srow,0].checkbox(state='normal'); sheet[i+srow,0].data = ' '; sheet[i+srow,0].readonly(False)
 
             # Base type
-            sheet[i+srow,1].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
+            sheet[i+srow,1].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
             sheet[i+srow,1].align(align='left')
             sheet[i+srow,1].readonly(False)
             sheet[i+srow,1].data = new[i][1]
@@ -914,7 +914,7 @@ class ColonisationWindow:
 
         # Display name
         syslabel:str = _("System Name") # LANG: Label for the system's name field in the UI
-        optionlabel:str = _("optional") # LANG: Indicates the field is optional
+        optionlabel:str = _("optional and case sensitive") # LANG: Indicates the field is optional and case-sensitive
         ttk.Label(dialog, text=f"{syslabel} ({optionlabel}):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
         system_name_var:tk.StringVar = tk.StringVar()
         system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
@@ -991,7 +991,7 @@ class ColonisationWindow:
             plan_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
 
             # Display name
-            ttk.Label(dialog, text=_("System Name (optional)"+":")).grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
+            ttk.Label(dialog, text=_("System Name") + " ()" + _("optional and case sensitive") + "):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
             system_name_var:tk.StringVar = tk.StringVar(value=system.get('StarSystem', ''))
             system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
             system_name_entry.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)
@@ -1106,8 +1106,8 @@ class ColonisationWindow:
         cost:int = bt.get(type + ' Cost', 0)
 
         # If it's the first base or there is no cost skip the complicated cost calculation
-        if row == 0 or cost == 0:
-            return reward - cost
+        if row == 0: return reward
+        if cost == 0: return reward - cost
 
         # Do the increasing point costs for ports
         if bt.get('Type') in self.colonisation.get_base_types('Ports'):

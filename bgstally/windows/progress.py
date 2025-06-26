@@ -425,7 +425,7 @@ class ProgressWindow:
                     if col == 'Commodity':
                         # Shorten and display the commodity name
                         colstr:str = self.colonisation.commodities[c].get('Name', c)
-                        if len(colstr) > 22: colstr = colstr[0:20] + '…'
+                        if len(colstr) > 25: colstr = colstr[0:23] + '…'
                         row['Commodity']['text'] = colstr
                         row['Commodity'].bind("<Button-1>", partial(self.link, c))
                         row['Commodity'].bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
@@ -534,8 +534,15 @@ class ProgressWindow:
                 row[col]['fg'] = 'green'; self._set_weight(row[col], 'bold')
                 continue
 
-            if tobuy <= 0 : # Gave enough between our hold and the carrier? green and normal
+            if tobuy <= 0 : # Have enough between our hold and the carrier? green and normal
                 row[col]['fg'] = 'green'; self._set_weight(row[col], 'normal')
+                continue
+
+            # We're at our carrier, highlight what's available
+            if self.colonisation.docked == True and self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id and self.colonisation.market.get(c, 0) > 0:
+                row[col]['fg'] = 'goldenrod3'
+                # bold if need any and have room, otherwise normal
+                #self._set_weight(row[col], 'bold' if tobuy > 0 and space > 0 else 'normal')
                 continue
 
             # What's available at this market?

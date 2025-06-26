@@ -261,7 +261,7 @@ class ColonisationWindow:
                          'Security' : _('Security')} # HINT: Security heading
         attrs:list = []
         for k, v in allattrs.items():
-            if systems[sysnum].get(k, '') != '':
+            if systems[sysnum].get(k, '') != '' and systems[sysnum].get(k, '') != None:
                 if isinstance(systems[sysnum].get(k), int):
                     attrs.append(f"{human_format(systems[sysnum].get(k))} {v}")
                 else:

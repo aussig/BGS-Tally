@@ -1209,6 +1209,9 @@ class ColonisationWindow:
             sysnum:int = tabnum -1
             systems:list = self.colonisation.get_all_systems()
 
+            if self.notes_fr is not None and self.notes_fr.winfo_exists():
+                self.notes_fr.destroy()
+
             self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.notes_fr.wm_title(_("BGS-Tally - Colonisation Notes for ") + systems[sysnum].get('Name', '')) # LANG: Title of the notes popup window
             self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.

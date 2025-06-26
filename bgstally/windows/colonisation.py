@@ -335,6 +335,10 @@ class ColonisationWindow:
     def bases_popup(self) -> None:
         ''' Show a popup with details of all the base types '''
         try:
+            if self.bases_fr is not None and self.bases_fr.winfo_exists():
+                self.bases_fr.lift()
+                return
+
             self.bases_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.bases_fr.wm_title(_("BGS-Tally - Colonisation Base Types")) # LANG: Title of the base type popup window
             self.bases_fr.geometry(f"{int(1000*self.scale)}x{int(500*self.scale)}")
@@ -383,6 +387,9 @@ class ColonisationWindow:
     def bodies_popup(self, tabnum:int, event) -> None:
         ''' Show a popup with details of all the bodies in the system '''
         try:
+            if self.bodies_fr is not None and self.bodies_fr.winfo_exists():
+                self.bodies_fr.destroy()
+
             self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.bodies_fr.wm_title(_("BGS-Tally - Colonisation Bodies")) # LANG: Title of the bodies popup window
             self.bodies_fr.wm_attributes('-toolwindow', True) # makes it a tool window
@@ -1162,6 +1169,10 @@ class ColonisationWindow:
     def legend_popup(self) -> None:
         ''' Show the legend popup window '''
         try:
+            if self.legend_fr is not None and self.legend_fr.winfo_exists():
+                self.legend_fr.lift()
+                return
+            
             self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.legend_fr.wm_title(_("BGS-Tally - Colonisation Legend")) # LANG: Title of the legend popup window
             self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
@@ -1197,6 +1208,9 @@ class ColonisationWindow:
 
             sysnum:int = tabnum -1
             systems:list = self.colonisation.get_all_systems()
+
+            if self.notes_fr is not None and self.notes_fr.winfo_exists():
+                self.notes_fr.destroy()
 
             self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.notes_fr.wm_title(_("BGS-Tally - Colonisation Notes for ") + systems[sysnum].get('Name', '')) # LANG: Title of the notes popup window

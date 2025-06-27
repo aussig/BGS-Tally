@@ -15,15 +15,26 @@ from bgstally.utils import _
 
 MAX_ROWS = 20
 class ProgressWindow:
-    ''' Window for displaying construction progress for Elite Dangerous colonisation '''
+    ''' 
+    Frame for displaying colonisation construction progress.
+
+    This creates a frame within the ED:MC main window, as part of the BGS-Tally section, 
+    and displays the commodities required for a build (or all tracked builds), 
+    their amounts, and progress towards completion.
+
+    It also provides a progress bar for the overall progress of the build (or builds).
+    '''
     def __init__(self, bgstally):
         self.bgstally = bgstally
         self.colonisation = None
 
+        # The current units for each column. This is saved in the colonisation json file.
         self.units:dict = {'Commodity': ProgressUnits.TONNES, 'Required': ProgressUnits.TONNES,
                            'Delivered': ProgressUnits.TONNES, 'Cargo': ProgressUnits.TONNES,
                            'Carrier': ProgressUnits.TONNES}
 
+        # The headings for each column, with the meanings for each unit type. 
+        # These are saved in the colonisation json file.
         self.headings:dict = {
             'Commodity': {
                 ProgressUnits.TONNES: f"{_('Commodity'):<11}", # LANG: Commodity
@@ -82,7 +93,7 @@ class ProgressWindow:
 
 
     def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
-        ''' Create the progress frame '''
+        ''' Create the progress frame. This is called by ui.py on startup. '''
         try:
             self.colonisation = self.bgstally.colonisation
             tracked:dict = self.colonisation.get_tracked_builds()
@@ -155,6 +166,7 @@ class ProgressWindow:
                 self.colheadings[k] = c
             row += 1
 
+            # Progress bars, not in use, maybe later.
             #for i, col in enumerate(self.headings.keys()):
             #    # Progress bar chart
             #    if col == 'Commodity':
@@ -209,7 +221,7 @@ class ProgressWindow:
 
 
     def as_text(self) -> str:
-        ''' Return a text representation of the progress window '''
+        ''' Return a discord text representation of the progress window '''
         try:
 
             tracked:list = self.colonisation.get_tracked_builds()
@@ -245,7 +257,7 @@ class ProgressWindow:
 
 
     def event(self, event:str, tkEvent) -> None:
-        ''' Process events from the buttons in the progress window. '''
+        ''' Process events from the buttons in the progress frame. '''
         try:
             tracked:dict = self.colonisation.get_tracked_builds()
             max:int = len(tracked) -1 if len(tracked) < 2 else len(tracked) # "All" if more than one build
@@ -270,7 +282,7 @@ class ProgressWindow:
 
 
     def change_view(self, column:str, tkEvent) -> None:
-        ''' Change the view of the column when clicked. This is a toggle between tonnes, remaining, and loads. '''
+        ''' Change the view of the column when clicked. This cycles between tonnes, remaining, loads, etc. '''
         try:
             match column:
                 case 'Commodity':

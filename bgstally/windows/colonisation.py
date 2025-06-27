@@ -23,7 +23,14 @@ FIRST_SUMMARY_COLUMN = 3
 HEADER_ROW = 3
 FIRST_BUILD_ROW = 4
 class ColonisationWindow:
-    ''' Window for managing colonisation plans. '''
+    ''' 
+    Window for managing colonisation plans. 
+
+    This window allows users to view and manage colonisation plans for different systems. It creates a tab for each system, 
+    and uses a sheet to display both summary and detailed information about the builds in that system.
+
+    It can create popup windows for showing base types, system notes, and system bodies.
+    '''
     def __init__(self, bgstally):
         self.bgstally = bgstally
         self.colonisation = None
@@ -131,7 +138,7 @@ class ColonisationWindow:
 
 
     def show(self) -> None:
-        ''' Create and display the colonisation window '''
+        ''' Create and display the colonisation window. Called by ui.py when the colonisation icon is clicked. '''
         try:
             if self.window is not None and self.window.winfo_exists():
                 self.window.lift()
@@ -157,7 +164,7 @@ class ColonisationWindow:
 
 
     def _create_frames(self) -> None:
-        ''' Create the system tabs '''
+        ''' Create the system frame notebook and tabs for each system '''
         try:
             # Create system tabs notebook
             self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=True)
@@ -407,6 +414,7 @@ class ColonisationWindow:
             if bodies == None:
                 return
 
+            # Go through the bodies and format the output for display
             bstr:str = f"{bodies[0].get('name')} - {bodies[0].get('subType')}\n\n"
             for b in bodies[1:]:
                 indent:int = 0 if b.get('parents', None) == None else b.get('parents') * 4
@@ -1087,7 +1095,7 @@ class ColonisationWindow:
 
 
     def close(self) -> None:
-        ''' Close the window '''
+        ''' Close the window and any popups and clean up'''
         try:
             if self.window: self.window.destroy()
             if self.legend_fr: self.legend_fr.destroy()
@@ -1252,12 +1260,12 @@ class ColonisationWindow:
         ''' Get a color based on the value and its range. '''
         try:
             if not isinstance(value, int) and not value.isdigit():
-                return '#550055'
+                return "#7A007A"
 
             # Scale it to a sensible range
-            if limit > 50:
-                value = int(value * 50 / limit)
-                limit = 50
+            if limit > 25:
+                value = int(value * 25 / limit)
+                limit = 25
             value:int = min(value, limit)
 
             # Red, White, Green or Green, Yellow, Red
@@ -1271,12 +1279,12 @@ class ColonisationWindow:
             if value < len(gradient):
                 return gradient[int(value)]
 
-            return ["#ccccff"]
+            return ["#7A007A"]
 
         except Exception as e:
             Debug.logger.error(f"Error in get_color: {e}")
             Debug.logger.error(traceback.format_exc())
-            return ["#CCCCCC"]
+            return ["#7A007A"]
 
 
     def _create_gradient(self, steps:int, type:str = 'rwg') -> list[str]:
@@ -1286,7 +1294,9 @@ class ColonisationWindow:
             s:int = (150, 200, 150) # start
             m:int = (230, 230, 125) # middle
             e:int = (190, 30, 100) # end
-            if type == 'rwg': # Red, White, Green (-steps:steps)
+            
+            # Red, White, Green (-steps:steps)
+            if type == 'rwg': 
                 steps *= 2
                 # Define RGB values
                 s = (200, 125, 100)
@@ -1325,4 +1335,4 @@ class ColonisationWindow:
         except Exception as e:
             Debug.logger.error(f"Error in gradient: {e}")
             Debug.logger.error(traceback.format_exc())
-            return ["#CCCCCC"]
+            return ["#7A007A"]

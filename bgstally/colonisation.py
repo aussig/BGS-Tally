@@ -26,7 +26,30 @@ EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
 EDSM_SYSTEM = 'https://www.edsm.net/api-v1/system?showInformation=1&systemName='
 EDSM_DELAY = (3600 * 12)
 class Colonisation:
-    ''' Manages colonisation data and events for Elite Dangerous colonisation '''
+    ''' 
+    Manages colonisation data and events for Elite Dangerous colonisation 
+    
+    The colonisation module is responsible for tracking systems, builds, and progress related to colonisation. 
+    This class handles all the data processing for colonisation: 
+      - the loading and saving of colonisation data
+      - processing journal entries related to colonisation
+      - managing systems and builds
+      - tracking progress of builds
+      - providing methods to retrieve and manipulate colonisation data
+
+    It is used by windows/colonisation.py which enables the creation, modification, and display of colonisation plans and by
+    windows/progress.py which displays the progress of builds and the resources required for colonisation.
+
+    It also interacts with the Fleet Carrier module to track cargo and market data related to colonisation.
+
+    Colonisation uses the following data files:
+      - otherdata/colonisation.json: Stores the current state of colonisation data, including systems, builds, and progress.
+    and the following readonly data files:
+      - data/base_types.json: Contains definitions of base types for colonisation.
+      - data/base_costs.json: Contains the costs of commodities required for each base type.
+      - data/commodity.csv: Contains the list of commodities and their categories.
+      - data/colonisation_legend.txt and L10n/ localized legends: Contains text for the colonisation legend popup.
+    '''
     def __init__(self, bgstally):
         self.bgstally = bgstally
         self.system_id:str = None
@@ -107,7 +130,10 @@ class Colonisation:
 
 
     def journal_entry(self, cmdr, is_beta, system, station, entry, state) -> None:
-        ''' Parse and process incoming journal entries '''
+        ''' 
+        Parse and process incoming journal entries
+        This method is called by the bgstally plugin when a journal entry is received.
+        '''
         try:
             if state.get('CargoCapacity', 0) != None and state.get('CargoCapacity', 0) > 16 and state.get('CargoCapacity', 0) != self.cargo_capacity:
                 self.cargo_capacity = state.get('CargoCapacity')
@@ -115,7 +141,6 @@ class Colonisation:
 
             match entry.get('event'):
                 case 'StartUp': # Synthetic event.
-                    #Debug.logger.debug(f"StartUp event: {entry}")
                     self.system_id = entry.get('SystemAddress', None)
                     self.current_system = entry.get('StarSystem', None)
                     self.body = entry.get('Body', None)

@@ -23,10 +23,10 @@ FIRST_SUMMARY_COLUMN = 3
 HEADER_ROW = 3
 FIRST_BUILD_ROW = 4
 class ColonisationWindow:
-    ''' 
-    Window for managing colonisation plans. 
+    '''
+    Window for managing colonisation plans.
 
-    This window allows users to view and manage colonisation plans for different systems. It creates a tab for each system, 
+    This window allows users to view and manage colonisation plans for different systems. It creates a tab for each system,
     and uses a sheet to display both summary and detailed information about the builds in that system.
 
     It can create popup windows for showing base types, system notes, and system bodies.
@@ -92,7 +92,8 @@ class ColonisationWindow:
             'Tier' : {'header': _("Tier"), 'background': 'type', 'format': 'string', 'width': 40}, # LANG: tier of base
             'Category' : {'header': _("Category"), 'background': 'type', 'format': 'string', 'width': 125}, # LANG: category of base
             'Location' : {'header': _("Location"), 'background': 'type', 'format': 'string', 'width': 80}, # LANG: base location surface/orbital
-            'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 200}, # LANG: any prerequisites for the base
+            'Type (Listed as/under)': {'header': _("Type (Listed as)"), 'background': None, 'format': 'string', 'width': 160}, # LANG: type of base as listed in the game
+            'Prerequisites': {'header': _("Requirements"), 'background': None, 'format': 'string', 'width': 175}, # LANG: any prerequisites for the base
             'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':3, 'width': 30}, # LANG: Tier 2 points
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':3, 'width': 30}, # LANG: Tier 3
             'Total Comm': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':75000, 'width': 75}, # LANG: As above
@@ -259,7 +260,7 @@ class ColonisationWindow:
             bodies = str(len(systems[sysnum]['Bodies'])) + " " + _("Bodies") # LANG: bodies in the system
             sys_bodies:ttk.Label = ttk.Label(title_frame, text=bodies, cursor="hand2")
             sys_bodies.pack(side=tk.LEFT, padx=10, pady=5)
-            ToolTip(sys_bodies, text=_("Show system bodies window")) # LANG: tooltip for the show notes window
+            ToolTip(sys_bodies, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
             self._set_weight(sys_bodies)
             sys_bodies.bind("<Button-1>", partial(self.bodies_popup, tabnum))
 
@@ -288,6 +289,11 @@ class ColonisationWindow:
         btn:ttk.Button = ttk.Button(title_frame, text=_("Rename"), cursor="hand2", command=lambda: self.rename_system_dialog(tabnum, tab)) # LANG: Rename button
         ToolTip(btn, text=_("Rename system plan")) # LANG: tooltip for the rename system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
+            btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=lambda: self.bodies_popup())
+            btn.pack(side=tk.RIGHT, padx=5, pady=5)
+            ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
 
         btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -363,7 +369,7 @@ class ColonisationWindow:
             sheet.set_header_data([h['header'] for h in self.bases.values()])
             sheet.set_sheet_data(data)
             sheet["A1:A100"].align(align='left')
-            sheet["E1:E100"].align(align='left')
+            sheet["E1:F100"].align(align='left')
             sheet["T1:V100"].align(align='left')
 
             for i, bt in enumerate(self.colonisation.base_types.values()):
@@ -896,7 +902,6 @@ class ColonisationWindow:
                 case 'Track':
                     # Toggle the tracked status.
                     # Make sure the plan name is up to date as the progress view uses it.
-                    systems[sysnum]['Builds'][row]['Plan'] = systems[sysnum].get('Name')
                     self.colonisation.update_build_tracking(systems[sysnum]['Builds'][row], val)
 
                 case _:
@@ -1051,9 +1056,6 @@ class ColonisationWindow:
             system['Name'] = name
             system['StarSystem'] = sysname
 
-            for build in system.get('Builds', []):
-                build['Plan'] = name
-
             self.tabbar.notebookTab.tab(tabnum, text=name)
 
             self.colonisation.dirty = True
@@ -1180,7 +1182,7 @@ class ColonisationWindow:
             if self.legend_fr is not None and self.legend_fr.winfo_exists():
                 self.legend_fr.lift()
                 return
-            
+
             self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.legend_fr.wm_title(_("BGS-Tally - Colonisation Legend")) # LANG: Title of the legend popup window
             self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
@@ -1294,9 +1296,9 @@ class ColonisationWindow:
             s:int = (150, 200, 150) # start
             m:int = (230, 230, 125) # middle
             e:int = (190, 30, 100) # end
-            
+
             # Red, White, Green (-steps:steps)
-            if type == 'rwg': 
+            if type == 'rwg':
                 steps *= 2
                 # Define RGB values
                 s = (200, 125, 100)

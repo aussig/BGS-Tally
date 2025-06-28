@@ -26,11 +26,11 @@ EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
 EDSM_SYSTEM = 'https://www.edsm.net/api-v1/system?showInformation=1&systemName='
 EDSM_DELAY = (3600 * 12)
 class Colonisation:
-    ''' 
-    Manages colonisation data and events for Elite Dangerous colonisation 
-    
-    The colonisation module is responsible for tracking systems, builds, and progress related to colonisation. 
-    This class handles all the data processing for colonisation: 
+    '''
+    Manages colonisation data and events for Elite Dangerous colonisation
+
+    The colonisation module is responsible for tracking systems, builds, and progress related to colonisation.
+    This class handles all the data processing for colonisation:
       - the loading and saving of colonisation data
       - processing journal entries related to colonisation
       - managing systems and builds
@@ -130,7 +130,7 @@ class Colonisation:
 
 
     def journal_entry(self, cmdr, is_beta, system, station, entry, state) -> None:
-        ''' 
+        '''
         Parse and process incoming journal entries
         This method is called by the bgstally plugin when a journal entry is received.
         '''
@@ -151,12 +151,7 @@ class Colonisation:
                     self._update_market(self.market_id)
                     self._update_carrier()
 
-                case 'Cargo':
-                    self._update_cargo(state.get('Cargo'))
-                    if self.market_id == str(self.bgstally.fleet_carrier.carrier_id):
-                        self._update_carrier()
-
-                case 'CargoTransfer':
+                case 'Cargo' | 'CargoTransfer':
                     self._update_cargo(state.get('Cargo'))
                     self._update_carrier()
 
@@ -195,12 +190,12 @@ class Colonisation:
                         build_state = BuildState.PROGRESS
                         name = re.sub('^.* Construction Site: ', '', entry['StationName'])
                         type = re.sub('^(.*) Construction Site: .*$', '\1', entry['StationName'])
-                    elif self.find_system(entry.get('StarSystem'), entry.get('SystemAddress')) != None:
+                    elif self.find_system(entry.get('StarSystem'), entry.get('SystemAddress')) != None and entry.get('StationType', '') != 'FleetCarrier' and re.search('^\$', entry.get('StationName', '')) == None:
                         name = entry.get('StationName')
                         build_state = BuildState.COMPLETE
 
                     # If this isn't a colonisation ship or a system we're building, or it's a carrier, scenario, ignore it.
-                    if build_state == None or entry.get('StationType') == 'FleetCarrier' or 'MULTIPLAYER_SCENARIO' in entry.get('StationName', ''):
+                    if build_state == None:
                         self.bgstally.ui.window_progress.update_display()
                         return
 
@@ -242,11 +237,8 @@ class Colonisation:
                     self.market_id = None
 
                 case 'SupercruiseDestinationDrop':
-                    # Ignore fleet carriers and other specials (warzones, scenarios etc.)
-                    if re.search('^\$', entry.get('Type')) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', entry.get('Type')):
-                        return
-                    self.station = entry.get('Type')
-                    self.market_id = entry.get('MarketID')
+                    if entry.get('MarketID', None) != None: self.market_id = entry.get('MarketID')
+                    if entry.get('Type', None) != None: self.station = entry.get('Type')
 
                 case 'ApproachBody':
                     self.current_system = entry.get('StarSystem')
@@ -550,17 +542,6 @@ class Colonisation:
         self.save()
 
 
-    def get_all_builds(self) -> list[dict]:
-        ''' Get all builds from all systems '''
-        all:list = []
-        for system in self.systems:
-            b = self.get_system_builds(system)
-            if b != None:
-                all += b
-
-        return all
-
-
     def get_build_state(self, build:dict) -> BuildState:
         ''' Get the state of a build from either the build or the progress data '''
         if build.get('State', None) == BuildState.COMPLETE or build.get('MarketID', None) == None:
@@ -583,9 +564,13 @@ class Colonisation:
     def get_tracked_builds(self) -> list[dict]:
         ''' Get all builds that are being tracked '''
         tracked:list = []
-        for build in self.get_all_builds():
-            if build.get("Track", False) == True and self.get_build_state(build) != BuildState.COMPLETE:
-                tracked.append(build)
+        for system in self.systems:
+            for build in self.get_system_builds(system):
+                if build.get("Track", False) == True and self.get_build_state(build) != BuildState.COMPLETE:
+                    b:dict = build.copy()
+                    b['Plan'] = system.get('Name', '')
+                    b['StarSystem'] = system.get('StarSystem', '')
+                    tracked.append(b)
 
         return tracked
 
@@ -624,7 +609,6 @@ class Colonisation:
         ''' Add a new build to a system '''
         Debug.logger.info(f"Adding build '{name}' to {system.get('Name', 'Unknown')} {market_id}")
         build:dict = {
-                'Plan': system.get('Name', ''),
                 'Name': name,
                 'State': BuildState.PLANNED
                 }

@@ -1084,7 +1084,7 @@
     "Location": "Orbital",
     "Building Type": "Scientific Installation",
     "Layouts": "Astraeus, Coeus, Dodona, Dione",
-    "Prerequisites": "Biological Research Installation",
+    "Prerequisites": "Research Bio Settlement",
     "Boosted By": "Ammonia or ELW, geologicals, organics",
     "Decreased By": "",
     "T2 Cost": 1,

@@ -15,11 +15,11 @@ from bgstally.utils import _
 
 MAX_ROWS = 20
 class ProgressWindow:
-    ''' 
+    '''
     Frame for displaying colonisation construction progress.
 
-    This creates a frame within the ED:MC main window, as part of the BGS-Tally section, 
-    and displays the commodities required for a build (or all tracked builds), 
+    This creates a frame within the ED:MC main window, as part of the BGS-Tally section,
+    and displays the commodities required for a build (or all tracked builds),
     their amounts, and progress towards completion.
 
     It also provides a progress bar for the overall progress of the build (or builds).
@@ -33,7 +33,7 @@ class ProgressWindow:
                            'Delivered': ProgressUnits.TONNES, 'Cargo': ProgressUnits.TONNES,
                            'Carrier': ProgressUnits.TONNES}
 
-        # The headings for each column, with the meanings for each unit type. 
+        # The headings for each column, with the meanings for each unit type.
         # These are saved in the colonisation json file.
         self.headings:dict = {
             'Commodity': {
@@ -189,7 +189,7 @@ class ProgressWindow:
                     lbl:tk.Label = tk.Label(table_frame, text='')
                     lbl.grid(row=row, column=i, sticky=val.get('Sticky'))
                     if col == 'Commodity':
-                        lbl.bind("<Button-1>", partial(self.link, c))
+                        lbl.bind("<Button-1>", partial(self.link, c, None))
                         lbl.bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
                         ToolTip(lbl, text=_("Left click for Inara market, right click to copy")) # LANG: tooltip for the inara market commodity links and copy to clipboard
                         lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
@@ -303,11 +303,11 @@ class ProgressWindow:
 
 
 
-    def link(self, comm:str, tkEvent) -> None:
+    def link(self, comm:str, src:str, tkEvent) -> None:
         ''' Open the link to Inara for nearest location for the commodity. '''
         try:
             comm_id = self.colonisation.base_costs['All'].get(comm)
-            sys:str = self.colonisation.current_system if self.colonisation.current_system != None else 'Sol'
+            sys:str = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
             # pi3=3 - large, pi3=2 - medium
             size:int = 2 if self.colonisation.cargo_capacity < 407 else 3
 
@@ -358,6 +358,7 @@ class ProgressWindow:
                 b:dict = tracked[self.build_index]
                 bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
                 pn:str = b.get('Plan', _('Unknown')) # Unknown system name
+                sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
                 name:str = ', '.join([pn, bn])
 
             self.title.config(text=name[-50:])
@@ -412,7 +413,7 @@ class ProgressWindow:
                 # If we're in minimal view we only show ones we still need to buy.
                 if (reqcnt <= 0) or \
                     (remaining <= 0 and self.view != ProgressView.FULL) or \
-                    (tobuy <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
+                    (tobuy <= 0 and cargo == 0 and carrier == 0 and self.view == ProgressView.MINIMAL) or \
                     (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) == 0 and self.view == ProgressView.MINIMAL) or \
                     rc > MAX_ROWS:
                     for col in self.headings.keys():
@@ -439,7 +440,8 @@ class ProgressWindow:
                         colstr:str = self.colonisation.commodities[c].get('Name', c)
                         if len(colstr) > 25: colstr = colstr[0:23] + '…'
                         row['Commodity']['text'] = colstr
-                        row['Commodity'].bind("<Button-1>", partial(self.link, c))
+                        row['Commodity'].bind("<Button-1>", partial(self.link, c, None))
+                        row['Commodity'].bind("<Button-2>", partial(self.link, c, sn))
                         row['Commodity'].bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
                         row['Commodity'].grid()
                         continue
@@ -554,7 +556,7 @@ class ProgressWindow:
             if self.colonisation.docked == True and self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id and self.colonisation.market.get(c, 0) > 0:
                 row[col]['fg'] = 'goldenrod3'
                 # bold if need any and have room, otherwise normal
-                #self._set_weight(row[col], 'bold' if tobuy > 0 and space > 0 else 'normal')
+                self._set_weight(row[col], 'bold' if tobuy > 0 and space > 0 else 'normal')
                 continue
 
             # What's available at this market?

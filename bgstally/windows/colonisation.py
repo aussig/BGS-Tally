@@ -244,7 +244,8 @@ class ColonisationWindow:
 
         self.plan_titles[sysnum]['Name'] = name_label
 
-        sys_label:ttk.Label = ttk.Label(title_frame, text="", cursor="hand2")
+        sysname:str = systems[sysnum].get('StarSystem', '') + ' ⤴' if systems[sysnum].get('StarSystem') != '' else ''
+        sys_label:ttk.Label = ttk.Label(title_frame, text=sysname, cursor="hand2")
         sys_label.pack(side=tk.LEFT, padx=5, pady=5)
         self._set_weight(sys_label)
         sys_label.bind("<Button-1>", partial(self.system_click, tabnum))
@@ -257,7 +258,7 @@ class ColonisationWindow:
         ToolTip(sys_copy, text=_("Copy system name to clipboard")) # LANG: tooltip for the copy to clipboard icon
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
-            bodies = str(len(systems[sysnum]['Bodies'])) + " " + _("Bodies") # LANG: bodies in the system
+            bodies:str = str(len(systems[sysnum]['Bodies'])) + " " + _("Bodies") # LANG: bodies in the system
             sys_bodies:ttk.Label = ttk.Label(title_frame, text=bodies, cursor="hand2")
             sys_bodies.pack(side=tk.LEFT, padx=10, pady=5)
             ToolTip(sys_bodies, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
@@ -291,7 +292,7 @@ class ColonisationWindow:
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
-            btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=lambda: self.bodies_popup())
+            btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
 
@@ -304,7 +305,7 @@ class ColonisationWindow:
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
 
-    def ctc(self, tabnum:int, event) -> None:
+    def ctc(self, tabnum:int, event = None) -> None:
         ''' Copy to clipboard '''
         try:
             systems:list = self.colonisation.get_all_systems()
@@ -315,7 +316,7 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def system_click(self, tabnum:int, event) -> None:
+    def system_click(self, tabnum:int, event = None) -> None:
         ''' Execute the click event for the system link '''
         try:
             sysnum:int = tabnum -1
@@ -397,7 +398,7 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def bodies_popup(self, tabnum:int, event) -> None:
+    def bodies_popup(self, tabnum:int, event = None) -> None:
         ''' Show a popup with details of all the bodies in the system '''
         try:
             if self.bodies_fr is not None and self.bodies_fr.winfo_exists():
@@ -809,7 +810,7 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def validate_edits(self, event):
+    def validate_edits(self, event = None) -> str:
         ''' Validate edits to the sheet. This just prevents the user from deleting the primary base type. '''
         try:
             row:int = event.row - FIRST_BUILD_ROW; col:int = event.column; val = event.value
@@ -827,7 +828,7 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def sheet_modified(self, tabnum:int, event) -> None:
+    def sheet_modified(self, tabnum:int, event = None) -> None:
         ''' Handle edits to the sheet. This is where we update the system data. '''
         try:
             sysnum:int = tabnum -1

@@ -2,12 +2,20 @@
 
 ## v5.0.0-xx - xxxx-xx-xx
 
+### Changes:
 
+* Reinstated the percentage view for approprite columns
+* Added a window to show all possible bases and their impacts
+
+### Bug Fixes:
+
+* Tweak to tooltip that had a carriage return to allow translation
+* Added discord postable text
 
 
 ## v5.0.0-b1 - 2025-06-07
 
-### Changes
+### Changes:
 
 * Added querying of EDSM for body information, existing bases, and system information
 * Modified the "loads" view to use tonnes if it's less than one load.
@@ -30,6 +38,7 @@
     - Updated colonisation window so the name and type of a completed base link to the preferred ED:SM station link
 
 ### Bug fixes:
+
     - Fixed issue with resetting progress column to theme foreground color
     - Reinstated hand2 icon for links without causing them to all be highlighted
     - Lightened the green progress for easier viewing in dark mode

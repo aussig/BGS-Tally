@@ -151,7 +151,7 @@ class ColonisationWindow:
 
             self.colonisation = self.bgstally.colonisation
             self.window:tk.Toplevel = tk.Toplevel(self.bgstally.ui.frame)
-            self.window.title(_("BGS-Tally - Colonisation")) # LANG: window title
+            self.window.title(_("{plugin_name} - Colonisation").format(plugin_name=self.bgstally.plugin_name)) # LANG: window title
 
             self.window.minsize(400, 100)
             self.window.geometry(f"{int(1500*self.scale)}x{int(500*self.scale)}")
@@ -354,7 +354,7 @@ class ColonisationWindow:
                 return
 
             self.bases_fr = tk.Toplevel(self.bgstally.ui.frame)
-            self.bases_fr.wm_title(_("BGS-Tally - Colonisation Base Types")) # LANG: Title of the base type popup window
+            self.bases_fr.wm_title(_("{plugin_name} - Colonisation Base Types").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the base type popup window
             self.bases_fr.geometry(f"{int(1000*self.scale)}x{int(500*self.scale)}")
             self.bases_fr.protocol("WM_DELETE_WINDOW", self.bases_fr.destroy)
             self.bases_fr.config(bd=2, relief=tk.FLAT)
@@ -405,7 +405,7 @@ class ColonisationWindow:
                 self.bodies_fr.destroy()
 
             self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
-            self.bodies_fr.wm_title(_("BGS-Tally - Colonisation Bodies")) # LANG: Title of the bodies popup window
+            self.bodies_fr.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the bodies popup window
             self.bodies_fr.wm_attributes('-toolwindow', True) # makes it a tool window
             self.bodies_fr.geometry("600x600")
             self.bodies_fr.config(bd=2, relief=tk.FLAT)
@@ -1185,7 +1185,7 @@ class ColonisationWindow:
                 return
 
             self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
-            self.legend_fr.wm_title(_("BGS-Tally - Colonisation Legend")) # LANG: Title of the legend popup window
+            self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
             self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
             self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
             self.legend_fr.geometry("600x600")
@@ -1224,7 +1224,7 @@ class ColonisationWindow:
                 self.notes_fr.destroy()
 
             self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
-            self.notes_fr.wm_title(_("BGS-Tally - Colonisation Notes for ") + systems[sysnum].get('Name', '')) # LANG: Title of the notes popup window
+            self.notes_fr.wm_title(_("{plugin_name} - Colonisation Notes for {system_name}").format(plugin_name=self.bgstally.plugin_name, system_name=systems[sysnum].get('Name', ''))) # LANG: Title of the notes popup window
             self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
             self.notes_fr.geometry("600x600")
             self.notes_fr.protocol("WM_DELETE_WINDOW", self.notes_fr.destroy)

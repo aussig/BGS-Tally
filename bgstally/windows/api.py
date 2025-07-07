@@ -50,7 +50,7 @@ class WindowAPI:
         self.toplevel = tk.Toplevel(parent_frame)
         self.toplevel.title(_("{plugin_name} - API Settings").format(plugin_name=self.bgstally.plugin_name)) # LANG: API settings window title
         self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
-        self.toplevel.geometry("920x920")
+        self.toplevel.geometry("920x880")
         self.toplevel.resizable(False, True)
 
         if sys.platform == 'win32':
@@ -70,12 +70,12 @@ class WindowAPI:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         self.scrollable_canvas.configure(yscrollcommand=scrollbar.set)
-        self.scrollable_canvas.bind("<Configure>", lambda e: self.scrollable_canvas.config(scrollregion=self.scrollable_canvas.bbox(tk.ALL)))
 
         frame_main:ttk.Frame = ttk.Frame(self.scrollable_canvas)
         # Make the second column fill available space
         frame_main.columnconfigure(1, weight=1)
 
+        frame_main.bind("<Configure>", lambda e: self.scrollable_canvas.config(scrollregion=self.scrollable_canvas.bbox(tk.ALL)))
         self.scrollable_canvas.create_window((0,0), window=frame_main, anchor="nw")
 
         current_row:int = 0

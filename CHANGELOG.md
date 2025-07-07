@@ -6,11 +6,13 @@
 
 * Reinstated the percentage view for approprite columns
 * Added a window to show all possible bases and their impacts
+* API configuration window is now scrollable and resizable to allow for smaller screen resolutions
 
 ### Bug Fixes:
 
 * Tweak to tooltip that had a carriage return to allow translation
 * Added discord postable text
+* Fix an occasional initial loading issue with the API configuration window
 
 
 ## v5.0.0-b1 - 2025-06-07

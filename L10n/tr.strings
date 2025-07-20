@@ -55,6 +55,9 @@
 /* Discord carrier docking access. [fleetcarrier.py] */
 "All" = "Hepsi";
 
+/* all tracked builds. [progress.py] */
+"All builds" = "All builds";
+
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API değişti, tekrar onaylamak için ayarları açın";
 
@@ -106,26 +109,32 @@
 /* Discord heading. [default.py] */
 "bio-pod" = "bio-pod";
 
-/* Colonisation 'Prerequisites' [base_types.json] */
-"Biological Research Installation" = "Biyolojik Araştırma Üssü";
-
 /* Activity window tooltip. [activity.py] */
 "Black market profit" = "Karaborsa kazancı";
 
 /* bodies in the system. [colonisation.py] */
-"Bodies" = "Bodies";
+"Bodies" = "Gezegenler";
 
 /* Body the base is on or around. [colonisation.py] */
 "Body" = "Gezegen";
+
+/* any boost effects for the base. [colonisation.py] */
+"Boosted By" = "Boosted By";
 
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "Hem BGS hem TW";
 
 /* Post to Discord button tooltip. [activity.py] */
-"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord";
+"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Hem 'Discord'a Gönder' alanı hem de Discord webhook{CR}, Discord'a göndermeye izin vermek için ayarlarda yapılandırılmalıdır";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Kelle avcılığı geliri";
+
+/* Building layout types. [colonisation.py] */
+"Building Layouts" = "Building Layouts";
+
+/* Building type. [colonisation.py] */
+"Building Type" = "Building Type";
 
 /* Builds/bases. [progress.py] */
 "Builds" = "İnşalar";
@@ -142,7 +151,7 @@
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Buying Materials:" = "Alınan Materyaller:";
 
-/* [colonisation.py] */
+/* Cancel button. [colonisation.py] */
 "Cancel" = "İptal Et";
 
 /* Discord heading. [default.py] */
@@ -163,6 +172,9 @@
 /* Discord fleet carrier title. [fleetcarrier.py] */
 "Carrier {carrier_name}" = "Filo Taşıyıcı {carrier_name}";
 
+/* category of base. [colonisation.py] */
+"Category" = "Category";
+
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Civilian" = "Sivil";
 
@@ -170,13 +182,13 @@
 "Civilian Outpost" = "Sivil Karakol";
 
 /* Colonisation 'Type' [base_types.json] */
+"Civilian Planetary Outpost" = "Civilian Planetary Outpost";
+
+/* Colonisation 'Type' [base_types.json] */
 "Civilian Settlement" = "Sivil Yerleşkesi";
 
 /* [sheet_options.py] */
 "Clear contents" = "İçeriği temizle";
-
-/* tooltip for the inara market commodity links. [progress.py] */
-"Click for Inara market" = "Inara market için tıklayın";
 
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "CMDR Detayları";
@@ -189,9 +201,6 @@
 
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Colony" = "Koloni";
-
-/* Colonisation 'Type' [base_types.json] */
-"Colony Planetary Outpost" = "Koloni gezegen karakolu";
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Savaş tahvilleri";
@@ -212,7 +221,7 @@
 "Communication Station" = "İletişim İstasyonu";
 
 /* Row heading of build totals i.e. ones that are done. [colonisation.py] */
-"Completed" = "Tamamlandı";
+"Complete" = "Complete";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Uzak Sunucuyu Yapılandır";
@@ -233,7 +242,7 @@
 "Copy contents" = "İçeriği kopyala";
 
 /* tooltip for the copy to clipboard icon. [colonisation.py] */
-"Copy system name to clipboard" = "Copy system name to clipboard";
+"Copy system name to clipboard" = "Sistem adını panoya kopyala";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Panoya Kopyala";
@@ -256,6 +265,9 @@
 /* Label on legend window. [legend.py] */
 "Critically wounded evacuation missions" = "Kritik yaralı tahliye görevleri";
 
+/* tooltip for the build name. [progress.py] */
+"Current build, click to copy to clipboard" = "Current build, click to copy to clipboard";
+
 /* [fleetcarrier.py] */
 "Current System" = "Mevcut Sistem";
 
@@ -268,14 +280,20 @@
 /* [sheet_options.py] */
 "Cut contents" = "İçeriği kes";
 
-/* tooltip for the change view icon (full, reduced, minimal, none). [progress.py] */
-"Cycle commodity list filter views" = "Cycle commodity list filter views";
+/* tooltip for the commodity header. [progress.py] */
+"Cycle commodity list details" = "Cycle commodity list details";
+
+/* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
+"Cycle commodity list filter views" = "Emtia listesi filtre görünümlerini değiştir";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Tarih / Saat";
 
 /* Discord heading. [cmdrs.py] */
 "Date and Time" = "Tarih ve Saat";
+
+/* any decrease effects for the base. [colonisation.py] */
+"Decreased By" = "Decreased By";
 
 /* [ui.py] */
 "Default" = "Varsayılan";
@@ -392,37 +410,37 @@
 "Expl" = "Keşif";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Exploration" = "Exploration";
+"Exploration" = "Keşif";
 
 /* Activity window tooltip. [activity.py] */
 "Exploration data" = "Keşif verileri";
 
 /* Colonisation 'Type' [base_types.json] */
-"Exploration Hub" = "Exploration Hub";
+"Exploration Hub" = "Keşif Merkezi";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
-"Extraction" = "Extraction";
+"Extraction" = "Çıkarma";
 
 /* Colonisation 'Type' [base_types.json] */
-"Extraction Hub" = "Extraction Hub";
+"Extraction Hub" = "Çıkarma Merkezi";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Extraction Settlement" = "Extraction Settlement";
+"Extraction Settlement" = "Çıkarma Yerleşkesi";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Extraction Tier 1" = "Extraction Tier 1";
+"Extraction Tier 1" = "Çıkarma Seviye 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Extraction Tier 1 Med" = "Extraction Tier 1 Med";
+"Extraction Tier 1 Med" = "Çıkarma Seviye 1 Orta";
 
 /* Colonisation 'Type' [base_types.json] */
-"Extraction Tier 1 Sml" = "Extraction Tier 1 Sml";
+"Extraction Tier 1 Sml" = "Çıkarma Seviye 1 Küçük";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Extraction Tier 2" = "Extraction Tier 2";
+"Extraction Tier 2" = "Çıkarma Seviye 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Extraction Tier 2 Lrg" = "Extraction Tier 2 Lrg";
+"Extraction Tier 2 Lrg" = "Çıkarma Seviye 2 Büyük";
 
 /* Activity window column title. [activity.py] */
 "Faction" = "Fraksiyon";
@@ -464,10 +482,10 @@
 "General Options" = "Genel Ayarlar";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Government" = "Government";
+"Government" = "Devlet";
 
 /* Colonisation 'Type' [base_types.json] */
-"Government Installation" = "Government Installation";
+"Government Installation" = "Devlet Üssü";
 
 /* [clb.py] */
 "Ground" = "Yüzey";
@@ -485,19 +503,19 @@
 "High" = "Yüksek";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"High Tech" = "High Tech";
-
-/* Colonisation 'Economy Influence' [base_types.json] */
-"Hightech" = "Hightech";
+"High Tech" = "Yüksek Teknoloji";
 
 /* Colonisation 'Type' [base_types.json] */
-"Hightech Hub" = "Hightech Hub";
+"Hightech Hub" = "Yüksek Teknoloji Merkezi";
 
 /* Colonisation 'Type' [base_types.json] */
-"Hightech Planetary Outpost" = "Hightech Planetary Outpost";
+"Hightech Planetary Outpost" = "Yüksek Teknoloji Gezegen Karakolu";
+
+/* HMC World is a high metal content world. [colonisation.py] */
+"HMC World" = "HMC World";
 
 /* Colonisation 'Category' [base_types.json] */
-"Hub" = "Hub";
+"Hub" = "Merkez";
 
 /* Button on API settings window. [api.py] */
 "I Approve" = "Onaylıyorum";
@@ -566,34 +584,34 @@
 "Include Secondary INF" = "İkincil INF'i dahil et";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Industrial" = "Industrial";
+"Industrial" = "Endüstriyel";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Hub" = "Industrial Hub";
+"Industrial Hub" = "Endüstriyel Merkez";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Industrial Installation" = "Industrial Installation";
+"Industrial Installation" = "Endüstriyel Üs";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Outpost" = "Industrial Outpost";
+"Industrial Outpost" = "Endüstriyel Karakol";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Planetary Outpost" = "Industrial Planetary Outpost";
+"Industrial Planetary Outpost" = "Endüstriyel Gezegen Karakolu";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Industrial Tier 1" = "Industrial Tier 1";
+"Industrial Tier 1" = "Endüstriyel Seviye 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Tier 1 Med" = "Industrial Tier 1 Med";
+"Industrial Tier 1 Med" = "Endüstriyel Seviye 1 Orta";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Tier 1 Sml" = "Industrial Tier 1 Sml";
+"Industrial Tier 1 Sml" = "Endüstriyel Seviye 1 Küçük";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Industrial Tier 2" = "Industrial Tier 2";
+"Industrial Tier 2" = "Endüstriyel Seviye 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Tier 2 Lrg" = "Industrial Tier 2 Lrg";
+"Industrial Tier 2 Lrg" = "Endüstriyel Seviye 2 Büyük";
 
 /* [clb.py] */
 "Inf" = "Inf";
@@ -629,7 +647,7 @@
 "Insert rows below" = "Aşağıya satır ekle";
 
 /* Colonisation 'Category' [base_types.json] */
-"Installation" = "Installation";
+"Installation" = "Yerleşke";
 
 /* Preferences label. [ui.py] */
 "Instructions for Use" = "Kullanım için talimatlar";
@@ -671,19 +689,22 @@
 "L" = "Y";
 
 /* [colonisation.py] */
-"Landable" = "Landable";
+"Landable" = "İnilebilir";
 
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Discord Gönderilerinin Dili";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Large" = "Large";
+"Large" = "Büyük";
 
 /* Main window label. [ui.py] */
 "Last BGS Tick:" = "Son BGS Döngüsü:";
 
 /* Button label. [ui.py] */
 "Latest BGS Tally" = "Son BGS Raporu";
+
+/* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
+"Left click for Inara market, right click to copy" = "Left click for Inara market, right click to copy";
 
 /* CMDR window column title. [cmdrs.py] */
 "Legal" = "Legal";
@@ -696,6 +717,9 @@
 
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Yük Miktarı";
+
+/* base location surface/orbital. [colonisation.py] */
+"Location" = "Location";
 
 /* [fleetcarrier.py] */
 "Locker" = "Envanter";
@@ -710,10 +734,10 @@
 "Massacre missions" = "Katliam görevleri";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Medical" = "Medical";
+"Medical" = "Medikal";
 
 /* Colonisation 'Type' [base_types.json] */
-"Medical Installation" = "Medical Installation";
+"Medical Installation" = "Medikal Yerleşke";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Orta";
@@ -722,40 +746,40 @@
 "Message received from this CMDR in local chat" = "Yerel sohbette bu CMDR'dan mesaj alındı";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Military" = "Military";
+"Military" = "Askeri";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Hub" = "Military Hub";
+"Military Hub" = "Askeri Merkez";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Installation" = "Military Installation";
+"Military Installation" = "Askeri üs";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Outpost" = "Military Outpost";
+"Military Outpost" = "Askeri Karakol";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Military Settlement" = "Military Settlement";
+"Military Settlement" = "Askeri Yerleşke";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Military Tier 1" = "Military Tier 1";
+"Military Tier 1" = "Askeri Seviye 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Tier 1 Med" = "Military Tier 1 Med";
+"Military Tier 1 Med" = "Askeri Seviye 1 Orta";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Tier 1 Sml" = "Military Tier 1 Sml";
+"Military Tier 1 Sml" = "Askeri Seviye 1 Küçük";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Military Tier 2" = "Military Tier 2";
+"Military Tier 2" = "Askeri Seviye 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Tier 2 Lrg" = "Military Tier 2 Lrg";
+"Military Tier 2 Lrg" = "Askeri Seviye 2 Büyük";
 
 /* Colonisation 'Type' [base_types.json] */
-"Mining Outpost" = "Mining Outpost";
+"Mining Outpost" = "Maden Karakolu";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Mining Outpost Installation" = "Mining Outpost Installation";
+"Mining Outpost Installation" = "Maden Karakol Üssü";
 
 /* Activity window tooltip. [activity.py] */
 "Mission fails" = "Başarısız görevler";
@@ -800,28 +824,28 @@
 "Ocellus" = "Ocellus";
 
 /* Colonisation 'Type' [base_types.json] */
-"Ocellus Starport" = "Ocellus Starport";
+"Ocellus Starport" = "Ocellus Yıldızlimanı";
 
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Yüzey Çatışma Bölgesi";
 
-/* Indicates the field is optional. [colonisation.py] */
-"optional" = "optional";
+/* Indicates the field is optional and case-sensitive. [colonisation.py] */
+"optional and case sensitive" = "optional and case sensitive";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Orbis" = "Orbis";
 
 /* Colonisation 'Type' [base_types.json] */
-"Orbis Starport" = "Orbis Starport";
+"Orbis Starport" = "Orbis YıldızLimanı";
 
 /* Number of orbital/space builds. [colonisation.py] */
 "Orbital" = "Orbital";
 
 /* Colonisation 'Category' [base_types.json] */
-"Outpost" = "Outpost";
+"Outpost" = "Karakol";
 
 /* Colonisation 'Type' [base_types.json] */
-"Outpost Hub" = "Outpost Hub";
+"Outpost Hub" = "Karakol Merkezi";
 
 /* Landing pad size. [colonisation.py] */
 "Pad" = "Ped büyüklüğü";
@@ -848,21 +872,24 @@
 "Pin {system_name} to Overlay" = "{system_name} arayüze sabitle";
 
 /* Colonisation 'Type' [base_types.json] */
-"Pirate Base" = "Pirate Base";
+"Pirate Base" = "Korsan Üssü";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Pirate Installation" = "Pirate Installation";
+"Pirate Installation" = "Korsan Üssü";
 
 /* Colonisation 'Type' [base_types.json] */
-"Pirate Outpost" = "Pirate Outpost";
+"Pirate Outpost" = "Korsan Karakolu";
 
 /* the name you want to give your plan. [colonisation.py] */
 "Plan Name" = "Plan İsmi";
 
 /* Colonisation 'Category' [base_types.json] */
-"Planetary Port" = "Planetary Port";
+"Planetary Outpost" = "Planetary Outpost";
 
-/* Row heading of planned build totals i.e. ones that aren't completed. [colonisation.py] */
+/* Colonisation 'Type' [base_types.json] */
+"Planetary Port" = "Gezegen Limanı";
+
+/* Row heading of planned build totals i.e. ones that aren't complete. [colonisation.py] */
 "Planned" = "Planlananlar";
 
 /* URL label on API settings window. [api.py] */
@@ -872,7 +899,7 @@
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "LÜTFEN bu bilgiyi gönderdiğiniz sunucuya GÜVENDİĞİNİZDEN EMİN OLUN!";
 
 /* [colonisation.py] */
-"Pop" = "Pop";
+"Pop" = "Popülasyon";
 
 /* Population increase. [colonisation.py] */
 "Pop Inc" = "Nfs Art";
@@ -880,8 +907,11 @@
 /* Population Maximum. [colonisation.py] */
 "Pop Max" = "Mks Nfs";
 
+/* [colonisation.py] */
+"Population" = "Population";
+
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Port" = "Port";
+"Port" = "Liman";
 
 /* Button on CMDR window. [cmdrs.py] */
 "Post CMDR List to Discord" = "CMDR listesini Discord'a gönder";
@@ -897,6 +927,12 @@
 
 /* Discord message footer, legacy text mode. [discord.py] */
 "Posted at: {date_time} | {plugin_name} v{version}" = "Gönderi zamanı: {date_time} | {plugin_name} v{version}";
+
+/* Label for checkbox to pre-populate bases from EDSM. [colonisation.py] */
+"Pre-fill bases from EDSM" = "Pre-fill bases from EDSM";
+
+/* Notice about prepopulation being challenging. [colonisation.py] */
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Önceki BGS Raporlar";
@@ -915,6 +951,9 @@
 
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
 "Profit at Z | L | M | H demand" = "Talep üzerinde Z | L | M | H kâr";
+
+/* [progress.py] */
+"Progress" = "Progress";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */
 "Purch" = "StnAlm";
@@ -938,19 +977,19 @@
 "Received team invite from" = "Şu kişiden ekip daveti alındı";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Refinery" = "Refinery";
+"Refinery" = "Rafineri";
 
 /* Colonisation 'Type' [base_types.json] */
-"Refinery Hub" = "Refinery Hub";
+"Refinery Hub" = "Rafineri Merkezi";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Relay Installation" = "Relay Installation";
+"Relay Installation" = "Aktarım Üssü";
 
 /* Colonisation 'Type' [base_types.json] */
-"Relay Station" = "Relay Station";
+"Relay Station" = "Röle İstasyonu";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Relay Station Installation" = "Relay Station Installation";
+"Relay Station Installation" = "Aktarım İstasyon Üssü";
 
 /* Rename button. [colonisation.py] */
 "Rename" = "Yeniden adlandır";
@@ -959,7 +998,7 @@
 "Rename System" = "Sistemi yeniden adlandır";
 
 /* tooltip for the rename system button. [colonisation.py] */
-"Rename system plan" = "Rename system plan";
+"Rename system plan" = "Sistem planını yeniden adlandır";
 
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Yeni Ziyaret Edilen Sistem Etkinliğini Varsayılan Olarak Raporla";
@@ -970,38 +1009,41 @@
 /* any prerequisites for the base. [colonisation.py] */
 "Requirements" = "Gereksinimler";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Research Bio Tier 1" = "Research Bio Tier 1";
-
-/* Colonisation 'Type' [base_types.json] */
-"Research Bio Tier 1 Med" = "Research Bio Tier 1 Med";
-
-/* Colonisation 'Type' [base_types.json] */
-"Research Bio Tier 1 Sml" = "Research Bio Tier 1 Sml";
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Research Bio Settlement" = "Research Bio Settlement";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Research Bio Tier 2" = "Research Bio Tier 2";
+"Research Bio Tier 1" = "Araştırma Bio Seviye 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Research Bio Tier 2 Lrg" = "Research Bio Tier 2 Lrg";
+"Research Bio Tier 1 Med" = "Araştırma Bio Seviye 1 Orta";
 
 /* Colonisation 'Type' [base_types.json] */
-"Research Station" = "Research Station";
+"Research Bio Tier 1 Sml" = "Araştırma Bio Seviye 1 Küçük";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Research Bio Tier 2" = "Araştırma Bio Seviye 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Research Bio Tier 2 Lrg" = "Araştırma Bio Seviye 2 Büyük";
+
+/* Colonisation 'Type' [base_types.json] */
+"Research Station" = "Araştırma İstasyonu";
 
 /* [colonisation.py] */
-"rings" = "rings";
+"rings" = "halkalar";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "AraVeKur";
 
 /* Colonisation 'Type' [base_types.json] */
-"Satellite" = "Satellite";
+"Satellite" = "Uydu";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Satellite Installation" = "Satellite Installation";
+"Satellite Installation" = "Uydu Üssü";
 
 /* Save notes button. [colonisation.py] */
-"Save" = "Save";
+"Save" = "Kaydet";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Tarandı";
@@ -1016,16 +1058,16 @@
 "Scens" = "Snylr";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Scientific" = "Scientific";
+"Scientific" = "Bilimsel";
 
 /* Colonisation 'Type' [base_types.json] */
-"Scientific Hub" = "Scientific Hub";
+"Scientific Hub" = "Bilimsel Merkez";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Scientific Installation" = "Scientific Installation";
+"Scientific Installation" = "Bilim Üssü";
 
 /* Colonisation 'Type' [base_types.json] */
-"Scientific Outpost" = "Scientific Outpost";
+"Scientific Outpost" = "Bilimsel araştırma karakolu";
 
 /* Label on legend window. [legend.py] */
 "Search & Rescue Bio Pods" = "Arama ve Kurtarma Bio Pod'ları";
@@ -1055,10 +1097,10 @@
 "Security" = "Güvenlik";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Security Installation" = "Security Installation";
+"Security Installation" = "Güvenlik Üssü";
 
 /* Colonisation 'Type' [base_types.json] */
-"Security Station" = "Security Station";
+"Security Station" = "Güvenlik İstasyonu";
 
 /* [widgets.py] */
 "Select all" = "Tümünü seç";
@@ -1079,7 +1121,7 @@
 "Server URL" = "Sunucu URL";
 
 /* Colonisation 'Category' [base_types.json] */
-"Settlement" = "Settlement";
+"Settlement" = "Yerleşke";
 
 /* Discord heading. [default.py] */
 "settlements" = "yerleşkeler";
@@ -1089,6 +1131,9 @@
 
 /* Label on API settings window. [api.py] */
 "Shortcuts for Popular Servers" = "Popüler Sunucular için Kısayollar";
+
+/* tooltip for the show bases button. [colonisation.py] */
+"Show base types window" = "Show base types window";
 
 /* Main window tooltip. [ui.py] */
 "Show CMDR information window" = "CMDR bilgi penceresini göster";
@@ -1112,25 +1157,25 @@
 "Show legend window" = "Geçmiş penceresini göster";
 
 /* tooltip for the next build icon. [progress.py] */
-"Show next build" = "Show next build";
+"Show next build" = "Sonraki yapılandırmayı göster";
 
 /* Main window tooltip. [ui.py] */
 "Show objectives / missions window" = "Hedefler / Görevler penceresini göster";
 
 /* tooltip for the previous build icon. [progress.py] */
-"Show previous build" = "Show previous build";
+"Show previous build" = "Önceki yapılandırmayı göster";
 
 /* tooltip for the show bodies window. [colonisation.py] */
-"Show system bodies window" = "Show system bodies window";
+"Show system bodies window" = "Sistem gezgenleri penceresini göster";
 
 /* tooltip for the show notes window. [colonisation.py] */
-"Show system notes window" = "Show system notes window";
+"Show system notes window" = "Sistem notları penceresini göster";
 
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Aktivite Olmayan Sistemleri Göster";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Small" = "Small";
+"Small" = "Küçük";
 
 /* Standard of living impact. [colonisation.py] */
 "SoL" = "SoL";
@@ -1142,16 +1187,16 @@
 "Space" = "Boşluk";
 
 /* Colonisation 'Type' [base_types.json] */
-"Space Bar" = "Space Bar";
+"Space Bar" = "Uzay Barı";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Uzay Çatışma Bölgesi";
 
 /* Colonisation 'Type' [base_types.json] */
-"Space Farm" = "Space Farm";
+"Space Farm" = "Uzay Çiftliği";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Space Farm Installation" = "Space Farm Installation";
+"Space Farm Installation" = "Uzay tarım Üssü";
 
 /* Discord heading, abbreviation for space conflict zones. [default.py] */
 "SpaceCZs" = "UzayÇB'leri";
@@ -1172,7 +1217,7 @@
 "Squadron: " = "Filo: ";
 
 /* Colonisation 'Category' [base_types.json] */
-"Starport" = "Starport";
+"Starport" = "Yıldız Limanı";
 
 /* Activity window column title. [activity.py] */
 "State" = "Durum";
@@ -1190,10 +1235,7 @@
 "System Information" = "Sistem Bilgisi";
 
 /* Label for the system's name field in the UI. [colonisation.py] */
-"System Name" = "System Name";
-
-/* Elite dangerous system name. [colonisation.py] */
-"System Name (optional)" = "Sistem İsmi (Opsiyonel)";
+"System Name" = "Sistem İsmi";
 
 /* Overlay system tick message. [ui.py] */
 "System Tick: {tick_time}" = "Sistem Döngüsü: {tick_time}";
@@ -1223,7 +1265,7 @@
 "Tech Lvl" = "Tekn Lvl";
 
 /* [colonisation.py] */
-"Terraformable" = "Terraformable";
+"Terraformable" = "Dünyalaştırılabilir";
 
 /* Name of default output formatter. [text.py] */
 "Text Only" = "Sadece metin";
@@ -1252,6 +1294,9 @@
 /* [ui.py] */
 "Tick {minutes_delta}m Overdue (Estimated)" = "Döngü {minutes_delta}dk Rötarlı (Tahmini)";
 
+/* tier of base. [colonisation.py] */
+"Tier" = "Tier";
+
 /* [ui.py] */
 "To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "Bir webhook eklemek için: Satır numarasına sağ tıklayın ve 'Yukarıya / aşağıya satır ekle'ye basın.";
 
@@ -1271,31 +1316,31 @@
 "Total" = "Toplam";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
-"Tourism" = "Tourism";
+"Tourism" = "Turizm";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Tourism Settlement" = "Tourism Settlement";
+"Tourism Settlement" = "Turizm Yerleşkesi";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Tourism Tier 1" = "Tourism Tier 1";
+"Tourism Tier 1" = "Turizm Seviye 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Tourism Tier 1 Med" = "Tourism Tier 1 Med";
+"Tourism Tier 1 Med" = "Turizm Seviye 1 Orta";
 
 /* Colonisation 'Type' [base_types.json] */
-"Tourism Tier 1 Sml" = "Tourism Tier 1 Sml";
+"Tourism Tier 1 Sml" = "Turizm Seviye 1 Küçük";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Tourism Tier 2" = "Tourism Tier 2";
+"Tourism Tier 2" = "Turizm Seviye 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Tourism Tier 2 Lrg" = "Tourism Tier 2 Lrg";
+"Tourism Tier 2 Lrg" = "Turizm Seviye 2 Büyük";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Tourist" = "Tourist";
+"Tourist" = "Turist";
 
 /* Colonisation 'Type' [base_types.json] */
-"Tourist Installation" = "Tourist Installation";
+"Tourist Installation" = "Turist Üssü";
 
 /* Track this build?. [colonisation.py] */
 "Track" = "Takip et";
@@ -1323,6 +1368,12 @@
 
 /* [ui.py] */
 "TW War Progress in {current_system}: {percent}%" = "Mevcut sistemdeki TW Savaş Süreci {current_system}: {percent}%";
+
+/* body type details. [colonisation.py] */
+"Type" = "Type";
+
+/* type of base as listed in the game. [colonisation.py] */
+"Type (Listed as)" = "Type (Listed as)";
 
 /* [sheet_options.py] */
 "Undo" = "Geri al";
@@ -1387,17 +1438,20 @@
 /* CMDR window title. [cmdrs.py] */
 "{plugin_name} - CMDR Interactions" = "{plugin_name} - CMDR Etkileşimleri";
 
-/* Colonisation window title. [colonisation.py] */
-"{plugin_name} - Colonisation" = "{plugin_name} - Colonisation";
+/* window title. [colonisation.py] */
+"{plugin_name} - Colonisation" = "{plugin_name} - Kolonizasyon";
 
-/* Colonisation bodies popup window title. [colonisation.py] */
-"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Colonisation Bodies";
+/* Title of the base type popup window. [colonisation.py] */
+"{plugin_name} - Colonisation Base Types" = "{plugin_name} - Colonisation Base Types";
 
-/* Colonisation legend popup window title. [colonisation.py] */
-"{plugin_name} - Colonisation Legend" = "{plugin_name} - Colonisation Legend";
+/* Title of the bodies popup window. [colonisation.py] */
+"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Kolonizasyon Gezegenleri";
 
-/* Colonisation notes popup window title. [colonisation.py] */
-"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - Colonisation Notes for {system_name}";
+/* Title of the legend popup window. [colonisation.py] */
+"{plugin_name} - Colonisation Legend" = "{plugin_name} - Kolonizasyon";
+
+/* Title of the notes popup window. [colonisation.py] */
+"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - {system_name} için Kolonizasyon Notları";
 
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Icon Geçmişi";

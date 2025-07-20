@@ -1,87 +1,10 @@
 # Change Log
 
-## v5.0.0-b1 - 2025-06-07
-
-### Changes
-
-* Added querying of EDSM for body information, existing bases, and system information
-* Modified the "loads" view to use tonnes if it's less than one load.
-
-
-## v5.0.0-a3 - 2025-05-26
-
-### Changes:
-
-* The progress window now features
-    - Commodity view can now cycle between full (all), reduced (only remaining), minimal (nothing left to buy) and none
-    - Commodity sort orders are now Default, Alpha, and Material
-    - Default sorting is alpha but will switch to Material at a base with a market
-    - Added tooltips
-    - Fixed bug where the inara link didn't update with the commodity sort order
-    - Column order and commodity display are now saved between sessions
-    - Tidied/refactored code
-    - Added support for legend translations
-    - Updated colonisation window to use ED:MC preferred system link (Inara, EDSM, or Spansh)
-    - Updated colonisation window so the name and type of a completed base link to the preferred ED:SM station link
-
-### Bug fixes:
-    - Fixed issue with resetting progress column to theme foreground color
-    - Reinstated hand2 icon for links without causing them to all be highlighted
-    - Lightened the green progress for easier viewing in dark mode
-    - Fixed scaling issue at high ranges
-    - Fixed issue with the carrier getting added to the completed builds list
-    - Fixed issue with not showing completed bases that were found but we don't know the build type
-    - Typo fixes to the legend
-
-
-## v5.0.0-a2 - 2025-05-17
-
-### Changes:
-
-* The colonisation main window now features
-    - A legend popup to explain the brief column headings
-    - A rename button to rename a plan or add the actual system name once known
-    - A notes popup to record free text notes about the system
-    - colored commodity requirements from green to red
-    - Improved system and market identification
-    - While build statuses are still determined from they journal they can also be manually updated by clicking on them
-    - Adding and removing builds at any point in the list should work correctly and appropriately update the column colors
-
-* The colonisation progress window now features
-    - The ED:MC default colors so it will display better in dark or transparent mode
-    - Complete and immediate hiding if there are no tracked builds or no commodities to get
-    - Totals updating to correctly reflect the column data being shown
-    - Base type instead of 'Unnamed' when a build hasn't been named
-    - Commodities can be listed alphabetically or by category (like they are in markets)
-    - A full/condensed list icon that aligns more closely to the colonisation icon
-
-### Bug Fixes:
-
-* Various bugs fixed with colonisation.
-
-
-## v5.0.0-a1 - 2025-05-11
+## v5.0.0 - 2025-07-20
 
 ### New Features:
 
-* The colonisation window now features
-    - A legend popup to explain the brief column headings
-    - A rename button to rename a plan or add the actual system name once known
-    - A notes popup to record free text notes about the system
-    - colored commodity requirements from green to red
-    - Improved system and market identification
-    - While build statuses are still determined from they journal they can also be manually updated by clicking on them
-    - Adding and removing builds at any point in the list should work correctly and appropriately update the column colors
-
-* The progress window now features
-    - The ED:MC default colors so it will display better in dark or transparent mode
-    - Complete and immediate hiding if there are no tracked builds or no commodities to get
-    - Totals updating to correctly reflect the column data being shown
-    - Base type instead of 'Unnamed' when a build hasn't been named
-    - Commodities can be listed alphabetically or by category (like they are in markets)
-    - A full/condensed list icon that aligns more closely to the colonisation icon
-
-* Colonisation Tracking. Your active builds in progress, with targets, are summarised on the main EDMC window and all your colonisation plans are available in a separate window accessed from a button on the main EDMC window.
+* Colonisation Tracking. Your active builds in progress, with targets, are summarised on the main EDMC window and all your colonisation plans are available in a separate window accessed from a button on the main EDMC window, together with separate windows for possible bases, general notes and help.
 * Conflict states are highlighted in the activity window: Elections in orange and wars in red.
 * The individual tick time **for each system** is now reported on the activity window and on the overlay in-game.
 * You can now customise the Discord avatar image for your Discord posts, if you want to override the default BGS-Tally icon.
@@ -95,6 +18,7 @@
 
 * When multiple systems are pinned to the in-game overlay, they are now formatted more elegantly, with all system names shown as coloured titles.
 * Fleet carrier cargo is now updated whenever you transfer cargo to/from your carrier. This gives a more up to date cargo manifest than just relying on CAPI (with it's 15 minute cooldown and reliance on visiting your carrier management screen) but it is still not perfect as doesn't account for other players using your carrier.
+* API configuration window is now scrollable and resizable to allow for smaller screen resolutions
 
 ### Bug Fixes:
 
@@ -102,6 +26,7 @@
 * Any Search and Rescue (e.g. escape pods) would cause the overlay to stop displaying your work in that system.
 * When abandoning of failing a mission that was not logged when it was originally accepted (e.g. when BGS-Tally was not running), and sending events to an API, the API call would fail.
 * Fixed bug which would cause the Fleetcarrier window to fail to load properly if newer Trailblazers or Thargoid war commodities had buy or sell orders set.
+* Fix an occasional initial loading issue with the API configuration window
 
 ### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/4cc039a5-fcdf-4bdb-adb3-1cd4b78f70d8)):
 

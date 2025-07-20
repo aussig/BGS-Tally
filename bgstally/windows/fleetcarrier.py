@@ -163,7 +163,7 @@ class WindowFleetCarrier:
         self.btn_post_to_discord: tk.Button = tk.Button(frm_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord)) # LANG: Button
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
         if not self._discord_button_available():
-            ToolTip(self.btn_post_to_discord, text=_("Both the 'Post to Discord as' field and a Discord webhook\nmust be configured in the settings to allow posting to Discord")) # LANG: Post to Discord button tooltip
+            ToolTip(self.btn_post_to_discord, text=_("Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord").format(CR="\n")) # LANG: Post to Discord button tooltip
 
         self._enable_post_button()
 

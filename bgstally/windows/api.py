@@ -31,6 +31,7 @@ class WindowAPI:
 
         self.image_logo_comguard = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_comguard.png"))
         self.image_logo_dcoh = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_dcoh.png"))
+        self.image_logo_spectrum = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_spectrum.png"))
 
 
     def show(self, parent_frame:tk.Frame = None):
@@ -121,8 +122,9 @@ class WindowAPI:
         tk.Label(frame_main, text=_("Shortcuts for Popular Servers")).grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
         frame_connection_buttons:ttk.Frame = ttk.Frame(frame_main)
         frame_connection_buttons.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
-        # tk.Button(frame_connection_buttons, image=self.image_logo_dcoh, height=28, bg="Gray13", command=partial(self._autofill, 'dcoh')).pack(side=tk.LEFT, padx=4)
         tk.Button(frame_connection_buttons, image=self.image_logo_comguard, height=28, bg="Gray13", command=partial(self._autofill, 'comguard')).pack(side=tk.LEFT, padx=4)
+        # tk.Button(frame_connection_buttons, image=self.image_logo_dcoh, height=28, bg="Gray13", command=partial(self._autofill, 'dcoh')).pack(side=tk.LEFT, padx=4)
+        tk.Button(frame_connection_buttons, image=self.image_logo_spectrum, height=28, bg="White", command=partial(self._autofill, 'spectrum')).pack(side=tk.LEFT, padx=4)
 
         self.btn_fetch = tk.Button(frame_main, text=_("Establish Connection"), command=partial(self._discover)) # LANG: Button on API settings window
         self.btn_fetch.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1

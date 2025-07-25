@@ -8,7 +8,7 @@
 [![Github All Releases](https://img.shields.io/github/downloads/aussig/BGS-Tally/total.svg)](https://github.com/aussig/BGS-Tally/releases/latest)
 [![Discord](https://img.shields.io/discord/698438769358929940?label=Discord&color=%2350007f)](https://discord.gg/YDNVtjPnnm)
 
-A tool to track and report your Background Simulation (BGS) and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS-Tally counts all the BGS / TW work you do for any faction, in any system.
+A tool to track and report your Background Simulation (BGS), Colonisation and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS-Tally counts all the BGS / Colonisation / TW work you do for any faction, in any system.
 
 Based on BGS-Tally v2.0 by tezw21
 
@@ -17,6 +17,7 @@ As well as all the BGS tracking from Tez's original version, this modified versi
 * Automatic on-foot Conflict Zone tracking (with settlement names)
 * Automatic in-space Conflict Zone tracking
 * TW tracking
+* Colonisation tracking
 * Logging of interactions with other CMDRs, with automatic Inara lookup for CMDR and Squadron
 * Fleet Carrier materials tracking
 * Fleet Carrier jump tracking
@@ -41,7 +42,7 @@ The plugin generates Discord-ready text for copying-and-pasting manually into Di
 
 # What is Tracked
 
-The plugin includes both automatic and manual tracking of BGS and TW activity data.
+The plugin includes both automatic and manual tracking of BGS, Colonisation and TW activity data.
 
 * For a basic summary of what is tracked, see the **[Home Page of the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki#it-tracks-bgs-activity)**.
 * For more detail, see the **[Activity Window section in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Use#activity-window)**.
@@ -49,7 +50,7 @@ The plugin includes both automatic and manual tracking of BGS and TW activity da
 
 # Your Personal Activity and Privacy
 
-If you're concerned about the privacy of your BGS activity, note that this plugin **does not send your data anywhere, unless you specifically choose to by configuring the Discord Integration or API Integration**.
+If you're concerned about the privacy of your in-game activity, note that this plugin **does not send your data anywhere, unless you specifically choose to by configuring the Discord Integration or API Integration**.
 
 ## Local Files and Folders
 

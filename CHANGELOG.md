@@ -2,7 +2,9 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### Bug Fixes:
 
+* Colonisation - All commodities list was sometimes not displaying correctly
 
 
 ## v5.0.0 - 2025-07-25

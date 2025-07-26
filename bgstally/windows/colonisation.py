@@ -1227,7 +1227,6 @@ class ColonisationWindow:
             self.notes_fr.wm_title(_("{plugin_name} - Colonisation Notes for {system_name}").format(plugin_name=self.bgstally.plugin_name, system_name=systems[sysnum].get('Name', ''))) # LANG: Title of the notes popup window
             self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
             self.notes_fr.geometry("600x600")
-            self.notes_fr.protocol("WM_DELETE_WINDOW", self.notes_fr.destroy)
             self.notes_fr.config(bd=2, relief=tk.FLAT)
             scr:tk.Scrollbar = tk.Scrollbar(self.notes_fr, orient=tk.VERTICAL)
             scr.pack(side=tk.RIGHT, fill=tk.Y)
@@ -1236,10 +1235,7 @@ class ColonisationWindow:
             notes:str = systems[sysnum].get('Notes', '')
             text.insert(tk.END, notes)
             text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-
-            # Save button
-            save:ttk.Button = ttk.Button(self.notes_fr, text=_("Save"), command=partial(savenotes, systems[sysnum], text)) # LANG: Save notes button
-            save.pack(side=tk.RIGHT, padx=5)
+            self.notes_fr.protocol("WM_DELETE_WINDOW", partial(savenotes, systems[sysnum], text))
 
         except Exception as e:
             Debug.logger.error(f"Error in notes_popup(): {e}")

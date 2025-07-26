@@ -354,6 +354,7 @@ class ProgressWindow:
 
             # Set the build name (system name and plan name)
             name = _('All') # LANG: all builds
+            sn:str = _('Unknown') # LANG: Unknown system name
             if self.build_index < len(tracked):
                 b:dict = tracked[self.build_index]
                 bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
@@ -452,7 +453,7 @@ class ProgressWindow:
                 rc += 1
 
             self._display_totals(self.rows[i+1], tracked, totals)
-            self.progvar.set(all_deliv * 100 / all_req)
+            if all_req > 0: self.progvar.set(all_deliv * 100 / all_req)
 
         except Exception as e:
             Debug.logger.info(f"Error updating display")

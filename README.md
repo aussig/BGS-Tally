@@ -45,7 +45,8 @@ The plugin generates Discord-ready text for copying-and-pasting manually into Di
 The plugin includes both automatic and manual tracking of BGS, Colonisation and TW activity data.
 
 * For a basic summary of what is tracked, see the **[Home Page of the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki#it-tracks-bgs-activity)**.
-* For more detail, see the **[Activity Window section in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Use#activity-window)**.
+* For more detail on BGS and TW tracking, see the **[this page in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Usage-%E2%80%90-BGS-and-TW-Tracking)**.
+* For more detail on Colonisation tracking, see the **[this page in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Usage-%E2%80%90-Colonisation-Tracking)**.
 
 
 # Your Personal Activity and Privacy

@@ -2,9 +2,14 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### Changes:
+
+* Colonisation - Notes window now saves on close
+
 ### Bug Fixes:
 
 * Colonisation - All commodities list was sometimes not displaying correctly
+* Colonisation - Bioreducing lichen Inara link was incorrectly linking to Animal meat
 
 
 ## v5.0.0 - 2025-07-25

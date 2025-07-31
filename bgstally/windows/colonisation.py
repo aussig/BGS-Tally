@@ -725,12 +725,14 @@ class ColonisationWindow:
 
             # Body type details
             if system != None and 'Bodies' in system and new[i][3] != ' ':
+                desc:str = ' '
                 b = self.colonisation.get_body(system, new[i][3])
-                desc:str = b.get('subType', 'Unknown')
-                if b.get('type') == 'Star': desc = re.sub(r".*\((.+)\).*", r"\1", desc)
-                if 'gas giant' in b.get('subType').lower(): desc = _('Gas giant')
-                if b.get('subType') == 'High metal content world': desc = _('HMC world') # LANG: HMC World is a high metal content world
-                desc = str_truncate(desc, 16)
+                if b != None:
+                    desc = b.get('subType', 'Unknown')
+                    if b.get('type') == 'Star': desc = re.sub(r".*\((.+)\).*", r"\1", desc)
+                    if 'gas giant' in b.get('subType').lower(): desc = _('Gas giant')
+                    if b.get('subType') == 'High metal content world': desc = _('HMC world') # LANG: HMC World is a high metal content world
+                    desc = str_truncate(desc, 16)
 
                 #attrs:list = []
                 #if b.get('terraformingState', 'Not terraformable') != 'Not terraformable': attrs.append("T")

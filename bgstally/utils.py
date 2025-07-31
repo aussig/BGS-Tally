@@ -68,13 +68,13 @@ def __(string: str, lang: str) -> str:
     # Return the original string if the language is empty, None, or the fallback language.
     if lang == "":
         return _(string)
-    
+
     # Return original string and log warning if language is None.
     elif lang is None:
         Debug.logger.warning("Translation requested with None language, returning original string.\n"
                              + f">>> {string} <<<")
         return string
-    
+
     # Return original string if the requested language is the fallback (e.g., 'en').
     elif lang == translations_obj.FALLBACK:
         return string
@@ -235,3 +235,18 @@ def add_dicts(d1: dict, d2: dict) -> dict:
         return d1
 
     return _recursive_add(result, d2)
+
+def str_truncate(s:str, length:int = 20, elipsis:str = '…', loc:str = 'right') -> str:
+    """ Truncate a string to a specified length, adding an ellipsis if the string is longer than the specified length. """
+    if len(s) <= length:
+        return s
+
+    match loc:
+        case 'left':
+            return elipsis + s[-(length - len(elipsis)):]
+        case 'middle':
+            half_length = (length - len(elipsis)) // 2
+            return s[:half_length] + elipsis + s[-half_length:]
+        case _:
+            # Default to truncating at the right side
+            return s[:length - len(elipsis)] + elipsis

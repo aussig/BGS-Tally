@@ -11,7 +11,7 @@ from config import config
 from thirdparty.Tooltip import ToolTip
 from bgstally.constants import CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
-from bgstally.utils import _
+from bgstally.utils import _, str_truncate
 
 MAX_ROWS = 20
 class ProgressWindow:
@@ -439,7 +439,8 @@ class ProgressWindow:
                     if col == 'Commodity':
                         # Shorten and display the commodity name
                         colstr:str = self.colonisation.commodities[c].get('Name', c)
-                        if len(colstr) > 25: colstr = colstr[0:23] + '…'
+                        colstr = str_truncate(colstr, 25)
+
                         row['Commodity']['text'] = colstr
                         row['Commodity'].bind("<Button-1>", partial(self.link, c, None))
                         row['Commodity'].bind("<Button-2>", partial(self.link, c, sn))

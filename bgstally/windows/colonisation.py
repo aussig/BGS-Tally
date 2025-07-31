@@ -14,7 +14,7 @@ from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
 from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_SMALL, FONT_TEXT, FOLDER_DATA, FOLDER_ASSETS, BuildState
 from bgstally.debug import Debug
-from bgstally.utils import _, human_format
+from bgstally.utils import _, human_format, str_truncate
 
 FILENAME = "colonisation_legend.txt" # LANG: Not sure how we handle file localistion.
 SUMMARY_HEADER_ROW = 0
@@ -283,6 +283,10 @@ class ColonisationWindow:
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show legend window")) # LANG: tooltip for the show legend button
 
+        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
+        btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
+
         btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
         ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -295,10 +299,6 @@ class ColonisationWindow:
             btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
-
-        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
-        btn.pack(side=tk.RIGHT, padx=5, pady=5)
-        ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("📓"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -728,7 +728,9 @@ class ColonisationWindow:
                 b = self.colonisation.get_body(system, new[i][3])
                 desc:str = b.get('subType', 'Unknown')
                 if b.get('type') == 'Star': desc = re.sub(r".*\((.+)\).*", r"\1", desc)
-                if b.get('subType') == 'High metal content world': desc = _('HMC World') # LANG: HMC World is a high metal content world
+                if 'gas giant' in b.get('subType').lower(): desc = _('Gas giant')
+                if b.get('subType') == 'High metal content world': desc = _('HMC world') # LANG: HMC World is a high metal content world
+                desc = str_truncate(desc, 16)
 
                 #attrs:list = []
                 #if b.get('terraformingState', 'Not terraformable') != 'Not terraformable': attrs.append("T")

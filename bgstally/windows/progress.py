@@ -1,19 +1,21 @@
-import traceback
-from math import ceil
-from enum import Enum, auto
-from functools import partial
-import webbrowser
 import tkinter as tk
 import tkinter.font as tkFont
+import traceback
+import webbrowser
+from enum import Enum, auto
+from functools import partial
+from math import ceil
 from tkinter import ttk
 from urllib.parse import quote
-from config import config
-from thirdparty.Tooltip import ToolTip
-from bgstally.constants import CommodityOrder, ProgressUnits, ProgressView
+
+from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
 from bgstally.utils import _, str_truncate
+from config import config
+from thirdparty.Tooltip import ToolTip
 
 MAX_ROWS = 20
+
 class ProgressWindow:
     '''
     Frame for displaying colonisation construction progress.
@@ -220,14 +222,20 @@ class ProgressWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def as_text(self) -> str:
-        ''' Return a discord text representation of the progress window '''
+    def as_text(self, discord:bool = True) -> str:
+        ''' Return a text representation of the progress window '''
         try:
 
             tracked:list = self.colonisation.get_tracked_builds()
             required:dict = self.colonisation.get_required(tracked)
             delivered:dict = self.colonisation.get_delivered(tracked)
-            output:str = "```"
+            output:str = ""
+
+            if discord:
+                output += "```"
+            else:
+                output += TAG_OVERLAY_HIGHLIGHT
+
             if self.build_index < len(tracked):
                 b:dict = tracked[self.build_index]
                 sn:str = b.get('Plan', _('Unknown')) # Unknown system name
@@ -238,8 +246,11 @@ class ProgressWindow:
 
             output += f"{_('Progress')}: {self.progvar.get():.0f}%\n"
             output += "\n"
-            output += f"{_('Commodity'): <30} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
+            if discord:
+                output += f"{_('Commodity'): <30} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
+
             output += "-" * 67 + "\n"
+
             for i, c in enumerate(self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)):
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
@@ -247,8 +258,12 @@ class ProgressWindow:
                 if remaining > 0:
                     name:str = self.colonisation.commodities[c].get('Name', c)
                     cat:str = self.colonisation.commodities[c].get('Category', c)
-                    output += f"{name: <30} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
-            output += "```\n"
+                    if discord:
+                        output += f"{name} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
+                    else:
+                        output += f"{name}: {remaining} {_('t')}\n"
+
+            if discord: output += "```\n"
             return output.strip()
 
         except Exception as e:

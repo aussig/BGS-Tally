@@ -9,14 +9,14 @@ try:
 except ImportError:
     edmcoverlay = None
 
-HEIGHT_CHARACTER_NORMAL = 14
-HEIGHT_CHARACTER_LARGE = 20
-WIDTH_CHARACTER_NORMAL = 4
-WIDTH_CHARACTER_LARGE = 7
-MAX_LINES_PER_PANEL = 30
-
 WIDTH_OVERLAY = 1280  # Virtual screen width of overlay
 HEIGHT_OVERLAY = 960  # Virtual screen height of overlay
+
+WIDTH_CHARACTER_NORMAL = 4
+WIDTH_CHARACTER_LARGE = 7
+HEIGHT_CHARACTER_NORMAL = 14
+HEIGHT_CHARACTER_LARGE = 20
+MAX_LINES_PER_PANEL = 30
 
 class Overlay:
     """
@@ -26,6 +26,18 @@ class Overlay:
         self.bgstally = bgstally
         self.edmcoverlay: Overlay = None
         self.problem_displaying: bool = False
+
+        overlay_config: dict | None = self.bgstally.config.overlay()
+        if overlay_config is not None:
+            global WIDTH_OVERLAY, HEIGHT_OVERLAY, HEIGHT_CHARACTER_NORMAL, HEIGHT_CHARACTER_LARGE, WIDTH_CHARACTER_NORMAL, WIDTH_CHARACTER_LARGE, MAX_LINES_PER_PANEL
+            WIDTH_OVERLAY = int(overlay_config.get('width', WIDTH_OVERLAY))
+            HEIGHT_OVERLAY = int(overlay_config.get('height', HEIGHT_OVERLAY))
+            WIDTH_CHARACTER_NORMAL = int(overlay_config.get('character_width_normal', WIDTH_CHARACTER_NORMAL))
+            WIDTH_CHARACTER_LARGE = int(overlay_config.get('character_width_large', WIDTH_CHARACTER_LARGE))
+            HEIGHT_CHARACTER_NORMAL = int(overlay_config.get('line_height_normal', HEIGHT_CHARACTER_NORMAL))
+            HEIGHT_CHARACTER_LARGE = int(overlay_config.get('line_height_large', HEIGHT_CHARACTER_LARGE))
+            MAX_LINES_PER_PANEL = int(overlay_config.get('max_lines_per_panel', MAX_LINES_PER_PANEL))
+
         self._check_overlay()
 
 
@@ -121,7 +133,7 @@ class Overlay:
             self.edmcoverlay.send_shape(f"bgstally-frame-{frame_name}", "rect", border_colour, fill_colour, int(fi['x']), int(fi['y']), int(fi['w']), int(fi['h']), ttl=ttl)
 
             self.problem_displaying = False
-            
+
         except Exception as e:
             if not self.problem_displaying:
                 # Only log a warning about failure once

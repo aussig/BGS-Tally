@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Dict
 
 from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_TITLE, FILE_SUFFIX, ApiSizeLookup,
-                                ApiSyntheticCZObjectiveType, ApiSyntheticEvent, ApiSyntheticScenarioType, CheckStates)
+                                ApiSyntheticCZObjectiveType, ApiSyntheticEvent, ApiSyntheticScenarioType, CheckStates, DiscordChannel)
 from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
@@ -306,6 +306,53 @@ class Activity:
                 del self.systems[system_address]
 
 
+    def post_to_discord(self):
+        """ Post the activity to Discord"""
+        formatter: BaseActivityFormatterInterface = self.bgstally.formatter_manager.get_current_formatter()
+
+        if formatter.get_mode() == DiscordPostStyle.TEXT:
+            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:
+                discord_text: str = formatter.get_text(self, DiscordActivity.BGS, lang=self.bgstally.state.discord_lang)
+                self.bgstally.discord.post_plaintext(discord_text, self.discord_webhook_data, DiscordChannel.BGS, self._discord_post_complete)
+            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
+                discord_text = formatter.get_text(self, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
+                self.bgstally.discord.post_plaintext(discord_text, self.discord_webhook_data, DiscordChannel.THARGOIDWAR, self._discord_post_complete)
+        else:
+            description = "" if self.discord_notes is None else self.discord_notes
+            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:
+                discord_fields: dict = formatter.get_fields(activity, DiscordActivity.BGS, lang=self.bgstally.state.discord_lang)
+                self.bgstally.discord.post_embed(__("BGS Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=self.get_title(True)), description, discord_fields, self.discord_webhook_data, DiscordChannel.BGS, self._discord_post_complete) # LANG: Discord post title
+            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
+                discord_fields = formatter.get_fields(activity, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
+                self.bgstally.discord.post_embed(__("TW Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=self.get_title(True)), description, discord_fields, self.discord_webhook_data, DiscordChannel.THARGOIDWAR, self._discord_post_complete) # LANG: Discord post title
+
+        self.dirty = True # Because discord post ID has been changed
+        self.autopost = False
+
+
+    def _discord_post_complete(self, channel:DiscordChannel, webhook_data:dict, messageid:str):
+        """ Callback function when a discord post request has completed
+        Args:
+            channel (DiscordChannel): The channel the post was made to
+            webhook_data (dict): The webhook data used for the post
+            messageid (str): The message ID of the post
+        """
+        uuid:str = webhook_data.get('uuid')
+        if uuid is None: return
+
+        activity_webhook_data:dict = self.discord_webhook_data.get(uuid, webhook_data) # Fetch current activity webhook data, default to data from callback.
+        activity_webhook_data[channel] = messageid                                     # Store the returned messageid against the channel
+        self.discord_webhook_data[uuid] = activity_webhook_data                        # Store the webhook dict back to the activity
+
+
+    def activity_updated(self, system_address: str):
+        """
+        Called when the activity has been updated, e.g. by user activity
+        """
+        self.bgstally.ui.show_system_report(system_address)
+        self.autopost = True # Ready for autoposting if autoposting is enabled
+
+
     #
     # Player Journal Log Handling
     #
@@ -406,13 +453,13 @@ class Activity:
                     if inftrend == "UpGood" or inftrend == "DownGood":
                         if effect_faction_name == journal_entry['Faction']:
                             faction['MissionPoints'][inf_index] += 1
-                            self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
+                            self.activity_updated(system_address) # Only show system report for primary INF
                         else:
                             faction['MissionPointsSecondary'][inf_index] += 1
                     else:
                         if effect_faction_name == journal_entry['Faction']:
                             faction['MissionPoints'][inf_index] -= 1
-                            self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
+                            self.activity_updated(system_address) # Only show system report for primary INF
                         else:
                             faction['MissionPointsSecondary'][inf_index] -= 1
 
@@ -433,7 +480,7 @@ class Activity:
 
                         if inf_index is not None:
                             faction['MissionPoints'][inf_index] += 1
-                            self.bgstally.ui.show_system_report(system_address) # Only show system report for primary INF
+                            self.activity_updated(system_address) # Only show system report for primary INF
 
         # Thargoid War
         if journal_entry['Name'] in MISSIONS_TW_COLLECT + MISSIONS_TW_EVAC_LOW + MISSIONS_TW_EVAC_MED + MISSIONS_TW_EVAC_HIGH + MISSIONS_TW_MASSACRE + MISSIONS_TW_REACTIVATE and mission is not None:
@@ -449,7 +496,7 @@ class Activity:
                         tw_stations[mission_station] = self._get_new_tw_station_data(mission_station)
 
                     if journal_entry['Name'] in MISSIONS_TW_REACTIVATE:
-                        self.bgstally.ui.show_system_report(system_address)
+                        self.activity_updated(system_address)
 
                         # This tracking is unusual - we track BOTH against the station where the mission was completed AND the system where the settlement was reactivated
                         tw_stations[mission_station]['reactivate'] += 1
@@ -457,7 +504,7 @@ class Activity:
                         if destination_system is not None:
                             destination_system['TWReactivate'] += 1
                     elif mission.get('PassengerCount', -1) > -1:
-                        self.bgstally.ui.show_system_report(system_address)
+                        self.activity_updated(system_address)
 
                         if journal_entry['Name'] in MISSIONS_TW_EVAC_LOW:
                             tw_stations[mission_station]['passengers']['l']['count'] += 1
@@ -469,7 +516,7 @@ class Activity:
                             tw_stations[mission_station]['passengers']['h']['count'] += 1
                             tw_stations[mission_station]['passengers']['h']['sum'] += mission.get('PassengerCount', -1)
                     elif mission.get('CommodityCount', -1) > -1:
-                        self.bgstally.ui.show_system_report(system_address)
+                        self.activity_updated(system_address)
 
                         match journal_entry.get('Commodity'):
                             case "$OccupiedCryoPod_Name;":
@@ -486,7 +533,7 @@ class Activity:
                                 tw_stations[mission_station]['cargo']['count'] += 1
                                 tw_stations[mission_station]['cargo']['sum'] += mission.get('CommodityCount', -1)
                     elif mission.get('KillCount', -1) > -1:
-                        self.bgstally.ui.show_system_report(system_address)
+                        self.activity_updated(system_address)
 
                         match journal_entry.get('TargetType'):
                             case "$MissionUtil_FactionTag_Scout;":
@@ -523,7 +570,7 @@ class Activity:
         for system in self.systems.values():
             if mission['System'] != system['System']: continue
 
-            self.bgstally.ui.show_system_report(system['SystemAddress'])
+            self.activity_updated(system['SystemAddress'])
 
             faction = system['Factions'].get(mission['Faction'])
             if faction: faction['MissionFailed'] += 1
@@ -543,7 +590,7 @@ class Activity:
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
-            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+            self.activity_updated(current_system['SystemAddress'])
 
             base_value:int = journal_entry.get('BaseValue', 0)
             bonus:int = journal_entry.get('Bonus', 0)
@@ -564,7 +611,7 @@ class Activity:
 
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
-            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+            self.activity_updated(current_system['SystemAddress'])
 
             for e in journal_entry['BioData']:
                 faction['ExoData'] += e['Value'] + e['Bonus']
@@ -605,7 +652,7 @@ class Activity:
         for bv_info in journal_entry['Factions']:
             faction = current_system['Factions'].get(bv_info['Faction'])
             if faction:
-                self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+                self.activity_updated(current_system['SystemAddress'])
 
                 if state.station_type == 'FleetCarrier':
                     faction['Bounties'] += (bv_info['Amount'] / 2)
@@ -663,7 +710,7 @@ class Activity:
 
         faction = current_system['Factions'].get(journal_entry['Faction'])
         if faction:
-            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+            self.activity_updated(current_system['SystemAddress'])
 
             faction['CombatBonds'] += journal_entry['Amount']
             self.recalculate_zero_activity()
@@ -694,7 +741,7 @@ class Activity:
             }
             self.bgstally.api_manager.send_event(event, self, cmdr)
 
-            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+            self.activity_updated(current_system['SystemAddress'])
             self.recalculate_zero_activity()
 
 
@@ -710,7 +757,7 @@ class Activity:
             self.dirty = True
             bracket:int = 0
 
-            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+            self.activity_updated(current_system['SystemAddress'])
 
             if self.bgstally.market.available(journal_entry['MarketID']):
                 market_data:dict = self.bgstally.market.get_commodity(journal_entry['Type'])
@@ -742,7 +789,7 @@ class Activity:
             profit:int = journal_entry['TotalSale'] - cost
             bracket:int = 0
 
-            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+            self.activity_updated(current_system['SystemAddress'])
 
             if journal_entry.get('BlackMarket', False):
                 faction['BlackMarketProfit'] += profit
@@ -809,7 +856,7 @@ class Activity:
                     faction['Murdered'] += 1
                     self.recalculate_zero_activity()
 
-                    self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+                    self.activity_updated(current_system['SystemAddress'])
 
             case 'onFoot_murder':
                 # For on-foot murders, get the faction from the journal entry
@@ -818,7 +865,7 @@ class Activity:
                     faction['GroundMurdered'] += 1
                     self.recalculate_zero_activity()
 
-                    self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+                    self.activity_updated(current_system['SystemAddress'])
 
 
     def cargo(self, journal_entry: dict):
@@ -902,7 +949,7 @@ class Activity:
         faction = current_system['Factions'].get(state.station_faction)
         if faction:
             self.dirty = True
-            self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+            self.activity_updated(current_system['SystemAddress'])
 
             faction['SandR'][key] += count
             self.recalculate_zero_activity()
@@ -1000,7 +1047,7 @@ class Activity:
         tw_ship:str = TW_CBS.get(journal_entry.get('Reward', 0))
         if tw_ship: current_system['TWKills'][tw_ship] = current_system['TWKills'].get(tw_ship, 0) + 1
 
-        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+        self.activity_updated(current_system['SystemAddress'])
 
 
     def _cb_ground_cz(self, journal_entry: dict, current_system: dict, state: State, cmdr: str):
@@ -1018,7 +1065,7 @@ class Activity:
 
         self.dirty = True
 
-        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+        self.activity_updated(current_system['SystemAddress'])
 
         # Add settlement to this faction's list, if not already present
         if state.last_settlement_approached['name'] not in faction['GroundCZSettlements']:
@@ -1129,7 +1176,7 @@ class Activity:
                 }
                 self.bgstally.api_manager.send_event(event, self, cmdr)
 
-                self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+                self.activity_updated(current_system['SystemAddress'])
             elif state.last_ship_targeted.get('PilotName', "") in SPACECZ_PILOTNAMES_SPECOPS and not state.last_spacecz_approached.get('specops'):
                 # Tally a specops kill. We would like to only tally this after 4 kills in a CZ, but sadly due to journal order
                 # unpredictability we tally as soon as we spot a kill after targeting a spec ops
@@ -1145,7 +1192,7 @@ class Activity:
                 }
                 self.bgstally.api_manager.send_event(event, self, cmdr)
 
-                self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+                self.activity_updated(current_system['SystemAddress'])
             elif state.last_ship_targeted.get('PilotName', "") == SPACECZ_PILOTNAME_CORRESPONDENT and not state.last_spacecz_approached.get('propagand'):
                 # Tally a propagandist kill. We would like to only tally this after 3 kills in a CZ, but sadly due to journal order
                 # unpredictability we tally as soon as we spot a kill after targeting a propagandist
@@ -1161,7 +1208,7 @@ class Activity:
                 }
                 self.bgstally.api_manager.send_event(event, self, cmdr)
 
-                self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+                self.activity_updated(current_system['SystemAddress'])
 
         # If we've already counted this CZ, exit
         if state.last_spacecz_approached.get('counted', False): return
@@ -1181,7 +1228,7 @@ class Activity:
         }
         self.bgstally.api_manager.send_event(event, self, cmdr)
 
-        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+        self.activity_updated(current_system['SystemAddress'])
         self.recalculate_zero_activity()
 
 
@@ -1219,7 +1266,7 @@ class Activity:
         }
         self.bgstally.api_manager.send_event(event, self, cmdr)
 
-        self.bgstally.ui.show_system_report(current_system['SystemAddress'])
+        self.activity_updated(current_system['SystemAddress'])
         self.recalculate_zero_activity()
 
 
@@ -1242,7 +1289,7 @@ class Activity:
                 count -= allocatable
                 self.dirty = True
 
-                if tally: self.bgstally.ui.show_system_report(system['SystemAddress'])
+                if tally: self.activity_updated(system['SystemAddress'])
 
         # count can end up > 0 here - i.e. more S&R handed in than we originally logged as scooped. Ignore, as we don't know
         # where it originally came from

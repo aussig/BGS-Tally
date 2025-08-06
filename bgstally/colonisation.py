@@ -272,7 +272,7 @@ class Colonisation:
                     if build.get('MarketID', None) == None: build['MarketID'] = self.market_id
                     build['State'] = BuildState.COMPLETE
                     build['Name'] = self.station
-                    if self.body != None and entry.get('StarSystem') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
+                    if self.body != None and entry.get('StarSystem', 'Unknown') in self.body: # Sometimes the "body" is the body sometimes it's just the name of the base.
                         build['Body'] = self.body.replace(entry.get('StarSystem') + ' ', '')
                     build['Track'] = False
                     self.dirty = True

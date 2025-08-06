@@ -225,6 +225,9 @@ class ProgressWindow:
     def as_text(self, discord:bool = True) -> str:
         ''' Return a text representation of the progress window '''
         try:
+            self.colonisation = self.bgstally.colonisation
+            if self.colonisation == None:
+                return _("No colonisation data available") # LANG: No colonisation data available
 
             tracked:list = self.colonisation.get_tracked_builds()
             required:dict = self.colonisation.get_required(tracked)
@@ -378,6 +381,9 @@ class ProgressWindow:
                 pn:str = b.get('Plan', _('Unknown')) # Unknown system name
                 sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
                 name:str = ', '.join([pn, bn])
+            else:
+                self.build_index = 0 # Just in case it gets confused
+
 
             self.title.config(text=name[-50:])
 

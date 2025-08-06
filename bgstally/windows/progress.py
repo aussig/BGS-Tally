@@ -225,11 +225,12 @@ class ProgressWindow:
     def as_text(self, discord:bool = True) -> str:
         ''' Return a text representation of the progress window '''
         try:
+            output:str = ""
+            if self.colonisation is None: return output
 
             tracked:list = self.colonisation.get_tracked_builds()
             required:dict = self.colonisation.get_required(tracked)
             delivered:dict = self.colonisation.get_delivered(tracked)
-            output:str = ""
 
             if discord:
                 output += "```"

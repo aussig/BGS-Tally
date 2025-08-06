@@ -411,26 +411,7 @@ class WindowActivity:
         Callback to post to discord in the appropriate channel(s)
         """
         self.btn_post_to_discord.config(state=tk.DISABLED)
-        formatter: BaseActivityFormatterInterface = self.bgstally.formatter_manager.get_current_formatter()
-
-        if formatter.get_mode() == DiscordPostStyle.TEXT:
-            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:
-                discord_text: str = formatter.get_text(activity, DiscordActivity.BGS, lang=self.bgstally.state.discord_lang)
-                self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
-            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
-                discord_text = formatter.get_text(activity, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
-                self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
-        else:
-            description = "" if activity.discord_notes is None else activity.discord_notes
-            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:
-                discord_fields: dict = formatter.get_fields(activity, DiscordActivity.BGS, lang=self.bgstally.state.discord_lang)
-                self.bgstally.discord.post_embed(__("BGS Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=activity.get_title(True)), description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete) # LANG: Discord post title
-            if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
-                discord_fields = formatter.get_fields(activity, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
-                self.bgstally.discord.post_embed(__("TW Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=activity.get_title(True)), description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete) # LANG: Discord post title
-
-        activity.dirty = True # Because discord post ID has been changed
-
+        activity.post_to_discord()
         self.btn_post_to_discord.after(5000, self._enable_post_button)
 
 
@@ -439,18 +420,6 @@ class WindowActivity:
         Re-enable the post to discord button if it should be enabled
         """
         self.btn_post_to_discord.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
-
-
-    def discord_post_complete(self, channel:DiscordChannel, webhook_data:dict, messageid:str):
-        """
-        A discord post request has completed
-        """
-        uuid:str = webhook_data.get('uuid')
-        if uuid is None: return
-
-        activity_webhook_data:dict = self.activity.discord_webhook_data.get(uuid, webhook_data) # Fetch current activity webhook data, default to data from callback.
-        activity_webhook_data[channel] = messageid                                              # Store the returned messageid against the channel
-        self.activity.discord_webhook_data[uuid] = activity_webhook_data                        # Store the webhook dict back to the activity
 
 
     def _pin_overlay_change(self, chk_pin_to_overlay:ttk.Checkbutton, system:dict):

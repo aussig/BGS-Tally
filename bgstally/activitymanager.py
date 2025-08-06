@@ -1,17 +1,21 @@
 from copy import deepcopy
 from datetime import datetime, timedelta
 from os import listdir, mkdir, path, remove, rename
+from threading import Thread
+from time import sleep
 
 from bgstally.activity import Activity
 from bgstally.constants import FILE_SUFFIX
 from bgstally.debug import Debug
 from bgstally.tick import Tick
+from config import config
 
 FILE_LEGACY_CURRENTDATA = "Today Data.txt"
 FILE_LEGACY_PREVIOUSDATA = "Yesterday Data.txt"
 FOLDER_ACTIVITYDATA = "activitydata"
 FOLDER_ACTIVITYDATA_ARCHIVE = "archive"
 KEEP_CURRENT_ACTIVITIES = 20
+TIME_AUTOPOST_WORKER_PERIOD_S = 60 * 5  # 5 minutes
 
 
 class ActivityManager:
@@ -34,6 +38,10 @@ class ActivityManager:
             self.current_activity = Activity(self.bgstally, self.bgstally.tick)
             self.activity_data.append(self.current_activity)
             self.activity_data.sort(reverse=True)
+
+        self.autopost_thread: Thread = Thread(target=self._autopost_worker, name="BGSTally Autopost worker")
+        self.autopost_thread.daemon = True
+        self.autopost_thread.start()
 
 
     def save(self):
@@ -174,3 +182,22 @@ class ActivityManager:
             except FileNotFoundError: # Source doesn't exist
                 Debug.logger.warning(f"Attempt to archive failed, source file doesn't exist")
                 continue
+
+
+    def _autopost_worker(self) -> None:
+        """
+        Handle auto posting thread work
+        """
+        Debug.logger.debug("Starting Autopost Worker...")
+
+        while True:
+            if config.shutting_down:
+                Debug.logger.debug("Shutting down Autopost Worker...")
+                return
+
+            sleep(TIME_AUTOPOST_WORKER_PERIOD_S)
+
+            if self.bgstally.state.discord_bgstw_automatic:
+                activity: Activity = self.get_current_activity()
+                if activity is not None and activity.autopost:
+                    activity.post_to_discord()

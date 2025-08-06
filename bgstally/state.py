@@ -38,6 +38,7 @@ class State:
         self.DetailedTrade:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedTrade', default=CheckStates.STATE_ON))
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordActivity', default=DiscordActivity.BOTH))
         self.DiscordAvatarURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordAvatarURL', default=""))
+        self.DiscordBGSTWAutomatic:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordBGSTWAutomatic', default=CheckStates.STATE_OFF))
 
         self.FcSellingCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcSellingCommodities', default=CheckStates.STATE_ON))
         self.FcBuyingCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcBuyingCommodities', default=CheckStates.STATE_ON))
@@ -95,6 +96,7 @@ class State:
         self.secondary_inf:bool = (self.IncludeSecondaryInf.get() == CheckStates.STATE_ON)
         self.detailed_inf:bool = (self.DetailedInf.get() == CheckStates.STATE_ON)
         self.detailed_trade:bool = (self.DetailedTrade.get() == CheckStates.STATE_ON)
+        self.discord_bgstw_automatic:bool = (self.DiscordBGSTWAutomatic.get() == CheckStates.STATE_ON)
 
 
     def save(self):
@@ -122,6 +124,7 @@ class State:
         config.set('BGST_DetailedTrade', self.DetailedTrade.get())
         config.set('BGST_DiscordActivity', self.DiscordActivity.get())
         config.set('BGST_DiscordAvatarURL', self.DiscordAvatarURL.get())
+        config.set('BGST_DiscordBGSTWAutomatic', self.DiscordBGSTWAutomatic.get())
         config.set('BGST_FcSellingCommodities', self.FcSellingCommodities.get())
         config.set('BGST_FcBuyingCommodities', self.FcBuyingCommodities.get())
         config.set('BGST_FcSellingMaterials', self.FcSellingMaterials.get())

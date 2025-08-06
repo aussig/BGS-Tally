@@ -326,7 +326,7 @@ class ProgressWindow:
         try:
             comm_id = self.colonisation.base_costs['All'].get(comm)
             sys:str = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
-            if src == None: sys = 'sol'
+            if sys == None: sys = 'sol'
 
             # pi3=3 - large, pi3=2 - medium
             size:int = 2 if self.colonisation.cargo_capacity < 407 else 3

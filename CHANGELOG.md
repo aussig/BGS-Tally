@@ -6,6 +6,7 @@
 
 * Colonisation: The remaining materials to be hauled to reach your current target are now displayed on a new panel in the in-game overlay.
 * Additional overlay configuration: If you are having trouble with positioning of overlay panels in-game, most commonly caused by having global scaling in Windows set to something other than 100%, you can now override various global overlay positioning settings (width, height, line height, character width etc.) which should allow you to lay everything out more precisely.
+* Automatic posting of BGS and TW activity to Discord. There is now a checkbox in the settings to switch this on (defaults to `Off`). Discord applies strict limits to the number of posts we can send (which is across all users posting to any particular Discord server), so automatic posting is limited to a maximum of one post every 5 minutes.
 
 ### Changes:
 

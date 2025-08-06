@@ -33,7 +33,6 @@ from bgstally.webhookmanager import WebhookManager
 from config import appversion, config
 
 TIME_TICK_WORKER_PERIOD_S = 60 # 1 minute
-TIME_AUTOPOST_WORKER_PERIOD_S = 60 * 5  # 5 minutes
 
 
 class BGSTally:
@@ -99,10 +98,6 @@ class BGSTally:
         self.tick_thread: Thread = Thread(target=self._tick_worker, name="BGSTally Tick worker")
         self.tick_thread.daemon = True
         self.tick_thread.start()
-
-        self.autopost_thread: Thread = Thread(target=self._autopost_worker, name="BGSTally Autopost worker")
-        self.autopost_thread.daemon = True
-        self.autopost_thread.start()
 
 
     def plugin_stop(self):
@@ -415,23 +410,3 @@ class BGSTally:
             sleep(TIME_TICK_WORKER_PERIOD_S)
 
             self.check_tick(UpdateUIPolicy.LATER) # Must not update UI directly from a thread
-
-
-    def _autopost_worker(self) -> None:
-        """
-        Handle auto posting thread work
-        """
-        Debug.logger.debug("Starting Autopost Worker...")
-
-        while True:
-            if config.shutting_down:
-                Debug.logger.debug("Shutting down Autopost Worker...")
-                return
-
-            sleep(TIME_AUTOPOST_WORKER_PERIOD_S)
-
-            if self.state.discord_bgstw_automatic:
-                activity: Activity = self.activity_manager.get_current_activity()
-                if activity is not None:
-                    activity.post_to_discord()
-

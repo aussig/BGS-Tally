@@ -5,7 +5,8 @@ from datetime import UTC, datetime, timedelta
 from typing import Dict
 
 from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_TITLE, FILE_SUFFIX, ApiSizeLookup,
-                                ApiSyntheticCZObjectiveType, ApiSyntheticEvent, ApiSyntheticScenarioType, CheckStates, DiscordChannel)
+                                ApiSyntheticCZObjectiveType, ApiSyntheticEvent, ApiSyntheticScenarioType, CheckStates, DiscordActivity, DiscordChannel,
+                                DiscordPostStyle)
 from bgstally.debug import Debug
 from bgstally.missionlog import MissionLog
 from bgstally.state import State
@@ -144,6 +145,7 @@ class Activity:
         self.discord_webhook_data:dict = {} # key = webhook uuid, value = dict containing webhook data
         self.discord_notes: str = ""
         self.dirty: bool = False
+        self.autopost: bool = False
 
         self.cmdr: str = cmdr  # Not saved / loaded (yet) because it's not implemented properly
 
@@ -320,14 +322,14 @@ class Activity:
         else:
             description = "" if self.discord_notes is None else self.discord_notes
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:
-                discord_fields: dict = formatter.get_fields(activity, DiscordActivity.BGS, lang=self.bgstally.state.discord_lang)
+                discord_fields: dict = formatter.get_fields(self, DiscordActivity.BGS, lang=self.bgstally.state.discord_lang)
                 self.bgstally.discord.post_embed(__("BGS Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=self.get_title(True)), description, discord_fields, self.discord_webhook_data, DiscordChannel.BGS, self._discord_post_complete) # LANG: Discord post title
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
-                discord_fields = formatter.get_fields(activity, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
+                discord_fields = formatter.get_fields(self, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
                 self.bgstally.discord.post_embed(__("TW Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=self.get_title(True)), description, discord_fields, self.discord_webhook_data, DiscordChannel.THARGOIDWAR, self._discord_post_complete) # LANG: Discord post title
 
         self.dirty = True # Because discord post ID has been changed
-        self.autopost = False
+        self.autopost = False # Because we have just posted to Discord, so no longer need to autopost until more activity is done
 
 
     def _discord_post_complete(self, channel:DiscordChannel, webhook_data:dict, messageid:str):

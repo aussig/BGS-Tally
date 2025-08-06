@@ -229,10 +229,10 @@ class ProgressWindow:
             if self.colonisation == None:
                 return _("No colonisation data available") # LANG: No colonisation data available
 
+            output:str = ""
             tracked:list = self.colonisation.get_tracked_builds()
             required:dict = self.colonisation.get_required(tracked)
             delivered:dict = self.colonisation.get_delivered(tracked)
-            output:str = ""
 
             if discord:
                 output += "```"

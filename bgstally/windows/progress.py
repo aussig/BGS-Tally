@@ -250,7 +250,7 @@ class ProgressWindow:
             output += f"{_('Progress')}: {self.progvar.get():.0f}%\n"
             output += "\n"
             if discord:
-                output += f"{_('Commodity'): <30} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
+                output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
 
             output += "-" * 67 + "\n"
 
@@ -262,7 +262,7 @@ class ProgressWindow:
                     name:str = self.colonisation.commodities[c].get('Name', c)
                     cat:str = self.colonisation.commodities[c].get('Category', c)
                     if discord:
-                        output += f"{name} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
+                        output += f"{name:<28} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
                     else:
                         output += f"{name}: {remaining} {_('t')}\n"
 

@@ -225,9 +225,11 @@ class ProgressWindow:
     def as_text(self, discord:bool = True) -> str:
         ''' Return a text representation of the progress window '''
         try:
-            output:str = ""
-            if self.colonisation is None: return output
+            self.colonisation = self.bgstally.colonisation
+            if self.colonisation == None:
+                return _("No colonisation data available") # LANG: No colonisation data available
 
+            output:str = ""
             tracked:list = self.colonisation.get_tracked_builds()
             required:dict = self.colonisation.get_required(tracked)
             delivered:dict = self.colonisation.get_delivered(tracked)
@@ -248,7 +250,7 @@ class ProgressWindow:
             output += f"{_('Progress')}: {self.progvar.get():.0f}%\n"
             output += "\n"
             if discord:
-                output += f"{_('Commodity'): <30} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
+                output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
 
             output += "-" * 67 + "\n"
 
@@ -260,7 +262,7 @@ class ProgressWindow:
                     name:str = self.colonisation.commodities[c].get('Name', c)
                     cat:str = self.colonisation.commodities[c].get('Category', c)
                     if discord:
-                        output += f"{name} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
+                        output += f"{name:<28} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
                     else:
                         output += f"{name}: {remaining} {_('t')}\n"
 
@@ -324,6 +326,8 @@ class ProgressWindow:
         try:
             comm_id = self.colonisation.base_costs['All'].get(comm)
             sys:str = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
+            if sys == None: sys = 'sol'
+
             # pi3=3 - large, pi3=2 - medium
             size:int = 2 if self.colonisation.cargo_capacity < 407 else 3
 
@@ -377,6 +381,9 @@ class ProgressWindow:
                 pn:str = b.get('Plan', _('Unknown')) # Unknown system name
                 sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
                 name:str = ', '.join([pn, bn])
+            else:
+                self.build_index = 0 # Just in case it gets confused
+
 
             self.title.config(text=name[-50:])
 

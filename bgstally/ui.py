@@ -494,8 +494,8 @@ class UI:
 
             # Colonisation
             if self.bgstally.state.enable_overlay_colonisation:
-                colonisation_text: str = self.window_progress.as_text(False)  # Placeholder for actual colonisation text
-                self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)  # Placeholder for actual colonisation title
+                colonisation_text: str = self.window_progress.as_text(False)
+                self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 
             sleep(TIME_WORKER_PERIOD_S)
 

@@ -234,18 +234,19 @@ class ProgressWindow:
             required:dict = self.colonisation.get_required(tracked)
             delivered:dict = self.colonisation.get_delivered(tracked)
 
-            if discord:
-                output += "```"
-            else:
-                output += TAG_OVERLAY_HIGHLIGHT
-
             if self.build_index < len(tracked):
                 b:dict = tracked[self.build_index]
                 sn:str = b.get('Plan', _('Unknown')) # Unknown system name
                 bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
-                output += f"{sn}, {bn}\n"
+                if discord:
+                    output += f"```{sn}, {bn}\n"
+                else:
+                    output += f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{bn}\n"
             else:
-                output += _("All builds") + "\n" # LANG: all tracked builds
+                if discord:
+                    output += "```" + _("All builds") + "\n" # LANG: all tracked builds
+                else:
+                    output += TAG_OVERLAY_HIGHLIGHT + _("All builds") + "\n" # LANG: all tracked builds
 
             output += f"{_('Progress')}: {self.progvar.get():.0f}%\n"
             output += "\n"

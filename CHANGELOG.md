@@ -17,6 +17,8 @@
 
 * Colonisation: All commodities list was sometimes not displaying correctly
 * Colonisation: Bioreducing lichen Inara link was incorrectly linking to Animal meat
+* Colonisation: Fix for missing body information.
+* Colonisation: Various other minor bug fixes.
 
 
 ## v5.0.0 - 2025-07-25

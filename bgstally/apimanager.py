@@ -1,15 +1,15 @@
 import json
-from datetime import datetime
+from datetime import UTC, datetime
+from enum import Enum
 from os import path
 
 from bgstally.activity import Activity
 from bgstally.api import API
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA
+from bgstally.constants import DATETIME_FORMAT_API, FOLDER_OTHER_DATA
 from bgstally.debug import Debug
 from bgstally.utils import get_by_path
 
 FILENAME = "apis.json"
-
 
 class APIManager:
     """
@@ -34,7 +34,7 @@ class APIManager:
         """
         Load all APIs from disk
         """
-        file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         if path.exists(file):
             try:
                 with open(file) as json_file:
@@ -55,7 +55,7 @@ class APIManager:
         for api in self.apis:
             apis_json.append(api.as_dict())
 
-        file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(apis_json, outfile)
 
@@ -69,11 +69,16 @@ class APIManager:
             api.send_activity(api_activity)
 
 
-    def send_event(self, event:dict, activity:Activity, cmdr:str, mission:dict):
+    def send_event(self, event: dict, activity: Activity, cmdr: str, mission: dict = {}):
+        """Event has been received. Add it to the events queue.
+
+        Args:
+            event (dict): A dict containing all the event fields
+            activity (Activity): The activity object
+            cmdr (str): The CMDR name
+            mission (dict, optional): Information about the mission, if applicable. Defaults to {}.
         """
-        Event has been received. Add it to the events queue.
-        """
-        api_event:dict = self._build_api_event(event, activity, cmdr, mission)
+        api_event: dict = self._build_api_event(event, activity, cmdr, mission)
         for api in self.apis:
             api.send_event(api_event)
 
@@ -85,8 +90,8 @@ class APIManager:
         api_activity:dict = {
             'cmdr': cmdr,
             'tickid': activity.tick_id,
-            'ticktime': activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL),
-            'timestamp': datetime.utcnow().strftime(DATETIME_FORMAT_JOURNAL),
+            'ticktime': activity.tick_time.strftime(DATETIME_FORMAT_API),
+            'timestamp': datetime.now(UTC).strftime(DATETIME_FORMAT_API),
             'systems': []
         }
 
@@ -148,6 +153,18 @@ class APIManager:
                             'value': faction['TradeSell'][3]['value'],
                             'profit': faction['TradeSell'][3]['profit']
                         }
+                    }
+
+                if sum(faction.get('SandR', {}).values()) > 0:
+                    api_faction['sandr'] = {
+                        'damagedpods': get_by_path(faction, ['SandR', 'dp'], 0),
+                        'occupiedpods': get_by_path(faction, ['SandR', 'op'], 0),
+                        'thargoidpods': get_by_path(faction, ['SandR', 'tp'], 0),
+                        'blackboxes': get_by_path(faction, ['SandR', 'bb'], 0),
+                        'wreckagecomponents': get_by_path(faction, ['SandR', 'wc'], 0),
+                        'personaleffects': get_by_path(faction, ['SandR', 'pe'], 0),
+                        'politicalprisoners': get_by_path(faction, ['SandR', 'pp'], 0),
+                        'hostages': get_by_path(faction, ['SandR', 'h'], 0)
                     }
 
                 if faction.get('GroundCZ', {}) != {}:
@@ -227,6 +244,7 @@ class APIManager:
                 api_system['twsandr'] = {
                     'damagedpods': system['TWSandR']['dp']['delivered'],
                     'occupiedpods': system['TWSandR']['op']['delivered'],
+                    'thargoidpods': system['TWSandR']['tp']['delivered'],
                     'blackboxes': system['TWSandR']['bb']['delivered'],
                     'tissuesamples': system['TWSandR']['t']['delivered']
                 }
@@ -240,11 +258,12 @@ class APIManager:
         return api_activity
 
 
-    def _build_api_event(self, event:dict, activity:Activity, cmdr:str, mission:dict):
+    def _build_api_event(self, event:dict, activity:Activity, cmdr:str, mission:dict = {}):
         """
         Build an API-ready event ready for sending. This just involves enhancing the event with some
         additional data
         """
+        if mission is None: mission = {}
 
         # Remove all '_Localised' event parameters
         event = self._filter_localised(event)
@@ -252,12 +271,13 @@ class APIManager:
         # BGS-Tally specific global enhancements
         event['cmdr'] = cmdr
         event['tickid'] = activity.tick_id
-        event['ticktime']: activity.tick_time.strftime(DATETIME_FORMAT_JOURNAL)
+        event['ticktime'] = activity.tick_time.strftime(DATETIME_FORMAT_API)
 
         # Other global enhancements
         if 'StationFaction' not in event: event['StationFaction'] = {'Name': self.bgstally.state.station_faction}
         if 'StarSystem' not in event: event['StarSystem'] = get_by_path(activity.systems, [self.bgstally.state.current_system_id, 'System'], "")
         if 'SystemAddress' not in event: event['SystemAddress'] = self.bgstally.state.current_system_id
+        if 'timestamp' not in event: event['timestamp'] = datetime.now(UTC).strftime(DATETIME_FORMAT_API)
 
         # Event-specific enhancements
         match event.get('event'):

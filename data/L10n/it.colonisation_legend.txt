@@ -1,0 +1,57 @@
+Riepilogo Righe
+
+  • Pianificato: informazioni su build/basi pianificate ma non ancora completate
+  • Completato: informazioni sulle build/basi completate
+
+Riepilogo Colonne
+
+  • Totale: numero totale di basi
+  • Orbitali: numero di basi orbitali
+  • Planetarie: numero di basi Presenti sulla superficie
+  T2: Il costo o la ricompensa netto in punti del Livello 2
+  T3: Il costo o la ricompensa netto in punti del Livello 3
+  • Costo: il costo delle costruzioni richieste in tonnellate
+  • Carichi: Il numero di carichi della nave in base alla tua attuale capacità di carico
+
+  • Aum Pop: impatto complessivo sull’aumento della popolazione
+  • Pop Max: impatto complessivo sulla popolazione massima
+
+  • Securez: impatto complessivo sulla sicurezza del sistema
+  • Lv Tech: impatto complessivo sul livello tecnologico del sistema
+  • Ricchez: impatto complessivo sulla ricchezza del sistema
+  • SoL: impatto complessivo sullo standard di vita del sistema
+  • Lv Svilup: impatto complessivo sullo sviluppo del sistema
+
+Dettaglio delle Righe
+
+  • Una riga per base
+  • Alla prima riga dovrebbe esserci la base iniziale
+  • Le altre basi possono essere in qualsiasi ordine, ma il costo degli starport dipende dal loro ordine
+    quindi se li metti nell'ordine sbagliato il loro costo potrebbe essere errato
+
+Dettaglio delle Colonne
+
+  • Traccia: se attivo traccia i progressi della base nella visualizzazione principale dei progressi ED:MC
+  • Tipo di Base: il tipo di base da costruire
+  • Nome della Base: il nome della base
+  • Corpo: il corpo sul (o intorno al) quale si trova o si troverà la base
+  • Requisiti: eventuali prerequisiti per costruire questo tipo di base
+  • Stato: livello di avanzamento della base — Pianificata, Percentuale completata, Completata
+  • T2: Il costo o la ricompensa netto in punti del Livello 2
+  • T3: Il costo o la ricompensa netto in punti del Livello 3
+  • Costo: quantità in tonnellate necessaria per la costruzione
+  • Carichi: Il numero di carichi della nave in base alla tua attuale capacità di carico
+  • Pad: la dimensione massima della baia di atterraggio
+  • Economia: tipo di economia della base
+
+  • Aum Pop: impatto sull'aumento della popolazione
+  • Pop Max: impatto sulla popolazione massima
+
+  Inf Econ: l'influenza che questa base ha sull'economia del sistema
+
+  • Sicurez: impatto sulla sicurezza del sistema
+  • Lv Tech: impatto sul livello tecnologico del sistema
+  • Ricchezza: impatto sulla ricchezza del sistema
+  • SoL: impatto sullo standard di vita del sistema
+  • Lv Svilup: impatto sul livello di sviluppo del sistema
+

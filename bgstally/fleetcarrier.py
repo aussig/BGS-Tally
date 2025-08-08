@@ -1,32 +1,42 @@
+import csv
 import json
 from datetime import datetime
 from os import path, remove
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA, DiscordChannel, MaterialsCategory
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierItemType
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
+from bgstally.utils import _, __, get_by_path
 from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
+COMMODITIES_CSV_FILENAME = "commodity.csv"
+RARE_COMMODITIES_CSV_FILENAME = "rare_commodity.csv"
 
 
 class FleetCarrier:
     def __init__(self, bgstally):
         self.bgstally = bgstally
+        self.carrier_id:int = None
         self.data:dict = {}
         self.name:str = None
         self.callsign:str = None
         self.onfoot_mats_selling:list = []
         self.onfoot_mats_buying:list = []
+        self.commodities_selling:list = []
+        self.commodities_buying:list = []
+        self.cargo:list = []
+        self.locker:dict = {}
+        self.commodities:dict = {}
 
+        self._load_commodities()
         self.load()
-
 
     def load(self):
         """
         Load state from file
         """
-        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         if path.exists(file):
             try:
                 with open(file) as json_file:
@@ -39,7 +49,7 @@ class FleetCarrier:
         """
         Save state to file
         """
-        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile)
 
@@ -56,29 +66,57 @@ class FleetCarrier:
         Store the latest data
         """
         # Data directly from CAPI response. Structure documented here:
-        # https://github.com/Athanasius/fd-api/blob/main/docs/FrontierDevelopments-CAPI-endpoints.md#fleetcarrier
+        # https://github.com/EDCD/FDevIDs/blob/master/Frontier%20API/FrontierDevelopments-CAPI-endpoints.md#fleetcarrier
 
         # Store the whole data structure
         self.data = data
 
         # Name is encoded as hex string
-        self.name = bytes.fromhex(self.data.get('name', {}).get('vanityName', "----")).decode('utf-8')
-        self.callsign = self.data.get('name', {}).get('callsign', "----")
+        self.name = bytes.fromhex(get_by_path(self.data, ['name', 'vanityName'], "----")).decode('utf-8')
+        self.callsign = get_by_path(self.data, ['name', 'callsign'], "----")
+        self.carrier_id = get_by_path(self.data, ['market', 'id'], "")
 
-        # Sort sell orders - a Dict of Dicts, or an empty list
-        materials:dict|list = self.data.get('orders', {}).get('onfootmicroresources', {}).get('sales')
+        # Sort microresource sell orders - a Dict of Dicts, or an empty list
+        materials:dict|list = get_by_path(self.data, ['orders', 'onfootmicroresources', 'sales'], [])
         if materials is not None and type(materials) is dict and materials != {}:
-            self.onfoot_mats_selling = sorted(materials.values(), key=lambda x: x['locName'])
+            self.onfoot_mats_selling = list(materials.values())
         else:
             self.onfoot_mats_selling = []
 
-        # Sort buy orders - a List of Dicts
-        materials = self.data.get('orders', {}).get('onfootmicroresources', {}).get('purchases')
+        # Sort microresource buy orders - a List of Dicts
+        materials:dict|list = get_by_path(self.data, ['orders', 'onfootmicroresources', 'purchases'], [])
         if materials is not None and materials != []:
-            self.onfoot_mats_buying = sorted(materials, key=lambda x: x['locName'])
+            self.onfoot_mats_buying = materials
         else:
             self.onfoot_mats_buying = []
 
+        # Sort commodity sell orders - a List of Dicts
+        commodities:list = get_by_path(self.data, ['orders', 'commodities', 'sales'], [])
+        if commodities is not None and commodities != []:
+            self.commodities_selling = commodities
+        else:
+            self.commodities_selling = []
+
+        # Sort commodity buy orders - a List of Dicts
+        commodities:list = get_by_path(self.data, ['orders', 'commodities', 'purchases'], [])
+        if commodities is not None and commodities != []:
+            self.commodities_buying = commodities
+        else:
+            self.commodities_buying = []
+
+        # Sort cargo commodities - a List of Dicts
+        cargo:list = get_by_path(self.data, ['cargo'], [])
+        if cargo is not None and cargo != []:
+            self.cargo = cargo
+        else:
+            self.cargo = []
+
+        # Sort locker materials
+        locker:dict|list = get_by_path(self.data, ['carrierLocker'], [])
+        if locker is not None and locker != []:
+            self.locker = locker
+        else:
+            self.locker = []
 
     def stats_received(self, journal_entry: dict):
         """
@@ -87,6 +125,7 @@ class FleetCarrier:
         if self.name is None:
             self.name = journal_entry.get("Name")
             self.callsign = journal_entry.get("Callsign")
+            self.carrier_id = journal_entry.get('CarrierID')
             self.data['dockingAccess'] = journal_entry.get("DockingAccess")
 
 
@@ -96,86 +135,373 @@ class FleetCarrier:
         """
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
 
-        title:str = f"Jump Scheduled for Carrier {self.name}"
+        title:str = __("Jump Scheduled for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=self.name) # LANG: Discord post title
+        description:str = __("A carrier jump has been scheduled", lang=self.bgstally.state.discord_lang) # LANG: Discord text
 
         fields = []
-        fields.append({'name': "From System", 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
-        fields.append({'name': "To System", 'value': journal_entry.get('SystemName', "Unknown"), 'inline': True})
-        fields.append({'name': "To Body", 'value': journal_entry.get('Body', "Unknown"), 'inline': True})
-        fields.append({'name': "Departure Time", 'value': datetime.strptime(journal_entry.get('DepartureTime'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT), 'inline': True})
-        fields.append({'name': "Docking", 'value': self.human_format_dockingaccess(), 'inline': True})
-        fields.append({'name': "Notorious Access", 'value': self.human_format_notorious(), 'inline': True})
+        fields.append({'name': __("From System", lang=self.bgstally.state.discord_lang), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("To System", lang=self.bgstally.state.discord_lang), 'value': journal_entry.get('SystemName', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("To Body", lang=self.bgstally.state.discord_lang), 'value': journal_entry.get('Body', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Departure Time", lang=self.bgstally.state.discord_lang), 'value': datetime.strptime(journal_entry.get('DepartureTime'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': self.human_format_dockingaccess(True), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': self.human_format_notorious(True), 'inline': True}) # LANG: Discord heading
 
-        self.bgstally.discord.post_embed(title, "A carrier jump has been scheduled", fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
     def jump_cancelled(self):
         """
         The user cancelled their carrier jump
         """
-        title:str = f"Jump Cancelled for Carrier {self.name}"
+        title:str = __("Jump Cancelled for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=self.name) # LANG: Discord post title
+        description:str = __("The scheduled carrier jump was cancelled", lang=self.bgstally.state.discord_lang) # LANG: Discord text
 
         fields = []
-        fields.append({'name': "Current System", 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
-        fields.append({'name': "Docking", 'value': self.human_format_dockingaccess(), 'inline': True})
-        fields.append({'name': "Notorious Access", 'value': self.human_format_notorious(), 'inline': True})
+        fields.append({'name': __("Current System", lang=self.bgstally.state.discord_lang), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
+        fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': self.human_format_dockingaccess(True), 'inline': True})
+        fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': self.human_format_notorious(True), 'inline': True})
 
-        self.bgstally.discord.post_embed(title, "The scheduled carrier jump was cancelled", fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
-    def get_materials_plaintext(self, category: MaterialsCategory = None):
+    def cargo_transfer(self, journal_entry: dict):
         """
-        Return a list of formatted materials for posting to Discord
+        The user transferred cargo to or from the carrier
+
+        Args:
+            journal_entry (dict): The journal entry data
         """
-        result:str = ""
-        materials, key = self._get_materials(category)
+        # { "timestamp":"2025-03-22T15:15:21Z", "event":"CargoTransfer", "Transfers":[ { "Type":"steel", "Count":728, "Direction":"toship" }, { "Type":"titanium", "Count":56, "Direction":"toship" } ] }
 
-        if materials is None: return ""
+        # Unfortunately we don't get the localized name for transfers so we'll do without.
+        cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
+        for i in journal_entry.get('Transfers', []):
+            type:str = i.get('Type', "")
+            display_type:str = i.get('Type_Localised', "")
+            if display_type == "" and type in self.commodities:
+                display_type = self.commodities[type]
 
-        for material in materials:
-            if material[key] > 0: result += f"{material['locName']} x {material[key]} @ {self._human_format_price(material['price'])}\n"
+            count:int = i.get('Count', 0)
+            direction:str = i.get('Direction', "")
+
+            found = False
+            for c in cargo:
+                # For some reason the event is lower case but the cargo is mixed case
+                if count > 0 and c[name_key].lower() == type:
+                    found = True
+                    if direction == "toship":
+                        if c[quantity_key] > count: # May have to do this in multiple bits.
+                            c[quantity_key] -= count
+                            count = 0
+                            break
+                        else:
+                            count -= c[quantity_key]
+                            cargo.remove(c)
+
+                    else:
+                        c[quantity_key] += count
+                        count = 0
+                        break
+
+            if not found:
+                cargo.append({name_key: type, display_name_key: display_type, quantity_key: count})
+
+
+    def trade_order(self, journal_entry: dict):
+        """
+        The user set a buy or sell order
+
+        Args:
+            journal_entry (dict): The journal entry data
+        """
+
+        # { "timestamp":"2024-02-17T16:33:10Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"imperialslaves", "Commodity_Localised":"Imperial Slaves", "SaleOrder":10, "Price":1749300 }
+        # { "timestamp":"2024-02-17T16:33:51Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "PurchaseOrder":5, "Price":4516 }
+        # { "timestamp":"2024-02-17T16:35:57Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "CancelTrade":true }
+
+        item_name:str = journal_entry.get('Commodity', "").lower()
+        self.carrier_id = journal_entry.get('CarrierID')
+        if item_name in self.commodities:
+            # The order is for a commodity. Note we pass the item_name as the display name because Commodity_Localised is not always present for commodities,
+            # and anyway we don't get localised names in CAPI data so generally they are not present. So, we look display name up later for commodities.
+            if journal_entry.get('SaleOrder') is not None:
+                self._update_item(item_name, item_name, int(journal_entry.get('SaleOrder', 0)), int(journal_entry.get('Price', 0)), FleetCarrierItemType.COMMODITIES_SELLING)
+                self._update_item(item_name, item_name, 0, 0, FleetCarrierItemType.COMMODITIES_BUYING)
+            elif journal_entry.get('PurchaseOrder') is not None:
+                self._update_item(item_name, item_name, 0, 0, FleetCarrierItemType.COMMODITIES_SELLING)
+                self._update_item(item_name, item_name, int(journal_entry.get('PurchaseOrder', 0)), int(journal_entry.get('Price', 0)), FleetCarrierItemType.COMMODITIES_BUYING)
+            elif journal_entry.get('CancelTrade') == True:
+                self._update_item(item_name, item_name, 0, 0, FleetCarrierItemType.COMMODITIES_SELLING)
+                self._update_item(item_name, item_name, 0, 0, FleetCarrierItemType.COMMODITIES_BUYING)
+        else:
+            # The order is for a material.
+            item_display_name:str = journal_entry.get('Commodity_Localised', "")
+            if journal_entry.get('SaleOrder') is not None:
+                self._update_item(item_name, item_display_name, int(journal_entry.get('SaleOrder', 0)), int(journal_entry.get('Price', 0)), FleetCarrierItemType.MATERIALS_SELLING)
+                self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_BUYING)
+            elif journal_entry.get('PurchaseOrder') is not None:
+                self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_SELLING)
+                self._update_item(item_name, item_display_name, int(journal_entry.get('PurchaseOrder', 0)), int(journal_entry.get('Price', 0)), FleetCarrierItemType.MATERIALS_BUYING)
+            elif journal_entry.get('CancelTrade') == True:
+                self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_SELLING)
+                self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_BUYING)
+
+
+    def cargo_transfer(self, journal_entry: dict):
+        """
+        The user transferred cargo to or from the carrier.
+
+        We shouldn't do this. If the EDMC CAPI cooldown worked properly we'd just query the CAPI and get the accurate data!
+
+        Args:
+            journal_entry (dict): The journal entry data
+        """
+        # { "timestamp":"2025-03-22T15:15:21Z", "event":"CargoTransfer", "Transfers":[ { "Type":"steel", "Count":728, "Direction":"toship" }, { "Type":"titanium", "Count":56, "Direction":"toship" } ] }
+
+        # Unfortunately we don't get the localized name for transfers so we'll do without.
+        cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
+        Debug.logger.debug(f"cargo_transfer: {journal_entry}")
+        for i in journal_entry.get('Transfers', []):
+            type:str = i.get('Type', "")
+            display_type:str = i.get('Type_Localised', "")
+            if display_type == "" and type in self.commodities:
+                display_type = self.commodities[type]
+
+            count:int = i.get('Count', 0)
+            direction:str = i.get('Direction', "")
+
+            found = False
+            for c in cargo:
+                # For some reason the event is lower case but the cargo is mixed case
+                if count > 0 and c[name_key].lower() == type:
+                    found = True
+                    if direction == "toship":
+                        if c[quantity_key] > count: # May have to do this in multiple bits.
+                            Debug.logger.debug(f"Removing {count} {type} from cargo")
+                            c[quantity_key] -= count
+                            count = 0
+                            break
+                        else:
+                            Debug.logger.debug(f"Deleting {count} {type} {c[quantity_key]} from cargo")
+                            count -= c[quantity_key]
+                            cargo.remove(c)
+
+                    else:
+                        Debug.logger.debug(f"Adding {count} {type} to cargo")
+                        c[quantity_key] += count
+                        count = 0
+                        break
+
+            if not found:
+                Debug.logger.debug(f"Creating {count} {type} cargo")
+                cargo.append({name_key: type, display_name_key: display_type, quantity_key: count})
+
+
+    def market_activity(self, journal_entry:dict):
+        '''
+        We bought or sold to/from our carrier
+        '''
+        if journal_entry.get('MarketID') != self.carrier_id: # Not buying from us.
+            return
+
+        cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
+        type:str = journal_entry.get('Type', "")
+        count:int = journal_entry.get('Count', 0)
+
+        for c in cargo:
+            # For some reason the event is lower case but the cargo is mixed case
+            if c[name_key].lower() == type:
+                found = True
+                if journal_entry.get('event') == "MarketBuy":
+                    if c[quantity_key] > count: # May have to do this in multiple bits.
+                        c[quantity_key] -= count
+                        count = 0
+                        break
+                    else:
+                        count -= c[quantity_key]
+                        cargo.remove(c)
+
+                else:
+                    c[quantity_key] += count
+                    count = 0
+                    break
+
+        if not found:
+            cargo.append({name_key: type, display_name_key: self.commodities[type], quantity_key: count})
+
+
+    def get_items_plaintext(self, category: FleetCarrierItemType|None = None) -> str:
+        """Return a multiline text string containing all items of a given type
+
+        Args:
+            category (FleetCarrierItemType | None, optional): The item type to fetch. Defaults to None.
+
+        Returns:
+            str: _description_
+        """
+
+        items, name_key, display_name_key, quantity_key = self._get_items(category)
+        if items is None: return ""
+
+        result: str = ""
+
+        if category == FleetCarrierItemType.CARGO:
+            # Cargo is a special case because it can have multiple items with the same name so we have to sum them together
+            cargo = dict()
+            items = sorted(items, key=lambda x: x[display_name_key])
+            for item in items:
+                if item[display_name_key] in cargo:
+                    cargo[item[display_name_key]] += int(item[quantity_key])
+                else:
+                    cargo[item[display_name_key]] = int(item[quantity_key])
+            for key, value in cargo.items():
+                result += f"{key} x {value}\n"
+
+            return result
+
+        if category == FleetCarrierItemType.LOCKER:
+            # Locker is a special case because it's sub-divided into types
+            for type in items:
+                result += f"{type.title()}:\n"
+                items[type] = sorted(items[type], key=lambda x: x[display_name_key])
+                for item in items[type]:
+                    if int(item[quantity_key]) > 0: # This one includes zero quantities for some reason
+                        result += f"    {item[display_name_key]} x {item[quantity_key]}\n"
+            return result
+
+        items = sorted(items, key=lambda x: x[name_key])
+        for item in items:
+            if display_name_key in item:
+                # Use the localised name from CAPI data
+                display_name:str = item[display_name_key]
+            elif item[name_key] in self.commodities:
+                # Look up the display name because we don't have it in CAPI data
+                display_name:str = self.commodities[item[name_key]]
+            else:
+                display_name:str = item[name_key]
+
+            if int(item[quantity_key]) > 0:
+                result += f"{display_name} x {item[quantity_key]} @ {self._human_format_price(item['price'])}\n"
 
         return result
 
 
-    def get_materials_discord(self, category: MaterialsCategory = None) -> str:
+    def get_items_discord(self, category: FleetCarrierItemType = None) -> str:
         """
-        Return a list of formatted materials for posting to Discord
+        Return a list of formatted items for posting to Discord
         """
         result:str = ""
-        materials, key = self._get_materials(category)
+        items, name_key, display_name_key, quantity_key = self._get_items(category)
 
-        if materials is None: return ""
+        if items is None: return ""
 
-        for material in materials:
-            if material[key] > 0: result += f"{cyan(material['locName'])} x {green(material[key])} @ {red(self._human_format_price(material['price']))}\n"
+        if category == FleetCarrierItemType.CARGO:
+            # Cargo is a special case because it can have multiple items with the same name so we have to sum them together
+            cargo = dict()
+            items = sorted(items, key=lambda x: x[display_name_key])
+            for item in items:
+                if item[display_name_key] in cargo:
+                    cargo[item[display_name_key]] += int(item[quantity_key])
+                else:
+                    cargo[item[display_name_key]] = int(item[quantity_key])
+            for key, value in cargo.items():
+                result += f"cyan({key}) x green({value})\n"
+            return result
+
+        if category == FleetCarrierItemType.LOCKER:
+            # Locker is a special case because it's sub-divided into types
+            for type in items:
+                result += f"{type.title()}:\n"
+                items[type] = sorted(items[type], key=lambda x: x[display_name_key])
+                for item in items[type]:
+                    if int(item[quantity_key]) > 0: # This one includes zero quantities for some reason
+                        result += f"    {cyan(item[display_name_key])} x {green(item[quantity_key])}\n"
+            return result
+
+        items = sorted(items, key=lambda x: x[name_key])
+
+        for item in items:
+            if display_name_key in item:
+                # Use the localised name from CAPI data
+                display_name:str = item[display_name_key]
+            elif item[name_key] in self.commodities:
+                # Look up the display name because we don't have it in CAPI data
+                display_name:str = self.commodities[item[name_key]]
+            else:
+                display_name:str = item[name_key]
+
+            if int(item[quantity_key]) > 0: result += f"{cyan(display_name)} x {green(item[quantity_key])} @ {red(self._human_format_price(item['price']))}\n"
 
         return result
 
 
-    def human_format_dockingaccess(self) -> str:
+    def _update_item(self, name: str, display_name: str, quantity: int, price: int, category: FleetCarrierItemType):
+        """
+        Update the buy order or sell order for a commodity or material
+
+        Args:
+            name (str): The name of the item, this is the key used to look up the item
+            quantity (int): The quantity of the order
+            price (int): The price of the order
+            category (FleetCarrierItemType): The type of item and order
+        """
+        items, name_key, display_name_key, quantity_key = self._get_items(category)
+        if items is None: return
+
+        # items is returned as reference, so we are directly manipulating the appropriate list
+        found:bool = False
+        for item in items:
+            if item[name_key] == name:
+                item[quantity_key] = quantity
+                item['price'] = price
+                found = True
+                break
+
+        if not found:
+            items.append(
+                {
+                    name_key: name,
+                    display_name_key: display_name,
+                    quantity_key: quantity,
+                    'price': price
+                }
+            )
+
+
+    def human_format_dockingaccess(self, discord:bool) -> str:
         """
         Get the docking access in human-readable format
         """
         match (self.data.get('dockingAccess')):
-            case "all": return "All"
-            case "squadronfriends": return "Squadron and Friends"
-            case "friends": return "Friends"
-            case _: return "None"
+            case "all":
+                if discord: return __("All", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("All") # LANG: Carrier docking access
+            case "squadronfriends":
+                if discord: return __("Squadron and Friends", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("Squadron and Friends") # LANG: Carrier docking access
+            case "friends":
+                if discord: return __("Friends", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("Friends") # LANG: Carrier docking access
+            case _:
+                if discord: return __("None", lang=self.bgstally.state.discord_lang) # LANG: Discord carrier docking access
+                else: return _("None") # LANG: Carrier docking access
 
 
-    def human_format_notorious(self) -> str:
+    def human_format_notorious(self, discord:bool) -> str:
         """
         Get the notorious access in human-readable format
         """
-        return 'Yes' if self.data.get('notoriousAccess', False) else 'No'
+        if self.data.get('notoriousAccess', False):
+            return __("Yes", lang=self.bgstally.state.discord_lang) if discord else _("Yes")
+        else:
+            return __("No", lang=self.bgstally.state.discord_lang) if discord else _("No")
 
 
     def _human_format_price(self, num) -> str:
         """
         Format a BGS value into shortened human-readable text
         """
-        num = float('{:.3g}'.format(num))
+        num = float('{:.3g}'.format(float(num)))
         magnitude = 0
         while abs(num) >= 1000:
             magnitude += 1
@@ -183,17 +509,67 @@ class FleetCarrier:
         return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
 
 
-    def _get_materials(self, category: MaterialsCategory = None) -> tuple[list|None, str|None]:
-        """
-        Return the materials list and price key for the specified category
-        """
-        if category == MaterialsCategory.SELLING:
-            return self.onfoot_mats_selling, 'stock'
-        elif category == MaterialsCategory.BUYING:
-            return self.onfoot_mats_buying, 'outstanding'
-        else:
-            return None, None
+    def _get_items(self, category: FleetCarrierItemType = None) -> tuple[list|dict|None, str|None, str|None, str|None]:
+        """Return the current items list, lookup name key, display name key and quantity key for the specified category
 
+        Args:
+            category (FleetCarrierItemType, optional): The type of item to fetch. Defaults to None.
+
+        Returns:
+            tuple[list|None, str|None, str|None, str|None]: Tuple containing the four items
+        """
+
+        match category:
+            case FleetCarrierItemType.MATERIALS_SELLING:
+                return self.onfoot_mats_selling, 'name', 'locName', 'stock'
+            case FleetCarrierItemType.MATERIALS_BUYING:
+                return self.onfoot_mats_buying, 'name', 'locName', 'outstanding'
+            case FleetCarrierItemType.COMMODITIES_SELLING:
+                # Lookup name and display name are the same for commodities as we are not passed localised name from CAPI. We
+                # convert the display name later
+                return self.commodities_selling, 'name', 'locName', 'stock'
+            case FleetCarrierItemType.COMMODITIES_BUYING:
+                # Lookup name and display name are the same for commodities as we are not passed localised name from CAPI. We
+                # convert the display name later
+                return self.commodities_buying, 'name', 'locName', 'outstanding'
+            case FleetCarrierItemType.CARGO:
+                # Return cargo items
+                return self.cargo, 'commodity', 'locName', 'qty'
+            case FleetCarrierItemType.LOCKER:
+                # Return locker items
+                return self.locker, 'name', 'locName', 'quantity'
+            case _:
+                return None, None, None, None
+
+    def _load_commodities(self):
+        """
+        Load the CSV file containing full list of commodities. For our purposes, we build a dict where the key is the commodity
+        internal name from the 'symbol' column in the CSV, lowercased, and the value is the localised name. As we are not passed
+        localised names for commodities in the CAPI data, this allows us to show nice human-readable commodity names (always in English though).
+
+        The CSV file is sourced from the EDCD FDevIDs project https://github.com/EDCD/FDevIDs and should be updated occasionally
+        """
+        filepath:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, COMMODITIES_CSV_FILENAME)
+        self.commodities = {}
+
+        try:
+            with open(filepath, encoding = 'utf-8') as csv_file_handler:
+                csv_reader = csv.DictReader(csv_file_handler)
+
+                for rows in csv_reader:
+                    self.commodities[rows.get('symbol', "").lower()] = rows.get('name', "")
+        except Exception as e:
+                Debug.logger.error(f"Unable to load {filepath}")
+
+        rare_filepath:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, RARE_COMMODITIES_CSV_FILENAME)
+        try:
+            with open(rare_filepath, encoding = 'utf-8') as csv_file_handler:
+                csv_reader = csv.DictReader(csv_file_handler)
+
+                for rows in csv_reader:
+                    self.commodities[rows.get('symbol', "").lower()] = rows.get('name', "")
+        except Exception as e:
+                Debug.logger.error(f"Unable to load {rare_filepath}")
 
     def _as_dict(self):
         """
@@ -202,8 +578,13 @@ class FleetCarrier:
         return {
             'name': self.name,
             'callsign': self.callsign,
+            'carrier_id': self.carrier_id,
             'onfoot_mats_selling': self.onfoot_mats_selling,
             'onfoot_mats_buying': self.onfoot_mats_buying,
+            'commodities_selling': self.commodities_selling,
+            'commodities_buying': self.commodities_buying,
+            'cargo': self.cargo,
+            'locker': self.locker,
             'data': self.data}
 
 
@@ -213,6 +594,11 @@ class FleetCarrier:
         """
         self.name = dict.get('name')
         self.callsign = dict.get('callsign')
-        self.onfoot_mats_selling = dict.get('onfoot_mats_selling')
-        self.onfoot_mats_buying = dict.get('onfoot_mats_buying')
+        self.carrier_id = dict.get('carrier_id')
+        self.onfoot_mats_selling = dict.get('onfoot_mats_selling', [])
+        self.onfoot_mats_buying = dict.get('onfoot_mats_buying', [])
+        self.commodities_selling = dict.get('commodities_selling', [])
+        self.commodities_buying = dict.get('commodities_buying', [])
+        self.cargo = dict.get('cargo', [])
+        self.locker = dict.get('locker', [])
         self.data = dict.get('data')

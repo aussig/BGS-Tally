@@ -1,0 +1,57 @@
+Özet Satırları
+
+  • Planlanan: Planlanan ancak henüz tamamlanmayan yapılar/üsler hakkında bilgi
+  • Tamamlanan: Tamamlanan yapılar/üsler hakkında bilgi
+
+Özet Sütunları
+
+  • Toplam: toplam üs sayısı
+  • Orbital: yörünge üslerinin sayısı
+  • Yüzey: yüzey üslerinin sayısı
+  • T2: Net Kademe 2 puan maliyeti veya ödülü
+  • T3: Net Kademe 3 puan maliyeti veya ödülü
+  • Maliyet: Gerekli ton cinsinden yapıların maliyeti
+  • Yükler: Mevcut kargo kapasitenize göre gemi yüklerinin sayısı
+
+  • Pop Inc: Toplam nüfus artışı etkisi
+  • Pop Max: Toplam maksimum nüfus etkisi
+
+  • Güvenlik: Toplam sistem güvenliği etkisi
+  • Tekn Lvl: Toplam sistem teknoloji seviyesi etkisi
+  • Varlık: Toplam sistem varlığı değişim etkisi
+  • SoL: Toplam sistem yaşam standartları değişim etkisi
+  • Dev Lvl: Toplam sistem gelişim seviyesi değişim etkisi
+
+Detay Satırları
+
+  • Her üs başına bir satır
+  • İlk sıra başlangıç ​​üssünüz olmalıdır
+  • Diğer üsler herhangi bir sırada olabilir ancak yıldız limanlarının maliyeti sıralarına bağlıdır
+    bu yüzden onları yanlış sıraya koyarsanız maliyetleri yanlış olabilir
+
+Ayrıntı Sütunları
+
+  • İzleme: Bu üssün ilerlemesinin ana ED:MC ilerleme ekranında izlenip izlenmeyeceği
+  • Üs Tipi: İnşa edilecek üssün tipi
+  • Üs İsmi: Üsse verilecek isim
+  • Gezegen: Üssün üzerinde bulunduğu veya bulunacağı gezegen (veya çevresi)
+  • Gereksinimler: Bu tür bir üssü inşa etmek için gereken ön koşullar
+  • Durum: Üs kurulumu ne kadar ilerledi: Planlandı, Tamamlanma yüzdesi, Tamamlandı
+  • T2: Net Kademe 2 puan maliyeti veya ödülü
+  • T3: Net Kademe 3 puan maliyeti veya ödülü
+  • Maliyet: Gerekli ton cinsinden yapıların maliyeti
+  • Yükler: Mevcut kargo kapasitenize göre gemi yüklerinin sayısı
+  • İniş Pisti: Maksimum iniş pisti boyutu
+  • Ekonomi: Üs ekonomi türü
+
+  • Pop Inc: nüfus artışı etkisi
+  • Pop Max: maksimum nüfus etkisi
+
+  • Ekonomi Inf: Bu üssün sistem ekonomisi üzerindeki etkisi
+
+  • Güvenlik: sistem güvenliği etkisi
+  • Tekn Lvl: sistem teknoloji seviyesi etkisi
+  • Varlık: sistem varlığı değişim etkisi
+  • SoL: sistem yaşam standartları değişim etkisi
+  • Dev Lvl: sistem gelişim seviyesi değişim etkisi
+

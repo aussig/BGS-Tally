@@ -1,0 +1,57 @@
+Líneas de resumen
+
+  • Planeado: Información sobre construcciones/bases que han sido planeadas pero que aún no han sido completadas
+  • Completado: Información sobre compilaciones/bases que han sido completadas
+
+Columnas de resumen
+
+  • Total: número total de bases
+  • Orbital: número de bases orbitales
+  • Superficie: número de bases de superficie
+  • T2: El coste o recompensa neto de puntos de Tier 2
+  • T3: El coste o recompensa neto de puntos de Tier 3
+  • Coste: El coste de las construcciones en toneladas requeridas
+  • Viajes: El número de viajes de carga en función de su capacidad de carga actual
+
+  • Pop Inc: impacto combinado en el aumento de la población
+  • Pop Max: impacto combinado en el máximo de población
+
+  • Seguridad: impacto combinado en la seguridad del sistema
+  • Tecnología Nvl: impacto combinado en el nivel de tecnología del sistema
+  • Riqueza: impacto combinado en la riqueza del sistema
+  • SoL: Impacto combinado en el nivel de vida del sistema
+  • Desarrollo Nvl: impacto combinado en el nivel de desarrollo del sistema
+
+Filas de detalle
+
+  • Una fila por base
+  • La primera fila debe ser la base inicial
+  • Las otras bases pueden estar en cualquier orden, pero el coste de las estaciones depende de su orden
+    así que si los colocas en el orden equivocado, su coste puede ser incorrecto
+
+Columnas de detalles
+
+  • Rastreo: Si se realiza un seguimiento del progreso de esta base en la pantalla principal de progreso del ED:MC
+  • Tipo de base: el tipo de base a construir
+  • Nombre de base: El nombre de la base
+  • Cuerpo: El cuerpo en el que (o alrededor del que) estará la base
+  • Requisitos: Cualquier prerrequisito para construir este tipo de base
+  • Estado: El estado de construcción de la base: Planeado, Porcentaje completado, Completado
+  • T2: El coste o recompensa neto de puntos de Tier 2
+  • T3: El coste o recompensa neto de puntos de Tier 3
+  • Coste: El coste de la construcción en toneladas requeridas
+  • Viajes: El número de viajes de carga en función de su capacidad de carga actual
+  • Pad: El tamaño máximo de la plataforma de aterrizaje
+  • Economía: tipo de economía de la base
+
+  • Pop Inc: impacto combinado en el aumento de la población
+  • Pop Max: impacto combinado en el máximo de población
+
+  • Econ Inf: La influencia que esta base tiene en la economía del sistema
+
+  • Seguridad: impacto en la seguridad del sistema
+  • Tecnología Nvl: impacto combinado en el nivel de tecnología del sistema
+  • Riqueza: impacto combinado en la riqueza del sistema
+  • SoL: Impacto combinado en el nivel de vida del sistema
+  • Desarrollo Nvl: impacto combinado en el nivel de desarrollo del sistema
+

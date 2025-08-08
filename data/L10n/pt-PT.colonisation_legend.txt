@@ -1,0 +1,57 @@
+Linhas de Resumo
+
+  • Planeado: Informação sobre construções/bases que foram planeadas, mas ainda não concluídas
+  • Completado: Informações sobre construções/bases que foram concluídas
+
+Coluna de Resumo
+
+  • Total: número total de bases
+  • Orbitais: número de bases orbitais
+  • Superfície: número de bases de superfície
+  • T2: custo ou recompensa do ponto de tier 2
+  • T3: custo ou recompensa do ponto de tier 3
+  • Custo: O custo das construções em toneladas necessárias
+  • Cargas: O número de cargas da nave baseado na sua capacidade atual de carga
+
+  • Pop Inc: impacto combinado na população
+  • Máx Pop: impacto populacional máximo combinado
+
+  • Segurança: impacto combinado na segurança do sistema
+  • Nível Tecnológico: impacto no nível da tecnologia combinada
+  • Riqueza: impacto combinado na riqueza do sistema
+  • SoL: impacto combinado do sistema no nível de vida
+  • Nível Dev: impacto no nível de desenvolvimento combinado
+
+Linhas Detalhadas
+
+  • Uma linha por base
+  • A primeira linha deve ser a base inicial
+  • Outras bases podem estar em qualquer ordem, mas o custo dos portos estelares depende da sua ordem
+    portanto, se você colocá-los na ordem errada, o custo pode estar incorreto
+
+Colunas Detalhadas
+
+  • Rastrear: Se pretender acompanhar o progresso desta base na vista principal de progresso do ED:MC
+  • Tipo Base: O tipo de base a ser construído
+  • Nome da base: O nome da base
+  • Corpo: O corpo que está ligado (ou ao redor) à base ou que estará
+  • Requisitos: Quaisquer pré-requisitos para a construção deste tipo de base
+  • Estado: Quão longe é a base: Planeado, Percentagem completa, Concluído
+  • T2: custo ou recompensa do ponto de tier 2
+  • T3: custo ou recompensa do ponto de tier 3
+  • Custo: O custo das construções em toneladas necessárias
+  • Cargas: O número de cargas da nave baseado na sua capacidade atual de carga
+  • Pad: O tamanho máximo da base de aterragem
+  • Economia: Tipo de economia base
+
+  • Pop Inc: impacto na população aumenta
+  • Máx Pop: impacto na população máximo
+
+  • Inf Eco: A influência que essa base tem na economia do sistema
+
+  • Segurança: impacto na segurança do sistema
+  • Nível Tecnológico: impacto no nível da tecnologia do sistema
+  • Riqueza: impacto na riqueza do sistema
+  • SoL: impacto no nível de vida do sistema
+  • Nível Dev: impacto no nível de desenvolvimento do sistema
+

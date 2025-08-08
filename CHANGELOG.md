@@ -1,16 +1,255 @@
 # Change Log
 
-## v3.5.0-xx - xxxx-xx-xx
+## vx.x.x - xxxx-xx-xx
+
+### New Features:
+
+* Colonisation: The remaining materials to be hauled to reach your current target are now displayed on a new panel in the in-game overlay.
+* Additional overlay configuration: If you are having trouble with positioning of overlay panels in-game, most commonly caused by having global scaling in Windows set to something other than 100%, you can now override various global overlay positioning settings (width, height, line height, character width etc.) which should allow you to lay everything out more precisely.
+* Automatic posting of BGS and TW activity to Discord. There is now a checkbox in the settings to switch this on (defaults to `Off`). Discord applies strict limits to the number of posts we can send (which is across all users posting to any particular Discord server), so automatic posting is limited to a maximum of one post every 5 minutes.
+
+### Changes:
+
+* There is now a setting to show and hide the 'Objectives' overlay panel in BGS-Tally settings.
+* Colonisation: Notes window now saves on close
+
+### Bug Fixes:
+
+* Colonisation: All commodities list was sometimes not displaying correctly
+* Colonisation: Bioreducing lichen Inara link was incorrectly linking to Animal meat
+* Colonisation: Fix for missing body information.
+* Colonisation: Various other minor bug fixes.
+
+
+## v5.0.0 - 2025-07-25
+
+### New Features:
+
+* Colonisation Tracking. Your active builds in progress, with targets, are summarised on the main EDMC window and all your colonisation plans are available in a separate window accessed from a button on the main EDMC window, together with separate windows for possible bases, general notes and help.
+* Conflict states are highlighted in the activity window: Elections in orange and wars in red.
+* The individual tick time **for each system** is now reported on the activity window and on the overlay in-game.
+* You can now customise the Discord avatar image for your Discord posts, if you want to override the default BGS-Tally icon.
+* The Fleet Carrier window now lists your full cargo and materials, in addition to those with buy or sell orders. You have the choice of what to post to Discord across all the inventory windows.
+* Objectives. If you use the API to connect to a server that supports them (API ≥ v1.6.0) then your squadron or group can define shared missions that multiple CMDRs can work towards. _Note that this feature was developed before Frontier announced the upcoming Vanguards. We don't know what's coming in that update, but will adapt when the time comes._
+    - Missions can be of various types (for example - `win a war` or `boost a faction`) and each mission can have one or more targets (for example - `win xx space CZs` or `generate yyy CR in trade profit`).
+    - Objectives are shown in a new window accessible from the main EDMC window - click the 𖦏 button. The layout is a bit basic at the moment, it will probably improve in future.
+    - If you use the in-game overlay, Objectives are also displayed on a new overlay panel in-game.
+
+### Changes:
+
+* When multiple systems are pinned to the in-game overlay, they are now formatted more elegantly, with all system names shown as coloured titles.
+* Fleet carrier cargo is now updated whenever you transfer cargo to/from your carrier. This gives a more up to date cargo manifest than just relying on CAPI (with it's 15 minute cooldown and reliance on visiting your carrier management screen) but it is still not perfect as doesn't account for other players using your carrier.
+* API configuration window is now scrollable and resizable to allow for smaller screen resolutions
+
+### Bug Fixes:
+
+* The tick time was not being sent in `/event` API calls.
+* Any Search and Rescue (e.g. escape pods) would cause the overlay to stop displaying your work in that system.
+* When abandoning of failing a mission that was not logged when it was originally accepted (e.g. when BGS-Tally was not running), and sending events to an API, the API call would fail.
+* Fixed bug which would cause the Fleetcarrier window to fail to load properly if newer Trailblazers or Thargoid war commodities had buy or sell orders set.
+* Fix an occasional initial loading issue with the API configuration window
+
+### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/4cc039a5-fcdf-4bdb-adb3-1cd4b78f70d8)):
+
+* New `/objectives` endpoint.
+* `/events` endpoint: Synthetic events added for certain activities in game that the game itself doesn't log in the journal:
+    - `SyntheticCZ`: Sent when a Space CZ is won.
+    - `SyntheticCZObjective`: Sent when an objective is completed in a Space CZ (cap ship / spec ops / enemy captain / enemy correspondent).
+    - `SyntheticGroundCZ`: Sent when a Ground CZ is won.
+    - `SyntheticScenario`: Sent when a scenario is won (only Megaship scenarios for the moment, Installation scenarios cannot be tracked).
+
+
+## v4.2.2 - 2025-05-17
+
+### Bug Fixes:
+
+* Fix failure of BGS preview and discord reporting when running with EDMC 5.13 and above
+
+
+## v4.2.1 - 2025-05-17
+
+### Changes:
+
+* Added a tooltop to the 'Post to Discord' button giving reasons why it's disabled
+
+
+## v4.2.0 - 2024-12-22
+
+### New Features:
+
+* Added new Discord formatter supporting the Celestial Light Brigade's preferred Discord structure and layout for BGS reports.
+* Each faction now has its influence % shown in the on-screen activity window.
+* Factions are shown ordered by % influence, highest first in the on-screen activity window.
+* Added Hungarian translation.
+
+### Changes:
+
+* Only check for a new tick once per minute, not on every FSD jump.
+* Split "BM Prof" heading on activity windows onto two lines for more efficient use of space.
+
+### Bug Fixes:
+
+* If the check for a new plugin version was failing, this would throw several exceptions to the EDMC log.
+* Murders of police ships were not being tracked.
+* Any API key entered by the user is now cleaned up and truncated to avoid problems with bad inputs.
+
+
+## v4.1.1 - 2024-09-27
+
+### Bug Fixes:
+
+* The Discord report was blank if the Discord language was set to anything other than English
+* INF numbers in legend / help window weren't showing the new ones implemented in v4.1.0
+
+
+## v4.1.0 - 2024-09-26
+
+### New Features:
+
+* Added ability to set the position of all in-game overlay panels. If you are finding you don't like where BGS-Tally positions the in-game information, or they overlap with other plugins, you can now override the default positions. If you would like to do this, take a look at the instructions in the `config\userconfig.template.ini` file.
+* Added options to only post your carrier materials, only your carrier commodities or both (defaults to both).
+* Added Russian translation.
+
+### Changes:
+
+* Updated layout of Discord posts to include link back to BGS-Tally wiki page.
+* Switched to a new tick detector created by CMDR Zoy. The old elitebgs.app detector was occasionally unreliable and the new detector also gives further advantages that BGS-Tally may be able to take advantage of in future.
+* Changed label on Discord report heading to make it clearer that it's clickable to show the legend / help window.
+* The Legend (help) window is now scrollable.
+* Detailed INF reports now use clearer numbers for the +INF levels: 1️⃣2️⃣3️⃣4️⃣5️⃣ instead of ➊➋➌➍➎
+* Translation updates.
+
+### Bug Fixes:
+
+* In-game overlay would stop working when certain activities were completed (murders, ground murders, scenarios or mission fails)
+* A change in the latest release of EDMC (5.12.0) stopped the settings panel from loading
+
+
+## v4.0.1 - 2024-06-11
+
+### Changes:
+
+* Updated Thargoid Scout bond value to 80k due to an unannounced change in game version v18.06. This was causing scout kills to not be tallied.
+
+### Bug Fixes:
+
+* The new font for the Discord preview wasn't working very well for some Linux distributions, so it's now only used on Windows.
+* The plugin settings pane was failing to display and translated Discord posts were failing to post if the BGS-Tally folder name was not "BGS-Tally".
+
+
+## v4.0.0 - 2024-06-07
+
+### New Features:
+
+* Localisation. The plugin is now translated into French, German, Italian, Portuguese (Portugal), Portuguese (Brazil), Serbian (Latin), Spanish and Turkish. For the user interface, it will pick up the language you have set EDMC to use. If anyone would like to help translate into other languages, please post a message on the BGS-Tally Discord.
+* Independent language for Discord posts. You can separately set the language that is used for Discord posts, in case the Discord server has a different preferred language to the one you run EDMC in.
+* Added logo to main window and all window icons
+* Added options to only post your BGS activity, only your TW activity or both (defaults to both), for CMDRs who want to selectively post a single type of activity.
+* Now track and report Search and Rescue (SandR) hand-ins for the BGS, tallied against the controlling faction at the station handed in.
+* Now track side objectives in space conflict zones, but with some caveats:
+    * Capital ship defeats 👑 should be 100% reliable
+    * Spec ops wing kills 🔠 are tallied as soon as BGS-Tally finds the **first detectable kill** in the spec ops wing. This may not be the first spec ops kill you make because the order of events logged by the game is not predictable, so we need to tally as soon as we spot a kill. Just make sure you finish off those spec ops wings CMDRs!
+    * Enemy captain kills 👨‍✈️ will sometimes be tallied and sometimes not, for the same reason.
+    * Enemy propagandist wing kills ✒️ are also tallied as soon as BGS-Tally spots the **first detectable kill** in the propagandist wing, for the same reason.
+* Added tooltips (hover text) to all abbreviations on screen, and a few of the controls and buttons that are not self-explanatory.
+* Added support for different Discord post formats. So if your squadron or group would like your discord activity posts to look different, this can be done. Currently it's a programming job to create a new format (so ask your friendly Python developer to get in touch, or send in a suggestion for a new format to the BGS-Tally Discord server).
+* Added popup CMDR information on the in-game overlay when you interact with a CMDR.
+* Added 'Copy to Clipboard' button on CMDRs information window.
+* Added 'Copy to Clipboard' button on Fleet Carrier information window.
+
+### Changes:
+
+* Added new logo as avatar for all posts.
+* Removed 'modified by Aussi' references, as Tez (the original author of BGS-Tally) is now recommending this version to users.
+* Each trade buy / sell band is only reported if it is non-zero, avoiding clutter in the report.
+* Changed the font used in the Discord preview panel on activity windows to a font that supports more emoji and more closely matches Discord posts.
+* Tweaked the discord webhooks layout in settings to include horizontal lines for better clarity.
+* Unfortunately had to remove the functionality to log CMDRs scanned while in a dropship / taxi as we can no longer get the CMDR name from the game journal.
+* The layout of the CMDR information panel in the CMDRs window has been tidied up.
+* Only enable the 'Post to Discord' button on all windows if a Discord username is set in the settings.
+* A warning is now displayed on the Fleet Carrier window if you have not enabled the correct setting in EDMC.
+* Tidied up layout of Discord options on activity windows.
+* Update kill bond values for Thargoid interceptor kills for game version v18.06.
+* The default +INF assigned for war missions that are missing INF values in the game journal has been increased to 2 (from 1).
+* Replaced 'Active / Paused' status label with icons on main window and refresh immediately preference is changed.
+
+### Bug Fixes:
+
+* The Fleet Carrier info Discord post was breaking because the data was duplicated in the post.
+* Fleet Carrier window was failing to initialise if the carrier's current system wasn't set.
+* Protect against rare situation where null data can cause the Activity window to fail to load.
+* The 'Delete' button was hard to read when disabled on the CMDRs window.
+* Thargoid War VIP passenger evac missions weren't being counted.
+* Was incorrectly reporting BGS activity in TW systems.
+* Was incorrectly reporting TW search and rescue collection in non-TW systems.
+* Activity window wasn't showing all trade purchase and profit bands.
+* If you changed your Discord webhook settings after previously successfully posting to Discord, then tried to post again in the same tick, it would fail.
+* If any Discord post got bigger than the limits imposed by Discord, it would silently fail to post. Now, the post is truncated to the Discord limit and '...' appended to the end.
+* The 'Post to Discord' button on the CMDRs information window was sometimes becoming enabled even if there were no valid discord webhooks set up.
+
+### API Changes ([v1.5](https://studio-ws.apicur.io/sharing/0f4472d2-d6b8-4718-8d38-205fc4539402)):
+
+* `/activities` endpoint: Search and Rescue handins now included at `systems/[system]/factions/[faction]/sandr`, containing `damagedpods`, `occupiedpods`, `thargoidpods`, `blackboxes`, `wreckagecomponents`, `personaleffects`, `politicalprisoners` and `hostages` as properties.
+
+
+## v3.6.2 - 2024-05-31
+
+### Changes:
+
+* Update kill bond values for Thargoid interceptor kills for game version v18.06.
+
+
+## v3.6.1 - 2024-04-07
+
+### Bug Fixes:
+
+* For some CMDRS, TW system and station data was omitted for some systems.
+
+
+## v3.6.0 - 2024-03-23
+
+### New Features:
+
+* BGS-Tally now tracks carrier commodity buy and sell orders (in addition to the existing bartender materials buy and sell orders). These are tracked in real time as you change your carrier orders. They are posted to Discord with your materials orders.
+* You can now pin one or more systems to the in-game overlay, to permanently show your work in those systems.
+* Adding a friend is now logged as a CMDR interaction.
+* Thargoid Titan bio pod collection and hand-in tracking 🏮. You can hand them in at any rescue ship, but they are tallied in the system they were collected.
+* If you accidentally target an ally ship in a space CZ, you now get a warning on screen.
+
+### Changes:
+
+* The tracking of bartender materials buy and sell orders is now updated in real time, as you change them in your carrier. Previously, you would have to wait for the next CAPI carrier data update, which would be at the most every 15 minutes.
+* The Carrier information window has been reorganised to show commodities and materials.
+* All 'Post to Discord' buttons now only allow a single click. They temporarily disable themselves for a few seconds after posting, to avoid accidental multiple posts.
+* No longer report BGS work for systems in Thargoid War.
+* Activity windows no longer show BGS factions and data for Thargoid War systems, instead now showing a message stating that the system is in TW state.
+* Activity windows no longer show a spurious 'Enable' checkbox (which didn't do anything) for systems that have no factions, instead now showing a message stating it is an empty system.
+
+### Bug Fixes:
+
+* Wasn't omitting BGS activity from systems in TW state in 'modern' style Discord posts, only text posts. Now omitted in both.
+* Not all thargoid activity was being omitted when a system was switched off.
+* A lot of special characters used in TW reports were not displaying correctly in the in-game overlay.
+* Fixed a rare crash that would stop the in-game overlay working.
+* Sometimes BGS-Tally wasn't realising you had left a megaship scenario.
+
+### API Changes ([v1.4](https://studio-ws.apicur.io/sharing/3164656a-eea9-4588-a9b9-e3f5f7ee66bc)):
+
+* `/activities` endpoint: Added `thargoidpods` to `systems/[system]/twsandr`.
+
+
+## v3.5.0 - 2024-02-27
 
 ### New Features:
 
 * New 'detailed INF' report. This is optional and is off by default, but when enabled gives a detailed breakdown of the number of missions completed at each +INF level. For example: `INF +19 (➋ x 4 ➌ x 2 ➎ x 1)` means you completed 4 missions awarding ++, 2 mission awarding +++ and 1 mission awarding +++++. Manually tallied INF is simply added or removed from the overall total.
 * When secondary INF reporting is switched on, now indicate which INF is primary `🅟` and which is secondary `🅢`. This can also combine with detailed INF reporting to give a full breakdown of primary and secondary INF.
 * New 'detailed Trade' checkbox, which is on by default and when enabled shows the full trade breakdown into brackets 🆉 | 🅻 | 🅼 | 🅷, when disabled all brackets are combined into simple totals for trade purchase and trade profit.
+* When multiple CMDRs are selected in the CMDR window, 'Post to Discord' now posts a concise table containing all the CMDRs in the list, with Inara and Inara squadron links where available. With a single CMDR selected, posting is exactly the same as it was.
 
 ### Changes:
 
-* Activity windows (latest Tally / previous Tally) will now remember their positions and sizes.
+* Activity windows (latest Tally / previous Tally) will now remember their positions within a game session. Height and width is still automatic to avoid truncated content if it's larger than the last time you opened the window.
 * Re-opening an already open activity window (latest Tally / previous Tally) will no longer open two copies of the same window. Instead, the old one will be closed and a new fresh window with latest data opened at the same position and size on screen.
 
 
@@ -179,7 +418,7 @@
 ### New Features:
 
 * Plugin auto-update. From this version on, when a new version of the plugin is released, it will automatically be downloaded and update itself the next time you launch EDMarketConnector. You will need to install this version 3.0.0 manually, but that should be the last time you ever have to do a manual update unless you want to test pre-release versions (i.e. alphas or betas).
-* Fleet Carrier materials tracking. BGS-Tally will now track your fleet carrier materials for sale and for purchase, with the ability to post to Discord. For this to work, you need to be using EDMC v5.8.0 or greater, authenticate EDMC with your Frontier account, own a fleet carrier (!) and visit your fleet carrier management screen in-game.
+* Fleet Carrier materials tracking. BGS-Tally will now track your Fleet Carrier materials for sale and for purchase, with the ability to post to Discord. For this to work, you need to be using EDMC v5.8.0 or greater, authenticate EDMC with your Frontier account, own a Fleet Carrier (!) and visit your Fleet Carrier management screen in-game.
 * API. This allows BGS-Tally to send data to a server of your choice, to allow your squadron or another player group to collect and analyse your activity. If the server provides information about itself, this is shown to you and you are **always explicitly asked** to approve the connection.
 * On-foot murders are now tracked and are independent from ship murders.
 * Trade demand. Trade purchase and profit is now tracked and reported against the levels of demand: 🅻 / 🅷 for purchases and 🆉 / 🅻 / 🅷 for sales (🆉 is zero demand, i.e. when you sell cargo that the market doesn't list).
@@ -307,7 +546,7 @@
 
 * Now use scrollable tabs and a drop-down tab selector. Tabs for systems are sorted alphabetically by name, prioritising systems that have any BGS activity first.
 * Every Discord post now includes a date and time at the bottom of the post, to make it clear exactly when the user posted (suggested by @Tobytoolbag)
-* There is now a 'FORCE Tick' button in the settings, which can be used if the tick detector has failed to detect a tick but you know one has happened. This can occur on patch days or if the tick detector is down.
+* There is now a 'Force Tick' button in the settings, which can be used if the tick detector has failed to detect a tick but you know one has happened. This can occur on patch days or if the tick detector is down.
 
 ### Changes:
 
@@ -445,7 +684,7 @@ _* Note that the plugin only tracks primary and secondary INF from this version 
 
 ### New features:
 
-* Ability to manually add High, Medium and Low on-foot and in-space Combat Zone wins to the Discord report by clicking on-screen buttons.
+* Ability to manually add High, Medium and Low on-foot and in-space Conflict Zone wins to the Discord report by clicking on-screen buttons.
 
 ### Changes:
 
@@ -484,7 +723,7 @@ _* Note that the plugin only tracks primary and secondary INF from this version 
 
 ## v1.0.0 - 2021-08-27
 
-Initial release, based on original [BGS-Tally-v2.0 project by tezw21](https://github.com/tezw21/BGS-Tally-v2.0)
+Initial release, based on original BGS-Tally-v2.0 project by tezw21.
 
 ### New features:
 

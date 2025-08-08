@@ -1,17 +1,22 @@
 import tkinter as tk
+from datetime import UTC, datetime
 from functools import partial
 from os import path
 from tkinter import PhotoImage, ttk
 
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from bgstally.activity import STATES_WAR, Activity
-from bgstally.constants import COLOUR_HEADING_1, FOLDER_ASSETS, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, CheckStates, CZs, DiscordActivity, DiscordChannel, DiscordPostStyle
+from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
+from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_TITLE, FOLDER_ASSETS, FONT_HEADING_1,
+                                FONT_HEADING_2, FONT_TEXT, ApiSizeLookup, ApiSyntheticEvent, CheckStates, CZs, DiscordActivity, DiscordChannel,
+                                DiscordPostStyle)
 from bgstally.debug import Debug
-from bgstally.utils import human_format
+from bgstally.formatters.base import BaseActivityFormatterInterface
+from bgstally.utils import _, __, human_format
 from bgstally.widgets import DiscordAnsiColorText, TextPlus
 from thirdparty.colors import *
 from thirdparty.ScrollableNotebook import ScrollableNotebook
+from thirdparty.Tooltip import ToolTip
 
 LIMIT_TABS = 60
 
@@ -23,17 +28,16 @@ class WindowActivity:
 
     def __init__(self, bgstally, ui, activity: Activity):
         self.bgstally = bgstally
-        self.ui = ui
-        self.activity:Activity = activity
-        self.toplevel:tk.Toplevel = None
-        self.window_geometry:dict = None
+        self.activity: Activity = activity
+        self.toplevel: tk.Toplevel = None
+        self.window_geometry: dict = None
 
-        self.image_tab_active_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
-        self.image_tab_active_part_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
-        self.image_tab_active_disabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
-        self.image_tab_inactive_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_enabled.png"))
-        self.image_tab_inactive_part_enabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_part_enabled.png"))
-        self.image_tab_inactive_disabled = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_disabled.png"))
+        self.image_tab_active_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
+        self.image_tab_active_part_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
+        self.image_tab_active_disabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
+        self.image_tab_inactive_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_enabled.png"))
+        self.image_tab_inactive_part_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_part_enabled.png"))
+        self.image_tab_inactive_disabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_disabled.png"))
 
         self.show(activity)
 
@@ -47,67 +51,75 @@ class WindowActivity:
             self._store_window_geometry()
             self.toplevel.destroy()
 
-        self.toplevel = tk.Toplevel(self.ui.frame)
+        self.toplevel = tk.Toplevel(self.bgstally.ui.frame)
+        self.toplevel.title(_("{plugin_name} - Activity After Tick at: {tick_time}").format(plugin_name=self.bgstally.plugin_name, tick_time=activity.get_title())) # LANG: Activity window title
         self.toplevel.protocol("WM_DELETE_WINDOW", self._window_closed)
+        self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
 
         if self.window_geometry is not None:
-            self.toplevel.geometry(f"{self.window_geometry['w']}x{self.window_geometry['h']}+{self.window_geometry['x']}+{self.window_geometry['y']}")
+            self.toplevel.geometry(f"+{self.window_geometry['x']}+{self.window_geometry['y']}")
 
-        self.toplevel.title(f"{self.bgstally.plugin_name} - Activity After Tick at: {activity.get_title()}")
+        frm_container: ttk.Frame = ttk.Frame(self.toplevel)
+        frm_container.pack(fill=tk.BOTH, expand=tk.YES)
+        nb_tab=ScrollableNotebook(frm_container, wheelscroll=False, tabmenu=True)
+        nb_tab.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5)
 
-        ContainerFrame = ttk.Frame(self.toplevel)
-        ContainerFrame.pack(fill=tk.BOTH, expand=tk.YES)
-        TabParent=ScrollableNotebook(ContainerFrame, wheelscroll=False, tabmenu=True)
-        TabParent.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
-
-        frame_buttons:ttk.Frame = ttk.Frame(ContainerFrame)
-        frame_buttons.pack(fill=tk.X, side=tk.BOTTOM)
-        ttk.Button(frame_buttons, text="Copy to Clipboard (Legacy Format)", command=partial(self._copy_to_clipboard, ContainerFrame, activity)).pack(side=tk.LEFT, padx=5, pady=5)
-        self.btn_post_to_discord: ttk.Button = ttk.Button(frame_buttons, text="Post to Discord", command=partial(self._post_to_discord, activity),
-                                                          state=('normal' if self._discord_button_available() else 'disabled'))
+        frm_buttons: ttk.Frame = ttk.Frame(frm_container)
+        frm_buttons.pack(fill=tk.X, side=tk.BOTTOM)
+        ttk.Button(frm_buttons, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, frm_container, activity)).pack(side=tk.LEFT, padx=5, pady=5) # LANG: Button label
+        self.btn_post_to_discord: ttk.Button = ttk.Button(frm_buttons, text=_("Post to Discord"), command=partial(self._post_to_discord, activity), # LANG: Button label
+                                                          state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
         self.btn_post_to_discord.pack(side=tk.RIGHT, padx=5, pady=5)
+        if not self._discord_button_available():
+            ToolTip(self.btn_post_to_discord, text=_("Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord").format(CR="\n")) # LANG: Post to Discord button tooltip
+        post_types: dict = {DiscordActivity.BOTH: _("Both BGS and TW"), # LANG: Dropdown menu on activity window
+                            DiscordActivity.BGS: _("BGS Only"), # LANG: Dropdown menu on activity window
+                            DiscordActivity.THARGOIDWAR: _("TW Only")} # LANG: Dropdown menu on activity window
+        var_post_type: tk.StringVar = tk.StringVar(value=post_types.get(self.bgstally.state.DiscordActivity.get(), DiscordActivity.BOTH))
+        self.mnu_post_type: ttk.OptionMenu = ttk.OptionMenu(frm_buttons, var_post_type, var_post_type.get(),
+                                                            *post_types.values(),
+                                                            command=partial(self._post_type_selected, post_types, activity), direction='above')
+        self.mnu_post_type.pack(side=tk.RIGHT, pady=5)
+        ttk.Label(frm_buttons, text=_("Activity to post:")).pack(side=tk.RIGHT, pady=5) # LANG: Label on activity window
 
-        DiscordFrame = ttk.Frame(ContainerFrame)
-        DiscordFrame.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)
-        DiscordFrame.columnconfigure(0, weight=2)
-        DiscordFrame.columnconfigure(1, weight=1)
-        label_discord_report:ttk.Label = ttk.Label(DiscordFrame, text="❓ Discord Report Preview", font=FONT_HEADING_2, cursor="hand2")
-        label_discord_report.grid(row=0, column=0, sticky=tk.W)
-        label_discord_report.bind("<Button-1>", self._show_legend_window)
-        ttk.Label(DiscordFrame, text="Discord Additional Notes", font=FONT_HEADING_2).grid(row=0, column=1, sticky=tk.W)
-        ttk.Label(DiscordFrame, text="Discord Options", font=FONT_HEADING_2).grid(row=0, column=2, sticky=tk.W)
-        ttk.Label(DiscordFrame, text="Double-check on-ground CZ tallies, sizes are not always correct", foreground='#f00').grid(row=1, column=0, columnspan=3, sticky=tk.W)
+        frm_discord: ttk.Frame = ttk.Frame(frm_container)
+        frm_discord.pack(fill=tk.X, side=tk.BOTTOM, padx=5, pady=5)
+        frm_discord.columnconfigure(0, weight=2)
+        frm_discord.columnconfigure(1, weight=1)
+        lbl_discord_report: ttk.Label = ttk.Label(frm_discord, text=_("Discord Report Preview ⓘ"), font=FONT_HEADING_2, cursor="hand2") # LANG: Label on activity window
+        lbl_discord_report.grid(row=0, column=0, sticky=tk.W)
+        lbl_discord_report.bind("<Button-1>", self._show_legend_window)
+        ToolTip(lbl_discord_report, text=_("Show legend window")) # LANG: Activity window tooltip
+        ttk.Label(frm_discord, text=_("Discord Additional Notes"), font=FONT_HEADING_2).grid(row=0, column=1, sticky=tk.W) # LANG: Label on activity window
+        ttk.Label(frm_discord, text=_("Discord Options"), font=FONT_HEADING_2).grid(row=0, column=2, sticky=tk.W) # LANG: Label on activity window
+        ttk.Label(frm_discord, text=_("Double-check on-ground CZ tallies, sizes are not always correct"), foreground=COLOUR_WARNING).grid(row=1, column=0, columnspan=3, sticky=tk.W) # LANG: Label on activity window
 
-        DiscordTextFrame = ttk.Frame(DiscordFrame)
-        DiscordTextFrame.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
-        DiscordText = DiscordAnsiColorText(DiscordTextFrame, state='disabled', wrap=tk.WORD, bg="Gray13", height=15, font=FONT_TEXT)
-        DiscordScroll = tk.Scrollbar(DiscordTextFrame, orient=tk.VERTICAL, command=DiscordText.yview)
-        DiscordText['yscrollcommand'] = DiscordScroll.set
-        DiscordScroll.pack(fill=tk.Y, side=tk.RIGHT)
-        DiscordText.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.YES)
+        frm_discordtext: ttk.Frame = ttk.Frame(frm_discord)
+        frm_discordtext.grid(row=2, column=0, pady=5, sticky=tk.NSEW)
+        self.txt_discord: DiscordAnsiColorText = DiscordAnsiColorText(frm_discordtext, state=tk.DISABLED, wrap=tk.WORD, bg="Gray13", height=15, font=FONT_TEXT)
+        sb_discord = tk.Scrollbar(frm_discordtext, orient=tk.VERTICAL, command=self.txt_discord.yview)
+        self.txt_discord['yscrollcommand'] = sb_discord.set
+        sb_discord.pack(fill=tk.Y, side=tk.RIGHT)
+        self.txt_discord.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.YES)
 
-        DiscordNotesFrame = ttk.Frame(DiscordFrame)
-        DiscordNotesFrame.grid(row=2, column=1, pady=5, sticky=tk.NSEW)
-        DiscordNotesText = TextPlus(DiscordNotesFrame, wrap=tk.WORD, width=30, height=1, font=FONT_TEXT)
-        DiscordNotesText.insert(tk.END, "" if activity.discord_notes is None else activity.discord_notes)
-        DiscordNotesText.bind("<<Modified>>", partial(self._discord_notes_change, DiscordNotesText, DiscordText, activity))
-        DiscordNotesScroll = tk.Scrollbar(DiscordNotesFrame, orient=tk.VERTICAL, command=DiscordNotesText.yview)
-        DiscordNotesText['yscrollcommand'] = DiscordNotesScroll.set
-        DiscordNotesScroll.pack(fill=tk.Y, side=tk.RIGHT)
-        DiscordNotesText.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.YES)
+        frm_discordnotes: ttk.Frame = ttk.Frame(frm_discord)
+        frm_discordnotes.grid(row=2, column=1, pady=5, sticky=tk.NSEW)
+        self.txt_discordnotes: TextPlus = TextPlus(frm_discordnotes, wrap=tk.WORD, width=30, height=1, font=FONT_TEXT)
+        self.txt_discordnotes.insert(tk.END, "" if activity.discord_notes is None else activity.discord_notes)
+        self.txt_discordnotes.bind("<<Modified>>", partial(self._discord_notes_change, self.txt_discordnotes, activity))
+        sb_discordnotes: tk.Scrollbar = tk.Scrollbar(frm_discordnotes, orient=tk.VERTICAL, command=self.txt_discordnotes.yview)
+        self.txt_discordnotes['yscrollcommand'] = sb_discordnotes.set
+        sb_discordnotes.pack(fill=tk.Y, side=tk.RIGHT)
+        self.txt_discordnotes.pack(fill=tk.BOTH, side=tk.LEFT, expand=tk.YES)
 
-        DiscordOptionsFrame = ttk.Frame(DiscordFrame)
-        DiscordOptionsFrame.grid(row=2, column=2, padx=5, pady=5, sticky=tk.NW)
+        frm_discordoptions: ttk.Frame = ttk.Frame(frm_discord)
+        frm_discordoptions.grid(row=2, column=2, padx=5, pady=5, sticky=tk.NW)
         current_row = 1
-        ttk.Label(DiscordOptionsFrame, text="Post Format").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        ttk.Radiobutton(DiscordOptionsFrame, text="Modern", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.EMBED).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Radiobutton(DiscordOptionsFrame, text="Legacy", variable=self.bgstally.state.DiscordPostStyle, value=DiscordPostStyle.TEXT).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Label(DiscordOptionsFrame, text="Other Options").grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        ttk.Checkbutton(DiscordOptionsFrame, text="Abbreviate Faction Names", variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Checkbutton(DiscordOptionsFrame, text="Show Detailed INF", variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Checkbutton(DiscordOptionsFrame, text="Include Secondary INF", variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Checkbutton(DiscordOptionsFrame, text="Show Detailed Trade", variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, DiscordText, activity)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        ttk.Checkbutton(DiscordOptionsFrame, text="Report Newly Visited System Activity By Default", variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        ttk.Checkbutton(frm_discordoptions, text=_("Abbreviate Faction Names"), variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
+        ttk.Checkbutton(frm_discordoptions, text=_("Show Detailed INF"), variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
+        ttk.Checkbutton(frm_discordoptions, text=_("Include Secondary INF"), variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
+        ttk.Checkbutton(frm_discordoptions, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
+        ttk.Checkbutton(frm_discordoptions, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
 
         system_list = activity.get_ordered_systems()
 
@@ -122,138 +134,216 @@ class WindowActivity:
 
             if self.bgstally.state.ShowZeroActivitySystems.get() == CheckStates.STATE_OFF \
                 and system['zero_system_activity'] \
-                and str(system_id) != self.bgstally.state.current_system_id: continue
+                and str(system_id) != self.bgstally.state.current_system_id:
+                continue
 
-            tab:ttk.Frame = ttk.Frame(TabParent)
-            TabParent.add(tab, text=system['System'], compound='right', image=self.image_tab_active_enabled)
+            tab: ttk.Frame = ttk.Frame(nb_tab)
+            nb_tab.add(tab, text=system['System'], compound='right', image=self.image_tab_active_enabled)
 
-            frame_header:ttk.Frame = ttk.Frame(tab)
-            frame_header.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
-            ttk.Label(frame_header, text=system['System'], font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=0, column=0, padx=2, pady=2)
-
-            HyperlinkLabel(frame_header, text="Inara ⤴", url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=1, padx=2, pady=2)
-
-            frame_table:ttk.Frame = ttk.Frame(tab)
-            frame_table.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5, expand=tk.YES)
-            frame_table.columnconfigure(1, weight=1) # Make the second column (faction name) fill available space
-
-            FactionEnableCheckbuttons = []
-
-            ttk.Label(frame_table, text="Include", font=FONT_HEADING_2).grid(row=0, column=0, padx=2, pady=2)
-            EnableAllCheckbutton = ttk.Checkbutton(frame_table)
-            EnableAllCheckbutton.grid(row=1, column=0, padx=2, pady=2)
-            EnableAllCheckbutton.configure(command=partial(self._enable_all_factions_change, TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system))
-            EnableAllCheckbutton.state(['!alternate'])
-
-            col: int = 1
-            ttk.Label(frame_table, text="Faction", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="State", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="INF", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2)
-            ttk.Label(frame_table, text="Pri", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Sec", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Trade", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-            ttk.Label(frame_table, text="Purch", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Prof", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="BM Prof", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="BVs", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Expl", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Exo", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="CBs", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Fails", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Murders", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2, pady=2)
-            ttk.Label(frame_table, text="Foot", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Ship", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Scens", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Space CZs", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-            ttk.Label(frame_table, text="L", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="M", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="H", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="Foot CZs", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2)
-            ttk.Label(frame_table, text="L", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="M", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Label(frame_table, text="H", font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1
-            ttk.Separator(frame_table, orient=tk.HORIZONTAL).grid(columnspan=col, padx=2, pady=5, sticky=tk.EW)
-
-            header_rows = 3
-            x = 0
-
-            for faction in system['Factions'].values():
-                EnableCheckbutton = ttk.Checkbutton(frame_table)
-                EnableCheckbutton.grid(row=x + header_rows, column=0, sticky=tk.N, padx=2, pady=2)
-                EnableCheckbutton.configure(command=partial(self._enable_faction_change, TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system, faction, x))
-                EnableCheckbutton.state(['selected', '!alternate'] if faction['Enabled'] == CheckStates.STATE_ON else ['!selected', '!alternate'])
-                FactionEnableCheckbuttons.append(EnableCheckbutton)
-
-                FactionNameFrame = ttk.Frame(frame_table)
-                FactionNameFrame.grid(row=x + header_rows, column=1, sticky=tk.NW)
-                FactionName = ttk.Label(FactionNameFrame, text=faction['Faction'])
-                FactionName.grid(row=0, column=0, columnspan=2, sticky=tk.W, padx=2, pady=2)
-                FactionName.bind("<Button-1>", partial(self._faction_name_clicked, TabParent, tab_index, EnableCheckbutton, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system, faction, x))
-                settlement_row_index = 1
-                for settlement_name in faction.get('GroundCZSettlements', {}):
-                    SettlementCheckbutton = ttk.Checkbutton(FactionNameFrame)
-                    SettlementCheckbutton.grid(row=settlement_row_index, column=0, padx=2, pady=2)
-                    SettlementCheckbutton.configure(command=partial(self._enable_settlement_change, SettlementCheckbutton, settlement_name, DiscordText, activity, faction, x))
-                    SettlementCheckbutton.state(['selected', '!alternate'] if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON else ['!selected', '!alternate'])
-                    SettlementName = ttk.Label(FactionNameFrame, text=f"{settlement_name} ({faction['GroundCZSettlements'][settlement_name]['type'].upper()})")
-                    SettlementName.grid(row=settlement_row_index, column=1, sticky=tk.W, padx=2, pady=2)
-                    SettlementName.bind("<Button-1>", partial(self._settlement_name_clicked, SettlementCheckbutton, settlement_name, DiscordText, activity, faction, x))
-                    settlement_row_index += 1
-
-                col = 2
-                ttk.Label(frame_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                MissionPointsVar = tk.IntVar(value=faction['MissionPoints']['m'])
-                ttk.Spinbox(frame_table, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                MissionPointsVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsVar, True, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
-                MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary']['m'])
-                ttk.Spinbox(frame_table, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                MissionPointsSecVar.trace('w', partial(self._mission_points_change, TabParent, tab_index, MissionPointsSecVar, False, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
-                if faction['TradePurchase'] > 0:
-                    ttk.Label(frame_table, text=human_format(faction['TradePurchase'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                    ttk.Label(frame_table, text=human_format(faction['TradeProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+            frm_header: ttk.Frame = ttk.Frame(tab)
+            frm_header.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
+            header_column: int = 0
+            ttk.Label(frm_header, text=system['System'], font=FONT_HEADING_1, foreground=COLOUR_HEADING_1).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+            system_tick: str = system.get('TickTime')
+            system_tick_datetime: datetime|None = datetime.strptime(system_tick, DATETIME_FORMAT_ACTIVITY) if system_tick is not None and system_tick != "" else None
+            if system_tick_datetime is not None:
+                system_tick_datetime = system_tick_datetime.replace(tzinfo=UTC)
+                if system_tick_datetime > activity.tick_time:
+                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime))).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
                 else:
-                    ttk.Label(frame_table, text=f"{human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                    ttk.Label(frame_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=human_format(faction['ExoData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=human_format(faction['CombatBonds'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=faction['MissionFailed']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=faction['GroundMurdered']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ttk.Label(frame_table, text=faction['Murdered']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                ScenariosVar = tk.IntVar(value=faction['Scenarios'])
-                ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=ScenariosVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                ScenariosVar.trace('w', partial(self._scenarios_change, TabParent, tab_index, ScenariosVar, EnableAllCheckbutton, DiscordText, activity, system, faction, x))
+                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime)), foreground=COLOUR_WARNING).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+            HyperlinkLabel(frm_header, text=_("Inara ⤴"), url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1 # LANG: Inara link
 
-                if (faction['FactionState'] in STATES_WAR):
-                    CZSpaceLVar = tk.StringVar(value=faction['SpaceCZ'].get('l', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZSpaceLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    CZSpaceMVar = tk.StringVar(value=faction['SpaceCZ'].get('m', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZSpaceMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    CZSpaceHVar = tk.StringVar(value=faction['SpaceCZ'].get('h', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZSpaceHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    CZGroundLVar = tk.StringVar(value=faction['GroundCZ'].get('l', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZGroundLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    CZGroundMVar = tk.StringVar(value=faction['GroundCZ'].get('m', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZGroundMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    CZGroundHVar = tk.StringVar(value=faction['GroundCZ'].get('h', '0'))
-                    ttk.Spinbox(frame_table, from_=0, to=999, width=3, textvariable=CZGroundHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    # Watch for changes on all SpinBox Variables. This approach catches any change, including manual editing, while using 'command' callbacks only catches clicks
-                    CZSpaceLVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZSpaceLVar, EnableAllCheckbutton, DiscordText, CZs.SPACE_LOW, activity, system, faction, x))
-                    CZSpaceMVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZSpaceMVar, EnableAllCheckbutton, DiscordText, CZs.SPACE_MED, activity, system, faction, x))
-                    CZSpaceHVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZSpaceHVar, EnableAllCheckbutton, DiscordText, CZs.SPACE_HIGH, activity, system, faction, x))
-                    CZGroundLVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZGroundLVar, EnableAllCheckbutton, DiscordText, CZs.GROUND_LOW, activity, system, faction, x))
-                    CZGroundMVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZGroundMVar, EnableAllCheckbutton, DiscordText, CZs.GROUND_MED, activity, system, faction, x))
-                    CZGroundHVar.trace('w', partial(self._cz_change, TabParent, tab_index, CZGroundHVar, EnableAllCheckbutton, DiscordText, CZs.GROUND_HIGH, activity, system, faction, x))
+            if self.activity == self.bgstally.activity_manager.get_current_activity():
+                # Current tick activity
+                chk_pin_to_overlay:ttk.Checkbutton = ttk.Checkbutton(frm_header, text=_("Pin {system_name} to Overlay").format(system_name=system['System'])) # LANG: Checkbox label
+                chk_pin_to_overlay.grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.E)
+                chk_pin_to_overlay.configure(command=partial(self._pin_overlay_change, chk_pin_to_overlay, system), state=self.bgstally.ui.overlay_options_state())
+                chk_pin_to_overlay.state(['selected', '!alternate'] if system.get('PinToOverlay') == CheckStates.STATE_ON else ['!selected', '!alternate'])
+                frm_header.columnconfigure(header_column, weight=1) # Make the final column (pin checkbutton) fill available space
+            else:
+                # Previous tick activity
+                frm_header.columnconfigure(header_column, weight=1) # Make the final column (Inara link) fill available space
 
-                x += 1
+            if system.get('tw_status') is not None:
+                # TW system, skip all BGS
+                ttk.Label(frm_header, text=_("Thargoid War System, no BGS Activity is Counted"), font=FONT_HEADING_2).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky=tk.W) # LANG: Label on activity window
+            elif len(system['Factions']) == 0:
+                # Empty system
+                ttk.Label(frm_header, text=_("Empty System, no BGS Activity Available"), font=FONT_HEADING_2).grid(row=1, column=0, columnspan=3, padx=2, pady=2, sticky=tk.W) # LANG: Label on activity window
+            else:
+                # BGS system
+                frm_table:ttk.Frame = ttk.Frame(tab)
+                frm_table.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5, expand=tk.YES)
+                frm_table.columnconfigure(1, weight=1) # Make the second column (faction name) fill available space
 
-            self._update_enable_all_factions_checkbutton(TabParent, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, system)
+                FactionEnableCheckbuttons: list = []
+
+                ttk.Label(frm_table, text=_("Include"), font=FONT_HEADING_2).grid(row=0, column=0, padx=2, pady=2) # LANG: Checkbox label
+                chk_enable_all = ttk.Checkbutton(frm_table)
+                chk_enable_all.grid(row=1, column=0, padx=2, pady=2)
+                chk_enable_all.configure(command=partial(self._enable_all_factions_change, nb_tab, tab_index, chk_enable_all, FactionEnableCheckbuttons, activity, system))
+                chk_enable_all.state(['!alternate'])
+                ToolTip(chk_enable_all, text=_("Enable / disable all factions")) # LANG: Activity window tooltip
+
+                col: int = 1
+                ttk.Label(frm_table, text=_("Faction"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frm_table, text="%", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
+                ttk.Label(frm_table, text=_("State"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                lbl_inf: ttk.Label = ttk.Label(frm_table, text="INF", font=FONT_HEADING_2, anchor=tk.CENTER) # LANG: Activity window column title, abbreviation for influence
+                lbl_inf.grid(row=0, column=col, columnspan=2, padx=2)
+                ToolTip(lbl_inf, text=_("Influence")) # LANG: Activity window tooltip
+                lbl_pri: ttk.Label = ttk.Label(frm_table, text=_("Pri"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for primary
+                lbl_pri.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_pri, text=_("Primary")) # LANG: Activity window tooltip
+                lbl_sec: ttk.Label = ttk.Label(frm_table, text=_("Sec"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for secondary
+                lbl_sec.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_sec, text=_("Secondary")) # LANG: Activity window tooltip
+                ttk.Label(frm_table, text=_("Trade"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title
+                lbl_purch: ttk.Label = ttk.Label(frm_table, text=_("Purch"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for purchase
+                lbl_purch.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_purch, text=_("Purchase at L | M | H supply")) # LANG: Activity window tooltip for purchase at low | medium | high supply
+                lbl_prof: ttk.Label = ttk.Label(frm_table, text=_("Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for profit
+                lbl_prof.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_prof, text=_("Profit at Z | L | M | H demand")) # LANG: Activity window tooltip for profit at zero | low | medium | high demand
+                ttk.Label(frm_table, text="BM", font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, padx=2)
+                lbl_bmprof: ttk.Label = ttk.Label(frm_table, text=_("Prof"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for black market profit
+                lbl_bmprof.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_bmprof, text=_("Black market profit")) # LANG: Activity window tooltip
+                lbl_bvs: ttk.Label = ttk.Label(frm_table, text="BVs", font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for bounty vouchers
+                lbl_bvs.grid(row=0, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_bvs, text=_("Bounty vouchers")) # LANG: Activity window tooltip
+                lbl_expl: ttk.Label = ttk.Label(frm_table, text=_("Expl"), font=FONT_HEADING_2)
+                lbl_expl.grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for exploration
+                ToolTip(lbl_expl, text=_("Exploration data")) # LANG: Activity window tooltip
+                #ttk.Label(frm_table, text=_("Exo"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for exobiology
+                lbl_cbs: ttk.Label = ttk.Label(frm_table, text="CBs", font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for combat bonds
+                lbl_cbs.grid(row=0, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_cbs, text=_("Combat bonds")) # LANG: Activity window tooltip
+                lbl_fails: ttk.Label = ttk.Label(frm_table, text=_("Fails"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for mission fails
+                lbl_fails.grid(row=0, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_fails, text=_("Mission fails")) # LANG: Activity window tooltip
+                ttk.Label(frm_table, text=_("Murders"), font=FONT_HEADING_2, anchor=tk.CENTER).grid(row=0, column=col, columnspan=2, padx=2, pady=2) # LANG: Activity window column title
+                ttk.Label(frm_table, text=_("Ground"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                ttk.Label(frm_table, text=_("Ship"), font=FONT_HEADING_2).grid(row=1, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
+                lbl_scens: ttk.Label = ttk.Label(frm_table, text=_("Scens"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for scenarios
+                lbl_scens.grid(row=0, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_scens, text=_("Scenario wins")) # LANG: Activity window tooltip
+                lbl_sandr: ttk.Label = ttk.Label(frm_table, text=_("SandR"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for search and rescue
+                lbl_sandr.grid(row=0, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_sandr, text=_("Search and rescue")) # LANG: Activity window tooltip
+                lbl_spaceczs: ttk.Label = ttk.Label(frm_table, text=_("SpaceCZs"), font=FONT_HEADING_2, anchor=tk.CENTER) # LANG: Activity window column title, abbreviation for space conflict zones
+                lbl_spaceczs.grid(row=0, column=col, columnspan=3, padx=2)
+                ToolTip(lbl_spaceczs, text=_("Space conflict zones")) # LANG: Activity window tooltip
+                lbl_spaceczl: ttk.Label = ttk.Label(frm_table, text="L", font=FONT_HEADING_2)
+                lbl_spaceczl.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_spaceczl, text=_("Low")) # LANG: Activity window tooltip
+                lbl_spaceczm: ttk.Label = ttk.Label(frm_table, text="M", font=FONT_HEADING_2)
+                lbl_spaceczm.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_spaceczm, text=_("Medium")) # LANG: Activity window tooltip
+                lbl_spaceczh: ttk.Label = ttk.Label(frm_table, text="H", font=FONT_HEADING_2)
+                lbl_spaceczh.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_spaceczh, text=_("High")) # LANG: Activity window tooltip
+                lbl_groundczs: ttk.Label = ttk.Label(frm_table, text=_("GroundCZs"), font=FONT_HEADING_2, anchor=tk.CENTER)
+                lbl_groundczs.grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title, abbreviation for ground conflict zones
+                ToolTip(lbl_groundczs, text=_("Ground conflict zones")) # LANG: Activity window tooltip
+                lbl_groundczl: ttk.Label = ttk.Label(frm_table, text="L", font=FONT_HEADING_2)
+                lbl_groundczl.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_groundczl, text=_("Low")) # LANG: Activity window tooltip
+                lbl_groundczm: ttk.Label = ttk.Label(frm_table, text="M", font=FONT_HEADING_2)
+                lbl_groundczm.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_groundczm, text=_("Medium")) # LANG: Activity window tooltip
+                lbl_groundczh: ttk.Label = ttk.Label(frm_table, text="H", font=FONT_HEADING_2)
+                lbl_groundczh.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_groundczh, text=_("High")) # LANG: Activity window tooltip
+                ttk.Separator(frm_table, orient=tk.HORIZONTAL).grid(columnspan=col, padx=2, pady=5, sticky=tk.EW)
+
+                header_rows = 3
+                x = 0
+
+                faction_list: list = activity.get_ordered_factions(system['Factions'])
+
+                for faction in faction_list:
+                    chk_enable = ttk.Checkbutton(frm_table)
+                    chk_enable.grid(row=x + header_rows, column=0, sticky=tk.N, padx=2, pady=2)
+                    chk_enable.configure(command=partial(self._enable_faction_change, nb_tab, tab_index, chk_enable_all, FactionEnableCheckbuttons, activity, system, faction, x))
+                    chk_enable.state(['selected', '!alternate'] if faction['Enabled'] == CheckStates.STATE_ON else ['!selected', '!alternate'])
+                    ToolTip(chk_enable, text=_("Enable / disable faction")) # LANG: Activity window tooltip
+                    FactionEnableCheckbuttons.append(chk_enable)
+
+                    frm_faction = ttk.Frame(frm_table)
+                    frm_faction.grid(row=x + header_rows, column=1, sticky=tk.NW)
+                    lbl_faction = ttk.Label(frm_faction, text=faction['Faction'])
+                    lbl_faction.grid(row=0, column=0, columnspan=2, sticky=tk.W, padx=2, pady=2)
+                    lbl_faction.bind("<Button-1>", partial(self._faction_name_clicked, nb_tab, tab_index, chk_enable, chk_enable_all, FactionEnableCheckbuttons, activity, system, faction, x))
+                    settlement_row_index = 1
+                    for settlement_name in faction.get('GroundCZSettlements', {}):
+                        chk_settlement = ttk.Checkbutton(frm_faction)
+                        chk_settlement.grid(row=settlement_row_index, column=0, padx=2, pady=2)
+                        chk_settlement.configure(command=partial(self._enable_settlement_change, chk_settlement, settlement_name, activity, faction, x))
+                        chk_settlement.state(['selected', '!alternate'] if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON else ['!selected', '!alternate'])
+                        lbl_settlement = ttk.Label(frm_faction, text=f"{settlement_name} ({faction['GroundCZSettlements'][settlement_name]['type'].upper()})")
+                        lbl_settlement.grid(row=settlement_row_index, column=1, sticky=tk.W, padx=2, pady=2)
+                        lbl_settlement.bind("<Button-1>", partial(self._settlement_name_clicked, chk_settlement, settlement_name, activity, faction, x))
+                        settlement_row_index += 1
+
+                    col = 2
+
+                    ttk.Label(frm_table, text="{0:.2f}".format(faction['Influence'] * 100)).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+
+                    if (faction['FactionState'] in STATES_WAR): ttk.Label(frm_table, foreground="red", text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    elif (faction['FactionState'] in STATES_ELECTION): ttk.Label(frm_table, foreground="orange", text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    else: ttk.Label(frm_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+
+                    MissionPointsVar = tk.IntVar(value=faction['MissionPoints']['m'])
+                    ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                    MissionPointsVar.trace('w', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsVar, True, chk_enable_all, activity, system, faction, x))
+                    MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary']['m'])
+                    ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                    MissionPointsSecVar.trace('w', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsSecVar, False, chk_enable_all, activity, system, faction, x))
+                    ttk.Label(frm_table, text=f"{human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
+                    ttk.Label(frm_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
+                    ttk.Label(frm_table, text=human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frm_table, text=human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frm_table, text=human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    #ttk.Label(frm_table, text=human_format(faction['ExoData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frm_table, text=human_format(faction['CombatBonds'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frm_table, text=faction['MissionFailed']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frm_table, text=faction['GroundMurdered']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ttk.Label(frm_table, text=faction['Murdered']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    ScenariosVar = tk.IntVar(value=faction['Scenarios'])
+                    ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=ScenariosVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                    ScenariosVar.trace('w', partial(self._scenarios_change, nb_tab, tab_index, ScenariosVar, chk_enable_all, activity, system, faction, x))
+                    ttk.Label(frm_table, text=sum(faction.get('SandR', {}).values())).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+
+                    if (faction['FactionState'] in STATES_WAR):
+                        CZSpaceLVar = tk.IntVar(value=faction['SpaceCZ'].get('l', '0'))
+                        ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZSpaceMVar = tk.IntVar(value=faction['SpaceCZ'].get('m', '0'))
+                        ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZSpaceHVar = tk.IntVar(value=faction['SpaceCZ'].get('h', '0'))
+                        ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZGroundLVar = tk.IntVar(value=faction['GroundCZ'].get('l', '0'))
+                        ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZGroundLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZGroundMVar = tk.IntVar(value=faction['GroundCZ'].get('m', '0'))
+                        ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZGroundMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZGroundHVar = tk.IntVar(value=faction['GroundCZ'].get('h', '0'))
+                        ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZGroundHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        # Watch for changes on all SpinBox Variables. This approach catches any change, including manual editing, while using 'command' callbacks only catches clicks
+                        CZSpaceLVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceLVar, chk_enable_all, CZs.SPACE_LOW, activity, system, faction, x))
+                        CZSpaceMVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceMVar, chk_enable_all, CZs.SPACE_MED, activity, system, faction, x))
+                        CZSpaceHVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceHVar, chk_enable_all, CZs.SPACE_HIGH, activity, system, faction, x))
+                        CZGroundLVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZGroundLVar, chk_enable_all, CZs.GROUND_LOW, activity, system, faction, x))
+                        CZGroundMVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZGroundMVar, chk_enable_all, CZs.GROUND_MED, activity, system, faction, x))
+                        CZGroundHVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZGroundHVar, chk_enable_all, CZs.GROUND_HIGH, activity, system, faction, x))
+
+                    x += 1
+
+                self._update_enable_all_factions_checkbutton(nb_tab, tab_index, chk_enable_all, FactionEnableCheckbuttons, system)
 
             tab_index += 1
 
-        self._update_discord_field(DiscordText, activity)
+        self._update_discord_field(activity)
 
         # Ignore all scroll wheel events on spinboxes, to avoid accidental inputs
         self.toplevel.bind_class('TSpinbox', '<MouseWheel>', lambda event : "break")
@@ -286,110 +376,125 @@ class WindowActivity:
         """
         Display a mini-window showing a legend of all icons used
         """
-        self.ui.show_legend_window()
+        self.bgstally.ui.show_legend_window()
 
 
     def _discord_button_available(self) -> bool:
         """
         Return true if the 'Post to Discord' button should be available
         """
-        return self.bgstally.discord.valid_webhook_available(DiscordChannel.BGS) or self.bgstally.discord.valid_webhook_available(DiscordChannel.THARGOIDWAR)
+        return ((self.bgstally.discord.valid_webhook_available(DiscordChannel.BGS)
+                or self.bgstally.discord.valid_webhook_available(DiscordChannel.THARGOIDWAR))
+                and self.bgstally.state.DiscordUsername.get() != "")
 
 
-    def _update_discord_field(self, DiscordText, activity: Activity):
+    def _update_discord_field(self, activity: Activity):
         """
         Update the contents of the Discord text field
         """
-        DiscordText.configure(state='normal')
-        DiscordText.delete('1.0', 'end-1c')
-        DiscordText.write(activity.generate_text(DiscordActivity.BOTH, True))
-        DiscordText.configure(state='disabled')
+        self.txt_discord.configure(state=tk.NORMAL)
+        self.txt_discord.delete('1.0', 'end-1c')
+        self.txt_discord.write(self.bgstally.formatter_manager.get_current_formatter().get_text(activity, self.bgstally.state.DiscordActivity.get(), lang=self.bgstally.state.discord_lang))
+        self.txt_discord.configure(state=tk.DISABLED)
+
+
+    def _post_type_selected(self, post_types: dict, activity: Activity, value: str):
+        """The user has changed the dropdown to choose the activity type to post
+        """
+        k: str = next(k for k, v in post_types.items() if v == value)
+        self.bgstally.state.DiscordActivity.set(k)
+        self._update_discord_field(activity)
 
 
     def _post_to_discord(self, activity: Activity):
         """
         Callback to post to discord in the appropriate channel(s)
         """
-        if self.bgstally.state.DiscordPostStyle.get() == DiscordPostStyle.TEXT:
-            discord_text:str = activity.generate_text(DiscordActivity.BGS, True)
-            self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
-            discord_text = activity.generate_text(DiscordActivity.THARGOIDWAR, True)
-            self.bgstally.discord.post_plaintext(discord_text, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
-        else:
-            description = "" if activity.discord_notes is None else activity.discord_notes
-            discord_fields:dict = activity.generate_discord_embed_fields(DiscordActivity.BGS)
-            self.bgstally.discord.post_embed(f"BGS Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.BGS, self.discord_post_complete)
-            discord_fields = activity.generate_discord_embed_fields(DiscordActivity.THARGOIDWAR)
-            self.bgstally.discord.post_embed(f"TW Activity after tick: {activity.get_title()}", description, discord_fields, activity.discord_webhook_data, DiscordChannel.THARGOIDWAR, self.discord_post_complete)
-
-        activity.dirty = True # Because discord post ID has been changed
+        self.btn_post_to_discord.config(state=tk.DISABLED)
+        activity.post_to_discord()
+        self.btn_post_to_discord.after(5000, self._enable_post_button)
 
 
-    def discord_post_complete(self, channel:DiscordChannel, webhook_data:dict, messageid:str):
+    def _enable_post_button(self):
         """
-        A discord post request has completed
+        Re-enable the post to discord button if it should be enabled
         """
-        uuid:str = webhook_data.get('uuid')
-        if uuid is None: return
-
-        activity_webhook_data:dict = self.activity.discord_webhook_data.get(uuid, webhook_data) # Fetch current activity webhook data, default to data from callback.
-        activity_webhook_data[channel] = messageid                                              # Store the returned messageid against the channel
-        self.activity.discord_webhook_data[uuid] = activity_webhook_data                        # Store the webhook dict back to the activity
+        self.btn_post_to_discord.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
 
 
-    def _discord_notes_change(self, DiscordNotesText, DiscordText, activity: Activity, *args):
+    def _pin_overlay_change(self, chk_pin_to_overlay:ttk.Checkbutton, system:dict):
+        """
+        The 'pin to overlay' checkbox has been changed, store state
+
+        Args:
+            chk_pin_to_overlay (ttk.Checkbutton): The pin to overlay CheckButton
+            system (dict): The system state dict
+        """
+        system['PinToOverlay'] = CheckStates.STATE_ON if chk_pin_to_overlay.instate(['selected']) else CheckStates.STATE_OFF
+
+
+    def _discord_notes_change(self, DiscordNotesText, activity: Activity, *args):
         """
         Callback when the user edits the Discord notes field
         """
         activity.discord_notes = DiscordNotesText.get("1.0", "end-1c")
-        self._update_discord_field(DiscordText, activity)
+        self._update_discord_field(activity)
         DiscordNotesText.edit_modified(False) # Ensures the <<Modified>> event is triggered next edit
         activity.dirty = True
 
 
-    def _option_change(self, DiscordText, activity: Activity):
+    def _option_change(self, activity: Activity):
         """
         Callback when one of the Discord options is changed
         """
-        self.btn_post_to_discord.config(state=('normal' if self._discord_button_available() else 'disabled'))
-        self._update_discord_field(DiscordText, activity)
+        self.bgstally.state.refresh()
+        self.btn_post_to_discord.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
+        self._update_discord_field(activity)
 
 
-    def _enable_faction_change(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity: Activity, system, faction, faction_index, *args):
+    def _enable_faction_change(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, FactionEnableCheckbuttons, activity: Activity, system, faction, faction_index, *args):
         """
         Callback for when a Faction Enable Checkbutton is changed
         """
         faction['Enabled'] = CheckStates.STATE_ON if FactionEnableCheckbuttons[faction_index].instate(['selected']) else CheckStates.STATE_OFF
         self._update_enable_all_factions_checkbutton(notebook, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, system)
-        self._update_discord_field(DiscordText, activity)
+        self._update_discord_field(activity)
         activity.dirty = True
 
 
-    def _enable_all_factions_change(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity: Activity, system, *args):
+    def _enable_all_factions_change(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, FactionEnableCheckbuttons, activity: Activity, system, *args):
         """
         Callback for when the Enable All Factions Checkbutton is changed
         """
         x = 0
         for faction in system['Factions'].values():
             if EnableAllCheckbutton.instate(['selected']):
-                FactionEnableCheckbuttons[x].state(['selected'])
+                try:
+                    FactionEnableCheckbuttons[x].state(['selected'])
+                except:
+                    # Will happen if we're hiding BGS checkboxes in a TW system
+                    pass
                 faction['Enabled'] = CheckStates.STATE_ON
             else:
-                FactionEnableCheckbuttons[x].state(['!selected'])
+                try:
+                    FactionEnableCheckbuttons[x].state(['!selected'])
+                except:
+                    # Will happen if we're hiding BGS checkboxes in a TW system
+                    pass
                 faction['Enabled'] = CheckStates.STATE_OFF
             x += 1
 
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
-        self._update_discord_field(DiscordText, activity)
+        self._update_discord_field(activity)
         activity.dirty = True
 
 
-    def _enable_settlement_change(self, SettlementCheckbutton, settlement_name, DiscordText, activity: Activity, faction, faction_index, *args):
+    def _enable_settlement_change(self, SettlementCheckbutton, settlement_name, activity: Activity, faction, faction_index, *args):
         """
         Callback for when a Settlement Enable Checkbutton is changed
         """
         faction['GroundCZSettlements'][settlement_name]['enabled'] = CheckStates.STATE_ON if SettlementCheckbutton.instate(['selected']) else CheckStates.STATE_OFF
-        self._update_discord_field(DiscordText, activity)
+        self._update_discord_field(activity)
         activity.dirty = True
 
 
@@ -415,48 +520,75 @@ class WindowActivity:
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
 
 
-    def _faction_name_clicked(self, notebook: ScrollableNotebook, tab_index: int, EnableCheckbutton, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity: Activity, system, faction, faction_index, *args):
+    def _faction_name_clicked(self, notebook: ScrollableNotebook, tab_index: int, EnableCheckbutton, EnableAllCheckbutton, FactionEnableCheckbuttons, activity: Activity, system, faction, faction_index, *args):
         """
         Callback when a faction name is clicked. Toggle enabled state.
         """
         if EnableCheckbutton.instate(['selected']): EnableCheckbutton.state(['!selected'])
         else: EnableCheckbutton.state(['selected'])
-        self._enable_faction_change(notebook, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, DiscordText, activity, system, faction, faction_index, *args)
+        self._enable_faction_change(notebook, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, activity, system, faction, faction_index, *args)
 
 
-    def _settlement_name_clicked(self, SettlementCheckbutton, settlement_name, DiscordText, activity: Activity, faction, faction_index, *args):
+    def _settlement_name_clicked(self, SettlementCheckbutton, settlement_name, activity: Activity, faction, faction_index, *args):
         """
         Callback when a settlement name is clicked. Toggle enabled state.
         """
         if SettlementCheckbutton.instate(['selected']): SettlementCheckbutton.state(['!selected'])
         else: SettlementCheckbutton.state(['selected'])
-        self._enable_settlement_change(SettlementCheckbutton, settlement_name, DiscordText, activity, faction, faction_index, *args)
+        self._enable_settlement_change(SettlementCheckbutton, settlement_name, activity, faction, faction_index, *args)
 
 
-    def _cz_change(self, notebook: ScrollableNotebook, tab_index: int, CZVar, EnableAllCheckbutton, DiscordText, cz_type, activity: Activity, system, faction, faction_index, *args):
+    def _cz_change(self, notebook: ScrollableNotebook, tab_index: int, CZVar: tk.IntVar, EnableAllCheckbutton, cz_type, activity: Activity, system, faction, faction_index, *args):
         """
         Callback (set as a variable trace) for when a CZ Variable is changed
         """
-        if cz_type == CZs.SPACE_LOW:
-            faction['SpaceCZ']['l'] = CZVar.get()
-        elif cz_type == CZs.SPACE_MED:
-            faction['SpaceCZ']['m'] = CZVar.get()
-        elif cz_type == CZs.SPACE_HIGH:
-            faction['SpaceCZ']['h'] = CZVar.get()
-        elif cz_type == CZs.GROUND_LOW:
-            faction['GroundCZ']['l'] = CZVar.get()
-        elif cz_type == CZs.GROUND_MED:
-            faction['GroundCZ']['m'] = CZVar.get()
-        elif cz_type == CZs.GROUND_HIGH:
-            faction['GroundCZ']['h'] = CZVar.get()
+        match cz_type:
+            case CZs.SPACE_LOW:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZ
+                event_size: str = ApiSizeLookup['l']
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ']['l'])
+                faction['SpaceCZ']['l'] = CZVar.get()
+            case CZs.SPACE_MED:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZ
+                event_size: str = ApiSizeLookup['m']
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ']['m'])
+                faction['SpaceCZ']['m'] = CZVar.get()
+            case CZs.SPACE_HIGH:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZ
+                event_size: str = ApiSizeLookup['h']
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ']['h'])
+                faction['SpaceCZ']['h'] = CZVar.get()
+            case CZs.GROUND_LOW:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.GROUNDCZ
+                event_size: str = ApiSizeLookup['l']
+                event_diff: int = int(CZVar.get()) - int(faction['GroundCZ']['l'])
+                faction['GroundCZ']['l'] = CZVar.get()
+            case CZs.GROUND_MED:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.GROUNDCZ
+                event_size: str = ApiSizeLookup['m']
+                event_diff: int = int(CZVar.get()) - int(faction['GroundCZ']['m'])
+                faction['GroundCZ']['m'] = CZVar.get()
+            case CZs.GROUND_HIGH:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.GROUNDCZ
+                event_size: str = ApiSizeLookup['h']
+                event_diff: int = int(CZVar.get()) - int(faction['GroundCZ']['h'])
+                faction['GroundCZ']['h'] = CZVar.get()
+
+        # Send to API
+        event: dict = {
+            'event': event_type,
+            event_size: event_diff,
+            'Faction': faction['Faction']
+        }
+        if activity.cmdr is not None: self.bgstally.api_manager.send_event(event, activity, activity.cmdr)
 
         activity.recalculate_zero_activity()
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
-        self._update_discord_field(DiscordText, activity)
+        self._update_discord_field(activity)
         activity.dirty = True
 
 
-    def _mission_points_change(self, notebook: ScrollableNotebook, tab_index: int, MissionPointsVar, primary, EnableAllCheckbutton, DiscordText, activity: Activity, system, faction, faction_index, *args):
+    def _mission_points_change(self, notebook: ScrollableNotebook, tab_index: int, MissionPointsVar: tk.IntVar, primary, EnableAllCheckbutton, activity: Activity, system, faction, faction_index, *args):
         """
         Callback (set as a variable trace) for when a mission points Variable is changed
         """
@@ -467,11 +599,11 @@ class WindowActivity:
 
         activity.recalculate_zero_activity()
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
-        self._update_discord_field(DiscordText, activity)
+        self._update_discord_field(activity)
         activity.dirty = True
 
 
-    def _scenarios_change(self, notebook: ScrollableNotebook, tab_index: int, ScenariosVar, EnableAllCheckbutton, DiscordText, activity: Activity, system, faction, faction_index, *args):
+    def _scenarios_change(self, notebook: ScrollableNotebook, tab_index: int, ScenariosVar: tk.IntVar, EnableAllCheckbutton, activity: Activity, system, faction, faction_index, *args):
         """
         Callback (set as a variable trace) for when the scenarios Variable is changed
         """
@@ -479,7 +611,7 @@ class WindowActivity:
 
         activity.recalculate_zero_activity()
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
-        self._update_discord_field(DiscordText, activity)
+        self._update_discord_field(activity)
         activity.dirty = True
 
 
@@ -499,11 +631,17 @@ class WindowActivity:
                 else: notebook.notebookTab.tab(tab_index, image=self.image_tab_active_disabled)
 
 
-    def _copy_to_clipboard(self, Form:tk.Frame, activity:Activity):
-        """
-        Get all text from the Discord field and put it in the Copy buffer
-        """
-        Form.clipboard_clear()
-        Form.clipboard_append(activity.generate_text(DiscordActivity.BOTH, True))
-        Form.update()
+    def _copy_to_clipboard(self, frm_container: tk.Frame, activity: Activity):
+        """Get text version of the activity and put it in the Copy buffer
 
+        Args:
+            frm_container (tk.Frame): The parent tk Frame
+            activity (Activity): The Activity object
+        """
+        formatter: BaseActivityFormatterInterface = self.bgstally.formatter_manager.get_current_formatter()
+        if formatter is None: return
+        text: str = formatter.get_text(activity, self.bgstally.state.DiscordActivity.get(), lang=self.bgstally.state.discord_lang)
+
+        frm_container.clipboard_clear()
+        frm_container.clipboard_append(text)
+        frm_container.update()

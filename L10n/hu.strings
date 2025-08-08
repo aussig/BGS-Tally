@@ -1,0 +1,1484 @@
+/* Language name */
+"!Language" = "Magyar";
+
+/* [legend.py] */
+"(Cannot be automatically distinguished)" = "(Nem sikerült automatikusan megállapítani)";
+
+/* Discord text. [fleetcarrier.py] */
+"A carrier jump has been scheduled" = "Egy anyahajó ugrás naptárazva";
+
+/* Preferences checkbox label. [ui.py] */
+"Abbreviate Faction Names" = "Frakció nevek rövidítése";
+
+/* Label on API settings window. [api.py] */
+"About This" = "Erről";
+
+/* Preferences checkbox label. [ui.py] */
+"Activity Indicator" = "Tevékenység jelző";
+
+/* Label on activity window. [activity.py] */
+"Activity to post:" = "Közvetítendő tevékenység:";
+
+/* Add/create a new system. [colonisation.py] */
+"Add" = "Add";
+
+/* CMDR information. [targetmanager.py] */
+"Added a friend" = "Barát hozzáadva";
+
+/* Preferences heading. [ui.py] */
+"Advanced" = "Bővebb keresés";
+
+/* Colonisation 'Facility Economy' [base_types.json] */
+"Agricultural" = "Agricultural";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Agricultural Installation" = "Agricultural Installation";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Agriculture Settlement" = "Agriculture Settlement";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Agriculture Tier 1" = "Agriculture Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Agriculture Tier 1 Med" = "Agriculture Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Agriculture Tier 1 Sml" = "Agriculture Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Agriculture Tier 2" = "Agriculture Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Agriculture Tier 2 Lrg" = "Agriculture Tier 2 Lrg";
+
+/* Discord carrier docking access. [fleetcarrier.py] */
+"All" = "Összes";
+
+/* all tracked builds. [progress.py] */
+"All builds" = "All builds";
+
+/* Main window label. [ui.py] */
+"API changed, open settings to re-approve" = "API megváltozott, nyisd ki a beállításokat, hogy ismét engedélyezd";
+
+/* Label on API settings window. [api.py] */
+"API Information" = "API információ";
+
+/* Label on API settings window. [api.py] */
+"API Key" = "API kulcs";
+
+/* Label on API settings window. [api.py] */
+"API Settings" = "API Beállítások";
+
+/* Label on API settings window. [api.py] */
+"Approved by you" = "Ön által engedélyezve";
+
+/* Preferences force tick text. [ui.py] */
+"Are you sure that you want to do this?" = "Biztos vagy benne, hogy ezt akarod?";
+
+/* [colonisation.py] */
+"Are you sure you want to remove this system?" = "Are you sure you want to remove this system?";
+
+/* Text on API settings window. [api.py] */
+"Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "A lent említett információért fordulj a szerver adminisztrátorhoz majd nyomb meg \"Kapcsolat létrehozása\" gombot a fojtatáshoz. Népszerú szerverekhez vannak előre készített gombok, de a saját egyedi API kulcsodat meg kell adnod.";
+
+/* Colonisation 'Type' [base_types.json] */
+"Asteroid Base" = "Asteroid Base";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Bar" = "Bar";
+
+/* name of the base. [colonisation.py] */
+"Base Name" = "Base Name";
+
+/* type of base. [colonisation.py] */
+"Base Type" = "Base Type";
+
+/* Discord heading, abbreviation for black box. [default.py] */
+"bb" = "bb";
+
+/* Discord post title. [activity.py] */
+"BGS Activity after Tick: {tick_time}" = "BGS Tevékenység Tick után: {tick_time}";
+
+/* Dropdown menu on activity window. [activity.py] */
+"BGS Only" = "BGS Kizárólag";
+
+/* [clb.py] */
+"BGS Report" = "BGS riport";
+
+/* Discord heading. [default.py] */
+"bio-pod" = "bio-pod";
+
+/* Activity window tooltip. [activity.py] */
+"Black market profit" = "Fekete piaci profit";
+
+/* bodies in the system. [colonisation.py] */
+"Bodies" = "Bodies";
+
+/* Body the base is on or around. [colonisation.py] */
+"Body" = "Body";
+
+/* any boost effects for the base. [colonisation.py] */
+"Boosted By" = "Boosted By";
+
+/* Dropdown menu on activity window. [activity.py] */
+"Both BGS and TW" = "BGS és TW egyben";
+
+/* Post to Discord button tooltip. [activity.py] */
+"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord";
+
+/* Activity window tooltip. [activity.py] */
+"Bounty vouchers" = "Vérdíjak";
+
+/* Building layout types. [colonisation.py] */
+"Building Layouts" = "Building Layouts";
+
+/* Building type. [colonisation.py] */
+"Building Type" = "Building Type";
+
+/* Builds/bases. [progress.py] */
+"Builds" = "Builds";
+
+/* [fleetcarrier.py] */
+"Buying Commodities" = "Árúcikket Vásárol";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Buying Commodities:" = "Árúcikket Vásárol:";
+
+/* [fleetcarrier.py] */
+"Buying Materials" = "Anyagot vásárol";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Buying Materials:" = "Anyagot vásárol:";
+
+/* Cancel button. [colonisation.py] */
+"Cancel" = "Cancel";
+
+/* Discord heading. [default.py] */
+"cargo" = "rakomány";
+
+/* [fleetcarrier.py] */
+"Cargo" = "Cargo";
+
+/* Label on legend window. [legend.py] */
+"Cargo missions" = "Rakomány küldetések";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Cargo:" = "Cargo:";
+
+/* Amount in your Fleet Carrier. [progress.py] */
+"Carrier" = "Carrier";
+
+/* Discord fleet carrier title. [fleetcarrier.py] */
+"Carrier {carrier_name}" = "Anyahajó {carrier_name}";
+
+/* category of base. [colonisation.py] */
+"Category" = "Category";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Civilian" = "Civilian";
+
+/* Colonisation 'Type' [base_types.json] */
+"Civilian Outpost" = "Civilian Outpost";
+
+/* Colonisation 'Type' [base_types.json] */
+"Civilian Planetary Outpost" = "Civilian Planetary Outpost";
+
+/* Colonisation 'Type' [base_types.json] */
+"Civilian Settlement" = "Civilian Settlement";
+
+/* [sheet_options.py] */
+"Clear contents" = "Tartalom törlése";
+
+/* Label on CMDR window. [cmdrs.py] */
+"CMDR Details" = "CMDR Részletek";
+
+/* Discord heading. [cmdrs.py] */
+"CMDR Inara Link" = "CMDR Inara Link";
+
+/* Preferences checkbox label. [ui.py] */
+"CMDR Info" = "CMDR Info";
+
+/* Colonisation 'Facility Economy' [base_types.json] */
+"Colony" = "Colony";
+
+/* Activity window tooltip. [activity.py] */
+"Combat bonds" = "Harci kötvények";
+
+/* Colonisation 'Type' [base_types.json] */
+"Commercial Outpost" = "Commercial Outpost";
+
+/* Commodity. [progress.py] */
+"Commodity" = "Commodity";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Comms Installation" = "Comms Installation";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Communication Installation" = "Communication Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Communication Station" = "Communication Station";
+
+/* Row heading of build totals i.e. ones that are done. [colonisation.py] */
+"Complete" = "Complete";
+
+/* Preferences button label. [ui.py] */
+"Configure Remote Server" = "Távoli Szerver Konfigurálása";
+
+/* Preferences force tick popup title. [ui.py] */
+"Confirm Force a New Tick" = "Erősítse meg Új Tick kényszerítését";
+
+/* [colonisation.py] */
+"Confirm Removal" = "Confirm Removal";
+
+/* Colonisation 'Economy Influence' [base_types.json] */
+"Contraband" = "Contraband";
+
+/* [widgets.py] */
+"Copy" = "Másolás";
+
+/* [sheet_options.py] */
+"Copy contents" = "Tartalom másolása";
+
+/* tooltip for the copy to clipboard icon. [colonisation.py] */
+"Copy system name to clipboard" = "Copy system name to clipboard";
+
+/* Button label. [activity.py] */
+"Copy to Clipboard" = "Másolás a vágólapra";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Coriolis" = "Coriolis";
+
+/* Colonisation 'Type' [base_types.json] */
+"Coriolis Starport" = "Coriolis Starport";
+
+/* Cost in tonnes of cargo. [colonisation.py] */
+"Cost" = "Cost";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Criminal Outpost" = "Criminal Outpost";
+
+/* Discord heading, abbreviation for critically injured. [default.py] */
+"crit" = "krit";
+
+/* Label on legend window. [legend.py] */
+"Critically wounded evacuation missions" = "Kritikusan sérültet evakuáló küldetés";
+
+/* tooltip for the build name. [progress.py] */
+"Current build, click to copy to clipboard" = "Current build, click to copy to clipboard";
+
+/* [fleetcarrier.py] */
+"Current System" = "Jelenlegi Rendszer";
+
+/* Preferences checkbox label. [ui.py] */
+"Current Tick" = "Jelenlegi Tick";
+
+/* [widgets.py] */
+"Cut" = "Kivágás";
+
+/* [sheet_options.py] */
+"Cut contents" = "Tartalom kivágása";
+
+/* tooltip for the commodity header. [progress.py] */
+"Cycle commodity list details" = "Cycle commodity list details";
+
+/* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
+"Cycle commodity list filter views" = "Cycle commodity list filter views";
+
+/* CMDR window column title. [cmdrs.py] */
+"Date / Time" = "Dátum / Idő";
+
+/* Discord heading. [cmdrs.py] */
+"Date and Time" = "Dátum és idő";
+
+/* any decrease effects for the base. [colonisation.py] */
+"Decreased By" = "Decreased By";
+
+/* [ui.py] */
+"Default" = "Alapértelmezett";
+
+/* Delete button. [colonisation.py] */
+"Delete" = "Törlés";
+
+/* [sheet_options.py] */
+"Delete columns" = "Oszlopok törlése";
+
+/* [sheet_options.py] */
+"Delete rows" = "Sorok törlése";
+
+/* Button on CMDR window. [cmdrs.py] */
+"Delete Selected" = "Kiválasztott törlése";
+
+/* tooltip for the delete system button. [colonisation.py] */
+"Delete system plan" = "Delete system plan";
+
+/* Amount delivered. [progress.py] */
+"Delivered" = "Delivered";
+
+/* [demo.py] */
+"Demo Data Only" = "Csak demo adat";
+
+/* Discord heading. [fleetcarrier.py] */
+"Departure Time" = "Indulás ideje";
+
+/* Label on API settings window. [api.py] */
+"Description" = "Leírás";
+
+/* Label on legend window. [legend.py] */
+"Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "Részletes INF elosztva + / ++ / +++ / ++++ / +++++ kapott küldetésekből.";
+
+/* Development level impact. [colonisation.py] */
+"Dev Lvl" = "Dev Lvl";
+
+/* Label on activity window. [activity.py] */
+"Discord Additional Notes" = "További Discord jegyzetek";
+
+/* Preferences label. [ui.py] */
+"Discord Avatar URL" = "Discord avatár URL";
+
+/* [ui.py] */
+"Discord Options" = "Discord opciók";
+
+/* Label on activity window. [activity.py] */
+"Discord Report Preview ⓘ" = "Discord riport előnézet";
+
+/* Preferences heading. [ui.py] */
+"Discord Webhooks" = "Discord webhookok";
+
+/* Discord heading. [fleetcarrier.py] */
+"Docking" = "Dokkolás";
+
+/* Label on activity window. [activity.py] */
+"Double-check on-ground CZ tallies, sizes are not always correct" = "Ellenőrizd a felszíni CZ tally-t, a méretek nem mindig helyesek";
+
+/* Economy influence. [colonisation.py] */
+"Econ Inf" = "Econ Inf";
+
+/* [colonisation.py] */
+"Economy" = "Economy";
+
+/* [sheet_options.py] */
+"Edit cell" = "Cella szerkesztése";
+
+/* [sheet_options.py] */
+"Edit header" = "Fejléc szerkesztése";
+
+/* [sheet_options.py] */
+"Edit index" = "Index szerkesztése";
+
+/* [clb.py] */
+"Election Inf" = "Választási Bef";
+
+/* Discord heading, abbreviation for election INF. [default.py] */
+"ElectionINF" = "Választási INF";
+
+/* Label on activity window. [activity.py] */
+"Empty System, no BGS Activity Available" = "Üres rendszer, BGS tevékenység nem elérhető";
+
+/* Activity window tooltip. [activity.py] */
+"Enable / disable all factions" = "Minden frakció engedélyezése / letiltása";
+
+/* Activity window tooltip. [activity.py] */
+"Enable / disable faction" = "Frakció engedélyezése / letiltása";
+
+/* Checkbox on API settings window. [api.py] */
+"Enable {activities_url} Requests" = "{activities_url} kérelmek engedélyezése";
+
+/* Checkbox on API settings window. [api.py] */
+"Enable {events_url} Requests" = "{events_url} kérelmek engedélyezése";
+
+/* Error when no plan name is given. [colonisation.py] */
+"Error" = "Error";
+
+/* Discord heading, abbreviation for escape pod. [default.py] */
+"esc-pod" = "Mentőkapszula";
+
+/* Label on API settings window. [api.py] */
+"Establish a connection" = "Kapcsolat létrehozása";
+
+/* Button on API settings window. [api.py] */
+"Establish Connection" = "Kapcsolat létrehozása";
+
+/* Label on API settings window. [api.py] */
+"Events Requested" = "Események kérelmezve";
+
+/* Discord heading, abbreviation for exobiology. [default.py] */
+"Exo" = "Exo";
+
+/* Discord heading, abbreviation for exploration. [default.py] */
+"Expl" = "Felf";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Exploration" = "Exploration";
+
+/* Activity window tooltip. [activity.py] */
+"Exploration data" = "Felfedezési adat";
+
+/* Colonisation 'Type' [base_types.json] */
+"Exploration Hub" = "Exploration Hub";
+
+/* Colonisation 'Facility Economy' [base_types.json] */
+"Extraction" = "Extraction";
+
+/* Colonisation 'Type' [base_types.json] */
+"Extraction Hub" = "Extraction Hub";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Extraction Settlement" = "Extraction Settlement";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Extraction Tier 1" = "Extraction Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Extraction Tier 1 Med" = "Extraction Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Extraction Tier 1 Sml" = "Extraction Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Extraction Tier 2" = "Extraction Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Extraction Tier 2 Lrg" = "Extraction Tier 2 Lrg";
+
+/* Activity window column title. [activity.py] */
+"Faction" = "Frakció";
+
+/* Discord heading, abbreviation for failed missions. [default.py] */
+"Fails" = "Sikertelen";
+
+/* Preferences table heading, abbreviation for fleet carrier commodities / materials. [ui.py] */
+"FC C/M" = "FC piac";
+
+/* Preferences table heading, abbreviation for fleet carrier operations. [ui.py] */
+"FC Ops" = "FC műv";
+
+/* Preferences button label. [ui.py] */
+"Force Tick" = "Tick kényszerítése";
+
+/* Appended to tick time if a forced tick. [activity.py] */
+"forced" = "kényszerítve";
+
+/* Preferences label. [ui.py] */
+"Format for Discord Posts" = "Discord üzenetek formátuma";
+
+/* Discord CMDR information. [targetmanager.py] */
+"Friend request received from this CMDR" = "Barátkérelem érkezett ettől a CMDR-től";
+
+/* Discord carrier docking access. [fleetcarrier.py] */
+"Friends" = "Barátok";
+
+/* Discord heading. [fleetcarrier.py] */
+"From System" = "Indulási rendszer";
+
+/* Overlay galaxy tick message. [ui.py] */
+"Galaxy Tick: {tick_time}" = "Galaxis Tick: {tick_time}";
+
+/* Appended to tick time if a normal tick. [activity.py] */
+"game" = "játék";
+
+/* Preferences heading. [ui.py] */
+"General Options" = "Általános opciók";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Government" = "Government";
+
+/* Colonisation 'Type' [base_types.json] */
+"Government Installation" = "Government Installation";
+
+/* [clb.py] */
+"Ground" = "Felszín";
+
+/* Activity window tooltip. [activity.py] */
+"Ground conflict zones" = "Felszíni konfliktus zónák";
+
+/* Discord heading, abbreviation for ground conflict zones. [default.py] */
+"GroundCZs" = "FelszíniCZ-k";
+
+/* Discord heading. [default.py] */
+"GroundMurders" = "FelszíniGyilk";
+
+/* Activity window tooltip. [activity.py] */
+"High" = "Magas";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"High Tech" = "High Tech";
+
+/* Colonisation 'Type' [base_types.json] */
+"Hightech Hub" = "Hightech Hub";
+
+/* Colonisation 'Type' [base_types.json] */
+"Hightech Planetary Outpost" = "Hightech Planetary Outpost";
+
+/* HMC World is a high metal content world. [colonisation.py] */
+"HMC World" = "HMC World";
+
+/* Colonisation 'Category' [base_types.json] */
+"Hub" = "Hub";
+
+/* Button on API settings window. [api.py] */
+"I Approve" = "Jóváhagyom";
+
+/* Button on API settings window. [api.py] */
+"I Do Not Approve" = "Nem hagyom jóvá";
+
+/* Discord CMDR information. [targetmanager.py] */
+"I scanned this CMDR" = "Szkenneltem ezt a CMDR-t";
+
+/* Heading on legend window. [legend.py] */
+"Icons in BGS Reports" = "Ikonok a BGS riportokban";
+
+/* Heading on legend window. [legend.py] */
+"Icons in Thargoid War Reports" = "Ikonok a Thargoid Háború riportokban";
+
+/* Discord heading. [cmdrs.py] */
+"In Ship" = "Hajóban";
+
+/* Overlay CMDR information report message. [ui.py] */
+"In ship: {ship}" = "Hajó: {ship}";
+
+/* Discord heading. [cmdrs.py] */
+"In Squadron" = "Squadronban";
+
+/* Discord heading. [cmdrs.py] */
+"In System" = "Rendszerben";
+
+/* Overlay CMDR information report message. [ui.py] */
+"In system: {system}" = "Rendszer: {system}";
+
+/* Preferences heading. [ui.py] */
+"In-game Overlay" = "Játék átfedés";
+
+/* Preferences label. [ui.py] */
+"In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information." = "A játék átfedés támogatásához a különálló EDMCOverlay beépülő telepítése szükséges - további információkért lásd az instrukciókat.";
+
+/* Label on legend window. [legend.py] */
+"In-space Conflict Zone Side Objective: Cap ship" = "Űr konfliktus zóna mellékcél: Csatahajó";
+
+/* Label on legend window. [legend.py] */
+"In-space Conflict Zone Side Objective: Enemy captain" = "Űrbeli konfliktus zóna mellékcél: Ellenséges kapitány";
+
+/* Label on legend window. [legend.py] */
+"In-space Conflict Zone Side Objective: Propaganda wing" = "Űrbeli konfliktus zóna mellékcél: Propaganda osztag";
+
+/* Label on legend window. [legend.py] */
+"In-space Conflict Zone Side Objective: Spec ops wing" = "Űrbeli konfliktus zóna mellékcél: Különleges osztag";
+
+/* Inara URL on CMDR window. [cmdrs.py] */
+"Inara Info Available ⤴" = "Inara info elérhető";
+
+/* Overlay CMDR information report message. [ui.py] */
+"INARA INFORMATION AVAILABLE" = "INARA INFO ELÉRHETŐ";
+
+/* Inara link. [activity.py] */
+"Inara ⤴" = "Inara ⤴";
+
+/* Label on CMDR window. [cmdrs.py] */
+"Inara: " = "Inara: ";
+
+/* Checkbox label. [activity.py] */
+"Include" = "Tartalmaz";
+
+/* Preferences checkbox label. [ui.py] */
+"Include Secondary INF" = "Tartalmaz másodlagos INF-et";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Industrial" = "Industrial";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Hub" = "Industrial Hub";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Industrial Installation" = "Industrial Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Outpost" = "Industrial Outpost";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Planetary Outpost" = "Industrial Planetary Outpost";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Industrial Tier 1" = "Industrial Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Tier 1 Med" = "Industrial Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Tier 1 Sml" = "Industrial Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Industrial Tier 2" = "Industrial Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Industrial Tier 2 Lrg" = "Industrial Tier 2 Lrg";
+
+/* [clb.py] */
+"Inf" = "Bef";
+
+/* Discord heading, abbreviation for INF. [default.py] */
+"INF" = "INF";
+
+/* Activity window tooltip. [activity.py] */
+"Influence" = "Befolyás";
+
+/* Discord heading. [default.py] */
+"injured" = "sebesült";
+
+/* Label on legend window. [legend.py] */
+"Injured evacuation missions" = "Sérült evakuáció küldetések";
+
+/* [sheet_options.py] */
+"Insert column" = "Oszlop beszúrása";
+
+/* [sheet_options.py] */
+"Insert columns left" = "Oszlop beszúrása balra";
+
+/* [sheet_options.py] */
+"Insert columns right" = "Oszlop beszúrása jobbra";
+
+/* [sheet_options.py] */
+"Insert row" = "Sor beszúrása";
+
+/* [sheet_options.py] */
+"Insert rows above" = "Sor beszúrása fölé";
+
+/* [sheet_options.py] */
+"Insert rows below" = "Sor beszúrása alá";
+
+/* Colonisation 'Category' [base_types.json] */
+"Installation" = "Installation";
+
+/* Preferences label. [ui.py] */
+"Instructions for Use" = "Használati útmutató";
+
+/* Preferences heading. [ui.py] */
+"Integrations" = "Integráció";
+
+/* CMDR window column title. [cmdrs.py] */
+"Interaction" = "Interakció";
+
+/* Label on CMDR window. [cmdrs.py] */
+"Interaction: " = "Interakció: ";
+
+/* CMDR information. [targetmanager.py] */
+"Interdicted by" = "Eltérítve";
+
+/* Discord CMDR information. [targetmanager.py] */
+"INTERDICTED BY this CMDR" = "ELTÉRÍTVE CMDR által";
+
+/* Discord post title. [fleetcarrier.py] */
+"Jump Cancelled for Carrier {carrier_name}" = "Ugrás törölve {carrier_name} anyahajónak";
+
+/* Discord post title. [fleetcarrier.py] */
+"Jump Scheduled for Carrier {carrier_name}" = "Ugrás naptárazva {carrier_name} anyahajónak";
+
+/* CMDR information. [targetmanager.py] */
+"Killed by" = "Megölt";
+
+/* Discord CMDR information. [targetmanager.py] */
+"KILLED BY this CMDR" = "Megölt CMDR";
+
+/* Discord heading. [default.py] */
+"kills" = "ölések";
+
+/* [legend.py] */
+"Kills" = "Ölések";
+
+/* [progress.py] */
+"L" = "L";
+
+/* [colonisation.py] */
+"Landable" = "Landable";
+
+/* Preferences label. [ui.py] */
+"Language for Discord Posts" = "Discord üzenetek nyelve";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Large" = "Large";
+
+/* Main window label. [ui.py] */
+"Last BGS Tick:" = "Utolsó BGS Tick:";
+
+/* Button label. [ui.py] */
+"Latest BGS Tally" = "Legutóbbi BGS összegzés";
+
+/* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
+"Left click for Inara market, right click to copy" = "Left click for Inara market, right click to copy";
+
+/* CMDR window column title. [cmdrs.py] */
+"Legal" = "Legális";
+
+/* Discord heading. [cmdrs.py] */
+"Legal Status" = "Legalitás";
+
+/* Overlay CMDR information report message. [ui.py] */
+"Legal status: {legal}" = "Legalitás helyzete: {legal}";
+
+/* Number of loads of cargo. [colonisation.py] */
+"Loads" = "Loads";
+
+/* base location surface/orbital. [colonisation.py] */
+"Location" = "Location";
+
+/* [fleetcarrier.py] */
+"Locker" = "Locker";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Locker:" = "Locker:";
+
+/* Activity window tooltip. [activity.py] */
+"Low" = "Alacsony";
+
+/* [legend.py] */
+"Massacre missions" = "Mészároló küldetések";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Medical" = "Medical";
+
+/* Colonisation 'Type' [base_types.json] */
+"Medical Installation" = "Medical Installation";
+
+/* Activity window tooltip. [activity.py] */
+"Medium" = "Közepes";
+
+/* Discord CMDR information. [targetmanager.py] */
+"Message received from this CMDR in local chat" = "Üzenet fogadba CMDR-től lokális csaten";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Military" = "Military";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Hub" = "Military Hub";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Installation" = "Military Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Outpost" = "Military Outpost";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Military Settlement" = "Military Settlement";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Military Tier 1" = "Military Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Tier 1 Med" = "Military Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Tier 1 Sml" = "Military Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Military Tier 2" = "Military Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Military Tier 2 Lrg" = "Military Tier 2 Lrg";
+
+/* Colonisation 'Type' [base_types.json] */
+"Mining Outpost" = "Mining Outpost";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Mining Outpost Installation" = "Mining Outpost Installation";
+
+/* Activity window tooltip. [activity.py] */
+"Mission fails" = "Sikertelen küldetések";
+
+/* Discord heading. [default.py] */
+"missions" = "küldetések";
+
+/* Discord heading, abbreviation for massacre (missions). [default.py] */
+"mm" = "mm";
+
+/* Discord heading. [default.py] */
+"Murders" = "Gyilkosságok";
+
+/* Label on API settings window. [api.py] */
+"Name" = "Név";
+
+/* Label on CMDR window. [cmdrs.py] */
+"Name: " = "Név: ";
+
+/* Amount still needed. [progress.py] */
+"Needed" = "Needed";
+
+/* Overlay message. [bgstally.py] */
+"NEW TICK DETECTED!" = "ÚJ TICK ÉSZLELVE!";
+
+/* Preferences table heading. [ui.py] */
+"Nickname" = "Felhasználónév";
+
+/* [fleetcarrier.py] */
+"No" = "Nem";
+
+/* Discord carrier docking access. [fleetcarrier.py] */
+"None" = "Senki";
+
+/* Discord heading. [fleetcarrier.py] */
+"Notorious Access" = "Visszaesők is";
+
+/* Objectives title. [objectivesmanager.py] */
+"Objectives" = "Célok";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Ocellus" = "Ocellus";
+
+/* Colonisation 'Type' [base_types.json] */
+"Ocellus Starport" = "Ocellus Starport";
+
+/* Label on legend window. [legend.py] */
+"On-ground Conflict Zone" = "Felszíni konfliktus zóna";
+
+/* Indicates the field is optional and case-sensitive. [colonisation.py] */
+"optional and case sensitive" = "optional and case sensitive";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Orbis" = "Orbis";
+
+/* Colonisation 'Type' [base_types.json] */
+"Orbis Starport" = "Orbis Starport";
+
+/* Number of orbital/space builds. [colonisation.py] */
+"Orbital" = "Orbital";
+
+/* Colonisation 'Category' [base_types.json] */
+"Outpost" = "Outpost";
+
+/* Colonisation 'Type' [base_types.json] */
+"Outpost Hub" = "Outpost Hub";
+
+/* Landing pad size. [colonisation.py] */
+"Pad" = "Pad";
+
+/* [ui.py] */
+"Panels" = "Panelek";
+
+/* Discord heading, abbreviation for passengers. [default.py] */
+"passeng" = "utasok";
+
+/* Label on legend window. [legend.py] */
+"Passenger missions" = "Utas küldetések";
+
+/* [ui.py] */
+"Past Estimated Tick Time" = "Túl a tick becsült idején";
+
+/* [widgets.py] */
+"Paste" = "Beilleszt";
+
+/* Percentage. [progress.py] */
+"Percent" = "Percent";
+
+/* Checkbox label. [activity.py] */
+"Pin {system_name} to Overlay" = "{system_name} kitűzése az Átfedésre";
+
+/* Colonisation 'Type' [base_types.json] */
+"Pirate Base" = "Pirate Base";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Pirate Installation" = "Pirate Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Pirate Outpost" = "Pirate Outpost";
+
+/* the name you want to give your plan. [colonisation.py] */
+"Plan Name" = "Plan Name";
+
+/* Colonisation 'Category' [base_types.json] */
+"Planetary Outpost" = "Planetary Outpost";
+
+/* Colonisation 'Type' [base_types.json] */
+"Planetary Port" = "Planetary Port";
+
+/* Row heading of planned build totals i.e. ones that aren't complete. [colonisation.py] */
+"Planned" = "Planned";
+
+/* URL label on API settings window. [api.py] */
+"Player Journal Documentation" = "Játékosnapló dokumentáció";
+
+/* Text on API settings window. [api.py] */
+"PLEASE ENSURE YOU TRUST the server you send this information to!" = "GYŐZŐDJ MEG RÓLA, hogy MEGBÍZOL a szerverben, ahová ezt az információt elküldöd!";
+
+/* [colonisation.py] */
+"Pop" = "Pop";
+
+/* Population increase. [colonisation.py] */
+"Pop Inc" = "Pop Inc";
+
+/* Population Maximum. [colonisation.py] */
+"Pop Max" = "Pop Max";
+
+/* [colonisation.py] */
+"Population" = "Population";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Port" = "Port";
+
+/* Button on CMDR window. [cmdrs.py] */
+"Post CMDR List to Discord" = "CMDR lista küldése Discordra";
+
+/* Button on CMDR window. [cmdrs.py] */
+"Post CMDR to Discord" = "CMDR küldése Discordra";
+
+/* Button label. [activity.py] */
+"Post to Discord" = "Küldés Discordra";
+
+/* Preferences label. [ui.py] */
+"Post to Discord as" = "Küldés Discordra mint";
+
+/* Discord message footer, legacy text mode. [discord.py] */
+"Posted at: {date_time} | {plugin_name} v{version}" = "Küldve: {date_time} | {plugin_name} v{version}";
+
+/* Label for checkbox to pre-populate bases from EDSM. [colonisation.py] */
+"Pre-fill bases from EDSM" = "Pre-fill bases from EDSM";
+
+/* Notice about prepopulation being challenging. [colonisation.py] */
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
+
+/* Button label. [ui.py] */
+"Previous BGS Tallies" = "Előző BGS tally-k";
+
+/* Activity window column title, abbreviation for primary. [activity.py] */
+"Pri" = "Els.";
+
+/* Activity window tooltip. [activity.py] */
+"Primary" = "Elsődleges";
+
+/* Label on legend window. [legend.py] */
+"Primary INF. This is INF gained for the mission issuing faction." = "Elsődleges INF: A küldetést kiadó frakció számára szerzett INF.";
+
+/* Activity window column title, abbreviation for profit. [activity.py] */
+"Prof" = "Prof.";
+
+/* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
+"Profit at Z | L | M | H demand" = "Profit Z | L | M | H kereslet esetén";
+
+/* [progress.py] */
+"Progress" = "Progress";
+
+/* Activity window column title, abbreviation for purchase. [activity.py] */
+"Purch" = "Vás.";
+
+/* Activity window tooltip for purchase at low | medium | high supply. [activity.py] */
+"Purchase at L | M | H supply" = "Vásárlás L | M | H kínálat esetén";
+
+/* Discord heading, abbreviation for reactivation (TW missions). [default.py] */
+"reac" = "reakt.";
+
+/* Label on legend window. [legend.py] */
+"Reactivation missions" = "Reaktivációs küldetések";
+
+/* CMDR information. [targetmanager.py] */
+"Received friend request from" = "Barát kérés érkezett tőle";
+
+/* CMDR information. [targetmanager.py] */
+"Received message from" = "Üzenet érkezett tőle";
+
+/* CMDR information. [targetmanager.py] */
+"Received team invite from" = "Team meghívás érkezett tőle";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Refinery" = "Refinery";
+
+/* Colonisation 'Type' [base_types.json] */
+"Refinery Hub" = "Refinery Hub";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Relay Installation" = "Relay Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Relay Station" = "Relay Station";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Relay Station Installation" = "Relay Station Installation";
+
+/* Rename button. [colonisation.py] */
+"Rename" = "Rename";
+
+/* Rename a system. [colonisation.py] */
+"Rename System" = "Rename System";
+
+/* tooltip for the rename system button. [colonisation.py] */
+"Rename system plan" = "Rename system plan";
+
+/* Preferences checkbox label. [ui.py] */
+"Report Newly Visited System Activity By Default" = "Újonnan meglátogatott rendszer jelentése alapértelmezés szerint";
+
+/* Required amount. [progress.py] */
+"Required" = "Required";
+
+/* any prerequisites for the base. [colonisation.py] */
+"Requirements" = "Requirements";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Research Bio Settlement" = "Research Bio Settlement";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Research Bio Tier 1" = "Research Bio Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Research Bio Tier 1 Med" = "Research Bio Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Research Bio Tier 1 Sml" = "Research Bio Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Research Bio Tier 2" = "Research Bio Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Research Bio Tier 2 Lrg" = "Research Bio Tier 2 Lrg";
+
+/* Colonisation 'Type' [base_types.json] */
+"Research Station" = "Research Station";
+
+/* [colonisation.py] */
+"rings" = "rings";
+
+/* Discord heading, abbreviation for search and rescue. [default.py] */
+"SandR" = "Kut&Ment.";
+
+/* Colonisation 'Type' [base_types.json] */
+"Satellite" = "Satellite";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Satellite Installation" = "Satellite Installation";
+
+/* Save notes button. [colonisation.py] */
+"Save" = "Save";
+
+/* CMDR information. [targetmanager.py] */
+"Scanned" = "Szkennelve";
+
+/* Activity window tooltip. [activity.py] */
+"Scenario wins" = "Szcenárió győzelmek";
+
+/* Discord heading. [default.py] */
+"Scenarios" = "Szcenáriók";
+
+/* Activity window column title, abbreviation for scenarios. [activity.py] */
+"Scens" = "Szcen.";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Scientific" = "Scientific";
+
+/* Colonisation 'Type' [base_types.json] */
+"Scientific Hub" = "Scientific Hub";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Scientific Installation" = "Scientific Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Scientific Outpost" = "Scientific Outpost";
+
+/* Label on legend window. [legend.py] */
+"Search & Rescue Bio Pods" = "Kutatás & Mentés: biopodok";
+
+/* Label on legend window. [legend.py] */
+"Search & Rescue Black Boxes" = "Kutatás & Mentés: feketedobozok";
+
+/* Label on legend window. [legend.py] */
+"Search & Rescue Escape Pods" = "Kutatás & Mentés: mentőkapszulák";
+
+/* Label on legend window. [legend.py] */
+"Search & Rescue Tissue Samples" = "Kutatás & Mentés: szövetminták";
+
+/* Activity window tooltip. [activity.py] */
+"Search and rescue" = "Kutatás & Mentés";
+
+/* Activity window column title, abbreviation for secondary. [activity.py] */
+"Sec" = "Másod.";
+
+/* Activity window tooltip. [activity.py] */
+"Secondary" = "Másodlagos";
+
+/* Label on legend window. [legend.py] */
+"Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "Másodlagos INF: A küldetés másodlagos hatásaként szerzett INF, például szállítási küldetés során a cél frakció számára.";
+
+/* Security impact. [colonisation.py] */
+"Security" = "Security";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Security Installation" = "Security Installation";
+
+/* Colonisation 'Type' [base_types.json] */
+"Security Station" = "Security Station";
+
+/* [widgets.py] */
+"Select all" = "Mind kiválasztása";
+
+/* [fleetcarrier.py] */
+"Selling Commodities" = "Eladó árucikkek";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Selling Commodities:" = "Eladó árucikkek:";
+
+/* [fleetcarrier.py] */
+"Selling Materials" = "Eladó anyagok";
+
+/* Discord fleet carrier section heading. [fleetcarrier.py] */
+"Selling Materials:" = "Eladó anyagok:";
+
+/* Label on API settings window. [api.py] */
+"Server URL" = "Szerver URL";
+
+/* Colonisation 'Category' [base_types.json] */
+"Settlement" = "Settlement";
+
+/* Discord heading. [default.py] */
+"settlements" = "települések";
+
+/* Activity window column title. [activity.py] */
+"Ship" = "Hajó";
+
+/* Label on API settings window. [api.py] */
+"Shortcuts for Popular Servers" = "Gyorsgombok népszerű szerverekhez";
+
+/* tooltip for the show bases button. [colonisation.py] */
+"Show base types window" = "Show base types window";
+
+/* Main window tooltip. [ui.py] */
+"Show CMDR information window" = "Mutass CMDR információ ablakot";
+
+/* Main window tooltip. [ui.py] */
+"Show colonisation window" = "Show colonisation window";
+
+/* Preferences checkbox label. [ui.py] */
+"Show Detailed INF" = "Mutass részletes INF";
+
+/* Preferences checkbox label. [ui.py] */
+"Show Detailed Trade" = "Mutass részletes cserét";
+
+/* Main window tooltip. [ui.py] */
+"Show fleet carrier window" = "Mutass anyahajó ablakot";
+
+/* Preferences checkbox label. [ui.py] */
+"Show In-game Overlay" = "Mutass játékbeli Átfedőt";
+
+/* Activity window tooltip. [activity.py] */
+"Show legend window" = "Mutass legend ablakot";
+
+/* tooltip for the next build icon. [progress.py] */
+"Show next build" = "Show next build";
+
+/* Main window tooltip. [ui.py] */
+"Show objectives / missions window" = "Célok / küldetések ablak megjelenítése";
+
+/* tooltip for the previous build icon. [progress.py] */
+"Show previous build" = "Show previous build";
+
+/* tooltip for the show bodies window. [colonisation.py] */
+"Show system bodies window" = "Show system bodies window";
+
+/* tooltip for the show notes window. [colonisation.py] */
+"Show system notes window" = "Show system notes window";
+
+/* Preferences checkbox label. [ui.py] */
+"Show Systems with Zero Activity" = "Mutass rendszert nulla aktivitással";
+
+/* Colonisation 'Building Type' [base_types.json] */
+"Small" = "Small";
+
+/* Standard of living impact. [colonisation.py] */
+"SoL" = "SoL";
+
+/* Label on carrier window. [fleetcarrier.py] */
+"Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Bizonyos információ frissítése sikertelen volt. Engedéjezd Anyahajó CAPI lekérdezéseket Fájl -> Beállítások -> Konfiguráció";
+
+/* [clb.py] */
+"Space" = "Űr";
+
+/* Colonisation 'Type' [base_types.json] */
+"Space Bar" = "Space Bar";
+
+/* Activity window tooltip. [activity.py] */
+"Space conflict zones" = "Űrbéli konfliktus zónák";
+
+/* Colonisation 'Type' [base_types.json] */
+"Space Farm" = "Space Farm";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Space Farm Installation" = "Space Farm Installation";
+
+/* Discord heading, abbreviation for space conflict zones. [default.py] */
+"SpaceCZs" = "ŰrKZk";
+
+/* Discord carrier docking access. [fleetcarrier.py] */
+"Squadron and Friends" = "Osztag és Barátok";
+
+/* CMDR window column title. [cmdrs.py] */
+"Squadron ID" = "Osztag ID";
+
+/* Overlay CMDR information report message. [ui.py] */
+"Squadron ID: {squadron}" = "Osztag ID: {squadron}";
+
+/* Discord heading. [cmdrs.py] */
+"Squadron Inara Link" = "Osztag Inara link";
+
+/* Label on CMDR window. [cmdrs.py] */
+"Squadron: " = "Osztag: ";
+
+/* Colonisation 'Category' [base_types.json] */
+"Starport" = "Starport";
+
+/* Activity window column title. [activity.py] */
+"State" = "Állapot";
+
+/* Number of ground/surface builds. [colonisation.py] */
+"Surface" = "Surface";
+
+/* CMDR window column title. [cmdrs.py] */
+"System" = "Rendszer";
+
+/* Discord heading. [default.py] */
+"System activity" = "Rendszer aktivitás";
+
+/* Preferences checkbox label. [ui.py] */
+"System Information" = "Rendszerinformáció";
+
+/* Label for the system's name field in the UI. [colonisation.py] */
+"System Name" = "System Name";
+
+/* Overlay system tick message. [ui.py] */
+"System Tick: {tick_time}" = "Rendszer Tick: {tick_time}";
+
+/* Label on carrier window. [fleetcarrier.py] */
+"System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Rendszer: {current_system} - Dokkolás: {docking_access} - Kőrözött engedve: {notorious}";
+
+/* [progress.py] */
+"t" = "t";
+
+/* Tier 2 points. [colonisation.py] */
+"T2" = "T2";
+
+/* Tier 3 points. [colonisation.py] */
+"T3" = "T3";
+
+/* Text on API settings window. [api.py] */
+"Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills." = "Nézd át alaposan, mielött beleegyezel ebbe - Ha engedélyezed ezt a szervert, {plugin_name} elfogja küldeni az információdat, ami tartalmaz CMDR részleteket, mint tartózkodási hely, küldetések és ölések.";
+
+/* Overlay message. [activity.py] */
+"Targeted Ally!" = "Célbavett szövetséges!";
+
+/* Discord CMDR information. [targetmanager.py] */
+"Team invite received from this CMDR" = "Csapat meghívó érkezett CMDR-től";
+
+/* Technology level. [colonisation.py] */
+"Tech Lvl" = "Tech Lvl";
+
+/* [colonisation.py] */
+"Terraformable" = "Terraformable";
+
+/* Name of default output formatter. [text.py] */
+"Text Only" = "Csak szöveg";
+
+/* Preferences checkbox label. [ui.py] */
+"Thargoid War Progress" = "Thargoid háború állapota";
+
+/* Label on activity window. [activity.py] */
+"Thargoid War System, no BGS Activity is Counted" = "Thargoid Háború rendszer, BGS aktivitás nincs nyilvántartva";
+
+/* Text on API settings window. [api.py] */
+"The exact set of Events that will be sent is listed in the 'Events Requested' section below. Further information about these Events and what they contain is provided here: " = "Az elküldésre kerülő Események listája megtekinthető lent a \"Események kérelmezve\" szakaszban. További információ ezekről az Eseményekről, és hogy mit tartalmaznak itt található: ";
+
+/* Discord text. [fleetcarrier.py] */
+"The scheduled carrier jump was cancelled" = "A hordozó időzített ugrása visszavonva";
+
+/* Discord CMDR information. [targetmanager.py] */
+"This CMDR was added as a friend" = "Ez a CMDR barátként hozzáadva";
+
+/* Text on API settings window. [api.py] */
+"This screen is used to set up a connection to a server." = "Ezen a képernyőn állítható be a szerverkapcsolat.";
+
+/* Preferences force tick popup text. [ui.py] */
+"This will move your current activity into the previous tick, and clear activity for the current tick." = "A jelenlegi aktivitás át lesz mozgatva az előző tickre, és a jelenlegi tick aktivitása üresre lesz állítva.";
+
+/* [ui.py] */
+"Tick {minutes_delta}m Overdue (Estimated)" = "A tick {minutes_delta} perc késésben (becsült)";
+
+/* tier of base. [colonisation.py] */
+"Tier" = "Tier";
+
+/* [ui.py] */
+"To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "Webhook hozzáadása: Jobb klikk a sor számán és válaszd a 'Sor beszúrása fölé / alá' opciót.";
+
+/* Discord heading. [fleetcarrier.py] */
+"To Body" = "Cél égitest:";
+
+/* Amount still left to buy. [progress.py] */
+"To Buy" = "To Buy";
+
+/* [ui.py] */
+"To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Webhook törléséhez: Jobb klikk a sor számán és válaszd a 'Sorok törlése' opciót.";
+
+/* Discord heading. [fleetcarrier.py] */
+"To System" = "Cél rendszer:";
+
+/* Total number of builds. [colonisation.py] */
+"Total" = "Total";
+
+/* Colonisation 'Economy Influence' [base_types.json] */
+"Tourism" = "Tourism";
+
+/* Colonisation 'Prerequisites' [base_types.json] */
+"Tourism Settlement" = "Tourism Settlement";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Tourism Tier 1" = "Tourism Tier 1";
+
+/* Colonisation 'Type' [base_types.json] */
+"Tourism Tier 1 Med" = "Tourism Tier 1 Med";
+
+/* Colonisation 'Type' [base_types.json] */
+"Tourism Tier 1 Sml" = "Tourism Tier 1 Sml";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Tourism Tier 2" = "Tourism Tier 2";
+
+/* Colonisation 'Type' [base_types.json] */
+"Tourism Tier 2 Lrg" = "Tourism Tier 2 Lrg";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Tourist" = "Tourist";
+
+/* Colonisation 'Type' [base_types.json] */
+"Tourist Installation" = "Tourist Installation";
+
+/* Track this build?. [colonisation.py] */
+"Track" = "Track";
+
+/* Activity window column title. [activity.py] */
+"Trade" = "Kereskedés";
+
+/* Discord heading, abbreviation for trade black market profit. [default.py] */
+"TrdBMProfit" = "KerFPProfit";
+
+/* Discord heading, abbreviation for trade buy. [default.py] */
+"TrdBuy" = "KerVás";
+
+/* Discord heading, abbreviation for trade profit. [default.py] */
+"TrdProfit" = "KerProf";
+
+/* Discord heading, abbreviation for tissue sample. [default.py] */
+"ts" = "szm";
+
+/* Discord post title. [activity.py] */
+"TW Activity after Tick: {tick_time}" = "TW aktivitás {tick_time} tick után";
+
+/* Dropdown menu on activity window. [activity.py] */
+"TW Only" = "Csak TW";
+
+/* [ui.py] */
+"TW War Progress in {current_system}: {percent}%" = "TW állása {current_system}: {percent}%";
+
+/* body type details. [colonisation.py] */
+"Type" = "Type";
+
+/* type of base as listed in the game. [colonisation.py] */
+"Type (Listed as)" = "Type (Listed as)";
+
+/* [sheet_options.py] */
+"Undo" = "Vissza";
+
+/* Overlay CMDR information report message. [ui.py] */
+"Unknown" = "Ismeretlen";
+
+/* Main window label. [ui.py] */
+"Update will be installed on shutdown" = "Leállítás után lesz telepítve a frissítés";
+
+/* Discord footer message, modern embed mode. [discord.py] */
+"Updated at {date_time} (game)" = "Frissítve ekkor: {date_time} (játékidő)";
+
+/* Discord message footer, legacy text mode. [discord.py] */
+"Updated at: {date_time} | {plugin_name} v{version}" = "Frissítve: {date_time} | {plugin_name} v{version}";
+
+/* [clb.py] */
+"War Inf" = "Háborús Bef";
+
+/* Discord heading, abbreviation for war INF. [default.py] */
+"WarINF" = "HáborúINF";
+
+/* Preferences force tick popup text. [ui.py] */
+"WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but {plugin_name} is not showing it." = "FIGYELEM: Rendszerint nem szükséges a tick kényszerítése. Csak akkor csináld, ha BIZTOSAN tudod, hogy volt tick, de a {plugin_name} nem mutatja.";
+
+/* Preferences checkbox label. [ui.py] */
+"Warnings" = "Figyelmeztetések";
+
+/* Wealth impact. [colonisation.py] */
+"Wealth" = "Wealth";
+
+/* Preferences table heading. [ui.py] */
+"Webhook URL" = "Webhook URL";
+
+/* Notice about the first base being special. [colonisation.py] */
+"When planning your system the first base is special, make sure that it is the first on the list." = "When planning your system the first base is special, make sure that it is the first on the list.";
+
+/* [ui.py] */
+"Within {minutes_to_tick}m of Next Tick (Estimated)" = "Következő tick {minutes_to_tick} percen belül (becsült)";
+
+/* Discord heading. [default.py] */
+"wounded" = "sérült";
+
+/* Label on legend window. [legend.py] */
+"Wounded evacuation missions" = "Sérült evakuáció küldetések";
+
+/* [fleetcarrier.py] */
+"Yes" = "Igen";
+
+/* Label on legend window. [legend.py] */
+"Zero / Low / Med / High demand level for trade buy / sell" = "Nulla / Alacsony / Közepes / Magas keresleti szint kereskedelmi vásárlás / eladáshoz";
+
+/* Activity window title. [activity.py] */
+"{plugin_name} - Activity After Tick at: {tick_time}" = "{plugin_name} - Tevékenység {tick_time} tick után";
+
+/* API settings window title. [api.py] */
+"{plugin_name} - API Settings" = "{plugin_name} - API beállítások";
+
+/* Carrier window title. [fleetcarrier.py] */
+"{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}" = "{plugin_name} - {carrier_name} ({carrier_callsign}) a(z) {system_name} rendszerben";
+
+/* CMDR window title. [cmdrs.py] */
+"{plugin_name} - CMDR Interactions" = "{plugin_name} - CMDR interakciók";
+
+/* window title. [colonisation.py] */
+"{plugin_name} - Colonisation" = "{plugin_name} - Colonisation";
+
+/* Title of the base type popup window. [colonisation.py] */
+"{plugin_name} - Colonisation Base Types" = "{plugin_name} - Colonisation Base Types";
+
+/* Title of the bodies popup window. [colonisation.py] */
+"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Colonisation Bodies";
+
+/* Title of the legend popup window. [colonisation.py] */
+"{plugin_name} - Colonisation Legend" = "{plugin_name} - Colonisation Legend";
+
+/* Title of the notes popup window. [colonisation.py] */
+"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - Colonisation Notes for {system_name}";
+
+/* Legend window title. [legend.py] */
+"{plugin_name} - Icon Legend" = "{plugin_name} - Ikon jelmagyarázat";
+
+/* Objectives window title. [objectives.py] */
+"{plugin_name} - Objectives" = "{plugin_name} - Célok";
+
+/* Preferences checkbox label. [ui.py] */
+"{plugin_name} Active" = "{plugin_name} aktív";
+
+/* Overlay message. [overlay.py] */
+"{plugin_name} Ready" = "{plugin_name} kész";
+
+/* Main window label. [ui.py] */
+"{plugin_name} Status:" = "{plugin_name} státusz:";
+
+/* Main window error message. [tick.py] */
+"{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} FIGYELMEZTETÉS: Nem kérhető le a legutolsó tick";
+
+/* [tick.py] */
+"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} FIGYELMEZTETÉS: Nem sikerült lekérni a rendszer Tick-et";
+
+/* Objectives title. [objectivesmanager.py] */
+"{server_name} Objectives" = "{server_name} Célok";
+
+/* [colonisation.py] */
+"ⓘ" = "ⓘ";
+
+/* [colonisation.py] */
+"📓" = "📓";

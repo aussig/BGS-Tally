@@ -2,7 +2,7 @@ import json
 from os import path, remove
 from secrets import token_hex
 
-from bgstally.constants import DiscordChannel, FOLDER_DATA
+from bgstally.constants import DiscordChannel, FOLDER_OTHER_DATA
 from bgstally.debug import Debug
 from thirdparty.colors import *
 
@@ -24,7 +24,7 @@ class WebhookManager:
         """
         Load state from file
         """
-        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         if path.exists(file):
             try:
                 with open(file) as json_file:
@@ -60,7 +60,7 @@ class WebhookManager:
         """
         Save state to file
         """
-        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile)
 

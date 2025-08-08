@@ -1,8 +1,8 @@
 import json
+from datetime import UTC, datetime, timedelta
 from os import path, remove
-from datetime import datetime, timedelta
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA
 from bgstally.debug import Debug
 
 FILENAME = "missionlog.json"
@@ -26,7 +26,7 @@ class MissionLog:
         Load state from file
         """
         # New location
-        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         if path.exists(file):
             try:
                 with open(file) as json_file:
@@ -50,7 +50,7 @@ class MissionLog:
         """
         Save state to file
         """
-        file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self.missionlog, outfile)
 
@@ -118,9 +118,13 @@ class MissionLog:
         """
         for mission in reversed(self.missionlog):
             # Old missions pre v1.11.0 and missions with missing expiry dates don't have Expiry stored. Set to 7 days ahead for safety
-            if not 'Expiry' in mission or mission['Expiry'] == "": mission['Expiry'] = (datetime.utcnow() + timedelta(days = TIME_MISSION_EXPIRY_D)).strftime(DATETIME_FORMAT_JOURNAL)
+            if not 'Expiry' in mission or mission['Expiry'] == "": mission['Expiry'] = (datetime.now(UTC) + timedelta(days = TIME_MISSION_EXPIRY_D)).strftime(DATETIME_FORMAT_JOURNAL)
 
-            timedifference = datetime.utcnow() - datetime.strptime(mission['Expiry'], DATETIME_FORMAT_JOURNAL)
+            # Need to do this shenanegans to parse a tz-aware timestamp from a string
+            expiry_timestamp: datetime = datetime.strptime(mission['Expiry'], DATETIME_FORMAT_JOURNAL)
+            expiry_timestamp = expiry_timestamp.replace(tzinfo=UTC)
+
+            timedifference = datetime.now(UTC) - expiry_timestamp
             if timedifference > timedelta(days = TIME_MISSION_EXPIRY_D):
                 # Keep missions for a while after they have expired, so we can log failed missions correctly
                 self.missionlog.remove(mission)

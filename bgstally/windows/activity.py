@@ -12,8 +12,8 @@ from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, DATETIME_FORMA
                                 DiscordPostStyle)
 from bgstally.debug import Debug
 from bgstally.formatters.base import BaseActivityFormatterInterface
-from bgstally.utils import _, __, human_format
-from bgstally.widgets import DiscordAnsiColorText, TextPlus
+from bgstally.utils import _, __, human_format, parse_human_format, validate_human_format
+from bgstally.widgets import DiscordAnsiColorText, EntryPlus, TextPlus
 from thirdparty.colors import *
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.Tooltip import ToolTip
@@ -177,7 +177,8 @@ class WindowActivity:
                 frm_table.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5, expand=tk.YES)
                 frm_table.columnconfigure(1, weight=1) # Make the second column (faction name) fill available space
 
-                FactionEnableCheckbuttons: list = []
+                FactionEnableCheckbuttons: list[ttk.Checkbutton] = []
+                CartVars: list[tk.StringVar] = []
 
                 ttk.Label(frm_table, text=_("Include"), font=FONT_HEADING_2).grid(row=0, column=0, padx=2, pady=2) # LANG: Checkbox label
                 chk_enable_all = ttk.Checkbutton(frm_table)
@@ -295,17 +296,20 @@ class WindowActivity:
                     elif (faction['FactionState'] in STATES_ELECTION): ttk.Label(frm_table, foreground="orange", text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     else: ttk.Label(frm_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
 
-                    MissionPointsVar = tk.IntVar(value=faction['MissionPoints']['m'])
+                    MissionPointsVar:tk.IntVar = tk.IntVar(value=faction['MissionPoints']['m'])
                     ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     MissionPointsVar.trace('w', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsVar, True, chk_enable_all, activity, system, faction, x))
-                    MissionPointsSecVar = tk.IntVar(value=faction['MissionPointsSecondary']['m'])
+                    MissionPointsSecVar:tk.IntVar = tk.IntVar(value=faction['MissionPointsSecondary']['m'])
                     ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
                     MissionPointsSecVar.trace('w', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsSecVar, False, chk_enable_all, activity, system, faction, x))
                     ttk.Label(frm_table, text=f"{human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
                     ttk.Label(frm_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
                     ttk.Label(frm_table, text=human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(frm_table, text=human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                    ttk.Label(frm_table, text=human_format(faction['CartData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    CartVar:tk.StringVar = tk.StringVar(value=human_format(faction['CartData']))
+                    CartVar.trace('w', partial(self._cart_change, nb_tab, tab_index, CartVar, chk_enable_all, activity, system, faction, x))
+                    CartVars.append(CartVar)
+                    EntryPlus(frm_table, textvariable=CartVar, width=6).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     #ttk.Label(frm_table, text=human_format(faction['ExoData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(frm_table, text=human_format(faction['CombatBonds'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(frm_table, text=faction['MissionFailed']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
@@ -596,6 +600,19 @@ class WindowActivity:
             faction['MissionPoints']['m'] = MissionPointsVar.get()
         else:
             faction['MissionPointsSecondary']['m'] = MissionPointsVar.get()
+
+        activity.recalculate_zero_activity()
+        self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
+        self._update_discord_field(activity)
+        activity.dirty = True
+
+
+    def _cart_change(self, notebook: ScrollableNotebook, tab_index: int, CartVar: tk.StringVar, EnableAllCheckbutton, activity: Activity, system, faction, faction_index, *args):
+        """
+        Callback (set as a variable trace) for when a cartography variable is changed
+        """
+
+        faction['CartData'] = parse_human_format(CartVar.get())
 
         activity.recalculate_zero_activity()
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)

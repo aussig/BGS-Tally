@@ -12,6 +12,7 @@
 
 * There is now a setting to show and hide the 'Objectives' overlay panel in BGS-Tally settings.
 * Colonisation: Notes window now saves on close
+* Cartography values are now editible in activity windows, this is to work around a game bug where it doesn't always log cartography sales.
 
 ### Bug Fixes:
 

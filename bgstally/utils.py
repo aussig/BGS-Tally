@@ -151,12 +151,15 @@ def human_format(num: int) -> str:
     Returns:
         str: The human-readable result
     """
+    abbrs: list[str] = ['', 'K', 'M', 'B', 'T']  # Abbreviations for thousands, millions, billions, trillions
     num = float('{:.3g}'.format(num))
     magnitude = 0
     while abs(num) >= 1000:
+        if magnitude >= len(abbrs) - 1: break
         magnitude += 1
         num /= 1000.0
-    return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])
+
+    return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), abbrs[magnitude])
 
 
 def parse_human_format(text: str) -> int:

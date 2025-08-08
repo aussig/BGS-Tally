@@ -4,7 +4,8 @@ from copy import deepcopy
 from os import listdir
 from os.path import join
 from pathlib import Path
-from typing import Callable, Any, Tuple
+from re import Pattern, compile
+from typing import Any, Callable, Tuple
 
 import semantic_version
 
@@ -12,7 +13,6 @@ import bgstally.globals
 import l10n
 from bgstally.debug import Debug
 from config import appversion
-from re import Pattern, compile
 
 human_readable_number_pat:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt]?)$")
 

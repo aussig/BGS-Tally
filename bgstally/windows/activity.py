@@ -8,8 +8,8 @@ from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_TITLE, FOLDER_ASSETS, FONT_HEADING_1,
-                                FONT_HEADING_2, FONT_TEXT, ApiSizeLookup, ApiSyntheticEvent, CheckStates, CZs, DiscordActivity, DiscordChannel,
-                                DiscordPostStyle)
+                                FONT_HEADING_2, FONT_TEXT, ApiSizeLookup, ApiSyntheticCZObjectiveType, ApiSyntheticEvent, CheckStates, CZs, DiscordActivity,
+                                DiscordChannel, DiscordPostStyle)
 from bgstally.debug import Debug
 from bgstally.formatters.base import BaseActivityFormatterInterface
 from bgstally.utils import _, __, human_format, parse_human_format, validate_human_format
@@ -38,6 +38,10 @@ class WindowActivity:
         self.image_tab_inactive_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_enabled.png"))
         self.image_tab_inactive_part_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_part_enabled.png"))
         self.image_tab_inactive_disabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_inactive_disabled.png"))
+        self.image_icon_bgs_cz_cs: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz_cs.png"))
+        self.image_icon_bgs_cz_so: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz_so.png"))
+        self.image_icon_bgs_cz_cp: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz_cp.png"))
+        self.image_icon_bgs_cz_pr: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz_pr.png"))
 
         self.show(activity)
 
@@ -233,8 +237,9 @@ class WindowActivity:
                 lbl_sandr: ttk.Label = ttk.Label(frm_table, text=_("SandR"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for search and rescue
                 lbl_sandr.grid(row=0, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_sandr, text=_("Search and rescue")) # LANG: Activity window tooltip
+
                 lbl_spaceczs: ttk.Label = ttk.Label(frm_table, text=_("SpaceCZs"), font=FONT_HEADING_2, anchor=tk.CENTER) # LANG: Activity window column title, abbreviation for space conflict zones
-                lbl_spaceczs.grid(row=0, column=col, columnspan=3, padx=2)
+                lbl_spaceczs.grid(row=0, column=col, columnspan=7, padx=2)
                 ToolTip(lbl_spaceczs, text=_("Space conflict zones")) # LANG: Activity window tooltip
                 lbl_spaceczl: ttk.Label = ttk.Label(frm_table, text="L", font=FONT_HEADING_2)
                 lbl_spaceczl.grid(row=1, column=col, padx=2, pady=2); col += 1
@@ -245,6 +250,19 @@ class WindowActivity:
                 lbl_spaceczh: ttk.Label = ttk.Label(frm_table, text="H", font=FONT_HEADING_2)
                 lbl_spaceczh.grid(row=1, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_spaceczh, text=_("High")) # LANG: Activity window tooltip
+                lbl_spaceczcs: ttk.Label = ttk.Label(frm_table, image=self.image_icon_bgs_cz_cs)
+                lbl_spaceczcs.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_spaceczcs, text=_("In-space Conflict Zone Side Objective: Cap ship")) # LANG: Activity window tooltip
+                lbl_spaceczso: ttk.Label = ttk.Label(frm_table, image=self.image_icon_bgs_cz_so)
+                lbl_spaceczso.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_spaceczso, text=_("In-space Conflict Zone Side Objective: Spec ops wing")) # LANG: Activity window tooltip
+                lbl_spaceczcp: ttk.Label = ttk.Label(frm_table, image=self.image_icon_bgs_cz_cp)
+                lbl_spaceczcp.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_spaceczcp, text=_("In-space Conflict Zone Side Objective: Enemy captain")) # LANG: Activity window tooltip
+                lbl_spaceczpr: ttk.Label = ttk.Label(frm_table, image=self.image_icon_bgs_cz_pr)
+                lbl_spaceczpr.grid(row=1, column=col, padx=2, pady=2); col += 1
+                ToolTip(lbl_spaceczpr, text=_("In-space Conflict Zone Side Objective: Propaganda wing")) # LANG: Activity window tooltip
+
                 lbl_groundczs: ttk.Label = ttk.Label(frm_table, text=_("GroundCZs"), font=FONT_HEADING_2, anchor=tk.CENTER)
                 lbl_groundczs.grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title, abbreviation for ground conflict zones
                 ToolTip(lbl_groundczs, text=_("Ground conflict zones")) # LANG: Activity window tooltip
@@ -257,6 +275,7 @@ class WindowActivity:
                 lbl_groundczh: ttk.Label = ttk.Label(frm_table, text="H", font=FONT_HEADING_2)
                 lbl_groundczh.grid(row=1, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_groundczh, text=_("High")) # LANG: Activity window tooltip
+
                 ttk.Separator(frm_table, orient=tk.HORIZONTAL).grid(columnspan=col, padx=2, pady=5, sticky=tk.EW)
 
                 header_rows = 3
@@ -321,22 +340,37 @@ class WindowActivity:
                     ttk.Label(frm_table, text=sum(faction.get('SandR', {}).values())).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
 
                     if (faction['FactionState'] in STATES_WAR):
-                        CZSpaceLVar = tk.IntVar(value=faction['SpaceCZ'].get('l', '0'))
+                        CZSpaceLVar: tk.IntVar = tk.IntVar(value=faction['SpaceCZ'].get('l', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                        CZSpaceMVar = tk.IntVar(value=faction['SpaceCZ'].get('m', '0'))
+                        CZSpaceMVar: tk.IntVar = tk.IntVar(value=faction['SpaceCZ'].get('m', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                        CZSpaceHVar = tk.IntVar(value=faction['SpaceCZ'].get('h', '0'))
+                        CZSpaceHVar: tk.IntVar = tk.IntVar(value=faction['SpaceCZ'].get('h', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                        CZGroundLVar = tk.IntVar(value=faction['GroundCZ'].get('l', '0'))
+
+                        CZSpaceCSVar: tk.IntVar = tk.IntVar(value=faction['SpaceCZ'].get('cs', '0'))
+                        ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceCSVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZSpaceSOVar: tk.IntVar = tk.IntVar(value=faction['SpaceCZ'].get('so', '0'))
+                        ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceSOVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZSpaceCPVar: tk.IntVar = tk.IntVar(value=faction['SpaceCZ'].get('cp', '0'))
+                        ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpaceCPVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+                        CZSpacePRVar: tk.IntVar = tk.IntVar(value=faction['SpaceCZ'].get('pr', '0'))
+                        ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZSpacePRVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+
+                        CZGroundLVar: tk.IntVar = tk.IntVar(value=faction['GroundCZ'].get('l', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZGroundLVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                        CZGroundMVar = tk.IntVar(value=faction['GroundCZ'].get('m', '0'))
+                        CZGroundMVar: tk.IntVar = tk.IntVar(value=faction['GroundCZ'].get('m', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZGroundMVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                        CZGroundHVar = tk.IntVar(value=faction['GroundCZ'].get('h', '0'))
+                        CZGroundHVar: tk.IntVar = tk.IntVar(value=faction['GroundCZ'].get('h', '0'))
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZGroundHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
+
                         # Watch for changes on all SpinBox Variables. This approach catches any change, including manual editing, while using 'command' callbacks only catches clicks
                         CZSpaceLVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceLVar, chk_enable_all, CZs.SPACE_LOW, activity, system, faction, x))
                         CZSpaceMVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceMVar, chk_enable_all, CZs.SPACE_MED, activity, system, faction, x))
                         CZSpaceHVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceHVar, chk_enable_all, CZs.SPACE_HIGH, activity, system, faction, x))
+                        CZSpaceCSVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceCSVar, chk_enable_all, CZs.SPACE_CS, activity, system, faction, x))
+                        CZSpaceSOVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceSOVar, chk_enable_all, CZs.SPACE_SO, activity, system, faction, x))
+                        CZSpaceCPVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceCPVar, chk_enable_all, CZs.SPACE_CP, activity, system, faction, x))
+                        CZSpacePRVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpacePRVar, chk_enable_all, CZs.SPACE_PR, activity, system, faction, x))
                         CZGroundLVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZGroundLVar, chk_enable_all, CZs.GROUND_LOW, activity, system, faction, x))
                         CZGroundMVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZGroundMVar, chk_enable_all, CZs.GROUND_MED, activity, system, faction, x))
                         CZGroundHVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZGroundHVar, chk_enable_all, CZs.GROUND_HIGH, activity, system, faction, x))
@@ -464,6 +498,7 @@ class WindowActivity:
         self._update_enable_all_factions_checkbutton(notebook, tab_index, EnableAllCheckbutton, FactionEnableCheckbuttons, system)
         self._update_discord_field(activity)
         activity.dirty = True
+        activity.autopost = True
 
 
     def _enable_all_factions_change(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, FactionEnableCheckbuttons, activity: Activity, system, *args):
@@ -491,6 +526,7 @@ class WindowActivity:
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
         self._update_discord_field(activity)
         activity.dirty = True
+        activity.autopost = True
 
 
     def _enable_settlement_change(self, SettlementCheckbutton, settlement_name, activity: Activity, faction, faction_index, *args):
@@ -500,6 +536,7 @@ class WindowActivity:
         faction['GroundCZSettlements'][settlement_name]['enabled'] = CheckStates.STATE_ON if SettlementCheckbutton.instate(['selected']) else CheckStates.STATE_OFF
         self._update_discord_field(activity)
         activity.dirty = True
+        activity.autopost = True
 
 
     def _update_enable_all_factions_checkbutton(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, FactionEnableCheckbuttons, system):
@@ -546,6 +583,9 @@ class WindowActivity:
         """
         Callback (set as a variable trace) for when a CZ Variable is changed
         """
+
+        objective_type: str|None = None
+
         match cz_type:
             case CZs.SPACE_LOW:
                 event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZ
@@ -562,6 +602,32 @@ class WindowActivity:
                 event_size: str = ApiSizeLookup['h']
                 event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ']['h'])
                 faction['SpaceCZ']['h'] = CZVar.get()
+
+            case CZs.SPACE_CS:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZOBJECTIVE
+                event_size: str = 'count'
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ'].get('cs', 0))
+                objective_type: str = ApiSyntheticCZObjectiveType.CAPSHIP,
+                faction['SpaceCZ']['cs'] = CZVar.get()
+            case CZs.SPACE_SO:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZOBJECTIVE
+                event_size: str = 'count'
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ'].get('so', 0))
+                objective_type: str = ApiSyntheticCZObjectiveType.SPECOPS,
+                faction['SpaceCZ']['so'] = CZVar.get()
+            case CZs.SPACE_CP:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZOBJECTIVE
+                event_size: str = 'count'
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ'].get('cp', 0))
+                objective_type: str = ApiSyntheticCZObjectiveType.GENERAL,
+                faction['SpaceCZ']['cp'] = CZVar.get()
+            case CZs.SPACE_PR:
+                event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZOBJECTIVE
+                event_size: str = 'count'
+                event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ'].get('pr', 0))
+                objective_type: str = ApiSyntheticCZObjectiveType.CORRESPONDENT,
+                faction['SpaceCZ']['pr'] = CZVar.get()
+
             case CZs.GROUND_LOW:
                 event_type: ApiSyntheticEvent = ApiSyntheticEvent.GROUNDCZ
                 event_size: str = ApiSizeLookup['l']
@@ -584,12 +650,16 @@ class WindowActivity:
             event_size: event_diff,
             'Faction': faction['Faction']
         }
+
+        if objective_type is not None: event['type'] = objective_type
+
         if activity.cmdr is not None: self.bgstally.api_manager.send_event(event, activity, activity.cmdr)
 
         activity.recalculate_zero_activity()
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
         self._update_discord_field(activity)
         activity.dirty = True
+        activity.autopost = True
 
 
     def _mission_points_change(self, notebook: ScrollableNotebook, tab_index: int, MissionPointsVar: tk.IntVar, primary, EnableAllCheckbutton, activity: Activity, system, faction, faction_index, *args):
@@ -605,6 +675,7 @@ class WindowActivity:
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
         self._update_discord_field(activity)
         activity.dirty = True
+        activity.autopost = True
 
 
     def _cart_change(self, notebook: ScrollableNotebook, tab_index: int, CartVar: tk.StringVar, EnableAllCheckbutton, activity: Activity, system, faction, faction_index, *args):
@@ -618,6 +689,7 @@ class WindowActivity:
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
         self._update_discord_field(activity)
         activity.dirty = True
+        activity.autopost = True
 
 
     def _scenarios_change(self, notebook: ScrollableNotebook, tab_index: int, ScenariosVar: tk.IntVar, EnableAllCheckbutton, activity: Activity, system, faction, faction_index, *args):
@@ -630,6 +702,7 @@ class WindowActivity:
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
         self._update_discord_field(activity)
         activity.dirty = True
+        activity.autopost = True
 
 
     def _update_tab_image(self, notebook: ScrollableNotebook, tab_index: int, EnableAllCheckbutton, system: dict):

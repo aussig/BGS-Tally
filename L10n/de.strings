@@ -85,6 +85,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Asteroid Base" = "Asteroidenbasis";
 
+/* Preferences checkbox label. [ui.py] */
+"Automatically Post BGS and TW Activity" = "Automatically Post BGS and TW Activity";
+
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Bar" = "Bar";
 
@@ -198,6 +201,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "CMDR Info" = "CMDR Info";
+
+/* Preferences checkbox label. [ui.py] */
+"Colonisation" = "Colonisation";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Colony" = "Kolonie";
@@ -478,6 +484,9 @@
 /* Appended to tick time if a normal tick. [activity.py] */
 "game" = "Spiel";
 
+/* [colonisation.py] */
+"Gas giant" = "Gas giant";
+
 /* Preferences heading. [ui.py] */
 "General Options" = "Allgemeine Optionen";
 
@@ -512,7 +521,7 @@
 "Hightech Planetary Outpost" = "Hightech Planetary Outpost";
 
 /* HMC World is a high metal content world. [colonisation.py] */
-"HMC World" = "HMC World";
+"HMC world" = "HMC world";
 
 /* Colonisation 'Category' [base_types.json] */
 "Hub" = "Hub";
@@ -553,16 +562,16 @@
 /* Preferences label. [ui.py] */
 "In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information." = "In-Game Overlay-Unterstützung erfordert die Installation des separaten EDMC Overlay-Plugins - siehe Anleitung für weitere Informationen.";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Cap ship" = "Raumkonfliktzone Sekundärziel: Cap-Schiff";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Enemy captain" = "Raumkonfliktzone Sekundärziel: feindlicher Kapitän";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Propaganda wing" = "Raumkonfliktzone Sekundärziel: Propaganda Geschwader";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Spec ops wing" = "Raumkonfliktzone Sekundärziel: Spec Ops Geschwader";
 
 /* Inara URL on CMDR window. [cmdrs.py] */
@@ -811,6 +820,9 @@
 /* [fleetcarrier.py] */
 "No" = "Nein";
 
+/* No colonisation data available. [progress.py] */
+"No colonisation data available" = "No colonisation data available";
+
 /* Discord carrier docking access. [fleetcarrier.py] */
 "None" = "Keine";
 
@@ -1041,9 +1053,6 @@
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Satellite Installation" = "Satellite Installation";
-
-/* Save notes button. [colonisation.py] */
-"Save" = "Save";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Gescannt";

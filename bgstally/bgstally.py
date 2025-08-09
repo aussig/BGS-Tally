@@ -32,7 +32,7 @@ from bgstally.utils import _, get_by_path
 from bgstally.webhookmanager import WebhookManager
 from config import appversion, config
 
-TIME_WORKER_PERIOD_S = 60
+TIME_TICK_WORKER_PERIOD_S = 60 # 1 minute
 
 
 class BGSTally:
@@ -94,9 +94,10 @@ class BGSTally:
         self.formatter_manager: ActivityFormatterManager = ActivityFormatterManager(self)
         self.objectives_manager: ObjectivesManager = ObjectivesManager(self)
         self.colonisation: Colonisation = Colonisation(self)
-        self.thread: Thread = Thread(target=self._worker, name="BGSTally Main worker")
-        self.thread.daemon = True
-        self.thread.start()
+
+        self.tick_thread: Thread = Thread(target=self._tick_worker, name="BGSTally Tick worker")
+        self.tick_thread.daemon = True
+        self.tick_thread.start()
 
 
     def plugin_stop(self):
@@ -395,17 +396,17 @@ class BGSTally:
         self.overlay.display_message("tickwarn", _("NEW TICK DETECTED!"), True, 180, "green") # LANG: Overlay message
 
 
-    def _worker(self) -> None:
+    def _tick_worker(self) -> None:
         """
-        Handle thread work
+        Handle tick thread work
         """
-        Debug.logger.debug("Starting Main Worker...")
+        Debug.logger.debug("Starting Tick Worker...")
 
         while True:
             if config.shutting_down:
-                Debug.logger.debug("Shutting down Main Worker...")
+                Debug.logger.debug("Shutting down Tick Worker...")
                 return
 
-            sleep(TIME_WORKER_PERIOD_S)
+            sleep(TIME_TICK_WORKER_PERIOD_S)
 
             self.check_tick(UpdateUIPolicy.LATER) # Must not update UI directly from a thread

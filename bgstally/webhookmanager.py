@@ -32,29 +32,6 @@ class WebhookManager:
             except Exception as e:
                 Debug.logger.info(f"Unable to load {file}")
 
-        if self.data == {}:
-            # We are in default state, initialise from legacy data
-            self.data = {
-                'webhooks':
-                    [
-                        {'uuid': token_hex(9), 'name': "BGS", 'url': self.bgstally.state.DiscordBGSWebhook.get(),
-                         DiscordChannel.BGS: True, DiscordChannel.THARGOIDWAR: False, DiscordChannel.FLEETCARRIER_MATERIALS: False,
-                         DiscordChannel.FLEETCARRIER_OPERATIONS: False, DiscordChannel.CMDR_INFORMATION: False},
-                        {'uuid': token_hex(9), 'name': "TW", 'url': self.bgstally.state.DiscordTWWebhook.get(),
-                         DiscordChannel.BGS: False, DiscordChannel.THARGOIDWAR: True, DiscordChannel.FLEETCARRIER_MATERIALS: False,
-                         DiscordChannel.FLEETCARRIER_OPERATIONS: False, DiscordChannel.CMDR_INFORMATION: False},
-                        {'uuid': token_hex(9), 'name': "FC Materials", 'url': self.bgstally.state.DiscordFCMaterialsWebhook.get(),
-                         DiscordChannel.BGS: False, DiscordChannel.THARGOIDWAR: False, DiscordChannel.FLEETCARRIER_MATERIALS: True,
-                         DiscordChannel.FLEETCARRIER_OPERATIONS: False, DiscordChannel.CMDR_INFORMATION: False},
-                        {'uuid': token_hex(9), 'name': "FC Ops", 'url': self.bgstally.state.DiscordFCOperationsWebhook.get(),
-                         DiscordChannel.BGS: False, DiscordChannel.THARGOIDWAR: False, DiscordChannel.FLEETCARRIER_MATERIALS: False,
-                         DiscordChannel.FLEETCARRIER_OPERATIONS: True, DiscordChannel.CMDR_INFORMATION: False},
-                        {'uuid': token_hex(9), 'name': "CMDR Info", 'url': self.bgstally.state.DiscordCMDRInformationWebhook.get(),
-                         DiscordChannel.BGS: False, DiscordChannel.THARGOIDWAR: False, DiscordChannel.FLEETCARRIER_MATERIALS: False,
-                         DiscordChannel.FLEETCARRIER_OPERATIONS: False, DiscordChannel.CMDR_INFORMATION: True}
-                    ]
-            }
-
 
     def save(self):
         """

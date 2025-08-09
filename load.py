@@ -9,7 +9,7 @@ from bgstally.constants import CheckStates, UpdateUIPolicy
 from bgstally.debug import Debug
 
 PLUGIN_NAME = "BGS-Tally"
-PLUGIN_VERSION = semantic_version.Version.coerce("5.0.0-dev")
+PLUGIN_VERSION = semantic_version.Version.coerce("5.1.0-dev")
 
 # Initialise the main plugin class
 bgstally.globals.this = this = BGSTally(PLUGIN_NAME, PLUGIN_VERSION)

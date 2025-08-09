@@ -5,7 +5,7 @@ from config import appname
 
 
 class Debug:
-    logger = None
+    logger: logging.Logger
 
     def __init__(self, bgstally):
         # A Logger is used per 'found' plugin to make it easy to include the plugin's

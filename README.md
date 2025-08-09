@@ -8,7 +8,7 @@
 [![Github All Releases](https://img.shields.io/github/downloads/aussig/BGS-Tally/total.svg)](https://github.com/aussig/BGS-Tally/releases/latest)
 [![Discord](https://img.shields.io/discord/698438769358929940?label=Discord&color=%2350007f)](https://discord.gg/YDNVtjPnnm)
 
-A tool to track and report your Background Simulation (BGS) and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS-Tally counts all the BGS / TW work you do for any faction, in any system.
+A tool to track and report your Background Simulation (BGS), Colonisation and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS-Tally counts all the BGS / Colonisation / TW work you do for any faction, in any system.
 
 Based on BGS-Tally v2.0 by tezw21
 
@@ -17,6 +17,7 @@ As well as all the BGS tracking from Tez's original version, this modified versi
 * Automatic on-foot Conflict Zone tracking (with settlement names)
 * Automatic in-space Conflict Zone tracking
 * TW tracking
+* Colonisation tracking
 * Logging of interactions with other CMDRs, with automatic Inara lookup for CMDR and Squadron
 * Fleet Carrier materials tracking
 * Fleet Carrier jump tracking
@@ -26,30 +27,31 @@ As well as all the BGS tracking from Tez's original version, this modified versi
 
 # Initial Installation and Use
 
-Full instructions for **installation and use are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki)**.
+Full **instructions for [installation and use are here &rarr;](https://github.com/aussig/BGS-Tally/wiki)**.
 
 
 # Updating from a Previous Version
 
-Since v3, upgrading is fully automatic. However, if you need to do a manual upgrade for some reason, **full instructions are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Upgrade)**.
+Since v3, upgrading is fully automatic. However, if you need to do a manual upgrade for some reason, full **instructions for [manual upgrade are here &rarr;](https://github.com/aussig/BGS-Tally/wiki/Upgrade)**.
 
 
 # Discord Integration
 
-The plugin generates Discord-ready text for copying-and-pasting manually into Discord and also supports direct posting into a Discord server or servers of your choice using webhooks. You will need to create webhook(s) on your Discord server first - **instructions for setting up webhooks within Discord are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Discord-Server-Setup)**.
+The plugin generates Discord-ready text for copying-and-pasting manually into Discord and also supports direct posting into a Discord server or servers of your choice using webhooks. You will need to create webhook(s) on your Discord server first - **instructions for [setting up webhooks within Discord are here &rarr;](https://github.com/aussig/BGS-Tally/wiki/Discord-Server-Setup)**.
 
 
 # What is Tracked
 
-The plugin includes both automatic and manual tracking of BGS and TW activity data.
+The plugin includes both automatic and manual tracking of BGS, Colonisation and TW activity data.
 
 * For a basic summary of what is tracked, see the **[Home Page of the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki#it-tracks-bgs-activity)**.
-* For more detail, see the **[Activity Window section in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Use#activity-window)**.
+* For more detail on BGS and TW tracking, see **[this page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Usage-%E2%80%90-BGS-and-TW-Tracking)**.
+* For more detail on Colonisation tracking, see **[this page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Usage-%E2%80%90-Colonisation-Tracking)**.
 
 
 # Your Personal Activity and Privacy
 
-If you're concerned about the privacy of your BGS activity, note that this plugin **does not send your data anywhere, unless you specifically choose to by configuring the Discord Integration or API Integration**.
+If you're concerned about the privacy of your in-game activity, note that this plugin **does not send your data anywhere, unless you specifically choose to by configuring the Discord Integration or API Integration**.
 
 ## Local Files and Folders
 
@@ -93,7 +95,7 @@ And finally, a huge thank you to:
     * Hungarian - CMDR Lazy Creature and CMDR xtl
     * Italian - [CMDR JumpFrost_ITA](https://github.com/GLWine)
     * Portuguese (Portugal) - CMDR Holy Nothing
-    * Portuguese (Brazil) - CMDR FelaKuti
+    * Portuguese (Brazil) - CMDR Leonardo Felin and CMDR FelaKuti
     * Russian - CMDR YAD and CMDR KuzSan
     * Serbian (Latin) - CMDR Markovic Vladimir
     * Spanish - CMDR HaLfY47

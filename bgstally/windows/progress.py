@@ -1,19 +1,21 @@
-import traceback
-from math import ceil
-from enum import Enum, auto
-from functools import partial
-import webbrowser
 import tkinter as tk
 import tkinter.font as tkFont
+import traceback
+import webbrowser
+from enum import Enum, auto
+from functools import partial
+from math import ceil
 from tkinter import ttk
 from urllib.parse import quote
+
+from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, CommodityOrder, ProgressUnits, ProgressView
+from bgstally.debug import Debug
+from bgstally.utils import _, str_truncate
 from config import config
 from thirdparty.Tooltip import ToolTip
-from bgstally.constants import CommodityOrder, ProgressUnits, ProgressView
-from bgstally.debug import Debug
-from bgstally.utils import _
 
 MAX_ROWS = 20
+
 class ProgressWindow:
     '''
     Frame for displaying colonisation construction progress.
@@ -220,26 +222,39 @@ class ProgressWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def as_text(self) -> str:
-        ''' Return a discord text representation of the progress window '''
+    def as_text(self, discord:bool = True) -> str:
+        ''' Return a text representation of the progress window '''
         try:
+            self.colonisation = self.bgstally.colonisation
+            if self.colonisation == None:
+                return _("No colonisation data available") # LANG: No colonisation data available
 
+            output:str = ""
             tracked:list = self.colonisation.get_tracked_builds()
             required:dict = self.colonisation.get_required(tracked)
             delivered:dict = self.colonisation.get_delivered(tracked)
-            output:str = "```"
+
             if self.build_index < len(tracked):
                 b:dict = tracked[self.build_index]
                 sn:str = b.get('Plan', _('Unknown')) # Unknown system name
                 bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
-                output += f"{sn}, {bn}\n"
+                if discord:
+                    output += f"```{sn}, {bn}\n"
+                else:
+                    output += f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{bn}\n"
             else:
-                output += _("All builds") + "\n" # LANG: all tracked builds
+                if discord:
+                    output += "```" + _("All builds") + "\n" # LANG: all tracked builds
+                else:
+                    output += TAG_OVERLAY_HIGHLIGHT + _("All builds") + "\n" # LANG: all tracked builds
 
             output += f"{_('Progress')}: {self.progvar.get():.0f}%\n"
             output += "\n"
-            output += f"{_('Commodity'): <30} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
+            if discord:
+                output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
+
             output += "-" * 67 + "\n"
+
             for i, c in enumerate(self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)):
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
@@ -247,8 +262,12 @@ class ProgressWindow:
                 if remaining > 0:
                     name:str = self.colonisation.commodities[c].get('Name', c)
                     cat:str = self.colonisation.commodities[c].get('Category', c)
-                    output += f"{name: <30} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
-            output += "```\n"
+                    if discord:
+                        output += f"{name:<28} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
+                    else:
+                        output += f"{name}: {remaining} {_('t')}\n"
+
+            if discord: output += "```\n"
             return output.strip()
 
         except Exception as e:
@@ -308,6 +327,8 @@ class ProgressWindow:
         try:
             comm_id = self.colonisation.base_costs['All'].get(comm)
             sys:str = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
+            if sys == None: sys = 'sol'
+
             # pi3=3 - large, pi3=2 - medium
             size:int = 2 if self.colonisation.cargo_capacity < 407 else 3
 
@@ -354,12 +375,16 @@ class ProgressWindow:
 
             # Set the build name (system name and plan name)
             name = _('All') # LANG: all builds
+            sn:str = _('Unknown') # LANG: Unknown system name
             if self.build_index < len(tracked):
                 b:dict = tracked[self.build_index]
                 bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
                 pn:str = b.get('Plan', _('Unknown')) # Unknown system name
                 sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
                 name:str = ', '.join([pn, bn])
+            else:
+                self.build_index = 0 # Just in case it gets confused
+
 
             self.title.config(text=name[-50:])
 
@@ -438,7 +463,8 @@ class ProgressWindow:
                     if col == 'Commodity':
                         # Shorten and display the commodity name
                         colstr:str = self.colonisation.commodities[c].get('Name', c)
-                        if len(colstr) > 25: colstr = colstr[0:23] + '…'
+                        colstr = str_truncate(colstr, 25)
+
                         row['Commodity']['text'] = colstr
                         row['Commodity'].bind("<Button-1>", partial(self.link, c, None))
                         row['Commodity'].bind("<Button-2>", partial(self.link, c, sn))
@@ -452,7 +478,7 @@ class ProgressWindow:
                 rc += 1
 
             self._display_totals(self.rows[i+1], tracked, totals)
-            self.progvar.set(all_deliv * 100 / all_req)
+            if all_req > 0: self.progvar.set(all_deliv * 100 / all_req)
 
         except Exception as e:
             Debug.logger.info(f"Error updating display")

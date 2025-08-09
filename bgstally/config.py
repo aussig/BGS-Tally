@@ -67,6 +67,22 @@ class Config(object):
         return result
 
 
+    def overlay(self) -> dict | None:
+        """Fetch all information about the overlay configuration
+
+        Returns:
+            dict: The overlay configuration
+        """
+        result: dict | None = None
+
+        try:
+            result = self.config['overlay']
+        except KeyError as e:
+            Debug.logger.error(f"Tried to access overlay config which doesn't exist", exc_info=e)
+
+        return result
+
+
     def overlay_frame(self, name: str) -> dict | None:
         """Fetch all information about a given overlay panel
 

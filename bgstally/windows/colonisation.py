@@ -544,7 +544,6 @@ class ColonisationWindow:
         sheet.named_span(s3)
         s4 = sheet.span('E4:T', type_='readonly')
         sheet.named_span(s4)
-
         # track, types and names left.
         sheet[f"A{FIRST_BUILD_ROW}:C"].align(align='left')
 
@@ -951,6 +950,11 @@ class ColonisationWindow:
         chk.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
         row += 1
 
+        rcsync_var = tk.IntVar()
+        chk = tk.Checkbutton(dialog, text=_("Sync with Raven Colonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with Raven Colonial
+        chk.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+        row += 1
+
         lbl = ttk.Label(dialog, text=_("When planning your system the first base is special, make sure that it is the first on the list.")) # LANG: Notice about the first base being special
         lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=(10,0), sticky=tk.W)
         row += 1
@@ -966,13 +970,13 @@ class ColonisationWindow:
         add_button:ttk.Button = ttk.Button(
             button_frame,
             text=_("Add"), # LANG: Add/create a new system
-            command=lambda: self._add_system(plan_name_var.get(), system_name_var.get(), prepop_var.get())
+            command=lambda: self._add_system(plan_name_var.get(), system_name_var.get(), prepop_var.get(), rcsync_var.get())
         )
         add_button.pack(side=tk.LEFT, padx=5)
         self.tabbar.add(dialog, text='+')
 
 
-    def _add_system(self, plan_name:str, system_name:str, prepop:bool = False) -> None:
+    def _add_system(self, plan_name:str, system_name:str, prepop:bool = False, rcsync:bool = False) -> None:
         ''' Add the new system from the dialog '''
         try:
             if not plan_name:
@@ -980,7 +984,7 @@ class ColonisationWindow:
                 return
 
             # Add the system
-            system:dict = self.colonisation.add_system(plan_name, system_name, system_name, prepop)
+            system:dict = self.colonisation.add_system(plan_name, system_name, system_name, prepop, rcsync)
             if system == False:
                 messagebox.showerror(_("Error"), _("Unable to create system")) # LANG: General failure to create system error
                 return
@@ -1016,7 +1020,7 @@ class ColonisationWindow:
             plan_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
 
             # Display name
-            ttk.Label(dialog, text=_("System Name") + " ()" + _("optional and case sensitive") + "):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
+            ttk.Label(dialog, text=_("System Name") + " (" + _("optional and case sensitive") + "):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
             system_name_var:tk.StringVar = tk.StringVar(value=system.get('StarSystem', ''))
             system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
             system_name_entry.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)

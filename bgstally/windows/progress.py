@@ -74,6 +74,40 @@ class ProgressWindow:
                 'Sticky': tk.E
                 }
             }
+        # self.tooltips:dict = {
+        #     'Commodity': {
+        #         ProgressUnits.TONNES: _('Alphanumeric order'), # LANG: Commodity
+        #         ProgressUnits.REMAINING: _('Commodity'),
+        #         ProgressUnits.PERCENT: _('Commodity'),
+        #         ProgressUnits.LOADS: _('Commodity')
+        #         },
+        #     'Required': {
+        #         ProgressUnits.TONNES: _('Total tonnes required'), # LANG: Required amount
+        #         ProgressUnits.REMAINING: _('Tonnes remaining to deliver'), # LANG: Amount still needed
+        #         ProgressUnits.PERCENT: _('Percentage of total requirement'), # LANG: Percentage
+        #         ProgressUnits.LOADS: _('Total cargo loads required') # LANG: number of cargo loads
+        #         },
+        #     'Delivered': {
+        #         ProgressUnits.TONNES: _('Tonnes delivered so far'), # LANG: Amount delivered
+        #         ProgressUnits.REMAINING: _('Tonnes remaining to buy'), # LANG: Amount still left to buy
+        #         ProgressUnits.PERCENT: _('Percentage delivered'),
+        #         ProgressUnits.LOADS: _('Loads delivered ')
+        #         },
+        #     'Cargo': {
+        #         ProgressUnits.TONNES: _('In current cargo'), # LANG: amount in ship's Cargo
+        #         ProgressUnits.REMAINING: _('Tonnes remaining to deliver'):,
+        #         ProgressUnits.PERCENT: f"{_('Percent'):>11}",
+        #         ProgressUnits.LOADS: f"{_('Loads'):>12}",
+        #         'Sticky': tk.E
+        #         },
+        #     'Carrier': {
+        #         ProgressUnits.TONNES: f"{_('Carrier'):>11}", # LANG: Amount in your Fleet Carrier
+        #         ProgressUnits.REMAINING: f"{_('Needed'):>9}",
+        #         ProgressUnits.PERCENT: f"{_('Percent'):>11}",
+        #         ProgressUnits.LOADS: f"{_('Loads'):>12}",
+        #         'Sticky': tk.E
+        #         }
+        #     }
         # By removing the carrier from here we remove it everywhere
         if not self.bgstally.fleet_carrier.available():
             del self.headings['Carrier']
@@ -82,16 +116,15 @@ class ProgressWindow:
         self.frame:tk.Frame = None
         self.frame_row:int = 0 # Row in the parent frame
         self.table_frame:tk.Frame = None # Table frame
-        self.scrollbar:tk.Scrollbar = None # Scrollbar for the commodity list
         self.title:tk.Label = None # Title object
         self.colheadings:dict = {} # Column headings
         self.rows:list = []
+        self.progbar:ttk.Progressbar = None # Overall progress bar
         self.progvar:tk.IntVar = None
-        self.progcols:dict = {} # Progress bar variables
+        self.coltts:dict = {} # Tooltip for the progress bar
         self.build_index:int = 0 # Which build we're showing
         self.view:ProgressView = ProgressView.REDUCED # Full, reduced, or no list of commodities
         self.comm_order:CommodityOrder = CommodityOrder.DEFAULT # Commodity order
-        self.default_fg = None
 
 
     def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
@@ -113,9 +146,10 @@ class ProgressWindow:
             y.grid_rowconfigure(0, weight=1)
             y.grid_propagate(0)
             self.progvar = tk.IntVar()
-            progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=450, mode='determinate')
-            progbar.grid(row=0, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW)
-            progbar.rowconfigure(0, weight=1)
+            self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=450, mode='determinate')
+            self.progtt = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
+            self.progbar.grid(row=0, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW)
+            self.progbar.rowconfigure(0, weight=1)
             row += 1; col = 0
 
             lbl:tk.Label = tk.Label(frame, text=_("Builds") + ":", anchor=tk.W) # LANG: Builds/bases
@@ -152,8 +186,6 @@ class ProgressWindow:
             table_frame:tk.Frame = tk.Frame(frame)
             table_frame.columnconfigure(0, weight=1)
             table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
-            scr:tk.Scrollbar = tk.Scrollbar(table_frame, orient=tk.VERTICAL)
-            self.scrollbar = scr
             self.table_frame = table_frame
 
             # Column headings
@@ -163,7 +195,7 @@ class ProgressWindow:
                 c.grid(row=row, column=i, sticky=v.get('Sticky'))
                 c.bind("<Button-1>", partial(self.change_view, k))
                 c.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
-                ToolTip(c, text=_("Cycle commodity list filter views")) # LANG: tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views
+                self.coltts[k] = ToolTip(c, text=_("Cycle commodity list filter views")) # LANG: tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views
                 self._set_weight(c)
                 self.colheadings[k] = c
             row += 1
@@ -314,6 +346,7 @@ class ProgressWindow:
                     # Percent is only meaningful for Delivered and Carrier
                     if column not in ['Delivered', 'Carrier'] and self.units[column] == ProgressUnits.PERCENT:
                         self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
+                    self.coltts[column].text = f"{column}"
             self.update_display()
 
         except Exception as e:
@@ -478,7 +511,9 @@ class ProgressWindow:
                 rc += 1
 
             self._display_totals(self.rows[i+1], tracked, totals)
-            if all_req > 0: self.progvar.set(all_deliv * 100 / all_req)
+            if all_req > 0:
+                self.progvar.set(all_deliv * 100 / all_req)
+                self.progtt.text = f"{_('Progress')}: {self.progvar.get():.0f}%" # LANG: tooltip for the progress bar
 
         except Exception as e:
             Debug.logger.info(f"Error updating display")

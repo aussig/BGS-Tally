@@ -24,6 +24,8 @@ COMMODITY_FILENAME = 'commodity.csv'
 EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
 EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
 EDSM_SYSTEM = 'https://www.edsm.net/api-v1/system?showInformation=1&systemName='
+RC_SYSTEM = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api/v2/system/'
+
 EDSM_DELAY = (3600 * 12)
 class Colonisation:
     '''
@@ -172,6 +174,14 @@ class Colonisation:
                     progress['Updated'] = entry.get('timestamp')
                     for f in ['ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ResourcesRequired']:
                         progress[f] = entry.get(f)
+
+                    if entry.get('ConstructionComplete', False) == True:
+                        system:dict = self.find_system(self.current_system, self.systeem_id)
+                        if system is None:
+                            Debug.logger.warning(f"System {self.current_system} not found for completed build {entry.get('MarketID')}")
+                            return
+                        self.remove_build(system, entry.get('MarketID'))
+
                     self.dirty = True
 
                 case 'Docked':
@@ -186,10 +196,12 @@ class Colonisation:
                         build_state = BuildState.PROGRESS
                         type = 'Orbital'
                         name = re.sub(r'^\$EXT_PANEL_ColonisationShip.*; ', '', entry.get('StationName', ''))
+
                     elif 'Construction Site' in entry.get('StationName', ''):
                         build_state = BuildState.PROGRESS
                         name = re.sub('^.* Construction Site: ', '', entry['StationName'])
                         type = re.sub('^(.*) Construction Site: .*$', '\1', entry['StationName'])
+
                     elif self.find_system(entry.get('StarSystem'), entry.get('SystemAddress')) != None and entry.get('StationType', '') != 'FleetCarrier' and re.search('^\$', entry.get('StationName', '')) == None:
                         name = entry.get('StationName')
                         build_state = BuildState.COMPLETE
@@ -197,6 +209,16 @@ class Colonisation:
                     # If this isn't a colonisation ship or a system we're building, or it's a carrier, scenario, ignore it.
                     if build_state == None:
                         self.bgstally.ui.window_progress.update_display()
+                        return
+
+                    # We docked at a construction site or colonisation ship, see if we need to complete the build
+                    # If so we may need to remove it from the system.
+                    if build_state == BuildState.PROGRESS:
+                        system:dict = self.find_system(self.current_system, self.systeem_id)
+                        if system is None:
+                            Debug.logger.warning(f"System {self.current_system} not found for completed build {entry.get('MarketID')}")
+                            return
+                        #self.remove_build(system, entry.get('MarketID'))
                         return
 
                     system:dict = self.find_or_create_system(entry.get('StarSystem', ''), entry.get('SystemAddress', ''))
@@ -365,7 +387,7 @@ class Colonisation:
         return system
 
 
-    def add_system(self, plan_name:str, system_name:str = None, system_address:str = None, prepop:bool = False) -> dict|None:
+    def add_system(self, plan_name:str, system_name:str = None, system_address:str = None, prepop:bool = False, rcsync:bool = False) -> dict|None:
         ''' Add a new system for colonisation planning '''
 
         if self.get_system('Name', plan_name) is not None or self.get_system('StarSystem', system_name) is not None:
@@ -376,7 +398,8 @@ class Colonisation:
         system_data:dict = {
             'Name': plan_name,
             'Claimed': '',
-            'Builds': []
+            'Builds': [],
+            'RCsync': rcsync
         }
         if system_name != None: system_data['StarSystem'] = system_name
         if system_address != None: system_data['SystemAddress'] = system_address
@@ -388,7 +411,8 @@ class Colonisation:
             if prepop == True:
                 self.bgstally.request_manager.queue_request(EDSM_STATIONS+quote(system_name), RequestMethod.GET, callback=self._edsm_stations)
             self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system_name), RequestMethod.GET, callback=self._edsm_bodies)
-
+            if rcsync == True:
+                self.bgstally.request_manager.queue_request(RC_SYSTEM+quote(system_name), RequestMethod.GET, callback=self._rc_system)
         self.dirty = True
         self.save()
         return system_data
@@ -502,7 +526,7 @@ class Colonisation:
             system['Bodies'] = []
             for b in data.get('bodies'):
                 v:dict = {}
-                for k in ['name', 'type', 'subType', 'terraformingState', 'isLandable', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']:
+                for k in ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']:
                     if b.get(k, None): v[k] = b.get(k)
                 if b.get('parents', None) != None:
                     v['parents'] = len(b.get('parents', []))
@@ -512,6 +536,33 @@ class Colonisation:
 
         except Exception as e:
             Debug.logger.info(f"Error recording bodies")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def _rc_system(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+        ''' Process the results of querying RavenColonial for the system details '''
+        Debug.logger.info(f"RavenColonial system response received: {success}")
+        try:
+            if success == False:
+                return
+            system:dict = self.find_system(data.get('name'))
+            if system == None:
+                Debug.logger.warning(f"RavenColonial system didn't find system {data.get('name')}")
+                return
+
+            data:dict = response.json()
+            rc:dict = {
+                'id64': data.get('id64', None),
+                'architect': data.get('architect', None),
+                'reserveLevel': data.get('reserveLevel', None),
+                'sites': data.get('sites', [])
+            }
+            system['RavenColonial'] = rc
+            self.dirty = True
+            self.save()
+
+        except Exception as e:
+            Debug.logger.info(f"Error recording response")
             Debug.logger.error(traceback.format_exc())
 
 
@@ -551,9 +602,8 @@ class Colonisation:
         for p in self.progress:
             if p.get('MarketID') == build.get('MarketID'):
                 if p.get('ConstructionComplete', False) == True or p.get('ConstructionFailed', False) == True:
-                    build['State'] = BuildState.COMPLETE
-                    build['Track'] = False
-                    self.dirty = True
+                    Debug.logger.debug(f"Should remove build {build.get('Name', 'Unknown')} {build.get('MarketID', 'Unknown')}")
+                    #self.remove_build(build.get('StarSystem', {}), build.get('MarketID'))
                     return BuildState.COMPLETE
                 return BuildState.PROGRESS
 
@@ -626,6 +676,13 @@ class Colonisation:
             Debug.logger.warning(f"Cannot remove build - unknown system")
             return
 
+        # Support marketid or index
+        if id >= len(system['Builds']):
+            for i, build in enumerate(system['Builds']):
+                if build.get('MarketID') == build_index:
+                    build_index = i
+                    break
+
         if build_index >= len(system['Builds']):
             Debug.logger.warning(f"Cannot remove build - invalid build index: {build_index} {len(system['Builds'])} {system['Builds']}")
             return
@@ -633,7 +690,7 @@ class Colonisation:
         # Remove build
         system['Builds'].pop(build_index)
         self.dirty = True
-
+        self.save('Build removed')
 
     def update_build_tracking(self, build:dict, state:bool) -> None:
         ''' Change a build's tracked status '''
@@ -641,6 +698,40 @@ class Colonisation:
             build['Track'] = state
             self.dirty = True
             self.bgstally.ui.window_progress.update_display()
+
+
+    def try_complete_build(self, market_id:str) -> bool:
+        ''' Determine if a build has just been completed and if so mark it as such '''
+        try:
+            system = self.find_system(self.current_system, self.system_id)
+            if system is None:
+                return False
+            build:dict = self.find_build(system, market_id)
+            if build is None:
+                return False
+            if build.get('State', BuildState.PLANNED) != BuildState.PROGRESS:
+                return False
+            progress:dict = self.find_progress(market_id)
+            if progress is None:
+                return False
+            if progress.get('ConstructionComplete', False) == False:
+                return False
+
+            # If we get here, the build is (newly) complete.
+            # Since on completion the construction depot is removed/goes inactive and a new station is created
+            # we need to clear some fields.
+            build['State'] = BuildState.COMPLETE
+            build['Track'] = False
+            build['MarketID'] = None
+            build['Name'] = ' '
+            self.dirty = True
+            self.save('Build complete')
+            return True
+
+        except Exception as e:
+            Debug.logger.error(f"Error completing build: {e}")
+            Debug.logger.error(traceback.format_exc())
+            return False
 
 
     def get_commodity_list(self, base_type:str, order:CommodityOrder = CommodityOrder.ALPHA) -> list:
@@ -809,7 +900,14 @@ class Colonisation:
 
             # Update the EDSM data if appropriate and no more than once a day.
             for system in self.systems:
-                if system.get('StarSystem', '') != '' and time.time() > int(system.get('EDSMUpdated', 0)) + EDSM_DELAY:
+                if system.get('SystemAddress', None) == None:
+                    continue
+
+                # If we have a system address, we can try to get the bodies from EDSM
+                if system.get('RCsync', False) == True:
+                    self.bgstally.request_manager.queue_request(RC_SYSTEM+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._rc_system)
+
+                if time.time() > int(system.get('EDSMUpdated', 0)) + EDSM_DELAY:
                     if system.get('Bodies', None) == None:
                         self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_bodies)
 

@@ -328,6 +328,8 @@ class UI:
         Preferences frame has been saved (from EDMC core or any plugin)
         """
         self.update_plugin_frame()
+        self.bgstally.fleet_carrier.edmc_prefs_changed()
+        self.bgstally.colonisation.edmc_prefs_changed()
 
 
     def show_system_report(self, system_address: int):

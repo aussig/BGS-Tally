@@ -1,12 +1,13 @@
 import csv
 import json
 from datetime import datetime
+from io import TextIOWrapper
 from os import path, remove
 
 from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierItemType
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
-from bgstally.utils import _, __, get_by_path
+from bgstally.utils import _, __, get_by_path, get_localised_filepath
 from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
@@ -118,6 +119,7 @@ class FleetCarrier:
         else:
             self.locker = []
 
+
     def stats_received(self, journal_entry: dict):
         """
         The user entered the carrier management screen
@@ -127,6 +129,14 @@ class FleetCarrier:
             self.callsign = journal_entry.get("Callsign")
             self.carrier_id = journal_entry.get('CarrierID')
             self.data['dockingAccess'] = journal_entry.get("DockingAccess")
+
+
+    def edmc_prefs_changed(self) -> None:
+        '''
+        Called when the EDMC preferences have changed.
+        This is used to reload any localised data.
+        '''
+        self._load_commodities()
 
 
     def jump_requested(self, journal_entry: dict):
@@ -541,6 +551,7 @@ class FleetCarrier:
             case _:
                 return None, None, None, None
 
+
     def _load_commodities(self):
         """
         Load the CSV file containing full list of commodities. For our purposes, we build a dict where the key is the commodity
@@ -549,8 +560,9 @@ class FleetCarrier:
 
         The CSV file is sourced from the EDCD FDevIDs project https://github.com/EDCD/FDevIDs and should be updated occasionally
         """
-        filepath:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, COMMODITIES_CSV_FILENAME)
         self.commodities = {}
+        filepath: str|None = get_localised_filepath(COMMODITIES_CSV_FILENAME, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
+        if filepath is None: return
 
         try:
             with open(filepath, encoding = 'utf-8') as csv_file_handler:
@@ -570,6 +582,7 @@ class FleetCarrier:
                     self.commodities[rows.get('symbol', "").lower()] = rows.get('name', "")
         except Exception as e:
                 Debug.logger.error(f"Unable to load {rare_filepath}")
+
 
     def _as_dict(self):
         """

@@ -12,7 +12,7 @@ from requests import Response
 from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView, RequestMethod
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
-from bgstally.utils import _, get_by_path
+from bgstally.utils import _, get_by_path, get_localised_filepath
 from config import config
 
 FILENAME = "colonisation.json"
@@ -113,9 +113,12 @@ class Colonisation:
 
     def _load_commodities(self) -> None:
         ''' Load the commodities from the CSV file. This is used to map the internal name to the local name. '''
+
+        file_path: str | None = get_localised_filepath(COMMODITY_FILENAME, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
+        if file_path is None: return
+
         try:
-            file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, COMMODITY_FILENAME)
-            with open(file, encoding = 'utf-8') as csv_file_handler:
+            with open(file_path, encoding = 'utf-8') as csv_file_handler:
                 csv_reader = csv.DictReader(csv_file_handler)
                 comm:dict = {}
                 for rows in csv_reader:
@@ -127,6 +130,14 @@ class Colonisation:
         except Exception as e:
             Debug.logger.error(f"Unable to load {file} {e}")
             Debug.logger.debug(traceback.format_exc())
+
+
+    def edmc_prefs_changed(self) -> None:
+        '''
+        Called when the EDMC preferences have changed.
+        This is used to reload any localised data.
+        '''
+        self._load_commodities()
 
 
     def journal_entry(self, cmdr, is_beta, system, station, entry, state) -> None:

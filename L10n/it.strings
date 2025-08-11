@@ -86,7 +86,7 @@
 "Asteroid Base" = "Asteroid Base";
 
 /* Preferences checkbox label. [ui.py] */
-"Automatically Post BGS and TW Activity" = "Automatically Post BGS and TW Activity";
+"Automatically Post BGS and TW Activity" = "Posta automaticamente l'attività BGS e TW";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Bar" = "Bar";
@@ -203,7 +203,7 @@
 "CMDR Info" = "CMDR Info";
 
 /* Preferences checkbox label. [ui.py] */
-"Colonisation" = "Colonisation";
+"Colonisation" = "Colonizzazione";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Colony" = "Colony";
@@ -821,7 +821,7 @@
 "No" = "No";
 
 /* No colonisation data available. [progress.py] */
-"No colonisation data available" = "No colonisation data available";
+"No colonisation data available" = "Nessun dato di colonizzazione disponibile";
 
 /* Discord carrier docking access. [fleetcarrier.py] */
 "None" = "No";

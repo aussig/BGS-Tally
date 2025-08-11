@@ -1,17 +1,17 @@
-Summary Rows
+Zeilen Zusammenfassung
 
-  • Planned: Information about builds/bases that have been planned but not yet completed
-  • Completed: Information about builds/bases that have been completed
+  • Geplant: Informationen über geplante und noch nicht abgeschlossene Bauwerke / Basen
+  • Abgeschlossen: Informationen über abgeschlossene Bauwerke / Basen
 
-Summary Columns
+Spalten Zusammenfassung
 
-  • Total: total number of bases
-  • Orbital: number of orbital bases
-  • Surface: number of surface bases
-  • T2: The net Tier 2 point cost or reward
-  • T3: The net Tier 3 point cost or reward
-  • Cost: The cost of the builds in tonnes required
-  • Loads: The number of ship loads based on your current cargo capacity
+  • Insgesamt: Gesamtzahl der Basen
+  • Orbital: Anzahl der orbitalen Basen
+  • Oberfläche: Anzahl der Oberflächenbasen
+  • T2: Die Nettopunktkosten oder -belohnung der Stufe 2
+  • T3: Die Nettopunktkosten oder -belohnung der Stufe 3
+  • Kosten: Die für den Bau gesamt erforderliche Ware in Tonnen
+  • Ladungen: Die Anzahl der Schiffsladungen basierend auf Ihrer aktuellen Ladekapazität
 
   • Pop Inc: combined population increase impact
   • Pop Max: combined maximum population impact

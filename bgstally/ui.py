@@ -1,3 +1,4 @@
+import csv
 import tkinter as tk
 from datetime import UTC, datetime, timedelta
 from functools import partial
@@ -12,23 +13,26 @@ import myNotebook as nb
 from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.activity import Activity
-from bgstally.constants import DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL, CheckStates, DiscordActivity, UpdateUIPolicy, TAG_OVERLAY_HIGHLIGHT
+from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity,
+                                UpdateUIPolicy)
 from bgstally.debug import Debug
-from bgstally.utils import _, available_langs, get_by_path
+from bgstally.utils import _, available_langs, get_by_path, get_localised_filepath
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
 from bgstally.windows.cmdrs import WindowCMDRs
 from bgstally.windows.colonisation import ColonisationWindow
-from bgstally.windows.progress import ProgressWindow
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
 from bgstally.windows.legend import WindowLegend
 from bgstally.windows.objectives import WindowObjectives
+from bgstally.windows.progress import ProgressWindow
 from config import config
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
 
 DATETIME_FORMAT_OVERLAY = "%Y-%m-%d %H:%M"
+FILENAME_COMMODITIES_CSV = "commodity.csv"
+FILENAME_RARE_COMMODITIES_CSV = "rare_commodity.csv"
 SIZE_BUTTON_PIXELS = 30
 SIZE_STATUS_ICON_PIXELS = 16
 TIME_WORKER_PERIOD_S = 2
@@ -82,6 +86,9 @@ class UI:
         self.thread: Optional[Thread] = Thread(target=self._worker, name="BGSTally UI worker")
         self.thread.daemon = True
         self.thread.start()
+
+        # Localisation lookups
+        self._load_commodities()
 
 
     def shut_down(self):
@@ -328,8 +335,7 @@ class UI:
         Preferences frame has been saved (from EDMC core or any plugin)
         """
         self.update_plugin_frame()
-        self.bgstally.fleet_carrier.edmc_prefs_changed()
-        self.bgstally.colonisation.edmc_prefs_changed()
+        self._load_commodities()
 
 
     def show_system_report(self, system_address: int):
@@ -370,6 +376,41 @@ class UI:
         with them expecting results
         """
         return "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"
+
+
+    def _load_commodities(self):
+        """
+        Load the commodity and rare_commodity CSV files containing full list of commodities. We build a dict where the key is the commodity
+        internal name from the 'symbol' column in the CSV, lowercased, and the value is a dict containing the other fields (ID, Category, Name)
+        where Name is localised.
+
+        The CSV files are sourced from the EDCD FDevIDs project https://github.com/EDCD/FDevIDs and should be updated occasionally, along with the
+        localised versions in the L10n folder
+        """
+        self.commodities = {}
+        filepath: str|None = get_localised_filepath(FILENAME_COMMODITIES_CSV, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
+        if filepath is None: return
+
+        try:
+            with open(filepath, encoding = 'utf-8') as csv_file_handler:
+                csv_reader = csv.DictReader(csv_file_handler)
+
+                for rows in csv_reader:
+                    self.commodities[rows.get('symbol', "").lower()] = {'ID': rows.get('id', ""), 'Category': rows.get('category', ""), 'Name': rows.get('name', "")}
+        except Exception as e:
+                Debug.logger.error(f"Unable to load {filepath}")
+
+        rare_filepath: str|None = get_localised_filepath(FILENAME_RARE_COMMODITIES_CSV, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
+        if rare_filepath is None: return
+
+        try:
+            with open(rare_filepath, encoding = 'utf-8') as csv_file_handler:
+                csv_reader = csv.DictReader(csv_file_handler)
+
+                for rows in csv_reader:
+                    self.commodities[rows.get('symbol', "").lower()] = {'ID': rows.get('id', ""), 'Category': rows.get('category', ""), 'Name': rows.get('name', "")}
+        except Exception as e:
+                Debug.logger.error(f"Unable to load {rare_filepath}")
 
 
     def _webhooks_table_modified(self, event=None):

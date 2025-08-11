@@ -60,7 +60,6 @@ class Colonisation:
         self.docked:bool = False
         self.base_types:dict = {}  # Loaded from base_types.json
         self.base_costs:dict = {}  # Loaded from base_costs.json
-        self.commodities:dict = {} # Loaded from commodity.csv
         self.systems:list = []     # Systems with colonisation
         self.progress:list = []    # Construction progress data
         self.dirty:bool = False
@@ -71,7 +70,6 @@ class Colonisation:
         self.cargo_capacity:int = 784 # Default cargo capacity
 
         # Load base commodities, types, costs, and saved data
-        self._load_commodities()
         self._load_base_types()
         self._load_base_costs()
         self._load()
@@ -109,35 +107,6 @@ class Colonisation:
         except Exception as e:
             Debug.logger.error(f"Error loading base costs: {e}")
             self.base_costs = {}
-
-
-    def _load_commodities(self) -> None:
-        ''' Load the commodities from the CSV file. This is used to map the internal name to the local name. '''
-
-        file_path: str | None = get_localised_filepath(COMMODITY_FILENAME, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
-        if file_path is None: return
-
-        try:
-            with open(file_path, encoding = 'utf-8') as csv_file_handler:
-                csv_reader = csv.DictReader(csv_file_handler)
-                comm:dict = {}
-                for rows in csv_reader:
-                    comm[f"${rows.get('symbol', '').lower()}_name;"] = {'Name' : rows.get('name', ''), 'Category': rows.get('category', '')}
-                Debug.logger.info(f"Loaded {len(comm)} commodities for colonisation")
-
-                self.commodities = dict(sorted(comm.items(), key=lambda item: item[1]['Name']))
-
-        except Exception as e:
-            Debug.logger.error(f"Unable to load {file} {e}")
-            Debug.logger.debug(traceback.format_exc())
-
-
-    def edmc_prefs_changed(self) -> None:
-        '''
-        Called when the EDMC preferences have changed.
-        This is used to reload any localised data.
-        '''
-        self._load_commodities()
 
 
     def journal_entry(self, cmdr, is_beta, system, station, entry, state) -> None:
@@ -664,11 +633,11 @@ class Colonisation:
             match order:
                 case CommodityOrder.CATEGORY:
                     # dict(sorted(dict_of_dicts.items(), key=lambda item: item[1][key_to_sort_by]))
-                    ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Category']))
+                    ordered = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Category']))
                 case _:
-                    ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Name']))
+                    ordered = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Name']))
 
-            return [c for c in ordered if c in comms.keys()]
+            return [c_symbol for c_symbol in ordered if f"${c_symbol}_name;" in comms.keys()]
 
         except Exception as e:
             Debug.logger.info(f"Error retrieving costs")

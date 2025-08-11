@@ -1,7 +1,8 @@
 import functools
 import re
+import traceback
 from copy import deepcopy
-from os import listdir
+from os import listdir, path
 from os.path import join
 from pathlib import Path
 from re import Pattern, compile
@@ -12,7 +13,7 @@ import semantic_version
 import bgstally.globals
 import l10n
 from bgstally.debug import Debug
-from config import appversion
+from config import appversion, config
 
 human_readable_number_pat:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt]?)$")
 
@@ -120,6 +121,36 @@ def available_langs() -> dict[str | None, str]:
     ))
 
     return names
+
+
+def get_localised_filepath(filename: str, basepath: str) -> str | None:
+    """Attempt to load a localised file from a given base path and filename, looking in the standard EDMC l10n subfolder,
+    falling back to the default language if necessary.
+
+    Args:
+        filename (str): The name of the file to load
+        basepath (str): The base path where the file is located
+        encoding (str, optional): The encoding to use when opening the file. Defaults to "utf-8".
+
+    Returns:
+        str | None: The file path if it exists or None if the file is not found.
+    """
+    lang:str = config.get_str('language')
+    filepath: str | None = None
+
+    if lang and lang != 'en':
+        filepath = path.join(basepath, l10n.LOCALISATION_DIR, f"{lang}.{filename}")
+        if path.exists(filepath):
+            return filepath
+        else:
+            Debug.logger.debug(f"Missing translatable file {filepath} for language: {lang}, falling back to default.")
+
+    filepath = path.join(basepath, filename)
+    if path.exists(filepath):
+        return filepath
+
+    Debug.logger.info(f"Missing translatable file {filepath} for language: {lang}")
+    return None
 
 
 def get_by_path(dic: dict[str, Any], keys: list[str], default: Any = None) -> Any:

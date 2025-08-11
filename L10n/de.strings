@@ -248,7 +248,7 @@
 "Copy contents" = "Inhalte kopieren";
 
 /* tooltip for the copy to clipboard icon. [colonisation.py] */
-"Copy system name to clipboard" = "Copy system name to clipboard";
+"Copy system name to clipboard" = "Systemnamen in Zwischenablage kopieren";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "In Zwischenablage kopieren";
@@ -698,7 +698,7 @@
 "L" = "L";
 
 /* [colonisation.py] */
-"Landable" = "Landable";
+"Landable" = "Landbar";
 
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Sprache für Discord-Beiträge";

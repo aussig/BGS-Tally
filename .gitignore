@@ -146,3 +146,4 @@ L10n/en.template.new
 config/userconfig.ini
 MEMORY_BANK.md
 .DS_Store
+scripts/

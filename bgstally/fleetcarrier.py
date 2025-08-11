@@ -1,17 +1,14 @@
-import csv
 import json
 from datetime import datetime
 from os import path, remove
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_DATA, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierItemType
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierItemType
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
 from bgstally.utils import _, __, get_by_path
 from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
-COMMODITIES_CSV_FILENAME = "commodity.csv"
-RARE_COMMODITIES_CSV_FILENAME = "rare_commodity.csv"
 
 
 class FleetCarrier:
@@ -27,9 +24,7 @@ class FleetCarrier:
         self.commodities_buying:list = []
         self.cargo:list = []
         self.locker:dict = {}
-        self.commodities:dict = {}
 
-        self._load_commodities()
         self.load()
 
     def load(self):
@@ -118,6 +113,7 @@ class FleetCarrier:
         else:
             self.locker = []
 
+
     def stats_received(self, journal_entry: dict):
         """
         The user entered the carrier management screen
@@ -176,10 +172,10 @@ class FleetCarrier:
         # Unfortunately we don't get the localized name for transfers so we'll do without.
         cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
         for i in journal_entry.get('Transfers', []):
-            type:str = i.get('Type', "")
+            type:str = i.get('Type', "").lower()
             display_type:str = i.get('Type_Localised', "")
-            if display_type == "" and type in self.commodities:
-                display_type = self.commodities[type]
+            if display_type == "" and type in self.bgstally.ui.commodities:
+                display_type = self.bgstally.ui.commodities[type]['Name']
 
             count:int = i.get('Count', 0)
             direction:str = i.get('Direction', "")
@@ -221,7 +217,7 @@ class FleetCarrier:
 
         item_name:str = journal_entry.get('Commodity', "").lower()
         self.carrier_id = journal_entry.get('CarrierID')
-        if item_name in self.commodities:
+        if item_name in self.bgstally.ui.commodities:
             # The order is for a commodity. Note we pass the item_name as the display name because Commodity_Localised is not always present for commodities,
             # and anyway we don't get localised names in CAPI data so generally they are not present. So, we look display name up later for commodities.
             if journal_entry.get('SaleOrder') is not None:
@@ -245,56 +241,6 @@ class FleetCarrier:
             elif journal_entry.get('CancelTrade') == True:
                 self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_SELLING)
                 self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_BUYING)
-
-
-    def cargo_transfer(self, journal_entry: dict):
-        """
-        The user transferred cargo to or from the carrier.
-
-        We shouldn't do this. If the EDMC CAPI cooldown worked properly we'd just query the CAPI and get the accurate data!
-
-        Args:
-            journal_entry (dict): The journal entry data
-        """
-        # { "timestamp":"2025-03-22T15:15:21Z", "event":"CargoTransfer", "Transfers":[ { "Type":"steel", "Count":728, "Direction":"toship" }, { "Type":"titanium", "Count":56, "Direction":"toship" } ] }
-
-        # Unfortunately we don't get the localized name for transfers so we'll do without.
-        cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
-        Debug.logger.debug(f"cargo_transfer: {journal_entry}")
-        for i in journal_entry.get('Transfers', []):
-            type:str = i.get('Type', "")
-            display_type:str = i.get('Type_Localised', "")
-            if display_type == "" and type in self.commodities:
-                display_type = self.commodities[type]
-
-            count:int = i.get('Count', 0)
-            direction:str = i.get('Direction', "")
-
-            found = False
-            for c in cargo:
-                # For some reason the event is lower case but the cargo is mixed case
-                if count > 0 and c[name_key].lower() == type:
-                    found = True
-                    if direction == "toship":
-                        if c[quantity_key] > count: # May have to do this in multiple bits.
-                            Debug.logger.debug(f"Removing {count} {type} from cargo")
-                            c[quantity_key] -= count
-                            count = 0
-                            break
-                        else:
-                            Debug.logger.debug(f"Deleting {count} {type} {c[quantity_key]} from cargo")
-                            count -= c[quantity_key]
-                            cargo.remove(c)
-
-                    else:
-                        Debug.logger.debug(f"Adding {count} {type} to cargo")
-                        c[quantity_key] += count
-                        count = 0
-                        break
-
-            if not found:
-                Debug.logger.debug(f"Creating {count} {type} cargo")
-                cargo.append({name_key: type, display_name_key: display_type, quantity_key: count})
 
 
     def market_activity(self, journal_entry:dict):
@@ -327,7 +273,7 @@ class FleetCarrier:
                     break
 
         if not found:
-            cargo.append({name_key: type, display_name_key: self.commodities[type], quantity_key: count})
+            cargo.append({name_key: type, display_name_key: self.bgstally.ui.commodities[type]['Name'], quantity_key: count})
 
 
     def get_items_plaintext(self, category: FleetCarrierItemType|None = None) -> str:
@@ -348,18 +294,28 @@ class FleetCarrier:
         if category == FleetCarrierItemType.CARGO:
             # Cargo is a special case because it can have multiple items with the same name so we have to sum them together
             cargo = dict()
-            items = sorted(items, key=lambda x: x[display_name_key])
+            items = sorted(items, key=lambda x: x[name_key])
+
             for item in items:
-                if item[display_name_key] in cargo:
-                    cargo[item[display_name_key]] += int(item[quantity_key])
+                # No longer prioritise the display name from CAPI data, as now that we have localised commodity names, we do a lookup first.
+                # This allows us to translate to the EDMC language rather than the (limited set of) game languages.
+                if item[name_key].lower() in self.bgstally.ui.commodities:
+                    display_name:str = self.bgstally.ui.commodities[item[name_key].lower()]['Name']
+                elif display_name_key in item:
+                    # No translation, fall back to display name from CAPI data
+                    display_name:str = item[display_name_key]
                 else:
-                    cargo[item[display_name_key]] = int(item[quantity_key])
+                    # No CAPI display name, fall back to the item name (which may not have spaces)
+                    display_name:str = item[name_key]
+
+                if display_name in cargo:
+                    cargo[display_name] += int(item[quantity_key])
+                else:
+                    cargo[display_name] = int(item[quantity_key])
             for key, value in cargo.items():
                 result += f"{key} x {value}\n"
 
-            return result
-
-        if category == FleetCarrierItemType.LOCKER:
+        elif category == FleetCarrierItemType.LOCKER:
             # Locker is a special case because it's sub-divided into types
             for type in items:
                 result += f"{type.title()}:\n"
@@ -367,70 +323,23 @@ class FleetCarrier:
                 for item in items[type]:
                     if int(item[quantity_key]) > 0: # This one includes zero quantities for some reason
                         result += f"    {item[display_name_key]} x {item[quantity_key]}\n"
-            return result
 
-        items = sorted(items, key=lambda x: x[name_key])
-        for item in items:
-            if display_name_key in item:
-                # Use the localised name from CAPI data
-                display_name:str = item[display_name_key]
-            elif item[name_key] in self.commodities:
-                # Look up the display name because we don't have it in CAPI data
-                display_name:str = self.commodities[item[name_key]]
-            else:
-                display_name:str = item[name_key]
-
-            if int(item[quantity_key]) > 0:
-                result += f"{display_name} x {item[quantity_key]} @ {self._human_format_price(item['price'])}\n"
-
-        return result
-
-
-    def get_items_discord(self, category: FleetCarrierItemType = None) -> str:
-        """
-        Return a list of formatted items for posting to Discord
-        """
-        result:str = ""
-        items, name_key, display_name_key, quantity_key = self._get_items(category)
-
-        if items is None: return ""
-
-        if category == FleetCarrierItemType.CARGO:
-            # Cargo is a special case because it can have multiple items with the same name so we have to sum them together
-            cargo = dict()
-            items = sorted(items, key=lambda x: x[display_name_key])
+        else:
+            items = sorted(items, key=lambda x: x[name_key])
             for item in items:
-                if item[display_name_key] in cargo:
-                    cargo[item[display_name_key]] += int(item[quantity_key])
+                # No longer prioritise the display name from CAPI data, as now that we have localised commodity names, we do a lookup first.
+                # This allows us to translate to the EDMC language rather than the (limited set of) game languages.
+                if item[name_key].lower() in self.bgstally.ui.commodities:
+                    display_name:str = self.bgstally.ui.commodities[item[name_key].lower()]['Name']
+                elif display_name_key in item:
+                    # No translation, fall back to display name from CAPI data
+                    display_name:str = item[display_name_key]
                 else:
-                    cargo[item[display_name_key]] = int(item[quantity_key])
-            for key, value in cargo.items():
-                result += f"cyan({key}) x green({value})\n"
-            return result
+                    # No CAPI display name, fall back to the item name (which may not have spaces)
+                    display_name:str = item[name_key]
 
-        if category == FleetCarrierItemType.LOCKER:
-            # Locker is a special case because it's sub-divided into types
-            for type in items:
-                result += f"{type.title()}:\n"
-                items[type] = sorted(items[type], key=lambda x: x[display_name_key])
-                for item in items[type]:
-                    if int(item[quantity_key]) > 0: # This one includes zero quantities for some reason
-                        result += f"    {cyan(item[display_name_key])} x {green(item[quantity_key])}\n"
-            return result
-
-        items = sorted(items, key=lambda x: x[name_key])
-
-        for item in items:
-            if display_name_key in item:
-                # Use the localised name from CAPI data
-                display_name:str = item[display_name_key]
-            elif item[name_key] in self.commodities:
-                # Look up the display name because we don't have it in CAPI data
-                display_name:str = self.commodities[item[name_key]]
-            else:
-                display_name:str = item[name_key]
-
-            if int(item[quantity_key]) > 0: result += f"{cyan(display_name)} x {green(item[quantity_key])} @ {red(self._human_format_price(item['price']))}\n"
+                if int(item[quantity_key]) > 0:
+                    result += f"{display_name} x {item[quantity_key]} @ {self._human_format_price(item['price'])}\n"
 
         return result
 
@@ -541,35 +450,6 @@ class FleetCarrier:
             case _:
                 return None, None, None, None
 
-    def _load_commodities(self):
-        """
-        Load the CSV file containing full list of commodities. For our purposes, we build a dict where the key is the commodity
-        internal name from the 'symbol' column in the CSV, lowercased, and the value is the localised name. As we are not passed
-        localised names for commodities in the CAPI data, this allows us to show nice human-readable commodity names (always in English though).
-
-        The CSV file is sourced from the EDCD FDevIDs project https://github.com/EDCD/FDevIDs and should be updated occasionally
-        """
-        filepath:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, COMMODITIES_CSV_FILENAME)
-        self.commodities = {}
-
-        try:
-            with open(filepath, encoding = 'utf-8') as csv_file_handler:
-                csv_reader = csv.DictReader(csv_file_handler)
-
-                for rows in csv_reader:
-                    self.commodities[rows.get('symbol', "").lower()] = rows.get('name', "")
-        except Exception as e:
-                Debug.logger.error(f"Unable to load {filepath}")
-
-        rare_filepath:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, RARE_COMMODITIES_CSV_FILENAME)
-        try:
-            with open(rare_filepath, encoding = 'utf-8') as csv_file_handler:
-                csv_reader = csv.DictReader(csv_file_handler)
-
-                for rows in csv_reader:
-                    self.commodities[rows.get('symbol', "").lower()] = rows.get('name', "")
-        except Exception as e:
-                Debug.logger.error(f"Unable to load {rare_filepath}")
 
     def _as_dict(self):
         """

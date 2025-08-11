@@ -1,257 +1,257 @@
-id,symbol,category,name
-128049152,Platinum,Metals,Platino
-128049153,Palladium,Metals,Paladio
-128049154,Gold,Metals,Oro
-128049155,Silver,Metals,Plata
-128049156,Bertrandite,Minerals,Bertrandita
-128049157,Indite,Minerals,Indita
-128049158,Gallite,Minerals,Galita
-128049159,Coltan,Minerals,Coltán
-128049160,Uraninite,Minerals,Uraninita
-128049161,Lepidolite,Minerals,Lepidolita
-128049162,Cobalt,Metals,Cobalto
-128049163,Rutile,Minerals,Rutilo
-128049165,Bauxite,Minerals,Bauxita
-128049166,Water,Chemicals,Agua
-128049168,Beryllium,Metals,Berilio
-128049169,Indium,Metals,Indio
-128049170,Gallium,Metals,Galio
-128049171,Tantalum,Metals,Tantalio
-128049172,Uranium,Metals,Uranio
-128049173,Lithium,Metals,Litio
-128049174,Titanium,Metals,Titanio
-128049175,Copper,Metals,Cobre
-128049176,Aluminium,Metals,Aluminio
-128049177,Algae,Foods,Algas
-128049178,FruitAndVegetables,Foods,Frutas y verduras
-128049180,Grain,Foods,Grano
-128049182,Animalmeat,Foods,Carne de animales
-128049183,Fish,Foods,Pescado
-128049184,FoodCartridges,Foods,Cartuchos de alimentos
-128049185,SyntheticMeat,Foods,Carne sintética
-128049188,Tea,Foods,Té
-128049189,Coffee,Foods,Café
-128049190,Leather,Textiles,Cuero
-128049191,NaturalFabrics,Textiles,Tejidos naturales
-128049193,SyntheticFabrics,Textiles,Tejidos sintéticos
-128049197,Polymers,Industrial Materials,Polímeros
-128049199,Semiconductors,Industrial Materials,Semiconductores
-128049200,Superconductors,Industrial Materials,Superconductores
-128049202,HydrogenFuel,Chemicals,Combustible de hidrógeno
-128049203,MineralOil,Chemicals,Aceite mineral
-128049204,Explosives,Chemicals,Explosivos
-128049205,Pesticides,Chemicals,Pesticidas
-128049208,AgriculturalMedicines,Medicines,Medicinas agrícolas
-128049209,PerformanceEnhancers,Medicines,Potenciadores de rendimiento
-128049210,BasicMedicines,Medicines,Medicinas básicas
-128049212,BasicNarcotics,Legal Drugs,Narcóticos
-128049213,Tobacco,Legal Drugs,Tabaco
-128049214,Beer,Legal Drugs,Cerveza
-128049215,Wine,Legal Drugs,Vino
-128049216,Liquor,Legal Drugs,Licores
-128049217,PowerGenerators,Machinery,Generadores de energía
-128049218,WaterPurifiers,Machinery,Purificadores de agua
-128049220,HeliostaticFurnaces,Machinery,Hornos microbianos
-128049221,MineralExtractors,Machinery,Extractores de minerales
-128049222,CropHarvesters,Machinery,Segadoras de cultivos
-128049223,MarineSupplies,Machinery,Equipamiento marino
-128049225,ComputerComponents,Technology,Componentes informáticos
-128049226,HazardousEnvironmentSuits,Technology,Trajes de protección
-128049227,Robotics,Technology,Robótica
-128049228,AutoFabricators,Technology,Autofabricantes
-128049229,AnimalMonitors,Technology,Monitores de animales
-128049230,AquaponicSystems,Technology,Sistemas de hidroponía
-128049231,AdvancedCatalysers,Technology,Catalizadores avanzados
-128049232,TerrainEnrichmentSystems,Technology,Enriquecimiento terrestre
-128049233,PersonalWeapons,Weapons,Armas personales
-128049234,BattleWeapons,Weapons,Armas de batalla
-128049235,ReactiveArmour,Weapons,Blindaje reactivo
-128049236,NonLethalWeapons,Weapons,Armas no letales
-128049238,DomesticAppliances,Consumer Items,Electrodomésticos
-128049240,ConsumerTechnology,Consumer Items,Tecnología de consumo
-128049241,Clothing,Consumer Items,Ropa
-128049243,Slaves,Slavery,Esclavos
-128049244,Biowaste,Waste,Residuos biológicos
-128049245,ToxicWaste,Waste,Residuos tóxicos
-128049246,ChemicalWaste,Waste,Residuos químicos
-128049248,Scrap,Waste,Chatarra
-128049669,ProgenitorCells,Medicines,Células madre
-128049670,CombatStabilisers,Medicines,Estabilizadores de combate
-128049671,ResonatingSeparators,Technology,Separadores resonantes
-128049672,BioReducingLichen,Technology,Líquenes biorreductores
-128064028,AtmosphericExtractors,Machinery,Procesadores atmosféricos
-128066403,Drones,NonMarketable,Limpets
-128666752,USSCargoBlackBox,Salvage,Cajas negras
-128666754,USSCargoTradeData,Salvage,Datos comerciales
-128666755,USSCargoMilitaryPlans,Salvage,Planes militares
-128666756,USSCargoAncientArtefact,Salvage,Artefactos antiguos
-128666757,USSCargoRareArtwork,Salvage,Arte poco común
-128666758,USSCargoExperimentalChemicals,Salvage,Químicos experimentales
-128666759,USSCargoRebelTransmissions,Salvage,Transmisiones rebeldes
-128666760,USSCargoPrototypeTech,Salvage,Prototipos tecnológicos
-128666761,USSCargoTechnicalBlueprints,Salvage,Planos técnicos
-128667728,ImperialSlaves,Slavery,Esclavos imperiales
-128668547,UnknownArtifact,Salvage,Sensor Thargoide
-128668548,AiRelics,Salvage,Reliquias de IA
-128668549,Hafnium178,Metals,Hafnio 178
-128668550,Painite,Minerals,Painita
-128668551,Antiquities,Salvage,Antigüedades
-128668552,MilitaryIntelligence,Salvage,Inteligencia militar
-128671118,Osmium,Metals,Osmio
-128671443,SAP8CoreContainer,Salvage,Núcleos SAP-8
-128671444,TrinketsOfFortune,Consumer Items,Baratijas de fortuna oculta
-128672123,WreckageComponents,Salvage,Restos de accidentes
-128672124,EncriptedDataStorage,Salvage,Datos encriptados
-128672125,OccupiedCryoPod,Salvage,Cápsula de escape ocupada
-128672126,PersonalEffects,Salvage,Efectos personales
-128672127,ComercialSamples,Salvage,Muestras comerciales
-128672128,TacticalData,Salvage,Datos tácticos
-128672129,AssaultPlans,Salvage,Planes de asalto
-128672130,EncryptedCorrespondence,Salvage,Correspondencia encriptada
-128672131,DiplomaticBag,Salvage,Valija diplomática
-128672132,ScientificResearch,Salvage,Investigaciones científicas
-128672133,ScientificSamples,Salvage,Muestras científicas
-128672134,PoliticalPrisoner,Salvage,Prisioneros políticos
-128672135,Hostage,Salvage,Rehenes
-128672136,LargeExplorationDataCash,Salvage,Memorias de reconocimiento grandes
-128672137,SmallExplorationDataCash,Salvage,Memorias de reconocimiento pequeñas
-128672159,AntiqueJewellery,Salvage,Joyería antigua 
-128672160,PreciousGems,Salvage,Piedras preciosas
-128672161,EarthRelics,Salvage,Reliquias de la vieja Tierra 
-128672162,GeneBank,Salvage,Bancos de genes
-128672163,TimeCapsule,Salvage,Capsulas del tiempo
-128672294,Cryolite,Minerals,Criolita
-128672295,Goslarite,Minerals,Goslarita
-128672296,Moissanite,Minerals,Moissanita
-128672297,Pyrophyllite,Minerals,Pirofilita
-128672298,Lanthanum,Metals,Lantano
-128672299,Thallium,Metals,Talio
-128672300,Bismuth,Metals,Bismuto
-128672301,Thorium,Metals,Torio
-128672302,CeramicComposites,Industrial Materials,Compuestos cerámicos
-128672303,SyntheticReagents,Chemicals,Reagentes sintéticos
-128672304,NerveAgents,Chemicals,Agentes nerviosos
-128672305,SurfaceStabilisers,Chemicals,Estabilizadores de superficie
-128672306,BootlegLiquor,Legal Drugs,Licor de caña
-128672307,GeologicalEquipment,Machinery,Equipamiento geológico
-128672308,ThermalCoolingUnits,Machinery,Unidades de enfriamiento térmico
-128672309,BuildingFabricators,Machinery,Constructores
-128672310,MuTomImager,Technology,Escáner muónico
-128672311,StructuralRegulators,Technology,Reguladores estructurales
-128672312,Landmines,Weapons,Minas terrestres
-128672313,SkimerComponents,Machinery,Componentes de deslizador
-128672314,EvacuationShelter,Consumer Items,Refugio de evacuación
-128672315,GeologicalSamples,Salvage,Muestras geológicas
-128672701,MetaAlloys,Industrial Materials,Metaaleaciones
-128672775,Taaffeite,Minerals,Taaffeíta
-128672776,Jadeite,Minerals,Jadeíta
-128672810,UnstableDataCore,Salvage,Unidad de datos inestable
-128672811,DamagedEscapePod,Salvage,Cápsula de escape dañada
-128673845,Praseodymium,Metals,Praseodimio
-128673846,Bromellite,Minerals,Bromellita
-128673847,Samarium,Metals,Samario
-128673848,LowTemperatureDiamond,Minerals,Diamante de baja temperatura
-128673850,HydrogenPeroxide,Chemicals,Peróxido de hidrógeno
-128673851,LiquidOxygen,Chemicals,Oxígeno líquido
-128673852,MethanolMonohydrateCrystals,Minerals,Cristales de monohidrato de metanol
-128673853,LithiumHydroxide,Minerals,Hidróxido de litio
-128673854,MethaneClathrate,Minerals,Hidrato de metano
-128673855,InsulatingMembrane,Industrial Materials,Membrana aislante
-128673856,CMMComposite,Industrial Materials,Compuestos CMM
-128673857,CoolingHoses,Industrial Materials,Mangueras de microtejidos
-128673858,NeofabricInsulation,Industrial Materials,Neotejido aislante
-128673859,ArticulationMotors,Machinery,Motores de articulación
-128673860,HNShockMount,Machinery,Suspensión HN
-128673861,EmergencyPowerCells,Machinery,Células energía auxiliar
-128673862,PowerConverter,Machinery,Convertidor de energía
-128673863,PowerGridAssembly,Machinery,Red de energía
-128673864,PowerTransferConduits,Machinery,Conductos de transf. de energía
-128673865,RadiationBaffle,Machinery,Deflector de radiación
-128673866,ExhaustManifold,Machinery,Colector de escape
-128673867,ReinforcedMountingPlate,Machinery,Placa de anclaje reforzada
-128673868,HeatsinkInterlink,Machinery,Interconect. de eyector térmico
-128673869,MagneticEmitterCoil,Machinery,Bobina de emisión magnética
-128673870,ModularTerminals,Machinery,Terminales modulares
-128673871,Nanobreakers,Technology,Nanorrompedores
-128673872,TelemetrySuite,Technology,Paquete de telemetría
-128673873,MicroControllers,Technology,Microcontroladores
-128673874,IonDistributor,Machinery,Distribuidor de iones
-128673875,DiagnosticSensor,Technology,Sensor diagnóstico de hardware
-128673876,UnknownArtifact2,Salvage,Sonda Thargoide
-128682044,ConductiveFabrics,Textiles,Tejidos conductivos
-128682045,MilitaryGradeFabrics,Textiles,Tejido de categoría militar
-128682046,AdvancedMedicines,Medicines,Medicinas avanzadas
-128682047,MedicalDiagnosticEquipment,Technology,Equipo de diagnóstico médico
-128682048,SurvivalEquipment,Consumer Items,Equipamiento de supervivencia
-128682049,DataCore,Salvage,Núcleo de datos
-128682051,MysteriousIdol,Salvage,Ídolo misterioso
-128682052,ProhibitedResearchMaterials,Salvage,Materiales de investigación prohibida
-128682053,AntimatterContainmentUnit,Salvage,Unidad de confinamiento de antimateria
-128682054,SpacePioneerRelics,Salvage,Reliquias de pioneros espaciales
-128682055,FossilRemnants,Salvage,Restos de fósiles
-128732183,AncientRelic,Salvage,Reliquia antigua
-128732184,AncientOrb,Salvage,Orbe antiguo
-128732185,AncientCasket,Salvage,Cofre antiguo
-128732186,AncientTablet,Salvage,Tablilla antigua
-128732187,AncientUrn,Salvage,Urna antigua
-128732188,AncientTotem,Salvage,Tótem antiguo
-128737287,UnknownResin,Salvage,Resina Thargoide
-128737288,UnknownBiologicalMatter,Salvage,Materia biológica Thargoide
-128737289,UnknownTechnologySamples,Salvage,Muestras de tecnología Thargoide
-128740752,UnknownArtifact3,Salvage,Enlace Thargoide
-128793127,ThargoidHeart,Salvage,Corazón Thargoide
-128793128,ThargoidTissueSampleType1,Salvage,Muestra de tejido de cíclope Thargoide 
-128793129,ThargoidTissueSampleType2,Salvage,Muestra de tejido de basilisco Thargoide
-128793130,ThargoidTissueSampleType3,Salvage,Muestra de tejido de medusa Thargoide
-128824468,ThargoidScoutTissueSample,Salvage,Muestra de tejido de explorador Thargoide 
-128888499,AncientKey,Salvage,Llave antigua
-128902652,ThargoidTissueSampleType4,Salvage,Muestra de tejido de Hidra Thargoide
-128922517,M_TissueSample_Fluid,Salvage,Mollusc Fluid
-128922518,M_TissueSample_Soft,Salvage,Mollusc Soft Tissue
-128922519,M_TissueSample_Nerves,Salvage,Mollusc Brain Tissue
-128922520,S_TissueSample_Cells,Salvage,Pod Core Tissue
-128922521,S_TissueSample_Surface,Salvage,Pod Dead Tissue
-128922522,S_TissueSample_Core,Salvage,Pod Surface Tissue
-128922523,P_ParticulateSample,Salvage,Anomaly Particles
-128922781,S9_TissueSample_Shell,Salvage,Pod Tissue
-128922782,M3_TissueSample_Membrane,Salvage,Mollusc Membrane
-128922783,M3_TissueSample_Mycelium,Salvage,Mollusc Mycelium
-128922784,M3_TissueSample_Spores,Salvage,Mollusc Spores
-128922785,S6_TissueSample_Mesoglea,Salvage,Pod Mesoglea
-128922786,S6_TissueSample_Cells,Salvage,Pod Outer Tissue
-128922787,S6_TissueSample_Coenosarc,Salvage,Pod Shell Tissue
-128924325,Rhodplumsite,Minerals,Rhodplumsita
-128924326,Serendibite,Minerals,Serendibita
-128924327,Monazite,Minerals,Monacita
-128924328,Musgravite,Minerals,Musgravita
-128924329,Benitoite,Minerals,Benitoíta
-128924330,Grandidierite,Minerals,Grandidierita
-128924331,Alexandrite,Minerals,Alejandrita
-128924332,Opal,Minerals,Ópalo
-128924333,RockforthFertiliser,Chemicals,Rockforth Fertiliser
-128924334,AgronomicTreatment,Chemicals,Agronomic Treatment
-128961249,Tritium,Chemicals,Tritium
-128983059,OnionHeadC,Legal Drugs,Onionhead Gamma Strain
-129015433,AncientRelicTG,Salvage,Unclassified Relic
-129019258,ThargoidTissueSampleType5,Salvage,Thargoid Orthrus Tissue Sample
-129019259,ThargoidGeneratorTissueSample,Salvage,Caustic Tissue Sample
-129022087,UnocuppiedEscapePod,Salvage,Unoccupied Escape Pod
-129022395,ThargoidTissueSampleType6,Salvage,Thargoid Glaive Tissue Sample
-129022396,ThargoidTissueSampleType7,Salvage,Thargoid Scythe Tissue Sample
-129022398,ThargoidTissueSampleType9a,Salvage,Titan Deep Tissue Sample
-129022399,ThargoidTissueSampleType9b,Salvage,Titan Tissue Sample
-129022400,ThargoidTissueSampleType9c,Salvage,Titan Partial Tissue Sample
-129022402,ThargoidTissueSampleType10a,Salvage,Titan Maw Deep Tissue Sample
-129022403,ThargoidTissueSampleType10b,Salvage,Titan Maw Tissue Sample
-129022404,ThargoidTissueSampleType10c,Salvage,Titan Maw Partial Tissue Sample
-129022405,UnknownSack,Salvage,Protective Membrane Scrap
-129022406,ThargoidPod,Salvage,Xenobiological Prison Pod
-129022407,CoralSap,Salvage,Coral Sap
-129022408,UnknownMineral,Salvage,Impure Spire Mineral
-129022409,UnknownRefinedMineral,Salvage,Semi-Refined Spire Mineral
-129030459,ThargoidTitanDriveComponent,Salvage,Titan Drive Component
-129030460,ThargoidCystSpecimen,Salvage,Cyst Specimen
-129030461,ThargoidBoneFragments,Salvage,Bone Fragments
-129030462,ThargoidOrganSample,Salvage,Organ Sample
-129031238,Steel,Metals,Steel
-129031327,Haematite,Minerals,Haematite
+"id","symbol","category","name"
+"128049152","Platinum","Metals","Platino"
+"128049153","Palladium","Metals","Paladio"
+"128049154","Gold","Metals","Oro"
+"128049155","Silver","Metals","Plata"
+"128049156","Bertrandite","Minerals","Bertrandita"
+"128049157","Indite","Minerals","Indita"
+"128049158","Gallite","Minerals","Galita"
+"128049159","Coltan","Minerals","Coltán"
+"128049160","Uraninite","Minerals","Uraninita"
+"128049161","Lepidolite","Minerals","Lepidolita"
+"128049162","Cobalt","Metals","Cobalto"
+"128049163","Rutile","Minerals","Rutilo"
+"128049165","Bauxite","Minerals","Bauxita"
+"128049166","Water","Chemicals","Agua"
+"128049168","Beryllium","Metals","Berilio"
+"128049169","Indium","Metals","Indio"
+"128049170","Gallium","Metals","Galio"
+"128049171","Tantalum","Metals","Tantalio"
+"128049172","Uranium","Metals","Uranio"
+"128049173","Lithium","Metals","Litio"
+"128049174","Titanium","Metals","Titanio"
+"128049175","Copper","Metals","Cobre"
+"128049176","Aluminium","Metals","Aluminio"
+"128049177","Algae","Foods","Algas"
+"128049178","FruitAndVegetables","Foods","Frutas y verduras"
+"128049180","Grain","Foods","Grano"
+"128049182","Animalmeat","Foods","Carne de animales"
+"128049183","Fish","Foods","Pescado"
+"128049184","FoodCartridges","Foods","Cartuchos de alimentos"
+"128049185","SyntheticMeat","Foods","Carne sintética"
+"128049188","Tea","Foods","Té"
+"128049189","Coffee","Foods","Café"
+"128049190","Leather","Textiles","Cuero"
+"128049191","NaturalFabrics","Textiles","Tejidos naturales"
+"128049193","SyntheticFabrics","Textiles","Tejidos sintéticos"
+"128049197","Polymers","Industrial Materials","Polímeros"
+"128049199","Semiconductors","Industrial Materials","Semiconductores"
+"128049200","Superconductors","Industrial Materials","Superconductores"
+"128049202","HydrogenFuel","Chemicals","Combustible de hidrógeno"
+"128049203","MineralOil","Chemicals","Aceite mineral"
+"128049204","Explosives","Chemicals","Explosivos"
+"128049205","Pesticides","Chemicals","Pesticidas"
+"128049208","AgriculturalMedicines","Medicines","Medicinas agrícolas"
+"128049209","PerformanceEnhancers","Medicines","Potenciadores de rendimiento"
+"128049210","BasicMedicines","Medicines","Medicinas básicas"
+"128049212","BasicNarcotics","Legal Drugs","Narcóticos"
+"128049213","Tobacco","Legal Drugs","Tabaco"
+"128049214","Beer","Legal Drugs","Cerveza"
+"128049215","Wine","Legal Drugs","Vino"
+"128049216","Liquor","Legal Drugs","Licores"
+"128049217","PowerGenerators","Machinery","Generadores de energía"
+"128049218","WaterPurifiers","Machinery","Purificadores de agua"
+"128049220","HeliostaticFurnaces","Machinery","Hornos microbianos"
+"128049221","MineralExtractors","Machinery","Extractores de minerales"
+"128049222","CropHarvesters","Machinery","Segadoras de cultivos"
+"128049223","MarineSupplies","Machinery","Equipamiento marino"
+"128049225","ComputerComponents","Technology","Componentes informáticos"
+"128049226","HazardousEnvironmentSuits","Technology","Trajes de protección"
+"128049227","Robotics","Technology","Robótica"
+"128049228","AutoFabricators","Technology","Autofabricantes"
+"128049229","AnimalMonitors","Technology","Monitores de animales"
+"128049230","AquaponicSystems","Technology","Sistemas de hidroponía"
+"128049231","AdvancedCatalysers","Technology","Catalizadores avanzados"
+"128049232","TerrainEnrichmentSystems","Technology","Enriquecimiento terrestre"
+"128049233","PersonalWeapons","Weapons","Armas personales"
+"128049234","BattleWeapons","Weapons","Armas de batalla"
+"128049235","ReactiveArmour","Weapons","Blindaje reactivo"
+"128049236","NonLethalWeapons","Weapons","Armas no letales"
+"128049238","DomesticAppliances","Consumer Items","Electrodomésticos"
+"128049240","ConsumerTechnology","Consumer Items","Tecnología de consumo"
+"128049241","Clothing","Consumer Items","Ropa"
+"128049243","Slaves","Slavery","Esclavos"
+"128049244","Biowaste","Waste","Residuos biológicos"
+"128049245","ToxicWaste","Waste","Residuos tóxicos"
+"128049246","ChemicalWaste","Waste","Residuos químicos"
+"128049248","Scrap","Waste","Chatarra"
+"128049669","ProgenitorCells","Medicines","Células madre"
+"128049670","CombatStabilisers","Medicines","Estabilizadores de combate"
+"128049671","ResonatingSeparators","Technology","Separadores resonantes"
+"128049672","BioReducingLichen","Technology","Líquenes biorreductores"
+"128064028","AtmosphericExtractors","Machinery","Procesadores atmosféricos"
+"128066403","Drones","NonMarketable","Limpets"
+"128666752","USSCargoBlackBox","Salvage","Cajas negras"
+"128666754","USSCargoTradeData","Salvage","Datos comerciales"
+"128666755","USSCargoMilitaryPlans","Salvage","Planes militares"
+"128666756","USSCargoAncientArtefact","Salvage","Artefactos antiguos"
+"128666757","USSCargoRareArtwork","Salvage","Arte poco común"
+"128666758","USSCargoExperimentalChemicals","Salvage","Químicos experimentales"
+"128666759","USSCargoRebelTransmissions","Salvage","Transmisiones rebeldes"
+"128666760","USSCargoPrototypeTech","Salvage","Prototipos tecnológicos"
+"128666761","USSCargoTechnicalBlueprints","Salvage","Planos técnicos"
+"128667728","ImperialSlaves","Slavery","Esclavos imperiales"
+"128668547","UnknownArtifact","Salvage","Sensor Thargoide"
+"128668548","AiRelics","Salvage","Reliquias de IA"
+"128668549","Hafnium178","Metals","Hafnio 178"
+"128668550","Painite","Minerals","Painita"
+"128668551","Antiquities","Salvage","Antigüedades"
+"128668552","MilitaryIntelligence","Salvage","Inteligencia militar"
+"128671118","Osmium","Metals","Osmio"
+"128671443","SAP8CoreContainer","Salvage","Núcleos SAP-8"
+"128671444","TrinketsOfFortune","Consumer Items","Baratijas de fortuna oculta"
+"128672123","WreckageComponents","Salvage","Restos de accidentes"
+"128672124","EncriptedDataStorage","Salvage","Datos encriptados"
+"128672125","OccupiedCryoPod","Salvage","Cápsula de escape ocupada"
+"128672126","PersonalEffects","Salvage","Efectos personales"
+"128672127","ComercialSamples","Salvage","Muestras comerciales"
+"128672128","TacticalData","Salvage","Datos tácticos"
+"128672129","AssaultPlans","Salvage","Planes de asalto"
+"128672130","EncryptedCorrespondence","Salvage","Correspondencia encriptada"
+"128672131","DiplomaticBag","Salvage","Valija diplomática"
+"128672132","ScientificResearch","Salvage","Investigaciones científicas"
+"128672133","ScientificSamples","Salvage","Muestras científicas"
+"128672134","PoliticalPrisoner","Salvage","Prisioneros políticos"
+"128672135","Hostage","Salvage","Rehenes"
+"128672136","LargeExplorationDataCash","Salvage","Memorias de reconocimiento grandes"
+"128672137","SmallExplorationDataCash","Salvage","Memorias de reconocimiento pequeñas"
+"128672159","AntiqueJewellery","Salvage","Joyería antigua "
+"128672160","PreciousGems","Salvage","Piedras preciosas"
+"128672161","EarthRelics","Salvage","Reliquias de la vieja Tierra "
+"128672162","GeneBank","Salvage","Bancos de genes"
+"128672163","TimeCapsule","Salvage","Capsulas del tiempo"
+"128672294","Cryolite","Minerals","Criolita"
+"128672295","Goslarite","Minerals","Goslarita"
+"128672296","Moissanite","Minerals","Moissanita"
+"128672297","Pyrophyllite","Minerals","Pirofilita"
+"128672298","Lanthanum","Metals","Lantano"
+"128672299","Thallium","Metals","Talio"
+"128672300","Bismuth","Metals","Bismuto"
+"128672301","Thorium","Metals","Torio"
+"128672302","CeramicComposites","Industrial Materials","Compuestos cerámicos"
+"128672303","SyntheticReagents","Chemicals","Reagentes sintéticos"
+"128672304","NerveAgents","Chemicals","Agentes nerviosos"
+"128672305","SurfaceStabilisers","Chemicals","Estabilizadores de superficie"
+"128672306","BootlegLiquor","Legal Drugs","Licor de caña"
+"128672307","GeologicalEquipment","Machinery","Equipamiento geológico"
+"128672308","ThermalCoolingUnits","Machinery","Unidades de enfriamiento térmico"
+"128672309","BuildingFabricators","Machinery","Constructores"
+"128672310","MuTomImager","Technology","Escáner muónico"
+"128672311","StructuralRegulators","Technology","Reguladores estructurales"
+"128672312","Landmines","Weapons","Minas terrestres"
+"128672313","SkimerComponents","Machinery","Componentes de deslizador"
+"128672314","EvacuationShelter","Consumer Items","Refugio de evacuación"
+"128672315","GeologicalSamples","Salvage","Muestras geológicas"
+"128672701","MetaAlloys","Industrial Materials","Metaaleaciones"
+"128672775","Taaffeite","Minerals","Taaffeíta"
+"128672776","Jadeite","Minerals","Jadeíta"
+"128672810","UnstableDataCore","Salvage","Unidad de datos inestable"
+"128672811","DamagedEscapePod","Salvage","Cápsula de escape dañada"
+"128673845","Praseodymium","Metals","Praseodimio"
+"128673846","Bromellite","Minerals","Bromellita"
+"128673847","Samarium","Metals","Samario"
+"128673848","LowTemperatureDiamond","Minerals","Diamante de baja temperatura"
+"128673850","HydrogenPeroxide","Chemicals","Peróxido de hidrógeno"
+"128673851","LiquidOxygen","Chemicals","Oxígeno líquido"
+"128673852","MethanolMonohydrateCrystals","Minerals","Cristales de monohidrato de metanol"
+"128673853","LithiumHydroxide","Minerals","Hidróxido de litio"
+"128673854","MethaneClathrate","Minerals","Hidrato de metano"
+"128673855","InsulatingMembrane","Industrial Materials","Membrana aislante"
+"128673856","CMMComposite","Industrial Materials","Compuestos CMM"
+"128673857","CoolingHoses","Industrial Materials","Mangueras de microtejidos"
+"128673858","NeofabricInsulation","Industrial Materials","Neotejido aislante"
+"128673859","ArticulationMotors","Machinery","Motores de articulación"
+"128673860","HNShockMount","Machinery","Suspensión HN"
+"128673861","EmergencyPowerCells","Machinery","Células energía auxiliar"
+"128673862","PowerConverter","Machinery","Convertidor de energía"
+"128673863","PowerGridAssembly","Machinery","Red de energía"
+"128673864","PowerTransferConduits","Machinery","Conductos de transf. de energía"
+"128673865","RadiationBaffle","Machinery","Deflector de radiación"
+"128673866","ExhaustManifold","Machinery","Colector de escape"
+"128673867","ReinforcedMountingPlate","Machinery","Placa de anclaje reforzada"
+"128673868","HeatsinkInterlink","Machinery","Interconect. de eyector térmico"
+"128673869","MagneticEmitterCoil","Machinery","Bobina de emisión magnética"
+"128673870","ModularTerminals","Machinery","Terminales modulares"
+"128673871","Nanobreakers","Technology","Nanorrompedores"
+"128673872","TelemetrySuite","Technology","Paquete de telemetría"
+"128673873","MicroControllers","Technology","Microcontroladores"
+"128673874","IonDistributor","Machinery","Distribuidor de iones"
+"128673875","DiagnosticSensor","Technology","Sensor diagnóstico de hardware"
+"128673876","UnknownArtifact2","Salvage","Sonda Thargoide"
+"128682044","ConductiveFabrics","Textiles","Tejidos conductivos"
+"128682045","MilitaryGradeFabrics","Textiles","Tejido de categoría militar"
+"128682046","AdvancedMedicines","Medicines","Medicinas avanzadas"
+"128682047","MedicalDiagnosticEquipment","Technology","Equipo de diagnóstico médico"
+"128682048","SurvivalEquipment","Consumer Items","Equipamiento de supervivencia"
+"128682049","DataCore","Salvage","Núcleo de datos"
+"128682051","MysteriousIdol","Salvage","Ídolo misterioso"
+"128682052","ProhibitedResearchMaterials","Salvage","Materiales de investigación prohibida"
+"128682053","AntimatterContainmentUnit","Salvage","Unidad de confinamiento de antimateria"
+"128682054","SpacePioneerRelics","Salvage","Reliquias de pioneros espaciales"
+"128682055","FossilRemnants","Salvage","Restos de fósiles"
+"128732183","AncientRelic","Salvage","Reliquia antigua"
+"128732184","AncientOrb","Salvage","Orbe antiguo"
+"128732185","AncientCasket","Salvage","Cofre antiguo"
+"128732186","AncientTablet","Salvage","Tablilla antigua"
+"128732187","AncientUrn","Salvage","Urna antigua"
+"128732188","AncientTotem","Salvage","Tótem antiguo"
+"128737287","UnknownResin","Salvage","Resina Thargoide"
+"128737288","UnknownBiologicalMatter","Salvage","Materia biológica Thargoide"
+"128737289","UnknownTechnologySamples","Salvage","Muestras de tecnología Thargoide"
+"128740752","UnknownArtifact3","Salvage","Enlace Thargoide"
+"128793127","ThargoidHeart","Salvage","Corazón Thargoide"
+"128793128","ThargoidTissueSampleType1","Salvage","Muestra de tejido de cíclope Thargoide "
+"128793129","ThargoidTissueSampleType2","Salvage","Muestra de tejido de basilisco Thargoide"
+"128793130","ThargoidTissueSampleType3","Salvage","Muestra de tejido de medusa Thargoide"
+"128824468","ThargoidScoutTissueSample","Salvage","Muestra de tejido de explorador Thargoide "
+"128888499","AncientKey","Salvage","Llave antigua"
+"128902652","ThargoidTissueSampleType4","Salvage","Muestra de tejido de Hidra Thargoide"
+"128922517","M_TissueSample_Fluid","Salvage","Mollusc Fluid"
+"128922518","M_TissueSample_Soft","Salvage","Mollusc Soft Tissue"
+"128922519","M_TissueSample_Nerves","Salvage","Mollusc Brain Tissue"
+"128922520","S_TissueSample_Cells","Salvage","Pod Core Tissue"
+"128922521","S_TissueSample_Surface","Salvage","Pod Dead Tissue"
+"128922522","S_TissueSample_Core","Salvage","Pod Surface Tissue"
+"128922523","P_ParticulateSample","Salvage","Anomaly Particles"
+"128922781","S9_TissueSample_Shell","Salvage","Pod Tissue"
+"128922782","M3_TissueSample_Membrane","Salvage","Mollusc Membrane"
+"128922783","M3_TissueSample_Mycelium","Salvage","Mollusc Mycelium"
+"128922784","M3_TissueSample_Spores","Salvage","Mollusc Spores"
+"128922785","S6_TissueSample_Mesoglea","Salvage","Pod Mesoglea"
+"128922786","S6_TissueSample_Cells","Salvage","Pod Outer Tissue"
+"128922787","S6_TissueSample_Coenosarc","Salvage","Pod Shell Tissue"
+"128924325","Rhodplumsite","Minerals","Rhodplumsita"
+"128924326","Serendibite","Minerals","Serendibita"
+"128924327","Monazite","Minerals","Monacita"
+"128924328","Musgravite","Minerals","Musgravita"
+"128924329","Benitoite","Minerals","Benitoíta"
+"128924330","Grandidierite","Minerals","Grandidierita"
+"128924331","Alexandrite","Minerals","Alejandrita"
+"128924332","Opal","Minerals","Ópalo"
+"128924333","RockforthFertiliser","Chemicals","Rockforth Fertiliser"
+"128924334","AgronomicTreatment","Chemicals","Agronomic Treatment"
+"128961249","Tritium","Chemicals","Tritium"
+"128983059","OnionHeadC","Legal Drugs","Onionhead Gamma Strain"
+"129015433","AncientRelicTG","Salvage","Unclassified Relic"
+"129019258","ThargoidTissueSampleType5","Salvage","Thargoid Orthrus Tissue Sample"
+"129019259","ThargoidGeneratorTissueSample","Salvage","Caustic Tissue Sample"
+"129022087","UnocuppiedEscapePod","Salvage","Unoccupied Escape Pod"
+"129022395","ThargoidTissueSampleType6","Salvage","Thargoid Glaive Tissue Sample"
+"129022396","ThargoidTissueSampleType7","Salvage","Thargoid Scythe Tissue Sample"
+"129022398","ThargoidTissueSampleType9a","Salvage","Titan Deep Tissue Sample"
+"129022399","ThargoidTissueSampleType9b","Salvage","Titan Tissue Sample"
+"129022400","ThargoidTissueSampleType9c","Salvage","Titan Partial Tissue Sample"
+"129022402","ThargoidTissueSampleType10a","Salvage","Titan Maw Deep Tissue Sample"
+"129022403","ThargoidTissueSampleType10b","Salvage","Titan Maw Tissue Sample"
+"129022404","ThargoidTissueSampleType10c","Salvage","Titan Maw Partial Tissue Sample"
+"129022405","UnknownSack","Salvage","Protective Membrane Scrap"
+"129022406","ThargoidPod","Salvage","Xenobiological Prison Pod"
+"129022407","CoralSap","Salvage","Coral Sap"
+"129022408","UnknownMineral","Salvage","Impure Spire Mineral"
+"129022409","UnknownRefinedMineral","Salvage","Semi-Refined Spire Mineral"
+"129030459","ThargoidTitanDriveComponent","Salvage","Titan Drive Component"
+"129030460","ThargoidCystSpecimen","Salvage","Cyst Specimen"
+"129030461","ThargoidBoneFragments","Salvage","Bone Fragments"
+"129030462","ThargoidOrganSample","Salvage","Organ Sample"
+"129031238","Steel","Metals","Steel"
+"129031327","Haematite","Minerals","Haematite"

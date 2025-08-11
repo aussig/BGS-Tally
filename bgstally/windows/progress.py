@@ -184,7 +184,8 @@ class ProgressWindow:
             #row += 1
 
             # Go through the complete list of possible commodities and make a row for each and hide it.
-            for c in self.colonisation.get_commodity_list('All'):
+            for c_symbol in self.colonisation.get_commodity_list('All'):
+                c:str = f"${c_symbol}_name;"
                 r:dict = {}
 
                 for i, (col, val) in enumerate(self.headings.items()):
@@ -192,7 +193,7 @@ class ProgressWindow:
                     lbl.grid(row=row, column=i, sticky=val.get('Sticky'))
                     if col == 'Commodity':
                         lbl.bind("<Button-1>", partial(self.link, c, None))
-                        lbl.bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
+                        lbl.bind("<Button-3>", partial(self.ctc, self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)))
                         ToolTip(lbl, text=_("Left click for Inara market, right click to copy")) # LANG: tooltip for the inara market commodity links and copy to clipboard
                         lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
 
@@ -255,13 +256,14 @@ class ProgressWindow:
 
             output += "-" * 67 + "\n"
 
-            for i, c in enumerate(self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)):
+            for i, c_symbol in enumerate(self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)):
+                c:str = f"${c_symbol}_name;"
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
                 remaining:int = reqcnt - delcnt
                 if remaining > 0:
-                    name:str = self.colonisation.commodities[c].get('Name', c)
-                    cat:str = self.colonisation.commodities[c].get('Category', c)
+                    name:str = self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)
+                    cat:str = self.bgstally.ui.commodities[c_symbol].get('Category', c_symbol)
                     if discord:
                         output += f"{name:<28} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
                     else:
@@ -420,7 +422,8 @@ class ProgressWindow:
             all_req:int = 0
             all_deliv:int = 0
             rc:int = 0
-            for i, c in enumerate(comms):
+            for i, c_symbol in enumerate(comms):
+                c:str = f"${c_symbol}_name;"
                 row:dict = self.rows[i]
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
@@ -462,13 +465,13 @@ class ProgressWindow:
                 for col in self.headings.keys():
                     if col == 'Commodity':
                         # Shorten and display the commodity name
-                        colstr:str = self.colonisation.commodities[c].get('Name', c)
+                        colstr:str = self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)
                         colstr = str_truncate(colstr, 25)
 
                         row['Commodity']['text'] = colstr
                         row['Commodity'].bind("<Button-1>", partial(self.link, c, None))
                         row['Commodity'].bind("<Button-2>", partial(self.link, c, sn))
-                        row['Commodity'].bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
+                        row['Commodity'].bind("<Button-3>", partial(self.ctc, self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)))
                         row['Commodity'].grid()
                         continue
 

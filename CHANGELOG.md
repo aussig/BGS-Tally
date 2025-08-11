@@ -9,6 +9,7 @@
 * Automatic posting of BGS and TW activity to Discord. There is now a checkbox in the settings to switch this on (defaults to `Off`). Discord applies strict limits to the number of posts we can send (which is across all users posting to any particular Discord server), so automatic posting is limited to a maximum of one post every 5 minutes.
 * Cartography values are now editible in activity windows, this is to work around a game bug where it doesn't always log cartography sales.
 * Space CZ side objectives are now editable in activity windows.
+* Translation is now supported for commodity names.
 
 ### Changes:
 

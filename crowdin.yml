@@ -5,3 +5,15 @@ files:
   - source: /data/colonisation_legend.txt
     translation: /data/L10n/%two_letters_code%.colonisation_legend.txt
     file_type: text
+
+  - source: /data/commodity.csv
+    translation: /data/L10n/%two_letters_code%.commodity.csv
+    file_type: csv
+    first_line_contains_header: true
+    scheme: none,identifier,context,source_or_translation
+
+  - source: /data/rare_commodity.csv
+    translation: /data/L10n/%two_letters_code%.rare_commodity.csv
+    file_type: csv
+    first_line_contains_header: true
+    scheme: none,identifier,context,source_or_translation

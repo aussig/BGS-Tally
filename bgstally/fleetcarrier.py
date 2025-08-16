@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import UTC, datetime
 from os import path, remove
 
 from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierItemType
@@ -119,13 +119,13 @@ class FleetCarrier:
         The user entered the carrier management screen
         """
         if self.name is None:
-            self.name = journal_entry.get("Name")
-            self.callsign = journal_entry.get("Callsign")
-            self.carrier_id = journal_entry.get('CarrierID')
-            self.data['dockingAccess'] = journal_entry.get("DockingAccess")
+            self.name = journal_entry.get('Name', "")
+            self.callsign = journal_entry.get('Callsign', "")
+            self.carrier_id = journal_entry.get('CarrierID', "")
+            self.data['dockingAccess'] = journal_entry.get('DockingAccess', "")
 
 
-    def jump_requested(self, journal_entry: dict):
+    def jump_requested(self, journal_entry: dict[str, str]):
         """
         The user scheduled a carrier jump
         """
@@ -134,11 +134,14 @@ class FleetCarrier:
         title:str = __("Jump Scheduled for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=self.name) # LANG: Discord post title
         description:str = __("A carrier jump has been scheduled", lang=self.bgstally.state.discord_lang) # LANG: Discord text
 
+        departure_datetime: datetime|None = datetime.strptime(journal_entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
+        departure_datetime = departure_datetime.replace(tzinfo=UTC)
+
         fields = []
         fields.append({'name': __("From System", lang=self.bgstally.state.discord_lang), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
         fields.append({'name': __("To System", lang=self.bgstally.state.discord_lang), 'value': journal_entry.get('SystemName', "Unknown"), 'inline': True}) # LANG: Discord heading
         fields.append({'name': __("To Body", lang=self.bgstally.state.discord_lang), 'value': journal_entry.get('Body', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("Departure Time", lang=self.bgstally.state.discord_lang), 'value': datetime.strptime(journal_entry.get('DepartureTime'), DATETIME_FORMAT_JOURNAL).strftime(DATETIME_FORMAT), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Departure Time", lang=self.bgstally.state.discord_lang), 'value': f"<t:{round(departure_datetime.timestamp())}:R>"}) # LANG: Discord heading
         fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': self.human_format_dockingaccess(True), 'inline': True}) # LANG: Discord heading
         fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': self.human_format_notorious(True), 'inline': True}) # LANG: Discord heading
 

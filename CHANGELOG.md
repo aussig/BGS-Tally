@@ -16,6 +16,7 @@
 * There is now a setting to show and hide the 'Objectives' overlay panel in BGS-Tally settings.
 * Colonisation: Notes window now saves on close
 * [Internal] Standardised on `BGST_` prefix for all Windows Registry entries and deleted old Registry entries with `X` prefix. Should be zero impact on users, but now conforms to EDMC guidelines for Registry naming.
+* When posting your fleet carrier jump information to Discord, it now uses a Discord dynamic timestamp, showing the relative time to the jump (e.g. "In 6 minutes")
 
 ### Bug Fixes:
 

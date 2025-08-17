@@ -10,12 +10,15 @@
 * Cartography values are now editible in activity windows, this is to work around a game bug where it doesn't always log cartography sales.
 * Space CZ side objectives are now editable in activity windows.
 * Translation is now supported for commodity names.
+* Added shortcuts for East India Co and Spectrum in API config.
+* For all API shortcuts, added a link through to the website for the related organisation.
 
 ### Changes:
 
 * There is now a setting to show and hide the 'Objectives' overlay panel in BGS-Tally settings.
 * Colonisation: Notes window now saves on close
 * [Internal] Standardised on `BGST_` prefix for all Windows Registry entries and deleted old Registry entries with `X` prefix. Should be zero impact on users, but now conforms to EDMC guidelines for Registry naming.
+* When posting your fleet carrier jump information to Discord, it now uses a Discord dynamic timestamp, showing the relative time to the jump (e.g. "In 6 minutes")
 
 ### Bug Fixes:
 

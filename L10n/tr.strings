@@ -1417,6 +1417,9 @@
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "Webhook URL";
 
+/* Label on API settings window. [api.py] */
+"Website ⤴" = "Website ⤴";
+
 /* Notice about the first base being special. [colonisation.py] */
 "When planning your system the first base is special, make sure that it is the first on the list." = "Sisteminizi planlarken ilk üs özeldir, listenin başında yer aldığından emin olun.";
 

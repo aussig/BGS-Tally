@@ -393,6 +393,8 @@ class ColonisationWindow:
                             else:
                                 sheet[i,j].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
 
+            sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
+
         except Exception as e:
             Debug.logger.error(f"Error in bases_popup(): {e}")
             Debug.logger.error(traceback.format_exc())
@@ -798,6 +800,8 @@ class ColonisationWindow:
             for j, details in enumerate(self.detail_cols.values()):
                 sheet[len(new)+srow-1,j].highlight(bg=None)
             sheet[len(new)+srow-1,5].data = ' '
+
+        sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
     def update_display(self) -> None:

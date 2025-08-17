@@ -1,5 +1,13 @@
 # Change Log
 
+## v5.0.0 - 5.1.0
+
+### New Features
+* RavenColonial integration: Bidirectional syncrhonisation of plans and progress with RavenColonial.
+
+### Changes
+* If a base type is surface available bodies will only be landable ones
+
 ## vx.x.x - xxxx-xx-xx
 
 ### New Features:

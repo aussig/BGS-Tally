@@ -74,40 +74,36 @@ class ProgressWindow:
                 'Sticky': tk.E
                 }
             }
-        # self.tooltips:dict = {
-        #     'Commodity': {
-        #         ProgressUnits.TONNES: _('Alphanumeric order'), # LANG: Commodity
-        #         ProgressUnits.REMAINING: _('Commodity'),
-        #         ProgressUnits.PERCENT: _('Commodity'),
-        #         ProgressUnits.LOADS: _('Commodity')
-        #         },
-        #     'Required': {
-        #         ProgressUnits.TONNES: _('Total tonnes required'), # LANG: Required amount
-        #         ProgressUnits.REMAINING: _('Tonnes remaining to deliver'), # LANG: Amount still needed
-        #         ProgressUnits.PERCENT: _('Percentage of total requirement'), # LANG: Percentage
-        #         ProgressUnits.LOADS: _('Total cargo loads required') # LANG: number of cargo loads
-        #         },
-        #     'Delivered': {
-        #         ProgressUnits.TONNES: _('Tonnes delivered so far'), # LANG: Amount delivered
-        #         ProgressUnits.REMAINING: _('Tonnes remaining to buy'), # LANG: Amount still left to buy
-        #         ProgressUnits.PERCENT: _('Percentage delivered'),
-        #         ProgressUnits.LOADS: _('Loads delivered ')
-        #         },
-        #     'Cargo': {
-        #         ProgressUnits.TONNES: _('In current cargo'), # LANG: amount in ship's Cargo
-        #         ProgressUnits.REMAINING: _('Tonnes remaining to deliver'):,
-        #         ProgressUnits.PERCENT: f"{_('Percent'):>11}",
-        #         ProgressUnits.LOADS: f"{_('Loads'):>12}",
-        #         'Sticky': tk.E
-        #         },
-        #     'Carrier': {
-        #         ProgressUnits.TONNES: f"{_('Carrier'):>11}", # LANG: Amount in your Fleet Carrier
-        #         ProgressUnits.REMAINING: f"{_('Needed'):>9}",
-        #         ProgressUnits.PERCENT: f"{_('Percent'):>11}",
-        #         ProgressUnits.LOADS: f"{_('Loads'):>12}",
-        #         'Sticky': tk.E
-        #         }
-        #     }
+        self.tooltips:dict = {
+             'Commodity': {
+                 ProgressUnits.TONNES: _('Default order'), # LANG: Commodity
+                 ProgressUnits.REMAINING: _('Commodity Category'), # LANG: Commodity Category
+                 ProgressUnits.PERCENT: _('Alphanbetical order'), # LANG: Alphabetical order
+                 },
+             'Required': {
+                 ProgressUnits.TONNES: _('Total tonnes required'), # LANG: Required amount
+                 ProgressUnits.REMAINING: _('Tonnes remaining to deliver'), # LANG: Amount still needed
+                ProgressUnits.PERCENT: _('Percentage of total requirement'), # LANG: Percentage of requirement
+                ProgressUnits.LOADS: _('Total cargo loads required') # LANG: number of cargo loads required
+                },
+            'Delivered': {
+                ProgressUnits.TONNES: _('Tonnes delivered so far'), # LANG: Amount delivered
+                ProgressUnits.REMAINING: _('Tonnes remaining excluding cargo and carrier'), # LANG: Amount still left to buy
+                ProgressUnits.PERCENT: _('Percentage delivered so far'),
+                ProgressUnits.LOADS: _('Loads delivered so far') # LANG: number of cargo loads delivered
+                },
+            'Cargo': {
+                ProgressUnits.TONNES: _('Tonnes in cargo'), # LANG: amount in ship's Cargo
+                ProgressUnits.REMAINING: _('Tonnes remaining to excluding cargo'),
+                ProgressUnits.PERCENT: _('Percent in cargo')
+                },
+            'Carrier': {
+                ProgressUnits.TONNES: _('Tonnes on carrier'), # LANG: Amount in your Fleet Carrier
+                ProgressUnits.REMAINING: _('Tonnes remaining excluding carrier'),
+                ProgressUnits.PERCENT: _('Percent on carrier'),
+                ProgressUnits.LOADS: _('Loads on carrier')
+                }
+            }
         # By removing the carrier from here we remove it everywhere
         if not self.bgstally.fleet_carrier.available():
             del self.headings['Carrier']
@@ -346,7 +342,7 @@ class ProgressWindow:
                     # Percent is only meaningful for Delivered and Carrier
                     if column not in ['Delivered', 'Carrier'] and self.units[column] == ProgressUnits.PERCENT:
                         self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
-                    self.coltts[column].text = f"{column}"
+            self.coltts[column].text = self.tooltips[column][self.units[column]]
             self.update_display()
 
         except Exception as e:
@@ -415,9 +411,6 @@ class ProgressWindow:
                 pn:str = b.get('Plan', _('Unknown')) # Unknown system name
                 sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
                 name:str = ', '.join([pn, bn])
-            else:
-                self.build_index = 0 # Just in case it gets confused
-
 
             self.title.config(text=name[-50:])
 
@@ -427,12 +420,13 @@ class ProgressWindow:
                 Debug.logger.info("Progress view none, hiding table")
                 return
 
+            self.table_frame.grid(row=3, column=0, columnspan=5, sticky=tk.NSEW)
+
             # Set the column headings according to the selected units
             totals:dict = {}
             for col in self.headings.keys():
                 if col == 'Carrier' and not self.bgstally.fleet_carrier.available():
                     continue
-
                 self.colheadings[col]['text'] = self.headings[col][self.units[col]]
                 self.colheadings[col].grid()
                 totals[col] = 0
@@ -468,7 +462,7 @@ class ProgressWindow:
 
                 # We only show relevant (required) items. But.
                 # If the view is reduced we don't show ones that are complete. Also.
-                # If we're in minimal view we only show ones we still need to buy.
+                # If we're in minimal view we only show ones we still need to buy.\
                 if (reqcnt <= 0) or \
                     (remaining <= 0 and self.view != ProgressView.FULL) or \
                     (tobuy <= 0 and cargo == 0 and carrier == 0 and self.view == ProgressView.MINIMAL) or \
@@ -525,7 +519,7 @@ class ProgressWindow:
 
         # We're down to having nothing left to deliver.
         if (totals['Required'] - totals['Delivered']) == 0:
-            if len(tracked) == 1: # Nothing at all, remove the entire frame
+            if len(tracked) == 0: # Nothing at all, remove the entire frame
                 self.frame.grid_remove()
             else: # Just this one build? Hide the table
                 self.table_frame.grid_remove()

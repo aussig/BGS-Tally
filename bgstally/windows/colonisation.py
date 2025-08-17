@@ -19,9 +19,10 @@ from bgstally.utils import _, human_format, str_truncate
 FILENAME = "colonisation_legend.txt" # LANG: Not sure how we handle file localistion.
 SUMMARY_HEADER_ROW = 0
 FIRST_SUMMARY_ROW = 1
-FIRST_SUMMARY_COLUMN = 3
+FIRST_SUMMARY_COLUMN = 4
 HEADER_ROW = 3
 FIRST_BUILD_ROW = 4
+
 class ColonisationWindow:
     '''
     Window for managing colonisation plans.
@@ -67,9 +68,10 @@ class ColonisationWindow:
         self.detail_cols:dict = {
             'Track': {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Track this build?
             'Base Type' : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
-            'Name' : {'header': _("Base Name"), 'background': None, 'format': 'dropdown', 'width': 225}, # LANG: name of the base
-            'Body': {'header': _("Body"), 'background': None, 'format': 'string', 'width': 115}, # LANG: Body the base is on or around
-            'Prerequisites': {'header': _("Type"), 'background': None, 'format': 'string', 'width': 115}, # LANG: body type details
+            'Layout' : {'header': _("Layout"), 'background': None, 'format': 'dropdown', 'width': 150}, # LANG: building layout
+            'Name' : {'header': _("Base Name"), 'background': None, 'format': 'string', 'width': 225}, # LANG: name of the base
+            'Body': {'header': _("Body"), 'background': None, 'format': 'dropdown', 'width': 115}, # LANG: Body the base is on or around
+            'Body Type': {'header': _("Type"), 'background': None, 'format': 'string', 'width': 115}, # LANG: body type details
             'State': {'header': _("State"), 'background': 'type', 'format': 'string', 'width': 115}, # LANG: Current build state
             'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 2 points
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 3
@@ -181,8 +183,17 @@ class ColonisationWindow:
 
             for sysnum, system in enumerate(systems):
                 # Create a frame for the sytem
-                tabnum = sysnum +1
+                tabnum = sysnum + 1
                 self._create_system_tab(tabnum, system)
+
+                # Refresh the RC data when the window is opened/created
+                if system.get('RCSync', 0) == 1:
+                    Debug.logger.debug(f"Loading system {system.get('StarSystem', 'Unknown')} from ID64 {system.get('ID64')}")
+                    if self.colonisation.rc is None: self.rc = RavenColonial(self)
+                    if system.get('ID64', None) is None:
+                        self.colonisation.rc.add_system(system.get('StarSystem'))
+                    else:
+                        self.colonisation.rc.load_system(system.get('ID64'))
 
             # Select the first tab
             if tabnum > 0:
@@ -291,8 +302,8 @@ class ColonisationWindow:
         ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("Rename"), cursor="hand2", command=lambda: self.rename_system_dialog(tabnum, tab)) # LANG: Rename button
-        ToolTip(btn, text=_("Rename system plan")) # LANG: tooltip for the rename system button
+        btn:ttk.Button = ttk.Button(title_frame, text=_("Modify"), cursor="hand2", command=lambda: self.modify_system_dialog(tabnum, tab)) # LANG: Rename button
+        ToolTip(btn, text=_("Modify system plan")) # LANG: tooltip for the modify system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
@@ -363,7 +374,7 @@ class ColonisationWindow:
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
                             show_dropdown_borders=False, header_bg='lightgrey',
                             empty_vertical=0, empty_horizontal=0, header_font=FONT_SMALL, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                            show_header=True, set_all_heights_and_widths=True) #, default_row_height=21)
+                            show_header=True)
             sheet.pack(fill=tk.BOTH, padx=0, pady=0)
 
             data:list = [[0 for _ in range(len(self.bases.keys()))] for _ in range(len(self.colonisation.get_base_types()))]
@@ -371,11 +382,11 @@ class ColonisationWindow:
             sheet.set_sheet_data(data)
             sheet["A1:A100"].align(align='left')
             sheet["E1:F100"].align(align='left')
-            sheet["T1:V100"].align(align='left')
+            sheet["U1:W100"].align(align='left')
 
             for i, bt in enumerate(self.colonisation.base_types.values()):
                 for j, (name, col) in enumerate(self.bases.items()):
-                    sheet.column_width(j, int(col.get('width', 100) * self.scale))
+                    sheet.column_width(j, col.get('width', 100))
                     match col.get('format'):
                         case 'int':
                             v = bt.get(name, 0)
@@ -392,6 +403,7 @@ class ColonisationWindow:
                                 sheet[i,j].highlight(bg=self._set_background(col.get('background'), econ if econ else 'None'))
                             else:
                                 sheet[i,j].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
+            sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
         except Exception as e:
             Debug.logger.error(f"Error in bases_popup(): {e}")
@@ -407,7 +419,8 @@ class ColonisationWindow:
             self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
             self.bodies_fr.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the bodies popup window
             self.bodies_fr.wm_attributes('-toolwindow', True) # makes it a tool window
-            self.bodies_fr.geometry("600x600")
+            self.bodies_fr.minsize(600, 600)
+            self.bodies_fr.geometry(f"{int(600*self.scale)}x{int(600*self.scale)}")
             self.bodies_fr.config(bd=2, relief=tk.FLAT)
             scr:tk.Scrollbar = tk.Scrollbar(self.bodies_fr, orient=tk.VERTICAL)
             scr.pack(side=tk.RIGHT, fill=tk.Y)
@@ -520,12 +533,12 @@ class ColonisationWindow:
 
         # Column widths
         for i, (name, value) in enumerate(self.detail_cols.items()):
-            sheet.column_width(i, int(value.get('width', 100) * self.scale))
+            sheet.column_width(i, value.get('width', 100))
 
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')
-        sheet['A2:F2'].highlight(bg=self._set_background('type', 'Complete', 1))
-        sheet['A3:F3'].highlight(bg=self._set_background('type', 'Planned', 1))
+        sheet['A2:G2'].highlight(bg=self._set_background('type', 'Complete', 1))
+        sheet['A3:G3'].highlight(bg=self._set_background('type', 'Planned', 1))
         sheet[HEADER_ROW].highlight(bg='lightgrey')
 
         # Tracking checkboxes
@@ -534,23 +547,28 @@ class ColonisationWindow:
         # Base types
         sheet['B5'].dropdown(values=[' '] + self.colonisation.get_base_types('Initial'))
         sheet['B6:B'].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
+
+        # Base layouts dropdown
+        sheet['C5'].dropdown(values=[' '] + self.colonisation.get_base_layouts('Initial'))
+        sheet['C6:C'].dropdown(values=[' '] + self.colonisation.get_base_layouts('All'))
+
         if system != None and 'Bodies' in system:
             bodies:list = self.colonisation.get_bodies(system)
             if len(bodies) > 0:
-                sheet['D5:D'].dropdown(values=[' '] + bodies)
+                sheet['E5:E'].dropdown(values=[' '] + bodies)
 
         # Make the sections readonly that users can't edit.
         s3 = sheet.span('A1:4', type_='readonly')
         sheet.named_span(s3)
-        s4 = sheet.span('E4:T', type_='readonly')
+        s4 = sheet.span('F4:T', type_='readonly')
         sheet.named_span(s4)
-        # track, types and names left.
-        sheet[f"A{FIRST_BUILD_ROW}:C"].align(align='left')
+        # track, types, layouts, and names left.
+        sheet[f"A{FIRST_BUILD_ROW}:D"].align(align='left')
 
 
     def _get_summary_header(self) -> list[str]:
         ''' Return the header row for the summary '''
-        cols:list = [' ', ' ', ' ']
+        cols:list = FIRST_SUMMARY_COLUMN * [' ']
         for c, v in self.summary_cols.items():
             cols.append(v.get('header', c) if v.get('hide') != True else ' ')
         return cols
@@ -624,7 +642,7 @@ class ColonisationWindow:
         # Update the values in the cells.
         summary:list = []
         for i, r in enumerate(self.summary_rows.keys()):
-            row:list = [' ', ' ', r]
+            row:list = [' ', ' ', ' ', r]
             for (name, col) in self.summary_cols.items():
                 if col.get('hide', False) == True:
                     row.append(' ')
@@ -723,49 +741,45 @@ class ColonisationWindow:
                 sheet[i+srow,j].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
 
             # Body type details
-            if system != None and 'Bodies' in system and new[i][3] != ' ':
+            if system != None and 'Bodies' in system and new[i][self._detcol('Body')] != ' ':
                 desc:str = ' '
-                b = self.colonisation.get_body(system, new[i][3])
+                b = self.colonisation.get_body(system, new[i][self._detcol('Body')])
                 if b != None:
                     desc = b.get('subType', 'Unknown')
                     if b.get('type') == 'Star': desc = re.sub(r".*\((.+)\).*", r"\1", desc)
                     if 'gas giant' in b.get('subType').lower(): desc = _('Gas giant')
                     if b.get('subType') == 'High metal content world': desc = _('HMC world') # LANG: HMC World is a high metal content world
                     desc = str_truncate(desc, 16)
-
-                #attrs:list = []
-                #if b.get('terraformingState', 'Not terraformable') != 'Not terraformable': attrs.append("T")
-                #if b.get('volcanismType', 'None') != 'None': attrs.append("V")
-                #if len(attrs) > 0:
-                #    desc += " (" + ", ".join(attrs) + ")"
-                sheet[i+srow,4].data = desc
-                #sheet[i+srow,4].align(align='left')
+                sheet[i+srow,self._detcol('Body Type')].data = desc
 
             # Handle build states
-            if new[i][5] == BuildState.COMPLETE: # Mark complete builds as readonly
+            if new[i][self._detcol('State')] == BuildState.COMPLETE:
                 # Tracking
-                sheet[i+srow,0].del_checkbox()
-                sheet[i+srow,0].data = ' 🢅' #⇒
-                #sheet[i+srow,0].checkbox(state='disabled'); sheet[i+srow,0].data = ' ';
-                sheet[i+srow,0].readonly()
-                sheet[i+srow,0].align(align='left')
+                sheet[i+srow,self._detcol('Track')].del_checkbox()
+                sheet[i+srow,self._detcol('Track')].data = ' 🢅' #⇒
+                #sheet[i+srow,self._detcol('Track')].checkbox(state='disabled'); sheet[i+srow,0].data = ' ';
+                sheet[i+srow,self._detcol('Track')].readonly()
+                sheet[i+srow,self._detcol('Track')].align(align='left')
 
+            if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Name')] != '' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
                 # Base type
-                if new[i][1] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
-                    sheet[i+srow,1].del_dropdown()
-                    sheet[i+srow,1].readonly()
-                    sheet[i+srow,1].highlight(bg=None)
-                elif new[i][1] != ' ' or new[i][2] != ' ': # Base type is invalid or not set & name is set
-                    sheet[i+srow,1].highlight(bg='red2')
-                sheet[i+srow,1].align(align='left')
+                if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
+                    sheet[i+srow,self._detcol('Base Type')].del_dropdown()
+                    sheet[i+srow,self._detcol('Base Type')].readonly()
+                    sheet[i+srow,self._detcol('Base Type')].highlight(bg=None)
+                elif new[i][self._detcol('Base Type')] != ' ' or new[i][self._detcol('Name')] != ' ': # Base type is invalid or not set & name is set
+                    sheet[i+srow,self._detcol('Base Type')].highlight(bg='red2')
+                    sheet[i+srow,self._detcol('Layout')].highlight(bg='red2')
+                sheet[i+srow,self._detcol('Base Type')].align(align='left')
+                sheet[i+srow,self._detcol('Layout')].align(align='left')
 
                 # Base name
-                sheet[i+srow,2].readonly()
-                sheet[i+srow,2].align(align='left')
+                sheet[i+srow,self._detcol('Name')].readonly()
+                sheet[i+srow,self._detcol('Name')].align(align='left')
 
                 # Body
-                sheet[i+srow,3].del_dropdown()
-                sheet[i+srow,3].readonly()
+                sheet[i+srow,self._detcol('Body')].del_dropdown()
+                sheet[i+srow,self._detcol('Body')].readonly()
                 continue
 
             #if isinstance(new[i][5], int):
@@ -773,30 +787,48 @@ class ColonisationWindow:
             #    Debug.logger.debug("Creating progress bar {sheet[i+srow,5]}")
 
             #  Tracking
-            sheet[i+srow,0].checkbox(state='normal'); sheet[i+srow,0].data = ' '; sheet[i+srow,0].readonly(False)
+            if new[i][self._detcol('State')] != BuildState.COMPLETE:
+                sheet[i+srow,self._detcol('Track')].checkbox(state='normal')
+                sheet[i+srow,self._detcol('Track')].data = ' '
+                sheet[i+srow,self._detcol('Track')].readonly(False)
 
             # Base type
-            sheet[i+srow,1].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
-            sheet[i+srow,1].align(align='left')
-            sheet[i+srow,1].readonly(False)
-            sheet[i+srow,1].data = new[i][1]
+            sheet[i+srow,self._detcol('Base Type')].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
+            sheet[i+srow,self._detcol('Base Type')].align(align='left')
+            sheet[i+srow,self._detcol('Base Type')].readonly(False)
+            sheet[i+srow,self._detcol('Base Type')].data = new[i][self._detcol('Base Type')]
+
+            # Base Layout
+            cat:str = new[i][self._detcol('Base Type')] if new[i][self._detcol('Base Type')] != ' ' else 'All'
+            if i == 0 and cat == 'All': cat = 'Initial'
+            layouts:list = self.colonisation.get_base_layouts(cat)
+            sheet[i+srow,self._detcol('Layout')].dropdown(values=[' '] + layouts)
+            sheet[i+srow,self._detcol('Layout')].align(align='left')
+            sheet[i+srow,self._detcol('Layout')].readonly(False)
+            sheet[i+srow,self._detcol('Layout')].data = new[i][self._detcol('Layout')]
 
             # Base name
-            sheet[i+srow,2].readonly(False)
+            sheet[i+srow,self._detcol('Name')].readonly(False)
 
             # Body
             if system != None and 'Bodies' in system:
-                bodies:list = self.colonisation.get_bodies(system)
+                bodies:dict = self.colonisation.get_bodies(system)
+                if new[i][self._detcol('Base Type')] != ' ':
+                    basetype:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
+                    bodies = self.colonisation.get_bodies(system, basetype.get('Location'))
+
                 if len(bodies) > 0:
-                    sheet[i+srow,3].dropdown(values=[' '] + bodies)
-            sheet[i+srow,3].readonly(False)
-            sheet[i+srow,3].data = new[i][3]
+                    sheet[i+srow,self._detcol('Body')].dropdown(values=[' '] + bodies)
+            sheet[i+srow,self._detcol('Body')].readonly(False)
+            sheet[i+srow,self._detcol('Body')].data = new[i][self._detcol('Body')]
 
         # Clear the highlights on the empty last row
         if len(new) > len(system.get('Builds', [])):
             for j, details in enumerate(self.detail_cols.values()):
                 sheet[len(new)+srow-1,j].highlight(bg=None)
-            sheet[len(new)+srow-1,5].data = ' '
+            sheet[len(new)+srow-1,self._detcol('State')].data = ' '
+
+        sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
     def update_display(self) -> None:
@@ -850,12 +882,9 @@ class ColonisationWindow:
                     if systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE or \
                         'Base Type' not in systems[sysnum]['Builds'][row] or \
                         systems[sysnum]['Builds'][row]['Base Type'] == ' ':
-                        systems[sysnum]['Builds'][row]['State'] = BuildState.PLANNED
+                        self.modify_build(systems[sysnum], row, {'State': BuildState.PLANNED})
                     else:
-                        systems[sysnum]['Builds'][row]['State'] = BuildState.COMPLETE
-
-                    self.colonisation.dirty = True
-                    self.colonisation.save()
+                        self.modify_build(systems[sysnum], row, {'State': BuildState.COMPLETE})
                     self.update_display()
 
                 #if field in ['Name', 'Base Type'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
@@ -869,53 +898,77 @@ class ColonisationWindow:
             if not event.eventname.endswith('edit_table'):
                 return
 
-            fields:list = list(self.detail_cols.keys())
-            field:str = fields[event.column]
+            field:str = list(self.detail_cols.keys())[event.column]
             row:int = event.row - FIRST_BUILD_ROW; val = event.value
 
+            data:dict = {}
             match field:
-                case 'Base Type' if val == ' ':
+                case 'Base Type' | 'Layout' if val == ' ':
                     # If they set the base type to empty remove the build
                     if row < len(systems[sysnum]['Builds']):
-                        self.colonisation.remove_build(systems[sysnum], row)
+                        self.colonisation.remove_build(sysnum, row)
                     else:
-                        systems[sysnum]['Builds'][row][field] = val
-                    data:list = self.sheets[sysnum].data
-                    data.pop(row + FIRST_BUILD_ROW)
-                    self.sheets[sysnum].set_sheet_data(data)
+                        data[field] = val
+
+                    sdata:list = self.sheets[sysnum].data
+                    sdata.pop(row + FIRST_BUILD_ROW)
+                    self.sheets[sysnum].set_sheet_data(sdata)
                     self._config_sheet(self.sheets[sysnum], systems[sysnum])
 
                 case 'Base Type' if val != ' ':
-                    if row >= len(systems[sysnum]['Builds']):
-                        self.colonisation.add_build(systems[sysnum])
-                        systems[sysnum]['Builds'][row][field] = val
+                    data[field] = val
+
+                    layouts:list = self.colonisation.get_base_layouts(val)
+                    if len(layouts) == 1:
+                        data['Layout'] = layouts[0]
 
                     # Initial cell population
-                    data:list = []
-                    data.append(self._get_summary_header())
-                    data += self._build_summary(systems[sysnum])
+                    sdata:list = []
+                    sdata.append(self._get_summary_header())
+                    sdata += self._build_summary(systems[sysnum])
 
-                    data.append(self._get_detail_header())
-                    data += self._build_detail(systems[sysnum])
+                    sdata.append(self._get_detail_header())
+                    sdata += self._build_detail(systems[sysnum])
 
-                    self.sheets[sysnum].set_sheet_data(data)
+                    self.sheets[sysnum].set_sheet_data(sdata)
                     self._config_sheet(self.sheets[sysnum], systems[sysnum])
 
-                    systems[sysnum]['Builds'][row][field] = val
+                case 'Layout' if val != ' ':
+                    data[field] = val
+                    bt:dict = self.colonisation.get_base_type(val)
+                    data['Base Type'] = bt.get('Type')
 
-                case 'Track':
-                    # Toggle the tracked status.
-                    # Make sure the plan name is up to date as the progress view uses it.
-                    self.colonisation.update_build_tracking(systems[sysnum]['Builds'][row], val)
+                    # Initial cell population
+                    sdata:list = []
+                    sdata.append(self._get_summary_header())
+                    sdata += self._build_summary(systems[sysnum])
+
+                    sdata.append(self._get_detail_header())
+                    sdata += self._build_detail(systems[sysnum])
+
+                    self.sheets[sysnum].set_sheet_data(sdata)
+                    self._config_sheet(self.sheets[sysnum], systems[sysnum])
+
+                case 'Body':
+                    # If the body is set, update the build data
+                    data[field] = val
+                    if val == ' ':
+                        data['BodyNum'] = None
+                    else:
+                        body:dict = self.colonisation.get_body(systems[sysnum], val)
+                        if body != None: data['BodyNum'] = body.get('bodyId', None)
 
                 case _:
                     # Any other fields, just update the build data
-                    if row >= len(systems[sysnum]['Builds']):
-                        self.colonisation.add_build(systems[sysnum])
-                    systems[sysnum]['Builds'][row][field] = val
+                    data[field] = val
 
-            self.colonisation.dirty = True
-            self.colonisation.save()
+            # Add the data to the build
+            if data != {}:
+                if row >= len(systems[sysnum]['Builds']):
+                    self.colonisation.add_build(sysnum, data)
+                else:
+                    self.colonisation.modify_build(sysnum, row, data)
+
             self.update_display()
 
         except Exception as e:
@@ -998,8 +1051,8 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def rename_system_dialog(self, tabnum:int, tab:ttk.Frame) -> None:
-        ''' Show dialog to rename a system '''
+    def modify_system_dialog(self, tabnum:int, tab:ttk.Frame) -> None:
+        ''' Show dialog to modify a system '''
         try:
             sysnum:int = tabnum -1
             systems:list = self.colonisation.get_all_systems()
@@ -1008,34 +1061,45 @@ class ColonisationWindow:
 
             system:dict = systems[sysnum]
             dialog:tk.Toplevel = tk.Toplevel(self.window)
-            dialog.title(_("Rename System")) # LANG: Rename a system
-            dialog.geometry("500x150")
+            dialog.title(_("Modify System")) # LANG: Rename a system
+            dialog.minsize(700, 250)
+            dialog.geometry(f"{int(700*self.scale)}x{int(250*self.scale)}")
             dialog.transient(self.window)
             dialog.grab_set()
 
+            row:int = 0
             # System name
             ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
             plan_name_var:tk.StringVar = tk.StringVar(value=system.get('Name', ''))
             plan_name_entry:ttk.Entr = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
-            plan_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
+            plan_name_entry.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+            row += 1
 
             # Display name
             ttk.Label(dialog, text=_("System Name") + " (" + _("optional and case sensitive") + "):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
             system_name_var:tk.StringVar = tk.StringVar(value=system.get('StarSystem', ''))
             system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
-            system_name_entry.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)
+            system_name_entry.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+            row += 1
+
+            rcsync_var = tk.IntVar()
+            rcsync_var.set(True if system.get('RCSync', 0) != 0 else False)
+            chk = tk.Checkbutton(dialog, text=_("Sync with Raven Colonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with Raven Colonial
+            chk.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+            row += 1
 
             # Buttons
             button_frame:ttk.Frame = ttk.Frame(dialog)
-            button_frame.grid(row=2, column=0, columnspan=2, pady=10)
+            button_frame.grid(row=row, column=0, columnspan=2, pady=10)
+            row += 1
 
-            # Rename button
-            rename_button:ttk.Button = ttk.Button(
+            # Modify button
+            modify_button:ttk.Button = ttk.Button(
                 button_frame,
-                text=_("Rename"), # LANG: Rename system button
-                command=lambda: self._rename_system(tabnum, tab, plan_name_var.get(), system_name_var.get(), dialog)
+                text=_("Modify"), # LANG: Rename system button
+                command=lambda: self._modify_system(tabnum, tab, plan_name_var.get(), system_name_var.get(), rcsync_var.get(), dialog)
             ) # LANG: Rename button
-            rename_button.pack(side=tk.LEFT, padx=5)
+            modify_button.pack(side=tk.LEFT, padx=5)
 
             # Cancel button
             cancel_button:ttk.Button = ttk.Button(
@@ -1053,22 +1117,23 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def _rename_system(self, tabnum:int, tab:ttk.Frame, name:str, sysname:str, dialog:tk.Toplevel) -> None:
-        ''' Rename a system '''
+    def _modify_system(self, tabnum:int, tab:ttk.Frame, name:str, sysname:str, rcsync:bool, dialog:tk.Toplevel) -> None:
+        ''' Modify a system's plan, name and sync state '''
         try:
             sysnum:int = tabnum -1
-            systems:list = self.colonisation.get_all_systems()
-            if sysnum > len(systems):
-                Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
-            system:dict = systems[sysnum]
-            system['Name'] = name
-            system['StarSystem'] = sysname
+            if not name:
+                messagebox.showerror(_("Error"), _("Plan name is required"))
+                return
 
+            data:dict = {
+                'Name': name,
+                'StarSystem': sysname,
+                'RCSync': 1 if rcsync == True else 0
+            }
+            self.colonisation.modify_system(sysnum, data)
             self.tabbar.notebookTab.tab(tabnum, text=name)
 
-            self.colonisation.dirty = True
-            self.colonisation.save()
             dialog.destroy()
             self.update_display()
 
@@ -1343,3 +1408,9 @@ class ColonisationWindow:
             Debug.logger.error(f"Error in gradient: {e}")
             Debug.logger.error(traceback.format_exc())
             return ["#7A007A"]
+
+
+    def _detcol(self, col:str) -> int:
+        ''' Macro to shorten references to detail columns '''
+        #cols:list = list(self.detail_cols.keys())
+        return list(self.detail_cols.keys()).index(col)

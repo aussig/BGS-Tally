@@ -1,22 +1,24 @@
-from os import path
-from math import ceil
-import traceback
 import re
-from functools import partial
-import webbrowser
-from config import config
-import plug
 import tkinter as tk
 import tkinter.font as tkFont
-from tkinter import ttk, messagebox, PhotoImage
+import traceback
+import webbrowser
+from functools import partial
+from math import ceil
+from os import path
+from tkinter import PhotoImage, messagebox, ttk
+
+import plug
+
+from bgstally.constants import COLOUR_HEADING_1, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, FONT_TEXT, BuildState
+from bgstally.debug import Debug
+from bgstally.utils import _, get_localised_filepath, human_format, str_truncate
+from config import config
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
-from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_SMALL, FONT_TEXT, FOLDER_DATA, FOLDER_ASSETS, BuildState
-from bgstally.debug import Debug
-from bgstally.utils import _, human_format, str_truncate
 
-FILENAME = "colonisation_legend.txt" # LANG: Not sure how we handle file localistion.
+FILENAME_LEGEND = "colonisation_legend.txt"
 SUMMARY_HEADER_ROW = 0
 FIRST_SUMMARY_ROW = 1
 FIRST_SUMMARY_COLUMN = 3
@@ -1163,26 +1165,17 @@ class ColonisationWindow:
 
     def _load_legend(self) -> str:
         ''' Load the legend text from the language appropriate file '''
-        try:
-            file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
-            lang:str = config.get_str('language')
-            if lang and lang != 'en':
-                file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, "L10n", f"{lang}.{FILENAME}")
+        filepath: str | None = get_localised_filepath(FILENAME_LEGEND, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
 
-            if not path.exists(file):
-                Debug.logger.info(f"Missing translation {file} for {lang}, using default legend file")
-                file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        if filepath:
+            try:
+                with open(filepath, encoding='utf-8') as stream:
+                    return stream.read()
+            except Exception as e:
+                Debug.logger.warning(f"Unable to load legend {filepath}")
+                Debug.logger.error(traceback.format_exc())
 
-            if path.exists(file):
-                with open(file) as file:
-                    legend:str = file.read()
-                return legend
-
-            return f"Unable to load {file}"
-
-        except Exception as e:
-            Debug.logger.warning(f"Unable to load legend {file}")
-            Debug.logger.error(traceback.format_exc())
+        return ""
 
 
     def legend_popup(self) -> None:

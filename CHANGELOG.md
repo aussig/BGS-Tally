@@ -10,6 +10,8 @@
 * Cartography values are now editible in activity windows, this is to work around a game bug where it doesn't always log cartography sales.
 * Space CZ side objectives are now editable in activity windows.
 * Translation is now supported for commodity names.
+* Added shortcuts for East India Co and Spectrum in API config.
+* For all API shortcuts, added a link through to the website for the related organisation.
 
 ### Changes:
 

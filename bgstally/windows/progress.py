@@ -109,14 +109,14 @@ class ProgressWindow:
             del self.headings['Carrier']
 
         # UI components
-        self.frame:tk.Frame = None
+        self.frame:tk.Frame
         self.frame_row:int = 0 # Row in the parent frame
-        self.table_frame:tk.Frame = None # Table frame
-        self.title:tk.Label = None # Title object
+        self.table_frame:tk.Frame # Table frame
+        self.title:tk.Label # Title object
         self.colheadings:dict = {} # Column headings
         self.rows:list = []
-        self.progbar:ttk.Progressbar = None # Overall progress bar
-        self.progvar:tk.IntVar = None
+        self.progbar:ttk.Progressbar # Overall progress bar
+        self.progvar:tk.IntVar
         self.coltts:dict = {} # Tooltip for the progress bar
         self.build_index:int = 0 # Which build we're showing
         self.view:ProgressView = ProgressView.REDUCED # Full, reduced, or no list of commodities
@@ -301,7 +301,7 @@ class ProgressWindow:
         except Exception as e:
             Debug.logger.info(f"Error generating text output {e}")
             Debug.logger.error(traceback.format_exc())
-
+            return ''
 
     def event(self, event:str, tkEvent) -> None:
         ''' Process events from the buttons in the progress frame. '''
@@ -506,7 +506,7 @@ class ProgressWindow:
 
             self._display_totals(self.rows[i+1], tracked, totals)
             if all_req > 0:
-                self.progvar.set(all_deliv * 100 / all_req)
+                self.progvar.set(round(all_deliv * 100 / all_req))
                 self.progtt.text = f"{_('Progress')}: {self.progvar.get():.0f}%" # LANG: tooltip for the progress bar
 
         except Exception as e:
@@ -530,13 +530,6 @@ class ProgressWindow:
             self._set_weight(row[col])
             row[col].grid()
 
-        # Update the progress graphs
-        #self.progcols['Required'].set((totals['Required'] - totals['Delivered']) * 100 / totals['Required'])
-        #self.progcols['Delivered'].set(totals['Delivered'] * 100 / totals['Required'])
-        #self.progcols['Cargo'].set(totals['Cargo'] * 100 / self.colonisation.cargo_capacity)
-        #if (totals['Required'] - totals['Delivered']) > 0:
-        #    # @TODO: Figure out carrier space for a better progress display
-        #    self.progcols['Carrier'].set(totals['Carrier'] * 100 / (totals['Required'] - totals['Delivered']))
         return
 
 
@@ -620,4 +613,3 @@ class ProgressWindow:
                 # bold if need any and have room, otherwise normal
                 self._set_weight(row[col], 'bold' if tobuy > 0 and space > 0 else 'normal')
                 continue
-

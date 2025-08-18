@@ -9,12 +9,14 @@ import plug
 import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import ttk, messagebox, PhotoImage
+from urllib.parse import quote
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
 from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_SMALL, FONT_TEXT, FOLDER_DATA, FOLDER_ASSETS, BuildState
 from bgstally.debug import Debug
 from bgstally.utils import _, human_format, str_truncate
+from bgstally.ravencolonial import RavenColonial
 
 FILENAME = "colonisation_legend.txt" # LANG: Not sure how we handle file localistion.
 SUMMARY_HEADER_ROW = 0
@@ -143,7 +145,7 @@ class ColonisationWindow:
     def show(self) -> None:
         ''' Create and display the colonisation window. Called by ui.py when the colonisation icon is clicked. '''
         try:
-            if self.window is not None and self.window.winfo_exists():
+            if self.window != None and self.window.winfo_exists():
                 self.window.lift()
                 return
 
@@ -176,7 +178,6 @@ class ColonisationWindow:
 
             # Add tabs for each system
             systems:list = self.colonisation.get_all_systems()
-
             if len(systems) == 0:
                 Debug.logger.info(f"No systems so not creating colonisation section")
                 return
@@ -186,11 +187,10 @@ class ColonisationWindow:
                 tabnum = sysnum + 1
                 self._create_system_tab(tabnum, system)
 
-                # Refresh the RC data when the window is opened/created
                 if system.get('RCSync', 0) == 1:
                     Debug.logger.debug(f"Loading system {system.get('StarSystem', 'Unknown')} from ID64 {system.get('ID64')}")
-                    if self.colonisation.rc is None: self.rc = RavenColonial(self)
-                    if system.get('ID64', None) is None:
+                    if self.colonisation.rc == None: self.colonisation.rc = RavenColonial(self)
+                    if system.get('ID64', None) == None:
                         self.colonisation.rc.add_system(system.get('StarSystem'))
                     else:
                         self.colonisation.rc.load_system(system.get('ID64'))
@@ -250,16 +250,21 @@ class ColonisationWindow:
         while len(self.plan_titles) <= sysnum:
             self.plan_titles.append({})
 
-        name_label:ttk.Label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
-        name_label.pack(side=tk.LEFT, padx=10, pady=5)
 
+        name_label:ttk.Label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
+        if systems[sysnum].get('RCSync', 0) == 1:
+            name_label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground="#0078d4", cursor="hand2")
+            name_label.bind("<Button-1>", partial(self.system_click, tabnum, 'RavenColonial'))
+            ToolTip(name_label, text=_("Link to RavenColonial")) # LANG: tooltip for ravencolonial link
+        name_label.pack(side=tk.LEFT, padx=10, pady=5)
         self.plan_titles[sysnum]['Name'] = name_label
 
         sysname:str = systems[sysnum].get('StarSystem', '') + ' ⤴' if systems[sysnum].get('StarSystem') != '' else ''
         sys_label:ttk.Label = ttk.Label(title_frame, text=sysname, cursor="hand2")
         sys_label.pack(side=tk.LEFT, padx=5, pady=5)
         self._set_weight(sys_label)
-        sys_label.bind("<Button-1>", partial(self.system_click, tabnum))
+        sys_label.bind("<Button-1>", partial(self.system_click, tabnum, 'inara'))
+        ToolTip(sys_label, text=_("Link to Inara")) # LANG: tooltip for inara link
         self.plan_titles[sysnum]['System'] = sys_label
 
         sys_copy:ttk.Label = ttk.Label(title_frame, text='⮺   ', cursor='hand2')
@@ -315,6 +320,12 @@ class ColonisationWindow:
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
+        if systems[sysnum].get('RCSync', 0) == 1:
+            #🔄 ⟳
+            btn:ttk.Button = ttk.Button(title_frame, text=_("🔄"), cursor="hand2", width=3, command=partial(self._rc_refresh_system, tabnum))
+            btn.pack(side=tk.RIGHT, padx=5, pady=5)
+            ToolTip(btn, text=_("Refresh from RavenColonial")) # LANG: tooltip for ravencolonial refresh button
+
 
     def ctc(self, tabnum:int, event = None) -> None:
         ''' Copy to clipboard '''
@@ -327,7 +338,7 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def system_click(self, tabnum:int, event = None) -> None:
+    def system_click(self, tabnum:int, type:str = '', event = None) -> None:
         ''' Execute the click event for the system link '''
         try:
             sysnum:int = tabnum -1
@@ -343,6 +354,10 @@ class ColonisationWindow:
             #    Debug.logger.debug(f"{opener}")
             #    return webbrowser.open(opener)
             #else:
+
+            if type == 'RavenColonial':
+                webbrowser.open(f"https://ravencolonial.com/#sys={quote(star)}")
+                return
 
             match config.get_str('system_provider'):
                 case 'Inara':
@@ -360,7 +375,7 @@ class ColonisationWindow:
     def bases_popup(self) -> None:
         ''' Show a popup with details of all the base types '''
         try:
-            if self.bases_fr is not None and self.bases_fr.winfo_exists():
+            if self.bases_fr != None and self.bases_fr.winfo_exists():
                 self.bases_fr.lift()
                 return
 
@@ -389,7 +404,7 @@ class ColonisationWindow:
                     sheet.column_width(j, col.get('width', 100))
                     match col.get('format'):
                         case 'int':
-                            v = bt.get(name, 0)
+                            v:int = bt.get(name, 0)
                             if name in ['T2', 'T3']:
                                 v = bt.get(name+' Reward', 0) - bt.get(name + ' Cost', 0)
                             if name == 'Trips':
@@ -413,7 +428,7 @@ class ColonisationWindow:
     def bodies_popup(self, tabnum:int, event = None) -> None:
         ''' Show a popup with details of all the bodies in the system '''
         try:
-            if self.bodies_fr is not None and self.bodies_fr.winfo_exists():
+            if self.bodies_fr != None and self.bodies_fr.winfo_exists():
                 self.bodies_fr.destroy()
 
             self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
@@ -516,7 +531,7 @@ class ColonisationWindow:
 
     def _update_title(self, index:int, system:dict) -> None:
         ''' Update title with both display name and actual system name '''
-        name:str = system.get('Name') if system.get('Name') != None else system.get('StarSystem', _('Unknown')) # LANG: Default when we don't know the name
+        name:str = system.get('Name','') if system.get('Name',None) != None else system.get('StarSystem', _('Unknown')) # LANG: Default when we don't know the name
         sysname:str = system.get('StarSystem', '') + ' ⤴' if system.get('StarSystem') != '' else ''
 
         self.plan_titles[index]['Name']['text'] = name
@@ -713,7 +728,7 @@ class ColonisationWindow:
                             continue
 
                         if name == 'Body' and build.get('Body', None) != None and system.get('StarSystem', '') != '':
-                            row.append(build.get('Body').replace(system.get('StarSystem') + ' ', ''))
+                            row.append(build.get('Body').replace(system.get('StarSystem','') + ' ', ''))
                             continue
 
                         row.append(build.get(name) if build.get(name, ' ') != ' ' else bt.get(name, ' '))
@@ -845,7 +860,7 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def validate_edits(self, event = None) -> str:
+    def validate_edits(self, event = None) -> str|None:
         ''' Validate edits to the sheet. This just prevents the user from deleting the primary base type. '''
         try:
             row:int = event.row - FIRST_BUILD_ROW; col:int = event.column; val = event.value
@@ -882,16 +897,17 @@ class ColonisationWindow:
                     if systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE or \
                         'Base Type' not in systems[sysnum]['Builds'][row] or \
                         systems[sysnum]['Builds'][row]['Base Type'] == ' ':
-                        self.modify_build(systems[sysnum], row, {'State': BuildState.PLANNED})
+                        self.colonisation.modify_build(systems[sysnum], row, {'State': BuildState.PLANNED})
                     else:
-                        self.modify_build(systems[sysnum], row, {'State': BuildState.COMPLETE})
+                        self.colonisation.modify_build(systems[sysnum], row, {'State': BuildState.COMPLETE})
+
                     self.update_display()
 
                 #if field in ['Name', 'Base Type'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
                 if field in ['Track'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
                     opener:str = plug.invoke(config.get_str('station_provider'), 'EDSM', 'station_url', systems[sysnum]['StarSystem'], systems[sysnum]['Builds'][row]['Name'])
                     if opener:
-                        return webbrowser.open(opener)
+                        webbrowser.open(opener)
                 return
 
             # We only deal with edits.
@@ -905,7 +921,7 @@ class ColonisationWindow:
             match field:
                 case 'Base Type' | 'Layout' if val == ' ':
                     # If they set the base type to empty remove the build
-                    if row < len(systems[sysnum]['Builds']):
+                    if row > 0 and row < len(systems[sysnum]['Builds']):
                         self.colonisation.remove_build(sysnum, row)
                     else:
                         data[field] = val
@@ -960,7 +976,7 @@ class ColonisationWindow:
 
                 case _:
                     # Any other fields, just update the build data
-                    data[field] = val
+                    data[field] = val.strip() if isinstance(val, str) else int(val) if val.isdigit() else val
 
             # Add the data to the build
             if data != {}:
@@ -1029,7 +1045,7 @@ class ColonisationWindow:
         self.tabbar.add(dialog, text='+')
 
 
-    def _add_system(self, plan_name:str, system_name:str, prepop:bool = False, rcsync:bool = False) -> None:
+    def _add_system(self, plan_name:str, system_name:str, prepop:int = False, rcsync:int = False) -> None:
         ''' Add the new system from the dialog '''
         try:
             if not plan_name:
@@ -1170,6 +1186,35 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
+    def _rc_refresh_system(self, tabnum:int) -> None:
+        ''' Reload the current system from RavenColonial '''
+        try:
+            sysnum:int = tabnum -1
+            systems:list = self.colonisation.get_all_systems()
+            if sysnum > len(systems):
+                Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
+
+            system:dict = systems[sysnum]
+            if system.get('RCSync', 0) == 0:
+                return
+
+            # Refresh the RC data when the window is opened/created
+            Debug.logger.debug(f"Reloading system {system.get('StarSystem', 'Unknown')} from ID64 {system.get('ID64')}")
+            if self.colonisation.rc == None: self.rc = RavenColonial(self)
+            if system.get('ID64', None) == None:
+                Debug.logger.debug(f"Calling add_system")
+                self.colonisation.rc.add_system(system.get('StarSystem'))
+            else:
+                Debug.logger.debug(f"Calling load_system")
+                self.colonisation.rc.load_system(system.get('ID64'))
+
+            self.update_display()
+
+        except Exception as e:
+            Debug.logger.error(f"Error in _rc_refresh_system(): {e}")
+            Debug.logger.error(traceback.format_exc())
+
+
     def close(self) -> None:
         ''' Close the window and any popups and clean up'''
         try:
@@ -1180,7 +1225,7 @@ class ColonisationWindow:
             if self.bodies_fr: self.bodies_fr.destroy()
 
             # UI components
-            self.tabbar:ScrollableNotebook = None
+            self.tabbar:ScrollableNotebook
             self.sheets:list = []
             self.plan_titles:list = []
             self.colonisation.save()
@@ -1210,9 +1255,9 @@ class ColonisationWindow:
         return reward - cost
 
 
-    def _set_weight(self, item:tuple, wght:str = 'bold') -> None:
+    def _set_weight(self, item, wght:str = 'bold') -> None:
         ''' Set font weight '''
-        fnt:tkFont = tkFont.Font(font=item['font']).actual()
+        fnt = tkFont.Font(font=item['font']).actual()
         item.configure(font=(fnt['family'], fnt['size'], wght))
 
 
@@ -1239,8 +1284,8 @@ class ColonisationWindow:
                 file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
 
             if path.exists(file):
-                with open(file) as file:
-                    legend:str = file.read()
+                with open(file) as fh:
+                    legend:str = fh.read()
                 return legend
 
             return f"Unable to load {file}"
@@ -1248,12 +1293,12 @@ class ColonisationWindow:
         except Exception as e:
             Debug.logger.warning(f"Unable to load legend {file}")
             Debug.logger.error(traceback.format_exc())
-
+            return ''
 
     def legend_popup(self) -> None:
         ''' Show the legend popup window '''
         try:
-            if self.legend_fr is not None and self.legend_fr.winfo_exists():
+            if self.legend_fr != None and self.legend_fr.winfo_exists():
                 self.legend_fr.lift()
                 return
 
@@ -1288,12 +1333,12 @@ class ColonisationWindow:
                 system['Notes'] = notes
                 self.colonisation.save()
                 self.notes_fr.destroy()
-                self.notes_fr = None
+                self.notes_fr
 
             sysnum:int = tabnum -1
             systems:list = self.colonisation.get_all_systems()
 
-            if self.notes_fr is not None and self.notes_fr.winfo_exists():
+            if self.notes_fr != None and self.notes_fr.winfo_exists():
                 self.notes_fr.destroy()
 
             self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
@@ -1338,7 +1383,7 @@ class ColonisationWindow:
             if limit > 25:
                 value = int(value * 25 / limit)
                 limit = 25
-            value:int = min(value, limit)
+            value = min(value, limit)
 
             # Red, White, Green or Green, Yellow, Red
             if color == 'rwg':
@@ -1351,21 +1396,21 @@ class ColonisationWindow:
             if value < len(gradient):
                 return gradient[int(value)]
 
-            return ["#7A007A"]
+            return "#7A007A"
 
         except Exception as e:
             Debug.logger.error(f"Error in get_color: {e}")
             Debug.logger.error(traceback.format_exc())
-            return ["#7A007A"]
+            return "#7A007A"
 
 
     def _create_gradient(self, steps:int, type:str = 'rwg') -> list[str]:
         ''' Generates a list of RGB color tuples representing a gradient. '''
         try:
             # Green, Yellow, Red (0:steps)
-            s:int = (150, 200, 150) # start
-            m:int = (230, 230, 125) # middle
-            e:int = (190, 30, 100) # end
+            s = (150, 200, 150) # start
+            m = (230, 230, 125) # middle
+            e = (190, 30, 100) # end
 
             # Red, White, Green (-steps:steps)
             if type == 'rwg':

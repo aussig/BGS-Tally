@@ -963,11 +963,11 @@ class ColonisationWindow:
 
                 case _:
                     # Any other fields, just update the build data
-                    data[field] = val.strip() if isinstance(val, str) else int(val) if val.isdigit() else val
+                    data[field] = val.strip() if isinstance(val, str) else val
 
             # Add the data to the build
             if data != {}:
-                if row >= len(systems[sysnum]['Builds']):
+                if row >= len(systems[sysnum].get('Builds', [])):
                     self.colonisation.add_build(sysnum, data)
                 else:
                     self.colonisation.modify_build(sysnum, row, data)

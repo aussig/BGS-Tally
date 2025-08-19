@@ -19,12 +19,14 @@
 * Colonisation: Notes window now saves on close
 * [Internal] Standardised on `BGST_` prefix for all Windows Registry entries and deleted old Registry entries with `X` prefix. Should be zero impact on users, but now conforms to EDMC guidelines for Registry naming.
 * When posting your fleet carrier jump information to Discord, it now uses a Discord dynamic timestamp, showing the relative time to the jump (e.g. "In 6 minutes")
+* Colonisation: New tooltips on main window to help with column modes.
 
 ### Bug Fixes:
 
 * Colonisation: All commodities list was sometimes not displaying correctly
 * Colonisation: Bioreducing lichen Inara link was incorrectly linking to Animal meat
 * Colonisation: Fix for missing body information.
+* Colonisation: Fix for column width resizing.
 * Colonisation: Various other minor bug fixes.
 
 

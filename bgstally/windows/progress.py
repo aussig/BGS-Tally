@@ -531,19 +531,18 @@ class ProgressWindow:
             case ProgressUnits.REMAINING if column == 'Carrier': valstr = f"{max(remaining-carrier,0):,}{_('t')}"
 
             case ProgressUnits.LOADS if column == 'Required':
-                if ceil(remaining / self.colonisation.cargo_capacity) == 1:
-                    valstr = f"{remaining:,}{_('t')}"
-                else:
+                if ceil(remaining / self.colonisation.cargo_capacity) != 1:
                     valstr = f"{ceil(remaining / self.colonisation.cargo_capacity)}{_('L')}"
-
+                else:
+                    valstr = f"{remaining:,}{_('t')}"
             case ProgressUnits.LOADS if column == 'Delivered':
-                if ceil(delivered / self.colonisation.cargo_capacity) > 1:
+                if ceil(delivered / self.colonisation.cargo_capacity) != 1:
                     valstr = f"{ceil(delivered / self.colonisation.cargo_capacity)}{_('L')}"
                 else:
                     valstr = f"{delivered:,}{_('t')}"
             case ProgressUnits.LOADS if column == 'Cargo': valstr = f"{ceil(cargo / self.colonisation.cargo_capacity)}{_('L')}"
             case ProgressUnits.LOADS if column == 'Carrier':
-                if ceil(carrier / self.colonisation.cargo_capacity) > 1:
+                if ceil(carrier / self.colonisation.cargo_capacity) != 1:
                     valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)}{_('L')}"
                 else:
                     valstr = f"{carrier:,}{_('t')}"

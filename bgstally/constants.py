@@ -116,9 +116,8 @@ class BuildState(str, Enum):
 
 # Commodity sort order
 class CommodityOrder(Enum):
-    DEFAULT = 0
-    CATEGORY = 1
-    ALPHA = 2
+    ALPHA = 0
+    CATEGORY = auto()
 
 class ProgressUnits(Enum):
     TONNES = 0

@@ -76,9 +76,8 @@ class ProgressWindow:
             }
         self.tooltips:dict = {
              'Commodity': {
-                CommodityOrder.DEFAULT: _('Default order'), # LANG: Commodity
-                CommodityOrder.CATEGORY: _('Commodity Category'), # LANG: Commodity Category
                 CommodityOrder.ALPHA: _('Alphanbetical order'), # LANG: Alphabetical order
+                CommodityOrder.CATEGORY: _('Commodity Category'), # LANG: Commodity Category
                 },
              'Required': {
                 ProgressUnits.TONNES: _('Total tonnes required'), # LANG: Required amount
@@ -120,7 +119,7 @@ class ProgressWindow:
         self.coltts:dict = {} # Tooltip for the progress bar
         self.build_index:int = 0 # Which build we're showing
         self.view:ProgressView = ProgressView.REDUCED # Full, reduced, or no list of commodities
-        self.comm_order:CommodityOrder = CommodityOrder.DEFAULT # Commodity order
+        self.comm_order:CommodityOrder = CommodityOrder.ALPHA # Commodity order
 
 
     def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
@@ -321,6 +320,7 @@ class ProgressWindow:
                 case 'Commodity':
                     self.comm_order = CommodityOrder((self.comm_order.value + 1) % len(CommodityOrder))
                     self.coltts[column].text = self.tooltips[column][self.comm_order]
+                    Debug.logger.debug(f"Commodity orde: {self.comm_order}")
                 case _:
                     self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
                     # Loads is meaningless for cargo!
@@ -422,7 +422,7 @@ class ProgressWindow:
 
             # Go through each commodity and show or hide it as appropriate and display the appropriate values
             comms:list = []
-            if self.colonisation.docked == True and self.comm_order == CommodityOrder.DEFAULT:
+            if self.colonisation.docked == True:
                 comms = self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)
             else:
                 comms = self.colonisation.get_commodity_list('All', self.comm_order)
@@ -477,7 +477,7 @@ class ProgressWindow:
                     if col == 'Commodity':
                         # Shorten and display the commodity name
                         colstr:str = self.colonisation.commodities[c].get('Name', c)
-                        colstr = str_truncate(colstr, 25)
+                        colstr = str_truncate(colstr, 20)
 
                         row['Commodity']['text'] = colstr
                         row['Commodity'].bind("<Button-1>", partial(self.link, c, None))
@@ -531,10 +531,11 @@ class ProgressWindow:
             case ProgressUnits.REMAINING if column == 'Carrier': valstr = f"{max(remaining-carrier,0):,}{_('t')}"
 
             case ProgressUnits.LOADS if column == 'Required':
-                if ceil(remaining / self.colonisation.cargo_capacity) > 1:
-                    valstr = f"{ceil(remaining / self.colonisation.cargo_capacity)}{_('L')}"
-                else:
+                if ceil(remaining / self.colonisation.cargo_capacity) == 1:
                     valstr = f"{remaining:,}{_('t')}"
+                else:
+                    valstr = f"{ceil(remaining / self.colonisation.cargo_capacity)}{_('L')}"
+
             case ProgressUnits.LOADS if column == 'Delivered':
                 if ceil(delivered / self.colonisation.cargo_capacity) > 1:
                     valstr = f"{ceil(delivered / self.colonisation.cargo_capacity)}{_('L')}"

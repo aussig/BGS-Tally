@@ -770,11 +770,8 @@ class ColonisationWindow:
             # Handle build states
             if new[i][self._detcol('State')] == BuildState.COMPLETE:
                 # Tracking
-                sheet[i+srow,self._detcol('Track')].del_checkbox()
-                sheet[i+srow,self._detcol('Track')].data = ' 🢅' #⇒
-                #sheet[i+srow,self._detcol('Track')].checkbox(state='disabled'); sheet[i+srow,0].data = ' ';
+                sheet[i+srow,self._detcol('Track')].checkbox(state='disabled'); sheet[i+srow,0].data = ' '
                 sheet[i+srow,self._detcol('Track')].readonly()
-                sheet[i+srow,self._detcol('Track')].align(align='left')
 
             if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Name')] != '' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
                 # Base type
@@ -796,10 +793,6 @@ class ColonisationWindow:
                 sheet[i+srow,self._detcol('Body')].del_dropdown()
                 sheet[i+srow,self._detcol('Body')].readonly()
                 continue
-
-            #if isinstance(new[i][5], int):
-            #    sheet.create_progress_bar(row=i+srow, column=5, bg='red', fg='green', percent=new[i][5], name=f"{i}")
-            #    Debug.logger.debug("Creating progress bar {sheet[i+srow,5]}")
 
             #  Tracking
             if new[i][self._detcol('State')] != BuildState.COMPLETE:
@@ -902,12 +895,6 @@ class ColonisationWindow:
                         self.colonisation.modify_build(systems[sysnum], row, {'State': BuildState.COMPLETE})
 
                     self.update_display()
-
-                #if field in ['Name', 'Base Type'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
-                if field in ['Track'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
-                    opener:str = plug.invoke(config.get_str('station_provider'), 'EDSM', 'station_url', systems[sysnum]['StarSystem'], systems[sysnum]['Builds'][row]['Name'])
-                    if opener:
-                        webbrowser.open(opener)
                 return
 
             # We only deal with edits.

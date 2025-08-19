@@ -162,6 +162,11 @@ class Colonisation:
                     self._update_cargo(state.get('Cargo'))
                     self._update_carrier()
 
+                case 'ColonisationContribution':
+                    system:dict = self.find_system(self.current_system, self.system_id)
+                    if system != None and system.get('RCSync', 0) == 1:
+                        self.rc.record_contribution(system, entry.get('MarketID', None), entry.get('Contributions', []))
+
                 case 'ColonisationSystemClaim':
                     Debug.logger.info(f"System claimed: {entry.get('StarSystem', '')}")
                     system:dict = self.find_or_create_system(entry.get('StarSystem', ''), entry.get('SystemAddress', ''))
@@ -186,6 +191,10 @@ class Colonisation:
                             Debug.logger.warning(f"System {self.current_system} not found for completed build {entry.get('MarketID')}")
                             return
                         self.remove_build(system, entry.get('MarketID'))
+
+                    system:dict = self.find_system(self.current_system, self.system_id)
+                    if system != None and system.get('RCSync', 0) == 1:
+                        self.rc.update_project(system, progress)
 
                     self.dirty = True
 

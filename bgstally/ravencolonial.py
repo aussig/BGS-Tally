@@ -71,8 +71,15 @@ class RavenColonial:
         if self.system_cache.get('id64', None) == None: self.system_cache[id64] = {}
         self.system_cache[id64]['ts'] = round(time.mktime(datetime.now(timezone.utc).timetuple()))
 
+        self.headers["rcc-cmdr"] = self.colonisation.cmdr
+
+        # This just returns a commanders list of project (or system?) revisions.
+        #url:str = f"{RC_API}/v2/system/revs/"
+        #response:Response = requests.get(url, headers=self.headers,timeout=5)
+        #Debug.logger.info(f"Response for /revs/ {id64}: {response.status_code} {response}")
+        #data:dict = response.json()
+
         url:str = f"{RC_API}/v2/system/{id64}/"
-        Debug.logger.debug(f"URL: {url}")
         self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._load_response)
         return
 
@@ -88,8 +95,8 @@ class RavenColonial:
         self.headers["rcc-cmdr"] = self.colonisation.cmdr
 
         response:Response = requests.get(url, headers=self.headers,timeout=5)
-        data:dict = response.json()
         Debug.logger.info(f"Response for {system_name}: {response.status_code}")
+        data:dict = response.json()
 
         # Add a new system to RavenColonial
         if response.status_code == 404:
@@ -334,4 +341,45 @@ class RavenColonial:
 
         except Exception as e:
             Debug.logger.info(f"Error recording _rc_system response")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def create_project(self) -> None:
+        # Required: "marketId", "systemAddress", "buildName", "commodities"
+        return
+
+
+    def update_project(self, system:dict, progress:dict) -> None:
+        """ Update build progress """
+        # Required: buildId (though maybe not if you use )
+        try:
+            url:str = f"{RC_API}/project/{buildId}"
+
+            return
+
+        except Exception as e:
+            Debug.logger.info(f"Error updating progress")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def record_contribution(self, system:dict, market_id:int, contributions:list) -> None:
+        """ Record colonisation contributions made """
+        try:
+            payload:dict = {}
+            for c in contributions:
+                match = re.match(r'^\$(.*)_name;', c.get('Name', '').lower())
+                comm:str = match.group(0)
+                qty:int = c.get('Amount', 0)
+                payload[comm] = qty
+
+            # Which of the following to use?
+            #url:str = f"{RC_API}/project/{market_id}/contribute/{self.colonisation.cmdr}"
+            url:str = f"{RC_API}/v2/system/{system.get('ID64')}/{market_id}/contribute/{self.colonisation.cmdr}"
+            response:Response = requests.post(url, json=payload, headers=self.headers, timeout=5)
+            if response.status_code != 200:
+                Debug.logger.debug(f"{url} {response} {response.content}")
+
+
+        except Exception as e:
+            Debug.logger.info(f"Error recording contribution")
             Debug.logger.error(traceback.format_exc())

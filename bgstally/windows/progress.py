@@ -191,25 +191,10 @@ class ProgressWindow:
                 c.grid(row=row, column=i, sticky=v.get('Sticky'))
                 c.bind("<Button-1>", partial(self.change_view, k))
                 c.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
-                self.coltts[k] = ToolTip(c, text=_("Cycle commodity list filter views")) # LANG: tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views
+                self.coltts[k] = ToolTip(c, text=self.tooltips[k][self.units[k]])
                 self._set_weight(c)
                 self.colheadings[k] = c
             row += 1
-
-            # Progress bars, not in use, maybe later.
-            #for i, col in enumerate(self.headings.keys()):
-            #    # Progress bar chart
-            #    if col == 'Commodity':
-            #        continue
-            #    fr:tk.LabelFrame = tk.LabelFrame(table_frame, border=1, height=10, width=70)
-            #    fr.grid(row=row, column=i, pady=0, sticky=tk.EW)
-            #    fr.grid_rowconfigure(0, weight=1)
-            #    fr.grid_propagate(0)
-
-            #    self.progcols[col] = tk.IntVar()
-            #    pbar:ttk.Progressbar = ttk.Progressbar(fr, orient=tk.HORIZONTAL, variable=self.progcols[col], maximum=100, length=70, mode='determinate', style='blue.Horizontal.TProgressbar')
-            #    pbar.grid(row=0, column=i, pady=0, ipady=0, sticky=tk.EW)
-            #row += 1
 
             # Go through the complete list of possible commodities and make a row for each and hide it.
             for c in self.colonisation.get_commodity_list('All'):

@@ -16,6 +16,7 @@ from bgstally.debug import Debug
 from bgstally.utils import _, get_by_path
 
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
+RC_COOLDOWN = 60
 
 class RavenColonial:
     """
@@ -38,7 +39,8 @@ class RavenColonial:
         self.sys_params:dict = {
             'id64': 'ID64',
             'name': 'SystemAddress',
-            'architect': 'Architect'
+            'architect': 'Architect',
+            'rev': 'Rev'
         }
 
         # map site/build parameters between colonisation & raven.
@@ -59,19 +61,19 @@ class RavenColonial:
         self.system_cache:dict = {} # The last responses we got from RC for each system
 
 
-    def load_system(self, id64:str = None) -> None:
+    def load_system(self, id64:str = None, rev:str = None) -> None:
         """ Retrieve the rcdata data with the latest system data from RC when we start. """
         Debug.logger.debug(f"Load system {id64}")
-        # Implement a 60 second cooldown
-        if self.system_cache.get(id64, None) != None and self.system_cache[id64].get('ts', None) != None and \
-            self.system_cache[id64]['ts'] > round(time.mktime(datetime.now(timezone.utc).timetuple())) - 60:
+
+        # Implement a cooldown and revision tracking
+        if self.system_cache.get('id64', None) == None: self.system_cache[id64] = {}
+
+        if self.system_cache[id64].get('ts', 0) > round(time.mktime(datetime.now(timezone.utc).timetuple())) - RC_COOLDOWN:
             Debug.logger.info(f"Not refresing {id64}, too soon")
             return
 
-        if self.system_cache.get('id64', None) == None: self.system_cache[id64] = {}
+        self.system_cache[id64]['rev'] = rev
         self.system_cache[id64]['ts'] = round(time.mktime(datetime.now(timezone.utc).timetuple()))
-
-        self.headers["rcc-cmdr"] = self.colonisation.cmdr
 
         # This just returns a commanders list of project (or system?) revisions.
         #url:str = f"{RC_API}/v2/system/revs/"
@@ -93,7 +95,6 @@ class RavenColonial:
 
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
         self.headers["rcc-cmdr"] = self.colonisation.cmdr
-
         response:Response = requests.get(url, headers=self.headers,timeout=5)
         Debug.logger.info(f"Response for {system_name}: {response.status_code}")
         data:dict = response.json()
@@ -153,7 +154,7 @@ class RavenColonial:
             payload:dict = {'update': [update], 'delete':[]}
 
             url:str = f"{RC_API}/v2/system/{system.get('ID64')}/sites"
-            self.headers["rcc-cmdr"] = self.colonisation.cmdr
+            self.headers["rcc-cmdr"] = system.get('Architect')
 
             Debug.logger.info(f"RavenColonial upserting site {json.dumps(payload, indent=4)}")
 
@@ -174,7 +175,7 @@ class RavenColonial:
     def remove_site(self, system:dict, ind:int) -> None:
         """ Remove a site from RavenColonial """
         try:
-            if self.colonisation.cmdr == None:
+            if system.get('Architect') == None:
                 Debug.logger.info("Cannot remove site no commander")
                 return
 
@@ -187,7 +188,7 @@ class RavenColonial:
             payload:dict = {'update': [], 'delete':[build.get('RCID')]}
             Debug.logger.info(f"RavenColonial removing site {payload}")
             url:str = f"{RC_API}/v2/system/{system.get('ID64')}/sites"
-            self.headers["rcc-cmdr"] = self.colonisation.cmdr
+            self.headers["rcc-cmdr"] = system.get('Architect')
             response:Response = requests.put(url, json=payload, headers=self.headers, timeout=5)
             if response.status_code != 200:
                 Debug.logger.debug(f"{url} {response} {response.content}")
@@ -273,11 +274,11 @@ class RavenColonial:
                 Debug.logger.info(f"RavenColonial system {data.get('id64', None)} not found")
                 return
 
-            if self.system_cache[data['id64']].get('data', {}) == data:
+            if self.system_cache[data['id64']].get('rev', -1) == data['rev']:
                 Debug.logger.debug(f"System hasn't changed no update required")
                 return
 
-            self.system_cache[data['id64']]['data'] = data
+            self.system_cache[data['id64']]['rev'] = data['rev']
             self._merge_system_data(data)
 
             # Submit any missing sites to RC
@@ -378,7 +379,6 @@ class RavenColonial:
             response:Response = requests.post(url, json=payload, headers=self.headers, timeout=5)
             if response.status_code != 200:
                 Debug.logger.debug(f"{url} {response} {response.content}")
-
 
         except Exception as e:
             Debug.logger.info(f"Error recording contribution")

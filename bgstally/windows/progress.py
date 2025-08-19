@@ -76,13 +76,13 @@ class ProgressWindow:
             }
         self.tooltips:dict = {
              'Commodity': {
-                 ProgressUnits.TONNES: _('Default order'), # LANG: Commodity
-                 ProgressUnits.REMAINING: _('Commodity Category'), # LANG: Commodity Category
-                 ProgressUnits.PERCENT: _('Alphanbetical order'), # LANG: Alphabetical order
-                 },
+                CommodityOrder.DEFAULT: _('Default order'), # LANG: Commodity
+                CommodityOrder.CATEGORY: _('Commodity Category'), # LANG: Commodity Category
+                CommodityOrder.ALPHA: _('Alphanbetical order'), # LANG: Alphabetical order
+                },
              'Required': {
-                 ProgressUnits.TONNES: _('Total tonnes required'), # LANG: Required amount
-                 ProgressUnits.REMAINING: _('Tonnes remaining to deliver'), # LANG: Amount still needed
+                ProgressUnits.TONNES: _('Total tonnes required'), # LANG: Required amount
+                ProgressUnits.REMAINING: _('Tonnes remaining to deliver'), # LANG: Amount still needed
                 ProgressUnits.PERCENT: _('Percentage of total requirement'), # LANG: Percentage of requirement
                 ProgressUnits.LOADS: _('Total cargo loads required') # LANG: number of cargo loads required
                 },
@@ -191,7 +191,8 @@ class ProgressWindow:
                 c.grid(row=row, column=i, sticky=v.get('Sticky'))
                 c.bind("<Button-1>", partial(self.change_view, k))
                 c.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
-                self.coltts[k] = ToolTip(c, text=self.tooltips[k][self.units[k]])
+
+                self.coltts[k] = ToolTip(c, text=self.tooltips[k][self.comm_order]) if k == 'Commodity' else ToolTip(c, text=self.tooltips[k][self.units[k]])
                 self._set_weight(c)
                 self.colheadings[k] = c
             row += 1
@@ -319,6 +320,7 @@ class ProgressWindow:
             match column:
                 case 'Commodity':
                     self.comm_order = CommodityOrder((self.comm_order.value + 1) % len(CommodityOrder))
+                    self.coltts[column].text = self.tooltips[column][self.comm_order]
                 case _:
                     self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
                     # Loads is meaningless for cargo!
@@ -327,7 +329,7 @@ class ProgressWindow:
                     # Percent is only meaningful for Delivered and Carrier
                     if column not in ['Delivered', 'Carrier'] and self.units[column] == ProgressUnits.PERCENT:
                         self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
-            self.coltts[column].text = self.tooltips[column][self.units[column]]
+                    self.coltts[column].text = self.tooltips[column][self.units[column]]
             self.update_display()
 
         except Exception as e:

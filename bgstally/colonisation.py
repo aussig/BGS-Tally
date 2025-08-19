@@ -476,13 +476,11 @@ class Colonisation:
         for k, v in data.items():
             system[k] = v
 
-        Debug.logger.debug(f"Adding system")
         # Add a system if the flag has switched from zero to one
         if data.get('RCSync', 0) == 1 and system.get('RCSync', 0) == 0 and \
             data.get('StarSystem', None) != None:
             if self.rc == None: self.rc = RavenColonial(self)
             self.rc.add_system(system.get('StarSystem'))
-            Debug.logger.debug(f"Adding system 2")
             system['RCSync'] = 1
 
         # If we have a system name but not its address, we can get the bodies from EDSM
@@ -560,7 +558,6 @@ class Colonisation:
 
     def _edsm_system(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Process the results of querying ESDM for the system details '''
-        Debug.logger.info(f"EDSM system response received: {success}")
         try:
             data:dict = response.json()
             if data.get('name', None) == None:
@@ -603,7 +600,7 @@ class Colonisation:
             system['Bodies'] = []
             for b in data.get('bodies', []):
                 v:dict = {}
-                for k in ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']:
+                for k in ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']:
                     if b.get(k, None): v[k] = b.get(k)
                 if b.get('parents', None) != None:
                     v['parents'] = len(b.get('parents', []))

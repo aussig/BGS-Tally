@@ -71,7 +71,7 @@ class ColonisationWindow:
             'Track': {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Track this build?
             'Base Type' : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
             'Layout' : {'header': _("Layout"), 'background': None, 'format': 'dropdown', 'width': 150}, # LANG: building layout
-            'Name' : {'header': _("Base Name"), 'background': None, 'format': 'string', 'width': 225}, # LANG: name of the base
+            'Name' : {'header': _("Base Name"), 'background': None, 'format': 'string', 'width': 175}, # LANG: name of the base
             'Body': {'header': _("Body"), 'background': None, 'format': 'dropdown', 'width': 115}, # LANG: Body the base is on or around
             'Body Type': {'header': _("Type"), 'background': None, 'format': 'string', 'width': 115}, # LANG: body type details
             'State': {'header': _("State"), 'background': 'type', 'format': 'string', 'width': 115}, # LANG: Current build state
@@ -462,7 +462,8 @@ class ColonisationWindow:
                 bstr += "\n"
 
                 attrs:list = []
-                if b.get('isLandable') == True: attrs.append(f"{_('Landable')}")
+                if b.get('isLandable') == True: attrs.append(_('Landable'))
+                if b.get('rotationalPeriodTidallyLocked') == True: attrs.append(_('Tidally Locked'))
                 rings:list = []
                 for r in b.get('rings', []):
                     if r.get('type', None) != None: rings.append(r.get('type'))
@@ -1193,7 +1194,7 @@ class ColonisationWindow:
                 self.colonisation.rc.add_system(system.get('StarSystem'))
             else:
                 Debug.logger.debug(f"Calling load_system")
-                self.colonisation.rc.load_system(system.get('ID64'))
+                self.colonisation.rc.load_system(system.get('ID64'), system.get('Rev', None))
 
             self.update_display()
 

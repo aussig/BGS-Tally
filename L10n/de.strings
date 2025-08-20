@@ -896,7 +896,7 @@
 "Plan Name" = "Plan Name";
 
 /* Colonisation 'Category' [base_types.json] */
-"Planetary Outpost" = "Planetary Outpost";
+"Planetary Outpost" = "Planetar-Außenposten";
 
 /* Colonisation 'Type' [base_types.json] */
 "Planetary Port" = "Planetarer Hafen";
@@ -1418,7 +1418,7 @@
 "Webhook URL" = "Webhook-URL";
 
 /* Label on API settings window. [api.py] */
-"Website ⤴" = "Website ⤴";
+"Website ⤴" = "Webseite ⤴";
 
 /* Notice about the first base being special. [colonisation.py] */
 "When planning your system the first base is special, make sure that it is the first on the list." = "Wenn Sie Ihr System planen, ist die erste Basis besonders, stellen Sie sicher, dass sie die erste auf der Liste ist.";

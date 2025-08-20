@@ -347,7 +347,7 @@
 "Discord Options" = "Opzioni Discord";
 
 /* Label on activity window. [activity.py] */
-"Discord Report Preview ⓘ" = "Anteprima del report su Discord ⓘ";
+"Discord Report Preview ⓘ" = "Anteprima del Report su Discord ⓘ";
 
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Webhook Discord";
@@ -380,7 +380,7 @@
 "ElectionINF" = "INF Elezione";
 
 /* Label on activity window. [activity.py] */
-"Empty System, no BGS Activity Available" = "Sistema vuoto, nessuna attività BGS disponibile";
+"Empty System, no BGS Activity Available" = "Sistema Vuoto, Nessuna Attività BGS Disponibile";
 
 /* Activity window tooltip. [activity.py] */
 "Enable / disable all factions" = "Abilita / disabilita tutte le fazioni";
@@ -476,7 +476,7 @@
 "Friends" = "Amici";
 
 /* Discord heading. [fleetcarrier.py] */
-"From System" = "Dal sistema";
+"From System" = "Dal Sistema";
 
 /* Overlay galaxy tick message. [ui.py] */
 "Galaxy Tick: {tick_time}" = "Tick Galattico: {tick_time}";
@@ -575,7 +575,7 @@
 "In-space Conflict Zone Side Objective: Spec ops wing" = "Obiettivo Secondario nella Zona di Conflitto Spaziale: Spec ops wing";
 
 /* Inara URL on CMDR window. [cmdrs.py] */
-"Inara Info Available ⤴" = "Informazioni Inara Disponibile ⤴";
+"Inara Info Available ⤴" = "Info Disponibili su Inara ⤴";
 
 /* Overlay CMDR information report message. [ui.py] */
 "INARA INFORMATION AVAILABLE" = "INFORMAZIONI INARA DISPONIBILI";
@@ -827,7 +827,7 @@
 "None" = "No";
 
 /* Discord heading. [fleetcarrier.py] */
-"Notorious Access" = "Accesso per Notorietà";
+"Notorious Access" = "Accesso con notorietà";
 
 /* Objectives title. [objectivesmanager.py] */
 "Objectives" = "Obiettivi";
@@ -1013,7 +1013,7 @@
 "Rename system plan" = "Rinomina il progetto del sistema";
 
 /* Preferences checkbox label. [ui.py] */
-"Report Newly Visited System Activity By Default" = "Segnala di default attività nei nuovi sistemi";
+"Report Newly Visited System Activity By Default" = "Di Default Segnala l'Attività nei Nuovi Sistemi";
 
 /* Required amount. [progress.py] */
 "Required" = "Richiesto";
@@ -1190,7 +1190,7 @@
 "SoL" = "SoL";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Alcune informazioni non possono essere aggiornate. Abilita le query API Fleet Carrier in File -> Impostazioni -> Configurazione";
+"Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Alcune informazioni non possono essere aggiornate. Abilita le Query API Fleet Carrier in File -> Impostazioni -> Configurazione";
 
 /* [clb.py] */
 "Space" = "Spazio";
@@ -1250,7 +1250,7 @@
 "System Tick: {tick_time}" = "Tick di Sistema: {tick_time}";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistema: {current_system} - Attracco: {docking_access} - Accesso per Notorietà: {notorious}";
+"System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistema: {current_system} - Attracco: {docking_access} - Accesso con notorietà: {notorious}";
 
 /* [progress.py] */
 "t" = "ton";
@@ -1283,7 +1283,7 @@
 "Thargoid War Progress" = "Progressi della guerra Thargoid";
 
 /* Label on activity window. [activity.py] */
-"Thargoid War System, no BGS Activity is Counted" = "Sistema in Guerra Thargoid, non Vengono Gonteggiate le Attività di BGS";
+"Thargoid War System, no BGS Activity is Counted" = "Sistema in Guerra Thargoid, non Vengono Conteggiate le Attività di BGS";
 
 /* Text on API settings window. [api.py] */
 "The exact set of Events that will be sent is listed in the 'Events Requested' section below. Further information about these Events and what they contain is provided here: " = "L'esatto insieme di eventi che verranno inviati è elencato nella sezione \"Eventi richiesti\" di seguito. Ulteriori informazioni su questi eventi e sul loro contenuto sono disponibili qui: ";
@@ -1310,7 +1310,7 @@
 "To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "Per aggiungere al webhook: Click destro del mouse sul numero della riga e selezionare \"Inserisci righe sopra/sotto\".";
 
 /* Discord heading. [fleetcarrier.py] */
-"To Body" = "Al Body";
+"To Body" = "Al Corpo";
 
 /* Amount still left to buy. [progress.py] */
 "To Buy" = "Da Comprare";
@@ -1319,7 +1319,7 @@
 "To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Per rimuovere dal webhook: Click destro del mouse sul numero della riga e selezionare \"Elimina righe\".";
 
 /* Discord heading. [fleetcarrier.py] */
-"To System" = "Al Sistema";
+"To System" = "Aa Sistema";
 
 /* Total number of builds. [colonisation.py] */
 "Total" = "Totale";
@@ -1417,6 +1417,9 @@
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "Webhook URL";
 
+/* Label on API settings window. [api.py] */
+"Website ⤴" = "Website ⤴";
+
 /* Notice about the first base being special. [colonisation.py] */
 "When planning your system the first base is special, make sure that it is the first on the list." = "Quando pianifichi il tuo sistema, la prima base è speciale: assicurati che sia la prima nella lista.";
 
@@ -1481,7 +1484,7 @@
 "{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo tick";
 
 /* [tick.py] */
-"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo tick";
+"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo tick del sistema";
 
 /* Objectives title. [objectivesmanager.py] */
 "{server_name} Objectives" = "{server_name} - Obiettivi";

@@ -1,17 +1,19 @@
-import tkinter as tk
-from tkinter import PhotoImage, ttk
-from functools import partial
 import sys
+import tkinter as tk
 import webbrowser
+from functools import partial
 from os import path
+from tkinter import PhotoImage, ttk
+
+from requests import Response
+from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.api import API
-from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2
+from bgstally.constants import FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL
 from bgstally.debug import Debug
+from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import _, string_to_alphanumeric
 from bgstally.widgets import CollapsibleFrame, EntryPlus, HyperlinkManager
-from requests import Response
-from bgstally.requestmanager import BGSTallyRequest
 
 URL_JOURNAL_DOCS = "https://elite-journal.readthedocs.io/en/latest/"
 
@@ -31,6 +33,8 @@ class WindowAPI:
 
         self.image_logo_comguard = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_comguard.png"))
         self.image_logo_dcoh = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_dcoh.png"))
+        self.image_logo_eic = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_eic.png"))
+        self.image_logo_spectrum = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_spectrum.png"))
 
 
     def show(self, parent_frame:tk.Frame = None):
@@ -121,8 +125,30 @@ class WindowAPI:
         tk.Label(frame_main, text=_("Shortcuts for Popular Servers")).grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
         frame_connection_buttons:ttk.Frame = ttk.Frame(frame_main)
         frame_connection_buttons.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
-        # tk.Button(frame_connection_buttons, image=self.image_logo_dcoh, height=28, bg="Gray13", command=partial(self._autofill, 'dcoh')).pack(side=tk.LEFT, padx=4)
-        tk.Button(frame_connection_buttons, image=self.image_logo_comguard, height=28, bg="Gray13", command=partial(self._autofill, 'comguard')).pack(side=tk.LEFT, padx=4)
+
+        api_info:dict = self.bgstally.config.api('comguard')
+        frame_comguard:ttk.Frame = ttk.Frame(frame_connection_buttons)
+        frame_comguard.pack(side=tk.LEFT)
+        tk.Button(frame_comguard, image=self.image_logo_comguard, height=28, bg="Gray13", command=partial(self._autofill, 'comguard')).pack(side=tk.TOP, padx=4)
+        HyperlinkLabel(frame_comguard, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
+
+        # api_info = self.bgstally.config.api('dcoh')
+        # frame_dcoh:ttk.Frame = ttk.Frame(frame_connection_buttons)
+        # frame_dcoh.pack(side=tk.LEFT)
+        # tk.Button(frame_dcoh, image=self.image_logo_dcoh, height=28, bg="Gray13", command=partial(self._autofill, 'dcoh')).pack(side=tk.TOP, padx=4)
+        # HyperlinkLabel(frame_dcoh, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
+
+        api_info = self.bgstally.config.api('eic')
+        frame_eic:ttk.Frame = ttk.Frame(frame_connection_buttons)
+        frame_eic.pack(side=tk.LEFT)
+        tk.Button(frame_eic, image=self.image_logo_eic, height=28, bg="Black", command=partial(self._autofill, 'eic')).pack(side=tk.TOP, padx=4)
+        HyperlinkLabel(frame_eic, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
+
+        api_info = self.bgstally.config.api('spectrum')
+        frame_spectrum:ttk.Frame = ttk.Frame(frame_connection_buttons)
+        frame_spectrum.pack(side=tk.LEFT)
+        tk.Button(frame_spectrum, image=self.image_logo_spectrum, height=28, bg="White", command=partial(self._autofill, 'spectrum')).pack(side=tk.TOP, padx=4)
+        HyperlinkLabel(frame_spectrum, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
 
         self.btn_fetch = tk.Button(frame_main, text=_("Establish Connection"), command=partial(self._discover)) # LANG: Button on API settings window
         self.btn_fetch.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1

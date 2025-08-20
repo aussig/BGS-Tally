@@ -20,7 +20,7 @@
 "Activity to post:" = "Отчет:";
 
 /* Add/create a new system. [colonisation.py] */
-"Add" = "Add";
+"Add" = "Добавить";
 
 /* CMDR information. [targetmanager.py] */
 "Added a friend" = "Добавлен друг";
@@ -29,34 +29,34 @@
 "Advanced" = "Расширенные";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
-"Agricultural" = "Agricultural";
+"Agricultural" = "Сельское хозяйство";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Agricultural Installation" = "Agricultural Installation";
+"Agricultural Installation" = "Сельскохозяйственная установка";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Agriculture Settlement" = "Agriculture Settlement";
+"Agriculture Settlement" = "Сельскохозяйственное поселение";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Agriculture Tier 1" = "Agriculture Tier 1";
+"Agriculture Tier 1" = "С/Х уровень 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Agriculture Tier 1 Med" = "Agriculture Tier 1 Med";
+"Agriculture Tier 1 Med" = "С/Х уровень 1 С";
 
 /* Colonisation 'Type' [base_types.json] */
-"Agriculture Tier 1 Sml" = "Agriculture Tier 1 Sml";
+"Agriculture Tier 1 Sml" = "С/Х уровень 1 М";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Agriculture Tier 2" = "Agriculture Tier 2";
+"Agriculture Tier 2" = "С/Х уровень 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Agriculture Tier 2 Lrg" = "Agriculture Tier 2 Lrg";
+"Agriculture Tier 2 Lrg" = "С/Х уровень 2 Б";
 
 /* Discord carrier docking access. [fleetcarrier.py] */
 "All" = "Все";
 
 /* all tracked builds. [progress.py] */
-"All builds" = "All builds";
+"All builds" = "Все объекты";
 
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API изменен, откройте настройки для подтверждения";
@@ -77,22 +77,25 @@
 "Are you sure that you want to do this?" = "Вы действительно хотите это сделать?";
 
 /* [colonisation.py] */
-"Are you sure you want to remove this system?" = "Are you sure you want to remove this system?";
+"Are you sure you want to remove this system?" = "Вы действительно хотите удалить эту систему?";
 
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Обратитесь к администратору сервера за приведенной ниже информацией, затем нажмите «Подключиться». Предусмотрено предварительное заполнение некоторой информации для популярных серверов, но вам нужно будет ввести свой уникальный ключ API.";
 
 /* Colonisation 'Type' [base_types.json] */
-"Asteroid Base" = "Asteroid Base";
+"Asteroid Base" = "Астероидная база";
+
+/* Preferences checkbox label. [ui.py] */
+"Automatically Post BGS and TW Activity" = "Автоматически отсылать BGS и TW активность";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Bar" = "Bar";
+"Bar" = "Бар";
 
 /* name of the base. [colonisation.py] */
-"Base Name" = "Base Name";
+"Base Name" = "Имя объекта";
 
 /* type of base. [colonisation.py] */
-"Base Type" = "Base Type";
+"Base Type" = "Тип объекта";
 
 /* Discord heading, abbreviation for black box. [default.py] */
 "bb" = "bb";
@@ -104,7 +107,7 @@
 "BGS Only" = "Только BGS";
 
 /* [clb.py] */
-"BGS Report" = "BGS Report";
+"BGS Report" = "Отчет BGS";
 
 /* Discord heading. [default.py] */
 "bio-pod" = "bio-pod";
@@ -113,31 +116,31 @@
 "Black market profit" = "Прибыль на чёрном рынке";
 
 /* bodies in the system. [colonisation.py] */
-"Bodies" = "Bodies";
+"Bodies" = "Тела";
 
 /* Body the base is on or around. [colonisation.py] */
-"Body" = "Body";
+"Body" = "Тело";
 
 /* any boost effects for the base. [colonisation.py] */
-"Boosted By" = "Boosted By";
+"Boosted By" = "Усиливается";
 
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS и TW";
 
 /* Post to Discord button tooltip. [activity.py] */
-"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord";
+"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Оба поля: 'Отослать в Discord как' и Discord вебхух {CR}, должны быть установлены в настройках, чтобы разрешить пост в Discord";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Наградные ваучеры";
 
 /* Building layout types. [colonisation.py] */
-"Building Layouts" = "Building Layouts";
+"Building Layouts" = "Подтипы объектов";
 
 /* Building type. [colonisation.py] */
-"Building Type" = "Building Type";
+"Building Type" = "Тип стройки";
 
 /* Builds/bases. [progress.py] */
-"Builds" = "Builds";
+"Builds" = "Стройка";
 
 /* [fleetcarrier.py] */
 "Buying Commodities" = "Скупка товаров";
@@ -152,40 +155,40 @@
 "Buying Materials:" = "Скупка материалов:";
 
 /* Cancel button. [colonisation.py] */
-"Cancel" = "Cancel";
+"Cancel" = "Отменить";
 
 /* Discord heading. [default.py] */
 "cargo" = "груз";
 
 /* [fleetcarrier.py] */
-"Cargo" = "Cargo";
+"Cargo" = "Груз";
 
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Грузовые миссии";
 
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Cargo:" = "Cargo:";
+"Cargo:" = "Груз:";
 
 /* Amount in your Fleet Carrier. [progress.py] */
-"Carrier" = "Carrier";
+"Carrier" = "Флотоносец";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
 "Carrier {carrier_name}" = "Флотоносец {carrier_name}";
 
 /* category of base. [colonisation.py] */
-"Category" = "Category";
+"Category" = "Категория";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Civilian" = "Civilian";
+"Civilian" = "Гражданский";
 
 /* Colonisation 'Type' [base_types.json] */
-"Civilian Outpost" = "Civilian Outpost";
+"Civilian Outpost" = "Гражданская станция";
 
 /* Colonisation 'Type' [base_types.json] */
-"Civilian Planetary Outpost" = "Civilian Planetary Outpost";
+"Civilian Planetary Outpost" = "Гражданская планетарная станция";
 
 /* Colonisation 'Type' [base_types.json] */
-"Civilian Settlement" = "Civilian Settlement";
+"Civilian Settlement" = "Гражданское поселение";
 
 /* [sheet_options.py] */
 "Clear contents" = "Очистка контента";
@@ -199,29 +202,32 @@
 /* Preferences checkbox label. [ui.py] */
 "CMDR Info" = "КМДР инфо";
 
+/* Preferences checkbox label. [ui.py] */
+"Colonisation" = "Колонизация";
+
 /* Colonisation 'Facility Economy' [base_types.json] */
-"Colony" = "Colony";
+"Colony" = "Колония";
 
 /* Activity window tooltip. [activity.py] */
 "Combat bonds" = "Боевые облигации";
 
 /* Colonisation 'Type' [base_types.json] */
-"Commercial Outpost" = "Commercial Outpost";
+"Commercial Outpost" = "Коммерческая станция";
 
 /* Commodity. [progress.py] */
-"Commodity" = "Commodity";
+"Commodity" = "Товар";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Comms Installation" = "Comms Installation";
+"Comms Installation" = "Станция связи";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Communication Installation" = "Communication Installation";
+"Communication Installation" = "Спутник";
 
 /* Colonisation 'Type' [base_types.json] */
-"Communication Station" = "Communication Station";
+"Communication Station" = "Ретрансляторная станция";
 
 /* Row heading of build totals i.e. ones that are done. [colonisation.py] */
-"Complete" = "Complete";
+"Complete" = "Завершено";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Настройка удаленного сервера";
@@ -230,10 +236,10 @@
 "Confirm Force a New Tick" = "Подтвердите принудительную установку тика";
 
 /* [colonisation.py] */
-"Confirm Removal" = "Confirm Removal";
+"Confirm Removal" = "Подтвердите удаление";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
-"Contraband" = "Contraband";
+"Contraband" = "Контрабанда";
 
 /* [widgets.py] */
 "Copy" = "Копировать";
@@ -242,22 +248,22 @@
 "Copy contents" = "Копировать всё";
 
 /* tooltip for the copy to clipboard icon. [colonisation.py] */
-"Copy system name to clipboard" = "Copy system name to clipboard";
+"Copy system name to clipboard" = "Скопировать название системы в буфер";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Копировать в буфер";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Coriolis" = "Coriolis";
+"Coriolis" = "Кориолис";
 
 /* Colonisation 'Type' [base_types.json] */
-"Coriolis Starport" = "Coriolis Starport";
+"Coriolis Starport" = "Космопорт Кориолис";
 
 /* Cost in tonnes of cargo. [colonisation.py] */
-"Cost" = "Cost";
+"Cost" = "Стоимость";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Criminal Outpost" = "Criminal Outpost";
+"Criminal Outpost" = "Криминальная станция";
 
 /* Discord heading, abbreviation for critically injured. [default.py] */
 "crit" = "crit";
@@ -266,7 +272,7 @@
 "Critically wounded evacuation missions" = "Миссии по эвакуации тяжело раненых";
 
 /* tooltip for the build name. [progress.py] */
-"Current build, click to copy to clipboard" = "Current build, click to copy to clipboard";
+"Current build, click to copy to clipboard" = "Текущая стройка, щелкните чтобы скопировать в буфер";
 
 /* [fleetcarrier.py] */
 "Current System" = "Система";
@@ -281,10 +287,10 @@
 "Cut contents" = "Вырезать всё";
 
 /* tooltip for the commodity header. [progress.py] */
-"Cycle commodity list details" = "Cycle commodity list details";
+"Cycle commodity list details" = "Переключение вида списка товаров";
 
 /* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
-"Cycle commodity list filter views" = "Cycle commodity list filter views";
+"Cycle commodity list filter views" = "Переключение фильтра товаров";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Дата/Время";
@@ -293,7 +299,7 @@
 "Date and Time" = "Дата и время";
 
 /* any decrease effects for the base. [colonisation.py] */
-"Decreased By" = "Decreased By";
+"Decreased By" = "Ослабляется";
 
 /* [ui.py] */
 "Default" = "По умолчанию";
@@ -311,10 +317,10 @@
 "Delete Selected" = "Удалить выделенное";
 
 /* tooltip for the delete system button. [colonisation.py] */
-"Delete system plan" = "Delete system plan";
+"Delete system plan" = "Удалить план системы";
 
 /* Amount delivered. [progress.py] */
-"Delivered" = "Delivered";
+"Delivered" = "Доставлено";
 
 /* [demo.py] */
 "Demo Data Only" = "Только демонстрационные данные";
@@ -389,7 +395,7 @@
 "Enable {events_url} Requests" = "Включить запросы {events_url}";
 
 /* Error when no plan name is given. [colonisation.py] */
-"Error" = "Error";
+"Error" = "Ошибка";
 
 /* Discord heading, abbreviation for escape pod. [default.py] */
 "esc-pod" = "esc-pod";
@@ -410,22 +416,22 @@
 "Expl" = "Expl";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Exploration" = "Exploration";
+"Exploration" = "Исследование";
 
 /* Activity window tooltip. [activity.py] */
 "Exploration data" = "Исследовательские данные";
 
 /* Colonisation 'Type' [base_types.json] */
-"Exploration Hub" = "Exploration Hub";
+"Exploration Hub" = "Исследовательский центр";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
-"Extraction" = "Extraction";
+"Extraction" = "Добыча";
 
 /* Colonisation 'Type' [base_types.json] */
-"Extraction Hub" = "Extraction Hub";
+"Extraction Hub" = "Горнодобывающий центр";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Extraction Settlement" = "Extraction Settlement";
+"Extraction Settlement" = "Горнодобывающее поселение";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Extraction Tier 1" = "Extraction Tier 1";
@@ -473,19 +479,22 @@
 "From System" = "Из системы";
 
 /* Overlay galaxy tick message. [ui.py] */
-"Galaxy Tick: {tick_time}" = "Galaxy Tick: {tick_time}";
+"Galaxy Tick: {tick_time}" = "Галактический тик: {tick_time}";
 
 /* Appended to tick time if a normal tick. [activity.py] */
 "game" = "по игре";
+
+/* [colonisation.py] */
+"Gas giant" = "Газовый гигант";
 
 /* Preferences heading. [ui.py] */
 "General Options" = "Основные настройки";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Government" = "Government";
+"Government" = "Правительство";
 
 /* Colonisation 'Type' [base_types.json] */
-"Government Installation" = "Government Installation";
+"Government Installation" = "Правительственная установка";
 
 /* [clb.py] */
 "Ground" = "NPC";
@@ -503,7 +512,7 @@
 "High" = "Выс";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"High Tech" = "High Tech";
+"High Tech" = "Высокие технологии";
 
 /* Colonisation 'Type' [base_types.json] */
 "Hightech Hub" = "Hightech Hub";
@@ -512,10 +521,10 @@
 "Hightech Planetary Outpost" = "Hightech Planetary Outpost";
 
 /* HMC World is a high metal content world. [colonisation.py] */
-"HMC World" = "HMC World";
+"HMC world" = "HMC world";
 
 /* Colonisation 'Category' [base_types.json] */
-"Hub" = "Hub";
+"Hub" = "Центр";
 
 /* Button on API settings window. [api.py] */
 "I Approve" = "Я принимаю";
@@ -553,16 +562,16 @@
 /* Preferences label. [ui.py] */
 "In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information." = "Поддержка оверлея в игре требует отдельной установки плагина EDMCOverlay - смотри инструкцию, чтобы узнать больше.";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Cap ship" = "Дополнительное задание в космических зонах конфликта: Гигантский корабль";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Enemy captain" = "Дополнительное задание в космических зонах конфликта: Вражеский капитан";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Propaganda wing" = "Дополнительное задание в космических зонах конфликта: Корреспонденты";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Spec ops wing" = "Дополнительное задание в космических зонах конфликта: Спецкрыло";
 
 /* Inara URL on CMDR window. [cmdrs.py] */
@@ -584,34 +593,34 @@
 "Include Secondary INF" = "Добавить побочное влияние";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Industrial" = "Industrial";
+"Industrial" = "Промышленная";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Hub" = "Industrial Hub";
+"Industrial Hub" = "Промышленный центр";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Industrial Installation" = "Industrial Installation";
+"Industrial Installation" = "Промышленная установка";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Outpost" = "Industrial Outpost";
+"Industrial Outpost" = "Промышленная станция";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Planetary Outpost" = "Industrial Planetary Outpost";
+"Industrial Planetary Outpost" = "Планетарная промышленная станция";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Industrial Tier 1" = "Industrial Tier 1";
+"Industrial Tier 1" = "Промышленная уровень 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Tier 1 Med" = "Industrial Tier 1 Med";
+"Industrial Tier 1 Med" = "Промышленная уровень 1 С";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Tier 1 Sml" = "Industrial Tier 1 Sml";
+"Industrial Tier 1 Sml" = "Промышленная уровень 1 М";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Industrial Tier 2" = "Industrial Tier 2";
+"Industrial Tier 2" = "Промышленная уровень 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Tier 2 Lrg" = "Industrial Tier 2 Lrg";
+"Industrial Tier 2 Lrg" = "Промышленная уровень 2 Б";
 
 /* [clb.py] */
 "Inf" = "Inf";
@@ -647,7 +656,7 @@
 "Insert rows below" = "Вставить строки ниже";
 
 /* Colonisation 'Category' [base_types.json] */
-"Installation" = "Installation";
+"Installation" = "Установка";
 
 /* Preferences label. [ui.py] */
 "Instructions for Use" = "Инструкции по использованию";
@@ -689,13 +698,13 @@
 "L" = "L";
 
 /* [colonisation.py] */
-"Landable" = "Landable";
+"Landable" = "С посадкой";
 
 /* Preferences label. [ui.py] */
 "Language for Discord Posts" = "Язык сообщений Discord";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Large" = "Large";
+"Large" = "Большая";
 
 /* Main window label. [ui.py] */
 "Last BGS Tick:" = "Тик:";
@@ -704,7 +713,7 @@
 "Latest BGS Tally" = "Отчет";
 
 /* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
-"Left click for Inara market, right click to copy" = "Left click for Inara market, right click to copy";
+"Left click for Inara market, right click to copy" = "Левый клик - рынок inara, правый клик - скопировать";
 
 /* CMDR window column title. [cmdrs.py] */
 "Legal" = "Статус";
@@ -719,7 +728,7 @@
 "Loads" = "Loads";
 
 /* base location surface/orbital. [colonisation.py] */
-"Location" = "Location";
+"Location" = "Расположение";
 
 /* [fleetcarrier.py] */
 "Locker" = "Locker";
@@ -734,10 +743,10 @@
 "Massacre missions" = "Карательные миссии";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Medical" = "Medical";
+"Medical" = "Медицина";
 
 /* Colonisation 'Type' [base_types.json] */
-"Medical Installation" = "Medical Installation";
+"Medical Installation" = "Медицинская установка";
 
 /* Activity window tooltip. [activity.py] */
 "Medium" = "Сред";
@@ -746,34 +755,34 @@
 "Message received from this CMDR in local chat" = "КМДР написал в локальный чат";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Military" = "Military";
+"Military" = "Военная";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Hub" = "Military Hub";
+"Military Hub" = "Военный центр";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Installation" = "Military Installation";
+"Military Installation" = "Военная установка";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Outpost" = "Military Outpost";
+"Military Outpost" = "Военный аванпост";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Military Settlement" = "Military Settlement";
+"Military Settlement" = "Военное поселение";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Military Tier 1" = "Military Tier 1";
+"Military Tier 1" = "Военное ур. 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Tier 1 Med" = "Military Tier 1 Med";
+"Military Tier 1 Med" = "Военное ур. 1 С";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Tier 1 Sml" = "Military Tier 1 Sml";
+"Military Tier 1 Sml" = "Военное ур. 1 М";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Military Tier 2" = "Military Tier 2";
+"Military Tier 2" = "Военное ур. 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Tier 2 Lrg" = "Military Tier 2 Lrg";
+"Military Tier 2 Lrg" = "Военное ур. 2 Б";
 
 /* Colonisation 'Type' [base_types.json] */
 "Mining Outpost" = "Mining Outpost";
@@ -800,7 +809,7 @@
 "Name: " = "Имя: ";
 
 /* Amount still needed. [progress.py] */
-"Needed" = "Needed";
+"Needed" = "Нужно";
 
 /* Overlay message. [bgstally.py] */
 "NEW TICK DETECTED!" = "ОБНАРУЖЕН НОВЫЙ ТИК!";
@@ -811,6 +820,9 @@
 /* [fleetcarrier.py] */
 "No" = "Нет";
 
+/* No colonisation data available. [progress.py] */
+"No colonisation data available" = "Данные колонизации не доступны";
+
 /* Discord carrier docking access. [fleetcarrier.py] */
 "None" = "Нет";
 
@@ -818,37 +830,37 @@
 "Notorious Access" = "Доступ неблагонадежным";
 
 /* Objectives title. [objectivesmanager.py] */
-"Objectives" = "Objectives";
+"Objectives" = "Цели";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Ocellus" = "Ocellus";
+"Ocellus" = "Оцеллус";
 
 /* Colonisation 'Type' [base_types.json] */
-"Ocellus Starport" = "Ocellus Starport";
+"Ocellus Starport" = "Космопорт Оцеллус";
 
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Наземная зона конфликта";
 
 /* Indicates the field is optional and case-sensitive. [colonisation.py] */
-"optional and case sensitive" = "optional and case sensitive";
+"optional and case sensitive" = "опционально и чувствительно к регистру";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Orbis" = "Orbis";
+"Orbis" = "Орбис";
 
 /* Colonisation 'Type' [base_types.json] */
-"Orbis Starport" = "Orbis Starport";
+"Orbis Starport" = "Космопорт Орбис";
 
 /* Number of orbital/space builds. [colonisation.py] */
 "Orbital" = "Orbital";
 
 /* Colonisation 'Category' [base_types.json] */
-"Outpost" = "Outpost";
+"Outpost" = "Аванпост";
 
 /* Colonisation 'Type' [base_types.json] */
-"Outpost Hub" = "Outpost Hub";
+"Outpost Hub" = "Аванпост центр";
 
 /* Landing pad size. [colonisation.py] */
-"Pad" = "Pad";
+"Pad" = "Площадка";
 
 /* [ui.py] */
 "Panels" = "Панели";
@@ -872,22 +884,22 @@
 "Pin {system_name} to Overlay" = "Закрепить {system_name} в оверлее";
 
 /* Colonisation 'Type' [base_types.json] */
-"Pirate Base" = "Pirate Base";
+"Pirate Base" = "Пиратская база";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Pirate Installation" = "Pirate Installation";
+"Pirate Installation" = "Пиратская установка";
 
 /* Colonisation 'Type' [base_types.json] */
-"Pirate Outpost" = "Pirate Outpost";
+"Pirate Outpost" = "Криминальная станция";
 
 /* the name you want to give your plan. [colonisation.py] */
-"Plan Name" = "Plan Name";
+"Plan Name" = "Имя плана";
 
 /* Colonisation 'Category' [base_types.json] */
-"Planetary Outpost" = "Planetary Outpost";
+"Planetary Outpost" = "Планетарный аванпост";
 
 /* Colonisation 'Type' [base_types.json] */
-"Planetary Port" = "Planetary Port";
+"Planetary Port" = "Планетарный порт";
 
 /* Row heading of planned build totals i.e. ones that aren't complete. [colonisation.py] */
 "Planned" = "Planned";
@@ -908,10 +920,10 @@
 "Pop Max" = "Pop Max";
 
 /* [colonisation.py] */
-"Population" = "Population";
+"Population" = "Население";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Port" = "Port";
+"Port" = "Порт";
 
 /* Button on CMDR window. [cmdrs.py] */
 "Post CMDR List to Discord" = "Выслать список КМДР'ов в Discord";
@@ -929,10 +941,10 @@
 "Posted at: {date_time} | {plugin_name} v{version}" = "Отослано: {date_time} | {plugin_name} v{version}";
 
 /* Label for checkbox to pre-populate bases from EDSM. [colonisation.py] */
-"Pre-fill bases from EDSM" = "Pre-fill bases from EDSM";
+"Pre-fill bases from EDSM" = "Автозаполнение по данным EDSM";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Автозаполнение требует имя системы, может дать смешанный результат, и вероятно потребует выбора типа базы вручную. Используйте с осторожностью!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Отчеты";
@@ -977,40 +989,40 @@
 "Received team invite from" = "Приглашение в крыло";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Refinery" = "Refinery";
+"Refinery" = "Переработка";
 
 /* Colonisation 'Type' [base_types.json] */
-"Refinery Hub" = "Refinery Hub";
+"Refinery Hub" = "Центр переработки";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Relay Installation" = "Relay Installation";
+"Relay Installation" = "Ретрансляторная установка";
 
 /* Colonisation 'Type' [base_types.json] */
-"Relay Station" = "Relay Station";
+"Relay Station" = "Ретрансляторная станция";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
 "Relay Station Installation" = "Relay Station Installation";
 
 /* Rename button. [colonisation.py] */
-"Rename" = "Rename";
+"Rename" = "Переименовать";
 
 /* Rename a system. [colonisation.py] */
-"Rename System" = "Rename System";
+"Rename System" = "Переименовать систему";
 
 /* tooltip for the rename system button. [colonisation.py] */
-"Rename system plan" = "Rename system plan";
+"Rename system plan" = "Переименовать план системы";
 
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Отчет об активности при посещении новой системы по умолчанию";
 
 /* Required amount. [progress.py] */
-"Required" = "Required";
+"Required" = "Требуется";
 
 /* any prerequisites for the base. [colonisation.py] */
-"Requirements" = "Requirements";
+"Requirements" = "Требует";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Research Bio Settlement" = "Research Bio Settlement";
+"Research Bio Settlement" = "Био-исследовательское поселение";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Research Bio Tier 1" = "Research Bio Tier 1";
@@ -1028,22 +1040,19 @@
 "Research Bio Tier 2 Lrg" = "Research Bio Tier 2 Lrg";
 
 /* Colonisation 'Type' [base_types.json] */
-"Research Station" = "Research Station";
+"Research Station" = "Исследовательская станция";
 
 /* [colonisation.py] */
-"rings" = "rings";
+"rings" = "кольца";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "S&R";
 
 /* Colonisation 'Type' [base_types.json] */
-"Satellite" = "Satellite";
+"Satellite" = "Спутник";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Satellite Installation" = "Satellite Installation";
-
-/* Save notes button. [colonisation.py] */
-"Save" = "Save";
+"Satellite Installation" = "Спутник установка";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Сканирован";
@@ -1058,16 +1067,16 @@
 "Scens" = "SC";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Scientific" = "Scientific";
+"Scientific" = "Научная";
 
 /* Colonisation 'Type' [base_types.json] */
-"Scientific Hub" = "Scientific Hub";
+"Scientific Hub" = "Научный центр";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Scientific Installation" = "Scientific Installation";
+"Scientific Installation" = "Научная установка";
 
 /* Colonisation 'Type' [base_types.json] */
-"Scientific Outpost" = "Scientific Outpost";
+"Scientific Outpost" = "Научная станция";
 
 /* Label on legend window. [legend.py] */
 "Search & Rescue Bio Pods" = "Поиск и спасение биокапсул";
@@ -1094,13 +1103,13 @@
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "Побочное влияние. Влияние полученное как побочный эффект от миссии, например, фракцией получателем по миссии на доставку.";
 
 /* Security impact. [colonisation.py] */
-"Security" = "Security";
+"Security" = "Безопасность";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Security Installation" = "Security Installation";
+"Security Installation" = "Станция службы безопасности, установка";
 
 /* Colonisation 'Type' [base_types.json] */
-"Security Station" = "Security Station";
+"Security Station" = "Станция службы безопасности";
 
 /* [widgets.py] */
 "Select all" = "Выбрать всё";
@@ -1121,7 +1130,7 @@
 "Server URL" = "URL сервера";
 
 /* Colonisation 'Category' [base_types.json] */
-"Settlement" = "Settlement";
+"Settlement" = "Поселение";
 
 /* Discord heading. [default.py] */
 "settlements" = "поселение";
@@ -1133,13 +1142,13 @@
 "Shortcuts for Popular Servers" = "Ярлыки для популярных серверов";
 
 /* tooltip for the show bases button. [colonisation.py] */
-"Show base types window" = "Show base types window";
+"Show base types window" = "Показать окно объектов";
 
 /* Main window tooltip. [ui.py] */
 "Show CMDR information window" = "Показать окно информации о КМДР";
 
 /* Main window tooltip. [ui.py] */
-"Show colonisation window" = "Show colonisation window";
+"Show colonisation window" = "Показать окно колонизации";
 
 /* Preferences checkbox label. [ui.py] */
 "Show Detailed INF" = "Подробности влияния";
@@ -1157,25 +1166,25 @@
 "Show legend window" = "Показать легенду используемых иконок";
 
 /* tooltip for the next build icon. [progress.py] */
-"Show next build" = "Show next build";
+"Show next build" = "Показать следующую стройку";
 
 /* Main window tooltip. [ui.py] */
-"Show objectives / missions window" = "Show objectives / missions window";
+"Show objectives / missions window" = "Показать окно задач/миссий";
 
 /* tooltip for the previous build icon. [progress.py] */
-"Show previous build" = "Show previous build";
+"Show previous build" = "Показать предыдущую стройку";
 
 /* tooltip for the show bodies window. [colonisation.py] */
-"Show system bodies window" = "Show system bodies window";
+"Show system bodies window" = "Показать окно тел системы";
 
 /* tooltip for the show notes window. [colonisation.py] */
-"Show system notes window" = "Show system notes window";
+"Show system notes window" = "Показать окно заметок системы";
 
 /* Preferences checkbox label. [ui.py] */
 "Show Systems with Zero Activity" = "Показать системы с нулевой активностью";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Small" = "Small";
+"Small" = "Малая";
 
 /* Standard of living impact. [colonisation.py] */
 "SoL" = "SoL";
@@ -1184,19 +1193,19 @@
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Часть информации не обновлена. Включите запросы к CAPI о флотоносце в Файл-> Настройки -> Конфигурация";
 
 /* [clb.py] */
-"Space" = "Space";
+"Space" = "Косм";
 
 /* Colonisation 'Type' [base_types.json] */
-"Space Bar" = "Space Bar";
+"Space Bar" = "Космический бар";
 
 /* Activity window tooltip. [activity.py] */
 "Space conflict zones" = "Космические зоны конфликта";
 
 /* Colonisation 'Type' [base_types.json] */
-"Space Farm" = "Space Farm";
+"Space Farm" = "Космическая ферма";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Space Farm Installation" = "Space Farm Installation";
+"Space Farm Installation" = "Космическая ферма установка";
 
 /* Discord heading, abbreviation for space conflict zones. [default.py] */
 "SpaceCZs" = "SpaceCZs";
@@ -1217,13 +1226,13 @@
 "Squadron: " = "Эскадра: ";
 
 /* Colonisation 'Category' [base_types.json] */
-"Starport" = "Starport";
+"Starport" = "Космопорт";
 
 /* Activity window column title. [activity.py] */
 "State" = "Состояние";
 
 /* Number of ground/surface builds. [colonisation.py] */
-"Surface" = "Surface";
+"Surface" = "Планетарный";
 
 /* CMDR window column title. [cmdrs.py] */
 "System" = "Система";
@@ -1235,10 +1244,10 @@
 "System Information" = "Информация о системе";
 
 /* Label for the system's name field in the UI. [colonisation.py] */
-"System Name" = "System Name";
+"System Name" = "Имя системы";
 
 /* Overlay system tick message. [ui.py] */
-"System Tick: {tick_time}" = "System Tick: {tick_time}";
+"System Tick: {tick_time}" = "Системный тик: {tick_time}";
 
 /* Label on carrier window. [fleetcarrier.py] */
 "System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Система: {current_system} - Стыковка: {docking_access} - Допуск неблагонадежным: {notorious}";
@@ -1265,7 +1274,7 @@
 "Tech Lvl" = "Tech Lvl";
 
 /* [colonisation.py] */
-"Terraformable" = "Terraformable";
+"Terraformable" = "Терраформируемый";
 
 /* Name of default output formatter. [text.py] */
 "Text Only" = "Только текст";
@@ -1295,7 +1304,7 @@
 "Tick {minutes_delta}m Overdue (Estimated)" = "Тик запаздывает на {minutes_delta}м (от расчетного)";
 
 /* tier of base. [colonisation.py] */
-"Tier" = "Tier";
+"Tier" = "Уровень";
 
 /* [ui.py] */
 "To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "Чтобы добавить вебхук: щелкните правой кнопкой мыши номер строки и выберите 'Вставить строки выше/ниже'.";
@@ -1304,7 +1313,7 @@
 "To Body" = "К";
 
 /* Amount still left to buy. [progress.py] */
-"To Buy" = "To Buy";
+"To Buy" = "Купить";
 
 /* [ui.py] */
 "To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Чтобы удалить вебхук: щелкните правой кнопкой мыши номер строки и выберите 'Удалить строки'.";
@@ -1313,37 +1322,37 @@
 "To System" = "В систему";
 
 /* Total number of builds. [colonisation.py] */
-"Total" = "Total";
+"Total" = "Всего";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
-"Tourism" = "Tourism";
+"Tourism" = "Туризм";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Tourism Settlement" = "Tourism Settlement";
+"Tourism Settlement" = "Туристическое поселение";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Tourism Tier 1" = "Tourism Tier 1";
+"Tourism Tier 1" = "Туризм ур. 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Tourism Tier 1 Med" = "Tourism Tier 1 Med";
+"Tourism Tier 1 Med" = "Туризм ур. 1 С";
 
 /* Colonisation 'Type' [base_types.json] */
-"Tourism Tier 1 Sml" = "Tourism Tier 1 Sml";
+"Tourism Tier 1 Sml" = "Туризм ур. 1 М";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Tourism Tier 2" = "Tourism Tier 2";
+"Tourism Tier 2" = "Туризм ур. 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Tourism Tier 2 Lrg" = "Tourism Tier 2 Lrg";
+"Tourism Tier 2 Lrg" = "Туризм ур. 2 Б";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Tourist" = "Tourist";
+"Tourist" = "Турист";
 
 /* Colonisation 'Type' [base_types.json] */
-"Tourist Installation" = "Tourist Installation";
+"Tourist Installation" = "Туристическая установка";
 
 /* Track this build?. [colonisation.py] */
-"Track" = "Track";
+"Track" = "Отслеживать";
 
 /* Activity window column title. [activity.py] */
 "Trade" = "Trade";
@@ -1370,10 +1379,10 @@
 "TW War Progress in {current_system}: {percent}%" = "Прогресс TW в {current_system}: {percent}%";
 
 /* body type details. [colonisation.py] */
-"Type" = "Type";
+"Type" = "Тип";
 
 /* type of base as listed in the game. [colonisation.py] */
-"Type (Listed as)" = "Type (Listed as)";
+"Type (Listed as)" = "Тип (в виде)";
 
 /* [sheet_options.py] */
 "Undo" = "Откат";
@@ -1408,8 +1417,11 @@
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "URL вебхука";
 
+/* Label on API settings window. [api.py] */
+"Website ⤴" = "Сайт";
+
 /* Notice about the first base being special. [colonisation.py] */
-"When planning your system the first base is special, make sure that it is the first on the list." = "When planning your system the first base is special, make sure that it is the first on the list.";
+"When planning your system the first base is special, make sure that it is the first on the list." = "При планировании системы первая станция - особая, убедитесь что она первая в списке.";
 
 /* [ui.py] */
 "Within {minutes_to_tick}m of Next Tick (Estimated)" = "Осталось {minutes_to_tick} мин. до следующего (расчетного) тика";
@@ -1439,25 +1451,25 @@
 "{plugin_name} - CMDR Interactions" = "{plugin_name} - контакты КМДР";
 
 /* window title. [colonisation.py] */
-"{plugin_name} - Colonisation" = "{plugin_name} - Colonisation";
+"{plugin_name} - Colonisation" = "{plugin_name} - Колонизация";
 
 /* Title of the base type popup window. [colonisation.py] */
-"{plugin_name} - Colonisation Base Types" = "{plugin_name} - Colonisation Base Types";
+"{plugin_name} - Colonisation Base Types" = "{plugin_name} - Типы объектов колонизации";
 
 /* Title of the bodies popup window. [colonisation.py] */
-"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Colonisation Bodies";
+"{plugin_name} - Colonisation Bodies" = "{plugin_name} - Тела колонизации";
 
 /* Title of the legend popup window. [colonisation.py] */
-"{plugin_name} - Colonisation Legend" = "{plugin_name} - Colonisation Legend";
+"{plugin_name} - Colonisation Legend" = "{plugin_name} - Обозначения";
 
 /* Title of the notes popup window. [colonisation.py] */
-"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - Colonisation Notes for {system_name}";
+"{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - Примечания к колонизации {system_name}";
 
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Используемые иконки";
 
 /* Objectives window title. [objectives.py] */
-"{plugin_name} - Objectives" = "{plugin_name} - Objectives";
+"{plugin_name} - Objectives" = "{plugin_name} - Задачи";
 
 /* Preferences checkbox label. [ui.py] */
 "{plugin_name} Active" = "{plugin_name} активен";
@@ -1472,10 +1484,10 @@
 "{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} ВНИМАНИЕ: Нет данных о последнем тике";
 
 /* [tick.py] */
-"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} WARNING: Unable to fetch system tick";
+"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} ВНИМАНИЕ: Нет данных о последнем тике";
 
 /* Objectives title. [objectivesmanager.py] */
-"{server_name} Objectives" = "{server_name} Objectives";
+"{server_name} Objectives" = "{server_name} Задачи";
 
 /* [colonisation.py] */
 "ⓘ" = "ⓘ";

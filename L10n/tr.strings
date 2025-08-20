@@ -85,6 +85,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Asteroid Base" = "Astroid Üssü";
 
+/* Preferences checkbox label. [ui.py] */
+"Automatically Post BGS and TW Activity" = "Automatically Post BGS and TW Activity";
+
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Bar" = "Bar";
 
@@ -198,6 +201,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "CMDR Info" = "CMDR bilgisi";
+
+/* Preferences checkbox label. [ui.py] */
+"Colonisation" = "Colonisation";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Colony" = "Koloni";
@@ -478,6 +484,9 @@
 /* Appended to tick time if a normal tick. [activity.py] */
 "game" = "oyun";
 
+/* [colonisation.py] */
+"Gas giant" = "Gas giant";
+
 /* Preferences heading. [ui.py] */
 "General Options" = "Genel Ayarlar";
 
@@ -512,7 +521,7 @@
 "Hightech Planetary Outpost" = "Yüksek Teknoloji Gezegen Karakolu";
 
 /* HMC World is a high metal content world. [colonisation.py] */
-"HMC World" = "HMC World";
+"HMC world" = "HMC world";
 
 /* Colonisation 'Category' [base_types.json] */
 "Hub" = "Merkez";
@@ -553,16 +562,16 @@
 /* Preferences label. [ui.py] */
 "In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information." = "Oyun-içi arayüz desteği EDMCOverlay eklentisinin ayrıca kurulumunu gerektirir - Daha fazla bilgi için talimatlara bakın.";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Cap ship" = "Uzay Çatışma alanı içi yan görev: Ana gemi";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Enemy captain" = "Uzay Çatışma alanı içi yan görev: Düşman kaptanı";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Propaganda wing" = "Uzay Çatışma alanı içi yan görev: Propoganda takımı";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Spec ops wing" = "Uzay Çatışma alanı içi yan görev: Özel Harekat takımı";
 
 /* Inara URL on CMDR window. [cmdrs.py] */
@@ -811,6 +820,9 @@
 /* [fleetcarrier.py] */
 "No" = "Hayır";
 
+/* No colonisation data available. [progress.py] */
+"No colonisation data available" = "No colonisation data available";
+
 /* Discord carrier docking access. [fleetcarrier.py] */
 "None" = "Hiçbiri";
 
@@ -1041,9 +1053,6 @@
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Satellite Installation" = "Uydu Üssü";
-
-/* Save notes button. [colonisation.py] */
-"Save" = "Kaydet";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Tarandı";
@@ -1407,6 +1416,9 @@
 
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "Webhook URL";
+
+/* Label on API settings window. [api.py] */
+"Website ⤴" = "Website ⤴";
 
 /* Notice about the first base being special. [colonisation.py] */
 "When planning your system the first base is special, make sure that it is the first on the list." = "Sisteminizi planlarken ilk üs özeldir, listenin başında yer aldığından emin olun.";

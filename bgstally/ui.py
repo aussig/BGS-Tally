@@ -1,3 +1,4 @@
+import csv
 import tkinter as tk
 from datetime import UTC, datetime, timedelta
 from functools import partial
@@ -12,23 +13,26 @@ import myNotebook as nb
 from ttkHyperlinkLabel import HyperlinkLabel
 
 from bgstally.activity import Activity
-from bgstally.constants import DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FONT_HEADING_2, FONT_SMALL, CheckStates, DiscordActivity, UpdateUIPolicy, TAG_OVERLAY_HIGHLIGHT
+from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity,
+                                UpdateUIPolicy)
 from bgstally.debug import Debug
-from bgstally.utils import _, available_langs, get_by_path
+from bgstally.utils import _, available_langs, get_by_path, get_localised_filepath
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
 from bgstally.windows.cmdrs import WindowCMDRs
 from bgstally.windows.colonisation import ColonisationWindow
-from bgstally.windows.progress import ProgressWindow
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
 from bgstally.windows.legend import WindowLegend
 from bgstally.windows.objectives import WindowObjectives
+from bgstally.windows.progress import ProgressWindow
 from config import config
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
 
 DATETIME_FORMAT_OVERLAY = "%Y-%m-%d %H:%M"
+FILENAME_COMMODITIES_CSV = "commodity.csv"
+FILENAME_RARE_COMMODITIES_CSV = "rare_commodity.csv"
 SIZE_BUTTON_PIXELS = 30
 SIZE_STATUS_ICON_PIXELS = 16
 TIME_WORKER_PERIOD_S = 2
@@ -82,6 +86,9 @@ class UI:
         self.thread: Optional[Thread] = Thread(target=self._worker, name="BGSTally UI worker")
         self.thread.daemon = True
         self.thread.start()
+
+        # Localisation lookups
+        self._load_commodities()
 
 
     def shut_down(self):
@@ -196,6 +203,7 @@ class UI:
         nb.Checkbutton(frame, text=_("Include Secondary INF"), variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
+        nb.Checkbutton(frame, text=_("Automatically Post BGS and TW Activity"), variable=self.bgstally.state.DiscordBGSTWAutomatic, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
         nb.Label(frame, text=_("Discord Avatar URL")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
@@ -249,13 +257,6 @@ class UI:
         nb.Label(frame, text=_("Panels")).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
         overlay_options_frame_1:ttk.Frame = ttk.Frame(frame)
         overlay_options_frame_1.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(overlay_options_frame_1, text=_("Current Tick"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlayCurrentTick,
-                       state=self.overlay_options_state(),
-                       onvalue=CheckStates.STATE_ON,
-                       offvalue=CheckStates.STATE_OFF,
-                       command=self.bgstally.state.refresh
-                       ).pack(side=tk.LEFT)
         nb.Checkbutton(overlay_options_frame_1, text=_("Activity Indicator"), # LANG: Preferences checkbox label
                        variable=self.bgstally.state.EnableOverlayActivity,
                        state=self.overlay_options_state(),
@@ -263,8 +264,29 @@ class UI:
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_1, text=_("Thargoid War Progress"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlayTWProgress,
+        nb.Checkbutton(overlay_options_frame_1, text=_("CMDR Info"), # LANG: Preferences checkbox label
+                       variable=self.bgstally.state.EnableOverlayCMDR,
+                       state=self.overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame_1, text=_("Colonisation"), # LANG: Preferences checkbox label
+                       variable=self.bgstally.state.EnableOverlayColonisation,
+                       state=self.overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame_1, text=_("Current Tick"), # LANG: Preferences checkbox label
+                       variable=self.bgstally.state.EnableOverlayCurrentTick,
+                       state=self.overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame_1, text=_("Objectives"), # LANG: Preferences checkbox label
+                       variable=self.bgstally.state.EnableOverlayObjectives,
                        state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
@@ -279,6 +301,13 @@ class UI:
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame_2, text=_("Thargoid War Progress"), # LANG: Preferences checkbox label
+                       variable=self.bgstally.state.EnableOverlayTWProgress,
+                       state=self.overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).pack(side=tk.LEFT)
         nb.Checkbutton(overlay_options_frame_2, text=_("Warnings"), # LANG: Preferences checkbox label
                        variable=self.bgstally.state.EnableOverlayWarning,
                        state=self.overlay_options_state(),
@@ -286,13 +315,7 @@ class UI:
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_2, text=_("CMDR Info"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlayCMDR,
-                       state=self.overlay_options_state(),
-                       onvalue=CheckStates.STATE_ON,
-                       offvalue=CheckStates.STATE_OFF,
-                       command=self.bgstally.state.refresh
-                       ).pack(side=tk.LEFT)
+
         if self.bgstally.overlay.edmcoverlay == None:
             nb.Label(frame, text=_("In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.")).grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences label
 
@@ -312,6 +335,7 @@ class UI:
         Preferences frame has been saved (from EDMC core or any plugin)
         """
         self.update_plugin_frame()
+        self._load_commodities()
 
 
     def show_system_report(self, system_address: int):
@@ -352,6 +376,41 @@ class UI:
         with them expecting results
         """
         return "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"
+
+
+    def _load_commodities(self):
+        """
+        Load the commodity and rare_commodity CSV files containing full list of commodities. We build a dict where the key is the commodity
+        internal name from the 'symbol' column in the CSV, lowercased, and the value is a dict containing the other fields (ID, Category, Name)
+        where Name is localised.
+
+        The CSV files are sourced from the EDCD FDevIDs project https://github.com/EDCD/FDevIDs and should be updated occasionally, along with the
+        localised versions in the L10n folder
+        """
+        self.commodities = {}
+        filepath: str|None = get_localised_filepath(FILENAME_COMMODITIES_CSV, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
+        if filepath is None: return
+
+        try:
+            with open(filepath, encoding = 'utf-8') as csv_file_handler:
+                csv_reader = csv.DictReader(csv_file_handler)
+
+                for rows in csv_reader:
+                    self.commodities[rows.get('symbol', "").lower()] = {'ID': rows.get('id', ""), 'Category': rows.get('category', ""), 'Name': rows.get('name', "")}
+        except Exception as e:
+                Debug.logger.error(f"Unable to load {filepath}")
+
+        rare_filepath: str|None = get_localised_filepath(FILENAME_RARE_COMMODITIES_CSV, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
+        if rare_filepath is None: return
+
+        try:
+            with open(rare_filepath, encoding = 'utf-8') as csv_file_handler:
+                csv_reader = csv.DictReader(csv_file_handler)
+
+                for rows in csv_reader:
+                    self.commodities[rows.get('symbol', "").lower()] = {'ID': rows.get('id', ""), 'Category': rows.get('category', ""), 'Name': rows.get('name', "")}
+        except Exception as e:
+                Debug.logger.error(f"Unable to load {rare_filepath}")
 
 
     def _webhooks_table_modified(self, event=None):
@@ -475,6 +534,11 @@ class UI:
             if self.bgstally.state.enable_overlay_objectives and self.bgstally.objectives_manager.get_objectives() != []:
                 objectives_text: str = self.bgstally.objectives_manager.get_human_readable_objectives(False)
                 self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
+
+            # Colonisation
+            if self.bgstally.state.enable_overlay_colonisation:
+                colonisation_text: str = self.window_progress.as_text(False)
+                self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 
             sleep(TIME_WORKER_PERIOD_S)
 

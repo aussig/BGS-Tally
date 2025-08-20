@@ -85,6 +85,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Asteroid Base" = "Asteroid Base";
 
+/* Preferences checkbox label. [ui.py] */
+"Automatically Post BGS and TW Activity" = "Automatically Post BGS and TW Activity";
+
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Bar" = "Bar";
 
@@ -198,6 +201,9 @@
 
 /* Preferences checkbox label. [ui.py] */
 "CMDR Info" = "CMDR Info";
+
+/* Preferences checkbox label. [ui.py] */
+"Colonisation" = "Colonisation";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Colony" = "Colony";
@@ -478,6 +484,9 @@
 /* Appended to tick time if a normal tick. [activity.py] */
 "game" = "játék";
 
+/* [colonisation.py] */
+"Gas giant" = "Gas giant";
+
 /* Preferences heading. [ui.py] */
 "General Options" = "Általános opciók";
 
@@ -512,7 +521,7 @@
 "Hightech Planetary Outpost" = "Hightech Planetary Outpost";
 
 /* HMC World is a high metal content world. [colonisation.py] */
-"HMC World" = "HMC World";
+"HMC world" = "HMC world";
 
 /* Colonisation 'Category' [base_types.json] */
 "Hub" = "Hub";
@@ -553,16 +562,16 @@
 /* Preferences label. [ui.py] */
 "In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information." = "A játék átfedés támogatásához a különálló EDMCOverlay beépülő telepítése szükséges - további információkért lásd az instrukciókat.";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Cap ship" = "Űr konfliktus zóna mellékcél: Csatahajó";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Enemy captain" = "Űrbeli konfliktus zóna mellékcél: Ellenséges kapitány";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Propaganda wing" = "Űrbeli konfliktus zóna mellékcél: Propaganda osztag";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Spec ops wing" = "Űrbeli konfliktus zóna mellékcél: Különleges osztag";
 
 /* Inara URL on CMDR window. [cmdrs.py] */
@@ -811,6 +820,9 @@
 /* [fleetcarrier.py] */
 "No" = "Nem";
 
+/* No colonisation data available. [progress.py] */
+"No colonisation data available" = "No colonisation data available";
+
 /* Discord carrier docking access. [fleetcarrier.py] */
 "None" = "Senki";
 
@@ -1041,9 +1053,6 @@
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Satellite Installation" = "Satellite Installation";
-
-/* Save notes button. [colonisation.py] */
-"Save" = "Save";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Szkennelve";
@@ -1407,6 +1416,9 @@
 
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "Webhook URL";
+
+/* Label on API settings window. [api.py] */
+"Website ⤴" = "Website ⤴";
 
 /* Notice about the first base being special. [colonisation.py] */
 "When planning your system the first base is special, make sure that it is the first on the list." = "When planning your system the first base is special, make sure that it is the first on the list.";

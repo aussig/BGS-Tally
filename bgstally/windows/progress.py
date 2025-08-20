@@ -1,19 +1,21 @@
-import traceback
-from math import ceil
-from enum import Enum, auto
-from functools import partial
-import webbrowser
 import tkinter as tk
 import tkinter.font as tkFont
+import traceback
+import webbrowser
+from enum import Enum, auto
+from functools import partial
+from math import ceil
 from tkinter import ttk
 from urllib.parse import quote
+
+from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, CommodityOrder, ProgressUnits, ProgressView
+from bgstally.debug import Debug
+from bgstally.utils import _, str_truncate
 from config import config
 from thirdparty.Tooltip import ToolTip
-from bgstally.constants import CommodityOrder, ProgressUnits, ProgressView
-from bgstally.debug import Debug
-from bgstally.utils import _
 
 MAX_ROWS = 20
+
 class ProgressWindow:
     '''
     Frame for displaying colonisation construction progress.
@@ -72,6 +74,36 @@ class ProgressWindow:
                 'Sticky': tk.E
                 }
             }
+        self.tooltips:dict = {
+             'Commodity': {
+                 ProgressUnits.TONNES: _('Default order'), # LANG: Commodity
+                 ProgressUnits.REMAINING: _('Commodity Category'), # LANG: Commodity Category
+                 ProgressUnits.PERCENT: _('Alphanbetical order'), # LANG: Alphabetical order
+                 },
+             'Required': {
+                 ProgressUnits.TONNES: _('Total tonnes required'), # LANG: Required amount
+                 ProgressUnits.REMAINING: _('Tonnes remaining to deliver'), # LANG: Amount still needed
+                ProgressUnits.PERCENT: _('Percentage of total requirement'), # LANG: Percentage of requirement
+                ProgressUnits.LOADS: _('Total cargo loads required') # LANG: number of cargo loads required
+                },
+            'Delivered': {
+                ProgressUnits.TONNES: _('Tonnes delivered so far'), # LANG: Amount delivered
+                ProgressUnits.REMAINING: _('Tonnes remaining excluding cargo and carrier'), # LANG: Amount still left to buy
+                ProgressUnits.PERCENT: _('Percentage delivered so far'),
+                ProgressUnits.LOADS: _('Loads delivered so far') # LANG: number of cargo loads delivered
+                },
+            'Cargo': {
+                ProgressUnits.TONNES: _('Tonnes in cargo'), # LANG: amount in ship's Cargo
+                ProgressUnits.REMAINING: _('Tonnes remaining to excluding cargo'),
+                ProgressUnits.PERCENT: _('Percent in cargo')
+                },
+            'Carrier': {
+                ProgressUnits.TONNES: _('Tonnes on carrier'), # LANG: Amount in your Fleet Carrier
+                ProgressUnits.REMAINING: _('Tonnes remaining excluding carrier'),
+                ProgressUnits.PERCENT: _('Percent on carrier'),
+                ProgressUnits.LOADS: _('Loads on carrier')
+                }
+            }
         # By removing the carrier from here we remove it everywhere
         if not self.bgstally.fleet_carrier.available():
             del self.headings['Carrier']
@@ -80,16 +112,15 @@ class ProgressWindow:
         self.frame:tk.Frame = None
         self.frame_row:int = 0 # Row in the parent frame
         self.table_frame:tk.Frame = None # Table frame
-        self.scrollbar:tk.Scrollbar = None # Scrollbar for the commodity list
         self.title:tk.Label = None # Title object
         self.colheadings:dict = {} # Column headings
         self.rows:list = []
+        self.progbar:ttk.Progressbar = None # Overall progress bar
         self.progvar:tk.IntVar = None
-        self.progcols:dict = {} # Progress bar variables
+        self.coltts:dict = {} # Tooltip for the progress bar
         self.build_index:int = 0 # Which build we're showing
         self.view:ProgressView = ProgressView.REDUCED # Full, reduced, or no list of commodities
         self.comm_order:CommodityOrder = CommodityOrder.DEFAULT # Commodity order
-        self.default_fg = None
 
 
     def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
@@ -111,9 +142,10 @@ class ProgressWindow:
             y.grid_rowconfigure(0, weight=1)
             y.grid_propagate(0)
             self.progvar = tk.IntVar()
-            progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=450, mode='determinate')
-            progbar.grid(row=0, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW)
-            progbar.rowconfigure(0, weight=1)
+            self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=450, mode='determinate')
+            self.progtt = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
+            self.progbar.grid(row=0, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW)
+            self.progbar.rowconfigure(0, weight=1)
             row += 1; col = 0
 
             lbl:tk.Label = tk.Label(frame, text=_("Builds") + ":", anchor=tk.W) # LANG: Builds/bases
@@ -150,8 +182,6 @@ class ProgressWindow:
             table_frame:tk.Frame = tk.Frame(frame)
             table_frame.columnconfigure(0, weight=1)
             table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
-            scr:tk.Scrollbar = tk.Scrollbar(table_frame, orient=tk.VERTICAL)
-            self.scrollbar = scr
             self.table_frame = table_frame
 
             # Column headings
@@ -161,7 +191,7 @@ class ProgressWindow:
                 c.grid(row=row, column=i, sticky=v.get('Sticky'))
                 c.bind("<Button-1>", partial(self.change_view, k))
                 c.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
-                ToolTip(c, text=_("Cycle commodity list filter views")) # LANG: tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views
+                self.coltts[k] = ToolTip(c, text=_("Cycle commodity list filter views")) # LANG: tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views
                 self._set_weight(c)
                 self.colheadings[k] = c
             row += 1
@@ -182,7 +212,8 @@ class ProgressWindow:
             #row += 1
 
             # Go through the complete list of possible commodities and make a row for each and hide it.
-            for c in self.colonisation.get_commodity_list('All'):
+            for c_symbol in self.colonisation.get_commodity_list('All'):
+                c:str = f"${c_symbol}_name;"
                 r:dict = {}
 
                 for i, (col, val) in enumerate(self.headings.items()):
@@ -190,7 +221,7 @@ class ProgressWindow:
                     lbl.grid(row=row, column=i, sticky=val.get('Sticky'))
                     if col == 'Commodity':
                         lbl.bind("<Button-1>", partial(self.link, c, None))
-                        lbl.bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
+                        lbl.bind("<Button-3>", partial(self.ctc, self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)))
                         ToolTip(lbl, text=_("Left click for Inara market, right click to copy")) # LANG: tooltip for the inara market commodity links and copy to clipboard
                         lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
 
@@ -220,35 +251,53 @@ class ProgressWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def as_text(self) -> str:
-        ''' Return a discord text representation of the progress window '''
+    def as_text(self, discord:bool = True) -> str:
+        ''' Return a text representation of the progress window '''
         try:
+            self.colonisation = self.bgstally.colonisation
+            if self.colonisation == None:
+                return _("No colonisation data available") # LANG: No colonisation data available
 
+            output:str = ""
             tracked:list = self.colonisation.get_tracked_builds()
             required:dict = self.colonisation.get_required(tracked)
             delivered:dict = self.colonisation.get_delivered(tracked)
-            output:str = "```"
+
             if self.build_index < len(tracked):
                 b:dict = tracked[self.build_index]
                 sn:str = b.get('Plan', _('Unknown')) # Unknown system name
                 bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
-                output += f"{sn}, {bn}\n"
+                if discord:
+                    output += f"```{sn}, {bn}\n"
+                else:
+                    output += f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{bn}\n"
             else:
-                output += _("All builds") + "\n" # LANG: all tracked builds
+                if discord:
+                    output += "```" + _("All builds") + "\n" # LANG: all tracked builds
+                else:
+                    output += TAG_OVERLAY_HIGHLIGHT + _("All builds") + "\n" # LANG: all tracked builds
 
             output += f"{_('Progress')}: {self.progvar.get():.0f}%\n"
             output += "\n"
-            output += f"{_('Commodity'): <30} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
+            if discord:
+                output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
+
             output += "-" * 67 + "\n"
-            for i, c in enumerate(self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)):
+
+            for i, c_symbol in enumerate(self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)):
+                c:str = f"${c_symbol}_name;"
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
                 remaining:int = reqcnt - delcnt
                 if remaining > 0:
-                    name:str = self.colonisation.commodities[c].get('Name', c)
-                    cat:str = self.colonisation.commodities[c].get('Category', c)
-                    output += f"{name: <30} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
-            output += "```\n"
+                    name:str = self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)
+                    cat:str = self.bgstally.ui.commodities[c_symbol].get('Category', c_symbol)
+                    if discord:
+                        output += f"{name:<28} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
+                    else:
+                        output += f"{name}: {remaining} {_('t')}\n"
+
+            if discord: output += "```\n"
             return output.strip()
 
         except Exception as e:
@@ -295,6 +344,7 @@ class ProgressWindow:
                     # Percent is only meaningful for Delivered and Carrier
                     if column not in ['Delivered', 'Carrier'] and self.units[column] == ProgressUnits.PERCENT:
                         self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
+            self.coltts[column].text = self.tooltips[column][self.units[column]]
             self.update_display()
 
         except Exception as e:
@@ -308,6 +358,8 @@ class ProgressWindow:
         try:
             comm_id = self.colonisation.base_costs['All'].get(comm)
             sys:str = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
+            if sys == None: sys = 'sol'
+
             # pi3=3 - large, pi3=2 - medium
             size:int = 2 if self.colonisation.cargo_capacity < 407 else 3
 
@@ -354,6 +406,7 @@ class ProgressWindow:
 
             # Set the build name (system name and plan name)
             name = _('All') # LANG: all builds
+            sn:str = _('Unknown') # LANG: Unknown system name
             if self.build_index < len(tracked):
                 b:dict = tracked[self.build_index]
                 bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
@@ -369,12 +422,13 @@ class ProgressWindow:
                 Debug.logger.info("Progress view none, hiding table")
                 return
 
+            self.table_frame.grid(row=3, column=0, columnspan=5, sticky=tk.NSEW)
+
             # Set the column headings according to the selected units
             totals:dict = {}
             for col in self.headings.keys():
                 if col == 'Carrier' and not self.bgstally.fleet_carrier.available():
                     continue
-
                 self.colheadings[col]['text'] = self.headings[col][self.units[col]]
                 self.colheadings[col].grid()
                 totals[col] = 0
@@ -395,7 +449,9 @@ class ProgressWindow:
             all_req:int = 0
             all_deliv:int = 0
             rc:int = 0
-            for i, c in enumerate(comms):
+
+            for i, c_symbol in enumerate(comms):
+                c:str = f"${c_symbol}_name;"
                 row:dict = self.rows[i]
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
@@ -410,7 +466,7 @@ class ProgressWindow:
 
                 # We only show relevant (required) items. But.
                 # If the view is reduced we don't show ones that are complete. Also.
-                # If we're in minimal view we only show ones we still need to buy.
+                # If we're in minimal view we only show ones we still need to buy.\
                 if (reqcnt <= 0) or \
                     (remaining <= 0 and self.view != ProgressView.FULL) or \
                     (tobuy <= 0 and cargo == 0 and carrier == 0 and self.view == ProgressView.MINIMAL) or \
@@ -437,12 +493,13 @@ class ProgressWindow:
                 for col in self.headings.keys():
                     if col == 'Commodity':
                         # Shorten and display the commodity name
-                        colstr:str = self.colonisation.commodities[c].get('Name', c)
-                        if len(colstr) > 25: colstr = colstr[0:23] + '…'
+                        colstr:str = self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)
+                        colstr = str_truncate(colstr, 25)
+
                         row['Commodity']['text'] = colstr
                         row['Commodity'].bind("<Button-1>", partial(self.link, c, None))
                         row['Commodity'].bind("<Button-2>", partial(self.link, c, sn))
-                        row['Commodity'].bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
+                        row['Commodity'].bind("<Button-3>", partial(self.ctc, self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)))
                         row['Commodity'].grid()
                         continue
 
@@ -452,7 +509,9 @@ class ProgressWindow:
                 rc += 1
 
             self._display_totals(self.rows[i+1], tracked, totals)
-            self.progvar.set(all_deliv * 100 / all_req)
+            if all_req > 0:
+                self.progvar.set(all_deliv * 100 / all_req)
+                self.progtt.text = f"{_('Progress')}: {self.progvar.get():.0f}%" # LANG: tooltip for the progress bar
 
         except Exception as e:
             Debug.logger.info(f"Error updating display")
@@ -464,7 +523,7 @@ class ProgressWindow:
 
         # We're down to having nothing left to deliver.
         if (totals['Required'] - totals['Delivered']) == 0:
-            if len(tracked) == 1: # Nothing at all, remove the entire frame
+            if len(tracked) == 0: # Nothing at all, remove the entire frame
                 self.frame.grid_remove()
             else: # Just this one build? Hide the table
                 self.table_frame.grid_remove()

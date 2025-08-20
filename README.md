@@ -27,17 +27,17 @@ As well as all the BGS tracking from Tez's original version, this modified versi
 
 # Initial Installation and Use
 
-Full instructions for **installation and use are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki)**.
+Full **instructions for [installation and use are here &rarr;](https://github.com/aussig/BGS-Tally/wiki)**.
 
 
 # Updating from a Previous Version
 
-Since v3, upgrading is fully automatic. However, if you need to do a manual upgrade for some reason, **full instructions are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Upgrade)**.
+Since v3, upgrading is fully automatic. However, if you need to do a manual upgrade for some reason, full **instructions for [manual upgrade are here &rarr;](https://github.com/aussig/BGS-Tally/wiki/Upgrade)**.
 
 
 # Discord Integration
 
-The plugin generates Discord-ready text for copying-and-pasting manually into Discord and also supports direct posting into a Discord server or servers of your choice using webhooks. You will need to create webhook(s) on your Discord server first - **instructions for setting up webhooks within Discord are [here in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Discord-Server-Setup)**.
+The plugin generates Discord-ready text for copying-and-pasting manually into Discord and also supports direct posting into a Discord server or servers of your choice using webhooks. You will need to create webhook(s) on your Discord server first - **instructions for [setting up webhooks within Discord are here &rarr;](https://github.com/aussig/BGS-Tally/wiki/Discord-Server-Setup)**.
 
 
 # What is Tracked
@@ -45,7 +45,8 @@ The plugin generates Discord-ready text for copying-and-pasting manually into Di
 The plugin includes both automatic and manual tracking of BGS, Colonisation and TW activity data.
 
 * For a basic summary of what is tracked, see the **[Home Page of the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki#it-tracks-bgs-activity)**.
-* For more detail, see the **[Activity Window section in the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki/Use#activity-window)**.
+* For more detail on BGS and TW tracking, see **[this page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Usage-%E2%80%90-BGS-and-TW-Tracking)**.
+* For more detail on Colonisation tracking, see **[this page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Usage-%E2%80%90-Colonisation-Tracking)**.
 
 
 # Your Personal Activity and Privacy
@@ -89,12 +90,12 @@ And finally, a huge thank you to:
 * All the code contributors to this version - listed [here on Github](https://github.com/aussig/BGS-Tally/graphs/contributors).
 * All the CMDRs who have provided their input, bug reports, feedback and ideas.
 * All the translators who have given their time and effort:
-    * French - CMDR Dopeilien and CMDR ThArGos
-    * German - CMDR Ryan Murdoc
+    * French - CMDR Dopeilien, CMDR Karl Berg and CMDR ThArGos
+    * German - CMDR Ryan Murdoc and CMDR Saenger.ItsWar
     * Hungarian - CMDR Lazy Creature and CMDR xtl
     * Italian - [CMDR JumpFrost_ITA](https://github.com/GLWine)
     * Portuguese (Portugal) - CMDR Holy Nothing
-    * Portuguese (Brazil) - CMDR FelaKuti
+    * Portuguese (Brazil) - CMDR Leonardo Felin and CMDR FelaKuti
     * Russian - CMDR YAD and CMDR KuzSan
     * Serbian (Latin) - CMDR Markovic Vladimir
     * Spanish - CMDR HaLfY47

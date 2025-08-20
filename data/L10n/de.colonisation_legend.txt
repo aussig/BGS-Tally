@@ -1,35 +1,35 @@
-Summary Rows
+Zusammenfassungs-Zeilen
 
-  • Planned: Information about builds/bases that have been planned but not yet completed
-  • Completed: Information about builds/bases that have been completed
+  • Geplant: Informationen über geplante und noch nicht abgeschlossene Bauwerke / Basen
+  • Abgeschlossen: Informationen über abgeschlossene Bauwerke / Basen
 
-Summary Columns
+Zusammenfassungs-Spalten
 
-  • Total: total number of bases
-  • Orbital: number of orbital bases
-  • Surface: number of surface bases
-  • T2: The net Tier 2 point cost or reward
-  • T3: The net Tier 3 point cost or reward
-  • Cost: The cost of the builds in tonnes required
-  • Loads: The number of ship loads based on your current cargo capacity
+  • Insgesamt: Gesamtzahl der Basen
+  • Orbital: Anzahl der orbitalen Basen
+  • Oberfläche: Anzahl der Oberflächenbasen
+  • T2: Die Nettopunktkosten oder -belohnung der Stufe 2
+  • T3: Die Nettopunktkosten oder -belohnung der Stufe 3
+  • Kosten: Die für den Bau gesamt erforderliche Ware in Tonnen
+  • Ladungen: Die Anzahl der Schiffsladungen basierend auf Ihrer aktuellen Ladekapazität
 
   • Pop Inc: combined population increase impact
   • Pop Max: combined maximum population impact
 
-  • Security: combined system security impact
-  • Tech Lvl: combined system technology level impact
-  • Wealth: combined system wealth impact
-  • SoL: combined system standard of living impact
-  • Dev Lvl: combined system development level impact
+  • Sicherheit: zusammengefasste Auswirkungen auf die Systemsicherheit
+  • Tech Lvl: zusammengefasste Auswirkung auf das Technologielevel des Systems
+  • Wealth: zusammengefasste Auswirkung auf den Wohlstand des Systems
+  • SoL: zusammengefasste Auswirkung auf den Lebensstandard des Systems
+  • Dev Lvl: zusammengefasste Auswirkung auf die Entwicklungsstufe des Systems
 
-Detail Rows
+Detailzeilen
 
   • One row per base
   • The first row should be the initial base
   • Other bases can be in any order but the cost of starports depends on their order
     so if you put them in the wrong order their cost may be incorrect
 
-Detail Columns
+Detailspalten
 
   • Track: Whether to track progress of this base in the main ED:MC progress display
   • Base Type: The type of base to be built

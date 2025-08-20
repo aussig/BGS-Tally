@@ -10,6 +10,10 @@ class CZs(Enum):
     GROUND_HIGH = 3
     GROUND_MED = 4
     GROUND_LOW = 5
+    SPACE_CS = 6  # Capital Ship
+    SPACE_SO = 7  # Spec Ops
+    SPACE_CP = 8  # Enemy Captain
+    SPACE_PR = 9  # Correspondent
 
 
 # Checkbox states

@@ -1,22 +1,24 @@
-from os import path
-from math import ceil
-import traceback
 import re
-from functools import partial
-import webbrowser
-from config import config
-import plug
 import tkinter as tk
 import tkinter.font as tkFont
-from tkinter import ttk, messagebox, PhotoImage
+import traceback
+import webbrowser
+from functools import partial
+from math import ceil
+from os import path
+from tkinter import PhotoImage, messagebox, ttk
+
+import plug
+
+from bgstally.constants import COLOUR_HEADING_1, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, FONT_TEXT, BuildState
+from bgstally.debug import Debug
+from bgstally.utils import _, get_localised_filepath, human_format, str_truncate
+from config import config
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
-from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_SMALL, FONT_TEXT, FOLDER_DATA, FOLDER_ASSETS, BuildState
-from bgstally.debug import Debug
-from bgstally.utils import _, human_format
 
-FILENAME = "colonisation_legend.txt" # LANG: Not sure how we handle file localistion.
+FILENAME_LEGEND = "colonisation_legend.txt"
 SUMMARY_HEADER_ROW = 0
 FIRST_SUMMARY_ROW = 1
 FIRST_SUMMARY_COLUMN = 3
@@ -283,6 +285,10 @@ class ColonisationWindow:
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show legend window")) # LANG: tooltip for the show legend button
 
+        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
+        btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
+
         btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
         ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -295,10 +301,6 @@ class ColonisationWindow:
             btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
-
-        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
-        btn.pack(side=tk.RIGHT, padx=5, pady=5)
-        ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("📓"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -392,6 +394,8 @@ class ColonisationWindow:
                                 sheet[i,j].highlight(bg=self._set_background(col.get('background'), econ if econ else 'None'))
                             else:
                                 sheet[i,j].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
+
+            sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
         except Exception as e:
             Debug.logger.error(f"Error in bases_popup(): {e}")
@@ -725,10 +729,14 @@ class ColonisationWindow:
 
             # Body type details
             if system != None and 'Bodies' in system and new[i][3] != ' ':
+                desc:str = ' '
                 b = self.colonisation.get_body(system, new[i][3])
-                desc:str = b.get('subType', 'Unknown')
-                if b.get('type') == 'Star': desc = re.sub(r".*\((.+)\).*", r"\1", desc)
-                if b.get('subType') == 'High metal content world': desc = _('HMC World') # LANG: HMC World is a high metal content world
+                if b != None:
+                    desc = b.get('subType', 'Unknown')
+                    if b.get('type') == 'Star': desc = re.sub(r".*\((.+)\).*", r"\1", desc)
+                    if 'gas giant' in b.get('subType').lower(): desc = _('Gas giant')
+                    if b.get('subType') == 'High metal content world': desc = _('HMC world') # LANG: HMC World is a high metal content world
+                    desc = str_truncate(desc, 16)
 
                 #attrs:list = []
                 #if b.get('terraformingState', 'Not terraformable') != 'Not terraformable': attrs.append("T")
@@ -794,6 +802,8 @@ class ColonisationWindow:
             for j, details in enumerate(self.detail_cols.values()):
                 sheet[len(new)+srow-1,j].highlight(bg=None)
             sheet[len(new)+srow-1,5].data = ' '
+
+        sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
     def update_display(self) -> None:
@@ -1155,26 +1165,17 @@ class ColonisationWindow:
 
     def _load_legend(self) -> str:
         ''' Load the legend text from the language appropriate file '''
-        try:
-            file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
-            lang:str = config.get_str('language')
-            if lang and lang != 'en':
-                file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, "L10n", f"{lang}.{FILENAME}")
+        filepath: str | None = get_localised_filepath(FILENAME_LEGEND, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
 
-            if not path.exists(file):
-                Debug.logger.info(f"Missing translation {file} for {lang}, using default legend file")
-                file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        if filepath:
+            try:
+                with open(filepath, encoding='utf-8') as stream:
+                    return stream.read()
+            except Exception as e:
+                Debug.logger.warning(f"Unable to load legend {filepath}")
+                Debug.logger.error(traceback.format_exc())
 
-            if path.exists(file):
-                with open(file) as file:
-                    legend:str = file.read()
-                return legend
-
-            return f"Unable to load {file}"
-
-        except Exception as e:
-            Debug.logger.warning(f"Unable to load legend {file}")
-            Debug.logger.error(traceback.format_exc())
+        return ""
 
 
     def legend_popup(self) -> None:
@@ -1227,7 +1228,6 @@ class ColonisationWindow:
             self.notes_fr.wm_title(_("{plugin_name} - Colonisation Notes for {system_name}").format(plugin_name=self.bgstally.plugin_name, system_name=systems[sysnum].get('Name', ''))) # LANG: Title of the notes popup window
             self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
             self.notes_fr.geometry("600x600")
-            self.notes_fr.protocol("WM_DELETE_WINDOW", self.notes_fr.destroy)
             self.notes_fr.config(bd=2, relief=tk.FLAT)
             scr:tk.Scrollbar = tk.Scrollbar(self.notes_fr, orient=tk.VERTICAL)
             scr.pack(side=tk.RIGHT, fill=tk.Y)
@@ -1236,10 +1236,7 @@ class ColonisationWindow:
             notes:str = systems[sysnum].get('Notes', '')
             text.insert(tk.END, notes)
             text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-
-            # Save button
-            save:ttk.Button = ttk.Button(self.notes_fr, text=_("Save"), command=partial(savenotes, systems[sysnum], text)) # LANG: Save notes button
-            save.pack(side=tk.RIGHT, padx=5)
+            self.notes_fr.protocol("WM_DELETE_WINDOW", partial(savenotes, systems[sysnum], text))
 
         except Exception as e:
             Debug.logger.error(f"Error in notes_popup(): {e}")

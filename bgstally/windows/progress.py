@@ -30,46 +30,36 @@ class ProgressWindow:
         self.bgstally = bgstally
         self.colonisation = None
 
-        # The current units for each column. This is saved in the colonisation json file.
-        self.units:dict = {'Commodity': ProgressUnits.TONNES, 'Required': ProgressUnits.TONNES,
-                           'Delivered': ProgressUnits.TONNES, 'Cargo': ProgressUnits.TONNES,
-                           'Carrier': ProgressUnits.TONNES}
-
         # The headings for each column, with the meanings for each unit type.
         # These are saved in the colonisation json file.
         self.headings:dict = {
             'Commodity': {
-                ProgressUnits.TONNES: f"{_('Commodity'):<11}", # LANG: Commodity
-                ProgressUnits.REMAINING: f"{_('Commodity'):<11}",
-                ProgressUnits.PERCENT: f"{_('Commodity'):<11}",
+                ProgressUnits.QTY: f"{_('Commodity'):<11}", # LANG: Commodity
+                ProgressUnits.OUTSTANDING: f"{_('Commodity'):<11}",
                 ProgressUnits.LOADS: f"{_('Commodity'):<11}",
                 'Sticky': tk.W
                 },
             'Required': {
-                ProgressUnits.TONNES: f"{_('Required'):>10}", # LANG: Required amount
-                ProgressUnits.REMAINING: f"{_('Needed'):>10}", # LANG: Amount still needed
-                ProgressUnits.PERCENT: f"{_('Percent'):>11}", # LANG: Percentage
+                ProgressUnits.QTY: f"{_('Required'):>10}", # LANG: Required amount
+                ProgressUnits.OUTSTANDING: f"{_('Needed'):>10}", # LANG: Amount still needed
                 ProgressUnits.LOADS: f"{_('Loads'):>12}", # LANG: number of cargo loads
                 'Sticky': tk.E
                 },
             'Delivered': {
-                ProgressUnits.TONNES: f"{_('Delivered'):>10}", # LANG: Amount delivered
-                ProgressUnits.REMAINING: f"{_('To Buy'):>11}", # LANG: Amount still left to buy
-                ProgressUnits.PERCENT: f"{_('Percent'):>11}",
+                ProgressUnits.QTY: f"{_('Delivered'):>10}", # LANG: Amount delivered
+                ProgressUnits.OUTSTANDING: f"{_('To Buy'):>11}", # LANG: Amount still left to buy
                 ProgressUnits.LOADS: f"{_('Loads'):>12}",
                 'Sticky': tk.E
                 },
             'Cargo': {
-                ProgressUnits.TONNES: f"{_('Cargo'):>1}", # LANG: amount in ship's Cargo
-                ProgressUnits.REMAINING: f"{_('Needed'):>9}",
-                ProgressUnits.PERCENT: f"{_('Percent'):>11}",
+                ProgressUnits.QTY: f"{_('Cargo'):>1}", # LANG: amount in ship's Cargo
+                ProgressUnits.OUTSTANDING: f"{_('Needed'):>9}",
                 ProgressUnits.LOADS: f"{_('Loads'):>12}",
                 'Sticky': tk.E
                 },
             'Carrier': {
-                ProgressUnits.TONNES: f"{_('Carrier'):>11}", # LANG: Amount in your Fleet Carrier
-                ProgressUnits.REMAINING: f"{_('Needed'):>9}",
-                ProgressUnits.PERCENT: f"{_('Percent'):>11}",
+                ProgressUnits.QTY: f"{_('Carrier'):>11}", # LANG: Amount in your Fleet Carrier
+                ProgressUnits.OUTSTANDING: f"{_('Needed'):>9}",
                 ProgressUnits.LOADS: f"{_('Loads'):>12}",
                 'Sticky': tk.E
                 }
@@ -80,29 +70,29 @@ class ProgressWindow:
                 CommodityOrder.CATEGORY: _('Commodity Category'), # LANG: Commodity Category
                 },
              'Required': {
-                ProgressUnits.TONNES: _('Total tonnes required'), # LANG: Required amount
-                ProgressUnits.REMAINING: _('Tonnes remaining to deliver'), # LANG: Amount still needed
-                ProgressUnits.PERCENT: _('Percentage of total requirement'), # LANG: Percentage of requirement
+                ProgressUnits.QTY: _('Total tonnes required'), # LANG: Required amount
+                ProgressUnits.OUTSTANDING: _('Tonnes remaining to deliver'), # LANG: Amount still needed
                 ProgressUnits.LOADS: _('Total cargo loads required') # LANG: number of cargo loads required
                 },
             'Delivered': {
-                ProgressUnits.TONNES: _('Tonnes delivered so far'), # LANG: Amount delivered
-                ProgressUnits.REMAINING: _('Tonnes remaining excluding cargo and carrier'), # LANG: Amount still left to buy
-                ProgressUnits.PERCENT: _('Percentage delivered so far'),
+                ProgressUnits.QTY: _('Tonnes delivered so far'), # LANG: Amount delivered
+                ProgressUnits.OUTSTANDING: _('Tonnes remaining excluding cargo and carrier'), # LANG: Amount still left to buy
                 ProgressUnits.LOADS: _('Loads delivered so far') # LANG: number of cargo loads delivered
                 },
-            'Cargo': {
-                ProgressUnits.TONNES: _('Tonnes in cargo'), # LANG: amount in ship's Cargo
-                ProgressUnits.REMAINING: _('Tonnes remaining to excluding cargo'),
-                ProgressUnits.PERCENT: _('Percent in cargo')
-                },
+#            'Cargo': {
+#                ProgressUnits.QTY: _('Tonnes in cargo'), # LANG: amount in ship's Cargo
+#                ProgressUnits.PERCENT: _('Percent in cargo')
+#                },
             'Carrier': {
-                ProgressUnits.TONNES: _('Tonnes on carrier'), # LANG: Amount in your Fleet Carrier
-                ProgressUnits.REMAINING: _('Tonnes remaining excluding carrier'),
-                ProgressUnits.PERCENT: _('Percent on carrier'),
+                ProgressUnits.QTY: _('Tonnes on carrier'), # LANG: Amount in your Fleet Carrier
+                ProgressUnits.OUTSTANDING: _('Tonnes remaining excluding carrier'),
                 ProgressUnits.LOADS: _('Loads on carrier')
                 }
             }
+
+        # Initialise the current units for each column. This is saved in the colonisation json file.
+        self.units:dict = dict([(k,ProgressUnits.QTY) for k in self.headings.keys()])
+
         # By removing the carrier from here we remove it everywhere
         if not self.bgstally.fleet_carrier.available():
             del self.headings['Carrier']
@@ -192,7 +182,7 @@ class ProgressWindow:
             # Column headings
             row = 0
             for i, (k, v) in enumerate(self.headings.items()):
-                c = tk.Label(table_frame, text=_(v.get(ProgressUnits.TONNES)), cursor='hand2')
+                c = tk.Label(table_frame, text=_(v.get(ProgressUnits.QTY)), cursor='hand2')
                 c.grid(row=row, column=i, sticky=v.get('Sticky'), padx=(0,5))
                 c.bind("<Button-1>", partial(self.change_view, k))
                 c.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
@@ -328,11 +318,8 @@ class ProgressWindow:
                 case _:
                     self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
                     # Loads is meaningless for cargo!
-                    if column == 'Cargo' and self.units[column] == ProgressUnits.LOADS:
-                        self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
-                    # Percent is only meaningful for Delivered and Carrier
-                    if column not in ['Delivered', 'Carrier'] and self.units[column] == ProgressUnits.PERCENT:
-                        self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
+                    #if column == 'Cargo' and self.units[column] == ProgressUnits.LOADS:
+                    #    self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
                     self.coltts[column].text = self.tooltips[column][self.units[column]]
             self.update_display()
 
@@ -479,7 +466,7 @@ class ProgressWindow:
                     if col == 'Commodity':
                         # Shorten and display the commodity name
                         colstr:str = self.colonisation.commodities[c].get('Name', c)
-                        colstr = str_truncate(colstr, 20)
+                        colstr = str_truncate(colstr, 25)
 
                         row['Commodity']['text'] = colstr
                         row['Commodity'].bind("<Button-1>", partial(self.link, c, None))
@@ -527,10 +514,10 @@ class ProgressWindow:
         remaining:int = required - delivered
 
         match self.units[column]:
-            case ProgressUnits.REMAINING if column == 'Required': valstr = f"{remaining:,}{_('t')}"
-            case ProgressUnits.REMAINING if column == 'Delivered': valstr = f"{max(remaining-cargo-carrier, 0):,}{_('t')}"
-            case ProgressUnits.REMAINING if column == 'Cargo': valstr = f"{max(remaining-cargo, 0):,}{_('t')}"
-            case ProgressUnits.REMAINING if column == 'Carrier': valstr = f"{max(remaining-carrier,0):,}{_('t')}"
+            case ProgressUnits.OUTSTANDING if column == 'Required': valstr = f"{remaining:,}{_('t')}"
+            case ProgressUnits.OUTSTANDING if column == 'Delivered': valstr = f"{max(remaining-cargo-carrier, 0):,}{_('t')}"
+            case ProgressUnits.OUTSTANDING if column == 'Cargo': valstr = f"{max(remaining-cargo, 0):,}{_('t')}"
+            case ProgressUnits.OUTSTANDING if column == 'Carrier': valstr = f"{max(remaining-carrier,0):,}{_('t')}"
 
             case ProgressUnits.LOADS if column == 'Required':
                 if ceil(remaining / self.colonisation.cargo_capacity) != 1:
@@ -548,10 +535,6 @@ class ProgressWindow:
                     valstr = f"{ceil(carrier / self.colonisation.cargo_capacity)}{_('L')}"
                 else:
                     valstr = f"{carrier:,}{_('t')}"
-            case ProgressUnits.PERCENT if column == 'Required': valstr = f"{delivered * 100 / required:.0f}%"
-            case ProgressUnits.PERCENT if column == 'Delivered': valstr = f"{delivered * 100 / required:.0f}%"
-            case ProgressUnits.PERCENT if column == 'Cargo': valstr = f"{cargo * 100 / cargo:.0f}%"
-            case ProgressUnits.PERCENT if column == 'Carrier': valstr = f"{carrier * 100 / required:.0f}%"
 
             case _ if column == 'Required': valstr = f"{required:,}{_('t')}"
             case _ if column == 'Delivered': valstr = f"{delivered:,}{_('t')}"

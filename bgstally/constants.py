@@ -120,10 +120,9 @@ class CommodityOrder(Enum):
     CATEGORY = auto()
 
 class ProgressUnits(Enum):
-    TONNES = 0
-    REMAINING = auto()
+    QTY = 0
+    OUTSTANDING = auto()
     LOADS = auto()
-    PERCENT = auto()
 
 class ProgressView(Enum):
     FULL = 0

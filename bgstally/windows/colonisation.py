@@ -13,7 +13,7 @@ from urllib.parse import quote
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
-from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_SMALL, FONT_TEXT, FOLDER_DATA, FOLDER_ASSETS, BuildState
+from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_HEADING_2, FONT_SMALL, FONT_TEXT, FOLDER_DATA, FOLDER_ASSETS, BuildState
 from bgstally.debug import Debug
 from bgstally.utils import _, human_format, str_truncate
 from bgstally.ravencolonial import RavenColonial
@@ -48,6 +48,10 @@ class ColonisationWindow:
 
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
         self.summary_cols:dict = {
+            'Track': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
+            'Architect': {'header': _("Architect"), 'background': None, 'hide': False},
+            'Layout': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
+            'State': {'header': "", 'background': None},
             'Total': {'header': _("Total"), 'background': None, 'format': 'int'}, # LANG: Total number of builds
             'Orbital': {'header': _("Orbital"), 'background': None, 'format': 'int'}, # LANG: Number of orbital/space builds
             'Surface': {'header': _("Surface"), 'background': None, 'format': 'int'}, # LANG: Number of ground/surface builds
@@ -133,6 +137,8 @@ class ColonisationWindow:
         # UI components
         self.window:tk.Toplevel = None
         self.tabbar:ScrollableNotebook = None
+        self.add_dialog:tk.Frame = None
+        self.react:Tk.Frame = None
         self.sheets:list = []
         self.plan_titles:list = []
         self.legend_fr:tk.Toplevel = None
@@ -174,7 +180,9 @@ class ColonisationWindow:
             # Create system tabs notebook
             self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=True)
             self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-            self.add_system_dialog()
+            self.add_dialog:tk.Frame = self.add_system_dialog()
+            self.update_react_dialog()
+            self.tabbar.add(self.add_dialog, text='+')
 
             # Add tabs for each system
             systems:list = self.colonisation.get_all_systems()
@@ -214,6 +222,8 @@ class ColonisationWindow:
         self.tabbar.add(tab, text=system['Name'], compound='right', image=self.image_tab_planned)
         self._set_system_progress(tabnum, system)
 
+        if system.get('Hidden', False) == True:
+            self.tabbar.notebookTab.tab(tabnum, state='hidden')
 
     def _set_system_progress(self, tabnum:int, system:dict) -> None:
         ''' Update the tab image based on the system's progress '''
@@ -249,7 +259,6 @@ class ColonisationWindow:
         # System name label
         while len(self.plan_titles) <= sysnum:
             self.plan_titles.append({})
-
 
         name_label:ttk.Label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
         if systems[sysnum].get('RCSync', 0) == 1:
@@ -296,27 +305,32 @@ class ColonisationWindow:
         details.pack(side=tk.LEFT, padx=10, pady=5)
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, cursor="hand2", command=lambda: self.legend_popup())
-        btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        btn.pack(side=tk.RIGHT, padx=(20, 5), pady=5)
         ToolTip(btn, text=_("Show legend window")) # LANG: tooltip for the show legend button
 
-        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
-        btn.pack(side=tk.RIGHT, padx=5, pady=5)
-        ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
-
-        btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
+        btn:ttk.Button = ttk.Button(title_frame, text=_("🗑️"), width=3, cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
         ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("Modify"), cursor="hand2", command=lambda: self.modify_system_dialog(tabnum, tab)) # LANG: Rename button
-        ToolTip(btn, text=_("Modify system plan")) # LANG: tooltip for the modify system button
+        #btn:ttk.Button = ttk.Button(title_frame, text=_("👁"), width=3, cursor="hand2", command=lambda: self.hide_system(tabnum, tab)) # LANG: Hide button
+        #ToolTip(btn, text=_("Hide system plan")) # LANG: tooltip for the hide system button
+        #btn.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        btn:ttk.Button = ttk.Button(title_frame, text=_("📝"), width=3, cursor="hand2", command=lambda: self.edit_system_dialog(tabnum, tab)) # LANG: Rename button
+        ToolTip(btn, text=_("Edit system plan")) # LANG: tooltip for the edit system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
+        btn.pack(side=tk.RIGHT, padx=(5,20), pady=5)
+        ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
             btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("📓"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
+        # 📓 📝 📋
+        btn:ttk.Button = ttk.Button(title_frame, text=_("📋"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
@@ -556,7 +570,6 @@ class ColonisationWindow:
         sheet['A2:G2'].highlight(bg=self._set_background('type', 'Complete', 1))
         sheet['A3:G3'].highlight(bg=self._set_background('type', 'Planned', 1))
         sheet[HEADER_ROW].highlight(bg='lightgrey')
-
         # Tracking checkboxes
         sheet['A5:A'].checkbox(state='normal', checked=False)
 
@@ -574,17 +587,17 @@ class ColonisationWindow:
                 sheet['E5:E'].dropdown(values=[' '] + bodies)
 
         # Make the sections readonly that users can't edit.
-        s3 = sheet.span('A1:4', type_='readonly')
-        sheet.named_span(s3)
-        s4 = sheet.span('F4:T', type_='readonly')
-        sheet.named_span(s4)
+        sheet.span('A1:4', type_='readonly') # Headers and summary
+        sheet['B2'].readonly(False) # Except Architect
+
+        sheet.span('F4:T', type_='readonly') # Build columns from Body onwards
         # track, types, layouts, and names left.
         sheet[f"A{FIRST_BUILD_ROW}:D"].align(align='left')
 
 
     def _get_summary_header(self) -> list[str]:
         ''' Return the header row for the summary '''
-        cols:list = FIRST_SUMMARY_COLUMN * [' ']
+        cols:list = []
         for c, v in self.summary_cols.items():
             cols.append(v.get('header', c) if v.get('hide') != True else ' ')
         return cols
@@ -611,6 +624,12 @@ class ColonisationWindow:
                 if bt == {}:
                     continue
                 match name:
+                    case 'Architect':
+                        totals['Planned'][name] = ' '
+                        totals['Complete'][name] = system.get('Architect', _('Unknown'))
+                    case 'State':
+                        totals['Planned'][name] = _("Planned")
+                        totals['Complete'][name] = _("Complete")
                     case 'Total':
                         totals['Planned'][name] += 1
                         totals['Complete'][name] += 1 if self.is_build_complete(build) else 0
@@ -658,7 +677,7 @@ class ColonisationWindow:
         # Update the values in the cells.
         summary:list = []
         for i, r in enumerate(self.summary_rows.keys()):
-            row:list = [' ', ' ', ' ', r]
+            row:list = []
             for (name, col) in self.summary_cols.items():
                 if col.get('hide', False) == True:
                     row.append(' ')
@@ -676,7 +695,7 @@ class ColonisationWindow:
 
         for i, x in enumerate(self.summary_rows.keys()):
             for j, details in enumerate(self.summary_cols.values()):
-                j += FIRST_SUMMARY_COLUMN
+                #j += FIRST_SUMMARY_COLUMN
                 sheet[i+srow,j].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
                 if details.get('background') != None:
                     sheet[i+srow,j+scol].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
@@ -902,6 +921,13 @@ class ColonisationWindow:
             if not event.eventname.endswith('edit_table'):
                 return
 
+            # In the summary
+            if event.row < FIRST_BUILD_ROW:
+                field:str = list(self.summary_cols.keys())[event.column]
+                if event.row == 1 and field == 'Architect':
+                    self.colonisation.modify_system(sysnum, {field: event.value})
+                return
+
             field:str = list(self.detail_cols.keys())[event.column]
             row:int = event.row - FIRST_BUILD_ROW; val = event.value
 
@@ -980,57 +1006,110 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def add_system_dialog(self) -> None:
+    def add_system_dialog(self) -> tk.Frame:
         ''' Show dialog to add a new system '''
-        dialog:tk.Frame = tk.Frame(self.tabbar)
-        dialog.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
+        try:
+            dialog:tk.Frame = tk.Frame(self.tabbar)
+            dialog.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
-        # System name
-        row:int = 0
-        ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
-        plan_name_var:tk.StringVar = tk.StringVar()
-        plan_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
-        plan_name_entry.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
-        row += 1
+            add:tk.Frame = tk.Frame(dialog)
+            add.grid(row=0, column=0, sticky=tk.W)
+            # System name
+            row:int = 0
+            ttk.Label(add, text=_("Add Plan"), font=FONT_HEADING_2).grid(row=row, column=0, padx=10, pady=10, sticky=tk.W) # LANG: add plan
+            row += 1
 
-        # Display name
-        syslabel:str = _("System Name") # LANG: Label for the system's name field in the UI
-        optionlabel:str = _("optional and case sensitive") # LANG: Indicates the field is optional and case-sensitive
-        ttk.Label(dialog, text=f"{syslabel} ({optionlabel}):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
-        system_name_var:tk.StringVar = tk.StringVar()
-        system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
-        system_name_entry.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
-        row += 1
+            ttk.Label(add, text=_("Plan Name")+":").grid(row=row, column=0, padx=10, pady=0, sticky=tk.W) # LANG: the name you want to give your plan
+            plan_name_var:tk.StringVar = tk.StringVar()
+            plan_name_entry:ttk.Entry = ttk.Entry(add, textvariable=plan_name_var, width=30)
+            plan_name_entry.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
+            row += 1
 
-        prepop_var = tk.IntVar()
-        chk = tk.Checkbutton(dialog, text=_("Pre-fill bases from EDSM"), variable=prepop_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to pre-populate bases from EDSM
-        chk.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
-        row += 1
+            # Display name
+            syslabel:str = _("System Name") # LANG: Label for the system's name field in the UI
+            optionlabel:str = _("optional and case sensitive") # LANG: Indicates the field is optional and case-sensitive
+            ttk.Label(add, text=f"{syslabel}\n({optionlabel}):").grid(row=row, column=0, padx=10, pady=10, sticky=tk.W)
+            system_name_var:tk.StringVar = tk.StringVar()
+            system_name_entry:ttk.Entry = ttk.Entry(add, textvariable=system_name_var, width=30)
+            system_name_entry.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
+            row += 1
 
-        rcsync_var = tk.IntVar()
-        chk = tk.Checkbutton(dialog, text=_("Sync with Raven Colonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with Raven Colonial
-        chk.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
-        row += 1
+            prepop_var = tk.IntVar()
+            chk = tk.Checkbutton(add, text=_("Pre-fill bases from EDSM"), variable=prepop_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to pre-populate bases from EDSM
+            chk.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
+            row += 1
 
-        lbl = ttk.Label(dialog, text=_("When planning your system the first base is special, make sure that it is the first on the list.")) # LANG: Notice about the first base being special
-        lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=(10,0), sticky=tk.W)
-        row += 1
-        lbl = ttk.Label(dialog, text=_("Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!")) # LANG: Notice about prepopulation being challenging
-        lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=(0,10), sticky=tk.W)
-        row += 1
+            rcsync_var = tk.IntVar()
+            chk = tk.Checkbutton(add, text=_("Sync with Raven Colonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with Raven Colonial
+            chk.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
+            row += 1
 
-        # Buttons
-        button_frame:ttk.Frame = ttk.Frame(dialog)
-        button_frame.grid(row=row, column=0, columnspan=2, pady=10)
+            lbl = ttk.Label(add, text=_("When planning your system the first base is special, make sure that it is the first on the list.")) # LANG: Notice about the first base being special
+            lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=0, sticky=tk.W)
+            row += 1
+            lbl = ttk.Label(add, text=_("Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!")) # LANG: Notice about prepopulation being challenging
+            lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=0, sticky=tk.W)
+            row += 1
 
-        # Add button
-        add_button:ttk.Button = ttk.Button(
-            button_frame,
-            text=_("Add"), # LANG: Add/create a new system
-            command=lambda: self._add_system(plan_name_var.get(), system_name_var.get(), prepop_var.get(), rcsync_var.get())
-        )
-        add_button.pack(side=tk.LEFT, padx=5)
-        self.tabbar.add(dialog, text='+')
+            # Add button
+            add_button:ttk.Button = ttk.Button(
+                add,
+                text=_("Add"), # LANG: Add/create a new system
+                command=lambda: self._add_system(plan_name_var.get(), system_name_var.get(), prepop_var.get(), rcsync_var.get())
+            )
+            add_button.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+            row += 1
+
+            return dialog
+
+        except Exception as e:
+            Debug.logger.error(f"Error in add_system: {e}")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def update_react_dialog(self) -> None:
+        try:
+            if self.react is not None:
+                self.react.destroy()
+
+            self.react = tk.Frame(self.add_dialog)
+            self.react.grid(row=0, column=1, sticky=tk.NW)
+
+            row = 0
+            col = 0
+            ttk.Label(self.react, text=_("Reactivate Plan"), font=FONT_HEADING_2).grid(row=row, column=col, padx=10, pady=10, sticky=tk.W) # LANG: reactivate plans
+            row +=1
+
+            for ind, system in enumerate(self.colonisation.get_all_systems()):
+                if system.get('Hidden', False) == True:
+                    lbl = ttk.Label(self.react, text=system.get("Name"))
+                    lbl.grid(row=row, column=col, columnspan=2, padx=10, pady=0, sticky=tk.W)
+                    activate_button:ttk.Button = ttk.Button(
+                        self.react,
+                        text=_("Reactivate"), # LANG: Reactivate system
+                        command=partial(self._reactivate_system, ind)
+                    )
+                    activate_button.grid(row=row, column=col+1, padx=10, pady=0, sticky=tk.W)
+                    row += 1
+            return
+
+        except Exception as e:
+            Debug.logger.error(f"Error in update_react_dialog: {e}")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def _reactivate_system(self, sysnum:int) -> None:
+        try:
+            Debug.logger.debug("Reactivating system: {sysnum}")
+            self.colonisation.modify_system(sysnum, {'Hidden':False})
+            Debug.logger.debug(f"{self.tabbar.tabs()}")
+            self.tabbar.notebookTab.tab(sysnum+1, state='normal')
+            self.update_react_dialog()
+            return
+
+        except Exception as e:
+            Debug.logger.error(f"Error in reactivate_system: {e}")
+            Debug.logger.error(traceback.format_exc())
 
 
     def _add_system(self, plan_name:str, system_name:str, prepop:int = False, rcsync:int = False) -> None:
@@ -1055,8 +1134,8 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def modify_system_dialog(self, tabnum:int, tab:ttk.Frame) -> None:
-        ''' Show dialog to modify a system '''
+    def edit_system_dialog(self, tabnum:int, tab:ttk.Frame) -> None:
+        ''' Show dialog to edit a system '''
         try:
             sysnum:int = tabnum -1
             systems:list = self.colonisation.get_all_systems()
@@ -1065,9 +1144,9 @@ class ColonisationWindow:
 
             system:dict = systems[sysnum]
             dialog:tk.Toplevel = tk.Toplevel(self.window)
-            dialog.title(_("Modify System")) # LANG: Rename a system
-            dialog.minsize(700, 250)
-            dialog.geometry(f"{int(700*self.scale)}x{int(250*self.scale)}")
+            dialog.title(_("Edit System")) # LANG: Rename a system
+            dialog.minsize(500, 250)
+            dialog.geometry(f"{int(500*self.scale)}x{int(250*self.scale)}")
             dialog.transient(self.window)
             dialog.grab_set()
 
@@ -1076,20 +1155,26 @@ class ColonisationWindow:
             ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
             plan_name_var:tk.StringVar = tk.StringVar(value=system.get('Name', ''))
             plan_name_entry:ttk.Entr = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
-            plan_name_entry.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+            plan_name_entry.grid(row=row, column=1, padx=10, pady=(10,5), sticky=tk.W)
             row += 1
 
             # Display name
-            ttk.Label(dialog, text=_("System Name") + " (" + _("optional and case sensitive") + "):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
+            ttk.Label(dialog, text=_("System Name") + "\n(" + _("optional and case sensitive") + "):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
             system_name_var:tk.StringVar = tk.StringVar(value=system.get('StarSystem', ''))
             system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
-            system_name_entry.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+            system_name_entry.grid(row=row, column=1, padx=10, pady=(5,10), sticky=tk.W)
             row += 1
 
             rcsync_var = tk.IntVar()
             rcsync_var.set(True if system.get('RCSync', 0) != 0 else False)
             chk = tk.Checkbutton(dialog, text=_("Sync with Raven Colonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with Raven Colonial
-            chk.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+            chk.grid(row=row, column=1, padx=10, pady=(0,0), sticky=tk.W)
+            row += 1
+
+            hide_var = tk.IntVar()
+            hide_var.set(system.get('Hide', False))
+            chk = tk.Checkbutton(dialog, text=_("Hide this system"), variable=hide_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to hide a system
+            chk.grid(row=row, column=1, padx=10, pady=(0,10), sticky=tk.W)
             row += 1
 
             # Buttons
@@ -1097,13 +1182,13 @@ class ColonisationWindow:
             button_frame.grid(row=row, column=0, columnspan=2, pady=10)
             row += 1
 
-            # Modify button
-            modify_button:ttk.Button = ttk.Button(
+            # Save button
+            save_button:ttk.Button = ttk.Button(
                 button_frame,
-                text=_("Modify"), # LANG: Rename system button
-                command=lambda: self._modify_system(tabnum, tab, plan_name_var.get(), system_name_var.get(), rcsync_var.get(), dialog)
+                text=_("Save"), # LANG: Save button
+                command=lambda: self._edit_system(tabnum, tab, plan_name_var.get(), system_name_var.get(), rcsync_var.get(), hide_var.get(), dialog)
             ) # LANG: Rename button
-            modify_button.pack(side=tk.LEFT, padx=5)
+            save_button.pack(side=tk.LEFT, padx=5)
 
             # Cancel button
             cancel_button:ttk.Button = ttk.Button(
@@ -1121,8 +1206,8 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def _modify_system(self, tabnum:int, tab:ttk.Frame, name:str, sysname:str, rcsync:bool, dialog:tk.Toplevel) -> None:
-        ''' Modify a system's plan, name and sync state '''
+    def _edit_system(self, tabnum:int, tab:ttk.Frame, name:str, sysname:str, rcsync:bool, hide:bool, dialog:tk.Toplevel) -> None:
+        ''' Edit a system's plan, name and sync state '''
         try:
             sysnum:int = tabnum -1
 
@@ -1133,10 +1218,15 @@ class ColonisationWindow:
             data:dict = {
                 'Name': name,
                 'StarSystem': sysname,
-                'RCSync': 1 if rcsync == True else 0
+                'RCSync': 1 if rcsync == True else 0,
+                'Hidden' : hide
             }
+            if hide == True:
+                self.tabbar.hide(tabnum)
+
             self.colonisation.modify_system(sysnum, data)
             self.tabbar.notebookTab.tab(tabnum, text=name)
+            self.update_react_dialog()
 
             dialog.destroy()
             self.update_display()

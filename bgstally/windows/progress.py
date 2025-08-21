@@ -107,6 +107,9 @@ class ProgressWindow:
         if not self.bgstally.fleet_carrier.available():
             del self.headings['Carrier']
 
+        # Trying without cargo
+        del self.headings['Cargo']
+
         # UI components
         self.frame:tk.Frame
         self.frame_row:int = 0 # Row in the parent frame
@@ -179,7 +182,10 @@ class ProgressWindow:
             row += 1; col = 0
 
             table_frame:tk.Frame = tk.Frame(frame)
-            table_frame.columnconfigure(0, weight=1)
+            table_frame.columnconfigure(0, weight=3)
+            table_frame.columnconfigure(1, weight=1)
+            table_frame.columnconfigure(2, weight=1)
+            table_frame.columnconfigure(3, weight=1)
             table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
             self.table_frame = table_frame
 
@@ -187,10 +193,9 @@ class ProgressWindow:
             row = 0
             for i, (k, v) in enumerate(self.headings.items()):
                 c = tk.Label(table_frame, text=_(v.get(ProgressUnits.TONNES)), cursor='hand2')
-                c.grid(row=row, column=i, sticky=v.get('Sticky'))
+                c.grid(row=row, column=i, sticky=v.get('Sticky'), padx=(0,5))
                 c.bind("<Button-1>", partial(self.change_view, k))
                 c.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
-
                 self.coltts[k] = ToolTip(c, text=self.tooltips[k][self.comm_order]) if k == 'Commodity' else ToolTip(c, text=self.tooltips[k][self.units[k]])
                 self._set_weight(c)
                 self.colheadings[k] = c
@@ -202,7 +207,7 @@ class ProgressWindow:
 
                 for i, (col, val) in enumerate(self.headings.items()):
                     lbl:tk.Label = tk.Label(table_frame, text='')
-                    lbl.grid(row=row, column=i, sticky=val.get('Sticky'))
+                    lbl.grid(row=row, column=i, sticky=val.get('Sticky'), padx=(0,5))
                     if col == 'Commodity':
                         lbl.bind("<Button-1>", partial(self.link, c, None))
                         lbl.bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
@@ -217,7 +222,7 @@ class ProgressWindow:
             r:dict = {}
             for i, (col, val) in enumerate(self.headings.items()):
                 r[col] = tk.Label(table_frame, text=_("Total")) # LANG: Total amounts
-                r[col].grid(row=row, column=i, sticky=val.get('Sticky'))
+                r[col].grid(row=row, column=i, sticky=val.get('Sticky'), padx=(0,5))
                 self._set_weight(r[col])
 
             self.rows.append(r)
@@ -320,7 +325,6 @@ class ProgressWindow:
                 case 'Commodity':
                     self.comm_order = CommodityOrder((self.comm_order.value + 1) % len(CommodityOrder))
                     self.coltts[column].text = self.tooltips[column][self.comm_order]
-                    Debug.logger.debug(f"Commodity orde: {self.comm_order}")
                 case _:
                     self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
                     # Loads is meaningless for cargo!
@@ -412,8 +416,6 @@ class ProgressWindow:
             # Set the column headings according to the selected units
             totals:dict = {}
             for col in self.headings.keys():
-                if col == 'Carrier' and not self.bgstally.fleet_carrier.available():
-                    continue
                 self.colheadings[col]['text'] = self.headings[col][self.units[col]]
                 self.colheadings[col].grid()
                 totals[col] = 0
@@ -463,7 +465,7 @@ class ProgressWindow:
                     totals['Required'] += reqcnt
                     totals['Delivered'] += delcnt
                 if remaining > 0:
-                    totals['Cargo'] += cargo
+                    if 'Cargo' in totals: totals['Cargo'] += cargo
                     if 'Carrier' in totals: totals['Carrier'] += min(carrier, remaining-cargo)
 
                 if rc == MAX_ROWS:
@@ -513,7 +515,7 @@ class ProgressWindow:
             return
 
         for col in self.headings.keys():
-            row[col]['text'] = self._get_value(col, totals['Required'], totals['Delivered'], totals['Cargo'], 0 if 'Carrier' not in totals else totals['Carrier']) if col != 'Commodity' else _("Total")
+            row[col]['text'] = self._get_value(col, totals['Required'], totals['Delivered'], totals.get('Cargo',0), totals.get('Carrier', 0)) if col != 'Commodity' else _("Total")
             self._set_weight(row[col])
             row[col].grid()
 

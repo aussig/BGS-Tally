@@ -173,6 +173,7 @@ class Colonisation:
                     system['StarSystem'] = entry.get('StarSystem', '')
                     system['SystemAddress'] = entry.get('SystemAddress', '')
                     system['Claimed'] = entry.get('timestamp', datetime.now().isoformat())
+                    system['Architect'] = self.cmdr
                     self.dirty = True
 
                 case 'ColonisationConstructionDepot':
@@ -374,6 +375,11 @@ class Colonisation:
         return self.systems
 
 
+    def get_systems(self, key, val) -> list[dict]:
+        ''' Get all systems that match key/val pair '''
+        return [k for k in self.systems if k.get(key, None) == val]
+
+
     def get_system(self, key:str, value) -> dict | None:
         ''' Get a system by any attribute '''
         for i, system in enumerate(self.systems):
@@ -468,6 +474,7 @@ class Colonisation:
             return
 
         system:dict = self.systems[sysnum]
+        Debug.logger.debug(f"{system.get('Name')}")
         # If they change which star system, we need to clear the system address
         if data.get('StarSystem', None) != None and data.get('StarSystem', None) != system.get('StarSystem'):
             system['SystemAddress'] = None
@@ -1058,22 +1065,11 @@ class Colonisation:
     def save(self, cause:str = 'Unknown') -> None:
         ''' Save state to file '''
 
-        #if systems[system].get('ID64', None) != None:
-        #    self.colonisation.rc.sync(sysnum) # Sync with Raven Colonial if needed
-
         file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile, indent=4)
 
         self.dirty = False
-
-        #Debug.logger.debug(f"Saved {cause}.")
-        #if cause == 'Unknown':
-        #    STACK_FMT = "%s, line %d in function %s."
-        #    Debug.logger.debug(f"Saved.")
-        #    for frame in inspect.stack():
-        #        file, line, func = frame[1:4]
-        #        Debug.logger.debug(STACK_FMT % (file, line, func))
 
 
     def _as_dict(self) -> dict:

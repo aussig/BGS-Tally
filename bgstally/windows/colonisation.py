@@ -190,18 +190,9 @@ class ColonisationWindow:
                 Debug.logger.info(f"No systems so not creating colonisation section")
                 return
 
-            for sysnum, system in enumerate(systems):
-                # Create a frame for the sytem
+            for sysnum, system in enumerate(systems): # Create a frame for the sytem
                 tabnum = sysnum + 1
                 self._create_system_tab(tabnum, system)
-
-                if system.get('RCSync', 0) == 1:
-                    Debug.logger.debug(f"Loading system {system.get('StarSystem', 'Unknown')} from ID64 {system.get('ID64')}")
-                    if self.colonisation.rc == None: self.colonisation.rc = RavenColonial(self)
-                    if system.get('ID64', None) == None:
-                        self.colonisation.rc.add_system(system.get('StarSystem'))
-                    else:
-                        self.colonisation.rc.load_system(system.get('ID64'))
 
             # Select the first tab
             if tabnum > 0:
@@ -938,35 +929,15 @@ class ColonisationWindow:
                     if row > 0 and row < len(systems[sysnum]['Builds']):
                         self.colonisation.remove_build(sysnum, row)
                     else:
-                        data[field] = val
+                        self.set_base_type(sysnum, row, val)
 
                     sdata:list = self.sheets[sysnum].data
                     sdata.pop(row + FIRST_BUILD_ROW)
                     self.sheets[sysnum].set_sheet_data(sdata)
                     self._config_sheet(self.sheets[sysnum], systems[sysnum])
 
-                case 'Base Type' if val != ' ':
-                    data[field] = val
-
-                    layouts:list = self.colonisation.get_base_layouts(val)
-                    if len(layouts) == 1:
-                        data['Layout'] = layouts[0]
-
-                    # Initial cell population
-                    sdata:list = []
-                    sdata.append(self._get_summary_header())
-                    sdata += self._build_summary(systems[sysnum])
-
-                    sdata.append(self._get_detail_header())
-                    sdata += self._build_detail(systems[sysnum])
-
-                    self.sheets[sysnum].set_sheet_data(sdata)
-                    self._config_sheet(self.sheets[sysnum], systems[sysnum])
-
-                case 'Layout' if val != ' ':
-                    data[field] = val
-                    bt:dict = self.colonisation.get_base_type(val)
-                    data['Base Type'] = bt.get('Type')
+                case 'Base Type' | 'Layout' if val != ' ':
+                    self.colonisation.set_base_type(sysnum, row, val)
 
                     # Initial cell population
                     sdata:list = []

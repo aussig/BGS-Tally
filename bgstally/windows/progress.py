@@ -317,9 +317,6 @@ class ProgressWindow:
                     self.coltts[column].text = self.tooltips[column][self.comm_order]
                 case _:
                     self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
-                    # Loads is meaningless for cargo!
-                    #if column == 'Cargo' and self.units[column] == ProgressUnits.LOADS:
-                    #    self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
                     self.coltts[column].text = self.tooltips[column][self.units[column]]
             self.update_display()
 

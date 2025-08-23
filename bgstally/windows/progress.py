@@ -379,7 +379,8 @@ class ProgressWindow:
             for col, val in enumerate(self.columns):
                 Debug.logger.debug(f" Setting columns: {col} {val} {self.headings[val].get('Label')}")
                 self.collbls[col]['text'] = self.headings[val].get('Label')
-                self.coltts[col].text = self.headings[val].get('Tooltip')
+                #instructions:str = ", " + _("l-click cycles value, r-click cycles units") # LANG: left and right click tooltip
+                self.coltts[col].text = f"{self.headings[val].get('Tooltip')}"
                 self.collbls[col].grid()
 
             totals:dict = {'Commodity': _("Total"),  # LANG: total commodities

@@ -385,9 +385,9 @@ class ProgressWindow:
                 bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
                 pn:str = b.get('Plan', _('Unknown')) # Unknown system name
                 sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
-                name:str = ', '.join([pn, bn])
+                name:str = str_truncate(', '.join([pn, bn]), 53, loc='middle')
 
-            self.title.config(text=name[-50:])
+            self.title.config(text=name)
 
             # Hide the table but not the progress frame so the change view icon is still available
             if self.view == ProgressView.NONE:
@@ -480,7 +480,7 @@ class ProgressWindow:
             self._display_totals(self.rows[i+1], tracked, totals)
             if all_req > 0:
                 self.progvar.set(round(all_deliv * 100 / all_req))
-                self.progtt.text = f"{_('Progress')}: {self.progvar.get():.0f}%" # LANG: tooltip for the progress bar
+                self.progtt.text = f"{_('Progress')}: {int(self.progvar.get())}%" # LANG: tooltip for the progress bar
 
         except Exception as e:
             Debug.logger.info(f"Error updating display")

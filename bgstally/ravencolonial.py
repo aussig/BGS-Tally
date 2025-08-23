@@ -52,7 +52,8 @@ class RavenColonial:
                                  'bodyNum' : 'BodyNum',
                                  'buildType' : 'Layout',
                                  'status' : 'State',
-                                 'buildId' : 'BuildID'
+                                 'buildId' : 'BuildID',
+                                 'architectName' : 'Architect'
                                  }
         # Project parameter mapping between colonisation & raven.
         self.project_params:dict = {
@@ -77,7 +78,6 @@ class RavenColonial:
             'complete': BuildState.COMPLETE.value
         }
 
-        self._names:list = ['name', 'buildName', 'architect'] # Name fields that should not be lowercased
         self._cache:dict = {} # Cache of responses and response times used to reduce API calls
 
 
@@ -89,7 +89,7 @@ class RavenColonial:
         if self._cache.get(id64, None) == None: self._cache[id64] = {}
 
         if self._cache[id64].get('ts', 0) > round(time.mktime(datetime.now(timezone.utc).timetuple())) - RC_COOLDOWN:
-            Debug.logger.info(f"Not refresing {id64}, too soon")
+            Debug.logger.info(f"Not refreshing {id64}, too soon")
             return
 
         self._cache[id64]['rev'] = rev
@@ -142,6 +142,25 @@ class RavenColonial:
         return
 
 
+    def complete_site(self, project_id:str) -> None:
+        """ Complete a site """
+        try:
+            url:str = f"{RC_API}/project/{project_id}/complete"
+
+            response:Response = requests.post(url, headers=self.headers, timeout=5)
+            if response.status_code not in [200, 202]:
+                Debug.logger.error(f"{url} {response} {response.content}")
+                return
+
+            Debug.logger.info(f"RavenColonial project completed {project_id}")
+            return
+
+        except Exception as e:
+            Debug.logger.info(f"Error completing site")
+            Debug.logger.error(traceback.format_exc())
+
+
+
     def upsert_site(self, system:dict, ind:int, data:dict = None) -> None:
         """ Modify a site (build) in RavenColonial """
         try:
@@ -152,21 +171,21 @@ class RavenColonial:
             build:dict = system['Builds'][ind]
 
             if build == None or data == None:
-                Debug.logger.warning("RavenColonial modify_site called with no build or no data")
+                Debug.logger.warning("RavenColonial upsert_site called with no build or no data")
                 return
 
-            # Create the ID and store it
-            if build.get('RCID', None) == None:
-                if build['State'] == BuildState.COMPLETE and build.get('MarketID', None) != None:
-                    build['RCID'] = f"&{build['MarketID']}"
-                else:
-                    timestamp:int = round(time.mktime(datetime.now(timezone.utc).timetuple()))
-                    build['RCID'] = f"x{timestamp}"
+            # Create an ID if necessary
+            if build.get('RCID', None) == None and build['State'] == BuildState.COMPLETE and build.get('MarketID', None) != None:
+                build['RCID'] = f"&{build['MarketID']}"
+
+            if build.get('RCID', None) == None and build['State'] == BuildState.PLANNED:
+                timestamp:int = round(time.mktime(datetime.now(timezone.utc).timetuple()))
+                build['RCID'] = f"x{timestamp}"
 
             update:dict = {}
             rev_map = {value: key for key, value in self.status_map.items()}
             for p, m in self.site_params.items():
-                rcval = build.get(m, '').strip().lower().replace(' ', '_') if isinstance(build.get(m, None), str) and p not in self._names else build.get(m, None)
+                rcval = build.get(m, '').strip().lower().replace(' ', '_') if isinstance(build.get(m, None), str) and 'name' not in p.lower() else build.get(m, None)
                 if p == 'status': rcval = rev_map[build.get(m, '')]
                 if rcval != None:
                     update[p] = rcval
@@ -176,7 +195,7 @@ class RavenColonial:
             url:str = f"{RC_API}/v2/system/{system.get('ID64')}/sites"
             self.headers["rcc-cmdr"] = system.get('Architect')
 
-            Debug.logger.info(f"RavenColonial upserting site {json.dumps(payload, indent=4)}")
+            Debug.logger.info(f"RavenColonial upserting site {payload}")
 
             response:Response = requests.put(url, json=payload, headers=self.headers, timeout=5)
             if response.status_code != 200:
@@ -223,7 +242,8 @@ class RavenColonial:
         """ Merge the data from RavenColonial into the system data """
         try:
             #Debug.logger.debug(f"Merging data: {json.dumps(data, indent=4)}")
-            sysnum = self.colonisation.get_sysnum('StarSystem', data.get('name', None))
+            sysnum:int = self.colonisation.get_sysnum('StarSystem', data.get('name', None))
+            system:dict = self.colonisation.systems[sysnum]
             if sysnum == None:
                 Debug.logger.info(f"Can't merge, system {data.get('name', None)} not found")
                 return
@@ -239,20 +259,10 @@ class RavenColonial:
                 self.colonisation.modify_system(sysnum, mod)
 
             for site in data.get('sites', []):
-                build:dict = {}
-                ind:int = None
-                found:bool = False
-                for ind, build in enumerate(self.colonisation.systems[sysnum].get('Builds', [])):
-                    if site.get('id', -1) == build.get('RCID', None): # Full match
-                        found = True
-                        break
-                    elif build.get('RCID', None) == None and \
-                         (site.get('name', -1) == build.get('Name', None) or \
-                            (site.get('buildType', "Unknown") == build.get('Layout', None) and \
-                                site.get('bodyId', -1) == build.get('BodyNum', None))): # Fuzzy match
-                        found = True
-                        break
-
+                build:dict = self.colonisation.find_build(system, {'MarketID': site.get('id', -1)[1:],
+                                                                   'Name': site.get('name', -1),
+                                                                   'RCID' : site.get('id', -1)})
+                if build == None: build = {}
                 deets:dict = {}
                 for p, m in self.site_params.items():
                     # Skip placeholder responses
@@ -266,12 +276,12 @@ class RavenColonial:
                         deets[m] = rcval
 
                 if deets != {}:
-                    if found == False:
+                    if build == {}:
                         Debug.logger.info(f"Adding build {sysnum} {deets}")
                         self.colonisation.add_build(sysnum, deets, True)
                     else:
-                        Debug.logger.info(f"Updating build {sysnum} {ind} {deets}")
-                        self.colonisation.modify_build(sysnum, ind, deets, True)
+                        Debug.logger.info(f"Updating build {sysnum} {system['Builds'].index(build)} {deets}")
+                        self.colonisation.modify_build(sysnum, system['Builds'].index(build), deets, True)
             return
 
         except Exception as e:
@@ -368,11 +378,11 @@ class RavenColonial:
         for k, v in self.project_params.items():
             rcval = None
             if progress.get(v, None) != None:
-                rcval = progress.get(v, '').strip().lower().replace(' ', '_') if isinstance(progress.get(v, None), str) and k not in self._names else progress.get(v, None)
+                rcval = progress.get(v, '').strip().lower().replace(' ', '_') if isinstance(progress.get(v, None), str) and 'name' not in k.lower() else progress.get(v, None)
             elif build.get(v, None) != None:
-                rcval = build.get(v, '').strip().lower().replace(' ', '_') if isinstance(build.get(v, None), str) and k not in self._names else build.get(v, None)
+                rcval = build.get(v, '').strip().lower().replace(' ', '_') if isinstance(build.get(v, None), str) and 'name' not in k.lower() else build.get(v, None)
             elif system.get(v, None) != None:
-                rcval = system.get(v, '').strip().lower().replace(' ', '_') if isinstance(system.get(v, None), str) and k not in self._names else system.get(v, None)
+                rcval = system.get(v, '').strip().lower().replace(' ', '_') if isinstance(system.get(v, None), str) and 'name' not in k.lower() else system.get(v, None)
             elif k == 'commodities':
                 rcval = {re.sub(r"\$(.*)_name;", r"\1", comm['Name']).lower() : comm['RequiredAmount'] for comm in progress.get('ResourcesRequired')}
 
@@ -404,10 +414,6 @@ class RavenColonial:
         # Required: buildId (though maybe not if you use )
         try:
 
-            #url:str = f"{RC_API}/project/{progress.get('ProjectID')}"
-            #response:Response = requests.delete(url, headers=self.headers,timeout=5)
-            #Debug.logger.info(f"Response for {url}: {response.status_code}")
-
             # Create project if we don't have an id.
             if progress.get('ProjectID', None) == None:
                 self.create_project(system, build, progress)
@@ -418,11 +424,11 @@ class RavenColonial:
             for k, v in self.project_params.items():
                 rcval = None
                 if progress.get(v, None) != None:
-                    rcval = progress.get(v, '').strip().lower().replace(' ', '_') if isinstance(progress.get(v, None), str) and k not in self._names else progress.get(v, None)
+                    rcval = progress.get(v, '').strip().lower().replace(' ', '_') if isinstance(progress.get(v, None), str) and 'name' not in k.lower() else progress.get(v, None)
                 elif build.get(v, None) != None:
-                    rcval = build.get(v, '').strip().lower().replace(' ', '_') if isinstance(build.get(v, None), str) and k not in self._names else build.get(v, None)
+                    rcval = build.get(v, '').strip().lower().replace(' ', '_') if isinstance(build.get(v, None), str) and 'name' not in k.lower() else build.get(v, None)
                 elif system.get(v, None) != None:
-                    rcval = system.get(v, '').strip().lower().replace(' ', '_') if isinstance(system.get(v, None), str) and k not in self._names else system.get(v, None)
+                    rcval = system.get(v, '').strip().lower().replace(' ', '_') if isinstance(system.get(v, None), str) and 'name' not in k.lower() else system.get(v, None)
                 elif k == 'commodities':
                     rcval = {re.sub(r"\$(.*)_name;", r"\1", comm['Name']).lower() : comm['RequiredAmount'] - comm['ProvidedAmount'] for comm in progress.get('ResourcesRequired')}
 
@@ -431,6 +437,7 @@ class RavenColonial:
 
             url = f"{RC_API}/project/{progress.get('ProjectID')}"
             self.headers["rcc-cmdr"] = self.colonisation.cmdr
+            Debug.logger.debug(f"Sending project update: {payload}")
             #Debug.logger.debug(f"{url} {payload} {self.headers}")
             #response:Response = requests.patch(url, json=payload, headers=self.headers, timeout=5)
             #Debug.logger.debug(f"{url} {response} {response.content}")
@@ -489,33 +496,9 @@ class RavenColonial:
                 return
 
             data:dict = response.json()
-            Debug.logger.debug(f"{data['buildId']} {self._cache.get(data['buildId'])}")
-            return
+            self._cache[data.get('buildId')] = data.get('timestamp')
 
-            if self._cache[data['buildId']].get('rev', -1) == data['rev']:
-                Debug.logger.debug(f"System hasn't changed no update required")
-                return
-
-            self._cache[data['id64']]['rev'] = data['rev']
-
-            system:dict = self.colonisation.get_system('SystemAddress', data.get('id64', None))
-            if system == None:
-                Debug.logger.info(f"RavenColonial system {data.get('id64', None)} not found")
-                return
-
-            self._merge_system_data(data)
-
-            # Submit any missing sites to RC
-            for ind, b in enumerate(system['Builds']):
-                if b.get('Layout', None) == None or b.get('BodyNum', None) == None: # required fields
-                    continue
-
-                for site in data.get('sites', []):
-                    if site.get('id', None) == b.get('RCID', None):
-                        break
-
-                if site.get('id', None) != b.get('RCID', None): # Not found so add it
-                    self.upsert_site(system, ind, b)
+            # Need to figure out what we're going to update here.
             return
 
         except Exception as e:

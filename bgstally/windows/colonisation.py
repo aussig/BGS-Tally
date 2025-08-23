@@ -929,7 +929,7 @@ class ColonisationWindow:
                     if row > 0 and row < len(systems[sysnum]['Builds']):
                         self.colonisation.remove_build(sysnum, row)
                     else:
-                        self.set_base_type(sysnum, row, val)
+                        self.colonisation.set_base_type(systems[sysnum], row, val)
 
                     sdata:list = self.sheets[sysnum].data
                     sdata.pop(row + FIRST_BUILD_ROW)
@@ -937,7 +937,7 @@ class ColonisationWindow:
                     self._config_sheet(self.sheets[sysnum], systems[sysnum])
 
                 case 'Base Type' | 'Layout' if val != ' ':
-                    self.colonisation.set_base_type(sysnum, row, val)
+                    self.colonisation.set_base_type(systems[sysnum], row, val)
 
                     # Initial cell population
                     sdata:list = []

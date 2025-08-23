@@ -2,6 +2,7 @@ import tkinter as tk
 import tkinter.font as tkFont
 import traceback
 import webbrowser
+import re
 from enum import Enum, auto
 from functools import partial
 from math import ceil
@@ -360,10 +361,13 @@ class ProgressWindow:
             sn:str = _('Unknown') # LANG: Unknown system name
             if self.build_index < len(tracked):
                 b:dict = tracked[self.build_index]
-                bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
+                bn:str = re.sub(r"(\w+ Construction Site:|$EXT_PANEL_ColonisationShip;) ", "", b.get('Name', ''))
+                bt:str = b.get('Base Type', '')
                 pn:str = b.get('Plan', _('Unknown')) # Unknown system name
                 sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
-                name:str = str_truncate(', '.join([pn, bn]), 53, loc='middle')
+                name:str = str_truncate(', '.join([pn, bt]), 52, loc='middle')
+                if b.get('Name', '') != '':
+                    name = str_truncate(', '.join([pn, bt, bn]), 52, loc='middle')
 
             self.title.config(text=name)
 
@@ -377,7 +381,6 @@ class ProgressWindow:
 
             # Set the column headings according to the selected units
             for col, val in enumerate(self.columns):
-                Debug.logger.debug(f" Setting columns: {col} {val} {self.headings[val].get('Label')}")
                 self.collbls[col]['text'] = self.headings[val].get('Label')
                 #instructions:str = ", " + _("l-click cycles value, r-click cycles units") # LANG: left and right click tooltip
                 self.coltts[col].text = f"{self.headings[val].get('Tooltip')}"
@@ -425,12 +428,10 @@ class ProgressWindow:
                         cell.grid_remove()
                     continue
 
-                if reqcnt > 0:
-                    totals['Required'] += reqcnt
-                    totals['Delivered'] += delcnt
-                if remaining > 0:
-                    if 'Cargo' in totals: totals['Cargo'] += cargo
-                    if 'Carrier' in totals: totals['Carrier'] += min(carrier, remaining-cargo)
+                totals['Required'] += reqcnt
+                totals['Delivered'] += delcnt
+                totals['Cargo'] += cargo
+                totals['Carrier'] += carrier
 
                 if rc == MAX_ROWS:
                     for cell in row.values():
@@ -498,7 +499,6 @@ class ProgressWindow:
             case 'Cargo': qty = cargo
             case 'Carrier': qty = carrier
         qty = max(qty, 0) # Never less than zero
-        Debug.logger.debug(f"{col} {which} {qty} [{required} {delivered} {cargo} {carrier}]")
         if self.units[col] == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) != 1:
             return f"{ceil(qty / self.colonisation.cargo_capacity)}{_('L')}"
 

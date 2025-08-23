@@ -121,7 +121,6 @@ class CommodityOrder(Enum):
 
 class ProgressUnits(Enum):
     QTY = 0
-    OUTSTANDING = auto()
     LOADS = auto()
 
 class ProgressView(Enum):

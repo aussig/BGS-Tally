@@ -1175,9 +1175,9 @@ class Colonisation:
         #        if b.get('Base Type', '') == '' and b.get('Name', '') == '':
         #            del system['Builds'][i]
 
-        units:dict = {}
-        for k, v in self.bgstally.ui.window_progress.units.items():
-            units[k] = v.value
+        units:list = []
+        for v in self.bgstally.ui.window_progress.units:
+            units.append(v.value)
 
         return {
             'Docked': self.docked,
@@ -1191,6 +1191,7 @@ class Colonisation:
             'CargoCapacity': self.cargo_capacity,
             'ProgressView' : self.bgstally.ui.window_progress.view.value,
             'ProgressUnits': units,
+            'ProgressColumns': self.bgstally.ui.window_progress.columns,
             'BuildIndex'   : self.bgstally.ui.window_progress.build_index
             }
 
@@ -1208,7 +1209,7 @@ class Colonisation:
         self.cargo_capacity = dict.get('CargoCapacity', 784)
         self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
 
-        units = dict.get('ProgressUnits', {})
-        for k, v in units.items():
-            self.bgstally.ui.window_progress.units[k] = ProgressUnits(v)
+        units = dict.get('ProgressUnits', [])
+        for i, v in enumerate(units):
+            self.bgstally.ui.window_progress.units[i] = ProgressUnits(v)
         self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)

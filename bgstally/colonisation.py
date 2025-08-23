@@ -82,7 +82,6 @@ class Colonisation:
         self._load_base_types()
         self._load_base_costs()
         self._load()
-        self._update_carrier()
 
 
     def _load_base_types(self) -> None:
@@ -184,7 +183,7 @@ class Colonisation:
                         Debug.logger.warning(f"Invalid ColonisationContribution event: {entry}")
                         return
 
-                    system:dict = self.find_system(self.current_system, self.system_id)
+                    system:dict = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
                     if system != None and system.get('RCSync', 0) == 1:
                         for progress in self.progress:
                             if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
@@ -197,7 +196,7 @@ class Colonisation:
                         Debug.logger.warning(f"Invalid ColonisationSystemClaim event: {entry}")
                         return
                     Debug.logger.info(f"System claimed: {self.current_system}")
-                    system = self.find_or_create_system(self.current_system, self.system_id)
+                    system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
                     system['StarSystem'] = self.current_system
                     system['SystemAddress'] = self.system_id
                     system['Claimed'] = entry.get('timestamp', datetime.now().isoformat())
@@ -227,7 +226,7 @@ class Colonisation:
                     if changed == False:
                         return
 
-                    system:dict = self.find_system(self.current_system, self.system_id)
+                    system:dict = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
                     if system == None:
                         Debug.logger.warning(f"System {self.current_system} not found for build {self.market_id}")
                         return
@@ -241,7 +240,7 @@ class Colonisation:
                 case 'Docked':
                     self._update_market(self.market_id)
                     self.docked = True
-                    system:dict = self.find_system(self.current_system, self.system_id)
+                    system:dict = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
                     build_state:BuildState = BuildState.PLANNED
                     build:dict = {}
 
@@ -249,12 +248,14 @@ class Colonisation:
                      # Construction site can be any build, so find/add system, find/add build
                     if '$EXT_PANEL_ColonisationShip' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                         Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
-                        if system == None: system = self.find_or_create_system(self.current_system, self.system_id)
-                        build = self.find_or_create_build(system, self.market_id, self.station, self.body)
+                        if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
+                        build = self.find_or_create_build(system, {'MarketID': self.market_id,
+                                                                   'Name': self.station})
                         build_state = BuildState.PROGRESS
                     # Complete station so find it and add/update as appropriate.
                     elif system != None and self.station != 'FleetCarrier' and re.search(r"^\$", f"{self.station}") == None:
-                        build = self.find_or_create_build(system, self.market_id, self.station, self.body)
+                        build = self.find_or_create_build(system, {'MarketID': self.market_id,
+                                                                   'Name': self.station})
                         build_state = BuildState.COMPLETE
 
                     # If this isn't a colonisation ship or a system we're building, or it's a carrier, scenario, etc. then ignore it.
@@ -307,11 +308,12 @@ class Colonisation:
                         return
 
                     # If we don't have this system in our list, we don't care about it.
-                    system:dict = self.find_system(self.current_system, self.system_id)
+                    system:dict = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
                     if system == None: return
 
                     # It's in a system we're building in, so we should create it.
-                    build:dict = self.find_or_create_build(system, self.market_id, self.station, self.body)
+                    build:dict = self.find_or_create_build(system, {'MarketID': self.market_id,
+                                                                   'Name': self.station})
 
                     # We update them here because it's not possible to dock at installations once they're complete so
                     # you may miss their completion.
@@ -391,24 +393,11 @@ class Colonisation:
         return self.systems
 
 
-    def get_systems(self, key, val) -> list[dict]:
-        ''' Get all systems that match key/val pair '''
-        return [k for k in self.systems if k.get(key, None) == val]
-
-
     def get_system(self, key:str, value) -> dict | None:
         ''' Get a system by any attribute '''
         for i, system in enumerate(self.systems):
             if system.get(key) != None and system.get(key) == value:
                 return system
-        return
-
-
-    def get_sysnum(self, key:str, value:str) -> int | None:
-        ''' Get the current index of a system by any attribute '''
-        for i, system in enumerate(self.systems):
-            if system.get(key) != None and system.get(key) == value:
-                return i
         return
 
 
@@ -428,24 +417,22 @@ class Colonisation:
         return status
 
 
-    def find_system(self, name:str = None, addr:int = None) -> dict|None:
+    def find_system(self, data:dict) -> dict|None:
         ''' Find a system by address, system name, or plan name '''
         system:dict|None = None
-        if addr != None:
-            system = self.get_system('SystemAddress', addr)
-        if name != None and system == None:
-            system = self.get_system('StarSystem', name)
-        if name != None and system == None:
-            system = self.get_system('Name', name)
-
-        return system
+        for m in ['SystemAddress', 'StarSystem', 'Name']:
+            if data.get(m, None) != None:
+                for i, system in enumerate(self.systems):
+                    if system.get(m) != None and system.get(m) == data.get(m):
+                        return system
+        return None
 
 
-    def find_or_create_system(self, name:str, addr:int) -> dict:
+    def find_or_create_system(self, data:dict) -> dict:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
-        system:dict = self.find_system(name, addr)
+        system:dict = self.find_system(data)
         if system == None:
-            return self.add_system(name, name, addr)
+            return self.add_system(data)
 
         return system
 
@@ -453,7 +440,7 @@ class Colonisation:
     def add_system(self, plan_name:str, system_name:str = None, system_address:int = None, prepop:bool = False, rcsync:bool = False) -> dict|None:
         ''' Add a new system for colonisation planning '''
 
-        if self.get_system('Name', plan_name) != None or self.get_system('StarSystem', system_name) != None:
+        if self.find_system({'StarSystem': system_name, 'Name': plan_name}) != None:
             Debug.logger.warning(f"Cannot add system - already exists: {plan_name} {system_name}")
             return
 
@@ -524,7 +511,7 @@ class Colonisation:
             if data.get('name', None) == None:
                 Debug.logger.warning(f"EDSM stations response did not contain a name, ignoring")
                 return
-            system:dict|None = self.find_system(data.get('name'))
+            system:dict|None = self.find_system({'StarSystem': data.get('name')})
             if system == None:
                 Debug.logger.warning(f"EDSM stations didn't find system {data.get('name')}")
                 return
@@ -586,7 +573,7 @@ class Colonisation:
             if data.get('name', None) == None:
                 Debug.logger.warning(f"EDSM system didn't contain a name, ignoring")
                 return
-            system:dict = self.find_system(data.get('name'))
+            system:dict = self.find_system({'StarSystem' : data.get('name')})
             if system == None:
                 Debug.logger.warning(f"EDSM system didn't find system {data.get('name')}")
                 return
@@ -614,7 +601,7 @@ class Colonisation:
             if data.get('name', None) == None:
                 Debug.logger.warning(f"EDSM bodies didn't contain a name, ignoring")
                 return
-            system:dict = self.find_system(data.get('name'))
+            system:dict = self.find_system({'StarSystem' : data.get('name')})
             if system == None:
                 Debug.logger.warning(f"EDSM bodies didn't find system {data.get('name')}")
                 return
@@ -707,7 +694,10 @@ class Colonisation:
 
 
     def find_build(self, system:dict, data:dict) -> dict|None:
-        ''' Get a build by marketid or name '''
+        '''
+        Get a build by a range and/or combinatino of attributes.
+        Marketid, RCID or name are preferred but we use fuzzy matching for weird fdev cases
+        '''
         builds:list = self.get_system_builds(system)
 
         if data.get('Name', '') == '' or data.get('Name', '') == ' ': data['Name'] = None
@@ -721,7 +711,6 @@ class Colonisation:
             if data.get(m, None) != None:
                 for build in builds:
                     if build.get(m, None) == data.get(m, None):
-                        Debug.logger.debug(f"Matched on {m}")
                         return build
 
         # Match the first planned build with the right body and location (orbital or surface)
@@ -748,11 +737,11 @@ class Colonisation:
         return None
 
 
-    def find_or_create_build(self, system:dict, market_id:int = None, name:str = None, body:str = None) -> dict:
+    def find_or_create_build(self, system:dict, data:dict) -> dict:
         ''' Find a build by marketid or name, or create it if it doesn't exist '''
-        build:dict|None = self.find_build(system, {'MarketID': market_id, 'Name': name, 'Body': body})
+        build:dict|None = self.find_build(system, data)
         if build == None:
-            return self.add_build(system, {'Name' : name, 'MarketID' : market_id})
+            return self.add_build(system, data)
 
         return build
 
@@ -849,7 +838,7 @@ class Colonisation:
         ''' Modify a build in a system '''
         try:
 
-            Debug.logger.debug(f"Modifying build {json.dumps(data, indent=4)}")
+            Debug.logger.debug(f"Modifying build {data}")
             if isinstance(system, int):
                 system = self.systems[system]
 
@@ -905,7 +894,7 @@ class Colonisation:
         ''' Determine if a build has just been completed and if so mark it as such '''
         try:
             Debug.logger.debug(f"Completing build {self.current_system} {self.system_id} {market_id}")
-            system = self.find_system(self.current_system, self.system_id)
+            system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
             if system == None:
                 return False
             build:dict|None = self.find_build(system, {'MarketID' : market_id})

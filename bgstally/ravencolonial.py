@@ -242,8 +242,10 @@ class RavenColonial:
         """ Merge the data from RavenColonial into the system data """
         try:
             #Debug.logger.debug(f"Merging data: {json.dumps(data, indent=4)}")
-            sysnum:int = self.colonisation.get_sysnum('StarSystem', data.get('name', None))
-            system:dict = self.colonisation.systems[sysnum]
+            systems:list = self.colonisation.get_all_systems()
+            system:dict = self.colonisation.find_system({'SystemAddress' : data.get('id64', None),
+                                                         'StarSystem': data.get('name', None)})
+            sysnum:int|None = systems.index(system)
             if sysnum == None:
                 Debug.logger.info(f"Can't merge, system {data.get('name', None)} not found")
                 return
@@ -297,7 +299,8 @@ class RavenColonial:
                 return
 
             data:dict = response.json()
-            system:dict = self.colonisation.get_system('SystemAddress', data.get('id64', None))
+            system:dict = self.colonisation.find_system({'SystemAddress': data.get('id64', None),
+                                                         'StarSystem': data.get('name', None)})
             if system == None:
                 Debug.logger.info(f"RavenColonial system {data.get('id64', None)} not found")
                 return
@@ -336,20 +339,23 @@ class RavenColonial:
                 return
 
             data:dict = response.json()
-            sysnum:int|None = self.colonisation.get_sysnum('StarSystem', data.get('name', None))
+            systems:list = self.colonisation.get_all_systems()
+            system:dict = self.colonisation.find_system({'StarSystem': data.get('name', None)})
+            sysnum:int|None = systems.index(system)
 
             if sysnum == None:
                 Debug.logger.info(f"RavenColonial system {data.get('id64', None)} not found")
                 return
 
             self.colonisation.modify_system(sysnum, {
-                'ID64': data.get('id64', None),
+                'SystemAddress': data.get('id64', None),
+                'StarSystem': data.get('name', None),
                 'Name': data.get('name', None),
                 'Architect': data.get('architect', None)
             })
 
             # Update the system's builds with the data from RC
-            for ind, build in enumerate(self.colonisation.system.get('Builds', [])):
+            for ind, build in enumerate(system.get('Builds', [])):
                 site:dict = {}
                 for site in data.get('sites', []):
                     if site.get('name', None) == build.get('name', None):

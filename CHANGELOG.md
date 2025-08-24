@@ -1,5 +1,12 @@
 # Change Log
 
+## vx.x.x - xxxx-xx-xx
+
+### New Features:
+
+* Now tracks and reports your Powerplay merits earned each daily tick.
+
+
 ## v5.1.0-xx - xxxx-xx-xx
 
 

@@ -146,6 +146,7 @@ class Activity:
         self.discord_notes: str = ""
         self.dirty: bool = False
         self.autopost: bool = False
+        self.powerplay: dict = {}
 
         self.cmdr: str = cmdr  # Not saved / loaded (yet) because it's not implemented properly
 
@@ -559,6 +560,36 @@ class Activity:
 
         self.recalculate_zero_activity()
         mission_log.delete_mission_by_id(journal_entry['MissionID'])
+
+
+    def powerplay_merits(self, journal_entry: dict):
+        """
+        Handle merits gained from journal entry
+        """
+        if self.powerplay.get('power') != journal_entry.get('Power'):
+            # Power has changed, reset merits
+            self.powerplay['merits'] = journal_entry.get('MeritsGained', 0)
+        else:
+            # Same power, add merits
+            self.powerplay['merits'] = self.get_merits() + journal_entry.get('MeritsGained', 0)
+
+
+    def get_merits(self) -> int:
+        """Get the current merits
+
+        Returns:
+            int: Number of merits earned in this tick
+        """
+        return int(self.powerplay.get('merits', 0))
+
+
+    def get_power(self) -> str:
+        """Get the current power
+
+        Returns:
+            str: The current power, or "None" (translated) if not pledged
+        """
+        return self.powerplay.get('power', _("None")) # LANG: Default power name if none
 
 
     def mission_failed(self, journal_entry: dict, mission_log: MissionLog):
@@ -1536,7 +1567,8 @@ class Activity:
             'tickforced': self.tick_forced,
             'discordwebhookdata': self.discord_webhook_data,
             'discordnotes': self.discord_notes,
-            'systems': self.systems}
+            'systems': self.systems,
+            'powerplay': self.powerplay}
 
 
     def _from_dict(self, dict: Dict):
@@ -1550,7 +1582,7 @@ class Activity:
         self.discord_webhook_data = dict.get('discordwebhookdata', {})
         self.discord_notes = dict.get('discordnotes', "")
         self.systems = dict.get('systems', {})
-
+        self.powerplay = dict.get('powerplay', {})
 
 
     # Comparator functions - we use the tick_time for sorting
@@ -1597,6 +1629,7 @@ class Activity:
         setattr(result, 'tick_forced', self.tick_forced)
         setattr(result, 'discord_notes', self.discord_notes)
         setattr(result, 'megaship_pat', self.megaship_pat)
+        setattr(result, 'powerplay', self.powerplay)
 
         # Deep copied items
         setattr(result, 'systems', deepcopy(self.systems, memo))

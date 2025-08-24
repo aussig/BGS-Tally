@@ -253,6 +253,9 @@ class BGSTally:
                 activity.mission_failed(entry, self.mission_log)
                 dirty = True
 
+            case 'PowerplayMerits':
+                activity.powerplay_merits(entry)
+
             case 'ReceiveText':
                 self.target_manager.received_text(entry, system)
 
@@ -370,6 +373,7 @@ class BGSTally:
         Save all data structures
         """
         # TODO: Don't need to save all this all the time, be more selective
+        self.merits.save()
         self.mission_log.save()
         self.target_manager.save()
         self.tick.save()

@@ -29,6 +29,7 @@ class State:
         self.EnableOverlayObjectives:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayObjectives', default=CheckStates.STATE_ON))
         self.EnableOverlayColonisation:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayColonisation', default=CheckStates.STATE_ON))
         self.EnableSystemActivityByDefault:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableSystemActivityByDefault', default=CheckStates.STATE_ON))
+        self.EnableShowMerits:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableShowMerits', default=CheckStates.STATE_ON))
         self.DetailedInf:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedInf', default=CheckStates.STATE_OFF))
         self.DetailedTrade:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DetailedTrade', default=CheckStates.STATE_ON))
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordActivity', default=DiscordActivity.BOTH))
@@ -105,6 +106,7 @@ class State:
         self.detailed_inf:bool = (self.DetailedInf.get() == CheckStates.STATE_ON)
         self.detailed_trade:bool = (self.DetailedTrade.get() == CheckStates.STATE_ON)
         self.discord_bgstw_automatic:bool = (self.DiscordBGSTWAutomatic.get() == CheckStates.STATE_ON)
+        self.showmerits:bool = (self.EnableShowMerits.get() == CheckStates.STATE_ON)
 
 
     def save(self):
@@ -128,6 +130,7 @@ class State:
         config.set('BGST_EnableOverlayObjectives', self.EnableOverlayObjectives.get())
         config.set('BGST_EnableOverlayColonisation', self.EnableOverlayColonisation.get())
         config.set('BGST_EnableSystemActivityByDefault', self.EnableSystemActivityByDefault.get())
+        config.set('BGST_EnableShowMerits', self.EnableShowMerits.get())
         config.set('BGST_DetailedInf', self.DetailedInf.get())
         config.set('BGST_DetailedTrade', self.DetailedTrade.get())
         config.set('BGST_DiscordActivity', self.DiscordActivity.get())

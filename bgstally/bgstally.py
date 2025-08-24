@@ -373,7 +373,6 @@ class BGSTally:
         Save all data structures
         """
         # TODO: Don't need to save all this all the time, be more selective
-        self.merits.save()
         self.mission_log.save()
         self.target_manager.save()
         self.tick.save()

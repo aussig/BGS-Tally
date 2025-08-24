@@ -308,6 +308,8 @@ class Activity:
                 # Delete the whole system
                 del self.systems[system_address]
 
+        self.powerplay = {}
+
 
     def post_to_discord(self):
         """ Post the activity to Discord"""

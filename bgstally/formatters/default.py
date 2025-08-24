@@ -145,10 +145,10 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
         if self.bgstally.state.showmerits and activity.get_merits() > 0:
             if discord:
-                merits_title: str = __("Merits", lang) + "(" + activity.get_power() + ")" # LANG: Heading for merits gained, with power name in brackets
+                merits_title: str = __("Merits", lang) + " (" + activity.get_power() + ")" # LANG: Heading for merits gained, with power name in brackets
                 text += f"```ansi\n{color_wrap(merits_title, 'blue', None, 'bold', fp=fp)}: {activity.get_merits()}```"
             else:
-                merits_title: str = TAG_OVERLAY_HIGHLIGHT + __("Merits", lang) + "(" + activity.get_power() + ")" # LANG: Heading for merits gained, with power name in brackets
+                merits_title: str = TAG_OVERLAY_HIGHLIGHT + __("Merits", lang) + " (" + activity.get_power() + ")" # LANG: Heading for merits gained, with power name in brackets
                 text += f"{merits_title}: {activity.get_merits()}"
 
         if discord and activity.discord_notes is not None and activity.discord_notes != "": text += "\n" + activity.discord_notes

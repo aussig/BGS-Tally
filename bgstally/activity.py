@@ -570,10 +570,15 @@ class Activity:
         """
         if self.powerplay.get('power') != journal_entry.get('Power'):
             # Power has changed, reset merits
+            self.powerplay['power'] = journal_entry.get('Power')
             self.powerplay['merits'] = journal_entry.get('MeritsGained', 0)
         else:
             # Same power, add merits
             self.powerplay['merits'] = self.get_merits() + journal_entry.get('MeritsGained', 0)
+
+        current_system: dict = self.systems.get(self.bgstally.state.current_system_id)
+        self.activity_updated(current_system['SystemAddress'])
+        self.dirty = True
 
 
     def get_merits(self) -> int:

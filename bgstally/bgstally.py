@@ -255,6 +255,7 @@ class BGSTally:
 
             case 'PowerplayMerits':
                 activity.powerplay_merits(entry)
+                dirty = True
 
             case 'ReceiveText':
                 self.target_manager.received_text(entry, system)

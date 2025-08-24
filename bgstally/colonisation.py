@@ -660,15 +660,17 @@ class Colonisation:
 
     def get_build_state(self, build:dict) -> BuildState:
         ''' Get the state of a build from either the build or the progress data '''
-        if build.get('State', None) == BuildState.COMPLETE or build.get('MarketID', None) == None:
+        if build.get('State', None) == BuildState.PLANNED or build.get('MarketID', None) == None:
             return build.get('State', BuildState.PLANNED)
 
         # If we have a progress entry, use that
         for p in self.progress:
-            if p.get('MarketID') == build.get('MarketID') and p.get('ConstructionComplete', False) == True:
-                Debug.logger.debug(f"Finished build {build.get('Name', 'Unknown')} {build.get('MarketID', 'Unknown')}")
-                self.try_complete_build(build.get('MarketID'))
-                return BuildState.COMPLETE
+            if p.get('MarketID') == build.get('MarketID'):
+                if p.get('ConstructionComplete', False) == True:
+                    Debug.logger.debug(f"Finished build {build.get('Name', 'Unknown')} {build.get('MarketID', 'Unknown')}")
+                    self.try_complete_build(build.get('MarketID'))
+                    return BuildState.COMPLETE
+                return BuildState.PROGRESS
 
         # Otherwise, use the state of the build
         return build.get('State', BuildState.PLANNED)
@@ -1032,14 +1034,17 @@ class Colonisation:
     def _update_carrier(self) -> None:
         ''' Update the carrier cargo data. '''
         try:
+            if self.bgstally.fleet_carrier.available() == False:
+                return
             cargo:dict = {}
-            if self.bgstally.fleet_carrier.available() == True:
-                for item in self.bgstally.fleet_carrier.cargo:
-                    n = item.get('commodity')
-                    n = f"${n.lower().replace(' ', '')}_name;"
-                    if n not in cargo:
-                        cargo[n] = 0
-                    cargo[n] += int(item['qty'])
+
+            for item in self.bgstally.fleet_carrier.cargo:
+                n = item.get('commodity')
+                n = f"${n.lower().replace(' ', '')}_name;"
+                if n not in cargo:
+                    cargo[n] = 0
+                cargo[n] += int(item['qty'])
+
             if cargo != self.carrier_cargo and self.rc != None:
                 self.rc.update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)
                 self.dirty = True

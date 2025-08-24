@@ -545,9 +545,10 @@ class RavenColonial:
                 return
 
             payload:dict = {re.sub(r"\$(.*)_name;", r"\1", comm).lower() : qty for comm, qty in cargo.items()}
-            url:str = f"{RC_API}/FC/{marketid}/cargo"
+            #Debug.logger.debug(f"Carrier cargo: {payload}")
+            url:str = f"{RC_API}/fc/{marketid}/cargo"
             self.headers["rcc-cmdr"] = self.colonisation.cmdr
-            self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, headers=self.headers, callback=self._carrier_callback)
+            self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=self.headers, callback=self._carrier_callback)
             return
 
         except Exception as e:
@@ -561,5 +562,5 @@ class RavenColonial:
         if success == False or response.status_code != 200:
             Debug.logger.debug(f"Error updating carrier {response} {response.content}")
             return
-
+        Debug.logger.debug(f"Carrier updated: {response}")
         return

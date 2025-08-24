@@ -655,7 +655,7 @@ class ColonisationWindow:
         starports:list = self.colonisation.get_base_types('Starport')
         min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
         totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
-        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.colonisation.get_build_state(build) == BuildState.COMPLETE]) > 0 else 0
+        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.is_build_complete(build)]) > 0 else 0
         totals['Complete']['Technology Level'] = max(totals['Complete']['Technology Level'], min)
 
         return totals
@@ -1256,6 +1256,9 @@ class ColonisationWindow:
             else:
                 Debug.logger.debug(f"Calling load_system")
                 self.colonisation.rc.load_system(system.get('ID64'), system.get('Rev', None))
+
+            if self.bgstally.fleet_carrier.available() == True:
+                self.rc.update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)
 
             self.update_display()
 

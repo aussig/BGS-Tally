@@ -36,32 +36,32 @@ class ProgressWindow:
         self.headings:list = [
             {
                 'Column' : 'Commodity',
-                'Label' : f"{_('Commodity'):<11}", # LANG: Commodity
+                'Label' : f"{_('Commodity'): <24}", # LANG: Commodity
                 'Tooltip' : f"{_('Commodity')}"
             },
             {
                 'Column' : 'Required',
-                'Label': f"{_('Required'):>10}", # LANG: Required amount
+                'Label': f"{_('Required'): >13}", # LANG: Required amount
                 'Tooltip' : f"{_('Total quantity required')}" # LANG: required amount tooltip
             },
             {
                 'Column' : 'Remaining',
-                'Label': f"{_('Remaining'):>10}", # LANG: Amount remaining
+                'Label': f"{_('Remaining'): >12}", # LANG: Amount remaining
                 'Tooltip' : f"{_('Amount remaining to be delivered')}" # LANG: Amount remaining tooltip
             },
             {
                 'Column' : 'Purchase',
-                'Label': f"{_('Purchase'):>11}", # LANG: Amount to buy
+                'Label': f"{_('Purchase'): >13}", # LANG: Amount to buy
                 'Tooltip' : f"{_('Amount left to buy')}" # LANG: Amount left to buy
             },
             {
                 'Column' : 'Cargo',
-                'Label': f"{_('Cargo'):>1}", # LANG: Cargo amount
+                'Label': f"{_('Cargo'): >13}", # LANG: Cargo amount
                 'Tooltip' : f"{_('Amount in current cargo')}" # LANG: Cargo amount tooltip
             },
             {
                 'Column' : 'Carrier',
-                'Label': f"{_('Carrier'):>11}", # LANG: Carrier amount
+                'Label': f"{_('Carrier'): >13}", # LANG: Carrier amount
                 'Tooltip' : f"{_('Amount in linked fleet carrier(s)')}" # LANG: Carrier amount tooltip
             }
         ]
@@ -444,7 +444,7 @@ class ProgressWindow:
                     if col == 0:
                         # Shorten and display the commodity name
                         colstr:str = self.colonisation.commodities[c].get('Name', c)
-                        colstr = str_truncate(colstr, 25)
+                        colstr = str_truncate(colstr, 24)
 
                         row[col]['text'] = colstr
                         row[col].bind("<Button-1>", partial(self.link, c, None))
@@ -500,9 +500,9 @@ class ProgressWindow:
             case 'Carrier': qty = carrier
         qty = max(qty, 0) # Never less than zero
         if self.units[col] == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) != 1:
-            return f"{ceil(qty / self.colonisation.cargo_capacity)}{_('L')}"
+            return f"{ceil(qty / self.colonisation.cargo_capacity): >12,}{_('L')}"
 
-        return f"{qty:,}{_('t')}"
+        return f"{qty: >12,}{_('t')}"
 
 
     def _set_weight(self, cell, w='bold') -> None:

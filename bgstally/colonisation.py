@@ -154,7 +154,7 @@ class Colonisation:
             if entry.get("StationName", None): self.station = entry.get('StationName')
             if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(entry.get('Body'))
 
-            Debug.logger.debug(f"{entry.get('event')} -- ID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
+            #Debug.logger.debug(f"Event: {entry.get('event')} -- ID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
 
             match entry.get('event'):
                 case 'StartUp': # Synthetic event.

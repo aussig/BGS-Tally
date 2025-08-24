@@ -900,7 +900,6 @@ class Colonisation:
                 return False
             build:dict|None = self.find_build(system, {'MarketID' : market_id})
             if build == None:
-                Debug.logger.debug(f"No build found")
                 return False
             if build.get('State') == BuildState.COMPLETE:
                 return False

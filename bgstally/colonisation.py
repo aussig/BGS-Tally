@@ -660,7 +660,7 @@ class Colonisation:
 
     def get_build_state(self, build:dict) -> BuildState:
         ''' Get the state of a build from either the build or the progress data '''
-        if build.get('State', None) == BuildState.PLANNED or build.get('MarketID', None) == None:
+        if build.get('State', None) == BuildState.COMPLETE or build.get('MarketID', None) == None:
             return build.get('State', BuildState.PLANNED)
 
         # If we have a progress entry, use that
@@ -895,7 +895,6 @@ class Colonisation:
     def try_complete_build(self, market_id:int) -> bool:
         ''' Determine if a build has just been completed and if so mark it as such '''
         try:
-            Debug.logger.debug(f"Completing build {self.current_system} {self.system_id} {market_id}")
             system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
             if system == None:
                 return False
@@ -906,8 +905,7 @@ class Colonisation:
             if build.get('State') == BuildState.COMPLETE:
                 return False
 
-            Debug.logger.debug(f"Completing build 2")
-
+            Debug.logger.debug(f"Completing build {self.current_system} {self.system_id} {market_id}")
             # If we get here, the build is (newly) complete.
             # Since on completion the construction depot is removed/goes inactive and a new station is created
             # we need to clear some fields.

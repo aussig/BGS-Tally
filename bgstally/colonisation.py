@@ -241,7 +241,7 @@ class Colonisation:
                     self._update_market(self.market_id)
                     self.docked = True
                     system:dict = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-                    build_state:BuildState = BuildState.PLANNED
+                    build_state:BuildState = None
                     build:dict = {}
 
                      # Colonisation ship is always the first build. find/add system. find/add build
@@ -736,6 +736,7 @@ class Colonisation:
                 Debug.logger.debug(f"Matched on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
+        Debug.logger.debug(f"Build not found for: {data}")
         return None
 
 
@@ -1146,7 +1147,8 @@ class Colonisation:
     def _as_dict(self) -> dict:
         ''' Return a Dictionary representation of our data, suitable for serializing '''
 
-        def sort_order(item:dict) -> str:
+        # System tab order
+        def sort_order(item:dict) -> int:
             state:BuildState = BuildState.COMPLETE
             for b in item['Builds']:
                 bs = self.get_build_state(b)
@@ -1156,9 +1158,19 @@ class Colonisation:
                     state = BuildState.PROGRESS
             return state.value
 
+        # Builds order
+        def build_order(item:dict) -> int:
+            match self.get_build_state(item):
+                case BuildState.COMPLETE: return 0
+                case BuildState.PROGRESS: return 1
+                case _: return 2
+
         # We sort the order of systems when saving so that in progress systems are first, then planned, then complete.
         # Fortuitously our desired order matches the reverse alpha of the states
         systems:list = list(sorted(self.systems, key=sort_order, reverse=True))
+        for system in systems:
+            if len(system['Builds']) > 1:
+                system['Builds'] = [system['Builds'][0]] + list(sorted(system['Builds'][1:], key=build_order))
 
         # Remove empty build entries
         #for system in systems:

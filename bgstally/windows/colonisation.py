@@ -301,6 +301,10 @@ class ColonisationWindow:
             btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
+            edgis_btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_logo_edgis, cursor="hand2", command=partial(self._edgis_link_clicked, systems[sysnum].get('StarSystem', '')))
+            edgis_btn.pack(side=tk.RIGHT, padx=5, pady=5)
+            ToolTip(edgis_btn, text=_("Show system map in EDGIS")) # LANG: tooltip for the EDGIS button
+
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("📓"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
@@ -464,6 +468,15 @@ class ColonisationWindow:
         except Exception as e:
             Debug.logger.error(f"Error in bodies_popup(): {e}")
             Debug.logger.error(traceback.format_exc())
+
+
+    def _edgis_link_clicked(self, sysname: str) -> None:
+        """Open the system in EDGIS
+
+        Args:
+            sysname (str): System name
+        """
+        webbrowser.open(f"https://elitedangereuse.fr/outils/sysmap.php?system={sysname}")
 
 
     def _create_table_frame(self, tabnum:int, tab:ttk.Frame, system:dict) -> None:

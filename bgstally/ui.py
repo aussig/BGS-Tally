@@ -52,6 +52,9 @@ class UI:
         self.image_logo_bgstally_100 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_100x67.png"))
         self.image_logo_bgstally_16 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_16x16.png"))
         self.image_logo_bgstally_32 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_32x32.png"))
+        self.image_logo_edgis = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_edgis.png"))
+        self.image_logo_inara = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_inara.png"))
+
         self.image_blank = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "blank.png"))
         self.image_button_dropdown_menu = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_dropdown_menu.png"))
         self.image_button_cmdrs = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "button_cmdrs.png"))

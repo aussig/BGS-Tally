@@ -5,6 +5,7 @@
 ### New Features:
 
 * Now tracks and reports your Powerplay merits earned each daily tick.
+* New Discord channel for Powerplay reporting.
 
 
 ## v5.1.0-xx - xxxx-xx-xx

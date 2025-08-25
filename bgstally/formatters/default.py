@@ -98,7 +98,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
                 discord_field = {'name': system['System'], 'value': f"```ansi\n{system_text}```"}
                 discord_fields.append(discord_field)
 
-        if self.bgstally.state.showmerits and activity.get_merits() > 0:
+        if activity_mode == DiscordActivity.POWERPLAY and self.bgstally.state.showmerits and activity.get_merits() > 0:
             merits_title: str = __("Powerplay Merits", lang) + " (" + activity.get_power() + ")"
             discord_field = {'name': merits_title, 'value': f"```ansi\n{activity.get_merits()}```"}
             discord_fields.append(discord_field)
@@ -148,7 +148,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
                     system_name: str = TAG_OVERLAY_HIGHLIGHT + system['System']
                     text += f"{system_name}\n{system_text}"
 
-        if self.bgstally.state.showmerits and activity.get_merits() > 0:
+        if activity_mode == DiscordActivity.POWERPLAY and self.bgstally.state.showmerits and activity.get_merits() > 0:
             if discord:
                 merits_title: str = __("Powerplay Merits", lang) + " (" + activity.get_power() + ")" # LANG: Heading for merits gained, with power name in brackets
                 text += f"```ansi\n{color_wrap(merits_title, 'blue', None, 'bold', fp=fp)}: {activity.get_merits()}```"

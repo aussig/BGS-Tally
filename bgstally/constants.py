@@ -63,7 +63,8 @@ class DiscordPostStyle(str, Enum):
 class DiscordActivity(str, Enum):
     BGS = 'BGS'
     THARGOIDWAR = 'TW'
-    BOTH = 'Both'
+    BOTH = 'Both'      # Both BGS and Thargoid War. Others below are always posted separately.
+    POWERPLAY = 'PP'
 
 
 class DiscordFleetCarrier(str, Enum):

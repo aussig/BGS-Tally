@@ -439,9 +439,12 @@ class WindowActivity:
         """
         Update the contents of the Discord text field
         """
+        text: str = self.bgstally.formatter_manager.get_current_formatter().get_text(activity, self.bgstally.state.DiscordActivity.get(), lang=self.bgstally.state.discord_lang)
+        text += self.bgstally.formatter_manager.get_current_formatter().get_text(activity, DiscordActivity.POWERPLAY, lang=self.bgstally.state.discord_lang)
+
         self.txt_discord.configure(state=tk.NORMAL)
         self.txt_discord.delete('1.0', 'end-1c')
-        self.txt_discord.write(self.bgstally.formatter_manager.get_current_formatter().get_text(activity, self.bgstally.state.DiscordActivity.get(), lang=self.bgstally.state.discord_lang))
+        self.txt_discord.write(text)
         self.txt_discord.configure(state=tk.DISABLED)
 
 

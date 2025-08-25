@@ -323,7 +323,9 @@ class Activity:
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
                 discord_text = formatter.get_text(self, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
                 self.bgstally.discord.post_plaintext(discord_text, self.discord_webhook_data, DiscordChannel.THARGOIDWAR, self._discord_post_complete)
-            #if self.bgstally.state.showmerits and self.get_merits() > 0:
+            if self.bgstally.state.showmerits and self.get_merits() > 0:
+                discord_text = formatter.get_text(self, DiscordActivity.POWERPLAY, lang=self.bgstally.state.discord_lang)
+                self.bgstally.discord.post_plaintext(discord_text, self.discord_webhook_data, DiscordChannel.POWERPLAY, self._discord_post_complete)
 
         else:
             description = "" if self.discord_notes is None else self.discord_notes
@@ -333,6 +335,9 @@ class Activity:
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
                 discord_fields = formatter.get_fields(self, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
                 self.bgstally.discord.post_embed(__("TW Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=self.get_title(True)), description, discord_fields, self.discord_webhook_data, DiscordChannel.THARGOIDWAR, self._discord_post_complete) # LANG: Discord post title
+            if self.bgstally.state.showmerits and self.get_merits() > 0:
+                discord_fields = formatter.get_fields(self, DiscordActivity.POWERPLAY, lang=self.bgstally.state.discord_lang)
+                self.bgstally.discord.post_embed(__("Powerplay Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=self.get_title(True)), description, discord_fields, self.discord_webhook_data, DiscordChannel.POWERPLAY, self._discord_post_complete) # LANG: Discord post title
 
         self.dirty = True # Because discord post ID has been changed
         self.autopost = False # Because we have just posted to Discord, so no longer need to autopost until more activity is done

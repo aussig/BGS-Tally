@@ -415,7 +415,7 @@ class RavenColonial:
         return
 
 
-    def upsert_project(self, system:dict, build:dict, progress:dict, event:dict) -> None:
+    def upsert_project(self, system:dict, build:dict, progress:dict) -> None:
         """ Update build progress """
         # Required: buildId (though maybe not if you use )
         try:
@@ -426,7 +426,7 @@ class RavenColonial:
                 return
 
             # Update project
-            payload:dict = {'colonisationConstructionDepot': event}
+            payload:dict = {}
             for k, v in self.project_params.items():
                 rcval = None
                 if progress.get(v, None) != None:
@@ -435,7 +435,7 @@ class RavenColonial:
                     rcval = build.get(v, '').strip().lower().replace(' ', '_') if isinstance(build.get(v, None), str) and 'name' not in k.lower() else build.get(v, None)
                 elif system.get(v, None) != None:
                     rcval = system.get(v, '').strip().lower().replace(' ', '_') if isinstance(system.get(v, None), str) and 'name' not in k.lower() else system.get(v, None)
-                elif k == 'commodities':
+                elif k == 'commodities' and progress != {}:
                     rcval = {re.sub(r"\$(.*)_name;", r"\1", comm['Name']).lower() : comm['RequiredAmount'] - comm['ProvidedAmount'] for comm in progress.get('ResourcesRequired')}
 
                 if rcval != None:

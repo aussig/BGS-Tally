@@ -883,6 +883,9 @@ class Colonisation:
                 build.get('Layout', None) != None and build.get('BodyNum', None) != None:
                 if self.rc == None: self.rc = RavenColonial(self)
                 self.rc.upsert_site(system, ind, data)
+                for p in self.progress:
+                    if p.get('ProjectID', None) != None and p.get('MarketID', None) == build.get('MarketID'):
+                        self.rc.upsert_project(system, build, p)
 
             self.dirty = True
             self.save('Build modified')

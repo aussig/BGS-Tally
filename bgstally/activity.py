@@ -146,14 +146,15 @@ class Activity:
         self.discord_notes: str = ""
         self.dirty: bool = False
         self.autopost: bool = False
-        self.powerplay: dict = {}
 
         self.cmdr: str = cmdr  # Not saved / loaded (yet) because it's not implemented properly
 
         if sample:
-            self.systems: dict = {"Sample System ID": self.get_sample_system_data()}
+            self.systems: dict = {'Sample System ID': self.get_sample_system_data()}
+            self.powerplay: dict = {'power': "Sample Power Name", 'merits': 12345}
         else:
             self.systems: dict = {}
+            self.powerplay: dict = {}
 
         # Non-stored instance data. Remember to modify __deepcopy__() if these are changed or new data added.
         self.megaship_pat:re.Pattern = re.compile("^[a-z]{3}-[0-9]{3} ")  # e.g. kar-314 aquarius-class tanker
@@ -322,6 +323,8 @@ class Activity:
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
                 discord_text = formatter.get_text(self, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
                 self.bgstally.discord.post_plaintext(discord_text, self.discord_webhook_data, DiscordChannel.THARGOIDWAR, self._discord_post_complete)
+            #if self.bgstally.state.showmerits and self.get_merits() > 0:
+
         else:
             description = "" if self.discord_notes is None else self.discord_notes
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:

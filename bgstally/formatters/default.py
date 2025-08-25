@@ -98,6 +98,11 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
                 discord_field = {'name': system['System'], 'value': f"```ansi\n{system_text}```"}
                 discord_fields.append(discord_field)
 
+        if self.bgstally.state.showmerits and activity.get_merits() > 0:
+            merits_title: str = __("Powerplay Merits", lang) + " (" + activity.get_power() + ")"
+            discord_field = {'name': merits_title, 'value': f"```ansi\n{activity.get_merits()}```"}
+            discord_fields.append(discord_field)
+
         return discord_fields
 
 
@@ -145,10 +150,10 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
         if self.bgstally.state.showmerits and activity.get_merits() > 0:
             if discord:
-                merits_title: str = __("Merits", lang) + " (" + activity.get_power() + ")" # LANG: Heading for merits gained, with power name in brackets
+                merits_title: str = __("Powerplay Merits", lang) + " (" + activity.get_power() + ")" # LANG: Heading for merits gained, with power name in brackets
                 text += f"```ansi\n{color_wrap(merits_title, 'blue', None, 'bold', fp=fp)}: {activity.get_merits()}```"
             else:
-                merits_title: str = TAG_OVERLAY_HIGHLIGHT + __("Merits", lang) + " (" + activity.get_power() + ")" # LANG: Heading for merits gained, with power name in brackets
+                merits_title: str = TAG_OVERLAY_HIGHLIGHT + __("Powerplay Merits", lang) + " (" + activity.get_power() + ")" # LANG: Heading for merits gained, with power name in brackets
                 text += f"{merits_title}: {activity.get_merits()}"
 
         if discord and activity.discord_notes is not None and activity.discord_notes != "": text += "\n" + activity.discord_notes

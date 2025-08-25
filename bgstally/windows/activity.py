@@ -1,4 +1,5 @@
 import tkinter as tk
+import webbrowser
 from datetime import UTC, datetime
 from functools import partial
 from os import path
@@ -156,7 +157,14 @@ class WindowActivity:
                     ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime))).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
                 else:
                     ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime)), foreground=COLOUR_WARNING).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
-            HyperlinkLabel(frm_header, text=_("Inara ⤴"), url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1 # LANG: Inara link
+
+            inara_btn: ttk.Button = ttk.Button(frm_header, image=self.bgstally.ui.image_logo_inara, cursor="hand2", command=partial(self._inara_link_clicked, system['System']))
+            inara_btn.grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+            ToolTip(inara_btn, text=_("Show system in Inara")) # LANG: tooltip for the Inara button
+
+            edgis_btn: ttk.Button = ttk.Button(frm_header, image=self.bgstally.ui.image_logo_edgis, cursor="hand2", command=partial(self._edgis_link_clicked, system['System']))
+            edgis_btn.grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+            ToolTip(edgis_btn, text=_("Show system map in EDGIS")) # LANG: tooltip for the EDGIS button
 
             if self.activity == self.bgstally.activity_manager.get_current_activity():
                 # Current tick activity
@@ -559,6 +567,24 @@ class WindowActivity:
             EnableAllCheckbutton.state(['!alternate', '!selected'])
 
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
+
+
+    def _inara_link_clicked(self, sysname: str) -> None:
+        """Open the system in Inara
+
+        Args:
+            sysname (str): System name
+        """
+        webbrowser.open(f"https://inara.cz/elite/starsystem/?search={sysname}")
+
+
+    def _edgis_link_clicked(self, sysname: str) -> None:
+        """Open the system in EDGIS
+
+        Args:
+            sysname (str): System name
+        """
+        webbrowser.open(f"https://elitedangereuse.fr/outils/sysmap.php?system={sysname}")
 
 
     def _faction_name_clicked(self, notebook: ScrollableNotebook, tab_index: int, EnableCheckbutton, EnableAllCheckbutton, FactionEnableCheckbuttons, activity: Activity, system, faction, faction_index, *args):

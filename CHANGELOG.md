@@ -10,6 +10,10 @@
 
 * Inara link now a logo button on activity windows - looks better alongside the new EDGIS button.
 
+### Bug Fixes:
+
+* East India Co API URL fixed
+
 
 ## v5.1.0-a1 - 2025-08-20
 

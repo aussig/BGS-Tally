@@ -717,13 +717,13 @@ class Colonisation:
 
         # Match the first planned build with the right body and location (orbital or surface)
         if data['Name'] != None and 'Construction Site' in data['Name'] and data.get('Body', None) != None:
-            loc:str = re.sub(r" Construction Site:.*$", "", data['Name']) and
-            build.get('RCID', None) == None and build.get('MarketID', None) == None:
+            loc:str = re.sub(r" Construction Site:.*$", "", data['Name'])
             if loc == 'Planetary': loc = 'Surface'
             Debug.logger.debug(f"Find build matching construction: {data.get('Name')} {data.get('Body')} {loc}")
 
             for build in builds:
-                if data.get('Body') and build.get('Body', '').lower() == data['Body'].lower() and \
+                if build.get('RCID', None) == None and build.get('MarketID', None) == None and \
+                    data.get('Body') and build.get('Body', '').lower() == data['Body'].lower() and \
                     build.get('State', None) == BuildState.PLANNED and build.get('Location', None) == loc:
                     Debug.logger.debug(f"Matched on {data['Body']} {build.get('State', None)} {loc} Build: {build}")
                     return build

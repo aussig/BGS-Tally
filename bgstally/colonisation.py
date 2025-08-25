@@ -717,7 +717,8 @@ class Colonisation:
 
         # Match the first planned build with the right body and location (orbital or surface)
         if data['Name'] != None and 'Construction Site' in data['Name'] and data.get('Body', None) != None:
-            loc:str = re.sub(r" Construction Site:.*$", "", data['Name'])
+            loc:str = re.sub(r" Construction Site:.*$", "", data['Name']) and
+            build.get('RCID', None) == None and build.get('MarketID', None) == None:
             if loc == 'Planetary': loc = 'Surface'
             Debug.logger.debug(f"Find build matching construction: {data.get('Name')} {data.get('Body')} {loc}")
 
@@ -728,7 +729,7 @@ class Colonisation:
                     return build
 
         # Match a completed but as yet unknown build.
-        # #This is used to find the new base that's created once a build completes
+        # This is used to find the new base that's created once a build completes
         for build in builds:
             if build.get('State', None) == BuildState.COMPLETE and build.get('MarketID', '') == '' and \
                 data.get('Body', None) and build.get('Body', '').lower() == data.get('Body', '').lower() and \

@@ -1011,7 +1011,7 @@ class ColonisationWindow:
             row += 1
 
             rcsync_var = tk.IntVar()
-            chk = tk.Checkbutton(add, text=_("Sync with Raven Colonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with Raven Colonial
+            chk = tk.Checkbutton(add, text=_("Sync with RavenColonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with RavenColonial
             chk.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
             row += 1
 
@@ -1138,13 +1138,13 @@ class ColonisationWindow:
 
             rcsync_var = tk.IntVar()
             rcsync_var.set(True if system.get('RCSync', 0) != 0 else False)
-            chk = tk.Checkbutton(dialog, text=_("Sync with Raven Colonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with Raven Colonial
+            chk = tk.Checkbutton(dialog, text=_("Sync with RavenColonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with RavenColonial
             chk.grid(row=row, column=1, padx=10, pady=(0,0), sticky=tk.W)
             row += 1
 
             hide_var = tk.IntVar()
             hide_var.set(system.get('Hide', False))
-            chk = tk.Checkbutton(dialog, text=_("Hide this system"), variable=hide_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to hide a system
+            chk = tk.Checkbutton(dialog, text=_("Deactivate (hide) this plan"), variable=hide_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to remove a plan from the tab list
             chk.grid(row=row, column=1, padx=10, pady=(0,10), sticky=tk.W)
             row += 1
 

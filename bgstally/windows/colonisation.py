@@ -1260,6 +1260,10 @@ class ColonisationWindow:
             if self.bgstally.fleet_carrier.available() == True:
                 self.rc.update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)
 
+            # @TODO: Create a proper project sync process.
+            #for b in system['Builds']:
+            #    if b.get('State') == BuildState.PROGRESS and b.get('BuildID', None) != None:
+            #        self.rc.load_project()
             self.update_display()
 
         except Exception as e:

@@ -61,7 +61,7 @@ class RavenColonial:
             'systemAddress': 'SystemAddress',
             'buildName': 'Name',
             'buildId': 'RCID',
-            'commodities': 'Commodities',
+            'commodities': 'Remaining',
             'colonisationConstructionDepot': 'event',
             'buildType': 'Layout',
             'bodyNum': 'BodyNum',
@@ -158,7 +158,6 @@ class RavenColonial:
         except Exception as e:
             Debug.logger.info(f"Error completing site")
             Debug.logger.error(traceback.format_exc())
-
 
 
     def upsert_site(self, system:dict, ind:int, data:dict = None) -> None:
@@ -389,8 +388,8 @@ class RavenColonial:
                 rcval = build.get(v, '').strip().lower().replace(' ', '_') if isinstance(build.get(v, None), str) and 'name' not in k.lower() else build.get(v, None)
             elif system.get(v, None) != None:
                 rcval = system.get(v, '').strip().lower().replace(' ', '_') if isinstance(system.get(v, None), str) and 'name' not in k.lower() else system.get(v, None)
-            elif k == 'commodities':
-                rcval = {re.sub(r"\$(.*)_name;", r"\1", comm['Name']).lower() : comm['RequiredAmount'] for comm in progress.get('ResourcesRequired')}
+            elif k == 'commodities' and  progress != {}:
+                rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v for k,v in progress.get('Required').items()}
 
             if rcval != None:
                 payload[k] = rcval
@@ -436,7 +435,7 @@ class RavenColonial:
                 elif system.get(v, None) != None:
                     rcval = system.get(v, '').strip().lower().replace(' ', '_') if isinstance(system.get(v, None), str) and 'name' not in k.lower() else system.get(v, None)
                 elif k == 'commodities' and progress != {}:
-                    rcval = {re.sub(r"\$(.*)_name;", r"\1", comm['Name']).lower() : comm['RequiredAmount'] - comm['ProvidedAmount'] for comm in progress.get('ResourcesRequired')}
+                    rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v for k,v in progress.get('Required').items()}
 
                 if rcval != None:
                     payload[k] = rcval
@@ -471,8 +470,8 @@ class RavenColonial:
         try:
             projectid:str|None = progress.get('ProjectID', None)
             if projectid == None: return
-            url:str = f"{RC_API}/project/{projectid}/last"
 
+            url:str = f"{RC_API}/project/{projectid}/last"
             response:Response = requests.get(url, headers=self.headers,timeout=5)
             if response.status_code != 200:
                 Debug.logger.error(f"Error for {url} {response} {response.content}")
@@ -503,7 +502,7 @@ class RavenColonial:
 
             data:dict = response.json()
             self._cache[data.get('buildId')] = data.get('timestamp')
-
+            Debug.logger.debug(f"Project response: {data}")
             # Need to figure out what we're going to update here.
             return
 

@@ -173,7 +173,8 @@ class ProgressWindow:
                 r:dict = {}
 
                 for col, v in enumerate(self.columns):
-                    lbl:tk.Label = tk.Label(table_frame, text='')
+                    lbl:tk.Label = tk.Label(table_frame, text='', cursor="hand2")
+                    lbl.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
                     lbl.grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
                     if row == 0:
                         lbl.bind("<Button-1>", partial(self.link, c, None))
@@ -245,8 +246,8 @@ class ProgressWindow:
                 delcnt:int = delivered[self.build_index].get(val, 0) if len(delivered) > self.build_index else 0
                 remaining:int = reqcnt - delcnt
                 if remaining > 0:
-                    name:str = self.colonisation.commodities[val].get('Name', c)
-                    cat:str = self.colonisation.commodities[val].get('Category', c)
+                    name:str = self.colonisation.commodities[val].get('Name', col)
+                    cat:str = self.colonisation.commodities[val].get('Category', col)
                     if discord:
                         output += f"{name:<28} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
                     else:

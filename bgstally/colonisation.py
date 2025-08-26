@@ -171,7 +171,7 @@ class Colonisation:
                                 self.rc.load_system(system.get('ID64'))
 
                     for progress in self.progress:
-                        if progress.get('ProjectID', None) != None and progress.get('ConstructionComplete') == False:
+                        if progress.get('ProjectID', None) != None and progress.get('ConstructionComplete', False) == False:
                             self.rc.load_project(progress)
 
                 case 'Cargo' | 'CargoTransfer':
@@ -208,33 +208,8 @@ class Colonisation:
                         Debug.logger.warning(f"Invalid ColonisationConstructionDepot event: {entry}")
                         return
 
-                    # Should we remove the build or just clear the name & market id?
-                    if entry.get('ConstructionComplete', False) == True:
-                        self.try_complete_build(self.market_id)
-                        for p in self.progress:
-                            if p.get('MarketID') == self.market_id and p.get('ProjectID', None) != None:
-                                self.rc.complete_site(p.get('ProjectID'))
-                        return
-
                     progress:dict = self.find_or_create_progress(self.market_id)
-                    changed:bool = False
-                    for f in ['ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ResourcesRequired']:
-                        if entry.get(f) and (progress.get(f, None) == None or progress.get(f) != entry.get(f)):
-                            changed = True
-                            self.update_progress(self.market_id, {f : entry.get(f)})
-
-                    if changed == False:
-                        return
-
-                    system:dict = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-                    if system == None:
-                        Debug.logger.warning(f"System {self.current_system} not found for build {self.market_id}")
-                        return
-
-                    # RC Sync if appropriate
-                    if system.get('RCSync', 0) == 1:
-                        build = self.find_build(system, {'MarketID' : self.market_id})
-                        self.rc.upsert_project(system, build, progress, entry)
+                    self.update_progress(self.market_id, entry)
                     self.dirty = True
 
                 case 'Docked':
@@ -959,11 +934,10 @@ class Colonisation:
                 if b.get('MarketID') != None:
                     for p in self.progress:
                         if p.get('MarketID') == b.get('MarketID') and p.get('ConstructionComplete', False) == False and p.get('ConstructionFailed', False) != True:
-                            for c in p.get('ResourcesRequired', []):
-                                res[c.get('Name')] = c.get(type)
+                            res = p.get(type)
                             break
                 # No actual data so we use the estimates from the base costs
-                if res == {} and type != 'ProvidedAmount': res = self.base_costs.get(b.get('Base Type'), {})
+                if res == {} and type != 'Delivered': res = self.base_costs.get(b.get('Base Type'), {})
                 found += 1
                 prog.append(res)
 
@@ -985,12 +959,12 @@ class Colonisation:
 
     def get_required(self, builds:list[dict]) -> list:
         ''' Return the commodities required for the builds listed '''
-        return self._get_progress(builds, 'RequiredAmount')
+        return self._get_progress(builds, 'Required')
 
 
     def get_delivered(self, builds:list[dict]) -> list:
         ''' Return the commodities delivered for the builds listed '''
-        return self._get_progress(builds, 'ProvidedAmount')
+        return self._get_progress(builds, 'Delivered')
 
 
     def find_or_create_progress(self, id:int) -> dict:
@@ -1019,13 +993,60 @@ class Colonisation:
         ''' Update a progress record '''
         try:
             progress:dict = self.find_progress(id)
-            if progress == None:
-                return
-            Debug.logger.debug(f"{data}")
+            if progress == None: return
+            changed:bool = False
+
+
+            # Handle a ColonisationConstructionDepot event
+            if data.get('ResourcesRequired', None) != None:
+                req = {comm['Name'] : comm['RequiredAmount'] for comm in data.get('ResourcesRequired')}
+                if progress.get('Required', None) != req:
+                    progress['Required'] = req
+                    changed = True
+                deliv = {comm['Name'] : comm['ProvidedAmount'] for comm in data.get('ResourcesRequired')}
+                if progress.get('Delivered', None) != deliv:
+                    progress['Delivered'] = deliv
+                    changed = True
+                del data['ResourcesRequired']
+                changed = True
+
+            # Copy over whatever data we receive
             for k, v in data.items():
-                progress[k] = v
+                # Recalculate the provided amount based on what RC says remains to be delivered
+                if k == 'Remaining':
+                    deliv = {f"${key}_name;" : progress['Required'][key] - val for key,val in v}
+                    if progress.get('Delivered', None) != deliv:
+                        progress['Delivered'] = deliv
+                        changed = True
+                    continue
+
+                if progress.get(k) != v:
+                    progress[k] = v
+                    changed = True
+
+            if changed != True:
+                return
 
             self.dirty = True
+
+            # If it's complete mark it as complete
+            if data.get('ConstructionComplete', False) == True:
+                self.try_complete_build(self.market_id)
+                for p in self.progress:
+                    if p.get('MarketID') == self.market_id and p.get('ProjectID', None) != None:
+                        self.rc.complete_site(p.get('ProjectID'))
+                return
+
+            system:dict = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
+            if system != None and system.get('RCSync', 0) == 1: build = self.find_build(system, {'MarketID' : self.market_id})
+            if system == None or build == None:
+                Debug.logger.warning(f"System {self.current_system} not found for build {self.market_id}")
+                return
+
+            # RC Sync if appropriate
+            if system.get('RCSync', 0) == 1:
+                self.rc.upsert_project(system, build, progress)
+
             return
 
         except Exception as e:
@@ -1175,6 +1196,13 @@ class Colonisation:
         for system in systems:
             if len(system['Builds']) > 1:
                 system['Builds'] = [system['Builds'][0]] + list(sorted(system['Builds'][1:], key=build_order))
+
+        # Migrate the project progress. This can be removed in the future
+        for progress in self.progress:
+            if progress.get('ResourcesRequired', None) != None:
+                progress['Required'] = {comm['Name'] : comm['RequiredAmount'] for comm in progress.get('ResourcesRequired')}
+                progress['Delivered'] = {comm['Name'] : comm['ProvidedAmount'] for comm in progress.get('ResourcesRequired')}
+                del progress['ResourcesRequired']
 
         # Remove empty build entries
         #for system in systems:

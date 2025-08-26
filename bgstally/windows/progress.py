@@ -45,6 +45,11 @@ class ProgressWindow:
                 'Tooltip' : f"{_('Total quantity required')}" # LANG: required amount tooltip
             },
             {
+                'Column' : 'Delivered',
+                'Label': f"{_('Delivered'): >13}", # LANG: Delivered amount
+                'Tooltip' : f"{_('Total quantity delivered')}" # LANG: delivered amount tooltip
+            },
+            {
                 'Column' : 'Remaining',
                 'Label': f"{_('Remaining'): >12}", # LANG: Amount remaining
                 'Tooltip' : f"{_('Amount remaining to be delivered')}" # LANG: Amount remaining tooltip
@@ -410,29 +415,27 @@ class ProgressWindow:
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
                 remaining:int = reqcnt - delcnt
 
-                all_deliv += delcnt
-                all_req += reqcnt
-
                 cargo:int = self.colonisation.cargo.get(c, 0)
                 carrier:int = self.colonisation.carrier_cargo.get(c, 0)
-                tobuy:int = reqcnt - carrier - cargo
+
+                totals['Required'] += reqcnt
+                totals['Delivered'] += delcnt
+
+                # We only count relevant cargo not stuff we don't need
+                if reqcnt - delcnt > 0: totals['Cargo'] += cargo
+                if reqcnt - delcnt > 0: totals['Carrier'] += carrier
 
                 # We only show relevant (required) items. But.
                 # If the view is reduced we don't show ones that are complete. Also.
                 # If we're in minimal view we only show ones we still need to buy.\
                 if (reqcnt <= 0) or \
                     (remaining <= 0 and self.view != ProgressView.FULL) or \
-                    (tobuy <= 0 and cargo == 0 and carrier == 0 and self.view == ProgressView.MINIMAL) or \
+                    (reqcnt - carrier - cargo <= 0 and cargo == 0 and carrier == 0 and self.view == ProgressView.MINIMAL) or \
                     (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) == 0 and self.view == ProgressView.MINIMAL) or \
                     rc > MAX_ROWS:
                     for cell in row.values():
                         cell.grid_remove()
                     continue
-
-                totals['Required'] += reqcnt
-                totals['Delivered'] += delcnt
-                totals['Cargo'] += cargo
-                totals['Carrier'] += carrier
 
                 if rc == MAX_ROWS:
                     for cell in row.values():
@@ -460,8 +463,8 @@ class ProgressWindow:
                 rc += 1
 
             self._display_totals(self.rows[i+1], tracked, totals)
-            if all_req > 0:
-                self.progvar.set(round(all_deliv * 100 / all_req))
+            if totals['Required'] > 0:
+                self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))
                 self.progtt.text = f"{_('Progress')}: {int(self.progvar.get())}%" # LANG: tooltip for the progress bar
 
         except Exception as e:

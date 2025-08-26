@@ -7,6 +7,7 @@ import traceback
 import re
 import time
 from datetime import datetime, timedelta, timezone
+from functools import partial
 import requests
 from requests import Response
 from config import config
@@ -18,9 +19,18 @@ from bgstally.utils import _, get_by_path
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
 RC_COOLDOWN = 60
 
+EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
+EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
+EDSM_SYSTEM = 'https://www.edsm.net/api-v1/system?showInformation=1&systemName='
+EDSM_DELAY = (3600 * 12)
+
+SPANSH_API = 'https://spansh.co.uk/api'
+SPANSH_DELAY = (3600 * 12)
+
 class RavenColonial:
     """
-    Class to handle all the data syncing between the colonisation system and RavenColonial.com
+    Class to handle all the data syncing between the colonisation system and RavenColonial.com. It also handles retrieving
+    system and body data from Spansh/EDSM as required
 
     It syncs systems and sites, projects, contributions and fleet carrier cargo.
     Many requests are queued to the request manager to avoid blocking EDMC but some are done synchronously where appropriate.
@@ -28,6 +38,12 @@ class RavenColonial:
     def __init__(self, colonisation) -> None:
         self.colonisation:Colonisation = colonisation
         self.bgstally:BGSTally = colonisation.bgstally
+
+        #self.system_service:EDSM = EDSM(self)  # Site to use for system lookups
+        #self.station_service:EDSM = EDSM(self) # Site to use for station lookups
+        self.system_service:Spansh = Spansh(self)  # Site to use for system lookups
+        self.body_service:EDSM = EDSM(self)    # Site to use for body lookups
+        self.station_service:Spansh = Spansh(self) # Site to use for station lookups
 
         self.headers:dict = {
             'User-Agent': f"BGSTally/{self.bgstally.version} (RavenColonial)",
@@ -116,20 +132,19 @@ class RavenColonial:
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
         self.headers["rcc-cmdr"] = self.colonisation.cmdr
         response:Response = requests.get(url, headers=self.headers,timeout=5)
-        Debug.logger.info(f"Response for {system_name}: {response.status_code}")
-        data:dict = response.json()
+        Debug.logger.info(f"Query system response for {system_name}: {response.status_code}")
 
         # Add a new system to RavenColonial
         if response.status_code == 404:
             url:str = f"{RC_API}/v2/system/{quote(system_name)}/import/"
             response:Response = requests.post(url, headers=self.headers, timeout=5)
-            data:dict = response.json()
 
             if response.status_code != 200:
                 Debug.logger.error(f"Failed to import system {system_name}: {response.status_code} system data: {data}")
                 return
 
         # Merge RC data with system data
+        data:dict = response.json()
         self._merge_system_data(data)
 
         payload:dict = {'architect': self.colonisation.cmdr, 'update': [], 'delete':[]}
@@ -160,41 +175,36 @@ class RavenColonial:
             Debug.logger.error(traceback.format_exc())
 
 
-    def upsert_site(self, system:dict, ind:int, data:dict = None) -> None:
+    def upsert_site(self, system:dict, data:dict = None) -> None:
         """ Modify a site (build) in RavenColonial """
         try:
             if self.colonisation.cmdr == None:
                 Debug.logger.info(f"Cannot upsert site, no cmdr")
                 return
 
-            build:dict = system['Builds'][ind]
-
-            if build == None or data == None:
-                Debug.logger.warning("RavenColonial upsert_site called with no build or no data")
-                return
-
             # Create an ID if necessary
-            if build.get('RCID', None) == None and build['State'] == BuildState.COMPLETE and build.get('MarketID', None) != None:
-                build['RCID'] = f"&{build['MarketID']}"
+            if data.get('RCID', None) == None and data.get('MarketID', None) != None:
+                data['RCID'] = f"&{data['MarketID']}"
 
-            if build.get('RCID', None) == None and build['State'] == BuildState.PLANNED:
+            if data.get('RCID', None) == None and data.get('State', None) == BuildState.PLANNED:
                 timestamp:int = round(time.mktime(datetime.now(timezone.utc).timetuple()))
-                build['RCID'] = f"x{timestamp}"
+                data['RCID'] = f"x{timestamp}"
 
             update:dict = {}
             rev_map = {value: key for key, value in self.status_map.items()}
             for p, m in self.site_params.items():
-                rcval = build.get(m, '').strip().lower().replace(' ', '_') if isinstance(build.get(m, None), str) and 'name' not in p.lower() else build.get(m, None)
-                if p == 'status': rcval = rev_map[build.get(m, '')]
-                if rcval != None:
-                    update[p] = rcval
+                if data.get(m, None) == None:
+                    continue
+                rcval = data.get(m, '').strip().lower().replace(' ', '_') if isinstance(data.get(m, None), str) and 'name' not in p.lower() else data.get(m, None)
+                if p == 'status' and data.get(m, None) != None: rcval = rev_map[data.get(m, '')]
+                update[p] = rcval
 
             payload:dict = {'update': [update], 'delete':[]}
 
-            url:str = f"{RC_API}/v2/system/{system.get('ID64')}/sites"
+            url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
             self.headers["rcc-cmdr"] = system.get('Architect')
 
-            Debug.logger.info(f"RavenColonial upserting site {payload}")
+            Debug.logger.info(f"RavenColonial upserting site:{payload}")
 
             response:Response = requests.put(url, json=payload, headers=self.headers, timeout=5)
             if response.status_code != 200:
@@ -202,7 +212,6 @@ class RavenColonial:
 
             # Refresh the system info
             self.load_system(system.get('SystemAddress'))
-
             return
 
         except Exception as e:
@@ -225,7 +234,7 @@ class RavenColonial:
 
             payload:dict = {'update': [], 'delete':[build.get('RCID')]}
             Debug.logger.info(f"RavenColonial removing site {payload}")
-            url:str = f"{RC_API}/v2/system/{system.get('ID64')}/sites"
+            url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
             self.headers["rcc-cmdr"] = system.get('Architect')
             response:Response = requests.put(url, json=payload, headers=self.headers, timeout=5)
             if response.status_code != 200:
@@ -316,12 +325,14 @@ class RavenColonial:
                 if b.get('Layout', None) == None or b.get('BodyNum', None) == None:
                     continue
 
-                for site in data.get('sites', []):
+                site:dict = {}
+                for site in data.get('sites', {}):
                     if site.get('id', None) == b.get('RCID', None):
                         break
 
+                # Only add the site if we didn't match it.
                 if site.get('id', None) != b.get('RCID', None):
-                    self.upsert_site(system, ind, b)
+                    self.upsert_site(system, b)
 
             return
 
@@ -497,7 +508,7 @@ class RavenColonial:
         """ Process the results of querying RavenColonial for the project details """
         try:
             if success == False:
-                Debug.logger.error(f"Project load failed {response.content}")
+                Debug.logger.error(f"Project load failed {response}")
                 return
 
             data:dict = response.json()
@@ -563,3 +574,423 @@ class RavenColonial:
             return
         Debug.logger.debug(f"Carrier updated: {response}")
         return
+
+
+    def import_stations(self, system_name:str) -> None:
+        """ Retrieve the stations in a system """
+        return self.station_service.import_stations(system_name)
+    def import_system(self, system_name:str) -> None:
+        """ Retrieve the details of a system """
+        return self.system_service.import_system(system_name)
+    def import_bodies(self, system_name:str) -> None:
+        """ Retrieve the bodies in a system """
+        return self.body_service.import_bodies(system_name)
+
+class EDSM:
+    """
+    Class to retrieve system, body and station data from EDSM.
+    """
+    _instance = None
+
+    # Singleton pattern
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, rc):
+        # Only initialize if it's the first time
+        if not hasattr(self, '_initialized'):
+            self.rc:RavenColonial = rc
+            self._initialized = True
+
+
+    def import_stations(self, system_name:str) -> None:
+        """ Retrieve the stations in a system """
+        if system_name == None or system_name == '':
+            Debug.logger.info("no system name")
+            return
+
+        # Check when we last updated this system
+        systems:list = self.rc.colonisation.get_all_systems()
+        system:dict|None = self.rc.colonisation.find_system({'StarSystem': system_name})
+        if system == None:
+            Debug.logger.info(f"unknown system {system_name}")
+            return
+
+        if system.get('Updated', 0) > round(time.mktime(datetime.now(timezone.utc).timetuple())) - EDSM_DELAY:
+            Debug.logger.info(f"Not refreshing stations for {system_name}, too soon")
+            return
+
+        url:str = f"{EDSM_STATIONS}{quote(system_name)}"
+        self.rc.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._stations)
+        return
+
+    def _stations(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+        ''' Process the results of querying ESDM for the stations in a system '''
+        Debug.logger.info(f" discovery response received: {success}")
+        try:
+            data:dict = response.json()
+            if data.get('name', None) == None:
+                Debug.logger.warning(f"stations response did not contain a name, ignoring")
+                return
+            system:dict|None = self.rc.colonisation.find_system({'StarSystem': data.get('name')})
+            if system == None:
+                Debug.logger.warning(f"stations didn't find system {data.get('name')}")
+                return
+
+            stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['id']))
+            for base in stations:
+                # Ignore these
+                if base.get('type', '') in ['Fleet Carrier'] or 'ColonisationShip' in base.get('name', ''):
+                    continue
+
+                name:str = base.get('name', '')
+                type:str = base.get('type', 'Unknown')
+                state:BuildState = BuildState.COMPLETE
+                if name == '$EXT_PANEL_ColonisationShip:#index=1;':
+                    if len(stations) > 1: # This hangs around but only matters if it's the only station in the system.
+                        continue
+                    type = 'Orbital'
+                    name = ''
+                    state = BuildState.PROGRESS
+
+                if self.rc.colonisation.find_build(system, {'MarketID': base.get('marketId'), 'Name': name}) != None:
+                    Debug.logger.debug(f"Build {name} already exists in system {data.get('name')}, skipping")
+                    continue
+
+                if 'Construction Site' in name:
+                    build = self.rc.colonisation.find_build(system, {'MarketID': base.get('marketId'), 'Name': name})
+                    state = BuildState.PROGRESS
+
+                body:str = get_by_path(base, ['body', 'name'], '')
+                body = body.replace(system.get('StarSystem', '') + ' ', '')
+
+                build:dict = {
+                    'Base Type': base.get('type'),
+                    'StationEconomy': base.get('economy'),
+                    'State': state,
+                    'Name': name,
+                    'MarketID': base.get('marketId'),
+                    'Location': type,
+                    'Body': body,
+                    }
+                self.rc.colonisation.add_build(system, build)
+                Debug.logger.info(f"Added station {build} to system {data.get('name')}")
+
+            self.rc.bgstally.ui.window_colonisation.update_display()
+            self.rc.colonisation.dirty = True
+            self.rc.colonisation.save('stations updated')
+
+        except Exception as e:
+            Debug.logger.info(f"Error recording stations")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def import_system(self, system_name:str) -> None:
+        """ Retrieve the details of a system """
+        if system_name == None or system_name == '':
+            Debug.logger.info("no system name")
+            return
+
+        # Check when we last updated this system
+        system:dict|None = self.rc.colonisation.find_system({'StarSystem': system_name})
+        if system == None:
+            Debug.logger.info(f"unknown system {system_name}")
+            return
+
+        if system.get('EDSMUpdated', 0) > round(time.mktime(datetime.now(timezone.utc).timetuple())) - EDSM_DELAY:
+            Debug.logger.info(f"Not refreshing {system_name}, too soon")
+            return
+
+        url:str = f"{EDSM_SYSTEM}{quote(system_name)}"
+        self.rc.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._system)
+        return
+
+
+    def _system(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+        ''' Process the results of querying ESDM for the system details '''
+        try:
+            data:dict = response.json()
+            if data.get('name', None) == None:
+                Debug.logger.warning(f"system didn't contain a name, ignoring")
+                return
+            system:dict = self.rc.colonisation.find_system({'StarSystem' : data.get('name')})
+            if system == None:
+                Debug.logger.warning(f"system didn't find system {data.get('name')}")
+                return
+
+            system['Population'] = get_by_path(data, ['information', 'population'], None)
+            system['Economy'] = get_by_path(data, ['information', 'economy'], None)
+            if get_by_path(data, ['information', 'secondEconomy'], 'None') != 'None':
+                system['Economy'] += "/" + get_by_path(data, ['information', 'secondEconomy'])
+            system['Security'] = get_by_path(data, ['information', 'security'], None)
+            system['EDSMUpdated'] = int(time.time())
+
+            self.rc.colonisation.dirty = True
+            self.rc.colonisation.save('System updated')
+
+        except Exception as e:
+            Debug.logger.info(f"Error recording response")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def import_bodies(self, system_name:str) -> None:
+        """ Retrieve the bodies in a system """
+        if system_name == None or system_name == '':
+            Debug.logger.info("no system name")
+            return
+
+        # Check when we last updated this system
+        system:dict|None = self.rc.colonisation.find_system({'StarSystem': system_name})
+        if system == None:
+            Debug.logger.info(f"unknown system {system_name}")
+            return
+
+        if system.get('Bodies', None) != None:
+            Debug.logger.info(f"Already have body info for {system_name}")
+            return
+
+        url:str = f"{EDSM_BODIES}{quote(system_name)}"
+        # We're going to do this synchronously since we need the data before we can proceed and it's a one-time call.
+        response:Response = requests.get(url, headers=self.rc.headers, timeout=5)
+        if response.status_code == 200:
+            self._bodies(True, response, None)
+
+        #self.rc.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._bodies)
+        return
+
+
+    def _bodies(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+        ''' Process the results of querying ESDM for the bodies in a system '''
+        Debug.logger.info(f"bodies response received: {success}")
+        try:
+            data:dict = response.json()
+            if data.get('name', None) == None:
+                Debug.logger.warning(f"bodies didn't contain a name, ignoring")
+                return
+            system:dict = self.rc.colonisation.find_system({'StarSystem' : data.get('name')})
+            if system == None:
+                Debug.logger.warning(f"bodies didn't find system {data.get('name')}")
+                return
+
+            # Only record the body details that we need since returns an enormous amount of data.
+            system['Bodies'] = []
+            for b in data.get('bodies', []):
+                v:dict = {}
+                for k in ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']:
+                    if b.get(k, None): v[k] = b.get(k)
+                if b.get('parents', None) != None:
+                    v['parents'] = len(b.get('parents', []))
+                system['Bodies'].append(v)
+            self.rc.colonisation.dirty = True
+            self.rc.colonisation.save('Bodies updated')
+
+        except Exception as e:
+            Debug.logger.info(f"Error recording bodies")
+            Debug.logger.error(traceback.format_exc())
+
+
+class Spansh:
+    """
+    Class to retrieve system, body and station data from Spansh.
+    """
+    _instance = None
+
+    # Singleton pattern
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, rc):
+        # Only initialize if it's the first time
+        if not hasattr(self, '_initialized'):
+            self.rc:RavenColonial = rc
+            self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
+            self._initialized = True
+
+    def import_stations(self, system_name:str) -> None:
+        return self._get_details(system_name, 'stations')
+
+    def import_system(self, system_name:str) -> None:
+        return self._get_details(system_name, 'stations')
+
+    def import_bodies(self, system_name:str) -> None:
+        return self._get_details(system_name, 'bodies')
+
+    def _get_address(self, system_name:str) -> int|None:
+        """ Retrieve the system address from Spansh """
+        try:
+
+            system:dict|None = self.rc.colonisation.find_system({'StarSystem': system_name})
+            if system == None:
+                Debug.logger.info(f"unknown system {system_name}")
+                return
+
+            system_address:int|None = system.get('SystemAddress', None)
+            if system_address != None:
+                Debug.logger.info(f"System {system_name} has address {system_address} in local data")
+                return system_address
+
+            url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
+            response:Response = requests.get(url, headers=self.rc.headers, timeout=5)
+            if response.status_code != 200:
+                Debug.logger.error(f"Query system response for {system_name}: {response.status_code}")
+                return None
+            data:dict = response.json()
+
+            system_address:int|None = get_by_path(data.get('results',[])[0], ['record', 'id64'], None)
+            if system_address == None:
+                Debug.logger.info(f"System {system_name} has no id64 in Spansh")
+                return None
+
+            Debug.logger.info(f"System {system_name} has id64 {system_address} in Spansh")
+            return system_address
+
+        except Exception as e:
+            Debug.logger.info(f"Error retrieving system address")
+            Debug.logger.error(traceback.format_exc())
+            return None
+
+
+    def _get_details(self, system_name:str, which:str) -> None:
+        """ Retrieve a system's details """
+        if system_name == None or system_name == '':
+            Debug.logger.info("No system name given")
+            return
+
+        # Check when we last updated this system
+        system:dict|None = self.rc.colonisation.find_system({'StarSystem': system_name})
+        if system == None:
+            Debug.logger.info(f"unknown system {system_name}")
+            return
+
+        if self.system_cache.get(system_name, None) != None:
+            match which:
+                case 'bodies': return self._update_bodies(system, self.system_cache[system_name])
+                case 'stations': return self._update_stations(system, self.system_cache[system_name])
+                case 'system': return self._update_system(system, self.system_cache[system_name])
+
+        system_address:int|None = self._get_address(system_name)
+        if system_address == None:
+            Debug.logger.info(f"Cannot get system address for {system_name}, cannot query Spansh")
+            return
+
+        if system.get('SpanshUpdated', 0) > round(time.mktime(datetime.now(timezone.utc).timetuple())) - SPANSH_DELAY:
+            Debug.logger.info(f"Not refreshing {system_name}, too soon")
+            return
+
+        url:str = f"{SPANSH_API}/system/{system_address}"
+        self.rc.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
+        return
+
+
+    def _callback(self, system:dict, which: str, success:bool, response:Response, request:BGSTallyRequest) -> None:
+        ''' Process the results of querying ESDM for the system details '''
+        try:
+            if success == False:
+                Debug.logger.error(f"system load failed {response.content}")
+                return
+
+            data:dict = response.json()
+
+            if data.get('name', None) == None:
+                Debug.logger.warning(f"system didn't contain a name, ignoring")
+                return
+
+            self.system_cache[system.get('StarSystem', '')] = data
+            match which:
+                case 'bodies': return self._update_bodies(system, data)
+                case 'stations': return self._update_stations(system, data)
+                case 'system': return self._update_system(system, data)
+
+        except Exception as e:
+            Debug.logger.info(f"Error recording response")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def _update_system(self, system:dict, data:dict) -> None:
+        """ Retrieve the system details """
+        update:dict = {}
+
+        update['Population'] = get_by_path(data, ['information', 'population'], None)
+        update['Economy'] = get_by_path(data, ['information', 'economy'], None)
+        if get_by_path(data, ['information', 'secondEconomy'], 'None') != 'None':
+            update['Economy'] += "/" + get_by_path(data, ['information', 'secondEconomy'])
+        update['Security'] = get_by_path(data, ['information', 'security'], None)
+        update['SpanshUpdated'] = round(time.mktime(datetime.now(timezone.utc).timetuple()))
+        self.rc.colonisation.modify_system(self.rc.colonisation.systems.index(system), update)
+        return
+
+
+    def _update_stations(self, system:dict, data:dict) -> None:
+        ''' Process the results of querying for the stations in a system '''
+        try:
+            stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['id']))
+            for base in stations:
+                # Ignore these
+                if base.get('type', '') in ['Fleet Carrier'] or 'ColonisationShip' in base.get('name', ''):
+                    continue
+
+                name:str = base.get('name', '')
+                type:str = base.get('type', 'Unknown')
+                state:BuildState = BuildState.COMPLETE
+                if name == '$EXT_PANEL_ColonisationShip:#index=1;':
+                    if len(stations) > 1: # This hangs around but only matters if it's the only station in the system.
+                        continue
+                    type = 'Orbital'
+                    name = ''
+                    state = BuildState.PROGRESS
+
+                if self.rc.colonisation.find_build(system, {'MarketID': base.get('marketId'), 'Name': name}) != None:
+                    Debug.logger.debug(f"Build {name} already exists in system {data.get('name')}, skipping")
+                    continue
+
+                if 'Construction Site' in name:
+                    build = self.rc.colonisation.find_build(system, {'MarketID': base.get('marketId'), 'Name': name})
+                    state = BuildState.PROGRESS
+
+                body:str = get_by_path(base, ['body', 'name'], '')
+                body = body.replace(system.get('StarSystem', '') + ' ', '')
+
+                build:dict = {
+                    'Base Type': base.get('type'),
+                    'StationEconomy': base.get('economy'),
+                    'State': state,
+                    'Name': name,
+                    'MarketID': base.get('marketId'),
+                    'Location': type,
+                    'Body': body,
+                    }
+                self.rc.colonisation.add_build(system, build)
+                Debug.logger.info(f"Added station {build} to system {data.get('name')}")
+
+        except Exception as e:
+            Debug.logger.info(f"Error recording stations")
+            Debug.logger.error(traceback.format_exc())
+
+
+    def _update_bodies(self, system:dict, data:dict) -> None:
+        ''' Process the results of querying Spansh for the bodies in a system '''
+        try:
+            if data.get('name', None) == None:
+                Debug.logger.warning(f"bodies didn't contain a name, ignoring")
+                return
+
+            # Only record the body details that we need since returns an enormous amount of data.
+            bodies:list = []
+            for b in data.get('bodies', []):
+                v:dict = {}
+                for k in ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']:
+                    if b.get(k, None): v[k] = b.get(k)
+                if b.get('parents', None) != None:
+                    v['parents'] = len(b.get('parents', []))
+                bodies.append(v)
+
+            if bodies != []:
+                self.rc.colonisation.modify_system(self.rc.colonisation.systems.index(system), {'Bodies': bodies})
+
+        except Exception as e:
+            Debug.logger.info(f"Error recording bodies")
+            Debug.logger.error(traceback.format_exc())

@@ -23,11 +23,6 @@ BASE_COSTS_FILENAME = 'base_costs.json'
 CARGO_FILENAME = 'Cargo.json'
 MARKET_FILENAME = 'Market.json'
 COMMODITY_FILENAME = 'commodity.csv'
-EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
-EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
-EDSM_SYSTEM = 'https://www.edsm.net/api-v1/system?showInformation=1&systemName='
-EDSM_DELAY = (3600 * 12)
-
 class Colonisation:
     '''
     Manages colonisation data and events for Elite Dangerous colonisation
@@ -162,13 +157,17 @@ class Colonisation:
                     self._update_market(self.market_id)
                     self._update_carrier()
 
+                    # Update systems with external data if required
                     for sysnum, system in enumerate(self.systems):
+                        self.rc.load_system(system.get('SystemAddress'))
+
+                        if system.get('Bodies', None) == None: # In case we didn't get them for some reason
+                            self.rc.import_bodies(system.get('StarSystem', ''))
+
                         if system.get('RCSync', 0) == 1:
                             if self.rc == None: self.rc = RavenColonial(self)
-                            if system.get('ID64', None) == None:
-                                self.rc.add_system(system.get('StarSystem'))
-                            else:
-                                self.rc.load_system(system.get('ID64'))
+
+                        self.rc.import_system(system.get('StarSystem', '')) # Update the system stats
 
                     for progress in self.progress:
                         if progress.get('ProjectID', None) != None and progress.get('ConstructionComplete', False) == False:
@@ -183,11 +182,11 @@ class Colonisation:
                         Debug.logger.warning(f"Invalid ColonisationContribution event: {entry}")
                         return
 
-                    system:dict = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
+                    system:dict|None = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
                     if system != None and system.get('RCSync', 0) == 1:
                         for progress in self.progress:
                             if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
-                                self.rc.record_contribution(progress.get('ProjectID'), entry.get('Contributions', []))
+                                self.rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
                                 break
 
 
@@ -433,12 +432,12 @@ class Colonisation:
             self.rc.add_system(system_name)
             system_data['RCSync'] = 1
 
-        # If we have a system address, we can try to get the bodies from EDSM
-        if system_name != None:
-            Debug.logger.info(f"Requesting EDSM bodies for {system_name}")
-            if prepop == True:
-                self.bgstally.request_manager.queue_request(EDSM_STATIONS+quote(system_name), RequestMethod.GET, callback=self._edsm_stations)
-            self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system_name), RequestMethod.GET, callback=self._edsm_bodies)
+        # If we have a system address, we get the bodies and maybe stations
+        if rcsync == False and system_name != None:
+            self.rc.import_bodies(system_name)
+            if prepop == True: self.rc.import_stations(system_name)
+            self.rc.import_system(system_name)
+
         self.dirty = True
         self.save('Add system')
         return system_data
@@ -469,145 +468,22 @@ class Colonisation:
             system['RCSync'] = 1
 
         # If we have a system name but not its address, we can get the bodies from EDSM
-        if system.get('SystemAddress', None) == None and system.get('StarSystem') != None:
-            Debug.logger.info(f"Requesting EDSM bodies for {system.get('StarSystem')}")
-            self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system.get('StarSystem','')), RequestMethod.GET, callback=self._edsm_bodies)
+        if system.get('StarSystem') != None and system.get('Bodies', None) == None:
+            self.rc.import_bodies(system.get('StarSystem', ''))
 
         self.dirty = True
         self.save('Modify system')
         return system
 
 
-    def _edsm_stations(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
-        ''' Process the results of querying ESDM for the stations in a system '''
-        Debug.logger.info(f"EDSM discovery response received: {success}")
-        try:
-            data:dict = response.json()
-            if data.get('name', None) == None:
-                Debug.logger.warning(f"EDSM stations response did not contain a name, ignoring")
-                return
-            system:dict|None = self.find_system({'StarSystem': data.get('name')})
-            if system == None:
-                Debug.logger.warning(f"EDSM stations didn't find system {data.get('name')}")
-                return
-
-            stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['id']))
-            for base in stations:
-                # Ignore these
-                if base.get('type', '') in ['Fleet Carrier'] or 'ColonisationShip' in base.get('name', ''):
-                    continue
-
-                name:str = base.get('name', '')
-                type:str = base.get('type', 'Unknown')
-                state:BuildState = BuildState.COMPLETE
-                if name == '$EXT_PANEL_ColonisationShip:#index=1;':
-                    if len(stations) > 1: # This hangs around but only matters if it's the only station in the system.
-                        continue
-                    type = 'Orbital'
-                    name = ''
-                    state = BuildState.PROGRESS
-
-                if self.find_build(system, {'MarketID': base.get('marketId'), 'Name': name}) != None:
-                    Debug.logger.debug(f"Build {name} already exists in system {data.get('name')}, skipping")
-                    continue
-
-                if 'Construction Site' in name:
-                    build = self.find_build(system, {'MarketID': base.get('marketId'), 'Name': name})
-
-                    state = BuildState.PROGRESS
-
-
-                body:str = get_by_path(base, ['body', 'name'], '')
-                body = body.replace(system.get('StarSystem', '') + ' ', '')
-
-                build:dict = {
-                    'Base Type': base.get('type'),
-                    'StationEconomy': base.get('economy'),
-                    'State': state,
-                    'Name': name,
-                    'MarketID': base.get('marketId'),
-                    'Location': type,
-                    'Body': body,
-                    }
-                self.add_build(system, build)
-                Debug.logger.info(f"Added station {build} to system {data.get('name')}")
-
-            self.bgstally.ui.window_colonisation.update_display()
-            self.dirty = True
-            self.save('EDSM stations updated')
-
-        except Exception as e:
-            Debug.logger.info(f"Error recording stations")
-            Debug.logger.error(traceback.format_exc())
-
-
-    def _edsm_system(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
-        ''' Process the results of querying ESDM for the system details '''
-        try:
-            data:dict = response.json()
-            if data.get('name', None) == None:
-                Debug.logger.warning(f"EDSM system didn't contain a name, ignoring")
-                return
-            system:dict = self.find_system({'StarSystem' : data.get('name')})
-            if system == None:
-                Debug.logger.warning(f"EDSM system didn't find system {data.get('name')}")
-                return
-
-            system['Population'] = get_by_path(data, ['information', 'population'], None)
-            system['Economy'] = get_by_path(data, ['information', 'economy'], None)
-            if get_by_path(data, ['information', 'secondEconomy'], 'None') != 'None':
-                system['Economy'] += "/" + get_by_path(data, ['information', 'secondEconomy'])
-            system['Security'] = get_by_path(data, ['information', 'security'], None)
-            system['EDSMUpdated'] = int(time.time())
-
-            self.dirty = True
-            self.save('EDSM System updated')
-
-        except Exception as e:
-            Debug.logger.info(f"Error recording response")
-            Debug.logger.error(traceback.format_exc())
-
-
-    def _edsm_bodies(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
-        ''' Process the results of querying ESDM for the bodies in a system '''
-        Debug.logger.info(f"EDSM bodies response received: {success}")
-        try:
-            data:dict = response.json()
-            if data.get('name', None) == None:
-                Debug.logger.warning(f"EDSM bodies didn't contain a name, ignoring")
-                return
-            system:dict = self.find_system({'StarSystem' : data.get('name')})
-            if system == None:
-                Debug.logger.warning(f"EDSM bodies didn't find system {data.get('name')}")
-                return
-
-            # Only record the body details that we need since EDSM returns an enormous amount of data.
-            system['Bodies'] = []
-            for b in data.get('bodies', []):
-                v:dict = {}
-                for k in ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']:
-                    if b.get(k, None): v[k] = b.get(k)
-                if b.get('parents', None) != None:
-                    v['parents'] = len(b.get('parents', []))
-                system['Bodies'].append(v)
-            self.dirty = True
-            self.save('EDSM Bodies updated')
-
-        except Exception as e:
-            Debug.logger.info(f"Error recording bodies")
-            Debug.logger.error(traceback.format_exc())
-
-
     def get_body(self, system:dict, body) -> dict|None:
         ''' Get a body by name or id from a system '''
-        for b in system['Bodies']:
+        for b in system.get('Bodies', []):
             if isinstance(body, str) and body in [b.get('name', None), b.get('name', '').replace(system['StarSystem'] + ' ', '')]:
                 return b
             if isinstance(body, int) and body == b.get('bodyId', None):
                 return b
-
         return
-
 
     def get_bodies(self, system:dict, bt:str = 'All') -> list:
         ''' Return a list of bodies in the system filtered by type if required '''
@@ -643,7 +519,7 @@ class Colonisation:
             if p.get('MarketID') == build.get('MarketID'):
                 if p.get('ConstructionComplete', False) == True:
                     Debug.logger.debug(f"Finished build {build.get('Name', 'Unknown')} {build.get('MarketID', 'Unknown')}")
-                    self.try_complete_build(build.get('MarketID'))
+                    self.try_complete_build(p.get('MarketID'))
                     return BuildState.COMPLETE
                 return BuildState.PROGRESS
 
@@ -748,13 +624,16 @@ class Colonisation:
             if body != None and body.get('bodyId', None) != None:
                 data['BodyNum'] = body['bodyId']
 
+        if data.get('Base Type', '') == '' and data.get('Layout', None) != None:
+            data['Base Type'] = self.get_base_type(data.get('Layout', ''))
+
         system['Builds'].append(data)
 
         # Update RC if appropriate and we have enough data about the system.
         if silent == False and system.get('RCSync') == 1 and system.get('SystemAddress', None) != None and \
             data.get('Layout', None) != None and data.get('BodyNum', None) != None:
             if self.rc == None: self.rc = RavenColonial(self)
-            self.rc.upsert_site(system, len(system['Builds'])-1, data)
+            self.rc.upsert_site(system, data)
 
         self.dirty = True
         self.save('Build added')
@@ -840,8 +719,8 @@ class Colonisation:
                     data['BodyNum'] = body['bodyId']
 
             # If the base type isn't set, try to get it from the layout
-            if build.get('Base Type', '') == '' and data.get('Layout', None) != None:
-                build['Base Type'] = self.get_base_type(data.get('Layout', ''))
+            if data.get('Base Type', '') == '' and data.get('Layout', None) != None:
+                data['Base Type'] = self.get_base_type(data.get('Layout', ''))
 
             changed:bool = False
             for k, v in data.items():
@@ -858,7 +737,7 @@ class Colonisation:
                 system.get('RCSync') == 1 and system.get('SystemAddress', None) != None and \
                 build.get('Layout', None) != None and build.get('BodyNum', None) != None:
                 if self.rc == None: self.rc = RavenColonial(self)
-                self.rc.upsert_site(system, ind, data)
+                self.rc.upsert_site(system, build)
                 for p in self.progress:
                     if p.get('ProjectID', None) != None and p.get('MarketID', None) == build.get('MarketID'):
                         self.rc.upsert_project(system, build, p)
@@ -869,7 +748,6 @@ class Colonisation:
         except Exception as e:
             Debug.logger.error(f"Error modifying build: {e}")
             Debug.logger.error(traceback.format_exc())
-            return False
 
 
     def try_complete_build(self, market_id:int) -> bool:
@@ -969,7 +847,7 @@ class Colonisation:
 
     def find_or_create_progress(self, id:int) -> dict:
         ''' Find or if necessary create progress for a given market '''
-        p:dict = self.find_progress(id)
+        p:dict|None = self.find_progress(id)
         if p != None:
             return p
 
@@ -992,18 +870,17 @@ class Colonisation:
     def update_progress(self, id:int, data:dict) -> None:
         ''' Update a progress record '''
         try:
-            progress:dict = self.find_progress(id)
+            progress:dict|None = self.find_progress(id)
             if progress == None: return
             changed:bool = False
 
-
             # Handle a ColonisationConstructionDepot event
             if data.get('ResourcesRequired', None) != None:
-                req = {comm['Name'] : comm['RequiredAmount'] for comm in data.get('ResourcesRequired')}
+                req = {comm['Name'] : comm['RequiredAmount'] for comm in data.get('ResourcesRequired', [])}
                 if progress.get('Required', None) != req:
                     progress['Required'] = req
                     changed = True
-                deliv = {comm['Name'] : comm['ProvidedAmount'] for comm in data.get('ResourcesRequired')}
+                deliv = {comm['Name'] : comm['ProvidedAmount'] for comm in data.get('ResourcesRequired', [])}
                 if progress.get('Delivered', None) != deliv:
                     progress['Delivered'] = deliv
                     changed = True
@@ -1031,13 +908,12 @@ class Colonisation:
 
             # If it's complete mark it as complete
             if data.get('ConstructionComplete', False) == True:
-                self.try_complete_build(self.market_id)
-                for p in self.progress:
-                    if p.get('MarketID') == self.market_id and p.get('ProjectID', None) != None:
-                        self.rc.complete_site(p.get('ProjectID'))
+                self.try_complete_build(progress.get('MarketID', 0))
+                if progress.get('ProjectID', None) != None:
+                    self.rc.complete_site(progress.get('ProjectID', 0))
                 return
 
-            system:dict = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
+            system:dict|None = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
             if system != None and system.get('RCSync', 0) == 1: build = self.find_build(system, {'MarketID' : self.market_id})
             if system == None or build == None:
                 Debug.logger.warning(f"System {self.current_system} not found for build {self.market_id}")
@@ -1137,23 +1013,6 @@ class Colonisation:
                 with open(file) as json_file:
                     self._from_dict(json.load(json_file))
 
-            # Update the EDSM data if appropriate and no more than once a day.
-            for system in self.systems:
-                if system.get('SystemAddress', None) == None:
-                    continue
-
-                # If we have a system address, we can try to get the bodies from EDSM
-                #if system.get('RCSync', 0) == 1 and system.get('ID64', None) != None:
-                #    Debug.logger.debug(f"Loading system {system.get('StarSystem', 'Unknown')} from ID64 {system.get('ID64')}")
-                #    if self.rc is None: self.rc = RavenColonial(self)
-                #    self.rc.load_system(system.get('ID64'))
-
-                if system.get('StarSystem', '') != '' and time.time() > int(system.get('EDSMUpdated', 0)) + EDSM_DELAY:
-                    if system.get('Bodies', None) == None:
-                        self.bgstally.request_manager.queue_request(EDSM_BODIES+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_bodies)
-
-                    self.bgstally.request_manager.queue_request(EDSM_SYSTEM+quote(system.get('StarSystem')), RequestMethod.GET, callback=self._edsm_system)
-
         except Exception as e:
             Debug.logger.warning(f"Unable to load {file}")
             Debug.logger.error(traceback.format_exc())
@@ -1173,7 +1032,7 @@ class Colonisation:
         ''' Return a Dictionary representation of our data, suitable for serializing '''
 
         # System tab order
-        def sort_order(item:dict) -> int:
+        def sort_order(item:dict) -> str:
             state:BuildState = BuildState.COMPLETE
             for b in item['Builds']:
                 bs = self.get_build_state(b)

@@ -194,9 +194,7 @@ class ColonisationWindow:
                 tabnum = sysnum + 1
                 self._create_system_tab(tabnum, system)
 
-            # Select the first tab
-            if tabnum > 0:
-                self.tabbar.select(1)
+            if tabnum > 0: self.tabbar.select(1) # Select the first system tab
 
         except Exception as e:
             Debug.logger.error(f"Error in create_frames(): {e}")
@@ -211,6 +209,8 @@ class ColonisationWindow:
         self._create_title_frame(tabnum, tab)
         self._create_table_frame(tabnum, tab, system)
         self.tabbar.add(tab, text=system['Name'], compound='right', image=self.image_tab_planned)
+        self.tabbar.select(tabnum)
+
         self._set_system_progress(tabnum, system)
 
         if system.get('Hidden', False) == True:
@@ -1091,7 +1091,7 @@ class ColonisationWindow:
                 return
 
             # Add the system
-            system:dict = self.colonisation.add_system(plan_name, system_name, system_name, prepop, rcsync)
+            system:dict = self.colonisation.add_system(plan_name, system_name, None, prepop, rcsync)
             if system == False:
                 messagebox.showerror(_("Error"), _("Unable to create system")) # LANG: General failure to create system error
                 return
@@ -1258,7 +1258,7 @@ class ColonisationWindow:
                 self.colonisation.rc.load_system(system.get('ID64'), system.get('Rev', None))
 
             if self.bgstally.fleet_carrier.available() == True:
-                self.rc.update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)
+                self.colonisation.rc.update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)
 
             # @TODO: Create a proper project sync process.
             #for b in system['Builds']:

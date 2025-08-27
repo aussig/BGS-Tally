@@ -304,6 +304,7 @@ class ProgressWindow:
                     val = (self.columns[column] + 1) % len(self.headings)
                     if val == 0: val = 1 # Don't permit Commodities
                     self.columns[column] = val
+            self.colonisation.dirty = True
             self.update_display()
 
         except Exception as e:
@@ -421,9 +422,9 @@ class ProgressWindow:
                 totals['Required'] += reqcnt
                 totals['Delivered'] += delcnt
 
-                # We only count relevant cargo not stuff we don't need
-                if reqcnt - delcnt > 0: totals['Cargo'] += cargo
-                if reqcnt - delcnt > 0: totals['Carrier'] += carrier
+                # We only count relevant cargo not stuff we don't need.
+                if reqcnt - delcnt > 0: totals['Cargo'] += max(min(cargo, reqcnt - delcnt), 0)
+                if reqcnt - delcnt > 0: totals['Carrier'] += max(min(carrier, reqcnt - delcnt - cargo), 0)
 
                 # We only show relevant (required) items. But.
                 # If the view is reduced we don't show ones that are complete. Also.

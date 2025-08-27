@@ -325,12 +325,17 @@ class Colonisation:
 
     def get_base_type(self, type_name:str) -> dict:
         ''' Return the details of a particular type of base '''
-        if type_name in self.base_types:
+        if type_name == None or type_name == '':
+            return {}
+
+        # By Type
+        if self.base_types.get(type_name, None) != None:
             return self.base_types.get(type_name, {})
 
-        for base_type in self.base_types:
-            if type_name in self.base_types[base_type].get('Layouts', '').split(', '):
-                return self.base_types[base_type]
+        # By layout
+        for bt in self.base_types.values():
+            if type_name in bt.get('Layouts', '').split(', '):
+                return bt
 
         return {}
 
@@ -518,7 +523,6 @@ class Colonisation:
         for p in self.progress:
             if p.get('MarketID') == build.get('MarketID'):
                 if p.get('ConstructionComplete', False) == True:
-                    Debug.logger.debug(f"Finished build {build.get('Name', 'Unknown')} {build.get('MarketID', 'Unknown')}")
                     self.try_complete_build(p.get('MarketID'))
                     return BuildState.COMPLETE
                 return BuildState.PROGRESS
@@ -625,7 +629,8 @@ class Colonisation:
                 data['BodyNum'] = body['bodyId']
 
         if data.get('Base Type', '') == '' and data.get('Layout', None) != None:
-            data['Base Type'] = self.get_base_type(data.get('Layout', ''))
+            bt:dict = self.get_base_type(data.get('Layout', ''))
+            data['Base Type'] = bt.get('Type', '')
 
         system['Builds'].append(data)
 
@@ -753,13 +758,11 @@ class Colonisation:
     def try_complete_build(self, market_id:int) -> bool:
         ''' Determine if a build has just been completed and if so mark it as such '''
         try:
-            system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-            if system == None:
-                return False
-            build:dict|None = self.find_build(system, {'MarketID' : market_id})
-            if build == None:
-                return False
-            if build.get('State') == BuildState.COMPLETE:
+            for system in self.get_all_systems():
+                build = self.find_build(system, {'MarketID' : market_id})
+                if build != None:
+                    break
+            if build == None or build.get('State') == BuildState.COMPLETE:
                 return False
 
             Debug.logger.debug(f"Completing build {self.current_system} {self.system_id} {market_id}")

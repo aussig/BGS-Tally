@@ -39,11 +39,11 @@ class RavenColonial:
         self.colonisation:Colonisation = colonisation
         self.bgstally:BGSTally = colonisation.bgstally
 
-        #self.system_service:EDSM = EDSM(self)  # Site to use for system lookups
-        #self.station_service:EDSM = EDSM(self) # Site to use for station lookups
         self.system_service:Spansh = Spansh(self)  # Site to use for system lookups
         self.body_service:EDSM = EDSM(self)    # Site to use for body lookups
+        #self.station_service:EDSM = EDSM(self) # Site to use for station lookups
         self.station_service:Spansh = Spansh(self) # Site to use for station lookups
+
 
         self.headers:dict = {
             'User-Agent': f"BGSTally/{self.bgstally.version} (RavenColonial)",
@@ -125,10 +125,6 @@ class RavenColonial:
     def add_system(self, system_name:str = None) -> None:
         """ Add a system to RC. """
 
-        if self.colonisation.cmdr == None:
-            Debug.logger.info("Not adding system no commander")
-            return
-
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
         self.headers["rcc-cmdr"] = self.colonisation.cmdr
         response:Response = requests.get(url, headers=self.headers,timeout=5)
@@ -153,7 +149,6 @@ class RavenColonial:
         response:Response = requests.put(url, json=payload, headers=self.headers, timeout=5)
         if response.status_code != 200:
             Debug.logger.error(f"{url} {response} {response.content}")
-
         return
 
 
@@ -639,7 +634,7 @@ class EDSM:
                 Debug.logger.warning(f"stations didn't find system {data.get('name')}")
                 return
 
-            stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['id']))
+            stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['marketId']))
             for base in stations:
                 # Ignore these
                 if base.get('type', '') in ['Fleet Carrier'] or 'ColonisationShip' in base.get('name', ''):
@@ -819,7 +814,7 @@ class Spansh:
     def import_bodies(self, system_name:str) -> None:
         return self._get_details(system_name, 'bodies')
 
-    def _get_address(self, system_name:str) -> int|None:
+    def _get_by_name(self, system_name:str) -> dict|None:
         """ Retrieve the system address from Spansh """
         try:
 
@@ -840,16 +835,10 @@ class Spansh:
                 return None
             data:dict = response.json()
 
-            system_address:int|None = get_by_path(data.get('results',[])[0], ['record', 'id64'], None)
-            if system_address == None:
-                Debug.logger.info(f"System {system_name} has no id64 in Spansh")
-                return None
-
-            Debug.logger.info(f"System {system_name} has id64 {system_address} in Spansh")
-            return system_address
+            return get_by_path(data.get('results',[])[0], ['record'], None)
 
         except Exception as e:
-            Debug.logger.info(f"Error retrieving system address")
+            Debug.logger.info(f"Error retrieving system by name")
             Debug.logger.error(traceback.format_exc())
             return None
 
@@ -866,22 +855,22 @@ class Spansh:
             Debug.logger.info(f"unknown system {system_name}")
             return
 
-        if self.system_cache.get(system_name, None) != None:
+        # In cache? Then use it.
+        ts:int = round(time.mktime(datetime.now(timezone.utc).timetuple()))
+        if self.system_cache.get(system_name, None) != None and system.get('SpanshUpdated', 0) > ts - SPANSH_DELAY:
             match which:
                 case 'bodies': return self._update_bodies(system, self.system_cache[system_name])
                 case 'stations': return self._update_stations(system, self.system_cache[system_name])
                 case 'system': return self._update_system(system, self.system_cache[system_name])
 
-        system_address:int|None = self._get_address(system_name)
-        if system_address == None:
-            Debug.logger.info(f"Cannot get system address for {system_name}, cannot query Spansh")
+        # Do it the efficient way since we have the address
+        if system.get('SystemAddress', None) != None:
+            url:str = f"{SPANSH_API}/system/{system.get('SystemAddress', None)}"
+            self.rc.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
             return
 
-        if system.get('SpanshUpdated', 0) > round(time.mktime(datetime.now(timezone.utc).timetuple())) - SPANSH_DELAY:
-            Debug.logger.info(f"Not refreshing {system_name}, too soon")
-            return
-
-        url:str = f"{SPANSH_API}/system/{system_address}"
+        url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
+        response:Response = requests.get(url, headers=self.rc.headers, timeout=5)
         self.rc.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
         return
 
@@ -894,12 +883,23 @@ class Spansh:
                 return
 
             data:dict = response.json()
+            if isinstance(data.get('results', None), list):
+                for d in data.get('results', []):
+                    if d.get('type', None) == 'system':
+                        data = d
+                        break
 
-            if data.get('name', None) == None:
-                Debug.logger.warning(f"system didn't contain a name, ignoring")
+            if data.get('record', None) == None:
+                Debug.logger.error("failed to get system record")
                 return
 
-            self.system_cache[system.get('StarSystem', '')] = data
+            data = data.get('record', {})
+
+            if data.get('name', None) == None:
+                Debug.logger.warning(f"system didn't contain a name, ignoring {data}")
+                return
+
+            self.system_cache[data.get('id64', None)] = data
             match which:
                 case 'bodies': return self._update_bodies(system, data)
                 case 'stations': return self._update_stations(system, data)
@@ -911,57 +911,63 @@ class Spansh:
 
 
     def _update_system(self, system:dict, data:dict) -> None:
-        """ Retrieve the system details """
-        update:dict = {}
+        """ Update the system details"""
+        try:
+            update:dict = {}
+            update['Population'] = data.get('population', None)
+            update['Economy'] = data.get('primary_economy', None)
+            if data.get('secondary_economy', 'None') != 'None':
+                update['Economy'] += "/" + get_by_path(data, ['record', 'secondary_economy'])
+            update['Security'] = data.get('security', None)
+            update['SystemAddress'] = data.get('id64', None)
+            update['SpanshUpdated'] = round(time.mktime(datetime.now(timezone.utc).timetuple()))
 
-        update['Population'] = get_by_path(data, ['information', 'population'], None)
-        update['Economy'] = get_by_path(data, ['information', 'economy'], None)
-        if get_by_path(data, ['information', 'secondEconomy'], 'None') != 'None':
-            update['Economy'] += "/" + get_by_path(data, ['information', 'secondEconomy'])
-        update['Security'] = get_by_path(data, ['information', 'security'], None)
-        update['SpanshUpdated'] = round(time.mktime(datetime.now(timezone.utc).timetuple()))
-        self.rc.colonisation.modify_system(self.rc.colonisation.systems.index(system), update)
-        return
+            self.rc.colonisation.modify_system(self.rc.colonisation.systems.index(system), update)
+            return
+        except Exception as e:
+            Debug.logger.info(f"Error recording response")
+            Debug.logger.error(traceback.format_exc())
 
 
     def _update_stations(self, system:dict, data:dict) -> None:
         ''' Process the results of querying for the stations in a system '''
         try:
-            stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['id']))
+            if data.get('stations', 'None') == 'None':
+                Debug.logger.debug(f"No stations")
+                return
+
+            stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['market_id']))
             for base in stations:
                 # Ignore these
-                if base.get('type', '') in ['Fleet Carrier'] or 'ColonisationShip' in base.get('name', ''):
+                if base.get('type', '') in ['Drake-Class Carrier'] or \
+                    '$EXT_PANEL_ColonisationShip;' in base.get('name', '') or \
+                        ('ColonisationShip' in base.get('name', '') and len(stations) > 1):
                     continue
+
+                # Look for a completed base with the same name since depots sometimes hang around.
+                if 'Construction Site' in base.get('name', ''):
+                    found:bool = False
+                    for b in stations:
+                        if b.get('name', '') == re.sub(r".* Construction Site: ", "", base.get('name', '')):
+                            found = True
+                            break
+                    if found == True:
+                        continue
 
                 name:str = base.get('name', '')
-                type:str = base.get('type', 'Unknown')
-                state:BuildState = BuildState.COMPLETE
-                if name == '$EXT_PANEL_ColonisationShip:#index=1;':
-                    if len(stations) > 1: # This hangs around but only matters if it's the only station in the system.
-                        continue
-                    type = 'Orbital'
-                    name = ''
-                    state = BuildState.PROGRESS
+                market_id:int = base.get('market_id', 0)
+                state:BuildState = BuildState.PROGRESS if 'Construction Site' in name else BuildState.COMPLETE
 
-                if self.rc.colonisation.find_build(system, {'MarketID': base.get('marketId'), 'Name': name}) != None:
+                if self.rc.colonisation.find_build(system, {'MarketID': market_id, 'Name': name}) != None:
                     Debug.logger.debug(f"Build {name} already exists in system {data.get('name')}, skipping")
                     continue
-
-                if 'Construction Site' in name:
-                    build = self.rc.colonisation.find_build(system, {'MarketID': base.get('marketId'), 'Name': name})
-                    state = BuildState.PROGRESS
-
-                body:str = get_by_path(base, ['body', 'name'], '')
-                body = body.replace(system.get('StarSystem', '') + ' ', '')
 
                 build:dict = {
                     'Base Type': base.get('type'),
                     'StationEconomy': base.get('economy'),
                     'State': state,
                     'Name': name,
-                    'MarketID': base.get('marketId'),
-                    'Location': type,
-                    'Body': body,
+                    'MarketID': market_id
                     }
                 self.rc.colonisation.add_build(system, build)
                 Debug.logger.info(f"Added station {build} to system {data.get('name')}")

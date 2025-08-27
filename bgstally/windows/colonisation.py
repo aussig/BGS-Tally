@@ -392,11 +392,12 @@ class ColonisationWindow:
             sheet:Sheet = Sheet(self.bases_fr, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
                             show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
-                            show_dropdown_borders=False, header_bg='lightgrey',
+                            show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
                             empty_vertical=0, empty_horizontal=0, header_font=FONT_SMALL, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
                             show_header=True)
             sheet.pack(fill=tk.BOTH, padx=0, pady=0)
-
+            sheet.enable_bindings('single_select')
+            sheet.extra_bindings('cell_select', func=partial(self.base_clicked, sheet))
             data:list = [[0 for _ in range(len(self.bases.keys()))] for _ in range(len(self.colonisation.get_base_types()))]
             sheet.set_header_data([h['header'] for h in self.bases.values()])
             sheet.set_sheet_data(data)
@@ -428,6 +429,19 @@ class ColonisationWindow:
         except Exception as e:
             Debug.logger.error(f"Error in bases_popup(): {e}")
             Debug.logger.error(traceback.format_exc())
+
+
+    def base_clicked(self, sheet:Sheet, event = None) -> None:
+        try:
+            sheet.toggle_select_cell(event['selected'].row, event['selected'].column, False)
+            sheet.toggle_select_row(event['selected'].row, False, True)
+            Debug.logger.debug(f"Clicked: {sheet[event['selected'].row, 20].data}")
+            #layout = sheet[event['selected'].row, 20].data.split(', ')[0]
+            #webbrowser.open(f"https://ravencolonial.com/#vis={layout.strip().lower().replace(' ', '_')}")
+        except Exception as e:
+            Debug.logger.error(f"Error in base_clicked(): {e}")
+            Debug.logger.error(traceback.format_exc())
+
 
 
     def bodies_popup(self, tabnum:int, event = None) -> None:
@@ -526,8 +540,8 @@ class ColonisationWindow:
         self._config_sheet(sheet, system)
         sheet.enable_bindings('single_select', 'edit_cell', 'up', 'down', 'left', 'right', 'copy', 'paste')
         sheet.edit_validation(self.validate_edits)
-        sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, tabnum))
-        sheet.extra_bindings('cell_select', func=partial(self.sheet_modified, tabnum))
+        sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, sheet, tabnum))
+        sheet.extra_bindings('cell_select', func=partial(self.sheet_modified, sheet, tabnum))
 
         if len(self.sheets) < tabnum:
             self.sheets.append(sheet)
@@ -828,6 +842,7 @@ class ColonisationWindow:
 
             # Base name
             sheet[i+srow,self._detcol('Name')].readonly(False)
+            sheet[i+srow,self._detcol('Name')].align(align='left')
 
             # Body
             if system != None and 'Bodies' in system:
@@ -882,7 +897,7 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def sheet_modified(self, tabnum:int, event = None) -> None:
+    def sheet_modified(self, sheet:Sheet, tabnum:int, event = None) -> None:
         ''' Handle edits to the sheet. This is where we update the system data. '''
         try:
             sysnum:int = tabnum -1
@@ -1006,7 +1021,7 @@ class ColonisationWindow:
             row += 1
 
             prepop_var = tk.IntVar()
-            chk = tk.Checkbutton(add, text=_("Pre-fill bases from EDSM"), variable=prepop_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to pre-populate bases from EDSM
+            chk = tk.Checkbutton(add, text=_("Pre-fill bases"), variable=prepop_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to pre-populate bases
             chk.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
             row += 1
 

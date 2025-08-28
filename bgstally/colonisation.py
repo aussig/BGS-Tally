@@ -406,46 +406,39 @@ class Colonisation:
         return None
 
 
-    def find_or_create_system(self, data:dict) -> dict:
+    def find_or_create_system(self, data:dict) -> dict|None:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
-        system:dict = self.find_system(data)
+        system:dict|None = self.find_system(data)
         if system == None:
             return self.add_system(data)
 
         return system
 
 
-    def add_system(self, plan_name:str, system_name:str|None = None, system_address:int|None = None, prepop:bool = False, rcsync:bool = False) -> dict|None:
+    def add_system(self, data:dict, prepop:bool = False, rcsync:bool = False) -> dict|None:
         ''' Add a new system for colonisation planning '''
 
-        if self.find_system({'StarSystem': system_name, 'Name': plan_name}) != None:
-            Debug.logger.warning(f"Cannot add system - already exists: {plan_name} {system_name}")
+        if data.get('StarSystem', None) == None and data.get('Name', None) == None:
+            Debug.logger.warning(f"Cannot add system - no name or system: {data}")
             return
-
+        
         # Create new system
-        system_data:dict = {
-            'Name': plan_name,
-            'Claimed': '',
-            'Builds': []
-        }
-        if system_name != None: system_data['StarSystem'] = system_name
-        if system_address != None: system_data['SystemAddress'] = system_address
-        self.systems.append(system_data)
-        if rcsync == True:
-            rc:RavenColonial = RavenColonial(self)
-            rc.add_system(system_name)
-            system_data['RCSync'] = 1
+        if data.get('Name', None) == None: data['Name'] = data.get('StarSystem', '')
+        if data.get('Builds', None) == None: data['Builds'] = []
+        self.systems.append(data)
+        if rcsync == True and data.get('StarSystem', None) != None:
+            RavenColonial(self).add_system(data.get('StarSystem', ''))
+            data['RCSync'] = 1
 
         # If we have a system address, we get the bodies and maybe stations
-        if rcsync == False and system_name != None:
-            rc:RavenColonial = RavenColonial(self)
-            rc.import_bodies(system_name)
-            if prepop == True: rc.import_stations(system_name)
-            rc.import_system(system_name)
+        if rcsync == False and data.get('StarSystem', None) != None:
+            RavenColonial(self).import_bodies(data.get('StarSystem', ''))
+            if prepop == True: RavenColonial(self).import_stations(data.get('StarSystem', ''))
+            RavenColonial(self).import_system(data.get('StarSystem', ''))
 
         self.dirty = True
         self.save('Add system')
-        return system_data
+        return data
 
 
     def modify_system(self, ind:int, data:dict) -> dict|None:

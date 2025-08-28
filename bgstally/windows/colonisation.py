@@ -10,7 +10,7 @@ import tkinter.font as tkFont
 from tkinter import ttk, messagebox, PhotoImage
 from urllib.parse import quote
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from thirdparty.tksheet import Sheet
+from thirdparty.tksheet import Sheet, num2alpha
 from thirdparty.Tooltip import ToolTip
 from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_HEADING_2, FONT_SMALL, FONT_TEXT, FOLDER_DATA, FOLDER_ASSETS, BuildState
 from bgstally.debug import Debug
@@ -390,7 +390,7 @@ class ColonisationWindow:
             self.bases_fr.config(bd=2, relief=tk.FLAT)
             sheet:Sheet = Sheet(self.bases_fr, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
                             show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
-                            align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
+                            align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                             show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
                             empty_vertical=0, empty_horizontal=0, header_font=FONT_SMALL, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
                             show_header=True)
@@ -414,15 +414,15 @@ class ColonisationWindow:
                                 v = bt.get(name+' Reward', 0) - bt.get(name + ' Cost', 0)
                             if name == 'Trips':
                                 v = ceil(bt['Total Comm'] / self.colonisation.cargo_capacity)
-                            sheet[i,j].data = ' ' if v == 0 else f"{v:,}"
-                            sheet[i,j].highlight(bg=self._set_background(col.get('background'), v, col.get('max')))
+                            sheet[self._cell(i,j)].data = ' ' if v == 0 else f"{v:,}"
+                            sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), str(v), col.get('max')))
                         case _:
-                            sheet[i,j].data = bt.get(name) if bt.get(name, ' ') != ' ' else bt.get(name, ' ')
+                            sheet[self._cell(i,j)].data = bt.get(name) if bt.get(name, ' ') != ' ' else bt.get(name, ' ')
                             if name == 'Type': # Special case.
                                 econ = bt.get('Economy Influence') if bt.get('Economy Influence') != "" else bt.get('Facility Economy')
-                                sheet[i,j].highlight(bg=self._set_background(col.get('background'), econ if econ else 'None'))
+                                sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), econ if econ else 'None'))
                             else:
-                                sheet[i,j].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
+                                sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
             sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
         except Exception as e:
@@ -434,7 +434,7 @@ class ColonisationWindow:
         try:
             sheet.toggle_select_cell(event.selected.row, event.selected.column, False)
             sheet.toggle_select_row(event.selected.row, False, True)
-            Debug.logger.debug(f"Clicked: {sheet[event.selected.row, 20].data}")
+            Debug.logger.debug(f"Clicked: {sheet[self._cell(event.selected.row, 20)].data}")
             #layout = sheet[event['selected'].row, 20].data.split(', ')[0]
             #webbrowser.open(f"https://ravencolonial.com/#vis={layout.strip().lower().replace(' ', '_')}")
         except Exception as e:
@@ -521,7 +521,7 @@ class ColonisationWindow:
 
         sheet:Sheet = Sheet(table_frame, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
                             show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
-                            align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
+                            align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                             show_dropdown_borders=False,
                             empty_vertical=15, empty_horizontal=0, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
                             show_header=False, set_all_heights_and_widths=True) #, default_row_height=21)
@@ -561,7 +561,7 @@ class ColonisationWindow:
             self.plan_titles[index]['System'].pack_forget()
 
 
-    def _config_sheet(self, sheet:Sheet, system:dict = None) -> None:
+    def _config_sheet(self, sheet:Sheet, system:dict|None = None) -> None:
         ''' Initial sheet configuration. '''
         sheet.dehighlight_all()
 
@@ -700,9 +700,9 @@ class ColonisationWindow:
         for i, x in enumerate(self.summary_rows.keys()):
             for j, details in enumerate(self.summary_cols.values()):
                 #j += FIRST_SUMMARY_COLUMN
-                sheet[i+srow,j].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
+                sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
                 if details.get('background') != None:
-                    sheet[i+srow,j+scol].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
+                    sheet[self._cell(i+srow,j+scol)].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
 
 
     def _get_detail_header(self) -> list[str]:
@@ -776,8 +776,8 @@ class ColonisationWindow:
                 if i >= len(new) or j >= len(new[i]): continue # Just in case
 
                 # Set or clear the data in the cell and the highlight
-                sheet[i+srow,j].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
-                sheet[i+srow,j].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
+                sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
+                sheet[self._cell(i+srow,j)].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
 
             # Body type details
             if system != None and 'Bodies' in system and new[i][self._detcol('Body')] != ' ':
@@ -789,59 +789,59 @@ class ColonisationWindow:
                     if 'gas giant' in b.get('subType').lower(): desc = _('Gas giant')
                     if b.get('subType') == 'High metal content world': desc = _('HMC world') # LANG: HMC World is a high metal content world
                     desc = str_truncate(desc, 16)
-                sheet[i+srow,self._detcol('Body Type')].data = desc
+                sheet[self._cell(i+srow,self._detcol('Body Type'))].data = desc
 
             # Handle build states
             if new[i][self._detcol('State')] == BuildState.COMPLETE:
                 # Tracking
-                sheet[i+srow,self._detcol('Track')].checkbox(state='disabled'); sheet[i+srow,0].data = ' '
-                sheet[i+srow,self._detcol('Track')].readonly()
+                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='disabled'); sheet[self._cell(i+srow,0)].data = ' '
+                sheet[self._cell(i+srow,self._detcol('Track'))].readonly()
 
             if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Name')] != '' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
                 # Base type
                 if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
-                    sheet[i+srow,self._detcol('Base Type')].del_dropdown()
-                    sheet[i+srow,self._detcol('Base Type')].readonly()
-                    sheet[i+srow,self._detcol('Base Type')].highlight(bg=None)
+                    sheet[self._cell(i+srow,self._detcol('Base Type'))].del_dropdown()
+                    sheet[self._cell(i+srow,self._detcol('Base Type'))].readonly()
+                    sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=None)
                 elif new[i][self._detcol('Base Type')] != ' ' or new[i][self._detcol('Name')] != ' ': # Base type is invalid or not set & name is set
-                    sheet[i+srow,self._detcol('Base Type')].highlight(bg='red2')
-                    sheet[i+srow,self._detcol('Layout')].highlight(bg='red2')
-                sheet[i+srow,self._detcol('Base Type')].align(align='left')
-                sheet[i+srow,self._detcol('Layout')].align(align='left')
+                    sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg='red2')
+                    sheet[self._cell(i+srow,self._detcol('Layout'))].highlight(bg='red2')
+                sheet[self._cell(i+srow,self._detcol('Base Type'))].align(align='left')
+                sheet[self._cell(i+srow,self._detcol('Layout'))].align(align='left')
 
                 # Base name
-                sheet[i+srow,self._detcol('Name')].readonly()
-                sheet[i+srow,self._detcol('Name')].align(align='left')
+                sheet[self._cell(i+srow,self._detcol('Name'))].readonly()
+                sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left')
 
                 # Body
-                sheet[i+srow,self._detcol('Body')].del_dropdown()
-                sheet[i+srow,self._detcol('Body')].readonly()
+                sheet[self._cell(i+srow,self._detcol('Body'))].del_dropdown()
+                sheet[self._cell(i+srow,self._detcol('Body'))].readonly()
                 continue
 
             #  Tracking
             if new[i][self._detcol('State')] != BuildState.COMPLETE:
-                sheet[i+srow,self._detcol('Track')].checkbox(state='normal')
-                sheet[i+srow,self._detcol('Track')].data = ' '
-                sheet[i+srow,self._detcol('Track')].readonly(False)
+                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='normal')
+                sheet[self._cell(i+srow,self._detcol('Track'))].data = ' '
+                sheet[self._cell(i+srow,self._detcol('Track'))].readonly(False)
 
             # Base type
-            sheet[i+srow,self._detcol('Base Type')].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
-            sheet[i+srow,self._detcol('Base Type')].align(align='left')
-            sheet[i+srow,self._detcol('Base Type')].readonly(False)
-            sheet[i+srow,self._detcol('Base Type')].data = new[i][self._detcol('Base Type')]
+            sheet[self._cell(i+srow,self._detcol('Base Type'))].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
+            sheet[self._cell(i+srow,self._detcol('Base Type'))].align(align='left')
+            sheet[self._cell(i+srow,self._detcol('Base Type'))].readonly(False)
+            sheet[self._cell(i+srow,self._detcol('Base Type'))].data = new[i][self._detcol('Base Type')]
 
             # Base Layout
             cat:str = new[i][self._detcol('Base Type')] if new[i][self._detcol('Base Type')] != ' ' else 'All'
             if i == 0 and cat == 'All': cat = 'Initial'
             layouts:list = self.colonisation.get_base_layouts(cat)
-            sheet[i+srow,self._detcol('Layout')].dropdown(values=[' '] + layouts)
-            sheet[i+srow,self._detcol('Layout')].align(align='left')
-            sheet[i+srow,self._detcol('Layout')].readonly(False)
-            sheet[i+srow,self._detcol('Layout')].data = new[i][self._detcol('Layout')]
+            sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + layouts)
+            sheet[self._cell(i+srow,self._detcol('Layout'))].align(align='left')
+            sheet[self._cell(i+srow,self._detcol('Layout'))].readonly(False)
+            sheet[self._cell(i+srow,self._detcol('Layout'))].data = new[i][self._detcol('Layout')]
 
             # Base name
-            sheet[i+srow,self._detcol('Name')].readonly(False)
-            sheet[i+srow,self._detcol('Name')].align(align='left')
+            sheet[self._cell(i+srow,self._detcol('Name'))].readonly(False)
+            sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left')
 
             # Body
             if system != None and 'Bodies' in system:
@@ -851,15 +851,15 @@ class ColonisationWindow:
                     bodies = self.colonisation.get_bodies(system, basetype.get('Location'))
 
                 if len(bodies) > 0:
-                    sheet[i+srow,self._detcol('Body')].dropdown(values=[' '] + bodies)
-            sheet[i+srow,self._detcol('Body')].readonly(False)
-            sheet[i+srow,self._detcol('Body')].data = new[i][self._detcol('Body')]
+                    sheet[self._cell(i+srow,self._detcol('Body'))].dropdown(values=[' '] + bodies)
+            sheet[self._cell(i+srow,self._detcol('Body'))].readonly(False)
+            sheet[self._cell(i+srow,self._detcol('Body'))].data = new[i][self._detcol('Body')]
 
         # Clear the highlights on the empty last row
         if len(new) > len(system.get('Builds', [])):
             for j, details in enumerate(self.detail_cols.values()):
-                sheet[len(new)+srow-1,j].highlight(bg=None)
-            sheet[len(new)+srow-1,self._detcol('State')].data = ' '
+                sheet[self._cell(len(new)+srow-1,j)].highlight(bg=None)
+            sheet[self._cell(len(new)+srow-1,self._detcol('State'))].data = ' '
 
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
@@ -1019,12 +1019,12 @@ class ColonisationWindow:
             system_name_entry.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
             row += 1
 
-            prepop_var = tk.IntVar()
+            prepop_var = tk.BooleanVar()
             chk = tk.Checkbutton(add, text=_("Pre-fill bases"), variable=prepop_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to pre-populate bases
             chk.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
             row += 1
 
-            rcsync_var = tk.IntVar()
+            rcsync_var = tk.BooleanVar()
             chk = tk.Checkbutton(add, text=_("Sync with RavenColonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with RavenColonial
             chk.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
             row += 1
@@ -1105,7 +1105,7 @@ class ColonisationWindow:
                 return
 
             # Add the system
-            system:dict = self.colonisation.add_system(plan_name, system_name, None, prepop, rcsync)
+            system:dict = self.colonisation.add_system({'Name':plan_name, 'StarSystem':system_name}, prepop, rcsync)
             if system == False:
                 messagebox.showerror(_("Error"), _("Unable to create system")) # LANG: General failure to create system error
                 return
@@ -1115,7 +1115,7 @@ class ColonisationWindow:
             self.update_display()
 
         except Exception as e:
-            Debug.logger.error(f"Error in add_system: {e}")
+            Debug.logger.error(f"Error in _add_system: {e}")
             Debug.logger.error(traceback.format_exc())
 
 
@@ -1150,13 +1150,13 @@ class ColonisationWindow:
             system_name_entry.grid(row=row, column=1, padx=10, pady=(5,10), sticky=tk.W)
             row += 1
 
-            rcsync_var = tk.IntVar()
+            rcsync_var = tk.BooleanVar()
             rcsync_var.set(True if system.get('RCSync', 0) != 0 else False)
             chk = tk.Checkbutton(dialog, text=_("Sync with RavenColonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with RavenColonial
             chk.grid(row=row, column=1, padx=10, pady=(0,0), sticky=tk.W)
             row += 1
 
-            hide_var = tk.IntVar()
+            hide_var = tk.BooleanVar()
             hide_var.set(system.get('Hide', False))
             chk = tk.Checkbutton(dialog, text=_("Deactivate (hide) this plan"), variable=hide_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to remove a plan from the tab list
             chk.grid(row=row, column=1, padx=10, pady=(0,10), sticky=tk.W)
@@ -1488,13 +1488,13 @@ class ColonisationWindow:
             gradient_colors:list = []
 
             # Calculate interpolation steps
-            r_step_1:int = (m[0] - s[0]) / steps
-            g_step_1:int = (m[1] - s[1]) / steps
-            b_step_1:int = (m[2] - s[2]) / steps
+            r_step_1:int = round((m[0] - s[0]) / steps)
+            g_step_1:int = round((m[1] - s[1]) / steps)
+            b_step_1:int = round((m[2] - s[2]) / steps)
 
-            r_step_2:int = (e[0] - m[0]) / steps
-            g_step_2:int = (e[1] - m[1]) / steps
-            b_step_2:int = (e[2] - m[2]) / steps
+            r_step_2:int = round((e[0] - m[0]) / steps)
+            g_step_2:int = round((e[1] - m[1]) / steps)
+            b_step_2:int = round((e[2] - m[2]) / steps)
 
             # Iterate and interpolate
             for i in range(steps+1):
@@ -1521,5 +1521,9 @@ class ColonisationWindow:
 
     def _detcol(self, col:str) -> int:
         ''' Macro to shorten references to detail columns '''
-        #cols:list = list(self.detail_cols.keys())
         return list(self.detail_cols.keys()).index(col)
+    
+
+    def _cell(self, row:int, col:int) -> str:
+        ''' Macro to shorten cell references '''
+        return f"{num2alpha(col)}{row+1}"

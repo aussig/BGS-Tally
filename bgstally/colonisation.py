@@ -50,7 +50,6 @@ class Colonisation:
     '''
     def __init__(self, bgstally) -> None:
         self.bgstally:BGSTally = bgstally # type: ignore
-        self.rc:RavenColonial = RavenColonial(self)
         self.system_id:int|None = None
         self.current_system:str|None = None
         self.body:str|None = None
@@ -117,7 +116,7 @@ class Colonisation:
         try:
             file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, COMMODITY_FILENAME)
             with open(file, encoding = 'utf-8') as csv_file_handler:
-                csv_reader = csv.DictReader(csv_file_handler)
+                csv_reader: csv.DictReader = csv.DictReader(csv_file_handler)
                 comm:dict = {}
                 for rows in csv_reader:
                     comm[f"${rows.get('symbol', '').lower()}_name;"] = {'Name' : rows.get('name', ''), 'Category': rows.get('category', '')}
@@ -136,7 +135,7 @@ class Colonisation:
         This method is called by the bgstally plugin when a journal entry is received.
         '''
         try:
-            self.cmdr = cmdr
+            rc:RavenColonial = RavenColonial(self)
             if state.get('CargoCapacity', 0) != None and state.get('CargoCapacity', 0) > 16 and state.get('CargoCapacity', 0) != self.cargo_capacity:
                 self.cargo_capacity = state.get('CargoCapacity')
                 self.dirty = True
@@ -162,17 +161,17 @@ class Colonisation:
                         if system.get('Hidden', 0) == 1: continue
 
                         if system.get('RCSync', 0) == 1:
-                            if self.rc == None: self.rc = RavenColonial(self)
-                            self.rc.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
+                            self.cmdr = cmdr # Used in RavenColonial sync
+                            rc.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
 
                         if system.get('Bodies', None) == None: # In case we didn't get them for some reason
-                            self.rc.import_bodies(system.get('StarSystem', ''))
+                            rc.import_bodies(system.get('StarSystem', ''))
 
-                        self.rc.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
+                        rc.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
 
                     for progress in self.progress:
                         if progress.get('ProjectID', None) != None and progress.get('ConstructionComplete', False) == False:
-                            self.rc.load_project(progress)
+                            rc.load_project(progress)
 
                 case 'Cargo' | 'CargoTransfer':
                     self._update_cargo(state.get('Cargo'))
@@ -187,9 +186,8 @@ class Colonisation:
                     if system != None and system.get('RCSync', 0) == 1:
                         for progress in self.progress:
                             if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
-                                self.rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
+                                rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
                                 break
-
 
                 case 'ColonisationSystemClaim':
                     if not self.current_system or not self.system_id:
@@ -274,7 +272,7 @@ class Colonisation:
                     self.location = 'Surface'
 
                 case 'SupercruiseExit' | 'ApproachSettlement':
-                    if entry.get('event') == 'ApproachSettlement': self.location == 'Surface'
+                    if entry.get('event') == 'ApproachSettlement': self.location = 'Surface'
 
                     # If it's a construction site or colonisation ship wait til we dock.
                     # If it's a carrier or other non-standard location we ignore it.
@@ -417,7 +415,7 @@ class Colonisation:
         return system
 
 
-    def add_system(self, plan_name:str, system_name:str = None, system_address:int = None, prepop:bool = False, rcsync:bool = False) -> dict|None:
+    def add_system(self, plan_name:str, system_name:str|None = None, system_address:int|None = None, prepop:bool = False, rcsync:bool = False) -> dict|None:
         ''' Add a new system for colonisation planning '''
 
         if self.find_system({'StarSystem': system_name, 'Name': plan_name}) != None:
@@ -434,15 +432,16 @@ class Colonisation:
         if system_address != None: system_data['SystemAddress'] = system_address
         self.systems.append(system_data)
         if rcsync == True:
-            if self.rc == None: self.rc = RavenColonial(self)
-            self.rc.add_system(system_name)
+            rc:RavenColonial = RavenColonial(self)
+            rc.add_system(system_name)
             system_data['RCSync'] = 1
 
         # If we have a system address, we get the bodies and maybe stations
         if rcsync == False and system_name != None:
-            self.rc.import_bodies(system_name)
-            if prepop == True: self.rc.import_stations(system_name)
-            self.rc.import_system(system_name)
+            rc:RavenColonial = RavenColonial(self)
+            rc.import_bodies(system_name)
+            if prepop == True: rc.import_stations(system_name)
+            rc.import_system(system_name)
 
         self.dirty = True
         self.save('Add system')
@@ -457,7 +456,6 @@ class Colonisation:
             return
 
         system:dict = self.systems[ind]
-        Debug.logger.debug(f"{system.get('Name')}")
         # If they change which star system, we need to clear the system address
         if data.get('StarSystem', None) != None and data.get('StarSystem', None) != system.get('StarSystem'):
             system['SystemAddress'] = None
@@ -469,13 +467,12 @@ class Colonisation:
         # Add a system if the flag has switched from zero to one
         if data.get('RCSync', 0) == 1 and system.get('RCSync', 0) == 0 and \
             data.get('StarSystem', None) != None:
-            if self.rc == None: self.rc = RavenColonial(self)
-            self.rc.add_system(system.get('StarSystem'))
+            RavenColonial(self).add_system(system.get('StarSystem', ''))
             system['RCSync'] = 1
 
         # If we have a system name but not its address, we can get the bodies from EDSM
         if system.get('StarSystem') != None and system.get('Bodies', None) == None:
-            self.rc.import_bodies(system.get('StarSystem', ''))
+            RavenColonial(self).import_bodies(system.get('StarSystem', ''))
 
         self.dirty = True
         self.save('Modify system')
@@ -637,8 +634,7 @@ class Colonisation:
         # Update RC if appropriate and we have enough data about the system.
         if silent == False and system.get('RCSync') == 1 and system.get('SystemAddress', None) != None and \
             data.get('Layout', None) != None and data.get('BodyNum', None) != None:
-            if self.rc == None: self.rc = RavenColonial(self)
-            self.rc.upsert_site(system, data)
+            RavenColonial(self).upsert_site(system, data)
 
         self.dirty = True
         self.save('Build added')
@@ -667,8 +663,7 @@ class Colonisation:
             return
 
         if system.get('RCSync', 0) == 1:
-            if self.rc == None: self.rc = RavenColonial(self)
-            self.rc.remove_site(system, ind)
+            RavenColonial(self).remove_site(system, ind)
 
         # Remove build
         system['Builds'].pop(ind)
@@ -741,11 +736,10 @@ class Colonisation:
             if silent == False and changed == True and \
                 system.get('RCSync') == 1 and system.get('SystemAddress', None) != None and \
                 build.get('Layout', None) != None and build.get('BodyNum', None) != None:
-                if self.rc == None: self.rc = RavenColonial(self)
-                self.rc.upsert_site(system, build)
+                RavenColonial(self).upsert_site(system, build)
                 for p in self.progress:
                     if p.get('ProjectID', None) != None and p.get('MarketID', None) == build.get('MarketID'):
-                        self.rc.upsert_project(system, build, p)
+                        RavenColonial(self).upsert_project(system, build, p)
 
             self.dirty = True
             self.save('Build modified')
@@ -894,10 +888,13 @@ class Colonisation:
             for k, v in data.items():
                 # Recalculate the provided amount based on what RC says remains to be delivered
                 if k == 'Remaining':
-                    deliv = {f"${key}_name;" : progress['Required'][key] - val for key,val in v}
-                    if progress.get('Delivered', None) != deliv:
-                        progress['Delivered'] = deliv
-                        changed = True
+                    Debug.logger.debug(f"Remaining: {v}")
+                    deliv:dict = {f"${key}_name;" : progress['Required'][f"${key}_name;"] - val for key, val in v.items()}
+                    pd:dict = progress.get('Delivered', {})
+                    for comm, amt in deliv.items():
+                        if pd.get(comm) != amt:
+                            changed = True
+                            if pd.get(comm) < amt: progress['Delivered'][comm] = amt
                     continue
 
                 if progress.get(k) != v:
@@ -905,6 +902,7 @@ class Colonisation:
                     changed = True
 
             if changed != True:
+                Debug.logger.debug(f"Project unchanged")
                 return
 
             self.dirty = True
@@ -913,18 +911,18 @@ class Colonisation:
             if data.get('ConstructionComplete', False) == True:
                 self.try_complete_build(progress.get('MarketID', 0))
                 if progress.get('ProjectID', None) != None:
-                    self.rc.complete_site(progress.get('ProjectID', 0))
+                    RavenColonial(self).complete_site(progress.get('ProjectID', 0))
                 return
 
-            system:dict|None = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-            if system != None and system.get('RCSync', 0) == 1: build = self.find_build(system, {'MarketID' : self.market_id})
+            system:dict|None = self.find_system({'SystemAddress': progress.get('SystemAddress', '')})
+            if system != None and system.get('RCSync', 0) == 1: build:dict|None = self.find_build(system, {'MarketID' : progress.get('MarketID')})
             if system == None or build == None:
-                Debug.logger.warning(f"System {self.current_system} not found for build {self.market_id}")
+                Debug.logger.warning(f"System {system.get('StarSystem')} not found for build {progress.get('MarketID')}")
                 return
 
             # RC Sync if appropriate
             if system.get('RCSync', 0) == 1:
-                self.rc.upsert_project(system, build, progress)
+                RavenColonial(self).upsert_project(system, build, progress)
 
             return
 
@@ -941,14 +939,14 @@ class Colonisation:
             cargo:dict = {}
 
             for item in self.bgstally.fleet_carrier.cargo:
-                n = item.get('commodity')
+                n:str = item.get('commodity', '')
                 n = f"${n.lower().replace(' ', '')}_name;"
                 if n not in cargo:
                     cargo[n] = 0
                 cargo[n] += int(item['qty'])
 
-            if cargo != self.carrier_cargo and self.rc != None:
-                self.rc.update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)
+            if cargo != self.carrier_cargo and self.cmdr != None:
+                RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)
                 self.dirty = True
 
             self.carrier_cargo = cargo
@@ -964,7 +962,7 @@ class Colonisation:
             tmp:dict = {}
             for k, v in cargo.items():
                 if v > 0:
-                    k = f"${k.lower()}_name;"
+                    k:str = f"${k.lower()}_name;"
                     tmp[k] = v
             self.cargo = tmp
 
@@ -973,7 +971,7 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
-    def _update_market(self, market_id:int = None) -> None:
+    def _update_market(self, market_id:int|None = None) -> None:
         ''' Update market info from the market object or directly '''
         try:
             if market_id == None or self.docked == False:
@@ -1011,7 +1009,7 @@ class Colonisation:
     def _load(self) -> None:
         ''' Load state from file '''
         try:
-            file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
+            file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
             if path.exists(file):
                 with open(file) as json_file:
                     self._from_dict(json.load(json_file))
@@ -1024,7 +1022,7 @@ class Colonisation:
     def save(self, cause:str = 'Unknown') -> None:
         ''' Save state to file '''
 
-        file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
+        file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile, indent=4)
 
@@ -1038,7 +1036,7 @@ class Colonisation:
         def sort_order(item:dict) -> str:
             state:BuildState = BuildState.COMPLETE
             for b in item['Builds']:
-                bs = self.get_build_state(b)
+                bs:BuildState = self.get_build_state(b)
                 if bs == BuildState.PLANNED and state != BuildState.PROGRESS:
                     state = BuildState.PLANNED
                 if bs == BuildState.PROGRESS and b.get('Track', False) == True:

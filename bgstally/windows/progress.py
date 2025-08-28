@@ -12,7 +12,7 @@ from urllib.parse import quote
 from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
 from bgstally.utils import _, str_truncate
-from config import config
+from config import config # type: ignore
 from thirdparty.Tooltip import ToolTip
 
 MAX_ROWS = 20
@@ -115,7 +115,7 @@ class ProgressWindow:
             y.grid_propagate(0)
             self.progvar = tk.IntVar()
             self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=450, mode='determinate')
-            self.progtt = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
+            self.progtt:ToolTip = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
             self.progbar.grid(row=0, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW)
             self.progbar.rowconfigure(0, weight=1)
             row += 1; col = 0
@@ -312,11 +312,11 @@ class ProgressWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def link(self, comm:str, src:str, tkEvent) -> None:
+    def link(self, comm:str, src:str|None, tkEvent) -> None:
         ''' Open the link to Inara for nearest location for the commodity. '''
         try:
             comm_id = self.colonisation.base_costs['All'].get(comm)
-            sys:str = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
+            sys:str|None = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
             if sys == None: sys = 'sol'
 
             # pi3=3 - large, pi3=2 - medium
@@ -512,7 +512,7 @@ class ProgressWindow:
 
     def _set_weight(self, cell, w='bold') -> None:
         ''' Set font weight, defaults to bold '''
-        fnt:tkFont.Font = tkFont.Font(font=cell['font']).actual()
+        fnt:tkFont._FontDict = tkFont.Font(font=cell['font']).actual()
         cell.configure(font=(fnt['family'], fnt['size'], w))
 
 

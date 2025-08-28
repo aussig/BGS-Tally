@@ -34,7 +34,21 @@ class RavenColonial:
     It syncs systems and sites, projects, contributions and fleet carrier cargo.
     Many requests are queued to the request manager to avoid blocking EDMC but some are done synchronously where appropriate.
     """
+    _instance = None
+
+    # Singleton pattern
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+
     def __init__(self, colonisation) -> None:
+        # Only initialize if it's the first time
+        if hasattr(self, '_initialized'):
+            return
+
+        self._initialized = True
         self.colonisation:Colonisation = colonisation # type: ignore
         self.bgstally:BGSTally = colonisation.bgstally # type: ignore
 
@@ -267,7 +281,7 @@ class RavenColonial:
                                                                    'Name': site.get('name', -1),
                                                                    'RCID' : site.get('id', -1)})
                 # Avoid creating leftover construction sites
-                if build == None and 'Construction Site' in site.get['name', '']:
+                if build == None and 'Construction Site' in site.get('name', ''):
                     if self.colonisation.find_build(system, {'Name': re.sub(r".* Construction Site: ", "", site.get('name'))}) != None:
                         continue
 
@@ -428,6 +442,7 @@ class RavenColonial:
         """ Update build progress """
         # Required: buildId (though maybe not if you use )
         try:
+            del progress['Updated'] # This won't be right, mustn't send it.
 
             # Create project if we don't have an id.
             if progress.get('ProjectID', None) == None:
@@ -452,10 +467,6 @@ class RavenColonial:
 
             url = f"{RC_API}/project/{progress.get('ProjectID')}"
             self.headers["rcc-cmdr"] = self.colonisation.cmdr
-            Debug.logger.debug(f"Sending project update: {payload}")
-            #Debug.logger.debug(f"{url} {payload} {self.headers}")
-            #response:Response = requests.patch(url, json=payload, headers=self.headers, timeout=5)
-            #Debug.logger.debug(f"{url} {response} {response.content}")
             self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, headers=self.headers, callback=self._project_callback)
             return
 
@@ -473,7 +484,7 @@ class RavenColonial:
             Debug.logger.debug(f"Project submission succeeded")
             return
 
-        Debug.logger.debug(f"Project submission failed {success} {response} {request}")
+        Debug.logger.debug(f"Project submission failed {success} {response.status_code} {response.content} {request}")
 
 
     def load_project(self, progress:dict) -> None:
@@ -512,21 +523,17 @@ class RavenColonial:
 
             data:dict = response.json()
             self._cache[data.get('buildId')] = data.get('timestamp')
-            Debug.logger.debug(f"Project response: {data}")
             update:dict = {}
             for k, v in self.project_params.items():
                 if data.get(k, None) == None:
                     continue
                 if k == 'timestamp':
                     update[v] = re.sub(r"\.\d+\+00:00$", "Z", str(data.get(k, None)))
-                    Debug.logger.debug(f"Replacing TS: {update[v]}")
                     continue
                 update[v] = data.get(k, '') if isinstance(data.get(k, None), str) and 'name' not in k.lower() else data.get(k, None)
 
             # Need to figure out what we're going to update here.
-            Debug.logger.debug(f"Progres update: {data.get('marketId')} {update}")
-            #self.colonisation.update_progress(data.get('marketId'), update)
-
+            self.colonisation.update_progress(data.get('marketId'), update)
             return
 
         except Exception as e:
@@ -597,6 +604,7 @@ class RavenColonial:
     def import_bodies(self, system_name:str) -> None:
         """ Retrieve the bodies in a system """
         return self.body_service.import_bodies(system_name)
+
 
 class EDSM:
     """
@@ -883,7 +891,7 @@ class Spansh:
 
         # In cache? Then use it.
         ts:int = round(time.mktime(datetime.now(timezone.utc).timetuple()))
-        if self.system_cache.get(system_name, None) != None and system.get('SpanshUpdated', 0) > ts - SPANSH_DELAY:
+        if self.system_cache.get(system_name, None) != None and system.get('SpanshUpdated', 0) < ts - SPANSH_DELAY:
             match which:
                 case 'bodies': return self._update_bodies(system, self.system_cache[system_name])
                 case 'stations': return self._update_stations(system, self.system_cache[system_name])

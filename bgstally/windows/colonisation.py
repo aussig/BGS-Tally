@@ -4,8 +4,7 @@ import traceback
 import re
 from functools import partial
 import webbrowser
-from config import config
-import plug
+from config import config # type: ignore
 import tkinter as tk
 import tkinter.font as tkFont
 from tkinter import ttk, messagebox, PhotoImage
@@ -135,16 +134,16 @@ class ColonisationWindow:
         }
 
         # UI components
-        self.window:tk.Toplevel = None
-        self.tabbar:ScrollableNotebook = None
-        self.add_dialog:tk.Frame = None
-        self.react:Tk.Frame = None
+        self.window:tk.Toplevel = None # type: ignore
+        self.tabbar:ScrollableNotebook = None # type: ignore
+        self.add_dialog:tk.Frame|None = None
+        self.react:tk.Frame|None = None
         self.sheets:list = []
         self.plan_titles:list = []
-        self.legend_fr:tk.Toplevel = None
-        self.notes_fr:tk.Toplevel = None
-        self.bases_fr:tk.Toplevel = None
-        self.bodies_fr:tk.Toplevel = None
+        self.legend_fr:tk.Toplevel|None = None
+        self.notes_fr:tk.Toplevel|None = None
+        self.bases_fr:tk.Toplevel|None = None
+        self.bodies_fr:tk.Toplevel|None = None
         self.scale:float = 0
 
 
@@ -180,7 +179,7 @@ class ColonisationWindow:
             # Create system tabs notebook
             self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=True)
             self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-            self.add_dialog:tk.Frame = self.add_system_dialog()
+            self.add_dialog = self.add_system_dialog()
             self.update_react_dialog()
             self.tabbar.add(self.add_dialog, text='+')
 
@@ -433,9 +432,9 @@ class ColonisationWindow:
 
     def base_clicked(self, sheet:Sheet, event = None) -> None:
         try:
-            sheet.toggle_select_cell(event['selected'].row, event['selected'].column, False)
-            sheet.toggle_select_row(event['selected'].row, False, True)
-            Debug.logger.debug(f"Clicked: {sheet[event['selected'].row, 20].data}")
+            sheet.toggle_select_cell(event.selected.row, event.selected.column, False)
+            sheet.toggle_select_row(event.selected.row, False, True)
+            Debug.logger.debug(f"Clicked: {sheet[event.selected.row, 20].data}")
             #layout = sheet[event['selected'].row, 20].data.split(', ')[0]
             #webbrowser.open(f"https://ravencolonial.com/#vis={layout.strip().lower().replace(' ', '_')}")
         except Exception as e:
@@ -846,7 +845,7 @@ class ColonisationWindow:
 
             # Body
             if system != None and 'Bodies' in system:
-                bodies:dict = self.colonisation.get_bodies(system)
+                bodies:list = self.colonisation.get_bodies(system)
                 if new[i][self._detcol('Base Type')] != ' ':
                     basetype:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
                     bodies = self.colonisation.get_bodies(system, basetype.get('Location'))
@@ -1051,6 +1050,7 @@ class ColonisationWindow:
         except Exception as e:
             Debug.logger.error(f"Error in add_system: {e}")
             Debug.logger.error(traceback.format_exc())
+            return dialog
 
 
     def update_react_dialog(self) -> None:
@@ -1088,7 +1088,6 @@ class ColonisationWindow:
         try:
             Debug.logger.debug("Reactivating system: {sysnum}")
             self.colonisation.modify_system(sysnum, {'Hidden':False})
-            Debug.logger.debug(f"{self.tabbar.tabs()}")
             self.tabbar.notebookTab.tab(sysnum+1, state='normal')
             self.update_react_dialog()
             return
@@ -1140,7 +1139,7 @@ class ColonisationWindow:
             # System name
             ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
             plan_name_var:tk.StringVar = tk.StringVar(value=system.get('Name', ''))
-            plan_name_entry:ttk.Entr = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
+            plan_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
             plan_name_entry.grid(row=row, column=1, padx=10, pady=(10,5), sticky=tk.W)
             row += 1
 
@@ -1263,14 +1262,9 @@ class ColonisationWindow:
                 return
 
             # Refresh the RC data when the window is opened/created
-            Debug.logger.debug(f"Reloading system {system.get('StarSystem', 'Unknown')} from ID64 {system.get('ID64')}")
+            Debug.logger.debug(f"Reloading system {system.get('StarSystem', 'Unknown')} from {system.get('SystemAddress')}")
             if self.colonisation.rc == None: self.rc = RavenColonial(self)
-            if system.get('ID64', None) == None:
-                Debug.logger.debug(f"Calling add_system")
-                self.colonisation.rc.add_system(system.get('StarSystem'))
-            else:
-                Debug.logger.debug(f"Calling load_system")
-                self.colonisation.rc.load_system(system.get('ID64'), system.get('Rev', None))
+            self.colonisation.rc.load_system(system.get('SystemAddress'), system.get('Rev', None))
 
             if self.bgstally.fleet_carrier.available() == True:
                 self.colonisation.rc.update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)

@@ -10,7 +10,6 @@ from datetime import datetime, timedelta, timezone
 from functools import partial
 import requests
 from requests import Response
-from config import config
 from bgstally.constants import RequestMethod, BuildState
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
@@ -36,14 +35,13 @@ class RavenColonial:
     Many requests are queued to the request manager to avoid blocking EDMC but some are done synchronously where appropriate.
     """
     def __init__(self, colonisation) -> None:
-        self.colonisation:Colonisation = colonisation
-        self.bgstally:BGSTally = colonisation.bgstally
+        self.colonisation:Colonisation = colonisation # type: ignore
+        self.bgstally:BGSTally = colonisation.bgstally # type: ignore
 
         self.system_service:Spansh = Spansh(self)  # Site to use for system lookups
         self.body_service:EDSM = EDSM(self)    # Site to use for body lookups
         #self.station_service:EDSM = EDSM(self) # Site to use for station lookups
         self.station_service:Spansh = Spansh(self) # Site to use for station lookups
-
 
         self.headers:dict = {
             'User-Agent': f"BGSTally/{self.bgstally.version} (RavenColonial)",
@@ -73,10 +71,11 @@ class RavenColonial:
                                  }
         # Project parameter mapping between colonisation & raven.
         self.project_params:dict = {
+            'timestamp': 'Updated',
             'marketId': 'MarketID',
             'systemAddress': 'SystemAddress',
             'buildName': 'Name',
-            'buildId': 'RCID',
+            'buildId': 'ProjectID',
             'commodities': 'Remaining',
             'colonisationConstructionDepot': 'event',
             'buildType': 'Layout',
@@ -84,7 +83,8 @@ class RavenColonial:
             'architectName': 'Architect',
             'timeDue': 'Deadline',
             'isPrimaryPort': 'Primary',
-            'bodyType': 'BodyType'
+            'bodyType': 'BodyType',
+            'complete': 'ConstructionComplete'
             }
 
         # build state parameters between colonisation & raven.
@@ -99,7 +99,6 @@ class RavenColonial:
 
     def load_system(self, id64:str = None, rev:str = None) -> None:
         """ Retrieve the rcdata data with the latest system data from RC when we start. """
-        Debug.logger.debug(f"Load system {id64}")
 
         # Implement cooldown and revision tracking
         if self._cache.get(id64, None) == None: self._cache[id64] = {}
@@ -136,7 +135,7 @@ class RavenColonial:
             response:Response = requests.post(url, headers=self.headers, timeout=5)
 
             if response.status_code != 200:
-                Debug.logger.error(f"Failed to import system {system_name}: {response.status_code} system data: {data}")
+                Debug.logger.error(f"Failed to import system {system_name}: {response.status_code}")
                 return
 
         # Merge RC data with system data
@@ -206,7 +205,7 @@ class RavenColonial:
                 Debug.logger.error(f"{url} {response} {response.content}")
 
             # Refresh the system info
-            self.load_system(system.get('SystemAddress'))
+            self.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
             return
 
         except Exception as e:
@@ -267,6 +266,11 @@ class RavenColonial:
                 build:dict = self.colonisation.find_build(system, {'MarketID': site.get('id', -1)[1:],
                                                                    'Name': site.get('name', -1),
                                                                    'RCID' : site.get('id', -1)})
+                # Avoid creating leftover construction sites
+                if build == None and 'Construction Site' in site.get['name', '']:
+                    if self.colonisation.find_build(system, {'Name': re.sub(r".* Construction Site: ", "", site.get('name'))}) != None:
+                        continue
+
                 if build == None: build = {}
                 deets:dict = {}
                 for p, m in self.site_params.items():
@@ -509,7 +513,20 @@ class RavenColonial:
             data:dict = response.json()
             self._cache[data.get('buildId')] = data.get('timestamp')
             Debug.logger.debug(f"Project response: {data}")
+            update:dict = {}
+            for k, v in self.project_params.items():
+                if data.get(k, None) == None:
+                    continue
+                if k == 'timestamp':
+                    update[v] = re.sub(r"\.\d+\+00:00$", "Z", str(data.get(k, None)))
+                    Debug.logger.debug(f"Replacing TS: {update[v]}")
+                    continue
+                update[v] = data.get(k, '') if isinstance(data.get(k, None), str) and 'name' not in k.lower() else data.get(k, None)
+
             # Need to figure out what we're going to update here.
+            Debug.logger.debug(f"Progres update: {data.get('marketId')} {update}")
+            #self.colonisation.update_progress(data.get('marketId'), update)
+
             return
 
         except Exception as e:
@@ -653,6 +670,12 @@ class EDSM:
                 if self.rc.colonisation.find_build(system, {'MarketID': base.get('marketId'), 'Name': name}) != None:
                     Debug.logger.debug(f"Build {name} already exists in system {data.get('name')}, skipping")
                     continue
+
+                                # Avoid creating leftover construction sites
+                if 'Construction Site' in name:
+                    if self.rc.colonisation.find_build(system, {'Name': re.sub(r".* Construction Site: ", "", name)}) != None:
+                        Debug.logger.debug(f"Skipping build {name}")
+                        continue
 
                 if 'Construction Site' in name:
                     build = self.rc.colonisation.find_build(system, {'MarketID': base.get('marketId'), 'Name': name})
@@ -809,7 +832,7 @@ class Spansh:
         return self._get_details(system_name, 'stations')
 
     def import_system(self, system_name:str) -> None:
-        return self._get_details(system_name, 'stations')
+        return self._get_details(system_name, 'system')
 
     def import_bodies(self, system_name:str) -> None:
         return self._get_details(system_name, 'bodies')
@@ -848,6 +871,9 @@ class Spansh:
         if system_name == None or system_name == '':
             Debug.logger.info("No system name given")
             return
+
+        if which == 'stations':
+            raise NameError('Querying stations')
 
         # Check when we last updated this system
         system:dict|None = self.rc.colonisation.find_system({'StarSystem': system_name})
@@ -916,8 +942,8 @@ class Spansh:
             update:dict = {}
             update['Population'] = data.get('population', None)
             update['Economy'] = data.get('primary_economy', None)
-            if data.get('secondary_economy', 'None') != 'None':
-                update['Economy'] += "/" + get_by_path(data, ['record', 'secondary_economy'])
+            if data.get('secondary_economy', 'None') != None:
+                update['Economy'] += "/" + data.get('secondary_economy', '')
             update['Security'] = data.get('security', None)
             update['SystemAddress'] = data.get('id64', None)
             update['SpanshUpdated'] = round(time.mktime(datetime.now(timezone.utc).timetuple()))
@@ -936,6 +962,7 @@ class Spansh:
                 Debug.logger.debug(f"No stations")
                 return
 
+            Debug.logger.debug(f"Updating stations in {system.get('StarSystem')}")
             stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['market_id']))
             for base in stations:
                 # Ignore these
@@ -943,16 +970,6 @@ class Spansh:
                     '$EXT_PANEL_ColonisationShip;' in base.get('name', '') or \
                         ('ColonisationShip' in base.get('name', '') and len(stations) > 1):
                     continue
-
-                # Look for a completed base with the same name since depots sometimes hang around.
-                if 'Construction Site' in base.get('name', ''):
-                    found:bool = False
-                    for b in stations:
-                        if b.get('name', '') == re.sub(r".* Construction Site: ", "", base.get('name', '')):
-                            found = True
-                            break
-                    if found == True:
-                        continue
 
                 name:str = base.get('name', '')
                 market_id:int = base.get('market_id', 0)
@@ -962,6 +979,12 @@ class Spansh:
                     Debug.logger.debug(f"Build {name} already exists in system {data.get('name')}, skipping")
                     continue
 
+                # Look for a completed base with the same name since depots sometimes hang around.
+                if 'Construction Site' in base.get('name', '') and \
+                    self.rc.colonisation.find_build(system, {'Name': re.sub(r".* Construction Site: ", "", base.get('name'))}) != None:
+                        Debug.logger.debug(f"Skipping construction site {base.get('name')}")
+                        continue
+
                 build:dict = {
                     'Base Type': base.get('type'),
                     'StationEconomy': base.get('economy'),
@@ -969,8 +992,9 @@ class Spansh:
                     'Name': name,
                     'MarketID': market_id
                     }
+                Debug.logger.info(f"Adding station base.get('name', '') to system {data.get('name')} {build}")
                 self.rc.colonisation.add_build(system, build)
-                Debug.logger.info(f"Added station {build} to system {data.get('name')}")
+
 
         except Exception as e:
             Debug.logger.info(f"Error recording stations")

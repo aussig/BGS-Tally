@@ -9,7 +9,7 @@ import re
 import time
 from datetime import datetime
 from requests import Response
-from config import config
+from config import config # type: ignore
 from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView, RequestMethod
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
@@ -48,8 +48,8 @@ class Colonisation:
       - data/commodity.csv: Contains the list of commodities and their categories.
       - data/colonisation_legend.txt and L10n/ localized legends: Contains text for the colonisation legend popup.
     '''
-    def __init__(self, bgstally):
-        self.bgstally:BGSTally = bgstally
+    def __init__(self, bgstally) -> None:
+        self.bgstally:BGSTally = bgstally # type: ignore
         self.rc:RavenColonial = RavenColonial(self)
         self.system_id:int|None = None
         self.current_system:str|None = None
@@ -158,16 +158,17 @@ class Colonisation:
                     self._update_carrier()
 
                     # Update systems with external data if required
-                    for sysnum, system in enumerate(self.systems):
-                        self.rc.load_system(system.get('SystemAddress'))
+                    for system in self.systems:
+                        if system.get('Hidden', 0) == 1: continue
+
+                        if system.get('RCSync', 0) == 1:
+                            if self.rc == None: self.rc = RavenColonial(self)
+                            self.rc.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
 
                         if system.get('Bodies', None) == None: # In case we didn't get them for some reason
                             self.rc.import_bodies(system.get('StarSystem', ''))
 
-                        if system.get('RCSync', 0) == 1:
-                            if self.rc == None: self.rc = RavenColonial(self)
-
-                        self.rc.import_system(system.get('StarSystem', '')) # Update the system stats
+                        self.rc.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
 
                     for progress in self.progress:
                         if progress.get('ProjectID', None) != None and progress.get('ConstructionComplete', False) == False:
@@ -214,8 +215,8 @@ class Colonisation:
                 case 'Docked':
                     self._update_market(self.market_id)
                     self.docked = True
-                    system:dict = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-                    build_state:BuildState = None
+                    system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
+                    build_state:BuildState|None = None
                     build:dict = {}
 
                      # Colonisation ship is always the first build. find/add system. find/add build
@@ -233,11 +234,11 @@ class Colonisation:
                         build_state = BuildState.COMPLETE
 
                     # If this isn't a colonisation ship or a system we're building, or it's a carrier, scenario, etc. then ignore it.
-                    if build == {}:
+                    if system == None or build == {}:
                         return
 
                     # Update the system details
-                    if not 'Name' in system: system['Name'] = self.current_system
+                    if system.get('Name', None) != None: system['Name'] = self.current_system
 
                     # Update the build details
                     Debug.logger.debug(f"Updating build {self.station} in system {self.current_system}")
@@ -276,13 +277,13 @@ class Colonisation:
                     if entry.get('event') == 'ApproachSettlement': self.location == 'Surface'
 
                     # If it's a construction site or colonisation ship wait til we dock.
-                    # If it's a carrier or other non-standard location we ignore it. Bet there are other options!
+                    # If it's a carrier or other non-standard location we ignore it.
                     if self.station == None or 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
                         re.search('^$', self.station) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
                         return
 
                     # If we don't have this system in our list, we don't care about it.
-                    system:dict = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
+                    system:dict|None = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
                     if system == None: return
 
                     # It's in a system we're building in, so we should create it.
@@ -592,7 +593,6 @@ class Colonisation:
                 Debug.logger.debug(f"Matched on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
-        Debug.logger.debug(f"Build not found for: {data}")
         return None
 
 
@@ -773,7 +773,7 @@ class Colonisation:
                 'State': BuildState.COMPLETE,
                 'Track': False,
                 'MarketID': None,
-                'Name': re.sub(r"(\w+ Construction Site:|$EXT_PANEL_ColonisationShip;) ", "", build.get('Name'))
+                'Name': re.sub(r"(\w+ Construction Site:|$EXT_PANEL_ColonisationShip;) ", "", build.get('Name', ''))
             })
             return True
 

@@ -522,7 +522,7 @@ class ProgressWindow:
         ''' Color rows depending on the state '''
         remaining:int = required - delivered
         space:int = self.colonisation.cargo_capacity - cargo
-        #Debug.logger.debug(f"Highlighting {c} {space}")
+        #Debug.logger.debug(f"Highlighting {c} {self.colonisation.cargo_capacity} {cargo} {space}}")
         for col, cell in row.items():
             # Get the ed:mc default color
             cell['fg'] = config.get_str('dark_text') if config.get_int('theme') == 1 else 'black'
@@ -536,15 +536,15 @@ class ProgressWindow:
                 cell['fg'] = 'green'; self._set_weight(cell, 'bold')
                 continue
 
-            if remaining <= cargo+carrier : # Have enough between our hold and the carrier? green and normal
-                cell['fg'] = 'green'; self._set_weight(cell, 'normal')
-                continue
-
             # We're at our carrier, highlight what's available
             if self.colonisation.docked == True and self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id and self.colonisation.market.get(c, 0) > 0:
                 cell['fg'] = 'goldenrod3'
                 # bold if need any and have room, otherwise normal
-                self._set_weight(cell, 'bold' if remaining-cargo-carrier > 0 and space > 0 else 'normal')
+                self._set_weight(cell, 'bold' if remaining-cargo-carrier <= 0 and space > 0 else 'normal')
+                continue
+
+            if remaining <= cargo+carrier : # Have enough between our hold and the carrier? green and normal
+                cell['fg'] = 'green'; self._set_weight(cell, 'normal')
                 continue
 
             # What's available at this market?

@@ -6,7 +6,6 @@ from os.path import join
 import traceback
 import re
 import time
-from datetime import datetime, timedelta, timezone
 from functools import partial
 import requests
 from requests import Response
@@ -16,15 +15,15 @@ from bgstally.debug import Debug
 from bgstally.utils import _, get_by_path
 
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
-RC_COOLDOWN = 60
+RC_COOLDOWN = 300
 
 EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
 EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
 EDSM_SYSTEM = 'https://www.edsm.net/api-v1/system?showInformation=1&systemName='
-EDSM_DELAY = (3600 * 12)
+EDSM_COOLDOWN = (3600 * 24)
 
 SPANSH_API = 'https://spansh.co.uk/api'
-SPANSH_DELAY = (3600 * 12)
+SPANSH_COOLDOWN = (3600 * 24)
 
 class RavenColonial:
     """
@@ -107,7 +106,7 @@ class RavenColonial:
             'build': BuildState.PROGRESS.value,
             'complete': BuildState.COMPLETE.value
         }
-
+        
         self._cache:dict = {} # Cache of responses and response times used to reduce API calls
 
 
@@ -117,12 +116,12 @@ class RavenColonial:
         # Implement cooldown and revision tracking
         if self._cache.get(id64, None) == None: self._cache[id64] = {}
 
-        if self._cache[id64].get('ts', 0) > round(time.mktime(datetime.now(timezone.utc).timetuple())) - RC_COOLDOWN:
+        if self._cache[id64].get('ts', 0) > int(time.time()) - RC_COOLDOWN:
             Debug.logger.info(f"Not refreshing {id64}, too soon")
             return
 
         self._cache[id64]['rev'] = rev
-        self._cache[id64]['ts'] = round(time.mktime(datetime.now(timezone.utc).timetuple()))
+        self._cache[id64]['ts'] = int(time.time())
 
         # This just returns a commanders list of project (or system?) revisions.
         #url:str = f"{RC_API}/v2/system/revs"
@@ -190,13 +189,14 @@ class RavenColonial:
                 Debug.logger.info(f"Cannot upsert site, no cmdr")
                 return
 
+            if data.get('Name')== 'T9M-33M': raise
+
             # Create an ID if necessary
             if data.get('RCID', None) == None and data.get('MarketID', None) != None:
                 data['RCID'] = f"&{data['MarketID']}"
 
             if data.get('RCID', None) == None and data.get('State', None) == BuildState.PLANNED:
-                timestamp:int = round(time.mktime(datetime.now(timezone.utc).timetuple()))
-                data['RCID'] = f"x{timestamp}"
+                data['RCID'] = f"x{int(time.time())}"
 
             update:dict = {}
             rev_map = {value: key for key, value in self.status_map.items()}
@@ -273,7 +273,7 @@ class RavenColonial:
                     mod[v] = data.get(k, None).strip() if isinstance(data.get(k, None), str) else data.get(k, None)
 
             if mod != {}:
-                Debug.logger.debug(f"Changes found, modyfing system {mod}")
+                Debug.logger.debug(f"Changes found, modifyng system {mod}")
                 self.colonisation.modify_system(sysnum, mod)
 
             for site in data.get('sites', []):
@@ -487,7 +487,7 @@ class RavenColonial:
             self.colonisation.update_progress(data.get('buildId'), {'Updated': re.sub(r"\.\d+\+00:00$", "Z", str(data.get('timestamp')))})
             return
 
-        Debug.logger.debug(f"Project submission failed {success} {response.status_code} {response.content} {request}")
+        Debug.logger.warning(f"Project submission failed {success} {response.status_code} {response.content} {request}")
 
 
     def load_project(self, progress:dict) -> None:
@@ -576,7 +576,7 @@ class RavenColonial:
                 return
 
             payload:dict = {re.sub(r"\$(.*)_name;", r"\1", comm).lower() : qty for comm, qty in cargo.items()}
-            Debug.logger.debug(f"Carrier cargo: {marketid} {payload}")
+            #Debug.logger.debug(f"Carrier cargo: {marketid} {payload}")
             url:str = f"{RC_API}/fc/{marketid}/cargo"
             self.headers["rcc-cmdr"] = self.colonisation.cmdr
             self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=self.headers, callback=self._carrier_callback)
@@ -591,7 +591,7 @@ class RavenColonial:
         """ Process the results of querying RavenColonial """
         data:dict = response.json()
         if success == False or response.status_code != 200:
-            Debug.logger.debug(f"Error updating carrier {response} {response.content}")
+            Debug.logger.warning(f"Error updating carrier {response} {response.content}")
             return
         Debug.logger.debug(f"Carrier updated: {response}")
         return
@@ -624,9 +624,11 @@ class EDSM:
 
     def __init__(self, rc):
         # Only initialize if it's the first time
-        if not hasattr(self, '_initialized'):
-            self.rc:RavenColonial = rc
-            self._initialized = True
+        if hasattr(self, '_initialized'): return
+        self.rc:RavenColonial = rc
+        self._initialized = True
+        # Details to retrieve for bodies from EDSM
+        self.body_details:list = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
 
 
     def import_stations(self, system_name:str) -> None:
@@ -642,7 +644,7 @@ class EDSM:
             Debug.logger.info(f"unknown system {system_name}")
             return
 
-        if system.get('Updated', 0) > round(time.mktime(datetime.now(timezone.utc).timetuple())) - EDSM_DELAY:
+        if system.get('Updated', 0) > int(time.time()) - EDSM_COOLDOWN:
             Debug.logger.info(f"Not refreshing stations for {system_name}, too soon")
             return
 
@@ -729,7 +731,7 @@ class EDSM:
             Debug.logger.info(f"unknown system {system_name}")
             return
 
-        if system.get('EDSMUpdated', 0) > round(time.mktime(datetime.now(timezone.utc).timetuple())) - EDSM_DELAY:
+        if system.get('EDSMUpdated', 0) > int(time.time()) - EDSM_COOLDOWN:
             Debug.logger.info(f"Not refreshing {system_name}, too soon")
             return
 
@@ -808,7 +810,7 @@ class EDSM:
             system['Bodies'] = []
             for b in data.get('bodies', []):
                 v:dict = {}
-                for k in ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']:
+                for k in self.body_details:
                     if b.get(k, None): v[k] = b.get(k)
                 if b.get('parents', None) != None:
                     v['parents'] = len(b.get('parents', []))
@@ -896,8 +898,7 @@ class Spansh:
             return
 
         # In cache? Then use it.
-        ts:int = round(time.mktime(datetime.now(timezone.utc).timetuple()))
-        if self.system_cache.get(system_name, None) != None and system.get('SpanshUpdated', 0) < ts - SPANSH_DELAY:
+        if self.system_cache.get(system_name, None) != None and system.get('SpanshUpdated', 0) < int(time.time()) - SPANSH_COOLDOWN:
             match which:
                 case 'bodies': return self._update_bodies(system, self.system_cache[system_name])
                 case 'stations': return self._update_stations(system, self.system_cache[system_name])
@@ -960,7 +961,7 @@ class Spansh:
                 update['Economy'] += "/" + data.get('secondary_economy', '')
             update['Security'] = data.get('security', None)
             update['SystemAddress'] = data.get('id64', None)
-            update['SpanshUpdated'] = round(time.mktime(datetime.now(timezone.utc).timetuple()))
+            update['SpanshUpdated'] = int(time.time())
 
             self.rc.colonisation.modify_system(system, update)
             return

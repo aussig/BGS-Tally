@@ -218,13 +218,13 @@ class Colonisation:
                     if '$EXT_PANEL_ColonisationShip' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                         Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
                         if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
-                        build = self.find_or_create_build(system, {'MarketID': self.market_id,
-                                                                   'Name': self.station})
+                        build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station})
                         build_state = BuildState.PROGRESS
                     # Complete station so find it and add/update as appropriate.
-                    elif system != None and self.station != 'FleetCarrier' and re.search(r"^\$", f"{self.station}") == None:
-                        build = self.find_or_create_build(system, {'MarketID': self.market_id,
-                                                                   'Name': self.station})
+                    elif system != None and self.station != 'FleetCarrier' and \
+                        re.search(r"^...\-...$", f"{self.station}") == None and \
+                        re.search(r"^\$", f"{self.station}") == None:
+                        build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station})
                         build_state = BuildState.COMPLETE
 
                     # If this isn't a colonisation ship or a system we're building, or it's a carrier, scenario, etc. then ignore it.

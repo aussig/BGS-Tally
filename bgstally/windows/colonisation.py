@@ -26,7 +26,7 @@ FIRST_BUILD_ROW = 4
 
 class ColonisationWindow:
     '''
-    Window for managing colonisation plans.
+    Window for managing colonisation plans and associated popups.
 
     This window allows users to view and manage colonisation plans for different systems. It creates a tab for each system,
     and uses a sheet to display both summary and detailed information about the builds in that system.
@@ -1358,6 +1358,7 @@ class ColonisationWindow:
             Debug.logger.warning(f"Unable to load legend {file}")
             Debug.logger.error(traceback.format_exc())
             return ''
+
 
     def legend_popup(self) -> None:
         ''' Show the legend popup window '''

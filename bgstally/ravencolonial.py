@@ -91,7 +91,7 @@ class RavenColonial:
             'buildName': 'Name',
             'buildId': 'ProjectID',
             'commodities': 'Remaining',
-            'colonisationConstructionDepot': 'event',
+            #'colonisationConstructionDepot': 'event',
             'buildType': 'Layout',
             'bodyNum': 'BodyNum',
             'architectName': 'Architect',
@@ -111,7 +111,7 @@ class RavenColonial:
         self._cache:dict = {} # Cache of responses and response times used to reduce API calls
 
 
-    def load_system(self, id64:str = None, rev:str = None) -> None:
+    def load_system(self, id64:str|None = None, rev:str|None = None) -> None:
         """ Retrieve the rcdata data with the latest system data from RC when we start. """
 
         # Implement cooldown and revision tracking
@@ -135,7 +135,7 @@ class RavenColonial:
         return
 
 
-    def add_system(self, system_name:str = None) -> None:
+    def add_system(self, system_name:str) -> None:
         """ Add a system to RC. """
 
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
@@ -183,7 +183,7 @@ class RavenColonial:
             Debug.logger.error(traceback.format_exc())
 
 
-    def upsert_site(self, system:dict, data:dict = None) -> None:
+    def upsert_site(self, system:dict, data:dict) -> None:
         """ Modify a site (build) in RavenColonial """
         try:
             if self.colonisation.cmdr == None:
@@ -442,7 +442,7 @@ class RavenColonial:
         """ Update build progress """
         # Required: buildId (though maybe not if you use )
         try:
-            del progress['Updated'] # This won't be right, mustn't send it.
+            if progress.get('Updated', None) != None: del progress['Updated'] # Don't send this
 
             # Create project if we don't have an id.
             if progress.get('ProjectID', None) == None:
@@ -460,12 +460,16 @@ class RavenColonial:
                 elif system.get(v, None) != None:
                     rcval = system.get(v, '').strip().lower().replace(' ', '_') if isinstance(system.get(v, None), str) and 'name' not in k.lower() else system.get(v, None)
                 elif k == 'commodities' and progress != {}:
-                    rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v for k,v in progress.get('Required').items()}
+                    rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v - progress['Delivered'].get(k) for k,v in progress.get('Required').items()}
 
                 if rcval != None:
                     payload[k] = rcval
 
-            url = f"{RC_API}/project/{progress.get('ProjectID')}"
+            if payload == self._cache.get(progress.get('ProjectID', ''), {}):return
+            self._cache[progress.get('ProjectID', '')] = payload
+
+            #Debug.logger.debug(f"RC: Submitting project update {system.get('StarSystem', None)} {payload}")
+            url:str = f"{RC_API}/project/{progress.get('ProjectID')}"
             self.headers["rcc-cmdr"] = self.colonisation.cmdr
             self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, headers=self.headers, callback=self._project_callback)
             return
@@ -478,10 +482,9 @@ class RavenColonial:
     def _project_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         """ Process the results of querying RavenColonial """
         data:dict = response.json()
-        self._cache[data.get('buildId')] = data.get('timestamp')
 
         if success == True:
-            Debug.logger.debug(f"Project submission succeeded")
+            self.colonisation.update_progress(data.get('buildId'), {'Updated': re.sub(r"\.\d+\+00:00$", "Z", str(data.get('timestamp')))})
             return
 
         Debug.logger.debug(f"Project submission failed {success} {response.status_code} {response.content} {request}")
@@ -502,8 +505,7 @@ class RavenColonial:
                 Debug.logger.error(f"Error with load project, doesn't exist")
                 return
 
-            if response.content != self._cache.get(projectid, ''):
-                self._cache[projectid] = response.content
+            if response.content != progress.get('Updated', ''):
                 url = f"{RC_API}/project/{projectid}"
                 self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._load_project_response)
 
@@ -532,8 +534,8 @@ class RavenColonial:
                     continue
                 update[v] = data.get(k, '') if isinstance(data.get(k, None), str) and 'name' not in k.lower() else data.get(k, None)
 
-            # Need to figure out what we're going to update here.
-            self.colonisation.update_progress(data.get('marketId'), update)
+            if update != {}:
+                self.colonisation.update_progress(data.get('marketId'), update)
             return
 
         except Exception as e:
@@ -574,7 +576,7 @@ class RavenColonial:
                 return
 
             payload:dict = {re.sub(r"\$(.*)_name;", r"\1", comm).lower() : qty for comm, qty in cargo.items()}
-            #Debug.logger.debug(f"Carrier cargo: {payload}")
+            Debug.logger.debug(f"Carrier cargo: {marketid} {payload}")
             url:str = f"{RC_API}/fc/{marketid}/cargo"
             self.headers["rcc-cmdr"] = self.colonisation.cmdr
             self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=self.headers, callback=self._carrier_callback)
@@ -609,6 +611,8 @@ class RavenColonial:
 class EDSM:
     """
     Class to retrieve system, body and station data from EDSM.
+
+    It's called from the RavenColonial class so that we can switch between EDSM and Spansh.
     """
     _instance = None
 
@@ -781,13 +785,13 @@ class EDSM:
         # We're going to do this synchronously since we need the data before we can proceed and it's a one-time call.
         response:Response = requests.get(url, headers=self.rc.headers, timeout=5)
         if response.status_code == 200:
-            self._bodies(True, response, None)
+            self._bodies(True, response)
 
         #self.rc.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._bodies)
         return
 
 
-    def _bodies(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+    def _bodies(self, success:bool, response:Response, request:BGSTallyRequest|None = None) -> None:
         ''' Process the results of querying ESDM for the bodies in a system '''
         Debug.logger.info(f"bodies response received: {success}")
         try:
@@ -820,6 +824,8 @@ class EDSM:
 class Spansh:
     """
     Class to retrieve system, body and station data from Spansh.
+
+    It's called from the RavenColonial class so that we can switch between EDSM and Spansh
     """
     _instance = None
 
@@ -956,7 +962,7 @@ class Spansh:
             update['SystemAddress'] = data.get('id64', None)
             update['SpanshUpdated'] = round(time.mktime(datetime.now(timezone.utc).timetuple()))
 
-            self.rc.colonisation.modify_system(self.rc.colonisation.systems.index(system), update)
+            self.rc.colonisation.modify_system(system, update)
             return
         except Exception as e:
             Debug.logger.info(f"Error recording response")

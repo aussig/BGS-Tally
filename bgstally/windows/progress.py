@@ -305,6 +305,7 @@ class ProgressWindow:
                     if val == 0: val = 1 # Don't permit Commodities
                     self.columns[column] = val
             self.colonisation.dirty = True
+            self.colonisation.save('Progress column changes')
             self.update_display()
 
         except Exception as e:
@@ -460,6 +461,7 @@ class ProgressWindow:
 
                     row[col]['text'] = self._get_value(col, reqcnt, delcnt, cargo, carrier)
                     row[col].grid()
+
                 self._highlight_row(row, c, reqcnt, delcnt, cargo, carrier)
                 rc += 1
 
@@ -520,7 +522,7 @@ class ProgressWindow:
         ''' Color rows depending on the state '''
         remaining:int = required - delivered
         space:int = self.colonisation.cargo_capacity - cargo
-
+        #Debug.logger.debug(f"Highlighting {c} {space}")
         for col, cell in row.items():
             # Get the ed:mc default color
             cell['fg'] = config.get_str('dark_text') if config.get_int('theme') == 1 else 'black'

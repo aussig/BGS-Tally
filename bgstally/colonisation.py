@@ -1,19 +1,15 @@
 import csv
 import json
 from json import JSONDecodeError
-from urllib.parse import quote
 from os import path
 from os.path import join
 import traceback
 import re
-import time
 from datetime import datetime
-from requests import Response
 from config import config # type: ignore
-from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView, RequestMethod
-from bgstally.requestmanager import BGSTallyRequest
+from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
-from bgstally.utils import _, get_by_path
+from bgstally.utils import _
 from bgstally.ravencolonial import RavenColonial
 
 
@@ -146,7 +142,7 @@ class Colonisation:
             if entry.get('Type', None) != None: self.station = entry.get('Type')
             if entry.get('BodyType', None) == 'Station': self.station = entry.get('Body')
             if entry.get("StationName", None): self.station = entry.get('StationName')
-            if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(entry.get('Body'))
+            if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
 
             #Debug.logger.debug(f"Event: {entry.get('event')} -- ID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
 
@@ -314,18 +310,18 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
 
 
-    def body_name(self, body:str) -> str|None:
-        """ Get the body name without the system bits or ring suffix"""
-        if self.current_system == None: return None
-        body = body.replace(self.current_system + ' ', '')
-        body = re.sub(r"( [A-Z]){0,1} Ring$", "", body).strip()
+    def body_name(self, sysname:str, body:str) -> str|None:
+        """ Get the body name without the system prefix or ring suffix"""
+        if body == None or body == '': raise
+        body = body.replace(sysname + ' ', '').strip()
+        body = re.sub(r"( [A-Z]){0,1} Ring$", "", body)
+        if body == '': return 'A'
         return body
 
 
     def get_base_type(self, type_name:str) -> dict:
         ''' Return the details of a particular type of base '''
-        if type_name == None or type_name == '':
-            return {}
+        if type_name == None or type_name == '': return {}
 
         # By Type
         if self.base_types.get(type_name, None) != None:
@@ -373,7 +369,7 @@ class Colonisation:
 
     def get_system(self, key:str, value) -> dict | None:
         ''' Get a system by any attribute '''
-        for i, system in enumerate(self.systems):
+        for i, system in enumerate(self.get_all_systems()):
             if system.get(key) != None and system.get(key) == value:
                 return system
         return
@@ -400,13 +396,13 @@ class Colonisation:
         system:dict|None = None
         for m in ['SystemAddress', 'StarSystem', 'Name']:
             if data.get(m, None) != None:
-                for i, system in enumerate(self.systems):
+                for i, system in enumerate(self.get_all_systems()):
                     if system.get(m) != None and system.get(m) == data.get(m):
                         return system
         return None
 
 
-    def find_or_create_system(self, data:dict) -> dict|None:
+    def find_or_create_system(self, data:dict) -> dict:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
         system:dict|None = self.find_system(data)
         if system == None:
@@ -415,13 +411,13 @@ class Colonisation:
         return system
 
 
-    def add_system(self, data:dict, prepop:bool = False, rcsync:bool = False) -> dict|None:
+    def add_system(self, data:dict, prepop:bool = False, rcsync:bool = False) -> dict:
         ''' Add a new system for colonisation planning '''
 
         if data.get('StarSystem', None) == None and data.get('Name', None) == None:
             Debug.logger.warning(f"Cannot add system - no name or system: {data}")
-            return
-        
+            return {}
+
         # Create new system
         if data.get('Name', None) == None: data['Name'] = data.get('StarSystem', '')
         if data.get('Builds', None) == None: data['Builds'] = []
@@ -441,14 +437,15 @@ class Colonisation:
         return data
 
 
-    def modify_system(self, ind:int, data:dict) -> dict|None:
+    def modify_system(self, system, data:dict) -> dict|None:
         ''' Update a system for colonisation planning '''
 
-        if ind < 0 or ind >= len(self.systems):
-            Debug.logger.warning(f"Cannot update system, not found: {ind}")
+        if isinstance(system, int): system = self.systems[system]
+
+        if system == None:
+            Debug.logger.warning(f"Cannot update system, not found: {system}")
             return
 
-        system:dict = self.systems[ind]
         # If they change which star system, we need to clear the system address
         if data.get('StarSystem', None) != None and data.get('StarSystem', None) != system.get('StarSystem'):
             system['SystemAddress'] = None
@@ -472,21 +469,22 @@ class Colonisation:
         return system
 
 
-    def get_body(self, system:dict, body) -> dict|None:
+    def get_body(self, system:dict, body:str|int) -> dict|None:
         ''' Get a body by name or id from a system '''
         for b in system.get('Bodies', []):
-            if isinstance(body, str) and body in [b.get('name', None), b.get('name', '').replace(system['StarSystem'] + ' ', '')]:
+            # EDSM uses bodyId & name
+            if isinstance(body, str) and body == self.body_name(system['StarSystem'], b.get('name', '')):
                 return b
             if isinstance(body, int) and body == b.get('bodyId', None):
                 return b
-        return
+        return None
+
 
     def get_bodies(self, system:dict, bt:str = 'All') -> list:
         ''' Return a list of bodies in the system filtered by type if required '''
         bodies:list = []
         for b in system.get('Bodies', []):
-            name = b.get('name') if b.get('name') != system['StarSystem'] else 'A'
-            name = name.replace(system['StarSystem'] + ' ', '').strip()
+            name:str|None = self.body_name(system['StarSystem'], b.get('name', ''))
             match bt:
                 case 'Surface':
                     if b.get('isLandable', False) == True:
@@ -525,7 +523,7 @@ class Colonisation:
     def get_tracked_builds(self) -> list[dict]:
         ''' Get all builds that are being tracked '''
         tracked:list = []
-        for system in self.systems:
+        for system in self.get_all_systems():
             for build in self.get_system_builds(system):
                 if build.get("Track", False) == True and self.get_build_state(build) != BuildState.COMPLETE:
                     b:dict = build.copy()
@@ -599,8 +597,7 @@ class Colonisation:
         ''' Add a new build to a system '''
 
         # Yea this is terrible but it works for now.
-        if isinstance(system, int):
-            system = self.systems[system]
+        if isinstance(system, int): system = self.systems[system]
 
         Debug.logger.info(f"Adding build {data.get('Name')}")
 
@@ -608,15 +605,7 @@ class Colonisation:
         if 'Name' not in data: data['Name'] = ""
 
         # If we have a body name or id set the corresponding value.
-        body:dict|None
-        if data.get('BodyNum', None) != None:
-            body = self.get_body(system, data.get('BodyNum', None))
-            if body != None and body.get('name', None) != None:
-                data['Body'] = body['name'].replace(system.get('StarSystem', '') + ' ', '')
-        elif data.get('Body', None) != None:
-            body = self.get_body(system, data.get('Body', None))
-            if body != None and body.get('bodyId', None) != None:
-                data['BodyNum'] = body['bodyId']
+        body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', '')))
 
         if data.get('Base Type', '') == '' and data.get('Layout', None) != None:
             bt:dict = self.get_base_type(data.get('Layout', ''))
@@ -637,8 +626,7 @@ class Colonisation:
 
     def remove_build(self, system, ind:int) -> None:
         ''' Remove a build from a system '''
-        if isinstance(system, int):
-            system = self.systems[system]
+        if isinstance(system, int): system = self.systems[system]
 
         if system == None:
             Debug.logger.warning(f"Cannot remove build - unknown system")
@@ -664,7 +652,7 @@ class Colonisation:
         self.save('Build removed')
 
 
-    def set_base_type(self, system, ind:int, type:str) -> None:
+    def set_base_type(self, system:dict, ind:int, type:str) -> None:
         """ Set/update the type of a given base using type or layout """
 
         Debug.logger.debug(f"Seting base type {type}")
@@ -688,28 +676,19 @@ class Colonisation:
     def modify_build(self, system, ind:int, data:dict, silent:bool = False) -> None:
         ''' Modify a build in a system '''
         try:
-
             Debug.logger.debug(f"Modifying build {data}")
-            if isinstance(system, int):
-                system = self.systems[system]
+            if isinstance(system, int): system = self.systems[system]
 
             if ind >= len(system['Builds']):
                 Debug.logger.error(f"modify_build called for non-existent build: {ind}")
                 return
 
             build:dict = system['Builds'][ind]
-
-            # If the body number is changing update the body name to match.
-            if data.get('BodyNum', None) != None:
-                body:dict = self.get_body(system, data.get('BodyNum'))
-                if body != None and body.get('name', None) != None:
-                    data['Body'] = body['name'].replace(system.get('StarSystem', '') + ' ', '')
-
-            # If the Body is set but the body number isn't then set it.
-            if build.get('BodyNum', None) == None and build.get('Body'):
-                body:dict = self.get_body(system, build['Body'])
-                if body != None and body.get('name', None) != None:
-                    data['BodyNum'] = body['bodyId']
+            # If we have a body name or id set the corresponding value.
+            body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', 'Unknown')))
+            if body != None:
+                data['Body'] = self.body_name(system['StarSystem'], body.get('name', ''))
+                data['BodyNum'] = body.get('bodyId', None)
 
             # If the base type isn't set, try to get it from the layout
             if data.get('Base Type', '') == '' and data.get('Layout', None) != None:
@@ -737,6 +716,7 @@ class Colonisation:
             self.dirty = True
             self.save('Build modified')
             return
+
         except Exception as e:
             Debug.logger.error(f"Error modifying build: {e}")
             Debug.logger.error(traceback.format_exc())
@@ -848,10 +828,10 @@ class Colonisation:
         return prog
 
 
-    def find_progress(self, id:int) -> dict|None:
+    def find_progress(self, id:int|str) -> dict|None:
         ''' Find and return progress for a given market '''
         for p in self.progress:
-            if p.get('MarketID') == id:
+            if p.get('MarketID', 0) == id or p.get('ProjectID', '') == id:
                 return p
 
         return None
@@ -866,7 +846,7 @@ class Colonisation:
 
             # Handle a ColonisationConstructionDepot event
             if data.get('ResourcesRequired', None) != None:
-                req = {comm['Name'] : comm['RequiredAmount'] for comm in data.get('ResourcesRequired', [])}
+                req:dict = {comm['Name'] : comm['RequiredAmount'] for comm in data.get('ResourcesRequired', [])}
                 if progress.get('Required', None) != req:
                     progress['Required'] = req
                     changed = True
@@ -881,22 +861,21 @@ class Colonisation:
             for k, v in data.items():
                 # Recalculate the provided amount based on what RC says remains to be delivered
                 if k == 'Remaining':
-                    Debug.logger.debug(f"Remaining: {v}")
                     deliv:dict = {f"${key}_name;" : progress['Required'][f"${key}_name;"] - val for key, val in v.items()}
                     pd:dict = progress.get('Delivered', {})
                     for comm, amt in deliv.items():
                         if pd.get(comm) != amt:
+                            Debug.logger.debug(f"Changed {comm} from {pd.get(comm)} to {amt}")
                             changed = True
                             if pd.get(comm) < amt: progress['Delivered'][comm] = amt
                     continue
 
                 if progress.get(k) != v:
+                    #Debug.logger.debug(f"Changed {k} from {progress.get(k)} to {v}")
                     progress[k] = v
-                    changed = True
+                    if k != 'Updated': changed = True   # No update loops please
 
-            if changed != True:
-                Debug.logger.debug(f"Project unchanged")
-                return
+            if changed == False:return
 
             self.dirty = True
 
@@ -910,7 +889,6 @@ class Colonisation:
             system:dict|None = self.find_system({'SystemAddress': progress.get('SystemAddress', '')})
             if system != None and system.get('RCSync', 0) == 1: build:dict|None = self.find_build(system, {'MarketID' : progress.get('MarketID')})
             if system == None or build == None:
-                Debug.logger.warning(f"System {system.get('StarSystem')} not found for build {progress.get('MarketID')}")
                 return
 
             # RC Sync if appropriate
@@ -1045,7 +1023,7 @@ class Colonisation:
 
         # We sort the order of systems when saving so that in progress systems are first, then planned, then complete.
         # Fortuitously our desired order matches the reverse alpha of the states
-        systems:list = list(sorted(self.systems, key=sort_order, reverse=True))
+        systems:list = list(sorted(self.get_all_systems(), key=sort_order, reverse=True))
         for system in systems:
             if len(system['Builds']) > 1:
                 system['Builds'] = [system['Builds'][0]] + list(sorted(system['Builds'][1:], key=build_order))
@@ -1097,7 +1075,7 @@ class Colonisation:
         self.cargo_capacity = dict.get('CargoCapacity', 784)
         self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
 
-        units = dict.get('ProgressUnits', [])
-        for i, v in enumerate(units):
+        for i, v in enumerate(dict.get('ProgressUnits', [])):
             self.bgstally.ui.window_progress.units[i] = ProgressUnits(v)
+        self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns')
         self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)

@@ -434,7 +434,7 @@ class ProgressWindow:
                     (remaining <= 0 and self.view != ProgressView.FULL) or \
                     (reqcnt - carrier - cargo <= 0 and cargo == 0 and carrier == 0 and self.view == ProgressView.MINIMAL) or \
                     (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) == 0 and self.view == ProgressView.MINIMAL) or \
-                    rc > MAX_ROWS:
+                    rc > int(self.bgstally.state.ColonisationMaxCommodities.get()):
                     for cell in row.values():
                         cell.grid_remove()
                     continue

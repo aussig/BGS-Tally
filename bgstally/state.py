@@ -40,6 +40,8 @@ class State:
         self.DiscordAvatarURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordAvatarURL', default=""))
         self.DiscordBGSTWAutomatic:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordBGSTWAutomatic', default=CheckStates.STATE_OFF))
 
+        self.ColonisationMaxCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationMaxCommodities', default="20"))
+
         self.FcSellingCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcSellingCommodities', default=CheckStates.STATE_ON))
         self.FcBuyingCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcBuyingCommodities', default=CheckStates.STATE_ON))
         self.FcSellingMaterials:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcSellingMaterials', default=CheckStates.STATE_ON))

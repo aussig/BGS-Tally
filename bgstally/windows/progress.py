@@ -87,6 +87,7 @@ class ProgressWindow:
         self.frame_row:int = 0 # Row in the parent frame
         self.table_frame:tk.Frame # Table frame
         self.title:tk.Label # Title object
+        self.titlett:ToolTip # Title tooltip
         self.rows:list = []
         self.progbar:ttk.Progressbar # Overall progress bar
         self.progvar:tk.IntVar
@@ -129,7 +130,7 @@ class ProgressWindow:
             self.title.bind("<Button-1>", partial(self.event, "copy"))
             self.title.grid(row=row, column=col, sticky=tk.EW)
             frame.columnconfigure(col, weight=1)
-            ToolTip(self.title, text=_("Current build, click to copy to clipboard")) # LANG: tooltip for the build name
+            self.titlett:ToolTip = ToolTip(self.title, text=f"{_('Current build')}, {_('click to copy to clipboard')}") # LANG: tooltip for the build name
             col += 1
 
             prev_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_left_arrow, cursor="hand2")
@@ -373,11 +374,11 @@ class ProgressWindow:
                 bt:str = b.get('Base Type', '')
                 pn:str = b.get('Plan', _('Unknown')) # Unknown system name
                 sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
-                name:str = str_truncate(', '.join([pn, bt]), 52, loc='middle')
+                name = ', '.join([pn, bt])
                 if b.get('Name', '') != '':
-                    name = str_truncate(', '.join([pn, bt, bn]), 52, loc='middle')
-
-            self.title.config(text=name)
+                    name=', '.join([pn, bt, bn])
+            self.titlett.text = f"{name}, {_('click to copy to clipboard')}"
+            self.title.config(text=str_truncate(name, 52, loc='middle'))
 
             # Hide the table but not the progress frame so the change view icon is still available
             if self.view == ProgressView.NONE:

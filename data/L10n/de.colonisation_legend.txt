@@ -24,17 +24,17 @@ Zusammenfassungs-Spalten
 
 Detailzeilen
 
-  • One row per base
-  • The first row should be the initial base
-  • Other bases can be in any order but the cost of starports depends on their order
-    so if you put them in the wrong order their cost may be incorrect
+  • Eine Reihe pro Basis
+  • Die erste Reihe sollte der Primärhafen sein
+  • Die anderen Basen können in beliebiger Reihenfolge angeordnet werden, aber die Kosten für Sternenhäfen hängen von ihrer Reihenfolge ab
+    wenn Sie sie also in der falschen Reihenfolge anordnen, können ihre Kosten falsch sein
 
 Detailspalten
 
-  • Track: Whether to track progress of this base in the main ED:MC progress display
-  • Base Type: The type of base to be built
-  • Base Name: The name of the base
-  • Body: The body on (or around) which the base is or will be
+  • Verfolgen: Ob der Fortschritt dieser Basis in der Hauptfortschrittsanzeige von ED:MC verfolgt werden soll
+  • Basistyp: Der Typ der zu konstruierenden Basis
+  • Basisname: Der Name der Basis
+  • Körper: Der Körper, auf dem (oder um den) sich die Basis befindet oder befinden wird
   • Requirements: Any prerequisites to building this type of base
   • State: How far along is the base: Planned, Percentage completed, Completed
   • T2: The net Tier 2 point cost or reward

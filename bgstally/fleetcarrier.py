@@ -260,7 +260,6 @@ class FleetCarrier:
 
         # Unfortunately we don't get the localized name for transfers so we'll do without.
         cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
-        Debug.logger.debug(f"cargo_transfer: {journal_entry}")
         for i in journal_entry.get('Transfers', []):
             type:str = i.get('Type', "")
             display_type:str = i.get('Type_Localised', "")
@@ -277,23 +276,19 @@ class FleetCarrier:
                     found = True
                     if direction == "toship":
                         if c[quantity_key] > count: # May have to do this in multiple bits.
-                            Debug.logger.debug(f"Removing {count} {type} from cargo")
                             c[quantity_key] -= count
                             count = 0
                             break
                         else:
-                            Debug.logger.debug(f"Deleting {count} {type} {c[quantity_key]} from cargo")
                             count -= c[quantity_key]
                             cargo.remove(c)
 
                     else:
-                        Debug.logger.debug(f"Adding {count} {type} to cargo")
                         c[quantity_key] += count
                         count = 0
                         break
 
             if not found:
-                Debug.logger.debug(f"Creating {count} {type} cargo")
                 cargo.append({name_key: type, display_name_key: display_type, quantity_key: count})
 
 

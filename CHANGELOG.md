@@ -1,5 +1,20 @@
 # Change Log
 
+## v5.1.0-b1 - 2025-08-30
+
+### New Features:
+
+* Integrates click-through to the new EDGIS system map from the Elite Dangereuse project, on activity windows and colonisation window.
+
+### Changes:
+
+* Inara link now a logo button on activity windows - looks better alongside the new EDGIS button.
+
+### Bug Fixes:
+
+* East India Co API URL fixed
+
+
 ## v5.1.0-a1 - 2025-08-20
 
 ### New Features:

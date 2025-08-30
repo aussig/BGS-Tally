@@ -3,6 +3,7 @@ import json
 from json import JSONDecodeError
 from os import path
 from os.path import join
+import time
 import traceback
 import re
 from datetime import datetime
@@ -197,9 +198,14 @@ class Colonisation:
 
                 case 'ColonisationConstructionDepot':
                     if not self.market_id:
-                        Debug.logger.warning(f"Invalid ColonisationConstructionDepot event: {entry}")
+                        Debug.logger.warning(f"Invalid ColonisationConstructionDepot event (no market): {entry}")
                         return
 
+                    system = self.find_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
+                    if system == None:
+                        Debug.logger.warning(f"Invalid ColonisationConstructionDepot event (no system): {entry}")
+                        return
+                    build = self.find_build(system, {'MarketID': self.market_id})
                     progress:dict = self.find_or_create_progress(self.market_id)
                     self.update_progress(self.market_id, entry)
                     self.dirty = True
@@ -209,7 +215,7 @@ class Colonisation:
                     self.docked = True
                     system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
                     build_state:BuildState|None = None
-                    build:dict = {}
+                    build = {}
 
                      # Colonisation ship is always the first build. find/add system. find/add build
                      # Construction site can be any build, so find/add system, find/add build
@@ -236,13 +242,14 @@ class Colonisation:
                     Debug.logger.debug(f"Updating build {self.station} in system {self.current_system}")
                     data:dict = {}
                     if self.station != None and build.get('Name', None) != self.station: data['Name'] = self.station
-                    if self.market_id != None and build.get('MarketID', None)  != self.market_id: data['MarketID'] = self.market_id
                     if build['State'] != build_state: data['State'] = build_state
+                    if self.market_id != None and build.get('MarketID', None) != self.market_id: data['MarketID'] = self.market_id
+                    if self.market_id != None and build.get('BuildID', None) == None: build['BuildID'] = f"x{int(time.time())}" if build_state == BuildState.COMPLETE else f"&{int(time.time())}"
                     if self.body != None and build.get('Body', None) != self.body: data['Body'] = self.body
                     if self.location != None and build.get('Location', None) != self.location: data['Location'] = self.location
                     if build_state == BuildState.PROGRESS and build.get('Track') != (build_state != BuildState.COMPLETE): data['Track'] = True
                     if data != {}:
-                        self.modify_build(system, system['Builds'].index(build), data)
+                        self.modify_build(system, build.get('BuildID', ''), data)
                         self.bgstally.ui.window_progress.update_display()
                         self.dirty = True
 
@@ -439,7 +446,7 @@ class Colonisation:
         ''' Update a system for colonisation planning '''
 
         if isinstance(system, int): system = self.systems[system]
-
+        Debug.logger.debug(f"modify_system: {dict} {system.get('StarSystem')}")
         if system == None:
             Debug.logger.warning(f"Cannot update system, not found: {system}")
             return
@@ -462,6 +469,7 @@ class Colonisation:
         if system.get('StarSystem') != None and system.get('Bodies', None) == None:
             RavenColonial(self).import_bodies(system.get('StarSystem', ''))
 
+        Debug.logger.debug(f"System modified: {system}")
         self.dirty = True
         self.save('Modify system')
         return system
@@ -540,7 +548,7 @@ class Colonisation:
     def find_build(self, system:dict, data:dict) -> dict|None:
         '''
         Get a build by a range and/or combinatino of attributes.
-        Marketid, RCID or name are preferred but we use fuzzy matching for weird fdev cases
+        Marketid, BuildID or name are preferred but we use fuzzy matching for weird fdev cases
         '''
         builds:list = self.get_system_builds(system)
 
@@ -551,7 +559,7 @@ class Colonisation:
             return builds[0]
 
         # An existing/known build?
-        for m in ['MarketID', 'RCID', 'Name']:
+        for m in ['MarketID', 'BuildID', 'Name']:
             if data.get(m, None) != None:
                 for build in builds:
                     if build.get(m, None) == data.get(m, None):
@@ -564,7 +572,7 @@ class Colonisation:
             Debug.logger.debug(f"Find build matching construction: {data.get('Name')} {data.get('Body')} {loc}")
 
             for build in builds:
-                if build.get('RCID', None) == None and build.get('MarketID', None) == None and \
+                if build.get('BuildID', None) == None and build.get('MarketID', None) == None and \
                     data.get('Body') and build.get('Body', '').lower() == data['Body'].lower() and \
                     build.get('State', None) == BuildState.PLANNED and build.get('Location', None) == loc:
                     Debug.logger.debug(f"Matched on {data['Body']} {build.get('State', None)} {loc} Build: {build}")
@@ -601,6 +609,8 @@ class Colonisation:
 
         if 'State' not in data: data['State'] = BuildState.PLANNED
         if 'Name' not in data: data['Name'] = ""
+        if 'BuildID' not in data and 'MarketID' in data:
+            data['BuildID'] = f"x{int(time.time())}" if data['State'] == BuildState.COMPLETE else f"&{int(time.time())}"
 
         # If we have a body name or id set the corresponding value.
         body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', '')))
@@ -650,12 +660,12 @@ class Colonisation:
         self.save('Build removed')
 
 
-    def set_base_type(self, system:dict, ind:int, type:str) -> None:
+    def set_base_type(self, system:dict, buildid:str, type:str) -> None:
         """ Set/update the type of a given base using type or layout """
 
         Debug.logger.debug(f"Seting base type {type}")
 
-        data = {'Base Type' : '', 'Layout' : '', 'Location': '' }
+        data:dict = {'Base Type' : '', 'Layout' : '', 'Location': '' }
         if type != ' ':
             bt = self.get_base_type(type)
             data = {'Base Type' : bt['Type'], 'Location': bt['Location'] }
@@ -663,25 +673,26 @@ class Colonisation:
             if len(layouts) == 1: data['Layout'] = layouts[0]
             if type in layouts: data['Layout'] = type
 
-        if ind >= len(system['Builds']):
+        build:dict|None = self.find_build(system, {'BuildID' : buildid})
+        if build == None:
             data['State'] = BuildState.PLANNED
             self.add_build(system, data)
             return
 
-        self.modify_build(system, ind, data)
+        self.modify_build(system, buildid, data)
 
 
-    def modify_build(self, system, ind:int, data:dict, silent:bool = False) -> None:
+    def modify_build(self, system, buildid:str, data:dict, silent:bool = False) -> None:
         ''' Modify a build in a system '''
         try:
             Debug.logger.debug(f"Modifying build {data}")
             if isinstance(system, int): system = self.systems[system]
 
-            if ind >= len(system['Builds']):
-                Debug.logger.error(f"modify_build called for non-existent build: {ind}")
+            build:dict|None = self.find_build(system, {'BuildID' : buildid})
+            if build == None:
+                Debug.logger.error(f"modify_build called for non-existent build: {buildid}")
                 return
 
-            build:dict = system['Builds'][ind]
             # If we have a body name or id set the corresponding value.
             body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', 'Unknown')))
             if body != None:
@@ -734,7 +745,7 @@ class Colonisation:
             # If we get here, the build is (newly) complete.
             # Since on completion the construction depot is removed/goes inactive and a new station is created
             # we need to clear some fields.
-            self.modify_build(system, system['Builds'].index(build), {
+            self.modify_build(system, build.get('BuildID', ''), {
                 'State': BuildState.COMPLETE,
                 'Track': False,
                 'MarketID': None,
@@ -762,12 +773,23 @@ class Colonisation:
                 case _:
                     ordered = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Name']))
 
-            return [c_symbol for c_symbol in ordered if f"${c_symbol}_name;" in comms.keys()]
+            return [f"${c_symbol}_name;" for c_symbol in ordered if f"${c_symbol}_name;" in comms.keys()]
 
         except Exception as e:
             Debug.logger.info(f"Error retrieving costs")
             Debug.logger.error(traceback.format_exc())
             return []
+
+
+    def get_commodity(self, symbol:str, which:str='name') -> str:
+        ''' Return a localised commodity name or category '''
+        if symbol in self.bgstally.ui.commodities:
+            return self.bgstally.ui.commodities[symbol].get(which.title(), symbol)
+        n:str = re.sub(r"\$(.*)_name;$", r"\1", symbol)
+        if n in self.bgstally.ui.commodities:
+            return self.bgstally.ui.commodities[n].get(which.title(), symbol)
+        return 'Unknown'
+
 
     def _get_progress(self, builds:list[dict], type:str) -> list[dict]:
         ''' Internal function to get progress details '''
@@ -803,6 +825,7 @@ class Colonisation:
             Debug.logger.error(traceback.format_exc())
             return []
 
+
     def get_required(self, builds:list[dict]) -> list:
         ''' Return the commodities required for the builds listed '''
         return self._get_progress(builds, 'Required')
@@ -835,11 +858,13 @@ class Colonisation:
         return None
 
 
-    def update_progress(self, id:int, data:dict) -> None:
+    def update_progress(self, id:int, data:dict, silent:bool = False) -> None:
         ''' Update a progress record '''
         try:
             progress:dict|None = self.find_progress(id)
-            if progress == None: return
+            if progress == None:
+                Debug.logger.debug(f"Progress not found {id}")
+                return
             changed:bool = False
 
             # Handle a ColonisationConstructionDepot event
@@ -868,14 +893,15 @@ class Colonisation:
                             if pd.get(comm) < amt: progress['Delivered'][comm] = amt
                     continue
 
-                if progress.get(k) != v:
+                if progress.get(k) != v and k not in ['event', 'timestamp']:
                     #Debug.logger.debug(f"Changed {k} from {progress.get(k)} to {v}")
                     progress[k] = v
                     if k != 'Updated': changed = True   # No update loops please
 
-            if changed == False:return
-
+            if changed == False: return
             self.dirty = True
+            self.save('Progress update')
+            if silent == True: return
 
             # If it's complete mark it as complete
             if data.get('ConstructionComplete', False) == True:
@@ -884,12 +910,17 @@ class Colonisation:
                     RavenColonial(self).complete_site(progress.get('ProjectID', 0))
                 return
 
-            system:dict|None = self.find_system({'SystemAddress': progress.get('SystemAddress', '')})
-            if system != None and system.get('RCSync', 0) == 1: build:dict|None = self.find_build(system, {'MarketID' : progress.get('MarketID')})
-            if system == None or build == None:
+            # RC Sync if appropriate
+            found = False
+            for system in self.get_all_systems():
+                build = self.find_build(system, {'MarketID': progress.get('MarketID', 0)})
+                if build != None:
+                    found = True
+                    break
+            if found == False:
+                Debug.logger.debug(f"Build not found for project {progress.get('MarketID', 0)}")
                 return
 
-            # RC Sync if appropriate
             if system.get('RCSync', 0) == 1:
                 RavenColonial(self).upsert_project(system, build, progress)
 
@@ -1077,3 +1108,10 @@ class Colonisation:
             self.bgstally.ui.window_progress.units[i] = ProgressUnits(v)
         self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns')
         self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
+
+        # Migration to ubiquitous buildids
+        for system in self.systems:
+            for build in system.get('Builds', []):
+                if 'BuildID' not in build:
+                    build['BuildID'] = f"x{int(time.time())}" if build.get('State') == BuildState.COMPLETE else f"&{int(time.time())}"
+                    self.dirty = True

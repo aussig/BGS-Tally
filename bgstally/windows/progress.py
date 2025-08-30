@@ -15,8 +15,6 @@ from bgstally.utils import _, str_truncate
 from config import config # type: ignore
 from thirdparty.Tooltip import ToolTip
 
-MAX_ROWS = 20
-
 class ProgressWindow:
     '''
     Frame for displaying colonisation construction progress.
@@ -184,7 +182,7 @@ class ProgressWindow:
                     lbl.grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
                     if row == 0:
                         lbl.bind("<Button-1>", partial(self.link, c, None))
-                        lbl.bind("<Button-3>", partial(self.ctc, self.bgstally.ui.commodities[c].get('Name', c)))
+                        lbl.bind("<Button-3>", partial(self.ctc, self.colonisation.get_commodity(c)))
                         ToolTip(lbl, text=_("Left click for Inara market, right click to copy")) # LANG: tooltip for the inara market commodity links and copy to clipboard
                         lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
 
@@ -233,7 +231,7 @@ class ProgressWindow:
                 if discord:
                     output += f"```{sn}, {bn}\n"
                 else:
-                    output += f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{bn}\n"
+                    output += f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 30, loc='left')}\n"
             else:
                 if discord:
                     output += "```" + _("All builds") + "\n" # LANG: all tracked builds
@@ -247,21 +245,21 @@ class ProgressWindow:
 
             output += "-" * 67 + "\n"
 
-            for c_symbol in self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY):
-                c:str = f"${c_symbol}_name;"
+            for c in self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY):
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
                 # Hide if we're docked and market doesn't have this.
                 if not discord and self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) == 0:
                     continue
                 remaining:int = reqcnt - delcnt
-                if not discord and self.colonisation.docked:
+                # Show amount left to buy unless it's our carrier in which case it needs to be amount left to deliver
+                if not discord and self.colonisation.docked and self.colonisation.market_id != self.bgstally.fleet_carrier.carrier_id:
                     remaining -= self.colonisation.cargo.get(c, 0)
                     remaining -= self.colonisation.carrier_cargo.get(c, 0)
 
                 if remaining > 0:
-                    name:str = self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)
-                    cat:str = self.bgstally.ui.commodities[c_symbol].get('Category', c_symbol)
+                    name:str = self.colonisation.get_commodity(c, 'name')
+                    cat:str = self.colonisation.get_commodity(c, 'category')
                     if discord:
                         output += f"{name:<28} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
                     else:
@@ -421,8 +419,7 @@ class ProgressWindow:
             all_deliv:int = 0
             rc:int = 0
 
-            for i, c_symbol in enumerate(comms):
-                c:str = f"${c_symbol}_name;"
+            for i, c in enumerate(comms):
                 row:dict = self.rows[i]
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
@@ -450,7 +447,7 @@ class ProgressWindow:
                         cell.grid_remove()
                     continue
 
-                if rc == MAX_ROWS:
+                if rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
                     for cell in row.values():
                         cell['text'] = '… '
                         cell.grid()
@@ -460,13 +457,13 @@ class ProgressWindow:
                 for col, val in enumerate(self.columns):
                     if col == 0:
                         # Shorten and display the commodity name
-                        colstr:str = self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)
+                        colstr:str = self.colonisation.get_commodity(c)
                         colstr = str_truncate(colstr, 24)
 
                         row[col]['text'] = colstr
                         row[col].bind("<Button-1>", partial(self.link, c, None))
                         row[col].bind("<Button-2>", partial(self.link, c, sn))
-                        row[col].bind("<Button-3>", partial(self.ctc, self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)))
+                        row[col].bind("<Button-3>", partial(self.ctc, self.colonisation.get_commodity(c)))
                         row[col].grid()
                         continue
 
@@ -517,7 +514,7 @@ class ProgressWindow:
             case 'Cargo': qty = cargo
             case 'Carrier': qty = carrier
         qty = max(qty, 0) # Never less than zero
-        if self.units[col] == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) != 1:
+        if self.units[col] == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
             return f"{ceil(qty / self.colonisation.cargo_capacity): >12,}{_('L')}"
 
         return f"{qty: >12,}{_('t')}"

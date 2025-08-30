@@ -12,7 +12,7 @@ from os import path
 from tkinter import PhotoImage, messagebox, ttk
 from urllib.parse import quote
 
-import plug
+#import plug
 
 from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, FONT_TEXT, BuildState
 from bgstally.debug import Debug
@@ -325,9 +325,6 @@ class ColonisationWindow:
             btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
-            edgis_btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_logo_edgis, cursor="hand2", command=partial(self._edgis_link_clicked, systems[sysnum].get('StarSystem', '')))
-            edgis_btn.pack(side=tk.RIGHT, padx=5, pady=5)
-            ToolTip(edgis_btn, text=_("Show system map in EDGIS")) # LANG: tooltip for the EDGIS button
 
 
         # 📓 📝 📋
@@ -340,6 +337,10 @@ class ColonisationWindow:
             btn:ttk.Button = ttk.Button(title_frame, text=_("🔄"), cursor="hand2", width=3, command=partial(self._rc_refresh_system, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Refresh from RavenColonial")) # LANG: tooltip for ravencolonial refresh button
+
+        edgis_btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_logo_edgis, cursor="hand2", command=partial(self._edgis_link_clicked, systems[sysnum].get('StarSystem', '')))
+        edgis_btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        ToolTip(edgis_btn, text=_("Show system map in EDGIS")) # LANG: tooltip for the EDGIS button
 
 
     def ctc(self, tabnum:int, event = None) -> None:
@@ -925,7 +926,7 @@ class ColonisationWindow:
         try:
             sysnum:int = tabnum -1
             systems:list = self.colonisation.get_all_systems()
-
+            system:dict = systems[sysnum]
             if event.eventname == 'select' and len(event.selected) == 6:
                 # No editing the summary/headers
                 if event.selected.row < FIRST_BUILD_ROW: return
@@ -935,13 +936,13 @@ class ColonisationWindow:
 
                 # If the user clicks on the state column, toggle the state between planned and complete.
                 # If it's in progress we'll update to that on our next delivery
-                if field == 'State' and row < len(systems[sysnum]['Builds']):
-                    if systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE or \
+                if field == 'State' and row < len(system['Builds']):
+                    if system['Builds'][row]['State'] == BuildState.COMPLETE or \
                         'Base Type' not in systems[sysnum]['Builds'][row] or \
                         systems[sysnum]['Builds'][row]['Base Type'] == ' ':
-                        self.colonisation.modify_build(systems[sysnum], row, {'State': BuildState.PLANNED})
+                        self.colonisation.modify_build(system, row, {'State': BuildState.PLANNED})
                     else:
-                        self.colonisation.modify_build(systems[sysnum], row, {'State': BuildState.COMPLETE})
+                        self.colonisation.modify_build(system, row, {'State': BuildState.COMPLETE})
 
                     self.update_display()
                 return
@@ -954,7 +955,7 @@ class ColonisationWindow:
             if event.row < FIRST_BUILD_ROW:
                 field:str = list(self.summary_cols.keys())[event.column]
                 if event.row == 1 and field == 'Architect':
-                    self.colonisation.modify_system(sysnum, {field: event.value})
+                    self.colonisation.modify_system(system, {field: event.value})
                 return
 
             field:str = list(self.detail_cols.keys())[event.column]
@@ -964,29 +965,29 @@ class ColonisationWindow:
             match field:
                 case 'Base Type' | 'Layout' if val == ' ':
                     # If they set the base type to empty remove the build
-                    if row > 0 and row < len(systems[sysnum]['Builds']):
-                        self.colonisation.remove_build(sysnum, row)
+                    if row > 0 and row < len(system['Builds']):
+                        self.colonisation.remove_build(system, row)
                     else:
-                        self.colonisation.set_base_type(systems[sysnum], row, val)
+                        self.colonisation.set_base_type(system, row, val)
 
                     sdata:list = self.sheets[sysnum].data
                     sdata.pop(row + FIRST_BUILD_ROW)
                     self.sheets[sysnum].set_sheet_data(sdata)
-                    self._config_sheet(self.sheets[sysnum], systems[sysnum])
+                    self._config_sheet(self.sheets[sysnum], system)
 
                 case 'Base Type' | 'Layout' if val != ' ':
-                    self.colonisation.set_base_type(systems[sysnum], row, val)
+                    self.colonisation.set_base_type(system, row, val)
 
                     # Initial cell population
                     sdata:list = []
                     sdata.append(self._get_summary_header())
-                    sdata += self._build_summary(systems[sysnum])
+                    sdata += self._build_summary(system)
 
                     sdata.append(self._get_detail_header())
-                    sdata += self._build_detail(systems[sysnum])
+                    sdata += self._build_detail(system)
 
                     self.sheets[sysnum].set_sheet_data(sdata)
-                    self._config_sheet(self.sheets[sysnum], systems[sysnum])
+                    self._config_sheet(self.sheets[sysnum], system)
 
                 case 'Body':
                     # If the body is set, update the build data
@@ -994,7 +995,7 @@ class ColonisationWindow:
                     if val == ' ':
                         data['BodyNum'] = None
                     else:
-                        body:dict = self.colonisation.get_body(systems[sysnum], val)
+                        body:dict = self.colonisation.get_body(system, val)
                         if body != None: data['BodyNum'] = body.get('bodyId', None)
 
                 case _:
@@ -1003,10 +1004,10 @@ class ColonisationWindow:
 
             # Add the data to the build
             if data != {}:
-                if row >= len(systems[sysnum].get('Builds', [])):
-                    self.colonisation.add_build(sysnum, data)
+                if row >= len(system.get('Builds', [])):
+                    self.colonisation.add_build(system, data)
                 else:
-                    self.colonisation.modify_build(sysnum, row, data)
+                    self.colonisation.modify_build(system, row, data)
 
             self.update_display()
 

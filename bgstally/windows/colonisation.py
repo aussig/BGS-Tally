@@ -1523,7 +1523,7 @@ class ColonisationWindow:
     def _detcol(self, col:str) -> int:
         ''' Macro to shorten references to detail columns '''
         return list(self.detail_cols.keys()).index(col)
-    
+
 
     def _cell(self, row:int, col:int) -> str:
         ''' Macro to shorten cell references '''

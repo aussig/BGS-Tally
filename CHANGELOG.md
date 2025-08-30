@@ -33,6 +33,9 @@
   * If a base type is a surface station, bodies dropdown will only list landable ones
   * Builds are automatically sorted to Complete first, then In Progress, then Planned
 
+  * Overlay:
+    * When visiting a market it switches to purchase view and lists only available commodities
+
 ## vx.x.x - xxxx-xx-xx
 
 ### New Features:

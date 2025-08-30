@@ -217,9 +217,9 @@ class ProgressWindow:
     def as_text(self, discord:bool = True) -> str:
         ''' Return a text representation of the progress window '''
         try:
-            self.colonisation = self.bgstally.colonisation
-            if self.colonisation == None:
+            if not hasattr(self.bgstally, 'colonisation'):
                 return _("No colonisation data available") # LANG: No colonisation data available
+            self.colonisation = self.bgstally.colonisation
 
             output:str = ""
             tracked:list = self.colonisation.get_tracked_builds()
@@ -250,7 +250,15 @@ class ProgressWindow:
             for col, val in enumerate(self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)):
                 reqcnt:int = required[self.build_index].get(val, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(val, 0) if len(delivered) > self.build_index else 0
+                # Hide if we're docked and market doesn't have this.
+                if not discord and self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(val, 0) == 0:
+                    continue
+
                 remaining:int = reqcnt - delcnt
+                if not discord and self.colonisation.docked:
+                    remaining -= self.colonisation.cargo.get(val, 0)
+                    remaining -= self.colonisation.carrier_cargo.get(val, 0)
+
                 if remaining > 0:
                     name:str = self.colonisation.commodities[val].get('Name', col)
                     cat:str = self.colonisation.commodities[val].get('Category', col)

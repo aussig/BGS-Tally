@@ -90,8 +90,8 @@ And finally, a huge thank you to:
 * All the code contributors to this version - listed [here on Github](https://github.com/aussig/BGS-Tally/graphs/contributors).
 * All the CMDRs who have provided their input, bug reports, feedback and ideas.
 * All the translators who have given their time and effort:
-    * French - CMDR Dopeilien and CMDR ThArGos
-    * German - CMDR Ryan Murdoc
+    * French - CMDR Dopeilien, CMDR Karl Berg and CMDR ThArGos
+    * German - CMDR Ryan Murdoc and CMDR Saenger.ItsWar
     * Hungarian - CMDR Lazy Creature and CMDR xtl
     * Italian - [CMDR JumpFrost_ITA](https://github.com/GLWine)
     * Portuguese (Portugal) - CMDR Holy Nothing

@@ -38,6 +38,16 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### Changes:
+
+* Inara link now a logo button on activity windows - looks better alongside the new EDGIS button.
+
+### Bug Fixes:
+
+* East India Co API URL fixed
+
+
+## v5.1.0-a1 - 2025-08-20
 ### New Features:
 
 * Colonisation: The remaining materials to be hauled to reach your current target are now displayed on a new panel in the in-game overlay.
@@ -45,17 +55,24 @@
 * Automatic posting of BGS and TW activity to Discord. There is now a checkbox in the settings to switch this on (defaults to `Off`). Discord applies strict limits to the number of posts we can send (which is across all users posting to any particular Discord server), so automatic posting is limited to a maximum of one post every 5 minutes.
 * Cartography values are now editible in activity windows, this is to work around a game bug where it doesn't always log cartography sales.
 * Space CZ side objectives are now editable in activity windows.
+* Translation is now supported for commodity names.
+* Added shortcuts for East India Co and Spectrum in API config.
+* For all API shortcuts, added a link through to the website for the related organisation.
 
 ### Changes:
 
 * There is now a setting to show and hide the 'Objectives' overlay panel in BGS-Tally settings.
 * Colonisation: Notes window now saves on close
+* [Internal] Standardised on `BGST_` prefix for all Windows Registry entries and deleted old Registry entries with `X` prefix. Should be zero impact on users, but now conforms to EDMC guidelines for Registry naming.
+* When posting your fleet carrier jump information to Discord, it now uses a Discord dynamic timestamp, showing the relative time to the jump (e.g. "In 6 minutes")
+* Colonisation: New tooltips on main window to help with column modes.
 
 ### Bug Fixes:
 
 * Colonisation: All commodities list was sometimes not displaying correctly
 * Colonisation: Bioreducing lichen Inara link was incorrectly linking to Animal meat
 * Colonisation: Fix for missing body information.
+* Colonisation: Fix for column width resizing.
 * Colonisation: Various other minor bug fixes.
 
 

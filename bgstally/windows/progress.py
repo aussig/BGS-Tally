@@ -162,16 +162,16 @@ class ProgressWindow:
             # Column headings
             row = 0
             for col, v in enumerate(self.columns):
-                c = tk.Label(table_frame, text=self.headings[v].get('Label'), cursor='hand2')
-                c.bind("<Button-1>", partial(self.change_view, col, 'Column'))
-                c.bind("<Button-3>", partial(self.change_view, col, 'Units'))
+                lbl = tk.Label(table_frame, text=self.headings[v].get('Label'), cursor='hand2')
+                lbl.bind("<Button-1>", partial(self.change_view, col, 'Column'))
+                lbl.bind("<Button-3>", partial(self.change_view, col, 'Units'))
 
-                c.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
-                self._set_weight(c)
-                c.grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
+                lbl.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
+                self._set_weight(lbl)
+                lbl.grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
 
-                self.collbls[col] = c
-                self.coltts[col] = ToolTip(c, text=self.headings[v].get('Tooltip'))
+                self.collbls[col] = lbl
+                self.coltts[col] = ToolTip(lbl, text=self.headings[v].get('Tooltip'))
             row += 1
 
             # Go through the complete list of possible commodities and make a row for each and hide it.
@@ -184,7 +184,7 @@ class ProgressWindow:
                     lbl.grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
                     if row == 0:
                         lbl.bind("<Button-1>", partial(self.link, c, None))
-                        lbl.bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
+                        lbl.bind("<Button-3>", partial(self.ctc, self.bgstally.ui.commodities[c].get('Name', c)))
                         ToolTip(lbl, text=_("Left click for Inara market, right click to copy")) # LANG: tooltip for the inara market commodity links and copy to clipboard
                         lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
 
@@ -420,7 +420,9 @@ class ProgressWindow:
             all_req:int = 0
             all_deliv:int = 0
             rc:int = 0
-            for i, c in enumerate(comms):
+
+            for i, c_symbol in enumerate(comms):
+                c:str = f"${c_symbol}_name;"
                 row:dict = self.rows[i]
                 reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
                 delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0

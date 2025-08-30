@@ -56,7 +56,7 @@
 "All" = "Tutti";
 
 /* all tracked builds. [progress.py] */
-"All builds" = "All builds";
+"All builds" = "Tutte le costruzioni";
 
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API modificata, apri le impostazioni per riapprovarla";
@@ -84,6 +84,9 @@
 
 /* Colonisation 'Type' [base_types.json] */
 "Asteroid Base" = "Asteroid Base";
+
+/* Preferences checkbox label. [ui.py] */
+"Automatically Post BGS and TW Activity" = "Posta automaticamente l'attività BGS e TW";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Bar" = "Bar";
@@ -119,7 +122,7 @@
 "Body" = "Corpo";
 
 /* any boost effects for the base. [colonisation.py] */
-"Boosted By" = "Boosted By";
+"Boosted By" = "Potenziato Da";
 
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS e TW";
@@ -131,10 +134,10 @@
 "Bounty vouchers" = "Bounty vouchers";
 
 /* Building layout types. [colonisation.py] */
-"Building Layouts" = "Building Layouts";
+"Building Layouts" = "Layout della Costruzione";
 
 /* Building type. [colonisation.py] */
-"Building Type" = "Building Type";
+"Building Type" = "Tipo di Costruzione";
 
 /* Builds/bases. [progress.py] */
 "Builds" = "Strutture";
@@ -173,7 +176,7 @@
 "Carrier {carrier_name}" = "Carrier {carrier_name}";
 
 /* category of base. [colonisation.py] */
-"Category" = "Category";
+"Category" = "Categoria";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Civilian" = "Civilian";
@@ -199,6 +202,9 @@
 /* Preferences checkbox label. [ui.py] */
 "CMDR Info" = "CMDR Info";
 
+/* Preferences checkbox label. [ui.py] */
+"Colonisation" = "Colonizzazione";
+
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Colony" = "Colony";
 
@@ -221,7 +227,7 @@
 "Communication Station" = "Communication Station";
 
 /* Row heading of build totals i.e. ones that are done. [colonisation.py] */
-"Complete" = "Complete";
+"Complete" = "Completato";
 
 /* Preferences button label. [ui.py] */
 "Configure Remote Server" = "Configura Server Remoto";
@@ -266,7 +272,7 @@
 "Critically wounded evacuation missions" = "Missioni di evacuazione di feriti gravi";
 
 /* tooltip for the build name. [progress.py] */
-"Current build, click to copy to clipboard" = "Current build, click to copy to clipboard";
+"Current build, click to copy to clipboard" = "Costruzione corrente, clicca per copiare negli appunti";
 
 /* [fleetcarrier.py] */
 "Current System" = "Sistema Attuale";
@@ -281,7 +287,7 @@
 "Cut contents" = "Taglia contenuto";
 
 /* tooltip for the commodity header. [progress.py] */
-"Cycle commodity list details" = "Cycle commodity list details";
+"Cycle commodity list details" = "Scorri i dettagli dell’elenco commodity";
 
 /* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
 "Cycle commodity list filter views" = "Scorri le viste dell’elenco commodity";
@@ -293,7 +299,7 @@
 "Date and Time" = "Data e ora";
 
 /* any decrease effects for the base. [colonisation.py] */
-"Decreased By" = "Decreased By";
+"Decreased By" = "Ridotto Da";
 
 /* [ui.py] */
 "Default" = "Predefinita";
@@ -341,7 +347,7 @@
 "Discord Options" = "Opzioni Discord";
 
 /* Label on activity window. [activity.py] */
-"Discord Report Preview ⓘ" = "Anteprima del report su Discord ⓘ";
+"Discord Report Preview ⓘ" = "Anteprima del Report su Discord ⓘ";
 
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Webhook Discord";
@@ -374,7 +380,7 @@
 "ElectionINF" = "INF Elezione";
 
 /* Label on activity window. [activity.py] */
-"Empty System, no BGS Activity Available" = "Sistema vuoto, nessuna attività BGS disponibile";
+"Empty System, no BGS Activity Available" = "Sistema Vuoto, Nessuna Attività BGS Disponibile";
 
 /* Activity window tooltip. [activity.py] */
 "Enable / disable all factions" = "Abilita / disabilita tutte le fazioni";
@@ -470,13 +476,16 @@
 "Friends" = "Amici";
 
 /* Discord heading. [fleetcarrier.py] */
-"From System" = "Dal sistema";
+"From System" = "Dal Sistema";
 
 /* Overlay galaxy tick message. [ui.py] */
 "Galaxy Tick: {tick_time}" = "Tick Galattico: {tick_time}";
 
 /* Appended to tick time if a normal tick. [activity.py] */
 "game" = "gioco";
+
+/* [colonisation.py] */
+"Gas giant" = "Gas giant";
 
 /* Preferences heading. [ui.py] */
 "General Options" = "Opzioni Generali";
@@ -512,7 +521,7 @@
 "Hightech Planetary Outpost" = "Hightech Planetary Outpost";
 
 /* HMC World is a high metal content world. [colonisation.py] */
-"HMC World" = "HMC World";
+"HMC world" = "HMC world";
 
 /* Colonisation 'Category' [base_types.json] */
 "Hub" = "Hub";
@@ -553,20 +562,20 @@
 /* Preferences label. [ui.py] */
 "In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information." = "Il supporto per l'overlay all'interno del gioco richiede l'installazione del plugin EDMCOverlay separato - per ulteriori informazioni, consultare le istruzioni.";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Cap ship" = "Obiettivo Secondario nella Zona di Conflitto Spaziale: Capital Ship";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Enemy captain" = "Obiettivo Secondario nella Zona di Conflitto Spaziale: Capitano nemico";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Propaganda wing" = "Obiettivo Secondario nella Zona di Conflitto Spaziale: Propaganda wing";
 
-/* Label on legend window. [legend.py] */
+/* Activity window tooltip. [activity.py] */
 "In-space Conflict Zone Side Objective: Spec ops wing" = "Obiettivo Secondario nella Zona di Conflitto Spaziale: Spec ops wing";
 
 /* Inara URL on CMDR window. [cmdrs.py] */
-"Inara Info Available ⤴" = "Informazioni Inara Disponibile ⤴";
+"Inara Info Available ⤴" = "Info Disponibili su Inara ⤴";
 
 /* Overlay CMDR information report message. [ui.py] */
 "INARA INFORMATION AVAILABLE" = "INFORMAZIONI INARA DISPONIBILI";
@@ -704,7 +713,7 @@
 "Latest BGS Tally" = "Report BGS Attuale";
 
 /* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
-"Left click for Inara market, right click to copy" = "Left click for Inara market, right click to copy";
+"Left click for Inara market, right click to copy" = "Click sinistro per Inara market, click destro per copiare";
 
 /* CMDR window column title. [cmdrs.py] */
 "Legal" = "Legale";
@@ -719,7 +728,7 @@
 "Loads" = "Carichi";
 
 /* base location surface/orbital. [colonisation.py] */
-"Location" = "Location";
+"Location" = "Posizione";
 
 /* [fleetcarrier.py] */
 "Locker" = "Armadietto";
@@ -811,11 +820,14 @@
 /* [fleetcarrier.py] */
 "No" = "No";
 
+/* No colonisation data available. [progress.py] */
+"No colonisation data available" = "Nessun dato di colonizzazione disponibile";
+
 /* Discord carrier docking access. [fleetcarrier.py] */
 "None" = "No";
 
 /* Discord heading. [fleetcarrier.py] */
-"Notorious Access" = "Accesso per Notorietà";
+"Notorious Access" = "Accesso con notorietà";
 
 /* Objectives title. [objectivesmanager.py] */
 "Objectives" = "Obiettivi";
@@ -830,7 +842,7 @@
 "On-ground Conflict Zone" = "Zona di conflitto a terra";
 
 /* Indicates the field is optional and case-sensitive. [colonisation.py] */
-"optional and case sensitive" = "optional and case sensitive";
+"optional and case sensitive" = "facoltativo e sensibile alle maiuscole";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Orbis" = "Orbis";
@@ -908,7 +920,7 @@
 "Pop Max" = "Pop Max";
 
 /* [colonisation.py] */
-"Population" = "Population";
+"Population" = "Popolazione";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Port" = "Port";
@@ -929,10 +941,10 @@
 "Posted at: {date_time} | {plugin_name} v{version}" = "Postato alle: {date_time} | {plugin_name} v{version}";
 
 /* Label for checkbox to pre-populate bases from EDSM. [colonisation.py] */
-"Pre-fill bases from EDSM" = "Pre-fill bases from EDSM";
+"Pre-fill bases from EDSM" = "Precompila le basi da EDSM";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "La precompilazione richiede il nome del sistema, può dare risultati misti e probabilmente richiederà la selezione manuale del tipo di base. Usare con cautela!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Report BGS Precedenti";
@@ -953,7 +965,7 @@
 "Profit at Z | L | M | H demand" = "Profitto per domanda Z | L | M | H";
 
 /* [progress.py] */
-"Progress" = "Progress";
+"Progress" = "Progresso";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */
 "Purch" = "Acqui";
@@ -1001,7 +1013,7 @@
 "Rename system plan" = "Rinomina il progetto del sistema";
 
 /* Preferences checkbox label. [ui.py] */
-"Report Newly Visited System Activity By Default" = "Segnala di default attività nei nuovi sistemi";
+"Report Newly Visited System Activity By Default" = "Di Default Segnala l'Attività nei Nuovi Sistemi";
 
 /* Required amount. [progress.py] */
 "Required" = "Richiesto";
@@ -1041,9 +1053,6 @@
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Satellite Installation" = "Satellite Installation";
-
-/* Save notes button. [colonisation.py] */
-"Save" = "Salva";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Scannerizzato";
@@ -1133,7 +1142,7 @@
 "Shortcuts for Popular Servers" = "Scorciatoia per Server Popolari";
 
 /* tooltip for the show bases button. [colonisation.py] */
-"Show base types window" = "Show base types window";
+"Show base types window" = "Mostra la finestra dei tipi base";
 
 /* Main window tooltip. [ui.py] */
 "Show CMDR information window" = "Mostra la finestra delle informazioni CMDR";
@@ -1181,7 +1190,7 @@
 "SoL" = "SoL";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Alcune informazioni non possono essere aggiornate. Abilita le query API Fleet Carrier in File -> Impostazioni -> Configurazione";
+"Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Alcune informazioni non possono essere aggiornate. Abilita le Query API Fleet Carrier in File -> Impostazioni -> Configurazione";
 
 /* [clb.py] */
 "Space" = "Spazio";
@@ -1241,7 +1250,7 @@
 "System Tick: {tick_time}" = "Tick di Sistema: {tick_time}";
 
 /* Label on carrier window. [fleetcarrier.py] */
-"System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistema: {current_system} - Attracco: {docking_access} - Accesso per Notorietà: {notorious}";
+"System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Sistema: {current_system} - Attracco: {docking_access} - Accesso con notorietà: {notorious}";
 
 /* [progress.py] */
 "t" = "ton";
@@ -1274,7 +1283,7 @@
 "Thargoid War Progress" = "Progressi della guerra Thargoid";
 
 /* Label on activity window. [activity.py] */
-"Thargoid War System, no BGS Activity is Counted" = "Sistema in Guerra Thargoid, non Vengono Gonteggiate le Attività di BGS";
+"Thargoid War System, no BGS Activity is Counted" = "Sistema in Guerra Thargoid, non Vengono Conteggiate le Attività di BGS";
 
 /* Text on API settings window. [api.py] */
 "The exact set of Events that will be sent is listed in the 'Events Requested' section below. Further information about these Events and what they contain is provided here: " = "L'esatto insieme di eventi che verranno inviati è elencato nella sezione \"Eventi richiesti\" di seguito. Ulteriori informazioni su questi eventi e sul loro contenuto sono disponibili qui: ";
@@ -1295,13 +1304,13 @@
 "Tick {minutes_delta}m Overdue (Estimated)" = "Tick {minutes_delta}m in Ritardo (Stimato)";
 
 /* tier of base. [colonisation.py] */
-"Tier" = "Tier";
+"Tier" = "Livello";
 
 /* [ui.py] */
 "To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "Per aggiungere al webhook: Click destro del mouse sul numero della riga e selezionare \"Inserisci righe sopra/sotto\".";
 
 /* Discord heading. [fleetcarrier.py] */
-"To Body" = "Al Body";
+"To Body" = "Al Corpo";
 
 /* Amount still left to buy. [progress.py] */
 "To Buy" = "Da Comprare";
@@ -1310,7 +1319,7 @@
 "To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Per rimuovere dal webhook: Click destro del mouse sul numero della riga e selezionare \"Elimina righe\".";
 
 /* Discord heading. [fleetcarrier.py] */
-"To System" = "Al Sistema";
+"To System" = "Aa Sistema";
 
 /* Total number of builds. [colonisation.py] */
 "Total" = "Totale";
@@ -1370,10 +1379,10 @@
 "TW War Progress in {current_system}: {percent}%" = "Progressi della Guerra TW a {current_system}: {percent}%";
 
 /* body type details. [colonisation.py] */
-"Type" = "Type";
+"Type" = "Tipo";
 
 /* type of base as listed in the game. [colonisation.py] */
-"Type (Listed as)" = "Type (Listed as)";
+"Type (Listed as)" = "Tipo (indicato come)";
 
 /* [sheet_options.py] */
 "Undo" = "Ripristina";
@@ -1407,6 +1416,9 @@
 
 /* Preferences table heading. [ui.py] */
 "Webhook URL" = "Webhook URL";
+
+/* Label on API settings window. [api.py] */
+"Website ⤴" = "Sito Web ⤴";
 
 /* Notice about the first base being special. [colonisation.py] */
 "When planning your system the first base is special, make sure that it is the first on the list." = "Quando pianifichi il tuo sistema, la prima base è speciale: assicurati che sia la prima nella lista.";
@@ -1442,7 +1454,7 @@
 "{plugin_name} - Colonisation" = "{plugin_name} - Colonizzazione";
 
 /* Title of the base type popup window. [colonisation.py] */
-"{plugin_name} - Colonisation Base Types" = "{plugin_name} - Colonisation Base Types";
+"{plugin_name} - Colonisation Base Types" = "{plugin_name} - Tipi di Base di Colonizzazione";
 
 /* Title of the bodies popup window. [colonisation.py] */
 "{plugin_name} - Colonisation Bodies" = "{plugin_name} - Colonizzazione Corpi";
@@ -1472,7 +1484,7 @@
 "{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo tick";
 
 /* [tick.py] */
-"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo tick";
+"{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} ATTENZIONE: Impossibile recuperare l'ultimo tick del sistema";
 
 /* Objectives title. [objectivesmanager.py] */
 "{server_name} Objectives" = "{server_name} - Obiettivi";

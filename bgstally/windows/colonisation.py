@@ -1,23 +1,28 @@
-from os import path
-from math import ceil
-import traceback
 import re
 from functools import partial
 import webbrowser
 from config import config # type: ignore
 import tkinter as tk
 import tkinter.font as tkFont
-from tkinter import ttk, messagebox, PhotoImage
+import traceback
+import webbrowser
+from functools import partial
+from math import ceil
+from os import path
+from tkinter import PhotoImage, messagebox, ttk
 from urllib.parse import quote
+
+import plug
+
+from bgstally.constants import COLOUR_HEADING_1, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, FONT_TEXT, BuildState
+from bgstally.debug import Debug
+from bgstally.utils import _, get_localised_filepath, human_format, str_truncate
+from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet, num2alpha
 from thirdparty.Tooltip import ToolTip
-from bgstally.constants import FONT_HEADING_1, COLOUR_HEADING_1, FONT_HEADING_2, FONT_SMALL, FONT_TEXT, FOLDER_DATA, FOLDER_ASSETS, BuildState
-from bgstally.debug import Debug
-from bgstally.utils import _, human_format, str_truncate
-from bgstally.ravencolonial import RavenColonial
 
-FILENAME = "colonisation_legend.txt" # LANG: Not sure how we handle file localistion.
+FILENAME_LEGEND = "colonisation_legend.txt"
 SUMMARY_HEADER_ROW = 0
 FIRST_SUMMARY_ROW = 1
 FIRST_SUMMARY_COLUMN = 4
@@ -318,6 +323,10 @@ class ColonisationWindow:
             btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
+            edgis_btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_logo_edgis, cursor="hand2", command=partial(self._edgis_link_clicked, systems[sysnum].get('StarSystem', '')))
+            edgis_btn.pack(side=tk.RIGHT, padx=5, pady=5)
+            ToolTip(edgis_btn, text=_("Show system map in EDGIS")) # LANG: tooltip for the EDGIS button
+
 
         # 📓 📝 📋
         btn:ttk.Button = ttk.Button(title_frame, text=_("📋"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
@@ -425,6 +434,8 @@ class ColonisationWindow:
                                 sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
             sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
+            sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
+
         except Exception as e:
             Debug.logger.error(f"Error in bases_popup(): {e}")
             Debug.logger.error(traceback.format_exc())
@@ -507,6 +518,15 @@ class ColonisationWindow:
         except Exception as e:
             Debug.logger.error(f"Error in bodies_popup(): {e}")
             Debug.logger.error(traceback.format_exc())
+
+
+    def _edgis_link_clicked(self, sysname: str) -> None:
+        """Open the system in EDGIS
+
+        Args:
+            sysname (str): System name
+        """
+        webbrowser.open(f"https://elitedangereuse.fr/outils/sysmap.php?system={sysname}")
 
 
     def _create_table_frame(self, tabnum:int, tab:ttk.Frame, system:dict) -> None:
@@ -860,6 +880,8 @@ class ColonisationWindow:
             for j, details in enumerate(self.detail_cols.values()):
                 sheet[self._cell(len(new)+srow-1,j)].highlight(bg=None)
             sheet[self._cell(len(new)+srow-1,self._detcol('State'))].data = ' '
+
+        sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
@@ -1337,15 +1359,15 @@ class ColonisationWindow:
 
     def _load_legend(self) -> str:
         ''' Load the legend text from the language appropriate file '''
-        try:
-            file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
-            lang:str = config.get_str('language')
-            if lang and lang != 'en':
-                file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, "L10n", f"{lang}.{FILENAME}")
+        filepath: str | None = get_localised_filepath(FILENAME_LEGEND, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
 
-            if not path.exists(file):
-                Debug.logger.info(f"Missing translation {file} for {lang}, using default legend file")
-                file = path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME)
+        if filepath:
+            try:
+                with open(filepath, encoding='utf-8') as stream:
+                    return stream.read()
+            except Exception as e:
+                Debug.logger.warning(f"Unable to load legend {filepath}")
+                Debug.logger.error(traceback.format_exc())
 
             if path.exists(file):
                 with open(file) as fh:
@@ -1353,11 +1375,7 @@ class ColonisationWindow:
                 return legend
 
             return f"Unable to load {file}"
-
-        except Exception as e:
-            Debug.logger.warning(f"Unable to load legend {file}")
-            Debug.logger.error(traceback.format_exc())
-            return ''
+        return ""
 
 
     def legend_popup(self) -> None:

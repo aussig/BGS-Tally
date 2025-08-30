@@ -9,9 +9,8 @@ from datetime import datetime
 from config import config # type: ignore
 from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
-from bgstally.utils import _
+from bgstally.utils import _, get_by_path, get_localised_filepath
 from bgstally.ravencolonial import RavenColonial
-
 
 FILENAME = "colonisation.json"
 BASE_TYPES_FILENAME = 'base_types.json'
@@ -55,7 +54,6 @@ class Colonisation:
         self.docked:bool = False
         self.base_types:dict = {}  # Loaded from base_types.json
         self.base_costs:dict = {}  # Loaded from base_costs.json
-        self.commodities:dict = {} # Loaded from commodity.csv
         self.systems:list = []     # Systems with colonisation
         self.progress:list = []    # Construction progress data
         self.dirty:bool = False
@@ -68,7 +66,6 @@ class Colonisation:
         self.cmdr:str|None = None
 
         # Load base commodities, types, costs, and saved data
-        self._load_commodities()
         self._load_base_types()
         self._load_base_costs()
         self._load()
@@ -760,11 +757,11 @@ class Colonisation:
             match order:
                 case CommodityOrder.CATEGORY:
                     # dict(sorted(dict_of_dicts.items(), key=lambda item: item[1][key_to_sort_by]))
-                    ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Category']))
+                    ordered = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Category']))
                 case _:
-                    ordered = list(k for k, v in sorted(self.commodities.items(), key=lambda item: item[1]['Name']))
+                    ordered = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Name']))
 
-            return [c for c in ordered if c in comms.keys()]
+            return [c_symbol for c_symbol in ordered if f"${c_symbol}_name;" in comms.keys()]
 
         except Exception as e:
             Debug.logger.info(f"Error retrieving costs")

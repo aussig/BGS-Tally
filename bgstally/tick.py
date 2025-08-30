@@ -152,17 +152,23 @@ class Tick:
         """
         Load tick status from config
         """
-        self.tick_id = config.get_str("XLastTick")
-        self.tick_time = datetime.strptime(config.get_str("XTickTime", default=self.tick_time.strftime(DATETIME_FORMAT_TICK_DETECTOR_GALAXY)), DATETIME_FORMAT_TICK_DETECTOR_GALAXY)
+        # TODO: Remove migration from old keys in future version
+        self.tick_id = config.get_str("BGST_LastTick", default=config.get_str("XLastTick"))
+        self.tick_time = datetime.strptime(config.get_str("BGST_TickTime", default=config.get_str("XTickTime", default=self.tick_time.strftime(DATETIME_FORMAT_TICK_DETECTOR_GALAXY))),
+                                           DATETIME_FORMAT_TICK_DETECTOR_GALAXY)
         self.tick_time = self.tick_time.replace(tzinfo=UTC)
+
+        # TODO: Remove deletion of old keys in future version
+        config.delete('XLastTick', suppress=True)  # Remove legacy config keys
+        config.delete('XTickTime', suppress=True)  # Remove legacy config keys
 
 
     def save(self):
         """
         Save tick status to config
         """
-        config.set('XLastTick', self.tick_id)
-        config.set('XTickTime', self.tick_time.strftime(DATETIME_FORMAT_TICK_DETECTOR_GALAXY))
+        config.set('BGST_LastTick', self.tick_id)
+        config.set('BGST_TickTime', self.tick_time.strftime(DATETIME_FORMAT_TICK_DETECTOR_GALAXY))
 
 
     def get_formatted(self, format: str = DATETIME_FORMAT_DISPLAY, tick_time: datetime|None = None) -> str:

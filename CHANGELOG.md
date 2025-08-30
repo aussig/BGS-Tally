@@ -1,6 +1,6 @@
 # Change Log
 
-## v5.0.0 - 5.1.0
+## v5.1.0 - 5.x.0
 
 ### New Features
 #### Colonisation ####
@@ -36,8 +36,7 @@
   * Overlay:
     * When visiting a market it switches to purchase view and lists only available commodities
 
-## vx.x.x - xxxx-xx-xx
-
+## v5.1.0-b1 - 2025-08-30
 ### Changes:
 
 * Inara link now a logo button on activity windows - looks better alongside the new EDGIS button.

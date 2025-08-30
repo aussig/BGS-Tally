@@ -247,21 +247,21 @@ class ProgressWindow:
 
             output += "-" * 67 + "\n"
 
-            for col, val in enumerate(self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)):
-                reqcnt:int = required[self.build_index].get(val, 0) if len(required) > self.build_index else 0
-                delcnt:int = delivered[self.build_index].get(val, 0) if len(delivered) > self.build_index else 0
+            for c_symbol in self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY):
+                c:str = f"${c_symbol}_name;"
+                reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
+                delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
                 # Hide if we're docked and market doesn't have this.
-                if not discord and self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(val, 0) == 0:
+                if not discord and self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) == 0:
                     continue
-
                 remaining:int = reqcnt - delcnt
                 if not discord and self.colonisation.docked:
-                    remaining -= self.colonisation.cargo.get(val, 0)
-                    remaining -= self.colonisation.carrier_cargo.get(val, 0)
+                    remaining -= self.colonisation.cargo.get(c, 0)
+                    remaining -= self.colonisation.carrier_cargo.get(c, 0)
 
                 if remaining > 0:
-                    name:str = self.colonisation.commodities[val].get('Name', col)
-                    cat:str = self.colonisation.commodities[val].get('Category', col)
+                    name:str = self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)
+                    cat:str = self.bgstally.ui.commodities[c_symbol].get('Category', c_symbol)
                     if discord:
                         output += f"{name:<28} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
                     else:
@@ -460,13 +460,13 @@ class ProgressWindow:
                 for col, val in enumerate(self.columns):
                     if col == 0:
                         # Shorten and display the commodity name
-                        colstr:str = self.colonisation.commodities[c].get('Name', c)
+                        colstr:str = self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)
                         colstr = str_truncate(colstr, 24)
 
                         row[col]['text'] = colstr
                         row[col].bind("<Button-1>", partial(self.link, c, None))
                         row[col].bind("<Button-2>", partial(self.link, c, sn))
-                        row[col].bind("<Button-3>", partial(self.ctc, self.colonisation.commodities[c].get('Name', c)))
+                        row[col].bind("<Button-3>", partial(self.ctc, self.bgstally.ui.commodities[c_symbol].get('Name', c_symbol)))
                         row[col].grid()
                         continue
 

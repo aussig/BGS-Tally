@@ -14,9 +14,11 @@ from urllib.parse import quote
 
 import plug
 
-from bgstally.constants import COLOUR_HEADING_1, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, FONT_TEXT, BuildState
+from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, FONT_TEXT, BuildState
 from bgstally.debug import Debug
 from bgstally.utils import _, get_localised_filepath, human_format, str_truncate
+from bgstally.ravencolonial import RavenColonial
+
 from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet, num2alpha
@@ -1368,13 +1370,6 @@ class ColonisationWindow:
             except Exception as e:
                 Debug.logger.warning(f"Unable to load legend {filepath}")
                 Debug.logger.error(traceback.format_exc())
-
-            if path.exists(file):
-                with open(file) as fh:
-                    legend:str = fh.read()
-                return legend
-
-            return f"Unable to load {file}"
         return ""
 
 

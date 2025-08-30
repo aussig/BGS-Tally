@@ -54,6 +54,7 @@ class Colonisation:
         self.docked:bool = False
         self.base_types:dict = {}  # Loaded from base_types.json
         self.base_costs:dict = {}  # Loaded from base_costs.json
+        self.commodities:dict = {} # Loaded from commodity.csv
         self.systems:list = []     # Systems with colonisation
         self.progress:list = []    # Construction progress data
         self.dirty:bool = False

@@ -37,6 +37,11 @@
     * When visiting a market it switches to purchase view and lists only available commodities
 
 ## v5.1.0-b1 - 2025-08-30
+
+### New Features:
+
+* Integrates click-through to the new EDGIS system map from the Elite Dangereuse project, on activity windows and colonisation window.
+
 ### Changes:
 
 * Inara link now a logo button on activity windows - looks better alongside the new EDGIS button.

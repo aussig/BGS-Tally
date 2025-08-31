@@ -160,7 +160,7 @@ class BGSTally:
                 dirty = True
 
             case 'CarrierJumpCancelled':
-                self.fleet_carrier.jump_cancelled()
+                self.fleet_carrier.jump_cancelled(entry)
 
             case 'CarrierJumpRequest':
                 self.fleet_carrier.jump_requested(entry)
@@ -171,13 +171,24 @@ class BGSTally:
             case 'CarrierTradeOrder':
                 self.fleet_carrier.trade_order(entry)
 
-            case 'CargoTransfer':
-                self.fleet_carrier.cargo_transfer(entry)
+            case 'CollectCargo':
+                activity.cargo_collected(entry, self.state)
+                dirty = True
+
+            case 'ColonisationSystemClaim':
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
-            case 'CollectCargo':
-                activity.cargo_collected(entry, self.state)
+            case 'ColonisationBeaconDeployed':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                dirty = True
+
+            case 'ColonisationConstructionDepot':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                dirty = True
+
+            case 'ColonisationContribution':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'CommitCrime':
@@ -307,22 +318,6 @@ class BGSTally:
             case 'WingInvite':
                 self.target_manager.team_invite(entry, system)
 
-            # Colonisation events
-            case 'ColonisationSystemClaim':
-                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
-                dirty = True
-
-            case 'ColonisationBeaconDeployed':
-                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
-                dirty = True
-
-            case 'ColonisationConstructionDepot':
-                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
-                dirty = True
-
-            case 'ColonisationContribution':
-                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
-                dirty = True
 
         if dirty:
             self.save_data()

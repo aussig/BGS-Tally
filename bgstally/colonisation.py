@@ -205,7 +205,6 @@ class Colonisation:
                     if system == None:
                         Debug.logger.warning(f"Invalid ColonisationConstructionDepot event (no system): {entry}")
                         return
-                    build = self.find_build(system, {'MarketID': self.market_id})
                     progress:dict = self.find_or_create_progress(self.market_id)
                     self.update_progress(self.market_id, entry)
                     self.dirty = True
@@ -921,7 +920,7 @@ class Colonisation:
                 Debug.logger.debug(f"Build not found for project {progress.get('MarketID', 0)}")
                 return
 
-            if system.get('RCSync', 0) == 1:
+            if system.get('RCSync', 0) == 1 and build != None:
                 RavenColonial(self).upsert_project(system, build, progress)
 
             return

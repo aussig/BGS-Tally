@@ -46,6 +46,12 @@ class DiscordChannel(str, Enum):
     THARGOIDWAR = 'TW'
 
 
+KEY_CARRIER_TYPE: str = "CarrierType"
+class FleetCarrierType(str, Enum):
+    PERSONAL = 'FleetCarrier'
+    SQUADRON = 'SquadronCarrier'
+
+
 class FleetCarrierItemType(Enum):
     MATERIALS_SELLING = 0
     MATERIALS_BUYING = 1

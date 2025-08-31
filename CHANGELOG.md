@@ -10,7 +10,9 @@
 
 ## v5.1.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
 
+* Squadron carrier data was being incorrectly stored as a personal carrier. If you have a personal carrier, some information was overwritten while if you don't have a personal carrier, you would magically gain one.
 
 
 ## v5.1.0-b1 - 2025-08-30

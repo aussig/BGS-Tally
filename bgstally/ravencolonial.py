@@ -94,7 +94,6 @@ class RavenColonial:
             'bodyNum': 'BodyNum',
             'architectName': 'Architect',
             'timeDue': 'Deadline',
-            'isPrimaryPort': 'Primary',
             'bodyType': 'BodyType',
             'complete': 'ConstructionComplete'
             }
@@ -274,7 +273,7 @@ class RavenColonial:
                 self.colonisation.modify_system(system, mod)
 
             for site in data.get('sites', []):
-                # A project not a site (this is how we find projectids if we're missing them)
+                # A project not a site (this is how we find projectids if we're missing them
                 if not re.match(r"^[&x]\d+$", site.get('id')):
                     if self.colonisation.find_progress(site.get('id')) != None: continue
                     build = self.colonisation.find_build(system, {'Name': site.get('name')})

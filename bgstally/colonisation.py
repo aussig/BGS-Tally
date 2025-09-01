@@ -685,9 +685,11 @@ class Colonisation:
         ''' Modify a build in a system '''
         try:
             Debug.logger.debug(f"Modifying build {data}")
-            if isinstance(system, int): system = self.systems[system]
+            build:dict|None = None
 
-            build:dict|None = self.find_build(system, {'BuildID' : buildid})
+            if isinstance(system, int): system = self.systems[system]
+            if isinstance(buildid, int): build = system['Builds'][buildid]
+            if build == None: build = self.find_build(system, {'BuildID' : buildid})
             if build == None:
                 Debug.logger.error(f"modify_build called for non-existent build: {buildid}")
                 return
@@ -1051,23 +1053,29 @@ class Colonisation:
 
         # We sort the order of systems when saving so that in progress systems are first, then planned, then complete.
         # Fortuitously our desired order matches the reverse alpha of the states
-        systems:list = list(sorted(self.get_all_systems(), key=sort_order, reverse=True))
-        for system in systems:
+        # We also clean up the system and build entires.
+        systems:list = []
+        for s in list(sorted(self.get_all_systems(), key=sort_order, reverse=True)):
+            system = {k: v for k, v in s.items() if k in ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated']}
+            builds:list = []
             if len(system['Builds']) > 1:
                 system['Builds'] = [system['Builds'][0]] + list(sorted(system['Builds'][1:], key=build_order))
+            for i, b in enumerate(system['Builds']):
+                if i > 0 and b.get('Base Type', '') == '' and b.get('Name', '') == '': continue
+                build = {k: v for k, v in b.items() if k in ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID'] and v != "\u0001" and v != ""}
+                builds.append(build)
+            system['Builds'] = builds
+            systems.append(system)
 
-        # Migrate the project progress. This can be removed in the future
-        for progress in self.progress:
-            if progress.get('ResourcesRequired', None) != None:
-                progress['Required'] = {comm['Name'] : comm['RequiredAmount'] for comm in progress.get('ResourcesRequired')}
-                progress['Delivered'] = {comm['Name'] : comm['ProvidedAmount'] for comm in progress.get('ResourcesRequired')}
-                del progress['ResourcesRequired']
-
-        # Remove empty build entries
-        #for system in systems:
-        #    for i, b in enumerate(system.get('Builds', [])):
-        #        if b.get('Base Type', '') == '' and b.get('Name', '') == '':
-        #            del system['Builds'][i]
+        # Migrate the project progress and cleanup entries
+        progress:list = []
+        for p in self.progress:
+            site:dict = {}
+            if s.get('ResourcesRequired', None) != None:
+                site['Required'] = {comm['Name'] : comm['RequiredAmount'] for comm in p.get('ResourcesRequired')}
+                site['Delivered'] = {comm['Name'] : comm['ProvidedAmount'] for comm in p.get('ResourcesRequired')}
+            site = {k: v for k, v in p.items() if k in ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Reuqired', 'Delivered']}
+            progress.append(site)
 
         units:list = []
         for v in self.bgstally.ui.window_progress.units:
@@ -1080,7 +1088,7 @@ class Colonisation:
             'Body': self.body,
             'Station': self.station,
             'MarketID': self.market_id,
-            'Progress': self.progress,
+            'Progress': progress,
             'Systems': systems,
             'CargoCapacity': self.cargo_capacity,
             'ProgressView' : self.bgstally.ui.window_progress.view.value,

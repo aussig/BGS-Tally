@@ -259,7 +259,7 @@ class ColonisationWindow:
 
         name_label:ttk.Label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
         sysname:str = systems[sysnum].get('StarSystem', '')
-        if systems[sysnum].get('RCSync', 0) == 1:
+        if systems[sysnum].get('RCSync', False) == True:
             name_label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground="#0078d4", cursor="hand2")
             name_label.bind("<Button-1>", partial(self._system_click, sysname, 'RavenColonial'))
             ToolTip(name_label, text=_("Link to RavenColonial")) # LANG: tooltip for ravencolonial link
@@ -337,7 +337,7 @@ class ColonisationWindow:
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
-        if systems[sysnum].get('RCSync', 0) == 1:
+        if systems[sysnum].get('RCSync', False) == True:
             #🔄 ⟳
             btn:ttk.Button = ttk.Button(title_frame, text=_("🔄"), cursor="hand2", width=3, command=partial(self._rc_refresh_system, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)

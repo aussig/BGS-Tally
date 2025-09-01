@@ -153,9 +153,9 @@ class Colonisation:
 
                     # Update systems with external data if required
                     for system in self.systems:
-                        if system.get('Hidden', 0) == 1: continue
+                        if system.get('Hidden', False) == True: continue
 
-                        if system.get('RCSync', 0) == 1:
+                        if system.get('RCSync', False) == True:
                             self.cmdr = cmdr # Used in RavenColonial sync
                             rc.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
 
@@ -178,7 +178,7 @@ class Colonisation:
                         return
 
                     system:dict|None = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-                    if system != None and system.get('RCSync', 0) == 1:
+                    if system != None and system.get('RCSync', False) == True:
                         for progress in self.progress:
                             if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
                                 rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
@@ -428,7 +428,7 @@ class Colonisation:
         self.systems.append(data)
         if rcsync == True and data.get('StarSystem', None) != None:
             RavenColonial(self).add_system(data.get('StarSystem', ''))
-            data['RCSync'] = 1
+            data['RCSync'] = True
 
         # If we have a system address, we get the bodies and maybe stations
         if rcsync == False and data.get('StarSystem', None) != None:
@@ -459,10 +459,10 @@ class Colonisation:
             system[k] = v
 
         # Add a system if the flag has switched from zero to one
-        if data.get('RCSync', 0) == 1 and system.get('RCSync', 0) == 0 and \
+        if data.get('RCSync', False) == True and system.get('RCSync', False) == False and \
             data.get('StarSystem', None) != None:
             RavenColonial(self).add_system(system.get('StarSystem', ''))
-            system['RCSync'] = 1
+            system['RCSync'] = True
 
         # If we have a system name but not its address, we can get the bodies from EDSM
         if system.get('StarSystem') != None and system.get('Bodies', None) == None:
@@ -515,10 +515,10 @@ class Colonisation:
 
         # If we have a progress entry, use that
         for p in self.progress:
-            if p.get('MarketID') == build.get('MarketID'):
-                if p.get('ConstructionComplete', False) == True:
+            if p.get('MarketID') == build.get('MarketID') and p.get('ConstructionComplete', False) == True:
                     self.try_complete_build(p.get('MarketID'))
                     return BuildState.COMPLETE
+            if p.get('MarketID') == build.get('MarketID'):
                 return BuildState.PROGRESS
 
         # Otherwise, use the state of the build
@@ -542,6 +542,14 @@ class Colonisation:
     def get_system_builds(self, system:dict) -> list[dict]:
         ''' Get all builds for a system '''
         return system.get('Builds', [])
+
+
+    def find_build_any(self, data:dict) -> list:
+        ''' Find a build in any system and return the system and build '''
+        for system in self.get_all_systems():
+            build:dict|None = self.find_build(system, data)
+            if build != None: return [system, build]
+        return [None, None]
 
 
     def find_build(self, system:dict, data:dict) -> dict|None:
@@ -621,7 +629,7 @@ class Colonisation:
         system['Builds'].append(data)
 
         # Update RC if appropriate and we have enough data about the system.
-        if silent == False and system.get('RCSync') == 1 and system.get('SystemAddress', None) != None and \
+        if silent == False and system.get('RCSync', False) == True and system.get('SystemAddress', None) != None and \
             data.get('Layout', None) != None and data.get('BodyNum', None) != None:
             RavenColonial(self).upsert_site(system, data)
 
@@ -650,7 +658,7 @@ class Colonisation:
             Debug.logger.warning(f"Cannot remove build - invalid build index: {ind} {len(system['Builds'])} {system['Builds']}")
             return
 
-        if system.get('RCSync', 0) == 1:
+        if system.get('RCSync', False) == True:
             RavenColonial(self).remove_site(system, ind)
 
         # Remove build
@@ -684,7 +692,7 @@ class Colonisation:
     def modify_build(self, system, buildid:str, data:dict, silent:bool = False) -> None:
         ''' Modify a build in a system '''
         try:
-            Debug.logger.debug(f"Modifying build {data}")
+            Debug.logger.debug(f"Modifying build {buildid} {data}")
             build:dict|None = None
 
             if isinstance(system, int): system = self.systems[system]
@@ -716,7 +724,7 @@ class Colonisation:
 
             # Send our updates back to RavenColonial if we're tracking this system and have the details required
             if silent == False and changed == True and \
-                system.get('RCSync') == 1 and system.get('SystemAddress', None) != None and \
+                system.get('RCSync', False) == True and system.get('SystemAddress', None) != None and \
                 build.get('Layout', None) != None and build.get('BodyNum', None) != None:
                 RavenColonial(self).upsert_site(system, build)
                 for p in self.progress:
@@ -733,12 +741,11 @@ class Colonisation:
 
 
     def try_complete_build(self, market_id:int) -> bool:
-        ''' Determine if a build has just been completed and if so mark it as such '''
+        ''' If a build has been completed but isn't yet marked as such do so and clear the
+            tracking, construction name and construction marketid '''
         try:
-            for system in self.get_all_systems():
-                build = self.find_build(system, {'MarketID' : market_id})
-                if build != None:
-                    break
+            [system, build] = self.find_build_any({'MarketID' : market_id})
+            # Not found or already completed there's nothing to do.
             if build == None or build.get('State') == BuildState.COMPLETE:
                 return False
 
@@ -912,17 +919,8 @@ class Colonisation:
                 return
 
             # RC Sync if appropriate
-            found = False
-            for system in self.get_all_systems():
-                build = self.find_build(system, {'MarketID': progress.get('MarketID', 0)})
-                if build != None:
-                    found = True
-                    break
-            if found == False:
-                Debug.logger.debug(f"Build not found for project {progress.get('MarketID', 0)}")
-                return
-
-            if system.get('RCSync', 0) == 1 and build != None:
+            [system, build] = self.find_build_any({'MarketID': progress.get('MarketID', 0)})
+            if system != None and build != None and system.get('RCSync', False) == True:
                 RavenColonial(self).upsert_project(system, build, progress)
 
             return
@@ -1023,6 +1021,8 @@ class Colonisation:
     def save(self, cause:str = 'Unknown') -> None:
         ''' Save state to file '''
 
+        Debug.logger.debug(f"Saving colonisation {cause}")
+
         file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile, indent=4)
@@ -1055,31 +1055,34 @@ class Colonisation:
         # Fortuitously our desired order matches the reverse alpha of the states
         # We also clean up the system and build entires.
         systems:list = []
+        progress:list = []
+        markets:list = [0]
         for s in list(sorted(self.get_all_systems(), key=sort_order, reverse=True)):
-            system = {k: v for k, v in s.items() if k in ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated']}
+            system:dict = {k: v for k, v in s.items() if k in ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync']}
             builds:list = []
             if len(system['Builds']) > 1:
                 system['Builds'] = [system['Builds'][0]] + list(sorted(system['Builds'][1:], key=build_order))
             for i, b in enumerate(system['Builds']):
                 if i > 0 and b.get('Base Type', '') == '' and b.get('Name', '') == '': continue
-                build = {k: v for k, v in b.items() if k in ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID'] and v != "\u0001" and v != ""}
+                build:dict = {k: v for k, v in b.items() if k in ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID'] and v != "\u0001" and v != ""}
                 builds.append(build)
+                markets += [v for k, v in b.items() if k == 'MarketID' and v != None and v != '']
             system['Builds'] = builds
             systems.append(system)
 
         # Migrate the project progress and cleanup entries
-        progress:list = []
+        Debug.logger.debug(f"Markets {markets}")
         for p in self.progress:
-            site:dict = {}
-            if s.get('ResourcesRequired', None) != None:
+            # Remove complete builds that we've recorded as complete
+            if p.get('MarketID', 0) not in markets and p.get('ConstructionComplete', '') == True: continue
+            site:dict = {k: v for k, v in p.items() if k in ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']}
+            # Migrate old style progress
+            if p.get('ResourcesRequired', None) != None:
                 site['Required'] = {comm['Name'] : comm['RequiredAmount'] for comm in p.get('ResourcesRequired')}
                 site['Delivered'] = {comm['Name'] : comm['ProvidedAmount'] for comm in p.get('ResourcesRequired')}
-            site = {k: v for k, v in p.items() if k in ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Reuqired', 'Delivered']}
             progress.append(site)
 
-        units:list = []
-        for v in self.bgstally.ui.window_progress.units:
-            units.append(v.value)
+        units:list = [v.value for v in self.bgstally.ui.window_progress.units]
 
         return {
             'Docked': self.docked,
@@ -1110,9 +1113,7 @@ class Colonisation:
         self.systems = dict.get('Systems', [])
         self.cargo_capacity = dict.get('CargoCapacity', 784)
         self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
-
-        for i, v in enumerate(dict.get('ProgressUnits', [])):
-            self.bgstally.ui.window_progress.units[i] = ProgressUnits(v)
+        self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
         self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns')
         self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
 

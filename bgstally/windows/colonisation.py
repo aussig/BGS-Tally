@@ -258,26 +258,31 @@ class ColonisationWindow:
             self.plan_titles.append({})
 
         name_label:ttk.Label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
+        sysname:str = systems[sysnum].get('StarSystem', '')
         if systems[sysnum].get('RCSync', 0) == 1:
             name_label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground="#0078d4", cursor="hand2")
-            name_label.bind("<Button-1>", partial(self.system_click, tabnum, 'RavenColonial'))
+            name_label.bind("<Button-1>", partial(self._system_click, sysname, 'RavenColonial'))
             ToolTip(name_label, text=_("Link to RavenColonial")) # LANG: tooltip for ravencolonial link
         name_label.pack(side=tk.LEFT, padx=10, pady=5)
         self.plan_titles[sysnum]['Name'] = name_label
 
-        sysname:str = systems[sysnum].get('StarSystem', '') + ' ⤴' if systems[sysnum].get('StarSystem') != '' else ''
-        sys_label:ttk.Label = ttk.Label(title_frame, text=sysname, cursor="hand2")
-        sys_label.pack(side=tk.LEFT, padx=5, pady=5)
-        self._set_weight(sys_label)
-        sys_label.bind("<Button-1>", partial(self.system_click, tabnum, 'inara'))
-        ToolTip(sys_label, text=_("Link to Inara")) # LANG: tooltip for inara link
-        self.plan_titles[sysnum]['System'] = sys_label
+        if sysname != '':
+            sys_label:ttk.Label = ttk.Label(title_frame, text=sysname, cursor="hand2")
+            sys_label.pack(side=tk.LEFT, padx=5, pady=5)
+            self._set_weight(sys_label)
+            sys_label.bind("<Button-1>", partial(self._system_click, sysname, ''))
+            sys_label.bind("<Button-3>", partial(self._context_menu, sysname))
+            ToolTip(sys_label, text=_("Left click view system, right click menu")) # LANG: tooltip for the copy to clipboard icon
+            self._set_weight(sys_label)
+            self.plan_titles[sysnum]['System'] = sys_label
 
-        sys_copy:ttk.Label = ttk.Label(title_frame, text='⮺   ', cursor='hand2')
-        sys_copy.pack(side=tk.LEFT, padx=(0,10), pady=5)
-        self._set_weight(sys_copy)
-        sys_copy.bind("<Button-1>", partial(self.ctc, tabnum))
-        ToolTip(sys_copy, text=_("Copy system name to clipboard")) # LANG: tooltip for the copy to clipboard icon
+            #inara_btn: ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_logo_inara, cursor="hand2", command=partial(self.system_click, sysname, 'Inara'))
+            #inara_btn.pack(side=tk.LEFT, padx=5, pady=5)
+            #ToolTip(inara_btn, text=_("Show system in Inara")) # LANG: tooltip for the Inara button
+
+            #edgis_btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_logo_edgis, cursor="hand2", command=partial(self.system_click, sysname, 'edgis'))
+            #edgis_btn.pack(side=tk.LEFT, padx=5, pady=5)
+            #ToolTip(edgis_btn, text=_("Show system map in EDGIS")) # LANG: tooltip for the EDGIS button
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
             bodies:str = str(len(systems[sysnum]['Bodies'])) + " " + _("Bodies") # LANG: bodies in the system
@@ -313,7 +318,7 @@ class ColonisationWindow:
         #ToolTip(btn, text=_("Hide system plan")) # LANG: tooltip for the hide system button
         #btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("📝"), width=3, cursor="hand2", command=lambda: self.edit_system_dialog(tabnum, tab)) # LANG: Rename button
+        btn:ttk.Button = ttk.Button(title_frame, text=_("📝"), width=3, cursor="hand2", command=lambda: self.edit_system_dialog(tabnum, btn)) # LANG: Rename button
         ToolTip(btn, text=_("Edit system plan")) # LANG: tooltip for the edit system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
@@ -338,32 +343,36 @@ class ColonisationWindow:
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Refresh from RavenColonial")) # LANG: tooltip for ravencolonial refresh button
 
-        edgis_btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_logo_edgis, cursor="hand2", command=partial(self._edgis_link_clicked, systems[sysnum].get('StarSystem', '')))
-        edgis_btn.pack(side=tk.RIGHT, padx=5, pady=5)
-        ToolTip(edgis_btn, text=_("Show system map in EDGIS")) # LANG: tooltip for the EDGIS button
 
-
-    def ctc(self, tabnum:int, event = None) -> None:
-        ''' Copy to clipboard '''
+    def _context_menu(self, sysname:str, event: tk.Event) -> None:
+        """ Display the context menu when right-clicked."""
         try:
-            systems:list = self.colonisation.get_all_systems()
-            self.window.clipboard_clear()
-            self.window.clipboard_append(systems[tabnum-1].get('StarSystem', ''))
+            Debug.logger.debug(f"_context_menu called")
+            menu = tk.Menu(tearoff=tk.FALSE)
+            # LANG: Label for 'Copy' as in 'Copy and Paste'
+            menu.add_command(label=_('Copy'), command=partial(self._ctc, sysname))  # As in Copy and Paste
+            menu.add_separator()
+            for which in ['Inara', 'Spansh', 'EDSM', 'EDGS']:
+                menu.add_command(
+                    label=_(f"Open in {which}"),  # LANG: Open Element In Selected Provider
+                    command=partial(self._system_click, sysname, which)
+                )
+            menu.post(event.x_root, event.y_root)
+
         except Exception as e:
-            Debug.logger.error(f"Error in ctc() {e}")
+            Debug.logger.error(f"Error in _context_menu")
             Debug.logger.error(traceback.format_exc())
 
 
-    def system_click(self, tabnum:int, type:str = '', event = None) -> None:
+    def _ctc(self, text:str, event = None) -> None:
+        ''' Copy to clipboard '''
+        self.window.clipboard_clear()
+        self.window.clipboard_append(text)
+
+
+    def _system_click(self, star:str, type:str = '', event = None) -> None:
         ''' Execute the click event for the system link '''
         try:
-            sysnum:int = tabnum -1
-            systems:list = self.colonisation.get_all_systems()
-            if sysnum > len(systems):
-                Debug.logger.info(f"on_system_click invalid tab: {tabnum}")
-                return
-            star:str = systems[sysnum]['StarSystem']
-
             # Can't use this because the stupid function overrides the passed in system name in favor of the local one. FFS
             #opener = plug.invoke(config.get_str('system_provider'), 'EDSM', 'system_url', star)
             #if opener:
@@ -371,17 +380,20 @@ class ColonisationWindow:
             #    return webbrowser.open(opener)
             #else:
 
-            if type == 'RavenColonial':
-                webbrowser.open(f"https://ravencolonial.com/#sys={quote(star)}")
-                return
+            if type == '' or type == None:
+                type = config.get_str('system_provider')
 
-            match config.get_str('system_provider'):
-                case 'Inara':
-                    webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={star}")
+            match type.lower():
+                case 'ravencolonial':
+                    webbrowser.open(f"https://ravencolonial.com/#sys={quote(star)}")
+                case 'inara':
+                    webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={quote(star)}")
                 case 'spansh':
-                    webbrowser.open(f"https://www.spansh.co.uk/search/{star}")
+                    webbrowser.open(f"https://www.spansh.co.uk/search/{quote(star)}")
+                case 'edgs':
+                    webbrowser.open(f"https://elitedangereuse.fr/outils/sysmap.php?system={quote(star)}")
                 case _:
-                    webbrowser.open(f"https://www.edsm.net/en/system?systemName={star}")
+                    webbrowser.open(f"https://www.edsm.net/en/system?systemName={quote(star)}")
 
         except Exception as e:
             Debug.logger.error(f"Error in system_click() {e}")
@@ -523,15 +535,6 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def _edgis_link_clicked(self, sysname: str) -> None:
-        """Open the system in EDGIS
-
-        Args:
-            sysname (str): System name
-        """
-        webbrowser.open(f"https://elitedangereuse.fr/outils/sysmap.php?system={sysname}")
-
-
     def _create_table_frame(self, tabnum:int, tab:ttk.Frame, system:dict) -> None:
         ''' Create a unified table frame with both summary and builds in a single scrollable area '''
         # Main table frame
@@ -574,7 +577,7 @@ class ColonisationWindow:
     def _update_title(self, index:int, system:dict) -> None:
         ''' Update title with both display name and actual system name '''
         name:str = system.get('Name','') if system.get('Name',None) != None else system.get('StarSystem', _('Unknown')) # LANG: Default when we don't know the name
-        sysname:str = system.get('StarSystem', '') + ' ⤴' if system.get('StarSystem') != '' else ''
+        sysname:str = system.get('StarSystem', '') if system.get('StarSystem') != '' else ''
 
         self.plan_titles[index]['Name']['text'] = name
         self.plan_titles[index]['System']['text'] = sysname
@@ -823,14 +826,17 @@ class ColonisationWindow:
             if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Name')] != '' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
                 # Base type
                 if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
-                    sheet[self._cell(i+srow,self._detcol('Base Type'))].del_dropdown()
-                    sheet[self._cell(i+srow,self._detcol('Base Type'))].readonly()
-                    sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=None)
+                    for cell in ['Base Type', 'Layout']:
+                        sheet[self._cell(i+srow,self._detcol(cell))].del_dropdown()
+                        sheet[self._cell(i+srow,self._detcol(cell))].readonly()
+                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg=None)
+
                 elif new[i][self._detcol('Base Type')] != ' ' or new[i][self._detcol('Name')] != ' ': # Base type is invalid or not set & name is set
-                    sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg='red2')
-                    sheet[self._cell(i+srow,self._detcol('Layout'))].highlight(bg='red2')
-                sheet[self._cell(i+srow,self._detcol('Base Type'))].align(align='left')
-                sheet[self._cell(i+srow,self._detcol('Layout'))].align(align='left')
+                    for cell in ['Base Type', 'Layout']:
+                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg='red2')
+
+                for cell in ['Base Type', 'Layout']:
+                    sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')
 
                 # Base name
                 sheet[self._cell(i+srow,self._detcol('Name'))].readonly()
@@ -847,20 +853,14 @@ class ColonisationWindow:
                 sheet[self._cell(i+srow,self._detcol('Track'))].data = ' '
                 sheet[self._cell(i+srow,self._detcol('Track'))].readonly(False)
 
-            # Base type
+            # Base type & Layout
             sheet[self._cell(i+srow,self._detcol('Base Type'))].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
-            sheet[self._cell(i+srow,self._detcol('Base Type'))].align(align='left')
-            sheet[self._cell(i+srow,self._detcol('Base Type'))].readonly(False)
-            sheet[self._cell(i+srow,self._detcol('Base Type'))].data = new[i][self._detcol('Base Type')]
+            sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'))
 
-            # Base Layout
-            cat:str = new[i][self._detcol('Base Type')] if new[i][self._detcol('Base Type')] != ' ' else 'All'
-            if i == 0 and cat == 'All': cat = 'Initial'
-            layouts:list = self.colonisation.get_base_layouts(cat)
-            sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + layouts)
-            sheet[self._cell(i+srow,self._detcol('Layout'))].align(align='left')
-            sheet[self._cell(i+srow,self._detcol('Layout'))].readonly(False)
-            sheet[self._cell(i+srow,self._detcol('Layout'))].data = new[i][self._detcol('Layout')]
+            for cell in ['Base Type', 'Layout']:
+                sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')
+                sheet[self._cell(i+srow,self._detcol(cell))].readonly(False)
+                sheet[self._cell(i+srow,self._detcol(cell))].data = new[i][self._detcol(cell)]
 
             # Base name
             sheet[self._cell(i+srow,self._detcol('Name'))].readonly(False)
@@ -1144,20 +1144,25 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def edit_system_dialog(self, tabnum:int, tab:ttk.Frame) -> None:
+    def edit_system_dialog(self, tabnum:int, btn:ttk.Button) -> None:
         ''' Show dialog to edit a system '''
         try:
+            #Debug.logger.debug(f"x: {int(x)} y: {int(y)}")
             sysnum:int = tabnum -1
             systems:list = self.colonisation.get_all_systems()
             if sysnum > len(systems):
                 Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
             system:dict = systems[sysnum]
-            dialog:tk.Toplevel = tk.Toplevel(self.window)
+            dialog:tk.Toplevel = tk.Toplevel(btn)
+            dialog.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+            dialog.wm_attributes('-toolwindow', True) # makes it a tool window
+
             dialog.title(_("Edit System")) # LANG: Rename a system
             dialog.minsize(500, 250)
-            dialog.geometry(f"{int(500*self.scale)}x{int(250*self.scale)}")
-            dialog.transient(self.window)
+            dialog.geometry(f"{int(500*self.scale)}x{int(250*self.scale)}+{btn.winfo_x()-100}+{self.window.winfo_y()+50}")
+            #dialog.transient(self.window)
+            dialog.config(bd=2, relief=tk.FLAT)
             dialog.grab_set()
 
             row:int = 0
@@ -1196,7 +1201,7 @@ class ColonisationWindow:
             save_button:ttk.Button = ttk.Button(
                 button_frame,
                 text=_("Save"), # LANG: Save button
-                command=lambda: self._edit_system(tabnum, tab, plan_name_var.get(), system_name_var.get(), rcsync_var.get(), hide_var.get(), dialog)
+                command=lambda: self._edit_system(tabnum, plan_name_var.get(), system_name_var.get(), rcsync_var.get(), hide_var.get(), dialog)
             ) # LANG: Rename button
             save_button.pack(side=tk.LEFT, padx=5)
 
@@ -1216,7 +1221,7 @@ class ColonisationWindow:
             Debug.logger.error(traceback.format_exc())
 
 
-    def _edit_system(self, tabnum:int, tab:ttk.Frame, name:str, sysname:str, rcsync:bool, hide:bool, dialog:tk.Toplevel) -> None:
+    def _edit_system(self, tabnum:int, name:str, sysname:str, rcsync:bool, hide:bool, dialog:tk.Toplevel) -> None:
         ''' Edit a system's plan, name and sync state '''
         try:
             sysnum:int = tabnum -1
@@ -1385,7 +1390,7 @@ class ColonisationWindow:
             self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
             self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
             self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
-            self.legend_fr.geometry("600x600")
+            self.legend_fr.geometry(f"600x600")
             self.legend_fr.config(bd=2, relief=tk.FLAT)
             scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
             scr.pack(side=tk.RIGHT, fill=tk.Y)

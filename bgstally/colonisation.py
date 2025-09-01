@@ -445,7 +445,7 @@ class Colonisation:
         ''' Update a system for colonisation planning '''
 
         if isinstance(system, int): system = self.systems[system]
-        Debug.logger.debug(f"modify_system: {dict} {system.get('StarSystem')}")
+        Debug.logger.debug(f"modify_system: {system.get('StarSystem')} {data}")
         if system == None:
             Debug.logger.warning(f"Cannot update system, not found: {system}")
             return

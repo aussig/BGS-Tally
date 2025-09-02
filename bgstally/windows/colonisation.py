@@ -160,11 +160,8 @@ class ColonisationWindow:
             if self.window != None and self.window.winfo_exists():
                 self.window.lift()
                 return
-
-            # We do this once because it seems to get lost over time
-            if self.scale == 0:
-                self.scale = self.bgstally.ui.frame.tk.call('tk', 'scaling') - 0.6
-
+            Debug.logger.debug(f"Scale: {config.get_int('ui_scale')}, {self.bgstally.ui.frame.tk.call('tk', 'scaling')}")
+            self.scale = config.get_int('ui_scale') / 100.00
             self.colonisation = self.bgstally.colonisation
             self.window:tk.Toplevel = tk.Toplevel(self.bgstally.ui.frame)
             self.window.title(_("{plugin_name} - Colonisation").format(plugin_name=self.bgstally.plugin_name)) # LANG: window title
@@ -352,7 +349,7 @@ class ColonisationWindow:
             # LANG: Label for 'Copy' as in 'Copy and Paste'
             menu.add_command(label=_('Copy'), command=partial(self._ctc, sysname))  # As in Copy and Paste
             menu.add_separator()
-            for which in ['Inara', 'Spansh', 'EDSM', 'EDGS']:
+            for which in ['Inara', 'Spansh', 'EDSM', 'EDGIS']:
                 menu.add_command(
                     label=_(f"Open in {which}"),  # LANG: Open Element In Selected Provider
                     command=partial(self._system_click, sysname, which)
@@ -390,7 +387,7 @@ class ColonisationWindow:
                     webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={quote(star)}")
                 case 'spansh':
                     webbrowser.open(f"https://www.spansh.co.uk/search/{quote(star)}")
-                case 'edgs':
+                case 'edgis':
                     webbrowser.open(f"https://elitedangereuse.fr/outils/sysmap.php?system={quote(star)}")
                 case _:
                     webbrowser.open(f"https://www.edsm.net/en/system?systemName={quote(star)}")
@@ -1322,7 +1319,7 @@ class ColonisationWindow:
             self.tabbar:ScrollableNotebook
             self.sheets:list = []
             self.plan_titles:list = []
-            self.colonisation.save()
+            self.colonisation.save("Colonisation window close")
 
         except Exception as e:
             Debug.logger.error(f"Error in close(): {e}")
@@ -1415,7 +1412,7 @@ class ColonisationWindow:
 
                 notes:str = text.get("1.0", tk.END)
                 system['Notes'] = notes
-                self.colonisation.save()
+                self.colonisation.save("Notes popup close")
                 self.notes_fr.destroy()
                 self.notes_fr
 

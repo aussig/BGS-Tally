@@ -115,7 +115,7 @@ class RavenColonial:
         if self._cache.get(id64, None) == None: self._cache[id64] = {}
 
         if self._cache[id64].get('ts', 0) > int(time.time()) - RC_COOLDOWN:
-            Debug.logger.info(f"Not refreshing {id64}, too soon")
+            Debug.logger.info(f"Not refreshing {id64}, too soon {int(time.time()) - self._cache[id64].get('ts', 0)}")
             return
 
         self._cache[id64]['rev'] = rev
@@ -277,8 +277,7 @@ class RavenColonial:
                 if not re.match(r"^[&x]\d+$", site.get('id')):
                     if self.colonisation.find_progress(site.get('id')) != None: continue
                     build = self.colonisation.find_build(system, {'Name': site.get('name')})
-                    if build == None: continue
-                    self.colonisation.update_progress(build.get('MarketID'), {'ProjectID' : site.get('id')}, True)
+                    if build != None and build.get('MarketID', None) != None: self.colonisation.update_progress(build.get('MarketID'), {'ProjectID' : site.get('id')}, True)
                     continue
 
                 # A site
@@ -308,7 +307,7 @@ class RavenColonial:
                         Debug.logger.info(f"Adding build {system} {deets}")
                         self.colonisation.add_build(system, deets, True)
                     else:
-                        Debug.logger.info(f"Updating build {system} {system['Builds'].index(build)} {deets}")
+                        Debug.logger.info(f"Updating build {system['Builds'].index(build)} {deets}")
                         self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
             return
 
@@ -582,8 +581,9 @@ class RavenColonial:
                 Debug.logger.info("Cannot update carrier no cmdr")
                 return
 
-            payload:dict = {re.sub(r"\$(.*)_name;", r"\1", comm).lower() : qty for comm, qty in cargo.items()}
-            #Debug.logger.debug(f"Carrier cargo: {marketid} {payload}")
+            all:dict = self.colonisation.base_costs.get('All')
+            payload:dict = {re.sub(r"\$(.*)_name;", r"\1", comm).lower() : cargo.get(comm, 0) for comm in all.keys()}
+            Debug.logger.debug(f"Carrier cargo: {marketid} {payload}")
             url:str = f"{RC_API}/fc/{marketid}/cargo"
             self.headers["rcc-cmdr"] = self.colonisation.cmdr
             self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=self.headers, callback=self._carrier_callback)
@@ -652,7 +652,7 @@ class EDSM:
             return
 
         if system.get('Updated', 0) > int(time.time()) - EDSM_COOLDOWN:
-            Debug.logger.info(f"Not refreshing stations for {system_name}, too soon")
+            Debug.logger.info(f"Not refreshing stations for {system_name}, too soon {int(time.time()) - system.get('Updated', 0)}")
             return
 
         url:str = f"{EDSM_STATIONS}{quote(system_name)}"

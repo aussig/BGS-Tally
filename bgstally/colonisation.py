@@ -714,11 +714,12 @@ class Colonisation:
 
             changed:bool = False
             for k, v in data.items():
-                if k == 'Track' and build.get(k, '') != v:
+                if k == 'Track' and build.get(k, False) != v:
                     build[k] = v
                     self.bgstally.ui.window_progress.update_display()
 
-                if build.get(k, None) != v:
+                if build.get(k, '') != v:
+                    Debug.logger.debug(f"Build {buildid} {k} {v}")
                     build[k] = v.strip() if isinstance(v, str) else v
                     changed = True
 
@@ -1064,14 +1065,13 @@ class Colonisation:
                 system['Builds'] = [system['Builds'][0]] + list(sorted(system['Builds'][1:], key=build_order))
             for i, b in enumerate(system['Builds']):
                 if i > 0 and b.get('Base Type', '') == '' and b.get('Name', '') == '': continue
-                build:dict = {k: v for k, v in b.items() if k in ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID'] and v != "\u0001" and v != ""}
+                build:dict = {k: v for k, v in b.items() if k in ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID'] and v not in ['', "\u0001"]}
                 builds.append(build)
                 markets += [v for k, v in b.items() if k == 'MarketID' and v != None and v != '']
             system['Builds'] = builds
             systems.append(system)
 
         # Migrate the project progress and cleanup entries
-        Debug.logger.debug(f"Markets {markets}")
         for p in self.progress:
             # Remove complete builds that we've recorded as complete
             if p.get('MarketID', 0) not in markets and p.get('ConstructionComplete', '') == True: continue

@@ -417,7 +417,7 @@ class RavenColonial:
             elif k == 'commodities' and  progress != {}:
                 rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v for k,v in progress.get('Required').items()}
 
-            if rcval != None:
+            if rcval != None and v != 'Updated':
                 payload[k] = rcval
 
         url:str = f"{RC_API}/project/"
@@ -448,8 +448,6 @@ class RavenColonial:
         """ Update build progress """
         # Required: buildId (though maybe not if you use )
         try:
-            if progress.get('Updated', None) != None: del progress['Updated'] # Don't send this
-
             # Create project if we don't have an id.
             if progress.get('ProjectID', None) == None:
                 self.create_project(system, build, progress)
@@ -468,7 +466,7 @@ class RavenColonial:
                 elif k == 'commodities' and progress != {}:
                     rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v - progress['Delivered'].get(k) for k,v in progress.get('Required').items()}
 
-                if rcval != None:
+                if rcval != None and v != 'Updated':
                     payload[k] = rcval
 
             if payload == self._cache.get(progress.get('ProjectID', ''), {}):return

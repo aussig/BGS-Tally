@@ -67,6 +67,11 @@ class Colonisation:
 
         self.cmdr:str|None = None
 
+        # Valid keys for colonisation.json entries. These help avoid sending unnecessary data to third parties or storing unncessary data in the save file.
+        self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync']
+        self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID']
+        self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
+
         # Load base commodities, types, costs, and saved data
         self._load_base_types()
         self._load_base_costs()
@@ -207,7 +212,6 @@ class Colonisation:
                         return
                     progress:dict = self.find_or_create_progress(self.market_id)
                     self.update_progress(self.market_id, entry)
-                    self.dirty = True
 
                 case 'Docked':
                     self._update_market(self.market_id)
@@ -436,7 +440,6 @@ class Colonisation:
             if prepop == True: RavenColonial(self).import_stations(data.get('StarSystem', ''))
             RavenColonial(self).import_system(data.get('StarSystem', ''))
 
-        self.dirty = True
         self.save('Add system')
         return data
 
@@ -456,6 +459,7 @@ class Colonisation:
             system['StarSystem'] = data.get('StarSystem')
 
         for k, v in data.items():
+            if k not in self.system_keys: continue
             system[k] = v
 
         # Add a system if the flag has switched from zero to one
@@ -469,8 +473,8 @@ class Colonisation:
             RavenColonial(self).import_bodies(system.get('StarSystem', ''))
 
         Debug.logger.debug(f"System modified: {system}")
-        self.dirty = True
         self.save('Modify system')
+
         return system
 
 
@@ -504,7 +508,6 @@ class Colonisation:
         ''' Delete a system '''
         systems = self.get_all_systems() # It's a sorted list, index isn't reliable unless sorted!
         del systems[sysnum]
-        self.dirty = True
         self.save('System removed')
 
 
@@ -633,7 +636,6 @@ class Colonisation:
             data.get('Layout', None) != None and data.get('BodyNum', None) != None:
             RavenColonial(self).upsert_site(system, data)
 
-        self.dirty = True
         self.save('Build added')
 
         return data
@@ -663,7 +665,6 @@ class Colonisation:
 
         # Remove build
         system['Builds'].pop(ind)
-        self.dirty = True
         self.save('Build removed')
 
 
@@ -714,6 +715,8 @@ class Colonisation:
 
             changed:bool = False
             for k, v in data.items():
+                if k not in self.build_keys: continue
+
                 if k == 'Track' and build.get(k, False) != v:
                     build[k] = v
                     self.bgstally.ui.window_progress.update_display()
@@ -732,9 +735,7 @@ class Colonisation:
                     if p.get('ProjectID', None) != None and p.get('MarketID', None) == build.get('MarketID'):
                         RavenColonial(self).upsert_project(system, build, p)
 
-            self.dirty = True
             self.save('Build modified')
-            return
 
         except Exception as e:
             Debug.logger.error(f"Error modifying build: {e}")
@@ -874,42 +875,35 @@ class Colonisation:
             if progress == None:
                 Debug.logger.debug(f"Progress not found {id}")
                 return
-            changed:bool = False
 
-            # Handle a ColonisationConstructionDepot event
-            if data.get('ResourcesRequired', None) != None:
-                req:dict = {comm['Name'] : comm['RequiredAmount'] for comm in data.get('ResourcesRequired', [])}
-                if progress.get('Required', None) != req:
-                    progress['Required'] = req
-                    changed = True
-                deliv = {comm['Name'] : comm['ProvidedAmount'] for comm in data.get('ResourcesRequired', [])}
-                if progress.get('Delivered', None) != deliv:
-                    progress['Delivered'] = deliv
-                    changed = True
-                del data['ResourcesRequired']
-                changed = True
-
-            # Copy over whatever data we receive
+            # Copy over changed/updated data
             for k, v in data.items():
-                # Recalculate the provided amount based on what RC says remains to be delivered
-                if k == 'Remaining':
-                    deliv:dict = {f"${key}_name;" : progress['Required'][f"${key}_name;"] - val for key, val in v.items()}
-                    pd:dict = progress.get('Delivered', {})
-                    for comm, amt in deliv.items():
-                        if pd.get(comm) != amt:
-                            Debug.logger.debug(f"Changed {comm} from {pd.get(comm)} to {amt}")
-                            changed = True
-                            if pd.get(comm) < amt: progress['Delivered'][comm] = amt
+                if k == 'ResourcesRequired': # Handle a ColonisationConstructionDepot event
+                    req:dict = {comm['Name'] : comm['RequiredAmount'] for comm in v}
+                    deliv:dict = {comm['Name'] : comm['ProvidedAmount'] for comm in v}
+                    if progress.get('Required', None) != req or progress.get('Delivered', None) != deliv:
+                        progress['Required'] = req
+                        progress['Delivered'] = deliv
+                        self.dirty = True
                     continue
 
-                if progress.get(k) != v and k not in ['event', 'timestamp']:
-                    #Debug.logger.debug(f"Changed {k} from {progress.get(k)} to {v}")
-                    progress[k] = v
-                    if k != 'Updated': changed = True   # No update loops please
+                if k == 'Remaining': # Handle an RC project event
+                    deliv:dict = {f"${key}_name;" : progress['Required'][f"${key}_name;"] - val for key, val in v.items()}
+                    pd:dict = progress.get('Delivered', {})
+                    # Maybe unnecessary but we only take RC delivered numbers if they're ahead
+                    for comm, amt in deliv.items():
+                        if amt > progress['Delivered'][comm]:
+                            self.dirty = True
+                            progress['Delivered'][comm] = amt
+                    continue
 
-            if changed == False: return
-            self.dirty = True
+                if progress.get(k) != v and k in self.progress_keys:
+                    progress[k] = v
+                    self.dirty = True
+
+            if self.dirty == False: return
             self.save('Progress update')
+
             if silent == True: return
 
             # If it's complete mark it as complete
@@ -1059,13 +1053,13 @@ class Colonisation:
         progress:list = []
         markets:list = [0]
         for s in list(sorted(self.get_all_systems(), key=sort_order, reverse=True)):
-            system:dict = {k: v for k, v in s.items() if k in ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync']}
+            system:dict = {k: v for k, v in s.items() if k in self.system_keys}
             builds:list = []
             if len(system['Builds']) > 1:
                 system['Builds'] = [system['Builds'][0]] + list(sorted(system['Builds'][1:], key=build_order))
             for i, b in enumerate(system['Builds']):
                 if i > 0 and b.get('Base Type', '') == '' and b.get('Name', '') == '': continue
-                build:dict = {k: v for k, v in b.items() if k in ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID'] and v not in ['', "\u0001"]}
+                build:dict = {k: v for k, v in b.items() if k in self.build_keys and v not in ['', "\u0001"]}
                 builds.append(build)
                 markets += [v for k, v in b.items() if k == 'MarketID' and v != None and v != '']
             system['Builds'] = builds
@@ -1075,7 +1069,7 @@ class Colonisation:
         for p in self.progress:
             # Remove complete builds that we've recorded as complete
             if p.get('MarketID', 0) not in markets and p.get('ConstructionComplete', '') == True: continue
-            site:dict = {k: v for k, v in p.items() if k in ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']}
+            site:dict = {k: v for k, v in p.items() if k in self.progress_keys}
             # Migrate old style progress
             if p.get('ResourcesRequired', None) != None:
                 site['Required'] = {comm['Name'] : comm['RequiredAmount'] for comm in p.get('ResourcesRequired')}

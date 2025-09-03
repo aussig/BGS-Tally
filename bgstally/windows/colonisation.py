@@ -775,7 +775,7 @@ class ColonisationWindow:
                             continue
 
                         if name == 'Body' and build.get('Body', None) != None and system.get('StarSystem', '') != '':
-                            row.append(build.get('Body').replace(system.get('StarSystem','') + ' ', ''))
+                            row.append(self.colonisation.body_name(system.get('StarSystem', ''), build.get('Body')))
                             continue
 
                         row.append(build.get(name) if build.get(name, ' ') != ' ' else bt.get(name, ' '))
@@ -836,12 +836,14 @@ class ColonisationWindow:
                     sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')
 
                 # Base name
-                sheet[self._cell(i+srow,self._detcol('Name'))].readonly()
-                sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left')
+                if new[i][self._detcol('Name')] != ' ':
+                    sheet[self._cell(i+srow,self._detcol('Name'))].readonly()
+                    sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left')
 
                 # Body
-                sheet[self._cell(i+srow,self._detcol('Body'))].del_dropdown()
-                sheet[self._cell(i+srow,self._detcol('Body'))].readonly()
+                if new[i][self._detcol('Body')] != ' ':
+                    sheet[self._cell(i+srow,self._detcol('Body'))].del_dropdown()
+                    sheet[self._cell(i+srow,self._detcol('Body'))].readonly()
                 continue
 
             #  Tracking

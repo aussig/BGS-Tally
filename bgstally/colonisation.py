@@ -320,10 +320,11 @@ class Colonisation:
 
     def body_name(self, sysname:str, body:str) -> str|None:
         """ Get the body name without the system prefix or ring suffix"""
+
         if body == None or body == '': raise
         body = body.replace(sysname + ' ', '').strip()
         body = re.sub(r"( [A-Z]){0,1} Ring$", "", body)
-        if body == '': return 'A'
+        if body == sysname: return 'A'
         return body
 
 
@@ -624,6 +625,9 @@ class Colonisation:
 
         # If we have a body name or id set the corresponding value.
         body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', '')))
+        if body != None:
+            data['Body'] = self.body_name(system.get('StarSystem'), body['Name'])
+            data['BodyNum'] = body['bodyId']
 
         if data.get('Base Type', '') == '' and data.get('Layout', None) != None:
             bt:dict = self.get_base_type(data.get('Layout', ''))
@@ -668,26 +672,26 @@ class Colonisation:
         self.save('Build removed')
 
 
-    def set_base_type(self, system:dict, buildid:str, type:str) -> None:
+    def set_base_type(self, system:dict, buildid:str|int, type:str) -> None:
         """ Set/update the type of a given base using type or layout """
 
-        Debug.logger.debug(f"Seting base type {type}")
+        Debug.logger.debug(f"Seting base type for {buildid} {type}")
 
         data:dict = {'Base Type' : '', 'Layout' : '', 'Location': '' }
         if type != ' ':
-            bt = self.get_base_type(type)
+            bt:dict = self.get_base_type(type)
             data = {'Base Type' : bt['Type'], 'Location': bt['Location'] }
             layouts:list = self.get_base_layouts(bt['Type'])
             if len(layouts) == 1: data['Layout'] = layouts[0]
             if type in layouts: data['Layout'] = type
 
-        build:dict|None = self.find_build(system, {'BuildID' : buildid})
+        build:dict|None = system['Builds'][buildid] if isinstance(buildid, int) else self.find_build(system, {'BuildID' : buildid})
         if build == None:
             data['State'] = BuildState.PLANNED
             self.add_build(system, data)
             return
 
-        self.modify_build(system, buildid, data)
+        self.modify_build(system, build.get('BuildID', ''), data)
 
 
     def modify_build(self, system, buildid:str, data:dict, silent:bool = False) -> None:

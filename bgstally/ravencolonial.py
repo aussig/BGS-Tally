@@ -208,7 +208,7 @@ class RavenColonial:
             payload:dict = {'update': [update], 'delete':[]}
 
             url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
-            self.headers["rcc-cmdr"] = system.get('Architect')
+            self.headers["rcc-cmdr"] = self.colonisation.cmdr
 
             Debug.logger.info(f"RavenColonial upserting site:{payload}")
 
@@ -241,7 +241,7 @@ class RavenColonial:
             payload:dict = {'update': [], 'delete':[build.get('BuildID')]}
             Debug.logger.info(f"RavenColonial removing site {payload}")
             url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
-            self.headers["rcc-cmdr"] = system.get('Architect')
+            self.headers["rcc-cmdr"] = self.colonisation.cmdr
             response:Response = requests.put(url, json=payload, headers=self.headers, timeout=5)
             if response.status_code != 200:
                 Debug.logger.error(f"{url} {response} {response.content}")
@@ -294,7 +294,6 @@ class RavenColonial:
                 for p, m in self.site_params.items():
                     # Skip placeholder responses
                     if p == 'bodyNum' and site.get(p, -1) == -1: continue
-                    #if p == 'buildType' and '?' in site.get(p, '?') : continue
 
                     #strip, initcap and replace spaces in strings except for id and buildid and name
                     rcval = site.get(p, '').strip().title().replace('_', ' ') if isinstance(site.get(p, None), str) and p not in ['id', 'buildId', 'name'] else site.get(p, None)
@@ -304,10 +303,8 @@ class RavenColonial:
 
                 if deets != {}:
                     if build == {}:
-                        Debug.logger.info(f"Adding build {system} {deets}")
                         self.colonisation.add_build(system, deets, True)
                     else:
-                        Debug.logger.info(f"Updating build {system['Builds'].index(build)} {deets}")
                         self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
             return
 

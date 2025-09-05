@@ -58,6 +58,9 @@
 /* all tracked builds. [progress.py] */
 "All builds" = "All builds";
 
+/* Alphabetical order. [progress.py] */
+"Alphabetical order" = "Alphabetical order";
+
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API değişti, tekrar onaylamak için ayarları açın";
 
@@ -217,6 +220,9 @@
 /* Commodity. [progress.py] */
 "Commodity" = "Emtia";
 
+/* Commodity Category. [progress.py] */
+"Commodity Category" = "Commodity Category";
+
 /* Colonisation 'Building Type' [base_types.json] */
 "Comms Installation" = "İletişim Üssü";
 
@@ -303,6 +309,9 @@
 
 /* [ui.py] */
 "Default" = "Varsayılan";
+
+/* Commodity. [progress.py] */
+"Default order" = "Default order";
 
 /* Delete button. [colonisation.py] */
 "Delete" = "Sil";
@@ -580,9 +589,6 @@
 /* Overlay CMDR information report message. [ui.py] */
 "INARA INFORMATION AVAILABLE" = "INARA BİLGİSİ MEVCUT";
 
-/* Inara link. [activity.py] */
-"Inara ⤴" = "Inara ⤴";
-
 /* Label on CMDR window. [cmdrs.py] */
 "Inara: " = "Inara: ";
 
@@ -727,6 +733,12 @@
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Yük Miktarı";
 
+/* number of cargo loads delivered. [progress.py] */
+"Loads delivered so far" = "Loads delivered so far";
+
+/* [progress.py] */
+"Loads on carrier" = "Loads on carrier";
+
 /* base location surface/orbital. [colonisation.py] */
 "Location" = "Location";
 
@@ -823,7 +835,7 @@
 /* No colonisation data available. [progress.py] */
 "No colonisation data available" = "No colonisation data available";
 
-/* Discord carrier docking access. [fleetcarrier.py] */
+/* Default power name if none. [activity.py] */
 "None" = "Hiçbiri";
 
 /* Discord heading. [fleetcarrier.py] */
@@ -879,6 +891,18 @@
 
 /* Percentage. [progress.py] */
 "Percent" = "Yüzde durumu";
+
+/* [progress.py] */
+"Percent in cargo" = "Percent in cargo";
+
+/* [progress.py] */
+"Percent on carrier" = "Percent on carrier";
+
+/* [progress.py] */
+"Percentage delivered so far" = "Percentage delivered so far";
+
+/* Percentage of requirement. [progress.py] */
+"Percentage of total requirement" = "Percentage of total requirement";
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "{system_name} arayüze sabitle";
@@ -940,6 +964,12 @@
 /* Discord message footer, legacy text mode. [discord.py] */
 "Posted at: {date_time} | {plugin_name} v{version}" = "Gönderi zamanı: {date_time} | {plugin_name} v{version}";
 
+/* Discord post title. [activity.py] */
+"Powerplay Activity after Tick: {tick_time}" = "Powerplay Activity after Tick: {tick_time}";
+
+/* [default.py] */
+"Powerplay Merits" = "Powerplay Merits";
+
 /* Label for checkbox to pre-populate bases from EDSM. [colonisation.py] */
 "Pre-fill bases from EDSM" = "Pre-fill bases from EDSM";
 
@@ -964,7 +994,7 @@
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
 "Profit at Z | L | M | H demand" = "Talep üzerinde Z | L | M | H kâr";
 
-/* [progress.py] */
+/* progress tooltip. [progress.py] */
 "Progress" = "Progress";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */
@@ -1171,11 +1201,20 @@
 /* Main window tooltip. [ui.py] */
 "Show objectives / missions window" = "Hedefler / Görevler penceresini göster";
 
+/* Preferences checkbox label. [ui.py] */
+"Show Powerplay Merits Gained" = "Show Powerplay Merits Gained";
+
 /* tooltip for the previous build icon. [progress.py] */
 "Show previous build" = "Önceki yapılandırmayı göster";
 
 /* tooltip for the show bodies window. [colonisation.py] */
 "Show system bodies window" = "Sistem gezgenleri penceresini göster";
+
+/* tooltip for the Inara button. [activity.py] */
+"Show system in Inara" = "Show system in Inara";
+
+/* tooltip for the EDGIS button. [activity.py] */
+"Show system map in EDGIS" = "Show system map in EDGIS";
 
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Sistem notları penceresini göster";
@@ -1321,8 +1360,35 @@
 /* Discord heading. [fleetcarrier.py] */
 "To System" = "Gidilen Sistem";
 
+/* Amount delivered. [progress.py] */
+"Tonnes delivered so far" = "Tonnes delivered so far";
+
+/* amount in ship's Cargo. [progress.py] */
+"Tonnes in cargo" = "Tonnes in cargo";
+
+/* Amount in your Fleet Carrier. [progress.py] */
+"Tonnes on carrier" = "Tonnes on carrier";
+
+/* Amount still left to buy. [progress.py] */
+"Tonnes remaining excluding cargo and carrier" = "Tonnes remaining excluding cargo and carrier";
+
+/* [progress.py] */
+"Tonnes remaining excluding carrier" = "Tonnes remaining excluding carrier";
+
+/* Amount still needed. [progress.py] */
+"Tonnes remaining to deliver" = "Tonnes remaining to deliver";
+
+/* [progress.py] */
+"Tonnes remaining to excluding cargo" = "Tonnes remaining to excluding cargo";
+
 /* Total number of builds. [colonisation.py] */
 "Total" = "Toplam";
+
+/* number of cargo loads required. [progress.py] */
+"Total cargo loads required" = "Total cargo loads required";
+
+/* Required amount. [progress.py] */
+"Total tonnes required" = "Total tonnes required";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
 "Tourism" = "Turizm";

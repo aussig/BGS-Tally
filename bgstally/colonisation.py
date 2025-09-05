@@ -276,7 +276,7 @@ class Colonisation:
                 # If it's a construction site or colonisation ship wait til we dock.
                 # If it's a carrier or other non-standard location we ignore it.
                 if self.station == None or 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
-                    re.search('^$', self.station) or re.search('[A-Z0-9]{3}-[A-Z0-9]{3}$', self.station):
+                    re.search(r"^\$", self.station) or re.search("[A-Z0-9]{3}-[A-Z0-9]{3}$", self.station):
                     return
 
                 # If we don't have this system in our list, we don't care about it.
@@ -791,7 +791,7 @@ class Colonisation:
             'State': BuildState.COMPLETE,
             'Track': False,
             'MarketID': None,
-            'Name': re.sub(r"(\w+ Construction Site:|$EXT_PANEL_ColonisationShip;) ", "", build.get('Name', ''))
+            'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;) ", "", build.get('Name', ''))
         })
         return True
 

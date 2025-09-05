@@ -548,8 +548,6 @@ class RavenColonial:
 class EDSM:
     """
     Class to retrieve system, body and station data from EDSM.
-
-    It's called from the RavenColonial class so that we can switch between EDSM and Spansh.
     """
     _instance = None
 
@@ -753,8 +751,6 @@ class EDSM:
 class Spansh:
     """
     Class to retrieve system, body and station data from Spansh.
-
-    It's called from the RavenColonial class so that we can switch between EDSM and Spansh
     """
     _instance = None
 
@@ -784,7 +780,7 @@ class Spansh:
         """ Retrieve the system address from Spansh """
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
-            Debug.logger.info(f"unknown system {system_name}")
+            Debug.logger.info(f"Unknown system {system_name}")
             return
 
         system_address:int|None = system.get('SystemAddress', None)
@@ -809,13 +805,10 @@ class Spansh:
             Debug.logger.info("No system name given")
             return
 
-        if which == 'stations':
-            raise NameError('Querying stations')
-
         # Check when we last updated this system
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
-            Debug.logger.info(f"unknown system {system_name}")
+            Debug.logger.info(f"Unknown system {system_name}")
             return
 
         # In cache? Then use it.
@@ -842,9 +835,9 @@ class Spansh:
 
     @catch_exceptions
     def _callback(self, system:dict, which: str, success:bool, response:Response, request:BGSTallyRequest) -> None:
-        ''' Process the results of querying ESDM for the system details '''
+        ''' Process the results of querying Spansh for the system details '''
         if success == False:
-            Debug.logger.error(f"system load failed {response.content}")
+            Debug.logger.error(f"System query failed {response.content}")
             return
 
         data:dict = response.json()
@@ -861,7 +854,7 @@ class Spansh:
         data = data.get('record', {})
 
         if data.get('name', None) == None:
-            Debug.logger.warning(f"system didn't contain a name, ignoring {data}")
+            Debug.logger.warning(f"System didn't contain a name, ignoring {data}")
             return
 
         self.system_cache[data.get('id64', None)] = data

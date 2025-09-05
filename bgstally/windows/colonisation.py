@@ -403,7 +403,7 @@ class ColonisationWindow:
                         empty_vertical=0, empty_horizontal=0, header_font=FONT_SMALL, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
                         show_header=True)
         sheet.pack(fill=tk.BOTH, padx=0, pady=0)
-        sheet.enable_bindings('single_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
+        sheet.enable_bindings('single_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy')
         sheet.extra_bindings('cell_select', func=partial(self.base_clicked, sheet))
         data:list = [[0 for _ in range(len(self.bases.keys()))] for _ in range(len(self.colonisation.get_base_types()))]
         sheet.set_header_data([h['header'] for h in self.bases.values()])

@@ -273,6 +273,7 @@ class FleetCarrier:
         cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
         type:str = journal_entry.get('Type', "")
         count:int = journal_entry.get('Count', 0)
+        found:bool = False
 
         for c in cargo:
             # For some reason the event is lower case but the cargo is mixed case

@@ -2,7 +2,9 @@
 
 ## v5.1.0-xx - xxxx-xx-xx
 
+### Changes:
 
+* Change URL for journal documentation to Jixxed's latest schemas in Github, which is kept very up to date.
 
 
 ## v5.1.0-b2 - 2025-08-31

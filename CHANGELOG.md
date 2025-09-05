@@ -1,28 +1,6 @@
 # Change Log
 
-## v5.1.0-b2 - 2025-08-31
-
-### Bug Fixes:
-
-* Squadron carrier data was being incorrectly stored as a personal carrier. If you have a personal carrier, some information was being overwritten while if you don't have a personal carrier, you would have magically gained one.
-
-
-## v5.1.0-b1 - 2025-08-30
-
-### New Features:
-
-* Integrates click-through to the new EDGIS system map from the Elite Dangereuse project, on activity windows and colonisation window.
-
-### Changes:
-
-* Inara link now a logo button on activity windows - looks better alongside the new EDGIS button.
-
-### Bug Fixes:
-
-* East India Co API URL fixed
-
-
-## v5.1.0-a1 - 2025-08-20
+## v5.1.0 - 2025-09-05
 
 ### New Features:
 
@@ -34,6 +12,7 @@
 * Translation is now supported for commodity names.
 * Added shortcuts for East India Co and Spectrum in API config.
 * For all API shortcuts, added a link through to the website for the related organisation.
+* Integrated click-through to the new EDGIS system map from the Elite Dangereuse project, on activity windows and colonisation window.
 
 ### Changes:
 
@@ -42,6 +21,8 @@
 * [Internal] Standardised on `BGST_` prefix for all Windows Registry entries and deleted old Registry entries with `X` prefix. Should be zero impact on users, but now conforms to EDMC guidelines for Registry naming.
 * When posting your fleet carrier jump information to Discord, it now uses a Discord dynamic timestamp, showing the relative time to the jump (e.g. "In 6 minutes")
 * Colonisation: New tooltips on main window to help with column modes.
+* Inara link now a logo button on activity windows - looks better alongside the new EDGIS button.
+* Change URL for journal documentation to Jixxed's latest schemas in Github, which is kept very up to date.
 
 ### Bug Fixes:
 
@@ -50,6 +31,8 @@
 * Colonisation: Fix for missing body information.
 * Colonisation: Fix for column width resizing.
 * Colonisation: Various other minor bug fixes.
+* East India Co API URL fixed
+* Squadron carrier data was being incorrectly stored as a personal carrier. If you have a personal carrier, some information was being overwritten while if you don't have a personal carrier, you would have magically gained one.
 
 
 ## v5.0.0 - 2025-07-25

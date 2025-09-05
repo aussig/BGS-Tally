@@ -12,6 +12,8 @@ from typing import List, Optional
 import myNotebook as nb
 from ttkHyperlinkLabel import HyperlinkLabel
 
+from plugins.common_coreutils import (api_keys_label_common, PADX, PADY, BUTTONX, SEPY, show_pwd_var_common)
+
 from bgstally.activity import Activity
 from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity,
                                 UpdateUIPolicy)
@@ -71,6 +73,10 @@ class UI:
         self.report_system_address:str = None
         self.report_cmdr_data:dict = None
         self.warning:str = None
+
+        # RavenColonial API key management
+        self.apikey:nb.EntryMenu
+        self.apikey_label:tk.Label
 
         # Single-instance windows
         self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally)
@@ -330,6 +336,13 @@ class UI:
         nb.Label(frame, text=_("Colonisation"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
         nb.Label(frame, text=_("Maximum commodities")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.ColonisationMaxCommodities).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
+
+        api_keys_label_common(self, current_row, frame)
+        current_row += 1
+        show_pwd_var_common(frame, current_row, self)
+        current_row += 1
+        self.apikey_label.configure(text=_("RavenColonial API Key"))
+        self.apikey.configure(textvariable=self.bgstally.state.ColonisationRCAPIKey)
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("Advanced"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading

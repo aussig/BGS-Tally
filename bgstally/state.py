@@ -36,6 +36,7 @@ class State:
         self.DiscordBGSTWAutomatic:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordBGSTWAutomatic', default=CheckStates.STATE_OFF))
 
         self.ColonisationMaxCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationMaxCommodities', default="20"))
+        self.ColonisationRCAPIKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationRCAPIKey', default=""))
 
         self.FcSellingCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcSellingCommodities', default=CheckStates.STATE_ON))
         self.FcBuyingCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcBuyingCommodities', default=CheckStates.STATE_ON))
@@ -141,6 +142,8 @@ class State:
         config.set('BGST_FcBuyingMaterials', self.FcBuyingMaterials.get())
         config.set('BGST_FcCargo', self.FcCargo.get())
         config.set('BGST_FcLocker', self.FcLocker.get())
+        config.set('BGST_ColonisationMaxCommodities', self.ColonisationMaxCommodities.get())
+        config.set('BGST_ColonisationRCAPIKey', self.ColonisationRCAPIKey.get())
 
         # Persistent values
         config.set('BGST_CurrentSystemID', self.current_system_id if self.current_system_id != None else "")

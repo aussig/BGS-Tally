@@ -1,4 +1,5 @@
 import tkinter as tk
+import webbrowser
 from datetime import UTC, datetime
 from functools import partial
 from os import path
@@ -124,6 +125,7 @@ class WindowActivity:
         ttk.Checkbutton(frm_discordoptions, text=_("Include Secondary INF"), variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         ttk.Checkbutton(frm_discordoptions, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         ttk.Checkbutton(frm_discordoptions, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
+        ttk.Checkbutton(frm_discordoptions, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
 
         system_list = activity.get_ordered_systems()
 
@@ -156,7 +158,14 @@ class WindowActivity:
                     ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime))).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
                 else:
                     ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime)), foreground=COLOUR_WARNING).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
-            HyperlinkLabel(frm_header, text=_("Inara ⤴"), url=f"https://inara.cz/elite/starsystem/?search={system['System']}", underline=True).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1 # LANG: Inara link
+
+            inara_btn: ttk.Button = ttk.Button(frm_header, image=self.bgstally.ui.image_logo_inara, cursor="hand2", command=partial(self._inara_link_clicked, system['System']))
+            inara_btn.grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+            ToolTip(inara_btn, text=_("Show system in Inara")) # LANG: tooltip for the Inara button
+
+            edgis_btn: ttk.Button = ttk.Button(frm_header, image=self.bgstally.ui.image_logo_edgis, cursor="hand2", command=partial(self._edgis_link_clicked, system['System']))
+            edgis_btn.grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+            ToolTip(edgis_btn, text=_("Show system map in EDGIS")) # LANG: tooltip for the EDGIS button
 
             if self.activity == self.bgstally.activity_manager.get_current_activity():
                 # Current tick activity
@@ -430,9 +439,12 @@ class WindowActivity:
         """
         Update the contents of the Discord text field
         """
+        text: str = self.bgstally.formatter_manager.get_current_formatter().get_text(activity, self.bgstally.state.DiscordActivity.get(), lang=self.bgstally.state.discord_lang)
+        text += self.bgstally.formatter_manager.get_current_formatter().get_text(activity, DiscordActivity.POWERPLAY, lang=self.bgstally.state.discord_lang)
+
         self.txt_discord.configure(state=tk.NORMAL)
         self.txt_discord.delete('1.0', 'end-1c')
-        self.txt_discord.write(self.bgstally.formatter_manager.get_current_formatter().get_text(activity, self.bgstally.state.DiscordActivity.get(), lang=self.bgstally.state.discord_lang))
+        self.txt_discord.write(text)
         self.txt_discord.configure(state=tk.DISABLED)
 
 
@@ -559,6 +571,24 @@ class WindowActivity:
             EnableAllCheckbutton.state(['!alternate', '!selected'])
 
         self._update_tab_image(notebook, tab_index, EnableAllCheckbutton, system)
+
+
+    def _inara_link_clicked(self, sysname: str) -> None:
+        """Open the system in Inara
+
+        Args:
+            sysname (str): System name
+        """
+        webbrowser.open(f"https://inara.cz/elite/starsystem/?search={sysname}")
+
+
+    def _edgis_link_clicked(self, sysname: str) -> None:
+        """Open the system in EDGIS
+
+        Args:
+            sysname (str): System name
+        """
+        webbrowser.open(f"https://elitedangereuse.fr/outils/sysmap.php?system={sysname}")
 
 
     def _faction_name_clicked(self, notebook: ScrollableNotebook, tab_index: int, EnableCheckbutton, EnableAllCheckbutton, FactionEnableCheckbuttons, activity: Activity, system, faction, faction_index, *args):

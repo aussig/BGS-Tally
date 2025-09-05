@@ -15,7 +15,7 @@ from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import _, string_to_alphanumeric
 from bgstally.widgets import CollapsibleFrame, EntryPlus, HyperlinkManager
 
-URL_JOURNAL_DOCS = "https://elite-journal.readthedocs.io/en/latest/"
+URL_JOURNAL_DOCS = "https://jixxed.github.io/ed-journal-schemas/"
 
 
 class WindowAPI:

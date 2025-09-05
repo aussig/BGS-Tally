@@ -4,6 +4,14 @@
 
 ### New Features:
 
+* Now tracks and reports your Powerplay merits earned each daily tick.
+* New Discord channel for Powerplay reporting.
+
+
+## v5.1.0 - 2025-09-05
+
+### New Features:
+
 * Colonisation: The remaining materials to be hauled to reach your current target are now displayed on a new panel in the in-game overlay.
 * Additional overlay configuration: If you are having trouble with positioning of overlay panels in-game, most commonly caused by having global scaling in Windows set to something other than 100%, you can now override various global overlay positioning settings (width, height, line height, character width etc.) which should allow you to lay everything out more precisely.
 * Automatic posting of BGS and TW activity to Discord. There is now a checkbox in the settings to switch this on (defaults to `Off`). Discord applies strict limits to the number of posts we can send (which is across all users posting to any particular Discord server), so automatic posting is limited to a maximum of one post every 5 minutes.
@@ -12,6 +20,7 @@
 * Translation is now supported for commodity names.
 * Added shortcuts for East India Co and Spectrum in API config.
 * For all API shortcuts, added a link through to the website for the related organisation.
+* Integrated click-through to the new EDGIS system map from the Elite Dangereuse project, on activity windows and colonisation window.
 
 ### Changes:
 
@@ -19,13 +28,19 @@
 * Colonisation: Notes window now saves on close
 * [Internal] Standardised on `BGST_` prefix for all Windows Registry entries and deleted old Registry entries with `X` prefix. Should be zero impact on users, but now conforms to EDMC guidelines for Registry naming.
 * When posting your fleet carrier jump information to Discord, it now uses a Discord dynamic timestamp, showing the relative time to the jump (e.g. "In 6 minutes")
+* Colonisation: New tooltips on main window to help with column modes.
+* Inara link now a logo button on activity windows - looks better alongside the new EDGIS button.
+* Change URL for journal documentation to Jixxed's latest schemas in Github, which is kept very up to date.
 
 ### Bug Fixes:
 
 * Colonisation: All commodities list was sometimes not displaying correctly
 * Colonisation: Bioreducing lichen Inara link was incorrectly linking to Animal meat
 * Colonisation: Fix for missing body information.
+* Colonisation: Fix for column width resizing.
 * Colonisation: Various other minor bug fixes.
+* East India Co API URL fixed
+* Squadron carrier data was being incorrectly stored as a personal carrier. If you have a personal carrier, some information was being overwritten while if you don't have a personal carrier, you would have magically gained one.
 
 
 ## v5.0.0 - 2025-07-25

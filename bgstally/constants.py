@@ -42,7 +42,14 @@ class DiscordChannel(str, Enum):
     CMDR_INFORMATION = 'CMDR-info'
     FLEETCARRIER_MATERIALS = 'FC-mats'
     FLEETCARRIER_OPERATIONS = 'FC-ops'
+    POWERPLAY = 'PP'
     THARGOIDWAR = 'TW'
+
+
+KEY_CARRIER_TYPE: str = "CarrierType"
+class FleetCarrierType(str, Enum):
+    PERSONAL = 'FleetCarrier'
+    SQUADRON = 'SquadronCarrier'
 
 
 class FleetCarrierItemType(Enum):
@@ -62,7 +69,8 @@ class DiscordPostStyle(str, Enum):
 class DiscordActivity(str, Enum):
     BGS = 'BGS'
     THARGOIDWAR = 'TW'
-    BOTH = 'Both'
+    BOTH = 'Both'      # Both BGS and Thargoid War. Others below are always posted separately.
+    POWERPLAY = 'PP'
 
 
 class DiscordFleetCarrier(str, Enum):

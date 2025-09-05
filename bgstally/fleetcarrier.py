@@ -2,7 +2,7 @@ import json
 from datetime import UTC, datetime
 from os import path, remove
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierItemType
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA, KEY_CARRIER_TYPE, DiscordChannel, FleetCarrierItemType, FleetCarrierType
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
 from bgstally.utils import _, __, get_by_path
@@ -10,14 +10,13 @@ from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
 
-
 class FleetCarrier:
     def __init__(self, bgstally):
         self.bgstally = bgstally
-        self.carrier_id:int = None
+        self.carrier_id:int|None = None
         self.data:dict = {}
-        self.name:str = None
-        self.callsign:str = None
+        self.name:str|None = None
+        self.callsign:str|None = None
         self.onfoot_mats_selling:list = []
         self.onfoot_mats_buying:list = []
         self.commodities_selling:list = []
@@ -36,6 +35,19 @@ class FleetCarrier:
             try:
                 with open(file) as json_file:
                     self._from_dict(json.load(json_file))
+                    if self.data is None or self.data.get('name') is None:
+                        # There is no CAPI data, so clear our name and callsign as we have no personal carrier. This is to clear up
+                        # the problem where a squadron carrier was accidentally stored as a personal one, when the user doesn't
+                        # have a personal carrier.
+                        self.carrier_id = None
+                        self.name = None
+                        self.callsign = None
+                    elif self.callsign != get_by_path(self.data, ['name', 'callsign']):
+                        # The CAPI callsign doesn't match our stored callsign, so re-parse the CAPI data. This is to clear up
+                        # the problem where a squadron carrier was accidentally stored as a personal one, overwriting the user's
+                        # actual personal carrier data.
+                        self.update(self.data)
+
             except Exception as e:
                 Debug.logger.info(f"Unable to load {file}")
 
@@ -60,7 +72,7 @@ class FleetCarrier:
         """
         Store the latest data
         """
-        # Data directly from CAPI response. Structure documented here:
+        # Data directly from CAPI response. This is only received for personal carriers. Structure documented here:
         # https://github.com/EDCD/FDevIDs/blob/master/Frontier%20API/FrontierDevelopments-CAPI-endpoints.md#fleetcarrier
 
         # Store the whole data structure
@@ -118,7 +130,8 @@ class FleetCarrier:
         """
         The user entered the carrier management screen
         """
-        if self.name is None:
+        if journal_entry.get(KEY_CARRIER_TYPE) == FleetCarrierType.PERSONAL:
+            # Note we always re-populate here, in case the user has bought a new carrier. We should get a subsequent CAPI update to populate the rest.
             self.name = journal_entry.get('Name', "")
             self.callsign = journal_entry.get('Callsign', "")
             self.carrier_id = journal_entry.get('CarrierID', "")
@@ -130,6 +143,8 @@ class FleetCarrier:
         The user scheduled a carrier jump
         """
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
+
+        if journal_entry.get("CarrierID") != self.carrier_id: return
 
         title:str = __("Jump Scheduled for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=self.name) # LANG: Discord post title
         description:str = __("A carrier jump has been scheduled", lang=self.bgstally.state.discord_lang) # LANG: Discord text
@@ -148,10 +163,12 @@ class FleetCarrier:
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
-    def jump_cancelled(self):
+    def jump_cancelled(self, journal_entry: dict[str, str]):
         """
         The user cancelled their carrier jump
         """
+        if journal_entry.get("CarrierID") != self.carrier_id: return
+
         title:str = __("Jump Cancelled for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=self.name) # LANG: Discord post title
         description:str = __("The scheduled carrier jump was cancelled", lang=self.bgstally.state.discord_lang) # LANG: Discord text
 
@@ -213,13 +230,14 @@ class FleetCarrier:
         Args:
             journal_entry (dict): The journal entry data
         """
-
         # { "timestamp":"2024-02-17T16:33:10Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"imperialslaves", "Commodity_Localised":"Imperial Slaves", "SaleOrder":10, "Price":1749300 }
         # { "timestamp":"2024-02-17T16:33:51Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "PurchaseOrder":5, "Price":4516 }
         # { "timestamp":"2024-02-17T16:35:57Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "CancelTrade":true }
 
+        if journal_entry.get("CarrierID") != self.carrier_id: return
+
         item_name:str = journal_entry.get('Commodity', "").lower()
-        self.carrier_id = journal_entry.get('CarrierID')
+
         if item_name in self.bgstally.ui.commodities:
             # The order is for a commodity. Note we pass the item_name as the display name because Commodity_Localised is not always present for commodities,
             # and anyway we don't get localised names in CAPI data so generally they are not present. So, we look display name up later for commodities.
@@ -250,12 +268,12 @@ class FleetCarrier:
         '''
         We bought or sold to/from our carrier
         '''
-        if journal_entry.get('MarketID') != self.carrier_id: # Not buying from us.
-            return
+        if journal_entry.get('MarketID') != self.carrier_id: return
 
         cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
         type:str = journal_entry.get('Type', "")
         count:int = journal_entry.get('Count', 0)
+        found:bool = False
 
         for c in cargo:
             # For some reason the event is lower case but the cargo is mixed case

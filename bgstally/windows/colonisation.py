@@ -433,8 +433,6 @@ class ColonisationWindow:
                             sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
-        sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
-
 
     @catch_exceptions
     def base_clicked(self, sheet:Sheet, event = None) -> None:

@@ -138,6 +138,16 @@ class ColonisationWindow:
             'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc' #'#5a3286',
         }
 
+        self.links:dict = {'System': {'RavenColonial': 'https://ravencolonial.com/#sys={StarSystem}',
+                                      'Inara': 'https://inara.cz/elite/starsystem/search/?search={StarSystem}',
+                                      'Spansh': 'https://www.spansh.co.uk/system/{SystemAddress}',
+                                      'EDGIS': 'https://elitedangereuse.fr/outils/sysmap.php?system={StarSystem}',
+                                      'EDSM': 'https://www.edsm.net/en/system?systemName={StarSystem}'},
+                           'Bodies': {'Inara': 'https://inara.cz/elite/starsystem-bodies/search/?search={StarSystem}',
+                                      'Spansh': 'https://www.spansh.co.uk/system/{SystemAddress}#system-bodies',
+                                      'EDGIS': 'https://elitedangereuse.fr/outils/sysmap.php?system={StarSystem}'},
+                           'Layout': {'RavenColonial': 'https://ravencolonial.com/#vis={Layout}'}
+                            }
         # UI components
         self.window:tk.Toplevel = None # type: ignore
         self.tabbar:ScrollableNotebook = None # type: ignore
@@ -252,7 +262,8 @@ class ColonisationWindow:
         sysname:str = systems[sysnum].get('StarSystem', '')
         if systems[sysnum].get('RCSync', False) == True:
             name_label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground="#0078d4", cursor="hand2")
-            name_label.bind("<Button-1>", partial(self._system_click, sysname, 'RavenColonial'))
+            #name_label.bind("<Button-1>", partial(self._system_click, sysname, 'RavenColonial'))
+            name_label.bind("<Button-1>", partial(self._click, systems[sysnum], 'system', 'RavenColonial'))
             ToolTip(name_label, text=_("Link to RavenColonial")) # LANG: tooltip for ravencolonial link
         name_label.pack(side=tk.LEFT, padx=10, pady=5)
         self.plan_titles[sysnum]['Name'] = name_label
@@ -261,8 +272,9 @@ class ColonisationWindow:
             sys_label:ttk.Label = ttk.Label(title_frame, text=sysname, cursor="hand2")
             sys_label.pack(side=tk.LEFT, padx=5, pady=5)
             self._set_weight(sys_label)
-            sys_label.bind("<Button-1>", partial(self._system_click, sysname, ''))
-            sys_label.bind("<Button-3>", partial(self._context_menu, sysname))
+            #sys_label.bind("<Button-1>", partial(self._system_click, sysname, ''))
+            sys_label.bind("<Button-1>", partial(self._click, systems[sysnum], 'system', ''))
+            sys_label.bind("<Button-3>", partial(self._context_menu, systems[sysnum], 'System'))
             ToolTip(sys_label, text=_("Left click view system, right click menu")) # LANG: tooltip for the copy to clipboard icon
             self._set_weight(sys_label)
             self.plan_titles[sysnum]['System'] = sys_label
@@ -282,6 +294,7 @@ class ColonisationWindow:
             ToolTip(sys_bodies, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
             self._set_weight(sys_bodies)
             sys_bodies.bind("<Button-1>", partial(self.bodies_popup, tabnum))
+            sys_bodies.bind("<Button-3>", partial(self._context_menu, systems[sysnum], 'Bodies'))
 
         allattrs:dict = {'Population': _('Population'), # HINT: Population heading
                          'Economy' : _('Economy'), # HINT: Economy heading
@@ -336,17 +349,19 @@ class ColonisationWindow:
 
 
     @catch_exceptions
-    def _context_menu(self, sysname:str, event: tk.Event) -> None:
+    def _context_menu(self, system:dict, type:str, event: tk.Event) -> None:
         """ Display the context menu when right-clicked."""
 
         menu = tk.Menu(tearoff=tk.FALSE)
         # LANG: Label for 'Copy' as in 'Copy and Paste'
-        menu.add_command(label=_('Copy'), command=partial(self._ctc, sysname))  # As in Copy and Paste
-        menu.add_separator()
-        for which in ['Inara', 'Spansh', 'EDSM', 'EDGIS']:
+        if type == 'System':
+            menu.add_command(label=_('Copy'), command=partial(self._ctc, system['StarSystem']))  # As in Copy and Paste
+            menu.add_separator()
+
+        for which in self.links[type].keys():
             menu.add_command(
                 label=_(f"Open in {which}"),  # LANG: Open Element In Selected Provider
-                command=partial(self._system_click, sysname, which)
+                command=partial(self._click, system, type, which)
             )
         menu.post(event.x_root, event.y_root)
 
@@ -356,6 +371,20 @@ class ColonisationWindow:
         ''' Copy to clipboard '''
         self.window.clipboard_clear()
         self.window.clipboard_append(text)
+
+
+    @catch_exceptions
+    def _click(self, data:dict, type:str = '', dest:str= '', event = None) -> None:
+        if dest == '' or dest == None:
+            dest = config.get_str('system_provider')
+        if type not in self.links.keys():
+            Debug.logger.debug(f"Unknown link type: {type}")
+            return
+        if dest not in self.links[type].keys():
+            Debug.logger.debug(f"Unknown destination: {dest}")
+            return
+        params:dict = {k: quote(v) if v != 'Layout' else v.strip().lower().replace(" ","_") for k, v in data.items()}
+        webbrowser.open(self.links[type][dest].format(**data))
 
 
     @catch_exceptions

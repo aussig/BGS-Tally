@@ -78,7 +78,7 @@ class ProgressWindow:
              'Commodity': {
                  ProgressUnits.TONNES: _('Default order'), # LANG: Commodity
                  ProgressUnits.REMAINING: _('Commodity Category'), # LANG: Commodity Category
-                 ProgressUnits.PERCENT: _('Alphanbetical order'), # LANG: Alphabetical order
+                 ProgressUnits.PERCENT: _('Alphabetical order'), # LANG: Alphabetical order
                  },
              'Required': {
                  ProgressUnits.TONNES: _('Total tonnes required'), # LANG: Required amount

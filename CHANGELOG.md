@@ -1,8 +1,11 @@
 # Change Log
 
-## v5.x.x - xxxx-xx-xx
+## vx.x.x - xxxx-xx-xx
 
+### New Features:
 
+* Now tracks and reports your Powerplay merits earned each daily tick.
+* New Discord channel for Powerplay reporting.
 
 
 ## v5.1.0 - 2025-09-05

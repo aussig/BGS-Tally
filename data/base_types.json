@@ -80,7 +80,7 @@
     "Category": "Starport",
     "Location": "Orbital",
     "Building Type": "Asteroid Base",
-    "Layouts": "Asteroid (adjusts to ring type)",
+    "Layouts": "Asteroid",
     "Prerequisites": "",
     "Boosted By":  "Major or pristine resources, volcanism",
     "Decreased By": "Low or depleted resources",

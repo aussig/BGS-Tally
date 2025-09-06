@@ -48,6 +48,15 @@ class Config(object):
         return self.config.get('apikeys', 'sentry')
 
 
+    def apikey_rc(self) -> str | None:
+        """Get the RavenColonial API key from config
+
+        Returns:
+            str | None: The RavenColonial API key
+        """
+        return self.config.get('apikeys', 'ravencolonial')
+
+
     def api(self, name: str) -> dict | None:
         """Fetch all information about a given API
 

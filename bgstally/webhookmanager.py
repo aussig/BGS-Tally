@@ -56,7 +56,7 @@ class WebhookManager:
             return
 
         for webhook in data:
-            if len(webhook) == 8:
+            if len(webhook) == 9:
                 self.data['webhooks'].append({
                     'uuid': webhook[0] if webhook[0] is not None and webhook[0] != "" else token_hex(9),
                     'name': webhook[1],
@@ -65,7 +65,8 @@ class WebhookManager:
                     DiscordChannel.THARGOIDWAR: webhook[4],
                     DiscordChannel.FLEETCARRIER_MATERIALS: webhook[5],
                     DiscordChannel.FLEETCARRIER_OPERATIONS: webhook[6],
-                    DiscordChannel.CMDR_INFORMATION: webhook[7]
+                    DiscordChannel.CMDR_INFORMATION: webhook[7],
+                    DiscordChannel.POWERPLAY: webhook[8]
                 })
 
         self.save()
@@ -113,7 +114,8 @@ class WebhookManager:
                     webhook.get(DiscordChannel.THARGOIDWAR, False),
                     webhook.get(DiscordChannel.FLEETCARRIER_MATERIALS, False),
                     webhook.get(DiscordChannel.FLEETCARRIER_OPERATIONS, False),
-                    webhook.get(DiscordChannel.CMDR_INFORMATION, False)
+                    webhook.get(DiscordChannel.CMDR_INFORMATION, False),
+                    webhook.get(DiscordChannel.POWERPLAY, False)
                 ])
 
         return result

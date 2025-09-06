@@ -150,9 +150,11 @@ class Activity:
         self.cmdr: str = cmdr  # Not saved / loaded (yet) because it's not implemented properly
 
         if sample:
-            self.systems: dict = {"Sample System ID": self.get_sample_system_data()}
+            self.systems: dict = {'Sample System ID': self.get_sample_system_data()}
+            self.powerplay: dict = {'power': "Sample Power Name", 'merits': 12345}
         else:
             self.systems: dict = {}
+            self.powerplay: dict = {}
 
         # Non-stored instance data. Remember to modify __deepcopy__() if these are changed or new data added.
         self.megaship_pat:re.Pattern = re.compile("^[a-z]{3}-[0-9]{3} ")  # e.g. kar-314 aquarius-class tanker
@@ -307,6 +309,8 @@ class Activity:
                 # Delete the whole system
                 del self.systems[system_address]
 
+        self.powerplay = {}
+
 
     def post_to_discord(self):
         """ Post the activity to Discord"""
@@ -319,6 +323,10 @@ class Activity:
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
                 discord_text = formatter.get_text(self, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
                 self.bgstally.discord.post_plaintext(discord_text, self.discord_webhook_data, DiscordChannel.THARGOIDWAR, self._discord_post_complete)
+            if self.bgstally.state.showmerits and self.get_merits() > 0:
+                discord_text = formatter.get_text(self, DiscordActivity.POWERPLAY, lang=self.bgstally.state.discord_lang)
+                self.bgstally.discord.post_plaintext(discord_text, self.discord_webhook_data, DiscordChannel.POWERPLAY, self._discord_post_complete)
+
         else:
             description = "" if self.discord_notes is None else self.discord_notes
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.THARGOIDWAR:
@@ -327,6 +335,9 @@ class Activity:
             if self.bgstally.state.DiscordActivity.get() != DiscordActivity.BGS:
                 discord_fields = formatter.get_fields(self, DiscordActivity.THARGOIDWAR, lang=self.bgstally.state.discord_lang)
                 self.bgstally.discord.post_embed(__("TW Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=self.get_title(True)), description, discord_fields, self.discord_webhook_data, DiscordChannel.THARGOIDWAR, self._discord_post_complete) # LANG: Discord post title
+            if self.bgstally.state.showmerits and self.get_merits() > 0:
+                discord_fields = formatter.get_fields(self, DiscordActivity.POWERPLAY, lang=self.bgstally.state.discord_lang)
+                self.bgstally.discord.post_embed(__("Powerplay Activity after Tick: {tick_time}", lang=self.bgstally.state.discord_lang).format(tick_time=self.get_title(True)), description, discord_fields, self.discord_webhook_data, DiscordChannel.POWERPLAY, self._discord_post_complete) # LANG: Discord post title
 
         self.dirty = True # Because discord post ID has been changed
         self.autopost = False # Because we have just posted to Discord, so no longer need to autopost until more activity is done
@@ -559,6 +570,41 @@ class Activity:
 
         self.recalculate_zero_activity()
         mission_log.delete_mission_by_id(journal_entry['MissionID'])
+
+
+    def powerplay_merits(self, journal_entry: dict):
+        """
+        Handle merits gained from journal entry
+        """
+        if self.powerplay.get('power') != journal_entry.get('Power'):
+            # Power has changed, reset merits
+            self.powerplay['power'] = journal_entry.get('Power')
+            self.powerplay['merits'] = journal_entry.get('MeritsGained', 0)
+        else:
+            # Same power, add merits
+            self.powerplay['merits'] = self.get_merits() + journal_entry.get('MeritsGained', 0)
+
+        current_system: dict = self.systems.get(self.bgstally.state.current_system_id)
+        self.activity_updated(current_system['SystemAddress'])
+        self.dirty = True
+
+
+    def get_merits(self) -> int:
+        """Get the current merits
+
+        Returns:
+            int: Number of merits earned in this tick
+        """
+        return int(self.powerplay.get('merits', 0))
+
+
+    def get_power(self) -> str:
+        """Get the current power
+
+        Returns:
+            str: The current power, or "None" (translated) if not pledged
+        """
+        return self.powerplay.get('power', _("None")) # LANG: Default power name if none
 
 
     def mission_failed(self, journal_entry: dict, mission_log: MissionLog):
@@ -1536,7 +1582,8 @@ class Activity:
             'tickforced': self.tick_forced,
             'discordwebhookdata': self.discord_webhook_data,
             'discordnotes': self.discord_notes,
-            'systems': self.systems}
+            'systems': self.systems,
+            'powerplay': self.powerplay}
 
 
     def _from_dict(self, dict: Dict):
@@ -1550,7 +1597,7 @@ class Activity:
         self.discord_webhook_data = dict.get('discordwebhookdata', {})
         self.discord_notes = dict.get('discordnotes', "")
         self.systems = dict.get('systems', {})
-
+        self.powerplay = dict.get('powerplay', {})
 
 
     # Comparator functions - we use the tick_time for sorting
@@ -1597,6 +1644,7 @@ class Activity:
         setattr(result, 'tick_forced', self.tick_forced)
         setattr(result, 'discord_notes', self.discord_notes)
         setattr(result, 'megaship_pat', self.megaship_pat)
+        setattr(result, 'powerplay', self.powerplay)
 
         # Deep copied items
         setattr(result, 'systems', deepcopy(self.systems, memo))

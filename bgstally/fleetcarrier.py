@@ -274,6 +274,7 @@ class FleetCarrier:
         type:str = journal_entry.get('Type', "")
         count:int = journal_entry.get('Count', 0)
         found:bool = False
+
         for c in cargo:
             # For some reason the event is lower case but the cargo is mixed case
             if c[name_key].lower() == type:

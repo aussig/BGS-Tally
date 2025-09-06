@@ -143,7 +143,7 @@ class Colonisation:
         if entry.get("StationName", None): self.station = entry.get('StationName')
         if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
 
-        #Debug.logger.debug(f"Event: {entry.get('event')} -- ID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
+        Debug.logger.debug(f"Event: {entry.get('event')} -- ID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
 
         match entry.get('event'):
             case 'StartUp': # Synthetic event.
@@ -220,13 +220,14 @@ class Colonisation:
                 if '$EXT_PANEL_ColonisationShip' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                     Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
                     if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
-                    build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station})
+                    build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
                     build_state = BuildState.PROGRESS
                 # Complete station so find it and add/update as appropriate.
                 elif system != None and self.station != 'FleetCarrier' and \
                     re.search(r"^...\-...$", f"{self.station}") == None and \
                     re.search(r"^\$", f"{self.station}") == None:
-                    build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station})
+                    Debug.logger.debug(f"Docked at site. Finding/creating system and build {self.market_id} {self.station}")
+                    build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
                     build_state = BuildState.COMPLETE
 
                 # If this isn't a colonisation ship or a system we're building, or it's a carrier, scenario, etc. then ignore it.
@@ -237,7 +238,7 @@ class Colonisation:
                 if system.get('Name', None) != None: system['Name'] = self.current_system
 
                 # Update the build details
-                Debug.logger.debug(f"Updating build {self.station} in system {self.current_system}")
+                Debug.logger.debug(f"Docked updating build {self.station} in system {self.current_system}")
                 data:dict = {}
                 if self.station != None and build.get('Name', None) != self.station: data['Name'] = self.station
                 if build['State'] != build_state: data['State'] = build_state
@@ -288,7 +289,7 @@ class Colonisation:
                 build:dict = self.find_or_create_build(system, {'MarketID': self.market_id,
                                                                 'Name': self.station,
                                                                 'Body': self.body})
-                Debug.logger.debug(f"Build: {build}")
+                Debug.logger.debug(f"Supercruise exit, build: {build}")
                 # We update them here because it's not possible to dock at installations once they're complete so
                 # you may miss their completion.
 
@@ -586,7 +587,7 @@ class Colonisation:
             return builds[0]
 
         # An existing/known build?
-        for m in ['MarketID', 'BuildID', 'Name']:
+        for m in ['BuildID', 'Name', 'MarketID']:
             if data.get(m, None) != None:
                 for build in builds:
                     if build.get(m, None) == data.get(m, None):

@@ -263,7 +263,7 @@ class ColonisationWindow:
         sysname:str = systems[sysnum].get('StarSystem', '')
         if systems[sysnum].get('RCSync', False) == True:
             name_label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground="#0078d4", cursor="hand2")
-            name_label.bind("<Button-1>", partial(self._link, systems[sysnum], 'system', 'RavenColonial'))
+            name_label.bind("<Button-1>", partial(self._link, systems[sysnum], 'System', 'RavenColonial'))
             ToolTip(name_label, text=_("Link to RavenColonial")) # LANG: tooltip for ravencolonial link
         name_label.pack(side=tk.LEFT, padx=10, pady=5)
         self.plan_titles[sysnum]['Name'] = name_label
@@ -374,9 +374,7 @@ class ColonisationWindow:
         if dest not in self.links[type].keys():
             Debug.logger.debug(f"Unknown destination: {dest}")
             return
-        #params:dict = {k: quote(v) if isinstance(v, str) and v != 'Layout' else v.strip().lower().replace(" ","_") if isinstance(v, str) else v for k, v in data.items()}
         params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in data.items()}
-        Debug.logger.debug(f"parms: {params}")
         webbrowser.open(self.links[type][dest].format(**params))
 
 

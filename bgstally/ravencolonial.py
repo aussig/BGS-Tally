@@ -267,9 +267,7 @@ class RavenColonial:
                 continue
 
             # A site
-            build:dict = self.colonisation.find_build(system, {'MarketID': site.get('id', -1)[1:],
-                                                                'Name': site.get('name', -1),
-                                                                'BuildID' : site.get('id', -1)})
+            build:dict = self.colonisation.find_build(system, {'BuildID' : site.get('id', -1), 'Name': site.get('name', -1)})
             # Avoid creating leftover construction sites
             if build == None and 'Construction Site' in site.get('name', ''):
                 if self.colonisation.find_build(system, {'Name': re.sub(r".* Construction Site: ", "", site.get('name'))}) != None:
@@ -292,6 +290,15 @@ class RavenColonial:
                     self.colonisation.add_build(system, deets, True)
                 else:
                     self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
+
+        for build in system['Builds']:
+            missing:bool = True
+            for site in data.get('sites', []):
+                if build.get('BuildID', -1) == site.get('id', -1) or build.get('Name') == site.get('name', -1):
+                    missing = False
+                    break
+            if missing == True:
+                Debug.logger.debug(f"Missing site, deleting build")
         return
 
 

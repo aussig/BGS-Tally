@@ -138,17 +138,18 @@ class ColonisationWindow:
             'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc' #'#5a3286',
         }
 
-        self.links:dict = {'System': {'RavenColonial': 'https://ravencolonial.com/#sys={StarSystem}',
-                                      'Inara': 'https://inara.cz/elite/starsystem/search/?search={StarSystem}',
+        # Links to systems, bodies etc.
+        self.links:dict = {'System': {'Inara': 'https://inara.cz/elite/starsystem/search/?search={StarSystem}',
                                       'Spansh': 'https://www.spansh.co.uk/system/{SystemAddress}',
                                       'EDGIS': 'https://elitedangereuse.fr/outils/sysmap.php?system={StarSystem}',
-                                      'EDSM': 'https://www.edsm.net/en/system?systemName={StarSystem}'},
+                                      'EDSM': 'https://www.edsm.net/en/system?systemName={StarSystem}',
+                                      'RavenColonial': 'https://ravencolonial.com/#sys={StarSystem}'},
                            'Bodies': {'Inara': 'https://inara.cz/elite/starsystem-bodies/search/?search={StarSystem}',
                                       'Spansh': 'https://www.spansh.co.uk/system/{SystemAddress}#system-bodies',
                                       'EDGIS': 'https://elitedangereuse.fr/outils/sysmap.php?system={StarSystem}'},
-                           'Layout': {'RavenColonial': 'https://ravencolonial.com/#vis={Layout}'}
+                           'Base':   {'RavenColonial': 'https://ravencolonial.com/#vis={Layout}'}
                             }
-        # UI components
+        # UI components'
         self.window:tk.Toplevel = None # type: ignore
         self.tabbar:ScrollableNotebook = None # type: ignore
         self.add_dialog:tk.Frame|None = None
@@ -262,8 +263,7 @@ class ColonisationWindow:
         sysname:str = systems[sysnum].get('StarSystem', '')
         if systems[sysnum].get('RCSync', False) == True:
             name_label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground="#0078d4", cursor="hand2")
-            #name_label.bind("<Button-1>", partial(self._system_click, sysname, 'RavenColonial'))
-            name_label.bind("<Button-1>", partial(self._click, systems[sysnum], 'system', 'RavenColonial'))
+            name_label.bind("<Button-1>", partial(self._link, systems[sysnum], 'system', 'RavenColonial'))
             ToolTip(name_label, text=_("Link to RavenColonial")) # LANG: tooltip for ravencolonial link
         name_label.pack(side=tk.LEFT, padx=10, pady=5)
         self.plan_titles[sysnum]['Name'] = name_label
@@ -272,20 +272,11 @@ class ColonisationWindow:
             sys_label:ttk.Label = ttk.Label(title_frame, text=sysname, cursor="hand2")
             sys_label.pack(side=tk.LEFT, padx=5, pady=5)
             self._set_weight(sys_label)
-            #sys_label.bind("<Button-1>", partial(self._system_click, sysname, ''))
-            sys_label.bind("<Button-1>", partial(self._click, systems[sysnum], 'system', ''))
+            sys_label.bind("<Button-1>", partial(self._link, systems[sysnum], 'system', ''))
             sys_label.bind("<Button-3>", partial(self._context_menu, systems[sysnum], 'System'))
             ToolTip(sys_label, text=_("Left click view system, right click menu")) # LANG: tooltip for the copy to clipboard icon
             self._set_weight(sys_label)
             self.plan_titles[sysnum]['System'] = sys_label
-
-            #inara_btn: ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_logo_inara, cursor="hand2", command=partial(self.system_click, sysname, 'Inara'))
-            #inara_btn.pack(side=tk.LEFT, padx=5, pady=5)
-            #ToolTip(inara_btn, text=_("Show system in Inara")) # LANG: tooltip for the Inara button
-
-            #edgis_btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_logo_edgis, cursor="hand2", command=partial(self.system_click, sysname, 'edgis'))
-            #edgis_btn.pack(side=tk.LEFT, padx=5, pady=5)
-            #ToolTip(edgis_btn, text=_("Show system map in EDGIS")) # LANG: tooltip for the EDGIS button
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
             bodies:str = str(len(systems[sysnum]['Bodies'])) + " " + _("Bodies") # LANG: bodies in the system
@@ -361,7 +352,7 @@ class ColonisationWindow:
         for which in self.links[type].keys():
             menu.add_command(
                 label=_(f"Open in {which}"),  # LANG: Open Element In Selected Provider
-                command=partial(self._click, system, type, which)
+                command=partial(self._link, system, type, which)
             )
         menu.post(event.x_root, event.y_root)
 
@@ -374,7 +365,7 @@ class ColonisationWindow:
 
 
     @catch_exceptions
-    def _click(self, data:dict, type:str = '', dest:str= '', event = None) -> None:
+    def _link(self, data:dict, type:str = '', dest:str= '', event = None) -> None:
         if dest == '' or dest == None:
             dest = config.get_str('system_provider')
         if type not in self.links.keys():
@@ -383,34 +374,10 @@ class ColonisationWindow:
         if dest not in self.links[type].keys():
             Debug.logger.debug(f"Unknown destination: {dest}")
             return
-        params:dict = {k: quote(v) if v != 'Layout' else v.strip().lower().replace(" ","_") for k, v in data.items()}
-        webbrowser.open(self.links[type][dest].format(**data))
-
-
-    @catch_exceptions
-    def _system_click(self, star:str, type:str = '', event = None) -> None:
-        ''' Execute the click event for the system link '''
-        # Can't use this because the stupid function overrides the passed in system name in favor of the local one. FFS
-        #opener = plug.invoke(config.get_str('system_provider'), 'EDSM', 'system_url', star)
-        #if opener:
-        #    Debug.logger.debug(f"{opener}")
-        #    return webbrowser.open(opener)
-        #else:
-
-        if type == '' or type == None:
-            type = config.get_str('system_provider')
-
-        match type.lower():
-            case 'ravencolonial':
-                webbrowser.open(f"https://ravencolonial.com/#sys={quote(star)}")
-            case 'inara':
-                webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={quote(star)}")
-            case 'spansh':
-                webbrowser.open(f"https://www.spansh.co.uk/search/{quote(star)}")
-            case 'edgis':
-                webbrowser.open(f"https://elitedangereuse.fr/outils/sysmap.php?system={quote(star)}")
-            case _:
-                webbrowser.open(f"https://www.edsm.net/en/system?systemName={quote(star)}")
+        #params:dict = {k: quote(v) if isinstance(v, str) and v != 'Layout' else v.strip().lower().replace(" ","_") if isinstance(v, str) else v for k, v in data.items()}
+        params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in data.items()}
+        Debug.logger.debug(f"parms: {params}")
+        webbrowser.open(self.links[type][dest].format(**params))
 
 
     @catch_exceptions
@@ -464,12 +431,13 @@ class ColonisationWindow:
 
 
     @catch_exceptions
-    def base_clicked(self, sheet:Sheet, event = None) -> None:
+    def base_clicked(self, sheet:Sheet, event) -> None:
+        ''' We clicked on a base type, open it in RC '''
         sheet.toggle_select_cell(event.selected.row, event.selected.column, False)
         sheet.toggle_select_row(event.selected.row, False, True)
-        Debug.logger.debug(f"Clicked: {sheet[self._cell(event.selected.row, 20)].data}")
-        #layout = sheet[event['selected'].row, 20].data.split(', ')[0]
-        #webbrowser.open(f"https://ravencolonial.com/#vis={layout.strip().lower().replace(' ', '_')}")
+        if event.selected.column == 20:
+            layouts:str = str(sheet[self._cell(event['selected'].row, 20)].data)
+            self._link({'Layout': layouts.split(', ')[0]}, 'Base', 'RavenColonial')
 
 
     @catch_exceptions
@@ -918,8 +886,6 @@ class ColonisationWindow:
         row:int = event.row - FIRST_BUILD_ROW; col:int = event.column; val = event.value
         fields:list = list(self.detail_cols.keys())
         field:str = fields[col]
-
-        if event.row < FIRST_BUILD_ROW: return None
 
         if field == 'Base Type' and val == ' ' and row == 0:
             # Don't delete the primary base or let it have no type

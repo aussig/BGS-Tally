@@ -18,7 +18,6 @@ BASE_TYPES_FILENAME = 'base_types.json'
 BASE_COSTS_FILENAME = 'base_costs.json'
 CARGO_FILENAME = 'Cargo.json'
 MARKET_FILENAME = 'Market.json'
-COMMODITY_FILENAME = 'commodity.csv'
 
 # Services we use for different types of import
 SYSTEM_SERVICE = Spansh()
@@ -62,7 +61,6 @@ class Colonisation:
         self.docked:bool = False
         self.base_types:dict = {}  # Loaded from base_types.json
         self.base_costs:dict = {}  # Loaded from base_costs.json
-        self.commodities:dict = {} # Loaded from commodity.csv
         self.systems:list = []     # Systems with colonisation
         self.progress:list = []    # Construction progress data
         self.dirty:bool = False
@@ -110,19 +108,6 @@ class Colonisation:
                 if base_type in self.base_types:
                     self.base_types[base_type]['Total Comm'] = sum(self.base_costs[base_type].values())
 
-
-    @catch_exceptions
-    def _load_commodities(self) -> None:
-        ''' Load the commodities from the CSV file. This is used to map the internal name to the local name. '''
-        file:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, COMMODITY_FILENAME)
-        with open(file, encoding = 'utf-8') as csv_file_handler:
-            csv_reader: csv.DictReader = csv.DictReader(csv_file_handler)
-            comm:dict = {}
-            for rows in csv_reader:
-                comm[f"${rows.get('symbol', '').lower()}_name;"] = {'Name' : rows.get('name', ''), 'Category': rows.get('category', '')}
-            Debug.logger.info(f"Loaded {len(comm)} commodities for colonisation")
-
-            self.commodities = dict(sorted(comm.items(), key=lambda item: item[1]['Name']))
 
     @catch_exceptions
     def journal_entry(self, cmdr, is_beta, sys, station, entry, state) -> None:

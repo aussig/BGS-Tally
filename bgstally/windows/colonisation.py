@@ -832,7 +832,10 @@ class ColonisationWindow:
 
             # Base type & Layout
             sheet[self._cell(i+srow,self._detcol('Base Type'))].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
-            sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'))
+            if new[i][self._detcol('Base Type')] != ' ':
+                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]))
+            else:
+                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'))
 
             for cell in ['Base Type', 'Layout']:
                 sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')

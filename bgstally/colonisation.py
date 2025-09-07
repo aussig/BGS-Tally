@@ -477,6 +477,7 @@ class Colonisation:
     @catch_exceptions
     def get_body(self, system:dict, body:str|int) -> dict|None:
         ''' Get a body by name or id from a system '''
+        Debug.logger.debug(f"Finding body from {body}")
         for b in system.get('Bodies', []):
             # EDSM uses bodyId & name
             if isinstance(body, str) and body == self.body_name(system['StarSystem'], b.get('name', '')):
@@ -627,7 +628,7 @@ class Colonisation:
         # Yea this is terrible but it works for now.
         if isinstance(system, int): system = self.systems[system]
 
-        Debug.logger.info(f"Adding build {data.get('Name')}")
+        Debug.logger.info(f"Adding build {data.get('Name')} {data}")
 
         if 'State' not in data: data['State'] = BuildState.PLANNED
         if 'Name' not in data: data['Name'] = ""
@@ -637,7 +638,7 @@ class Colonisation:
         # If we have a body name or id set the corresponding value.
         body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', '')))
         if body != None:
-            data['Body'] = self.body_name(system.get('StarSystem'), data.get('Body', ''))
+            data['Body'] = self.body_name(system.get('StarSystem'), body.get('name', ''))
             data['BodyNum'] = body['bodyId']
 
         if data.get('Base Type', '') == '' and data.get('Layout', None) != None:

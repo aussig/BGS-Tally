@@ -14,7 +14,7 @@ from bgstally.debug import Debug
 from bgstally.utils import _, get_by_path, catch_exceptions
 
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
-RC_COOLDOWN = 300
+RC_COOLDOWN = 60
 
 EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
 EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='

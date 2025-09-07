@@ -791,9 +791,9 @@ class Colonisation:
         match order:
             case CommodityOrder.CATEGORY:
                 # dict(sorted(dict_of_dicts.items(), key=lambda item: item[1][key_to_sort_by]))
-                ordered = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Category']))
+                ordered:list = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: (item[1]['Category'], item[1]['Name'])))
             case _:
-                ordered = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Name']))
+                ordered:list = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Name']))
 
         return [f"${c_symbol}_name;" for c_symbol in ordered if f"${c_symbol}_name;" in comms.keys()]
 

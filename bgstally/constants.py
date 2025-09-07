@@ -126,6 +126,7 @@ class BuildState(str, Enum):
 class CommodityOrder(Enum):
     ALPHA = 0
     CATEGORY = auto()
+    QUANTITY = auto()
 
 class ProgressUnits(Enum):
     QTY = 0

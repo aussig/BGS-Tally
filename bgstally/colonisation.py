@@ -783,19 +783,19 @@ class Colonisation:
 
 
     @catch_exceptions
-    def get_commodity_list(self, base_type:str, order:CommodityOrder = CommodityOrder.ALPHA) -> list:
+    def get_commodity_list(self, base_type:str, order:CommodityOrder = CommodityOrder.ALPHA, qty:dict = {}) -> list:
         ''' Return an ordered list of base commodity costs for a base type '''
-        comms = self.base_costs.get(base_type, None)
-        if comms == None: return []
-
+        if qty == {}: qty = self.base_costs.get(base_type, {})
         match order:
+            case CommodityOrder.QUANTITY:
+               ordered:list = list(k for k, v in sorted(qty.items(), key=lambda item: item[1], reverse=True))
+               return ordered + list(set(self.base_costs.get(base_type, {})) - set(ordered))
             case CommodityOrder.CATEGORY:
-                # dict(sorted(dict_of_dicts.items(), key=lambda item: item[1][key_to_sort_by]))
                 ordered:list = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: (item[1]['Category'], item[1]['Name'])))
             case _:
                 ordered:list = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Name']))
 
-        return [f"${c_symbol}_name;" for c_symbol in ordered if f"${c_symbol}_name;" in comms.keys()]
+        return [f"${c_symbol}_name;" for c_symbol in ordered if f"${c_symbol}_name;" in self.base_costs.get(base_type, {})]
 
 
     @catch_exceptions

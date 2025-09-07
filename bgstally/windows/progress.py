@@ -68,7 +68,7 @@ class ProgressWindow:
                 'Tooltip' : f"{_('Amount in linked fleet carrier(s)')}" # LANG: Carrier amount tooltip
             }
         ]
-        self.ordertts:list = [_('Alphabetical order'), _('Category order')]
+        self.ordertts:list = [_('Alphabetical order'), _('Category order'), _('Quantity order')]
 
         # Initialise the default units & column types
         self.units:list = [CommodityOrder.ALPHA, ProgressUnits.QTY, ProgressUnits.QTY, ProgressUnits.QTY]
@@ -279,7 +279,7 @@ class ProgressWindow:
                 if self.build_index < 0: self.build_index = max
             case 'change':
                 self.view = ProgressView((self.view.value + 1) % len(ProgressView))
-                self.colonisation.save()
+                self.colonisation.dirty = True
             case 'copy':
                 self.title.clipboard_clear()
                 self.title.clipboard_append(self.as_text())
@@ -300,7 +300,6 @@ class ProgressWindow:
                 if val == 0: val = 1 # Don't permit Commodities
                 self.columns[column] = val
         self.colonisation.dirty = True
-        self.colonisation.save('Progress column changes')
         self.update_display()
 
 
@@ -373,8 +372,6 @@ class ProgressWindow:
         # Set the column headings according to the selected units
         for col, val in enumerate(self.columns):
             self.collbls[col]['text'] = self.headings[val].get('Label')
-            #instructions:str = ", " + _("l-click cycles value, r-click cycles units") # LANG: left and right click tooltip
-            self.coltts[col].text = f"{self.headings[val].get('Tooltip')}"
             self.collbls[col].grid()
 
         totals:dict = {'Commodity': _("Total"),  # LANG: total commodities
@@ -382,10 +379,11 @@ class ProgressWindow:
 
         # Go through each commodity and show or hide it as appropriate and display the appropriate values
         comms:list = []
+        qty:dict = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
         if self.colonisation.docked == True:
             comms = self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)
         else:
-            comms = self.colonisation.get_commodity_list('All', self.comm_order)
+            comms = self.colonisation.get_commodity_list('All', self.comm_order, qty)
 
         if comms == None or comms == []:
             Debug.logger.info(f"No commodities found")

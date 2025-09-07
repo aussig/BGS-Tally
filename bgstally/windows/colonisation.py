@@ -272,7 +272,7 @@ class ColonisationWindow:
             sys_label:ttk.Label = ttk.Label(title_frame, text=sysname, cursor="hand2")
             sys_label.pack(side=tk.LEFT, padx=5, pady=5)
             self._set_weight(sys_label)
-            sys_label.bind("<Button-1>", partial(self._link, systems[sysnum], 'system', ''))
+            sys_label.bind("<Button-1>", partial(self._link, systems[sysnum], 'System', ''))
             sys_label.bind("<Button-3>", partial(self._context_menu, systems[sysnum], 'System'))
             ToolTip(sys_label, text=_("Left click view system, right click menu")) # LANG: tooltip for the copy to clipboard icon
             self._set_weight(sys_label)

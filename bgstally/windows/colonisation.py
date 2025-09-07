@@ -1,32 +1,37 @@
 import re
+from functools import partial
+import webbrowser
 import tkinter as tk
 import tkinter.font as tkFont
 import traceback
 import webbrowser
+import functools
 from functools import partial
 from math import ceil
 from os import path
 from tkinter import PhotoImage, messagebox, ttk
+from urllib.parse import quote
 
-import plug
-
-from bgstally.constants import COLOUR_HEADING_1, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, FONT_TEXT, BuildState
+from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, FONT_TEXT, BuildState
 from bgstally.debug import Debug
-from bgstally.utils import _, get_localised_filepath, human_format, str_truncate
-from config import config
+from bgstally.utils import _, get_localised_filepath, human_format, str_truncate, catch_exceptions
+from bgstally.ravencolonial import RavenColonial
+
+from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from thirdparty.tksheet import Sheet
+from thirdparty.tksheet import Sheet, num2alpha
 from thirdparty.Tooltip import ToolTip
 
 FILENAME_LEGEND = "colonisation_legend.txt"
 SUMMARY_HEADER_ROW = 0
 FIRST_SUMMARY_ROW = 1
-FIRST_SUMMARY_COLUMN = 3
+FIRST_SUMMARY_COLUMN = 4
 HEADER_ROW = 3
 FIRST_BUILD_ROW = 4
+
 class ColonisationWindow:
     '''
-    Window for managing colonisation plans.
+    Window for managing colonisation plans and associated popups.
 
     This window allows users to view and manage colonisation plans for different systems. It creates a tab for each system,
     and uses a sheet to display both summary and detailed information about the builds in that system.
@@ -47,6 +52,10 @@ class ColonisationWindow:
 
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
         self.summary_cols:dict = {
+            'Track': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
+            'Architect': {'header': _("Architect"), 'background': None, 'hide': False},
+            'Layout': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
+            'State': {'header': "", 'background': None},
             'Total': {'header': _("Total"), 'background': None, 'format': 'int'}, # LANG: Total number of builds
             'Orbital': {'header': _("Orbital"), 'background': None, 'format': 'int'}, # LANG: Number of orbital/space builds
             'Surface': {'header': _("Surface"), 'background': None, 'format': 'int'}, # LANG: Number of ground/surface builds
@@ -69,9 +78,10 @@ class ColonisationWindow:
         self.detail_cols:dict = {
             'Track': {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Track this build?
             'Base Type' : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
-            'Name' : {'header': _("Base Name"), 'background': None, 'format': 'dropdown', 'width': 225}, # LANG: name of the base
-            'Body': {'header': _("Body"), 'background': None, 'format': 'string', 'width': 115}, # LANG: Body the base is on or around
-            'Prerequisites': {'header': _("Type"), 'background': None, 'format': 'string', 'width': 115}, # LANG: body type details
+            'Layout' : {'header': _("Layout"), 'background': None, 'format': 'dropdown', 'width': 150}, # LANG: building layout
+            'Name' : {'header': _("Base Name"), 'background': None, 'format': 'string', 'width': 175}, # LANG: name of the base
+            'Body': {'header': _("Body"), 'background': None, 'format': 'dropdown', 'width': 115}, # LANG: Body the base is on or around
+            'Body Type': {'header': _("Type"), 'background': None, 'format': 'string', 'width': 115}, # LANG: body type details
             'State': {'header': _("State"), 'background': 'type', 'format': 'string', 'width': 115}, # LANG: Current build state
             'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 2 points
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 3
@@ -128,73 +138,74 @@ class ColonisationWindow:
             'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc' #'#5a3286',
         }
 
-        # UI components
-        self.window:tk.Toplevel = None
-        self.tabbar:ScrollableNotebook = None
+        # Links to systems, bodies etc.
+        self.links:dict = {'System': {'Inara': 'https://inara.cz/elite/starsystem/search/?search={StarSystem}',
+                                      'Spansh': 'https://www.spansh.co.uk/system/{SystemAddress}',
+                                      'EDGIS': 'https://elitedangereuse.fr/outils/sysmap.php?system={StarSystem}',
+                                      'EDSM': 'https://www.edsm.net/en/system?systemName={StarSystem}',
+                                      'RavenColonial': 'https://ravencolonial.com/#sys={StarSystem}'},
+                           'Bodies': {'Inara': 'https://inara.cz/elite/starsystem-bodies/search/?search={StarSystem}',
+                                      'Spansh': 'https://www.spansh.co.uk/system/{SystemAddress}#system-bodies',
+                                      'EDGIS': 'https://elitedangereuse.fr/outils/sysmap.php?system={StarSystem}'},
+                           'Base':   {'RavenColonial': 'https://ravencolonial.com/#vis={Layout}'}
+                            }
+        # UI components'
+        self.window:tk.Toplevel = None # type: ignore
+        self.tabbar:ScrollableNotebook = None # type: ignore
+        self.add_dialog:tk.Frame|None = None
+        self.react:tk.Frame|None = None
         self.sheets:list = []
         self.plan_titles:list = []
-        self.legend_fr:tk.Toplevel = None
-        self.notes_fr:tk.Toplevel = None
-        self.bases_fr:tk.Toplevel = None
-        self.bodies_fr:tk.Toplevel = None
+        self.legend_fr:tk.Toplevel|None = None
+        self.notes_fr:tk.Toplevel|None = None
+        self.bases_fr:tk.Toplevel|None = None
+        self.bodies_fr:tk.Toplevel|None = None
         self.scale:float = 0
 
 
+    @catch_exceptions
     def show(self) -> None:
         ''' Create and display the colonisation window. Called by ui.py when the colonisation icon is clicked. '''
-        try:
-            if self.window is not None and self.window.winfo_exists():
-                self.window.lift()
-                return
+        if self.window != None and self.window.winfo_exists():
+            self.window.lift()
+            return
+        Debug.logger.debug(f"Scale: {config.get_int('ui_scale')}, {self.bgstally.ui.frame.tk.call('tk', 'scaling')}")
+        self.scale = config.get_int('ui_scale') / 100.00
+        self.colonisation = self.bgstally.colonisation
+        self.window:tk.Toplevel = tk.Toplevel(self.bgstally.ui.frame)
+        self.window.title(_("{plugin_name} - Colonisation").format(plugin_name=self.bgstally.plugin_name)) # LANG: window title
 
-            # We do this once because it seems to get lost over time
-            if self.scale == 0:
-                self.scale = self.bgstally.ui.frame.tk.call('tk', 'scaling') - 0.6
-
-            self.colonisation = self.bgstally.colonisation
-            self.window:tk.Toplevel = tk.Toplevel(self.bgstally.ui.frame)
-            self.window.title(_("{plugin_name} - Colonisation").format(plugin_name=self.bgstally.plugin_name)) # LANG: window title
-
-            self.window.minsize(400, 100)
-            self.window.geometry(f"{int(1500*self.scale)}x{int(500*self.scale)}")
-            self.window.protocol("WM_DELETE_WINDOW", self.close)
-            self._create_frames()   # Create main frames
-            self.update_display()   # Populate them
-
-        except Exception as e:
-            Debug.logger.error(f"Error in colonisation.show(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        self.window.minsize(400, 100)
+        self.window.geometry(f"{int(1500*self.scale)}x{int(500*self.scale)}")
+        self.window.protocol("WM_DELETE_WINDOW", self.close)
+        self._create_frames()   # Create main frames
+        self.update_display()   # Populate them
 
 
+    @catch_exceptions
     def _create_frames(self) -> None:
         ''' Create the system frame notebook and tabs for each system '''
-        try:
-            # Create system tabs notebook
-            self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=True)
-            self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-            self.add_system_dialog()
+        # Create system tabs notebook
+        self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=True)
+        self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+        self.add_dialog = self.add_system_dialog()
+        self.update_react_dialog()
+        self.tabbar.add(self.add_dialog, text='+')
 
-            # Add tabs for each system
-            systems:list = self.colonisation.get_all_systems()
+        # Add tabs for each system
+        systems:list = self.colonisation.get_all_systems()
+        if len(systems) == 0:
+            Debug.logger.info(f"No systems so not creating colonisation section")
+            return
 
-            if len(systems) == 0:
-                Debug.logger.info(f"No systems so not creating colonisation section")
-                return
+        for sysnum, system in enumerate(systems): # Create a frame for the sytem
+            tabnum = sysnum + 1
+            self._create_system_tab(tabnum, system)
 
-            for sysnum, system in enumerate(systems):
-                # Create a frame for the sytem
-                tabnum = sysnum +1
-                self._create_system_tab(tabnum, system)
-
-            # Select the first tab
-            if tabnum > 0:
-                self.tabbar.select(1)
-
-        except Exception as e:
-            Debug.logger.error(f"Error in create_frames(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        if tabnum > 0: self.tabbar.select(1) # Select the first system tab
 
 
+    @catch_exceptions
     def _create_system_tab(self, tabnum:int, system:dict) -> None:
         ''' Create the frame, title, and sheet for a system '''
         tab:ttk.Frame = ttk.Frame(self.tabbar)
@@ -203,9 +214,15 @@ class ColonisationWindow:
         self._create_title_frame(tabnum, tab)
         self._create_table_frame(tabnum, tab, system)
         self.tabbar.add(tab, text=system['Name'], compound='right', image=self.image_tab_planned)
+        self.tabbar.select(tabnum)
+
         self._set_system_progress(tabnum, system)
 
+        if system.get('Hidden', False) == True:
+            self.tabbar.notebookTab.tab(tabnum, state='hidden')
 
+
+    @catch_exceptions
     def _set_system_progress(self, tabnum:int, system:dict) -> None:
         ''' Update the tab image based on the system's progress '''
         state:BuildState = BuildState.COMPLETE
@@ -225,6 +242,7 @@ class ColonisationWindow:
                 self.tabbar.notebookTab.tab(tabnum, image=self.image_tab_planned)
 
 
+    @catch_exceptions
     def _create_title_frame(self, tabnum:int, tab:ttk.Frame) -> None:
         ''' Create the title frame with system name and tick info '''
         sysnum:int = tabnum -1
@@ -242,22 +260,23 @@ class ColonisationWindow:
             self.plan_titles.append({})
 
         name_label:ttk.Label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
+        sysname:str = systems[sysnum].get('StarSystem', '')
+        if systems[sysnum].get('RCSync', False) == True:
+            name_label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground="#0078d4", cursor="hand2")
+            name_label.bind("<Button-1>", partial(self._link, systems[sysnum], 'System', 'RavenColonial'))
+            ToolTip(name_label, text=_("Link to RavenColonial")) # LANG: tooltip for ravencolonial link
         name_label.pack(side=tk.LEFT, padx=10, pady=5)
-
         self.plan_titles[sysnum]['Name'] = name_label
 
-        sysname:str = systems[sysnum].get('StarSystem', '') + ' ⤴' if systems[sysnum].get('StarSystem') != '' else ''
-        sys_label:ttk.Label = ttk.Label(title_frame, text=sysname, cursor="hand2")
-        sys_label.pack(side=tk.LEFT, padx=5, pady=5)
-        self._set_weight(sys_label)
-        sys_label.bind("<Button-1>", partial(self.system_click, tabnum))
-        self.plan_titles[sysnum]['System'] = sys_label
-
-        sys_copy:ttk.Label = ttk.Label(title_frame, text='⮺   ', cursor='hand2')
-        sys_copy.pack(side=tk.LEFT, padx=(0,10), pady=5)
-        self._set_weight(sys_copy)
-        sys_copy.bind("<Button-1>", partial(self.ctc, tabnum))
-        ToolTip(sys_copy, text=_("Copy system name to clipboard")) # LANG: tooltip for the copy to clipboard icon
+        if sysname != '':
+            sys_label:ttk.Label = ttk.Label(title_frame, text=sysname, cursor="hand2")
+            sys_label.pack(side=tk.LEFT, padx=5, pady=5)
+            self._set_weight(sys_label)
+            sys_label.bind("<Button-1>", partial(self._link, systems[sysnum], 'System', ''))
+            sys_label.bind("<Button-3>", partial(self._context_menu, systems[sysnum], 'System'))
+            ToolTip(sys_label, text=_("Left click view system, right click menu")) # LANG: tooltip for the copy to clipboard icon
+            self._set_weight(sys_label)
+            self.plan_titles[sysnum]['System'] = sys_label
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
             bodies:str = str(len(systems[sysnum]['Bodies'])) + " " + _("Bodies") # LANG: bodies in the system
@@ -266,6 +285,7 @@ class ColonisationWindow:
             ToolTip(sys_bodies, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
             self._set_weight(sys_bodies)
             sys_bodies.bind("<Button-1>", partial(self.bodies_popup, tabnum))
+            sys_bodies.bind("<Button-3>", partial(self._context_menu, systems[sysnum], 'Bodies'))
 
         allattrs:dict = {'Population': _('Population'), # HINT: Population heading
                          'Economy' : _('Economy'), # HINT: Economy heading
@@ -282,203 +302,205 @@ class ColonisationWindow:
         details.pack(side=tk.LEFT, padx=10, pady=5)
 
         btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, cursor="hand2", command=lambda: self.legend_popup())
-        btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        btn.pack(side=tk.RIGHT, padx=(20, 5), pady=5)
         ToolTip(btn, text=_("Show legend window")) # LANG: tooltip for the show legend button
 
-        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
-        btn.pack(side=tk.RIGHT, padx=5, pady=5)
-        ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
-
-        btn:ttk.Button = ttk.Button(title_frame, text=_("Delete"), cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
+        btn:ttk.Button = ttk.Button(title_frame, text=_("🗑️"), width=3, cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
         ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("Rename"), cursor="hand2", command=lambda: self.rename_system_dialog(tabnum, tab)) # LANG: Rename button
-        ToolTip(btn, text=_("Rename system plan")) # LANG: tooltip for the rename system button
+        #btn:ttk.Button = ttk.Button(title_frame, text=_("👁"), width=3, cursor="hand2", command=lambda: self.hide_system(tabnum, tab)) # LANG: Hide button
+        #ToolTip(btn, text=_("Hide system plan")) # LANG: tooltip for the hide system button
+        #btn.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        btn:ttk.Button = ttk.Button(title_frame, text=_("📝"), width=3, cursor="hand2", command=lambda: self.edit_system_dialog(tabnum, btn)) # LANG: Rename button
+        ToolTip(btn, text=_("Edit system plan")) # LANG: tooltip for the edit system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
+        btn.pack(side=tk.RIGHT, padx=(5,20), pady=5)
+        ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
             btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
-            edgis_btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_logo_edgis, cursor="hand2", command=partial(self._edgis_link_clicked, systems[sysnum].get('StarSystem', '')))
-            edgis_btn.pack(side=tk.RIGHT, padx=5, pady=5)
-            ToolTip(edgis_btn, text=_("Show system map in EDGIS")) # LANG: tooltip for the EDGIS button
 
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("📓"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
+        # 📓 📝 📋
+        btn:ttk.Button = ttk.Button(title_frame, text=_("📋"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
+        if systems[sysnum].get('RCSync', False) == True:
+            #🔄 ⟳
+            btn:ttk.Button = ttk.Button(title_frame, text=_("🔄"), cursor="hand2", width=3, command=partial(self._rc_refresh_system, tabnum))
+            btn.pack(side=tk.RIGHT, padx=5, pady=5)
+            ToolTip(btn, text=_("Refresh from RavenColonial")) # LANG: tooltip for ravencolonial refresh button
 
-    def ctc(self, tabnum:int, event = None) -> None:
+
+    @catch_exceptions
+    def _context_menu(self, system:dict, type:str, event: tk.Event) -> None:
+        """ Display the context menu when right-clicked."""
+
+        menu = tk.Menu(tearoff=tk.FALSE)
+        # LANG: Label for 'Copy' as in 'Copy and Paste'
+        if type == 'System':
+            menu.add_command(label=_('Copy'), command=partial(self._ctc, system['StarSystem']))  # As in Copy and Paste
+            menu.add_separator()
+
+        for which in self.links[type].keys():
+            menu.add_command(
+                label=_(f"Open in {which}"),  # LANG: Open Element In Selected Provider
+                command=partial(self._link, system, type, which)
+            )
+        menu.post(event.x_root, event.y_root)
+
+
+    @catch_exceptions
+    def _ctc(self, text:str, event = None) -> None:
         ''' Copy to clipboard '''
-        try:
-            systems:list = self.colonisation.get_all_systems()
-            self.window.clipboard_clear()
-            self.window.clipboard_append(systems[tabnum-1].get('StarSystem', ''))
-        except Exception as e:
-            Debug.logger.error(f"Error in ctc() {e}")
-            Debug.logger.error(traceback.format_exc())
+        self.window.clipboard_clear()
+        self.window.clipboard_append(text)
 
 
-    def system_click(self, tabnum:int, event = None) -> None:
-        ''' Execute the click event for the system link '''
-        try:
-            sysnum:int = tabnum -1
-            systems:list = self.colonisation.get_all_systems()
-            if sysnum > len(systems):
-                Debug.logger.info(f"on_system_click invalid tab: {tabnum}")
-                return
-            star:str = systems[sysnum]['StarSystem']
-
-            # Can't use this because the stupid function overrides the passed in system name in favor of the local one. FFS
-            #opener = plug.invoke(config.get_str('system_provider'), 'EDSM', 'system_url', star)
-            #if opener:
-            #    Debug.logger.debug(f"{opener}")
-            #    return webbrowser.open(opener)
-            #else:
-
-            match config.get_str('system_provider'):
-                case 'Inara':
-                    webbrowser.open(f"https://inara.cz/elite/starsystem/search/?search={star}")
-                case 'spansh':
-                    webbrowser.open(f"https://www.spansh.co.uk/search/{star}")
-                case _:
-                    webbrowser.open(f"https://www.edsm.net/en/system?systemName={star}")
-
-        except Exception as e:
-            Debug.logger.error(f"Error in system_click() {e}")
-            Debug.logger.error(traceback.format_exc())
+    @catch_exceptions
+    def _link(self, data:dict, type:str = '', dest:str= '', event = None) -> None:
+        if dest == '' or dest == None:
+            dest = config.get_str('system_provider')
+        if type not in self.links.keys():
+            Debug.logger.debug(f"Unknown link type: {type}")
+            return
+        if dest not in self.links[type].keys():
+            Debug.logger.debug(f"Unknown destination: {dest}")
+            return
+        params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in data.items()}
+        webbrowser.open(self.links[type][dest].format(**params))
 
 
+    @catch_exceptions
     def bases_popup(self) -> None:
         ''' Show a popup with details of all the base types '''
-        try:
-            if self.bases_fr is not None and self.bases_fr.winfo_exists():
-                self.bases_fr.lift()
-                return
+        if self.bases_fr != None and self.bases_fr.winfo_exists():
+            self.bases_fr.lift()
+            return
 
-            self.bases_fr = tk.Toplevel(self.bgstally.ui.frame)
-            self.bases_fr.wm_title(_("{plugin_name} - Colonisation Base Types").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the base type popup window
-            self.bases_fr.geometry(f"{int(1000*self.scale)}x{int(500*self.scale)}")
-            self.bases_fr.protocol("WM_DELETE_WINDOW", self.bases_fr.destroy)
-            self.bases_fr.config(bd=2, relief=tk.FLAT)
-            sheet:Sheet = Sheet(self.bases_fr, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
-                            show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
-                            align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
-                            show_dropdown_borders=False, header_bg='lightgrey',
-                            empty_vertical=0, empty_horizontal=0, header_font=FONT_SMALL, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                            show_header=True, set_all_heights_and_widths=True) #, default_row_height=21)
-            sheet.pack(fill=tk.BOTH, padx=0, pady=0)
+        self.bases_fr = tk.Toplevel(self.bgstally.ui.frame)
+        self.bases_fr.wm_title(_("{plugin_name} - Colonisation Base Types").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the base type popup window
+        self.bases_fr.geometry(f"{int(1000*self.scale)}x{int(500*self.scale)}")
+        self.bases_fr.protocol("WM_DELETE_WINDOW", self.bases_fr.destroy)
+        self.bases_fr.config(bd=2, relief=tk.FLAT)
+        sheet:Sheet = Sheet(self.bases_fr, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
+                        show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
+                        align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
+                        show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
+                        empty_vertical=0, empty_horizontal=0, header_font=FONT_SMALL, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
+                        show_header=True)
+        sheet.pack(fill=tk.BOTH, padx=0, pady=0)
+        sheet.enable_bindings('single_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy')
+        sheet.extra_bindings('cell_select', func=partial(self.base_clicked, sheet))
+        data:list = [[0 for _ in range(len(self.bases.keys()))] for _ in range(len(self.colonisation.get_base_types()))]
+        sheet.set_header_data([h['header'] for h in self.bases.values()])
+        sheet.set_sheet_data(data)
+        sheet["A1:A100"].align(align='left')
+        sheet["E1:F100"].align(align='left')
+        sheet["U1:W100"].align(align='left')
 
-            data:list = [[0 for _ in range(len(self.bases.keys()))] for _ in range(len(self.colonisation.get_base_types()))]
-            sheet.set_header_data([h['header'] for h in self.bases.values()])
-            sheet.set_sheet_data(data)
-            sheet["A1:A100"].align(align='left')
-            sheet["E1:F100"].align(align='left')
-            sheet["T1:V100"].align(align='left')
-
-            for i, bt in enumerate(self.colonisation.base_types.values()):
-                for j, (name, col) in enumerate(self.bases.items()):
-                    sheet.column_width(j, int(col.get('width', 100) * self.scale))
-                    match col.get('format'):
-                        case 'int':
-                            v = bt.get(name, 0)
-                            if name in ['T2', 'T3']:
-                                v = bt.get(name+' Reward', 0) - bt.get(name + ' Cost', 0)
-                            if name == 'Trips':
-                                v = ceil(bt['Total Comm'] / self.colonisation.cargo_capacity)
-                            sheet[i,j].data = ' ' if v == 0 else f"{v:,}"
-                            sheet[i,j].highlight(bg=self._set_background(col.get('background'), v, col.get('max')))
-                        case _:
-                            sheet[i,j].data = bt.get(name) if bt.get(name, ' ') != ' ' else bt.get(name, ' ')
-                            if name == 'Type': # Special case.
-                                econ = bt.get('Economy Influence') if bt.get('Economy Influence') != "" else bt.get('Facility Economy')
-                                sheet[i,j].highlight(bg=self._set_background(col.get('background'), econ if econ else 'None'))
-                            else:
-                                sheet[i,j].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
-
-            sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
-
-        except Exception as e:
-            Debug.logger.error(f"Error in bases_popup(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        for i, bt in enumerate(self.colonisation.base_types.values()):
+            for j, (name, col) in enumerate(self.bases.items()):
+                sheet.column_width(j, col.get('width', 100))
+                match col.get('format'):
+                    case 'int':
+                        v:int = bt.get(name, 0)
+                        if name in ['T2', 'T3']:
+                            v = bt.get(name+' Reward', 0) - bt.get(name + ' Cost', 0)
+                        if name == 'Trips':
+                            v = ceil(bt['Total Comm'] / self.colonisation.cargo_capacity)
+                        sheet[self._cell(i,j)].data = ' ' if v == 0 else f"{v:,}"
+                        sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), str(v), col.get('max')))
+                    case _:
+                        sheet[self._cell(i,j)].data = bt.get(name) if bt.get(name, ' ') != ' ' else bt.get(name, ' ')
+                        if name == 'Type': # Special case.
+                            econ = bt.get('Economy Influence') if bt.get('Economy Influence') != "" else bt.get('Facility Economy')
+                            sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), econ if econ else 'None'))
+                        else:
+                            sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
+        sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
+    @catch_exceptions
+    def base_clicked(self, sheet:Sheet, event) -> None:
+        ''' We clicked on a base type, open it in RC '''
+        sheet.toggle_select_cell(event.selected.row, event.selected.column, False)
+        sheet.toggle_select_row(event.selected.row, False, True)
+        if event.selected.column == 20:
+            layouts:str = str(sheet[self._cell(event['selected'].row, 20)].data)
+            self._link({'Layout': layouts.split(', ')[0]}, 'Base', 'RavenColonial')
+
+
+    @catch_exceptions
     def bodies_popup(self, tabnum:int, event = None) -> None:
         ''' Show a popup with details of all the bodies in the system '''
-        try:
-            if self.bodies_fr is not None and self.bodies_fr.winfo_exists():
-                self.bodies_fr.destroy()
+        if self.bodies_fr != None and self.bodies_fr.winfo_exists():
+            self.bodies_fr.destroy()
 
-            self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
-            self.bodies_fr.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the bodies popup window
-            self.bodies_fr.wm_attributes('-toolwindow', True) # makes it a tool window
-            self.bodies_fr.geometry("600x600")
-            self.bodies_fr.config(bd=2, relief=tk.FLAT)
-            scr:tk.Scrollbar = tk.Scrollbar(self.bodies_fr, orient=tk.VERTICAL)
-            scr.pack(side=tk.RIGHT, fill=tk.Y)
-            text:tk.Text = tk.Text(self.bodies_fr, font=FONT_SMALL, yscrollcommand=scr.set)
-            text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+        self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
+        self.bodies_fr.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the bodies popup window
+        self.bodies_fr.wm_attributes('-toolwindow', True) # makes it a tool window
+        self.bodies_fr.minsize(600, 600)
+        self.bodies_fr.geometry(f"{int(600*self.scale)}x{int(600*self.scale)}")
+        self.bodies_fr.config(bd=2, relief=tk.FLAT)
+        scr:tk.Scrollbar = tk.Scrollbar(self.bodies_fr, orient=tk.VERTICAL)
+        scr.pack(side=tk.RIGHT, fill=tk.Y)
+        text:tk.Text = tk.Text(self.bodies_fr, font=FONT_SMALL, yscrollcommand=scr.set)
+        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
-            sysnum:int = tabnum - 1
-            systems:list = self.colonisation.get_all_systems()
+        sysnum:int = tabnum - 1
+        systems:list = self.colonisation.get_all_systems()
 
-            bodies:list = systems[sysnum].get('Bodies', None)
-            if bodies == None:
-                return
+        bodies:list = systems[sysnum].get('Bodies', None)
+        if bodies == None:
+            return
 
-            # Go through the bodies and format the output for display
-            bstr:str = f"{bodies[0].get('name')} - {bodies[0].get('subType')}\n\n"
-            for b in bodies[1:]:
-                indent:int = 0 if b.get('parents', None) == None else b.get('parents') * 4
-                name:str = b.get('name')
-                name = name.replace(systems[sysnum]['StarSystem'] + ' ', '')
+        # Go through the bodies and format the output for display
+        bstr:str = f"{bodies[0].get('name')} - {bodies[0].get('subType')}\n\n"
+        for b in bodies[1:]:
+            indent:int = 0 if b.get('parents', None) == None else b.get('parents') * 4
+            name:str = b.get('name')
+            name = name.replace(systems[sysnum]['StarSystem'] + ' ', '')
 
-                bstr += f"{' ' * indent}{name} - {b.get('subType')}"
-                if b.get('distanceToArrival'):
-                    bstr += (f", {human_format(b.get('distanceToArrival'))}Ls")
+            bstr += f"{' ' * indent}{name} - {b.get('subType')}"
+            if b.get('distanceToArrival'):
+                bstr += (f", {human_format(b.get('distanceToArrival'))}Ls")
+            bstr += "\n"
+
+            attrs:list = []
+            if b.get('isLandable') == True: attrs.append(_('Landable'))
+            if b.get('rotationalPeriodTidallyLocked') == True: attrs.append(_('Tidally Locked'))
+            rings:list = []
+            for r in b.get('rings', []):
+                if r.get('type', None) != None: rings.append(r.get('type'))
+            if len(rings):
+                attrs.append(b.get('reserveLevel') + " " +_("rings") + ": " + ", ".join(rings))
+
+            if b.get('type') == 'Planet':
+                if b.get('terraformingState') == 'Terraformable': attrs.append(_("Terraformable"))
+                if b.get('atmosphereType') != 'No atmosphere' or len(attrs):
+                    astr:str = b.get('atmosphereType', 'No atmosphere')
+                    if astr != 'No atmosphere': astr += " atmosphere"
+                    attrs.append(astr)
+                if b.get('volcanismType', 'No volcanism') != 'No volcanism': attrs.append(b.get('volcanismType'))
+
+            if len(attrs) > 0:
+                bstr += f"{' ' * (indent+8)}"
+                bstr += ", ".join(attrs)
                 bstr += "\n"
+            bstr += "\n"
 
-                attrs:list = []
-                if b.get('isLandable') == True: attrs.append(f"{_('Landable')}")
-                rings:list = []
-                for r in b.get('rings', []):
-                    if r.get('type', None) != None: rings.append(r.get('type'))
-                if len(rings):
-                    attrs.append(b.get('reserveLevel') + " " +_("rings") + ": " + ", ".join(rings))
-
-                if b.get('type') == 'Planet':
-                    if b.get('terraformingState') == 'Terraformable': attrs.append(_("Terraformable"))
-                    if b.get('atmosphereType') != 'No atmosphere' or len(attrs):
-                        astr:str = b.get('atmosphereType', 'No atmosphere')
-                        if astr != 'No atmosphere': astr += " atmosphere"
-                        attrs.append(astr)
-                    if b.get('volcanismType', 'No volcanism') != 'No volcanism': attrs.append(b.get('volcanismType'))
-
-                if len(attrs) > 0:
-                    bstr += f"{' ' * (indent+8)}"
-                    bstr += ", ".join(attrs)
-                    bstr += "\n"
-                bstr += "\n"
-
-            text.insert(tk.END, bstr)
-
-        except Exception as e:
-            Debug.logger.error(f"Error in bodies_popup(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        text.insert(tk.END, bstr)
 
 
-    def _edgis_link_clicked(self, sysname: str) -> None:
-        """Open the system in EDGIS
-
-        Args:
-            sysname (str): System name
-        """
-        webbrowser.open(f"https://elitedangereuse.fr/outils/sysmap.php?system={sysname}")
-
-
+    @catch_exceptions
     def _create_table_frame(self, tabnum:int, tab:ttk.Frame, system:dict) -> None:
         ''' Create a unified table frame with both summary and builds in a single scrollable area '''
         # Main table frame
@@ -491,7 +513,7 @@ class ColonisationWindow:
 
         sheet:Sheet = Sheet(table_frame, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
                             show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
-                            align="center", show_selected_cells_border=True, table_selected_cells_border_fg=None,
+                            align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                             show_dropdown_borders=False,
                             empty_vertical=15, empty_horizontal=0, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
                             show_header=False, set_all_heights_and_widths=True) #, default_row_height=21)
@@ -507,10 +529,10 @@ class ColonisationWindow:
 
         sheet.set_sheet_data(data)
         self._config_sheet(sheet, system)
-        sheet.enable_bindings('single_select', 'edit_cell', 'up', 'down', 'left', 'right', 'copy', 'paste')
-        sheet.edit_validation(self.validate_edits)
-        sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, tabnum))
-        sheet.extra_bindings('cell_select', func=partial(self.sheet_modified, tabnum))
+        sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
+        sheet.edit_validation(func=self.validate_edits)
+        sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, sheet, tabnum))
+        sheet.extra_bindings('cell_select', func=partial(self.sheet_modified, sheet, tabnum))
 
         if len(self.sheets) < tabnum:
             self.sheets.append(sheet)
@@ -518,10 +540,11 @@ class ColonisationWindow:
             self.sheets[tabnum-1] = sheet
 
 
+    @catch_exceptions
     def _update_title(self, index:int, system:dict) -> None:
         ''' Update title with both display name and actual system name '''
-        name:str = system.get('Name') if system.get('Name') != None else system.get('StarSystem', _('Unknown')) # LANG: Default when we don't know the name
-        sysname:str = system.get('StarSystem', '') + ' ⤴' if system.get('StarSystem') != '' else ''
+        name:str = system.get('Name','') if system.get('Name',None) != None else system.get('StarSystem', _('Unknown')) # LANG: Default when we don't know the name
+        sysname:str = system.get('StarSystem', '') if system.get('StarSystem') != '' else ''
 
         self.plan_titles[index]['Name']['text'] = name
         self.plan_titles[index]['System']['text'] = sysname
@@ -531,49 +554,55 @@ class ColonisationWindow:
             self.plan_titles[index]['System'].pack_forget()
 
 
-    def _config_sheet(self, sheet:Sheet, system:dict = None) -> None:
+    @catch_exceptions
+    def _config_sheet(self, sheet:Sheet, system:dict|None = None) -> None:
         ''' Initial sheet configuration. '''
         sheet.dehighlight_all()
 
         # Column widths
         for i, (name, value) in enumerate(self.detail_cols.items()):
-            sheet.column_width(i, int(value.get('width', 100) * self.scale))
+            sheet.column_width(i, value.get('width', 100))
 
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')
-        sheet['A2:F2'].highlight(bg=self._set_background('type', 'Complete', 1))
-        sheet['A3:F3'].highlight(bg=self._set_background('type', 'Planned', 1))
+        sheet['A2:G2'].highlight(bg=self._set_background('type', 'Complete', 1))
+        sheet['A3:G3'].highlight(bg=self._set_background('type', 'Planned', 1))
         sheet[HEADER_ROW].highlight(bg='lightgrey')
-
         # Tracking checkboxes
         sheet['A5:A'].checkbox(state='normal', checked=False)
 
         # Base types
         sheet['B5'].dropdown(values=[' '] + self.colonisation.get_base_types('Initial'))
         sheet['B6:B'].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
+
+        # Base layouts dropdown
+        sheet['C5'].dropdown(values=[' '] + self.colonisation.get_base_layouts('Initial'))
+        sheet['C6:C'].dropdown(values=[' '] + self.colonisation.get_base_layouts('All'))
+
         if system != None and 'Bodies' in system:
             bodies:list = self.colonisation.get_bodies(system)
             if len(bodies) > 0:
-                sheet['D5:D'].dropdown(values=[' '] + bodies)
+                sheet['E5:E'].dropdown(values=[' '] + bodies)
 
         # Make the sections readonly that users can't edit.
-        s3 = sheet.span('A1:4', type_='readonly')
-        sheet.named_span(s3)
-        s4 = sheet.span('E4:T', type_='readonly')
-        sheet.named_span(s4)
+        sheet['A1:4'].readonly()
+        sheet['B2'].readonly(False) # Except Architect
 
-        # track, types and names left.
-        sheet[f"A{FIRST_BUILD_ROW}:C"].align(align='left')
+        sheet['F4:T'].readonly() # Build columns from Body onwards
+        # track, types, layouts, and names left.
+        sheet[f"A{FIRST_BUILD_ROW}:D"].align(align='left')
 
 
+    @catch_exceptions
     def _get_summary_header(self) -> list[str]:
         ''' Return the header row for the summary '''
-        cols:list = [' ', ' ', ' ']
+        cols:list = []
         for c, v in self.summary_cols.items():
             cols.append(v.get('header', c) if v.get('hide') != True else ' ')
         return cols
 
 
+    @catch_exceptions
     def _calc_totals(self, system:dict) -> dict[str, dict[str, int]]:
         ''' Build a summary of the system's builds and status. '''
         totals:dict = {'Planned': {}, 'Complete': {}}
@@ -595,6 +624,12 @@ class ColonisationWindow:
                 if bt == {}:
                     continue
                 match name:
+                    case 'Architect':
+                        totals['Planned'][name] = ' '
+                        totals['Complete'][name] = system.get('Architect', _('Unknown'))
+                    case 'State':
+                        totals['Planned'][name] = _("Planned")
+                        totals['Complete'][name] = _("Complete")
                     case 'Total':
                         totals['Planned'][name] += 1
                         totals['Complete'][name] += 1 if self.is_build_complete(build) else 0
@@ -629,12 +664,13 @@ class ColonisationWindow:
         starports:list = self.colonisation.get_base_types('Starport')
         min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
         totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
-        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.colonisation.get_build_state(build) == BuildState.COMPLETE]) > 0 else 0
+        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.is_build_complete(build)]) > 0 else 0
         totals['Complete']['Technology Level'] = max(totals['Complete']['Technology Level'], min)
 
         return totals
 
 
+    @catch_exceptions
     def _build_summary(self, system:dict) -> list[list]:
         ''' Return the summary section with current system data '''
         totals:dict = self._calc_totals(system)
@@ -642,7 +678,7 @@ class ColonisationWindow:
         # Update the values in the cells.
         summary:list = []
         for i, r in enumerate(self.summary_rows.keys()):
-            row:list = [' ', ' ', r]
+            row:list = []
             for (name, col) in self.summary_cols.items():
                 if col.get('hide', False) == True:
                     row.append(' ')
@@ -653,6 +689,7 @@ class ColonisationWindow:
         return summary
 
 
+    @catch_exceptions
     def _update_summary(self, srow:int, sheet:Sheet, system:dict) -> None:
         ''' Update the summary section with current system data '''
         scol:int = 0
@@ -660,12 +697,13 @@ class ColonisationWindow:
 
         for i, x in enumerate(self.summary_rows.keys()):
             for j, details in enumerate(self.summary_cols.values()):
-                j += FIRST_SUMMARY_COLUMN
-                sheet[i+srow,j].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
+                #j += FIRST_SUMMARY_COLUMN
+                sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
                 if details.get('background') != None:
-                    sheet[i+srow,j+scol].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
+                    sheet[self._cell(i+srow,j+scol)].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
 
 
+    @catch_exceptions
     def _get_detail_header(self) -> list[str]:
         ''' Return the details header row '''
         cols:list = []
@@ -674,6 +712,7 @@ class ColonisationWindow:
         return cols
 
 
+    @catch_exceptions
     def _build_detail(self, system:dict) -> list[list]:
         ''' Build a data cube of info to update the table '''
         details:list = []
@@ -713,7 +752,7 @@ class ColonisationWindow:
                             continue
 
                         if name == 'Body' and build.get('Body', None) != None and system.get('StarSystem', '') != '':
-                            row.append(build.get('Body').replace(system.get('StarSystem') + ' ', ''))
+                            row.append(self.colonisation.body_name(system.get('StarSystem', ''), build.get('Body')))
                             continue
 
                         row.append(build.get(name) if build.get(name, ' ') != ' ' else bt.get(name, ' '))
@@ -728,6 +767,7 @@ class ColonisationWindow:
         return details
 
 
+    @catch_exceptions
     def _update_detail(self, srow:int, sheet:Sheet, system:dict) -> None:
         ''' Update the details section of the table '''
         new:list = self._build_detail(system)
@@ -737,409 +777,498 @@ class ColonisationWindow:
                 if i >= len(new) or j >= len(new[i]): continue # Just in case
 
                 # Set or clear the data in the cell and the highlight
-                sheet[i+srow,j].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
-                sheet[i+srow,j].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
+                sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
+                sheet[self._cell(i+srow,j)].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
 
             # Body type details
-            if system != None and 'Bodies' in system and new[i][3] != ' ':
+            if system != None and 'Bodies' in system and new[i][self._detcol('Body')] != ' ':
                 desc:str = ' '
-                b = self.colonisation.get_body(system, new[i][3])
+                b = self.colonisation.get_body(system, new[i][self._detcol('Body')])
                 if b != None:
                     desc = b.get('subType', 'Unknown')
                     if b.get('type') == 'Star': desc = re.sub(r".*\((.+)\).*", r"\1", desc)
                     if 'gas giant' in b.get('subType').lower(): desc = _('Gas giant')
                     if b.get('subType') == 'High metal content world': desc = _('HMC world') # LANG: HMC World is a high metal content world
                     desc = str_truncate(desc, 16)
-
-                #attrs:list = []
-                #if b.get('terraformingState', 'Not terraformable') != 'Not terraformable': attrs.append("T")
-                #if b.get('volcanismType', 'None') != 'None': attrs.append("V")
-                #if len(attrs) > 0:
-                #    desc += " (" + ", ".join(attrs) + ")"
-                sheet[i+srow,4].data = desc
-                #sheet[i+srow,4].align(align='left')
+                sheet[self._cell(i+srow,self._detcol('Body Type'))].data = desc
 
             # Handle build states
-            if new[i][5] == BuildState.COMPLETE: # Mark complete builds as readonly
+            if new[i][self._detcol('State')] == BuildState.COMPLETE:
                 # Tracking
-                sheet[i+srow,0].del_checkbox()
-                sheet[i+srow,0].data = ' 🢅' #⇒
-                #sheet[i+srow,0].checkbox(state='disabled'); sheet[i+srow,0].data = ' ';
-                sheet[i+srow,0].readonly()
-                sheet[i+srow,0].align(align='left')
+                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='disabled'); sheet[self._cell(i+srow,0)].data = ' '
+                sheet[self._cell(i+srow,self._detcol('Track'))].readonly()
 
+            if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Name')] != '' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
                 # Base type
-                if new[i][1] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
-                    sheet[i+srow,1].del_dropdown()
-                    sheet[i+srow,1].readonly()
-                    sheet[i+srow,1].highlight(bg=None)
-                elif new[i][1] != ' ' or new[i][2] != ' ': # Base type is invalid or not set & name is set
-                    sheet[i+srow,1].highlight(bg='red2')
-                sheet[i+srow,1].align(align='left')
+                if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
+                    for cell in ['Base Type', 'Layout']:
+                        sheet[self._cell(i+srow,self._detcol(cell))].del_dropdown()
+                        sheet[self._cell(i+srow,self._detcol(cell))].readonly()
+                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg=None)
+
+                elif new[i][self._detcol('Base Type')] != ' ' or new[i][self._detcol('Name')] != ' ': # Base type is invalid or not set & name is set
+                    for cell in ['Base Type', 'Layout']:
+                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg='red2')
+
+                for cell in ['Base Type', 'Layout']:
+                    sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')
 
                 # Base name
-                sheet[i+srow,2].readonly()
-                sheet[i+srow,2].align(align='left')
+                if new[i][self._detcol('Name')] != ' ':
+                    sheet[self._cell(i+srow,self._detcol('Name'))].readonly()
+                    sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left')
 
                 # Body
-                sheet[i+srow,3].del_dropdown()
-                sheet[i+srow,3].readonly()
+                if new[i][self._detcol('Body')] != ' ':
+                    sheet[self._cell(i+srow,self._detcol('Body'))].del_dropdown()
+                    sheet[self._cell(i+srow,self._detcol('Body'))].readonly()
                 continue
 
-            #if isinstance(new[i][5], int):
-            #    sheet.create_progress_bar(row=i+srow, column=5, bg='red', fg='green', percent=new[i][5], name=f"{i}")
-            #    Debug.logger.debug("Creating progress bar {sheet[i+srow,5]}")
-
             #  Tracking
-            sheet[i+srow,0].checkbox(state='normal'); sheet[i+srow,0].data = ' '; sheet[i+srow,0].readonly(False)
+            if new[i][self._detcol('State')] != BuildState.COMPLETE:
+                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='normal')
+                sheet[self._cell(i+srow,self._detcol('Track'))].data = ' '
+                sheet[self._cell(i+srow,self._detcol('Track'))].readonly(False)
 
-            # Base type
-            sheet[i+srow,1].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
-            sheet[i+srow,1].align(align='left')
-            sheet[i+srow,1].readonly(False)
-            sheet[i+srow,1].data = new[i][1]
+            # Base type & Layout
+            sheet[self._cell(i+srow,self._detcol('Base Type'))].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
+            if new[i][self._detcol('Base Type')] != ' ':
+                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]))
+            else:
+                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'))
+
+            for cell in ['Base Type', 'Layout']:
+                sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')
+                sheet[self._cell(i+srow,self._detcol(cell))].readonly(False)
+                sheet[self._cell(i+srow,self._detcol(cell))].data = new[i][self._detcol(cell)]
 
             # Base name
-            sheet[i+srow,2].readonly(False)
+            sheet[self._cell(i+srow,self._detcol('Name'))].readonly(False)
+            sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left')
 
             # Body
             if system != None and 'Bodies' in system:
                 bodies:list = self.colonisation.get_bodies(system)
+                if new[i][self._detcol('Base Type')] != ' ':
+                    basetype:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
+                    bodies = self.colonisation.get_bodies(system, basetype.get('Location'))
+
                 if len(bodies) > 0:
-                    sheet[i+srow,3].dropdown(values=[' '] + bodies)
-            sheet[i+srow,3].readonly(False)
-            sheet[i+srow,3].data = new[i][3]
+                    sheet[self._cell(i+srow,self._detcol('Body'))].dropdown(values=[' '] + bodies)
+            sheet[self._cell(i+srow,self._detcol('Body'))].readonly(False)
+            sheet[self._cell(i+srow,self._detcol('Body'))].data = new[i][self._detcol('Body')]
 
         # Clear the highlights on the empty last row
         if len(new) > len(system.get('Builds', [])):
             for j, details in enumerate(self.detail_cols.values()):
-                sheet[len(new)+srow-1,j].highlight(bg=None)
-            sheet[len(new)+srow-1,5].data = ' '
+                sheet[self._cell(len(new)+srow-1,j)].highlight(bg=None)
+            sheet[self._cell(len(new)+srow-1,self._detcol('State'))].data = ' '
 
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
+    @catch_exceptions
     def update_display(self) -> None:
         ''' Update the display with current system data '''
-        try:
-            systems:list = self.colonisation.get_all_systems()
-            for i, tab in enumerate(self.sheets):
-                system = systems[i]
-                self._update_title(i, system)
-                self._update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
-                self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
-        except Exception as e:
-            Debug.logger.error(f"Error in update_display(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        systems:list = self.colonisation.get_all_systems()
+        for i, tab in enumerate(self.sheets):
+            system = systems[i]
+            self._update_title(i, system)
+            self._update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
+            self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
+            # Not our system? Then it's readonly
+            if system.get('RCSync', False) == True and self.colonisation.cmdr != system.get('Architect', None):
+                self.sheets[i]['A1:Z'].readonly()
 
 
-    def validate_edits(self, event = None) -> str:
+    @catch_exceptions
+    def validate_edits(self, event = None) -> str|None:
         ''' Validate edits to the sheet. This just prevents the user from deleting the primary base type. '''
-        try:
-            row:int = event.row - FIRST_BUILD_ROW; col:int = event.column; val = event.value
-            fields:list = list(self.detail_cols.keys())
-            field:str = fields[col]
+        row:int = event.row - FIRST_BUILD_ROW; col:int = event.column; val = event.value
+        fields:list = list(self.detail_cols.keys())
+        field:str = fields[col]
 
-            if field == 'Base Type' and val == ' ' and row == 0:
-                # Don't delete the primary base or let it have no type
-                return None
+        if field == 'Base Type' and val == ' ' and row == 0:
+            # Don't delete the primary base or let it have no type
+            return None
 
-            return event.value
-
-        except Exception as e:
-            Debug.logger.error(f"Error in validate_edits(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        return event.value
 
 
-    def sheet_modified(self, tabnum:int, event = None) -> None:
+    @catch_exceptions
+    def sheet_modified(self, sheet:Sheet, tabnum:int, event = None) -> None:
         ''' Handle edits to the sheet. This is where we update the system data. '''
-        try:
-            sysnum:int = tabnum -1
-            systems:list = self.colonisation.get_all_systems()
+        sysnum:int = tabnum -1
+        systems:list = self.colonisation.get_all_systems()
+        system:dict = systems[sysnum]
 
-            if event.eventname == 'select' and len(event.selected) == 6:
-                # No editing the summary/headers
-                if event.selected.row < FIRST_BUILD_ROW: return
+        # Readonly if it's not our system
+        sysnum:int = tabnum -1
+        systems:list = self.colonisation.get_all_systems()
+        system:dict = systems[sysnum]
+        if system.get('RCSync', False) == True and self.colonisation.cmdr != system.get('Architect', None):
+            return None
 
-                row:int = event.selected.row - FIRST_BUILD_ROW; col:int = event.selected.column
-                fields:list = list(self.detail_cols.keys()); field:str = fields[col]
+        if event.eventname == 'select' and len(event.selected) == 6:
+            # No editing the summary/headers
+            if event.selected.row < FIRST_BUILD_ROW: return
 
-                # If the user clicks on the state column, toggle the state between planned and complete.
-                # If it's in progress we'll update to that on our next delivery
-                if field == 'State' and row < len(systems[sysnum]['Builds']):
-                    if systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE or \
-                        'Base Type' not in systems[sysnum]['Builds'][row] or \
-                        systems[sysnum]['Builds'][row]['Base Type'] == ' ':
-                        systems[sysnum]['Builds'][row]['State'] = BuildState.PLANNED
-                    else:
-                        systems[sysnum]['Builds'][row]['State'] = BuildState.COMPLETE
+            row:int = event.selected.row - FIRST_BUILD_ROW; col:int = event.selected.column
+            fields:list = list(self.detail_cols.keys()); field:str = fields[col]
 
-                    self.colonisation.dirty = True
-                    self.colonisation.save()
-                    self.update_display()
+            # If the user clicks on the state column, toggle the state between planned and complete.
+            # If it's in progress we'll update to that on our next delivery
+            if field == 'State' and row < len(system['Builds']):
+                if system['Builds'][row]['State'] == BuildState.COMPLETE or \
+                    'Base Type' not in systems[sysnum]['Builds'][row] or \
+                    systems[sysnum]['Builds'][row]['Base Type'] == ' ':
+                    self.colonisation.modify_build(system, row, {'State': BuildState.PLANNED})
+                else:
+                    self.colonisation.modify_build(system, row, {'State': BuildState.COMPLETE})
 
-                #if field in ['Name', 'Base Type'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
-                if field in ['Track'] and row < len(systems[sysnum]['Builds']) and systems[sysnum]['Builds'][row]['State'] == BuildState.COMPLETE:
-                    opener:str = plug.invoke(config.get_str('station_provider'), 'EDSM', 'station_url', systems[sysnum]['StarSystem'], systems[sysnum]['Builds'][row]['Name'])
-                    if opener:
-                        return webbrowser.open(opener)
-                return
+                self.update_display()
+            return
 
-            # We only deal with edits.
-            if not event.eventname.endswith('edit_table'):
-                return
+        # We only deal with edits.
+        if not event.eventname.endswith('edit_table'):
+            return
 
-            fields:list = list(self.detail_cols.keys())
-            field:str = fields[event.column]
-            row:int = event.row - FIRST_BUILD_ROW; val = event.value
+        # In the summary
+        if event.row < FIRST_BUILD_ROW:
+            field:str = list(self.summary_cols.keys())[event.column]
+            if event.row == 1 and field == 'Architect':
+                self.colonisation.modify_system(system, {field: event.value})
+            return
 
-            match field:
-                case 'Base Type' if val == ' ':
-                    # If they set the base type to empty remove the build
-                    if row < len(systems[sysnum]['Builds']):
-                        self.colonisation.remove_build(systems[sysnum], row)
-                    else:
-                        systems[sysnum]['Builds'][row][field] = val
-                    data:list = self.sheets[sysnum].data
-                    data.pop(row + FIRST_BUILD_ROW)
-                    self.sheets[sysnum].set_sheet_data(data)
-                    self._config_sheet(self.sheets[sysnum], systems[sysnum])
+        field:str = list(self.detail_cols.keys())[event.column]
+        row:int = event.row - FIRST_BUILD_ROW; val = event.value
 
-                case 'Base Type' if val != ' ':
-                    if row >= len(systems[sysnum]['Builds']):
-                        self.colonisation.add_build(systems[sysnum])
-                        systems[sysnum]['Builds'][row][field] = val
+        data:dict = {}
+        match field:
+            case 'Base Type' | 'Layout' if val == ' ':
+                # If they set the base type to empty remove the build
+                if row > 0 and row < len(system['Builds']):
+                    self.colonisation.remove_build(system, row)
+                else:
+                    self.colonisation.set_base_type(system, row, val)
 
-                    # Initial cell population
-                    data:list = []
-                    data.append(self._get_summary_header())
-                    data += self._build_summary(systems[sysnum])
+                sdata:list = self.sheets[sysnum].data
+                sdata.pop(row + FIRST_BUILD_ROW)
+                self.sheets[sysnum].set_sheet_data(sdata)
+                self._config_sheet(self.sheets[sysnum], system)
 
-                    data.append(self._get_detail_header())
-                    data += self._build_detail(systems[sysnum])
+            case 'Base Type' | 'Layout' if val != ' ':
+                self.colonisation.set_base_type(system, row, val)
 
-                    self.sheets[sysnum].set_sheet_data(data)
-                    self._config_sheet(self.sheets[sysnum], systems[sysnum])
+                # Initial cell population
+                sdata:list = []
+                sdata.append(self._get_summary_header())
+                sdata += self._build_summary(system)
 
-                    systems[sysnum]['Builds'][row][field] = val
+                sdata.append(self._get_detail_header())
+                sdata += self._build_detail(system)
 
-                case 'Track':
-                    # Toggle the tracked status.
-                    # Make sure the plan name is up to date as the progress view uses it.
-                    self.colonisation.update_build_tracking(systems[sysnum]['Builds'][row], val)
+                self.sheets[sysnum].set_sheet_data(sdata)
+                self._config_sheet(self.sheets[sysnum], system)
 
-                case _:
-                    # Any other fields, just update the build data
-                    if row >= len(systems[sysnum]['Builds']):
-                        self.colonisation.add_build(systems[sysnum])
-                    systems[sysnum]['Builds'][row][field] = val
+            case 'Body':
+                # If the body is set, update the build data
+                data[field] = val
+                if val == ' ':
+                    data['BodyNum'] = None
+                else:
+                    body:dict = self.colonisation.get_body(system, val)
+                    if body != None: data['BodyNum'] = body.get('bodyId', None)
 
-            self.colonisation.dirty = True
-            self.colonisation.save()
-            self.update_display()
+            case _:
+                # Any other fields, just update the build data
+                data[field] = val.strip() if isinstance(val, str) else val
 
-        except Exception as e:
-            Debug.logger.error(f"Error in sheet_modified(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        # Add the data to the build
+        if data != {}:
+            if row >= len(system.get('Builds', [])):
+                self.colonisation.add_build(system, data)
+            else:
+                self.colonisation.modify_build(system, row, data)
+
+        self.update_display()
 
 
-    def add_system_dialog(self) -> None:
+    @catch_exceptions
+    def add_system_dialog(self) -> tk.Frame:
         ''' Show dialog to add a new system '''
         dialog:tk.Frame = tk.Frame(self.tabbar)
         dialog.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
+        add:tk.Frame = tk.Frame(dialog)
+        add.grid(row=0, column=0, sticky=tk.W)
         # System name
         row:int = 0
-        ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
+        ttk.Label(add, text=_("Add Plan"), font=FONT_HEADING_2).grid(row=row, column=0, padx=10, pady=10, sticky=tk.W) # LANG: add plan
+        row += 1
+
+        ttk.Label(add, text=_("Plan Name")+":").grid(row=row, column=0, padx=10, pady=0, sticky=tk.W) # LANG: the name you want to give your plan
         plan_name_var:tk.StringVar = tk.StringVar()
-        plan_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
-        plan_name_entry.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+        plan_name_entry:ttk.Entry = ttk.Entry(add, textvariable=plan_name_var, width=30)
+        plan_name_entry.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
         row += 1
 
         # Display name
         syslabel:str = _("System Name") # LANG: Label for the system's name field in the UI
         optionlabel:str = _("optional and case sensitive") # LANG: Indicates the field is optional and case-sensitive
-        ttk.Label(dialog, text=f"{syslabel} ({optionlabel}):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        ttk.Label(add, text=f"{syslabel}\n({optionlabel}):").grid(row=row, column=0, padx=10, pady=10, sticky=tk.W)
         system_name_var:tk.StringVar = tk.StringVar()
+        system_name_entry:ttk.Entry = ttk.Entry(add, textvariable=system_name_var, width=30)
+        system_name_entry.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
+        row += 1
+
+        prepop_var = tk.BooleanVar()
+        chk = tk.Checkbutton(add, text=_("Pre-fill bases"), variable=prepop_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to pre-populate bases
+        chk.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
+        row += 1
+
+        rcsync_var = tk.BooleanVar()
+        chk = tk.Checkbutton(add, text=_("Sync with RavenColonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with RavenColonial
+        chk.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
+        row += 1
+
+        lbl = ttk.Label(add, text=_("When planning your system the first base is special, make sure that it is the first on the list.")) # LANG: Notice about the first base being special
+        lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=0, sticky=tk.W)
+        row += 1
+        lbl = ttk.Label(add, text=_("Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!")) # LANG: Notice about prepopulation being challenging
+        lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=0, sticky=tk.W)
+        row += 1
+
+        # Add button
+        add_button:ttk.Button = ttk.Button(
+            add,
+            text=_("Add"), # LANG: Add/create a new system
+            command=lambda: self._add_system(plan_name_var.get(), system_name_var.get(), prepop_var.get(), rcsync_var.get())
+        )
+        add_button.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+        row += 1
+
+        return dialog
+
+
+    @catch_exceptions
+    def update_react_dialog(self) -> None:
+        if self.react is not None:
+            self.react.destroy()
+
+        self.react = tk.Frame(self.add_dialog)
+        self.react.grid(row=0, column=1, sticky=tk.NW)
+
+        row = 0
+        col = 0
+        ttk.Label(self.react, text=_("Reactivate Plan"), font=FONT_HEADING_2).grid(row=row, column=col, padx=10, pady=10, sticky=tk.W) # LANG: reactivate plans
+        row +=1
+
+        for ind, system in enumerate(self.colonisation.get_all_systems()):
+            if system.get('Hidden', False) == True:
+                lbl = ttk.Label(self.react, text=system.get("Name"))
+                lbl.grid(row=row, column=col, columnspan=2, padx=10, pady=0, sticky=tk.W)
+                activate_button:ttk.Button = ttk.Button(
+                    self.react,
+                    text=_("Reactivate"), # LANG: Reactivate system
+                    command=partial(self._reactivate_system, ind)
+                )
+                activate_button.grid(row=row, column=col+1, padx=10, pady=0, sticky=tk.W)
+                row += 1
+
+
+    @catch_exceptions
+    def _reactivate_system(self, sysnum:int) -> None:
+            Debug.logger.debug("Reactivating system: {sysnum}")
+            self.colonisation.modify_system(sysnum, {'Hidden':False})
+            self.tabbar.notebookTab.tab(sysnum+1, state='normal')
+            self.update_react_dialog()
+
+
+    @catch_exceptions
+    def _add_system(self, plan_name:str, system_name:str, prepop:int = False, rcsync:int = False) -> None:
+        ''' Add the new system from the dialog '''
+        if not plan_name:
+            messagebox.showerror(_("Error"), _("Plan name is required")) # LANG: Error when no plan name is given
+            return
+
+        # Add the system
+        system:dict = self.colonisation.add_system({'Name':plan_name, 'StarSystem':system_name}, prepop, rcsync)
+        if system == False:
+            messagebox.showerror(_("Error"), _("Unable to create system")) # LANG: General failure to create system error
+            return
+
+        systems:list = self.colonisation.get_all_systems()
+        self._create_system_tab(len(systems), system)
+        self.update_display()
+
+
+    @catch_exceptions
+    def edit_system_dialog(self, tabnum:int, btn:ttk.Button) -> None:
+        ''' Show dialog to edit a system '''
+        #Debug.logger.debug(f"x: {int(x)} y: {int(y)}")
+        sysnum:int = tabnum -1
+        systems:list = self.colonisation.get_all_systems()
+        if sysnum > len(systems):
+            Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
+
+        system:dict = systems[sysnum]
+        dialog:tk.Toplevel = tk.Toplevel(btn)
+        dialog.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+        dialog.wm_attributes('-toolwindow', True) # makes it a tool window
+
+        dialog.title(_("Edit System")) # LANG: Rename a system
+        dialog.minsize(500, 250)
+        dialog.geometry(f"{int(500*self.scale)}x{int(250*self.scale)}+{btn.winfo_x()-100}+{self.window.winfo_y()+50}")
+        #dialog.transient(self.window)
+        dialog.config(bd=2, relief=tk.FLAT)
+        dialog.grab_set()
+
+        row:int = 0
+        # System name
+        ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
+        plan_name_var:tk.StringVar = tk.StringVar(value=system.get('Name', ''))
+        plan_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
+        plan_name_entry.grid(row=row, column=1, padx=10, pady=(10,5), sticky=tk.W)
+        row += 1
+
+        # Display name
+        ttk.Label(dialog, text=_("System Name") + "\n(" + _("optional and case sensitive") + "):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
+        system_name_var:tk.StringVar = tk.StringVar(value=system.get('StarSystem', ''))
         system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
-        system_name_entry.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+        system_name_entry.grid(row=row, column=1, padx=10, pady=(5,10), sticky=tk.W)
         row += 1
 
-        prepop_var = tk.IntVar()
-        chk = tk.Checkbutton(dialog, text=_("Pre-fill bases from EDSM"), variable=prepop_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to pre-populate bases from EDSM
-        chk.grid(row=row, column=1, padx=10, pady=10, sticky=tk.W)
+        rcsync_var = tk.BooleanVar()
+        rcsync_var.set(True if system.get('RCSync', 0) != 0 else False)
+        chk = tk.Checkbutton(dialog, text=_("Sync with RavenColonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with RavenColonial
+        chk.grid(row=row, column=1, padx=10, pady=(0,0), sticky=tk.W)
         row += 1
 
-        lbl = ttk.Label(dialog, text=_("When planning your system the first base is special, make sure that it is the first on the list.")) # LANG: Notice about the first base being special
-        lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=(10,0), sticky=tk.W)
-        row += 1
-        lbl = ttk.Label(dialog, text=_("Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!")) # LANG: Notice about prepopulation being challenging
-        lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=(0,10), sticky=tk.W)
+        hide_var = tk.BooleanVar()
+        hide_var.set(system.get('Hide', False))
+        chk = tk.Checkbutton(dialog, text=_("Deactivate (hide) this plan"), variable=hide_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to remove a plan from the tab list
+        chk.grid(row=row, column=1, padx=10, pady=(0,10), sticky=tk.W)
         row += 1
 
         # Buttons
         button_frame:ttk.Frame = ttk.Frame(dialog)
         button_frame.grid(row=row, column=0, columnspan=2, pady=10)
+        row += 1
 
-        # Add button
-        add_button:ttk.Button = ttk.Button(
+        # Save button
+        save_button:ttk.Button = ttk.Button(
             button_frame,
-            text=_("Add"), # LANG: Add/create a new system
-            command=lambda: self._add_system(plan_name_var.get(), system_name_var.get(), prepop_var.get())
-        )
-        add_button.pack(side=tk.LEFT, padx=5)
-        self.tabbar.add(dialog, text='+')
+            text=_("Save"), # LANG: Save button
+            command=lambda: self._edit_system(tabnum, plan_name_var.get(), system_name_var.get(), rcsync_var.get(), hide_var.get(), dialog)
+        ) # LANG: Rename button
+        save_button.pack(side=tk.LEFT, padx=5)
+
+        # Cancel button
+        cancel_button:ttk.Button = ttk.Button(
+            button_frame,
+            text=_("Cancel"), # LANG: Cancel button
+            command=dialog.destroy
+        ) # LANG: Cancel button
+        cancel_button.pack(side=tk.LEFT, padx=5)
+
+        # Focus on display name entry
+        system_name_entry.focus_set()
 
 
-    def _add_system(self, plan_name:str, system_name:str, prepop:bool = False) -> None:
-        ''' Add the new system from the dialog '''
-        try:
-            if not plan_name:
-                messagebox.showerror(_("Error"), _("Plan name is required")) # LANG: Error when no plan name is given
-                return
+    @catch_exceptions
+    def _edit_system(self, tabnum:int, name:str, sysname:str, rcsync:bool, hide:bool, dialog:tk.Toplevel) -> None:
+        ''' Edit a system's plan, name and sync state '''
+        sysnum:int = tabnum -1
 
-            # Add the system
-            system:dict = self.colonisation.add_system(plan_name, system_name, system_name, prepop)
-            if system == False:
-                messagebox.showerror(_("Error"), _("Unable to create system")) # LANG: General failure to create system error
-                return
+        if not name:
+            messagebox.showerror(_("Error"), _("Plan name is required"))
+            return
 
-            systems:list = self.colonisation.get_all_systems()
-            self._create_system_tab(len(systems), system)
-            self.update_display()
+        data:dict = {
+            'Name': name,
+            'StarSystem': sysname,
+            'RCSync': 1 if rcsync == True else 0,
+            'Hidden' : hide
+        }
+        if hide == True:
+            self.tabbar.hide(tabnum)
 
-        except Exception as e:
-            Debug.logger.error(f"Error in add_system: {e}")
-            Debug.logger.error(traceback.format_exc())
+        self.colonisation.modify_system(sysnum, data)
+        self.tabbar.notebookTab.tab(tabnum, text=name)
+        self.update_react_dialog()
 
-
-    def rename_system_dialog(self, tabnum:int, tab:ttk.Frame) -> None:
-        ''' Show dialog to rename a system '''
-        try:
-            sysnum:int = tabnum -1
-            systems:list = self.colonisation.get_all_systems()
-            if sysnum > len(systems):
-                Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
-
-            system:dict = systems[sysnum]
-            dialog:tk.Toplevel = tk.Toplevel(self.window)
-            dialog.title(_("Rename System")) # LANG: Rename a system
-            dialog.geometry("500x150")
-            dialog.transient(self.window)
-            dialog.grab_set()
-
-            # System name
-            ttk.Label(dialog, text=_("Plan Name")+":").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W) # LANG: the name you want to give your plan
-            plan_name_var:tk.StringVar = tk.StringVar(value=system.get('Name', ''))
-            plan_name_entry:ttk.Entr = ttk.Entry(dialog, textvariable=plan_name_var, width=30)
-            plan_name_entry.grid(row=0, column=1, padx=10, pady=10, sticky=tk.W)
-
-            # Display name
-            ttk.Label(dialog, text=_("System Name") + " ()" + _("optional and case sensitive") + "):").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W) # LANG: Elite dangerous system name
-            system_name_var:tk.StringVar = tk.StringVar(value=system.get('StarSystem', ''))
-            system_name_entry:ttk.Entry = ttk.Entry(dialog, textvariable=system_name_var, width=30)
-            system_name_entry.grid(row=1, column=1, padx=10, pady=10, sticky=tk.W)
-
-            # Buttons
-            button_frame:ttk.Frame = ttk.Frame(dialog)
-            button_frame.grid(row=2, column=0, columnspan=2, pady=10)
-
-            # Rename button
-            rename_button:ttk.Button = ttk.Button(
-                button_frame,
-                text=_("Rename"), # LANG: Rename system button
-                command=lambda: self._rename_system(tabnum, tab, plan_name_var.get(), system_name_var.get(), dialog)
-            ) # LANG: Rename button
-            rename_button.pack(side=tk.LEFT, padx=5)
-
-            # Cancel button
-            cancel_button:ttk.Button = ttk.Button(
-                button_frame,
-                text=_("Cancel"), # LANG: Cancel button
-                command=dialog.destroy
-            ) # LANG: Cancel button
-            cancel_button.pack(side=tk.LEFT, padx=5)
-
-            # Focus on display name entry
-            system_name_entry.focus_set()
-
-        except Exception as e:
-            Debug.logger.error(f"Error in rename_system_dialog(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        dialog.destroy()
+        self.update_display()
 
 
-    def _rename_system(self, tabnum:int, tab:ttk.Frame, name:str, sysname:str, dialog:tk.Toplevel) -> None:
-        ''' Rename a system '''
-        try:
-            sysnum:int = tabnum -1
-            systems:list = self.colonisation.get_all_systems()
-            if sysnum > len(systems):
-                Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
-
-            system:dict = systems[sysnum]
-            system['Name'] = name
-            system['StarSystem'] = sysname
-
-            self.tabbar.notebookTab.tab(tabnum, text=name)
-
-            self.colonisation.dirty = True
-            self.colonisation.save()
-            dialog.destroy()
-            self.update_display()
-
-        except Exception as e:
-            Debug.logger.error(f"Error in rename_system(): {e}")
-            Debug.logger.error(traceback.format_exc())
-
-
+    @catch_exceptions
     def delete_system(self, tabnum:int, tab: ttk.Frame) -> None:
         ''' Remove the current system '''
-        try:
-            sysnum:int = tabnum -1
-            # Confirm removal
-            if not messagebox.askyesno(
-                _("Confirm Removal"),
-                _("Are you sure you want to remove this system?")
-            ): # LANG: request system removal confirmation
-                return
+        sysnum:int = tabnum -1
+        # Confirm removal
+        if not messagebox.askyesno(
+            _("Confirm Removal"),
+            _("Are you sure you want to remove this system?")
+        ): # LANG: request system removal confirmation
+            return
 
-            if sysnum > len(self.colonisation.get_all_systems()):
-                Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
+        if sysnum > len(self.colonisation.get_all_systems()):
+            Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
-            Debug.logger.info(f"Deleting system {tabnum}")
-            tabs:list = self.tabbar.tabs()
-            self.tabbar.forget(tabs[tabnum])
-            del self.sheets[sysnum]
-            del self.plan_titles[sysnum]
-            self.colonisation.remove_system(sysnum)
+        Debug.logger.info(f"Deleting system {tabnum}")
+        tabs:list = self.tabbar.tabs()
+        self.tabbar.forget(tabs[tabnum])
+        del self.sheets[sysnum]
+        del self.plan_titles[sysnum]
+        self.colonisation.remove_system(sysnum)
 
-            self.update_display()
-
-        except Exception as e:
-            Debug.logger.error(f"Error in delete_system(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        self.update_display()
 
 
+    @catch_exceptions
+    def _rc_refresh_system(self, tabnum:int) -> None:
+        ''' Reload the current system from RavenColonial '''
+        sysnum:int = tabnum -1
+        systems:list = self.colonisation.get_all_systems()
+        if sysnum > len(systems):
+            Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
+
+        system:dict = systems[sysnum]
+        if system.get('RCSync', 0) == 0:
+            return
+
+        # Refresh the RC data when the window is opened/created
+        Debug.logger.debug(f"Reloading system {system.get('StarSystem', 'Unknown')} from {system.get('SystemAddress')}")
+        RavenColonial(self).load_system(system.get('SystemAddress', ''), system.get('Rev', ''))
+
+        if self.bgstally.fleet_carrier.available() == True:
+            RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)
+
+        # @TODO: Create a proper project sync process.
+        #for b in system['Builds']:
+        #    if b.get('State') == BuildState.PROGRESS and b.get('BuildID', None) != None:
+        #        self.rc.load_project()
+        self.update_display()
+
+
+    @catch_exceptions
     def close(self) -> None:
         ''' Close the window and any popups and clean up'''
-        try:
-            if self.window: self.window.destroy()
-            if self.legend_fr: self.legend_fr.destroy()
-            if self.notes_fr: self.notes_fr.destroy()
-            if self.bases_fr: self.bases_fr.destroy()
-            if self.bodies_fr: self.bodies_fr.destroy()
+        if self.window: self.window.destroy()
+        if self.legend_fr: self.legend_fr.destroy()
+        if self.notes_fr: self.notes_fr.destroy()
+        if self.bases_fr: self.bases_fr.destroy()
+        if self.bodies_fr: self.bodies_fr.destroy()
 
-            # UI components
-            self.tabbar:ScrollableNotebook = None
-            self.sheets:list = []
-            self.plan_titles:list = []
-            self.colonisation.save()
-
-        except Exception as e:
-            Debug.logger.error(f"Error in close(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        # UI components
+        self.tabbar:ScrollableNotebook
+        self.sheets:list = []
+        self.plan_titles:list = []
+        self.colonisation.save("Colonisation window close")
 
 
+    @catch_exceptions
     def _calc_points(self, type:str, builds:list, row:int) -> int:
         ''' Calculate the T2 or T3 base point cost/reward. It depends on the type of base and what's planned/built so far '''
         bt:dict = self.colonisation.get_base_type(builds[row].get('Base Type', ''))
@@ -1160,22 +1289,26 @@ class ColonisationWindow:
         return reward - cost
 
 
-    def _set_weight(self, item:tuple, wght:str = 'bold') -> None:
+    @catch_exceptions
+    def _set_weight(self, item, wght:str = 'bold') -> None:
         ''' Set font weight '''
-        fnt:tkFont = tkFont.Font(font=item['font']).actual()
+        fnt = tkFont.Font(font=item['font']).actual()
         item.configure(font=(fnt['family'], fnt['size'], wght))
 
 
+    @catch_exceptions
     def is_build_complete(self, build:list[dict]) -> bool:
         ''' Check if a build is complete '''
         return (self.colonisation.get_build_state(build) == BuildState.COMPLETE)
 
 
+    @catch_exceptions
     def is_build_started(self, build:list[dict]) -> bool:
         ''' Check if a build is in progress '''
         return (self.colonisation.get_build_state(build) == BuildState.PROGRESS)
 
 
+    @catch_exceptions
     def _load_legend(self) -> str:
         ''' Load the legend text from the language appropriate file '''
         filepath: str | None = get_localised_filepath(FILENAME_LEGEND, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
@@ -1187,75 +1320,67 @@ class ColonisationWindow:
             except Exception as e:
                 Debug.logger.warning(f"Unable to load legend {filepath}")
                 Debug.logger.error(traceback.format_exc())
-
         return ""
 
 
+    @catch_exceptions
     def legend_popup(self) -> None:
         ''' Show the legend popup window '''
-        try:
-            if self.legend_fr is not None and self.legend_fr.winfo_exists():
-                self.legend_fr.lift()
-                return
+        if self.legend_fr != None and self.legend_fr.winfo_exists():
+            self.legend_fr.lift()
+            return
 
-            self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
-            self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
-            self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-            self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
-            self.legend_fr.geometry("600x600")
-            self.legend_fr.config(bd=2, relief=tk.FLAT)
-            scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
-            scr.pack(side=tk.RIGHT, fill=tk.Y)
+        self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
+        self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
+        self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+        self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
+        self.legend_fr.geometry(f"600x600")
+        self.legend_fr.config(bd=2, relief=tk.FLAT)
+        scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
+        scr.pack(side=tk.RIGHT, fill=tk.Y)
 
-            text:tk.Text = tk.Text(self.legend_fr, font=FONT_SMALL, yscrollcommand=scr.set)
-            text.insert(tk.END, self._load_legend())
-            text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-
-        except Exception as e:
-            Debug.logger.error(f"Error in legend_popup(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        text:tk.Text = tk.Text(self.legend_fr, font=FONT_SMALL, yscrollcommand=scr.set)
+        text.insert(tk.END, self._load_legend())
+        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
 
+    @catch_exceptions
     def notes_popup(self, tabnum:int) -> None:
         ''' Show the notes popup window '''
-        try:
-            def savenotes(system:dict, text:tk.Text) -> None:
-                ''' Save the notes and close the popup window '''
-                if sysnum > len(self.plan_titles):
-                    Debug.logger.info(f"Saving notes invalid tab: {tabnum}")
-                    return
+        def savenotes(system:dict, text:tk.Text) -> None:
+            ''' Save the notes and close the popup window '''
+            if sysnum > len(self.plan_titles):
+                Debug.logger.info(f"Saving notes invalid tab: {tabnum}")
+                return
 
-                notes:str = text.get("1.0", tk.END)
-                system['Notes'] = notes
-                self.colonisation.save()
-                self.notes_fr.destroy()
-                self.notes_fr = None
+            notes:str = text.get("1.0", tk.END)
+            system['Notes'] = notes
+            self.colonisation.save("Notes popup close")
+            self.notes_fr.destroy()
+            self.notes_fr
 
-            sysnum:int = tabnum -1
-            systems:list = self.colonisation.get_all_systems()
+        sysnum:int = tabnum -1
+        systems:list = self.colonisation.get_all_systems()
 
-            if self.notes_fr is not None and self.notes_fr.winfo_exists():
-                self.notes_fr.destroy()
+        if self.notes_fr != None and self.notes_fr.winfo_exists():
+            self.notes_fr.destroy()
 
-            self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
-            self.notes_fr.wm_title(_("{plugin_name} - Colonisation Notes for {system_name}").format(plugin_name=self.bgstally.plugin_name, system_name=systems[sysnum].get('Name', ''))) # LANG: Title of the notes popup window
-            self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-            self.notes_fr.geometry("600x600")
-            self.notes_fr.config(bd=2, relief=tk.FLAT)
-            scr:tk.Scrollbar = tk.Scrollbar(self.notes_fr, orient=tk.VERTICAL)
-            scr.pack(side=tk.RIGHT, fill=tk.Y)
+        self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
+        self.notes_fr.wm_title(_("{plugin_name} - Colonisation Notes for {system_name}").format(plugin_name=self.bgstally.plugin_name, system_name=systems[sysnum].get('Name', ''))) # LANG: Title of the notes popup window
+        self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+        self.notes_fr.geometry("600x600")
+        self.notes_fr.config(bd=2, relief=tk.FLAT)
+        scr:tk.Scrollbar = tk.Scrollbar(self.notes_fr, orient=tk.VERTICAL)
+        scr.pack(side=tk.RIGHT, fill=tk.Y)
 
-            text:tk.Text = tk.Text(self.notes_fr, font=FONT_SMALL, yscrollcommand=scr.set)
-            notes:str = systems[sysnum].get('Notes', '')
-            text.insert(tk.END, notes)
-            text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-            self.notes_fr.protocol("WM_DELETE_WINDOW", partial(savenotes, systems[sysnum], text))
-
-        except Exception as e:
-            Debug.logger.error(f"Error in notes_popup(): {e}")
-            Debug.logger.error(traceback.format_exc())
+        text:tk.Text = tk.Text(self.notes_fr, font=FONT_SMALL, yscrollcommand=scr.set)
+        notes:str = systems[sysnum].get('Notes', '')
+        text.insert(tk.END, notes)
+        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+        self.notes_fr.protocol("WM_DELETE_WINDOW", partial(savenotes, systems[sysnum], text))
 
 
+    @catch_exceptions
     def _set_background(self, type: str|None, value: str, limit:int = 1) -> str|None:
         ''' Return the appropriate background '''
         match type:
@@ -1269,83 +1394,85 @@ class ColonisationWindow:
                 return type
 
 
+    @catch_exceptions
     def _get_color(self, value:int, limit:int = 1, color:str = 'rwg') -> str:
         ''' Get a color based on the value and its range. '''
-        try:
-            if not isinstance(value, int) and not value.isdigit():
-                return "#7A007A"
+        if not isinstance(value, int) and not value.isdigit():
+            return "#7A007A"
 
-            # Scale it to a sensible range
-            if limit > 25:
-                value = int(value * 25 / limit)
-                limit = 25
-            value:int = min(value, limit)
+        # Scale it to a sensible range
+        if limit > 25:
+            value = int(value * 25 / limit)
+            limit = 25
+        value = min(value, limit)
 
-            # Red, White, Green or Green, Yellow, Red
-            if color == 'rwg':
-                gradient:list = self._create_gradient(limit, 'rwg')
-                value = min(max(int(value), -limit), limit)
-                return gradient[int(value + limit)]
+        # Red, White, Green or Green, Yellow, Red
+        if color == 'rwg':
+            gradient:list = self._create_gradient(limit, 'rwg')
+            value = min(max(int(value), -limit), limit)
+            return gradient[int(value + limit)]
 
-            # keep it within the limits
-            gradient:list = self._create_gradient(limit, 'gyr')
-            if value < len(gradient):
-                return gradient[int(value)]
+        # keep it within the limits
+        gradient:list = self._create_gradient(limit, 'gyr')
+        if value < len(gradient):
+            return gradient[int(value)]
 
-            return ["#7A007A"]
-
-        except Exception as e:
-            Debug.logger.error(f"Error in get_color: {e}")
-            Debug.logger.error(traceback.format_exc())
-            return ["#7A007A"]
+        return "#7A007A"
 
 
+    @catch_exceptions
     def _create_gradient(self, steps:int, type:str = 'rwg') -> list[str]:
         ''' Generates a list of RGB color tuples representing a gradient. '''
-        try:
-            # Green, Yellow, Red (0:steps)
-            s:int = (150, 200, 150) # start
-            m:int = (230, 230, 125) # middle
-            e:int = (190, 30, 100) # end
+        # Green, Yellow, Red (0:steps)
+        s = (150, 200, 150) # start
+        m = (230, 230, 125) # middle
+        e = (190, 30, 100) # end
 
-            # Red, White, Green (-steps:steps)
-            if type == 'rwg':
-                steps *= 2
-                # Define RGB values
-                s = (200, 125, 100)
-                m = (255, 255, 255)
-                e = (75, 175, 75)
+        # Red, White, Green (-steps:steps)
+        if type == 'rwg':
+            steps *= 2
+            # Define RGB values
+            s = (200, 125, 100)
+            m = (255, 255, 255)
+            e = (75, 175, 75)
 
-            # Define gradient parameters
-            gradient_colors:list = []
+        # Define gradient parameters
+        gradient_colors:list = []
 
-            # Calculate interpolation steps
-            r_step_1:int = (m[0] - s[0]) / steps
-            g_step_1:int = (m[1] - s[1]) / steps
-            b_step_1:int = (m[2] - s[2]) / steps
+        # Calculate interpolation steps
+        r_step_1:int = round((m[0] - s[0]) / steps)
+        g_step_1:int = round((m[1] - s[1]) / steps)
+        b_step_1:int = round((m[2] - s[2]) / steps)
 
-            r_step_2:int = (e[0] - m[0]) / steps
-            g_step_2:int = (e[1] - m[1]) / steps
-            b_step_2:int = (e[2] - m[2]) / steps
+        r_step_2:int = round((e[0] - m[0]) / steps)
+        g_step_2:int = round((e[1] - m[1]) / steps)
+        b_step_2:int = round((e[2] - m[2]) / steps)
 
-            # Iterate and interpolate
-            for i in range(steps+1):
-                # Interpolate between start and middle
-                if i < steps/2:
-                    cr = min(max(s[0] + r_step_1 * i, 0), 255)
-                    cg = min(max(s[1] + g_step_1 * i, 0), 255)
-                    cb = min(max(s[2] + b_step_1 * i, 0), 255)
-                else: # Interpolate between middle and end
-                    cr = min(max(m[0] + r_step_2 * (i - steps/2), 0), 255)
-                    cg = min(max(m[1] + g_step_2 * (i - steps/2), 0), 255)
-                    cb = min(max(m[2] + b_step_2 * (i - steps/2), 0), 255)
+        # Iterate and interpolate
+        for i in range(steps+1):
+            # Interpolate between start and middle
+            if i < steps/2:
+                cr = min(max(s[0] + r_step_1 * i, 0), 255)
+                cg = min(max(s[1] + g_step_1 * i, 0), 255)
+                cb = min(max(s[2] + b_step_1 * i, 0), 255)
+            else: # Interpolate between middle and end
+                cr = min(max(m[0] + r_step_2 * (i - steps/2), 0), 255)
+                cg = min(max(m[1] + g_step_2 * (i - steps/2), 0), 255)
+                cb = min(max(m[2] + b_step_2 * (i - steps/2), 0), 255)
 
-                # Add the interpolated color to the gradient
-                gradient_colors.append(f"#{int(cr):02x}{int(cg):02x}{int(cb):02x}")
+            # Add the interpolated color to the gradient
+            gradient_colors.append(f"#{int(cr):02x}{int(cg):02x}{int(cb):02x}")
 
-            return gradient_colors
+        return gradient_colors
 
-        except Exception as e:
-            Debug.logger.error(f"Error in gradient: {e}")
-            Debug.logger.error(traceback.format_exc())
-            return ["#7A007A"]
+
+    @catch_exceptions
+    def _detcol(self, col:str) -> int:
+        ''' Macro to shorten references to detail columns '''
+        return list(self.detail_cols.keys()).index(col)
+
+
+    @catch_exceptions
+    def _cell(self, row:int, col:int) -> str:
+        ''' Macro to shorten cell references '''
+        return f"{num2alpha(col)}{row+1}"

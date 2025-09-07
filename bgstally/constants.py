@@ -42,6 +42,7 @@ class DiscordChannel(str, Enum):
     CMDR_INFORMATION = 'CMDR-info'
     FLEETCARRIER_MATERIALS = 'FC-mats'
     FLEETCARRIER_OPERATIONS = 'FC-ops'
+    POWERPLAY = 'PP'
     THARGOIDWAR = 'TW'
 
 
@@ -68,7 +69,8 @@ class DiscordPostStyle(str, Enum):
 class DiscordActivity(str, Enum):
     BGS = 'BGS'
     THARGOIDWAR = 'TW'
-    BOTH = 'Both'
+    BOTH = 'Both'      # Both BGS and Thargoid War. Others below are always posted separately.
+    POWERPLAY = 'PP'
 
 
 class DiscordFleetCarrier(str, Enum):
@@ -122,15 +124,13 @@ class BuildState(str, Enum):
 
 # Commodity sort order
 class CommodityOrder(Enum):
-    DEFAULT = 0
-    CATEGORY = 1
-    ALPHA = 2
+    ALPHA = 0
+    CATEGORY = auto()
+    QUANTITY = auto()
 
 class ProgressUnits(Enum):
-    TONNES = 0
-    REMAINING = auto()
+    QTY = 0
     LOADS = auto()
-    PERCENT = auto()
 
 class ProgressView(Enum):
     FULL = 0

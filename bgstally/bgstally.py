@@ -105,6 +105,7 @@ class BGSTally:
         The plugin is shutting down.
         """
         self.ui.shut_down()
+        self.colonisation.save('Shutdown')
         self.save_data()
 
 
@@ -262,6 +263,10 @@ class BGSTally:
 
             case 'MissionFailed':
                 activity.mission_failed(entry, self.mission_log)
+                dirty = True
+
+            case 'PowerplayMerits':
+                activity.powerplay_merits(entry)
                 dirty = True
 
             case 'ReceiveText':

@@ -12,6 +12,8 @@ from typing import List, Optional
 import myNotebook as nb
 from ttkHyperlinkLabel import HyperlinkLabel
 
+from plugins.common_coreutils import (api_keys_label_common, PADX, PADY, BUTTONX, SEPY, show_pwd_var_common)
+
 from bgstally.activity import Activity
 from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity,
                                 UpdateUIPolicy)
@@ -71,6 +73,10 @@ class UI:
         self.report_system_address:str = None
         self.report_cmdr_data:dict = None
         self.warning:str = None
+
+        # RavenColonial API key management
+        self.apikey:nb.EntryMenu
+        self.apikey_label:tk.Label
 
         # Single-instance windows
         self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally)
@@ -205,6 +211,7 @@ class UI:
         nb.Checkbutton(frame, text=_("Show Detailed INF"), variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Include Secondary INF"), variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
+        nb.Checkbutton(frame, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Automatically Post BGS and TW Activity"), variable=self.bgstally.state.DiscordBGSTWAutomatic, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
@@ -230,14 +237,15 @@ class UI:
                                "TW",
                                _("FC C/M"), # LANG: Preferences table heading, abbreviation for fleet carrier commodities / materials
                                _("FC Ops"), # LANG: Preferences table heading, abbreviation for fleet carrier operations
-                               "CMDR"]
+                               "CMDR",
+                               "PP"]
         self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, cell_auto_resize_enabled=False, height=140, width=880,
                                      column_width=int(55 * ui_scaling), header_align="left", empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
                                      show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
                                      headers=sheet_headings)
         self.sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
         self.sheet_webhooks.hide_columns(columns=[0])                       # Visible column indexes
-        self.sheet_webhooks.checkbox_column(c=[3, 4, 5, 6, 7])              # Data column indexes
+        self.sheet_webhooks.checkbox_column(c=[3, 4, 5, 6, 7, 8])           # Data column indexes
         self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks_as_list())
         self.sheet_webhooks.column_width(column=0, width=int(150 * ui_scaling), redraw=False) # Visible column indexes
         self.sheet_webhooks.column_width(column=1, width=int(400 * ui_scaling), redraw=True)  # Visible column indexes
@@ -325,6 +333,18 @@ class UI:
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("Integrations"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
         tk.Button(frame, text=_("Configure Remote Server"), command=partial(self._show_api_window, parent_frame)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences button label
+
+        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text=_("Colonisation"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
+        nb.Label(frame, text=_("Maximum commodities")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
+        EntryPlus(frame, textvariable=self.bgstally.state.ColonisationMaxCommodities).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
+
+        api_keys_label_common(self, current_row, frame)
+        current_row += 1
+        show_pwd_var_common(frame, current_row, self)
+        current_row += 1
+        self.apikey_label.configure(text=_("RavenColonial API Key"))
+        self.apikey.configure(textvariable=self.bgstally.state.ColonisationRCAPIKey)
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("Advanced"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
@@ -513,7 +533,8 @@ class UI:
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
-                    self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
+                    if pinned_systems is not None and pinned_systems != []:
+                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
 
             # CMDR Information
             if self.bgstally.state.enable_overlay_cmdr and self.report_cmdr_data is not None:

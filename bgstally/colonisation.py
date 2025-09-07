@@ -128,7 +128,7 @@ class Colonisation:
         if entry.get("StationName", None): self.station = entry.get('StationName')
         if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
 
-        Debug.logger.debug(f"Event: {entry.get('event')} -- ID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
+        Debug.logger.debug(f"Event: {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
 
         match entry.get('event'):
             case 'StartUp': # Synthetic event.
@@ -223,7 +223,6 @@ class Colonisation:
                 if system.get('Name', None) != None: system['Name'] = self.current_system
 
                 # Update the build details
-                Debug.logger.debug(f"Docked updating build {self.station} in system {self.current_system}")
                 data:dict = {}
                 if self.station != None and build.get('Name', None) != self.station: data['Name'] = self.station
                 if build['State'] != build_state: data['State'] = build_state
@@ -233,6 +232,7 @@ class Colonisation:
                 if self.location != None and build.get('Location', None) != self.location: data['Location'] = self.location
                 if build_state == BuildState.PROGRESS and build.get('Track') != (build_state != BuildState.COMPLETE): data['Track'] = True
                 if data != {}:
+                    Debug.logger.debug(f"Docked updating build {self.station} in system {self.current_system} {data}")
                     self.modify_build(system, build.get('BuildID', ''), data)
                     self.bgstally.ui.window_progress.update_display()
                     self.dirty = True
@@ -477,7 +477,6 @@ class Colonisation:
     @catch_exceptions
     def get_body(self, system:dict, body:str|int) -> dict|None:
         ''' Get a body by name or id from a system '''
-        Debug.logger.debug(f"Finding body from {body}")
         for b in system.get('Bodies', []):
             # EDSM uses bodyId & name
             if isinstance(body, str) and body == self.body_name(system['StarSystem'], b.get('name', '')):

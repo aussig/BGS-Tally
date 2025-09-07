@@ -185,7 +185,6 @@ class RavenColonial:
         if system.get('Architect', '') != self.colonisation.cmdr:
             Debug.logger.info(f"Not architect, not updating")
             return
-        if data.get('Name') == 'T9M-33M': raise
 
         # Create an ID if necessary
         if data.get('BuildID', None) == None and data.get('MarketID', None) != None:
@@ -193,6 +192,10 @@ class RavenColonial:
 
         if data.get('BuildID', None) == None and data.get('State', None) == BuildState.PLANNED:
             data['BuildID'] = f"x{int(time.time())}"
+
+        # Add a name since RC requires one at creation but not later
+        if data.get('Name', None) == None:
+            data['Name'] = ' '
 
         update:dict = {}
         rev_map:dict = {value: key for key, value in self.status_map.items()}
@@ -206,7 +209,7 @@ class RavenColonial:
         payload:dict = {'update': [update], 'delete':[]}
 
         url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
-        Debug.logger.info(f"RavenColonial upserting site: {payload} {self._headers()}")
+        Debug.logger.info(f"RavenColonial upserting site: {payload}")
         response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
         if response.status_code != 200:
             Debug.logger.error(f"{url} {response} {response.content}")

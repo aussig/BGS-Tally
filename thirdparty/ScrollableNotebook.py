@@ -101,7 +101,8 @@ class ScrollableNotebook(ttk.Frame):
         self.contentsManaged.pop(index)
 
     def hide(self,tab_id):
-        self.notebookContent.hide(self.__ContentTabID(tab_id))
+        #self.notebookContent.hide(self.__ContentTabID(tab_id))
+        self.notebookContent.hide(tab_id)
         self.notebookTab.hide(tab_id)
 
     def identify(self,x, y):
@@ -124,7 +125,8 @@ class ScrollableNotebook(ttk.Frame):
     def tab(self,tab_id, option=None, **kwargs):
         kwargs_Content = kwargs.copy()
         kwargs_Content["text"] = "" # important
-        self.notebookContent.tab(self.__ContentTabID(tab_id), option=None, **kwargs_Content)
+        #self.notebookContent.tab(self.__ContentTabID(tab_id), option=None, **kwargs_Content)
+        self.notebookContent.tab(tab_id, option=None, **kwargs_Content)
         return self.notebookTab.tab(tab_id, option=None, **kwargs)
 
     def tabs(self):

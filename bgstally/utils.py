@@ -306,3 +306,17 @@ def str_truncate(s:str, length:int = 20, elipsis:str = '…', loc:str = 'right')
         case _:
             # Default to truncating at the right side
             return s[:length - len(elipsis)] + elipsis
+
+
+def catch_exceptions(func):
+    """ Generic exception handler called via decorators """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            Debug.logger.info(f"An error occurred in {func.__name__}: {e}")
+            trace:list = traceback.format_exc().splitlines()
+            #Debug.logger.error("\n".join(trace[4:]))
+            Debug.logger.error(trace[0] + "\n" + "\n".join(trace[4:]))
+    return wrapper

@@ -111,8 +111,8 @@ class ProgressWindow:
         y=tk.LabelFrame(frame, border=1, height=10)
         y.grid(row=row, column=col, columnspan=5, pady=0, sticky=tk.EW)
         y.grid_rowconfigure(0, weight=1)
-        y.grid_propagate(0)
-        self.progvar = tk.IntVar()
+        y.grid_propagate(False)
+        self.progvar = tk.IntVar(value=0)
         self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=450, mode='determinate')
         self.progtt:ToolTip = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
         self.progbar.grid(row=0, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW)
@@ -407,11 +407,11 @@ class ProgressWindow:
             if reqcnt - delcnt > 0: totals['Carrier'] += max(min(carrier, reqcnt - delcnt - cargo), 0)
 
             # We only show relevant (required) items. But.
-            # If the view is reduced we don't show ones that are complete. Also.
+            # If the view is reduced or minimal we don't show ones that are complete. Also.
             # If we're in minimal view we only show ones we still need to buy.\
             if (reqcnt <= 0) or \
-                (remaining <= 0 and self.view != ProgressView.FULL) or \
-                (reqcnt - carrier - cargo <= 0 and cargo == 0 and carrier == 0 and self.view == ProgressView.MINIMAL) or \
+                (remaining <= 0 and cargo == 0 and carrier == 0 and self.view == ProgressView.REDUCED) or \
+                (remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
                 (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) == 0 and self.view == ProgressView.MINIMAL) or \
                 rc > int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
@@ -498,7 +498,6 @@ class ProgressWindow:
         ''' Color rows depending on the state '''
         remaining:int = required - delivered
         space:int = self.colonisation.cargo_capacity - cargo
-        #Debug.logger.debug(f"Highlighting {c} {self.colonisation.cargo_capacity} {cargo} {space}}")
         for col, cell in row.items():
             # Get the ed:mc default color
             cell['fg'] = config.get_str('dark_text') if config.get_int('theme') == 1 else 'black'
@@ -527,5 +526,6 @@ class ProgressWindow:
             if self.colonisation.docked == True and self.colonisation.market.get(c, 0): # market!
                 cell['fg'] = 'steelblue'
                 # bold if need any and have room, otherwise normal
+                Debug.logger.debug(f"Market: {remaining-cargo-carrier} {space}")
                 self._set_weight(cell, 'bold' if remaining-cargo-carrier > 0 and space > 0 else 'normal')
                 continue

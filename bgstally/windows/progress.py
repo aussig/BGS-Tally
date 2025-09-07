@@ -88,7 +88,7 @@ class ProgressWindow:
         self.titlett:ToolTip # Title tooltip
         self.rows:list = []
         self.progbar:ttk.Progressbar # Overall progress bar
-        self.progvar:tk.IntVar
+        self.progvar:tk.IntVar = tk.IntVar(value=0)
         self.build_index:int = 0 # Which build we're showing
         self.view:ProgressView = ProgressView.REDUCED # Full, reduced, or no list of commodities
         self.comm_order:CommodityOrder = CommodityOrder.ALPHA # Commodity order
@@ -112,7 +112,6 @@ class ProgressWindow:
         y.grid(row=row, column=col, columnspan=5, pady=0, sticky=tk.EW)
         y.grid_rowconfigure(0, weight=1)
         y.grid_propagate(False)
-        self.progvar = tk.IntVar(value=0)
         self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=450, mode='determinate')
         self.progtt:ToolTip = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
         self.progbar.grid(row=0, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW)
@@ -497,8 +496,8 @@ class ProgressWindow:
     def _highlight_row(self, row:dict, c:str, required:int, delivered:int, cargo:int, carrier:int) -> None:
         ''' Color rows depending on the state '''
         remaining:int = required - delivered
-        space:int = self.colonisation.cargo_capacity - cargo
-        for col, cell in row.items():
+        space:int = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
+        for cell in row.values():
             # Get the ed:mc default color
             cell['fg'] = config.get_str('dark_text') if config.get_int('theme') == 1 else 'black'
             self._set_weight(cell, 'normal')
@@ -526,6 +525,5 @@ class ProgressWindow:
             if self.colonisation.docked == True and self.colonisation.market.get(c, 0): # market!
                 cell['fg'] = 'steelblue'
                 # bold if need any and have room, otherwise normal
-                Debug.logger.debug(f"Market: {remaining-cargo-carrier} {space}")
                 self._set_weight(cell, 'bold' if remaining-cargo-carrier > 0 and space > 0 else 'normal')
                 continue

@@ -1079,19 +1079,9 @@ class Colonisation:
     @catch_exceptions
     def _from_dict(self, dict:dict) -> None:
         ''' Populate our data from a Dictionary that has been deserialized '''
-        self.docked = dict.get('Docked', False)
-        self.system_id = dict.get('SystemID', None)
-        self.current_system = dict.get('CurrentSystem', None)
-        self.body = dict.get('Body', None)
-        self.station = dict.get('Station', None)
-        self.market_id = dict.get('MarketID', None)
+
         self.progress = dict.get('Progress', [])
         self.systems = dict.get('Systems', [])
-        self.cargo_capacity = dict.get('CargoCapacity', 784)
-        self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
-        self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
-        self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns')
-        self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
 
         # Migration to ubiquitous buildids
         for system in self.systems:
@@ -1099,3 +1089,19 @@ class Colonisation:
                 if 'BuildID' not in build:
                     build['BuildID'] = f"x{int(time.time())}" if build.get('State') == BuildState.COMPLETE else f"&{int(time.time())}"
                     self.dirty = True
+
+        # This is configuration that can get messed up during an upgrade, no problem, just ignore it and move on.
+        try:
+            self.docked = dict.get('Docked', False)
+            self.system_id = dict.get('SystemID', None)
+            self.current_system = dict.get('CurrentSystem', None)
+            self.body = dict.get('Body', None)
+            self.station = dict.get('Station', None)
+            self.market_id = dict.get('MarketID', None)
+            self.cargo_capacity = dict.get('CargoCapacity', 784)
+            self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
+            self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
+            self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns')
+            self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
+        except:
+            return

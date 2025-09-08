@@ -283,10 +283,10 @@ class Colonisation:
                 if build.get('State') == BuildState.PROGRESS and 'Construction Site' in build.get('Name', ''):
                     Debug.logger.debug(f"Trying to complete build")
                     self.try_complete_build(build.get('MarketID', 0))
-                build['MarketID'] = self.market_id
+                if self.market_id != None: build['MarketID'] = self.market_id
                 build['State'] = BuildState.COMPLETE
-                build['Name'] = self.station
-                build['Body'] = self.body
+                if self.station != None: build['Name'] = self.station
+                if self.body != None: build['Body'] = self.body
                 build['Track'] = False
                 self.dirty = True
 

@@ -1101,7 +1101,7 @@ class Colonisation:
             self.cargo_capacity = dict.get('CargoCapacity', 784)
             self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
             self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
-            self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns')
+            if dict.get('ProgressColumns', None) != None: self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns')
             self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
         except:
             return

@@ -59,7 +59,7 @@
 "All builds" = "Tutte le costruzioni";
 
 /* Alphabetical order. [progress.py] */
-"Alphabetical order" = "Alphabetical order";
+"Alphabetical order" = "Ordine alfabetico";
 
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API modificata, apri le impostazioni per riapprovarla";
@@ -221,7 +221,7 @@
 "Commodity" = "Commodity";
 
 /* Commodity Category. [progress.py] */
-"Commodity Category" = "Commodity Category";
+"Commodity Category" = "Categoria Commodity";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Comms Installation" = "Comms Installation";
@@ -311,7 +311,7 @@
 "Default" = "Predefinita";
 
 /* Commodity. [progress.py] */
-"Default order" = "Default order";
+"Default order" = "Ordine Predefinito";
 
 /* Delete button. [colonisation.py] */
 "Delete" = "Elimina";
@@ -734,10 +734,10 @@
 "Loads" = "Carichi";
 
 /* number of cargo loads delivered. [progress.py] */
-"Loads delivered so far" = "Loads delivered so far";
+"Loads delivered so far" = "Carichi finora consegnati";
 
 /* [progress.py] */
-"Loads on carrier" = "Loads on carrier";
+"Loads on carrier" = "Carichi sulla carrier";
 
 /* base location surface/orbital. [colonisation.py] */
 "Location" = "Posizione";
@@ -893,16 +893,16 @@
 "Percent" = "Percentuale";
 
 /* [progress.py] */
-"Percent in cargo" = "Percent in cargo";
+"Percent in cargo" = "Percentuale nel cargo";
 
 /* [progress.py] */
-"Percent on carrier" = "Percent on carrier";
+"Percent on carrier" = "Percentuale nella carrier";
 
 /* [progress.py] */
-"Percentage delivered so far" = "Percentage delivered so far";
+"Percentage delivered so far" = "Percentuale finora consegnata";
 
 /* Percentage of requirement. [progress.py] */
-"Percentage of total requirement" = "Percentage of total requirement";
+"Percentage of total requirement" = "Percentuale del requisito totale";
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "Pinna {system_name} nell'overlay";
@@ -965,16 +965,16 @@
 "Posted at: {date_time} | {plugin_name} v{version}" = "Postato alle: {date_time} | {plugin_name} v{version}";
 
 /* Discord post title. [activity.py] */
-"Powerplay Activity after Tick: {tick_time}" = "Powerplay Activity after Tick: {tick_time}";
+"Powerplay Activity after Tick: {tick_time}" = "Attività Powerplay dopo il Tick: {tick_time}";
 
 /* [default.py] */
-"Powerplay Merits" = "Powerplay Merits";
+"Powerplay Merits" = "Meriti Powerplay";
 
 /* Label for checkbox to pre-populate bases from EDSM. [colonisation.py] */
 "Pre-fill bases from EDSM" = "Precompila le basi da EDSM";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "La precompilazione richiede il nome del sistema, può dare risultati misti e probabilmente richiederà la selezione manuale del tipo di base. Usare con cautela!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "La precompilazione richiede il nome del sistema, può dare risultati variabili e probabilmente richiederà di selezionare manualmente il tipo di base. Usare con cautela!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Report BGS Precedenti";
@@ -1202,7 +1202,7 @@
 "Show objectives / missions window" = "Mostra obiettivi / finestra missioni";
 
 /* Preferences checkbox label. [ui.py] */
-"Show Powerplay Merits Gained" = "Show Powerplay Merits Gained";
+"Show Powerplay Merits Gained" = "Mostra Meriti Di Powerplay Guadagnati";
 
 /* tooltip for the previous build icon. [progress.py] */
 "Show previous build" = "Mostra la costruzione precedente";
@@ -1211,10 +1211,10 @@
 "Show system bodies window" = "Mostra finestra corpi di sistema";
 
 /* tooltip for the Inara button. [activity.py] */
-"Show system in Inara" = "Show system in Inara";
+"Show system in Inara" = "Mostra il sistema in Inara";
 
 /* tooltip for the EDGIS button. [activity.py] */
-"Show system map in EDGIS" = "Show system map in EDGIS";
+"Show system map in EDGIS" = "Mostra la mappa di sistema in EDGIS";
 
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Mostra la finestra delle note del sistema";
@@ -1361,34 +1361,34 @@
 "To System" = "Aa Sistema";
 
 /* Amount delivered. [progress.py] */
-"Tonnes delivered so far" = "Tonnes delivered so far";
+"Tonnes delivered so far" = "Tonnellate finora consegnate";
 
 /* amount in ship's Cargo. [progress.py] */
-"Tonnes in cargo" = "Tonnes in cargo";
+"Tonnes in cargo" = "Tonnellate nel cargo";
 
 /* Amount in your Fleet Carrier. [progress.py] */
-"Tonnes on carrier" = "Tonnes on carrier";
+"Tonnes on carrier" = "Tonnellate nella carrier";
 
 /* Amount still left to buy. [progress.py] */
-"Tonnes remaining excluding cargo and carrier" = "Tonnes remaining excluding cargo and carrier";
+"Tonnes remaining excluding cargo and carrier" = "Tonnellate rimanenti, esclusi cargo e carrier";
 
 /* [progress.py] */
-"Tonnes remaining excluding carrier" = "Tonnes remaining excluding carrier";
+"Tonnes remaining excluding carrier" = "Tonnellate rimanenti, esclusa la carrier";
 
 /* Amount still needed. [progress.py] */
-"Tonnes remaining to deliver" = "Tonnes remaining to deliver";
+"Tonnes remaining to deliver" = "Tonnellate rimanenti da consegnare";
 
 /* [progress.py] */
-"Tonnes remaining to excluding cargo" = "Tonnes remaining to excluding cargo";
+"Tonnes remaining to excluding cargo" = "Tonnellate rimanenti, escluso il cargo";
 
 /* Total number of builds. [colonisation.py] */
 "Total" = "Totale";
 
 /* number of cargo loads required. [progress.py] */
-"Total cargo loads required" = "Total cargo loads required";
+"Total cargo loads required" = "Carichi totali richiesti";
 
 /* Required amount. [progress.py] */
-"Total tonnes required" = "Total tonnes required";
+"Total tonnes required" = "Totale tonnellate richieste";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
 "Tourism" = "Tourism";

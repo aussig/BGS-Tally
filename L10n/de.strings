@@ -59,7 +59,7 @@
 "All builds" = "Alle Baustellen";
 
 /* Alphabetical order. [progress.py] */
-"Alphabetical order" = "Alphabetical order";
+"Alphabetical order" = "Alphabetische Reihenfolge";
 
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API geändert, Einstellungen öffnen, um sie erneut zu genehmigen";
@@ -131,13 +131,13 @@
 "Both BGS and TW" = "Sowohl BGS als auch TW";
 
 /* Post to Discord button tooltip. [activity.py] */
-"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord";
+"Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Sowohl das Feld 'Post zu Discord als' als auch ein Discord Webhook{CR}müssen in den Einstellungen konfiguriert werden, um das Posten auf Discord zu erlauben";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Kopfgelder";
 
 /* Building layout types. [colonisation.py] */
-"Building Layouts" = "Building Layouts";
+"Building Layouts" = "Gebäude Layouts";
 
 /* Building type. [colonisation.py] */
 "Building Type" = "Gebäudetyp";
@@ -188,7 +188,7 @@
 "Civilian Outpost" = "Ziviler Außenposten";
 
 /* Colonisation 'Type' [base_types.json] */
-"Civilian Planetary Outpost" = "Civilian Planetary Outpost";
+"Civilian Planetary Outpost" = "Ziviler Planeten-Außenposten";
 
 /* Colonisation 'Type' [base_types.json] */
 "Civilian Settlement" = "Zivile Siedlung";
@@ -221,7 +221,7 @@
 "Commodity" = "Handelsware";
 
 /* Commodity Category. [progress.py] */
-"Commodity Category" = "Commodity Category";
+"Commodity Category" = "Warenkategorie";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Comms Installation" = "Comms-Installation";
@@ -296,7 +296,7 @@
 "Cycle commodity list details" = "Warenlisten-Details umschalten";
 
 /* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
-"Cycle commodity list filter views" = "Cycle commodity list filter views";
+"Cycle commodity list filter views" = "Warenlisten Ansichten umschalten";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Datum / Uhrzeit";
@@ -311,7 +311,7 @@
 "Default" = "Standard";
 
 /* Commodity. [progress.py] */
-"Default order" = "Default order";
+"Default order" = "Standardreihenfolge";
 
 /* Delete button. [colonisation.py] */
 "Delete" = "Löschen";
@@ -437,25 +437,25 @@
 "Extraction" = "Extraktion";
 
 /* Colonisation 'Type' [base_types.json] */
-"Extraction Hub" = "Extraction Hub";
+"Extraction Hub" = "Förderungs-Knotenpunkt";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
 "Extraction Settlement" = "Abbau-Siedlung";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Extraction Tier 1" = "Extraction Tier 1";
+"Extraction Tier 1" = "Förderung Stufe 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Extraction Tier 1 Med" = "Extraction Tier 1 Med";
+"Extraction Tier 1 Med" = "Förderung Stufe 1 Mittel";
 
 /* Colonisation 'Type' [base_types.json] */
-"Extraction Tier 1 Sml" = "Extraction Tier 1 Sml";
+"Extraction Tier 1 Sml" = "Förderung Stufe 1 Klein";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Extraction Tier 2" = "Extraction Tier 2";
+"Extraction Tier 2" = "Förderung Stufe 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Extraction Tier 2 Lrg" = "Extraction Tier 2 Lrg";
+"Extraction Tier 2 Lrg" = "Förderung Stufe 2 Groß";
 
 /* Activity window column title. [activity.py] */
 "Faction" = "Fraktion";
@@ -524,13 +524,13 @@
 "High Tech" = "High Tech";
 
 /* Colonisation 'Type' [base_types.json] */
-"Hightech Hub" = "Hightech Hub";
+"Hightech Hub" = "High Tech-Knotenpunkt";
 
 /* Colonisation 'Type' [base_types.json] */
-"Hightech Planetary Outpost" = "Hightech Planetary Outpost";
+"Hightech Planetary Outpost" = "High-Tech-Planeten-Außenposten";
 
 /* HMC World is a high metal content world. [colonisation.py] */
-"HMC world" = "HMC world";
+"HMC world" = "HMC Welt";
 
 /* Colonisation 'Category' [base_types.json] */
 "Hub" = "Hub";
@@ -602,7 +602,7 @@
 "Industrial" = "Industriell";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Hub" = "Industrial Hub";
+"Industrial Hub" = "Industrie-Knotenpunkt";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Industrial Installation" = "Industrie-Installation";
@@ -611,22 +611,22 @@
 "Industrial Outpost" = "Industrie-Außenposten";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Planetary Outpost" = "Industrial Planetary Outpost";
+"Industrial Planetary Outpost" = "Industrieller Planeten-Außenposten";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Industrial Tier 1" = "Industrial Tier 1";
+"Industrial Tier 1" = "Industriell Stufe 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Tier 1 Med" = "Industrial Tier 1 Med";
+"Industrial Tier 1 Med" = "Industrielle Stufe 1 Mittel";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Tier 1 Sml" = "Industrial Tier 1 Sml";
+"Industrial Tier 1 Sml" = "Industriell Stufe 1 Klein";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Industrial Tier 2" = "Industrial Tier 2";
+"Industrial Tier 2" = "Industriell Stufe 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Industrial Tier 2 Lrg" = "Industrial Tier 2 Lrg";
+"Industrial Tier 2 Lrg" = "Industriell Stufe 2 Groß";
 
 /* [clb.py] */
 "Inf" = "Inf";
@@ -734,10 +734,10 @@
 "Loads" = "Ladungen";
 
 /* number of cargo loads delivered. [progress.py] */
-"Loads delivered so far" = "Loads delivered so far";
+"Loads delivered so far" = "Fracht bisher geliefert";
 
 /* [progress.py] */
-"Loads on carrier" = "Loads on carrier";
+"Loads on carrier" = "Fracht auf Flottenträger";
 
 /* base location surface/orbital. [colonisation.py] */
 "Location" = "Position";
@@ -770,7 +770,7 @@
 "Military" = "Militär";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Hub" = "Military Hub";
+"Military Hub" = "Militär-Knotenpunkt";
 
 /* Colonisation 'Type' [base_types.json] */
 "Military Installation" = "Militäreinrichtung";
@@ -782,19 +782,19 @@
 "Military Settlement" = "Militärische Siedlung";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Military Tier 1" = "Military Tier 1";
+"Military Tier 1" = "Militärisch Stufe 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Tier 1 Med" = "Military Tier 1 Med";
+"Military Tier 1 Med" = "Militärisch Stufe 1 Mittel";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Tier 1 Sml" = "Military Tier 1 Sml";
+"Military Tier 1 Sml" = "Militärisch Stufe 1 Klein";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Military Tier 2" = "Military Tier 2";
+"Military Tier 2" = "Militärisch Stufe 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Military Tier 2 Lrg" = "Military Tier 2 Lrg";
+"Military Tier 2 Lrg" = "Militärisch Stufe 2 Groß";
 
 /* Colonisation 'Type' [base_types.json] */
 "Mining Outpost" = "Abbauaußenposten";
@@ -869,7 +869,7 @@
 "Outpost" = "Außenposten";
 
 /* Colonisation 'Type' [base_types.json] */
-"Outpost Hub" = "Outpost Hub";
+"Outpost Hub" = "Außenposten-Knotenpunkt";
 
 /* Landing pad size. [colonisation.py] */
 "Pad" = "Landeplatz";
@@ -893,16 +893,16 @@
 "Percent" = "Prozent";
 
 /* [progress.py] */
-"Percent in cargo" = "Percent in cargo";
+"Percent in cargo" = "Prozent in Ladung";
 
 /* [progress.py] */
-"Percent on carrier" = "Percent on carrier";
+"Percent on carrier" = "Prozent auf Flottenträger";
 
 /* [progress.py] */
-"Percentage delivered so far" = "Percentage delivered so far";
+"Percentage delivered so far" = "Prozentual bis jetzt geliefert";
 
 /* Percentage of requirement. [progress.py] */
-"Percentage of total requirement" = "Percentage of total requirement";
+"Percentage of total requirement" = "Prozentsatz des Gesamtbedarfs";
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "{system_name} an Overlay anheften";
@@ -911,7 +911,7 @@
 "Pirate Base" = "Piratenbasis";
 
 /* Colonisation 'Building Type' [base_types.json] */
-"Pirate Installation" = "Pirate Installation";
+"Pirate Installation" = "Piraten-Installation";
 
 /* Colonisation 'Type' [base_types.json] */
 "Pirate Outpost" = "Piraten-Außenpost";
@@ -965,16 +965,16 @@
 "Posted at: {date_time} | {plugin_name} v{version}" = "Geschrieben am: {date_time} | {plugin_name} v{version}";
 
 /* Discord post title. [activity.py] */
-"Powerplay Activity after Tick: {tick_time}" = "Powerplay Activity after Tick: {tick_time}";
+"Powerplay Activity after Tick: {tick_time}" = "Machtspiel-Aktivität nach Tick: {tick_time}";
 
 /* [default.py] */
-"Powerplay Merits" = "Powerplay Merits";
+"Powerplay Merits" = "Machtspiel Verdienste";
 
 /* Label for checkbox to pre-populate bases from EDSM. [colonisation.py] */
-"Pre-fill bases from EDSM" = "Pre-fill bases from EDSM";
+"Pre-fill bases from EDSM" = "Grundlagen von EDSM vorbereiten";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Die Vorabfüllung erfordert einen Systemnamen, kann zu gemischten Ergebnissen führen und erfordert wahrscheinlich eine manuelle Auswahl des Basistyps. Mit Vorsicht verwenden!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Vorherige BGS Tallies";
@@ -1019,19 +1019,19 @@
 "Received team invite from" = "Teameinladung empfangen von";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Refinery" = "Refinery";
+"Refinery" = "Raffinerie";
 
 /* Colonisation 'Type' [base_types.json] */
-"Refinery Hub" = "Refinery Hub";
+"Refinery Hub" = "Raffinerie-Knotenpunkt";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Relay Installation" = "Relaisinstallation";
 
 /* Colonisation 'Type' [base_types.json] */
-"Relay Station" = "Relay Station";
+"Relay Station" = "Relais Station";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Relay Station Installation" = "Relay Station Installation";
+"Relay Station Installation" = "Relais Station Installation";
 
 /* Rename button. [colonisation.py] */
 "Rename" = "Umbenennen";
@@ -1052,25 +1052,25 @@
 "Requirements" = "Voraussetzungen";
 
 /* Colonisation 'Prerequisites' [base_types.json] */
-"Research Bio Settlement" = "Research Bio Settlement";
+"Research Bio Settlement" = "Forschungs-Bio-Siedlung";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Research Bio Tier 1" = "Research Bio Tier 1";
+"Research Bio Tier 1" = "Forschungs-Bio Stufe 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Research Bio Tier 1 Med" = "Research Bio Tier 1 Med";
+"Research Bio Tier 1 Med" = "Forschungs-Bio Stufe 1 Mittel";
 
 /* Colonisation 'Type' [base_types.json] */
-"Research Bio Tier 1 Sml" = "Research Bio Tier 1 Sml";
+"Research Bio Tier 1 Sml" = "Forschungs-Bio Stufe 1 Klein";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Research Bio Tier 2" = "Research Bio Tier 2";
+"Research Bio Tier 2" = "Forschungs-Bio Stufe 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Research Bio Tier 2 Lrg" = "Research Bio Tier 2 Lrg";
+"Research Bio Tier 2 Lrg" = "Forschungs-Bio Stufe 2 Groß";
 
 /* Colonisation 'Type' [base_types.json] */
-"Research Station" = "Research Station";
+"Research Station" = "Forschungs Station";
 
 /* [colonisation.py] */
 "rings" = "ringe";
@@ -1100,7 +1100,7 @@
 "Scientific" = "Wissenschaftlich";
 
 /* Colonisation 'Type' [base_types.json] */
-"Scientific Hub" = "Scientific Hub";
+"Scientific Hub" = "Wissenschafts-Knotenpunkt";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Scientific Installation" = "Wissenschaftliche Einrichtung";
@@ -1202,7 +1202,7 @@
 "Show objectives / missions window" = "Ziele / Missionsfenster anzeigen";
 
 /* Preferences checkbox label. [ui.py] */
-"Show Powerplay Merits Gained" = "Show Powerplay Merits Gained";
+"Show Powerplay Merits Gained" = "Zeige erhaltene Machtspiel Verdienste";
 
 /* tooltip for the previous build icon. [progress.py] */
 "Show previous build" = "Vorherige Baustelle anzeigen";
@@ -1211,10 +1211,10 @@
 "Show system bodies window" = "Fenster „Systemkörper“ anzeigen";
 
 /* tooltip for the Inara button. [activity.py] */
-"Show system in Inara" = "Show system in Inara";
+"Show system in Inara" = "System in Inara anzeigen";
 
 /* tooltip for the EDGIS button. [activity.py] */
-"Show system map in EDGIS" = "Show system map in EDGIS";
+"Show system map in EDGIS" = "Systemkarte im EDGIS anzeigen";
 
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Systemnotizen anzeigen";
@@ -1361,34 +1361,34 @@
 "To System" = "Zum System";
 
 /* Amount delivered. [progress.py] */
-"Tonnes delivered so far" = "Tonnes delivered so far";
+"Tonnes delivered so far" = "Fracht bisher geliefert";
 
 /* amount in ship's Cargo. [progress.py] */
-"Tonnes in cargo" = "Tonnes in cargo";
+"Tonnes in cargo" = "Fracht in Tonnen";
 
 /* Amount in your Fleet Carrier. [progress.py] */
-"Tonnes on carrier" = "Tonnes on carrier";
+"Tonnes on carrier" = "Tonnen auf Flottenträger";
 
 /* Amount still left to buy. [progress.py] */
-"Tonnes remaining excluding cargo and carrier" = "Tonnes remaining excluding cargo and carrier";
+"Tonnes remaining excluding cargo and carrier" = "Verbleibende Tonnen ohne Fracht und Flottenträger";
 
 /* [progress.py] */
-"Tonnes remaining excluding carrier" = "Tonnes remaining excluding carrier";
+"Tonnes remaining excluding carrier" = "Tonnen verbleibend ohne Flottenträger";
 
 /* Amount still needed. [progress.py] */
-"Tonnes remaining to deliver" = "Tonnes remaining to deliver";
+"Tonnes remaining to deliver" = "Verbleibende Tonnen zu liefern";
 
 /* [progress.py] */
-"Tonnes remaining to excluding cargo" = "Tonnes remaining to excluding cargo";
+"Tonnes remaining to excluding cargo" = "Verbleibende Tonnen ohne Flottenträger";
 
 /* Total number of builds. [colonisation.py] */
 "Total" = "Insgesamt";
 
 /* number of cargo loads required. [progress.py] */
-"Total cargo loads required" = "Total cargo loads required";
+"Total cargo loads required" = "Gesamte Ladungen erforderlich";
 
 /* Required amount. [progress.py] */
-"Total tonnes required" = "Total tonnes required";
+"Total tonnes required" = "Insgesamt benötigte Tonnen";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
 "Tourism" = "Tourismus";
@@ -1397,19 +1397,19 @@
 "Tourism Settlement" = "Tourismus-Siedlung";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Tourism Tier 1" = "Tourism Tier 1";
+"Tourism Tier 1" = "Tourismus Stufe 1";
 
 /* Colonisation 'Type' [base_types.json] */
-"Tourism Tier 1 Med" = "Tourism Tier 1 Med";
+"Tourism Tier 1 Med" = "Tourismus Stufe 1 Mittel";
 
 /* Colonisation 'Type' [base_types.json] */
-"Tourism Tier 1 Sml" = "Tourism Tier 1 Sml";
+"Tourism Tier 1 Sml" = "Tourismus Stufe 1 Klein";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
-"Tourism Tier 2" = "Tourism Tier 2";
+"Tourism Tier 2" = "Tourismus Stufe 2";
 
 /* Colonisation 'Type' [base_types.json] */
-"Tourism Tier 2 Lrg" = "Tourism Tier 2 Lrg";
+"Tourism Tier 2 Lrg" = "Tourismus Stufe 2 Groß";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Tourist" = "Touristisch";

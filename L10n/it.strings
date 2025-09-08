@@ -22,6 +22,9 @@
 /* Add/create a new system. [colonisation.py] */
 "Add" = "Crea";
 
+/* add plan. [colonisation.py] */
+"Add Plan" = "Add Plan";
+
 /* CMDR information. [targetmanager.py] */
 "Added a friend" = "Amico aggiunto";
 
@@ -58,8 +61,20 @@
 /* all tracked builds. [progress.py] */
 "All builds" = "Tutte le costruzioni";
 
-/* Alphabetical order. [progress.py] */
+/* [progress.py] */
 "Alphabetical order" = "Ordine alfabetico";
+
+/* Cargo amount tooltip. [progress.py] */
+"Amount in current cargo" = "Amount in current cargo";
+
+/* Carrier amount tooltip. [progress.py] */
+"Amount in linked fleet carrier(s)" = "Amount in linked fleet carrier(s)";
+
+/* Amount left to buy. [progress.py] */
+"Amount left to buy" = "Amount left to buy";
+
+/* Amount remaining tooltip. [progress.py] */
+"Amount remaining to be delivered" = "Amount remaining to be delivered";
 
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API modificata, apri le impostazioni per riapprovarla";
@@ -75,6 +90,9 @@
 
 /* Label on API settings window. [api.py] */
 "Approved by you" = "Approvato";
+
+/* [colonisation.py] */
+"Architect" = "Architect";
 
 /* Preferences force tick text. [ui.py] */
 "Are you sure that you want to do this?" = "Sei sicuro di volerlo fare?";
@@ -172,7 +190,7 @@
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Cargo:" = "Carico:";
 
-/* Amount in your Fleet Carrier. [progress.py] */
+/* Carrier amount. [progress.py] */
 "Carrier" = "Carrier";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
@@ -195,6 +213,9 @@
 
 /* [sheet_options.py] */
 "Clear contents" = "Cancella contenuto";
+
+/* [progress.py] */
+"click to copy to clipboard" = "click to copy to clipboard";
 
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "Dettagli CMDR";
@@ -219,9 +240,6 @@
 
 /* Commodity. [progress.py] */
 "Commodity" = "Commodity";
-
-/* Commodity Category. [progress.py] */
-"Commodity Category" = "Categoria Commodity";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Comms Installation" = "Comms Installation";
@@ -251,10 +269,7 @@
 "Copy" = "Copia";
 
 /* [sheet_options.py] */
-"Copy contents" = "Copia contenuto";
-
-/* tooltip for the copy to clipboard icon. [colonisation.py] */
-"Copy system name to clipboard" = "Copia il nome di sistema negli appunti";
+"Copy text" = "Copy text";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Copia negli appunti";
@@ -278,7 +293,7 @@
 "Critically wounded evacuation missions" = "Missioni di evacuazione di feriti gravi";
 
 /* tooltip for the build name. [progress.py] */
-"Current build, click to copy to clipboard" = "Costruzione corrente, clicca per copiare negli appunti";
+"Current build" = "Current build";
 
 /* [fleetcarrier.py] */
 "Current System" = "Sistema Attuale";
@@ -289,14 +304,8 @@
 /* [widgets.py] */
 "Cut" = "Taglia";
 
-/* [sheet_options.py] */
-"Cut contents" = "Taglia contenuto";
-
 /* tooltip for the commodity header. [progress.py] */
 "Cycle commodity list details" = "Scorri i dettagli dell’elenco commodity";
-
-/* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
-"Cycle commodity list filter views" = "Scorri le viste dell’elenco commodity";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Data / Ora";
@@ -304,16 +313,16 @@
 /* Discord heading. [cmdrs.py] */
 "Date and Time" = "Data e ora";
 
+/* Label for checkbox to remove a plan from the tab list. [colonisation.py] */
+"Deactivate (hide) this plan" = "Deactivate (hide) this plan";
+
 /* any decrease effects for the base. [colonisation.py] */
 "Decreased By" = "Ridotto Da";
 
 /* [ui.py] */
 "Default" = "Predefinita";
 
-/* Commodity. [progress.py] */
-"Default order" = "Ordine Predefinito";
-
-/* Delete button. [colonisation.py] */
+/* [sheet_options.py] */
 "Delete" = "Elimina";
 
 /* [sheet_options.py] */
@@ -328,7 +337,7 @@
 /* tooltip for the delete system button. [colonisation.py] */
 "Delete system plan" = "Elimina il progetto del sistema";
 
-/* Amount delivered. [progress.py] */
+/* Delivered amount. [progress.py] */
 "Delivered" = "Consegnato";
 
 /* [demo.py] */
@@ -381,6 +390,12 @@
 
 /* [sheet_options.py] */
 "Edit index" = "Modifica indice";
+
+/* Rename a system. [colonisation.py] */
+"Edit System" = "Edit System";
+
+/* tooltip for the edit system button. [colonisation.py] */
+"Edit system plan" = "Edit system plan";
 
 /* [clb.py] */
 "Election Inf" = "Inf Election";
@@ -516,6 +531,9 @@
 
 /* Discord heading. [default.py] */
 "GroundMurders" = "Uccisioni a Terra";
+
+/* tooltip for the hide system button. [colonisation.py] */
+"Hide system plan" = "Hide system plan";
 
 /* Activity window tooltip. [activity.py] */
 "High" = "High";
@@ -718,8 +736,14 @@
 /* Button label. [ui.py] */
 "Latest BGS Tally" = "Report BGS Attuale";
 
+/* building layout. [colonisation.py] */
+"Layout" = "Layout";
+
 /* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
 "Left click for Inara market, right click to copy" = "Click sinistro per Inara market, click destro per copiare";
+
+/* tooltip for the copy to clipboard icon. [colonisation.py] */
+"Left click view system, right click menu" = "Left click view system, right click menu";
 
 /* CMDR window column title. [cmdrs.py] */
 "Legal" = "Legale";
@@ -730,14 +754,11 @@
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Stato giuridico: {legal}";
 
+/* tooltip for ravencolonial link. [colonisation.py] */
+"Link to RavenColonial" = "Link to RavenColonial";
+
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Carichi";
-
-/* number of cargo loads delivered. [progress.py] */
-"Loads delivered so far" = "Carichi finora consegnati";
-
-/* [progress.py] */
-"Loads on carrier" = "Carichi sulla carrier";
 
 /* base location surface/orbital. [colonisation.py] */
 "Location" = "Posizione";
@@ -753,6 +774,9 @@
 
 /* [legend.py] */
 "Massacre missions" = "Missioni di massacro";
+
+/* Preferences label. [ui.py] */
+"Maximum commodities" = "Maximum commodities";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Medical" = "Medical";
@@ -820,9 +844,6 @@
 /* Label on CMDR window. [cmdrs.py] */
 "Name: " = "Nome: ";
 
-/* Amount still needed. [progress.py] */
-"Needed" = "Necessario";
-
 /* Overlay message. [bgstally.py] */
 "NEW TICK DETECTED!" = "NUOVO TICK RILEVATO!";
 
@@ -888,21 +909,6 @@
 
 /* [widgets.py] */
 "Paste" = "Incolla";
-
-/* Percentage. [progress.py] */
-"Percent" = "Percentuale";
-
-/* [progress.py] */
-"Percent in cargo" = "Percentuale nel cargo";
-
-/* [progress.py] */
-"Percent on carrier" = "Percentuale nella carrier";
-
-/* [progress.py] */
-"Percentage delivered so far" = "Percentuale finora consegnata";
-
-/* Percentage of requirement. [progress.py] */
-"Percentage of total requirement" = "Percentuale del requisito totale";
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "Pinna {system_name} nell'overlay";
@@ -970,11 +976,11 @@
 /* [default.py] */
 "Powerplay Merits" = "Meriti Powerplay";
 
-/* Label for checkbox to pre-populate bases from EDSM. [colonisation.py] */
-"Pre-fill bases from EDSM" = "Precompila le basi da EDSM";
+/* Label for checkbox to pre-populate bases. [colonisation.py] */
+"Pre-fill bases" = "Pre-fill bases";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "La precompilazione richiede il nome del sistema, può dare risultati variabili e probabilmente richiederà di selezionare manualmente il tipo di base. Usare con cautela!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Report BGS Precedenti";
@@ -1000,11 +1006,23 @@
 /* Activity window column title, abbreviation for purchase. [activity.py] */
 "Purch" = "Acqui";
 
+/* Amount to buy. [progress.py] */
+"Purchase" = "Purchase";
+
 /* Activity window tooltip for purchase at low | medium | high supply. [activity.py] */
 "Purchase at L | M | H supply" = "Profitto per disponibilità L | M | H";
 
+/* [ui.py] */
+"RavenColonial API Key" = "RavenColonial API Key";
+
 /* Discord heading, abbreviation for reactivation (TW missions). [default.py] */
 "reac" = "riat";
+
+/* Reactivate system. [colonisation.py] */
+"Reactivate" = "Reactivate";
+
+/* reactivate plans. [colonisation.py] */
+"Reactivate Plan" = "Reactivate Plan";
 
 /* Label on legend window. [legend.py] */
 "Reactivation missions" = "Missioni di ripristino";
@@ -1018,11 +1036,17 @@
 /* CMDR information. [targetmanager.py] */
 "Received team invite from" = "Invito al team ricevuto da";
 
+/* [sheet_options.py] */
+"Redo" = "Redo";
+
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Refinery" = "Refinery";
 
 /* Colonisation 'Type' [base_types.json] */
 "Refinery Hub" = "Refinery Hub";
+
+/* tooltip for ravencolonial refresh button. [colonisation.py] */
+"Refresh from RavenColonial" = "Refresh from RavenColonial";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Relay Installation" = "Relay Installation";
@@ -1033,14 +1057,8 @@
 /* Colonisation 'Prerequisites' [base_types.json] */
 "Relay Station Installation" = "Relay Station Installation";
 
-/* Rename button. [colonisation.py] */
-"Rename" = "Rinomina";
-
-/* Rename a system. [colonisation.py] */
-"Rename System" = "Rinomina il Sistema";
-
-/* tooltip for the rename system button. [colonisation.py] */
-"Rename system plan" = "Rinomina il progetto del sistema";
+/* Amount remaining. [progress.py] */
+"Remaining" = "Remaining";
 
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Di Default Segnala l'Attività nei Nuovi Sistemi";
@@ -1083,6 +1101,9 @@
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Satellite Installation" = "Satellite Installation";
+
+/* Save button. [colonisation.py] */
+"Save" = "Save";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Scannerizzato";
@@ -1231,6 +1252,12 @@
 /* Label on carrier window. [fleetcarrier.py] */
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Alcune informazioni non possono essere aggiornate. Abilita le Query API Fleet Carrier in File -> Impostazioni -> Configurazione";
 
+/* [sheet_options.py] */
+"Sort Asc." = "Sort Asc.";
+
+/* [sheet_options.py] */
+"Sort Desc." = "Sort Desc.";
+
 /* [clb.py] */
 "Space" = "Spazio";
 
@@ -1272,6 +1299,9 @@
 
 /* Number of ground/surface builds. [colonisation.py] */
 "Surface" = "Planetario";
+
+/* Label for checkbox to sync data with RavenColonial. [colonisation.py] */
+"Sync with RavenColonial" = "Sync with RavenColonial";
 
 /* CMDR window column title. [cmdrs.py] */
 "System" = "Sistema";
@@ -1342,6 +1372,9 @@
 /* [ui.py] */
 "Tick {minutes_delta}m Overdue (Estimated)" = "Tick {minutes_delta}m in Ritardo (Stimato)";
 
+/* [colonisation.py] */
+"Tidally Locked" = "Tidally Locked";
+
 /* tier of base. [colonisation.py] */
 "Tier" = "Livello";
 
@@ -1351,44 +1384,20 @@
 /* Discord heading. [fleetcarrier.py] */
 "To Body" = "Al Corpo";
 
-/* Amount still left to buy. [progress.py] */
-"To Buy" = "Da Comprare";
-
 /* [ui.py] */
 "To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Per rimuovere dal webhook: Click destro del mouse sul numero della riga e selezionare \"Elimina righe\".";
 
 /* Discord heading. [fleetcarrier.py] */
 "To System" = "Aa Sistema";
 
-/* Amount delivered. [progress.py] */
-"Tonnes delivered so far" = "Tonnellate finora consegnate";
-
-/* amount in ship's Cargo. [progress.py] */
-"Tonnes in cargo" = "Tonnellate nel cargo";
-
-/* Amount in your Fleet Carrier. [progress.py] */
-"Tonnes on carrier" = "Tonnellate nella carrier";
-
-/* Amount still left to buy. [progress.py] */
-"Tonnes remaining excluding cargo and carrier" = "Tonnellate rimanenti, esclusi cargo e carrier";
-
-/* [progress.py] */
-"Tonnes remaining excluding carrier" = "Tonnellate rimanenti, esclusa la carrier";
-
-/* Amount still needed. [progress.py] */
-"Tonnes remaining to deliver" = "Tonnellate rimanenti da consegnare";
-
-/* [progress.py] */
-"Tonnes remaining to excluding cargo" = "Tonnellate rimanenti, escluso il cargo";
-
 /* Total number of builds. [colonisation.py] */
 "Total" = "Totale";
 
-/* number of cargo loads required. [progress.py] */
-"Total cargo loads required" = "Carichi totali richiesti";
+/* delivered amount tooltip. [progress.py] */
+"Total quantity delivered" = "Total quantity delivered";
 
-/* Required amount. [progress.py] */
-"Total tonnes required" = "Totale tonnellate richieste";
+/* required amount tooltip. [progress.py] */
+"Total quantity required" = "Total quantity required";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
 "Tourism" = "Tourism";
@@ -1558,5 +1567,17 @@
 /* [colonisation.py] */
 "ⓘ" = "ⓘ";
 
+/* Hide button. [colonisation.py] */
+"👁" = "👁";
+
 /* [colonisation.py] */
-"📓" = "📓";
+"📋" = "📋";
+
+/* Rename button. [colonisation.py] */
+"📝" = "📝";
+
+/* [colonisation.py] */
+"🔄" = "🔄";
+
+/* Delete button. [colonisation.py] */
+"🗑️" = "🗑️";

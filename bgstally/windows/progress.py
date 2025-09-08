@@ -390,6 +390,7 @@ class ProgressWindow:
 
         rc:int = 0
         for i, c in enumerate(comms):
+            if len(self.rows) < i: continue
             row:dict = self.rows[i]
             reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
             delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0

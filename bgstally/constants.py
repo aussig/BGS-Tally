@@ -124,15 +124,13 @@ class BuildState(str, Enum):
 
 # Commodity sort order
 class CommodityOrder(Enum):
-    DEFAULT = 0
-    CATEGORY = 1
-    ALPHA = 2
+    ALPHA = 0
+    CATEGORY = auto()
+    QUANTITY = auto()
 
 class ProgressUnits(Enum):
-    TONNES = 0
-    REMAINING = auto()
+    QTY = 0
     LOADS = auto()
-    PERCENT = auto()
 
 class ProgressView(Enum):
     FULL = 0

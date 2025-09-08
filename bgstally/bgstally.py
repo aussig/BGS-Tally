@@ -105,6 +105,7 @@ class BGSTally:
         The plugin is shutting down.
         """
         self.ui.shut_down()
+        self.colonisation.save('Shutdown')
         self.save_data()
 
 

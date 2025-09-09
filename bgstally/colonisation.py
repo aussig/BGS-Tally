@@ -586,22 +586,22 @@ class Colonisation:
 
         for build in builds:
             # A build that was planned but is now a construction site
-            if build.get('State', None) == BuildState.PLANNED and build.get('BuildID', None) == None and \
-                build.get('MarketID', None) == None and build.get('Location', None) == loc and \
-                    data.get('Body') and build.get('Body', '').lower() == data['Body'].lower():
+            if build.get('State', None) == BuildState.PLANNED and build.get('MarketID', None) == None and \
+                build.get('Location', None) == loc and \
+                build.get('Body', build.get('BodyNum')).lower() == data.get('Body', data.get('BodyNum')).lower():
                 Debug.logger.debug(f"Matched planned build {data['Body']} {build.get('State', None)} {loc} Build: {build}")
                 return build
 
             # A build that was in progress but is now completed
             if build.get('State', None) == BuildState.PROGRESS and \
                 f"Construction Site: {data.get('Name', '')}" in build.get('Name', '') and \
-                data.get('Body', None) and build.get('Body', '').lower() == data.get('Body', '').lower():
+                build.get('Body', build.get('BodyNum')).lower() == data.get('Body', data.get('BodyNum')).lower():
                 Debug.logger.debug(f"Matched construction {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
             # A completed but as yet unknown build.
             if build.get('State', None) == BuildState.COMPLETE and build.get('MarketID', '') == '' and \
-                data.get('Body', None) and build.get('Body', '').lower() == data.get('Body', '').lower and \
+                build.get('Body', build.get('BodyNum')).lower() == data.get('Body', data.get('BodyNum')).lower() and \
                 build.get('Location') == data.get('Location', None):
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
@@ -631,7 +631,7 @@ class Colonisation:
 
         if 'State' not in data: data['State'] = BuildState.PLANNED
         if 'Name' not in data: data['Name'] = ""
-        if 'BuildID' not in data and 'MarketID' in data:
+        if 'BuildID' not in data:
             data['BuildID'] = f"x{int(time.time())}" if data['State'] == BuildState.COMPLETE else f"&{int(time.time())}"
 
         # If we have a body name or id set the corresponding value.
@@ -657,7 +657,7 @@ class Colonisation:
 
 
     @catch_exceptions
-    def remove_build(self, system, ind:int) -> None:
+    def remove_build(self, system, ind) -> None:
         ''' Remove a build from a system '''
         if isinstance(system, int): system = self.systems[system]
 
@@ -665,14 +665,16 @@ class Colonisation:
             Debug.logger.warning(f"Cannot remove build - unknown system")
             return
 
-        # Support marketid or index
-        if ind > len(system['Builds']):
-            for i, build in enumerate(system['Builds']):
-                if build.get('MarketID') == ind:
-                    ind = i
-                    break
+        # Support marketid or BuildID as well as index
+        for i, build in enumerate(system['Builds']):
+            if isinstance(ind, str) and build.get('BuildID') == ind:
+                ind = i
+                break
+            if isinstance(ind, int) and build.get('MarketID') == int(ind):
+                ind = i
+                break
 
-        if ind >= len(system['Builds']):
+        if int(ind) >= len(system['Builds']):
             Debug.logger.warning(f"Cannot remove build - invalid build index: {ind} {len(system['Builds'])} {system['Builds']}")
             return
 
@@ -722,6 +724,7 @@ class Colonisation:
 
         # If we have a body name or id set the corresponding value.
         body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', 'Unknown')))
+        if body == None: body = self.get_body(system, build.get('BodyNum', build.get('Body', 'Unknown')))
         if body != None:
             data['Body'] = self.body_name(system['StarSystem'], body.get('name', ''))
             data['BodyNum'] = body.get('bodyId', None)
@@ -730,6 +733,11 @@ class Colonisation:
         if data.get('Base Type', '') == '' and data.get('Layout', '') != '':
             bt:dict = self.get_base_type(data.get('Layout', ''))
             data['Base Type'] = bt.get('Type', '')
+
+        # If the Base type is set but the location isn't set it from the base type
+        if data.get('Base Type', '') != '' and data.get('Location', '') == '':
+            bt:dict = self.get_base_type(data.get('Base Type', ''))
+            data['Location'] = bt.get('Location', '')
 
         changed:bool = False
         for k, v in data.items():

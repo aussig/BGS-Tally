@@ -93,7 +93,7 @@ And finally, a huge thank you to:
     * French - CMDR Dopeilien, CMDR Karl Berg and CMDR ThArGos
     * German - CMDR Ryan Murdoc and CMDR Saenger.ItsWar
     * Hungarian - CMDR Lazy Creature and CMDR xtl
-    * Italian - [CMDR JumpFrost_ITA](https://github.com/GLWine)
+    * Italian - CMDR [JumpFrostITA](https://github.com/JumpFrostITA)
     * Portuguese (Portugal) - CMDR Holy Nothing
     * Portuguese (Brazil) - CMDR Leonardo Felin and CMDR FelaKuti
     * Russian - CMDR YAD and CMDR KuzSan

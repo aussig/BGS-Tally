@@ -390,6 +390,7 @@ class ProgressWindow:
 
         rc:int = 0
         for i, c in enumerate(comms):
+            if len(self.rows) < i: continue
             row:dict = self.rows[i]
             reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
             delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
@@ -407,11 +408,12 @@ class ProgressWindow:
 
             # We only show relevant (required) items. But.
             # If the view is reduced or minimal we don't show ones that are complete. Also.
-            # If we're in minimal view we only show ones we still need to buy.\
+            # If we're in minimal view we only show ones we still need to buy.
+            #Debug.logger.debug(f"{c} {remaining - carrier - cargo} {cargo} {self.view}")
             if (reqcnt <= 0) or \
-                (remaining <= 0 and cargo == 0 and carrier == 0 and self.view == ProgressView.REDUCED) or \
-                (remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
-                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) == 0 and self.view == ProgressView.MINIMAL) or \
+                (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
+                ((self.colonisation.docked == False or self.colonisation.market == {}) and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
+                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) <= 0 and self.view == ProgressView.MINIMAL) or \
                 rc > int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
                     cell.grid_remove()

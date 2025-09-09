@@ -1,22 +1,41 @@
 # Change Log
 
-## vx.x.x - xxxx-xx-xx
+## v5.2.0-xx - xxxx-xx-xx
+
+### Bug fixes:
+
+* Colonisation: Fixed issue with initial migration of data throwing an error
+* Colonisation: Fixed qty based sorting
+* COlonisation: Commodity filtering
+
+
+## v5.2.0-a1 - 2025-09-07
 
 ### New Features:
 
-* Now tracks and reports your Powerplay merits earned each daily tick.
-* New Discord channel for Powerplay reporting.
-
-#### Colonisation ####
-* RavenColonial integration
+* Colonisation RavenColonial integration:
   * Bi-directional, realtime integration with RC
   * Importation of existing system plans from RC
   * Creation of system plans and projects in RC
   * Bi-directional synchronisation of system plans and project progress
   * Submission of carrier cargo to RC
   * Per-plan activation/deactivation of synchronisation at anytime
+* Colonisation window:
+  * The plan edit dialog enables toggling of RavenColonial syncing and plan deactivation
+  * The "+" (add plan) tab enables toggling of RavenColonial syncing and reactivation of deactivated plans
+  * Plan names go blue and link to RavenColonial when a plan is synced with RavenColonial
+  * Synced plans have a refresh button to force reading from RavenColonial
+  * Plans include an architect and the specific base layout
+  * System details (population, economy, etc.) are retreived from Spansh for better accuracy
+  * System and body links offer a dropdown menu for a range of destinations
+* Colonisation Overlay:
+    * When visiting a market it switches to purchase view and lists only available commodities
+* Now tracks and reports your Powerplay merits earned each daily tick.
+* New Discord channel for Powerplay reporting.
 
-* Progress view
+### Changes:
+
+* Colonisation Progress view:
   * All three columns can show any of: Required, Delivered, Remaining, Purchase, Cargo and Carrier
   * Left clicking toggles through the views
   * Right clicking toggles between tonnes and loads
@@ -24,24 +43,14 @@
   * Maximum commodities to show is a configuration option
   * Build names adapt to fit width and include the build type
   * Tooltips are adaptive showing the current option
-
 * Colonisation window:
-  * The plan edit dialog enables toggling of RavenColonial syncing and plan deactivation
-  * The "+" (add plan) tab enables toggling of RavenColonial syncing and reactivation of deactivated plans
   * Column widths auto-adapt to content
-  * Plan names go blue and link to RavenColonial when a plan is synced with RavenColonial
-  * Synced plans have a refresh button to force reading from RavenColonial
-  * Plans include an architect and the specific base layout
-  * System details (population, economy, etc.) are retreived from Spansh for better accuracy
   * Base types popup column widths auto-adapt to content
   * If a base type is a surface station, bodies dropdown will only list landable ones
   * Builds are automatically sorted to Complete first, then In Progress, then Planned
-  * System and body links offer a dropdown menu for a range of destinations
   * Multiple cells may be selected (useful for copying data)
   * Plan sheet has a right click for edit, cut, copy, paste & delete
 
-  * Overlay:
-    * When visiting a market it switches to purchase view and lists only available commodities
 
 ## v5.1.0 - 2025-09-05
 

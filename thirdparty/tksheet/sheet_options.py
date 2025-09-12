@@ -1,22 +1,36 @@
 from __future__ import annotations
 from bgstally.utils import _
 
-from .other_classes import (
-    DotDict,
-    FontTuple,
-)
-from .themes import (
-    theme_light_blue,
-)
-from .vars import (
+import csv
+import tkinter as tk
+
+from .constants import (  # noqa: F401
+    ICON_ADD,
+    ICON_CLEAR,
+    ICON_COPY,
+    ICON_COPY_PLAIN,
+    ICON_CUT,
+    ICON_DEL,
+    ICON_EDIT,
+    ICON_PASTE,
+    ICON_REDO,
+    ICON_SELECT_ALL,
+    ICON_SORT_ASC,
+    ICON_SORT_DESC,
+    ICON_UNDO,
     USER_OS,
+    alt_key,
     ctrl_key,
 )
+from .other_classes import DotDict, FontTuple
+from .sorting import fast_sort_key, natural_sort_key, version_sort_key  # noqa: F401
+from .themes import theme_light_blue
 
 
 def new_sheet_options() -> DotDict:
     return DotDict(
         {
+            **theme_light_blue,
             "popup_menu_font": FontTuple(
                 "Calibri",
                 13 if USER_OS == "darwin" else 11,
@@ -37,49 +51,171 @@ def new_sheet_options() -> DotDict:
                 13 if USER_OS == "darwin" else 11,
                 "normal",
             ),
+            # edit header
             "edit_header_label": _("Edit header"),
             "edit_header_accelerator": "",
+            "edit_header_image": tk.PhotoImage(data=ICON_EDIT),
+            "edit_header_compound": "left",
+            # edit index
             "edit_index_label": _("Edit index"),
             "edit_index_accelerator": "",
+            "edit_index_image": tk.PhotoImage(data=ICON_EDIT),
+            "edit_index_compound": "left",
+            # edit cell
             "edit_cell_label": _("Edit cell"),
             "edit_cell_accelerator": "",
+            "edit_cell_image": tk.PhotoImage(data=ICON_EDIT),
+            "edit_cell_compound": "left",
+            # cut
             "cut_label": _("Cut"),
             "cut_accelerator": "Ctrl+X",
-            "cut_contents_label": _("Cut contents"),
-            "cut_contents_accelerator": "Ctrl+X",
+            "cut_image": tk.PhotoImage(data=ICON_CUT),
+            "cut_compound": "left",
+            # copy
             "copy_label": _("Copy"),
             "copy_accelerator": "Ctrl+C",
-            "copy_contents_label": _("Copy contents"),
-            "copy_contents_accelerator": "Ctrl+C",
+            "copy_image": tk.PhotoImage(data=ICON_COPY),
+            "copy_compound": "left",
+            # copy plain
+            "copy_plain_label": _("Copy text"),
+            "copy_plain_accelerator": "Ctrl+Ins",
+            "copy_plain_image": tk.PhotoImage(data=ICON_COPY_PLAIN),
+            "copy_plain_compound": "left",
+            # paste
             "paste_label": _("Paste"),
             "paste_accelerator": "Ctrl+V",
+            "paste_image": tk.PhotoImage(data=ICON_PASTE),
+            "paste_compound": "left",
+            # delete
             "delete_label": _("Delete"),
             "delete_accelerator": "Del",
+            "delete_image": tk.PhotoImage(data=ICON_CLEAR),
+            "delete_compound": "left",
+            # clear contents
             "clear_contents_label": _("Clear contents"),
             "clear_contents_accelerator": "Del",
+            "clear_contents_image": tk.PhotoImage(data=ICON_CLEAR),
+            "clear_contents_compound": "left",
+            # del columns
             "delete_columns_label": _("Delete columns"),
             "delete_columns_accelerator": "",
+            "delete_columns_image": tk.PhotoImage(data=ICON_DEL),
+            "delete_columns_compound": "left",
+            # insert columns left
             "insert_columns_left_label": _("Insert columns left"),
             "insert_columns_left_accelerator": "",
-            "insert_column_label": _("Insert column"),
-            "insert_column_accelerator": "",
+            "insert_columns_left_image": tk.PhotoImage(data=ICON_ADD),
+            "insert_columns_left_compound": "left",
+            # insert columns right
             "insert_columns_right_label": _("Insert columns right"),
             "insert_columns_right_accelerator": "",
+            "insert_columns_right_image": tk.PhotoImage(data=ICON_ADD),
+            "insert_columns_right_compound": "left",
+            # insert single column
+            "insert_column_label": _("Insert column"),
+            "insert_column_accelerator": "",
+            "insert_column_image": tk.PhotoImage(data=ICON_ADD),
+            "insert_column_compound": "left",
+            # del rows
             "delete_rows_label": _("Delete rows"),
             "delete_rows_accelerator": "",
+            "delete_rows_image": tk.PhotoImage(data=ICON_DEL),
+            "delete_rows_compound": "left",
+            # insert rows above
             "insert_rows_above_label": _("Insert rows above"),
             "insert_rows_above_accelerator": "",
+            "insert_rows_above_image": tk.PhotoImage(data=ICON_ADD),
+            "insert_rows_above_compound": "left",
+            # insert rows below
             "insert_rows_below_label": _("Insert rows below"),
             "insert_rows_below_accelerator": "",
+            "insert_rows_below_image": tk.PhotoImage(data=ICON_ADD),
+            "insert_rows_below_compound": "left",
+            # insert single row
             "insert_row_label": _("Insert row"),
             "insert_row_accelerator": "",
+            "insert_row_image": tk.PhotoImage(data=ICON_ADD),
+            "insert_row_compound": "left",
+            # sorting
+            # labels
+            "sort_cells_label": _("Sort Asc."),
+            "sort_cells_x_label": "Sort row-wise Asc.",
+            "sort_row_label": "Sort values Asc.",
+            "sort_column_label": "Sort values Asc.",
+            "sort_rows_label": "Sort rows Asc.",
+            "sort_columns_label": "Sort columns Asc.",
+            # reverse labels
+            "sort_cells_reverse_label": _("Sort Desc."),
+            "sort_cells_x_reverse_label": "Sort row-wise Desc.",
+            "sort_row_reverse_label": "Sort values Desc.",
+            "sort_column_reverse_label": "Sort values Desc.",
+            "sort_rows_reverse_label": "Sort rows Desc.",
+            "sort_columns_reverse_label": "Sort columns Desc.",
+            # accelerators
+            "sort_cells_accelerator": "",
+            "sort_cells_x_accelerator": "",
+            "sort_row_accelerator": "",
+            "sort_column_accelerator": "",
+            "sort_rows_accelerator": "",
+            "sort_columns_accelerator": "",
+            # reverse accelerators
+            "sort_cells_reverse_accelerator": "",
+            "sort_cells_x_reverse_accelerator": "",
+            "sort_row_reverse_accelerator": "",
+            "sort_column_reverse_accelerator": "",
+            "sort_rows_reverse_accelerator": "",
+            "sort_columns_reverse_accelerator": "",
+            # images
+            "sort_cells_image": tk.PhotoImage(data=ICON_SORT_ASC),
+            "sort_cells_x_image": tk.PhotoImage(data=ICON_SORT_ASC),
+            "sort_row_image": tk.PhotoImage(data=ICON_SORT_ASC),
+            "sort_column_image": tk.PhotoImage(data=ICON_SORT_ASC),
+            "sort_rows_image": tk.PhotoImage(data=ICON_SORT_ASC),
+            "sort_columns_image": tk.PhotoImage(data=ICON_SORT_ASC),
+            # compounds
+            "sort_cells_compound": "left",
+            "sort_cells_x_compound": "left",
+            "sort_row_compound": "left",
+            "sort_column_compound": "left",
+            "sort_rows_compound": "left",
+            "sort_columns_compound": "left",
+            # reverse images
+            "sort_cells_reverse_image": tk.PhotoImage(data=ICON_SORT_DESC),
+            "sort_cells_x_reverse_image": tk.PhotoImage(data=ICON_SORT_DESC),
+            "sort_row_reverse_image": tk.PhotoImage(data=ICON_SORT_DESC),
+            "sort_column_reverse_image": tk.PhotoImage(data=ICON_SORT_DESC),
+            "sort_rows_reverse_image": tk.PhotoImage(data=ICON_SORT_DESC),
+            "sort_columns_reverse_image": tk.PhotoImage(data=ICON_SORT_DESC),
+            # reverse compounds
+            "sort_cells_reverse_compound": "left",
+            "sort_cells_x_reverse_compound": "left",
+            "sort_row_reverse_compound": "left",
+            "sort_column_reverse_compound": "left",
+            "sort_rows_reverse_compound": "left",
+            "sort_columns_reverse_compound": "left",
+            # select all
             "select_all_label": _("Select all"),
             "select_all_accelerator": "Ctrl+A",
+            "select_all_image": tk.PhotoImage(data=ICON_SELECT_ALL),
+            "select_all_compound": "left",
+            # undo
             "undo_label": _("Undo"),
             "undo_accelerator": "Ctrl+Z",
+            "undo_image": tk.PhotoImage(data=ICON_UNDO),
+            "undo_compound": "left",
+            # redo
+            "redo_label": _("Redo"),
+            "redo_accelerator": "Ctrl+Shift+Z",
+            "redo_image": tk.PhotoImage(data=ICON_REDO),
+            "redo_compound": "left",
+            # bindings
+            "rc_bindings": ["<2>", "<3>"] if USER_OS == "darwin" else ["<3>"],
             "copy_bindings": [
                 f"<{ctrl_key}-c>",
                 f"<{ctrl_key}-C>",
+            ],
+            "copy_plain_bindings": [
+                f"<{ctrl_key}-Insert>",
             ],
             "cut_bindings": [
                 f"<{ctrl_key}-x>",
@@ -103,6 +239,22 @@ def new_sheet_options() -> DotDict:
             "select_all_bindings": [
                 f"<{ctrl_key}-a>",
                 f"<{ctrl_key}-A>",
+                f"<{ctrl_key}-Shift-space>",
+            ],
+            "select_columns_bindings": [
+                "<Control-space>",
+            ],
+            "select_rows_bindings": [
+                "<Shift-space>",
+            ],
+            "row_start_bindings": [
+                "<Command-Left>",
+                "<Home>",
+            ]
+            if USER_OS == "darwin"
+            else ["<Home>"],
+            "table_start_bindings": [
+                f"<{ctrl_key}-Home>",
             ],
             "tab_bindings": [
                 "<Tab>",
@@ -119,84 +271,44 @@ def new_sheet_options() -> DotDict:
             "left_bindings": [
                 "<Left>",
             ],
+            "shift_up_bindings": [
+                "<Shift-Up>",
+            ],
+            "shift_right_bindings": [
+                "<Shift-Right>",
+            ],
+            "shift_down_bindings": [
+                "<Shift-Down>",
+            ],
+            "shift_left_bindings": [
+                "<Shift-Left>",
+            ],
             "prior_bindings": [
                 "<Prior>",
             ],
             "next_bindings": [
                 "<Next>",
             ],
-            "popup_menu_fg": theme_light_blue["popup_menu_fg"],
-            "popup_menu_bg": theme_light_blue["popup_menu_bg"],
-            "popup_menu_highlight_bg": theme_light_blue["popup_menu_highlight_bg"],
-            "popup_menu_highlight_fg": theme_light_blue["popup_menu_highlight_fg"],
-            "index_hidden_rows_expander_bg": theme_light_blue["index_hidden_rows_expander_bg"],
-            "header_hidden_columns_expander_bg": theme_light_blue["header_hidden_columns_expander_bg"],
-            "header_bg": theme_light_blue["header_bg"],
-            "header_border_fg": theme_light_blue["header_border_fg"],
-            "header_grid_fg": theme_light_blue["header_grid_fg"],
-            "header_fg": theme_light_blue["header_fg"],
-            "header_selected_cells_bg": theme_light_blue["header_selected_cells_bg"],
-            "header_selected_cells_fg": theme_light_blue["header_selected_cells_fg"],
-            "index_bg": theme_light_blue["index_bg"],
-            "index_border_fg": theme_light_blue["index_border_fg"],
-            "index_grid_fg": theme_light_blue["index_grid_fg"],
-            "index_fg": theme_light_blue["index_fg"],
-            "index_selected_cells_bg": theme_light_blue["index_selected_cells_bg"],
-            "index_selected_cells_fg": theme_light_blue["index_selected_cells_fg"],
-            "top_left_bg": theme_light_blue["top_left_bg"],
-            "top_left_fg": theme_light_blue["top_left_fg"],
-            "top_left_fg_highlight": theme_light_blue["top_left_fg_highlight"],
-            "table_bg": theme_light_blue["table_bg"],
-            "table_grid_fg": theme_light_blue["table_grid_fg"],
-            "table_fg": theme_light_blue["table_fg"],
-            "tree_arrow_fg": theme_light_blue["tree_arrow_fg"],
-            "selected_cells_tree_arrow_fg": theme_light_blue["selected_cells_tree_arrow_fg"],
-            "selected_rows_tree_arrow_fg": theme_light_blue["selected_rows_tree_arrow_fg"],
-            "table_selected_box_cells_fg": theme_light_blue["table_selected_box_cells_fg"],
-            "table_selected_box_rows_fg": theme_light_blue["table_selected_box_rows_fg"],
-            "table_selected_box_columns_fg": theme_light_blue["table_selected_box_columns_fg"],
-            "table_selected_cells_border_fg": theme_light_blue["table_selected_cells_border_fg"],
-            "table_selected_cells_bg": theme_light_blue["table_selected_cells_bg"],
-            "table_selected_cells_fg": theme_light_blue["table_selected_cells_fg"],
-            "resizing_line_fg": theme_light_blue["resizing_line_fg"],
-            "drag_and_drop_bg": theme_light_blue["drag_and_drop_bg"],
-            "outline_color": theme_light_blue["outline_color"],
-            "header_selected_columns_bg": theme_light_blue["header_selected_columns_bg"],
-            "header_selected_columns_fg": theme_light_blue["header_selected_columns_fg"],
-            "index_selected_rows_bg": theme_light_blue["index_selected_rows_bg"],
-            "index_selected_rows_fg": theme_light_blue["index_selected_rows_fg"],
-            "table_selected_rows_border_fg": theme_light_blue["table_selected_rows_border_fg"],
-            "table_selected_rows_bg": theme_light_blue["table_selected_rows_bg"],
-            "table_selected_rows_fg": theme_light_blue["table_selected_rows_fg"],
-            "table_selected_columns_border_fg": theme_light_blue["table_selected_columns_border_fg"],
-            "table_selected_columns_bg": theme_light_blue["table_selected_columns_bg"],
-            "table_selected_columns_fg": theme_light_blue["table_selected_columns_fg"],
-            "vertical_scroll_background": theme_light_blue["vertical_scroll_background"],
-            "horizontal_scroll_background": theme_light_blue["horizontal_scroll_background"],
-            "vertical_scroll_troughcolor": theme_light_blue["vertical_scroll_troughcolor"],
-            "horizontal_scroll_troughcolor": theme_light_blue["horizontal_scroll_troughcolor"],
-            "vertical_scroll_lightcolor": theme_light_blue["vertical_scroll_lightcolor"],
-            "horizontal_scroll_lightcolor": theme_light_blue["horizontal_scroll_lightcolor"],
-            "vertical_scroll_darkcolor": theme_light_blue["vertical_scroll_darkcolor"],
-            "horizontal_scroll_darkcolor": theme_light_blue["horizontal_scroll_darkcolor"],
-            "vertical_scroll_relief": theme_light_blue["vertical_scroll_relief"],
-            "horizontal_scroll_relief": theme_light_blue["horizontal_scroll_relief"],
-            "vertical_scroll_troughrelief": theme_light_blue["vertical_scroll_troughrelief"],
-            "horizontal_scroll_troughrelief": theme_light_blue["horizontal_scroll_troughrelief"],
-            "vertical_scroll_bordercolor": theme_light_blue["vertical_scroll_bordercolor"],
-            "horizontal_scroll_bordercolor": theme_light_blue["horizontal_scroll_bordercolor"],
-            "vertical_scroll_active_bg": theme_light_blue["vertical_scroll_active_bg"],
-            "horizontal_scroll_active_bg": theme_light_blue["horizontal_scroll_active_bg"],
-            "vertical_scroll_not_active_bg": theme_light_blue["vertical_scroll_not_active_bg"],
-            "horizontal_scroll_not_active_bg": theme_light_blue["horizontal_scroll_not_active_bg"],
-            "vertical_scroll_pressed_bg": theme_light_blue["vertical_scroll_pressed_bg"],
-            "horizontal_scroll_pressed_bg": theme_light_blue["horizontal_scroll_pressed_bg"],
-            "vertical_scroll_active_fg": theme_light_blue["vertical_scroll_active_fg"],
-            "horizontal_scroll_active_fg": theme_light_blue["horizontal_scroll_active_fg"],
-            "vertical_scroll_not_active_fg": theme_light_blue["vertical_scroll_not_active_fg"],
-            "horizontal_scroll_not_active_fg": theme_light_blue["horizontal_scroll_not_active_fg"],
-            "vertical_scroll_pressed_fg": theme_light_blue["vertical_scroll_pressed_fg"],
-            "horizontal_scroll_pressed_fg": theme_light_blue["horizontal_scroll_pressed_fg"],
+            "find_bindings": [
+                f"<{ctrl_key}-f>",
+                f"<{ctrl_key}-F>",
+            ],
+            "find_next_bindings": [
+                f"<{ctrl_key}-g>",
+                f"<{ctrl_key}-G>",
+            ],
+            "find_previous_bindings": [
+                f"<{ctrl_key}-Shift-g>",
+                f"<{ctrl_key}-Shift-G>",
+            ],
+            "toggle_replace_bindings": [
+                f"<{ctrl_key}-h>",
+                f"<{ctrl_key}-H>",
+            ],
+            "escape_bindings": [
+                "<Escape>",
+            ],
+            # other
             "vertical_scroll_borderwidth": 1,
             "horizontal_scroll_borderwidth": 1,
             "vertical_scroll_gripcount": 0,
@@ -206,6 +318,7 @@ def new_sheet_options() -> DotDict:
             "set_cell_sizes_on_zoom": False,
             "auto_resize_columns": None,
             "auto_resize_rows": None,
+            "to_clipboard_dialect": csv.excel_tab,
             "to_clipboard_delimiter": "\t",
             "to_clipboard_quotechar": '"',
             "to_clipboard_lineterminator": "\n",
@@ -232,7 +345,6 @@ def new_sheet_options() -> DotDict:
             "row_drag_and_drop_perform": True,
             "empty_horizontal": 50,
             "empty_vertical": 50,
-            "selected_rows_to_end_of_window": False,
             "horizontal_grid_to_end_of_window": False,
             "vertical_grid_to_end_of_window": False,
             "show_vertical_grid": True,
@@ -243,8 +355,25 @@ def new_sheet_options() -> DotDict:
             "edit_cell_return": "down",
             "editor_del_key": "forward",
             "treeview": False,
-            "treeview_indent": "6",
+            "treeview_indent": "2",
             "rounded_boxes": True,
             "alternate_color": "",
+            "allow_cell_overflow": False,
+            "table_wrap": "c",
+            "header_wrap": "c",
+            "index_wrap": "c",
+            "min_column_width": 1,
+            "max_column_width": float("inf"),
+            "max_header_height": float("inf"),
+            "max_row_height": float("inf"),
+            "max_index_width": float("inf"),
+            "show_top_left": None,
+            "sort_key": natural_sort_key,
+            "tooltips": False,
+            "user_can_create_notes": False,
+            "note_corners": False,
+            "tooltip_width": 210,
+            "tooltip_height": 210,
+            "tooltip_hover_delay": 1200,
         }
     )

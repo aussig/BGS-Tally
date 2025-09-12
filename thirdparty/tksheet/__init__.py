@@ -4,14 +4,37 @@
 tksheet - A Python tkinter table widget
 """
 
-__version__ = "7.2.15"
+__version__ = "7.5.14"
 
 from .colors import (
     color_map,
 )
 from .column_headers import ColumnHeaders
+from .constants import (
+    ICON_ADD,
+    ICON_CLEAR,
+    ICON_COPY,
+    ICON_CUT,
+    ICON_DEL,
+    ICON_EDIT,
+    ICON_PASTE,
+    ICON_REDO,
+    ICON_SELECT_ALL,
+    ICON_SORT_ASC,
+    ICON_SORT_DESC,
+    ICON_UNDO,
+    USER_OS,
+    ctrl_key,
+    emitted_events,
+    falsy,
+    nonelike,
+    symbols_set,
+    truthy,
+)
 from .formatters import (
     Formatter,
+    alt_percentage_to_str,
+    alt_to_percentage,
     bool_formatter,
     data_to_str,
     float_formatter,
@@ -28,6 +51,7 @@ from .formatters import (
     to_bool,
     to_float,
     to_int,
+    to_percentage,
     to_str,
     try_to_bool,
 )
@@ -60,6 +84,7 @@ from .functions import (
     move_elements_to,
     new_tk_event,
     num2alpha,
+    push_n,
     rounded_box_coords,
     span_dict,
     tksheet_type_error,
@@ -80,6 +105,7 @@ from .other_classes import (
 from .row_index import RowIndex
 from .sheet import Dropdown, Sheet
 from .sheet_options import new_sheet_options
+from .sorting import fast_sort_key, natural_sort_key, version_sort_key
 from .text_editor import (
     TextEditor,
     TextEditorTkText,
@@ -93,13 +119,3 @@ from .themes import (
     theme_light_green,
 )
 from .top_left_rectangle import TopLeftRectangle
-from .vars import (
-    USER_OS,
-    ctrl_key,
-    emitted_events,
-    falsy,
-    nonelike,
-    rc_binding,
-    symbols_set,
-    truthy,
-)

@@ -5,14 +5,13 @@ import tkinter as tk
 import tkinter.font as tkFont
 import traceback
 import webbrowser
-import functools
 from functools import partial
 from math import ceil
 from os import path
 from tkinter import PhotoImage, messagebox, ttk
 from urllib.parse import quote
 
-from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, FONT_TEXT, BuildState
+from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, BuildState
 from bgstally.debug import Debug
 from bgstally.utils import _, get_localised_filepath, human_format, str_truncate, catch_exceptions
 from bgstally.ravencolonial import RavenColonial
@@ -38,7 +37,7 @@ class ColonisationWindow:
 
     It can create popup windows for showing base types, system notes, and system bodies.
     '''
-    def __init__(self, bgstally):
+    def __init__(self, bgstally) -> None:
         self.bgstally = bgstally
         self.colonisation = None
         self.image_tab_complete:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
@@ -53,7 +52,7 @@ class ColonisationWindow:
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
         self.summary_cols:dict = {
             'Track': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
-            'Architect': {'header': _("Architect"), 'background': None, 'hide': False},
+            'Architect': {'header': _("Architect"), 'background': None, 'hide': False}, # LANG: System architect heading
             'Layout': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
             'State': {'header': "", 'background': None},
             'Total': {'header': _("Total"), 'background': None, 'format': 'int'}, # LANG: Total number of builds
@@ -169,8 +168,7 @@ class ColonisationWindow:
         if self.window != None and self.window.winfo_exists():
             self.window.lift()
             return
-        Debug.logger.debug(f"Scale: {config.get_int('ui_scale')}, {self.bgstally.ui.frame.tk.call('tk', 'scaling')}")
-        self.scale = config.get_int('ui_scale') / 100.00
+        self.scale:float = config.get_int('ui_scale') / 100.00
         self.colonisation = self.bgstally.colonisation
         self.window:tk.Toplevel = tk.Toplevel(self.bgstally.ui.frame)
         self.window.title(_("{plugin_name} - Colonisation").format(plugin_name=self.bgstally.plugin_name)) # LANG: window title
@@ -344,14 +342,13 @@ class ColonisationWindow:
         """ Display the context menu when right-clicked."""
 
         menu = tk.Menu(tearoff=tk.FALSE)
-        # LANG: Label for 'Copy' as in 'Copy and Paste'
         if type == 'System':
             menu.add_command(label=_('Copy'), command=partial(self._ctc, system['StarSystem']))  # As in Copy and Paste
             menu.add_separator()
 
         for which in self.links[type].keys():
             menu.add_command(
-                label=_(f"Open in {which}"),  # LANG: Open Element In Selected Provider
+                label=_("Open in {w}").format(w=which),  # LANG: Open Element In Selected Provider
                 command=partial(self._link, system, type, which)
             )
         menu.post(event.x_root, event.y_root)
@@ -697,7 +694,6 @@ class ColonisationWindow:
 
         for i, x in enumerate(self.summary_rows.keys()):
             for j, details in enumerate(self.summary_cols.values()):
-                #j += FIRST_SUMMARY_COLUMN
                 sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
                 if details.get('background') != None:
                     sheet[self._cell(i+srow,j+scol)].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
@@ -850,8 +846,8 @@ class ColonisationWindow:
             if system != None and 'Bodies' in system:
                 bodies:list = self.colonisation.get_bodies(system)
                 if new[i][self._detcol('Base Type')] != ' ':
-                    basetype:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
-                    bodies = self.colonisation.get_bodies(system, basetype.get('Location'))
+                    bt:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
+                    bodies = self.colonisation.get_bodies(system, bt.get('Location'))
 
                 if len(bodies) > 0:
                     sheet[self._cell(i+srow,self._detcol('Body'))].dropdown(values=[' '] + bodies)

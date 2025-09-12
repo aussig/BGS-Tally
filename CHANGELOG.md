@@ -6,7 +6,7 @@
 
 * Colonisation: Fixed issue with initial migration of data throwing an error
 * Colonisation: Fixed qty based sorting
-* COlonisation: Commodity filtering
+* Colonisation: Commodity filtering
 
 
 ## v5.2.0-a1 - 2025-09-07

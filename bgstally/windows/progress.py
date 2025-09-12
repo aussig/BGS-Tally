@@ -1,9 +1,7 @@
 import tkinter as tk
 import tkinter.font as tkFont
-import traceback
 import webbrowser
 import re
-import functools
 from functools import partial
 from math import ceil
 from tkinter import ttk
@@ -25,7 +23,7 @@ class ProgressWindow:
 
     It also provides a progress bar for the overall progress of the build (or builds).
     '''
-    def __init__(self, bgstally):
+    def __init__(self, bgstally) -> None:
         self.bgstally = bgstally
         self.colonisation = None
 
@@ -356,7 +354,7 @@ class ProgressWindow:
             sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
             name = ', '.join([pn, bt])
             if b.get('Name', '') != '':
-                name=', '.join([pn, bt, bn])
+                name = ', '.join([pn, bt, bn])
         self.titlett.text = f"{name}, {_('click to copy to clipboard')}"
         self.title.config(text=str_truncate(name, 52, loc='middle'))
 

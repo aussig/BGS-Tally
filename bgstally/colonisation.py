@@ -3,14 +3,12 @@ import json
 from os import path
 from os.path import join
 import time
-import traceback
 import re
-import functools
 from datetime import datetime
 from config import config # type: ignore
 from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
-from bgstally.utils import _, get_by_path, get_localised_filepath, catch_exceptions
+from bgstally.utils import _, catch_exceptions
 from bgstally.ravencolonial import RavenColonial, EDSM, Spansh
 
 FILENAME = "colonisation.json"
@@ -118,7 +116,7 @@ class Colonisation:
         rc:RavenColonial = RavenColonial(self)
         if state.get('CargoCapacity', 0) != None and state.get('CargoCapacity', 0) > 16 and state.get('CargoCapacity', 0) != self.cargo_capacity:
             self.cargo_capacity = state.get('CargoCapacity')
-            self.dirty = True
+            self.mof = True
 
         if entry.get('StarSystem', None): self.current_system = entry.get('StarSystem')
         if entry.get('SystemAddress', None): self.system_id = int(entry.get('SystemAddress'))
@@ -560,8 +558,8 @@ class Colonisation:
     @catch_exceptions
     def find_build(self, system:dict, data:dict) -> dict|None:
         '''
-        Get a build by a range and/or combinatino of attributes.
-        Marketid, BuildID or name are preferred but we use fuzzy matching for weird fdev cases
+        Get a build by a range and/or combination of attributes.
+        Name, BuildID or Marketid are preferred but we use fuzzy matching for weird fdev cases
         '''
         builds:list = self.get_system_builds(system)
 

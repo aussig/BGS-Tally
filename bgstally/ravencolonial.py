@@ -1,8 +1,4 @@
 from urllib.parse import quote
-from os import path
-from os.path import join
-import traceback
-import functools
 import re
 import time
 from functools import partial
@@ -634,8 +630,6 @@ class EDSM:
             Debug.logger.info(f"Added station {build} to system {data.get('name')}")
 
         RavenColonial(self).bgstally.ui.window_colonisation.update_display()
-        RavenColonial(self).colonisation.dirty = True
-        RavenColonial(self).colonisation.save('stations updated')
 
 
     @catch_exceptions
@@ -672,15 +666,15 @@ class EDSM:
             Debug.logger.warning(f"system didn't find system {data.get('name')}")
             return
 
-        system['Population'] = get_by_path(data, ['information', 'population'], None)
-        system['Economy'] = get_by_path(data, ['information', 'economy'], None)
+        changes:dict = {'Population' : get_by_path(data, ['information', 'population'], None),
+                        'Economy' : get_by_path(data, ['information', 'economy'], None),
+                        'Security' : get_by_path(data, ['information', 'security'], None),
+                        'EDSMUpdated' : int(time.time())
+                        }
         if get_by_path(data, ['information', 'secondEconomy'], 'None') != 'None':
-            system['Economy'] += "/" + get_by_path(data, ['information', 'secondEconomy'])
-        system['Security'] = get_by_path(data, ['information', 'security'], None)
-        system['EDSMUpdated'] = int(time.time())
+            changes['Economy'] += "/" + get_by_path(data, ['information', 'secondEconomy'])
 
-        RavenColonial(self).colonisation.dirty = True
-        RavenColonial(self).colonisation.save('System updated')
+        RavenColonial(self).colonisation.modify_system(system, changes)
 
 
     @catch_exceptions
@@ -724,16 +718,16 @@ class EDSM:
             return
 
         # Only record the body details that we need since returns an enormous amount of data.
-        system['Bodies'] = []
+        bodies:list = []
         for b in data.get('bodies', []):
             v:dict = {}
             for k in self.body_details:
                 if b.get(k, None): v[k] = b.get(k)
             if b.get('parents', None) != None:
                 v['parents'] = len(b.get('parents', []))
-            system['Bodies'].append(v)
-        RavenColonial(self).colonisation.dirty = True
-        RavenColonial(self).colonisation.save('Bodies updated')
+            bodies.append(v)
+
+        RavenColonial(self).colonisation.modify_system(system, {'Bodies' : bodies})
 
 
 class Spansh:
@@ -753,6 +747,8 @@ class Spansh:
         if not hasattr(self, '_initialized'):
             self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
             self._initialized = True
+        self.body_details = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', \
+                             'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
 
     def import_stations(self, system_name:str) -> None:
         return self._get_details(system_name, 'stations')
@@ -919,7 +915,7 @@ class Spansh:
         bodies:list = []
         for b in data.get('bodies', []):
             v:dict = {}
-            for k in ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']:
+            for k in self.body_details:
                 if b.get(k, None): v[k] = b.get(k)
             if b.get('parents', None) != None:
                 v['parents'] = len(b.get('parents', []))

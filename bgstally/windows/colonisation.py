@@ -168,7 +168,7 @@ class ColonisationWindow:
         if self.window != None and self.window.winfo_exists():
             self.window.lift()
             return
-        self.scale:float = config.get_int('ui_scale') / 100.00
+        self.scale = config.get_int('ui_scale') / 100.00
         self.colonisation = self.bgstally.colonisation
         self.window:tk.Toplevel = tk.Toplevel(self.bgstally.ui.frame)
         self.window.title(_("{plugin_name} - Colonisation").format(plugin_name=self.bgstally.plugin_name)) # LANG: window title
@@ -392,7 +392,7 @@ class ColonisationWindow:
                         align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                         show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
                         empty_vertical=0, empty_horizontal=0, header_font=FONT_SMALL, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                        show_header=True)
+                        show_header=True, default_row_height=int(19*self.scale))
         sheet.pack(fill=tk.BOTH, padx=0, pady=0)
         sheet.enable_bindings('single_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy')
         sheet.extra_bindings('cell_select', func=partial(self.base_clicked, sheet))
@@ -513,7 +513,7 @@ class ColonisationWindow:
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                             show_dropdown_borders=False,
                             empty_vertical=15, empty_horizontal=0, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                            show_header=False, set_all_heights_and_widths=True) #, default_row_height=21)
+                            show_header=False, set_all_heights_and_widths=True, default_row_height=int(19*self.scale))
         sheet.pack(fill=tk.BOTH, padx=0, pady=(0, 5))
 
         # Initial cell population
@@ -860,6 +860,7 @@ class ColonisationWindow:
                 sheet[self._cell(len(new)+srow-1,j)].highlight(bg=None)
             sheet[self._cell(len(new)+srow-1,self._detcol('State'))].data = ' '
 
+        sheet.set_all_row_heights(height=int(19*self.scale))
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
@@ -897,6 +898,8 @@ class ColonisationWindow:
         sysnum:int = tabnum -1
         systems:list = self.colonisation.get_all_systems()
         system:dict = systems[sysnum]
+
+        Debug.logger.debug(f"Sheet modified: {event.eventname} {event.selected} {event.row},{event.column}='{event.value}'")
 
         # Readonly if it's not our system
         sysnum:int = tabnum -1

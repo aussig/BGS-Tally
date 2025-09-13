@@ -563,10 +563,11 @@ class Colonisation:
         '''
         builds:list = self.get_system_builds(system)
 
+        #Debug.logger.debug(f"Finding build in {system.get('StarSystem')} {data} Builds: {builds}")
         if data.get('Name', '') == '' or data.get('Name', '') == ' ': data['Name'] = None
 
         # Colonisation ship must be build 0
-        if data.get('Name', None) != None and 'System Colonisation Ship' in data.get('Name', '') and len(builds) > 0:
+        if data.get('Name', None) != None and 'EXT_PANEL_ColonisationShip' in data.get('Name', '') and len(builds) > 0:
             return builds[0]
 
         # An existing/known build?
@@ -599,6 +600,7 @@ class Colonisation:
 
             # A completed but as yet unknown build.
             if build.get('State', None) == BuildState.COMPLETE and build.get('MarketID', '') == '' and \
+                build.get('Body', build.get('BodyNum', None)) != None and \
                 build.get('Body', build.get('BodyNum')).lower() == data.get('Body', data.get('BodyNum')).lower() and \
                 build.get('Location') == data.get('Location', None):
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")

@@ -348,11 +348,11 @@ class ProgressWindow:
         sn:str = _('Unknown') # LANG: Unknown system name
         if self.build_index < len(tracked):
             b:dict = tracked[self.build_index]
-            bn:str = re.sub(r"(\w+ Construction Site:|$EXT_PANEL_ColonisationShip;) ", "", b.get('Name', ''))
+            bn:str = re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;) ", "", b.get('Name', ''))
             bt:str = b.get('Base Type', '')
             pn:str = b.get('Plan', _('Unknown')) # Unknown system name
             sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
-            name = ', '.join([pn, bt])
+            name:str = ', '.join([pn, bt])
             if b.get('Name', '') != '':
                 name = ', '.join([pn, bt, bn])
         self.titlett.text = f"{name}, {_('click to copy to clipboard')}"
@@ -425,15 +425,13 @@ class ProgressWindow:
                 continue
 
             for col, val in enumerate(self.columns):
+                row[col].bind("<Button-1>", partial(self.link, c, None))
+                row[col].bind("<Button-2>", partial(self.link, c, sn))
+                row[col].bind("<Button-3>", partial(self.ctc, self.colonisation.get_commodity(c)))
+
                 if col == 0:
                     # Shorten and display the commodity name
-                    colstr:str = self.colonisation.get_commodity(c)
-                    colstr = str_truncate(colstr, 24)
-
-                    row[col]['text'] = colstr
-                    row[col].bind("<Button-1>", partial(self.link, c, None))
-                    row[col].bind("<Button-2>", partial(self.link, c, sn))
-                    row[col].bind("<Button-3>", partial(self.ctc, self.colonisation.get_commodity(c)))
+                    row[col]['text'] = str_truncate(self.colonisation.get_commodity(c), 24)
                     row[col].grid()
                     continue
 

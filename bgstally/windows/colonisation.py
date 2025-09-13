@@ -735,6 +735,11 @@ class ColonisationWindow:
                         row.append(v if v != 0 else ' ')
 
                     case _:
+                        if name == 'Name':
+                            name:str = build.get(name, '')
+                            row.append(name.replace('$EXT_PANEL_ColonisationShip;', 'Colonisation Ship: '))
+                            continue
+
                         if name == 'State':
                             # @TODO: Make this a progress bar
                             if self.colonisation.get_build_state(build) == BuildState.PROGRESS and i < len(reqs):

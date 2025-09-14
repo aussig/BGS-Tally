@@ -454,12 +454,14 @@ class Colonisation:
             system['StarSystem'] = data.get('StarSystem')
 
         for k, v in data.items():
-            if k not in self.system_keys: continue
+            if k not in self.system_keys or k == 'RCSync': continue
             system[k] = v
 
+        Debug.logger.debug(f"Modified system: {data.get('RCSync', False)} {system.get('RCSync', False)} {data.get('StarSystem', None)} {system}")
         # Add a system if the flag has switched from zero to one
         if data.get('RCSync', False) == True and system.get('RCSync', False) == False and \
             data.get('StarSystem', None) != None:
+            Debug.logger.debug(f"Enabling RavenColonial sync for {system.get('StarSystem')}")
             RavenColonial(self).add_system(system.get('StarSystem', ''))
             system['RCSync'] = True
 

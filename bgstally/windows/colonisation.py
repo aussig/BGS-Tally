@@ -1193,7 +1193,7 @@ class ColonisationWindow:
         data:dict = {
             'Name': name,
             'StarSystem': sysname,
-            'RCSync': 1 if rcsync == True else 0,
+            'RCSync': rcsync,
             'Hidden' : hide
         }
         if hide == True:

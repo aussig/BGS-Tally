@@ -132,6 +132,7 @@ class RavenColonial:
     def add_system(self, system_name:str) -> None:
         """ Add a system to RC. """
 
+        # Query the system to see if it exists
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
         response:Response = requests.get(url, headers=self._headers(),timeout=5)
         Debug.logger.info(f"Query system response for {system_name}: {response.status_code}")
@@ -144,6 +145,11 @@ class RavenColonial:
             if response.status_code != 200:
                 Debug.logger.error(f"Failed to import system {system_name}: {response.status_code}")
                 return
+
+            # Add Builds
+            system:dict = self.colonisation.find_system({'StarSystem': system_name})
+            for b in system.get('Builds', []):
+                self.upsert_site(system, b)
 
         # Merge RC data with system data
         data:dict = response.json()
@@ -251,8 +257,7 @@ class RavenColonial:
 
         mod:dict = {}
         for k, v in self.sys_params.items():
-            if k != 'rev' and data.get(k, '') != '' and \
-                data.get(k, None) != system.get(v, None):
+            if k != 'rev' and data.get(k, None) != None and data.get(k, None) != system.get(v, None):
                 mod[v] = data.get(k, None).strip() if isinstance(data.get(k, None), str) else data.get(k, None)
 
         if mod != {}:

@@ -737,7 +737,7 @@ class ColonisationWindow:
                     case _:
                         if name == 'Name':
                             name:str = build.get(name, '')
-                            row.append(name.replace('$EXT_PANEL_ColonisationShip;', 'Colonisation Ship: '))
+                            row.append(name.replace('$EXT_PANEL_ColonisationShip;', 'Colonisation Ship'))
                             continue
 
                         if name == 'State':
@@ -904,7 +904,7 @@ class ColonisationWindow:
         systems:list = self.colonisation.get_all_systems()
         system:dict = systems[sysnum]
 
-        Debug.logger.debug(f"Sheet modified: {event.eventname} {event.selected} {event.row},{event.column}='{event.value}'")
+        #Debug.logger.debug(f"Sheet modified: {event.eventname} {event.selected} {event.row},{event.column}='{event.value}'")
 
         # Readonly if it's not our system
         sysnum:int = tabnum -1
@@ -972,6 +972,7 @@ class ColonisationWindow:
                 sdata.append(self._get_detail_header())
                 sdata += self._build_detail(system)
 
+                Debug.logger.debug(f"sysnum: {sysnum} sheets: {len(self.sheets)}")
                 self.sheets[sysnum].set_sheet_data(sdata)
                 self._config_sheet(self.sheets[sysnum], system)
 

@@ -198,8 +198,8 @@ class Colonisation:
                 build_state:BuildState|None = None
                 build = {}
 
-                    # Colonisation ship is always the first build. find/add system. find/add build
-                    # Construction site can be any build, so find/add system, find/add build
+                # Colonisation ship is always the first build. find/add system. find/add build
+                # Construction site can be any build, so find/add system, find/add build
                 if '$EXT_PANEL_ColonisationShip' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                     Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
                     if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
@@ -218,7 +218,7 @@ class Colonisation:
                     return
 
                 # Update the system details
-                if system.get('Name', None) != None: system['Name'] = self.current_system
+                if system.get('Name', None) == None: system['Name'] = self.current_system
 
                 # Update the build details
                 data:dict = {}
@@ -443,7 +443,7 @@ class Colonisation:
         ''' Update a system for colonisation planning '''
 
         if isinstance(system, int): system = self.systems[system]
-        Debug.logger.debug(f"modify_system: {system.get('StarSystem')} {data}")
+        #Debug.logger.debug(f"modify_system: {system.get('StarSystem')} {data}")
         if system == None:
             Debug.logger.warning(f"Cannot update system, not found: {system}")
             return

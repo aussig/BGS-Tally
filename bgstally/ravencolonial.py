@@ -430,7 +430,7 @@ class RavenColonial:
         if payload == self._cache.get(progress.get('ProjectID', ''), {}):return
         self._cache[progress.get('ProjectID', '')] = payload
 
-        #Debug.logger.debug(f"RC: Submitting project update {system.get('StarSystem', None)} {payload}")
+        Debug.logger.debug(f"RC: Submitting project update {system.get('StarSystem', None)} {payload}")
         url:str = f"{RC_API}/project/{progress.get('ProjectID')}"
         self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, headers=self._headers(), callback=self._project_callback)
 

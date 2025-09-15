@@ -200,7 +200,7 @@ class Colonisation:
 
                 # Colonisation ship is always the first build. find/add system. find/add build
                 # Construction site can be any build, so find/add system, find/add build
-                if '$EXT_PANEL_ColonisationShip' in f"{self.station}" or 'Construction Site' in f"{self.station}":
+                if '$EXT_PANEL_ColonisationShip;' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                     Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
                     if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
@@ -569,7 +569,7 @@ class Colonisation:
         if data.get('Name', '') == '' or data.get('Name', '') == ' ': data['Name'] = None
 
         # Colonisation ship must be build 0
-        if data.get('Name', None) != None and 'EXT_PANEL_ColonisationShip' in data.get('Name', '') and len(builds) > 0:
+        if data.get('Name', None) != None and '$EXT_PANEL_ColonisationShip;' in data.get('Name', '') and len(builds) > 0:
             return builds[0]
 
         # An existing/known build?
@@ -601,12 +601,13 @@ class Colonisation:
                 return build
 
             # A completed but as yet unknown build.
-            if build.get('State', None) == BuildState.COMPLETE and build.get('MarketID', '') == '' and \
-                build.get('Body', build.get('BodyNum', None)) != None and \
-                build.get('Body', build.get('BodyNum')).lower() == data.get('Body', data.get('BodyNum')).lower() and \
-                build.get('Location') == data.get('Location', None):
-                Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
-                return build
+            if build.get('State', None) == BuildState.COMPLETE and build.get('MarketID', '') == '' and build.get('Location') == data.get('Location', None):
+                Debug.logger.debug(f"Checking completed build {build} data {data}")
+                bbody = build.get('Body', build.get('BodyNum', None))
+                dbody = data.get('Body', data.get('BodyNum', None))
+                if bbody != None and dbody != None and bbody.lower() == dbody.lower():
+                    Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
+                    return build
 
         return None
 
@@ -724,6 +725,9 @@ class Colonisation:
             Debug.logger.error(f"modify_build called for non-existent build: {buildid}")
             return
 
+        # Fix up known FDev oddities
+        if '$EXT_PANEL_ColonisationShip;' in data.get('Name', ''): data['Name'] = data.get('Name', '').replace('$EXT_PANEL_ColonisationShip;', 'System Colonisation Ship')
+
         # If we have a body name or id set the corresponding value.
         body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', 'Unknown')))
         if body == None: body = self.get_body(system, build.get('BodyNum', build.get('Body', 'Unknown')))
@@ -787,7 +791,7 @@ class Colonisation:
             'State': BuildState.COMPLETE,
             'Track': False,
             'MarketID': None,
-            'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;) ", "", build.get('Name', ''))
+            'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
         })
         return True
 

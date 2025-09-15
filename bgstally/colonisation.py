@@ -70,7 +70,7 @@ class Colonisation:
 
         self.cmdr:str|None = None
 
-        # Valid keys for colonisation.json entries. These help avoid sending unnecessary data to third parties or storing unncessary data in the save file.
+        # Valid keys for colonisation.json entries. These help avoid sending unnecessary data to third parties or storing unnecessary data in the save file.
         self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync']
         self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID']
         self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
@@ -114,6 +114,9 @@ class Colonisation:
         This method is called by the bgstally plugin when a journal entry is received.
         '''
         rc:RavenColonial = RavenColonial(self)
+        system:dict|None = None
+        build:dict|None = None
+
         if state.get('CargoCapacity', 0) != None and state.get('CargoCapacity', 0) > 16 and state.get('CargoCapacity', 0) != self.cargo_capacity:
             self.cargo_capacity = state.get('CargoCapacity')
             self.mof = True
@@ -160,7 +163,7 @@ class Colonisation:
                     Debug.logger.warning(f"Invalid ColonisationContribution event: {entry}")
                     return
 
-                system:dict|None = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
+                system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
                 if system != None and system.get('RCSync', False) == True:
                     for progress in self.progress:
                         if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
@@ -196,25 +199,22 @@ class Colonisation:
                 self.docked = True
                 system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
                 build_state:BuildState|None = None
-                build = {}
 
-                # Colonisation ship is always the first build. find/add system. find/add build
-                # Construction site can be any build, so find/add system, find/add build
+                # Find and add system and build for construciton sites.
+                # Colonisation ship is always the first build. Construction site can be any build
                 if '$EXT_PANEL_ColonisationShip' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                     Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
                     if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
                     build_state = BuildState.PROGRESS
                 # Complete station so find it and add/update as appropriate.
-                elif system != None and self.station != 'FleetCarrier' and \
-                    re.search(r"^...\-...$", f"{self.station}") == None and \
-                    re.search(r"^\$", f"{self.station}") == None:
+                elif system != None and self.station != 'FleetCarrier' and re.search(r"^()...\-...$|\$)", f"{self.station}") == None :
                     Debug.logger.debug(f"Docked at site. Finding/creating system and build {self.market_id} {self.station}")
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
                     build_state = BuildState.COMPLETE
 
                 # If this isn't a colonisation ship or a system we're building, or it's a carrier, scenario, etc. then ignore it.
-                if system == None or build == {}:
+                if system == None or build == None:
                     return
 
                 # Update the system details
@@ -269,9 +269,9 @@ class Colonisation:
 
                 # It's in a system we're building in, so we should create it.
                 Debug.logger.debug(f"Finding build {self.market_id} {self.station} {self.body}")
-                build:dict = self.find_or_create_build(system, {'MarketID': self.market_id,
-                                                                'Name': self.station,
-                                                                'Body': self.body})
+                build = self.find_or_create_build(system, {'MarketID': self.market_id,
+                                                           'Name': self.station,
+                                                           'Body': self.body})
                 Debug.logger.debug(f"Supercruise exit, build: {build}")
                 # We update them here because it's not possible to dock at installations once they're complete so
                 # you may miss their completion.

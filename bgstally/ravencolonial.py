@@ -340,8 +340,10 @@ class RavenColonial:
 
     @catch_exceptions
     def create_project(self, system:dict, build:dict, progress:dict) -> None:
-        # Required: marketid, systemaddress, buildname, commodities (required)
-        # Opt: colonisationConstructionDepot (event details), buildType, bodyNum, architectName, timeDue, isPrimaryPort, bodyType
+        """ Create a new project in RavenColonial 
+            RC requires: marketid, systemaddress, buildname, and commodities
+            Optional: buildType, bodyNum, architectName, timeDue, isPrimaryPort, bodyType
+        """
         payload:dict = {}
         for k, v in self.project_params.items():
             rcval = None

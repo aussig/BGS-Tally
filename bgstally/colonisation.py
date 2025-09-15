@@ -659,20 +659,20 @@ class Colonisation:
 
 
     @catch_exceptions
-    def remove_build(self, system, ind) -> None:
+    def remove_build(self, system:dict|int, ind:int|str) -> None:
         ''' Remove a build from a system '''
-        if isinstance(system, int): system = self.systems[system]
+        if isinstance(system, int): system = dict(self.systems[system])
 
         if system == None:
             Debug.logger.warning(f"Cannot remove build - unknown system")
             return
 
         # Support marketid or BuildID as well as index
-        for i, build in enumerate(system['Builds']):
-            if isinstance(ind, str) and build.get('BuildID') == ind:
+        for i, b in enumerate(system.get('Builds', [])):
+            if isinstance(ind, str) and b.get('BuildID') == ind:
                 ind = i
                 break
-            if isinstance(ind, int) and build.get('MarketID') == int(ind):
+            if isinstance(ind, int) and b.get('MarketID') == int(ind):
                 ind = i
                 break
 
@@ -681,7 +681,7 @@ class Colonisation:
             return
 
         if system.get('RCSync', False) == True:
-            RavenColonial(self).remove_site(system, ind)
+            RavenColonial(self).remove_site(system, int(ind))
 
         # Remove build
         system['Builds'].pop(ind)

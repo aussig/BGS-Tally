@@ -407,12 +407,12 @@ class ProgressWindow:
                         d = 'S' if m.get('surface', False) == True else 'C' if m.get('type', '').lower().find('carrier') >= 0 else 'O'
                         sheet[f"E{i+1}"].highlight(bg=self.colors.get(d, 'white'))
                     case 'count':
-                        d = str(len([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if required[self.build_index].get(f"${k}_name;", 0) - delivered[self.build_index].get(f"${k}_name;", 0) > 0]))
+                        d = str(len([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if 0 < required[self.build_index].get(f"${k}_name;", 0) - delivered[self.build_index].get(f"${k}_name;", 0) < v]))
                     case 'padSize':
                         d = m.get('padSize', '').upper()[0:1]
                         sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
                     case 'commodities':
-                        d = ', '.join([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if required[self.build_index].get(f"${k}_name;", 0) - delivered[self.build_index].get(f"${k}_name;", 0) > 0])
+                        d = ', '.join([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if 0 < required[self.build_index].get(f"${k}_name;", 0) - delivered[self.build_index].get(f"${k}_name;", 0) < v])
                     case 'distance':
                         d = f"{m.get('distance', 0):,.2f}"
                     case 'distanceToArrival':

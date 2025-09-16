@@ -18,7 +18,7 @@ from bgstally.ravencolonial import RavenColonial
 
 from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from thirdparty.tksheet import Sheet, num2alpha
+from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key
 from thirdparty.Tooltip import ToolTip
 
 FILENAME_LEGEND = "colonisation_legend.txt"
@@ -120,7 +120,7 @@ class ColonisationWindow:
             'Standard of Living': {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Development Level': {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             #'Building Type' : {'header': _("Building Type"), 'background': None, 'format': 'string', 'width': 175}, # LANG: Building type
-            'Layouts' : {'header': _("Building Layouts"), 'background': None, 'format': 'string', 'width': 200}, # LANG: Building layout types
+            'Layouts' : {'header': _("Building Layouts (click for details)"), 'background': None, 'format': 'string', 'width': 200}, # LANG: Building layout types
             'Boosted By': {'header': _("Boosted By"), 'background': None, 'format': 'string', 'width': 300}, # LANG: any boost effects for the base
             'Decreased By': {'header': _("Decreased By"), 'background': None, 'format': 'string', 'width': 250}, # LANG: any decrease effects for the base
         }
@@ -387,14 +387,15 @@ class ColonisationWindow:
         self.bases_fr.geometry(f"{int(1000*self.scale)}x{int(500*self.scale)}")
         self.bases_fr.protocol("WM_DELETE_WINDOW", self.bases_fr.destroy)
         self.bases_fr.config(bd=2, relief=tk.FLAT)
-        sheet:Sheet = Sheet(self.bases_fr, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
+        header_fnt:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
+        sheet:Sheet = Sheet(self.bases_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
                         show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
                         align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                         show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
-                        empty_vertical=0, empty_horizontal=0, header_font=FONT_SMALL, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
+                        empty_vertical=0, empty_horizontal=0, header_font=header_fnt, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
                         show_header=True, default_row_height=int(19*self.scale))
         sheet.pack(fill=tk.BOTH, padx=0, pady=0)
-        sheet.enable_bindings('single_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy')
+        sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'sort_rows')
         sheet.extra_bindings('cell_select', func=partial(self.base_clicked, sheet))
         data:list = [[0 for _ in range(len(self.bases.keys()))] for _ in range(len(self.colonisation.get_base_types()))]
         sheet.set_header_data([h['header'] for h in self.bases.values()])
@@ -428,7 +429,6 @@ class ColonisationWindow:
     @catch_exceptions
     def base_clicked(self, sheet:Sheet, event) -> None:
         ''' We clicked on a base type, open it in RC '''
-        sheet.toggle_select_cell(event.selected.row, event.selected.column, False)
         sheet.toggle_select_row(event.selected.row, False, True)
         if event.selected.column == 20:
             layouts:str = str(sheet[self._cell(event['selected'].row, 20)].data)

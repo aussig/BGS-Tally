@@ -338,32 +338,37 @@ class ProgressWindow:
         for min in [500, 1000, 2500, 5000, 10000, 50000]:
             if min > rem: break
 
+        # If we don't have a single build then use Inara
+        if self.build_index >= len(tracked):
+            url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
+            webbrowser.open(url)
+
         projectid:str = tracked[self.build_index].get('ProjectID', '')
         if projectid == '':
             progress:dict = self.colonisation.find_progress(tracked[self.build_index].get('MarketID'))
-            projectid = progress.get('ProjectID', '')
+            if progress != None:
+                projectid = progress.get('ProjectID', '')
 
-        # If we have a RavenColonial project ID then use that to open the project page instead of Inara
-        if projectid != '':
-            url:str = f"https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api/project/{projectid}/markets"
-            payload:dict = {"systemName": sys,
-                            "shipSize": 'medium',
-                            "requireNeed": True}
-            self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=RavenColonial(self.colonisation)._headers(), callback=self._markets_callback)
+        # If we don't have a RavenColonial project ID then use Inara
+        if projectid == '':
+            url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
+            webbrowser.open(url)
 
-            # Create/recreate the frame now since it takes a while to show the data
-            if self.mkts_fr != None and self.mkts_fr.winfo_exists(): self.mkts_fr.destroy()
-            scale:float = config.get_int('ui_scale') / 100.00
-            self.mkts_fr = tk.Toplevel(self.bgstally.ui.frame)
-            self.mkts_fr.wm_title(_("{plugin_name} - Markets Window").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the markets popup window
-            width:int = sum([v.get('Width') for v in self.markets.values()]) + 20
-            self.mkts_fr.geometry(f"{int(width*scale)}x{int(500*scale)}")
-            self.mkts_fr.protocol("WM_DELETE_WINDOW", self.mkts_fr.destroy)
-            self.mkts_fr.config(bd=2, relief=tk.FLAT)
-            return
+        url:str = f"https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api/project/{projectid}/markets"
+        payload:dict = {"systemName": sys,
+                        "shipSize": 'medium',
+                        "requireNeed": True}
+        self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=RavenColonial(self.colonisation)._headers(), callback=self._markets_callback)
 
-        url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
-        webbrowser.open(url)
+        # Create/recreate the frame now since it takes a while to show the data
+        if self.mkts_fr != None and self.mkts_fr.winfo_exists(): self.mkts_fr.destroy()
+        scale:float = config.get_int('ui_scale') / 100.00
+        self.mkts_fr = tk.Toplevel(self.bgstally.ui.frame)
+        self.mkts_fr.wm_title(_("{plugin_name} - Markets Window").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the markets popup window
+        width:int = sum([v.get('Width') for v in self.markets.values()]) + 20
+        self.mkts_fr.geometry(f"{int(width*scale)}x{int(500*scale)}")
+        self.mkts_fr.protocol("WM_DELETE_WINDOW", self.mkts_fr.destroy)
+        self.mkts_fr.config(bd=2, relief=tk.FLAT)
 
 
     @catch_exceptions
@@ -389,6 +394,8 @@ class ProgressWindow:
                         show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
                         empty_vertical=0, empty_horizontal=0, header_font=header_fnt, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
                         show_header=True, default_row_height=int(19*scale), table_wrap="w", alternate_color="gray95")
+        sheet.pack(fill=tk.BOTH, padx=0, pady=0)
+
         sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'sort_rows')
         sheet.set_header_data([v['Header'] for v in self.markets.values()])
         sheet.extra_bindings('cell_select', func=partial(self._sheet_clicked, sheet))
@@ -413,8 +420,8 @@ class ProgressWindow:
                         sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
                     case 'commodities':
                         d = ', '.join([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if 0 < required[self.build_index].get(f"${k}_name;", 0) - delivered[self.build_index].get(f"${k}_name;", 0) < v])
-                    case 'distance':
-                        d = f"{m.get('distance', 0):,.2f}"
+                    case 'distance' | 'distanceToArrival':
+                        d = f"{m.get('distance', 0):,.1f}"
                     case 'distanceToArrival':
                         d = f"{int(m.get('distanceToArrival', 0)):,}"
                     case _:
@@ -430,7 +437,6 @@ class ProgressWindow:
 
         #self.msheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
         sheet.set_all_row_heights(height=None, only_set_if_too_small=True, redraw=True)
-        sheet.pack(fill=tk.BOTH, padx=0, pady=0)
 
 
     @catch_exceptions

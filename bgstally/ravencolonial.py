@@ -340,7 +340,7 @@ class RavenColonial:
 
     @catch_exceptions
     def create_project(self, system:dict, build:dict, progress:dict) -> None:
-        """ Create a new project in RavenColonial 
+        """ Create a new project in RavenColonial
             RC requires: marketid, systemaddress, buildname, and commodities
             Optional: buildType, bodyNum, architectName, timeDue, isPrimaryPort, bodyType
         """
@@ -518,8 +518,8 @@ class RavenColonial:
             Debug.logger.info("Cannot update carrier no cmdr")
             return
 
-        all:dict = self.colonisation.base_costs.get('All')
-        payload:dict = {re.sub(r"\$(.*)_name;", r"\1", comm).lower() : cargo.get(comm, 0) for comm in all.keys()}
+        all:dict = self.colonisation.base_types.get('InaraIDs')
+        payload:dict = {comm : cargo.get(comm, 0) for comm in all.keys()}
         Debug.logger.debug(f"Carrier cargo: {marketid} {payload}")
         url:str = f"{RC_API}/fc/{marketid}/cargo"
         self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=self._headers(), callback=self._carrier_callback)

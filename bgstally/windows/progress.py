@@ -189,7 +189,7 @@ class ProgressWindow:
         row += 1
 
         # Go through the complete list of possible commodities and make a row for each and hide it.
-        for c in self.colonisation.get_commodity_list('All'):
+        for c in self.colonisation.get_commodity_list():
             r:dict = {}
 
             for col, v in enumerate(self.columns):
@@ -257,7 +257,7 @@ class ProgressWindow:
 
         output += "-" * 67 + "\n"
 
-        for c in self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY):
+        for c in self.colonisation.get_commodity_list(CommodityOrder.CATEGORY):
             reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
             delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
             # Hide if we're docked and market doesn't have this.
@@ -414,12 +414,12 @@ class ProgressWindow:
                         d = 'S' if m.get('surface', False) == True else 'C' if m.get('type', '').lower().find('carrier') >= 0 else 'O'
                         sheet[f"E{i+1}"].highlight(bg=self.colors.get(d, 'white'))
                     case 'count':
-                        d = str(len([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if 0 < required[self.build_index].get(f"${k}_name;", 0) - delivered[self.build_index].get(f"${k}_name;", 0) < v]))
+                        d = str(len([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if 0 < required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0) < v]))
                     case 'padSize':
                         d = m.get('padSize', '').upper()[0:1]
                         sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
                     case 'commodities':
-                        d = ', '.join([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if 0 < required[self.build_index].get(f"${k}_name;", 0) - delivered[self.build_index].get(f"${k}_name;", 0) < v])
+                        d = ', '.join([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if 0 < required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0) < v])
                     case 'distance' | 'distanceToArrival':
                         d = f"{m.get('distance', 0):,.1f}"
                     case 'distanceToArrival':
@@ -504,9 +504,9 @@ class ProgressWindow:
         comms:list = []
         qty:dict = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
         if self.colonisation.docked == True:
-            comms = self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)
+            comms = self.colonisation.get_commodity_list(CommodityOrder.CATEGORY)
         else:
-            comms = self.colonisation.get_commodity_list('All', self.comm_order, qty)
+            comms = self.colonisation.get_commodity_list(self.comm_order, qty)
 
         if comms == None or comms == []:
             Debug.logger.info(f"No commodities found")

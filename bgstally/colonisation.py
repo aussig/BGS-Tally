@@ -13,7 +13,6 @@ from bgstally.ravencolonial import RavenColonial, EDSM, Spansh
 
 FILENAME = "colonisation.json"
 BASE_TYPES_FILENAME = 'base_types.json'
-BASE_COSTS_FILENAME = 'base_costs.json'
 CARGO_FILENAME = 'Cargo.json'
 MARKET_FILENAME = 'Market.json'
 
@@ -43,8 +42,7 @@ class Colonisation:
     Colonisation uses the following data files:
       - otherdata/colonisation.json: Stores the current state of colonisation data, including systems, builds, and progress.
     and the following readonly data files:
-      - data/base_types.json: Contains definitions of base types for colonisation.
-      - data/base_costs.json: Contains the costs of commodities required for each base type.
+      - data/bases.json: Contains definitions of base types for colonisation.
       - data/commodity.csv: Contains the list of commodities and their categories.
       - data/colonisation_legend.txt and L10n/ localized legends: Contains text for the colonisation legend popup.
     '''
@@ -57,8 +55,7 @@ class Colonisation:
         self.location:str|None = None # Orbital, Surface, etc.
         self.market_id:int|None = None
         self.docked:bool = False
-        self.base_types:dict = {}  # Loaded from base_types.json
-        self.base_costs:dict = {}  # Loaded from base_costs.json
+        self.base_types:dict = {}  # Loaded from bases.json
         self.systems:list = []     # Systems with colonisation
         self.progress:list = []    # Construction progress data
         self.dirty:bool = False
@@ -77,34 +74,21 @@ class Colonisation:
 
         # Load base commodities, types, costs, and saved data
         self._load_base_types()
-        self._load_base_costs()
         self._load()
 
 
     @catch_exceptions
     def _load_base_types(self) -> None:
-        ''' Load base type definitions from base_types.json '''
-        base_types_path = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_TYPES_FILENAME)
+        ''' Load base type definitions from bases.json
+            The 'InaraIDs' category is used to list all the colonisation commodities and their inara IDs
+        '''
+        base_types_path:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_TYPES_FILENAME)
         with open(base_types_path, 'r') as f:
             self.base_types = json.load(f)
             Debug.logger.info(f"Loaded {len(self.base_types)} base types for colonisation")
 
-
-    @catch_exceptions
-    def _load_base_costs(self) -> None:
-        '''
-        Load base cost definitions from base_costs.json
-        The 'All' category is used to list all the colonisation commodities and their inara IDs
-        '''
-        base_costs_path:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_COSTS_FILENAME)
-        with open(base_costs_path, 'r') as f:
-            self.base_costs = json.load(f)
-            Debug.logger.info(f"Loaded {len(self.base_costs)} base costs for colonisation")
-
-            # Update base_types with total commodity counts from base_costs
-            for base_type in self.base_costs.keys():
-                if base_type in self.base_types:
-                    self.base_types[base_type]['Total Comm'] = sum(self.base_costs[base_type].values())
+        for base_type in self.base_types.keys():
+            self.base_types[base_type]['Total Comm'] = sum(self.base_types[base_type].get('Cost', []).values())
 
 
     @catch_exceptions
@@ -265,20 +249,23 @@ class Colonisation:
 
                 # If we don't have this system in our list, we don't care about it.
                 system:dict|None = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-                if system == None: return
+                if system == None:
+                    return
 
-                # It's in a system we're building in, so we should create it.
+                # It's in a system we're building in, so we should find or create it.
                 Debug.logger.debug(f"Finding build {self.market_id} {self.station} {self.body}")
                 build = self.find_or_create_build(system, {'MarketID': self.market_id,
                                                            'Name': self.station,
                                                            'Body': self.body})
                 Debug.logger.debug(f"Supercruise exit, build: {build}")
+
                 # We update them here because it's not possible to dock at installations once they're complete so
                 # you may miss their completion.
 
                 # If we matched on a construction site and this is not one then we complete the build because
                 # someone else finished it
-                if build.get('State') == BuildState.PROGRESS and 'Construction Site' in build.get('Name', ''):
+                if build.get('State') == BuildState.PROGRESS and \
+                    re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
                     Debug.logger.debug(f"Trying to complete build")
                     self.try_complete_build(build.get('MarketID', 0))
                 if self.market_id != None: build['MarketID'] = self.market_id
@@ -334,14 +321,14 @@ class Colonisation:
         ''' Get a list of base type names '''
         match category:
             case 'Any' | 'All':
-                return list(self.base_types.keys())
+                return sorted(list(self.base_types.keys() - ['InaraIDs']))
             case 'Initial' | 'Starports': # Just the inital build starports
-                return [base_type for base_type in self.base_types if self.base_types[base_type].get('Category') in ['Starport', 'Outpost']]
+                return sorted([base_type for base_type in self.base_types if self.base_types[base_type].get('Category') in ['Starport', 'Outpost']])
             case 'Ports': # Ports that have the multiple cost penalty
-                return [base_type for base_type in self.base_types if self.base_types[base_type].get('Category') in ['Starport', 'Planetary Port']]
+                return sorted([base_type for base_type in self.base_types if self.base_types[base_type].get('Category') in ['Starport', 'Planetary Port']])
             case _:
                 # Category (Settlement, Outpost, etc)
-                return [base_type for base_type in self.base_types if self.base_types[base_type].get('Category') == category]
+                return sorted([base_type for base_type in self.base_types if self.base_types[base_type].get('Category') == category])
 
 
     @catch_exceptions
@@ -587,6 +574,7 @@ class Colonisation:
 
         for build in builds:
             # A build that was planned but is now a construction site
+            # We have to ignore the name match for the first build as its name changes
             if build.get('State', None) == BuildState.PLANNED and build.get('MarketID', None) == None and \
                 build.get('Location', None) == loc and \
                 build.get('Body', build.get('BodyNum')).lower() == data.get('Body', data.get('BodyNum')).lower():
@@ -595,7 +583,7 @@ class Colonisation:
 
             # A build that was in progress but is now completed
             if build.get('State', None) == BuildState.PROGRESS and \
-                f"Construction Site: {data.get('Name', '')}" in build.get('Name', '') and \
+                (len(builds) == 1 or f"Construction Site: {data.get('Name', '')}" in build.get('Name', '')) and \
                 build.get('Body', build.get('BodyNum')).lower() == data.get('Body', data.get('BodyNum')).lower():
                 Debug.logger.debug(f"Matched construction {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
@@ -774,6 +762,8 @@ class Colonisation:
     def try_complete_build(self, market_id:int) -> bool:
         ''' If a build has been completed but isn't yet marked as such do so and clear the
             tracking, construction name and construction marketid '''
+
+        Debug.logger.debug(f"Trying complete build {market_id}")
         [system, build] = self.find_build_any({'MarketID' : market_id})
         # Not found or already completed there's nothing to do.
         if build == None or build.get('State') == BuildState.COMPLETE:
@@ -797,29 +787,31 @@ class Colonisation:
 
 
     @catch_exceptions
-    def get_commodity_list(self, base_type:str, order:CommodityOrder = CommodityOrder.ALPHA, qty:dict = {}) -> list:
-        ''' Return an ordered list of base commodity costs for a base type '''
-        if qty == {}: qty = self.base_costs.get(base_type, {})
+    def get_commodity_list(self, order:CommodityOrder = CommodityOrder.ALPHA, qty:dict = {}) -> list:
+        ''' Return an ordered list of all base commodities '''
+
+        # Get a list of commodities
+        comms:list = self.base_types.get('InaraIDs', {}).keys()
+
         match order:
             case CommodityOrder.QUANTITY:
-               ordered:list = list(k for k, v in sorted(qty.items(), key=lambda item: item[1], reverse=True))
-               return ordered + list(set(self.base_costs.get(base_type, {})) - set(ordered))
+               ordered:list = list(k for k, v in sorted(qty.items(), key=lambda item: item[1].lower(), reverse=True))
+               return ordered + list(set(comms) - set(ordered)) # Order plus zeroes at the end
             case CommodityOrder.CATEGORY:
-                ordered:list = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: (item[1]['Category'], item[1]['Name'])))
+                return list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: (item[1]['Category'], item[1]['Name'].lower())))
             case _:
-                ordered:list = list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Name']))
-
-        return [f"${c_symbol}_name;" for c_symbol in ordered if f"${c_symbol}_name;" in self.base_costs.get(base_type, {})]
+                return list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Name'].lower()))
 
 
     @catch_exceptions
     def get_commodity(self, symbol:str, which:str='name') -> str:
         ''' Return a localised commodity name or category '''
+        # In case we're searching by the $..._name; format
+        if "_name;" in symbol: symbol = re.sub(r"\$(.*)_name;$", r"\1", symbol)
+
         if symbol in self.bgstally.ui.commodities:
             return self.bgstally.ui.commodities[symbol].get(which.title(), symbol)
-        n:str = re.sub(r"\$(.*)_name;$", r"\1", symbol)
-        if n in self.bgstally.ui.commodities:
-            return self.bgstally.ui.commodities[n].get(which.title(), symbol)
+
         return 'Unknown'
 
 
@@ -837,7 +829,7 @@ class Colonisation:
                         res = p.get(type)
                         break
             # No actual data so we use the estimates from the base costs
-            if res == {} and type != 'Delivered': res = self.base_costs.get(b.get('Base Type'), {})
+            if res == {} and type != 'Delivered': res = self.base_types.get(b.get('Base Type'), {}).get('Cost', {})
             found += 1
             prog.append(res)
 
@@ -898,8 +890,8 @@ class Colonisation:
         # Copy over changed/updated data
         for k, v in data.items():
             if k == 'ResourcesRequired': # Handle a ColonisationConstructionDepot event
-                req:dict = {comm['Name'] : comm['RequiredAmount'] for comm in v}
-                deliv:dict = {comm['Name'] : comm['ProvidedAmount'] for comm in v}
+                req:dict = {re.sub(r"\$(.*)_name;$", r"\1", comm['Name']) : comm['RequiredAmount'] for comm in v}
+                deliv:dict = {re.sub(r"\$(.*)_name;$", r"\1", comm['Name']) : comm['ProvidedAmount'] for comm in v}
                 if progress.get('Required', None) != req or progress.get('Delivered', None) != deliv:
                     progress['Required'] = req
                     progress['Delivered'] = deliv
@@ -907,11 +899,11 @@ class Colonisation:
                 continue
 
             if k == 'Remaining': # Handle an RC project event
-                deliv:dict = {f"${key}_name;" : progress['Required'][f"${key}_name;"] - val for key, val in v.items()}
+                deliv:dict = {key : progress['Required'].get(key, 0) - val for key, val in v.items()}
                 pd:dict = progress.get('Delivered', {})
                 # Maybe unnecessary but we only take RC delivered numbers if they're ahead
                 for comm, amt in deliv.items():
-                    if amt > progress['Delivered'][comm]:
+                    if amt > progress['Delivered'].get(comm, 0):
                         self.dirty = True
                         progress['Delivered'][comm] = amt
                 continue
@@ -944,8 +936,7 @@ class Colonisation:
         cargo:dict = {}
 
         for item in self.bgstally.fleet_carrier.cargo:
-            n:str = item.get('commodity', '')
-            n = f"${n.lower().replace(' ', '')}_name;"
+            n:str = item.get('commodity', '').lower()
             if n not in cargo:
                 cargo[n] = 0
             cargo[n] += int(item['qty'])
@@ -963,8 +954,7 @@ class Colonisation:
         tmp:dict = {}
         for k, v in cargo.items():
             if v > 0:
-                k:str = f"${k.lower()}_name;"
-                tmp[k] = v
+                tmp[k.lower()] = v
         self.cargo = tmp
 
 

@@ -323,7 +323,7 @@ class ProgressWindow:
     def link(self, comm:str, src:str|None, tkEvent) -> None:
         ''' Open the link to Inara for nearest location for the commodity. '''
 
-        comm_id = self.colonisation.base_costs['All'].get(comm)
+        comm_id = self.colonisation.base_types['InaraIDs'].get(comm)
         sys:str|None = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
         if sys == None: sys = 'sol'
 

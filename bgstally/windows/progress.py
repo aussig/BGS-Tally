@@ -324,8 +324,6 @@ class ProgressWindow:
         ''' Open the link to Inara for nearest location for the commodity. '''
 
         comm_id = self.bgstally.ui.commodities.get(comm, {}).get('InaraID', "")
-        Debug.logger.debug(f"{self.bgstally.ui.commodities}")
-        Debug.logger.debug(f"Opening Inara market for commodity {comm} ({comm_id})")
         sys:str|None = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
         if sys == None: sys = 'sol'
 
@@ -353,6 +351,7 @@ class ProgressWindow:
         if projectid == '':
             url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
             webbrowser.open(url)
+            return
 
         url:str = f"https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api/project/{projectid}/markets"
         payload:dict = {"systemName": sys,

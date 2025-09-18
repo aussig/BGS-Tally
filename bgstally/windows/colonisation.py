@@ -843,6 +843,7 @@ class ColonisationWindow:
                     desc = str_truncate(desc, 16)
                 sheet[self._cell(i+srow,self._detcol('Body Type'))].data = desc
 
+
             # Handle build states
             if new[i][self._detcol('State')] == BuildState.COMPLETE:
                 # Tracking
@@ -855,7 +856,12 @@ class ColonisationWindow:
                     for cell in ['Base Type', 'Layout']:
                         sheet[self._cell(i+srow,self._detcol(cell))].del_dropdown()
                         sheet[self._cell(i+srow,self._detcol(cell))].readonly()
-                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg=None)
+
+                    # Base type background color
+                    bt:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
+                    econ = bt.get('Economy Influence') if bt.get('Economy Influence', "") != "" else bt.get('Facility Economy')
+                    sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1))
+
 
                 elif new[i][self._detcol('Base Type')] != ' ' or new[i][self._detcol('Name')] != ' ': # Base type is invalid or not set & name is set
                     for cell in ['Base Type', 'Layout']:
@@ -884,6 +890,11 @@ class ColonisationWindow:
             # Base type & Layout
             sheet[self._cell(i+srow,self._detcol('Base Type'))].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
             if new[i][self._detcol('Base Type')] != ' ':
+                # Base type background color
+                bt:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
+                econ = bt.get('Economy Influence') if bt.get('Economy Influence', "") != "" else bt.get('Facility Economy')
+                sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1))
+
                 sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]))
             else:
                 sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'))
@@ -960,8 +971,9 @@ class ColonisationWindow:
         sysnum:int = tabnum -1
         systems:list = self.colonisation.get_all_systems()
         system:dict = systems[sysnum]
-        if system.get('RCSync', False) == True and self.colonisation.cmdr != system.get('Architect', None):
-            return None
+        if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
+            Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
+            return
 
         if event.eventname == 'select' and len(event.selected) == 6:
             # No editing the summary/headers
@@ -981,7 +993,6 @@ class ColonisationWindow:
                     self.colonisation.modify_build(system, row, {'State': BuildState.COMPLETE})
 
                 self.update_display()
-            return
 
         # We only deal with edits.
         if not event.eventname.endswith('edit_table'):

@@ -789,13 +789,10 @@ class Colonisation:
     def get_commodity_list(self, order:CommodityOrder = CommodityOrder.ALPHA, qty:dict = {}) -> list:
         ''' Return an ordered list of all base commodities '''
 
-        # Get a list of commodities
-        comms:list = list(k for k, v in self.bgstally.ui.commodities.items() if v.get('InaraID', "") != "")
-
         match order:
             case CommodityOrder.QUANTITY:
                ordered:list = list(k for k, v in sorted(qty.items(), key=lambda item: item[1], reverse=True))
-               return ordered + list(set(comms) - set(ordered)) # Order plus zeroes at the end
+               return ordered + list(set(self.bgstally.ui.commodities.keys()) - set(ordered)) # Order plus zeroes at the end
             case CommodityOrder.CATEGORY:
                 return list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: (item[1]['Category'], item[1]['Name'].lower())))
             case _:

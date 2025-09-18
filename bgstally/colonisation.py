@@ -794,7 +794,7 @@ class Colonisation:
 
         match order:
             case CommodityOrder.QUANTITY:
-               ordered:list = list(k for k, v in sorted(qty.items(), key=lambda item: item[1].lower(), reverse=True))
+               ordered:list = list(k for k, v in sorted(qty.items(), key=lambda item: item[1], reverse=True))
                return ordered + list(set(comms) - set(ordered)) # Order plus zeroes at the end
             case CommodityOrder.CATEGORY:
                 return list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: (item[1]['Category'], item[1]['Name'].lower())))

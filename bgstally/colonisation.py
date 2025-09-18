@@ -80,7 +80,6 @@ class Colonisation:
     @catch_exceptions
     def _load_base_types(self) -> None:
         ''' Load base type definitions from bases.json
-            The 'InaraIDs' category is used to list all the colonisation commodities and their inara IDs
         '''
         base_types_path:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_TYPES_FILENAME)
         with open(base_types_path, 'r') as f:
@@ -88,7 +87,6 @@ class Colonisation:
             Debug.logger.info(f"Loaded {len(self.base_types)} base types for colonisation")
 
         for base_type in self.base_types.keys():
-            if base_type == 'InaraIDs': continue
             self.base_types[base_type]['Total Comm'] = sum(self.base_types[base_type].get('Cost', []).values())
 
 
@@ -322,7 +320,7 @@ class Colonisation:
         ''' Get a list of base type names '''
         match category:
             case 'Any' | 'All':
-                return sorted(list(self.base_types.keys() - ['InaraIDs']))
+                return sorted(list(self.base_types.keys()))
             case 'Initial' | 'Starports': # Just the inital build starports
                 return sorted([base_type for base_type in self.base_types if self.base_types[base_type].get('Category') in ['Starport', 'Outpost']])
             case 'Ports': # Ports that have the multiple cost penalty
@@ -792,7 +790,7 @@ class Colonisation:
         ''' Return an ordered list of all base commodities '''
 
         # Get a list of commodities
-        comms:list = self.base_types.get('InaraIDs', {}).keys()
+        comms:list = list(k for k, v in self.bgstally.ui.commodities.items() if v.get('InaraID', "") != "")
 
         match order:
             case CommodityOrder.QUANTITY:

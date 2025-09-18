@@ -419,7 +419,7 @@ class UI:
                 csv_reader = csv.DictReader(csv_file_handler)
 
                 for rows in csv_reader:
-                    self.commodities[rows.get('symbol', "").lower()] = {'ID': rows.get('id', ""), 'Category': rows.get('category', ""), 'Name': rows.get('name', "")}
+                    self.commodities[rows.get('symbol', "").lower()] = {'ID': rows.get('id', ""), 'InaraID': rows.get('inara_id', ""), 'Category': rows.get('category', ""), 'Name': rows.get('name', "")}
         except Exception as e:
                 Debug.logger.error(f"Unable to load {filepath}")
 

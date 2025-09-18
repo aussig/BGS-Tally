@@ -323,7 +323,9 @@ class ProgressWindow:
     def link(self, comm:str, src:str|None, tkEvent) -> None:
         ''' Open the link to Inara for nearest location for the commodity. '''
 
-        comm_id = self.colonisation.base_types['InaraIDs'].get(comm)
+        comm_id = self.bgstally.ui.commodities.get(comm, {}).get('InaraID', "")
+        Debug.logger.debug(f"{self.bgstally.ui.commodities}")
+        Debug.logger.debug(f"Opening Inara market for commodity {comm} ({comm_id})")
         sys:str|None = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
         if sys == None: sys = 'sol'
 
@@ -338,13 +340,11 @@ class ProgressWindow:
         for min in [500, 1000, 2500, 5000, 10000, 50000]:
             if min > rem: break
 
-        # If we don't have a single build then use Inara
-        if self.build_index >= len(tracked):
-            url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
-            webbrowser.open(url)
-
-        projectid:str = tracked[self.build_index].get('ProjectID', '')
-        if projectid == '':
+        projectid:str = ''
+        Debug.logger.debug(f"Build index {self.build_index} of {len(tracked)}")
+        if self.build_index < len(tracked):
+            projectid = tracked[self.build_index].get('ProjectID', '')
+        if self.build_index < len(tracked) and projectid == '':
             progress:dict = self.colonisation.find_progress(tracked[self.build_index].get('MarketID'))
             if progress != None:
                 projectid = progress.get('ProjectID', '')
@@ -531,7 +531,7 @@ class ProgressWindow:
             if reqcnt - delcnt > 0: totals['Cargo'] += max(min(cargo, reqcnt - delcnt), 0)
             if reqcnt - delcnt > 0: totals['Carrier'] += max(min(carrier, reqcnt - delcnt - cargo), 0)
 
-            if reqcnt > 0: Debug.logger.debug(f"Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}")
+            #if reqcnt > 0: Debug.logger.debug(f"Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}")
 
             # We only show relevant (required) items. But.
             # If the view is reduced or minimal we don't show ones that are complete. Also.

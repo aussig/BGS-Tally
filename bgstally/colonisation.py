@@ -88,6 +88,7 @@ class Colonisation:
             Debug.logger.info(f"Loaded {len(self.base_types)} base types for colonisation")
 
         for base_type in self.base_types.keys():
+            if base_type == 'InaraIDs': continue
             self.base_types[base_type]['Total Comm'] = sum(self.base_types[base_type].get('Cost', []).values())
 
 

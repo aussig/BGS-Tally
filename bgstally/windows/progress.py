@@ -261,7 +261,7 @@ class ProgressWindow:
             reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
             delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
             # Hide if we're docked and market doesn't have this.
-            if not discord and self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) == 0:
+            if not discord and self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) == 0:
                 continue
             remaining:int = reqcnt - delcnt
             # Show amount left to buy unless it's our carrier in which case it needs to be amount left to deliver
@@ -503,7 +503,7 @@ class ProgressWindow:
         # Go through each commodity and show or hide it as appropriate and display the appropriate values
         comms:list = []
         qty:dict = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
-        if self.colonisation.docked == True:
+        if self.colonisation.docked == True and '$EXT_PANEL_ColonisationShip' not in f"{self.colonisation.station}" and 'Construction Site' not in f"{self.colonisation.station}":
             comms = self.colonisation.get_commodity_list(CommodityOrder.CATEGORY)
         else:
             comms = self.colonisation.get_commodity_list(self.comm_order, qty)
@@ -512,6 +512,7 @@ class ProgressWindow:
             Debug.logger.info(f"No commodities found")
             return
 
+        Debug.logger.debug(f"Market: {self.colonisation.market_id}, Docked: {self.colonisation.docked}, Commodities to show: {self.colonisation.market}")
         rc:int = 0
         for i, c in enumerate(comms):
             if len(self.rows) < i: continue
@@ -530,6 +531,8 @@ class ProgressWindow:
             if reqcnt - delcnt > 0: totals['Cargo'] += max(min(cargo, reqcnt - delcnt), 0)
             if reqcnt - delcnt > 0: totals['Carrier'] += max(min(carrier, reqcnt - delcnt - cargo), 0)
 
+            if reqcnt > 0: Debug.logger.debug(f"Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}")
+
             # We only show relevant (required) items. But.
             # If the view is reduced or minimal we don't show ones that are complete. Also.
             # If we're in minimal view we only show ones we still need to buy.
@@ -537,7 +540,7 @@ class ProgressWindow:
             if (reqcnt <= 0) or \
                 (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
                 ((self.colonisation.docked == False or self.colonisation.market == {}) and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
-                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) <= 0 and self.view == ProgressView.MINIMAL) or \
+                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and self.view == ProgressView.MINIMAL) or \
                 rc > int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
                     cell.grid_remove()
@@ -635,7 +638,7 @@ class ProgressWindow:
                 continue
 
             # We're at our carrier, highlight what's available
-            if self.colonisation.docked == True and self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id and self.colonisation.market.get(c, 0) > 0:
+            if self.colonisation.docked == True and self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id and self.colonisation.market.get(f"${c}_name;", 0) > 0:
                 cell['fg'] = 'goldenrod3'
                 # bold if need any and have room, otherwise normal
                 self._set_weight(cell, 'bold' if remaining-cargo-carrier <= 0 and space > 0 else 'normal')
@@ -646,7 +649,7 @@ class ProgressWindow:
                 continue
 
             # What's available at this market?
-            if self.colonisation.docked == True and self.colonisation.market.get(c, 0): # market!
+            if self.colonisation.docked == True and self.colonisation.market.get(f"${c}_name;", 0): # market!
                 cell['fg'] = 'steelblue'
                 # bold if need any and have room, otherwise normal
                 self._set_weight(cell, 'bold' if remaining-cargo-carrier > 0 and space > 0 else 'normal')

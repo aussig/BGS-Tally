@@ -511,7 +511,6 @@ class ProgressWindow:
             Debug.logger.info(f"No commodities found")
             return
 
-        Debug.logger.debug(f"Market: {self.colonisation.market_id}, Docked: {self.colonisation.docked}, Commodities to show: {self.colonisation.market}")
         rc:int = 0
         for i, c in enumerate(comms):
             if len(self.rows) < i: continue
@@ -535,7 +534,6 @@ class ProgressWindow:
             # We only show relevant (required) items. But.
             # If the view is reduced or minimal we don't show ones that are complete. Also.
             # If we're in minimal view we only show ones we still need to buy.
-            #Debug.logger.debug(f"{c} {remaining - carrier - cargo} {cargo} {self.view}")
             if (reqcnt <= 0) or \
                 (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
                 ((self.colonisation.docked == False or self.colonisation.market == {}) and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \

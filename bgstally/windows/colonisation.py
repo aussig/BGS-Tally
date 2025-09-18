@@ -347,10 +347,8 @@ class ColonisationWindow:
             menu.add_separator()
 
         for which in self.links[type].keys():
-            menu.add_command(
-                label=_("Open in {w}").format(w=which),  # LANG: Open Element In Selected Provider
-                command=partial(self._link, system, type, which)
-            )
+            menu.add_command(label=_("Open in {w}").format(w=which),  # LANG: Open Element In Selected Provider
+                             command=partial(self._link, system, type, which))
         menu.post(event.x_root, event.y_root)
 
 
@@ -373,6 +371,15 @@ class ColonisationWindow:
             return
         params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in data.items()}
         webbrowser.open(self.links[type][dest].format(**params))
+
+
+    @catch_exceptions
+    def base_clicked(self, sheet:Sheet, event) -> None:
+        ''' We clicked on a base type, open it in RC '''
+        sheet.toggle_select_row(event.selected.row, False, True)
+        if event.selected.column == 20:
+            layouts:str = str(sheet[self._cell(event['selected'].row, 20)].data)
+            self._link({'Layout': layouts.split(', ')[0]}, 'Base', 'RavenColonial')
 
 
     @catch_exceptions
@@ -424,15 +431,6 @@ class ColonisationWindow:
                         else:
                             sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
-
-
-    @catch_exceptions
-    def base_clicked(self, sheet:Sheet, event) -> None:
-        ''' We clicked on a base type, open it in RC '''
-        sheet.toggle_select_row(event.selected.row, False, True)
-        if event.selected.column == 20:
-            layouts:str = str(sheet[self._cell(event['selected'].row, 20)].data)
-            self._link({'Layout': layouts.split(', ')[0]}, 'Base', 'RavenColonial')
 
 
     @catch_exceptions
@@ -495,6 +493,63 @@ class ColonisationWindow:
             bstr += "\n"
 
         text.insert(tk.END, bstr)
+
+
+    @catch_exceptions
+    def notes_popup(self, tabnum:int) -> None:
+        ''' Show the notes popup window '''
+        def savenotes(system:dict, text:tk.Text) -> None:
+            ''' Save the notes and close the popup window '''
+            if sysnum > len(self.plan_titles):
+                Debug.logger.info(f"Saving notes invalid tab: {tabnum}")
+                return
+
+            notes:str = text.get("1.0", tk.END)
+            system['Notes'] = notes
+            self.colonisation.save("Notes popup close")
+            self.notes_fr.destroy()
+            self.notes_fr
+
+        sysnum:int = tabnum -1
+        systems:list = self.colonisation.get_all_systems()
+
+        if self.notes_fr != None and self.notes_fr.winfo_exists():
+            self.notes_fr.destroy()
+
+        self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
+        self.notes_fr.wm_title(_("{plugin_name} - Colonisation Notes for {system_name}").format(plugin_name=self.bgstally.plugin_name, system_name=systems[sysnum].get('Name', ''))) # LANG: Title of the notes popup window
+        self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+        self.notes_fr.geometry("600x600")
+        self.notes_fr.config(bd=2, relief=tk.FLAT)
+        scr:tk.Scrollbar = tk.Scrollbar(self.notes_fr, orient=tk.VERTICAL)
+        scr.pack(side=tk.RIGHT, fill=tk.Y)
+
+        text:tk.Text = tk.Text(self.notes_fr, font=FONT_SMALL, yscrollcommand=scr.set)
+        notes:str = systems[sysnum].get('Notes', '')
+        text.insert(tk.END, notes)
+        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+        self.notes_fr.protocol("WM_DELETE_WINDOW", partial(savenotes, systems[sysnum], text))
+
+
+    @catch_exceptions
+    def legend_popup(self) -> None:
+        ''' Show the legend popup window '''
+        if self.legend_fr != None and self.legend_fr.winfo_exists():
+            self.legend_fr.lift()
+            return
+
+        self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
+        self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
+        self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+        self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
+        self.legend_fr.geometry(f"600x600")
+        self.legend_fr.config(bd=2, relief=tk.FLAT)
+        scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
+        scr.pack(side=tk.RIGHT, fill=tk.Y)
+
+        text:tk.Text = tk.Text(self.legend_fr, font=FONT_SMALL, yscrollcommand=scr.set)
+        text.insert(tk.END, self._load_legend())
+        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
 
     @catch_exceptions
@@ -1324,63 +1379,6 @@ class ColonisationWindow:
 
 
     @catch_exceptions
-    def legend_popup(self) -> None:
-        ''' Show the legend popup window '''
-        if self.legend_fr != None and self.legend_fr.winfo_exists():
-            self.legend_fr.lift()
-            return
-
-        self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
-        self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
-        self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
-        self.legend_fr.geometry(f"600x600")
-        self.legend_fr.config(bd=2, relief=tk.FLAT)
-        scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
-        scr.pack(side=tk.RIGHT, fill=tk.Y)
-
-        text:tk.Text = tk.Text(self.legend_fr, font=FONT_SMALL, yscrollcommand=scr.set)
-        text.insert(tk.END, self._load_legend())
-        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-
-
-    @catch_exceptions
-    def notes_popup(self, tabnum:int) -> None:
-        ''' Show the notes popup window '''
-        def savenotes(system:dict, text:tk.Text) -> None:
-            ''' Save the notes and close the popup window '''
-            if sysnum > len(self.plan_titles):
-                Debug.logger.info(f"Saving notes invalid tab: {tabnum}")
-                return
-
-            notes:str = text.get("1.0", tk.END)
-            system['Notes'] = notes
-            self.colonisation.save("Notes popup close")
-            self.notes_fr.destroy()
-            self.notes_fr
-
-        sysnum:int = tabnum -1
-        systems:list = self.colonisation.get_all_systems()
-
-        if self.notes_fr != None and self.notes_fr.winfo_exists():
-            self.notes_fr.destroy()
-
-        self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
-        self.notes_fr.wm_title(_("{plugin_name} - Colonisation Notes for {system_name}").format(plugin_name=self.bgstally.plugin_name, system_name=systems[sysnum].get('Name', ''))) # LANG: Title of the notes popup window
-        self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        self.notes_fr.geometry("600x600")
-        self.notes_fr.config(bd=2, relief=tk.FLAT)
-        scr:tk.Scrollbar = tk.Scrollbar(self.notes_fr, orient=tk.VERTICAL)
-        scr.pack(side=tk.RIGHT, fill=tk.Y)
-
-        text:tk.Text = tk.Text(self.notes_fr, font=FONT_SMALL, yscrollcommand=scr.set)
-        notes:str = systems[sysnum].get('Notes', '')
-        text.insert(tk.END, notes)
-        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-        self.notes_fr.protocol("WM_DELETE_WINDOW", partial(savenotes, systems[sysnum], text))
-
-
-    @catch_exceptions
     def _set_background(self, type: str|None, value: str, limit:int = 1) -> str|None:
         ''' Return the appropriate background '''
         match type:
@@ -1424,9 +1422,9 @@ class ColonisationWindow:
     def _create_gradient(self, steps:int, type:str = 'rwg') -> list[str]:
         ''' Generates a list of RGB color tuples representing a gradient. '''
         # Green, Yellow, Red (0:steps)
-        s = (150, 200, 150) # start
-        m = (230, 230, 125) # middle
-        e = (190, 30, 100) # end
+        s:tuple = (150, 200, 150) # start
+        m:tuple = (230, 230, 125) # middle
+        e:tuple = (190, 30, 100) # end
 
         # Red, White, Green (-steps:steps)
         if type == 'rwg':
@@ -1450,12 +1448,12 @@ class ColonisationWindow:
 
         # Iterate and interpolate
         for i in range(steps+1):
-            # Interpolate between start and middle
-            if i < steps/2:
-                cr = min(max(s[0] + r_step_1 * i, 0), 255)
-                cg = min(max(s[1] + g_step_1 * i, 0), 255)
-                cb = min(max(s[2] + b_step_1 * i, 0), 255)
-            else: # Interpolate between middle and end
+            # Between start and middle
+            cr:int = min(max(s[0] + r_step_1 * i, 0), 255)
+            cg:int = min(max(s[1] + g_step_1 * i, 0), 255)
+            cb:int = min(max(s[2] + b_step_1 * i, 0), 255)
+
+            if i >= steps/2: # Interpolate between middle and end
                 cr = min(max(m[0] + r_step_2 * (i - steps/2), 0), 255)
                 cg = min(max(m[1] + g_step_2 * (i - steps/2), 0), 255)
                 cb = min(max(m[2] + b_step_2 * (i - steps/2), 0), 255)

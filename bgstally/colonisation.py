@@ -1056,8 +1056,8 @@ class Colonisation:
             site:dict = {k: v for k, v in p.items() if k in self.progress_keys}
             # Migrate old style progress
             if p.get('ResourcesRequired', None) != None:
-                site['Required'] = {comm['Name'] : comm['RequiredAmount'] for comm in p.get('ResourcesRequired')}
-                site['Delivered'] = {comm['Name'] : comm['ProvidedAmount'] for comm in p.get('ResourcesRequired')}
+                site['Required'] = {re.sub(r"\$(.*)_name;$", r"\1", comm['Name']) : comm['RequiredAmount'] for comm in p.get('ResourcesRequired')}
+                site['Delivered'] = {re.sub(r"\$(.*)_name;$", r"\1", comm['Name']) : comm['ProvidedAmount'] for comm in p.get('ResourcesRequired')}
             progress.append(site)
 
         units:list = [v.value for v in self.bgstally.ui.window_progress.units]

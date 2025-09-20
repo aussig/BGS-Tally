@@ -231,6 +231,7 @@ class BGSTally:
 
             case 'Market':
                 self.market.load()
+                self.fleet_carrier.market(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'MarketBuy':

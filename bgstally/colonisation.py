@@ -6,7 +6,7 @@ import time
 import re
 from datetime import datetime
 from config import config # type: ignore
-from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
+from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView, FleetCarrierItemType
 from bgstally.debug import Debug
 from bgstally.utils import _, catch_exceptions
 from bgstally.ravencolonial import RavenColonial, EDSM, Spansh
@@ -589,7 +589,7 @@ class Colonisation:
 
             # A completed but as yet unknown build.
             if build.get('State', None) == BuildState.COMPLETE and build.get('MarketID', '') == '' and build.get('Location') == data.get('Location', None):
-                Debug.logger.debug(f"Checking completed build {build} data {data}")
+                #Debug.logger.debug(f"Checking completed build {build} data {data}")
                 bbody = build.get('Body', build.get('BodyNum', None))
                 dbody = data.get('Body', data.get('BodyNum', None))
                 if bbody != None and dbody != None and bbody.lower() == dbody.lower():
@@ -931,11 +931,11 @@ class Colonisation:
             return
         cargo:dict = {}
 
-        for item in self.bgstally.fleet_carrier.cargo:
-            n:str = item.get('commodity', '').lower()
-            if n not in cargo:
-                cargo[n] = 0
-            cargo[n] += int(item['qty'])
+        fccargo, name_key, display_name_key, quantity_key = self.bgstally.fleet_carrier._get_items(FleetCarrierItemType.CARGO)
+        for name, cargo_item in fccargo.items():
+            if name.lower() not in cargo:
+                cargo[name.lower()] = 0
+            cargo[name.lower()] += int(cargo_item.get(quantity_key, 0))
 
         if cargo != self.carrier_cargo and self.cmdr != None:
             RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)

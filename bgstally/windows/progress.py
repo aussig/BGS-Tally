@@ -231,24 +231,26 @@ class ProgressWindow:
             return _("No colonisation data available") # LANG: No colonisation data available
         self.colonisation = self.bgstally.colonisation
 
-        output:str = ""
+
         tracked:list = self.colonisation.get_tracked_builds()
         required:dict = self.colonisation.get_required(tracked)
         delivered:dict = self.colonisation.get_delivered(tracked)
+        if self.build_index > len(tracked): self.build_index = 0
+
+        output:str = ""
+        if discord:
+            output = "```" + _("All builds") + "\n" # LANG: all tracked builds
+        else:
+            output = TAG_OVERLAY_HIGHLIGHT + _("All builds") + "\n" # LANG: all tracked builds
 
         if self.build_index < len(tracked):
             b:dict = tracked[self.build_index]
             sn:str = b.get('Plan', _('Unknown')) # Unknown system name
             bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
             if discord:
-                output += f"```{sn}, {bn}\n"
+                output = f"```{sn}, {bn}\n"
             else:
-                output += f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 30, loc='left')}\n"
-        else:
-            if discord:
-                output += "```" + _("All builds") + "\n" # LANG: all tracked builds
-            else:
-                output += TAG_OVERLAY_HIGHLIGHT + _("All builds") + "\n" # LANG: all tracked builds
+                output = f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 30, loc='left')}\n"
 
         output += f"{_('Progress')}: {self.progvar.get():.0f}%\n"
         output += "\n"
@@ -464,6 +466,8 @@ class ProgressWindow:
             self.frame.grid_remove()
             Debug.logger.info("No builds or commodities, hiding progress frame")
             return
+
+        if self.build_index > len(tracked): self.build_index = 0
 
         self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
         self.table_frame.grid(row=3, column=0, columnspan=5, sticky=tk.NSEW)

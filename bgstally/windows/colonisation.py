@@ -578,7 +578,6 @@ class ColonisationWindow:
 
         data.append(self._get_detail_header())
         data += self._build_detail(system)
-
         sheet.set_sheet_data(data)
         self._config_sheet(sheet, system)
         sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
@@ -941,7 +940,7 @@ class ColonisationWindow:
             self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
             # Not our system? Then it's readonly
             if system.get('RCSync', False) == True and self.colonisation.cmdr != system.get('Architect', None):
-                self.sheets[i]['A1:Z'].readonly()
+                self.sheets[i]['B1:Z'].readonly()
 
 
     @catch_exceptions
@@ -971,9 +970,6 @@ class ColonisationWindow:
         sysnum:int = tabnum -1
         systems:list = self.colonisation.get_all_systems()
         system:dict = systems[sysnum]
-        if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
-            Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
-            return
 
         if event.eventname == 'select' and len(event.selected) == 6:
             # No editing the summary/headers
@@ -993,6 +989,10 @@ class ColonisationWindow:
                     self.colonisation.modify_build(system, row, {'State': BuildState.COMPLETE})
 
                 self.update_display()
+
+        if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
+            Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
+            return
 
         # We only deal with edits.
         if not event.eventname.endswith('edit_table'):

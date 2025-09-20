@@ -5,7 +5,7 @@ from os import path, remove
 from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA, KEY_CARRIER_TYPE, DiscordChannel, FleetCarrierItemType, FleetCarrierType
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
-from bgstally.utils import _, __, get_by_path
+from bgstally.utils import _, __, get_by_path, catch_exceptions
 from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
@@ -21,12 +21,12 @@ class FleetCarrier:
         self.onfoot_mats_buying:list = []
         self.commodities_selling:list = []
         self.commodities_buying:list = []
-        self.cargo:list = []
+        self.cargo:dict = {}
         self.locker:dict = {}
 
         self.load()
 
-    def load(self):
+    def load(self) -> None:
         """
         Load state from file
         """
@@ -52,23 +52,23 @@ class FleetCarrier:
                 Debug.logger.info(f"Unable to load {file}")
 
 
-    def save(self):
+    def save(self) -> None:
         """
         Save state to file
         """
         file = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
-            json.dump(self._as_dict(), outfile)
+            json.dump(self._as_dict(), outfile, indent=4)
 
 
-    def available(self):
+    def available(self) -> bool:
         """
         Return true if there is data available on a Fleet Carrier
         """
         return self.name is not None and self.callsign is not None
 
 
-    def update(self, data: dict):
+    def update(self, data: dict) -> None:
         """
         Store the latest data
         """
@@ -112,18 +112,16 @@ class FleetCarrier:
             self.commodities_buying = []
 
         # Sort cargo commodities - a List of Dicts
-        cargo:list = get_by_path(self.data, ['cargo'], [])
-        if cargo is not None and cargo != []:
-            self.cargo = cargo
-        else:
-            self.cargo = []
+        old, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
+        self.cargo = {}
+        Debug.logger.debug(f"{get_by_path(self.data, ['cargo'], [])}")
+        for c in get_by_path(self.data, ['cargo'], []):
+            cname:str = c.get(name_key, "").lower()
+            if c.get('stolen', True) == False and c.get('mission', True) == False:
+                self.cargo[cname] = {name_key: cname, display_name_key: c.get(display_name_key, ""), quantity_key: c.get(quantity_key, 0) + self.cargo.get(cname, {}).get(quantity_key, 0)}
 
         # Sort locker materials
-        locker:dict|list = get_by_path(self.data, ['carrierLocker'], [])
-        if locker is not None and locker != []:
-            self.locker = locker
-        else:
-            self.locker = []
+        self.locker:dict = get_by_path(self.data, ['carrierLocker'], {})
 
 
     def stats_received(self, journal_entry: dict):
@@ -180,49 +178,6 @@ class FleetCarrier:
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
-    def cargo_transfer(self, journal_entry: dict):
-        """
-        The user transferred cargo to or from the carrier
-
-        Args:
-            journal_entry (dict): The journal entry data
-        """
-        # { "timestamp":"2025-03-22T15:15:21Z", "event":"CargoTransfer", "Transfers":[ { "Type":"steel", "Count":728, "Direction":"toship" }, { "Type":"titanium", "Count":56, "Direction":"toship" } ] }
-
-        # Unfortunately we don't get the localized name for transfers so we'll do without.
-        cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
-        for i in journal_entry.get('Transfers', []):
-            type:str = i.get('Type', "").lower()
-            display_type:str = i.get('Type_Localised', "")
-            if display_type == "" and type in self.bgstally.ui.commodities:
-                display_type = self.bgstally.ui.commodities[type]['Name']
-
-            count:int = i.get('Count', 0)
-            direction:str = i.get('Direction', "")
-
-            found = False
-            for c in cargo:
-                # For some reason the event is lower case but the cargo is mixed case
-                if count > 0 and c[name_key].lower() == type:
-                    found = True
-                    if direction == "toship":
-                        if c[quantity_key] > count: # May have to do this in multiple bits.
-                            c[quantity_key] -= count
-                            count = 0
-                            break
-                        else:
-                            count -= c[quantity_key]
-                            cargo.remove(c)
-
-                    else:
-                        c[quantity_key] += count
-                        count = 0
-                        break
-
-            if not found:
-                cargo.append({name_key: type, display_name_key: display_type, quantity_key: count})
-
-
     def trade_order(self, journal_entry: dict):
         """
         The user set a buy or sell order
@@ -264,6 +219,40 @@ class FleetCarrier:
                 self._update_item(item_name, item_display_name, 0, 0, FleetCarrierItemType.MATERIALS_BUYING)
 
 
+    def market(self, journal_entry: dict) -> None:
+        """
+        Market event. If it's for our carrier we update the cargo amounts using BGS-Tally's copy of the market data
+        """
+        if journal_entry.get("MarketID") != self.carrier_id: return
+
+        cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
+        if self.bgstally.market.available(journal_entry.get("MarketID")):
+            for name, item in self.bgstally.market.commodities.items():
+                if name not in self.cargo:
+                    self.cargo[name] = {name_key: name, display_name_key: item.get('Name_Localised'), quantity_key: item.get('Stock', 0)}
+                else:
+                    self.cargo[name][quantity_key] = item.get('Stock', 0)
+
+
+    def cargo_transfer(self, journal_entry: dict):
+        """ The user transferred cargo to or from the carrier
+        """
+        # { "timestamp":"2025-03-22T15:15:21Z", "event":"CargoTransfer", "Transfers":[ { "Type":"steel", "Count":728, "Direction":"toship" }, { "Type":"titanium", "Count":56, "Direction":"toship" } ] }
+
+        cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
+        for i in journal_entry.get('Transfers', []):
+            cname:str = i.get('Type', "").lower()
+            if i.get('Direction') == 'toship':
+                if cname not in self.cargo:
+                    self.cargo[cname] = {name_key: cname, display_name_key: "", quantity_key: i.get('Count', 0)}
+                else:
+                    self.cargo[cname][quantity_key] += i.get('Count', 0)
+                continue
+
+            if cname in self.cargo:
+                self.cargo[cname][quantity_key] -= min(i.get('Count', 0), self.cargo[cname].get(quantity_key, 0))
+
+
     def market_activity(self, journal_entry:dict):
         '''
         We bought or sold to/from our carrier
@@ -271,32 +260,26 @@ class FleetCarrier:
         if journal_entry.get('MarketID') != self.carrier_id: return
 
         cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
-        type:str = journal_entry.get('Type', "")
+        cname:str = journal_entry.get('Type', "")
         count:int = journal_entry.get('Count', 0)
-        found:bool = False
 
-        for c in cargo:
-            # For some reason the event is lower case but the cargo is mixed case
-            if c[name_key].lower() == type:
-                found = True
-                if journal_entry.get('event') == "MarketBuy":
-                    if c[quantity_key] > count: # May have to do this in multiple bits.
-                        c[quantity_key] -= count
-                        count = 0
-                        break
-                    else:
-                        count -= c[quantity_key]
-                        cargo.remove(c)
+        #{ "timestamp":"2025-09-18T23:39:55Z", "event":"MarketBuy", "MarketID":3709409280, "Type":"fruitandvegetables", "Type_Localised":"Fruit and Vegetables", "Count":195, "BuyPrice":483, "TotalCost":94185 }
 
-                else:
-                    c[quantity_key] += count
-                    count = 0
-                    break
+        if journal_entry.get('event') == "MarketBuy":
+            if cname not in self.cargo:
+                Debug.logger.debug(f"MarketBuy for {cname} but not in cargo")
+                return
+            self.cargo[cname][quantity_key] -= min(count, self.cargo[cname].get(quantity_key, 0))
+            return
 
-        if not found:
-            cargo.append({name_key: type, display_name_key: self.bgstally.ui.commodities[type]['Name'], quantity_key: count})
+        # Sell
+        if cname not in self.cargo:
+            self.cargo[cname] = {name_key: cname, display_name_key: "", quantity_key: count}
+            return
 
+        self.cargo[cname][quantity_key] += count
 
+    @catch_exceptions
     def get_items_plaintext(self, category: FleetCarrierItemType|None = None) -> str:
         """Return a multiline text string containing all items of a given type
 
@@ -311,28 +294,25 @@ class FleetCarrier:
         if items is None: return ""
 
         result: str = ""
-
+        cargo:dict = {}
         if category == FleetCarrierItemType.CARGO:
             # Cargo is a special case because it can have multiple items with the same name so we have to sum them together
-            cargo = dict()
-            items = sorted(items, key=lambda x: x[name_key])
-
-            for item in items:
+            for name in sorted(items.keys()):
                 # No longer prioritise the display name from CAPI data, as now that we have localised commodity names, we do a lookup first.
                 # This allows us to translate to the EDMC language rather than the (limited set of) game languages.
-                if item[name_key].lower() in self.bgstally.ui.commodities:
-                    display_name:str = self.bgstally.ui.commodities[item[name_key].lower()]['Name']
-                elif display_name_key in item:
+                if name.lower() in self.bgstally.ui.commodities:
+                    display_name:str = self.bgstally.ui.commodities[name.lower()]['Name']
+                elif display_name_key in items[name]:
                     # No translation, fall back to display name from CAPI data
-                    display_name:str = item[display_name_key]
+                    display_name:str = items[name][display_name_key]
                 else:
                     # No CAPI display name, fall back to the item name (which may not have spaces)
-                    display_name:str = item[name_key]
+                    display_name:str = name
 
                 if display_name in cargo:
-                    cargo[display_name] += int(item[quantity_key])
+                    cargo[display_name] += int(items[name][quantity_key])
                 else:
-                    cargo[display_name] = int(item[quantity_key])
+                    cargo[display_name] = int(items[name][quantity_key])
             for key, value in cargo.items():
                 result += f"{key} x {value}\n"
 
@@ -500,6 +480,6 @@ class FleetCarrier:
         self.onfoot_mats_buying = dict.get('onfoot_mats_buying', [])
         self.commodities_selling = dict.get('commodities_selling', [])
         self.commodities_buying = dict.get('commodities_buying', [])
-        self.cargo = dict.get('cargo', [])
-        self.locker = dict.get('locker', [])
-        self.data = dict.get('data')
+        self.cargo = dict.get('cargo', {})
+        self.locker = dict.get('locker', {})
+        self.data = dict.get('data', [])

@@ -155,6 +155,10 @@ class RavenColonial:
         data:dict = response.json()
         self._merge_system_data(data)
 
+        if data.get('architect', None) not in [None, self.colonisation.cmdr]:
+            Debug.logger.info(f"Not architect, not updating system")
+            return
+
         payload:dict = {'architect': self.colonisation.cmdr, 'update': [], 'delete':[]}
 
         url:str = f"{RC_API}/v2/system/{quote(system_name)}/sites"
@@ -518,9 +522,7 @@ class RavenColonial:
             Debug.logger.info("Cannot update carrier no cmdr")
             return
 
-        all:dict = self.colonisation.base_types.get('InaraIDs')
-        payload:dict = {comm : cargo.get(comm, 0) for comm in all.keys()}
-        Debug.logger.debug(f"Carrier cargo: {marketid} {payload}")
+        payload:dict = {comm : cargo.get(comm, 0) for comm in self.bgstally.ui.commodities.keys()}
         url:str = f"{RC_API}/fc/{marketid}/cargo"
         self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=self._headers(), callback=self._carrier_callback)
         return

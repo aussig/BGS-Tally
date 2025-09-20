@@ -106,6 +106,7 @@ class ProgressWindow:
         self.rows:list = []
         self.progbar:ttk.Progressbar # Overall progress bar
         self.progvar:tk.IntVar = tk.IntVar(value=0)
+        self.progress:int = 0 # Thread-safe version of progress percentage
         self.build_index:int = 0 # Which build we're showing
         self.view:ProgressView = ProgressView.REDUCED # Full, reduced, or no list of commodities
         self.comm_order:CommodityOrder = CommodityOrder.ALPHA # Commodity order
@@ -252,7 +253,7 @@ class ProgressWindow:
             else:
                 output = f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 30, loc='left')}\n"
 
-        output += f"{_('Progress')}: {self.progvar.get():.0f}%\n"
+        output += f"{_('Progress')}: {self.progress:.0f}%\n"
         output += "\n"
         if discord:
             output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
@@ -574,6 +575,7 @@ class ProgressWindow:
         self._display_totals(self.rows[i+1], tracked, totals)
         if totals['Required'] > 0:
             self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))
+            self.progress = round(totals['Delivered'] * 100 / totals['Required'])
             self.progtt.text = f"{_('Progress')}: {int(self.progvar.get())}%" # LANG: tooltip for the progress bar
 
 

@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-import pickle
+import copy
+import tkinter as tk
 from collections import namedtuple
-from collections.abc import Callable, Generator, Hashable, Iterator
-from functools import partial
-from typing import Literal
-
-
-pickle_obj = partial(pickle.dumps, protocol=pickle.HIGHEST_PROTOCOL)
+from collections.abc import Callable, Hashable, Iterator
+from typing import Any, Literal
 
 FontTuple = namedtuple("FontTuple", "family size style")
 Box_nt = namedtuple(
@@ -19,7 +16,7 @@ Box_t = namedtuple(
     "from_r from_c upto_r upto_c type_",
 )
 Box_st = namedtuple("Box_st", "coords type_")
-Loc = namedtuple("Loc", "row column")
+Loc = namedtuple("Loc", "row column", defaults=(None, None))
 
 Highlight = namedtuple(
     "Highlight",
@@ -37,6 +34,49 @@ Highlight = namedtuple(
 DrawnItem = namedtuple("DrawnItem", "iid showing")
 TextCfg = namedtuple("TextCfg", "txt tf font align")
 DraggedRowColumn = namedtuple("DraggedRowColumn", "dragged to_move")
+
+
+class SelectionBox:
+    __slots__ = ("fill_iid", "bd_iid", "index", "header", "coords", "type_", "state")
+
+    def __init__(
+        self,
+        fill_iid: int | None = None,
+        bd_iid: int | None = None,
+        index: int | None = None,
+        header: int | None = None,
+        coords: tuple[int, int, int, int] = None,
+        type_: Literal["cells", "rows", "columns"] = "cells",
+        state: Literal["normal", "hidden"] = "normal",
+    ) -> None:
+        self.fill_iid = fill_iid
+        self.bd_iid = bd_iid
+        self.index = index
+        self.header = header
+        self.coords = coords
+        self.type_ = type_
+        self.state = state
+
+
+Selected = namedtuple(
+    "Selected",
+    (
+        "row",
+        "column",
+        "type_",
+        "box",
+        "iid",
+        "fill_iid",
+    ),
+    defaults=(
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+    ),
+)
 
 
 def num2alpha(n: int) -> str | None:
@@ -64,9 +104,7 @@ class SpanRange:
         return reversed(range(self.from_, self.upto_))
 
     def __contains__(self, n: int) -> bool:
-        if n >= self.from_ and n < self.upto_:
-            return True
-        return False
+        return n >= self.from_ and n < self.upto_
 
     def __eq__(self, v: SpanRange) -> bool:
         return self.from_ == v.from_ and self.upto_ == v.upto_
@@ -92,7 +130,7 @@ class DotDict(dict):
     def __setstate__(self, state: DotDict) -> None:
         self.update(state)
 
-    def __setitem__(self, key: Hashable, item: object) -> None:
+    def __setitem__(self, key: Hashable, item: Any) -> None:
         if type(item) is dict:  # noqa: E721
             super().__setitem__(key, DotDict(item))
         else:
@@ -126,13 +164,13 @@ class Span(dict):
     def __setstate__(self, state: Span) -> None:
         self.update(state)
 
-    def __getitem__(self, key: Hashable) -> object:
+    def __getitem__(self, key: Hashable) -> Any:
         if key == "data" or key == "value":
             return self["widget"].get_data(self)
         else:
             return super().__getitem__(key)
 
-    def __setitem__(self, key: Hashable, item: object) -> None:
+    def __setitem__(self, key: Hashable, item: Any) -> None:
         if key == "data" or key == "value":
             self["widget"].set_data(self, data=item)
         elif key == "bg":
@@ -148,11 +186,13 @@ class Span(dict):
 
     def format(
         self,
-        formatter_options: dict = {},
-        formatter_class: object = None,
+        formatter_options: dict | None = None,
+        formatter_class: Any = None,
         redraw: bool = True,
         **kwargs,
     ) -> Span:
+        if formatter_options is None:
+            formatter_options = {}
         return self["widget"].format(
             self,
             formatter_options={"formatter": formatter_class, **formatter_options, **kwargs},
@@ -163,6 +203,9 @@ class Span(dict):
 
     def del_format(self) -> Span:
         return self["widget"].del_format(self)
+
+    def note(self, note: str | None = None, readonly: bool = True) -> Span:
+        return self["widget"].note(self, note=note, readonly=readonly)
 
     def highlight(
         self,
@@ -191,10 +234,10 @@ class Span(dict):
 
     def dropdown(
         self,
-        values: list = [],
+        values: list[Any] | None = None,
         edit_data: bool = True,
-        set_values: dict[tuple[int, int], object] = {},
-        set_value: object = None,
+        set_values: dict[tuple[int, int], Any] | None = None,
+        set_value: Any = None,
         state: str = "normal",
         redraw: bool = True,
         selection_function: Callable | None = None,
@@ -205,9 +248,9 @@ class Span(dict):
     ) -> Span:
         return self["widget"].dropdown(
             self,
-            values=values,
+            values=[] if values is None else values,
             edit_data=edit_data,
-            set_values=set_values,
+            set_values={} if set_values is None else set_values,
             set_value=set_value,
             state=state,
             redraw=redraw,
@@ -286,7 +329,7 @@ class Span(dict):
         convert: Callable | None = None,
         undo: bool | None = None,
         emit_event: bool | None = None,
-        widget: object = None,
+        widget: Any = None,
         expand: str | None = None,
         formatter_options: dict | None = None,
         **kwargs,
@@ -363,29 +406,62 @@ class Span(dict):
         return "cell"
 
     @property
-    def rows(self) -> Generator[int]:
+    def rows(self) -> SpanRange:
         rng_from_r = 0 if self["from_r"] is None else self["from_r"]
-        if self["upto_r"] is None:
-            rng_upto_r = self["widget"].total_rows()
-        else:
-            rng_upto_r = self["upto_r"]
+        rng_upto_r = self["widget"].total_rows() if self["upto_r"] is None else self["upto_r"]
         return SpanRange(rng_from_r, rng_upto_r)
 
     @property
-    def columns(self) -> Generator[int]:
+    def columns(self) -> SpanRange:
         rng_from_c = 0 if self["from_c"] is None else self["from_c"]
-        if self["upto_c"] is None:
-            rng_upto_c = self["widget"].total_columns()
-        else:
-            rng_upto_c = self["upto_c"]
+        rng_upto_c = self["widget"].total_columns() if self["upto_c"] is None else self["upto_c"]
         return SpanRange(rng_from_c, rng_upto_c)
 
-    def pickle_self(self) -> bytes:
-        x = self["widget"]
-        self["widget"] = None
-        p = pickle_obj(self)
-        self["widget"] = x
-        return p
+    @property
+    def coords(self) -> tuple[int, int, int, int]:
+        rows = self.rows
+        cols = self.columns
+        return Box_nt(rows.from_, cols.from_, rows.upto_, cols.upto_)
+
+    def copy_self(self) -> "Span":
+        # Create a new Span instance
+        span = Span()
+
+        # Iterate over all dictionary items to capture all attributes
+        for key, value in self.items():
+            if key == "widget":
+                # Tkinter widget: retain reference (do not copy)
+                span[key] = value
+            elif key == "kwargs":
+                # Handle kwargs, which may contain functions or lambdas
+                span[key] = {}
+                for k, v in value.items():
+                    if callable(v):
+                        # Functions/lambdas: shallow copy (immutable, but check for safety)
+                        span[key][k] = v
+                    else:
+                        try:
+                            # Deep copy non-callable items in kwargs
+                            span[key][k] = copy.deepcopy(v)
+                        except Exception:
+                            # Handle non-copyable objects (e.g., complex closures or objects)
+                            span[key][k] = v  # Fallback to shallow copy
+            elif key == "convert" and callable(value):
+                # Convert is a callable: shallow copy (immutable)
+                span[key] = value
+            else:
+                # Deep copy other values to handle nested objects like DotDict
+                try:
+                    span[key] = copy.deepcopy(value)
+                except Exception:
+                    # Fallback for non-copyable objects
+                    span[key] = value  # Shallow copy as fallback
+
+        # Ensure widget is set if not already present (edge case)
+        if "widget" not in span and hasattr(self, "widget"):
+            span["widget"] = self["widget"]
+
+        return span
 
     __setattr__ = __setitem__
     __getattr__ = __getitem__
@@ -405,18 +481,16 @@ class Node:
         self,
         text: str,
         iid: str,
-        parent: Node | Literal[""] | None = None,
+        parent: str = "",
+        children: list[str] | None = None,
     ) -> None:
-        self.text = text
-        self.iid = iid
-        self.parent = parent
-        self.children = []
-
-    def __str__(self) -> str:
-        return self.text
+        self.text: str = text
+        self.iid: str = iid
+        self.parent: str = parent
+        self.children: list[str] = children if children else []
 
 
-class DropdownStorage:
+class StorageBase:
     __slots__ = ("canvas_id", "window", "open")
 
     def __init__(self) -> None:
@@ -424,6 +498,8 @@ class DropdownStorage:
         self.window = None
         self.open = False
 
+
+class DropdownStorage(StorageBase):
     def get_coords(self) -> int | tuple[int, int] | None:
         """
         Returns None if not open or window is None
@@ -433,14 +509,7 @@ class DropdownStorage:
         return None
 
 
-class TextEditorStorage:
-    __slots__ = ("canvas_id", "window", "open")
-
-    def __init__(self) -> None:
-        self.canvas_id = None
-        self.window = None
-        self.open = False
-
+class EditorStorageBase(StorageBase):
     def focus(self) -> None:
         if self.window:
             self.window.tktext.focus_set()
@@ -450,12 +519,33 @@ class TextEditorStorage:
             return self.window.get()
         return ""
 
+    def set(self, value: str) -> None:
+        if not self.window:
+            return
+        self.window.set_text(value)
+
+    def highlight_from(self, index: tk.Misc, r: int | str, c: int | str) -> None:
+        self.window.tktext.tag_add("sel", index, "end")
+        self.window.tktext.mark_set("insert", f"{r}.{c}")
+
+    def autocomplete(self, value: str | None) -> None:
+        current_val = self.get()
+        if not value or len(current_val) >= len(value) or current_val != value[: len(current_val)]:
+            return
+        cursor_pos = self.tktext.index("insert")
+        line, column = cursor_pos.split(".")
+        index = self.window.tktext.index(f"{line}.{column}")
+        self.tktext.insert(index, value[len(current_val) :])
+        self.highlight_from(index, line, column)
+
     @property
-    def tktext(self) -> object:
+    def tktext(self) -> Any:
         if self.window:
             return self.window.tktext
         return self.window
 
+
+class TextEditorStorage(EditorStorageBase):
     @property
     def coords(self) -> tuple[int, int]:
         return self.window.r, self.window.c
@@ -467,47 +557,6 @@ class TextEditorStorage:
     @property
     def column(self) -> int:
         return self.window.c
-
-
-class SelectionBox:
-    __slots__ = ("fill_iid", "bd_iid", "index", "header", "coords", "type_")
-
-    def __init__(
-        self,
-        fill_iid: int | None = None,
-        bd_iid: int | None = None,
-        index: int | None = None,
-        header: int | None = None,
-        coords: tuple[int, int, int, int] = None,
-        type_: Literal["cells", "rows", "columns"] = "cells",
-    ) -> None:
-        self.fill_iid = fill_iid
-        self.bd_iid = bd_iid
-        self.index = index
-        self.header = header
-        self.coords = coords
-        self.type_ = type_
-
-
-Selected = namedtuple(
-    "Selected",
-    (
-        "row",
-        "column",
-        "type_",
-        "box",
-        "iid",
-        "fill_iid",
-    ),
-    defaults=(
-        None,
-        None,
-        None,
-        None,
-        None,
-        None,
-    ),
-)
 
 
 class ProgressBar:
@@ -523,7 +572,7 @@ class ProgressBar:
     def __len__(self):
         return 2
 
-    def __getitem__(self, key: Hashable) -> object:
+    def __getitem__(self, key: Hashable) -> Any:
         if key == 0:
             return self.bg
         elif key == 1:

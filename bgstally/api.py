@@ -253,6 +253,8 @@ class API:
         Debug.logger.debug("Starting Activities API Worker...")
 
         while True:
+            sleep(max(int(get_by_path(self.endpoints, [ENDPOINT_ACTIVITIES, 'min_period'], 0)), TIME_ACTIVITIES_WORKER_PERIOD_S))
+
             # Need to check settings every time in case the user has changed them
             if not self.user_approved \
                     or not self.activities_enabled \
@@ -267,7 +269,6 @@ class API:
 
                 self.activity = None
 
-            sleep(max(int(get_by_path(self.endpoints, [ENDPOINT_ACTIVITIES, 'min_period'], 0)), TIME_ACTIVITIES_WORKER_PERIOD_S))
 
 
     def _events_worker(self) -> None:
@@ -278,6 +279,8 @@ class API:
         Debug.logger.debug("Starting Events API Worker...")
 
         while True:
+            sleep(max(int(get_by_path(self.endpoints, [ENDPOINT_EVENTS, 'min_period'], 0)), TIME_EVENTS_WORKER_PERIOD_S))
+
             # Need to check settings every time in case the user has changed them
             if not self.user_approved \
                     or not self.events_enabled \
@@ -294,8 +297,6 @@ class API:
                 queued_events:list = [self.events_queue.get(block=False) for _ in range(min(batch_size, self.events_queue.qsize()))]
                 self.bgstally.request_manager.queue_request(url, RequestMethod.POST, headers=self._get_headers(), payload=queued_events)
 
-            sleep(max(int(get_by_path(self.endpoints, [ENDPOINT_EVENTS, 'min_period'], 0)), TIME_EVENTS_WORKER_PERIOD_S))
-
 
     def _objectives_worker(self) -> None:
         """
@@ -304,6 +305,8 @@ class API:
         Debug.logger.debug("Starting Objectives API Worker...")
 
         while True:
+            sleep(max(int(get_by_path(self.endpoints, [ENDPOINT_OBJECTIVES, 'min_period'], 0)), TIME_OBJECTIVES_WORKER_PERIOD_S))
+
             # Need to check settings every time in case the user has changed them
             if self.user_approved \
                     and self.objectives_enabled \
@@ -313,8 +316,6 @@ class API:
                 # Refresh our local list of objectives
                 url: str = self.url + get_by_path(self.endpoints, [ENDPOINT_OBJECTIVES, 'path'], ENDPOINT_OBJECTIVES)
                 self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._get_headers(), callback=self._objectives_received)
-
-            sleep(max(int(get_by_path(self.endpoints, [ENDPOINT_OBJECTIVES, 'min_period'], 0)), TIME_OBJECTIVES_WORKER_PERIOD_S))
 
 
     def _objectives_received(self, success: bool, response: Response, request: BGSTallyRequest):

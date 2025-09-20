@@ -2,11 +2,17 @@
 
 ## v5.2.0-xx - xxxx-xx-xx
 
+### New features:
+
+* Colonisation: Added RavenColonial markets window for linked builds
+* Colonisation: Added flexible sorting of bases popup
+
 ### Bug fixes:
 
 * Colonisation: Fixed issue with initial migration of data throwing an error
 * Colonisation: Fixed qty based sorting
-* COlonisation: Commodity filtering
+* Colonisation: Improved commodity filtering
+* Colonisation: Improved colonisation ship name display
 
 
 ## v5.2.0-a1 - 2025-09-07

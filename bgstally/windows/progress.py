@@ -1,19 +1,22 @@
 import tkinter as tk
 import tkinter.font as tkFont
-import traceback
 import webbrowser
 import re
-import functools
+import requests
+from requests import Response
 from functools import partial
 from math import ceil
 from tkinter import ttk
 from urllib.parse import quote
 
-from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, CommodityOrder, ProgressUnits, ProgressView
+from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, FONT_SMALL, RequestMethod, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
-from bgstally.utils import _, str_truncate, catch_exceptions
+from bgstally.utils import _, str_truncate, catch_exceptions, human_format
+from bgstally.ravencolonial import RavenColonial
+from bgstally.requestmanager import BGSTallyRequest
 from config import config # type: ignore
 from thirdparty.Tooltip import ToolTip
+from thirdparty.tksheet import Sheet, natural_sort_key
 
 class ProgressWindow:
     '''
@@ -25,7 +28,7 @@ class ProgressWindow:
 
     It also provides a progress bar for the overall progress of the build (or builds).
     '''
-    def __init__(self, bgstally):
+    def __init__(self, bgstally) -> None:
         self.bgstally = bgstally
         self.colonisation = None
 
@@ -70,6 +73,19 @@ class ProgressWindow:
         ]
         self.ordertts:list = [_('Alphabetical order'), _('Category order'), _('Quantity order')]
 
+        self.markets:dict = {
+            'systemName' : {'Header': _('System'), 'Width': 175, 'Align': "left"},      # LANG: System Name heading
+            'stationName' : {'Header': _('Station'), 'Width': 175, 'Align': "left"},    # LANG: Station name heading
+            'distance': {'Header': _('Distance (ly)'), 'Width': 75, 'Align': "center"}, # LANG: System distance heading
+            'distanceToArrival': {'Header': _('Arrival (ls)'), 'Width': 75, 'Align': "center"}, # LANG: station distance from arrival heading
+            'type': {'Header': _('Type'), 'Width': 35, 'Align': "center"},              # LANG: Station type (O=Orbital, S=Surface, C=Carrier)
+            'padSize': {'Header': _('Pad'), 'Width': 35, 'Align': "center"},            # LANG: Pad size (L, M, S)
+            'count': {'Header': _('Count'), 'Width':45, 'Align': "center"},             # LANG: Count of commodities available
+            'commodities': {'Header': _('Commodities'), 'Width': 515, 'Align': "left"}  # LANG: List of commodities available
+            }
+
+        self.colors:dict = {'L' : '#d4edbc', 'M' : '#dbe5ff', 'O' : '#d5deeb', 'S' : '#ebe6db', 'C' : '#e6dbeb'}
+
         # Initialise the default units & column types
         self.units:list = [CommodityOrder.ALPHA, ProgressUnits.QTY, ProgressUnits.QTY, ProgressUnits.QTY]
         self.columns:list = [0, 2, 3, 5]
@@ -82,6 +98,7 @@ class ProgressWindow:
 
         # UI components
         self.frame:tk.Frame
+        self.mkts_fr:tk.Toplevel|None = None # Markets popup window
         self.frame_row:int = 0 # Row in the parent frame
         self.table_frame:tk.Frame # Table frame
         self.title:tk.Label # Title object
@@ -172,7 +189,7 @@ class ProgressWindow:
         row += 1
 
         # Go through the complete list of possible commodities and make a row for each and hide it.
-        for c in self.colonisation.get_commodity_list('All'):
+        for c in self.colonisation.get_commodity_list():
             r:dict = {}
 
             for col, v in enumerate(self.columns):
@@ -214,24 +231,26 @@ class ProgressWindow:
             return _("No colonisation data available") # LANG: No colonisation data available
         self.colonisation = self.bgstally.colonisation
 
-        output:str = ""
+
         tracked:list = self.colonisation.get_tracked_builds()
         required:dict = self.colonisation.get_required(tracked)
         delivered:dict = self.colonisation.get_delivered(tracked)
+        if self.build_index > len(tracked): self.build_index = 0
+
+        output:str = ""
+        if discord:
+            output = "```" + _("All builds") + "\n" # LANG: all tracked builds
+        else:
+            output = TAG_OVERLAY_HIGHLIGHT + _("All builds") + "\n" # LANG: all tracked builds
 
         if self.build_index < len(tracked):
             b:dict = tracked[self.build_index]
             sn:str = b.get('Plan', _('Unknown')) # Unknown system name
             bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
             if discord:
-                output += f"```{sn}, {bn}\n"
+                output = f"```{sn}, {bn}\n"
             else:
-                output += f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 30, loc='left')}\n"
-        else:
-            if discord:
-                output += "```" + _("All builds") + "\n" # LANG: all tracked builds
-            else:
-                output += TAG_OVERLAY_HIGHLIGHT + _("All builds") + "\n" # LANG: all tracked builds
+                output = f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 30, loc='left')}\n"
 
         output += f"{_('Progress')}: {self.progvar.get():.0f}%\n"
         output += "\n"
@@ -240,11 +259,11 @@ class ProgressWindow:
 
         output += "-" * 67 + "\n"
 
-        for c in self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY):
+        for c in self.colonisation.get_commodity_list(CommodityOrder.CATEGORY):
             reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
             delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
             # Hide if we're docked and market doesn't have this.
-            if not discord and self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) == 0:
+            if not discord and self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) == 0:
                 continue
             remaining:int = reqcnt - delcnt
             # Show amount left to buy unless it's our carrier in which case it needs to be amount left to deliver
@@ -305,7 +324,8 @@ class ProgressWindow:
     @catch_exceptions
     def link(self, comm:str, src:str|None, tkEvent) -> None:
         ''' Open the link to Inara for nearest location for the commodity. '''
-        comm_id = self.colonisation.base_costs['All'].get(comm)
+
+        comm_id = self.bgstally.ui.commodities.get(comm, {}).get('InaraID', "")
         sys:str|None = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
         if sys == None: sys = 'sol'
 
@@ -320,8 +340,113 @@ class ProgressWindow:
         for min in [500, 1000, 2500, 5000, 10000, 50000]:
             if min > rem: break
 
-        url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
-        webbrowser.open(url)
+        projectid:str = ''
+        Debug.logger.debug(f"Build index {self.build_index} of {len(tracked)}")
+        if self.build_index < len(tracked):
+            projectid = tracked[self.build_index].get('ProjectID', '')
+        if self.build_index < len(tracked) and projectid == '':
+            progress:dict = self.colonisation.find_progress(tracked[self.build_index].get('MarketID'))
+            if progress != None:
+                projectid = progress.get('ProjectID', '')
+
+        # If we don't have a RavenColonial project ID then use Inara
+        if projectid == '':
+            url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
+            webbrowser.open(url)
+            return
+
+        url:str = f"https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api/project/{projectid}/markets"
+        payload:dict = {"systemName": sys,
+                        "shipSize": 'medium',
+                        "requireNeed": True}
+        self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=RavenColonial(self.colonisation)._headers(), callback=self._markets_callback)
+
+        # Create/recreate the frame now since it takes a while to show the data
+        if self.mkts_fr != None and self.mkts_fr.winfo_exists(): self.mkts_fr.destroy()
+        scale:float = config.get_int('ui_scale') / 100.00
+        self.mkts_fr = tk.Toplevel(self.bgstally.ui.frame)
+        self.mkts_fr.wm_title(_("{plugin_name} - Markets Window").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the markets popup window
+        width:int = sum([v.get('Width') for v in self.markets.values()]) + 20
+        self.mkts_fr.geometry(f"{int(width*scale)}x{int(500*scale)}")
+        self.mkts_fr.protocol("WM_DELETE_WINDOW", self.mkts_fr.destroy)
+        self.mkts_fr.config(bd=2, relief=tk.FLAT)
+
+
+    @catch_exceptions
+    def _markets_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+        ''' Callback from the RavenColonial materials request to open popup '''
+        if response.status_code != 200:
+            Debug.logger.error(f"RavenColonial materials request failed: {response.status_code} {response.text}")
+            self.mkts_fr.destroy()
+            return
+
+        tmp:dict = response.json()
+        markets:list = tmp.get('markets', [])
+        if len(markets) == 0:
+            Debug.logger.info("RavenColonial materials request returned no markets")
+            self.mkts_fr.destroy()
+            return
+
+        scale:float = config.get_int('ui_scale') / 100.00
+        header_fnt:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
+        sheet:Sheet = Sheet(self.mkts_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
+                        show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
+                        align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
+                        show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
+                        empty_vertical=0, empty_horizontal=0, header_font=header_fnt, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
+                        show_header=True, default_row_height=int(19*scale), table_wrap="w", alternate_color="gray95")
+        sheet.pack(fill=tk.BOTH, padx=0, pady=0)
+
+        sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'sort_rows')
+        sheet.set_header_data([v['Header'] for v in self.markets.values()])
+        sheet.extra_bindings('cell_select', func=partial(self._sheet_clicked, sheet))
+
+        tracked:dict = self.colonisation.get_tracked_builds()
+        required:dict = self.colonisation.get_required(tracked)
+        delivered:dict = self.colonisation.get_delivered(tracked)
+
+        data:list = []
+        for i, m in enumerate(list(k for k in sorted(markets, key=lambda item: item.get('distance'), reverse=False))):
+            row:list = []
+            for k, v in self.markets.items():
+                d:str = ''
+                match k:
+                    case 'type':
+                        d = 'S' if m.get('surface', False) == True else 'C' if m.get('type', '').lower().find('carrier') >= 0 else 'O'
+                        sheet[f"E{i+1}"].highlight(bg=self.colors.get(d, 'white'))
+                    case 'count':
+                        d = str(len([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if 0 < required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0) < v]))
+                    case 'padSize':
+                        d = m.get('padSize', '').upper()[0:1]
+                        sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
+                    case 'commodities':
+                        d = ', '.join([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if 0 < required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0) < v])
+                    case 'distance' | 'distanceToArrival':
+                        d = f"{m.get('distance', 0):,.1f}"
+                    case 'distanceToArrival':
+                        d = f"{int(m.get('distanceToArrival', 0)):,}"
+                    case _:
+                        d = m.get(k, '')
+                row.append(d)
+            data.append(row)
+
+        sheet.set_sheet_data(data)
+
+        for i, (k, v) in enumerate(self.markets.items()):
+            sheet.align_columns(i, v.get('Align'))
+            sheet.column_width(i, int(v.get('Width')*scale))
+
+        #self.msheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
+        sheet.set_all_row_heights(height=None, only_set_if_too_small=True, redraw=True)
+
+
+    @catch_exceptions
+    def _sheet_clicked(self, sheet:Sheet, event) -> None:
+        ''' Open system or station '''
+        #sheet.toggle_select_row(event.selected.row, False, True)
+        if event.selected.column == 0:
+            system:str = str(sheet[(event['selected'].row, event['selected'].column)].data)
+            self.bgstally.ui.window_colonisation._link({'StarSystem': system}, 'System')
 
 
     def ctc(self, comm:str, event) -> None:
@@ -342,6 +467,8 @@ class ProgressWindow:
             Debug.logger.info("No builds or commodities, hiding progress frame")
             return
 
+        if self.build_index > len(tracked): self.build_index = 0
+
         self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
         self.table_frame.grid(row=3, column=0, columnspan=5, sticky=tk.NSEW)
 
@@ -350,13 +477,13 @@ class ProgressWindow:
         sn:str = _('Unknown') # LANG: Unknown system name
         if self.build_index < len(tracked):
             b:dict = tracked[self.build_index]
-            bn:str = re.sub(r"(\w+ Construction Site:|$EXT_PANEL_ColonisationShip;) ", "", b.get('Name', ''))
+            bn:str = re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;) ", "", b.get('Name', ''))
             bt:str = b.get('Base Type', '')
             pn:str = b.get('Plan', _('Unknown')) # Unknown system name
             sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
-            name = ', '.join([pn, bt])
+            name:str = ', '.join([pn, bt])
             if b.get('Name', '') != '':
-                name=', '.join([pn, bt, bn])
+                name = ', '.join([pn, bt, bn])
         self.titlett.text = f"{name}, {_('click to copy to clipboard')}"
         self.title.config(text=str_truncate(name, 52, loc='middle'))
 
@@ -379,10 +506,10 @@ class ProgressWindow:
         # Go through each commodity and show or hide it as appropriate and display the appropriate values
         comms:list = []
         qty:dict = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
-        if self.colonisation.docked == True:
-            comms = self.colonisation.get_commodity_list('All', CommodityOrder.CATEGORY)
+        if self.colonisation.docked == True and '$EXT_PANEL_ColonisationShip' not in f"{self.colonisation.station}" and 'Construction Site' not in f"{self.colonisation.station}":
+            comms = self.colonisation.get_commodity_list(CommodityOrder.CATEGORY)
         else:
-            comms = self.colonisation.get_commodity_list('All', self.comm_order, qty)
+            comms = self.colonisation.get_commodity_list(self.comm_order, qty)
 
         if comms == None or comms == []:
             Debug.logger.info(f"No commodities found")
@@ -406,14 +533,15 @@ class ProgressWindow:
             if reqcnt - delcnt > 0: totals['Cargo'] += max(min(cargo, reqcnt - delcnt), 0)
             if reqcnt - delcnt > 0: totals['Carrier'] += max(min(carrier, reqcnt - delcnt - cargo), 0)
 
+            #if reqcnt > 0: Debug.logger.debug(f"Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}")
+
             # We only show relevant (required) items. But.
             # If the view is reduced or minimal we don't show ones that are complete. Also.
             # If we're in minimal view we only show ones we still need to buy.
-            #Debug.logger.debug(f"{c} {remaining - carrier - cargo} {cargo} {self.view}")
             if (reqcnt <= 0) or \
                 (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
                 ((self.colonisation.docked == False or self.colonisation.market == {}) and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
-                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(c, 0) <= 0 and self.view == ProgressView.MINIMAL) or \
+                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and self.view == ProgressView.MINIMAL) or \
                 rc > int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
                     cell.grid_remove()
@@ -427,15 +555,13 @@ class ProgressWindow:
                 continue
 
             for col, val in enumerate(self.columns):
+                row[col].bind("<Button-1>", partial(self.link, c, None))
+                row[col].bind("<Button-2>", partial(self.link, c, sn))
+                row[col].bind("<Button-3>", partial(self.ctc, self.colonisation.get_commodity(c)))
+
                 if col == 0:
                     # Shorten and display the commodity name
-                    colstr:str = self.colonisation.get_commodity(c)
-                    colstr = str_truncate(colstr, 24)
-
-                    row[col]['text'] = colstr
-                    row[col].bind("<Button-1>", partial(self.link, c, None))
-                    row[col].bind("<Button-2>", partial(self.link, c, sn))
-                    row[col].bind("<Button-3>", partial(self.ctc, self.colonisation.get_commodity(c)))
+                    row[col]['text'] = str_truncate(self.colonisation.get_commodity(c), 24)
                     row[col].grid()
                     continue
 
@@ -513,7 +639,7 @@ class ProgressWindow:
                 continue
 
             # We're at our carrier, highlight what's available
-            if self.colonisation.docked == True and self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id and self.colonisation.market.get(c, 0) > 0:
+            if self.colonisation.docked == True and self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id and self.colonisation.market.get(f"${c}_name;", 0) > 0:
                 cell['fg'] = 'goldenrod3'
                 # bold if need any and have room, otherwise normal
                 self._set_weight(cell, 'bold' if remaining-cargo-carrier <= 0 and space > 0 else 'normal')
@@ -524,7 +650,7 @@ class ProgressWindow:
                 continue
 
             # What's available at this market?
-            if self.colonisation.docked == True and self.colonisation.market.get(c, 0): # market!
+            if self.colonisation.docked == True and self.colonisation.market.get(f"${c}_name;", 0): # market!
                 cell['fg'] = 'steelblue'
                 # bold if need any and have room, otherwise normal
                 self._set_weight(cell, 'bold' if remaining-cargo-carrier > 0 and space > 0 else 'normal')

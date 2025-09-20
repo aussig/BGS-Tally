@@ -408,7 +408,7 @@ class UI:
         where Name is localised.
 
         The CSV files are sourced from the EDCD FDevIDs project https://github.com/EDCD/FDevIDs and should be updated occasionally, along with the
-        localised versions in the L10n folder
+        localised versions in the L10n folder. Note that commodity.csv has an extra column 'InaraID' which we maintain.
         """
         self.commodities = {}
         filepath: str|None = get_localised_filepath(FILENAME_COMMODITIES_CSV, path.join(self.bgstally.plugin_dir, FOLDER_DATA))

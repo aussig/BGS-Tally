@@ -13,6 +13,7 @@
 * Colonisation: Fixed qty based sorting
 * Colonisation: Improved commodity filtering
 * Colonisation: Improved colonisation ship name display
+* Background threads now wait before they do anything, which avoids some possible errors on startup.
 
 
 ## v5.2.0-a1 - 2025-09-07

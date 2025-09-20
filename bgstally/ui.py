@@ -477,6 +477,8 @@ class UI:
                 Debug.logger.debug("Shutting down UI Worker...")
                 return
 
+            sleep(TIME_WORKER_PERIOD_S)
+
             current_activity: Activity = self.bgstally.activity_manager.get_current_activity()
 
             # Current Galaxy and System Tick Times
@@ -563,8 +565,6 @@ class UI:
             if self.bgstally.state.enable_overlay_colonisation:
                 colonisation_text: str = self.window_progress.as_text(False)
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
-
-            sleep(TIME_WORKER_PERIOD_S)
 
 
     def _previous_ticks_popup(self):

@@ -76,12 +76,13 @@ class ProgressWindow:
         self.markets:dict = {
             'systemName' : {'Header': _('System'), 'Width': 175, 'Align': "left"},      # LANG: System Name heading
             'stationName' : {'Header': _('Station'), 'Width': 175, 'Align': "left"},    # LANG: Station name heading
-            'distance': {'Header': _('Distance (ly)'), 'Width': 75, 'Align': "center"}, # LANG: System distance heading
-            'distanceToArrival': {'Header': _('Arrival (ls)'), 'Width': 75, 'Align': "center"}, # LANG: station distance from arrival heading
+            'distance': {'Header': _('Dist (ly)'), 'Width': 50, 'Align': "center"},     # LANG: System distance heading
+            'distanceToArrival': {'Header': _('Arr (ls)'), 'Width': 50, 'Align': "center"}, # LANG: station distance from arrival heading
             'type': {'Header': _('Type'), 'Width': 35, 'Align': "center"},              # LANG: Station type (O=Orbital, S=Surface, C=Carrier)
             'padSize': {'Header': _('Pad'), 'Width': 35, 'Align': "center"},            # LANG: Pad size (L, M, S)
             'count': {'Header': _('Count'), 'Width':45, 'Align': "center"},             # LANG: Count of commodities available
-            'commodities': {'Header': _('Commodities'), 'Width': 515, 'Align': "left"}  # LANG: List of commodities available
+            'quantity': {'Header': _('Amt (t)'), 'Width':55, 'Align': "center"},        # LANG: Tonnes of needed commodities available
+            'commodities': {'Header': _('Commodities'), 'Width': 565, 'Align': "left"}  # LANG: List of commodities available
             }
 
         self.colors:dict = {'L' : '#d4edbc', 'M' : '#dbe5ff', 'O' : '#d5deeb', 'S' : '#ebe6db', 'C' : '#e6dbeb'}
@@ -359,7 +360,7 @@ class ProgressWindow:
         payload:dict = {"systemName": sys,
                         "shipSize": 'medium',
                         "requireNeed": True}
-        self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=RavenColonial(self.colonisation)._headers(), callback=self._markets_callback)
+        self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=RavenColonial(self.colonisation)._headers(), callback=self._markets_callback, attempts=3)
 
         # Create/recreate the frame now since it takes a while to show the data
         if self.mkts_fr != None and self.mkts_fr.winfo_exists(): self.mkts_fr.destroy()
@@ -411,20 +412,23 @@ class ProgressWindow:
             for k, v in self.markets.items():
                 d:str = ''
                 match k:
-                    case 'type':
-                        d = 'S' if m.get('surface', False) == True else 'C' if m.get('type', '').lower().find('carrier') >= 0 else 'O'
-                        sheet[f"E{i+1}"].highlight(bg=self.colors.get(d, 'white'))
-                    case 'count':
-                        d = str(len([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if 0 < required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0) < v]))
-                    case 'padSize':
-                        d = m.get('padSize', '').upper()[0:1]
-                        sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
-                    case 'commodities':
-                        d = ', '.join([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(v)})" for k, v in m.get('supplies', {}).items() if 0 < required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0) < v])
-                    case 'distance' | 'distanceToArrival':
+                    case 'distance':
                         d = f"{m.get('distance', 0):,.1f}"
                     case 'distanceToArrival':
                         d = f"{int(m.get('distanceToArrival', 0)):,}"
+                    case 'type':
+                        d = 'S' if m.get('surface', False) == True else 'C' if m.get('type', '').lower().find('carrier') >= 0 else 'O'
+                        sheet[f"E{i+1}"].highlight(bg=self.colors.get(d, 'white'))
+                    case 'padSize':
+                        d = m.get('padSize', '').upper()[0:1]
+                        sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
+                    case 'count':
+                        d = str(len([k for k, v in m.get('supplies', {}).items() if min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) > 0]))
+                    case 'quantity':
+                        d = f"{(sum([min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) for k, v in m.get('supplies', {}).items()])):,}"
+                    case 'commodities':
+                        # ⚠ ⊘ ⦵
+                        d = ', '.join([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v))}{'/'+human_format(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0)) if v < required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0) else ''})" for k, v in m.get('supplies', {}).items() if min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) > 0])
                     case _:
                         d = m.get(k, '')
                 row.append(d)

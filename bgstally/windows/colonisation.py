@@ -5,21 +5,20 @@ import tkinter as tk
 import tkinter.font as tkFont
 import traceback
 import webbrowser
-import functools
 from functools import partial
 from math import ceil
 from os import path
 from tkinter import PhotoImage, messagebox, ttk
 from urllib.parse import quote
 
-from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, FONT_TEXT, BuildState
+from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, BuildState
 from bgstally.debug import Debug
 from bgstally.utils import _, get_localised_filepath, human_format, str_truncate, catch_exceptions
 from bgstally.ravencolonial import RavenColonial
 
 from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from thirdparty.tksheet import Sheet, num2alpha
+from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key
 from thirdparty.Tooltip import ToolTip
 
 FILENAME_LEGEND = "colonisation_legend.txt"
@@ -38,7 +37,7 @@ class ColonisationWindow:
 
     It can create popup windows for showing base types, system notes, and system bodies.
     '''
-    def __init__(self, bgstally):
+    def __init__(self, bgstally) -> None:
         self.bgstally = bgstally
         self.colonisation = None
         self.image_tab_complete:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
@@ -53,7 +52,7 @@ class ColonisationWindow:
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
         self.summary_cols:dict = {
             'Track': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
-            'Architect': {'header': _("Architect"), 'background': None, 'hide': False},
+            'Architect': {'header': _("Architect"), 'background': None, 'hide': False}, # LANG: System architect heading
             'Layout': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
             'State': {'header': "", 'background': None},
             'Total': {'header': _("Total"), 'background': None, 'format': 'int'}, # LANG: Total number of builds
@@ -121,7 +120,7 @@ class ColonisationWindow:
             'Standard of Living': {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             'Development Level': {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max':8, 'width': 70}, # LANG: As above
             #'Building Type' : {'header': _("Building Type"), 'background': None, 'format': 'string', 'width': 175}, # LANG: Building type
-            'Layouts' : {'header': _("Building Layouts"), 'background': None, 'format': 'string', 'width': 200}, # LANG: Building layout types
+            'Layouts' : {'header': _("Building Layouts (click for details)"), 'background': None, 'format': 'string', 'width': 200}, # LANG: Building layout types
             'Boosted By': {'header': _("Boosted By"), 'background': None, 'format': 'string', 'width': 300}, # LANG: any boost effects for the base
             'Decreased By': {'header': _("Decreased By"), 'background': None, 'format': 'string', 'width': 250}, # LANG: any decrease effects for the base
         }
@@ -169,7 +168,6 @@ class ColonisationWindow:
         if self.window != None and self.window.winfo_exists():
             self.window.lift()
             return
-        Debug.logger.debug(f"Scale: {config.get_int('ui_scale')}, {self.bgstally.ui.frame.tk.call('tk', 'scaling')}")
         self.scale = config.get_int('ui_scale') / 100.00
         self.colonisation = self.bgstally.colonisation
         self.window:tk.Toplevel = tk.Toplevel(self.bgstally.ui.frame)
@@ -344,16 +342,13 @@ class ColonisationWindow:
         """ Display the context menu when right-clicked."""
 
         menu = tk.Menu(tearoff=tk.FALSE)
-        # LANG: Label for 'Copy' as in 'Copy and Paste'
         if type == 'System':
             menu.add_command(label=_('Copy'), command=partial(self._ctc, system['StarSystem']))  # As in Copy and Paste
             menu.add_separator()
 
         for which in self.links[type].keys():
-            menu.add_command(
-                label=_(f"Open in {which}"),  # LANG: Open Element In Selected Provider
-                command=partial(self._link, system, type, which)
-            )
+            menu.add_command(label=_("Open in {w}").format(w=which),  # LANG: Open Element In Selected Provider
+                             command=partial(self._link, system, type, which))
         menu.post(event.x_root, event.y_root)
 
 
@@ -379,6 +374,15 @@ class ColonisationWindow:
 
 
     @catch_exceptions
+    def base_clicked(self, sheet:Sheet, event) -> None:
+        ''' We clicked on a base type, open it in RC '''
+        sheet.toggle_select_row(event.selected.row, False, True)
+        if event.selected.column == 20:
+            layouts:str = str(sheet[self._cell(event['selected'].row, 20)].data)
+            self._link({'Layout': layouts.split(', ')[0]}, 'Base', 'RavenColonial')
+
+
+    @catch_exceptions
     def bases_popup(self) -> None:
         ''' Show a popup with details of all the base types '''
         if self.bases_fr != None and self.bases_fr.winfo_exists():
@@ -390,14 +394,15 @@ class ColonisationWindow:
         self.bases_fr.geometry(f"{int(1000*self.scale)}x{int(500*self.scale)}")
         self.bases_fr.protocol("WM_DELETE_WINDOW", self.bases_fr.destroy)
         self.bases_fr.config(bd=2, relief=tk.FLAT)
-        sheet:Sheet = Sheet(self.bases_fr, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
+        header_fnt:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
+        sheet:Sheet = Sheet(self.bases_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
                         show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
                         align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                         show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
-                        empty_vertical=0, empty_horizontal=0, header_font=FONT_SMALL, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                        show_header=True)
+                        empty_vertical=0, empty_horizontal=0, header_font=header_fnt, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
+                        show_header=True, default_row_height=int(19*self.scale))
         sheet.pack(fill=tk.BOTH, padx=0, pady=0)
-        sheet.enable_bindings('single_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy')
+        sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'sort_rows')
         sheet.extra_bindings('cell_select', func=partial(self.base_clicked, sheet))
         data:list = [[0 for _ in range(len(self.bases.keys()))] for _ in range(len(self.colonisation.get_base_types()))]
         sheet.set_header_data([h['header'] for h in self.bases.values()])
@@ -426,16 +431,6 @@ class ColonisationWindow:
                         else:
                             sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
-
-
-    @catch_exceptions
-    def base_clicked(self, sheet:Sheet, event) -> None:
-        ''' We clicked on a base type, open it in RC '''
-        sheet.toggle_select_cell(event.selected.row, event.selected.column, False)
-        sheet.toggle_select_row(event.selected.row, False, True)
-        if event.selected.column == 20:
-            layouts:str = str(sheet[self._cell(event['selected'].row, 20)].data)
-            self._link({'Layout': layouts.split(', ')[0]}, 'Base', 'RavenColonial')
 
 
     @catch_exceptions
@@ -501,6 +496,63 @@ class ColonisationWindow:
 
 
     @catch_exceptions
+    def notes_popup(self, tabnum:int) -> None:
+        ''' Show the notes popup window '''
+        def savenotes(system:dict, text:tk.Text) -> None:
+            ''' Save the notes and close the popup window '''
+            if sysnum > len(self.plan_titles):
+                Debug.logger.info(f"Saving notes invalid tab: {tabnum}")
+                return
+
+            notes:str = text.get("1.0", tk.END)
+            system['Notes'] = notes
+            self.colonisation.save("Notes popup close")
+            self.notes_fr.destroy()
+            self.notes_fr
+
+        sysnum:int = tabnum -1
+        systems:list = self.colonisation.get_all_systems()
+
+        if self.notes_fr != None and self.notes_fr.winfo_exists():
+            self.notes_fr.destroy()
+
+        self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
+        self.notes_fr.wm_title(_("{plugin_name} - Colonisation Notes for {system_name}").format(plugin_name=self.bgstally.plugin_name, system_name=systems[sysnum].get('Name', ''))) # LANG: Title of the notes popup window
+        self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+        self.notes_fr.geometry("600x600")
+        self.notes_fr.config(bd=2, relief=tk.FLAT)
+        scr:tk.Scrollbar = tk.Scrollbar(self.notes_fr, orient=tk.VERTICAL)
+        scr.pack(side=tk.RIGHT, fill=tk.Y)
+
+        text:tk.Text = tk.Text(self.notes_fr, font=FONT_SMALL, yscrollcommand=scr.set)
+        notes:str = systems[sysnum].get('Notes', '')
+        text.insert(tk.END, notes)
+        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+        self.notes_fr.protocol("WM_DELETE_WINDOW", partial(savenotes, systems[sysnum], text))
+
+
+    @catch_exceptions
+    def legend_popup(self) -> None:
+        ''' Show the legend popup window '''
+        if self.legend_fr != None and self.legend_fr.winfo_exists():
+            self.legend_fr.lift()
+            return
+
+        self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
+        self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
+        self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
+        self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
+        self.legend_fr.geometry(f"600x600")
+        self.legend_fr.config(bd=2, relief=tk.FLAT)
+        scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
+        scr.pack(side=tk.RIGHT, fill=tk.Y)
+
+        text:tk.Text = tk.Text(self.legend_fr, font=FONT_SMALL, yscrollcommand=scr.set)
+        text.insert(tk.END, self._load_legend())
+        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+
+
+    @catch_exceptions
     def _create_table_frame(self, tabnum:int, tab:ttk.Frame, system:dict) -> None:
         ''' Create a unified table frame with both summary and builds in a single scrollable area '''
         # Main table frame
@@ -516,7 +568,7 @@ class ColonisationWindow:
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                             show_dropdown_borders=False,
                             empty_vertical=15, empty_horizontal=0, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                            show_header=False, set_all_heights_and_widths=True) #, default_row_height=21)
+                            show_header=False, set_all_heights_and_widths=True, default_row_height=int(19*self.scale))
         sheet.pack(fill=tk.BOTH, padx=0, pady=(0, 5))
 
         # Initial cell population
@@ -526,7 +578,6 @@ class ColonisationWindow:
 
         data.append(self._get_detail_header())
         data += self._build_detail(system)
-
         sheet.set_sheet_data(data)
         self._config_sheet(sheet, system)
         sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
@@ -697,7 +748,6 @@ class ColonisationWindow:
 
         for i, x in enumerate(self.summary_rows.keys()):
             for j, details in enumerate(self.summary_cols.values()):
-                #j += FIRST_SUMMARY_COLUMN
                 sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
                 if details.get('background') != None:
                     sheet[self._cell(i+srow,j+scol)].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
@@ -792,6 +842,7 @@ class ColonisationWindow:
                     desc = str_truncate(desc, 16)
                 sheet[self._cell(i+srow,self._detcol('Body Type'))].data = desc
 
+
             # Handle build states
             if new[i][self._detcol('State')] == BuildState.COMPLETE:
                 # Tracking
@@ -804,7 +855,12 @@ class ColonisationWindow:
                     for cell in ['Base Type', 'Layout']:
                         sheet[self._cell(i+srow,self._detcol(cell))].del_dropdown()
                         sheet[self._cell(i+srow,self._detcol(cell))].readonly()
-                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg=None)
+
+                    # Base type background color
+                    bt:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
+                    econ = bt.get('Economy Influence') if bt.get('Economy Influence', "") != "" else bt.get('Facility Economy')
+                    sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1))
+
 
                 elif new[i][self._detcol('Base Type')] != ' ' or new[i][self._detcol('Name')] != ' ': # Base type is invalid or not set & name is set
                     for cell in ['Base Type', 'Layout']:
@@ -833,6 +889,11 @@ class ColonisationWindow:
             # Base type & Layout
             sheet[self._cell(i+srow,self._detcol('Base Type'))].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
             if new[i][self._detcol('Base Type')] != ' ':
+                # Base type background color
+                bt:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
+                econ = bt.get('Economy Influence') if bt.get('Economy Influence', "") != "" else bt.get('Facility Economy')
+                sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1))
+
                 sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]))
             else:
                 sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'))
@@ -850,8 +911,8 @@ class ColonisationWindow:
             if system != None and 'Bodies' in system:
                 bodies:list = self.colonisation.get_bodies(system)
                 if new[i][self._detcol('Base Type')] != ' ':
-                    basetype:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
-                    bodies = self.colonisation.get_bodies(system, basetype.get('Location'))
+                    bt:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
+                    bodies = self.colonisation.get_bodies(system, bt.get('Location'))
 
                 if len(bodies) > 0:
                     sheet[self._cell(i+srow,self._detcol('Body'))].dropdown(values=[' '] + bodies)
@@ -864,6 +925,7 @@ class ColonisationWindow:
                 sheet[self._cell(len(new)+srow-1,j)].highlight(bg=None)
             sheet[self._cell(len(new)+srow-1,self._detcol('State'))].data = ' '
 
+        sheet.set_all_row_heights(height=int(19*self.scale))
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
@@ -878,7 +940,7 @@ class ColonisationWindow:
             self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
             # Not our system? Then it's readonly
             if system.get('RCSync', False) == True and self.colonisation.cmdr != system.get('Architect', None):
-                self.sheets[i]['A1:Z'].readonly()
+                self.sheets[i]['B1:Z'].readonly()
 
 
     @catch_exceptions
@@ -902,12 +964,12 @@ class ColonisationWindow:
         systems:list = self.colonisation.get_all_systems()
         system:dict = systems[sysnum]
 
+        #Debug.logger.debug(f"Sheet modified: {event.eventname} {event.selected} {event.row},{event.column}='{event.value}'")
+
         # Readonly if it's not our system
         sysnum:int = tabnum -1
         systems:list = self.colonisation.get_all_systems()
         system:dict = systems[sysnum]
-        if system.get('RCSync', False) == True and self.colonisation.cmdr != system.get('Architect', None):
-            return None
 
         if event.eventname == 'select' and len(event.selected) == 6:
             # No editing the summary/headers
@@ -927,6 +989,9 @@ class ColonisationWindow:
                     self.colonisation.modify_build(system, row, {'State': BuildState.COMPLETE})
 
                 self.update_display()
+
+        if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
+            Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
             return
 
         # We only deal with edits.
@@ -968,6 +1033,7 @@ class ColonisationWindow:
                 sdata.append(self._get_detail_header())
                 sdata += self._build_detail(system)
 
+                Debug.logger.debug(f"sysnum: {sysnum} sheets: {len(self.sheets)}")
                 self.sheets[sysnum].set_sheet_data(sdata)
                 self._config_sheet(self.sheets[sysnum], system)
 
@@ -1188,7 +1254,7 @@ class ColonisationWindow:
         data:dict = {
             'Name': name,
             'StarSystem': sysname,
-            'RCSync': 1 if rcsync == True else 0,
+            'RCSync': rcsync,
             'Hidden' : hide
         }
         if hide == True:
@@ -1324,63 +1390,6 @@ class ColonisationWindow:
 
 
     @catch_exceptions
-    def legend_popup(self) -> None:
-        ''' Show the legend popup window '''
-        if self.legend_fr != None and self.legend_fr.winfo_exists():
-            self.legend_fr.lift()
-            return
-
-        self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
-        self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
-        self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
-        self.legend_fr.geometry(f"600x600")
-        self.legend_fr.config(bd=2, relief=tk.FLAT)
-        scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
-        scr.pack(side=tk.RIGHT, fill=tk.Y)
-
-        text:tk.Text = tk.Text(self.legend_fr, font=FONT_SMALL, yscrollcommand=scr.set)
-        text.insert(tk.END, self._load_legend())
-        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-
-
-    @catch_exceptions
-    def notes_popup(self, tabnum:int) -> None:
-        ''' Show the notes popup window '''
-        def savenotes(system:dict, text:tk.Text) -> None:
-            ''' Save the notes and close the popup window '''
-            if sysnum > len(self.plan_titles):
-                Debug.logger.info(f"Saving notes invalid tab: {tabnum}")
-                return
-
-            notes:str = text.get("1.0", tk.END)
-            system['Notes'] = notes
-            self.colonisation.save("Notes popup close")
-            self.notes_fr.destroy()
-            self.notes_fr
-
-        sysnum:int = tabnum -1
-        systems:list = self.colonisation.get_all_systems()
-
-        if self.notes_fr != None and self.notes_fr.winfo_exists():
-            self.notes_fr.destroy()
-
-        self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
-        self.notes_fr.wm_title(_("{plugin_name} - Colonisation Notes for {system_name}").format(plugin_name=self.bgstally.plugin_name, system_name=systems[sysnum].get('Name', ''))) # LANG: Title of the notes popup window
-        self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        self.notes_fr.geometry("600x600")
-        self.notes_fr.config(bd=2, relief=tk.FLAT)
-        scr:tk.Scrollbar = tk.Scrollbar(self.notes_fr, orient=tk.VERTICAL)
-        scr.pack(side=tk.RIGHT, fill=tk.Y)
-
-        text:tk.Text = tk.Text(self.notes_fr, font=FONT_SMALL, yscrollcommand=scr.set)
-        notes:str = systems[sysnum].get('Notes', '')
-        text.insert(tk.END, notes)
-        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-        self.notes_fr.protocol("WM_DELETE_WINDOW", partial(savenotes, systems[sysnum], text))
-
-
-    @catch_exceptions
     def _set_background(self, type: str|None, value: str, limit:int = 1) -> str|None:
         ''' Return the appropriate background '''
         match type:
@@ -1424,9 +1433,9 @@ class ColonisationWindow:
     def _create_gradient(self, steps:int, type:str = 'rwg') -> list[str]:
         ''' Generates a list of RGB color tuples representing a gradient. '''
         # Green, Yellow, Red (0:steps)
-        s = (150, 200, 150) # start
-        m = (230, 230, 125) # middle
-        e = (190, 30, 100) # end
+        s:tuple = (150, 200, 150) # start
+        m:tuple = (230, 230, 125) # middle
+        e:tuple = (190, 30, 100) # end
 
         # Red, White, Green (-steps:steps)
         if type == 'rwg':
@@ -1450,12 +1459,12 @@ class ColonisationWindow:
 
         # Iterate and interpolate
         for i in range(steps+1):
-            # Interpolate between start and middle
-            if i < steps/2:
-                cr = min(max(s[0] + r_step_1 * i, 0), 255)
-                cg = min(max(s[1] + g_step_1 * i, 0), 255)
-                cb = min(max(s[2] + b_step_1 * i, 0), 255)
-            else: # Interpolate between middle and end
+            # Between start and middle
+            cr:int = min(max(s[0] + r_step_1 * i, 0), 255)
+            cg:int = min(max(s[1] + g_step_1 * i, 0), 255)
+            cb:int = min(max(s[2] + b_step_1 * i, 0), 255)
+
+            if i >= steps/2: # Interpolate between middle and end
                 cr = min(max(m[0] + r_step_2 * (i - steps/2), 0), 255)
                 cg = min(max(m[1] + g_step_2 * (i - steps/2), 0), 255)
                 cb = min(max(m[2] + b_step_2 * (i - steps/2), 0), 255)

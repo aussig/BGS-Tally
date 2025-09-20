@@ -481,5 +481,6 @@ class FleetCarrier:
         self.commodities_selling = dict.get('commodities_selling', [])
         self.commodities_buying = dict.get('commodities_buying', [])
         self.cargo = dict.get('cargo', {})
+        if isinstance(self.cargo, list): self.cargo = {} # For migration from old to new format
         self.locker = dict.get('locker', {})
         self.data = dict.get('data', [])

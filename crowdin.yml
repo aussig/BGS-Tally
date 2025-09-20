@@ -10,7 +10,7 @@ files:
     translation: /data/L10n/%two_letters_code%.commodity.csv
     file_type: csv
     first_line_contains_header: true
-    scheme: none,identifier,context,source_or_translation
+    scheme: none,identifier,none,context,source_or_translation
 
   - source: /data/rare_commodity.csv
     translation: /data/L10n/%two_letters_code%.rare_commodity.csv

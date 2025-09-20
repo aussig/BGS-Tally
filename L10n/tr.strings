@@ -22,6 +22,9 @@
 /* Add/create a new system. [colonisation.py] */
 "Add" = "Ekle";
 
+/* add plan. [colonisation.py] */
+"Add Plan" = "Add Plan";
+
 /* CMDR information. [targetmanager.py] */
 "Added a friend" = "Arkadaş olarak eklendi";
 
@@ -58,6 +61,21 @@
 /* all tracked builds. [progress.py] */
 "All builds" = "All builds";
 
+/* [progress.py] */
+"Alphabetical order" = "Alphabetical order";
+
+/* Cargo amount tooltip. [progress.py] */
+"Amount in current cargo" = "Amount in current cargo";
+
+/* Carrier amount tooltip. [progress.py] */
+"Amount in linked fleet carrier(s)" = "Amount in linked fleet carrier(s)";
+
+/* Amount left to buy. [progress.py] */
+"Amount left to buy" = "Amount left to buy";
+
+/* Amount remaining tooltip. [progress.py] */
+"Amount remaining to be delivered" = "Amount remaining to be delivered";
+
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API değişti, tekrar onaylamak için ayarları açın";
 
@@ -73,11 +91,17 @@
 /* Label on API settings window. [api.py] */
 "Approved by you" = "Sizin tarafınızdan onaylandı";
 
+/* System architect heading. [colonisation.py] */
+"Architect" = "Architect";
+
 /* Preferences force tick text. [ui.py] */
 "Are you sure that you want to do this?" = "Bunu yapmak istediğinden emin misin?";
 
 /* [colonisation.py] */
 "Are you sure you want to remove this system?" = "Bu öğeyi kaldırmak istediğinize emin misiniz?";
+
+/* station distance from arrival heading. [progress.py] */
+"Arrival (ls)" = "Arrival (ls)";
 
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Aşağıdaki bilgileri sunucu yöneticinize sorun, doldurduktan daha sonra 'Bağlantı Kur' ile devam edin. Popüler sunucular için bazı bilgiler önceden doldurulmuş olarak sağlanmıştır, ancak bu sunucuya ait size özel olan API anahtarınızı girmeniz gerekecektir.";
@@ -134,7 +158,7 @@
 "Bounty vouchers" = "Kelle avcılığı geliri";
 
 /* Building layout types. [colonisation.py] */
-"Building Layouts" = "Building Layouts";
+"Building Layouts (click for details)" = "Building Layouts (click for details)";
 
 /* Building type. [colonisation.py] */
 "Building Type" = "Building Type";
@@ -169,7 +193,7 @@
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Cargo:" = "Kargo:";
 
-/* Amount in your Fleet Carrier. [progress.py] */
+/* Carrier amount. [progress.py] */
 "Carrier" = "Filo Taşıyıcı";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
@@ -193,6 +217,9 @@
 /* [sheet_options.py] */
 "Clear contents" = "İçeriği temizle";
 
+/* [progress.py] */
+"click to copy to clipboard" = "click to copy to clipboard";
+
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "CMDR Detayları";
 
@@ -213,6 +240,9 @@
 
 /* Colonisation 'Type' [base_types.json] */
 "Commercial Outpost" = "Ticari Karakol";
+
+/* List of commodities available. [progress.py] */
+"Commodities" = "Commodities";
 
 /* Commodity. [progress.py] */
 "Commodity" = "Emtia";
@@ -245,10 +275,7 @@
 "Copy" = "Kopyala";
 
 /* [sheet_options.py] */
-"Copy contents" = "İçeriği kopyala";
-
-/* tooltip for the copy to clipboard icon. [colonisation.py] */
-"Copy system name to clipboard" = "Sistem adını panoya kopyala";
+"Copy text" = "Copy text";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Panoya Kopyala";
@@ -262,6 +289,9 @@
 /* Cost in tonnes of cargo. [colonisation.py] */
 "Cost" = "Maliyet";
 
+/* Count of commodities available. [progress.py] */
+"Count" = "Count";
+
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Criminal Outpost" = "Suçlu Barınağı";
 
@@ -272,7 +302,7 @@
 "Critically wounded evacuation missions" = "Kritik yaralı tahliye görevleri";
 
 /* tooltip for the build name. [progress.py] */
-"Current build, click to copy to clipboard" = "Current build, click to copy to clipboard";
+"Current build" = "Current build";
 
 /* [fleetcarrier.py] */
 "Current System" = "Mevcut Sistem";
@@ -283,14 +313,8 @@
 /* [widgets.py] */
 "Cut" = "Kes";
 
-/* [sheet_options.py] */
-"Cut contents" = "İçeriği kes";
-
 /* tooltip for the commodity header. [progress.py] */
 "Cycle commodity list details" = "Cycle commodity list details";
-
-/* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
-"Cycle commodity list filter views" = "Emtia listesi filtre görünümlerini değiştir";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Tarih / Saat";
@@ -298,13 +322,16 @@
 /* Discord heading. [cmdrs.py] */
 "Date and Time" = "Tarih ve Saat";
 
+/* Label for checkbox to remove a plan from the tab list. [colonisation.py] */
+"Deactivate (hide) this plan" = "Deactivate (hide) this plan";
+
 /* any decrease effects for the base. [colonisation.py] */
 "Decreased By" = "Decreased By";
 
 /* [ui.py] */
 "Default" = "Varsayılan";
 
-/* Delete button. [colonisation.py] */
+/* [sheet_options.py] */
 "Delete" = "Sil";
 
 /* [sheet_options.py] */
@@ -319,7 +346,7 @@
 /* tooltip for the delete system button. [colonisation.py] */
 "Delete system plan" = "Sistem Planını Sil";
 
-/* Amount delivered. [progress.py] */
+/* Delivered amount. [progress.py] */
 "Delivered" = "Teslim Edildi";
 
 /* [demo.py] */
@@ -352,6 +379,9 @@
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Discord Webhooks";
 
+/* System distance heading. [progress.py] */
+"Distance (ly)" = "Distance (ly)";
+
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Kenetlenme";
 
@@ -372,6 +402,12 @@
 
 /* [sheet_options.py] */
 "Edit index" = "Dizini düzenle";
+
+/* Rename a system. [colonisation.py] */
+"Edit System" = "Edit System";
+
+/* tooltip for the edit system button. [colonisation.py] */
+"Edit system plan" = "Edit system plan";
 
 /* [clb.py] */
 "Election Inf" = "Seçim Inf";
@@ -508,6 +544,9 @@
 /* Discord heading. [default.py] */
 "GroundMurders" = "YüzeyCinayetleri";
 
+/* tooltip for the hide system button. [colonisation.py] */
+"Hide system plan" = "Hide system plan";
+
 /* Activity window tooltip. [activity.py] */
 "High" = "Yüksek";
 
@@ -579,9 +618,6 @@
 
 /* Overlay CMDR information report message. [ui.py] */
 "INARA INFORMATION AVAILABLE" = "INARA BİLGİSİ MEVCUT";
-
-/* Inara link. [activity.py] */
-"Inara ⤴" = "Inara ⤴";
 
 /* Label on CMDR window. [cmdrs.py] */
 "Inara: " = "Inara: ";
@@ -712,8 +748,14 @@
 /* Button label. [ui.py] */
 "Latest BGS Tally" = "Son BGS Raporu";
 
+/* building layout. [colonisation.py] */
+"Layout" = "Layout";
+
 /* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
 "Left click for Inara market, right click to copy" = "Left click for Inara market, right click to copy";
+
+/* tooltip for the copy to clipboard icon. [colonisation.py] */
+"Left click view system, right click menu" = "Left click view system, right click menu";
 
 /* CMDR window column title. [cmdrs.py] */
 "Legal" = "Legal";
@@ -723,6 +765,9 @@
 
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Yasal durum: {legal}";
+
+/* tooltip for ravencolonial link. [colonisation.py] */
+"Link to RavenColonial" = "Link to RavenColonial";
 
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Yük Miktarı";
@@ -741,6 +786,9 @@
 
 /* [legend.py] */
 "Massacre missions" = "Katliam görevleri";
+
+/* Preferences label. [ui.py] */
+"Maximum commodities" = "Maximum commodities";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Medical" = "Medikal";
@@ -808,9 +856,6 @@
 /* Label on CMDR window. [cmdrs.py] */
 "Name: " = "İsim: ";
 
-/* Amount still needed. [progress.py] */
-"Needed" = "Gerekli";
-
 /* Overlay message. [bgstally.py] */
 "NEW TICK DETECTED!" = "YENİ DÖNGÜ TESPİT EDİLDİ!";
 
@@ -823,7 +868,7 @@
 /* No colonisation data available. [progress.py] */
 "No colonisation data available" = "No colonisation data available";
 
-/* Discord carrier docking access. [fleetcarrier.py] */
+/* Default power name if none. [activity.py] */
 "None" = "Hiçbiri";
 
 /* Discord heading. [fleetcarrier.py] */
@@ -840,6 +885,9 @@
 
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Yüzey Çatışma Bölgesi";
+
+/* Open Element In Selected Provider. [colonisation.py] */
+"Open in {w}" = "Open in {w}";
 
 /* Indicates the field is optional and case-sensitive. [colonisation.py] */
 "optional and case sensitive" = "optional and case sensitive";
@@ -876,9 +924,6 @@
 
 /* [widgets.py] */
 "Paste" = "Yapıştır";
-
-/* Percentage. [progress.py] */
-"Percent" = "Yüzde durumu";
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "{system_name} arayüze sabitle";
@@ -940,11 +985,17 @@
 /* Discord message footer, legacy text mode. [discord.py] */
 "Posted at: {date_time} | {plugin_name} v{version}" = "Gönderi zamanı: {date_time} | {plugin_name} v{version}";
 
-/* Label for checkbox to pre-populate bases from EDSM. [colonisation.py] */
-"Pre-fill bases from EDSM" = "Pre-fill bases from EDSM";
+/* Discord post title. [activity.py] */
+"Powerplay Activity after Tick: {tick_time}" = "Powerplay Activity after Tick: {tick_time}";
+
+/* [default.py] */
+"Powerplay Merits" = "Powerplay Merits";
+
+/* Label for checkbox to pre-populate bases. [colonisation.py] */
+"Pre-fill bases" = "Pre-fill bases";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Önceki BGS Raporlar";
@@ -964,17 +1015,29 @@
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
 "Profit at Z | L | M | H demand" = "Talep üzerinde Z | L | M | H kâr";
 
-/* [progress.py] */
+/* progress tooltip. [progress.py] */
 "Progress" = "Progress";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */
 "Purch" = "StnAlm";
 
+/* Amount to buy. [progress.py] */
+"Purchase" = "Purchase";
+
 /* Activity window tooltip for purchase at low | medium | high supply. [activity.py] */
 "Purchase at L | M | H supply" = "Satın alımda Z | L | M | H kâr";
 
+/* [ui.py] */
+"RavenColonial API Key" = "RavenColonial API Key";
+
 /* Discord heading, abbreviation for reactivation (TW missions). [default.py] */
 "reac" = "ynet";
+
+/* Reactivate system. [colonisation.py] */
+"Reactivate" = "Reactivate";
+
+/* reactivate plans. [colonisation.py] */
+"Reactivate Plan" = "Reactivate Plan";
 
 /* Label on legend window. [legend.py] */
 "Reactivation missions" = "Yeniden etkinleştirme görevleri";
@@ -988,11 +1051,17 @@
 /* CMDR information. [targetmanager.py] */
 "Received team invite from" = "Şu kişiden ekip daveti alındı";
 
+/* [sheet_options.py] */
+"Redo" = "Redo";
+
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Refinery" = "Rafineri";
 
 /* Colonisation 'Type' [base_types.json] */
 "Refinery Hub" = "Rafineri Merkezi";
+
+/* tooltip for ravencolonial refresh button. [colonisation.py] */
+"Refresh from RavenColonial" = "Refresh from RavenColonial";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Relay Installation" = "Aktarım Üssü";
@@ -1003,14 +1072,8 @@
 /* Colonisation 'Prerequisites' [base_types.json] */
 "Relay Station Installation" = "Aktarım İstasyon Üssü";
 
-/* Rename button. [colonisation.py] */
-"Rename" = "Yeniden adlandır";
-
-/* Rename a system. [colonisation.py] */
-"Rename System" = "Sistemi yeniden adlandır";
-
-/* tooltip for the rename system button. [colonisation.py] */
-"Rename system plan" = "Sistem planını yeniden adlandır";
+/* Amount remaining. [progress.py] */
+"Remaining" = "Remaining";
 
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Yeni Ziyaret Edilen Sistem Etkinliğini Varsayılan Olarak Raporla";
@@ -1053,6 +1116,9 @@
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Satellite Installation" = "Uydu Üssü";
+
+/* Save button. [colonisation.py] */
+"Save" = "Save";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Tarandı";
@@ -1171,11 +1237,20 @@
 /* Main window tooltip. [ui.py] */
 "Show objectives / missions window" = "Hedefler / Görevler penceresini göster";
 
+/* Preferences checkbox label. [ui.py] */
+"Show Powerplay Merits Gained" = "Show Powerplay Merits Gained";
+
 /* tooltip for the previous build icon. [progress.py] */
 "Show previous build" = "Önceki yapılandırmayı göster";
 
 /* tooltip for the show bodies window. [colonisation.py] */
 "Show system bodies window" = "Sistem gezgenleri penceresini göster";
+
+/* tooltip for the Inara button. [activity.py] */
+"Show system in Inara" = "Show system in Inara";
+
+/* tooltip for the EDGIS button. [activity.py] */
+"Show system map in EDGIS" = "Show system map in EDGIS";
 
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Sistem notları penceresini göster";
@@ -1191,6 +1266,12 @@
 
 /* Label on carrier window. [fleetcarrier.py] */
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Bazı bilgiler güncellenemiyor. Filo Taşıyıcı CAPI Sorgularını Dosya -> Ayarlar -> Yapılandırma'da etkinleştirin";
+
+/* [sheet_options.py] */
+"Sort Asc." = "Sort Asc.";
+
+/* [sheet_options.py] */
+"Sort Desc." = "Sort Desc.";
 
 /* [clb.py] */
 "Space" = "Boşluk";
@@ -1231,8 +1312,14 @@
 /* Activity window column title. [activity.py] */
 "State" = "Durum";
 
+/* Station name heading. [progress.py] */
+"Station" = "Station";
+
 /* Number of ground/surface builds. [colonisation.py] */
 "Surface" = "Yüzey";
+
+/* Label for checkbox to sync data with RavenColonial. [colonisation.py] */
+"Sync with RavenColonial" = "Sync with RavenColonial";
 
 /* CMDR window column title. [cmdrs.py] */
 "System" = "Sistem";
@@ -1303,6 +1390,9 @@
 /* [ui.py] */
 "Tick {minutes_delta}m Overdue (Estimated)" = "Döngü {minutes_delta}dk Rötarlı (Tahmini)";
 
+/* [colonisation.py] */
+"Tidally Locked" = "Tidally Locked";
+
 /* tier of base. [colonisation.py] */
 "Tier" = "Tier";
 
@@ -1312,9 +1402,6 @@
 /* Discord heading. [fleetcarrier.py] */
 "To Body" = "Gidilen Gezegen";
 
-/* Amount still left to buy. [progress.py] */
-"To Buy" = "Alınacak";
-
 /* [ui.py] */
 "To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Bir webhook silmek için: Bir satır numarasına sağ tıklayın ve \"Satırları sil\"e basın.";
 
@@ -1323,6 +1410,12 @@
 
 /* Total number of builds. [colonisation.py] */
 "Total" = "Toplam";
+
+/* delivered amount tooltip. [progress.py] */
+"Total quantity delivered" = "Total quantity delivered";
+
+/* required amount tooltip. [progress.py] */
+"Total quantity required" = "Total quantity required";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
 "Tourism" = "Turizm";
@@ -1468,6 +1561,9 @@
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Icon Geçmişi";
 
+/* Title of the markets popup window. [progress.py] */
+"{plugin_name} - Markets Window" = "{plugin_name} - Markets Window";
+
 /* Objectives window title. [objectives.py] */
 "{plugin_name} - Objectives" = "{plugin_name} - Hedefler";
 
@@ -1492,5 +1588,17 @@
 /* [colonisation.py] */
 "ⓘ" = "ⓘ";
 
+/* Hide button. [colonisation.py] */
+"👁" = "👁";
+
 /* [colonisation.py] */
-"📓" = "📓";
+"📋" = "📋";
+
+/* Rename button. [colonisation.py] */
+"📝" = "📝";
+
+/* [colonisation.py] */
+"🔄" = "🔄";
+
+/* Delete button. [colonisation.py] */
+"🗑️" = "🗑️";

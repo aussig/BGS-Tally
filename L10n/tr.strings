@@ -91,7 +91,7 @@
 /* Label on API settings window. [api.py] */
 "Approved by you" = "Sizin tarafınızdan onaylandı";
 
-/* [colonisation.py] */
+/* System architect heading. [colonisation.py] */
 "Architect" = "Architect";
 
 /* Preferences force tick text. [ui.py] */
@@ -99,6 +99,9 @@
 
 /* [colonisation.py] */
 "Are you sure you want to remove this system?" = "Bu öğeyi kaldırmak istediğinize emin misiniz?";
+
+/* station distance from arrival heading. [progress.py] */
+"Arrival (ls)" = "Arrival (ls)";
 
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Aşağıdaki bilgileri sunucu yöneticinize sorun, doldurduktan daha sonra 'Bağlantı Kur' ile devam edin. Popüler sunucular için bazı bilgiler önceden doldurulmuş olarak sağlanmıştır, ancak bu sunucuya ait size özel olan API anahtarınızı girmeniz gerekecektir.";
@@ -155,7 +158,7 @@
 "Bounty vouchers" = "Kelle avcılığı geliri";
 
 /* Building layout types. [colonisation.py] */
-"Building Layouts" = "Building Layouts";
+"Building Layouts (click for details)" = "Building Layouts (click for details)";
 
 /* Building type. [colonisation.py] */
 "Building Type" = "Building Type";
@@ -238,6 +241,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Commercial Outpost" = "Ticari Karakol";
 
+/* List of commodities available. [progress.py] */
+"Commodities" = "Commodities";
+
 /* Commodity. [progress.py] */
 "Commodity" = "Emtia";
 
@@ -282,6 +288,9 @@
 
 /* Cost in tonnes of cargo. [colonisation.py] */
 "Cost" = "Maliyet";
+
+/* Count of commodities available. [progress.py] */
+"Count" = "Count";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Criminal Outpost" = "Suçlu Barınağı";
@@ -369,6 +378,9 @@
 
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Discord Webhooks";
+
+/* System distance heading. [progress.py] */
+"Distance (ly)" = "Distance (ly)";
 
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Kenetlenme";
@@ -874,6 +886,9 @@
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Yüzey Çatışma Bölgesi";
 
+/* Open Element In Selected Provider. [colonisation.py] */
+"Open in {w}" = "Open in {w}";
+
 /* Indicates the field is optional and case-sensitive. [colonisation.py] */
 "optional and case sensitive" = "optional and case sensitive";
 
@@ -1297,6 +1312,9 @@
 /* Activity window column title. [activity.py] */
 "State" = "Durum";
 
+/* Station name heading. [progress.py] */
+"Station" = "Station";
+
 /* Number of ground/surface builds. [colonisation.py] */
 "Surface" = "Yüzey";
 
@@ -1542,6 +1560,9 @@
 
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Icon Geçmişi";
+
+/* Title of the markets popup window. [progress.py] */
+"{plugin_name} - Markets Window" = "{plugin_name} - Markets Window";
 
 /* Objectives window title. [objectives.py] */
 "{plugin_name} - Objectives" = "{plugin_name} - Hedefler";

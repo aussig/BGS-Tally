@@ -425,7 +425,7 @@ class Colonisation:
 
 
     @catch_exceptions
-    def modify_system(self, system, data:dict) -> dict|None:
+    def modify_system(self, system, data:dict) -> None:
         ''' Update a system for colonisation planning '''
 
         if isinstance(system, int): system = self.systems[system]
@@ -443,21 +443,24 @@ class Colonisation:
             if k not in self.system_keys or k == 'RCSync': continue
             system[k] = v
 
-        Debug.logger.debug(f"Modified system: {data.get('RCSync', False)} {system.get('RCSync', False)} {data.get('StarSystem', None)} {system}")
-        # Add a system if the flag has switched from zero to one
+        # If we are hiding the system, stop tracking all builds
+        if data.get('Hidden', False) == True:
+            for build in system.get('Builds', []): build['Track'] = False
+            self.save('Modify system, hidden')
+            return
+
+        # If we have a system name and no bodies get them from EDSM
+        if system.get('StarSystem') != None and system.get('Bodies', None) == None:
+            BODY_SERVICE.import_bodies(system.get('StarSystem', ''))
+
+        # Add the system to RC if the flag has switched from false to true
         if data.get('RCSync', False) == True and system.get('RCSync', False) == False and \
             data.get('StarSystem', None) != None:
             Debug.logger.debug(f"Enabling RavenColonial sync for {system.get('StarSystem')}")
             RavenColonial(self).add_system(system.get('StarSystem', ''))
             system['RCSync'] = True
 
-        # If we have a system name but not its address, we can get the bodies from EDSM
-        if system.get('StarSystem') != None and system.get('Bodies', None) == None:
-            BODY_SERVICE.import_bodies(system.get('StarSystem', ''))
-
         self.save('Modify system')
-
-        return system
 
 
     @catch_exceptions
@@ -741,7 +744,7 @@ class Colonisation:
                 self.bgstally.ui.window_progress.update_display()
 
             if build.get(k, '') != v:
-                Debug.logger.debug(f"Build {buildid} {k} {v}")
+                #Debug.logger.debug(f"Build {buildid} {k} {v}")
                 build[k] = v.strip() if isinstance(v, str) else v
                 changed = True
 

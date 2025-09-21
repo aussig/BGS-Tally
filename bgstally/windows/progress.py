@@ -109,6 +109,7 @@ class ProgressWindow:
         self.progvar:tk.IntVar = tk.IntVar(value=0)
         self.build_index:int = 0 # Which build we're showing
         self.view:ProgressView = ProgressView.REDUCED # Full, reduced, or no list of commodities
+        self.viewtt:ToolTip # View tooltip
         self.comm_order:CommodityOrder = CommodityOrder.ALPHA # Commodity order
 
 
@@ -157,7 +158,7 @@ class ProgressWindow:
         view_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_change_view, cursor="hand2")
         view_btn.bind("<Button-1>", partial(self.event, "change"))
         view_btn.grid(row=row, column=col, sticky=tk.E)
-        ToolTip(view_btn, text=_("Cycle commodity list details")) # LANG: tooltip for the commodity header
+        self.viewtt:ToolTip = ToolTip(view_btn, text=_("Cycle commodity list details") + " (" + self.view.name.title() +")") # LANG: tooltip for the commodity header
         col += 1
 
         next_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_right_arrow, cursor="hand2")
@@ -259,8 +260,14 @@ class ProgressWindow:
             output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
 
         output += "-" * 67 + "\n"
+        comms:list = []
+        qty:dict = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
+        if self.colonisation.docked == True and '$EXT_PANEL_ColonisationShip' not in f"{self.colonisation.station}" and 'Construction Site' not in f"{self.colonisation.station}":
+            comms = self.colonisation.get_commodity_list(CommodityOrder.CATEGORY)
+        else:
+            comms = self.colonisation.get_commodity_list(self.comm_order, qty)
 
-        for c in self.colonisation.get_commodity_list(CommodityOrder.CATEGORY):
+        for c in comms:
             reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
             delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
             # Hide if we're docked and market doesn't have this.
@@ -298,6 +305,7 @@ class ProgressWindow:
                 if self.build_index < 0: self.build_index = max
             case 'change':
                 self.view = ProgressView((self.view.value + 1) % len(ProgressView))
+                self.viewtt.text = _("Cycle commodity list details" + " (" + self.view.name.title()+")")
                 self.colonisation.dirty = True
             case 'copy':
                 self.title.clipboard_clear()
@@ -552,11 +560,11 @@ class ProgressWindow:
                 rc > int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
                     cell.grid_remove()
-                if reqcnt > 0: Debug.logger.debug(f"Hiding Commodity {c}: Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}, View {self.view.name}, Docked {self.colonisation.docked}, Market {self.colonisation.market} ")
+                #if reqcnt > 0: Debug.logger.debug(f"Hiding Commodity {c}: Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}, View {self.view.name}, Docked {self.colonisation.docked}, Market {self.colonisation.market} ")
 
                 continue
 
-            Debug.logger.debug(f"Showing Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}, View {self.view.name}, Docked {self.colonisation.docked}, Market {self.colonisation.market} ")
+            #Debug.logger.debug(f"Showing Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}, View {self.view.name}, Docked {self.colonisation.docked}, Market {self.colonisation.market} ")
 
             if rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():

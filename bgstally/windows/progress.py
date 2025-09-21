@@ -376,6 +376,8 @@ class ProgressWindow:
     @catch_exceptions
     def _markets_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Callback from the RavenColonial materials request to open popup '''
+        if self.mkts_fr == None: return
+
         if response.status_code != 200:
             Debug.logger.error(f"RavenColonial materials request failed: {response.status_code} {response.text}")
             self.mkts_fr.destroy()
@@ -390,7 +392,8 @@ class ProgressWindow:
 
         scale:float = config.get_int('ui_scale') / 100.00
         header_fnt:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
-        sheet:Sheet = Sheet(self.mkts_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
+        sheet:Sheet = Sheet(self.mkts_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False,
+                        cell_auto_resize_enabled=True, height=4096,
                         show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
                         align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                         show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
@@ -549,7 +552,11 @@ class ProgressWindow:
                 rc > int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
                     cell.grid_remove()
+                if reqcnt > 0: Debug.logger.debug(f"Hiding Commodity {c}: Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}, View {self.view.name}, Docked {self.colonisation.docked}, Market {self.colonisation.market} ")
+
                 continue
+
+            Debug.logger.debug(f"Showing Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}, View {self.view.name}, Docked {self.colonisation.docked}, Market {self.colonisation.market} ")
 
             if rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():

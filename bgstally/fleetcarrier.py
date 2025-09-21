@@ -242,7 +242,7 @@ class FleetCarrier:
         cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
         for i in journal_entry.get('Transfers', []):
             cname:str = i.get('Type', "").lower()
-            if i.get('Direction') == 'toship':
+            if i.get('Direction') == 'tocarrier':
                 if cname not in self.cargo:
                     self.cargo[cname] = {name_key: cname, display_name_key: "", quantity_key: i.get('Count', 0)}
                 else:

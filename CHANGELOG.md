@@ -2,7 +2,9 @@
 
 ## v5.2.0-xx - xxxx-xx-xx
 
+### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxx)):
 
+* `/activites` endpoint: `influence` percentage added to faction information for each faction.
 
 
 ## v5.2.0-a2 - 2025-09-20

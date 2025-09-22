@@ -107,6 +107,7 @@ class APIManager:
                 api_faction:dict = {
                     'name': faction.get('Faction', ""),
                     'state': faction.get('FactionState', ""),
+                    'influence': faction.get('Influence', "0"),
                     'stations': []
                 }
 

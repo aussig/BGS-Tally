@@ -238,6 +238,7 @@ class ProgressWindow:
         required:dict = self.colonisation.get_required(tracked)
         delivered:dict = self.colonisation.get_delivered(tracked)
         if self.build_index > len(tracked): self.build_index = 0
+        Debug.logger.debug(f"Required: {required}")
 
         output:str = ""
         if discord:

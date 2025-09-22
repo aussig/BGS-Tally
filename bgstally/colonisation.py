@@ -744,7 +744,6 @@ class Colonisation:
                 self.bgstally.ui.window_progress.update_display()
 
             if build.get(k, '') != v:
-                #Debug.logger.debug(f"Build {buildid} {k} {v}")
                 build[k] = v.strip() if isinstance(v, str) else v
                 changed = True
 
@@ -1092,6 +1091,17 @@ class Colonisation:
                 if 'BuildID' not in build:
                     build['BuildID'] = f"x{int(time.time())}" if build.get('State') == BuildState.COMPLETE else f"&{int(time.time())}"
                     self.dirty = True
+
+        # Migration to short commodity names
+        for p in self.progress:
+            newr = {}
+            newd = {}
+            for c, v in p.get('Required', {}).items():
+                newr[re.sub(r"^\$(.*)_name;$", r"\1", c)] = v
+            p['Required'] = newr
+            for c, v in p.get('Delivered', {}).items():
+                newd[re.sub(r"^\$(.*)_name;$", r"\1", c)] = v
+            p['Delivered'] = newd
 
         # This is configuration that can get messed up during an upgrade, no problem, just ignore it and move on.
         try:

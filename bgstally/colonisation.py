@@ -705,7 +705,6 @@ class Colonisation:
     @catch_exceptions
     def modify_build(self, system, buildid:str, data:dict, silent:bool = False) -> None:
         ''' Modify a build in a system '''
-        Debug.logger.debug(f"Modifying build {buildid} {data}")
         build:dict|None = None
 
         if isinstance(system, int): system = self.systems[system]
@@ -756,7 +755,8 @@ class Colonisation:
                 if p.get('ProjectID', None) != None and p.get('MarketID', None) == build.get('MarketID'):
                     RavenColonial(self).upsert_project(system, build, p)
 
-        self.save('Build modified')
+        if changed == True:
+            self.save('Build modified')
 
 
     @catch_exceptions
@@ -771,6 +771,7 @@ class Colonisation:
             return False
 
         Debug.logger.debug(f"Completing build {self.current_system} {self.system_id} {market_id}")
+        # Complete the project in RC.
         p:dict|None = self.find_progress(market_id)
         if p.get('ProjectID', None) != None:
             RavenColonial(self).complete_site(p.get('ProjectID', 0))
@@ -784,6 +785,7 @@ class Colonisation:
             'MarketID': None,
             'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
         })
+
         return True
 
 

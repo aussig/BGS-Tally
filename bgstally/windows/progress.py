@@ -233,12 +233,13 @@ class ProgressWindow:
             return _("No colonisation data available") # LANG: No colonisation data available
         self.colonisation = self.bgstally.colonisation
 
-
         tracked:list = self.colonisation.get_tracked_builds()
         required:dict = self.colonisation.get_required(tracked)
         delivered:dict = self.colonisation.get_delivered(tracked)
+        if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
+            return _("No builds or commodities being tracked") # LANG: No builds or commodities being tracked
+
         if self.build_index > len(tracked): self.build_index = 0
-        Debug.logger.debug(f"Required: {required}")
 
         output:str = ""
         if discord:

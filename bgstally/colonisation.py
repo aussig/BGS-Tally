@@ -777,14 +777,15 @@ class Colonisation:
             RavenColonial(self).complete_site(p.get('ProjectID', 0))
 
         # If we get here, the build is (newly) complete.
-        # Since on completion the construction depot is removed/goes inactive and a new station is created
+        # Since on completion the colonisation ship is removed/goes inactive and a new station is created
         # we need to clear some fields.
-        self.modify_build(system, build.get('BuildID', ''), {
+        data:dict = {
             'State': BuildState.COMPLETE,
             'Track': False,
-            'MarketID': None,
             'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
-        })
+        }
+        data['MarketID'] = None if '$EXT_PANEL_ColonisationShip;' in build.get('Name', '') else build.get('MarketID', None)
+        self.modify_build(system, build.get('BuildID', ''), data)
 
         return True
 
@@ -900,7 +901,6 @@ class Colonisation:
 
             if k == 'Remaining': # Handle an RC project event
                 deliv:dict = {key : progress['Required'].get(key, 0) - val for key, val in v.items()}
-                pd:dict = progress.get('Delivered', {})
                 # Maybe unnecessary but we only take RC delivered numbers if they're ahead
                 for comm, amt in deliv.items():
                     if amt > progress['Delivered'].get(comm, 0):

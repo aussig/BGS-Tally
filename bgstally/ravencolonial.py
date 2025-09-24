@@ -52,7 +52,6 @@ class RavenColonial:
             'architect': 'Architect',
             'rev': 'Rev'
         }
-
         # map site/build parameters between colonisation & raven.
         self.site_params:dict = {'id' : 'BuildID',
                                  'name' : 'Name',
@@ -69,6 +68,7 @@ class RavenColonial:
             'systemAddress': 'SystemAddress',
             'buildName': 'Name',
             'buildId': 'ProjectID',
+            'systemSiteId': 'BuildID',
             'commodities': 'Remaining',
             'buildType': 'Layout',
             'bodyNum': 'BodyNum',
@@ -77,7 +77,6 @@ class RavenColonial:
             'bodyType': 'BodyType',
             'complete': 'ConstructionComplete'
             }
-
         # build state parameters between colonisation & raven.
         self.status_map:dict = {
             'plan': BuildState.PLANNED.value,
@@ -128,6 +127,7 @@ class RavenColonial:
         self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._load_response)
         return
 
+
     @catch_exceptions
     def add_system(self, system_name:str) -> None:
         """ Add a system to RC. """
@@ -166,6 +166,7 @@ class RavenColonial:
         if response.status_code != 200:
             Debug.logger.error(f"{url} {response} {response.content}")
         return
+
 
     @catch_exceptions
     def complete_site(self, project_id:str) -> None:

@@ -683,8 +683,6 @@ class Colonisation:
     def set_base_type(self, system:dict, buildid:str|int, type:str) -> None:
         """ Set/update the type of a given base using type or layout """
 
-        Debug.logger.debug(f"Seting base type for {buildid} {type}")
-
         data:dict = {'Base Type' : '', 'Layout' : '', 'Location': '' }
         if type != ' ':
             bt:dict = self.get_base_type(type)

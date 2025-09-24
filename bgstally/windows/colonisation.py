@@ -861,10 +861,9 @@ class ColonisationWindow:
                     econ = bt.get('Economy Influence') if bt.get('Economy Influence', "") != "" else bt.get('Facility Economy')
                     sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1))
 
-
                 elif new[i][self._detcol('Base Type')] != ' ' or new[i][self._detcol('Name')] != ' ': # Base type is invalid or not set & name is set
                     for cell in ['Base Type', 'Layout']:
-                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg='red2')
+                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg='red3')
 
                 for cell in ['Base Type', 'Layout']:
                     sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')
@@ -895,6 +894,11 @@ class ColonisationWindow:
                 sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1))
 
                 sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]))
+
+                # Layout must be valid for base type
+                if new[i][self._detcol('Layout')] not in self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]):
+                    sheet[self._cell(i+srow,self._detcol('Layout'))].highlight(bg='red3')
+
             else:
                 sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'))
 
@@ -1033,7 +1037,6 @@ class ColonisationWindow:
                 sdata.append(self._get_detail_header())
                 sdata += self._build_detail(system)
 
-                Debug.logger.debug(f"sysnum: {sysnum} sheets: {len(self.sheets)}")
                 self.sheets[sysnum].set_sheet_data(sdata)
                 self._config_sheet(self.sheets[sysnum], system)
 

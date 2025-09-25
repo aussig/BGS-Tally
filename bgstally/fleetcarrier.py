@@ -228,6 +228,9 @@ class FleetCarrier:
         cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
         if self.bgstally.market.available(journal_entry.get("MarketID")):
             for name, item in self.bgstally.market.commodities.items():
+                # Stock is only useful if it's selling not when it's buying
+                if item.get('Producer', False) == False:
+                    continue
                 if name not in self.cargo:
                     self.cargo[name] = {name_key: name, display_name_key: item.get('Name_Localised'), quantity_key: item.get('Stock', 0)}
                 else:

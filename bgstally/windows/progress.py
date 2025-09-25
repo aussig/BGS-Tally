@@ -388,8 +388,9 @@ class ProgressWindow:
         ''' Callback from the RavenColonial materials request to open popup '''
         if self.mkts_fr == None: return
 
-        if response.status_code != 200:
-            Debug.logger.error(f"RavenColonial materials request failed: {response.status_code} {response.text}")
+        if response == None or response.status_code != 200:
+            Debug.logger.error(f"RavenColonial materials request failed")
+
             self.mkts_fr.destroy()
             return
 
@@ -421,6 +422,7 @@ class ProgressWindow:
 
         data:list = []
         for i, m in enumerate(list(k for k in sorted(markets, key=lambda item: item.get('distance'), reverse=False))):
+            include:bool = False
             row:list = []
             for k, v in self.markets.items():
                 d:str = ''
@@ -437,6 +439,7 @@ class ProgressWindow:
                         sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
                     case 'count':
                         d = str(len([k for k, v in m.get('supplies', {}).items() if min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) > 0]))
+                        if d != '0': include = True
                     case 'quantity':
                         d = f"{(sum([min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) for k, v in m.get('supplies', {}).items()])):,}"
                     case 'commodities':
@@ -445,7 +448,9 @@ class ProgressWindow:
                     case _:
                         d = m.get(k, '')
                 row.append(d)
-            data.append(row)
+
+            if include == True:
+                data.append(row)
 
         sheet.set_sheet_data(data)
 

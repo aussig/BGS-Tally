@@ -4,7 +4,7 @@ from os import path
 from os.path import join
 import time
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 from config import config # type: ignore
 from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView, FleetCarrierItemType
 from bgstally.debug import Debug
@@ -459,6 +459,8 @@ class Colonisation:
             Debug.logger.debug(f"Enabling RavenColonial sync for {system.get('StarSystem')}")
             RavenColonial(self).add_system(system.get('StarSystem', ''))
             system['RCSync'] = True
+        else:
+            system['RCSync'] = data.get('RCSync', system.get('RCSync', False))
 
         self.save('Modify system')
 
@@ -1033,8 +1035,6 @@ class Colonisation:
         # Fortuitously our desired order matches the reverse alpha of the states
         # We also clean up the system and build entires.
         systems:list = []
-        progress:list = []
-        markets:list = [0]
         for s in list(sorted(self.get_all_systems(), key=sort_order, reverse=True)):
             system:dict = {k: v for k, v in s.items() if k in self.system_keys}
             builds:list = []
@@ -1044,20 +1044,8 @@ class Colonisation:
                 if i > 0 and b.get('Base Type', '') == '' and b.get('Name', '') == '': continue
                 build:dict = {k: v for k, v in b.items() if k in self.build_keys and v not in ['', "\u0001"]}
                 builds.append(build)
-                markets += [v for k, v in b.items() if k == 'MarketID' and v != None and v != '']
             system['Builds'] = builds
             systems.append(system)
-
-        # Migrate the project progress and cleanup entries
-        for p in self.progress:
-            # Remove complete builds that we've recorded as complete
-            if p.get('MarketID', 0) not in markets and p.get('ConstructionComplete', '') == True: continue
-            site:dict = {k: v for k, v in p.items() if k in self.progress_keys}
-            # Migrate old style progress
-            if p.get('ResourcesRequired', None) != None:
-                site['Required'] = {re.sub(r"\$(.*)_name;$", r"\1", comm['Name']) : comm['RequiredAmount'] for comm in p.get('ResourcesRequired')}
-                site['Delivered'] = {re.sub(r"\$(.*)_name;$", r"\1", comm['Name']) : comm['ProvidedAmount'] for comm in p.get('ResourcesRequired')}
-            progress.append(site)
 
         units:list = [v.value for v in self.bgstally.ui.window_progress.units]
 
@@ -1068,7 +1056,7 @@ class Colonisation:
             'Body': self.body,
             'Station': self.station,
             'MarketID': self.market_id,
-            'Progress': progress,
+            'Progress': self.progress,
             'Systems': systems,
             'CargoCapacity': self.cargo_capacity,
             'ProgressView' : self.bgstally.ui.window_progress.view.value,
@@ -1082,26 +1070,40 @@ class Colonisation:
     def _from_dict(self, dict:dict) -> None:
         ''' Populate our data from a Dictionary that has been deserialized '''
 
-        self.progress = dict.get('Progress', [])
         self.systems = dict.get('Systems', [])
 
         # Migration to ubiquitous buildids
+        markets:list = [0] # List of marketids for filtering progress
         for system in self.systems:
             for build in system.get('Builds', []):
                 if 'BuildID' not in build:
                     build['BuildID'] = f"x{int(time.time())}" if build.get('State') == BuildState.COMPLETE else f"&{int(time.time())}"
                     self.dirty = True
+                markets += [v for k, v in build.items() if k == 'MarketID' and v != None and v != '']
 
-        # Migration to short commodity names
-        for p in self.progress:
+        for p in dict.get('Progress', []):
+            # Clean out old progress entries that are no longer relevant
+            if datetime.now() > datetime.strptime(p.get('Updated', '2025-01-01')[0:10], "%Y-%m-%d") + timedelta(days=30) and \
+                (p.get('MarketID', 0) not in markets or p.get('ConstructionComplete', '') == True):
+                Debug.logger.debug(f"Info old progress entry {p}")
+                continue
+
+            # Migrate to new commodity name format
+            if p.get('ResourcesRequired', None) != None:
+                p['Required'] = {re.sub(r"\$(.*)_name;$", r"\1", comm['Name']) : comm['RequiredAmount'] for comm in p.get('ResourcesRequired')}
+                p['Delivered'] = {re.sub(r"\$(.*)_name;$", r"\1", comm['Name']) : comm['ProvidedAmount'] for comm in p.get('ResourcesRequired')}
+                p.pop('ResourcesRequired', None)
+
+            # Migrate to new resource tracking format
             newr = {}
             newd = {}
             for c, v in p.get('Required', {}).items():
                 newr[re.sub(r"^\$(.*)_name;$", r"\1", c)] = v
-            p['Required'] = newr
             for c, v in p.get('Delivered', {}).items():
                 newd[re.sub(r"^\$(.*)_name;$", r"\1", c)] = v
+            p['Required'] = newr
             p['Delivered'] = newd
+            self.progress.append(p)
 
         # This is configuration that can get messed up during an upgrade, no problem, just ignore it and move on.
         try:

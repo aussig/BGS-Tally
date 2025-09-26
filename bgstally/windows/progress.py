@@ -328,6 +328,8 @@ class ProgressWindow:
                 val = (self.columns[column] + 1) % len(self.headings)
                 if val == 0: val = 1 # Don't permit Commodities
                 self.columns[column] = val
+                self.coltts[column].text = self.headings[val].get('Tooltip')
+
         self.colonisation.dirty = True
         self.update_display()
 

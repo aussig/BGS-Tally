@@ -114,7 +114,6 @@ class FleetCarrier:
         # Sort cargo commodities - a List of Dicts
         old, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
         self.cargo = {}
-        Debug.logger.debug(f"{get_by_path(self.data, ['cargo'], [])}")
         for c in get_by_path(self.data, ['cargo'], []):
             cname:str = c.get(name_key, "").lower()
             if c.get('stolen', True) == False and c.get('mission', True) == False:

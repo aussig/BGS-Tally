@@ -68,7 +68,7 @@ class Colonisation:
         self.cmdr:str|None = None
 
         # Valid keys for colonisation.json entries. These help avoid sending unnecessary data to third parties or storing unnecessary data in the save file.
-        self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync']
+        self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync', 'BuildSlots']
         self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID']
         self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
 
@@ -208,13 +208,13 @@ class Colonisation:
                 if self.station != None and build.get('Name', None) != self.station: data['Name'] = self.station
                 if build['State'] != build_state: data['State'] = build_state
                 if self.market_id != None and build.get('MarketID', None) != self.market_id: data['MarketID'] = self.market_id
-                if self.market_id != None and build.get('BuildID', None) == None: build['BuildID'] = f"x{int(time.time())}" if build_state == BuildState.COMPLETE else f"&{int(time.time())}"
+                if build.get('BuildID', None) == None: data['BuildID'] = self._generate_buildid(data.get('MarketID', build.get('MarketID', self.market_id)))
                 if self.body != None and build.get('Body', None) != self.body: data['Body'] = self.body
                 if self.location != None and build.get('Location', None) != self.location: data['Location'] = self.location
                 if build_state == BuildState.PROGRESS and build.get('Track') != (build_state != BuildState.COMPLETE): data['Track'] = True
                 if data != {}:
                     Debug.logger.debug(f"Docked updating build {self.station} in system {self.current_system} {data}")
-                    self.modify_build(system, build.get('BuildID', ''), data)
+                    self.modify_build(system, build.get('BuildID', data['BuildID']), data)
                     self.bgstally.ui.window_progress.update_display()
                     self.dirty = True
 
@@ -624,10 +624,9 @@ class Colonisation:
 
         Debug.logger.info(f"Adding build {data.get('Name')} {data}")
 
-        if 'State' not in data: data['State'] = BuildState.PLANNED
-        if 'Name' not in data: data['Name'] = ""
-        if 'BuildID' not in data:
-            data['BuildID'] = f"x{int(time.time())}" if data['State'] == BuildState.COMPLETE else f"&{int(time.time())}"
+        if data.get('State', None) == None: data['State'] = BuildState.PLANNED
+        if data.get('Name', None) == None: data['Name'] = ""
+        if data.get('BuildID', None) == None: data['BuildID'] = self._generate_buildid(data.get('MarketID', None))
 
         # If we have a body name or id set the corresponding value.
         body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', '')))
@@ -988,6 +987,11 @@ class Colonisation:
         self.market = market
 
 
+    def _generate_buildid(self, market_id:int|None = None) -> str:
+        ''' Generate a unique build id '''
+        return f"x{int(time.time())}" if market_id == None else f"&{market_id}"
+
+
     @catch_exceptions
     def _load(self) -> None:
         ''' Load state from file '''
@@ -1009,7 +1013,6 @@ class Colonisation:
         self.dirty = False
 
 
-    @catch_exceptions
     def _as_dict(self) -> dict:
         ''' Return a Dictionary representation of our data, suitable for serializing '''
 
@@ -1066,7 +1069,6 @@ class Colonisation:
             }
 
 
-    @catch_exceptions
     def _from_dict(self, dict:dict) -> None:
         ''' Populate our data from a Dictionary that has been deserialized '''
 
@@ -1076,8 +1078,8 @@ class Colonisation:
         markets:list = [0] # List of marketids for filtering progress
         for system in self.systems:
             for build in system.get('Builds', []):
-                if 'BuildID' not in build:
-                    build['BuildID'] = f"x{int(time.time())}" if build.get('State') == BuildState.COMPLETE else f"&{int(time.time())}"
+                if build.get('BuildID', None) == None:
+                    self._generate_buildid(build.get('MarketID', None))
                     self.dirty = True
                 markets += [v for k, v in build.items() if k == 'MarketID' and v != None and v != '']
 

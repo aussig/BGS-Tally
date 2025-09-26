@@ -849,7 +849,8 @@ class ColonisationWindow:
                 sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='disabled'); sheet[self._cell(i+srow,0)].data = ' '
                 sheet[self._cell(i+srow,self._detcol('Track'))].readonly()
 
-            if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Name')] != '' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
+            if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Name')] != '' and \
+                new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Body')] != ' ' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
                 # Base type
                 if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
                     for cell in ['Base Type', 'Layout']:
@@ -863,7 +864,7 @@ class ColonisationWindow:
 
                 elif new[i][self._detcol('Base Type')] != ' ' or new[i][self._detcol('Name')] != ' ': # Base type is invalid or not set & name is set
                     for cell in ['Base Type', 'Layout']:
-                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg='red3')
+                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg='OrangeRed3')
 
                 for cell in ['Base Type', 'Layout']:
                     sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')
@@ -897,7 +898,7 @@ class ColonisationWindow:
 
                 # Layout must be valid for base type
                 if new[i][self._detcol('Layout')] not in self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]):
-                    sheet[self._cell(i+srow,self._detcol('Layout'))].highlight(bg='red3')
+                    sheet[self._cell(i+srow,self._detcol('Layout'))].highlight(bg='OrangeRed3')
 
             else:
                 sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'))
@@ -943,7 +944,8 @@ class ColonisationWindow:
             self._update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
             self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
             # Not our system? Then it's readonly
-            if system.get('RCSync', False) == True and self.colonisation.cmdr != system.get('Architect', None):
+            if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
+                Debug.logger.debug(f"Setting readonly due to {self.colonisation.cmdr} != {system.get('Architect', None)}")
                 self.sheets[i]['B1:Z'].readonly()
 
 

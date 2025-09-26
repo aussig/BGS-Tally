@@ -50,7 +50,8 @@ class RavenColonial:
             'id64': 'SystemAddress',
             'name': 'StarSystem',
             'architect': 'Architect',
-            'rev': 'Rev'
+            'rev': 'Rev',
+            'slots': 'BuildSlots'
         }
         # map site/build parameters between colonisation & raven.
         self.site_params:dict = {'id' : 'BuildID',
@@ -103,6 +104,7 @@ class RavenColonial:
         if self.bgstally.state.ColonisationRCAPIKey.get() != None: headers["rcc-key"] = self.bgstally.state.ColonisationRCAPIKey.get()
         return headers
 
+
     @catch_exceptions
     def load_system(self, id64:str|None = None, rev:str|None = None) -> None:
         """ Retrieve the rcdata data with the latest system data from RC when we start. """
@@ -124,7 +126,7 @@ class RavenColonial:
         #data:dict = response.json()
 
         url:str = f"{RC_API}/v2/system/{id64}"
-        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._load_response)
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._load_callback)
         return
 
 
@@ -134,7 +136,7 @@ class RavenColonial:
 
         # Query the system to see if it exists
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
-        response:Response = requests.get(url, headers=self._headers(),timeout=5)
+        response:Response = requests.get(url, headers=self._headers(), timeout=5)
         Debug.logger.info(f"Query system response for {system_name}: {response.status_code}")
 
         # Add a new system to RavenColonial
@@ -151,7 +153,7 @@ class RavenColonial:
             for b in system.get('Builds', []):
                 self.upsert_site(system, b)
 
-        # Merge RC data with system data
+        # Merge RC data (either from the original get or from the import) with system data
         data:dict = response.json()
         self._merge_system_data(data)
 
@@ -185,8 +187,6 @@ class RavenColonial:
     @catch_exceptions
     def upsert_site(self, system:dict, data:dict) -> None:
         """ Modify a site (build) in RavenColonial """
-        Debug.logger.debug(f"Upserting site")
-        if not re.match(r"^[&x]\d+$", data.get('BuildID', '')): raise Exception("RavenColonial upsert_site called for non-RC site")
 
         if self.colonisation.cmdr == None:
             Debug.logger.info(f"Cannot upsert site, no cmdr")
@@ -196,11 +196,8 @@ class RavenColonial:
             return
 
         # Create an ID if necessary
-        if data.get('BuildID', None) == None and data.get('MarketID', None) != None:
-            data['BuildID'] = f"&{data['MarketID']}"
-
-        if data.get('BuildID', None) == None and data.get('State', None) == BuildState.PLANNED:
-            data['BuildID'] = f"x{int(time.time())}"
+        if data.get('BuildID', None) == None:
+            data['BuildID'] = self.colonisation._generate_buildid(data.get('MarketID', None))
 
         # Add a name since RC requires one at creation but not later
         if data.get('Name', None) == None:
@@ -250,12 +247,11 @@ class RavenColonial:
         return
 
 
-    @catch_exceptions
     def _merge_system_data(self, data:dict) -> None:
         """ Merge the data from RavenColonial into the system data """
-        #Debug.logger.debug(f"Merging data: {data}")
+
         system:dict = self.colonisation.find_system({'SystemAddress' : data.get('id64', None),
-                                                        'StarSystem': data.get('name', None)})
+                                                     'StarSystem': data.get('name', None)})
         if system == None:
             Debug.logger.info(f"Can't merge, system {data.get('name', None)} not found")
             return
@@ -265,32 +261,79 @@ class RavenColonial:
             if k != 'rev' and data.get(k, None) != None and data.get(k, None) != system.get(v, None):
                 mod[v] = data.get(k, None).strip() if isinstance(data.get(k, None), str) else data.get(k, None)
 
+        if get_by_path(data, ['pop', 'pop'], 0) > system.get('Population', 0):
+            mod['Population'] = get_by_path(data, ['pop', 'pop'], 0)
+
         if mod != {}:
             Debug.logger.debug(f"Changes found, modifyng system {mod}")
             self.colonisation.modify_system(system, mod)
 
         for site in data.get('sites', []):
-            # A project not a site (this is how we find projectids if we're missing them
-            if not re.match(r"^[&x]\d+$", site.get('id', '')):
-                if self.colonisation.find_progress(site.get('id')) != None: continue
+            # A site whose id has become the project id (this is how we find projectids if we're missing them)
+            if not re.match(r"^[&x]\d+$", site.get('id', '')) and self.colonisation.find_progress(site.get('id')) != None:
                 build = self.colonisation.find_build(system, {'Name': site.get('name')})
                 if build != None and build.get('MarketID', None) != None: self.colonisation.update_progress(build.get('MarketID'), {'ProjectID' : site.get('id')}, True)
-                continue
+            else:
+                build = self.colonisation.find_build(system, {'BuildID' : site.get('id', -1), 'Name': site.get('name', -1), 'BodyNum': site.get('bodyNum', -1)})
 
-            # A site
-            build:dict = self.colonisation.find_build(system, {'BuildID' : site.get('id', -1), 'Name': site.get('name', -1), 'BodyNum': site.get('bodyNum', -1)})
             # Avoid creating leftover construction sites
             if build == None and 'Construction Site' in site.get('name', ''):
                 if self.colonisation.find_build(system, {'Name': re.sub(r".* Construction Site: ", "", site.get('name'))}) != None:
                     continue
 
             if build == None: build = {}
-            self.sync_build(system, build, site)
+            self._sync_build(system, build, site)
+
+        self._reorder_builds(system, data.get('sites', []))
+
+
+    def _sync_build(self, system:dict, build:dict, site:dict) -> None:
+        """ Update our records with the latest RavenColonial build details """
+
+        deets:dict = {}
+        for p, m in self.site_params.items():
+            # Skip placeholder responses
+            if p == 'bodyNum' and site.get(p, -1) == -1: continue
+
+            # strip, initcap and replace spaces in strings except for id and buildid, name and architectName
+            rcval = site.get(p, '').strip().title().replace('_', ' ') if isinstance(site.get(p, None), str) and p not in ['id', 'buildId', 'name', 'architectName'] else site.get(p, None)
+            if p == 'status' and site[p] in self.status_map.keys(): rcval = self.status_map[site[p]]
+            if rcval != None and rcval != build.get(m, None):
+                deets[m] = rcval
+
+        if deets == {}:
+            return
+
+        if build == {}:
+            self.colonisation.add_build(system, deets, True)
+            return
+
+        self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
+
+
+    def _reorder_builds(self, system:dict, sites:list) -> None:
+        """ Reorder the builds in the system to match the order from RavenColonial """
+        new_order:list = []
+        for s in sites:
+            build:dict|None = self.colonisation.find_build(system, {'BuildID' : s.get('id', -1), 'Name': s.get('name', -1), 'BodyNum': s.get('bodyNum', -1)})
+            if build != None:
+                new_order.append(build)
+
+        if new_order == [] or new_order == system.get('Builds', []):
+            return
+
+        for build in system.get('Builds', []):
+            if build not in new_order:
+                new_order.append(build)
+
+        Debug.logger.debug(f"New build order: {[k.get('Name', '') for k in new_order]}")
+        self.colonisation.modify_system(system, {'Builds': new_order})
 
 
     @catch_exceptions
-    def _load_response(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+    def _load_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         """ Process the results of querying RavenColonial for the system details """
+        # @UNUSED?
         if success == False:
             Debug.logger.error(f"System load failed {response.content}")
             return
@@ -308,39 +351,6 @@ class RavenColonial:
 
         self._cache[data['id64']]['rev'] = data['rev']
         self._merge_system_data(data)
-
-
-    @catch_exceptions
-    def _add_response(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
-        """ Add a system to RavenColonial """
-        if success == False:
-            Debug.logger.error(f"Request failed {response.content}")
-            return
-
-        data:dict = response.json()
-        system:dict = self.colonisation.find_system({'StarSystem': data.get('name', None)})
-
-        if system == None:
-            Debug.logger.info(f"RavenColonial system {data.get('id64', None)} not found")
-            return
-
-        self.colonisation.modify_system(system, {
-            'SystemAddress': data.get('id64', None),
-            'StarSystem': data.get('name', None),
-            'Name': data.get('name', None),
-            'Architect': data.get('architect', None)
-        })
-
-        # Update the system's builds with the data from RC
-        for build in system.get('Builds', []):
-            site:dict = {}
-            for site in data.get('sites', []):
-                if not re.match(r"^[&x]\d+$", site.get('id', '')): continue
-                if site.get('name', None) == build.get('name', None):
-                    self.sync_build(system, build, site)
-                    break
-
-        self.colonisation.save('RC system data updated')
 
 
     @catch_exceptions
@@ -386,27 +396,6 @@ class RavenColonial:
             return
 
         return
-
-
-    @catch_exceptions
-    def sync_build(self, system:dict, build:dict, site:dict) -> None:
-        """ Sync a build/site between colonisation and RavenColonial """
-        deets:dict = {}
-        for p, m in self.site_params.items():
-            # Skip placeholder responses
-            if p == 'bodyNum' and site.get(p, -1) == -1: continue
-
-            #strip, initcap and replace spaces in strings except for id and buildid and name
-            rcval = site.get(p, '').strip().title().replace('_', ' ') if isinstance(site.get(p, None), str) and p not in ['id', 'buildId', 'name'] else site.get(p, None)
-            if p == 'status' and site[p] in self.status_map.keys(): rcval = self.status_map[site[p]]
-            if rcval != None and rcval != build.get(m, None):
-                deets[m] = rcval
-
-        if deets != {}:
-            if build == {}:
-                self.colonisation.add_build(system, deets, True)
-            else:
-                self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
 
 
     @catch_exceptions
@@ -471,11 +460,11 @@ class RavenColonial:
 
         if response.content != progress.get('Updated', ''):
             url = f"{RC_API}/project/{projectid}"
-            self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._load_project_response)
+            self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._load_project_callback)
 
 
     @catch_exceptions
-    def _load_project_response(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+    def _load_project_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         """ Process the results of querying RavenColonial for the project details """
         if success == False:
             Debug.logger.error(f"Project load failed {response}")
@@ -497,14 +486,9 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def record_contribution(self, project_id:int, contributions:list) -> None:
+    def record_contribution(self, project_id:int, contributions:list[dict]) -> None:
         """ Record colonisation contributions made """
-        payload:dict = {}
-        for c in contributions:
-            match = re.match(r'^\$(.*)_name;', c.get('Name', '').lower())
-            comm:str = match.group(0)
-            qty:int = c.get('Amount', 0)
-            payload[comm] = qty
+        payload:dict = {re.sub(r"\$(.*)_name;$", r"\1", c.get('Name', '').lower()): c.get('Amount', 0) for c in contributions}
 
         # Which of the following to use?
         url:str = f"{RC_API}/project/{project_id}/contribute/{self.colonisation.cmdr}"

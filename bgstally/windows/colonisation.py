@@ -45,8 +45,8 @@ class ColonisationWindow:
         self.image_tab_planned:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
 
         self.summary_rows:dict = {
+            'Planned': _("Planned"), # LANG: Row heading of planned build totals i.e. ones that aren't complete
             'Complete': _("Complete"), # LANG: Row heading of build totals i.e. ones that are done
-            'Planned': _("Planned") # LANG: Row heading of planned build totals i.e. ones that aren't complete
         }
 
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
@@ -562,12 +562,13 @@ class ColonisationWindow:
         # Configure the table frame to resize with the window
         table_frame.columnconfigure(0, weight=1)
         table_frame.rowconfigure(0, weight=1)
-
         sheet:Sheet = Sheet(table_frame, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
                             show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                             show_dropdown_borders=False,
-                            empty_vertical=15, empty_horizontal=0, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
+                            empty_vertical=15, empty_horizontal=0,
+                            popup_menu_font=FONT_SMALL, font=FONT_SMALL,
+                            arrow_key_down_right_scroll_page=True,
                             show_header=False, set_all_heights_and_widths=True, default_row_height=int(19*self.scale))
         sheet.pack(fill=tk.BOTH, padx=0, pady=(0, 5))
 
@@ -575,15 +576,16 @@ class ColonisationWindow:
         data:list = []
         data.append(self._get_summary_header())
         data += self._build_summary(system)
-
         data.append(self._get_detail_header())
         data += self._build_detail(system)
         sheet.set_sheet_data(data)
+
         self._config_sheet(sheet, system)
-        sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
+        sheet.enable_bindings('single_select', 'row_drag_and_drop', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
         sheet.edit_validation(func=self.validate_edits)
         sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, sheet, tabnum))
         sheet.extra_bindings('cell_select', func=partial(self.sheet_modified, sheet, tabnum))
+        #sheet.extra_bindings('row_drag_and_drop', func=partial(self.sheet_modified, sheet, tabnum))
 
         if len(self.sheets) < tabnum:
             self.sheets.append(sheet)
@@ -616,8 +618,8 @@ class ColonisationWindow:
 
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')
-        sheet['A2:G2'].highlight(bg=self._set_background('type', 'Complete', 1))
-        sheet['A3:G3'].highlight(bg=self._set_background('type', 'Planned', 1))
+        sheet['A2:G2'].highlight(bg=self._set_background('type', 'Planned', 1))
+        sheet['A3:G3'].highlight(bg=self._set_background('type', 'Complete', 1))
         sheet[HEADER_ROW].highlight(bg='lightgrey')
         # Tracking checkboxes
         sheet['A5:A'].checkbox(state='normal', checked=False)
@@ -998,6 +1000,10 @@ class ColonisationWindow:
 
         if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
             Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
+            return
+
+        if event.eventname.endswith('move_rows'):
+            Debug.logger.debug(f"Row move {event}")
             return
 
         # We only deal with edits.

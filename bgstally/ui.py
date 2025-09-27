@@ -408,7 +408,7 @@ class UI:
         where Name is localised.
 
         The CSV files are sourced from the EDCD FDevIDs project https://github.com/EDCD/FDevIDs and should be updated occasionally, along with the
-        localised versions in the L10n folder
+        localised versions in the L10n folder. Note that commodity.csv has an extra column 'InaraID' which we maintain.
         """
         self.commodities = {}
         filepath: str|None = get_localised_filepath(FILENAME_COMMODITIES_CSV, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
@@ -476,6 +476,8 @@ class UI:
             if config.shutting_down:
                 Debug.logger.debug("Shutting down UI Worker...")
                 return
+
+            sleep(TIME_WORKER_PERIOD_S)
 
             current_activity: Activity = self.bgstally.activity_manager.get_current_activity()
 
@@ -563,8 +565,6 @@ class UI:
             if self.bgstally.state.enable_overlay_colonisation:
                 colonisation_text: str = self.window_progress.as_text(False)
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
-
-            sleep(TIME_WORKER_PERIOD_S)
 
 
     def _previous_ticks_popup(self):

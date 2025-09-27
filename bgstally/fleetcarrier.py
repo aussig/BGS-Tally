@@ -485,4 +485,5 @@ class FleetCarrier:
         self.cargo = dict.get('cargo', {})
         if isinstance(self.cargo, list): self.cargo = {} # For migration from old to new format
         self.locker = dict.get('locker', {})
+        if isinstance(self.locker, list): self.locker = {} # For migration from old to new format
         self.data = dict.get('data', [])

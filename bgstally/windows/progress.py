@@ -78,6 +78,8 @@ class ProgressWindow:
             'stationName' : {'Header': _('Station'), 'Width': 175, 'Align': "left"},    # LANG: Station name heading
             'distance': {'Header': _('Dist (ly)'), 'Width': 50, 'Align': "center"},     # LANG: System distance heading
             'distanceToArrival': {'Header': _('Arr (ls)'), 'Width': 50, 'Align': "center"}, # LANG: station distance from arrival heading
+            'distance': {'Header': _('Dist (ly)'), 'Width': 50, 'Align': "center"},     # LANG: System distance heading
+            'distanceToArrival': {'Header': _('Arr (ls)'), 'Width': 50, 'Align': "center"}, # LANG: station distance from arrival heading
             'type': {'Header': _('Type'), 'Width': 35, 'Align': "center"},              # LANG: Station type (O=Orbital, S=Surface, C=Carrier)
             'padSize': {'Header': _('Pad'), 'Width': 35, 'Align': "center"},            # LANG: Pad size (L, M, S)
             'count': {'Header': _('Count'), 'Width':45, 'Align': "center"},             # LANG: Count of commodities available
@@ -107,6 +109,7 @@ class ProgressWindow:
         self.rows:list = []
         self.progbar:ttk.Progressbar # Overall progress bar
         self.progvar:tk.IntVar = tk.IntVar(value=0)
+        self.progress:int = 0 # Thread-safe version of progress percentage
         self.build_index:int = 0 # Which build we're showing
         self.view:ProgressView = ProgressView.REDUCED # Full, reduced, or no list of commodities
         self.viewtt:ToolTip # View tooltip
@@ -256,7 +259,7 @@ class ProgressWindow:
             else:
                 output = f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 30, loc='left')}\n"
 
-        output += f"{_('Progress')}: {self.progvar.get():.0f}%\n"
+        output += f"{_('Progress')}: {self.progress:.0f}%\n"
         output += "\n"
         if discord:
             output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
@@ -441,7 +444,6 @@ class ProgressWindow:
                         sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
                     case 'count':
                         d = str(len([k for k, v in m.get('supplies', {}).items() if min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) > 0]))
-                        if d != '0': include = True
                     case 'quantity':
                         d = f"{(sum([min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) for k, v in m.get('supplies', {}).items()])):,}"
                     case 'commodities':
@@ -602,6 +604,7 @@ class ProgressWindow:
         self._display_totals(self.rows[i+1], tracked, totals)
         if totals['Required'] > 0:
             self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))
+            self.progress = round(totals['Delivered'] * 100 / totals['Required'])
             self.progtt.text = f"{_('Progress')}: {int(self.progvar.get())}%" # LANG: tooltip for the progress bar
 
 

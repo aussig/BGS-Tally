@@ -2,6 +2,13 @@
 
 ## v5.2.0-xx - xxxx-xx-xx
 
+### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxx)):
+
+* `/activites` endpoint: `influence` percentage added to faction information for each faction.
+
+
+## v5.2.0-a2 - 2025-09-20
+
 ### New features:
 
 * Colonisation: Added RavenColonial markets window for linked builds
@@ -13,6 +20,7 @@
 * Colonisation: Fixed qty based sorting
 * Colonisation: Improved commodity filtering
 * Colonisation: Improved colonisation ship name display
+* Background threads now wait before they do anything, which avoids some possible errors on startup.
 
 
 ## v5.2.0-a1 - 2025-09-07

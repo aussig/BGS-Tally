@@ -218,9 +218,9 @@ class ObjectivesManager:
 
         Args:
             target (dict): A dict containing information about the mission or sub-mission, including global progress from server.
-            just_flag (bool): If True, only show a status flag, not the numeric progress. Defaults to False.
+            discord (bool): If True, format for Discord.
             numeric (bool): If True, track as progress towards a numeric target. Defaults to True.
-            user_progress (int | None, optional: Progress made by user. Defaults to None.
+            progress_individual (int | None, optional: Progress made by user. Defaults to None.
             label (str | None, optional): A label suffix for the values. Defaults to None.
 
         Returns:

@@ -678,8 +678,8 @@ class ColonisationWindow:
                     continue
                 match name:
                     case 'Architect':
-                        totals['Planned'][name] = ' '
-                        totals['Complete'][name] = system.get('Architect', _('Unknown'))
+                        totals['Planned'][name] = system.get('Architect', _('Unknown'))
+                        totals['Complete'][name] = ' '
                     case 'State':
                         totals['Planned'][name] = _("Planned")
                         totals['Complete'][name] = _("Complete")

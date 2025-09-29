@@ -1,10 +1,6 @@
 # Change Log
 
-## v5.2.0-xx - xxxx-xx-xx
-
-### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxx)):
-
-* `/activites` endpoint: `influence` percentage added to faction information for each faction.
+## v5.2.0-b1 - 2025-09-29
 
 ### New features:
 
@@ -17,6 +13,11 @@
 * Fixed an overlay runtime error
 * Swapped order of planned and completed to be more logical
 * Small fixes for creating plans when logged out
+
+### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxx)):
+
+* `/activites` endpoint: `influence` percentage added to faction information for each faction.
+
 
 ## v5.2.0-a2 - 2025-09-20
 

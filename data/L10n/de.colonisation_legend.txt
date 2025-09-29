@@ -13,8 +13,8 @@ Zusammenfassungs-Spalten
   • Kosten: Die für den Bau gesamt erforderliche Ware in Tonnen
   • Ladungen: Die Anzahl der Schiffsladungen basierend auf Ihrer aktuellen Ladekapazität
 
-  • Pop Inc: combined population increase impact
-  • Pop Max: combined maximum population impact
+  • Pop-Inc: Einfluß des Gesamtbevölkerungszuwachses
+  • Pop Max: kombinierter maximaler Bevölkerungseinfluß
 
   • Sicherheit: zusammengefasste Auswirkungen auf die Systemsicherheit
   • Tech Lvl: zusammengefasste Auswirkung auf das Technologielevel des Systems
@@ -35,23 +35,23 @@ Detailspalten
   • Basistyp: Der Typ der zu konstruierenden Basis
   • Basisname: Der Name der Basis
   • Körper: Der Körper, auf dem (oder um den) sich die Basis befindet oder befinden wird
-  • Requirements: Any prerequisites to building this type of base
-  • State: How far along is the base: Planned, Percentage completed, Completed
-  • T2: The net Tier 2 point cost or reward
-  • T3: The net Tier 3 point cost or reward
-  • Cost: The cost of the build in tonnes required
-  • Loads: The number of ship loads based on your current cargo capacity
-  • Pad: The maximum landing pad size
-  • Economy: Base economy type
+  • Anforderungen: Alle Voraussetzungen für den Bau dieser Basis
+  • Zustand: Wie weit ist die Basis: Geplant, Prozentsatz erledigt, Fertiggestellt
+  • T2: Die Nettopunktkosten oder -belohnung der Stufe 2
+  • T3: Die Nettopunktkosten oder -belohnung der Stufe 3
+  • Kosten: Die für den Bau gesamt erforderliche Ware in Tonnen
+  • Ladungen: Die Anzahl der Schiffsladungen basierend auf Ihrer aktuellen Ladekapazität
+  • Pad: Die maximale Landeplatzgröße
+  • Wirtschaft: Basisökonomie
 
-  • Pop Inc: population increase impact
-  • Pop Max: maximum population impact
+  • Pop-Inc: Einfluß des Gesamtbevölkerungszuwachses
+  • Pop Max: Kombinierter maximaler Bevölkerungseinfluß
 
-  • Econ Inf: The influence this base has on the system economy
+  • Econ Inf: Der Einfluss dieser Basis auf die Systemwirtschaft
 
-  • Security: system security impact
-  • Tech Lvl: system technology level impact
-  • Wealth: system wealth impact
-  • SoL: system standard of living impact
-  • Dev Lvl: system development level impact
+  • Sicherheit: zusammengefasster Einfluß auf die Systemsicherheit
+  • Tech Lvl: zusammengefasster Einfluß auf das Technologielevel des Systems
+  • Wealth: zusammengefasster Einfluß auf den Wohlstand des Systems
+  • SoL: zusammengefasster Einfluß auf den Lebensstandard des Systems
+  • Dev Lvl: zusammengefasster Einfluß auf die Entwicklungsstufe des Systems
 

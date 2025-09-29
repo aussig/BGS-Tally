@@ -1,5 +1,6 @@
 import re
 from functools import partial
+
 import webbrowser
 import tkinter as tk
 import tkinter.font as tkFont
@@ -18,7 +19,7 @@ from bgstally.ravencolonial import RavenColonial
 
 from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key
+from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key, ICON_DEL, ICON_ADD
 from thirdparty.Tooltip import ToolTip
 
 FILENAME_LEGEND = "colonisation_legend.txt"
@@ -45,8 +46,8 @@ class ColonisationWindow:
         self.image_tab_planned:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
 
         self.summary_rows:dict = {
+            'Planned': _("Planned"), # LANG: Row heading of planned build totals i.e. ones that aren't complete
             'Complete': _("Complete"), # LANG: Row heading of build totals i.e. ones that are done
-            'Planned': _("Planned") # LANG: Row heading of planned build totals i.e. ones that aren't complete
         }
 
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
@@ -184,7 +185,7 @@ class ColonisationWindow:
     def _create_frames(self) -> None:
         ''' Create the system frame notebook and tabs for each system '''
         # Create system tabs notebook
-        self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=True)
+        self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=False)
         self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
         self.add_dialog = self.add_system_dialog()
         self.update_react_dialog()
@@ -374,7 +375,7 @@ class ColonisationWindow:
 
 
     @catch_exceptions
-    def base_clicked(self, sheet:Sheet, event) -> None:
+    def _base_clicked(self, sheet:Sheet, event) -> None:
         ''' We clicked on a base type, open it in RC '''
         sheet.toggle_select_row(event.selected.row, False, True)
         if event.selected.column == 20:
@@ -403,10 +404,10 @@ class ColonisationWindow:
                         show_header=True, default_row_height=int(19*self.scale))
         sheet.pack(fill=tk.BOTH, padx=0, pady=0)
         sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'sort_rows')
-        sheet.extra_bindings('cell_select', func=partial(self.base_clicked, sheet))
+        sheet.extra_bindings('cell_select', func=partial(self._base_clicked, sheet))
         data:list = [[0 for _ in range(len(self.bases.keys()))] for _ in range(len(self.colonisation.get_base_types()))]
-        sheet.set_header_data([h['header'] for h in self.bases.values()])
-        sheet.set_sheet_data(data)
+        sheet.set_header_data([h['header'] for h in self.bases.values()], redraw=False)
+        sheet.set_sheet_data(data, redraw=False)
         sheet["A1:A100"].align(align='left')
         sheet["E1:F100"].align(align='left')
         sheet["U1:W100"].align(align='left')
@@ -422,14 +423,15 @@ class ColonisationWindow:
                         if name == 'Trips':
                             v = ceil(bt['Total Comm'] / self.colonisation.cargo_capacity)
                         sheet[self._cell(i,j)].data = ' ' if v == 0 else f"{v:,}"
-                        sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), str(v), col.get('max')))
+                        sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), str(v), col.get('max')), redraw=False)
                     case _:
                         sheet[self._cell(i,j)].data = bt.get(name) if bt.get(name, ' ') != ' ' else bt.get(name, ' ')
                         if name == 'Type': # Special case.
                             econ = bt.get('Economy Influence') if bt.get('Economy Influence') != "" else bt.get('Facility Economy')
-                            sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), econ if econ else 'None'))
+                            sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), econ if econ else 'None'), redraw=False)
                         else:
-                            sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
+                            sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')), redraw=False)
+
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
@@ -562,12 +564,13 @@ class ColonisationWindow:
         # Configure the table frame to resize with the window
         table_frame.columnconfigure(0, weight=1)
         table_frame.rowconfigure(0, weight=1)
-
-        sheet:Sheet = Sheet(table_frame, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
+        sheet:Sheet = Sheet(table_frame, cell_auto_resize_enabled=True, show_row_index=False, height=4096,
                             show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                             show_dropdown_borders=False,
-                            empty_vertical=15, empty_horizontal=0, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
+                            empty_vertical=15, empty_horizontal=0,
+                            popup_menu_font=FONT_SMALL, font=FONT_SMALL, index_font=FONT_SMALL,
+                            arrow_key_down_right_scroll_page=True,
                             show_header=False, set_all_heights_and_widths=True, default_row_height=int(19*self.scale))
         sheet.pack(fill=tk.BOTH, padx=0, pady=(0, 5))
 
@@ -575,20 +578,53 @@ class ColonisationWindow:
         data:list = []
         data.append(self._get_summary_header())
         data += self._build_summary(system)
-
         data.append(self._get_detail_header())
         data += self._build_detail(system)
         sheet.set_sheet_data(data)
+
         self._config_sheet(sheet, system)
         sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
         sheet.edit_validation(func=self.validate_edits)
-        sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, sheet, tabnum))
-        sheet.extra_bindings('cell_select', func=partial(self.sheet_modified, sheet, tabnum))
+        sheet.extra_bindings(['all_modified_events', 'cell_select', 'ctrl_row_select', 'rc_delete_row', 'rc_insert_row'], func=partial(self.sheet_modified, sheet, tabnum))
+
+        sheet.popup_menu_add_command(label="Insert build above", func=partial(self._row_modified, sheet, tabnum, 'InsAbove'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
+        sheet.popup_menu_add_command(label="Insert build below", func=partial(self._row_modified, sheet, tabnum, 'InsBelow'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
+        sheet.popup_menu_add_command(label="Delete build", func=partial(self._row_modified, sheet, tabnum, 'Delete'), image=tk.PhotoImage(data=ICON_DEL), compound="left")
 
         if len(self.sheets) < tabnum:
             self.sheets.append(sheet)
         else:
             self.sheets[tabnum-1] = sheet
+
+
+    @catch_exceptions
+    def _row_modified(self, sheet:Sheet, tabnum:int, action:str) -> None:
+        """
+        Function to display a custom popup menu at the event coordinates.
+        """
+
+        selected = sheet.get_currently_selected()
+        row:int = selected.row - FIRST_BUILD_ROW                            # type: ignore
+        if row < 0: return
+
+        sysnum:int = tabnum -1
+        systems:list = self.colonisation.get_all_systems()
+        system:dict = systems[sysnum]
+
+        match action:
+            case 'InsAbove':
+                self.colonisation.add_build(system, {'BuildType': '',
+                                                     'Name': '',
+                                                     'Row': row})
+            case 'InsBelow':
+                self.colonisation.add_build(system, {'BuildType': '',
+                                                     'Name': '',
+                                                     'Row': row+1})
+            case 'Delete':
+                self.colonisation.remove_build(system, row)
+                sheet.del_row(row)
+                self._config_sheet(self.sheets[sysnum], system)
+        self.update_display()
 
 
     @catch_exceptions
@@ -616,8 +652,8 @@ class ColonisationWindow:
 
         # header lines
         sheet[SUMMARY_HEADER_ROW].highlight(bg='lightgrey')
-        sheet['A2:G2'].highlight(bg=self._set_background('type', 'Complete', 1))
-        sheet['A3:G3'].highlight(bg=self._set_background('type', 'Planned', 1))
+        sheet['A2:G2'].highlight(bg=self._set_background('type', 'Planned', 1))
+        sheet['A3:G3'].highlight(bg=self._set_background('type', 'Complete', 1))
         sheet[HEADER_ROW].highlight(bg='lightgrey')
         # Tracking checkboxes
         sheet['A5:A'].checkbox(state='normal', checked=False)
@@ -676,8 +712,8 @@ class ColonisationWindow:
                     continue
                 match name:
                     case 'Architect':
-                        totals['Planned'][name] = ' '
-                        totals['Complete'][name] = system.get('Architect', _('Unknown'))
+                        totals['Planned'][name] = system.get('Architect', _('Unknown'))
+                        totals['Complete'][name] = ' '
                     case 'State':
                         totals['Planned'][name] = _("Planned")
                         totals['Complete'][name] = _("Complete")
@@ -846,10 +882,12 @@ class ColonisationWindow:
             # Handle build states
             if new[i][self._detcol('State')] == BuildState.COMPLETE:
                 # Tracking
-                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='disabled'); sheet[self._cell(i+srow,0)].data = ' '
+                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='disabled', redraw=False)
+                sheet[self._cell(i+srow,0)].data = ' '
                 sheet[self._cell(i+srow,self._detcol('Track'))].readonly()
 
-            if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Name')] != '' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
+            if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Name')] != '' and \
+                new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Body')] != ' ' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
                 # Base type
                 if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
                     for cell in ['Base Type', 'Layout']:
@@ -859,20 +897,19 @@ class ColonisationWindow:
                     # Base type background color
                     bt:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
                     econ = bt.get('Economy Influence') if bt.get('Economy Influence', "") != "" else bt.get('Facility Economy')
-                    sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1))
-
+                    sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1), redraw=False)
 
                 elif new[i][self._detcol('Base Type')] != ' ' or new[i][self._detcol('Name')] != ' ': # Base type is invalid or not set & name is set
                     for cell in ['Base Type', 'Layout']:
-                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg='red2')
+                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg='OrangeRed3', redraw=False)
 
                 for cell in ['Base Type', 'Layout']:
-                    sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')
+                    sheet[self._cell(i+srow,self._detcol(cell))].align(align='left', redraw=False)
 
                 # Base name
                 if new[i][self._detcol('Name')] != ' ':
                     sheet[self._cell(i+srow,self._detcol('Name'))].readonly()
-                    sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left')
+                    sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left', redraw=False)
 
                 # Body
                 if new[i][self._detcol('Body')] != ' ':
@@ -882,30 +919,35 @@ class ColonisationWindow:
 
             #  Tracking
             if new[i][self._detcol('State')] != BuildState.COMPLETE:
-                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='normal')
+                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='normal', redraw=False)
                 sheet[self._cell(i+srow,self._detcol('Track'))].data = ' '
                 sheet[self._cell(i+srow,self._detcol('Track'))].readonly(False)
 
             # Base type & Layout
-            sheet[self._cell(i+srow,self._detcol('Base Type'))].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
+            sheet[self._cell(i+srow,self._detcol('Base Type'))].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'), redraw=False)
             if new[i][self._detcol('Base Type')] != ' ':
                 # Base type background color
                 bt:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
                 econ = bt.get('Economy Influence') if bt.get('Economy Influence', "") != "" else bt.get('Facility Economy')
-                sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1))
+                sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1), redraw=False)
 
-                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]))
+                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]), redraw=False)
+
+                # Layout must be valid for base type
+                if new[i][self._detcol('Layout')] not in self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]):
+                    sheet[self._cell(i+srow,self._detcol('Layout'))].highlight(bg='OrangeRed3')
+
             else:
-                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'))
+                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'), redraw=False)
 
             for cell in ['Base Type', 'Layout']:
-                sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')
+                sheet[self._cell(i+srow,self._detcol(cell))].align(align='left', redraw=False)
                 sheet[self._cell(i+srow,self._detcol(cell))].readonly(False)
                 sheet[self._cell(i+srow,self._detcol(cell))].data = new[i][self._detcol(cell)]
 
             # Base name
             sheet[self._cell(i+srow,self._detcol('Name'))].readonly(False)
-            sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left')
+            sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left', redraw=False)
 
             # Body
             if system != None and 'Bodies' in system:
@@ -915,23 +957,24 @@ class ColonisationWindow:
                     bodies = self.colonisation.get_bodies(system, bt.get('Location'))
 
                 if len(bodies) > 0:
-                    sheet[self._cell(i+srow,self._detcol('Body'))].dropdown(values=[' '] + bodies)
+                    sheet[self._cell(i+srow,self._detcol('Body'))].dropdown(values=[' '] + bodies, redraw=False)
             sheet[self._cell(i+srow,self._detcol('Body'))].readonly(False)
             sheet[self._cell(i+srow,self._detcol('Body'))].data = new[i][self._detcol('Body')]
 
         # Clear the highlights on the empty last row
         if len(new) > len(system.get('Builds', [])):
             for j, details in enumerate(self.detail_cols.values()):
-                sheet[self._cell(len(new)+srow-1,j)].highlight(bg=None)
+                sheet[self._cell(len(new)+srow-1,j)].highlight(bg=None, redraw=False)
             sheet[self._cell(len(new)+srow-1,self._detcol('State'))].data = ' '
 
-        sheet.set_all_row_heights(height=int(19*self.scale))
+        sheet.set_all_row_heights(height=int(19*self.scale), redraw=False)
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
     @catch_exceptions
     def update_display(self) -> None:
         ''' Update the display with current system data '''
+
         systems:list = self.colonisation.get_all_systems()
         for i, tab in enumerate(self.sheets):
             system = systems[i]
@@ -939,7 +982,8 @@ class ColonisationWindow:
             self._update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
             self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
             # Not our system? Then it's readonly
-            if system.get('RCSync', False) == True and self.colonisation.cmdr != system.get('Architect', None):
+            if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
+                Debug.logger.debug(f"Setting readonly due to {self.colonisation.cmdr} != {system.get('Architect', None)}")
                 self.sheets[i]['B1:Z'].readonly()
 
 
@@ -960,13 +1004,7 @@ class ColonisationWindow:
     @catch_exceptions
     def sheet_modified(self, sheet:Sheet, tabnum:int, event = None) -> None:
         ''' Handle edits to the sheet. This is where we update the system data. '''
-        sysnum:int = tabnum -1
-        systems:list = self.colonisation.get_all_systems()
-        system:dict = systems[sysnum]
 
-        #Debug.logger.debug(f"Sheet modified: {event.eventname} {event.selected} {event.row},{event.column}='{event.value}'")
-
-        # Readonly if it's not our system
         sysnum:int = tabnum -1
         systems:list = self.colonisation.get_all_systems()
         system:dict = systems[sysnum]
@@ -994,6 +1032,10 @@ class ColonisationWindow:
             Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
             return
 
+        if event.eventname.endswith('move_rows'):
+            Debug.logger.debug(f"Row move {event}")
+            return
+
         # We only deal with edits.
         if not event.eventname.endswith('edit_table'):
             return
@@ -1019,7 +1061,7 @@ class ColonisationWindow:
 
                 sdata:list = self.sheets[sysnum].data
                 sdata.pop(row + FIRST_BUILD_ROW)
-                self.sheets[sysnum].set_sheet_data(sdata)
+                self.sheets[sysnum].set_sheet_data(sdata, redraw=False)
                 self._config_sheet(self.sheets[sysnum], system)
 
             case 'Base Type' | 'Layout' if val != ' ':
@@ -1033,8 +1075,7 @@ class ColonisationWindow:
                 sdata.append(self._get_detail_header())
                 sdata += self._build_detail(system)
 
-                Debug.logger.debug(f"sysnum: {sysnum} sheets: {len(self.sheets)}")
-                self.sheets[sysnum].set_sheet_data(sdata)
+                self.sheets[sysnum].set_sheet_data(sdata, redraw=False)
                 self._config_sheet(self.sheets[sysnum], system)
 
             case 'Body':
@@ -1172,7 +1213,7 @@ class ColonisationWindow:
     @catch_exceptions
     def edit_system_dialog(self, tabnum:int, btn:ttk.Button) -> None:
         ''' Show dialog to edit a system '''
-        #Debug.logger.debug(f"x: {int(x)} y: {int(y)}")
+
         sysnum:int = tabnum -1
         systems:list = self.colonisation.get_all_systems()
         if sysnum > len(systems):

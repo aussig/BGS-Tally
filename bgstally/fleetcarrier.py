@@ -114,7 +114,6 @@ class FleetCarrier:
         # Sort cargo commodities - a List of Dicts
         old, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
         self.cargo = {}
-        Debug.logger.debug(f"{get_by_path(self.data, ['cargo'], [])}")
         for c in get_by_path(self.data, ['cargo'], []):
             cname:str = c.get(name_key, "").lower()
             if c.get('stolen', True) == False and c.get('mission', True) == False:
@@ -228,6 +227,9 @@ class FleetCarrier:
         cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
         if self.bgstally.market.available(journal_entry.get("MarketID")):
             for name, item in self.bgstally.market.commodities.items():
+                # Stock is only useful if it's selling not when it's buying
+                if item.get('Producer', False) == False:
+                    continue
                 if name not in self.cargo:
                     self.cargo[name] = {name_key: name, display_name_key: item.get('Name_Localised'), quantity_key: item.get('Stock', 0)}
                 else:
@@ -242,7 +244,7 @@ class FleetCarrier:
         cargo, name_key, display_name_key, quantity_key = self._get_items(FleetCarrierItemType.CARGO)
         for i in journal_entry.get('Transfers', []):
             cname:str = i.get('Type', "").lower()
-            if i.get('Direction') == 'toship':
+            if i.get('Direction') == 'tocarrier':
                 if cname not in self.cargo:
                     self.cargo[cname] = {name_key: cname, display_name_key: "", quantity_key: i.get('Count', 0)}
                 else:

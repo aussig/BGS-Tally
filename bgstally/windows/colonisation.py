@@ -604,7 +604,6 @@ class ColonisationWindow:
 
         selected = sheet.get_currently_selected()
         row:int = selected.row - FIRST_BUILD_ROW                            # type: ignore
-        Debug.logger.debug(f"row_modified: {action} {selected}")
         if row < 0: return
 
         sysnum:int = tabnum -1
@@ -1212,7 +1211,7 @@ class ColonisationWindow:
     @catch_exceptions
     def edit_system_dialog(self, tabnum:int, btn:ttk.Button) -> None:
         ''' Show dialog to edit a system '''
-        #Debug.logger.debug(f"x: {int(x)} y: {int(y)}")
+
         sysnum:int = tabnum -1
         systems:list = self.colonisation.get_all_systems()
         if sysnum > len(systems):

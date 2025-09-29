@@ -488,10 +488,6 @@ class ProgressWindow:
         required:dict = self.colonisation.get_required(tracked)
         delivered:dict = self.colonisation.get_delivered(tracked)
 
-        if len(tracked) != len(required) or len(tracked) != len(delivered):
-            Debug.logger.error(f"Error, tracking mismatch")
-            return
-
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
             self.frame.grid_remove()
             Debug.logger.info("No builds or commodities, hiding progress frame")
@@ -564,7 +560,7 @@ class ProgressWindow:
             if reqcnt - delcnt > 0: totals['Cargo'] += max(min(cargo, reqcnt - delcnt), 0)
             if reqcnt - delcnt > 0: totals['Carrier'] += max(min(carrier, reqcnt - delcnt - cargo), 0)
 
-            if reqcnt > 0: Debug.logger.debug(f"Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}")
+            #if reqcnt > 0: Debug.logger.debug(f"Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}")
 
             # We only show relevant (required) items. But.
             # If the view is reduced or minimal we don't show ones that are complete. Also.
@@ -577,10 +573,7 @@ class ProgressWindow:
                 for cell in row.values():
                     cell.grid_remove()
                 #if reqcnt > 0: Debug.logger.debug(f"Hiding Commodity {c}: Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}, View {self.view.name}, Docked {self.colonisation.docked}, Market {self.colonisation.market} ")
-
                 continue
-
-            #Debug.logger.debug(f"Showing Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}, View {self.view.name}, Docked {self.colonisation.docked}, Market {self.colonisation.market} ")
 
             if rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():

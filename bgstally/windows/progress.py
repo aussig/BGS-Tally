@@ -78,6 +78,8 @@ class ProgressWindow:
             'stationName' : {'Header': _('Station'), 'Width': 175, 'Align': "left"},    # LANG: Station name heading
             'distance': {'Header': _('Dist (ly)'), 'Width': 50, 'Align': "center"},     # LANG: System distance heading
             'distanceToArrival': {'Header': _('Arr (ls)'), 'Width': 50, 'Align': "center"}, # LANG: station distance from arrival heading
+            'distance': {'Header': _('Dist (ly)'), 'Width': 50, 'Align': "center"},     # LANG: System distance heading
+            'distanceToArrival': {'Header': _('Arr (ls)'), 'Width': 50, 'Align': "center"}, # LANG: station distance from arrival heading
             'type': {'Header': _('Type'), 'Width': 35, 'Align': "center"},              # LANG: Station type (O=Orbital, S=Surface, C=Carrier)
             'padSize': {'Header': _('Pad'), 'Width': 35, 'Align': "center"},            # LANG: Pad size (L, M, S)
             'count': {'Header': _('Count'), 'Width':45, 'Align': "center"},             # LANG: Count of commodities available
@@ -110,6 +112,7 @@ class ProgressWindow:
         self.progress:int = 0 # Thread-safe version of progress percentage
         self.build_index:int = 0 # Which build we're showing
         self.view:ProgressView = ProgressView.REDUCED # Full, reduced, or no list of commodities
+        self.viewtt:ToolTip # View tooltip
         self.comm_order:CommodityOrder = CommodityOrder.ALPHA # Commodity order
 
 
@@ -158,7 +161,7 @@ class ProgressWindow:
         view_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_change_view, cursor="hand2")
         view_btn.bind("<Button-1>", partial(self.event, "change"))
         view_btn.grid(row=row, column=col, sticky=tk.E)
-        ToolTip(view_btn, text=_("Cycle commodity list details")) # LANG: tooltip for the commodity header
+        self.viewtt:ToolTip = ToolTip(view_btn, text=_("Cycle commodity list details") + " (" + self.view.name.title() +")") # LANG: tooltip for the commodity header
         col += 1
 
         next_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_right_arrow, cursor="hand2")
@@ -233,10 +236,12 @@ class ProgressWindow:
             return _("No colonisation data available") # LANG: No colonisation data available
         self.colonisation = self.bgstally.colonisation
 
-
         tracked:list = self.colonisation.get_tracked_builds()
         required:dict = self.colonisation.get_required(tracked)
         delivered:dict = self.colonisation.get_delivered(tracked)
+        if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
+            return _("No builds or commodities being tracked") # LANG: No builds or commodities being tracked
+
         if self.build_index > len(tracked): self.build_index = 0
 
         output:str = ""
@@ -260,8 +265,14 @@ class ProgressWindow:
             output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
 
         output += "-" * 67 + "\n"
+        comms:list = []
+        qty:dict = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
+        if self.colonisation.docked == True and '$EXT_PANEL_ColonisationShip' not in f"{self.colonisation.station}" and 'Construction Site' not in f"{self.colonisation.station}":
+            comms = self.colonisation.get_commodity_list(CommodityOrder.CATEGORY)
+        else:
+            comms = self.colonisation.get_commodity_list(self.comm_order, qty)
 
-        for c in self.colonisation.get_commodity_list(CommodityOrder.CATEGORY):
+        for c in comms:
             reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
             delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
             # Hide if we're docked and market doesn't have this.
@@ -299,6 +310,7 @@ class ProgressWindow:
                 if self.build_index < 0: self.build_index = max
             case 'change':
                 self.view = ProgressView((self.view.value + 1) % len(ProgressView))
+                self.viewtt.text = _("Cycle commodity list details" + " (" + self.view.name.title()+")")
                 self.colonisation.dirty = True
             case 'copy':
                 self.title.clipboard_clear()
@@ -319,6 +331,8 @@ class ProgressWindow:
                 val = (self.columns[column] + 1) % len(self.headings)
                 if val == 0: val = 1 # Don't permit Commodities
                 self.columns[column] = val
+                self.coltts[column].text = self.headings[val].get('Tooltip')
+
         self.colonisation.dirty = True
         self.update_display()
 
@@ -377,8 +391,10 @@ class ProgressWindow:
     @catch_exceptions
     def _markets_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Callback from the RavenColonial materials request to open popup '''
-        if response.status_code != 200:
-            Debug.logger.error(f"RavenColonial materials request failed: {response.status_code} {response.text}")
+        if self.mkts_fr == None: return
+
+        if response == None or response.status_code != 200:
+            Debug.logger.error(f"RavenColonial materials request failed")
             self.mkts_fr.destroy()
             return
 
@@ -391,7 +407,8 @@ class ProgressWindow:
 
         scale:float = config.get_int('ui_scale') / 100.00
         header_fnt:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
-        sheet:Sheet = Sheet(self.mkts_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
+        sheet:Sheet = Sheet(self.mkts_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False,
+                        cell_auto_resize_enabled=True, height=4096,
                         show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
                         align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                         show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
@@ -409,6 +426,7 @@ class ProgressWindow:
 
         data:list = []
         for i, m in enumerate(list(k for k in sorted(markets, key=lambda item: item.get('distance'), reverse=False))):
+            include:bool = False
             row:list = []
             for k, v in self.markets.items():
                 d:str = ''
@@ -425,6 +443,7 @@ class ProgressWindow:
                         sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
                     case 'count':
                         d = str(len([k for k, v in m.get('supplies', {}).items() if min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) > 0]))
+                        if d != '0': include = True
                     case 'quantity':
                         d = f"{(sum([min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) for k, v in m.get('supplies', {}).items()])):,}"
                     case 'commodities':
@@ -433,15 +452,17 @@ class ProgressWindow:
                     case _:
                         d = m.get(k, '')
                 row.append(d)
-            data.append(row)
 
-        sheet.set_sheet_data(data)
+            if include == True:
+                data.append(row)
+
+        sheet.set_sheet_data(data, redraw=False)
 
         for i, (k, v) in enumerate(self.markets.items()):
             sheet.align_columns(i, v.get('Align'))
             sheet.column_width(i, int(v.get('Width')*scale))
 
-        #self.msheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
+        #sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
         sheet.set_all_row_heights(height=None, only_set_if_too_small=True, redraw=True)
 
 
@@ -522,6 +543,7 @@ class ProgressWindow:
 
         rc:int = 0
         for i, c in enumerate(comms):
+
             if len(self.rows) < i: continue
             row:dict = self.rows[i]
             reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
@@ -550,6 +572,7 @@ class ProgressWindow:
                 rc > int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
                     cell.grid_remove()
+                #if reqcnt > 0: Debug.logger.debug(f"Hiding Commodity {c}: Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}, View {self.view.name}, Docked {self.colonisation.docked}, Market {self.colonisation.market} ")
                 continue
 
             if rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):

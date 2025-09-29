@@ -1,11 +1,33 @@
 # Change Log
 
+## v5.2.0-b1 - 2025-09-29
+
+### New features:
+
+* Colonisation: Added insert & remove menu options for adding/deleting builds
+
+### Bug fixes:
+
+* Fixed fleet carrier cargo bug
+* Improved migration of data
+* Fixed an overlay runtime error
+* Swapped order of planned and completed to be more logical
+* Small fixes for creating plans when logged out
+
+### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxx)):
+
+* `/activites` endpoint: `influence` percentage added to faction information for each faction.
+
+
 ## v5.2.0-a2 - 2025-09-20
 
 ### New features:
 
 * Colonisation: Added RavenColonial markets window for linked builds
 * Colonisation: Added flexible sorting of bases popup
+* Added highglighting of missing base layout
+* Improved the tooltips for commodity lists
+* Improved a few RavenColonial integration in coordination with RC developer
 
 ### Bug fixes:
 

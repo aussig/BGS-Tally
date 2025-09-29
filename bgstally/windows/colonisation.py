@@ -406,8 +406,8 @@ class ColonisationWindow:
         sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'sort_rows')
         sheet.extra_bindings('cell_select', func=partial(self._base_clicked, sheet))
         data:list = [[0 for _ in range(len(self.bases.keys()))] for _ in range(len(self.colonisation.get_base_types()))]
-        sheet.set_header_data([h['header'] for h in self.bases.values()])
-        sheet.set_sheet_data(data)
+        sheet.set_header_data([h['header'] for h in self.bases.values()], redraw=False)
+        sheet.set_sheet_data(data, redraw=False)
         sheet["A1:A100"].align(align='left')
         sheet["E1:F100"].align(align='left')
         sheet["U1:W100"].align(align='left')
@@ -423,14 +423,15 @@ class ColonisationWindow:
                         if name == 'Trips':
                             v = ceil(bt['Total Comm'] / self.colonisation.cargo_capacity)
                         sheet[self._cell(i,j)].data = ' ' if v == 0 else f"{v:,}"
-                        sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), str(v), col.get('max')))
+                        sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), str(v), col.get('max')), redraw=False)
                     case _:
                         sheet[self._cell(i,j)].data = bt.get(name) if bt.get(name, ' ') != ' ' else bt.get(name, ' ')
                         if name == 'Type': # Special case.
                             econ = bt.get('Economy Influence') if bt.get('Economy Influence') != "" else bt.get('Facility Economy')
-                            sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), econ if econ else 'None'))
+                            sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), econ if econ else 'None'), redraw=False)
                         else:
-                            sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')))
+                            sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')), redraw=False)
+
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
@@ -881,7 +882,8 @@ class ColonisationWindow:
             # Handle build states
             if new[i][self._detcol('State')] == BuildState.COMPLETE:
                 # Tracking
-                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='disabled'); sheet[self._cell(i+srow,0)].data = ' '
+                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='disabled', redraw=False)
+                sheet[self._cell(i+srow,0)].data = ' '
                 sheet[self._cell(i+srow,self._detcol('Track'))].readonly()
 
             if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Name')] != '' and \
@@ -895,19 +897,19 @@ class ColonisationWindow:
                     # Base type background color
                     bt:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
                     econ = bt.get('Economy Influence') if bt.get('Economy Influence', "") != "" else bt.get('Facility Economy')
-                    sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1))
+                    sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1), redraw=False)
 
                 elif new[i][self._detcol('Base Type')] != ' ' or new[i][self._detcol('Name')] != ' ': # Base type is invalid or not set & name is set
                     for cell in ['Base Type', 'Layout']:
-                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg='OrangeRed3')
+                        sheet[self._cell(i+srow,self._detcol(cell))].highlight(bg='OrangeRed3', redraw=False)
 
                 for cell in ['Base Type', 'Layout']:
-                    sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')
+                    sheet[self._cell(i+srow,self._detcol(cell))].align(align='left', redraw=False)
 
                 # Base name
                 if new[i][self._detcol('Name')] != ' ':
                     sheet[self._cell(i+srow,self._detcol('Name'))].readonly()
-                    sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left')
+                    sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left', redraw=False)
 
                 # Body
                 if new[i][self._detcol('Body')] != ' ':
@@ -917,35 +919,35 @@ class ColonisationWindow:
 
             #  Tracking
             if new[i][self._detcol('State')] != BuildState.COMPLETE:
-                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='normal')
+                sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='normal', redraw=False)
                 sheet[self._cell(i+srow,self._detcol('Track'))].data = ' '
                 sheet[self._cell(i+srow,self._detcol('Track'))].readonly(False)
 
             # Base type & Layout
-            sheet[self._cell(i+srow,self._detcol('Base Type'))].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'))
+            sheet[self._cell(i+srow,self._detcol('Base Type'))].dropdown(values=[' '] + self.colonisation.get_base_types('All' if i > 0 else 'Initial'), redraw=False)
             if new[i][self._detcol('Base Type')] != ' ':
                 # Base type background color
                 bt:dict = self.colonisation.get_base_type(new[i][self._detcol('Base Type')])
                 econ = bt.get('Economy Influence') if bt.get('Economy Influence', "") != "" else bt.get('Facility Economy')
-                sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1))
+                sheet[self._cell(i+srow,self._detcol('Base Type'))].highlight(bg=self._set_background('type', econ if econ else 'None', 1), redraw=False)
 
-                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]))
+                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]), redraw=False)
 
                 # Layout must be valid for base type
                 if new[i][self._detcol('Layout')] not in self.colonisation.get_base_layouts(new[i][self._detcol('Base Type')]):
                     sheet[self._cell(i+srow,self._detcol('Layout'))].highlight(bg='OrangeRed3')
 
             else:
-                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'))
+                sheet[self._cell(i+srow,self._detcol('Layout'))].dropdown(values=[' '] + self.colonisation.get_base_layouts('All' if i > 0 else 'Initial'), redraw=False)
 
             for cell in ['Base Type', 'Layout']:
-                sheet[self._cell(i+srow,self._detcol(cell))].align(align='left')
+                sheet[self._cell(i+srow,self._detcol(cell))].align(align='left', redraw=False)
                 sheet[self._cell(i+srow,self._detcol(cell))].readonly(False)
                 sheet[self._cell(i+srow,self._detcol(cell))].data = new[i][self._detcol(cell)]
 
             # Base name
             sheet[self._cell(i+srow,self._detcol('Name'))].readonly(False)
-            sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left')
+            sheet[self._cell(i+srow,self._detcol('Name'))].align(align='left', redraw=False)
 
             # Body
             if system != None and 'Bodies' in system:
@@ -955,17 +957,17 @@ class ColonisationWindow:
                     bodies = self.colonisation.get_bodies(system, bt.get('Location'))
 
                 if len(bodies) > 0:
-                    sheet[self._cell(i+srow,self._detcol('Body'))].dropdown(values=[' '] + bodies)
+                    sheet[self._cell(i+srow,self._detcol('Body'))].dropdown(values=[' '] + bodies, redraw=False)
             sheet[self._cell(i+srow,self._detcol('Body'))].readonly(False)
             sheet[self._cell(i+srow,self._detcol('Body'))].data = new[i][self._detcol('Body')]
 
         # Clear the highlights on the empty last row
         if len(new) > len(system.get('Builds', [])):
             for j, details in enumerate(self.detail_cols.values()):
-                sheet[self._cell(len(new)+srow-1,j)].highlight(bg=None)
+                sheet[self._cell(len(new)+srow-1,j)].highlight(bg=None, redraw=False)
             sheet[self._cell(len(new)+srow-1,self._detcol('State'))].data = ' '
 
-        sheet.set_all_row_heights(height=int(19*self.scale))
+        sheet.set_all_row_heights(height=int(19*self.scale), redraw=False)
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
@@ -1059,7 +1061,7 @@ class ColonisationWindow:
 
                 sdata:list = self.sheets[sysnum].data
                 sdata.pop(row + FIRST_BUILD_ROW)
-                self.sheets[sysnum].set_sheet_data(sdata)
+                self.sheets[sysnum].set_sheet_data(sdata, redraw=False)
                 self._config_sheet(self.sheets[sysnum], system)
 
             case 'Base Type' | 'Layout' if val != ' ':
@@ -1073,7 +1075,7 @@ class ColonisationWindow:
                 sdata.append(self._get_detail_header())
                 sdata += self._build_detail(system)
 
-                self.sheets[sysnum].set_sheet_data(sdata)
+                self.sheets[sysnum].set_sheet_data(sdata, redraw=False)
                 self._config_sheet(self.sheets[sysnum], system)
 
             case 'Body':

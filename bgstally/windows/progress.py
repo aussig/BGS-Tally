@@ -456,7 +456,7 @@ class ProgressWindow:
             if include == True:
                 data.append(row)
 
-        sheet.set_sheet_data(data)
+        sheet.set_sheet_data(data, redraw=False)
 
         for i, (k, v) in enumerate(self.markets.items()):
             sheet.align_columns(i, v.get('Align'))

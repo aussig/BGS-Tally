@@ -38,11 +38,11 @@ class RavenColonial:
 
     def __init__(self, colonisation) -> None:
         # Only initialize if it's the first time
-        if hasattr(self, '_initialized'):
-            return
+        if hasattr(self, '_initialized'): return
 
-        self._initialized = True
         self.colonisation:Colonisation = colonisation # type: ignore
+        if not hasattr(self.colonisation, 'bgstally'):
+            return
         self.bgstally:BGSTally = colonisation.bgstally # type: ignore
 
         # map system parameters between colonisation & raven.
@@ -95,6 +95,7 @@ class RavenColonial:
         }
 
         self._cache:dict = {} # Cache of responses and response times used to reduce API calls
+        self._initialized = True
 
 
     def _headers(self) -> dict:
@@ -551,7 +552,7 @@ class EDSM:
             return
 
         # Check when we last updated this system
-        systems:list = RavenColonial(self).colonisation.get_all_systems()
+        if not hasattr(RavenColonial(self), '_initialized'): return
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
             Debug.logger.info(f"unknown system {system_name}")
@@ -633,6 +634,8 @@ class EDSM:
             Debug.logger.info("no system name")
             return
 
+        if not hasattr(RavenColonial(self), '_initialized'): return
+
         # Check when we last updated this system
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
@@ -644,12 +647,12 @@ class EDSM:
             return
 
         url:str = f"{EDSM_SYSTEM}{quote(system_name)}"
-        RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._system)
+        RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._system_callback)
         return
 
 
     @catch_exceptions
-    def _system(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+    def _system_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Process the results of querying ESDM for the system details '''
         data:dict = response.json()
         if data.get('name', None) == None:
@@ -678,6 +681,8 @@ class EDSM:
             Debug.logger.info("no system name")
             return
 
+        if not hasattr(RavenColonial(self), '_initialized'): return
+
         # Check when we last updated this system
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
@@ -693,12 +698,9 @@ class EDSM:
         response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=5)
         if response.status_code == 200:
             self._bodies(True, response)
-
-        #RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._bodies)
         return
 
 
-    @catch_exceptions
     def _bodies(self, success:bool, response:Response, request:BGSTallyRequest|None = None) -> None:
         ''' Process the results of querying ESDM for the bodies in a system '''
         Debug.logger.info(f"bodies response received: {success}")
@@ -784,6 +786,8 @@ class Spansh:
             return
 
         # Check when we last updated this system
+        if not hasattr(RavenColonial(self), '_initialized'): return
+
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
             Debug.logger.info(f"Unknown system {system_name}")
@@ -848,7 +852,7 @@ class Spansh:
         update:dict = {}
         update['Population'] = data.get('population', None)
         update['Economy'] = data.get('primary_economy', None)
-        if data.get('secondary_economy', 'None') != None:
+        if data.get('primary_economy', None) != None and data.get('secondary_economy', 'None') != None:
             update['Economy'] += "/" + data.get('secondary_economy', '')
         update['Security'] = data.get('security', None)
         update['SystemAddress'] = data.get('id64', None)

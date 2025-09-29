@@ -569,6 +569,8 @@ class Colonisation:
                 for build in builds:
                     if build.get(m, None) == data.get(m, None):
                         return build
+                    if m == 'Name' and re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get(m, '')) == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get(m, '')):
+                        return build
 
         # Do some fuzzy matching on name similarity, body, etc. for things that may have changed while we were away.
         loc:str = ''
@@ -597,7 +599,7 @@ class Colonisation:
                 #Debug.logger.debug(f"Checking completed build {build} data {data}")
                 bbody = build.get('Body', build.get('BodyNum', None))
                 dbody = data.get('Body', data.get('BodyNum', None))
-                if bbody != None and dbody != None and bbody.lower() == dbody.lower():
+                if bbody != None and dbody != None and bbody == dbody:
                     Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                     return build
 
@@ -738,20 +740,21 @@ class Colonisation:
             bt:dict = self.get_base_type(data.get('Base Type', ''))
             data['Location'] = bt.get('Location', '')
 
-        changed:bool = False
+        changed:dict = {}
         for k, v in data.items():
             if k not in self.build_keys: continue
 
             if k == 'Track' and build.get(k, False) != v:
                 build[k] = v
+                changed[k] = v
                 self.bgstally.ui.window_progress.update_display()
 
             if build.get(k, '') != v:
                 build[k] = v.strip() if isinstance(v, str) else v
-                changed = True
+                changed[k] = v.strip() if isinstance(v, str) else v
 
         # Send our updates back to RavenColonial if we're tracking this system and have the details required
-        if silent == False and changed == True and \
+        if silent == False and changed != {} and \
             system.get('RCSync', False) == True and system.get('SystemAddress', None) != None and \
             build.get('Layout', None) != None and build.get('BodyNum', None) != None:
             RavenColonial(self).upsert_site(system, build)
@@ -759,7 +762,8 @@ class Colonisation:
                 if p.get('ProjectID', None) != None and p.get('MarketID', None) == build.get('MarketID'):
                     RavenColonial(self).upsert_project(system, build, p)
 
-        if changed == True:
+        if changed != {}:
+            Debug.logger.debug(f"Changed {changed}")
             self.save('Build modified')
 
 
@@ -1090,7 +1094,7 @@ class Colonisation:
 
         for p in dict.get('Progress', []):
             # Clean out old progress entries that are no longer relevant
-            if datetime.now() > datetime.strptime(p.get('Updated', '2025-01-01')[0:10], "%Y-%m-%d") + timedelta(days=30) and \
+            if p.get('Updated', None) != None and datetime.now() > datetime.strptime(p.get('Updated', '2025-01-01')[0:10], "%Y-%m-%d") + timedelta(days=365) and \
                 (p.get('MarketID', 0) not in markets or p.get('ConstructionComplete', '') == True):
                 Debug.logger.debug(f"Info old progress entry {p}")
                 continue

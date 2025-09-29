@@ -586,9 +586,9 @@ class ColonisationWindow:
         sheet.edit_validation(func=self.validate_edits)
         sheet.extra_bindings(['all_modified_events', 'cell_select', 'ctrl_row_select', 'rc_delete_row', 'rc_insert_row'], func=partial(self.sheet_modified, sheet, tabnum))
 
-        sheet.popup_menu_add_command(label="Insert row above", func=partial(self._row_modified, sheet, tabnum, 'InsAbove'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
-        sheet.popup_menu_add_command(label="Insert row below", func=partial(self._row_modified, sheet, tabnum, 'InsBelow'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
-        sheet.popup_menu_add_command(label="Delete row", func=partial(self._row_modified, sheet, tabnum, 'Delete'), image=tk.PhotoImage(data=ICON_DEL), compound="left")
+        sheet.popup_menu_add_command(label="Insert build above", func=partial(self._row_modified, sheet, tabnum, 'InsAbove'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
+        sheet.popup_menu_add_command(label="Insert build below", func=partial(self._row_modified, sheet, tabnum, 'InsBelow'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
+        sheet.popup_menu_add_command(label="Delete build", func=partial(self._row_modified, sheet, tabnum, 'Delete'), image=tk.PhotoImage(data=ICON_DEL), compound="left")
 
         if len(self.sheets) < tabnum:
             self.sheets.append(sheet)

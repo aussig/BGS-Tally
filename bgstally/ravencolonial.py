@@ -60,6 +60,7 @@ class RavenColonial:
                                  'buildType' : 'Layout',
                                  'status' : 'State',
                                  'buildId' : 'ProjectID',
+                                 'marketId' : 'MarketID',
                                  'architectName' : 'Architect'
                                  }
         # Project parameter mapping between colonisation & raven.

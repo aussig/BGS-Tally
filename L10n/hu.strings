@@ -76,6 +76,9 @@
 /* Amount remaining tooltip. [progress.py] */
 "Amount remaining to be delivered" = "Amount remaining to be delivered";
 
+/* Tonnes of needed commodities available. [progress.py] */
+"Amt (t)" = "Amt (t)";
+
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API megváltozott, nyisd ki a beállításokat, hogy ismét engedélyezd";
 
@@ -101,7 +104,7 @@
 "Are you sure you want to remove this system?" = "Are you sure you want to remove this system?";
 
 /* station distance from arrival heading. [progress.py] */
-"Arrival (ls)" = "Arrival (ls)";
+"Arr (ls)" = "Arr (ls)";
 
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "A lent említett információért fordulj a szerver adminisztrátorhoz majd nyomb meg \"Kapcsolat létrehozása\" gombot a fojtatáshoz. Népszerú szerverekhez vannak előre készített gombok, de a saját egyedi API kulcsodat meg kell adnod.";
@@ -380,7 +383,7 @@
 "Discord Webhooks" = "Discord webhookok";
 
 /* System distance heading. [progress.py] */
-"Distance (ly)" = "Distance (ly)";
+"Dist (ly)" = "Dist (ly)";
 
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Dokkolás";
@@ -864,6 +867,9 @@
 
 /* [fleetcarrier.py] */
 "No" = "Nem";
+
+/* No builds or commodities being tracked. [progress.py] */
+"No builds or commodities being tracked" = "No builds or commodities being tracked";
 
 /* No colonisation data available. [progress.py] */
 "No colonisation data available" = "No colonisation data available";

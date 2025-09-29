@@ -76,6 +76,9 @@
 /* Amount remaining tooltip. [progress.py] */
 "Amount remaining to be delivered" = "Amount remaining to be delivered";
 
+/* Tonnes of needed commodities available. [progress.py] */
+"Amt (t)" = "Amt (t)";
+
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API modifiée, ouvrez les paramètres pour ré-approuver";
 
@@ -101,7 +104,7 @@
 "Are you sure you want to remove this system?" = "Voulez-vous vraiment supprimer ce système ?";
 
 /* station distance from arrival heading. [progress.py] */
-"Arrival (ls)" = "Arrival (ls)";
+"Arr (ls)" = "Arr (ls)";
 
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Demandez à l'administrateur du serveur les informations ci-dessous, puis cliquez sur 'Établir la connexion' pour continuer. Les boutons pour préremplir certaines informations pour les serveurs populaires sont fournis, mais vous devrez entrer votre clef API qui est unique pour vous.";
@@ -380,7 +383,7 @@
 "Discord Webhooks" = "Discord Webhooks";
 
 /* System distance heading. [progress.py] */
-"Distance (ly)" = "Distance (ly)";
+"Dist (ly)" = "Dist (ly)";
 
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Amarrage";
@@ -864,6 +867,9 @@
 
 /* [fleetcarrier.py] */
 "No" = "Non";
+
+/* No builds or commodities being tracked. [progress.py] */
+"No builds or commodities being tracked" = "No builds or commodities being tracked";
 
 /* No colonisation data available. [progress.py] */
 "No colonisation data available" = "Aucunes données de colonisation disponibles";

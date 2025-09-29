@@ -2,6 +2,23 @@
 
 ## v5.2.0-xx - xxxx-xx-xx
 
+
+
+
+## v5.2.0-b1 - 2025-09-29
+
+### New features:
+
+* Colonisation: Added insert & remove menu options for adding/deleting builds
+
+### Bug fixes:
+
+* Fixed fleet carrier cargo bug
+* Improved migration of data
+* Fixed an overlay runtime error
+* Swapped order of planned and completed to be more logical
+* Small fixes for creating plans when logged out
+
 ### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxx)):
 
 * `/activites` endpoint: `influence` percentage added to faction information for each faction.

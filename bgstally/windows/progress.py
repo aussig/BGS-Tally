@@ -395,7 +395,6 @@ class ProgressWindow:
 
         if response == None or response.status_code != 200:
             Debug.logger.error(f"RavenColonial materials request failed")
-
             self.mkts_fr.destroy()
             return
 
@@ -444,6 +443,7 @@ class ProgressWindow:
                         sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
                     case 'count':
                         d = str(len([k for k, v in m.get('supplies', {}).items() if min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) > 0]))
+                        if d != '0': include = True
                     case 'quantity':
                         d = f"{(sum([min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) for k, v in m.get('supplies', {}).items()])):,}"
                     case 'commodities':
@@ -462,7 +462,7 @@ class ProgressWindow:
             sheet.align_columns(i, v.get('Align'))
             sheet.column_width(i, int(v.get('Width')*scale))
 
-        #self.msheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
+        #sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
         sheet.set_all_row_heights(height=None, only_set_if_too_small=True, redraw=True)
 
 

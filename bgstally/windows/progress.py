@@ -97,7 +97,7 @@ class ProgressWindow:
 
         # By removing the carrier from here we remove it everywhere
         if not self.bgstally.fleet_carrier.available():
-            self.headings = self.headings.pop()
+            self.headings.pop()
 
         # UI components
         self.frame:tk.Frame

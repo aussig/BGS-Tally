@@ -638,7 +638,12 @@ class Colonisation:
             bt:dict = self.get_base_type(data.get('Layout', ''))
             data['Base Type'] = bt.get('Type', '')
 
-        system['Builds'].append(data)
+        if data.get('Row', None) != None:
+            row:int = data.get('Row', -1)
+            del data['Row']
+            system['Builds'].insert(row, data)
+        else:
+            system['Builds'].append(data)
 
         # Update RC if appropriate and we have enough data about the system.
         if silent == False and system.get('RCSync', False) == True and system.get('SystemAddress', None) != None and \

@@ -1,5 +1,6 @@
 import re
 from functools import partial
+
 import webbrowser
 import tkinter as tk
 import tkinter.font as tkFont
@@ -18,7 +19,7 @@ from bgstally.ravencolonial import RavenColonial
 
 from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key
+from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key, ICON_DEL, ICON_ADD
 from thirdparty.Tooltip import ToolTip
 
 FILENAME_LEGEND = "colonisation_legend.txt"
@@ -184,7 +185,7 @@ class ColonisationWindow:
     def _create_frames(self) -> None:
         ''' Create the system frame notebook and tabs for each system '''
         # Create system tabs notebook
-        self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=True)
+        self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=False)
         self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
         self.add_dialog = self.add_system_dialog()
         self.update_react_dialog()
@@ -374,7 +375,7 @@ class ColonisationWindow:
 
 
     @catch_exceptions
-    def base_clicked(self, sheet:Sheet, event) -> None:
+    def _base_clicked(self, sheet:Sheet, event) -> None:
         ''' We clicked on a base type, open it in RC '''
         sheet.toggle_select_row(event.selected.row, False, True)
         if event.selected.column == 20:
@@ -403,7 +404,7 @@ class ColonisationWindow:
                         show_header=True, default_row_height=int(19*self.scale))
         sheet.pack(fill=tk.BOTH, padx=0, pady=0)
         sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'sort_rows')
-        sheet.extra_bindings('cell_select', func=partial(self.base_clicked, sheet))
+        sheet.extra_bindings('cell_select', func=partial(self._base_clicked, sheet))
         data:list = [[0 for _ in range(len(self.bases.keys()))] for _ in range(len(self.colonisation.get_base_types()))]
         sheet.set_header_data([h['header'] for h in self.bases.values()])
         sheet.set_sheet_data(data)
@@ -562,12 +563,12 @@ class ColonisationWindow:
         # Configure the table frame to resize with the window
         table_frame.columnconfigure(0, weight=1)
         table_frame.rowconfigure(0, weight=1)
-        sheet:Sheet = Sheet(table_frame, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
+        sheet:Sheet = Sheet(table_frame, cell_auto_resize_enabled=True, show_row_index=False, height=4096,
                             show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
                             align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                             show_dropdown_borders=False,
                             empty_vertical=15, empty_horizontal=0,
-                            popup_menu_font=FONT_SMALL, font=FONT_SMALL,
+                            popup_menu_font=FONT_SMALL, font=FONT_SMALL, index_font=FONT_SMALL,
                             arrow_key_down_right_scroll_page=True,
                             show_header=False, set_all_heights_and_widths=True, default_row_height=int(19*self.scale))
         sheet.pack(fill=tk.BOTH, padx=0, pady=(0, 5))
@@ -581,16 +582,49 @@ class ColonisationWindow:
         sheet.set_sheet_data(data)
 
         self._config_sheet(sheet, system)
-        sheet.enable_bindings('single_select', 'row_drag_and_drop', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
+        sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
         sheet.edit_validation(func=self.validate_edits)
-        sheet.extra_bindings('all_modified_events', func=partial(self.sheet_modified, sheet, tabnum))
-        sheet.extra_bindings('cell_select', func=partial(self.sheet_modified, sheet, tabnum))
-        #sheet.extra_bindings('row_drag_and_drop', func=partial(self.sheet_modified, sheet, tabnum))
+        sheet.extra_bindings(['all_modified_events', 'cell_select', 'ctrl_row_select', 'rc_delete_row', 'rc_insert_row'], func=partial(self.sheet_modified, sheet, tabnum))
+
+        sheet.popup_menu_add_command(label="Insert row above", func=partial(self._row_modified, sheet, tabnum, 'InsAbove'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
+        sheet.popup_menu_add_command(label="Insert row below", func=partial(self._row_modified, sheet, tabnum, 'InsBelow'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
+        sheet.popup_menu_add_command(label="Delete row", func=partial(self._row_modified, sheet, tabnum, 'Delete'), image=tk.PhotoImage(data=ICON_DEL), compound="left")
 
         if len(self.sheets) < tabnum:
             self.sheets.append(sheet)
         else:
             self.sheets[tabnum-1] = sheet
+
+
+    @catch_exceptions
+    def _row_modified(self, sheet:Sheet, tabnum:int, action:str) -> None:
+        """
+        Function to display a custom popup menu at the event coordinates.
+        """
+
+        selected = sheet.get_currently_selected()
+        row:int = selected.row - FIRST_BUILD_ROW                            # type: ignore
+        Debug.logger.debug(f"row_modified: {action} {selected}")
+        if row < 0: return
+
+        sysnum:int = tabnum -1
+        systems:list = self.colonisation.get_all_systems()
+        system:dict = systems[sysnum]
+
+        match action:
+            case 'InsAbove':
+                self.colonisation.add_build(system, {'BuildType': '',
+                                                     'Name': '',
+                                                     'Row': row})
+            case 'InsBelow':
+                self.colonisation.add_build(system, {'BuildType': '',
+                                                     'Name': '',
+                                                     'Row': row+1})
+            case 'Delete':
+                self.colonisation.remove_build(system, row)
+                sheet.del_row(row)
+                self._config_sheet(self.sheets[sysnum], system)
+        self.update_display()
 
 
     @catch_exceptions
@@ -939,6 +973,7 @@ class ColonisationWindow:
     @catch_exceptions
     def update_display(self) -> None:
         ''' Update the display with current system data '''
+
         systems:list = self.colonisation.get_all_systems()
         for i, tab in enumerate(self.sheets):
             system = systems[i]
@@ -968,13 +1003,7 @@ class ColonisationWindow:
     @catch_exceptions
     def sheet_modified(self, sheet:Sheet, tabnum:int, event = None) -> None:
         ''' Handle edits to the sheet. This is where we update the system data. '''
-        sysnum:int = tabnum -1
-        systems:list = self.colonisation.get_all_systems()
-        system:dict = systems[sysnum]
 
-        #Debug.logger.debug(f"Sheet modified: {event.eventname} {event.selected} {event.row},{event.column}='{event.value}'")
-
-        # Readonly if it's not our system
         sysnum:int = tabnum -1
         systems:list = self.colonisation.get_all_systems()
         system:dict = systems[sysnum]

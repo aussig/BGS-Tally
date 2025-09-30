@@ -5,8 +5,8 @@ import webbrowser
 import tkinter as tk
 import tkinter.font as tkFont
 import traceback
-import webbrowser
-from functools import partial
+from textwrap import wrap
+
 from math import ceil
 from os import path
 from tkinter import PhotoImage, messagebox, ttk
@@ -1142,7 +1142,7 @@ class ColonisationWindow:
         lbl = ttk.Label(add, text=_("When planning your system the first base is special, make sure that it is the first on the list.")) # LANG: Notice about the first base being special
         lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=0, sticky=tk.W)
         row += 1
-        lbl = ttk.Label(add, text=_("Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!")) # LANG: Notice about prepopulation being challenging
+        lbl = ttk.Label(add, text=str(wrap(_("Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!"), 70))) # LANG: Notice about prepopulation being challenging
         lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=0, sticky=tk.W)
         row += 1
 

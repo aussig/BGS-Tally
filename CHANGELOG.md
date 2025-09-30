@@ -2,7 +2,13 @@
 
 ## v5.2.0-xx - xxxx-xx-xx
 
+### New features:
 
+* Added synchronisation of marketIDs with Raven Colonial now it supports them
+
+### Bug fixes:
+
+* Fixed bug with commodity display for non-fleetcarrier owners
 
 
 ## v5.2.0-b1 - 2025-09-29

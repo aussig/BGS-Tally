@@ -74,17 +74,17 @@ class ProgressWindow:
         self.ordertts:list = [_('Alphabetical order'), _('Category order'), _('Quantity order')]
 
         self.markets:dict = {
-            'systemName' : {'Header': _('System'), 'Width': 175, 'Align': "left"},      # LANG: System Name heading
-            'stationName' : {'Header': _('Station'), 'Width': 175, 'Align': "left"},    # LANG: Station name heading
-            'distance': {'Header': _('Dist (ly)'), 'Width': 50, 'Align': "center"},     # LANG: System distance heading
-            'distanceToArrival': {'Header': _('Arr (ls)'), 'Width': 50, 'Align': "center"}, # LANG: station distance from arrival heading
-            'distance': {'Header': _('Dist (ly)'), 'Width': 50, 'Align': "center"},     # LANG: System distance heading
-            'distanceToArrival': {'Header': _('Arr (ls)'), 'Width': 50, 'Align': "center"}, # LANG: station distance from arrival heading
-            'type': {'Header': _('Type'), 'Width': 35, 'Align': "center"},              # LANG: Station type (O=Orbital, S=Surface, C=Carrier)
-            'padSize': {'Header': _('Pad'), 'Width': 35, 'Align': "center"},            # LANG: Pad size (L, M, S)
-            'count': {'Header': _('Count'), 'Width':45, 'Align': "center"},             # LANG: Count of commodities available
-            'quantity': {'Header': _('Amt (t)'), 'Width':55, 'Align': "center"},        # LANG: Tonnes of needed commodities available
-            'commodities': {'Header': _('Commodities'), 'Width': 565, 'Align': "left"}  # LANG: List of commodities available
+            'systemName' : {'header': _('System'), 'width': 175, 'align': "left"},      # LANG: System Name heading
+            'stationName' : {'header': _('Station'), 'width': 175, 'align': "left"},    # LANG: Station name heading
+            'distance': {'header': _('Dist (ly)'), 'width': 50, 'align': "center"},     # LANG: System distance heading
+            'distanceToArrival': {'header': _('Arr (ls)'), 'width': 50, 'align': "center"}, # LANG: station distance from arrival heading
+            'distance': {'header': _('Dist (ly)'), 'width': 50, 'align': "center"},     # LANG: System distance heading
+            'distanceToArrival': {'header': _('Arr (ls)'), 'width': 50, 'align': "center"}, # LANG: station distance from arrival heading
+            'type': {'header': _('Type'), 'width': 35, 'align': "center"},              # LANG: Station type (O=Orbital, S=Surface, C=Carrier)
+            'padSize': {'header': _('Pad'), 'width': 35, 'align': "center"},            # LANG: Pad size (L, M, S)
+            'count': {'header': _('Count'), 'width':45, 'align': "center"},             # LANG: Count of commodities available
+            'quantity': {'header': _('Amt (t)'), 'width':55, 'align': "center"},        # LANG: Tonnes of needed commodities available
+            'commodities': {'header': _('Commodities'), 'width': 565, 'align': "left"}  # LANG: List of commodities available
             }
 
         self.colors:dict = {'L' : '#d4edbc', 'M' : '#dbe5ff', 'O' : '#d5deeb', 'S' : '#ebe6db', 'C' : '#e6dbeb'}
@@ -382,7 +382,7 @@ class ProgressWindow:
         scale:float = config.get_int('ui_scale') / 100.00
         self.mkts_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.mkts_fr.wm_title(_("{plugin_name} - Markets Window").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the markets popup window
-        width:int = sum([v.get('Width') for v in self.markets.values()]) + 20
+        width:int = sum([v.get('width') for v in self.markets.values()]) + 20
         self.mkts_fr.geometry(f"{int(width*scale)}x{int(500*scale)}")
         self.mkts_fr.protocol("WM_DELETE_WINDOW", self.mkts_fr.destroy)
         self.mkts_fr.config(bd=2, relief=tk.FLAT)
@@ -417,7 +417,7 @@ class ProgressWindow:
         sheet.pack(fill=tk.BOTH, padx=0, pady=0)
 
         sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'sort_rows')
-        sheet.set_header_data([v['Header'] for v in self.markets.values()])
+        sheet.set_header_data([v['header'] for v in self.markets.values()])
         sheet.extra_bindings('cell_select', func=partial(self._sheet_clicked, sheet))
 
         tracked:dict = self.colonisation.get_tracked_builds()
@@ -459,8 +459,8 @@ class ProgressWindow:
         sheet.set_sheet_data(data, redraw=False)
 
         for i, (k, v) in enumerate(self.markets.items()):
-            sheet.align_columns(i, v.get('Align'))
-            sheet.column_width(i, int(v.get('Width')*scale))
+            sheet.align_columns(i, v.get('align'))
+            sheet.column_width(i, int(v.get('width')*scale))
 
         #sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
         sheet.set_all_row_heights(height=None, only_set_if_too_small=True, redraw=True)

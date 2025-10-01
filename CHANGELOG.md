@@ -6,6 +6,7 @@
 
 * Added synchronisation of marketIDs with Raven Colonial now it supports them
 * Better edit validation
+* In progress builds can be deleted from Raven Colonial
 
 ### Bug fixes:
 

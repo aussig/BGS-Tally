@@ -79,6 +79,7 @@ class ColonisationWindow:
             'Track': {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Track this build?
             'Base Type' : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
             'Layout' : {'header': _("Layout"), 'background': None, 'format': 'dropdown', 'width': 150}, # LANG: building layout
+            #Type': {'header': _('Type'), 'width': 35},                                                 # LANG: Station type (O=Orbital, S=Surface)
             'Name' : {'header': _("Base Name"), 'background': None, 'format': 'string', 'width': 175}, # LANG: name of the base
             'Body': {'header': _("Body"), 'background': None, 'format': 'dropdown', 'width': 115}, # LANG: Body the base is on or around
             'Body Type': {'header': _("Type"), 'background': None, 'format': 'string', 'width': 115}, # LANG: body type details
@@ -224,15 +225,15 @@ class ColonisationWindow:
     @catch_exceptions
     def _set_system_progress(self, tabnum:int, system:dict) -> None:
         ''' Update the tab image based on the system's progress '''
-        state:BuildState = BuildState.COMPLETE
+        tabstate:BuildState = BuildState.COMPLETE
         for b in system['Builds']:
             build_state = self.colonisation.get_build_state(b)
-            if build_state == BuildState.PLANNED and state != BuildState.PROGRESS:
-                state = BuildState.PLANNED
+            if build_state == BuildState.PLANNED and tabstate != BuildState.PROGRESS:
+                tabstate = BuildState.PLANNED
             if build_state == BuildState.PROGRESS:
-                state = BuildState.PROGRESS
+                tabstate = BuildState.PROGRESS
 
-        match state:
+        match tabstate:
             case BuildState.COMPLETE:
                 self.tabbar.notebookTab.tab(tabnum, image=self.image_tab_complete)
             case BuildState.PROGRESS:
@@ -825,16 +826,21 @@ class ColonisationWindow:
                         row.append(v if v != 0 else ' ')
 
                     case _:
-                        if name == 'State':
-                            # @TODO: Make this a progress bar
-                            if self.colonisation.get_build_state(build) == BuildState.PROGRESS and i < len(reqs):
-                                req = sum(reqs[i].values())
-                                deliv = sum(delivs[i].values())
-                                row.append(f"{int(deliv * 100 / req)}%" if req > 0 else 0)
-                            elif self.colonisation.get_build_state(build) == BuildState.COMPLETE:
-                                row.append('Complete')
-                            elif build.get('Base Type', '') != '':
-                                row.append('Planned')
+                        if name == 'State':                            
+                            match self.colonisation.get_build_state(build):
+                                case BuildState.PLANNED if build.get('Base Type', '') != '':
+                                    row.append(_("Planned"))    # LANG: Planned (not started) state for a build
+                                case BuildState.PROGRESS if i < len(reqs) and build.get('MarketID', None) != None:
+                                    # @TODO: Make this a progress bar, maybe?
+                                    req = sum(reqs[i].values())
+                                    deliv = sum(delivs[i].values())
+                                    row.append(f"{int(deliv * 100 / req)}%" if req > 0 else 0)
+                                case BuildState.PROGRESS:
+                                    row.append(_("Progress")) # LANG: In progress (building) state for a build
+                                case BuildState.COMPLETE:
+                                    row.append(_("Complete")) # LANG: Complete (finished) state for a build
+                                case _:
+                                    row.append(' ')
                             continue
 
                         if name == 'Body' and build.get('Body', None) != None and system.get('StarSystem', '') != '':

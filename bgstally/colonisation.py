@@ -1026,7 +1026,9 @@ class Colonisation:
     def save(self, cause:str = 'Unknown') -> None:
         ''' Save state to file '''
 
-        Debug.logger.debug(f"Saving: {cause}")
+        if self.bgstally.dev_mode == True:
+            Debug.logger.debug(f"Saving: {cause}")
+
         file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile, indent=4)

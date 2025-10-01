@@ -167,12 +167,12 @@ class RavenColonial:
         response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
         if response.status_code != 200:
             Debug.logger.error(f"{url} {response} {response.content}")
-        
+
         Debug.logger.info(f"RavenColonial system added {system_name}")
 
 
     @catch_exceptions
-    def complete_site(self, project_id:str) -> None:
+    def complete_project(self, project_id:str) -> None:
         """ Complete a site """
         url:str = f"{RC_API}/project/{project_id}/complete"
 
@@ -182,6 +182,19 @@ class RavenColonial:
             return
 
         Debug.logger.info(f"RavenColonial project completed {project_id}")
+
+
+    @catch_exceptions
+    def delete_project(self, project_id:str) -> None:
+        """ Delete a project """
+        url:str = f"{RC_API}/project/{project_id}"
+
+        response:Response = requests.delete(url, headers=self._headers(), timeout=5)
+        if response.status_code not in [200, 202]:
+            Debug.logger.error(f"{url} {response} {response.content}")
+            return
+
+        Debug.logger.info(f"RavenColonial project deleted {project_id}")
 
 
     @catch_exceptions
@@ -238,7 +251,6 @@ class RavenColonial:
             return
 
         payload:dict = {'update': [], 'delete':[build.get('BuildID')]}
-        Debug.logger.info(f"RavenColonial removing site {payload}")
         url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
         response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
         if response.status_code != 200:
@@ -326,7 +338,7 @@ class RavenColonial:
             if build not in new_order:
                 new_order.append(build)
 
-        Debug.logger.debug(f"New build order: {[k.get('Name', '') for k in new_order]}")
+        Debug.logger.debug(f"New build order: {[k.get('Name', '') for k in new_order]} old: {[k.get('Name', '') for k in system.get('Builds', [])]}")
         self.colonisation.modify_system(system, {'Builds': new_order})
 
 
@@ -342,7 +354,7 @@ class RavenColonial:
         system:dict = self.colonisation.find_system({'SystemAddress': data.get('id64', None),
                                                         'StarSystem': data.get('name', None)})
         if system == None:
-            Debug.logger.info(f"RavenColonial system {data.get('id64', None)} not found")
+            Debug.logger.info(f"System {data.get('id64', None)} not found")
             return
 
         if self._cache[data['id64']].get('rev', -1) == data['rev']:
@@ -396,7 +408,7 @@ class RavenColonial:
             return
 
         Debug.logger.debug(f"RavenColonial project created {data.get('buildName', 'Unknown')}")
-       
+
 
     @catch_exceptions
     def upsert_project(self, system:dict, build:dict, progress:dict) -> None:
@@ -496,7 +508,7 @@ class RavenColonial:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
 
-        Debug.logger.info(f"Project contribution accepted {project_id}")
+        Debug.logger.info(f"RavenColonial project contribution accepted {project_id}")
 
 
     @catch_exceptions
@@ -519,8 +531,8 @@ class RavenColonial:
         if success == False or response.status_code != 200:
             Debug.logger.warning(f"Error updating carrier {response} {response.content}")
             return
-        
-        Debug.logger.info(f"Carrier updated: {response}")
+
+        Debug.logger.info(f"RavenColonial carrier updated: {response}")
 
 
 

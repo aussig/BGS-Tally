@@ -5,10 +5,12 @@
 ### New features:
 
 * Added synchronisation of marketIDs with Raven Colonial now it supports them
+* Better edit validation
 
 ### Bug fixes:
 
 * Fixed bug with commodity display for non-fleetcarrier owners
+* Fixed issue with a long translation string
 
 
 ## v5.2.0-b1 - 2025-09-29

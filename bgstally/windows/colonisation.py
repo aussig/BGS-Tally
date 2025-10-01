@@ -507,7 +507,7 @@ class ColonisationWindow:
                 return
 
             notes:str = text.get("1.0", tk.END)
-            system['Notes'] = notes
+            system['Notes'] = notes.strip()
             self.colonisation.save("Notes popup close")
             self.notes_fr.destroy()
             self.notes_fr
@@ -584,7 +584,7 @@ class ColonisationWindow:
 
         self._config_sheet(sheet, system)
         sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
-        sheet.edit_validation(func=self.validate_edits)
+        sheet.edit_validation(func=partial(self._validate_edits, sheet))
         sheet.extra_bindings(['all_modified_events', 'cell_select', 'ctrl_row_select', 'rc_delete_row', 'rc_insert_row'], func=partial(self.sheet_modified, sheet, tabnum))
 
         sheet.popup_menu_add_command(label="Insert build above", func=partial(self._row_modified, sheet, tabnum, 'InsAbove'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
@@ -988,7 +988,7 @@ class ColonisationWindow:
 
 
     @catch_exceptions
-    def validate_edits(self, event = None) -> str|None:
+    def _validate_edits(self, sheet:Sheet, event = None) -> str|None:
         ''' Validate edits to the sheet. This just prevents the user from deleting the primary base type. '''
         row:int = event.row - FIRST_BUILD_ROW; col:int = event.column; val = event.value
         fields:list = list(self.detail_cols.keys())
@@ -996,6 +996,11 @@ class ColonisationWindow:
 
         if field == 'Base Type' and val == ' ' and row == 0:
             # Don't delete the primary base or let it have no type
+            return None
+
+        # Can't do this to builds that aren't in planned state
+        if field in ['Base Type', 'Layout'] and sheet.get_cell_data(event.row, self._detcol('State')) not in [' ', BuildState.PLANNED]:
+            Debug.logger.debug(f"Denied: {field} [{sheet.get_cell_data(event.row, self._detcol('State'))}]")
             return None
 
         return event.value
@@ -1019,12 +1024,21 @@ class ColonisationWindow:
             # If the user clicks on the state column, toggle the state between planned and complete.
             # If it's in progress we'll update to that on our next delivery
             if field == 'State' and row < len(system['Builds']):
-                if system['Builds'][row]['State'] == BuildState.COMPLETE or \
-                    'Base Type' not in systems[sysnum]['Builds'][row] or \
-                    systems[sysnum]['Builds'][row]['Base Type'] == ' ':
-                    self.colonisation.modify_build(system, row, {'State': BuildState.PLANNED})
-                else:
-                    self.colonisation.modify_build(system, row, {'State': BuildState.COMPLETE})
+                r:int = event.selected.row
+
+                if system['Builds'][row].get('Base Type', '') in self.colonisation.get_base_types('All'):
+                    match system['Builds'][row].get('State', ''):
+                        case BuildState.PLANNED: newstate = BuildState.PROGRESS
+                        case BuildState.PROGRESS: newstate = BuildState.COMPLETE
+                        case BuildState.COMPLETE: newstate = BuildState.PLANNED
+                    self.colonisation.modify_build(system, row, {'State': newstate})
+
+#                if system['Builds'][row]['State'] == BuildState.COMPLETE or \
+#                    'Base Type' not in systems[sysnum]['Builds'][row] or \
+#                    systems[sysnum]['Builds'][row]['Base Type'] == ' ':
+                    #self.colonisation.modify_build(system, row, {'State': BuildState.COMPLETE})
+                #else:
+                #    self.colonisation.modify_build(system, row, {'State': BuildState.PLANNED})
 
                 self.update_display()
 

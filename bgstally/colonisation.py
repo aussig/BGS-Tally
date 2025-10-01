@@ -110,9 +110,10 @@ class Colonisation:
         if entry.get('Type', None) != None: self.station = entry.get('Type')
         if entry.get('BodyType', None) == 'Station': self.station = entry.get('Body')
         if entry.get("StationName", None): self.station = entry.get('StationName')
+        if cmdr != None: self.cmdr = cmdr
         if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
 
-        Debug.logger.debug(f"Event: {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
+        Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
 
         match entry.get('event'):
             case 'StartUp': # Synthetic event.
@@ -213,8 +214,8 @@ class Colonisation:
                 if self.location != None and build.get('Location', None) != self.location: data['Location'] = self.location
                 if build_state == BuildState.PROGRESS and build.get('Track') != (build_state != BuildState.COMPLETE): data['Track'] = True
                 if data != {}:
-                    Debug.logger.debug(f"Docked updating build {self.station} in system {self.current_system} {data}")
-                    self.modify_build(system, build.get('BuildID', data['BuildID']), data)
+                    Debug.logger.debug(f"Docked updating build {self.station} in system {self.current_system} build: {build} data: {data}")
+                    self.modify_build(system, build.get('BuildID', data.get('BuildID', '')), data)
                     self.bgstally.ui.window_progress.update_display()
                     self.dirty = True
 
@@ -683,7 +684,18 @@ class Colonisation:
             RavenColonial(self).remove_site(system, int(ind))
 
         # Remove build
-        system['Builds'].pop(ind)
+        build:dict = system['Builds'].pop(ind)
+
+        # Delete the project if it's in progress
+        if system.get('RCSync', False) == True and build.get('MarketID', None) != None:
+            pid:str|None = build.get('ProjectID', None)
+            if pid == None:
+                p:dict|None = self.find_progress(build.get('MarketID', ''))
+                pid = p.get('ProjectID', None)
+
+            if pid != None:
+                RavenColonial(self).delete_project(pid)
+
         self.save('Build removed')
 
 
@@ -782,7 +794,7 @@ class Colonisation:
         # Complete the project in RC.
         p:dict|None = self.find_progress(market_id)
         if p.get('ProjectID', None) != None:
-            RavenColonial(self).complete_site(p.get('ProjectID', 0))
+            RavenColonial(self).complete_project(p.get('ProjectID', 0))
 
         # If we get here, the build is (newly) complete.
         # Since on completion the colonisation ship is removed/goes inactive and a new station is created

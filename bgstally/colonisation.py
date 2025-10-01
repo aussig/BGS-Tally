@@ -148,7 +148,7 @@ class Colonisation:
                     return
 
                 system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-                if system != None and system.get('RCSync', False) == True:
+                if system != None and system.get('Hidden', True) == False and system.get('RCSync', False) == True:
                     for progress in self.progress:
                         if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
                             rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
@@ -444,9 +444,11 @@ class Colonisation:
             if k not in self.system_keys or k == 'RCSync': continue
             system[k] = v
 
+        if data.get('Hidden', None) != None:
+            self.bgstally.ui.window_progress.update_display()
+
         # If we are hiding the system, stop tracking all builds
-        if data.get('Hidden', False) == True:
-            for build in system.get('Builds', []): build['Track'] = False
+        if system.get('Hidden', False) == True:
             self.save('Modify system, hidden')
             return
 
@@ -525,6 +527,8 @@ class Colonisation:
         ''' Get all builds that are being tracked '''
         tracked:list = []
         for system in self.get_all_systems():
+            if system.get('Hidden', False) == True:
+                continue
             for build in self.get_system_builds(system):
                 if build.get("Track", False) == True and self.get_build_state(build) != BuildState.COMPLETE:
                     b:dict = build.copy()

@@ -202,7 +202,11 @@ class ColonisationWindow:
             tabnum = sysnum + 1
             self._create_system_tab(tabnum, system)
 
-        if tabnum > 0: self.tabbar.select(1) # Select the first system tab
+        if tabnum > 0:
+            for t in range(0, tabnum-1):
+                if systems[t].get('Hidden', True) == False:
+                    break
+            self.tabbar.select(t+1) # Select the first non-hidden system tab
 
 
     @catch_exceptions
@@ -826,7 +830,7 @@ class ColonisationWindow:
                         row.append(v if v != 0 else ' ')
 
                     case _:
-                        if name == 'State':                            
+                        if name == 'State':
                             match self.colonisation.get_build_state(build):
                                 case BuildState.PLANNED if build.get('Base Type', '') != '':
                                     row.append(_("Planned"))    # LANG: Planned (not started) state for a build

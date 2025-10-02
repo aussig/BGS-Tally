@@ -1376,10 +1376,10 @@ class ColonisationWindow:
 
         # Refresh the RC data when the window is opened/created
         Debug.logger.debug(f"Reloading system {system.get('StarSystem', 'Unknown')} from {system.get('SystemAddress')}")
-        RavenColonial(self).load_system(system.get('SystemAddress', ''), system.get('Rev', ''))
+        RavenColonial(self.colonisation).load_system(system.get('SystemAddress', ''), system.get('Rev', ''))
 
         if self.bgstally.fleet_carrier.available() == True:
-            RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)
+            RavenColonial(self.colonisation).update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)
 
         # @TODO: Create a proper project sync process.
         #for b in system['Builds']:

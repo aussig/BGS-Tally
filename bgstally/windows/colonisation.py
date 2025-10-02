@@ -25,7 +25,6 @@ from thirdparty.Tooltip import ToolTip
 FILENAME_LEGEND = "colonisation_legend.txt"
 SUMMARY_HEADER_ROW = 0
 FIRST_SUMMARY_ROW = 1
-FIRST_SUMMARY_COLUMN = 4
 HEADER_ROW = 3
 FIRST_BUILD_ROW = 4
 
@@ -63,6 +62,7 @@ class ColonisationWindow:
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 3 points
             'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max': 200000}, # LANG: Cost in tonnes of cargo
             'Trips': {'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max': 260}, # LANG: Number of loads of cargo
+            'Location': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
             'Population': {'header': _("Pop"), 'background': None, 'hide': True, 'format': 'hidden'},
             'Economy': {'header': _("Economy"), 'background': None, 'hide': True, 'format': 'hidden'},
             'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population increase
@@ -79,7 +79,6 @@ class ColonisationWindow:
             'Track': {'header': _("Track"), 'background': None, 'format': 'checkbox', 'width':50}, # LANG: Track this build?
             'Base Type' : {'header': _("Base Type"), 'background': None, 'format': 'dropdown', 'width': 205}, # LANG: type of base
             'Layout' : {'header': _("Layout"), 'background': None, 'format': 'dropdown', 'width': 150}, # LANG: building layout
-            #Type': {'header': _('Type'), 'width': 35},                                                 # LANG: Station type (O=Orbital, S=Surface)
             'Name' : {'header': _("Base Name"), 'background': None, 'format': 'string', 'width': 175}, # LANG: name of the base
             'Body': {'header': _("Body"), 'background': None, 'format': 'dropdown', 'width': 115}, # LANG: Body the base is on or around
             'Body Type': {'header': _("Type"), 'background': None, 'format': 'string', 'width': 115}, # LANG: body type details
@@ -88,6 +87,7 @@ class ColonisationWindow:
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 3
             'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':75000, 'width': 75}, # LANG: As above
             'Trips':{'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max':100, 'width': 60}, # LANG: As above
+            'Location': {'header': _('Loc'), 'background': 'type', 'format': 'string', 'width': 35},    # LANG: Station location (O=Orbital, S=Surface)
             'Pad': {'header': _("Pad"), 'background': 'type', 'format': 'string', 'width': 75}, # LANG: Landing pad size
             'Facility Economy': {'header': _("Economy"), 'background': 'type', 'format': 'string', 'width': 80}, # LANG: facility economy
             'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 75}, # LANG: As above
@@ -136,7 +136,8 @@ class ColonisationWindow:
             'Orbital' : '#d5deeb', 'Surface' : '#ebe6db',
             'Starport' : '#dce9cb', 'Outpost' : '#ddebff', 'Installation' : '#ffe5a0',
             'Planetary Outpost' : "#ddf5f5", 'Planetary Port': '#c0e1ff', 'Settlement' : '#bbe1ba', 'Hub' : '#bac9e5',
-            'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc' #'#5a3286',
+            'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc', #'#5a3286',
+            'L' : '#d4edbc', 'M' : '#dbe5ff', 'O' : '#d5deeb', 'S' : '#ebe6db', 'C' : '#e6dbeb'
         }
 
         # Links to systems, bodies etc.
@@ -661,28 +662,29 @@ class ColonisationWindow:
         sheet['A3:G3'].highlight(bg=self._set_background('type', 'Complete', 1))
         sheet[HEADER_ROW].highlight(bg='lightgrey')
         # Tracking checkboxes
-        sheet['A5:A'].checkbox(state='normal', checked=False)
+        sheet[f"{num2alpha(self._detcol('Track'))}6:{num2alpha(self._detcol('Track'))}"].checkbox(state='normal', checked=False)
 
         # Base types
-        sheet['B5'].dropdown(values=[' '] + self.colonisation.get_base_types('Initial'))
-        sheet['B6:B'].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
+        sheet[f"{num2alpha(self._detcol('Base Type'))}5"].dropdown(values=[' '] + self.colonisation.get_base_types('Initial'))
+        sheet[f"{num2alpha(self._detcol('Base Type'))}6:{num2alpha(self._detcol('Base Type'))}"].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
 
         # Base layouts dropdown
-        sheet['C5'].dropdown(values=[' '] + self.colonisation.get_base_layouts('Initial'))
-        sheet['C6:C'].dropdown(values=[' '] + self.colonisation.get_base_layouts('All'))
+        sheet[f"{num2alpha(self._detcol('Layout'))}5"].dropdown(values=[' '] + self.colonisation.get_base_layouts('Initial'))
+        sheet[f"{num2alpha(self._detcol('Layout'))}6:{num2alpha(self._detcol('Layout'))}"].dropdown(values=[' '] + self.colonisation.get_base_layouts('All'))
 
         if system != None and 'Bodies' in system:
             bodies:list = self.colonisation.get_bodies(system)
             if len(bodies) > 0:
-                sheet['E5:E'].dropdown(values=[' '] + bodies)
+                sheet[f"{num2alpha(self._detcol('Body'))}5:{num2alpha(self._detcol('Body'))}"].dropdown(values=[' '] + bodies)
 
         # Make the sections readonly that users can't edit.
         sheet['A1:4'].readonly()
         sheet['B2'].readonly(False) # Except Architect
 
-        sheet['F4:T'].readonly() # Build columns from Body onwards
+        sheet[f"{num2alpha(self._detcol('Body Type'))}4:{num2alpha(len(self.detail_cols.keys())-1)}"].readonly() # Build columns from Body onwards
         # track, types, layouts, and names left.
-        sheet[f"A{FIRST_BUILD_ROW}:D"].align(align='left')
+        sheet[f"A{FIRST_BUILD_ROW}:C"].align(align='left')
+        sheet[f"E"].align(align='left')
 
 
     @catch_exceptions
@@ -830,26 +832,29 @@ class ColonisationWindow:
                         row.append(v if v != 0 else ' ')
 
                     case _:
-                        if name == 'State':
-                            match self.colonisation.get_build_state(build):
-                                case BuildState.PLANNED if build.get('Base Type', '') != '':
-                                    row.append(_("Planned"))    # LANG: Planned (not started) state for a build
-                                case BuildState.PROGRESS if i < len(reqs) and build.get('MarketID', None) != None:
-                                    # @TODO: Make this a progress bar, maybe?
-                                    req = sum(reqs[i].values())
-                                    deliv = sum(delivs[i].values())
-                                    row.append(f"{int(deliv * 100 / req)}%" if req > 0 else 0)
-                                case BuildState.PROGRESS:
-                                    row.append(_("Progress")) # LANG: In progress (building) state for a build
-                                case BuildState.COMPLETE:
-                                    row.append(_("Complete")) # LANG: Complete (finished) state for a build
-                                case _:
-                                    row.append(' ')
-                            continue
-
-                        if name == 'Body' and build.get('Body', None) != None and system.get('StarSystem', '') != '':
-                            row.append(self.colonisation.body_name(system.get('StarSystem', ''), build.get('Body')))
-                            continue
+                        match name:
+                            case 'State':
+                                match self.colonisation.get_build_state(build):
+                                    case BuildState.PLANNED if build.get('Base Type', '') != '':
+                                        row.append(_("Planned"))    # LANG: Planned (not started) state for a build
+                                    case BuildState.PROGRESS if i < len(reqs) and build.get('MarketID', None) != None:
+                                        # @TODO: Make this a progress bar, maybe?
+                                        req = sum(reqs[i].values())
+                                        deliv = sum(delivs[i].values())
+                                        row.append(f"{int(deliv * 100 / req)}%" if req > 0 else 0)
+                                    case BuildState.PROGRESS:
+                                        row.append(_("Progress")) # LANG: In progress (building) state for a build
+                                    case BuildState.COMPLETE:
+                                        row.append(_("Complete")) # LANG: Complete (finished) state for a build
+                                    case _:
+                                        row.append(' ')
+                                continue
+                            case 'Body' if build.get('Body', None) != None and system.get('StarSystem', '') != '':
+                                row.append(self.colonisation.body_name(system.get('StarSystem', ''), build.get('Body')))
+                                continue
+                            case 'Location':
+                                row.append(bt.get(name, ' ')[0:1])
+                                continue
 
                         row.append(build.get(name) if build.get(name, ' ') != ' ' else bt.get(name, ' '))
 
@@ -873,7 +878,8 @@ class ColonisationWindow:
                 if i >= len(new) or j >= len(new[i]): continue # Just in case
 
                 # Set or clear the data in the cell and the highlight
-                sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
+                Debug.logger.debug(f"{i} {j} ({details.get('format', '')}) [{new[i][j]}]")
+                sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format', '') == 'int' else new[i][j]
                 sheet[self._cell(i+srow,j)].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
 
             # Body type details

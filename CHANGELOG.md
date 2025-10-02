@@ -7,12 +7,13 @@
 * Added synchronisation of marketIDs with Raven Colonial now it supports them
 * Better edit validation
 * In progress builds can be deleted from Raven Colonial
+* Added Surface/Orbital indicator to Colonisation window
 
 ### Bug fixes:
 
 * Fixed bug with commodity display for non-fleetcarrier owners
 * Fixed issue with a long translation string
-
+* Fixed bug with deactivating the first system and removing tracking of hidden systems
 
 ## v5.2.0-b1 - 2025-09-29
 

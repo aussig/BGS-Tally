@@ -130,11 +130,12 @@ class ProgressWindow:
         row:int = 0; col:int = 0
 
         # Overall progress bar chart
-        y=tk.LabelFrame(frame, border=1, height=10)
+        scale:float = config.get_int('ui_scale') / 100.00
+        y=tk.LabelFrame(frame, border=1, height=10, width=int(398*scale))
         y.grid(row=row, column=col, columnspan=5, pady=0, sticky=tk.EW)
         y.grid_rowconfigure(0, weight=1)
         y.grid_propagate(False)
-        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=450, mode='determinate')
+        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=int(398*scale), mode='determinate')
         self.progtt:ToolTip = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
         self.progbar.grid(row=0, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW)
         self.progbar.rowconfigure(0, weight=1)
@@ -175,6 +176,7 @@ class ProgressWindow:
         table_frame.columnconfigure(0, weight=3)
         table_frame.columnconfigure(1, weight=1)
         table_frame.columnconfigure(2, weight=1)
+        table_frame.columnconfigure(3, weight=1)
         table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
         self.table_frame = table_frame
 
@@ -589,7 +591,7 @@ class ProgressWindow:
 
                 if col == 0:
                     # Shorten and display the commodity name
-                    row[col]['text'] = str_truncate(self.colonisation.get_commodity(c), 24)
+                    row[col]['text'] = str_truncate(self.colonisation.get_commodity(c), 23)
                     row[col].grid()
                     continue
 
@@ -638,9 +640,9 @@ class ProgressWindow:
             case 'Carrier': qty = carrier
         qty = max(qty, 0) # Never less than zero
         if self.units[col] == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
-            return f"{ceil(qty / self.colonisation.cargo_capacity): >12,}{_('L')}"
+            return f"{ceil(qty / self.colonisation.cargo_capacity): >10,}{_('L')}"
 
-        return f"{qty: >12,}{_('t')}"
+        return f"{qty: >10,}{_('t')}"
 
 
     def _set_weight(self, cell, w='bold') -> None:

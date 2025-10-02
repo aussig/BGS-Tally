@@ -878,7 +878,6 @@ class ColonisationWindow:
                 if i >= len(new) or j >= len(new[i]): continue # Just in case
 
                 # Set or clear the data in the cell and the highlight
-                Debug.logger.debug(f"{i} {j} ({details.get('format', '')}) [{new[i][j]}]")
                 sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format', '') == 'int' else new[i][j]
                 sheet[self._cell(i+srow,j)].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
 

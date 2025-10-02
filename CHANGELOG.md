@@ -8,12 +8,14 @@
 * Better edit validation
 * In progress builds can be deleted from Raven Colonial
 * Added Surface/Orbital indicator to Colonisation window
+* Added synchronous update when Refresh button is pressed
 
 ### Bug fixes:
 
 * Fixed bug with commodity display for non-fleetcarrier owners
 * Fixed issue with a long translation string
 * Fixed bug with deactivating the first system and removing tracking of hidden systems
+* Fixed repetetive update bug with empty values from Raven Colonial
 
 ## v5.2.0-b1 - 2025-09-29
 

@@ -10,7 +10,7 @@ from bgstally.debug import Debug
 from bgstally.utils import _, get_by_path, catch_exceptions
 
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
-RC_COOLDOWN = 60
+RC_COOLDOWN = 30
 
 EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
 EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
@@ -108,7 +108,7 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def load_system(self, id64:str|None = None, rev:str|None = None) -> None:
+    def load_system(self, id64:str|None = None, rev:str|None = None, sync:bool = False) -> None:
         """ Retrieve the rcdata data with the latest system data from RC when we start. """
 
         # Implement cooldown and revision tracking
@@ -128,7 +128,12 @@ class RavenColonial:
         #data:dict = response.json()
 
         url:str = f"{RC_API}/v2/system/{id64}"
-        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._load_callback)
+        if sync == True:  # For requested refreshes only
+            response:Response = requests.get(url, headers=self._headers(),timeout=5)
+            self._load_callback(response.status_code == 200, response)
+            return
+
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=self._load_callback)
 
 
     @catch_exceptions
@@ -343,7 +348,7 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def _load_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
+    def _load_callback(self, success:bool, response:Response, request:BGSTallyRequest|None = None) -> None:
         """ Process the results of querying RavenColonial for the system details """
         # @UNUSED?
         if success == False:
@@ -471,7 +476,7 @@ class RavenColonial:
 
         if response.content != progress.get('Updated', ''):
             url = f"{RC_API}/project/{projectid}"
-            self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=self._load_project_callback)
+            self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=self._load_project_callback)
 
 
     @catch_exceptions

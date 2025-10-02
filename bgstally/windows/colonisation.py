@@ -661,6 +661,7 @@ class ColonisationWindow:
         sheet['A2:G2'].highlight(bg=self._set_background('type', 'Planned', 1))
         sheet['A3:G3'].highlight(bg=self._set_background('type', 'Complete', 1))
         sheet[HEADER_ROW].highlight(bg='lightgrey')
+
         # Tracking checkboxes
         sheet[f"{num2alpha(self._detcol('Track'))}6:{num2alpha(self._detcol('Track'))}"].checkbox(state='normal', checked=False)
 
@@ -678,13 +679,13 @@ class ColonisationWindow:
                 sheet[f"{num2alpha(self._detcol('Body'))}5:{num2alpha(self._detcol('Body'))}"].dropdown(values=[' '] + bodies)
 
         # Make the sections readonly that users can't edit.
-        sheet['A1:4'].readonly()
+        sheet[f"{num2alpha(self._detcol('Track'))}1:4"].readonly()
         sheet['B2'].readonly(False) # Except Architect
 
         sheet[f"{num2alpha(self._detcol('Body Type'))}4:{num2alpha(len(self.detail_cols.keys())-1)}"].readonly() # Build columns from Body onwards
         # track, types, layouts, and names left.
-        sheet[f"A{FIRST_BUILD_ROW}:C"].align(align='left')
-        sheet[f"E"].align(align='left')
+        sheet[f"A{FIRST_BUILD_ROW}:D"].align(align='left')
+        #sheet[f"G"].align(align='left')
 
 
     @catch_exceptions
@@ -1365,6 +1366,7 @@ class ColonisationWindow:
     @catch_exceptions
     def _rc_refresh_system(self, tabnum:int) -> None:
         ''' Reload the current system from RavenColonial '''
+
         sysnum:int = tabnum -1
         systems:list = self.colonisation.get_all_systems()
         if sysnum > len(systems):
@@ -1376,16 +1378,10 @@ class ColonisationWindow:
 
         # Refresh the RC data when the window is opened/created
         Debug.logger.debug(f"Reloading system {system.get('StarSystem', 'Unknown')} from {system.get('SystemAddress')}")
-        RavenColonial(self.colonisation).load_system(system.get('SystemAddress', ''), system.get('Rev', ''))
+        RavenColonial(self.colonisation).load_system(system.get('SystemAddress', ''), system.get('Rev', ''), True)
 
         if self.bgstally.fleet_carrier.available() == True:
             RavenColonial(self.colonisation).update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)
-
-        # @TODO: Create a proper project sync process.
-        #for b in system['Builds']:
-        #    if b.get('State') == BuildState.PROGRESS and b.get('BuildID', None) != None:
-        #        self.rc.load_project()
-        self.update_display()
 
 
     @catch_exceptions

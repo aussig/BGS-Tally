@@ -761,11 +761,9 @@ class Colonisation:
             if k not in self.build_keys: continue
 
             if k == 'Track' and build.get(k, False) != v:
-                build[k] = v
-                changed[k] = v
                 self.bgstally.ui.window_progress.update_display()
 
-            if build.get(k, '') != v:
+            if build.get(k, '') != v and build.get(k, ' ') != v:
                 build[k] = v.strip() if isinstance(v, str) else v
                 changed[k] = v.strip() if isinstance(v, str) else v
 

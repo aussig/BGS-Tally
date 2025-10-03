@@ -9,6 +9,7 @@
 * In progress builds can be deleted from Raven Colonial
 * Added Surface/Orbital indicator to Colonisation window
 * Added synchronous update when Refresh button is pressed
+* Added recording of final build costs for bases
 
 ### Bug fixes:
 

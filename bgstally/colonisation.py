@@ -69,7 +69,7 @@ class Colonisation:
 
         # Valid keys for colonisation.json entries. These help avoid sending unnecessary data to third parties or storing unnecessary data in the save file.
         self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync', 'BuildSlots']
-        self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID']
+        self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost']
         self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
 
         # Load base commodities, types, costs, and saved data
@@ -266,7 +266,6 @@ class Colonisation:
                 # someone else finished it
                 if build.get('State') == BuildState.PROGRESS and \
                     re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
-                    Debug.logger.debug(f"Trying to complete build")
                     self.try_complete_build(build.get('MarketID', 0))
                 if self.market_id != None: build['MarketID'] = self.market_id
                 build['State'] = BuildState.COMPLETE
@@ -513,7 +512,6 @@ class Colonisation:
         # If we have a progress entry, use that
         for p in self.progress:
             if p.get('MarketID') == build.get('MarketID') and p.get('ConstructionComplete', False) == True:
-                    self.try_complete_build(p.get('MarketID'))
                     return BuildState.COMPLETE
             if p.get('MarketID') == build.get('MarketID'):
                 return BuildState.PROGRESS
@@ -804,6 +802,7 @@ class Colonisation:
         data:dict = {
             'State': BuildState.COMPLETE,
             'Track': False,
+            'TotalCost': sum(p.get('Required').values()),
             'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
         }
         data['MarketID'] = None if '$EXT_PANEL_ColonisationShip;' in build.get('Name', '') else build.get('MarketID', None)
@@ -936,6 +935,7 @@ class Colonisation:
 
         if self.dirty == False: return
         self.save('Progress update')
+        self.bgstally.ui.window_colonisation.update_display()
 
         if silent == True: return
 

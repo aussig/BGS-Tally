@@ -740,15 +740,14 @@ class ColonisationWindow:
                         totals['Planned'][name] = ' '
                         totals['Complete'][name] = human_format(system.get('Population', 0))
                     case 'Development Level':
-                        res:int = bt.get(name, 0)
-                        totals['Planned'][name] += res
-                        totals['Complete'][name] += res if self.is_build_complete(build) else 0
+                        totals['Planned'][name] += bt.get(name, 0)
+                        totals['Complete'][name] += bt.get(name, 0) if self.is_build_complete(build) else 0
                     case 'Cost' if row < len(required):
-                        res:int = sum(required[row].values())
-                        totals['Planned'][name] += res
-                        totals['Complete'][name] += res if self.is_build_complete(build) else 0
+                        rc:int = build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values())
+                        totals['Planned'][name] += rc
+                        totals['Complete'][name] += rc if self.is_build_complete(build) else 0
                     case 'Trips' if row < len(required):
-                        trips:int = ceil(sum(required[row].values()) / self.colonisation.cargo_capacity)
+                        trips:int = ceil(build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values()) / self.colonisation.cargo_capacity)
                         totals['Planned'][name] += trips
                         totals['Complete'][name] += trips if self.is_build_complete(build) else 0
                     case _ if col.get('format') == 'int':

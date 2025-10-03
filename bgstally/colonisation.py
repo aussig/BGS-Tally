@@ -42,7 +42,7 @@ class Colonisation:
     Colonisation uses the following data files:
       - otherdata/colonisation.json: Stores the current state of colonisation data, including systems, builds, and progress.
     and the following readonly data files:
-      - data/bases.json: Contains definitions of base types for colonisation.
+      - data/base_types.json: Contains definitions of base types for colonisation.
       - data/commodity.csv: Contains the list of commodities and their categories.
       - data/colonisation_legend.txt and L10n/ localized legends: Contains text for the colonisation legend popup.
     '''
@@ -776,6 +776,7 @@ class Colonisation:
 
         if changed != {}:
             Debug.logger.debug(f"Changed {changed}")
+            self.bgstally.ui.window_colonisation.update_display()
             self.save('Build modified')
 
 

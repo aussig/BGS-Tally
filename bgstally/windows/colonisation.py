@@ -989,6 +989,7 @@ class ColonisationWindow:
     @catch_exceptions
     def update_display(self) -> None:
         ''' Update the display with current system data '''
+        if self.window == None: return
 
         systems:list = self.colonisation.get_all_systems()
         for i, tab in enumerate(self.sheets):

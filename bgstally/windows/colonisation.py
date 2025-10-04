@@ -1046,15 +1046,12 @@ class ColonisationWindow:
                     match system['Builds'][row].get('State', ''):
                         case BuildState.PLANNED: newstate = BuildState.PROGRESS
                         case BuildState.PROGRESS: newstate = BuildState.COMPLETE
-                        case BuildState.COMPLETE: newstate = BuildState.PLANNED
+                        case BuildState.COMPLETE:
+                            newstate = BuildState.PLANNED
+                            for p in self.colonisation.progress:
+                                if p.get('MarketID') == system['Builds'][row].get('MarketID'):
+                                    newstate = BuildState.PROGRESS
                     self.colonisation.modify_build(system, row, {'State': newstate})
-
-#                if system['Builds'][row]['State'] == BuildState.COMPLETE or \
-#                    'Base Type' not in systems[sysnum]['Builds'][row] or \
-#                    systems[sysnum]['Builds'][row]['Base Type'] == ' ':
-                    #self.colonisation.modify_build(system, row, {'State': BuildState.COMPLETE})
-                #else:
-                #    self.colonisation.modify_build(system, row, {'State': BuildState.PLANNED})
 
                 self.update_display()
 

@@ -267,12 +267,14 @@ class Colonisation:
                 if build.get('State') == BuildState.PROGRESS and \
                     re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
                     self.try_complete_build(build.get('MarketID', 0))
-                if self.market_id != None: build['MarketID'] = self.market_id
+                data:dict = {}
+                if self.market_id != None: data['MarketID'] = self.market_id
                 build['State'] = BuildState.COMPLETE
-                if self.station != None: build['Name'] = self.station
-                if self.body != None: build['Body'] = self.body
-                build['Track'] = False
-                self.dirty = True
+                if self.station != None: data['Name'] = self.station
+                if self.body != None: data['Body'] = self.body
+                if build.get('Track', False) == True: data['Track'] = False
+                if data != {}:
+                    self.modify_build(system, build.get('BuildID', data.get('BuildID', '')), data)
 
             case 'Undocked':
                 self.market = {}
@@ -511,8 +513,8 @@ class Colonisation:
 
         # If we have a progress entry, use that
         for p in self.progress:
-            if p.get('MarketID') == build.get('MarketID') and p.get('ConstructionComplete', False) == True:
-                    return BuildState.COMPLETE
+            #if p.get('MarketID') == build.get('MarketID') and p.get('ConstructionComplete', False) == True:
+            #        return BuildState.COMPLETE
             if p.get('MarketID') == build.get('MarketID'):
                 return BuildState.PROGRESS
 

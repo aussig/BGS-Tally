@@ -658,6 +658,7 @@ class Colonisation:
             RavenColonial(self).upsert_site(system, data)
 
         self.save('Build added')
+        self.bgstally.ui.window_colonisation.update_display()
 
         return data
 
@@ -777,9 +778,8 @@ class Colonisation:
                     RavenColonial(self).upsert_project(system, build, p)
 
         if changed != {}:
-            Debug.logger.debug(f"Changed {changed}")
-            self.bgstally.ui.window_colonisation.update_display()
             self.save('Build modified')
+            self.bgstally.ui.window_colonisation.update_display()
 
 
     @catch_exceptions

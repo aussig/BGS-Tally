@@ -467,6 +467,7 @@ class Colonisation:
             system['RCSync'] = data.get('RCSync', system.get('RCSync', False))
 
         self.save('Modify system')
+        self.bgstally.ui.window_colonisation.update_display()
 
 
     @catch_exceptions
@@ -664,7 +665,7 @@ class Colonisation:
 
 
     @catch_exceptions
-    def remove_build(self, system:dict|int, ind:int|str) -> None:
+    def remove_build(self, system:dict|int, ind:int|str, silent:bool = False) -> None:
         ''' Remove a build from a system '''
         if isinstance(system, int): system = dict(self.systems[system])
 
@@ -685,7 +686,7 @@ class Colonisation:
             Debug.logger.warning(f"Cannot remove build - invalid build index: {ind} {len(system['Builds'])} {system['Builds']}")
             return
 
-        if system.get('RCSync', False) == True:
+        if silent == False and system.get('RCSync', False) == True:
             RavenColonial(self).remove_site(system, int(ind))
 
         # Remove build

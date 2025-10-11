@@ -129,7 +129,7 @@ class RavenColonial:
 
         url:str = f"{RC_API}/v2/system/{id64}"
         if sync == True:  # For requested refreshes only
-            response:Response = requests.get(url, headers=self._headers(),timeout=5)
+            response:Response = requests.get(url, headers=self._headers(), timeout=5)
             self._load_callback(response.status_code == 200, response)
             return
 
@@ -239,7 +239,7 @@ class RavenColonial:
 
         # Refresh the system info
         self.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
-        Debug.logger.info(f"RavenColonial site upserted {data.get('Name', '')}")
+        Debug.logger.info(f"RavenColonial site upserted {data.get('Name', '')} {update}")
 
 
     @catch_exceptions
@@ -285,21 +285,29 @@ class RavenColonial:
             Debug.logger.debug(f"Changes found, modifyng system {mod}")
             self.colonisation.modify_system(system, mod)
 
+        tmp:list = system.get('Builds', []).copy()
         for site in data.get('sites', []):
             # A site whose id has become the project id (this is how we find projectids if we're missing them)
             if not re.match(r"^[&x]\d+$", site.get('id', '')) and self.colonisation.find_progress(site.get('id')) != None:
                 build = self.colonisation.find_build(system, {'Name': site.get('name')})
-                if build != None and build.get('MarketID', None) != None: self.colonisation.update_progress(build.get('MarketID'), {'ProjectID' : site.get('id')}, True)
+                if build != None and build.get('MarketID', None) != None:
+                    self.colonisation.update_progress(build.get('MarketID'), {'ProjectID' : site.get('id')}, True)
             else:
                 build = self.colonisation.find_build(system, {'BuildID' : site.get('id', -1), 'Name': site.get('name', -1), 'BodyNum': site.get('bodyNum', -1)})
+
+            if build != None:
+                tmp.remove(build)
 
             # Avoid creating leftover construction sites
             if build == None and 'Construction Site' in site.get('name', ''):
                 if self.colonisation.find_build(system, {'Name': re.sub(r".* Construction Site: ", "", site.get('name'))}) != None:
                     continue
 
-            if build == None: build = {}
-            self._sync_build(system, build, site)
+            self._sync_build(system, build if build != None else {}, site)
+
+        # Remove any bnuilds that are no longer in RC
+        for b in tmp:
+            self.colonisation.remove_build(system, b.get('BuildID', ''), True)
 
         self._reorder_builds(system, data.get('sites', []))
 

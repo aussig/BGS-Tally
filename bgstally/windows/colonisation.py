@@ -204,6 +204,7 @@ class ColonisationWindow:
             self._create_system_tab(tabnum, system)
 
         if tabnum > 0:
+            t = 0
             for t in range(0, tabnum-1):
                 if systems[t].get('Hidden', True) == False:
                     break
@@ -904,7 +905,8 @@ class ColonisationWindow:
             if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Name')] != '' and \
                 new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Body')] != ' ' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
                 # Base type
-                if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
+                if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types() and \
+                    new[i][self._detcol('Layout')] in self.colonisation.get_base_layouts(): # Base type has been set so make it readonly
                     for cell in ['Base Type', 'Layout']:
                         sheet[self._cell(i+srow,self._detcol(cell))].del_dropdown()
                         sheet[self._cell(i+srow,self._detcol(cell))].readonly()
@@ -999,7 +1001,6 @@ class ColonisationWindow:
             self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
             # Not our system? Then it's readonly
             if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
-                Debug.logger.debug(f"Setting readonly due to {self.colonisation.cmdr} != {system.get('Architect', None)}")
                 self.sheets[i]['B1:Z'].readonly()
 
 
@@ -1012,11 +1013,6 @@ class ColonisationWindow:
 
         if field == 'Base Type' and val == ' ' and row == 0:
             # Don't delete the primary base or let it have no type
-            return None
-
-        # Can't do this to builds that aren't in planned state
-        if field in ['Base Type', 'Layout'] and sheet.get_cell_data(event.row, self._detcol('State')) not in [' ', BuildState.PLANNED]:
-            Debug.logger.debug(f"Denied: {field} [{sheet.get_cell_data(event.row, self._detcol('State'))}]")
             return None
 
         return event.value

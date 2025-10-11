@@ -305,8 +305,9 @@ class RavenColonial:
 
             self._sync_build(system, build if build != None else {}, site)
 
-        # Remove any bnuilds that are no longer in RC
+        # Remove any planned builds that are no longer in RC, leave in progress or completed alone
         for b in tmp:
+            if b.get('State', '') != BuildState.PLANNED: continue
             self.colonisation.remove_build(system, b.get('BuildID', ''), True)
 
         self._reorder_builds(system, data.get('sites', []))

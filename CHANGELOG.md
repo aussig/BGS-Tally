@@ -10,6 +10,7 @@
 * Added Surface/Orbital indicator to Colonisation window
 * Added synchronous update when Refresh button is pressed
 * Added recording of final build costs for bases
+* Added removal of planned builds that have been removed in RC.
 
 ### Bug fixes:
 

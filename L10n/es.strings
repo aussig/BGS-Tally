@@ -775,6 +775,9 @@
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Viajes";
 
+/* Station location (O=Orbital, S=Surface). [colonisation.py] */
+"Loc" = "Loc";
+
 /* base location surface/orbital. [colonisation.py] */
 "Location" = "Ubicación";
 
@@ -1001,7 +1004,7 @@
 "Pre-fill bases" = "Pre-fill bases";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Conteos anteriores de BGS";
@@ -1021,7 +1024,7 @@
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
 "Profit at Z | L | M | H demand" = "Beneficio con demanda Z | L | M | H";
 
-/* progress tooltip. [progress.py] */
+/* In progress (building) state for a build. [colonisation.py] */
 "Progress" = "Progreso";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */

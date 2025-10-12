@@ -1004,7 +1004,7 @@
 "Pre-fill bases" = "Precompilazione di base";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "La precompilazione richiede il nome del sistema, può dare risultati variabili e probabilmente richiederà di selezionare manualmente il tipo di base. Usare con cautela!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Report BGS Precedenti";

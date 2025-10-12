@@ -1,6 +1,6 @@
 # Change Log
 
-## v5.2.0-xx - xxxx-xx-xx
+## v5.2.0-b2 - 2025-10-12
 
 ### New features:
 
@@ -18,6 +18,7 @@
 * Fixed issue with a long translation string
 * Fixed bug with deactivating the first system and removing tracking of hidden systems
 * Fixed repetetive update bug with empty values from Raven Colonial
+
 
 ## v5.2.0-b1 - 2025-09-29
 
@@ -37,17 +38,6 @@
 
 * `/activites` endpoint: `influence` percentage added to faction information for each faction.
 
-### New features:
-
-* Colonisation: Added insert & remove menu options for adding/deleting builds
-
-### Bug fixes:
-
-* Fixed fleet carrier cargo bug
-* Improved migration of data
-* Fixed an overlay runtime error
-* Swapped order of planned and completed to be more logical
-* Small fixes for creating plans when logged out
 
 ## v5.2.0-a2 - 2025-09-20
 

@@ -77,7 +77,7 @@
 "Amount remaining to be delivered" = "Quantità residua da consegnare";
 
 /* Tonnes of needed commodities available. [progress.py] */
-"Amt (t)" = "Amt (t)";
+"Amt (t)" = "Quan (t)";
 
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API modificata, apri le impostazioni per riapprovarla";
@@ -161,7 +161,7 @@
 "Bounty vouchers" = "Bounty vouchers";
 
 /* Building layout types. [colonisation.py] */
-"Building Layouts (click for details)" = "Building Layouts (click for details)";
+"Building Layouts (click for details)" = "Layout della costruzione (clicca per i dettagli)";
 
 /* Building type. [colonisation.py] */
 "Building Type" = "Tipo di Costruzione";
@@ -245,7 +245,7 @@
 "Commercial Outpost" = "Commercial Outpost";
 
 /* List of commodities available. [progress.py] */
-"Commodities" = "Commodities";
+"Commodities" = "Commodity";
 
 /* Commodity. [progress.py] */
 "Commodity" = "Commodity";
@@ -293,7 +293,7 @@
 "Cost" = "Costo";
 
 /* Count of commodities available. [progress.py] */
-"Count" = "Count";
+"Count" = "Quantità";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Criminal Outpost" = "Criminal Outpost";
@@ -775,6 +775,9 @@
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Carichi";
 
+/* Station location (O=Orbital, S=Surface). [colonisation.py] */
+"Loc" = "Loc";
+
 /* base location surface/orbital. [colonisation.py] */
 "Location" = "Posizione";
 
@@ -869,7 +872,7 @@
 "No" = "No";
 
 /* No builds or commodities being tracked. [progress.py] */
-"No builds or commodities being tracked" = "No builds or commodities being tracked";
+"No builds or commodities being tracked" = "Nessuna build o commodity monitorata";
 
 /* No colonisation data available. [progress.py] */
 "No colonisation data available" = "Nessun dato di colonizzazione disponibile";
@@ -893,7 +896,7 @@
 "On-ground Conflict Zone" = "Zona di conflitto a terra";
 
 /* Open Element In Selected Provider. [colonisation.py] */
-"Open in {w}" = "Open in {w}";
+"Open in {w}" = "Apri in {w}";
 
 /* Indicates the field is optional and case-sensitive. [colonisation.py] */
 "optional and case sensitive" = "facoltativo e sensibile alle maiuscole";
@@ -1001,7 +1004,7 @@
 "Pre-fill bases" = "Precompilazione di base";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!" = "La precompilazione richiede il nome del sistema, può dare risultati variabili e probabilmente richiederà di selezionare manualmente\nil tipo di base. Usare con cautela!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Report BGS Precedenti";
@@ -1021,7 +1024,7 @@
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
 "Profit at Z | L | M | H demand" = "Profitto per domanda Z | L | M | H";
 
-/* progress tooltip. [progress.py] */
+/* In progress (building) state for a build. [colonisation.py] */
 "Progress" = "Progresso";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */
@@ -1319,7 +1322,7 @@
 "State" = "Stato";
 
 /* Station name heading. [progress.py] */
-"Station" = "Station";
+"Station" = "Stazione";
 
 /* Number of ground/surface builds. [colonisation.py] */
 "Surface" = "Planetario";
@@ -1568,7 +1571,7 @@
 "{plugin_name} - Icon Legend" = "{plugin_name} - Legenda Delle Icone";
 
 /* Title of the markets popup window. [progress.py] */
-"{plugin_name} - Markets Window" = "{plugin_name} - Markets Window";
+"{plugin_name} - Markets Window" = "{plugin_name} - Finestra Mercati";
 
 /* Objectives window title. [objectives.py] */
 "{plugin_name} - Objectives" = "{plugin_name} - Obiettivi";

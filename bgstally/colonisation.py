@@ -42,7 +42,7 @@ class Colonisation:
     Colonisation uses the following data files:
       - otherdata/colonisation.json: Stores the current state of colonisation data, including systems, builds, and progress.
     and the following readonly data files:
-      - data/bases.json: Contains definitions of base types for colonisation.
+      - data/base_types.json: Contains definitions of base types for colonisation.
       - data/commodity.csv: Contains the list of commodities and their categories.
       - data/colonisation_legend.txt and L10n/ localized legends: Contains text for the colonisation legend popup.
     '''
@@ -69,7 +69,7 @@ class Colonisation:
 
         # Valid keys for colonisation.json entries. These help avoid sending unnecessary data to third parties or storing unnecessary data in the save file.
         self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync', 'BuildSlots']
-        self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID']
+        self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost']
         self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
 
         # Load base commodities, types, costs, and saved data
@@ -110,9 +110,10 @@ class Colonisation:
         if entry.get('Type', None) != None: self.station = entry.get('Type')
         if entry.get('BodyType', None) == 'Station': self.station = entry.get('Body')
         if entry.get("StationName", None): self.station = entry.get('StationName')
+        if cmdr != None: self.cmdr = cmdr
         if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
 
-        Debug.logger.debug(f"Event: {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
+        #Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
 
         match entry.get('event'):
             case 'StartUp': # Synthetic event.
@@ -147,7 +148,7 @@ class Colonisation:
                     return
 
                 system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-                if system != None and system.get('RCSync', False) == True:
+                if system != None and system.get('Hidden', True) == False and system.get('RCSync', False) == True:
                     for progress in self.progress:
                         if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
                             rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
@@ -213,8 +214,8 @@ class Colonisation:
                 if self.location != None and build.get('Location', None) != self.location: data['Location'] = self.location
                 if build_state == BuildState.PROGRESS and build.get('Track') != (build_state != BuildState.COMPLETE): data['Track'] = True
                 if data != {}:
-                    Debug.logger.debug(f"Docked updating build {self.station} in system {self.current_system} {data}")
-                    self.modify_build(system, build.get('BuildID', data['BuildID']), data)
+                    Debug.logger.debug(f"Docked updating build {self.station} in system {self.current_system} build: {build} data: {data}")
+                    self.modify_build(system, build.get('BuildID', data.get('BuildID', '')), data)
                     self.bgstally.ui.window_progress.update_display()
                     self.dirty = True
 
@@ -265,14 +266,15 @@ class Colonisation:
                 # someone else finished it
                 if build.get('State') == BuildState.PROGRESS and \
                     re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
-                    Debug.logger.debug(f"Trying to complete build")
                     self.try_complete_build(build.get('MarketID', 0))
-                if self.market_id != None: build['MarketID'] = self.market_id
+                data:dict = {}
+                if self.market_id != None: data['MarketID'] = self.market_id
                 build['State'] = BuildState.COMPLETE
-                if self.station != None: build['Name'] = self.station
-                if self.body != None: build['Body'] = self.body
-                build['Track'] = False
-                self.dirty = True
+                if self.station != None: data['Name'] = self.station
+                if self.body != None: data['Body'] = self.body
+                if build.get('Track', False) == True: data['Track'] = False
+                if data != {}:
+                    self.modify_build(system, build.get('BuildID', data.get('BuildID', '')), data)
 
             case 'Undocked':
                 self.market = {}
@@ -443,9 +445,11 @@ class Colonisation:
             if k not in self.system_keys or k == 'RCSync': continue
             system[k] = v
 
+        if data.get('Hidden', None) != None:
+            self.bgstally.ui.window_progress.update_display()
+
         # If we are hiding the system, stop tracking all builds
-        if data.get('Hidden', False) == True:
-            for build in system.get('Builds', []): build['Track'] = False
+        if system.get('Hidden', False) == True:
             self.save('Modify system, hidden')
             return
 
@@ -463,6 +467,7 @@ class Colonisation:
             system['RCSync'] = data.get('RCSync', system.get('RCSync', False))
 
         self.save('Modify system')
+        self.bgstally.ui.window_colonisation.update_display()
 
 
     @catch_exceptions
@@ -509,9 +514,8 @@ class Colonisation:
 
         # If we have a progress entry, use that
         for p in self.progress:
-            if p.get('MarketID') == build.get('MarketID') and p.get('ConstructionComplete', False) == True:
-                    self.try_complete_build(p.get('MarketID'))
-                    return BuildState.COMPLETE
+            #if p.get('MarketID') == build.get('MarketID') and p.get('ConstructionComplete', False) == True:
+            #        return BuildState.COMPLETE
             if p.get('MarketID') == build.get('MarketID'):
                 return BuildState.PROGRESS
 
@@ -524,6 +528,8 @@ class Colonisation:
         ''' Get all builds that are being tracked '''
         tracked:list = []
         for system in self.get_all_systems():
+            if system.get('Hidden', False) == True:
+                continue
             for build in self.get_system_builds(system):
                 if build.get("Track", False) == True and self.get_build_state(build) != BuildState.COMPLETE:
                     b:dict = build.copy()
@@ -653,12 +659,13 @@ class Colonisation:
             RavenColonial(self).upsert_site(system, data)
 
         self.save('Build added')
+        self.bgstally.ui.window_colonisation.update_display()
 
         return data
 
 
     @catch_exceptions
-    def remove_build(self, system:dict|int, ind:int|str) -> None:
+    def remove_build(self, system:dict|int, ind:int|str, silent:bool = False) -> None:
         ''' Remove a build from a system '''
         if isinstance(system, int): system = dict(self.systems[system])
 
@@ -679,11 +686,22 @@ class Colonisation:
             Debug.logger.warning(f"Cannot remove build - invalid build index: {ind} {len(system['Builds'])} {system['Builds']}")
             return
 
-        if system.get('RCSync', False) == True:
+        if silent == False and system.get('RCSync', False) == True:
             RavenColonial(self).remove_site(system, int(ind))
 
         # Remove build
-        system['Builds'].pop(ind)
+        build:dict = system['Builds'].pop(ind)
+
+        # Delete the project if it's in progress
+        if system.get('RCSync', False) == True and build.get('MarketID', None) != None:
+            pid:str|None = build.get('ProjectID', None)
+            if pid == None:
+                p:dict|None = self.find_progress(build.get('MarketID', ''))
+                pid = p.get('ProjectID', None)
+
+            if pid != None:
+                RavenColonial(self).delete_project(pid)
+
         self.save('Build removed')
 
 
@@ -745,11 +763,9 @@ class Colonisation:
             if k not in self.build_keys: continue
 
             if k == 'Track' and build.get(k, False) != v:
-                build[k] = v
-                changed[k] = v
                 self.bgstally.ui.window_progress.update_display()
 
-            if build.get(k, '') != v:
+            if build.get(k, '') != v and build.get(k, ' ') != v:
                 build[k] = v.strip() if isinstance(v, str) else v
                 changed[k] = v.strip() if isinstance(v, str) else v
 
@@ -763,8 +779,8 @@ class Colonisation:
                     RavenColonial(self).upsert_project(system, build, p)
 
         if changed != {}:
-            Debug.logger.debug(f"Changed {changed}")
             self.save('Build modified')
+            self.bgstally.ui.window_colonisation.update_display()
 
 
     @catch_exceptions
@@ -782,7 +798,7 @@ class Colonisation:
         # Complete the project in RC.
         p:dict|None = self.find_progress(market_id)
         if p.get('ProjectID', None) != None:
-            RavenColonial(self).complete_site(p.get('ProjectID', 0))
+            RavenColonial(self).complete_project(p.get('ProjectID', 0))
 
         # If we get here, the build is (newly) complete.
         # Since on completion the colonisation ship is removed/goes inactive and a new station is created
@@ -790,6 +806,7 @@ class Colonisation:
         data:dict = {
             'State': BuildState.COMPLETE,
             'Track': False,
+            'TotalCost': sum(p.get('Required').values()),
             'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
         }
         data['MarketID'] = None if '$EXT_PANEL_ColonisationShip;' in build.get('Name', '') else build.get('MarketID', None)
@@ -922,6 +939,7 @@ class Colonisation:
 
         if self.dirty == False: return
         self.save('Progress update')
+        self.bgstally.ui.window_colonisation.update_display()
 
         if silent == True: return
 
@@ -1014,7 +1032,9 @@ class Colonisation:
     def save(self, cause:str = 'Unknown') -> None:
         ''' Save state to file '''
 
-        Debug.logger.debug(f"Saving: {cause}")
+        if self.bgstally.dev_mode == True:
+            Debug.logger.debug(f"Saving: {cause}")
+
         file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile, indent=4)

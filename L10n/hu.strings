@@ -22,6 +22,9 @@
 /* Add/create a new system. [colonisation.py] */
 "Add" = "Add";
 
+/* add plan. [colonisation.py] */
+"Add Plan" = "Add Plan";
+
 /* CMDR information. [targetmanager.py] */
 "Added a friend" = "Barát hozzáadva";
 
@@ -58,6 +61,24 @@
 /* all tracked builds. [progress.py] */
 "All builds" = "All builds";
 
+/* [progress.py] */
+"Alphabetical order" = "Alphabetical order";
+
+/* Cargo amount tooltip. [progress.py] */
+"Amount in current cargo" = "Amount in current cargo";
+
+/* Carrier amount tooltip. [progress.py] */
+"Amount in linked fleet carrier(s)" = "Amount in linked fleet carrier(s)";
+
+/* Amount left to buy. [progress.py] */
+"Amount left to buy" = "Amount left to buy";
+
+/* Amount remaining tooltip. [progress.py] */
+"Amount remaining to be delivered" = "Amount remaining to be delivered";
+
+/* Tonnes of needed commodities available. [progress.py] */
+"Amt (t)" = "Amt (t)";
+
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API megváltozott, nyisd ki a beállításokat, hogy ismét engedélyezd";
 
@@ -73,11 +94,17 @@
 /* Label on API settings window. [api.py] */
 "Approved by you" = "Ön által engedélyezve";
 
+/* System architect heading. [colonisation.py] */
+"Architect" = "Architect";
+
 /* Preferences force tick text. [ui.py] */
 "Are you sure that you want to do this?" = "Biztos vagy benne, hogy ezt akarod?";
 
 /* [colonisation.py] */
 "Are you sure you want to remove this system?" = "Are you sure you want to remove this system?";
+
+/* station distance from arrival heading. [progress.py] */
+"Arr (ls)" = "Arr (ls)";
 
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "A lent említett információért fordulj a szerver adminisztrátorhoz majd nyomb meg \"Kapcsolat létrehozása\" gombot a fojtatáshoz. Népszerú szerverekhez vannak előre készített gombok, de a saját egyedi API kulcsodat meg kell adnod.";
@@ -134,7 +161,7 @@
 "Bounty vouchers" = "Vérdíjak";
 
 /* Building layout types. [colonisation.py] */
-"Building Layouts" = "Building Layouts";
+"Building Layouts (click for details)" = "Building Layouts (click for details)";
 
 /* Building type. [colonisation.py] */
 "Building Type" = "Building Type";
@@ -169,7 +196,7 @@
 /* Discord fleet carrier section heading. [fleetcarrier.py] */
 "Cargo:" = "Cargo:";
 
-/* Amount in your Fleet Carrier. [progress.py] */
+/* Carrier amount. [progress.py] */
 "Carrier" = "Carrier";
 
 /* Discord fleet carrier title. [fleetcarrier.py] */
@@ -193,6 +220,9 @@
 /* [sheet_options.py] */
 "Clear contents" = "Tartalom törlése";
 
+/* [progress.py] */
+"click to copy to clipboard" = "click to copy to clipboard";
+
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "CMDR Részletek";
 
@@ -213,6 +243,9 @@
 
 /* Colonisation 'Type' [base_types.json] */
 "Commercial Outpost" = "Commercial Outpost";
+
+/* List of commodities available. [progress.py] */
+"Commodities" = "Commodities";
 
 /* Commodity. [progress.py] */
 "Commodity" = "Commodity";
@@ -245,10 +278,7 @@
 "Copy" = "Másolás";
 
 /* [sheet_options.py] */
-"Copy contents" = "Tartalom másolása";
-
-/* tooltip for the copy to clipboard icon. [colonisation.py] */
-"Copy system name to clipboard" = "Copy system name to clipboard";
+"Copy text" = "Copy text";
 
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Másolás a vágólapra";
@@ -262,6 +292,9 @@
 /* Cost in tonnes of cargo. [colonisation.py] */
 "Cost" = "Cost";
 
+/* Count of commodities available. [progress.py] */
+"Count" = "Count";
+
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Criminal Outpost" = "Criminal Outpost";
 
@@ -272,7 +305,7 @@
 "Critically wounded evacuation missions" = "Kritikusan sérültet evakuáló küldetés";
 
 /* tooltip for the build name. [progress.py] */
-"Current build, click to copy to clipboard" = "Current build, click to copy to clipboard";
+"Current build" = "Current build";
 
 /* [fleetcarrier.py] */
 "Current System" = "Jelenlegi Rendszer";
@@ -283,14 +316,8 @@
 /* [widgets.py] */
 "Cut" = "Kivágás";
 
-/* [sheet_options.py] */
-"Cut contents" = "Tartalom kivágása";
-
 /* tooltip for the commodity header. [progress.py] */
 "Cycle commodity list details" = "Cycle commodity list details";
-
-/* tooltip for the column headings in the progress view indicating that clicking on the headings will cycle through the available views. [progress.py] */
-"Cycle commodity list filter views" = "Cycle commodity list filter views";
 
 /* CMDR window column title. [cmdrs.py] */
 "Date / Time" = "Dátum / Idő";
@@ -298,13 +325,16 @@
 /* Discord heading. [cmdrs.py] */
 "Date and Time" = "Dátum és idő";
 
+/* Label for checkbox to remove a plan from the tab list. [colonisation.py] */
+"Deactivate (hide) this plan" = "Deactivate (hide) this plan";
+
 /* any decrease effects for the base. [colonisation.py] */
 "Decreased By" = "Decreased By";
 
 /* [ui.py] */
 "Default" = "Alapértelmezett";
 
-/* Delete button. [colonisation.py] */
+/* [sheet_options.py] */
 "Delete" = "Törlés";
 
 /* [sheet_options.py] */
@@ -319,7 +349,7 @@
 /* tooltip for the delete system button. [colonisation.py] */
 "Delete system plan" = "Delete system plan";
 
-/* Amount delivered. [progress.py] */
+/* Delivered amount. [progress.py] */
 "Delivered" = "Delivered";
 
 /* [demo.py] */
@@ -352,6 +382,9 @@
 /* Preferences heading. [ui.py] */
 "Discord Webhooks" = "Discord webhookok";
 
+/* System distance heading. [progress.py] */
+"Dist (ly)" = "Dist (ly)";
+
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Dokkolás";
 
@@ -372,6 +405,12 @@
 
 /* [sheet_options.py] */
 "Edit index" = "Index szerkesztése";
+
+/* Rename a system. [colonisation.py] */
+"Edit System" = "Edit System";
+
+/* tooltip for the edit system button. [colonisation.py] */
+"Edit system plan" = "Edit system plan";
 
 /* [clb.py] */
 "Election Inf" = "Választási Bef";
@@ -508,6 +547,9 @@
 /* Discord heading. [default.py] */
 "GroundMurders" = "FelszíniGyilk";
 
+/* tooltip for the hide system button. [colonisation.py] */
+"Hide system plan" = "Hide system plan";
+
 /* Activity window tooltip. [activity.py] */
 "High" = "Magas";
 
@@ -579,9 +621,6 @@
 
 /* Overlay CMDR information report message. [ui.py] */
 "INARA INFORMATION AVAILABLE" = "INARA INFO ELÉRHETŐ";
-
-/* Inara link. [activity.py] */
-"Inara ⤴" = "Inara ⤴";
 
 /* Label on CMDR window. [cmdrs.py] */
 "Inara: " = "Inara: ";
@@ -712,8 +751,14 @@
 /* Button label. [ui.py] */
 "Latest BGS Tally" = "Legutóbbi BGS összegzés";
 
+/* building layout. [colonisation.py] */
+"Layout" = "Layout";
+
 /* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
 "Left click for Inara market, right click to copy" = "Left click for Inara market, right click to copy";
+
+/* tooltip for the copy to clipboard icon. [colonisation.py] */
+"Left click view system, right click menu" = "Left click view system, right click menu";
 
 /* CMDR window column title. [cmdrs.py] */
 "Legal" = "Legális";
@@ -724,8 +769,14 @@
 /* Overlay CMDR information report message. [ui.py] */
 "Legal status: {legal}" = "Legalitás helyzete: {legal}";
 
+/* tooltip for ravencolonial link. [colonisation.py] */
+"Link to RavenColonial" = "Link to RavenColonial";
+
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Loads";
+
+/* Station location (O=Orbital, S=Surface). [colonisation.py] */
+"Loc" = "Loc";
 
 /* base location surface/orbital. [colonisation.py] */
 "Location" = "Location";
@@ -741,6 +792,9 @@
 
 /* [legend.py] */
 "Massacre missions" = "Mészároló küldetések";
+
+/* Preferences label. [ui.py] */
+"Maximum commodities" = "Maximum commodities";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Medical" = "Medical";
@@ -808,9 +862,6 @@
 /* Label on CMDR window. [cmdrs.py] */
 "Name: " = "Név: ";
 
-/* Amount still needed. [progress.py] */
-"Needed" = "Needed";
-
 /* Overlay message. [bgstally.py] */
 "NEW TICK DETECTED!" = "ÚJ TICK ÉSZLELVE!";
 
@@ -820,10 +871,13 @@
 /* [fleetcarrier.py] */
 "No" = "Nem";
 
+/* No builds or commodities being tracked. [progress.py] */
+"No builds or commodities being tracked" = "No builds or commodities being tracked";
+
 /* No colonisation data available. [progress.py] */
 "No colonisation data available" = "No colonisation data available";
 
-/* Discord carrier docking access. [fleetcarrier.py] */
+/* Default power name if none. [activity.py] */
 "None" = "Senki";
 
 /* Discord heading. [fleetcarrier.py] */
@@ -840,6 +894,9 @@
 
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Felszíni konfliktus zóna";
+
+/* Open Element In Selected Provider. [colonisation.py] */
+"Open in {w}" = "Open in {w}";
 
 /* Indicates the field is optional and case-sensitive. [colonisation.py] */
 "optional and case sensitive" = "optional and case sensitive";
@@ -876,9 +933,6 @@
 
 /* [widgets.py] */
 "Paste" = "Beilleszt";
-
-/* Percentage. [progress.py] */
-"Percent" = "Percent";
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "{system_name} kitűzése az Átfedésre";
@@ -940,8 +994,14 @@
 /* Discord message footer, legacy text mode. [discord.py] */
 "Posted at: {date_time} | {plugin_name} v{version}" = "Küldve: {date_time} | {plugin_name} v{version}";
 
-/* Label for checkbox to pre-populate bases from EDSM. [colonisation.py] */
-"Pre-fill bases from EDSM" = "Pre-fill bases from EDSM";
+/* Discord post title. [activity.py] */
+"Powerplay Activity after Tick: {tick_time}" = "Powerplay Activity after Tick: {tick_time}";
+
+/* [default.py] */
+"Powerplay Merits" = "Powerplay Merits";
+
+/* Label for checkbox to pre-populate bases. [colonisation.py] */
+"Pre-fill bases" = "Pre-fill bases";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
 "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
@@ -964,17 +1024,29 @@
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
 "Profit at Z | L | M | H demand" = "Profit Z | L | M | H kereslet esetén";
 
-/* [progress.py] */
+/* In progress (building) state for a build. [colonisation.py] */
 "Progress" = "Progress";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */
 "Purch" = "Vás.";
 
+/* Amount to buy. [progress.py] */
+"Purchase" = "Purchase";
+
 /* Activity window tooltip for purchase at low | medium | high supply. [activity.py] */
 "Purchase at L | M | H supply" = "Vásárlás L | M | H kínálat esetén";
 
+/* [ui.py] */
+"RavenColonial API Key" = "RavenColonial API Key";
+
 /* Discord heading, abbreviation for reactivation (TW missions). [default.py] */
 "reac" = "reakt.";
+
+/* Reactivate system. [colonisation.py] */
+"Reactivate" = "Reactivate";
+
+/* reactivate plans. [colonisation.py] */
+"Reactivate Plan" = "Reactivate Plan";
 
 /* Label on legend window. [legend.py] */
 "Reactivation missions" = "Reaktivációs küldetések";
@@ -988,11 +1060,17 @@
 /* CMDR information. [targetmanager.py] */
 "Received team invite from" = "Team meghívás érkezett tőle";
 
+/* [sheet_options.py] */
+"Redo" = "Redo";
+
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Refinery" = "Refinery";
 
 /* Colonisation 'Type' [base_types.json] */
 "Refinery Hub" = "Refinery Hub";
+
+/* tooltip for ravencolonial refresh button. [colonisation.py] */
+"Refresh from RavenColonial" = "Refresh from RavenColonial";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Relay Installation" = "Relay Installation";
@@ -1003,14 +1081,8 @@
 /* Colonisation 'Prerequisites' [base_types.json] */
 "Relay Station Installation" = "Relay Station Installation";
 
-/* Rename button. [colonisation.py] */
-"Rename" = "Rename";
-
-/* Rename a system. [colonisation.py] */
-"Rename System" = "Rename System";
-
-/* tooltip for the rename system button. [colonisation.py] */
-"Rename system plan" = "Rename system plan";
+/* Amount remaining. [progress.py] */
+"Remaining" = "Remaining";
 
 /* Preferences checkbox label. [ui.py] */
 "Report Newly Visited System Activity By Default" = "Újonnan meglátogatott rendszer jelentése alapértelmezés szerint";
@@ -1053,6 +1125,9 @@
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Satellite Installation" = "Satellite Installation";
+
+/* Save button. [colonisation.py] */
+"Save" = "Save";
 
 /* CMDR information. [targetmanager.py] */
 "Scanned" = "Szkennelve";
@@ -1171,11 +1246,20 @@
 /* Main window tooltip. [ui.py] */
 "Show objectives / missions window" = "Célok / küldetések ablak megjelenítése";
 
+/* Preferences checkbox label. [ui.py] */
+"Show Powerplay Merits Gained" = "Show Powerplay Merits Gained";
+
 /* tooltip for the previous build icon. [progress.py] */
 "Show previous build" = "Show previous build";
 
 /* tooltip for the show bodies window. [colonisation.py] */
 "Show system bodies window" = "Show system bodies window";
+
+/* tooltip for the Inara button. [activity.py] */
+"Show system in Inara" = "Show system in Inara";
+
+/* tooltip for the EDGIS button. [activity.py] */
+"Show system map in EDGIS" = "Show system map in EDGIS";
 
 /* tooltip for the show notes window. [colonisation.py] */
 "Show system notes window" = "Show system notes window";
@@ -1191,6 +1275,12 @@
 
 /* Label on carrier window. [fleetcarrier.py] */
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Bizonyos információ frissítése sikertelen volt. Engedéjezd Anyahajó CAPI lekérdezéseket Fájl -> Beállítások -> Konfiguráció";
+
+/* [sheet_options.py] */
+"Sort Asc." = "Sort Asc.";
+
+/* [sheet_options.py] */
+"Sort Desc." = "Sort Desc.";
 
 /* [clb.py] */
 "Space" = "Űr";
@@ -1231,8 +1321,14 @@
 /* Activity window column title. [activity.py] */
 "State" = "Állapot";
 
+/* Station name heading. [progress.py] */
+"Station" = "Station";
+
 /* Number of ground/surface builds. [colonisation.py] */
 "Surface" = "Surface";
+
+/* Label for checkbox to sync data with RavenColonial. [colonisation.py] */
+"Sync with RavenColonial" = "Sync with RavenColonial";
 
 /* CMDR window column title. [cmdrs.py] */
 "System" = "Rendszer";
@@ -1303,6 +1399,9 @@
 /* [ui.py] */
 "Tick {minutes_delta}m Overdue (Estimated)" = "A tick {minutes_delta} perc késésben (becsült)";
 
+/* [colonisation.py] */
+"Tidally Locked" = "Tidally Locked";
+
 /* tier of base. [colonisation.py] */
 "Tier" = "Tier";
 
@@ -1312,9 +1411,6 @@
 /* Discord heading. [fleetcarrier.py] */
 "To Body" = "Cél égitest:";
 
-/* Amount still left to buy. [progress.py] */
-"To Buy" = "To Buy";
-
 /* [ui.py] */
 "To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Webhook törléséhez: Jobb klikk a sor számán és válaszd a 'Sorok törlése' opciót.";
 
@@ -1323,6 +1419,12 @@
 
 /* Total number of builds. [colonisation.py] */
 "Total" = "Total";
+
+/* delivered amount tooltip. [progress.py] */
+"Total quantity delivered" = "Total quantity delivered";
+
+/* required amount tooltip. [progress.py] */
+"Total quantity required" = "Total quantity required";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
 "Tourism" = "Tourism";
@@ -1468,6 +1570,9 @@
 /* Legend window title. [legend.py] */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Ikon jelmagyarázat";
 
+/* Title of the markets popup window. [progress.py] */
+"{plugin_name} - Markets Window" = "{plugin_name} - Markets Window";
+
 /* Objectives window title. [objectives.py] */
 "{plugin_name} - Objectives" = "{plugin_name} - Célok";
 
@@ -1492,5 +1597,17 @@
 /* [colonisation.py] */
 "ⓘ" = "ⓘ";
 
+/* Hide button. [colonisation.py] */
+"👁" = "👁";
+
 /* [colonisation.py] */
-"📓" = "📓";
+"📋" = "📋";
+
+/* Rename button. [colonisation.py] */
+"📝" = "📝";
+
+/* [colonisation.py] */
+"🔄" = "🔄";
+
+/* Delete button. [colonisation.py] */
+"🗑️" = "🗑️";

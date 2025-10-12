@@ -76,6 +76,9 @@
 /* Amount remaining tooltip. [progress.py] */
 "Amount remaining to be delivered" = "Amount remaining to be delivered";
 
+/* Tonnes of needed commodities available. [progress.py] */
+"Amt (t)" = "Amt (t)";
+
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API changed, open settings to re-approve";
 
@@ -101,7 +104,7 @@
 "Are you sure you want to remove this system?" = "Are you sure you want to remove this system?";
 
 /* station distance from arrival heading. [progress.py] */
-"Arrival (ls)" = "Arrival (ls)";
+"Arr (ls)" = "Arr (ls)";
 
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you.";
@@ -380,7 +383,7 @@
 "Discord Webhooks" = "Discord Webhooks";
 
 /* System distance heading. [progress.py] */
-"Distance (ly)" = "Distance (ly)";
+"Dist (ly)" = "Dist (ly)";
 
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Docking";
@@ -772,6 +775,9 @@
 /* Number of loads of cargo. [colonisation.py] */
 "Loads" = "Loads";
 
+/* Station location (O=Orbital, S=Surface). [colonisation.py] */
+"Loc" = "Loc";
+
 /* base location surface/orbital. [colonisation.py] */
 "Location" = "Location";
 
@@ -864,6 +870,9 @@
 
 /* [fleetcarrier.py] */
 "No" = "No";
+
+/* No builds or commodities being tracked. [progress.py] */
+"No builds or commodities being tracked" = "No builds or commodities being tracked";
 
 /* No colonisation data available. [progress.py] */
 "No colonisation data available" = "No colonisation data available";
@@ -995,7 +1004,7 @@
 "Pre-fill bases" = "Pre-fill bases";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Previous BGS Tallies";
@@ -1015,7 +1024,7 @@
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
 "Profit at Z | L | M | H demand" = "Profit at Z | L | M | H demand";
 
-/* progress tooltip. [progress.py] */
+/* In progress (building) state for a build. [colonisation.py] */
 "Progress" = "Progress";
 
 /* Activity window column title, abbreviation for purchase. [activity.py] */

@@ -1,5 +1,25 @@
 # Change Log
 
+## v5.2.0-b2 - 2025-10-12
+
+### New features:
+
+* Added synchronisation of marketIDs with Raven Colonial now it supports them
+* Better edit validation
+* In progress builds can be deleted from Raven Colonial
+* Added Surface/Orbital indicator to Colonisation window
+* Added synchronous update when Refresh button is pressed
+* Added recording of final build costs for bases
+* Added removal of planned builds that have been removed in RC.
+
+### Bug fixes:
+
+* Fixed bug with commodity display for non-fleetcarrier owners
+* Fixed issue with a long translation string
+* Fixed bug with deactivating the first system and removing tracking of hidden systems
+* Fixed repetetive update bug with empty values from Raven Colonial
+
+
 ## v5.2.0-b1 - 2025-09-29
 
 ### New features:

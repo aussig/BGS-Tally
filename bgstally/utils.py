@@ -166,6 +166,7 @@ def get_by_path(dic: dict[str, Any], keys: list[str], default: Any = None) -> An
     """
     try:
         for key in keys:
+            if dic.get(key, None) == None: return default
             dic = dic[key]
     except KeyError:
         return default

@@ -5,8 +5,8 @@ import webbrowser
 import tkinter as tk
 import tkinter.font as tkFont
 import traceback
-import webbrowser
-from functools import partial
+from textwrap import wrap
+
 from math import ceil
 from os import path
 from tkinter import PhotoImage, messagebox, ttk
@@ -25,7 +25,6 @@ from thirdparty.Tooltip import ToolTip
 FILENAME_LEGEND = "colonisation_legend.txt"
 SUMMARY_HEADER_ROW = 0
 FIRST_SUMMARY_ROW = 1
-FIRST_SUMMARY_COLUMN = 4
 HEADER_ROW = 3
 FIRST_BUILD_ROW = 4
 
@@ -63,6 +62,7 @@ class ColonisationWindow:
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 3 points
             'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max': 200000}, # LANG: Cost in tonnes of cargo
             'Trips': {'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max': 260}, # LANG: Number of loads of cargo
+            'Location': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
             'Population': {'header': _("Pop"), 'background': None, 'hide': True, 'format': 'hidden'},
             'Economy': {'header': _("Economy"), 'background': None, 'hide': True, 'format': 'hidden'},
             'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population increase
@@ -87,6 +87,7 @@ class ColonisationWindow:
             'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max':1, 'width': 30}, # LANG: Tier 3
             'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max':75000, 'width': 75}, # LANG: As above
             'Trips':{'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max':100, 'width': 60}, # LANG: As above
+            'Location': {'header': _('Loc'), 'background': 'type', 'format': 'string', 'width': 35},    # LANG: Station location (O=Orbital, S=Surface)
             'Pad': {'header': _("Pad"), 'background': 'type', 'format': 'string', 'width': 75}, # LANG: Landing pad size
             'Facility Economy': {'header': _("Economy"), 'background': 'type', 'format': 'string', 'width': 80}, # LANG: facility economy
             'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max':5, 'width': 75}, # LANG: As above
@@ -135,7 +136,8 @@ class ColonisationWindow:
             'Orbital' : '#d5deeb', 'Surface' : '#ebe6db',
             'Starport' : '#dce9cb', 'Outpost' : '#ddebff', 'Installation' : '#ffe5a0',
             'Planetary Outpost' : "#ddf5f5", 'Planetary Port': '#c0e1ff', 'Settlement' : '#bbe1ba', 'Hub' : '#bac9e5',
-            'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc' #'#5a3286',
+            'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc', #'#5a3286',
+            'L' : '#d4edbc', 'M' : '#dbe5ff', 'O' : '#d5deeb', 'S' : '#ebe6db', 'C' : '#e6dbeb'
         }
 
         # Links to systems, bodies etc.
@@ -201,7 +203,12 @@ class ColonisationWindow:
             tabnum = sysnum + 1
             self._create_system_tab(tabnum, system)
 
-        if tabnum > 0: self.tabbar.select(1) # Select the first system tab
+        if tabnum > 0:
+            t = 0
+            for t in range(0, tabnum-1):
+                if systems[t].get('Hidden', True) == False:
+                    break
+            self.tabbar.select(t+1) # Select the first non-hidden system tab
 
 
     @catch_exceptions
@@ -224,15 +231,15 @@ class ColonisationWindow:
     @catch_exceptions
     def _set_system_progress(self, tabnum:int, system:dict) -> None:
         ''' Update the tab image based on the system's progress '''
-        state:BuildState = BuildState.COMPLETE
+        tabstate:BuildState = BuildState.COMPLETE
         for b in system['Builds']:
             build_state = self.colonisation.get_build_state(b)
-            if build_state == BuildState.PLANNED and state != BuildState.PROGRESS:
-                state = BuildState.PLANNED
+            if build_state == BuildState.PLANNED and tabstate != BuildState.PROGRESS:
+                tabstate = BuildState.PLANNED
             if build_state == BuildState.PROGRESS:
-                state = BuildState.PROGRESS
+                tabstate = BuildState.PROGRESS
 
-        match state:
+        match tabstate:
             case BuildState.COMPLETE:
                 self.tabbar.notebookTab.tab(tabnum, image=self.image_tab_complete)
             case BuildState.PROGRESS:
@@ -507,7 +514,7 @@ class ColonisationWindow:
                 return
 
             notes:str = text.get("1.0", tk.END)
-            system['Notes'] = notes
+            system['Notes'] = notes.strip()
             self.colonisation.save("Notes popup close")
             self.notes_fr.destroy()
             self.notes_fr
@@ -584,7 +591,7 @@ class ColonisationWindow:
 
         self._config_sheet(sheet, system)
         sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
-        sheet.edit_validation(func=self.validate_edits)
+        sheet.edit_validation(func=partial(self._validate_edits, sheet))
         sheet.extra_bindings(['all_modified_events', 'cell_select', 'ctrl_row_select', 'rc_delete_row', 'rc_insert_row'], func=partial(self.sheet_modified, sheet, tabnum))
 
         sheet.popup_menu_add_command(label="Insert build above", func=partial(self._row_modified, sheet, tabnum, 'InsAbove'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
@@ -655,29 +662,31 @@ class ColonisationWindow:
         sheet['A2:G2'].highlight(bg=self._set_background('type', 'Planned', 1))
         sheet['A3:G3'].highlight(bg=self._set_background('type', 'Complete', 1))
         sheet[HEADER_ROW].highlight(bg='lightgrey')
+
         # Tracking checkboxes
-        sheet['A5:A'].checkbox(state='normal', checked=False)
+        sheet[f"{num2alpha(self._detcol('Track'))}6:{num2alpha(self._detcol('Track'))}"].checkbox(state='normal', checked=False)
 
         # Base types
-        sheet['B5'].dropdown(values=[' '] + self.colonisation.get_base_types('Initial'))
-        sheet['B6:B'].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
+        sheet[f"{num2alpha(self._detcol('Base Type'))}5"].dropdown(values=[' '] + self.colonisation.get_base_types('Initial'))
+        sheet[f"{num2alpha(self._detcol('Base Type'))}6:{num2alpha(self._detcol('Base Type'))}"].dropdown(values=[' '] + self.colonisation.get_base_types('All'))
 
         # Base layouts dropdown
-        sheet['C5'].dropdown(values=[' '] + self.colonisation.get_base_layouts('Initial'))
-        sheet['C6:C'].dropdown(values=[' '] + self.colonisation.get_base_layouts('All'))
+        sheet[f"{num2alpha(self._detcol('Layout'))}5"].dropdown(values=[' '] + self.colonisation.get_base_layouts('Initial'))
+        sheet[f"{num2alpha(self._detcol('Layout'))}6:{num2alpha(self._detcol('Layout'))}"].dropdown(values=[' '] + self.colonisation.get_base_layouts('All'))
 
         if system != None and 'Bodies' in system:
             bodies:list = self.colonisation.get_bodies(system)
             if len(bodies) > 0:
-                sheet['E5:E'].dropdown(values=[' '] + bodies)
+                sheet[f"{num2alpha(self._detcol('Body'))}5:{num2alpha(self._detcol('Body'))}"].dropdown(values=[' '] + bodies)
 
         # Make the sections readonly that users can't edit.
-        sheet['A1:4'].readonly()
+        sheet[f"{num2alpha(self._detcol('Track'))}1:4"].readonly()
         sheet['B2'].readonly(False) # Except Architect
 
-        sheet['F4:T'].readonly() # Build columns from Body onwards
+        sheet[f"{num2alpha(self._detcol('Body Type'))}4:{num2alpha(len(self.detail_cols.keys())-1)}"].readonly() # Build columns from Body onwards
         # track, types, layouts, and names left.
         sheet[f"A{FIRST_BUILD_ROW}:D"].align(align='left')
+        #sheet[f"G"].align(align='left')
 
 
     @catch_exceptions
@@ -732,15 +741,14 @@ class ColonisationWindow:
                         totals['Planned'][name] = ' '
                         totals['Complete'][name] = human_format(system.get('Population', 0))
                     case 'Development Level':
-                        res:int = bt.get(name, 0)
-                        totals['Planned'][name] += res
-                        totals['Complete'][name] += res if self.is_build_complete(build) else 0
+                        totals['Planned'][name] += bt.get(name, 0)
+                        totals['Complete'][name] += bt.get(name, 0) if self.is_build_complete(build) else 0
                     case 'Cost' if row < len(required):
-                        res:int = sum(required[row].values())
-                        totals['Planned'][name] += res
-                        totals['Complete'][name] += res if self.is_build_complete(build) else 0
+                        rc:int = build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values())
+                        totals['Planned'][name] += rc
+                        totals['Complete'][name] += rc if self.is_build_complete(build) else 0
                     case 'Trips' if row < len(required):
-                        trips:int = ceil(sum(required[row].values()) / self.colonisation.cargo_capacity)
+                        trips:int = ceil(build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values()) / self.colonisation.cargo_capacity)
                         totals['Planned'][name] += trips
                         totals['Complete'][name] += trips if self.is_build_complete(build) else 0
                     case _ if col.get('format') == 'int':
@@ -825,21 +833,29 @@ class ColonisationWindow:
                         row.append(v if v != 0 else ' ')
 
                     case _:
-                        if name == 'State':
-                            # @TODO: Make this a progress bar
-                            if self.colonisation.get_build_state(build) == BuildState.PROGRESS and i < len(reqs):
-                                req = sum(reqs[i].values())
-                                deliv = sum(delivs[i].values())
-                                row.append(f"{int(deliv * 100 / req)}%" if req > 0 else 0)
-                            elif self.colonisation.get_build_state(build) == BuildState.COMPLETE:
-                                row.append('Complete')
-                            elif build.get('Base Type', '') != '':
-                                row.append('Planned')
-                            continue
-
-                        if name == 'Body' and build.get('Body', None) != None and system.get('StarSystem', '') != '':
-                            row.append(self.colonisation.body_name(system.get('StarSystem', ''), build.get('Body')))
-                            continue
+                        match name:
+                            case 'State':
+                                match self.colonisation.get_build_state(build):
+                                    case BuildState.PLANNED if build.get('Base Type', '') != '':
+                                        row.append(_("Planned"))    # LANG: Planned (not started) state for a build
+                                    case BuildState.PROGRESS if i < len(reqs) and build.get('MarketID', None) != None:
+                                        # @TODO: Make this a progress bar, maybe?
+                                        req = sum(reqs[i].values())
+                                        deliv = sum(delivs[i].values())
+                                        row.append(f"{int(deliv * 100 / req)}%" if req > 0 else 0)
+                                    case BuildState.PROGRESS:
+                                        row.append(_("Progress")) # LANG: In progress (building) state for a build
+                                    case BuildState.COMPLETE:
+                                        row.append(_("Complete")) # LANG: Complete (finished) state for a build
+                                    case _:
+                                        row.append(' ')
+                                continue
+                            case 'Body' if build.get('Body', None) != None and system.get('StarSystem', '') != '':
+                                row.append(self.colonisation.body_name(system.get('StarSystem', ''), build.get('Body')))
+                                continue
+                            case 'Location':
+                                row.append(bt.get(name, ' ')[0:1])
+                                continue
 
                         row.append(build.get(name) if build.get(name, ' ') != ' ' else bt.get(name, ' '))
 
@@ -863,7 +879,7 @@ class ColonisationWindow:
                 if i >= len(new) or j >= len(new[i]): continue # Just in case
 
                 # Set or clear the data in the cell and the highlight
-                sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
+                sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == ' ' else f"{new[i][j]:,}" if details.get('format', '') == 'int' else new[i][j]
                 sheet[self._cell(i+srow,j)].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
 
             # Body type details
@@ -889,7 +905,8 @@ class ColonisationWindow:
             if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Name')] != '' and \
                 new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Body')] != ' ' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
                 # Base type
-                if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types(): # Base type has been set so make it readonly
+                if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types() and \
+                    new[i][self._detcol('Layout')] in self.colonisation.get_base_layouts(): # Base type has been set so make it readonly
                     for cell in ['Base Type', 'Layout']:
                         sheet[self._cell(i+srow,self._detcol(cell))].del_dropdown()
                         sheet[self._cell(i+srow,self._detcol(cell))].readonly()
@@ -974,6 +991,7 @@ class ColonisationWindow:
     @catch_exceptions
     def update_display(self) -> None:
         ''' Update the display with current system data '''
+        if self.window == None: return
 
         systems:list = self.colonisation.get_all_systems()
         for i, tab in enumerate(self.sheets):
@@ -983,12 +1001,11 @@ class ColonisationWindow:
             self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
             # Not our system? Then it's readonly
             if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
-                Debug.logger.debug(f"Setting readonly due to {self.colonisation.cmdr} != {system.get('Architect', None)}")
                 self.sheets[i]['B1:Z'].readonly()
 
 
     @catch_exceptions
-    def validate_edits(self, event = None) -> str|None:
+    def _validate_edits(self, sheet:Sheet, event = None) -> str|None:
         ''' Validate edits to the sheet. This just prevents the user from deleting the primary base type. '''
         row:int = event.row - FIRST_BUILD_ROW; col:int = event.column; val = event.value
         fields:list = list(self.detail_cols.keys())
@@ -1019,12 +1036,18 @@ class ColonisationWindow:
             # If the user clicks on the state column, toggle the state between planned and complete.
             # If it's in progress we'll update to that on our next delivery
             if field == 'State' and row < len(system['Builds']):
-                if system['Builds'][row]['State'] == BuildState.COMPLETE or \
-                    'Base Type' not in systems[sysnum]['Builds'][row] or \
-                    systems[sysnum]['Builds'][row]['Base Type'] == ' ':
-                    self.colonisation.modify_build(system, row, {'State': BuildState.PLANNED})
-                else:
-                    self.colonisation.modify_build(system, row, {'State': BuildState.COMPLETE})
+                r:int = event.selected.row
+
+                if system['Builds'][row].get('Base Type', '') in self.colonisation.get_base_types('All'):
+                    match system['Builds'][row].get('State', ''):
+                        case BuildState.PLANNED: newstate = BuildState.PROGRESS
+                        case BuildState.PROGRESS: newstate = BuildState.COMPLETE
+                        case BuildState.COMPLETE:
+                            newstate = BuildState.PLANNED
+                            for p in self.colonisation.progress:
+                                if p.get('MarketID') == system['Builds'][row].get('MarketID'):
+                                    newstate = BuildState.PROGRESS
+                    self.colonisation.modify_build(system, row, {'State': newstate})
 
                 self.update_display()
 
@@ -1142,7 +1165,7 @@ class ColonisationWindow:
         lbl = ttk.Label(add, text=_("When planning your system the first base is special, make sure that it is the first on the list.")) # LANG: Notice about the first base being special
         lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=0, sticky=tk.W)
         row += 1
-        lbl = ttk.Label(add, text=_("Pre-filling requires a system name, can have mixed results, and will likely require manual\nbase type selection. Use with caution!")) # LANG: Notice about prepopulation being challenging
+        lbl = ttk.Label(add, text=str(wrap(_("Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!"), 70))) # LANG: Notice about prepopulation being challenging
         lbl.grid(row=row, column=0, columnspan=2, padx=10, pady=0, sticky=tk.W)
         row += 1
 
@@ -1336,6 +1359,7 @@ class ColonisationWindow:
     @catch_exceptions
     def _rc_refresh_system(self, tabnum:int) -> None:
         ''' Reload the current system from RavenColonial '''
+
         sysnum:int = tabnum -1
         systems:list = self.colonisation.get_all_systems()
         if sysnum > len(systems):
@@ -1347,16 +1371,10 @@ class ColonisationWindow:
 
         # Refresh the RC data when the window is opened/created
         Debug.logger.debug(f"Reloading system {system.get('StarSystem', 'Unknown')} from {system.get('SystemAddress')}")
-        RavenColonial(self).load_system(system.get('SystemAddress', ''), system.get('Rev', ''))
+        RavenColonial(self.colonisation).load_system(system.get('SystemAddress', ''), system.get('Rev', ''), True)
 
         if self.bgstally.fleet_carrier.available() == True:
-            RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)
-
-        # @TODO: Create a proper project sync process.
-        #for b in system['Builds']:
-        #    if b.get('State') == BuildState.PROGRESS and b.get('BuildID', None) != None:
-        #        self.rc.load_project()
-        self.update_display()
+            RavenColonial(self.colonisation).update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)
 
 
     @catch_exceptions

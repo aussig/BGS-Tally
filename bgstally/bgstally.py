@@ -50,8 +50,7 @@ class BGSTally:
         """
         self.plugin_dir = plugin_dir
 
-        # Debug and Config Classes
-        self.debug: Debug = Debug(self)
+        # Config Classes
         self.config: Config = Config(self)
 
         # True only if we are running a dev version
@@ -72,6 +71,9 @@ class BGSTally:
                 Debug.logger.info("Enabling Sentry Error Logging")
             except ImportError:
                 pass
+
+        # Debug Class
+        self.debug: Debug = Debug(self, self.dev_mode)
 
         data_filepath = path.join(self.plugin_dir, FOLDER_OTHER_DATA)
         if not path.exists(data_filepath): mkdir(data_filepath)

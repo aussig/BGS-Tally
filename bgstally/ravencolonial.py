@@ -296,7 +296,10 @@ class RavenColonial:
                 build = self.colonisation.find_build(system, {'BuildID' : site.get('id', -1), 'Name': site.get('name', -1), 'BodyNum': site.get('bodyNum', -1)})
 
             if build != None:
-                tmp.remove(build)
+                for i, b in enumerate(tmp):
+                    if b.get('BuildID', None) == build.get('BuildID', None):
+                        tmp.remove(b)
+                        break
 
             # Avoid creating leftover construction sites
             if build == None and 'Construction Site' in site.get('name', ''):
@@ -359,7 +362,7 @@ class RavenColonial:
     @catch_exceptions
     def _load_callback(self, success:bool, response:Response, request:BGSTallyRequest|None = None) -> None:
         """ Process the results of querying RavenColonial for the system details """
-        # @UNUSED?
+
         if success == False:
             Debug.logger.error(f"System load failed {response.content}")
             return
@@ -421,7 +424,7 @@ class RavenColonial:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
 
-        Debug.logger.debug(f"RavenColonial project created {data.get('buildName', 'Unknown')}")
+        Debug.logger.info(f"RavenColonial project created {data.get('buildName', 'Unknown')}")
 
 
     @catch_exceptions

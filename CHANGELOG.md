@@ -18,6 +18,8 @@
 * Fixed issue with a long translation string
 * Fixed bug with deactivating the first system and removing tracking of hidden systems
 * Fixed repetetive update bug with empty values from Raven Colonial
+* Fixed bug with removing builds that have been deleted in Raven Colonial
+* Made debug logging only in dev_mode
 
 ## v5.2.0-b2 - 2025-10-12
 

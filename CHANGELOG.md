@@ -20,6 +20,8 @@
 * Fixed repetetive update bug with empty values from Raven Colonial
 * Fixed bug with removing builds that have been deleted in Raven Colonial
 * Made debug logging only in dev_mode
+* Fixed situation where a site might not get associated with the appropriate projectid
+
 
 ## v5.2.0-b2 - 2025-10-12
 

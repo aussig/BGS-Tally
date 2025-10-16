@@ -748,7 +748,7 @@ class ColonisationWindow:
                         totals['Planned'][name] += rc
                         totals['Complete'][name] += rc if self.is_build_complete(build) else 0
                     case 'Trips' if row < len(required):
-                        trips:int = ceil(build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values()) / self.colonisation.cargo_capacity)
+                        trips:int = ceil((build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values())) / self.colonisation.cargo_capacity)
                         totals['Planned'][name] += trips
                         totals['Complete'][name] += trips if self.is_build_complete(build) else 0
                     case _ if col.get('format') == 'int':

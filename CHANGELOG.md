@@ -5,6 +5,7 @@
 ### Changes:
 
 * Reduce time betwen automatic Discord posts from 5 mins to 1 min.
+* Tidy up Discord hooks presentation in settings panel.
 
 
 

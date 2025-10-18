@@ -2,6 +2,9 @@
 
 ## v5.2.0-xx - xxxx-xx-xx
 
+### Changes:
+
+* Reduce time betwen automatic Discord posts from 5 mins to 1 min.
 
 
 
@@ -50,7 +53,7 @@
 
 * Colonisation: Added RavenColonial markets window for linked builds
 * Colonisation: Added flexible sorting of bases popup
-* Added highglighting of missing base layout
+* Added highlighting of missing base layout
 * Improved the tooltips for commodity lists
 * Improved a few RavenColonial integration in coordination with RC developer
 

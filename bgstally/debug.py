@@ -16,16 +16,5 @@ class Debug:
 
         if dev_mode == False:
             Debug.logger.setLevel(logging.INFO)
-
-        # If the Logger has handlers then it was already set up by the core code, else
-        # it needs setting up here.
-        if not Debug.logger.hasHandlers():
-            level = logging.INFO  # So logger.info(...) is equivalent to print()
-
-            Debug.logger.setLevel(level)
-            logger_channel = logging.StreamHandler()
-            logger_formatter = logging.Formatter(f'%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(lineno)d:%(funcName)s: %(message)s')
-            logger_formatter.default_time_format = '%Y-%m-%d %H:%M:%S'
-            logger_formatter.default_msec_format = '%s.%03d'
-            logger_channel.setFormatter(logger_formatter)
-            Debug.logger.addHandler(logger_channel)
+        else:
+            Debug.logger.setLevel(logging.DEBUG)

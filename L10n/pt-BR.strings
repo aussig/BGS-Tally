@@ -77,7 +77,7 @@
 "Amount remaining to be delivered" = "Quantidade restante para entregar";
 
 /* Tonnes of needed commodities available. [progress.py] */
-"Amt (t)" = "Amt (t)";
+"Amt (t)" = "Qde (t)";
 
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API alterada, abra as configurações para aprovar novamente";
@@ -104,7 +104,7 @@
 "Are you sure you want to remove this system?" = "Tem certeza que deseja remover este sistema?";
 
 /* station distance from arrival heading. [progress.py] */
-"Arr (ls)" = "Arr (ls)";
+"Arr (ls)" = "Dist (sL)";
 
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Pergunte ao administrador do servidor sobre a informação abaixo, em seguida, clique em 'Estabelecer Conexão' para continuar. Botões para pré-preencher algumas informações para servidores populares serão fornecidos, mas você precisará inserir sua chave da API, que é exclusiva para você.";
@@ -161,7 +161,7 @@
 "Bounty vouchers" = "Cupons de recompensa";
 
 /* Building layout types. [colonisation.py] */
-"Building Layouts (click for details)" = "Building Layouts (click for details)";
+"Building Layouts (click for details)" = "Layouts de Construção (clique para mais detalhes)";
 
 /* Building type. [colonisation.py] */
 "Building Type" = "Tipos de Construções";
@@ -245,7 +245,7 @@
 "Commercial Outpost" = "Estação Comercial";
 
 /* List of commodities available. [progress.py] */
-"Commodities" = "Commodities";
+"Commodities" = "Mercadorias";
 
 /* Commodity. [progress.py] */
 "Commodity" = "Mercadoria";
@@ -293,7 +293,7 @@
 "Cost" = "Custo";
 
 /* Count of commodities available. [progress.py] */
-"Count" = "Count";
+"Count" = "Quantidade";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Criminal Outpost" = "Posto Avançado Criminal";
@@ -383,7 +383,7 @@
 "Discord Webhooks" = "Webhooks do Discord";
 
 /* System distance heading. [progress.py] */
-"Dist (ly)" = "Dist (ly)";
+"Dist (ly)" = "Dist (aL)";
 
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Docagem";
@@ -872,7 +872,7 @@
 "No" = "Não";
 
 /* No builds or commodities being tracked. [progress.py] */
-"No builds or commodities being tracked" = "No builds or commodities being tracked";
+"No builds or commodities being tracked" = "Nenhuma construção ou mercadoria sendo rastreada";
 
 /* No colonisation data available. [progress.py] */
 "No colonisation data available" = "Não há dados de colonização disponíveis";
@@ -896,7 +896,7 @@
 "On-ground Conflict Zone" = "Zona de Conflito no Solo";
 
 /* Open Element In Selected Provider. [colonisation.py] */
-"Open in {w}" = "Open in {w}";
+"Open in {w}" = "Abrir em {w}";
 
 /* Indicates the field is optional and case-sensitive. [colonisation.py] */
 "optional and case sensitive" = "opcional e sensível a maiúsculas/minúsculas";
@@ -1322,7 +1322,7 @@
 "State" = "Estado";
 
 /* Station name heading. [progress.py] */
-"Station" = "Station";
+"Station" = "Estação";
 
 /* Number of ground/surface builds. [colonisation.py] */
 "Surface" = "Superfície";
@@ -1571,7 +1571,7 @@
 "{plugin_name} - Icon Legend" = "{plugin_name} - Legenda do Ícone";
 
 /* Title of the markets popup window. [progress.py] */
-"{plugin_name} - Markets Window" = "{plugin_name} - Markets Window";
+"{plugin_name} - Markets Window" = "{plugin_name} - Janela de Mercados";
 
 /* Objectives window title. [objectives.py] */
 "{plugin_name} - Objectives" = "{plugin_name} - Objetivos";

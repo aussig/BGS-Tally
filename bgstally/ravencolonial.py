@@ -406,7 +406,10 @@ class RavenColonial:
         url:str = f"{RC_API}/project/"
         response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
         if response.status_code == 409:
-            Debug.logger.error(f"{url} already exists: {response.content}")
+            # This probably only happens if someone's done something weird like deleting & recreating a build.
+            Debug.logger.info(f"{url} already exists: {response.content}")
+            if build.get('ProjectID', None) != None:
+                self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': build.get('ProjectID')}, True)
             return
 
         if response.status_code not in [200, 202]:
@@ -430,7 +433,7 @@ class RavenColonial:
     @catch_exceptions
     def upsert_project(self, system:dict, build:dict, progress:dict) -> None:
         """ Update build progress """
-        # Required: buildId (though maybe not if you use )
+
         # Create project if we don't have an id.
         if progress.get('ProjectID', None) == None:
             self.create_project(system, build, progress)
@@ -463,6 +466,10 @@ class RavenColonial:
     def _project_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         """ Process the results of querying RavenColonial """
         data:dict = response.json()
+
+        if response.status_code == 404:
+            Debug.logger.info(f"Project not found, cannot update {response} {response.content} {request}")
+            return
 
         if success == False:
             Debug.logger.warning(f"Project submission failed {success} {response.status_code} {response.content} {request}")

@@ -469,6 +469,7 @@ class RavenColonial:
 
         if response.status_code == 404:
             Debug.logger.info(f"Project not found, cannot update {response} {response.content} {request}")
+            self.colonisation.update_progress(data.get('buildId'), {'ProjectID': None}, True)
             return
 
         if success == False:

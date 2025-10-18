@@ -239,7 +239,7 @@ class RavenColonial:
 
         # Refresh the system info
         self.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
-        Debug.logger.info(f"RavenColonial site upserted {data.get('Name', '')} {update}")
+        Debug.logger.debug(f"RavenColonial site upserted {data.get('Name', '')} {update}")
 
 
     @catch_exceptions
@@ -296,7 +296,10 @@ class RavenColonial:
                 build = self.colonisation.find_build(system, {'BuildID' : site.get('id', -1), 'Name': site.get('name', -1), 'BodyNum': site.get('bodyNum', -1)})
 
             if build != None:
-                tmp.remove(build)
+                for i, b in enumerate(tmp):
+                    if b.get('BuildID', None) == build.get('BuildID', None):
+                        tmp.remove(b)
+                        break
 
             # Avoid creating leftover construction sites
             if build == None and 'Construction Site' in site.get('name', ''):
@@ -359,7 +362,7 @@ class RavenColonial:
     @catch_exceptions
     def _load_callback(self, success:bool, response:Response, request:BGSTallyRequest|None = None) -> None:
         """ Process the results of querying RavenColonial for the system details """
-        # @UNUSED?
+
         if success == False:
             Debug.logger.error(f"System load failed {response.content}")
             return
@@ -421,7 +424,7 @@ class RavenColonial:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
 
-        Debug.logger.debug(f"RavenColonial project created {data.get('buildName', 'Unknown')}")
+        Debug.logger.info(f"RavenColonial project created {data.get('buildName', 'Unknown')}")
 
 
     @catch_exceptions
@@ -522,7 +525,7 @@ class RavenColonial:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
 
-        Debug.logger.info(f"RavenColonial project contribution accepted {project_id}")
+        Debug.logger.debug(f"RavenColonial project contribution accepted {project_id}")
 
 
     @catch_exceptions
@@ -546,7 +549,7 @@ class RavenColonial:
             Debug.logger.warning(f"Error updating carrier {response} {response.content}")
             return
 
-        Debug.logger.info(f"RavenColonial carrier updated: {response}")
+        Debug.logger.debug(f"RavenColonial carrier updated: {response}")
 
 
 
@@ -574,14 +577,14 @@ class EDSM:
     def import_stations(self, system_name:str) -> None:
         """ Retrieve the stations in a system """
         if system_name == None or system_name == '':
-            Debug.logger.info("no system name")
+            Debug.logger.info("No system name")
             return
 
         # Check when we last updated this system
         if not hasattr(RavenColonial(self), '_initialized'): return
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
-            Debug.logger.info(f"unknown system {system_name}")
+            Debug.logger.info(f"Unknown system {system_name}")
             return
 
         if system.get('Updated', 0) > int(time.time()) - EDSM_COOLDOWN:
@@ -595,14 +598,14 @@ class EDSM:
     @catch_exceptions
     def _stations(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Process the results of querying ESDM for the stations in a system '''
-        Debug.logger.info(f" discovery response received: {success}")
+
         data:dict = response.json()
         if data.get('name', None) == None:
-            Debug.logger.warning(f"stations response did not contain a name, ignoring")
+            Debug.logger.warning(f"Stations response did not contain a name, ignoring")
             return
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': data.get('name')})
         if system == None:
-            Debug.logger.warning(f"stations didn't find system {data.get('name')}")
+            Debug.logger.warning(f"Stations didn't find system {data.get('name')}")
             return
 
         stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['marketId']))
@@ -648,7 +651,7 @@ class EDSM:
                 'Body': body,
                 }
             RavenColonial(self).colonisation.add_build(system, build)
-            Debug.logger.info(f"Added station {build} to system {data.get('name')}")
+            Debug.logger.debug(f"Added station {build} to system {data.get('name')}")
 
         RavenColonial(self).bgstally.ui.window_colonisation.update_display()
 
@@ -657,7 +660,7 @@ class EDSM:
     def import_system(self, system_name:str) -> None:
         """ Retrieve the details of a system """
         if system_name == None or system_name == '':
-            Debug.logger.info("no system name")
+            Debug.logger.info("No system name")
             return
 
         if not hasattr(RavenColonial(self), '_initialized'): return
@@ -665,7 +668,7 @@ class EDSM:
         # Check when we last updated this system
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
-            Debug.logger.info(f"unknown system {system_name}")
+            Debug.logger.info(f"Unknown system {system_name}")
             return
 
         if system.get('EDSMUpdated', 0) > int(time.time()) - EDSM_COOLDOWN:
@@ -704,7 +707,7 @@ class EDSM:
     def import_bodies(self, system_name:str) -> None:
         """ Retrieve the bodies in a system """
         if system_name == None or system_name == '':
-            Debug.logger.info("no system name")
+            Debug.logger.info("No system name")
             return
 
         if not hasattr(RavenColonial(self), '_initialized'): return
@@ -712,7 +715,7 @@ class EDSM:
         # Check when we last updated this system
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
-            Debug.logger.info(f"unknown system {system_name}")
+            Debug.logger.info(f"Unknown system {system_name}")
             return
 
         if system.get('Bodies', None) != None:
@@ -729,14 +732,14 @@ class EDSM:
 
     def _bodies(self, success:bool, response:Response, request:BGSTallyRequest|None = None) -> None:
         ''' Process the results of querying ESDM for the bodies in a system '''
-        Debug.logger.info(f"bodies response received: {success}")
+
         data:dict = response.json()
         if data.get('name', None) == None:
-            Debug.logger.warning(f"bodies didn't contain a name, ignoring")
+            Debug.logger.info(f"Bodies didn't contain a name, ignoring")
             return
         system:dict = RavenColonial(self).colonisation.find_system({'StarSystem' : data.get('name')})
         if system == None:
-            Debug.logger.warning(f"bodies didn't find system {data.get('name')}")
+            Debug.logger.info(f"Bodies didn't find system {data.get('name')}")
             return
 
         # Only record the body details that we need since returns an enormous amount of data.
@@ -792,7 +795,7 @@ class Spansh:
 
         system_address:int|None = system.get('SystemAddress', None)
         if system_address != None:
-            Debug.logger.info(f"System {system_name} has address {system_address} in local data")
+            Debug.logger.debug(f"System {system_name} has address {system_address} in local data")
             return system_address
 
         url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
@@ -925,7 +928,7 @@ class Spansh:
                 'Name': name,
                 'MarketID': market_id
                 }
-            Debug.logger.info(f"Adding station base.get('name', '') to system {data.get('name')} {build}")
+            Debug.logger.debug(f"Adding station base.get('name', '') to system {data.get('name')} {build}")
             RavenColonial(self).colonisation.add_build(system, build)
 
 

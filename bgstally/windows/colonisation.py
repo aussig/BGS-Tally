@@ -136,7 +136,7 @@ class ColonisationWindow:
             'Orbital' : '#d5deeb', 'Surface' : '#ebe6db',
             'Starport' : '#dce9cb', 'Outpost' : '#ddebff', 'Installation' : '#ffe5a0',
             'Planetary Outpost' : "#ddf5f5", 'Planetary Port': '#c0e1ff', 'Settlement' : '#bbe1ba', 'Hub' : '#bac9e5',
-            'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc', #'#5a3286',
+            'Planned' : '#ffe5a0', 'Progress' : '#ddebff', 'Complete' : '#d4edbc', #'#5a3286',
             'L' : '#d4edbc', 'M' : '#dbe5ff', 'O' : '#d5deeb', 'S' : '#ebe6db', 'C' : '#e6dbeb'
         }
 
@@ -748,7 +748,7 @@ class ColonisationWindow:
                         totals['Planned'][name] += rc
                         totals['Complete'][name] += rc if self.is_build_complete(build) else 0
                     case 'Trips' if row < len(required):
-                        trips:int = ceil(build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values()) / self.colonisation.cargo_capacity)
+                        trips:int = ceil((build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values())) / self.colonisation.cargo_capacity)
                         totals['Planned'][name] += trips
                         totals['Complete'][name] += trips if self.is_build_complete(build) else 0
                     case _ if col.get('format') == 'int':
@@ -1417,7 +1417,7 @@ class ColonisationWindow:
     @catch_exceptions
     def _set_weight(self, item, wght:str = 'bold') -> None:
         ''' Set font weight '''
-        fnt = tkFont.Font(font=item['font']).actual()
+        fnt: tkFont._FontDict = tkFont.Font(font=item['font']).actual()
         item.configure(font=(fnt['family'], fnt['size'], wght))
 
 

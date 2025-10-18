@@ -1,6 +1,6 @@
 # Change Log
 
-## v5.2.0-xx - xxxx-xx-xx
+## v5.2.0-b3 - 2025-10-18
 
 ### New features:
 
@@ -22,11 +22,12 @@
 * Fixed bug with commodity display for non-fleetcarrier owners
 * Fixed issue with a long translation string
 * Fixed bug with deactivating the first system and removing tracking of hidden systems
-* Fixed repetetive update bug with empty values from Raven Colonial
+* Fixed repetitive update bug with empty values from Raven Colonial
 * Fixed bug with removing builds that have been deleted in Raven Colonial
 * Made debug logging only in dev_mode
 * Fixed situation where a site might not get associated with the appropriate projectid
 * Fix for missing rare surface station update situation
+
 
 ## v5.2.0-b2 - 2025-10-12
 

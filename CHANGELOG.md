@@ -2,12 +2,31 @@
 
 ## v5.2.0-xx - xxxx-xx-xx
 
+### New features:
+
+* Added synchronisation of marketIDs with Raven Colonial now it supports them
+* Better edit validation
+* In progress builds can be deleted from Raven Colonial
+* Added Surface/Orbital indicator to Colonisation window
+* Added synchronous update when Refresh button is pressed
+* Added recording of final build costs for bases
+* Added removal of planned builds that have been removed in RC.
+
 ### Changes:
 
 * Reduce time betwen automatic Discord posts from 5 mins to 1 min.
 * Tidy up Discord hooks presentation in settings panel.
 
+### Bug fixes:
 
+* Fixed bug with commodity display for non-fleetcarrier owners
+* Fixed issue with a long translation string
+* Fixed bug with deactivating the first system and removing tracking of hidden systems
+* Fixed repetetive update bug with empty values from Raven Colonial
+* Fixed bug with removing builds that have been deleted in Raven Colonial
+* Made debug logging only in dev_mode
+* Fixed situation where a site might not get associated with the appropriate projectid
+* Fix for missing rare surface station update situation
 
 ## v5.2.0-b2 - 2025-10-12
 
@@ -47,6 +66,17 @@
 
 * `/activites` endpoint: `influence` percentage added to faction information for each faction.
 
+### New features:
+
+* Colonisation: Added insert & remove menu options for adding/deleting builds
+
+### Bug fixes:
+
+* Fixed fleet carrier cargo bug
+* Improved migration of data
+* Fixed an overlay runtime error
+* Swapped order of planned and completed to be more logical
+* Small fixes for creating plans when logged out
 
 ## v5.2.0-a2 - 2025-09-20
 

@@ -152,6 +152,11 @@ class Colonisation:
                     for progress in self.progress:
                         if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
                             rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
+
+                            # Just in case we don't have the ProjectID on the build, add it now.
+                            b:dict|None = self.find_build(system, {'MarketID': self.market_id})
+                            if b != None and b.get('ProjectID', None) == None:
+                                self.modify_build(system, b.get('BuildID', ''), {'ProjectID': progress.get('ProjectID', None)})
                             break
 
             case 'ColonisationSystemClaim':
@@ -239,7 +244,9 @@ class Colonisation:
                 self.location = 'Surface'
 
             case 'SupercruiseExit' | 'ApproachSettlement':
-                if entry.get('event') == 'ApproachSettlement': self.location = 'Surface'
+                if entry.get('event') == 'ApproachSettlement':
+                    self.location = 'Surface'
+                    self.station = entry.get('Name', self.station)
 
                 # If it's a construction site or colonisation ship wait til we dock.
                 # If it's a carrier or other non-standard location we ignore it.
@@ -257,7 +264,6 @@ class Colonisation:
                 build = self.find_or_create_build(system, {'MarketID': self.market_id,
                                                            'Name': self.station,
                                                            'Body': self.body})
-                Debug.logger.debug(f"Supercruise exit, build: {build}")
 
                 # We update them here because it's not possible to dock at installations once they're complete so
                 # you may miss their completion.
@@ -267,6 +273,7 @@ class Colonisation:
                 if build.get('State') == BuildState.PROGRESS and \
                     re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
                     self.try_complete_build(build.get('MarketID', 0))
+
                 data:dict = {}
                 if self.market_id != None: data['MarketID'] = self.market_id
                 build['State'] = BuildState.COMPLETE

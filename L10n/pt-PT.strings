@@ -1004,7 +1004,7 @@
 "Pre-fill bases" = "Pré-preenchimento das bases";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "O pré-preenchimento requer um nome de sistema, pode ter resultados mistos e provavelmente exigirá a seleção manual do tipo de base. Use com cuidado! Aviso sobre pré-população sendo desafiante!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "BGS Tallies Anteriores";

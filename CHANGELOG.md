@@ -22,6 +22,7 @@
 * Made debug logging only in dev_mode
 * Fixed situation where a site might not get associated with the appropriate projectid
 * Fix for missing rare surface station update situation
+* Fixed situation where progress might not get associated with an existing project
 
 ## v5.2.0-b3 - 2025-10-18
 

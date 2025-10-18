@@ -65,19 +65,19 @@
 "Alphabetical order" = "Alphabetische Reihenfolge";
 
 /* Cargo amount tooltip. [progress.py] */
-"Amount in current cargo" = "Amount in current cargo";
+"Amount in current cargo" = "Anzahl in aktueller Fracht";
 
 /* Carrier amount tooltip. [progress.py] */
-"Amount in linked fleet carrier(s)" = "Amount in linked fleet carrier(s)";
+"Amount in linked fleet carrier(s)" = "Anzahl in verbundenen Flottenträger(n)";
 
 /* Amount left to buy. [progress.py] */
-"Amount left to buy" = "Amount left to buy";
+"Amount left to buy" = "Noch zu kaufende Menge";
 
 /* Amount remaining tooltip. [progress.py] */
-"Amount remaining to be delivered" = "Amount remaining to be delivered";
+"Amount remaining to be delivered" = "Noch zu liefernde Menge";
 
 /* Tonnes of needed commodities available. [progress.py] */
-"Amt (t)" = "Amt (t)";
+"Amt (t)" = "Btr (t)";
 
 /* Main window label. [ui.py] */
 "API changed, open settings to re-approve" = "API geändert, Einstellungen öffnen, um sie erneut zu genehmigen";
@@ -104,7 +104,7 @@
 "Are you sure you want to remove this system?" = "Sind Sie sicher, dass Sie dieses System entfernen möchten?";
 
 /* station distance from arrival heading. [progress.py] */
-"Arr (ls)" = "Arr (ls)";
+"Arr (ls)" = "Ank (ls)";
 
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Bitten Sie den Serveradministrator um die folgenden Informationen und klicken Sie dann auf „Verbindung herstellen“, um fortzufahren. Es stehen Schaltflächen zur Verfügung, mit denen Sie einige Informationen für gängige Server vorab ausfüllen können. Sie müssen jedoch Ihren für Sie eindeutigen API-Schlüssel eingeben.";
@@ -161,7 +161,7 @@
 "Bounty vouchers" = "Kopfgelder";
 
 /* Building layout types. [colonisation.py] */
-"Building Layouts (click for details)" = "Building Layouts (click for details)";
+"Building Layouts (click for details)" = "Gebäude-Layouts (klicken für Details)";
 
 /* Building type. [colonisation.py] */
 "Building Type" = "Gebäudetyp";
@@ -221,7 +221,7 @@
 "Clear contents" = "Inhalt löschen";
 
 /* [progress.py] */
-"click to copy to clipboard" = "click to copy to clipboard";
+"click to copy to clipboard" = "Klicken, um in die Zwischenablage zu kopieren";
 
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "CMDR Details";
@@ -305,7 +305,7 @@
 "Critically wounded evacuation missions" = "Kritisch Verwundete-Evakuierungsmissionen";
 
 /* tooltip for the build name. [progress.py] */
-"Current build" = "Current build";
+"Current build" = "Aktuelle Konstruktion";
 
 /* [fleetcarrier.py] */
 "Current System" = "Aktuelles System";
@@ -383,7 +383,7 @@
 "Discord Webhooks" = "Discord Webhooks";
 
 /* System distance heading. [progress.py] */
-"Dist (ly)" = "Dist (ly)";
+"Dist (ly)" = "Distanz (ly)";
 
 /* Discord heading. [fleetcarrier.py] */
 "Docking" = "Andocken";
@@ -758,7 +758,7 @@
 "Left click for Inara market, right click to copy" = "Linksklick um den Inara Markt zu öffnen, Rechtsklick zum Kopieren";
 
 /* tooltip for the copy to clipboard icon. [colonisation.py] */
-"Left click view system, right click menu" = "Left click view system, right click menu";
+"Left click view system, right click menu" = "Linksklick System anzeigen, Rechtsklick Menü";
 
 /* CMDR window column title. [cmdrs.py] */
 "Legal" = "Rechtlich";
@@ -776,7 +776,7 @@
 "Loads" = "Ladungen";
 
 /* Station location (O=Orbital, S=Surface). [colonisation.py] */
-"Loc" = "Loc";
+"Loc" = "Pos";
 
 /* base location surface/orbital. [colonisation.py] */
 "Location" = "Position";
@@ -794,7 +794,7 @@
 "Massacre missions" = "Massakermissionen";
 
 /* Preferences label. [ui.py] */
-"Maximum commodities" = "Maximum commodities";
+"Maximum commodities" = "Maximale Handelswaren";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Medical" = "Medizinisch";
@@ -1001,10 +1001,10 @@
 "Powerplay Merits" = "Machtspiel Verdienste";
 
 /* Label for checkbox to pre-populate bases. [colonisation.py] */
-"Pre-fill bases" = "Pre-fill bases";
+"Pre-fill bases" = "Vorausfüllen von Basen";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Das Vorausfüllen erfordert einen Systemnamen, kann zu gemischten Ergebnissen führen und erfordert wahrscheinlich eine manuelle Auswahl des Basistyps. Mit Vorsicht verwenden!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Vorherige BGS Tallies";
@@ -1421,10 +1421,10 @@
 "Total" = "Insgesamt";
 
 /* delivered amount tooltip. [progress.py] */
-"Total quantity delivered" = "Total quantity delivered";
+"Total quantity delivered" = "Gelieferte Gesamtmenge";
 
 /* required amount tooltip. [progress.py] */
-"Total quantity required" = "Total quantity required";
+"Total quantity required" = "Erforderliche Gesamtmenge";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
 "Tourism" = "Tourismus";
@@ -1571,7 +1571,7 @@
 "{plugin_name} - Icon Legend" = "{plugin_name} - Symbol-Legende";
 
 /* Title of the markets popup window. [progress.py] */
-"{plugin_name} - Markets Window" = "{plugin_name} - Markets Window";
+"{plugin_name} - Markets Window" = "{plugin_name} – Marktfenster";
 
 /* Objectives window title. [objectives.py] */
 "{plugin_name} - Objectives" = "{plugin_name} - Ziele";

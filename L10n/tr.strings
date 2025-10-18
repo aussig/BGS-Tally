@@ -776,7 +776,7 @@
 "Loads" = "Yük Miktarı";
 
 /* Station location (O=Orbital, S=Surface). [colonisation.py] */
-"Loc" = "Loc";
+"Loc" = "Konum";
 
 /* base location surface/orbital. [colonisation.py] */
 "Location" = "Konum";
@@ -1004,7 +1004,7 @@
 "Pre-fill bases" = "Nüfus ön dolumlu üsler";
 
 /* Notice about prepopulation being challenging. [colonisation.py] */
-"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!";
+"Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Nüfus Ön dolum işlemi bir sistem adı gerektirir, karışık sonuçlar doğurabilir ve muhtemelen manuel üs türü seçimi gerektirecektir. Dikkatli kullanın!";
 
 /* Button label. [ui.py] */
 "Previous BGS Tallies" = "Önceki BGS Raporlar";

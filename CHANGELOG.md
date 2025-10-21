@@ -1,6 +1,6 @@
 # Change Log
 
-## v5.2.0-xx - xxxx-xx-xx
+## v5.2.0-b4 - 2025-10-21
 
 ### Bug fixes:
 
@@ -73,7 +73,7 @@
 * Added highlighting of missing base layout
 * Improved the tooltips for commodity lists
 * Improved a few RavenColonial integration in coordination with RC developer
-  
+
 ### Bug fixes:
 
 * Colonisation: Fixed issue with initial migration of data throwing an error

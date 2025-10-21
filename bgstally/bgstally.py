@@ -74,6 +74,9 @@ class BGSTally:
             except ImportError:
                 pass
 
+        # Debug Class
+        self.debug: Debug = Debug(self, self.dev_mode)
+
         data_filepath = path.join(self.plugin_dir, FOLDER_OTHER_DATA)
         if not path.exists(data_filepath): mkdir(data_filepath)
 

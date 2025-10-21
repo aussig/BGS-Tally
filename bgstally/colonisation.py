@@ -597,23 +597,23 @@ class Colonisation:
             if location == None and build.get('Base Type', None) != None:
                 bt:dict = self.get_base_type(build.get('Base Type', ''))
                 location = bt.get('Location', None)
-            body:str|None = build.get('Body', build.get('BodyNum', None)).lower()
+            body:str|None = build.get('Body', str(build.get('BodyNum', None))).lower()
             market:int|None = build.get('MarketID', None)
 
             # A build that was planned but is now a construction site
-            if state == BuildState.PLANNED and market == None and location == loc and body == data.get('Body', data.get('BodyNum')).lower():
+            if state == BuildState.PLANNED and market == None and location == loc and body == data.get('Body', str(data.get('BodyNum'))).lower():
                 Debug.logger.debug(f"Matched planned build {data['Body']} {build.get('State', None)} {loc} Build: {build}")
                 return build
 
             # A build that was in progress but not has a new name (completed or renamed)
-            if state == BuildState.PROGRESS and body == data.get('Body', data.get('BodyNum')).lower() and \
+            if state == BuildState.PROGRESS and body == data.get('Body', str(data.get('BodyNum'))).lower() and \
                 (len(builds) == 1 or f"Construction Site: {data.get('Name', '')}" in build.get('Name', '')):
                 Debug.logger.debug(f"Matched construction {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
             # A completed but previously unvisited build.
             if state == BuildState.COMPLETE and market == None and location == loc and \
-                body != None and body == data.get('Body', data.get('BodyNum')).lower():
+                body != None and body == data.get('Body', str(data.get('BodyNum'))).lower():
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
@@ -748,7 +748,8 @@ class Colonisation:
             return
 
         # Fix up known FDev oddities
-        if '$EXT_PANEL_ColonisationShip;' in data.get('Name', ''): data['Name'] = data.get('Name', '').replace('$EXT_PANEL_ColonisationShip;', 'System Colonisation Ship')
+        if data.get('Name', None) != None:
+            data['Name'] = data.get('Name', '').replace('$EXT_PANEL_ColonisationShip;', 'System Colonisation Ship:')
 
         # If we have a body name or id set the corresponding value.
         body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', 'Unknown')))
@@ -1041,8 +1042,7 @@ class Colonisation:
     def save(self, cause:str = 'Unknown') -> None:
         ''' Save state to file '''
 
-        if self.bgstally.dev_mode == True:
-            Debug.logger.debug(f"Saving: {cause}")
+        Debug.logger.debug(f"Saving: {cause}")
 
         file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:

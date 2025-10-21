@@ -244,7 +244,7 @@ class ProgressWindow:
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
             return _("No builds or commodities being tracked") # LANG: No builds or commodities being tracked
 
-        if self.build_index > len(tracked): self.build_index = 0
+        if self.build_index >= len(tracked): self.build_index = 0
 
         output:str = ""
         if discord:

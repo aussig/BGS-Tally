@@ -384,10 +384,7 @@ class RavenColonial:
 
     @catch_exceptions
     def create_project(self, system:dict, build:dict, progress:dict) -> None:
-        """ Create a new project in RavenColonial
-            RC requires: marketid, systemaddress, buildname, and commodities
-            Optional: buildType, bodyNum, architectName, timeDue, isPrimaryPort, bodyType
-        """
+        """ Create a new project in RavenColonial """
         payload:dict = {}
         for k, v in self.project_params.items():
             rcval:dict|None = None
@@ -406,19 +403,20 @@ class RavenColonial:
 
         url:str = f"{RC_API}/project/"
         response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
+        projectid:str|None = None
+
+        if response.status_code in [200, 202]:
+            data:dict = response.json()
+            projectid = data.get('buildId', None)
+
         if response.status_code == 409:
             # This probably only happens if someone's done something weird like deleting & recreating a build.
-            Debug.logger.info(f"{url} already exists: {response.content}")
-            if build.get('ProjectID', None) != None:
-                self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': build.get('ProjectID')}, True)
+            projectid = build.get('ProjectID', None)
+
+        if projectid == None:
+            Debug.logger.error(f"Project not found {response} {response.content}")
             return
 
-        if response.status_code not in [200, 202]:
-            Debug.logger.error(f"{url} {response} {response.content}")
-            return
-
-        # Set the new project ID in the progress
-        data:dict = response.json()
         self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': data.get('buildId')}, True)
 
         # Link the project to us.
@@ -438,7 +436,6 @@ class RavenColonial:
         # Create project if we don't have an id.
         if progress.get('ProjectID', None) == None:
             self.create_project(system, build, progress)
-            return
 
         # Update project
         payload:dict = {}

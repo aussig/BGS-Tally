@@ -1366,7 +1366,7 @@ class ColonisationWindow:
             Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
         system:dict = systems[sysnum]
-        if system.get('RCSync', 0) == 0:
+        if system.get('RCSync', False) == False:
             return
 
         # Refresh the RC data when the window is opened/created

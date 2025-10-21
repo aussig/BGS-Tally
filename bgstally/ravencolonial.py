@@ -384,13 +384,11 @@ class RavenColonial:
 
     @catch_exceptions
     def create_project(self, system:dict, build:dict, progress:dict) -> None:
-        """ Create a new project in RavenColonial
-            RC requires: marketid, systemaddress, buildname, and commodities
-            Optional: buildType, bodyNum, architectName, timeDue, isPrimaryPort, bodyType
-        """
+        """ Create a new project in RavenColonial """
         payload:dict = {}
         for k, v in self.project_params.items():
-            rcval = None
+            rcval:dict|None = None
+
             if progress.get(v, None) != None:
                 rcval = progress.get(v, '').strip().lower().replace(' ', '_') if isinstance(progress.get(v, None), str) and 'name' not in k.lower() else progress.get(v, None)
             elif build.get(v, None) != None:
@@ -400,21 +398,25 @@ class RavenColonial:
             elif k == 'commodities' and  progress != {}:
                 rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v for k,v in progress.get('Required').items()}
 
-            if rcval != None and v != 'Updated':
+            if rcval != None and v not in ['ProjectID', 'Updated']:
                 payload[k] = rcval
 
         url:str = f"{RC_API}/project/"
         response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
+        projectid:str|None = None
+
+        if response.status_code in [200, 202]:
+            data:dict = response.json()
+            projectid = data.get('buildId', None)
+
         if response.status_code == 409:
-            Debug.logger.error(f"{url} already exists: {response.content}")
+            # This probably only happens if someone's done something weird like deleting & recreating a build.
+            projectid = build.get('ProjectID', None)
+
+        if projectid == None:
+            Debug.logger.error(f"Project not found {response} {response.content}")
             return
 
-        if response.status_code not in [200, 202]:
-            Debug.logger.error(f"{url} {response} {response.content}")
-            return
-
-        # Set the project ID in the progress
-        data:dict = response.json()
         self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': data.get('buildId')}, True)
 
         # Link the project to us.
@@ -430,11 +432,10 @@ class RavenColonial:
     @catch_exceptions
     def upsert_project(self, system:dict, build:dict, progress:dict) -> None:
         """ Update build progress """
-        # Required: buildId (though maybe not if you use )
+
         # Create project if we don't have an id.
         if progress.get('ProjectID', None) == None:
             self.create_project(system, build, progress)
-            return
 
         # Update project
         payload:dict = {}
@@ -462,12 +463,19 @@ class RavenColonial:
     @catch_exceptions
     def _project_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         """ Process the results of querying RavenColonial """
-        data:dict = response.json()
-
-        if success == False:
-            Debug.logger.warning(f"Project submission failed {success} {response.status_code} {response.content} {request}")
+        if response.status_code == 404:
+            Debug.logger.info(f"Project not found, cannot update {response} Response.content [{response.content}] Request [{request}]")
+            # Get projectid from request endpoint
+            pid:str = re.search(r"/project/([^/]+)", request.endpoint).group(1)
+            # Remove this project ID from progress
+            self.colonisation.update_progress(pid, {'ProjectID': None}, True)
             return
 
+        if success == False:
+            Debug.logger.warning(f"Project submission failed {success} {response.status_code} response.content [{response.content}] request [{request}]")
+            return
+
+        data:dict = response.json()
         self.colonisation.update_progress(data.get('buildId'), {'Updated': re.sub(r"\.\d+\+00:00$", "Z", str(data.get('timestamp')))}, True)
 
 
@@ -494,6 +502,12 @@ class RavenColonial:
     @catch_exceptions
     def _load_project_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         """ Process the results of querying RavenColonial for the project details """
+        if response.status_code == 404:
+            Debug.logger.info(f"Project not found, {response} Response.content [{response.content}] Request [{request}]")
+            # Remove this project ID from progress
+            pid:str = re.search(r"/project/([^/]+)", request.endpoint).group(1)
+            self.colonisation.update_progress(pid, {'ProjectID': None}, True)
+            return
         if success == False:
             Debug.logger.error(f"Project load failed {response}")
             return

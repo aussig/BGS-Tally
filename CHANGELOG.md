@@ -10,6 +10,16 @@
 * Fixed removal of projects that nolonger exist in RC
 
 
+## v5.2.0-b4 - 2025-10-21
+
+### Bug fixes:
+
+* Fixed repetetive update bug with empty values from Raven Colonial
+* Fixed situation where progress might not get associated with an existing project
+* Improved build fuzzy matching
+* Fixed removal of projects that nolonger exist in RC
+
+
 ## v5.2.0-b3 - 2025-10-18
 
 ### Changes:

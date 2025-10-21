@@ -592,29 +592,30 @@ class Colonisation:
             if loc == 'Planetary': loc = 'Surface'
 
         for build in builds:
+            state:str|None = build.get('State', None)
+            location:str|None = build.get('Location', None)
+            if location == None and build.get('Base Type', None) != None:
+                bt:dict = self.get_base_type(build.get('Base Type', ''))
+                location = bt.get('Location', None)
+            body:str|None = build.get('Body', build.get('BodyNum', None)).lower()
+            market:int|None = build.get('MarketID', None)
+
             # A build that was planned but is now a construction site
-            # We have to ignore the name match for the first build as its name changes
-            if build.get('State', None) == BuildState.PLANNED and build.get('MarketID', None) == None and \
-                build.get('Location', None) == loc and \
-                build.get('Body', build.get('BodyNum')).lower() == data.get('Body', data.get('BodyNum')).lower():
+            if state == BuildState.PLANNED and market == None and location == loc and body == data.get('Body', data.get('BodyNum')).lower():
                 Debug.logger.debug(f"Matched planned build {data['Body']} {build.get('State', None)} {loc} Build: {build}")
                 return build
 
-            # A build that was in progress but is now completed
-            if build.get('State', None) == BuildState.PROGRESS and \
-                (len(builds) == 1 or f"Construction Site: {data.get('Name', '')}" in build.get('Name', '')) and \
-                build.get('Body', build.get('BodyNum')).lower() == data.get('Body', data.get('BodyNum')).lower():
+            # A build that was in progress but not has a new name (completed or renamed)
+            if state == BuildState.PROGRESS and body == data.get('Body', data.get('BodyNum')).lower() and \
+                (len(builds) == 1 or f"Construction Site: {data.get('Name', '')}" in build.get('Name', '')):
                 Debug.logger.debug(f"Matched construction {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
-            # A completed but as yet unknown build.
-            if build.get('State', None) == BuildState.COMPLETE and build.get('MarketID', '') == '' and build.get('Location') == data.get('Location', None):
-                #Debug.logger.debug(f"Checking completed build {build} data {data}")
-                bbody = build.get('Body', build.get('BodyNum', None))
-                dbody = data.get('Body', data.get('BodyNum', None))
-                if bbody != None and dbody != None and bbody == dbody:
-                    Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
-                    return build
+            # A completed but previously unvisited build.
+            if state == BuildState.COMPLETE and market == None and location == loc and \
+                body != None and body == data.get('Body', data.get('BodyNum')).lower():
+                Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
+                return build
 
         return None
 
@@ -710,6 +711,7 @@ class Colonisation:
                 RavenColonial(self).delete_project(pid)
 
         self.save('Build removed')
+        self.bgstally.ui.window_colonisation.update_display()
 
 
     @catch_exceptions

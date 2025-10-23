@@ -872,7 +872,7 @@
 "No" = "Nein";
 
 /* No builds or commodities being tracked. [progress.py] */
-"No builds or commodities being tracked" = "No builds or commodities being tracked";
+"No builds or commodities being tracked" = "Es werden keine Bauprojekte oder Waren verfolgt";
 
 /* No colonisation data available. [progress.py] */
 "No colonisation data available" = "Keine Kolonialisierungsdaten verfügbar";
@@ -1400,7 +1400,7 @@
 "Tick {minutes_delta}m Overdue (Estimated)" = "Tick {minutes_delta}m verspätet (geschätzt)";
 
 /* [colonisation.py] */
-"Tidally Locked" = "Tidally Locked";
+"Tidally Locked" = "Gezeitengebunden";
 
 /* tier of base. [colonisation.py] */
 "Tier" = "Stufe";

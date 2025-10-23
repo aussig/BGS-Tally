@@ -77,7 +77,7 @@
 * Fixed bug with commodity display for non-fleetcarrier owners
 * Fixed issue with a long translation string
 
-### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxx)):
+### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/290c8aa2-50df-42ae-9bde-0e180bfb4df2)):
 
 * `/activites` endpoint: `influence` percentage added to faction information for each faction.
 

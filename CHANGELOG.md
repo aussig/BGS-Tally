@@ -1,7 +1,9 @@
 # Change Log
 
-v5.3.0-dev - xxxx-xx-xx
+v5.1.1-dev - xxxx-xx-xx
 
+## Bug Fixes
+* Fix for bug with connecting projectids to sites in Raven Colonial
 
 ## v5.2.0 - 2025-10-23
 

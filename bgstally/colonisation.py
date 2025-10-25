@@ -181,6 +181,8 @@ class Colonisation:
                     Debug.logger.warning(f"Invalid ColonisationConstructionDepot event (no system): {entry}")
                     return
                 progress:dict = self.find_or_create_progress(self.market_id)
+                if progress.get('ProjectID', None) != None and entry.get('ProjectID', None) == None:
+                    entry['ProjectID'] = progress.get('ProjectID', None)
                 self.update_progress(self.market_id, entry)
 
             case 'Docked':

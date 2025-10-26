@@ -1,18 +1,10 @@
 # Change Log
 
-v5.1.1-dev - xxxx-xx-xx
+## v5.2.1-dev - xxxx-xx-xx
 
-## Bug Fixes
+### Bug Fixes
+
 * Fix for bug with connecting projectids to sites in Raven Colonial
-
-## v5.2.0 - 2025-10-23
-
-### New Features:
-
-* Fixed repetetive update bug with empty values from Raven Colonial
-* Fixed situation where progress might not get associated with an existing project
-* Improved build fuzzy matching
-* Fixed removal of projects that nolonger exist in RC
 
 
 ## v5.2.0 - 2025-10-23

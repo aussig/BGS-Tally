@@ -707,7 +707,8 @@ class Colonisation:
             pid:str|None = build.get('ProjectID', None)
             if pid == None:
                 p:dict|None = self.find_progress(build.get('MarketID', ''))
-                pid = p.get('ProjectID', None)
+                if p != None:
+                    pid = p.get('ProjectID', None)
 
             if pid != None:
                 RavenColonial(self).delete_project(pid)

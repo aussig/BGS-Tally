@@ -450,7 +450,6 @@ class ColonisationWindow:
 
         self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.bodies_fr.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the bodies popup window
-        self.bodies_fr.wm_attributes('-toolwindow', True) # makes it a tool window
         self.bodies_fr.minsize(600, 600)
         self.bodies_fr.geometry(f"{int(600*self.scale)}x{int(600*self.scale)}")
         self.bodies_fr.config(bd=2, relief=tk.FLAT)
@@ -550,7 +549,6 @@ class ColonisationWindow:
         self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
         self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
         self.legend_fr.geometry(f"600x600")
         self.legend_fr.config(bd=2, relief=tk.FLAT)
         scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
@@ -1245,7 +1243,6 @@ class ColonisationWindow:
         system:dict = systems[sysnum]
         dialog:tk.Toplevel = tk.Toplevel(btn)
         dialog.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        dialog.wm_attributes('-toolwindow', True) # makes it a tool window
 
         dialog.title(_("Edit System")) # LANG: Rename a system
         dialog.minsize(500, 250)

@@ -5,6 +5,7 @@
 ### Bug Fixes
 
 * Fix for bug with connecting projectids to sites in Raven Colonial
+* Linux fix for invalid colonisation window types
 
 
 ## v5.2.0 - 2025-10-23

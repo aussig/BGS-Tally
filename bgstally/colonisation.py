@@ -199,7 +199,7 @@ class Colonisation:
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
                     build_state = BuildState.PROGRESS
                 # Complete station so find it and add/update as appropriate.
-                elif system != None and self.station != 'FleetCarrier' and re.search(r"^(...\-...$|\$)", f"{self.station}") == None :
+                elif system != None and self.station not in ['FleetCarrier', 'SquadronCarrier'] and re.search(r"^(...\-...$|\$)", f"{self.station}") == None :
                     Debug.logger.debug(f"Docked at site. Finding/creating system and build {self.market_id} {self.station}")
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
                     build_state = BuildState.COMPLETE

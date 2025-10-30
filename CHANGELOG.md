@@ -2,6 +2,11 @@
 
 ## v5.2.1-dev - xxxx-xx-xx
 
+### New Features:
+
+* Added colonisation build reordering via popup menu
+* Modified readonly toggle through popup menu instead of by state
+
 ### Bug Fixes
 
 * Fix for bug with connecting projectids to sites in Raven Colonial

@@ -69,7 +69,7 @@ class Colonisation:
 
         # Valid keys for colonisation.json entries. These help avoid sending unnecessary data to third parties or storing unnecessary data in the save file.
         self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync', 'BuildSlots']
-        self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost']
+        self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost', 'Readonly']
         self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
 
         # Load base commodities, types, costs, and saved data
@@ -673,6 +673,24 @@ class Colonisation:
 
         return data
 
+    @catch_exceptions
+    def move_build(self, system, row:int, new_row:int) -> None:
+        ''' Move a build to a new position in the list '''
+        if isinstance(system, int): system = self.systems[system]
+
+        if row < 0 or row >= len(system['Builds']) or new_row < 0 or new_row >= len(system['Builds']):
+            Debug.logger.warning(f"Cannot move build - invalid build index: {row} to {new_row}")
+            return
+
+        build:dict = system['Builds'].pop(row)
+        system['Builds'].insert(new_row, build)
+
+        if system.get('RCSync', False) == True and system.get('SystemAddress', None) != None:
+            RavenColonial(self).update_build_order(system)
+
+        self.save('Build moved')
+        self.bgstally.ui.window_colonisation.update_display()
+
 
     @catch_exceptions
     def remove_build(self, system:dict|int, ind:int|str, silent:bool = False) -> None:
@@ -820,11 +838,11 @@ class Colonisation:
             'State': BuildState.COMPLETE,
             'Track': False,
             'TotalCost': sum(p.get('Required').values()),
+            'Readonly': True,
             'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
         }
         data['MarketID'] = None if '$EXT_PANEL_ColonisationShip;' in build.get('Name', '') else build.get('MarketID', None)
         self.modify_build(system, build.get('BuildID', ''), data)
-
         return True
 
 
@@ -1068,13 +1086,6 @@ class Colonisation:
                     state = BuildState.PROGRESS
             return state.value
 
-        # Builds order
-        def build_order(item:dict) -> int:
-            match self.get_build_state(item):
-                case BuildState.COMPLETE: return 0
-                case BuildState.PROGRESS: return 1
-                case _: return 2
-
         # We sort the order of systems when saving so that in progress systems are first, then planned, then complete.
         # Fortuitously our desired order matches the reverse alpha of the states
         # We also clean up the system and build entires.
@@ -1082,8 +1093,6 @@ class Colonisation:
         for s in list(sorted(self.get_all_systems(), key=sort_order, reverse=True)):
             system:dict = {k: v for k, v in s.items() if k in self.system_keys}
             builds:list = []
-            if len(system['Builds']) > 1:
-                system['Builds'] = [system['Builds'][0]] + list(sorted(system['Builds'][1:], key=build_order))
             for i, b in enumerate(system['Builds']):
                 if i > 0 and b.get('Base Type', '') == '' and b.get('Name', '') == '': continue
                 build:dict = {k: v for k, v in b.items() if k in self.build_keys and v not in ['', "\u0001"]}
@@ -1123,6 +1132,9 @@ class Colonisation:
                     self._generate_buildid(build.get('MarketID', None))
                     self.dirty = True
                 markets += [v for k, v in build.items() if k == 'MarketID' and v != None and v != '']
+                if build.get('Readonly', None) == None:
+                    build['Readonly'] = (build.get('State', BuildState.PLANNED) == BuildState.COMPLETE)
+                    self.dirty = True
 
         for p in dict.get('Progress', []):
             # Clean out old progress entries that are no longer relevant

@@ -263,6 +263,25 @@ class RavenColonial:
 
         Debug.logger.info(f"RavenColonial site removed {build.get('Name', '')}")
 
+    @catch_exceptions
+    def update_build_order(self, system:dict) -> None:
+        """ Update the site order in RavenColonial to match our order """
+
+        if system.get('Architect', '') != self.colonisation.cmdr:
+            Debug.logger.info(f"Not architect, not updating")
+            return
+
+        payload:dict = {'update': [], 'delete':[], 'orderIDs': []}
+        for b in system.get('Builds', []):
+            payload['orderIDs'].append(b.get('BuildID', None))
+
+        url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
+        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
+        if response.status_code != 200:
+            Debug.logger.error(f"{url} {response} {response.content}")
+
+        Debug.logger.info(f"RavenColonial site order updated for system {system.get('StarSystem', '')}")
+
 
     def _merge_system_data(self, data:dict) -> None:
         """ Merge the data from RavenColonial into the system data """
@@ -764,6 +783,13 @@ class EDSM:
                 if b.get(k, None): v[k] = b.get(k)
             if b.get('parents', None) != None:
                 v['parents'] = len(b.get('parents', []))
+
+            if b.get('belts', None) != None:
+                for belt in b.get('belts', []):
+                    if belt.get('type', '') == 'Ring':
+                        v['rings'] = v.get('rings', 0) + 1
+
+                v['belts'] = len(b.get('belts', []))
             bodies.append(v)
 
         RavenColonial(self).colonisation.modify_system(system, {'Bodies' : bodies})

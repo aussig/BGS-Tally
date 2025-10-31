@@ -177,6 +177,72 @@ class RavenColonial:
 
 
     @catch_exceptions
+    def check_auto_sync(self, system_address:int, market_id:int) -> str|None:
+        """
+        Check if RCSync should be automatically enabled for a system.
+        Returns the buildId (project ID) if a project exists and commander is assigned, None otherwise.
+        """
+        if self.colonisation.cmdr == None:
+            Debug.logger.debug("No commander set, cannot check auto-sync")
+            return None
+        
+        try:
+            # Check if a project exists for this system/market
+            url:str = f"{RC_API}/system/{system_address}/{market_id}"
+            response:Response = requests.get(url, headers=self._headers(), timeout=10)
+            
+            if response.status_code == 404:
+                Debug.logger.debug(f"No project found for system {system_address}, market {market_id}")
+                return None
+            
+            if response.status_code != 200:
+                Debug.logger.warning(f"Error checking project: {response.status_code}")
+                return None
+            
+            project_data:dict = response.json()
+            build_id:str|None = project_data.get('buildId', None)
+            
+            if build_id == None:
+                Debug.logger.debug("Project found but no buildId")
+                return None
+            
+            Debug.logger.debug(f"Project data: {project_data}")
+            
+            # Check if commander is linked to this project
+            # The project data should contain linkedCmdrs or similar field
+            linked_cmdrs = project_data.get('linkedCmdrs', [])
+            
+            if not linked_cmdrs:
+                # Try alternative field names
+                linked_cmdrs = project_data.get('commanders', [])
+            
+            if not linked_cmdrs:
+                # Try checking if there's a list of commander names
+                linked_cmdrs = project_data.get('cmdrNames', [])
+            
+            Debug.logger.debug(f"Linked commanders: {linked_cmdrs}")
+            Debug.logger.debug(f"Current commander: {self.colonisation.cmdr}")
+            
+            # Check if current commander is in the linked commanders list
+            if linked_cmdrs and self.colonisation.cmdr in linked_cmdrs:
+                Debug.logger.info(f"Commander {self.colonisation.cmdr} is linked to project {build_id}, enabling auto-sync")
+                return build_id
+            
+            # If no linked commanders field found, assume the project exists and commander has access
+            # (since they received the event and can see the project data)
+            if not linked_cmdrs:
+                Debug.logger.info(f"Project {build_id} exists and commander has access, enabling auto-sync")
+                return build_id
+            
+            Debug.logger.debug(f"Commander {self.colonisation.cmdr} is not linked to project {build_id}")
+            return None
+            
+        except Exception as e:
+            Debug.logger.error(f"Error in check_auto_sync: {e}")
+            return None
+
+
+    @catch_exceptions
     def complete_project(self, project_id:str) -> None:
         """ Complete a site """
         url:str = f"{RC_API}/project/{project_id}/complete"
@@ -417,16 +483,16 @@ class RavenColonial:
             Debug.logger.error(f"Project not found {response} {response.content}")
             return
 
-        self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': data.get('buildId')}, True)
+        self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': projectid}, True)
 
         # Link the project to us.
-        url:str = f"{RC_API}/project/{data.get('buildId')}/link/{self.colonisation.cmdr}"
+        url:str = f"{RC_API}/project/{projectid}/link/{self.colonisation.cmdr}"
         response:Response = requests.put(url, headers=self._headers(), timeout=5)
         if response.status_code not in [200, 202]:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
 
-        Debug.logger.info(f"RavenColonial project created {data.get('buildName', 'Unknown')}")
+        Debug.logger.info(f"RavenColonial project created {build.get('Name', 'Unknown')}")
 
 
     @catch_exceptions

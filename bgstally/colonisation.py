@@ -148,16 +148,27 @@ class Colonisation:
                     return
 
                 system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
+                Debug.logger.debug(f"ColonisationContribution - system found: {system != None}, Hidden: {system.get('Hidden', True) if system else 'N/A'}, RCSync: {system.get('RCSync', False) if system else 'N/A'}")
+                
                 if system != None and system.get('Hidden', True) == False and system.get('RCSync', False) == True:
+                    found_progress = False
                     for progress in self.progress:
+                        Debug.logger.debug(f"Checking progress: MarketID {progress.get('MarketID')} vs {self.market_id}, ProjectID: {progress.get('ProjectID')}")
                         if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
+                            Debug.logger.info(f"Calling record_contribution for ProjectID {progress.get('ProjectID')}")
                             rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
+                            found_progress = True
 
                             # Just in case we don't have the ProjectID on the build, add it now.
                             b:dict|None = self.find_build(system, {'MarketID': self.market_id})
                             if b != None and b.get('ProjectID', None) == None:
                                 self.modify_build(system, b.get('BuildID', ''), {'ProjectID': progress.get('ProjectID', None)})
                             break
+                    
+                    if not found_progress:
+                        Debug.logger.warning(f"No progress record found with ProjectID for MarketID {self.market_id}")
+                else:
+                    Debug.logger.warning(f"ColonisationContribution skipped - conditions not met")
 
             case 'ColonisationSystemClaim':
                 if not self.current_system or not self.system_id:
@@ -177,10 +188,96 @@ class Colonisation:
                     return
 
                 system = self.find_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
+                
+                # If system doesn't exist, check if we should auto-create it based on RavenColonial assignment
                 if system == None:
-                    Debug.logger.warning(f"Invalid ColonisationConstructionDepot event (no system): {entry}")
-                    return
+                    if self.system_id and self.market_id and self.current_system:
+                        project_id = RavenColonial(self).check_auto_sync(self.system_id, self.market_id)
+                        if project_id:
+                            Debug.logger.info(f"Auto-creating system {self.current_system} with RCSync enabled and ProjectID {project_id}")
+                            system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress': self.system_id})
+                            self.modify_system(system, {
+                                'RCSync': True,
+                                'Architect': self.cmdr,
+                                'Hidden': False
+                            })
+                            
+                            # Also create the build for this construction depot
+                            Debug.logger.info(f"Auto-creating build for market {self.market_id}")
+                            build = self.find_or_create_build(system, {
+                                'MarketID': self.market_id, 
+                                'Name': self.station if self.station else 'Construction Site',
+                                'Body': self.body,
+                                'State': BuildState.PROGRESS,
+                                'Track': True,
+                                'ProjectID': project_id
+                            })
+                        else:
+                            Debug.logger.warning(f"Invalid ColonisationConstructionDepot event (no system): {entry}")
+                            return
+                    else:
+                        Debug.logger.warning(f"Invalid ColonisationConstructionDepot event (no system): {entry}")
+                        return
+                
+                # Check if we should auto-enable RCSync for existing systems
+                project_id = None
+                if system.get('RCSync', False) == False and self.system_id and self.market_id:
+                    project_id = RavenColonial(self).check_auto_sync(self.system_id, self.market_id)
+                    if project_id:
+                        Debug.logger.info(f"Auto-enabling RCSync for {system.get('StarSystem', 'Unknown')} with ProjectID {project_id}")
+                        self.modify_system(system, {
+                            'RCSync': True,
+                            'Hidden': False
+                        })
+                
+                # Ensure Hidden=False for systems with RCSync enabled
+                if system.get('RCSync', False) == True and system.get('Hidden', True) == True:
+                    Debug.logger.info(f"Setting Hidden=False for RCSync-enabled system {system.get('StarSystem', 'Unknown')}")
+                    self.modify_system(system, {'Hidden': False})
+                
+                # Ensure the build exists for this market
+                build = self.find_build(system, {'MarketID': self.market_id})
+                if build == None:
+                    # Try to find by name if not found by MarketID
+                    build = self.find_build(system, {'Name': self.station})
+                    if build:
+                        Debug.logger.info(f"Found build by name, adding MarketID {self.market_id}")
+                        self.modify_build(system, build.get('BuildID', ''), {'MarketID': self.market_id})
+                    else:
+                        Debug.logger.info(f"Creating missing build for market {self.market_id}")
+                        build = self.find_or_create_build(system, {
+                            'MarketID': self.market_id,
+                            'Name': self.station if self.station else 'Construction Site',
+                            'Body': self.body,
+                            'State': BuildState.PROGRESS,
+                            'Track': True
+                        })
+                
+                # Ensure MarketID is set on the build
+                if build and build.get('MarketID', None) != self.market_id:
+                    Debug.logger.info(f"Setting MarketID {self.market_id} on build {build.get('BuildID', 'unknown')}")
+                    self.modify_build(system, build.get('BuildID', ''), {'MarketID': self.market_id})
+                
+                # Ensure tracking is enabled
+                if build and build.get('Track', False) == False:
+                    Debug.logger.info(f"Enabling tracking for build {build.get('BuildID', 'unknown')}")
+                    self.modify_build(system, build.get('BuildID', ''), {'Track': True})
+                    self.dirty = True
+                    self.bgstally.ui.window_progress.update_display()
+                
+                # Set ProjectID on build if we have it and it's missing
+                if build and project_id and build.get('ProjectID', None) == None:
+                    Debug.logger.info(f"Setting ProjectID {project_id} on build {build.get('BuildID', 'unknown')}")
+                    self.modify_build(system, build.get('BuildID', ''), {'ProjectID': project_id})
+                
                 progress:dict = self.find_or_create_progress(self.market_id)
+                
+                # Set ProjectID on progress record if we have it
+                if project_id and progress.get('ProjectID', None) != project_id:
+                    Debug.logger.info(f"Setting ProjectID {project_id} on progress record for market {self.market_id}")
+                    progress['ProjectID'] = project_id
+                    self.dirty = True
+                
                 if progress.get('ProjectID', None) != None and entry.get('ProjectID', None) == None:
                     entry['ProjectID'] = progress.get('ProjectID', None)
                 self.update_progress(self.market_id, entry)
@@ -195,7 +292,18 @@ class Colonisation:
                 # Colonisation ship is always the first build. Construction site can be any build
                 if '$EXT_PANEL_ColonisationShip' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                     Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
-                    if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
+                    if system == None:
+                        system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
+                        # Check if we should auto-enable RCSync for newly created system
+                        if self.system_id and self.market_id:
+                            project_id = RavenColonial(self).check_auto_sync(self.system_id, self.market_id)
+                            if project_id:
+                                Debug.logger.info(f"Auto-enabling RCSync for newly created system {self.current_system} with ProjectID {project_id}")
+                                self.modify_system(system, {
+                                    'RCSync': True,
+                                    'Architect': self.cmdr,
+                                    'Hidden': False
+                                })
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
                     build_state = BuildState.PROGRESS
                 # Complete station so find it and add/update as appropriate.
@@ -207,6 +315,17 @@ class Colonisation:
                 # If this isn't a colonisation ship or a system we're building, or it's a carrier, scenario, etc. then ignore it.
                 if system == None or build == None:
                     return
+
+                # Check if we should auto-enable RCSync when docking at construction ship
+                if '$EXT_PANEL_ColonisationShip' in f"{self.station}" or 'Construction Site' in f"{self.station}":
+                    if system.get('RCSync', False) == False and self.system_id and self.market_id:
+                        project_id = RavenColonial(self).check_auto_sync(self.system_id, self.market_id)
+                        if project_id:
+                            Debug.logger.info(f"Auto-enabling RCSync for {system.get('StarSystem', 'Unknown')} on dock")
+                            self.modify_system(system, {
+                                'RCSync': True,
+                                'Hidden': False
+                            })
 
                 # Update the system details
                 if system.get('Name', None) == None: system['Name'] = self.current_system

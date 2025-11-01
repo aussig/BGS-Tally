@@ -8,7 +8,7 @@
 [![Github All Releases](https://img.shields.io/github/downloads/aussig/BGS-Tally/total.svg)](https://github.com/aussig/BGS-Tally/releases/latest)
 [![Discord](https://img.shields.io/discord/698438769358929940?label=Discord&color=%2350007f)](https://discord.gg/YDNVtjPnnm)
 
-A tool to track and report your Background Simulation (BGS), Colonisation and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS-Tally counts all the BGS / Colonisation / TW work you do for any faction, in any system.
+A tool to track and report your Background Simulation (BGS), Colonisation, Powerplay Merits (PP) and Thargoid War (TW) activity in Elite Dangerous, implemented as an [EDMC](https://github.com/EDCD/EDMarketConnector) plugin. BGS-Tally counts all the BGS / Colonisation / PP / TW work you do for any faction, in any system.
 
 Based on BGS-Tally v2.0 by tezw21
 
@@ -16,12 +16,13 @@ As well as all the BGS tracking from Tez's original version, this modified versi
 
 * Automatic on-foot Conflict Zone tracking (with settlement names)
 * Automatic in-space Conflict Zone tracking
-* TW tracking
 * Colonisation tracking
+* Powerplay merits tracking
+* Thargoid War tracking
 * Logging of interactions with other CMDRs, with automatic Inara lookup for CMDR and Squadron
-* Fleet Carrier materials tracking
+* Fleet Carrier contents / buy orders / sell orders tracking
 * Fleet Carrier jump tracking
-* Discord-ready information - quick Copy to Clipboard for the Discord text as well as posting directly to Discord
+* Discord-ready information - quick Copy to Clipboard for the Discord text as well as posting directly to Discord, including fully automatically
 * An API to send data to other web applications.
 
 
@@ -42,11 +43,13 @@ The plugin generates Discord-ready text for copying-and-pasting manually into Di
 
 # What is Tracked
 
-The plugin includes both automatic and manual tracking of BGS, Colonisation and TW activity data.
+The plugin includes both automatic and manual tracking of BGS, Colonisation, PP and TW activity data.
 
 * For a basic summary of what is tracked, see the **[Home Page of the wiki &rarr;](https://github.com/aussig/BGS-Tally/wiki#it-tracks-bgs-activity)**.
-* For more detail on BGS and TW tracking, see **[this page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Usage-%E2%80%90-BGS-and-TW-Tracking)**.
+* For more detail on BGS, PP and TW tracking, see **[this page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Usage-%E2%80%90-BGS-and-TW-Tracking)**.
 * For more detail on Colonisation tracking, see **[this page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Usage-%E2%80%90-Colonisation-Tracking)**.
+* For more detail on Fleet Carrier tracking, see **[this page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Usage-%E2%80%90-Fleet-Carrier-Tracking)**.
+* For more detail on CMDR tracking, see **[this page &rarr;](https://github.com/aussig/BGS-Tally/wiki/Usage-%E2%80%90-Commander-Tracking)**.
 
 
 # Your Personal Activity and Privacy
@@ -72,7 +75,7 @@ The plugin makes the following network connections:
 2. To [GitHub](https://api.github.com/repos/aussig/BGS-Tally/releases/latest) to check the version of the plugin to see whether there is a newer version available.
 3. To [Inara](https://inara.cz/elite/) to anonymously check for available information on targeted CMDRs.
 4. To [EDSM](https://edsm.net/) to anonymously retrieve information about systems, bodies, and stations for colonisation.
-4. **Only if configured by you** to a specific Discord webhook on a Discord server of your choice, and only when you explicitly click the _Post to Discord_ button.
+4. **Only if configured by you** to a specific Discord webhook on a Discord server of your choice.
 5. **Only if configured by you** to a specific web application of your choice to send your BGS / TW data for aggregation and analysis, via an API. You have control over whether you approve the initial connection, and can choose to terminate the connection at any time.
 
 

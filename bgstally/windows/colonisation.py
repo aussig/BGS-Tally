@@ -19,7 +19,7 @@ from bgstally.ravencolonial import RavenColonial
 
 from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key, ICON_DEL, ICON_ADD
+from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key, ICON_DEL, ICON_ADD, ICON_SORT_DESC, ICON_SORT_ASC, ICON_REDO
 from thirdparty.Tooltip import ToolTip
 
 FILENAME_LEGEND = "colonisation_legend.txt"
@@ -592,9 +592,12 @@ class ColonisationWindow:
         sheet.edit_validation(func=partial(self._validate_edits, sheet))
         sheet.extra_bindings(['all_modified_events', 'cell_select', 'ctrl_row_select', 'rc_delete_row', 'rc_insert_row'], func=partial(self.sheet_modified, sheet, tabnum))
 
+        sheet.popup_menu_add_command(label="Move up", func=partial(self._row_modified, sheet, tabnum, 'MoveUp'), image=tk.PhotoImage(data=ICON_SORT_DESC), compound="left")
+        sheet.popup_menu_add_command(label="Move down", func=partial(self._row_modified, sheet, tabnum, 'MoveDown'), image=tk.PhotoImage(data=ICON_SORT_ASC), compound="left")
         sheet.popup_menu_add_command(label="Insert build above", func=partial(self._row_modified, sheet, tabnum, 'InsAbove'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
         sheet.popup_menu_add_command(label="Insert build below", func=partial(self._row_modified, sheet, tabnum, 'InsBelow'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
         sheet.popup_menu_add_command(label="Delete build", func=partial(self._row_modified, sheet, tabnum, 'Delete'), image=tk.PhotoImage(data=ICON_DEL), compound="left")
+        sheet.popup_menu_add_command(label="Toggle Readonly", func=partial(self._row_modified, sheet, tabnum, 'Readonly'), image=tk.PhotoImage(data=ICON_REDO), compound="left")
 
         if len(self.sheets) < tabnum:
             self.sheets.append(sheet)
@@ -629,6 +632,17 @@ class ColonisationWindow:
                 self.colonisation.remove_build(system, row)
                 sheet.del_row(row)
                 self._config_sheet(self.sheets[sysnum], system)
+            case 'MoveUp':
+                if row == 0:
+                    return
+                self.colonisation.move_build(system, row, row-1)
+            case 'MoveDown':
+                if row >= len(system.get('Builds', [])) -1:
+                    return
+                self.colonisation.move_build(system, row, row+1)
+            case 'Readonly':
+                self.colonisation.modify_build(system, row, {'Readonly': not system['Builds'][row].get('Readonly', False)}, True)
+
         self.update_display()
 
 
@@ -900,8 +914,10 @@ class ColonisationWindow:
                 sheet[self._cell(i+srow,0)].data = ' '
                 sheet[self._cell(i+srow,self._detcol('Track'))].readonly()
 
-            if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Name')] != '' and \
-                new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Body')] != ' ' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
+            # Handle readonly builds (must have required fields set)
+            if build.get('Readonly', False) == True and build.get('BuildID', '') != '' and \
+                new[i][self._detcol('Name')] not in ['', ' '] and new[i][self._detcol('Layout')] != ' ' and \
+                    new[i][self._detcol('Body')] != ' ':
                 # Base type
                 if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types() and \
                     new[i][self._detcol('Layout')] in self.colonisation.get_base_layouts(): # Base type has been set so make it readonly
@@ -932,7 +948,8 @@ class ColonisationWindow:
                     sheet[self._cell(i+srow,self._detcol('Body'))].readonly()
                 continue
 
-            #  Tracking
+            # Editable builds below here
+            # Tracking
             if new[i][self._detcol('State')] != BuildState.COMPLETE:
                 sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='normal', redraw=False)
                 sheet[self._cell(i+srow,self._detcol('Track'))].data = ' '
@@ -998,7 +1015,7 @@ class ColonisationWindow:
             self._update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
             self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
             # Not our system? Then it's readonly
-            if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
+            if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
                 self.sheets[i]['B1:Z'].readonly()
 
 
@@ -1033,9 +1050,7 @@ class ColonisationWindow:
 
             # If the user clicks on the state column, toggle the state between planned and complete.
             # If it's in progress we'll update to that on our next delivery
-            if field == 'State' and row < len(system['Builds']):
-                r:int = event.selected.row
-
+            if field == 'State' and row < len(system['Builds']) and system['Builds'][row].get('Readonly', False) != True:
                 if system['Builds'][row].get('Base Type', '') in self.colonisation.get_base_types('All'):
                     match system['Builds'][row].get('State', ''):
                         case BuildState.PLANNED: newstate = BuildState.PROGRESS
@@ -1049,7 +1064,7 @@ class ColonisationWindow:
 
                 self.update_display()
 
-        if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
+        if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
             Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
             return
 

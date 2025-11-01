@@ -50,6 +50,8 @@ class RavenColonial:
             'id64': 'SystemAddress',
             'name': 'StarSystem',
             'architect': 'Architect',
+            'cmdr': 'RCCommander',
+            'open': 'RCOpen',
             'rev': 'Rev',
             'slots': 'BuildSlots'
         }
@@ -60,8 +62,7 @@ class RavenColonial:
                                  'buildType' : 'Layout',
                                  'status' : 'State',
                                  'buildId' : 'ProjectID',
-                                 'marketId' : 'MarketID',
-                                 'architectName' : 'Architect'
+                                 'marketId' : 'MarketID'
                                  }
         # Project parameter mapping between colonisation & raven.
         self.project_params:dict = {
@@ -107,6 +108,15 @@ class RavenColonial:
         return headers
 
 
+    def is_editable(self, system:dict) -> bool:
+        """ Determine if we can edit this system in RavenColonial """
+        if self.colonisation.cmdr == None:
+            return False
+        
+        return system.get('Open', False) == True or \
+            self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
+
+    
     @catch_exceptions
     def load_system(self, id64:str|None = None, rev:str|None = None, sync:bool = False) -> None:
         """ Retrieve the rcdata data with the latest system data from RC when we start. """
@@ -206,11 +216,8 @@ class RavenColonial:
     def upsert_site(self, system:dict, data:dict) -> None:
         """ Modify a site (build) in RavenColonial """
 
-        if self.colonisation.cmdr == None:
-            Debug.logger.info(f"Cannot upsert site, no cmdr")
-            return
-        if system.get('Architect', '') != self.colonisation.cmdr:
-            Debug.logger.info(f"Not architect, not updating")
+        if self.is_editable(system) == False:
+            Debug.logger.info(f"Not allowed to upsert site.")
             return
 
         # Create an ID if necessary
@@ -245,8 +252,8 @@ class RavenColonial:
     @catch_exceptions
     def remove_site(self, system:dict, ind:int) -> None:
         """ Remove a site from RavenColonial """
-        if system.get('Architect', '') != self.colonisation.cmdr:
-            Debug.logger.info(f"Not architect, not updating")
+        if self.is_editable(system) == False:
+            Debug.logger.info(f"Not allowed to remove site")
             return
 
         build:dict = system['Builds'][ind]
@@ -262,6 +269,25 @@ class RavenColonial:
             Debug.logger.error(f"{url} {self._headers()} {response} {response.content}")
 
         Debug.logger.info(f"RavenColonial site removed {build.get('Name', '')}")
+
+    @catch_exceptions
+    def update_build_order(self, system:dict) -> None:
+        """ Update the site order in RavenColonial to match our order """
+
+        if self.is_editable(system) == False:
+            Debug.logger.info(f"Not allowed to update build order")
+            return
+
+        payload:dict = {'update': [], 'delete':[], 'orderIDs': []}
+        for b in system.get('Builds', []):
+            payload['orderIDs'].append(b.get('BuildID', None))
+
+        url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
+        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
+        if response.status_code != 200:
+            Debug.logger.error(f"{url} {response} {response.content}")
+
+        Debug.logger.info(f"RavenColonial site order updated for system {system.get('StarSystem', '')}")
 
 
     def _merge_system_data(self, data:dict) -> None:
@@ -324,8 +350,8 @@ class RavenColonial:
             # Skip placeholder responses
             if p == 'bodyNum' and site.get(p, -1) == -1: continue
 
-            # strip, initcap and replace spaces in strings except for id and buildid, name and architectName
-            rcval = site.get(p, '').strip().title().replace('_', ' ') if isinstance(site.get(p, None), str) and p not in ['id', 'buildId', 'name', 'architectName'] else site.get(p, None)
+            # strip, initcap and replace spaces in strings except for id and buildid, name, architectName and cmdr
+            rcval = site.get(p, '').strip().title().replace('_', ' ') if isinstance(site.get(p, None), str) and p not in ['id', 'buildId', 'name', 'architectName', 'cmdr'] else site.get(p, None)
             if p == 'status' and site[p] in self.status_map.keys(): rcval = self.status_map[site[p]]
             if rcval != None and rcval != build.get(m, None):
                 deets[m] = rcval
@@ -764,6 +790,13 @@ class EDSM:
                 if b.get(k, None): v[k] = b.get(k)
             if b.get('parents', None) != None:
                 v['parents'] = len(b.get('parents', []))
+
+            if b.get('belts', None) != None:
+                for belt in b.get('belts', []):
+                    if belt.get('type', '') == 'Ring':
+                        v['rings'] = v.get('rings', 0) + 1
+
+                v['belts'] = len(b.get('belts', []))
             bodies.append(v)
 
         RavenColonial(self).colonisation.modify_system(system, {'Bodies' : bodies})

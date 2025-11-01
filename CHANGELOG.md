@@ -1,5 +1,22 @@
 # Change Log
 
+## v5.3.0-b1 - 2025-11-01
+
+### New Features:
+
+* Added colonisation build reordering via popup menu
+* Modified readonly toggle through popup menu instead of by state
+* Modified so that RC systems can be edited if they're open or you're on the list as well as if they're yours
+* Modified so auto-created systems default to syncing with RC if the Commander has configured an API key
+
+### Bug Fixes
+
+* Fix for bug with connecting projectids to sites in Raven Colonial
+* Fix for popup windows on Linux
+* Fixed colonisation ship names
+* Made sure RC connects the project to the build
+
+
 ## v5.2.0 - 2025-10-23
 
 ### New Features:
@@ -72,7 +89,7 @@
 * Fixed bug with commodity display for non-fleetcarrier owners
 * Fixed issue with a long translation string
 
-### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxx)):
+### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/290c8aa2-50df-42ae-9bde-0e180bfb4df2)):
 
 * `/activites` endpoint: `influence` percentage added to faction information for each faction.
 

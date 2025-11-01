@@ -1015,7 +1015,7 @@ class ColonisationWindow:
             self._update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
             self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
             # Not our system? Then it's readonly
-            if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
+            if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
                 self.sheets[i]['B1:Z'].readonly()
 
 
@@ -1064,7 +1064,7 @@ class ColonisationWindow:
 
                 self.update_display()
 
-        if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
+        if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
             Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
             return
 

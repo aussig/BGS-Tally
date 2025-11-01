@@ -68,7 +68,7 @@ class Colonisation:
         self.cmdr:str|None = None
 
         # Valid keys for colonisation.json entries. These help avoid sending unnecessary data to third parties or storing unnecessary data in the save file.
-        self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync', 'BuildSlots']
+        self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync', 'BuildSlots', 'RCCommander', 'RCOpen']
         self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost', 'Readonly']
         self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
 
@@ -110,6 +110,8 @@ class Colonisation:
         if entry.get('Type', None) != None: self.station = entry.get('Type')
         if entry.get('BodyType', None) == 'Station': self.station = entry.get('Body')
         if entry.get("StationName", None): self.station = entry.get('StationName')
+        self.station = re.sub(r"^\$EXT_PANEL_ColonisationShip;", "System Colonisation Ship", f"{self.station}").strip()
+
         if cmdr != None: self.cmdr = cmdr
         if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
 
@@ -185,6 +187,11 @@ class Colonisation:
                     entry['ProjectID'] = progress.get('ProjectID', None)
                 self.update_progress(self.market_id, entry)
 
+                # Make sure the build is connnected to the project
+                build = self.find_build(system, {'MarketID': self.market_id})
+                if build != None and build.get('ProjectID', None) == None and entry.get('ProjectID', None) != None:
+                    self.modify_build(system, build.get('BuildID', ''), {'ProjectID': entry.get('ProjectID', None)})
+
             case 'Docked':
                 self._update_market(self.market_id)
                 self.docked = True
@@ -193,7 +200,7 @@ class Colonisation:
 
                 # Find and add system and build for construciton sites.
                 # Colonisation ship is always the first build. Construction site can be any build
-                if '$EXT_PANEL_ColonisationShip' in f"{self.station}" or 'Construction Site' in f"{self.station}":
+                if 'Colonisation Ship' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                     Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
                     if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
@@ -404,7 +411,7 @@ class Colonisation:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
         system:dict|None = self.find_system(data)
         if system == None:
-            return self.add_system(data)
+            return self.add_system(data, False, self.bgstally.state.ColonisationRCAPIKey.get() != None)
 
         return system
 
@@ -575,7 +582,7 @@ class Colonisation:
         if data.get('Name', '') == '' or data.get('Name', '') == ' ': data['Name'] = None
 
         # Colonisation ship must be build 0
-        if data.get('Name', None) != None and '$EXT_PANEL_ColonisationShip;' in data.get('Name', '') and len(builds) > 0:
+        if data.get('Name', None) != None and 'System Colonisation Ship' in data.get('Name', '') and len(builds) > 0:
             return builds[0]
 
         # An existing/known build?
@@ -841,7 +848,7 @@ class Colonisation:
             'Readonly': True,
             'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
         }
-        data['MarketID'] = None if '$EXT_PANEL_ColonisationShip;' in build.get('Name', '') else build.get('MarketID', None)
+        data['MarketID'] = None if 'System Colonisation Ship' in build.get('Name', '') else build.get('MarketID', None)
         self.modify_build(system, build.get('BuildID', ''), data)
         return True
 

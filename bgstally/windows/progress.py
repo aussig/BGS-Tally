@@ -14,6 +14,7 @@ from bgstally.debug import Debug
 from bgstally.utils import _, str_truncate, catch_exceptions, human_format
 from bgstally.ravencolonial import RavenColonial
 from bgstally.requestmanager import BGSTallyRequest
+from bgstally.windows.create_rc_project import CreateRCProjectDialog
 from config import config # type: ignore
 from thirdparty.Tooltip import ToolTip
 from thirdparty.tksheet import Sheet, natural_sort_key
@@ -221,6 +222,16 @@ class ProgressWindow:
             self._set_weight(r[col])
 
         self.rows.append(r)
+        
+        # Add RavenColonial button at the bottom
+        row += 1
+        self.rc_button = tk.Button(
+            table_frame,
+            text=_("Open Build Page"),
+            command=self._open_ravencolonial_page,
+            state=tk.DISABLED
+        )
+        self.rc_button.grid(row=row, column=0, columnspan=len(self.columns), pady=(10,0), sticky=tk.EW)
 
         # No builds or no commodities so hide the frame entirely
         if len(tracked) == 0 or len(self.colonisation.get_required(tracked)) == 0:
@@ -606,6 +617,9 @@ class ProgressWindow:
             self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))
             self.progress = round(totals['Delivered'] * 100 / totals['Required'])
             self.progtt.text = f"{_('Progress')}: {int(self.progvar.get())}%" # LANG: tooltip for the progress bar
+        
+        # Update RavenColonial button
+        self._update_rc_button()
 
 
     @catch_exceptions
@@ -686,3 +700,110 @@ class ProgressWindow:
                 # bold if need any and have room, otherwise normal
                 self._set_weight(cell, 'bold' if remaining-cargo-carrier > 0 and space > 0 else 'normal')
                 continue
+
+
+    @catch_exceptions
+    def _open_ravencolonial_page(self) -> None:
+        """Open the current build's RavenColonial page in browser"""
+        tracked = self.colonisation.get_tracked_builds()
+        if not tracked or self.build_index >= len(tracked):
+            return
+        
+        # Get the current build being displayed
+        build = tracked[self.build_index] if self.build_index < len(tracked) else None
+        if not build:
+            return
+        
+        project_id = build.get('ProjectID')
+        if project_id:
+            url = f"https://ravencolonial.com/#build={project_id}"
+            Debug.logger.info(f"Opening RavenColonial page: {url}")
+            webbrowser.open(url)
+
+
+    @catch_exceptions
+    def _create_ravencolonial_project(self) -> None:
+        """Create a RavenColonial project for the current build"""
+        tracked = self.colonisation.get_tracked_builds()
+        if not tracked or self.build_index >= len(tracked):
+            return
+        
+        # Get the current build
+        build = tracked[self.build_index] if self.build_index < len(tracked) else None
+        if not build:
+            return
+        
+        # Find the system and actual build by MarketID
+        market_id = build.get('MarketID')
+        if not market_id:
+            Debug.logger.error("Cannot create project: no MarketID")
+            return
+        
+        system = None
+        actual_build = None
+        for sys in self.colonisation.get_all_systems():
+            for b in sys.get('Builds', []):
+                if b.get('MarketID') == market_id:
+                    system = sys
+                    actual_build = b
+                    break
+            if system:
+                break
+        
+        if not system or not actual_build:
+            Debug.logger.error(f"Cannot create project: system or build not found for MarketID {market_id}")
+            return
+        
+        # Get or create progress record
+        progress = self.colonisation.find_or_create_progress(market_id)
+        
+        # Open the create project dialog
+        dialog = CreateRCProjectDialog(self.frame.master, self.bgstally, system, actual_build, progress)
+        self.frame.wait_window(dialog.dialog)
+        
+        # Refresh display to update button if project was created
+        if dialog.result:
+            self.update_display()
+
+
+    @catch_exceptions
+    def _update_rc_button(self) -> None:
+        """Update RavenColonial button state and text"""
+        if not hasattr(self, 'rc_button'):
+            return
+        
+        tracked = self.colonisation.get_tracked_builds()
+        if not tracked or self.build_index >= len(tracked):
+            self.rc_button['state'] = tk.DISABLED
+            self.rc_button['text'] = _("Open Build Page")
+            return
+        
+        # Get the current build
+        build = tracked[self.build_index] if self.build_index < len(tracked) else None
+        if not build:
+            self.rc_button['state'] = tk.DISABLED
+            self.rc_button['text'] = _("Open Build Page")
+            return
+        
+        project_id = build.get('ProjectID')
+        market_id = build.get('MarketID')
+        is_docked_at_construction = self.colonisation.docked and market_id == self.colonisation.market_id
+        
+        # Button should only be enabled when docked at the correct construction ship
+        if not is_docked_at_construction:
+            # Not docked at this construction ship
+            self.rc_button['state'] = tk.DISABLED
+            if not self.colonisation.docked:
+                self.rc_button['text'] = _("Dock to View/Create Project")
+            else:
+                self.rc_button['text'] = _("Dock Here to View/Create Project")
+        elif project_id:
+            # Docked and project exists - open build page
+            self.rc_button['state'] = tk.NORMAL
+            self.rc_button['text'] = _("🌐 Open Build Page")
+            self.rc_button['command'] = self._open_ravencolonial_page
+        else:
+            # Docked but no project - allow creating
+            self.rc_button['state'] = tk.NORMAL
+            self.rc_button['text'] = _("🚧 Create Project")
+            self.rc_button['command'] = self._create_ravencolonial_project

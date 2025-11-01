@@ -1,6 +1,6 @@
 # Change Log
 
-## v5.2.1-dev - xxxx-xx-xx
+## v5.3.0-b1 - 2025-11-01
 
 ### New Features:
 

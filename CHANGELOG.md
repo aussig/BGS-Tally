@@ -12,6 +12,7 @@
 ### Bug Fixes
 
 * Fix for bug with connecting projectids to sites in Raven Colonial
+* Fix for popup windows on Linux
 * Fixed colonisation ship names
 * Made sure RC connects the project to the build
 

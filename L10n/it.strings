@@ -776,7 +776,7 @@
 "Loads" = "Carichi";
 
 /* Station location (O=Orbital, S=Surface). [colonisation.py] */
-"Loc" = "Loc";
+"Loc" = "Pos";
 
 /* base location surface/orbital. [colonisation.py] */
 "Location" = "Posizione";

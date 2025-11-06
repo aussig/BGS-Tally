@@ -487,18 +487,22 @@ class UI:
 
                 if current_activity is not None:
                     current_system: dict = current_activity.get_current_system()
-                    system_tick: str = current_system.get('TickTime')
+                    
+                    # Fix: Check if current_system is not None before accessing its attributes
+                    # This prevents AttributeError during startup when no system is loaded yet
+                    if current_system is not None:
+                        system_tick: str = current_system.get('TickTime')
 
-                    if system_tick is not None and system_tick != "":
-                        system_tick_datetime: datetime = datetime.strptime(system_tick, DATETIME_FORMAT_ACTIVITY)
-                        system_tick_datetime = system_tick_datetime.replace(tzinfo=UTC)
+                        if system_tick is not None and system_tick != "":
+                            system_tick_datetime: datetime = datetime.strptime(system_tick, DATETIME_FORMAT_ACTIVITY)
+                            system_tick_datetime = system_tick_datetime.replace(tzinfo=UTC)
 
-                        tick_text: str = _("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY, tick_time = system_tick_datetime)) # LANG: Overlay system tick message
+                            tick_text: str = _("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY, tick_time = system_tick_datetime)) # LANG: Overlay system tick message
 
-                        if system_tick_datetime < self.bgstally.tick.tick_time:
-                            self.bgstally.overlay.display_message("system_tick", tick_text, True, text_colour_override="#FF0000")
-                        else:
-                            self.bgstally.overlay.display_message("system_tick", tick_text, True)
+                            if system_tick_datetime < self.bgstally.tick.tick_time:
+                                self.bgstally.overlay.display_message("system_tick", tick_text, True, text_colour_override="#FF0000")
+                            else:
+                                self.bgstally.overlay.display_message("system_tick", tick_text, True)
 
             # Tick Warning
             minutes_delta:int = int((datetime.now(UTC) - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))

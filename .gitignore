@@ -148,3 +148,4 @@ MEMORY_BANK.md
 .DS_Store
 scripts/
 data/tmp.py
+bounce.ps1

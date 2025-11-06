@@ -244,7 +244,7 @@ class ProgressWindow:
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
             return _("No builds or commodities being tracked") # LANG: No builds or commodities being tracked
 
-        if self.build_index >= len(tracked): self.build_index = 0
+        if self.build_index >= len(required): self.build_index = 0
 
         output:str = ""
         if discord:
@@ -359,7 +359,6 @@ class ProgressWindow:
             if min > rem: break
 
         projectid:str = ''
-        Debug.logger.debug(f"Build index {self.build_index} of {len(tracked)}")
         if self.build_index < len(tracked):
             projectid = tracked[self.build_index].get('ProjectID', '')
         if self.build_index < len(tracked) and projectid == '':
@@ -487,15 +486,17 @@ class ProgressWindow:
     def update_display(self) -> None:
         ''' Main display update function. '''
         tracked:list = self.colonisation.get_tracked_builds()
-        required:dict = self.colonisation.get_required(tracked)
-        delivered:dict = self.colonisation.get_delivered(tracked)
+        required:list = self.colonisation.get_required(tracked)
+        delivered:list = self.colonisation.get_delivered(tracked)
 
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
             self.frame.grid_remove()
             Debug.logger.info("No builds or commodities, hiding progress frame")
             return
 
-        if self.build_index > len(tracked): self.build_index = 0
+        if self.build_index > len(required):
+            Debug.logger.debug(f"Build index {self.build_index} out of range {len(tracked)}, resetting to 0")
+            self.build_index = 0
 
         self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
         self.table_frame.grid(row=3, column=0, columnspan=5, sticky=tk.NSEW)
@@ -533,11 +534,14 @@ class ProgressWindow:
 
         # Go through each commodity and show or hide it as appropriate and display the appropriate values
         comms:list = []
-        qty:dict = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
         if self.colonisation.docked == True and '$EXT_PANEL_ColonisationShip' not in f"{self.colonisation.station}" and 'Construction Site' not in f"{self.colonisation.station}":
             comms = self.colonisation.get_commodity_list(CommodityOrder.CATEGORY)
         else:
-            comms = self.colonisation.get_commodity_list(self.comm_order, qty)
+            if self.build_index >= len(required):
+                comms = self.colonisation.get_commodity_list(self.comm_order)
+            else:
+                qty:dict = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
+                comms = self.colonisation.get_commodity_list(self.comm_order, qty)
 
         if comms == None or comms == []:
             Debug.logger.info(f"No commodities found")

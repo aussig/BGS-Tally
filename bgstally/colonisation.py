@@ -69,6 +69,8 @@ class Colonisation:
         # Valid keys for colonisation.json entries. These help avoid sending unnecessary data to third parties or storing unnecessary data in the save file.
         self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync', 'BuildSlots', 'RCCommander', 'RCOpen']
         self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost', 'Readonly']
+        self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync', 'BuildSlots', 'RCCommander', 'RCOpen']
+        self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost', 'Readonly']
         self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
 
         # Load base commodities, types, costs, and saved data
@@ -109,6 +111,8 @@ class Colonisation:
         if entry.get('Type', None) != None: self.station = entry.get('Type')
         if entry.get('BodyType', None) != None == 'Station': self.station = entry.get('Body')
         if entry.get("StationName", None): self.station = entry.get('StationName')
+        self.station = re.sub(r"^\$EXT_PANEL_ColonisationShip;", "System Colonisation Ship", f"{self.station}").strip()
+
         self.station = re.sub(r"^\$EXT_PANEL_ColonisationShip;", "System Colonisation Ship", f"{self.station}").strip()
 
         if cmdr != None: self.cmdr = cmdr
@@ -191,6 +195,11 @@ class Colonisation:
                 if build != None and build.get('ProjectID', None) == None and entry.get('ProjectID', None) != None:
                     self.modify_build(system, build.get('BuildID', ''), {'ProjectID': entry.get('ProjectID', None)})
 
+                # Make sure the build is connnected to the project
+                build = self.find_build(system, {'MarketID': self.market_id})
+                if build != None and build.get('ProjectID', None) == None and entry.get('ProjectID', None) != None:
+                    self.modify_build(system, build.get('BuildID', ''), {'ProjectID': entry.get('ProjectID', None)})
+
             case 'Docked':
                 self._update_market(self.market_id)
                 self.docked = True
@@ -200,11 +209,13 @@ class Colonisation:
                 # Find and add system and build for construciton sites.
                 # Colonisation ship is always the first build. Construction site can be any build
                 if 'Colonisation Ship' in f"{self.station}" or 'Construction Site' in f"{self.station}":
+                if 'Colonisation Ship' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                     Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
                     if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
                     build_state = BuildState.PROGRESS
                 # Complete station so find it and add/update as appropriate.
+                elif system != None and self.station not in ['FleetCarrier', 'SquadronCarrier'] and re.search(r"^(...\-...$|\$)", f"{self.station}") == None :
                 elif system != None and self.station not in ['FleetCarrier', 'SquadronCarrier'] and re.search(r"^(...\-...$|\$)", f"{self.station}") == None :
                     Debug.logger.debug(f"Docked at site. Finding/creating system and build {self.market_id} {self.station}")
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
@@ -268,7 +279,7 @@ class Colonisation:
                         if prog != None: rc.load_project(prog)
 
                 # If it's a carrier or other non-standard location we ignore it.
-                if self.station == None or self.station == "None" or \
+                if self.station == None or 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
                     re.search(r"^\$", self.station) or re.search("[A-Z0-9]{3}-[A-Z0-9]{3}$", self.station):
                     return
 
@@ -425,6 +436,7 @@ class Colonisation:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
         system:dict|None = self.find_system(data)
         if system == None:
+            return self.add_system(data, False, self.bgstally.state.ColonisationRCAPIKey.get() != None)
             return self.add_system(data, False, self.bgstally.state.ColonisationRCAPIKey.get() != None)
 
         return system
@@ -694,6 +706,24 @@ class Colonisation:
         self.bgstally.ui.window_colonisation.update_display()
 
         return data
+
+    @catch_exceptions
+    def move_build(self, system, row:int, new_row:int) -> None:
+        ''' Move a build to a new position in the list '''
+        if isinstance(system, int): system = self.systems[system]
+
+        if row < 0 or row >= len(system['Builds']) or new_row < 0 or new_row >= len(system['Builds']):
+            Debug.logger.warning(f"Cannot move build - invalid build index: {row} to {new_row}")
+            return
+
+        build:dict = system['Builds'].pop(row)
+        system['Builds'].insert(new_row, build)
+
+        if system.get('RCSync', False) == True and system.get('SystemAddress', None) != None:
+            RavenColonial(self).update_build_order(system)
+
+        self.save('Build moved')
+        self.bgstally.ui.window_colonisation.update_display()
 
     @catch_exceptions
     def move_build(self, system, row:int, new_row:int) -> None:
@@ -1154,6 +1184,9 @@ class Colonisation:
                     self._generate_buildid(build.get('MarketID', None))
                     self.dirty = True
                 markets += [v for k, v in build.items() if k == 'MarketID' and v != None and v != '']
+                if build.get('Readonly', None) == None:
+                    build['Readonly'] = (build.get('State', BuildState.PLANNED) == BuildState.COMPLETE)
+                    self.dirty = True
                 if build.get('Readonly', None) == None:
                     build['Readonly'] = (build.get('State', BuildState.PLANNED) == BuildState.COMPLETE)
                     self.dirty = True

@@ -1,5 +1,6 @@
 # Change Log
 
+<<<<<<< HEAD
 ## v5.3.0 - v5.4.0
 
 ### New Featrures:

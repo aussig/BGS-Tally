@@ -1,6 +1,5 @@
 # Change Log
 
-<<<<<<< HEAD
 ## v5.3.0 - v5.4.0
 
 ### New Featrures:
@@ -9,7 +8,14 @@
  * More improvements to project/build matching
 
 
-## v5.2.1-dev - xxxx-xx-xx
+## v5.3.0 - 2025-11-06
+
+### New Features:
+
+* Added colonisation build reordering via popup menu
+* Modified readonly toggle through popup menu instead of by state
+* Modified so that RC systems can be edited if they're open or you're on the list as well as if they're yours
+* Modified so auto-created systems default to syncing with RC if the Commander has configured an API key
 
 ### New Features:
 

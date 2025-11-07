@@ -209,13 +209,11 @@ class Colonisation:
                 # Find and add system and build for construciton sites.
                 # Colonisation ship is always the first build. Construction site can be any build
                 if 'Colonisation Ship' in f"{self.station}" or 'Construction Site' in f"{self.station}":
-                if 'Colonisation Ship' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                     Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
                     if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
                     build_state = BuildState.PROGRESS
                 # Complete station so find it and add/update as appropriate.
-                elif system != None and self.station not in ['FleetCarrier', 'SquadronCarrier'] and re.search(r"^(...\-...$|\$)", f"{self.station}") == None :
                 elif system != None and self.station not in ['FleetCarrier', 'SquadronCarrier'] and re.search(r"^(...\-...$|\$)", f"{self.station}") == None :
                     Debug.logger.debug(f"Docked at site. Finding/creating system and build {self.market_id} {self.station}")
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
@@ -707,23 +705,6 @@ class Colonisation:
 
         return data
 
-    @catch_exceptions
-    def move_build(self, system, row:int, new_row:int) -> None:
-        ''' Move a build to a new position in the list '''
-        if isinstance(system, int): system = self.systems[system]
-
-        if row < 0 or row >= len(system['Builds']) or new_row < 0 or new_row >= len(system['Builds']):
-            Debug.logger.warning(f"Cannot move build - invalid build index: {row} to {new_row}")
-            return
-
-        build:dict = system['Builds'].pop(row)
-        system['Builds'].insert(new_row, build)
-
-        if system.get('RCSync', False) == True and system.get('SystemAddress', None) != None:
-            RavenColonial(self).update_build_order(system)
-
-        self.save('Build moved')
-        self.bgstally.ui.window_colonisation.update_display()
 
     @catch_exceptions
     def move_build(self, system, row:int, new_row:int) -> None:

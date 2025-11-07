@@ -1,5 +1,13 @@
 # Change Log
 
+## v5.3.0 - v5.4.0
+
+### New Featrures:
+ * Added polling of Raven Colonial project progress
+ * Added popup menu for progress options
+ * More improvements to project/build matching
+
+
 ## v5.2.1-dev - xxxx-xx-xx
 
 ### New Features:

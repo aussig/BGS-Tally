@@ -89,6 +89,10 @@ class ProgressWindow:
 
         self.colors:dict = {'L' : '#d4edbc', 'M' : '#dbe5ff', 'O' : '#d5deeb', 'S' : '#ebe6db', 'C' : '#e6dbeb'}
 
+        self.links:dict = {'Inara': 'https://inara.cz/elite/starsystem/search/?search={StarSystem}',
+                           'Spansh': 'https://www.spansh.co.uk/station/{MarketID}'
+        }
+
         # Initialise the default units & column types
         self.units:list = [CommodityOrder.ALPHA, ProgressUnits.QTY, ProgressUnits.QTY, ProgressUnits.QTY]
         self.columns:list = [0, 2, 3, 5]
@@ -120,7 +124,6 @@ class ProgressWindow:
     def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
         ''' Create the progress frame. This is called by ui.py on startup. '''
         self.colonisation = self.bgstally.colonisation
-        tracked:dict = self.colonisation.get_tracked_builds()
 
         self.frame_row = start_row
         frame:tk.Frame = tk.Frame(parent_frame)
@@ -148,9 +151,10 @@ class ProgressWindow:
         self.title = tk.Label(frame, text=_("None"), justify=tk.CENTER, anchor=tk.CENTER, cursor="hand2") # LANG: None
         self.title.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
         self.title.bind("<Button-1>", partial(self.event, "copy"))
+        self.title.bind("<Button-3>", partial(self._context_menu))
         self.title.grid(row=row, column=col, sticky=tk.EW)
         frame.columnconfigure(col, weight=1)
-        self.titlett:ToolTip = ToolTip(self.title, text=f"{_('Current build')}, {_('click to copy to clipboard')}") # LANG: tooltip for the build name
+        self.titlett:ToolTip = ToolTip(self.title, text=f"{_('Current build')}, {_('left click to copy, right click menu')}") # LANG: tooltip for the build name
         col += 1
 
         prev_btn:tk.Label = tk.Label(frame, image=self.bgstally.ui.image_icon_left_arrow, cursor="hand2")
@@ -205,7 +209,7 @@ class ProgressWindow:
                 lbl.grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
                 if row == 0:
                     lbl.bind("<Button-1>", partial(self.link, c, None))
-                    lbl.bind("<Button-3>", partial(self.ctc, self.colonisation.get_commodity(c)))
+                    lbl.bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(c)))
                     ToolTip(lbl, text=_("Left click for Inara market, right click to copy")) # LANG: tooltip for the inara market commodity links and copy to clipboard
                     lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
 
@@ -223,12 +227,35 @@ class ProgressWindow:
         self.rows.append(r)
 
         # No builds or no commodities so hide the frame entirely
+        tracked:list = self.colonisation.get_tracked_builds()
         if len(tracked) == 0 or len(self.colonisation.get_required(tracked)) == 0:
             Debug.logger.info("No builds or commodities, hiding progress frame")
             frame.grid_remove()
             return
 
         self.update_display()
+
+
+    @catch_exceptions
+    def _context_menu(self, event: tk.Event) -> None:
+        """ Display the context menu when right-clicked."""
+
+        menu = tk.Menu(tearoff=tk.FALSE)
+        menu.add_command(label=_('Copy to Clipboard'), command=partial(self.event, "copy"))  # LANG: Copy to cipboard
+        #menu.add_command(label=_('Post to Discord'), command=partial(self.event, "post"))  # LANG: Post to discord
+        menu.add_separator()
+
+        tracked:list = self.colonisation.get_tracked_builds()
+        if self.build_index < len(tracked):
+            b:dict = tracked[self.build_index]
+            if b.get('ProjectID', None) != None:
+                menu.add_command(label=_('Open in RavenColonial'), command=partial(webbrowser.open, 'https://ravencolonial.com/#build='+b.get('ProjectID','')))  # Open ravencolonial project
+
+            params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in b.items()}
+            for k, v in self.links.items():
+                menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)))  # Open in Inara, Spansh, EDGIS, EDSM
+
+        menu.post(event.x_root, event.y_root)
 
 
     @catch_exceptions
@@ -299,7 +326,7 @@ class ProgressWindow:
 
 
     @catch_exceptions
-    def event(self, event:str, tkEvent) -> None:
+    def event(self, event:str, tkEvent = None) -> None:
         ''' Process events from the buttons in the progress frame. '''
         tracked:dict = self.colonisation.get_tracked_builds()
         max:int = len(tracked) -1 if len(tracked) < 2 else len(tracked) # "All" if more than one build
@@ -315,8 +342,12 @@ class ProgressWindow:
                 self.viewtt.text = _("Cycle commodity list details" + " (" + self.view.name.title()+")")
                 self.colonisation.dirty = True
             case 'copy':
-                self.title.clipboard_clear()
-                self.title.clipboard_append(self.as_text())
+                self.frame.clipboard_clear()
+                self.frame.clipboard_append(self.as_text())
+            case _:
+                self.frame.clipboard_clear()
+                self.frame.clipboard_append(event)
+
         self.update_display()
 
 
@@ -476,12 +507,6 @@ class ProgressWindow:
             self.bgstally.ui.window_colonisation._link({'StarSystem': system}, 'System')
 
 
-    def ctc(self, comm:str, event) -> None:
-        ''' Copy to clipboard '''
-        self.frame.clipboard_clear()
-        self.frame.clipboard_append(comm)
-
-
     @catch_exceptions
     def update_display(self) -> None:
         ''' Main display update function. '''
@@ -513,7 +538,7 @@ class ProgressWindow:
             name:str = ', '.join([pn, bt])
             if b.get('Name', '') != '':
                 name = ', '.join([pn, bt, bn])
-        self.titlett.text = f"{name}, {_('click to copy to clipboard')}"
+        self.titlett.text = f"{name}\n{_('left click to copy, right click menu')}" # LANG: tooltip for the build name"
         self.title.config(text=str_truncate(name, 52, loc='middle'))
 
         # Hide the table but not the progress frame so the change view icon is still available
@@ -591,7 +616,7 @@ class ProgressWindow:
             for col, val in enumerate(self.columns):
                 row[col].bind("<Button-1>", partial(self.link, c, None))
                 row[col].bind("<Button-2>", partial(self.link, c, sn))
-                row[col].bind("<Button-3>", partial(self.ctc, self.colonisation.get_commodity(c)))
+                row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(c)))
 
                 if col == 0:
                     # Shorten and display the commodity name

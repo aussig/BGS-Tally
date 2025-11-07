@@ -117,6 +117,7 @@ class BGSTally:
         """
         Parse an incoming journal entry and store the data we need
         """
+        dirty:bool = False
 
         # Live galaxy check
         try:
@@ -125,23 +126,20 @@ class BGSTally:
             self.debug.logger.error(f"The EDMC Version is too old, please upgrade to v5.6.0 or later", exc_info=e)
             return
 
-        activity: Activity = self.activity_manager.get_current_activity()
-
         # Total hack for now. We need cmdr in Activity to allow us to send it to the API when the user changes values in the UI.
         # What **should** happen is each Activity object should be associated with a single CMDR, and then all reporting
         # kept separate per CMDR.
+        activity:Activity = self.activity_manager.get_current_activity()
         activity.cmdr = cmdr
-
-        dirty: bool = False
-
-        if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
-            activity.system_entered(entry, self.state)
-            self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
-            dirty = True
 
         mission:dict = self.mission_log.get_mission(entry.get('MissionID'))
 
         match entry.get('event'):
+            case 'StartUp' | 'Location' | 'FSDJump' | 'CarrierJump':
+                activity.system_entered(entry, self.state)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                dirty = True
+
             case 'ApproachSettlement' if state['Odyssey']:
                 activity.settlement_approached(entry, self.state)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
@@ -327,7 +325,6 @@ class BGSTally:
 
             case 'WingInvite':
                 self.target_manager.team_invite(entry, system)
-
 
         if dirty:
             self.save_data()

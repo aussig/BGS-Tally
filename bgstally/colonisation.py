@@ -1,4 +1,3 @@
-import csv
 import json
 from os import path
 from os.path import join
@@ -104,11 +103,11 @@ class Colonisation:
             self.cargo_capacity = state.get('CargoCapacity')
             self.mof = True
 
-        if entry.get('StarSystem', None): self.current_system = entry.get('StarSystem')
-        if entry.get('SystemAddress', None): self.system_id = int(entry.get('SystemAddress'))
+        if entry.get('StarSystem', None) != None: self.current_system = entry.get('StarSystem')
+        if entry.get('SystemAddress', None) != None: self.system_id = int(entry.get('SystemAddress'))
         if entry.get('MarketID', None) != None: self.market_id = entry.get('MarketID')
         if entry.get('Type', None) != None: self.station = entry.get('Type')
-        if entry.get('BodyType', None) == 'Station': self.station = entry.get('Body')
+        if entry.get('BodyType', None) != None == 'Station': self.station = entry.get('Body')
         if entry.get("StationName", None): self.station = entry.get('StationName')
         self.station = re.sub(r"^\$EXT_PANEL_ColonisationShip;", "System Colonisation Ship", f"{self.station}").strip()
 
@@ -248,6 +247,8 @@ class Colonisation:
 
             case 'SupercruiseDestinationDrop':
                 self.location = 'Orbital'
+                if entry.get('Type', None) != None: self.station = entry.get('Type')
+                self.station = re.sub(r"^\$EXT_PANEL_ColonisationShip;", "System Colonisation Ship", f"{self.station}").strip()
 
             case 'ApproachBody':
                 self.location = 'Surface'
@@ -257,9 +258,17 @@ class Colonisation:
                     self.location = 'Surface'
                     self.station = entry.get('Name', self.station)
 
-                # If it's a construction site or colonisation ship wait til we dock.
+                # Load progress for tracked builds.
+                # This will get called quite a lot but it uses a lightweight method
+                # to only get progress that's changed
+                tracked:list = self.get_tracked_builds()
+                for b in tracked:
+                    if b.get('ProjectID', None) != None:
+                        prog:dict|None = self.find_progress(b.get('ProjectID', 0))
+                        if prog != None: rc.load_project(prog)
+
                 # If it's a carrier or other non-standard location we ignore it.
-                if self.station == None or 'Construction Site' in self.station or 'System Colonisation Ship' in self.station or \
+                if self.station == None or self.station == "None" or \
                     re.search(r"^\$", self.station) or re.search("[A-Z0-9]{3}-[A-Z0-9]{3}$", self.station):
                     return
 
@@ -274,10 +283,15 @@ class Colonisation:
                                                            'Name': self.station,
                                                            'Body': self.body})
 
-                # We update them here because it's not possible to dock at installations once they're complete so
+                if 'Construction Site' in self.station or 'System Colonisation Ship' in self.station:
+                    # We're at a construction site so set it to in progress
+                    self.modify_build(system, build.get('BuildID', ''), {'State': BuildState.PROGRESS})
+                    return
+
+                # We update site here because it's not possible to dock at installations once they're complete so
                 # you may miss their completion.
 
-                # If we matched on a construction site and this is not one then we complete the build because
+                # If we matched on a construction site and this is not (ie nolonger) one then we complete the build because
                 # someone else finished it
                 if build.get('State') == BuildState.PROGRESS and \
                     re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
@@ -551,6 +565,7 @@ class Colonisation:
                     b:dict = build.copy()
                     b['Plan'] = system.get('Name', '')
                     b['StarSystem'] = system.get('StarSystem', '')
+                    b['SystemAddress'] = system.get('SystemAddress', 0)
                     tracked.append(b)
 
         return tracked

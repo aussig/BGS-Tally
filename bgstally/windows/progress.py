@@ -69,6 +69,11 @@ class ProgressWindow:
                 'Column' : 'Carrier',
                 'Label': f"{_('Carrier'): >13}", # LANG: Carrier amount
                 'Tooltip' : f"{_('Amount in linked fleet carrier(s)')}" # LANG: Carrier amount tooltip
+            },
+            {
+                'Column' : 'BuyOrder',
+                'Label': f"{_('Buy Order'): >13}", # LANG: Carrier buy order amount
+                'Tooltip' : f"{_('Amount oustanding in carrier buy order')}" # LANG: Carrier buy order tooltip
             }
         ]
         self.ordertts:list = [_('Alphabetical order'), _('Category order'), _('Quantity order')]
@@ -101,6 +106,7 @@ class ProgressWindow:
 
         # By removing the carrier from here we remove it everywhere
         if not self.bgstally.fleet_carrier.available():
+            self.headings.pop()
             self.headings.pop()
 
         # UI components
@@ -555,7 +561,7 @@ class ProgressWindow:
             self.collbls[col].grid()
 
         totals:dict = {'Commodity': _("Total"),  # LANG: total commodities
-                        'Required': 0, 'Delivered': 0, 'Cargo' : 0, 'Carrier': 0}
+                        'Required': 0, 'Delivered': 0, 'Cargo' : 0, 'Carrier': 0, 'BuyOrder': 0}
 
         # Go through each commodity and show or hide it as appropriate and display the appropriate values
         comms:list = []
@@ -583,6 +589,7 @@ class ProgressWindow:
 
             cargo:int = self.colonisation.cargo.get(c, 0)
             carrier:int = self.colonisation.carrier_cargo.get(c, 0)
+            buyorder:int = self.colonisation.carrier_buy.get(c, 0)
 
             totals['Required'] += reqcnt
             totals['Delivered'] += delcnt
@@ -590,6 +597,7 @@ class ProgressWindow:
             # We only count relevant cargo not stuff we don't need.
             if reqcnt - delcnt > 0: totals['Cargo'] += max(min(cargo, reqcnt - delcnt), 0)
             if reqcnt - delcnt > 0: totals['Carrier'] += max(min(carrier, reqcnt - delcnt - cargo), 0)
+            totals['BuyOrder'] += buyorder
 
             #if reqcnt > 0: Debug.logger.debug(f"Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}")
 
@@ -624,7 +632,7 @@ class ProgressWindow:
                     row[col].grid()
                     continue
 
-                row[col]['text'] = self._get_value(col, reqcnt, delcnt, cargo, carrier)
+                row[col]['text'] = self._get_value(col, reqcnt, delcnt, cargo, carrier, buyorder)
                 row[col].grid()
 
             self._highlight_row(row, c, reqcnt, delcnt, cargo, carrier)
@@ -650,13 +658,13 @@ class ProgressWindow:
             return
 
         for col, val in enumerate(self.columns):
-            row[col]['text'] = self._get_value(col, totals['Required'], totals['Delivered'], totals.get('Cargo',0), totals.get('Carrier', 0)) if col != 0 else _("Total")
+            row[col]['text'] = self._get_value(col, totals['Required'], totals['Delivered'], totals.get('Cargo',0), totals.get('Carrier', 0), totals.get('BuyOrder', 0)) if col != 0 else _("Total")
             self._set_weight(row[col])
             row[col].grid()
 
 
     @catch_exceptions
-    def _get_value(self, col:int, required:int, delivered:int, cargo:int, carrier:int) -> str:
+    def _get_value(self, col:int, required:int, delivered:int, cargo:int, carrier:int, buyorder:int) -> str:
         ''' Calculate and format the commodity amount depending on the column and the units '''
         qty: int = 0
         which:str = self.headings[self.columns[col]].get('Column')
@@ -667,6 +675,8 @@ class ProgressWindow:
             case 'Purchase': qty = required - delivered-cargo-carrier
             case 'Cargo': qty = cargo
             case 'Carrier': qty = carrier
+            case 'BuyOrder': qty = buyorder
+
         qty = max(qty, 0) # Never less than zero
         if self.units[col] == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
             return f"{ceil(qty / self.colonisation.cargo_capacity): >10,}{_('L')}"

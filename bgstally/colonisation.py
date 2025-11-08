@@ -61,6 +61,7 @@ class Colonisation:
 
         self.cargo:dict = {}       # Local store of our current cargo
         self.carrier_cargo:dict = {} # Local store of our current carrier cargo
+        self.carrier_buy:dict = {}   # Local store of our current carrier buy orders
         self.market:dict = {}      # Local store of the current market data
         self.cargo_capacity:int = 784 # Default cargo capacity
 
@@ -244,10 +245,9 @@ class Colonisation:
             case 'Market'|'MarketBuy'|'MarketSell':
                 self._update_market(self.market_id)
                 self._update_cargo(state.get('Cargo'))
-                if self.market_id == self.bgstally.fleet_carrier.carrier_id:
-                    self._update_carrier()
+                self._update_carrier()
 
-            case 'SuperCruiseEntry' | 'FSDJump':
+            case 'SupercruiseEntry' | 'FSDJump':
                 self.market = {}
                 self.body = None
                 self.station = None
@@ -1024,17 +1024,20 @@ class Colonisation:
         if self.bgstally.fleet_carrier.available() == False:
             return
         cargo:dict = {}
+        buy:dict = {}
 
         fccargo, name_key, display_name_key, quantity_key = self.bgstally.fleet_carrier._get_items(FleetCarrierItemType.CARGO)
         for name, cargo_item in fccargo.items():
-            if name.lower() not in cargo:
-                cargo[name.lower()] = 0
-            cargo[name.lower()] += int(cargo_item.get(quantity_key, 0))
+            name = name.lower()
+            cargo[name] = int(cargo_item.get(quantity_key, 0))
+            if cargo_item.get('outstanding', 0) > 0:
+                buy[name] = int(cargo_item.get('outstanding', 0))
 
         if cargo != self.carrier_cargo and self.cmdr != None:
             RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)
             self.dirty = True
 
+        self.carrier_buy = buy
         self.carrier_cargo = cargo
 
 

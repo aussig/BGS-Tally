@@ -2,10 +2,15 @@
 
 ## v5.3.0 - v5.4.0
 
-### New Featrures:
+### New Features:
  * Added polling of Raven Colonial project progress
  * Added popup menu for progress options
  * More improvements to project/build matching
+ * Added Outpost in a Box 'virtual' base
+ * Added Carrier buy order as a progress column
+
+### Bug Fixes:
+ * Fixed capitalization typo that could sometimes cause a site to be assigned to the wrong body
 
 
 ## v5.3.0 - 2025-11-06

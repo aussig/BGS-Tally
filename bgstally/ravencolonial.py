@@ -112,11 +112,11 @@ class RavenColonial:
         """ Determine if we can edit this system in RavenColonial """
         if self.colonisation.cmdr == None:
             return False
-        
-        return system.get('Open', False) == True or \
+
+        return system.get('RCOpen', False) == True or \
             self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
 
-    
+
     @catch_exceptions
     def load_system(self, id64:str|None = None, rev:str|None = None, sync:bool = False) -> None:
         """ Retrieve the rcdata data with the latest system data from RC when we start. """

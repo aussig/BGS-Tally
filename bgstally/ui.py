@@ -338,6 +338,7 @@ class UI:
         nb.Label(frame, text=_("Colonisation"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
         nb.Label(frame, text=_("Maximum commodities")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.ColonisationMaxCommodities).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text=_("Use scrollbar"), variable=self.bgstally.state.EnableProgressScrollbar, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
 
         api_keys_label_common(self, current_row, frame)
         current_row += 1

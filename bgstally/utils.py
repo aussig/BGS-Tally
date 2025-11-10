@@ -174,7 +174,7 @@ def get_by_path(dic: dict[str, Any], keys: list[str], default: Any = None) -> An
     return dic
 
 
-def human_format(num: int) -> str:
+def human_format(num:int) -> str:
     """Format a number into a shortened human-readable string, using abbreviations for larger values, e.g. 1300 -> 1.3K.
 
     Args:
@@ -183,15 +183,15 @@ def human_format(num: int) -> str:
     Returns:
         str: The human-readable result
     """
-    abbrs: list[str] = ['', 'K', 'M', 'B', 'T']  # Abbreviations for thousands, millions, billions, trillions
-    num = float('{:.3g}'.format(num))
+    abbrs:list[str] = ['', 'K', 'M', 'B', 'T']  # Abbreviations for thousands, millions, billions, trillions
+    fnum:float = float('{:.3g}'.format(num))
     magnitude = 0
-    while abs(num) >= 1000:
+    while abs(fnum) >= 1000:
         if magnitude >= len(abbrs) - 1: break
         magnitude += 1
-        num /= 1000.0
+        fnum /= 1000.0
 
-    return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), abbrs[magnitude])
+    return '{}{}'.format('{:f}'.format(fnum).rstrip('0').rstrip('.'), abbrs[magnitude])
 
 
 def parse_human_format(text: str) -> int:
@@ -199,7 +199,7 @@ def parse_human_format(text: str) -> int:
     Convert shortened human-readable text into a number
     """
     if not isinstance(text, str): return 0
-
+    text = re.sub(r'[^0-9]', '', text) # Remove commas if we're showing them.
     match = human_readable_number_pat.match(text)
 
     if match:
@@ -207,7 +207,7 @@ def parse_human_format(text: str) -> int:
         multiplier = {'': 1, 'k': 1000, 'm': 1000000, 'b': 1000000000, 't': 1000000000000}[match.group(2).lower()]
         return int(num * multiplier)
     else:
-        return 0
+        return int(text)
 
 
 def validate_human_format(text: str) -> bool:

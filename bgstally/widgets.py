@@ -5,9 +5,7 @@ from datetime import datetime
 import re
 from bgstally.constants import FONT_TEXT, FONT_TEXT_BOLD, FONT_TEXT_UNDERLINE, FONT_TEXT_BOLD_UNDERLINE
 from bgstally.debug import Debug
-from bgstally.utils import _
-
-
+from bgstally.utils import _, catch_exceptions, parse_human_format
 class TextPlus(tk.Text):
     """
     Subclass of tk.Text to install a context-sensitive menu on right-click
@@ -349,7 +347,11 @@ class TreeviewPlus(ttk.Treeview):
         self.heading(column, command=partial(callback, column, not reverse))
 
     def _sort_by_num(self, column, reverse):
-        self._sort(column, reverse, int, self._sort_by_num)
+        def _str_to_int(string) -> int:
+            v = parse_human_format(string)
+            return int(v) if v != '' else 0
+        
+        self._sort(column, reverse, _str_to_int, self._sort_by_num)
 
     def _sort_by_name(self, column, reverse):
         self._sort(column, reverse, str, self._sort_by_name)

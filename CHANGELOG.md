@@ -7,11 +7,11 @@
  * Added popup menu for progress options
  * More improvements to project/build matching
  * Added Outpost in a Box 'virtual' base
- * Added Carrier buy order as a progress column
+ * Added Carrier buy orders as a progress column
 
 ### Bug Fixes:
  * Fixed capitalization typo that could sometimes cause a site to be assigned to the wrong body
-
+ * Fixed bug with checking for Open systems in RC
 
 ## v5.3.0 - 2025-11-06
 

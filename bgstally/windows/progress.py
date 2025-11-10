@@ -2,14 +2,13 @@ import tkinter as tk
 import tkinter.font as tkFont
 import webbrowser
 import re
-import requests
 from requests import Response
 from functools import partial
 from math import ceil
 from tkinter import ttk
 from urllib.parse import quote
 
-from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, FONT_SMALL, RequestMethod, CommodityOrder, ProgressUnits, ProgressView
+from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, FONT_SMALL, RequestMethod, CommodityOrder, ProgressUnits, ProgressView, CheckStates
 from bgstally.debug import Debug
 from bgstally.utils import _, str_truncate, catch_exceptions, human_format
 from bgstally.ravencolonial import RavenColonial
@@ -72,8 +71,8 @@ class ProgressWindow:
             },
             {
                 'Column' : 'BuyOrder',
-                'Label': f"{_('Buy Order'): >13}", # LANG: Carrier buy order amount
-                'Tooltip' : f"{_('Amount oustanding in carrier buy order')}" # LANG: Carrier buy order tooltip
+                'Label': f"{_('Buy Orders'): >13}", # LANG: Carrier buy order amount
+                'Tooltip' : f"{_('Amount oustanding in carrier buy orders')}" # LANG: Carrier buy order tooltip
             }
         ]
         self.ordertts:list = [_('Alphabetical order'), _('Category order'), _('Quantity order')]
@@ -181,15 +180,26 @@ class ProgressWindow:
         ToolTip(next_btn, text=_("Show next build")) # LANG: tooltip for the next build icon
         row += 1; col = 0
 
+        if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
+            canvas:tk.Canvas = tk.Canvas(frame, borderwidth=0)
+            canvas.grid(row=row, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW, expand=True)
+            sb:tk.Scrollbar = tk.Scrollbar(canvas, orient=tk.VERTICAL, command=canvas.yview)
+            sb.pack(fill=tk.Y, side=tk.RIGHT)                    
+            table_frame:tk.Frame = tk.Frame(canvas)
+            table_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+            canvas.create_window((0, 0), window=table_frame, anchor="nw")
+            canvas.configure(yscrollcommand=sb.set)
+        else:
+            table_frame:tk.Frame = tk.Frame(frame)
+
         # Commodity frame
-        table_frame:tk.Frame = tk.Frame(frame)
         table_frame.columnconfigure(0, weight=3)
         table_frame.columnconfigure(1, weight=1)
         table_frame.columnconfigure(2, weight=1)
         table_frame.columnconfigure(3, weight=1)
         table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
         self.table_frame = table_frame
-
+        
         # Column headings
         row = 0
         for col, v in enumerate(self.columns):
@@ -608,13 +618,12 @@ class ProgressWindow:
                 (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
                 ((self.colonisation.docked == False or self.colonisation.market == {}) and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
                 (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and self.view == ProgressView.MINIMAL) or \
-                rc > int(self.bgstally.state.ColonisationMaxCommodities.get()):
+                (self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_OFF and rc > int(self.bgstally.state.ColonisationMaxCommodities.get())):
                 for cell in row.values():
                     cell.grid_remove()
-                #if reqcnt > 0: Debug.logger.debug(f"Hiding Commodity {c}: Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}, View {self.view.name}, Docked {self.colonisation.docked}, Market {self.colonisation.market} ")
                 continue
 
-            if rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
+            if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_OFF and rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
                     cell['text'] = '… '
                     cell.grid()

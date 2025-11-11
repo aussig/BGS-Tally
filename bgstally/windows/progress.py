@@ -128,11 +128,12 @@ class ProgressWindow:
     @catch_exceptions
     def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
         ''' Create the progress frame. This is called by ui.py on startup. '''
+        bgs_cols:int = 6
         self.colonisation = self.bgstally.colonisation
 
         self.frame_row = start_row
         frame:tk.Frame = tk.Frame(parent_frame)
-        frame.grid(row=start_row, column=0, columnspan=20, sticky=tk.EW)
+        frame.grid(row=start_row, column=0, columnspan=bgs_cols, sticky=tk.EW)
         self.frame = frame
 
         row:int = 0; col:int = 0
@@ -140,12 +141,13 @@ class ProgressWindow:
         # Overall progress bar chart
         scale:float = config.get_int('ui_scale') / 100.00
         y=tk.LabelFrame(frame, border=1, height=10, width=int(398*scale))
-        y.grid(row=row, column=col, columnspan=5, pady=0, sticky=tk.EW)
+        y.grid(row=row, column=col, columnspan=bgs_cols, pady=0, sticky=tk.EW)
         y.grid_rowconfigure(0, weight=1)
         y.grid_propagate(False)
+
         self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=int(398*scale), mode='determinate')
         self.progtt:ToolTip = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
-        self.progbar.grid(row=0, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW)
+        self.progbar.grid(row=0, column=0, columnspan=bgs_cols, pady=0, ipady=0, sticky=tk.EW)
         self.progbar.rowconfigure(0, weight=1)
         row += 1; col = 0
         lbl:tk.Label = tk.Label(frame, text=_("Builds") + ":", anchor=tk.W) # LANG: Builds/bases
@@ -180,28 +182,36 @@ class ProgressWindow:
         ToolTip(next_btn, text=_("Show next build")) # LANG: tooltip for the next build icon
         row += 1; col = 0
 
-        if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
+        # Commodity table frame
+        table_frame:tk.Frame
+        # Scrolly version is disabled, having too much trouble getting the canvas to stay sized and the scrollbar to work.
+        if self.bgstally.state.progress_scrollbar == True and False:
             canvas:tk.Canvas = tk.Canvas(frame, borderwidth=0)
-            canvas.grid(row=row, column=0, columnspan=20, pady=0, ipady=0, sticky=tk.EW, expand=True)
-            sb:tk.Scrollbar = tk.Scrollbar(canvas, orient=tk.VERTICAL, command=canvas.yview)
-            sb.pack(fill=tk.Y, side=tk.RIGHT)                    
-            table_frame:tk.Frame = tk.Frame(canvas)
-            table_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-            canvas.create_window((0, 0), window=table_frame, anchor="nw")
+            canvas.configure(height=400)
+            sb:ttk.Scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=canvas.yview)
             canvas.configure(yscrollcommand=sb.set)
+            
+            table_frame = tk.Frame(canvas)
+            #table_frame.grid(row=row, column=col, sticky=tk.EW)
+            table_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+            canvas.create_window((0, 0), window=table_frame, anchor=tk.NW, tags='frame')
+            
+            canvas.grid(row=row, column=0, columnspan=bgs_cols-1, pady=0, ipady=0, sticky=tk.NSEW)
+            sb.grid(sticky=tk.NS, row=row, column=bgs_cols)
+            canvas.bind("<Configure>", lambda e: canvas.itemconfig('frame', height=canvas.winfo_height(), width=canvas.winfo_width()))
+            
         else:
-            table_frame:tk.Frame = tk.Frame(frame)
-
-        # Commodity frame
+            table_frame = tk.Frame(frame)
+            table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
+        
+        row = 0
         table_frame.columnconfigure(0, weight=3)
         table_frame.columnconfigure(1, weight=1)
         table_frame.columnconfigure(2, weight=1)
-        table_frame.columnconfigure(3, weight=1)
-        table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
+        table_frame.columnconfigure(3, weight=1)        
         self.table_frame = table_frame
-        
+
         # Column headings
-        row = 0
         for col, v in enumerate(self.columns):
             lbl = tk.Label(table_frame, text=self.headings[v].get('Label'), cursor='hand2')
             lbl.bind("<Button-1>", partial(self.change_view, col, 'Column'))
@@ -214,7 +224,7 @@ class ProgressWindow:
             self.collbls[col] = lbl
             self.coltts[col] = ToolTip(lbl, text=self.headings[v].get('Tooltip'))
         row += 1
-
+        
         # Go through the complete list of possible commodities and make a row for each and hide it.
         for c in self.colonisation.get_commodity_list():
             r:dict = {}
@@ -223,23 +233,23 @@ class ProgressWindow:
                 lbl:tk.Label = tk.Label(table_frame, text='', cursor="hand2")
                 lbl.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
                 lbl.grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
-                if row == 0:
-                    lbl.bind("<Button-1>", partial(self.link, c, None))
-                    lbl.bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(c)))
-                    ToolTip(lbl, text=_("Left click for Inara market, right click to copy")) # LANG: tooltip for the inara market commodity links and copy to clipboard
-                    lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
+                #if row == 0:
+                #    lbl.bind("<Button-1>", partial(self.link, c, None))
+                #    lbl.bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(c)))
+                #    ToolTip(lbl, text=_("Left click for Inara market, right click to copy")) # LANG: tooltip for the inara market commodity links and copy to clipboard
+                #    lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
 
                 r[col] = lbl
             self.rows.append(r)
             row += 1
 
+        row += 1 
         # Totals at the bottom
         r:dict = {}
         for col, v in enumerate(self.columns):
             r[col] = tk.Label(table_frame, text=_("Total")) # LANG: Total amounts
             r[col].grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
-            self._set_weight(r[col])
-
+            self._set_weight(r[col])        
         self.rows.append(r)
 
         # No builds or no commodities so hide the frame entirely
@@ -539,8 +549,8 @@ class ProgressWindow:
             Debug.logger.debug(f"Build index {self.build_index} out of range {len(tracked)}, resetting to 0")
             self.build_index = 0
 
-        self.frame.grid(row=self.frame_row, column=0, columnspan=20, sticky=tk.EW)
-        self.table_frame.grid(row=3, column=0, columnspan=5, sticky=tk.NSEW)
+        self.frame.grid()
+        self.table_frame.grid()
 
         # Set the build name (system name and plan name)
         name = _('All') # LANG: all builds
@@ -563,7 +573,7 @@ class ProgressWindow:
             Debug.logger.info("Progress view none, hiding table")
             return
 
-        self.table_frame.grid(row=3, column=0, columnspan=5, sticky=tk.NSEW)
+        self.table_frame.grid()
 
         # Set the column headings according to the selected units
         for col, val in enumerate(self.columns):
@@ -618,12 +628,12 @@ class ProgressWindow:
                 (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
                 ((self.colonisation.docked == False or self.colonisation.market == {}) and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
                 (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and self.view == ProgressView.MINIMAL) or \
-                (self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_OFF and rc > int(self.bgstally.state.ColonisationMaxCommodities.get())):
+                (self.bgstally.state.progress_scrollbar == False and rc > int(self.bgstally.state.ColonisationMaxCommodities.get())):
                 for cell in row.values():
                     cell.grid_remove()
                 continue
 
-            if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_OFF and rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
+            if self.bgstally.state.progress_scrollbar == False and rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
                     cell['text'] = '… '
                     cell.grid()

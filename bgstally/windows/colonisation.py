@@ -1064,7 +1064,7 @@ class ColonisationWindow:
 
                 self.update_display()
 
-        if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
+        if event.selected.column > 0 and system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
             Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
             return
 

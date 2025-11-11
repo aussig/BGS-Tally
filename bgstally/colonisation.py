@@ -239,7 +239,6 @@ class Colonisation:
                 if data != {}:
                     Debug.logger.debug(f"Docked updating build {self.station} in system {self.current_system} build: {build} data: {data}")
                     self.modify_build(system, build.get('BuildID', data.get('BuildID', '')), data)
-                    self.bgstally.ui.window_progress.update_display()
                     self.dirty = True
 
             case 'Market'|'MarketBuy'|'MarketSell':
@@ -325,7 +324,6 @@ class Colonisation:
         # Save immediately to ensure we don't lose any data
         if self.dirty == True:
             self.save(entry.get('event'))
-        self.bgstally.ui.window_progress.update_display()
 
 
     @catch_exceptions
@@ -639,7 +637,7 @@ class Colonisation:
                 Debug.logger.debug(f"Matched planned build {data['Body']} {build.get('State', None)} {loc} Build: {build}")
                 return build
 
-            # A build that was in progress but not has a new name (completed or renamed)
+            # A build that was in progress but now has a new name (completed or renamed)
             if state == BuildState.PROGRESS and body == data.get('Body', str(data.get('BodyNum'))).lower() and \
                 (len(builds) == 1 or f"Construction Site: {data.get('Name', '')}" in build.get('Name', '')):
                 Debug.logger.debug(f"Matched construction {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
@@ -845,7 +843,7 @@ class Colonisation:
         if changed != {}:
             self.save('Build modified')
             self.bgstally.ui.window_colonisation.update_display()
-
+            self.bgstally.ui.window_progress.update_display()
 
     @catch_exceptions
     def try_complete_build(self, market_id:int) -> bool:

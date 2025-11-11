@@ -74,9 +74,10 @@ class RavenColonial:
             'systemSiteId': 'BuildID',
             'commodities': 'Remaining',
             'buildType': 'Layout',
-            'bodyNum': 'BodyNum',
             'architectName': 'Architect',
             'timeDue': 'Deadline',
+            'bodyNum': 'BodyNum',
+            'bodyName': 'Body',
             'bodyType': 'BodyType',
             'complete': 'ConstructionComplete'
             }
@@ -409,12 +410,15 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def create_project(self, system:dict, build:dict, progress:dict) -> None:
+    def create_project(self, system:dict, build:dict, progress:dict) -> str|None:
         """ Create a new project in RavenColonial """
         payload:dict = {}
         for k, v in self.project_params.items():
             rcval:dict|None = None
 
+            if k == 'bodyName': # Reconstruction the bodyname if we're able
+                if system.get('Name', None) != None and build.get('Body', None) != None:
+                    rcval = system.get('Name', '') + ' ' + build.get('Body', '')
             if progress.get(v, None) != None:
                 rcval = progress.get(v, '').strip().lower().replace(' ', '_') if isinstance(progress.get(v, None), str) and 'name' not in k.lower() else progress.get(v, None)
             elif build.get(v, None) != None:
@@ -443,16 +447,17 @@ class RavenColonial:
             Debug.logger.error(f"Project not found {response} {response.content}")
             return
 
-        self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': data.get('buildId')}, True)
+        self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': projectid}, True)
 
         # Link the project to us.
-        url:str = f"{RC_API}/project/{data.get('buildId')}/link/{self.colonisation.cmdr}"
+        url:str = f"{RC_API}/project/{projectid}/link/{self.colonisation.cmdr}"
         response:Response = requests.put(url, headers=self._headers(), timeout=5)
         if response.status_code not in [200, 202]:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
 
         Debug.logger.info(f"RavenColonial project created {data.get('buildName', 'Unknown')}")
+        return projectid
 
 
     @catch_exceptions
@@ -461,7 +466,9 @@ class RavenColonial:
 
         # Create project if we don't have an id.
         if progress.get('ProjectID', None) == None:
-            self.create_project(system, build, progress)
+            projectid:str|None = self.create_project(system, build, progress)
+            if projectid != None:
+                progress['ProjectID'] = projectid
 
         # Update project
         payload:dict = {}

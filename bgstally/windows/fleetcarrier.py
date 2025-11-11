@@ -26,7 +26,7 @@ class WindowFleetCarrier:
         self.bgstally:BGSTally = bgstally # type: ignore
         self.window:tk.Toplevel|None = None
         self.scale:float = 1.0
-
+        
         self.post_types:dict = {'Cargo': ['All', True], 'Locker':['All', True]}
         self.tabs:dict = {
             'Cargo': {
@@ -39,19 +39,21 @@ class WindowFleetCarrier:
                     {'title': _('Sell'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
                     {'title': _('Price'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
                     {'title': _('Stolen'), 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
-                    {'title': _('Mission'), 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70}
+                    {'title': _('Mission'), 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70}                            
                 ],
                 "func": self._cargo,
                 'butons': True
             },
             'Locker': {
-                'fields': ['locName', 'category', 'quantity', 'price', 'mission'],
+                'fields': ['locName', 'category', 'quantity', 'buy', 'sell', 'price', 'mission'],
                 'cols': [
                     {'title': _('Material'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250},
                     {'title': _('Category'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150},
                     {'title': _('Quantity'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
+                    {'title': _('Buy'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
+                    {'title': _('Sell'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
                     {'title': _('Price'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
-                    {'title': _('Mission'), 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70}
+                    {'title': _('Mission'), 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70}                            
                 ],
                 "func": self._locker,
                 'button': True
@@ -110,7 +112,7 @@ class WindowFleetCarrier:
         summ.pack(fill=tk.X)
 
         sum:dict = fc.get_summary()
-        for k, v in sum.items():
+        for k, v in sum.items():                       
             lbl = ttk.Label(summ, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"))
             lbl.grid(row=row, column=col, padx=10, pady=5, sticky=tk.W)
             col += 1
@@ -125,6 +127,7 @@ class WindowFleetCarrier:
     def _create_buttons(self, which:str, frame:ttk.Frame) -> None:
         """ Create tab buttons """
 
+        # Simple internal helper functions.
         def _ctc(what:str, frame:ttk.Frame) -> None:
             frame.clipboard_clear()
             frame.clipboard_append(what)
@@ -136,6 +139,7 @@ class WindowFleetCarrier:
             self.post_types[which][1].config(state=tk.DISABLED)
             title: str = __("Carrier {carrier_name}", lang=lang).format(carrier_name=fc.name) # LANG: Discord fleet carrier title
             description: str = ""
+
             fields: list = []
             fields.append({'name': __("System", lang=lang), 'value': fc.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord fleet carrier field heading
             fields.append({'name': __("Docking", lang=lang), 'value': fc._readable(fc.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord fleet carrier field heading
@@ -155,8 +159,8 @@ class WindowFleetCarrier:
         fr.pack(fill=tk.X, padx=5, pady=5, side=tk.BOTTOM)
 
         tkb:ttk.Button = ttk.Button(fr, text=_("Copy to Clipboard"), command=partial(_ctc, 'test', fr)) # LANG: Button label
-        tkb.pack(side=tk.LEFT, padx=5, pady=5)
-        tkb:ttk.Button = ttk.Button(fr, text=_("Post to Discord"),
+        tkb.pack(side=tk.LEFT, padx=5, pady=5) 
+        tkb:ttk.Button = ttk.Button(fr, text=_("Post to Discord"), 
                                     command=partial(_post, which, self.bgstally.fleet_carrier, self.bgstally.state.discord_lang), # LANG: Button label
                                     state=(tk.NORMAL if _discord_available() else tk.DISABLED))
         self.post_types[which][1] = tkb
@@ -170,8 +174,8 @@ class WindowFleetCarrier:
         strv:tk.StringVar = tk.StringVar(value=menu.get(self.post_types[which][0]))
         menuv:ttk.OptionMenu = ttk.OptionMenu(fr, strv, strv.get(), *menu.keys(), command=partial(_post_type, which), direction='above')
         menuv.pack(side=tk.RIGHT, pady=5)
-
-
+        
+    
     def _create_tabs(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
         """ Create and populate the Fleet Carrier tabs """
         style:ttk.Style = ttk.Style()
@@ -196,7 +200,7 @@ class WindowFleetCarrier:
 
         # Dummy since callback is mandatory
         def _selected(self) -> None: return None
-
+    
         table:TreeviewPlus = TreeviewPlus(frame, columns=[d['title'] for d in cols], show="headings", height=100, callback=_selected, datetime_format=DATETIME_FORMAT_CARRIER, style="My.Treeview")
         #treeview.bind('<<TreeviewSelect>>', partial(self._selected, treeview))
         sb:tk.Scrollbar = tk.Scrollbar(frame, orient=tk.VERTICAL, command=table.yview)
@@ -207,12 +211,12 @@ class WindowFleetCarrier:
             table.heading(column['title'], text=column['title'].title(), anchor=column['align'], sort_by=column['sort'])
             table.column(column['title'], anchor=column['align'], stretch=column['stretch'], width=column['width'])
         return table
-
+    
 
     def _services(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
         """ Services tab """
         names:dict = {'vistagenomics': 'Vista Genomics', 'pioneersupplies': 'Pioneer Supplies'}
-        table:TreeviewPlus = self._create_table(which['cols'], frame)
+        table:TreeviewPlus = self._create_table(which['cols'], frame)        
         services:dict = fc.get_services()
         for s, v in services.items():
             row:list = []
@@ -228,7 +232,7 @@ class WindowFleetCarrier:
 
 
     def _cargo(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
-        """ Cargo tab """
+        """ Cargo tab """        
         table:TreeviewPlus = self._create_table(which['cols'], frame)
         cargo:dict = fc.get_cargo()
         for comm, i in cargo.items():
@@ -239,7 +243,7 @@ class WindowFleetCarrier:
                     case "buy" if i.get("price", 0) > 0 and i.get("outstanding", 0) > 0: val = i.get("outstanding")
                     case "sell" if i.get("price", 0) > 0 and i.get("stock", 0) > 0: val = i.get("stock")
                     case _: val = i.get(c, " ")
-                if i.get('stock', 0) > 0 or i.get('outstanding') > 0:
+                if i.get('stock', 0) > 0 or i.get('outstanding', 0) > 0:
                     row.append(self._format(val))
             if row != []:
                 table.insert("", 'end', values=row, iid=i.get('locName'))
@@ -249,15 +253,21 @@ class WindowFleetCarrier:
         """ Locker tab """
         table:TreeviewPlus = self._create_table(which['cols'], frame)
         locker:dict = fc.get_locker()
-
+        
         for cat, i in locker.items():
             row:list = []
             for c in which['fields']:
-                row.append(self._format(i.get(c, " ")))
-            if i.get('quantity') > 0:
+                val:str = ""
+                match c:
+                    case "buy" if i.get("price", 0) > 0 and i.get("outstanding", 0) > 0: val = i.get("outstanding")
+                    case "sell" if i.get("price", 0) > 0 and i.get("quantity", 0) > 0: val = i.get("quantity")
+                    case _: val = i.get(c, " ")
+                if i.get('quantity', 0) > 0 or i.get('outstanding', 0) > 0:
+                    row.append(self._format(val))
+            if row != []:
                 table.insert("", 'end', values=row, iid=i.get('locName'))
-
-
+                
+    
     def _itinerary(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
         """ Itinerary tab """
         table:TreeviewPlus = self._create_table(which['cols'], frame)
@@ -278,9 +288,9 @@ class WindowFleetCarrier:
 
 
     def _format(self, val, type:str|None = None) -> str:
-        """ General formatting function """
+        """ General formatting function """        
         if val == None or val == 0 or val == False: return ''
-
+        
         if type == 'datetime':
             return datetime.strptime(val, DATETIME_FORMAT_JSON).strftime(DATETIME_FORMAT_CARRIER)
         if type == 'interval':
@@ -328,7 +338,9 @@ class WindowFleetCarrier:
 
 
 # Just for translation
-labels:dict = {"Finances": _("Finances"), # LANG: Finances tab
-                "Cargo": _("Cargo"), # LANG: Cargo tab
-                "Commodity": _("Commodity"), # LANG: Commodity name header
+labels:dict = {"Finances": _("Finances"), # LANG: Tab label
+                "Cargo": _("Cargo"), # LANG: Tab label
+                'Locker': _('Locker'), # LANG: Tab label
+                'Itinerary': _("Itinerary"), # LANG: Tab label
+                "Services": _("Services"), # LANG: Commodity name header 
             }

@@ -37,7 +37,7 @@ class State:
         self.DiscordBGSTWAutomatic:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordBGSTWAutomatic', default=CheckStates.STATE_OFF))
 
         self.ColonisationMaxCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationMaxCommodities', default="20"))
-        self.EnableProgressScrollbar:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationProgressScrollbar', default=CheckStates.STATE_OFF))
+        self.EnableProgressScrollbar:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableProgressScrollbar', default=CheckStates.STATE_OFF))
         self.ColonisationRCAPIKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationRCAPIKey', default=""))
 
         self.FcSellingCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcSellingCommodities', default=CheckStates.STATE_ON))
@@ -112,7 +112,7 @@ class State:
         self.discord_bgstw_automatic:bool = (self.DiscordBGSTWAutomatic.get() == CheckStates.STATE_ON)
         self.showmerits:bool = (self.EnableShowMerits.get() == CheckStates.STATE_ON)
 
-        self.progress_scrollbar:bool (self.EnableProgressScrollbar.get() == CheckStates.STATE_ON)
+        self.progress_scrollbar:bool = (self.EnableProgressScrollbar.get() == CheckStates.STATE_ON)
 
     def save(self):
         """
@@ -148,6 +148,7 @@ class State:
         config.set('BGST_FcCargo', self.FcCargo.get())
         config.set('BGST_FcLocker', self.FcLocker.get())
         config.set('BGST_ColonisationMaxCommodities', self.ColonisationMaxCommodities.get())
+        config.set('BGST_EnableProgressScrollbar', self.EnableProgressScrollbar.get())
         config.set('BGST_ColonisationRCAPIKey', self.ColonisationRCAPIKey.get())
 
         # Persistent values

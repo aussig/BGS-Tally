@@ -96,6 +96,7 @@ class FleetCarrier:
 
     def get_locker(self) -> dict:
         """ Return locker as a dictionary """
+        self.locker = self._update_locker(self.data) # Temporary
         res:dict = {}
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
@@ -137,7 +138,7 @@ class FleetCarrier:
             # Figure out the stock using the various sources
             stock:int = max(int(sale.get('stock', 0)), int(market.get('stock', 0)))
 
-            if stock == 0: # There may be multiple of these so we need to do addition
+            if stock == 0: # No sales or market so cargo. There may be multiple of these so we need to do addition
                 stock = c.get('qty', 0)
                 if cname in cargo['normal']:
                     stock += cargo['normal'][cname]['stock']
@@ -159,15 +160,20 @@ class FleetCarrier:
         """ Update locker data from CAPI data structure """
 
         locker:dict = {'mission' : {}, 'normal' : {}}
-        for cat, v in get_by_path(data, ['carrierLocker'], {}).items():
+        for cat, v in get_by_path(data, ['carrierLocker'], {}).items():            
             for m in v:
                 name = m.get('name', "").lower()
+                # all the ways a commodity may be listed in CAPI data
+                sale:dict = next((item for item in list(get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], {}).values()) if item.get('name', "").lower() == name), {})
+                purchase:dict = next((item for item in get_by_path(data, ['orders', 'onfootmicroresources', 'purchases'], []) if item.get('name', "").lower() == name), {})
                 type = 'mission' if m.get('mission', False) == True else 'normal'
-                if name not in locker[type] and m.get('quantity', 0) > 0:
+                if name not in locker[type] and m.get('quantity', 0) > 0 or purchase.get('outstanding', 0) > 0:
                     locker[type][name] = {'locName': m.get('locName', name),
                                           'category': cat.title(),
                                           'quantity': m.get('quantity', 0),
-                                          'price': m.get('price', 0)
+                                          'buyTotal': purchase.get('total', 0),
+                                          'outstanding': purchase.get('outstanding', 0),
+                                          'price': max(m.get('price', 0), sale.get('price', 0), purchase.get('price', 0))
                                          }
         return locker
 

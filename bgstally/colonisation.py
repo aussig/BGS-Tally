@@ -1026,6 +1026,7 @@ class Colonisation:
             self.dirty = True
 
         self.carrier_cargo = cargo
+        self.bgstally.ui.window_progress.update_display()
 
 
     @catch_exceptions
@@ -1036,7 +1037,7 @@ class Colonisation:
             if v > 0:
                 tmp[k.lower()] = v
         self.cargo = tmp
-
+        self.bgstally.ui.window_progress.update_display()
 
     @catch_exceptions
     def _update_market(self, market_id:int|None = None) -> None:
@@ -1052,6 +1053,7 @@ class Colonisation:
                     market[item.get('Name')] = item.get('Stock')
             if market != {}:
                 self.market = market
+                self.bgstally.ui.window_progress.update_display()
                 return
 
         # The market object doesn't have a market for us so we'll try loading it ourselves.
@@ -1066,6 +1068,7 @@ class Colonisation:
                     if item.get('Stock') > 0:
                         market[item.get('Name')] = item.get('Stock')
         self.market = market
+        self.bgstally.ui.window_progress.update_display()
 
 
     def _generate_buildid(self, market_id:int|None = None) -> str:

@@ -152,8 +152,8 @@ class ColonisationWindow:
                            'Base':   {'RavenColonial': 'https://ravencolonial.com/#vis={Layout}'}
                             }
         # UI components'
-        self.window:tk.Toplevel = None # type: ignore
-        self.tabbar:ScrollableNotebook = None # type: ignore
+        self.window:tk.Toplevel|None = None
+        self.tabbar:ScrollableNotebook|None = None
         self.add_dialog:tk.Frame|None = None
         self.react:tk.Frame|None = None
         self.sheets:list = []
@@ -173,7 +173,7 @@ class ColonisationWindow:
             return
         self.scale = config.get_int('ui_scale') / 100.00
         self.colonisation = self.bgstally.colonisation
-        self.window:tk.Toplevel = tk.Toplevel(self.bgstally.ui.frame)
+        self.window = tk.Toplevel(self.bgstally.ui.frame)
         self.window.title(_("{plugin_name} - Colonisation").format(plugin_name=self.bgstally.plugin_name)) # LANG: window title
 
         self.window.minsize(400, 100)
@@ -1064,7 +1064,7 @@ class ColonisationWindow:
 
                 self.update_display()
 
-        if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
+        if event.selected.column > 0 and system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
             Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
             return
 
@@ -1399,9 +1399,9 @@ class ColonisationWindow:
         if self.bodies_fr: self.bodies_fr.destroy()
 
         # UI components
-        self.tabbar:ScrollableNotebook
-        self.sheets:list = []
-        self.plan_titles:list = []
+        self.tabbar = None
+        self.sheets = []
+        self.plan_titles = []
         self.colonisation.save("Colonisation window close")
 
 

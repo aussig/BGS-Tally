@@ -74,9 +74,10 @@ class RavenColonial:
             'systemSiteId': 'BuildID',
             'commodities': 'Remaining',
             'buildType': 'Layout',
-            'bodyNum': 'BodyNum',
             'architectName': 'Architect',
             'timeDue': 'Deadline',
+            'bodyNum': 'BodyNum',
+            'bodyName': 'Body',
             'bodyType': 'BodyType',
             'complete': 'ConstructionComplete'
             }
@@ -112,11 +113,11 @@ class RavenColonial:
         """ Determine if we can edit this system in RavenColonial """
         if self.colonisation.cmdr == None:
             return False
-        
-        return system.get('Open', False) == True or \
+
+        return system.get('RCOpen', False) == True or \
             self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
 
-    
+
     @catch_exceptions
     def load_system(self, id64:str|None = None, rev:str|None = None, sync:bool = False) -> None:
         """ Retrieve the rcdata data with the latest system data from RC when we start. """
@@ -409,12 +410,15 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def create_project(self, system:dict, build:dict, progress:dict) -> None:
+    def create_project(self, system:dict, build:dict, progress:dict) -> str|None:
         """ Create a new project in RavenColonial """
         payload:dict = {}
         for k, v in self.project_params.items():
             rcval:dict|None = None
 
+            if k == 'bodyName': # Reconstruction the bodyname if we're able
+                if system.get('Name', None) != None and build.get('Body', None) != None:
+                    rcval = system.get('Name', '') + ' ' + build.get('Body', '')
             if progress.get(v, None) != None:
                 rcval = progress.get(v, '').strip().lower().replace(' ', '_') if isinstance(progress.get(v, None), str) and 'name' not in k.lower() else progress.get(v, None)
             elif build.get(v, None) != None:
@@ -443,16 +447,17 @@ class RavenColonial:
             Debug.logger.error(f"Project not found {response} {response.content}")
             return
 
-        self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': data.get('buildId')}, True)
+        self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': projectid}, True)
 
         # Link the project to us.
-        url:str = f"{RC_API}/project/{data.get('buildId')}/link/{self.colonisation.cmdr}"
+        url:str = f"{RC_API}/project/{projectid}/link/{self.colonisation.cmdr}"
         response:Response = requests.put(url, headers=self._headers(), timeout=5)
         if response.status_code not in [200, 202]:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
 
-        Debug.logger.info(f"RavenColonial project created {data.get('buildName', 'Unknown')}")
+        Debug.logger.info(f"RavenColonial project created {projectid}")
+        return projectid
 
 
     @catch_exceptions
@@ -461,7 +466,9 @@ class RavenColonial:
 
         # Create project if we don't have an id.
         if progress.get('ProjectID', None) == None:
-            self.create_project(system, build, progress)
+            projectid:str|None = self.create_project(system, build, progress)
+            if projectid != None:
+                progress['ProjectID'] = projectid
 
         # Update project
         payload:dict = {}
@@ -520,9 +527,11 @@ class RavenColonial:
             Debug.logger.error(f"Error with load project, doesn't exist")
             return
 
-        if response.content != progress.get('Updated', ''):
-            url = f"{RC_API}/project/{projectid}"
-            self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=self._load_project_callback)
+        if response.content == progress.get('Updated', ''):
+            return
+
+        url = f"{RC_API}/project/{projectid}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=self._load_project_callback)
 
 
     @catch_exceptions

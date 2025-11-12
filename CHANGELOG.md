@@ -3,6 +3,7 @@
 ## vx.x.x - xxxx-xx-xx
 
 ### Bug fixes:
+
 * Improved project initiation with RavenColonial
 * Fixed progress bug by modifying when/how progress is updated on tracking changes
 * Ensured RC projects sync even when created by other means

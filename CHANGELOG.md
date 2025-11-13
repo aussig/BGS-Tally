@@ -1,17 +1,13 @@
 # Change Log
 
-## v5.3.0 - v5.4.0
+## vx.x.x - xxxx-xx-xx
 
-### New Features:
- * Added polling of Raven Colonial project progress
- * Added popup menu for progress options
- * More improvements to project/build matching
- * Added Outpost in a Box 'virtual' base
- * Added Carrier buy orders as a progress column
+### Bug fixes:
 
-### Bug Fixes:
- * Fixed capitalization typo that could sometimes cause a site to be assigned to the wrong body
- * Fixed bug with checking for Open systems in RC
+* Improved project initiation with RavenColonial
+* Fixed progress bug by modifying when/how progress is updated on tracking changes
+* Ensured RC projects sync even when created by other means
+
 
 ## v5.3.0 - 2025-11-06
 

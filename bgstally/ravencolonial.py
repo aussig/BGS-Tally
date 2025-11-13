@@ -78,6 +78,8 @@ class RavenColonial:
             'timeDue': 'Deadline',
             'bodyNum': 'BodyNum',
             'bodyName': 'Body',
+            'bodyNum': 'BodyNum',
+            'bodyName': 'Body',
             'bodyType': 'BodyType',
             'complete': 'ConstructionComplete'
             }
@@ -456,7 +458,7 @@ class RavenColonial:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
 
-        Debug.logger.info(f"RavenColonial project created")
+        Debug.logger.info(f"RavenColonial project created {projectid}")
         return projectid
 
 
@@ -527,9 +529,11 @@ class RavenColonial:
             Debug.logger.error(f"Error with load project, doesn't exist")
             return
 
-        if response.content != progress.get('Updated', ''):
-            url = f"{RC_API}/project/{projectid}"
-            self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=self._load_project_callback)
+        if response.content == progress.get('Updated', ''):
+            return
+
+        url = f"{RC_API}/project/{projectid}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=self._load_project_callback)
 
 
     @catch_exceptions

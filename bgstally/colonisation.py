@@ -323,6 +323,9 @@ class Colonisation:
                 self.docked = False
 
         self.bgstally.ui.window_progress.update_display()
+        # Save immediately to ensure we don't lose any data
+        if self.dirty == True:
+            self.save(entry.get('event'))
 
 
     @catch_exceptions
@@ -1049,6 +1052,14 @@ class Colonisation:
             return
 
         market:dict = {}
+        if self.bgstally.market.available(market_id):
+            for name, item in self.bgstally.market.commodities.items():
+                if item.get('Stock') > 0:
+                    market[item.get('Name')] = item.get('Stock')
+            if market != {}:
+                self.market = market
+                self.bgstally.ui.window_progress.update_display()
+                return
         if self.bgstally.market.available(market_id) == False:
             return
 

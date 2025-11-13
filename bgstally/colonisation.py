@@ -170,12 +170,13 @@ class Colonisation:
                     Debug.logger.warning(f"Invalid ColonisationSystemClaim event: {entry}")
                     return
                 Debug.logger.info(f"System claimed: {self.current_system}")
-                system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
-                system['StarSystem'] = self.current_system
-                system['SystemAddress'] = self.system_id
-                system['Claimed'] = entry.get('timestamp', datetime.now().isoformat())
-                system['Architect'] = self.cmdr
-                self.dirty = True
+                system = self.find_or_create_system({'StarSystem': self.current_system,
+                                                     'SystemAddress' : self.system_id})
+                self.modify_system(system, {'StarSystem': self.current_system,
+                                            'SystemAddress' : self.system_id,
+                                            'Claimed' : entry.get('timestamp', datetime.now().isoformat()),
+                                            'Architect' : self.cmdr
+                                            })
 
             case 'ColonisationConstructionDepot':
                 if not self.market_id:
@@ -321,9 +322,7 @@ class Colonisation:
                 self.body = None
                 self.docked = False
 
-        # Save immediately to ensure we don't lose any data
-        if self.dirty == True:
-            self.save(entry.get('event'))
+        self.bgstally.ui.window_progress.update_display()
 
 
     @catch_exceptions
@@ -433,7 +432,6 @@ class Colonisation:
         system:dict|None = self.find_system(data)
         if system == None:
             return self.add_system(data, False, self.bgstally.state.ColonisationRCAPIKey.get() != None)
-            return self.add_system(data, False, self.bgstally.state.ColonisationRCAPIKey.get() != None)
 
         return system
 
@@ -483,11 +481,9 @@ class Colonisation:
             if k not in self.system_keys or k == 'RCSync': continue
             system[k] = v
 
-        if data.get('Hidden', None) != None:
-            self.bgstally.ui.window_progress.update_display()
-
         # If we are hiding the system, stop tracking all builds
         if system.get('Hidden', False) == True:
+            self.bgstally.ui.window_progress.update_display()
             self.save('Modify system, hidden')
             return
 
@@ -824,9 +820,6 @@ class Colonisation:
         for k, v in data.items():
             if k not in self.build_keys: continue
 
-            if k == 'Track' and build.get(k, False) != v:
-                self.bgstally.ui.window_progress.update_display()
-
             if build.get(k, '') != v and build.get(k, ' ') != v:
                 build[k] = v.strip() if isinstance(v, str) else v
                 changed[k] = v.strip() if isinstance(v, str) else v
@@ -903,7 +896,6 @@ class Colonisation:
         return 'Unknown'
 
 
-    @catch_exceptions
     def _get_progress(self, builds:list[dict], type:str) -> list[dict]:
         ''' Internal function to get progress details '''
         prog:list = []
@@ -1016,11 +1008,12 @@ class Colonisation:
             RavenColonial(self).upsert_project(system, build, progress)
 
 
-    @catch_exceptions
+
     def _update_carrier(self) -> None:
         ''' Update the carrier cargo data. '''
         if self.bgstally.fleet_carrier.available() == False:
             return
+        Debug.logger.debug(f"Updating carrier cargo")
         cargo:dict = {}
         buy:dict = {}
 
@@ -1039,7 +1032,7 @@ class Colonisation:
         self.carrier_cargo = cargo
 
 
-    @catch_exceptions
+
     def _update_cargo(self, cargo:dict) -> None:
         ''' Update the cargo data. '''
         tmp:dict = {}
@@ -1049,7 +1042,6 @@ class Colonisation:
         self.cargo = tmp
 
 
-    @catch_exceptions
     def _update_market(self, market_id:int|None = None) -> None:
         ''' Update market info from the market object or directly '''
         if market_id == None or self.docked == False:
@@ -1057,25 +1049,15 @@ class Colonisation:
             return
 
         market:dict = {}
-        if self.bgstally.market.available(market_id):
-            for name, item in self.bgstally.market.commodities.items():
-                if item.get('Stock') > 0:
-                    market[item.get('Name')] = item.get('Stock')
-            if market != {}:
-                self.market = market
-                return
+        if self.bgstally.market.available(market_id) == False:
+            return
 
-        # The market object doesn't have a market for us so we'll try loading it ourselves.
-        # Ideally we wouldn't do this but it seems necessary
-        journal_dir:str = config.get_str('journaldir') or config.default_journal_dir
-        if not journal_dir: return
+        for name, item in self.bgstally.market.commodities.items():
+            if item.get('Stock') > 0:
+                market[item.get('Name')] = item.get('Stock')
+        if market == {}:
+            Debug.logger.debug(f"No market update")
 
-        with open(join(journal_dir, MARKET_FILENAME), 'rb') as file:
-            json_data = json.load(file)
-            if market_id == json_data['MarketID']:
-                for item in json_data['Items']:
-                    if item.get('Stock') > 0:
-                        market[item.get('Name')] = item.get('Stock')
         self.market = market
 
 
@@ -1212,3 +1194,4 @@ class Colonisation:
             self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
         except:
             return
+

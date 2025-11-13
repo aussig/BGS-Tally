@@ -77,6 +77,7 @@ class DiscordFleetCarrier(str, Enum):
     MATERIALS = 'Materials'
     COMMODITIES = 'Commodities'
     BOTH = 'Both'
+    ALL = 'All'
 
 
 class RequestMethod(Enum):

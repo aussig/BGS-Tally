@@ -382,7 +382,7 @@ class RavenColonial:
             if build not in new_order:
                 new_order.append(build)
 
-        Debug.logger.debug(f"New build order: {[k.get('Name', '') for k in new_order]} old: {[k.get('Name', '') for k in system.get('Builds', [])]}")
+        #Debug.logger.debug(f"New build order: {[k.get('Name', '') for k in new_order]} old: {[k.get('Name', '') for k in system.get('Builds', [])]}")
         self.colonisation.modify_system(system, {'Builds': new_order})
 
 
@@ -456,7 +456,7 @@ class RavenColonial:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
 
-        Debug.logger.info(f"RavenColonial project created {data.get('buildName', 'Unknown')}")
+        Debug.logger.info(f"RavenColonial project created")
         return projectid
 
 

@@ -190,29 +190,30 @@ class ProgressWindow:
             canvas.configure(height=400)
             sb:ttk.Scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=canvas.yview)
             canvas.configure(yscrollcommand=sb.set)
-            
+
             table_frame = tk.Frame(canvas)
             #table_frame.grid(row=row, column=col, sticky=tk.EW)
             table_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
             canvas.create_window((0, 0), window=table_frame, anchor=tk.NW, tags='frame')
-            
+
             canvas.grid(row=row, column=0, columnspan=bgs_cols-1, pady=0, ipady=0, sticky=tk.NSEW)
             sb.grid(sticky=tk.NS, row=row, column=bgs_cols)
             canvas.bind("<Configure>", lambda e: canvas.itemconfig('frame', height=canvas.winfo_height(), width=canvas.winfo_width()))
-            
+
         else:
             table_frame = tk.Frame(frame)
             table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
-        
+
         row = 0
         table_frame.columnconfigure(0, weight=3)
         table_frame.columnconfigure(1, weight=1)
         table_frame.columnconfigure(2, weight=1)
-        table_frame.columnconfigure(3, weight=1)        
+        table_frame.columnconfigure(3, weight=1)
         self.table_frame = table_frame
 
         # Column headings
         for col, v in enumerate(self.columns):
+            if v >= len(self.headings): v = 0
             lbl = tk.Label(table_frame, text=self.headings[v].get('Label'), cursor='hand2')
             lbl.bind("<Button-1>", partial(self.change_view, col, 'Column'))
             lbl.bind("<Button-3>", partial(self.change_view, col, 'Units'))
@@ -224,7 +225,7 @@ class ProgressWindow:
             self.collbls[col] = lbl
             self.coltts[col] = ToolTip(lbl, text=self.headings[v].get('Tooltip'))
         row += 1
-        
+
         # Go through the complete list of possible commodities and make a row for each and hide it.
         for c in self.colonisation.get_commodity_list():
             r:dict = {}
@@ -243,13 +244,13 @@ class ProgressWindow:
             self.rows.append(r)
             row += 1
 
-        row += 1 
+        row += 1
         # Totals at the bottom
         r:dict = {}
         for col, v in enumerate(self.columns):
             r[col] = tk.Label(table_frame, text=_("Total")) # LANG: Total amounts
             r[col].grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
-            self._set_weight(r[col])        
+            self._set_weight(r[col])
         self.rows.append(r)
 
         # No builds or no commodities so hide the frame entirely
@@ -577,6 +578,8 @@ class ProgressWindow:
 
         # Set the column headings according to the selected units
         for col, val in enumerate(self.columns):
+            if val >= len(self.headings): val = 0
+            if self.collbls[col] == None: col = 0
             self.collbls[col]['text'] = self.headings[val].get('Label')
             self.collbls[col].grid()
 
@@ -601,7 +604,7 @@ class ProgressWindow:
         rc:int = 0
         for i, c in enumerate(comms):
 
-            if len(self.rows) < i: continue
+            if i >= len(self.rows): continue
             row:dict = self.rows[i]
             reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
             delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0

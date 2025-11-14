@@ -809,6 +809,7 @@ class Colonisation:
             data['Body'] = self.body_name(system['StarSystem'], body.get('name', ''))
             data['BodyNum'] = body.get('bodyId', None)
 
+        Debug.logger.debug(f"Modifying build {data}")
         # If the base type isn't set, try to get it from the layout
         if data.get('Base Type', '') == '' and data.get('Layout', '') != '':
             bt:dict = self.get_base_type(data.get('Layout', ''))

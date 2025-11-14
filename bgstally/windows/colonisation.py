@@ -16,6 +16,7 @@ from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, 
 from bgstally.debug import Debug
 from bgstally.utils import _, get_localised_filepath, human_format, str_truncate, catch_exceptions
 from bgstally.ravencolonial import RavenColonial
+from bgstally.colonisation import Colonisation
 
 from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
@@ -39,7 +40,7 @@ class ColonisationWindow:
     '''
     def __init__(self, bgstally) -> None:
         self.bgstally = bgstally
-        self.colonisation = None
+        self.colonisation:Colonisation|None = None
         self.image_tab_complete:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
         self.image_tab_progress:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
         self.image_tab_planned:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
@@ -188,7 +189,6 @@ class ColonisationWindow:
         ''' Create the system frame notebook and tabs for each system '''
         # Create system tabs notebook
         self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=False)
-        self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
         self.add_dialog = self.add_system_dialog()
         self.update_react_dialog()
         self.tabbar.add(self.add_dialog, text='+')
@@ -209,7 +209,7 @@ class ColonisationWindow:
                 if systems[t].get('Hidden', True) == False:
                     break
             self.tabbar.select(t+1) # Select the first non-hidden system tab
-
+        self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
     @catch_exceptions
     def _create_system_tab(self, tabnum:int, system:dict) -> None:

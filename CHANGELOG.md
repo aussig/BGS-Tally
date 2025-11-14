@@ -16,6 +16,7 @@
 * Fixed progress bug by modifying when/how progress is updated on tracking changes
 * Ensured RC projects sync even when created by other means
 
+
 ## v5.3.0 - 2025-11-06
 
 ### New Features:

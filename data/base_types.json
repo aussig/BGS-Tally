@@ -2467,14 +2467,14 @@
             "liquor": 195
         }
     },
-    "Dodecahedron": {
+    "Dodecahedron Starport": {
         "Type": "Dodecahedron Starport",
         "Type (Listed as/under)": "Dodecahedron",
         "Tier": 3,
         "Category": "Starport",
         "Location": "Orbital",
         "Building Type": "Dodecahedron Starport",
-        "Layouts": "No Truss, Quint Truss, Dec Truss",
+        "Layouts": "Dodec, Quint Truss, Dec Truss",
         "Prerequisites": "",
         "Boosted By": "",
         "Decreased By": "",
@@ -2485,7 +2485,7 @@
         "Pop Max": 4,
         "Economy Influence": "",
         "Security": -4,
-        "Technology Level": 7,
+        "Technology Level": 8,
         "Wealth": 9,
         "Standard of Living": 7,
         "Development Level": 10,

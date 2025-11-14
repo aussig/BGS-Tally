@@ -1,13 +1,13 @@
 # Change Log
 
+## v5.3.2 - 2025-11-14
+
+### Changes:
+
+* Added new Dodec Starport and Outpost in a box to Colonisation base types.
+
+
 ## v5.3.0 - 2025-11-06
-
-### New Features:
-
-* Added colonisation build reordering via popup menu
-* Modified readonly toggle through popup menu instead of by state
-* Modified so that RC systems can be edited if they're open or you're on the list as well as if they're yours
-* Modified so auto-created systems default to syncing with RC if the Commander has configured an API key
 
 ### New Features:
 

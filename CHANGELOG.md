@@ -17,6 +17,13 @@
 * Ensured RC projects sync even when created by other means
 
 
+## v5.3.1 - 2025-11-14
+
+### Changes:
+
+* Added new Dodec Starport and Outpost in a box to Colonisation base types.
+
+
 ## v5.3.0 - 2025-11-06
 
 ### New Features:

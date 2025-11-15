@@ -1163,8 +1163,8 @@ class Colonisation:
                 if build.get('Readonly', None) == None:
                     build['Readonly'] = (build.get('State', BuildState.PLANNED) == BuildState.COMPLETE)
                     self.dirty = True
-                if build.get('Readonly', None) == None:
-                    build['Readonly'] = (build.get('State', BuildState.PLANNED) == BuildState.COMPLETE)
+                if build.get('State', None) == BuildState.COMPLETE and build.get('Readonly', None) != True:
+                    build['Readonly'] = True
                     self.dirty = True
 
         for p in dict.get('Progress', []):

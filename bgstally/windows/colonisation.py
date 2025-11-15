@@ -1064,16 +1064,12 @@ class ColonisationWindow:
 
                 self.update_display()
 
-        if event.selected.column > 0 and system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
-            Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
-            return
-
-        if event.eventname.endswith('move_rows'):
-            Debug.logger.debug(f"Row move {event}")
-            return
-
         # We only deal with edits.
         if not event.eventname.endswith('edit_table'):
+            return
+
+        if event.selected.column > 0 and system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
+            Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
             return
 
         # In the summary

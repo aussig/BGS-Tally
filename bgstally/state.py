@@ -40,12 +40,8 @@ class State:
         self.EnableProgressScrollbar:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableProgressScrollbar', default=CheckStates.STATE_OFF))
         self.ColonisationRCAPIKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationRCAPIKey', default=""))
 
-        self.FcSellingCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcSellingCommodities', default=CheckStates.STATE_ON))
-        self.FcBuyingCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcBuyingCommodities', default=CheckStates.STATE_ON))
-        self.FcSellingMaterials:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcSellingMaterials', default=CheckStates.STATE_ON))
-        self.FcBuyingMaterials:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcBuyingMaterials', default=CheckStates.STATE_ON))
-        self.FcCargo:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcCargo', default=CheckStates.STATE_ON))
-        self.FcLocker:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcLocker', default=CheckStates.STATE_ON))
+        self.FcCargo:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcCargo', default="Both"))
+        self.FcLocker:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcLocker', default="Both"))
 
         # Legacy values migrating to new names
         # TODO: Remove migration in future version
@@ -98,12 +94,8 @@ class State:
         self.enable_overlay_objectives:bool = (self.EnableOverlayObjectives.get() == CheckStates.STATE_ON)
         self.enable_overlay_colonisation:bool = (self.EnableOverlayColonisation.get() == CheckStates.STATE_ON)
 
-        self.buying_commodities:bool = (self.FcBuyingCommodities.get() == CheckStates.STATE_ON)
-        self.selling_commodities:bool = (self.FcSellingCommodities.get() == CheckStates.STATE_ON)
-        self.buying_materials:bool = (self.FcBuyingMaterials.get() == CheckStates.STATE_ON)
-        self.selling_materials:bool = (self.FcSellingMaterials.get() == CheckStates.STATE_ON)
-        self.cargo:bool = (self.FcCargo.get() == CheckStates.STATE_ON)
-        self.locker:bool = (self.FcLocker.get() == CheckStates.STATE_ON)
+        self.cargo:str = self.FcCargo.get()
+        self.locker:str = self.FcLocker.get()
 
         self.abbreviate_faction_names:bool = (self.AbbreviateFactionNames.get() == CheckStates.STATE_ON)
         self.secondary_inf:bool = (self.IncludeSecondaryInf.get() == CheckStates.STATE_ON)
@@ -141,10 +133,6 @@ class State:
         config.set('BGST_DiscordActivity', self.DiscordActivity.get())
         config.set('BGST_DiscordAvatarURL', self.DiscordAvatarURL.get())
         config.set('BGST_DiscordBGSTWAutomatic', self.DiscordBGSTWAutomatic.get())
-        config.set('BGST_FcSellingCommodities', self.FcSellingCommodities.get())
-        config.set('BGST_FcBuyingCommodities', self.FcBuyingCommodities.get())
-        config.set('BGST_FcSellingMaterials', self.FcSellingMaterials.get())
-        config.set('BGST_FcBuyingMaterials', self.FcBuyingMaterials.get())
         config.set('BGST_FcCargo', self.FcCargo.get())
         config.set('BGST_FcLocker', self.FcLocker.get())
         config.set('BGST_ColonisationMaxCommodities', self.ColonisationMaxCommodities.get())

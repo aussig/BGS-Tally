@@ -4,7 +4,7 @@ from tkinter import ttk
 from datetime import datetime
 from math import floor
 
-from bgstally.constants import FONT_TEXT, FONT_SMALL, COLOUR_WARNING, DiscordChannel
+from bgstally.constants import FONT_TEXT, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.utils import _, __, human_format, str_truncate, catch_exceptions
@@ -28,7 +28,6 @@ class WindowFleetCarrier:
         self.window:tk.Toplevel|None = None
         self.scale:float = 1.0
 
-        self.post_types:dict = {'Cargo': ['All', True], 'Locker':['All', True]}
         self.tabs:dict = {
             'Finances': {
                 'fields': [],
@@ -37,6 +36,8 @@ class WindowFleetCarrier:
             },
             'Cargo': {
                 'fields': ['locName', 'category', 'stock', 'buy', 'sell', 'price', 'stolen', 'mission'],
+                'widths': [20, 14, 6, 6, 7, 7],
+                'format': ["{val:<20}", "{val:<14}", "{val:>6}", "{val:>6}", "{val:>7}", "{val:>7}"],
                 'cols': [
                     {'title': _('Commodity'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250},
                     {'title': _('Category'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150},
@@ -52,6 +53,8 @@ class WindowFleetCarrier:
             },
             'Locker': {
                 'fields': ['locName', 'category', 'stock', 'buy', 'sell', 'price', 'mission'],
+                'widths': [20, 8, 5, 6, 7, 5],
+                'format': ["{val:<20}", "{val:<8}", "{val:>5}", "{val:>6}", "{val:>7}", "{val:>5}"],
                 'cols': [
                     {'title': _('Material'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250},
                     {'title': _('Category'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150},
@@ -135,6 +138,7 @@ class WindowFleetCarrier:
                 self._create_buttons(k, fr)
             v['func'](fc, v, fr)
 
+
     def _finances(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
         finances:dict = fc.get_finances()
 
@@ -145,6 +149,7 @@ class WindowFleetCarrier:
             summ.configure(padding=10)
             summ.pack(fill=tk.X)
             self._create_columns(finances['overview'], 20, summ, bg='white')
+
 
     def _services(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
         """ Create and display the Services tab """
@@ -192,7 +197,7 @@ class WindowFleetCarrier:
                 val:str = ""
                 match c:
                     case "buy" if i.get("price", 0) > 0 and i.get("outstanding", 0) > 0: val = i.get("outstanding")
-                    case "sell" if i.get("price", 0) > 0 and i.get("stock", 0) > 0: val = i.get("stock")
+                    case "sell" if i.get("price", 0) > 0 and i.get("stock", 0) > 0 and i.get('buyTotal') == 0: val = i.get("stock")
                     case _: val = i.get(c, " ")
                 if i.get('stock', 0) > 0 or i.get('outstanding', 0) > 0:
                     line.append(self._format(val))
@@ -298,7 +303,7 @@ class WindowFleetCarrier:
         ''' Create grid of title/value pairs in columns and rows '''
         row:int = 0; col = 0
         lbl:ttk.Label
-        Debug.logger.debug(f"Creating columns for data: {data}")
+
         for k, v in data.items():
             if bg != 'None':
                 lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background=bg)
@@ -321,48 +326,55 @@ class WindowFleetCarrier:
         """ Create tab buttons """
 
         # Simple internal helper functions.
-        def _ctc(which:str, type:str) -> None:
+        @catch_exceptions
+        def _ctc(which:str, type:str|tk.StringVar) -> None:
             frame.clipboard_clear()
-            frame.clipboard_append(self._get_as_text(which, type))
+            frame.clipboard_append(self._get_as_text(which, type, False))
 
-        def _post_type(which:str, value:str) -> None:
-            self.post_types[which]['Post'][0] = value
+        @catch_exceptions
+        def _post(which:str, type:str|tk.StringVar, btn:ttk.Button) -> None:
 
-        def _post(which, fc, lang) -> None:
-            self.post_types[which][1].config(state=tk.DISABLED)
-            title: str = __("Carrier {carrier_name}", lang=lang).format(carrier_name=fc.overview['name']) # LANG: Discord fleet carrier title
-            description: str = ""
-
-            fields: list = []
-            fields.append({'name': __("System", lang=lang), 'value': fc.overview.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord fleet carrier field heading
-            fields.append({'name': __("Docking", lang=lang), 'value': fc._readable(fc.overview.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord fleet carrier field heading
-            fields.append({'name': __("Notorious Access", lang=lang), 'value': bool(fc.overview.get('notoriousAccess', True)), 'inline': True}) # LANG: Discord fleet carrier field heading
-            self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
-            self.post_types[which][1].after(5000, _enable_post(which))
+            fc: FleetCarrier = self.bgstally.fleet_carrier
+            l:str = self.bgstally.state.discord_lang
+            btn.config(state=tk.DISABLED)
+            output:str = self._get_as_text(which, type, True)
+            if len(output) > 1990:
+                while len(output) > 1990:
+                    split_at:int = output.rfind('\n', 0, 1990)
+                    part:str = output[0:split_at]
+                    self.bgstally.discord.post_plaintext(part, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
+                    output = output[split_at+1:]
+            self.bgstally.discord.post_plaintext(output, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
+            btn.after(5000, _enable_post, btn)
 
         def _discord_available() -> bool:
             return (self.bgstally.discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS)
                     and self.bgstally.state.DiscordUsername.get() != "")
 
-        def _enable_post(which:str) -> None:
-            self.post_types[which][1].config(state=(tk.NORMAL if _discord_available() else tk.DISABLED))
+        def _enable_post(btn:ttk.Button) -> None:
+            btn.config(state=(tk.NORMAL if _discord_available() else tk.DISABLED))
+
+        def _post_type_selected(which:str, value: str) -> None:
+            self.bgstally.state.FcCargo.set(value) if which == 'Cargo' else self.bgstally.state.FcLocker.set(value)
 
         bar:ttk.Frame = ttk.Frame(frame)
         bar.pack(fill=tk.X, side=tk.BOTTOM)
 
-        menu:dict = {_("Selling"): 'Selling', # LANG: Dropdown menu on cargo/materials window
-                    _("Buying") : 'Buying', # LANG: Dropdown menu on cargo/materials window
-                    _("Both"): 'Both', # LANG: Dropdown menu on cargo/materials windows
-                    _("All") : 'All'} # LANG: Dropdown menu on cargo/materials windows
-        strv:tk.StringVar = tk.StringVar(value=menu.get(self.post_types[which][0]))
-        menuv:ttk.OptionMenu = ttk.OptionMenu(bar, strv, strv.get(), *menu.keys(), command=partial(_post_type, which), direction='above')
+        post_types:dict = {_("Buying") : DiscordFleetCarrier.BUYING, # LANG: Dropdown menu on activity window
+                            _("Selling") : DiscordFleetCarrier.SELLING, # LANG: Dropdown menu on activity window
+                            _("Both") : DiscordFleetCarrier.BOTH, # LANG: Dropdown menu on activity window
+                            _("All") : DiscordFleetCarrier.ALL} # LANG: Dropdown menu on activity window
+
+        strv:tk.StringVar = tk.StringVar(value=self.bgstally.state.FcCargo.get() if which == 'Cargo' else self.bgstally.state.FcLocker.get())
+        menuv:ttk.OptionMenu = ttk.OptionMenu(bar, strv, strv.get(), *post_types.keys(),
+                                              command=partial(_post_type_selected, which),
+                                              direction='above')
 
         tkb:ttk.Button = ttk.Button(bar, text=_("Copy to Clipboard"), command=partial(_ctc, which, strv)) # LANG: Button label
         tkb.pack(side=tk.LEFT, padx=5, pady=5)
-        tkb:ttk.Button = ttk.Button(bar, text=_("Post to Discord"),
-                                    command=partial(_post, which, self.bgstally.fleet_carrier, self.bgstally.state.discord_lang), # LANG: Button label
+        tkb:ttk.Button = ttk.Button(bar, text=_("Post to Discord"), # LANG: Button label
+                                    command=partial(_post, which, strv, tkb),
                                     state=(tk.NORMAL if _discord_available() else tk.DISABLED))
-        self.post_types[which][1] = tkb
         tkb.pack(side=tk.RIGHT, padx=5, pady=5)
         if not _discord_available():
             ToolTip(tkb, text=_("Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord").format(CR="\n")) # LANG: Post to Discord button tooltip
@@ -390,61 +402,53 @@ class WindowFleetCarrier:
         return table
 
 
-    def _post_type_selected(self, post_types: dict, value: str):
+    def _post_type_selected(self, post_types: dict, value: str) -> None:
         """ The user has changed the dropdown to choose the type of data to post """
         k: str = next(k for k, v in post_types.items() if v == value)
         self.bgstally.state.DiscordFleetCarrier.set(k)
 
 
-    def _post_to_discord(self):
-        """ Post Fleet Carrier materials list to Discord """
-        fc: FleetCarrier = self.bgstally.fleet_carrier
-
-        #title: str = __("Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=fc.name) # LANG: Discord fleet carrier title
-        #description: str = self._get_as_text(fc, True)
-
-        #fields: list = []
-        #fields.append({'name': __("System", lang=self.bgstally.state.discord_lang), 'value': fc.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord fleet carrier field heading
-        #fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': fc.human_format_dockingaccess(True), 'inline': True}) # LANG: Discord fleet carrier field heading
-        #fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': fc.human_format_notorious(True), 'inline': True}) # LANG: Discord fleet carrier field heading
-
-        #self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
-
-        #self.btn_post_to_discord.after(5000, self._enable_post_button)
-
-
     @catch_exceptions
     def _get_as_text(self, which:str, type:str|tk.StringVar, discord:bool = False) -> str:
         """ Get the cargo or locker as text for pasting or posting to Discord """
+        fc: FleetCarrier = self.bgstally.fleet_carrier
         l:str = self.bgstally.state.discord_lang if discord else ""
+        tab:dict = self.tabs[which]
+        if isinstance(type, tk.StringVar): type = type.get()
 
-        if isinstance(type, tk.StringVar):
-            type = type.get()
-
-        data:dict = self.bgstally.fleet_carrier.get_cargo() if which == 'Cargo' else self.bgstally.fleet_carrier.get_locker()
+        data:dict = fc.get_cargo() if which == 'Cargo' else self.bgstally.fleet_carrier.get_locker()
 
         output:str = ""
-        output += __("Carrier {carrier_name} - {which}\n", lang=l).format(carrier_name=self.bgstally.fleet_carrier.overview['name'], which=which.title()) # LANG: Discord fleet carrier materials header
-        output += __("System: {system}\n", lang=l).format(system=self.bgstally.fleet_carrier.overview.get('currentStarSystem', 'Unknown')) # LANG: Discord fleet carrier materials system line
+        if discord == True: output += "### "
+        output += __("Carrier: {carrier_name} - {which}\n", lang=l).format(carrier_name=fc.overview['name'], which=which.title()) # LANG: fleet carrier materials header
+        if discord == True: output += "#### "
+        output += __("System: {system}\n", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) # LANG: fleet carrier materials system line
         output += "\n"
+        if discord == True: output += "```diff\n"
+        header:list = []
+        for i, fmt in enumerate(tab['format']):
+            tmp:str = __(str_truncate(tab['cols'][i]['title'], tab['widths'][i]), lang=l)
+            header.append(fmt.format(val=tmp))
+        output += " | ".join(header) + "\n"
+        output += "-" * (sum(tab['widths']) + (3 * (len(tab['widths']) -1))) + "\n"
 
-        output += f"{__('Item', lang=l):<30} | {__('Category', lang=l):<20} | {__('Stock', lang=l):>7} | {__('Buying', lang=l):>7} | {__('Selling', lang=l):>7} | {__('Price', lang=l):>7}\n"
-        for name, item in data.get('inventory', {}).items():
-            if type == 'Selling' and (item.get('stock', 0) == 0 or item.get('price', 0) == 0): continue
+        for item in data.get('inventory', {}).values():
+            if type == 'Selling' and (item.get('price', 0) == 0 or item.get('stock', 0) == 0 or item.get('buyTotal', 0) > 0): continue
             if type == 'Buying' and item.get('outstanding', 0) == 0: continue
-            if type == 'Both' and item.get('stock', 0) == 0 and item.get('outstanding', 0) == 0: continue
+            if type == 'Both' and item.get('price', 0) == 0: continue
 
             line:list = []
-            for c in self.tabs[which]['fields']:
+            for i, fmt in enumerate(tab['format']):
                 val:str = ""
-                match c:
+                match tab['fields'][i]:
                     case "buy" if item.get("price", 0) > 0 and item.get("outstanding", 0) > 0: val = item.get("outstanding")
                     case "sell" if item.get("price", 0) > 0 and item.get("stock", 0) > 0: val = item.get("stock")
-                    case _: val = item.get(c, " ")
-                line.append(self._format(val))
+                    case _: val = item.get(tab['fields'][i], " ")
+                tmp:str = str_truncate(__(self._format(val), lang=l), tab['widths'][i])
+                line.append(fmt.format(val=tmp))
             if line != []:
-                output += f"{__(line[0], lang=l):<30} | {__(line[1], lang=l):<20} | {line[2]:>7} | {line[3]:>7} | {line[4]:>7} | {line[5]:>7}\n"
-
+                output += " | ".join(line) + "\n"
+        if discord == True: output += "```"
         return output
 
 

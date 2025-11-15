@@ -3,7 +3,7 @@ import time
 import traceback
 import re
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import CheckStates, DiscordActivity
+from bgstally.constants import CheckStates, DiscordActivity, DiscordPostStyle
 from bgstally.debug import Debug
 from bgstally.formatters.default import DefaultActivityFormatter
 #from bgstally.formatters.base import FieldActivityFormatterInterface
@@ -294,3 +294,13 @@ class CLBActivityFormatter(DefaultActivityFormatter):
             return "".join((i if is_number(i) or "-" in i else i[0]) for i in faction_name.split())
         else:
             return faction_name
+
+    def get_mode(self) -> DiscordPostStyle:
+        """Get the output format mode that this Formatter supports.
+
+        Returns:
+            DiscordPostStyle: The supported format mode
+        """
+        # Override text mode for this legacy formatter as the specific purpose of this formatter is
+        # to force Discord posts to the old text-only format
+        return DiscordPostStyle.TEXT

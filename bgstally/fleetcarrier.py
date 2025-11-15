@@ -117,7 +117,7 @@ class FleetCarrier:
                     deets['mission'] = (t == 'mission')
                     deets['stolen'] = (t == 'stolen')
                     if deets['stock'] > 0:
-                        if deets['price'] > 0 and deets['mission'] == False and deets['stolen'] == False:
+                        if deets['price'] > 0 and deets['buyTotal'] == 0 and deets['mission'] == False and deets['stolen'] == False:
                             forsale += deets['stock']
                         else:
                             nosale += deets['stock']

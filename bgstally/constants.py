@@ -74,8 +74,8 @@ class DiscordActivity(str, Enum):
 
 
 class DiscordFleetCarrier(str, Enum):
-    MATERIALS = 'Materials'
-    COMMODITIES = 'Commodities'
+    BUYING = 'Buying'
+    SELLING = 'Selling'
     BOTH = 'Both'
     ALL = 'All'
 

@@ -193,7 +193,6 @@ class FleetCarrier:
         sched:str = get_by_path(self.data, ["itinerary", "currentJump"], "None") if get_by_path(self.data, ["itinerary", "currentJump"], "None") != "null" else _("None") # LANG: Scheduled jump
         summ:dict = {
             _('Scheduled Jump'): sched,
-            _("Total Distance"): f"{get_by_path(self.data, ['itinerary', 'totalDistanceJumpedLY'], 0)} Ly",
             _('Fuel'): f"{self.overview.get('fuel', 0)} T",
             _('Tritium'): f"{get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)} T",
 

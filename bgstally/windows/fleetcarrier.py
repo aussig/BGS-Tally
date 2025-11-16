@@ -30,8 +30,23 @@ class WindowFleetCarrier:
 
         self.tabs:dict = {
             'Summary': {
-                'fields': [],
-                'cols': [],
+                'fields': ['service', 'enabled', 'status', 'name', 'tax', 'salary', 'hiringPrice'],
+                'cols': [
+                    {'title': _('Service'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 225},
+                    {'title': _('Enabled'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 85},
+                    {'title': _('Status'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 100},
+                    {'title': _('Crew Member'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 175},
+                    {'title': _('Tax Rate'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 75},
+                    {'title': _('Salary'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 85},
+                    {'title': _('Hiring Cost'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100},
+                ],
+                'names': {'vistagenomics': 'Vista Genomics', 'pioneersupplies': 'Pioneer Supplies',
+                            'voucherredemption': 'Redemption', 'carriermanagement' : 'Carrier Management',
+                            'stationmenu': 'Station Menu', 'Crew Lounge': 'Crew Lounge'},
+                'ignore': ['stationmenu', 'carrierfuel', 'commodities', 'carriermanagement',
+                           'dock', 'crewlounge', 'engineer', 'socialspace',
+                            'contacts', 'registeringcolonisation', 'livery',
+                            'lastEdit', 'faction', 'gender'],
                 "func": self._summary
             },
             'Cargo': {
@@ -78,26 +93,6 @@ class WindowFleetCarrier:
                 ],
                 'func': self._itinerary
             },
-            'Services': {
-                'fields': ['service', 'enabled', 'status', 'name', 'tax', 'salary', 'hiringPrice'],
-                'cols': [
-                    {'title': _('Service'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250},
-                    {'title': _('Enabled'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 85},
-                    {'title': _('Status'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 100},
-                    {'title': _('Crew Member'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 200},
-                    {'title': _('Tax Rate'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 75},
-                    {'title': _('Salary'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 85},
-                    {'title': _('Hiring Cost'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100},
-                ],
-                'names': {'vistagenomics': 'Vista Genomics', 'pioneersupplies': 'Pioneer Supplies',
-                            'voucherredemption': 'Redemption', 'carriermanagement' : 'Carrier Management',
-                            'stationmenu': 'Station Menu', 'Crew Lounge': 'Crew Lounge'},
-                'ignore': ['stationmenu', 'carrierfuel', 'commodities', 'carriermanagement',
-                           'dock', 'crewlounge', 'engineer', 'socialspace',
-                            'contacts', 'registeringcolonisation', 'livery',
-                            'lastEdit', 'faction', 'gender'],
-                "func": self._services
-            },
         }
 
     @catch_exceptions
@@ -112,7 +107,7 @@ class WindowFleetCarrier:
         self.window = tk.Toplevel(self.bgstally.ui.frame)
         self.window.title(_("{plugin_name} - Carrier {carrier_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=fc.overview.get('name'))) # LANG: Carrier window title
         self.window.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
-        self.window.geometry(f"{int(800*self.scale)}x{int(500*self.scale)}")
+        self.window.geometry(f"{int(750*self.scale)}x{int(600*self.scale)}")
 
         frame:ttk.Frame = ttk.Frame(self.window)
         if not config.get_bool('capi_fleetcarrier'):
@@ -155,32 +150,23 @@ class WindowFleetCarrier:
                          'capacity': _('Capacity')}
         fr:ttk.Frame = ttk.Frame(frame, relief=tk.FLAT, style="White.TFrame")
         fr.pack(fill=tk.BOTH, expand=1)
-        for k,v in sections.items():
+        for k, v in sections.items():
             if summary.get(k, None) != None:
                 lbl = ttk.Label(fr, text=v.upper(), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background='white')
-                lbl.pack(padx=10, pady=(10, 0), fill=tk.X)
+                lbl.pack(padx=5, pady=(5, 0), fill=tk.X)
                 style:ttk.Style = ttk.Style()
                 style.configure("White.TFrame", background='white')
                 summ:ttk.Frame = ttk.Frame(fr, style="White.TFrame")
                 summ.configure(padding=10)
                 summ.pack(fill=tk.X)
                 self._create_columns(summary[k], 4, summ, bg='white')
-                separator:ttk.Separator = ttk.Separator(fr, orient=tk.HORIZONTAL)
-                separator.pack(side=tk.TOP, fill=tk.X, pady=5, padx=10)
+                if k != 'capacity':
+                    separator:ttk.Separator = ttk.Separator(fr, orient=tk.HORIZONTAL)
+                    separator.pack(side=tk.TOP, fill=tk.X, pady=5, padx=5)
 
-    def _services(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
-        """ Create and display the Services tab """
         services:dict = fc.get_services()
 
-        if services.get('overview', None) != None:
-            style:ttk.Style = ttk.Style()
-            style.configure("White.TFrame", background='white')
-            summ:ttk.Frame = ttk.Frame(frame, style="White.TFrame")
-            summ.configure(padding=10)
-            summ.pack(fill=tk.X)
-            self._create_columns(services['overview'], 3, summ, bg='white')
-
-        table:TreeviewPlus = self._create_table(which['cols'], frame)
+        table:TreeviewPlus = self._create_table(which['cols'], fr)
         for s, v in sorted(services['crew'].items()):
             if s in which['ignore']: continue
             row:list = []

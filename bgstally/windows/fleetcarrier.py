@@ -4,7 +4,7 @@ from tkinter import ttk
 from datetime import datetime
 from math import floor
 
-from bgstally.constants import FONT_TEXT, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
+from bgstally.constants import FONT_TEXT_BOLD, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.utils import _, __, human_format, str_truncate, catch_exceptions
@@ -29,10 +29,10 @@ class WindowFleetCarrier:
         self.scale:float = 1.0
 
         self.tabs:dict = {
-            'Finances': {
+            'Summary': {
                 'fields': [],
                 'cols': [],
-                "func": self._finances
+                "func": self._summary
             },
             'Cargo': {
                 'fields': ['locName', 'category', 'stock', 'buy', 'sell', 'price', 'stolen', 'mission'],
@@ -79,15 +79,23 @@ class WindowFleetCarrier:
                 'func': self._itinerary
             },
             'Services': {
-                'fields': ['service', 'enabled', 'name', 'tax', 'salary', 'hiringPrice'],
+                'fields': ['service', 'enabled', 'status', 'name', 'tax', 'salary', 'hiringPrice'],
                 'cols': [
                     {'title': _('Service'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250},
-                    {'title': _('Enabled'), 'sort': 'name', 'align': tk.CENTER, 'stretch': tk.NO, 'width': 75},
-                    {'title': _('Crew Member'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 250},
-                    {'title': _('Tax Rate'), 'sort': 'num', 'align': tk.CENTER, 'stretch': tk.NO, 'width': 75},
-                    {'title': _('Salary'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100},
+                    {'title': _('Enabled'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 85},
+                    {'title': _('Status'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 100},
+                    {'title': _('Crew Member'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 200},
+                    {'title': _('Tax Rate'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 75},
+                    {'title': _('Salary'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 85},
                     {'title': _('Hiring Cost'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100},
                 ],
+                'names': {'vistagenomics': 'Vista Genomics', 'pioneersupplies': 'Pioneer Supplies',
+                            'voucherredemption': 'Redemption', 'carriermanagement' : 'Carrier Management',
+                            'stationmenu': 'Station Menu', 'Crew Lounge': 'Crew Lounge'},
+                'ignore': ['stationmenu', 'carrierfuel', 'commodities', 'carriermanagement',
+                           'dock', 'crewlounge', 'engineer', 'socialspace',
+                            'contacts', 'registeringcolonisation', 'livery',
+                            'lastEdit', 'faction', 'gender'],
                 "func": self._services
             },
         }
@@ -107,19 +115,19 @@ class WindowFleetCarrier:
         self.window.geometry(f"{int(800*self.scale)}x{int(500*self.scale)}")
 
         frame:ttk.Frame = ttk.Frame(self.window)
-        frame.pack(fill=tk.BOTH, expand=True)
         if not config.get_bool('capi_fleetcarrier'):
             ttk.Label(frame, text=_("Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration"), foreground=COLOUR_WARNING).pack(anchor=tk.NW) # LANG: Label on carrier window
 
         self._show_overview(fc, frame)
         self._create_tabs(fc, frame)
+        frame.pack(fill=tk.BOTH, expand=True)
 
 
     def _show_overview(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
         """ Show the Fleet Carrier overview tab """
         summ:ttk.Frame = ttk.Frame(frame)
         summ.pack(fill=tk.X)
-        self._create_columns(fc.get_overview(), 5, summ)
+        self._create_columns(fc.get_overview(), 3, summ)
 
 
     def _create_tabs(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
@@ -139,17 +147,26 @@ class WindowFleetCarrier:
             v['func'](fc, v, fr)
 
 
-    def _finances(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
-        finances:dict = fc.get_finances()
+    def _summary(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
+        summary:dict = fc.get_summary()
 
-        if finances.get('overview', None) != None:
-            style:ttk.Style = ttk.Style()
-            style.configure("White.TFrame", background='white')
-            summ:ttk.Frame = ttk.Frame(frame, style="White.TFrame")
-            summ.configure(padding=10)
-            summ.pack(fill=tk.X)
-            self._create_columns(finances['overview'], 20, summ, bg='white')
-
+        sections:dict = {'finances': _('Finances'),
+                         'costs': _('Running Costs'),
+                         'capacity': _('Capacity')}
+        fr:ttk.Frame = ttk.Frame(frame, relief=tk.FLAT, style="White.TFrame")
+        fr.pack(fill=tk.BOTH, expand=1)
+        for k,v in sections.items():
+            if summary.get(k, None) != None:
+                lbl = ttk.Label(fr, text=v.upper(), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background='white')
+                lbl.pack(padx=10, pady=(10, 0), fill=tk.X)
+                style:ttk.Style = ttk.Style()
+                style.configure("White.TFrame", background='white')
+                summ:ttk.Frame = ttk.Frame(fr, style="White.TFrame")
+                summ.configure(padding=10)
+                summ.pack(fill=tk.X)
+                self._create_columns(summary[k], 4, summ, bg='white')
+                separator:ttk.Separator = ttk.Separator(fr, orient=tk.HORIZONTAL)
+                separator.pack(side=tk.TOP, fill=tk.X, pady=5, padx=10)
 
     def _services(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
         """ Create and display the Services tab """
@@ -161,19 +178,20 @@ class WindowFleetCarrier:
             summ:ttk.Frame = ttk.Frame(frame, style="White.TFrame")
             summ.configure(padding=10)
             summ.pack(fill=tk.X)
-            self._create_columns(services['overview'], 1, summ, bg='white')
+            self._create_columns(services['overview'], 3, summ, bg='white')
 
-        names:dict = {'vistagenomics': 'Vista Genomics', 'pioneersupplies': 'Pioneer Supplies'}
         table:TreeviewPlus = self._create_table(which['cols'], frame)
-        for s, v in services['crew'].items():
+        for s, v in sorted(services['crew'].items()):
+            if s in which['ignore']: continue
             row:list = []
             for c in which['fields']:
+                if c in which['ignore']: continue
                 val:str = ''
                 match c:
-                    case 'service': val = s.title() if s not in names.keys() else names[s]
+                    case 'service': val = s.title() if s not in which['names'].keys() else which['names'][s]
                     case 'tax': val = f"{v.get('taxation', 0)}%"
-                    case 'enabled': val = v['crewMember'].get(c, '').title()
-                    case _: val = self._format(v['crewMember'].get(c, ''))
+                    case 'enabled': val = v.get(c, 'No').title()
+                    case _: val = self._format(v.get(c, ""))
                 row.append(val)
             table.insert("", 'end', values=row)
 
@@ -188,7 +206,7 @@ class WindowFleetCarrier:
             summ:ttk.Frame = ttk.Frame(frame, style="White.TFrame")
             summ.configure(padding=10)
             summ.pack(fill=tk.X)
-            self._create_columns(cargo['overview'], 1, summ, bg='white')
+            self._create_columns(cargo['overview'], 4, summ, bg='white')
 
         table:TreeviewPlus = self._create_table(which['cols'], frame)
         for name, i in cargo['inventory'].items():
@@ -215,7 +233,7 @@ class WindowFleetCarrier:
             summ:ttk.Frame = ttk.Frame(frame, style="White.TFrame")
             summ.configure(padding=10)
             summ.pack(fill=tk.X)
-            self._create_columns(locker['overview'], 2, summ, bg='white')
+            self._create_columns(locker['overview'], 4, summ, bg='white')
 
         table:TreeviewPlus = self._create_table(which['cols'], frame)
         for cat, i in locker.get('inventory').items():
@@ -242,7 +260,7 @@ class WindowFleetCarrier:
             summ:ttk.Frame = ttk.Frame(frame, style="White.TFrame")
             summ.configure(padding=10)
             summ.pack(fill=tk.X)
-            self._create_columns(itinerary['overview'], 1, summ, bg='white')
+            self._create_columns(itinerary['overview'], 10, summ, bg='white')
 
         table:TreeviewPlus = self._create_table(which['cols'], frame)
         for jump in itinerary.get('completed', []):
@@ -299,7 +317,7 @@ class WindowFleetCarrier:
         return val.title() if val.count(' ') <= 2 else val
 
 
-    def _create_columns(self, data:dict, maxrows:int, frame:ttk.Frame, bg:str='None') -> None:
+    def _create_columns(self, data:dict, maxcols:int, frame:ttk.Frame, bg:str='None') -> None:
         ''' Create grid of title/value pairs in columns and rows '''
         row:int = 0; col = 0
         lbl:ttk.Label
@@ -316,10 +334,10 @@ class WindowFleetCarrier:
             else:
                 lbl = ttk.Label(frame, text=txt, font=FONT_SMALL)
             lbl.grid(row=row, column=col+1, padx=10, pady=5, sticky=tk.W)
-            row += 1
-            if row >= maxrows:
-                row = 0
-                col += 2
+            col += 2
+            if col >= maxcols*2:
+                col = 0
+                row += 1
 
 
     def _create_buttons(self, which:str, frame:ttk.Frame) -> None:
@@ -424,6 +442,8 @@ class WindowFleetCarrier:
         if discord == True: output += "#### "
         output += __("System: {system}\n", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) # LANG: fleet carrier materials system line
         output += "\n"
+
+        # Header row for table
         if discord == True: output += "```diff\n"
         header:list = []
         for i, fmt in enumerate(tab['format']):
@@ -432,6 +452,7 @@ class WindowFleetCarrier:
         output += " | ".join(header) + "\n"
         output += "-" * (sum(tab['widths']) + (3 * (len(tab['widths']) -1))) + "\n"
 
+        # Table rows
         for item in data.get('inventory', {}).values():
             if type == 'Selling' and (item.get('price', 0) == 0 or item.get('stock', 0) == 0 or item.get('buyTotal', 0) > 0): continue
             if type == 'Buying' and item.get('outstanding', 0) == 0: continue
@@ -449,6 +470,7 @@ class WindowFleetCarrier:
             if line != []:
                 output += " | ".join(line) + "\n"
         if discord == True: output += "```"
+
         return output
 
 

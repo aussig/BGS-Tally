@@ -48,55 +48,65 @@ class FleetCarrier:
 
         Debug.logger.debug(f"Balance {get_by_path(self.data, ['finance', 'bankBalance'], 0)}")
         return {
-            _('Name'): self.overview['name'],                                    # LANG: Carrier overview
-            _('System'): self.overview['currentStarSystem'],                     # LANG: Carrier overview
-            _('Docking'): self._readable(self.overview['dockingAccess'], False), # LANG: Carrier overview
-            _('Operation'): self._readable(self.overview['state'], False),      # LANG: Carrier overview
-            _('Fuel'): int(self.overview['fuel']),                              # LANG: Carrier overview
+            _('Name'): self.overview.get('name', ''),                                    # LANG: Carrier overview
+            _('Callsign'): self.overview.get('callsign', ''),                            # LANG: Carrier overview
+            _('System'): self.overview.get('currentStarSystem', ''),                     # LANG: Carrier overview
 
-            _('Callsign'): self.overview['callsign'],                            # LANG: Carrier overview
             _('Arrival'): arrival,                              # LANG: Carrier overview
-            _('Allow Notorious'): self.overview['notoriousAccess'], # LANG: Carrier overview
-            _('Theme'): self._readable(self.overview['theme'], False),          # LANG: Carrier overview
-            _('Space'): self.overview['freeSpace'], # LANG: Spare capacity
+            _('Docking'): self._readable(self.overview.get('dockingAccess', ''), False), # LANG: Carrier overview
+            _('Allow Notorious'): self.overview.get('notoriousAccess', ''), # LANG: Carrier overview
 
-            _('Balance'): self.overview['bankBalance'],# LANG: Carrier overview
-            _('Reserve'): self.overview['bankReservedBalance'],   # LANG: Carrier overview
-            _('Maintenance'): self.overview['maintenance'],   # LANG: Carrier overview
-            _('Jumps'): int(self.overview['numJumps']),   # LANG: Carrier overview
-            _('Tax Level'): f"{self.overview['taxation']}%",   # LANG: Carrier debt limit
+            _('Fuel'): int(self.overview.get('fuel', 0)),                              # LANG: Carrier overview
+            _('Space'): self.overview.get('freeSpace', 0), # LANG: Spare capacity
+            _('Tax Level'): f"{self.overview.get('taxation', 0)}%",   # LANG: Carrier debt limit
         }
-
 
     @catch_exceptions
-    def get_finances(self) -> dict:
-        """ Return finances as a dictionary """
-        finances:dict = {'overview': {}, 'transactions': []}
-        finances['overview'] = {
-            _('Bank Balance'): get_by_path(self.data, ["finance", "bankBalance"], 0),
-            _('Reserved Balance'): get_by_path(self.data, ["finance", "bankReservedBalance"], 0),
-            _('Maintenance Cost'): get_by_path(self.data, ["finance", "maintenance"], 0),
-            _('Jump Cost'): get_by_path(self.data, ["finance", "numJumps"], 0) * 100000,
-            _('Taxation'): get_by_path(self.data, ["finance", "taxation"], 0),
+    def get_summary(self) -> dict:
+        """ Return summary information as a dictionary """
+        summary:dict = {'finances': [], 'costs': [], 'capacity': []}
+        summary['finances'] = {
+            _('Bank Balance'): self.overview.get('bankBalance', 0),    # LANG: Carrier overview
+            _('Bank Reserve'): self.overview.get('bankReservedBalance', 0),   # LANG: Carrier overview
+            _('Available Balance'): self.overview.get('bankBalance', 0)-self.overview.get('bankReservedBalance', 0),
+            _('Reserve Percentage'): round((self.overview.get('bankReservedBalance', 0) * 100) / self.overview.get('bankBalance', 0))
         }
-        if finances['overview'][_('Jump Cost')] == 0:
-            finances['overview'][_('Jump Cost')] = "None"
+        summary['costs'] = {
+            _('Core Cost'): self.overview.get('coreCost', 0),                                     # LANG: Carrier overview
+            _('Services Cost'): self.overview.get('servicesCost', 0),                             # LANG: Carrier overview
+            _('Maintenance'): self.overview.get('maintenance', 0),                                # LANG: Carrier overview
+            _('Jump Cost'): get_by_path(self.data, ["finance", "numJumps"], 0) * 100000,   # LANG: Carrier overview
+        }
 
-        for t in get_by_path(self.data, ['finance', 'transactions'], []):
-            finances['transactions'].append(deepcopy(t))
+        summary['capacity'] = {
+            _('Total Capacity'): self.overview.get('totalCapacity', 25000),              # LANG: Carrier overview
+            _('Total Used'): self.overview.get('totalCapacity', 25000) - self.overview.get('freeSpace'),              # LANG: Carrier overview
+            _('Free Space'): self.overview.get('freeSpace'),                             # LANG: Carrier overview
+            _('Ship Packs'): self.overview.get('shipPacks', 0),                          # LANG: Carrier overview
+            _('Module Packs'): self.overview.get('modulePacks', 0),                      # LANG: Carrier overview
 
-        return finances
+            _('Cargo For Sale'): self.cargo['overview'].get('cargoForSale', 0),           # LANG: Carrier overview
+            _('Cargo Not For Sale'): self.cargo['overview'].get('cargoNotForSale', 0),     # LANG: Carrier overview
+            _('Cargo Reserved Space'): self.cargo['overview'].get('cargoSpaceReserved', 0),  # LANG: Carrier overview
+            _('Crew') : self.overview.get('crew', 0),                                   # LANG: Carrier overview
+        }
+
+        return summary
 
     @catch_exceptions
     def get_services(self) -> dict:
         """ Return services as a dictionary """
         services:dict = {'overview': {}, 'crew': {}}
         services['overview'] = {
-            _('Monthly Cost'): get_by_path(self.data, ["finance", "servicesCost"], 0),
-            _('Month to date'): get_by_path(self.data, ["finance", "servicesCostToDate"], 0),
+            _('Weekly Cost'): get_by_path(self.data, ["finance", "servicesCost"], 0),
+            _('Cost to date'): get_by_path(self.data, ["finance", "servicesCostToDate"], 0),
+            _('Crew Capacity'): get_by_path(self.data, ["capacity", "crew"], 0),
         }
-        for k, v in self.data.get('servicesCrew', {}).items():
-            services['crew'][k] = deepcopy(v)
+        crew:dict = get_by_path(self.data, ['servicesCrew'], {})
+        for k, v in get_by_path(self.data, ["market", "services"], {}).items():
+
+            services['crew'][k] = deepcopy(crew.get(k, {}).get('crewMember', {}))
+            services['crew'][k]['status'] = v
             services['crew'][k]['taxation'] = get_by_path(self.data, ['finance', 'service_taxation', k], 0)
 
         return services
@@ -107,8 +117,9 @@ class FleetCarrier:
         """ Return cargo as a dictionary """
 
         comm:dict = {}
-        forsale:int = 0
+        selling:int = 0
         nosale:int = 0
+        stored:int = 0
         reserved:int = 0
         for t, ent in self.cargo.items():
             if t == 'overview': continue
@@ -116,9 +127,10 @@ class FleetCarrier:
                 for name, deets in ent.items():
                     deets['mission'] = (t == 'mission')
                     deets['stolen'] = (t == 'stolen')
+                    stored += deets['stock']
                     if deets['stock'] > 0:
-                        if deets['price'] > 0 and deets['buyTotal'] == 0 and deets['mission'] == False and deets['stolen'] == False:
-                            forsale += deets['stock']
+                        if deets['price'] > 0 and deets['buyTotal'] == 0 and t == 'normal':
+                            selling += deets['stock']
                         else:
                             nosale += deets['stock']
                     if deets['outstanding'] > 0: reserved += deets['outstanding']
@@ -127,12 +139,15 @@ class FleetCarrier:
         comm = dict(sorted(comm.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
         summ:dict = {
-            _("Total Space") : 0,
-            _("For Sale") : forsale,
-            _("Not For Sale") : nosale,
+            _("Capacity") : self.overview.get('freeSpace', 0) + stored + reserved,
+            _("Used") : stored+reserved,
+            _("Stored") : stored,
             _("Reserved") : reserved,
+            _("Selling") : selling,
+            _("Buying") : reserved,
+            _('Total Value') : get_by_path(self.data, ["marketFinances", "cargoTotalValue"], 0),
+            _('Profit') : get_by_path(self.data, ["marketFinances", "allTimeProfit"], 'None'),
         }
-        summ[_("Total Space")] = sum(summ.values())
 
         return {'overview': summ, 'inventory': comm}
 
@@ -142,25 +157,32 @@ class FleetCarrier:
         """ Return locker as a dictionary """
         self.locker = self._update_locker(self.data) # Temporary
 
-        summ:dict = {}
-        if get_by_path(self.data, ["finance", "bartender"], None ) != None:
-            summ = {
-                _('Total Value') : get_by_path(self.data, ["finance", "bartender", "microresourcesTotalValue"], 0),
-                _('Capacity') : get_by_path(self.data, ["capacity", "microresourceCapacityTotal"], 0),
-                _('For Sale') : get_by_path(self.data, ["finance", "bartender", "microresourcesForSale"], 0),
-                _('Used') : get_by_path(self.data, ["capacity", "microresourceCapacityUsed"], 0),
-                _('Orders') : get_by_path(self.data, ["finance", "bartender", "microresourcesPurchaseOrders"], 0),
-                _('Reserved') : get_by_path(self.data, ["capacity", "microresourceCapacityReserved"], 0),
-                _('Profit') : get_by_path(self.data, ["finance", "bartender", "allTimeProfit"], 'None'),
-                _('Value') : get_by_path(self.data, ["finance", "bartender", "microresourcesTotalValue"], 0),
-            }
-
         res:dict = {}
+        buying:int = 0
+        selling:int = 0
+        stored:int = 0
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
                 deets['mission'] = (t == 'mission')
+                buying += deets['outstanding']
+                if deets['outstanding'] == 0 and deets['price'] > 0 and (t == 'normal'):
+                    selling += deets['stock']
+                stored += deets['stock']
                 res[mat] = deets
         res = dict(sorted(res.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
+
+        summ:dict = {}
+        if get_by_path(self.data, ["finance", "bartender"], None ) != None:
+            summ = {
+                _('Capacity') : get_by_path(self.data, ["capacity", "microresourceCapacityTotal"], 0),
+                _('Used') : get_by_path(self.data, ["capacity", "microresourceCapacityUsed"], 0),
+                _('Stored') : stored,
+                _('Reserved') : get_by_path(self.data, ["capacity", "microresourceCapacityReserved"], 0),
+                _('Selling') : selling,
+                _('Buying') : buying,
+                _('Total Value') : get_by_path(self.data, ["finance", "bartender", "microresourcesTotalValue"], 0),
+                _('Profit') : get_by_path(self.data, ["finance", "bartender", "allTimeProfit"], 'None'),
+            }
 
         return {'overview': summ, 'inventory': res}
 
@@ -171,7 +193,10 @@ class FleetCarrier:
         sched:str = get_by_path(self.data, ["itinerary", "currentJump"], "None") if get_by_path(self.data, ["itinerary", "currentJump"], "None") != "null" else _("None") # LANG: Scheduled jump
         summ:dict = {
             _('Scheduled Jump'): sched,
-            _("Total Distance"): f"{get_by_path(self.data, ['itinerary', 'totalDistanceJumpedLY'], 0)} Ly"
+            _("Total Distance"): f"{get_by_path(self.data, ['itinerary', 'totalDistanceJumpedLY'], 0)} Ly",
+            _('Fuel'): f"{self.overview.get('fuel', 0)} T",
+            _('Tritium'): f"{get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)} T",
+
         }
         res:dict = deepcopy(get_by_path(self.data, ['itinerary', 'completed'], {}))
         comp:list = sorted(res, key=lambda item: datetime.strptime(item['arrivalTime'], '%Y-%m-%d %H:%M:%S'), reverse=True)
@@ -179,13 +204,18 @@ class FleetCarrier:
         return {'overview': summ, 'completed': comp}
 
 
-    def _update_space(self, market:int = 0, cargo:int = 0, order:int = 0) -> None:
+    def _update_space(self, qty:int = 0, event:str='none') -> None:
         """ Update the free space on the carrier as events occur"""
-        self.overview['freeSpace'] += market
-        self.overview['freeSpace'] += cargo
-
-        self.cargo['overview']['cargoSpaceReserved'] += market
-        self.cargo['overview']['cargoSpaceReserved'] += order
+        Debug.logger.debug(f"Updating free space by {qty} for event {event} [before: {self.overview.get('freeSpace', 0)} reserved: {self.cargo['overview']['cargoSpaceReserved']}]")
+        match event:
+            case 'market':
+                self.overview['freeSpace'] += qty
+                self.cargo['overview']['cargoSpaceReserved'] += qty
+            case 'cargo'|'buy':
+                self.overview['freeSpace'] += qty
+            case 'order':
+                self.cargo['overview']['cargoSpaceReserved'] += qty
+        Debug.logger.debug(f"After: {self.overview.get('freeSpace', 0)} reserved: {self.cargo['overview']['cargoSpaceReserved']}")
 
 
 
@@ -284,13 +314,18 @@ class FleetCarrier:
                         'dockingAccess': [self.overview, ['dockingAccess'], 'None'],
                         'state': [self.overview, ['state'], ''],
                         'carrier_id': [self.overview, ['market', 'id'], 0],
-                        'freeSpace': [self.overview, ['capacity', 'freeSpace'], 0],
+                        'shipPacks': [self.overview, ['capacity', 'shipPacks'], 0],
+                        'modulePacks': [self.overview, ['capacity', 'modulePacks'], 0],
+                        'crew': [self.overview, ['capacity', 'crew'], 0],
                         'callsign': [self.overview, ['name', 'callsign'], ''],
                         'notoriousAccess': [self.overview, ['notoriousAccess'], False],
                         'theme': [self.overview, ['theme'], ''],
                         'bankBalance': [self.overview, ['finance', 'bankBalance'], 0],
                         'bankReservedBalance': [self.overview, ['finance', 'bankReservedBalance'], 0],
+                        'coreCost': [self.overview, ['finance', 'coreCost'], 0],
+                        'servicesCost': [self.overview, ['finance', 'servicesCost'], 0],
                         'maintenance': [self.overview, ['finance', 'maintenance'], 0],
+                        'jumpsCost': [self.overview, ['finance', 'jumpsCost'], 0],
                         'numJumps': [self.overview, ['finance', 'numJumps'], 0],
                         'taxation':  [self.overview, ['finance', 'taxation'], 0],
                         }
@@ -298,7 +333,7 @@ class FleetCarrier:
             v[0][k] = get_by_path(self.data, v[1], v[2])
 
         # Now deal with the exceptions.
-        if self.overview['name'] != updates['name'][2]:         # Name is encoded as hex string
+        if self.overview.get('name', '') != updates['name'][2]:         # Name is encoded as hex string
             self.overview['name'] = bytes.fromhex(self.overview['name']).decode('utf-8')
         self.overview['fuel'] = int(self.data.get('fuel', 0))
 
@@ -309,27 +344,36 @@ class FleetCarrier:
             Debug.logger.debug("Ignoring CAPI update")
             return
 
+        # Do this here because we manage it locally
+        self.overview['freeSpace'] = get_by_path(self.data, ['capacity', 'freeSpace'], self.overview['freeSpace'])
+
         self.cargo = self._update_cargo(self.data)
 
 
     @catch_exceptions
     def stats_received(self, entry: dict) -> None:
         """ The user entered the carrier management screen """
-        if entry.get(KEY_CARRIER_TYPE) == FleetCarrierType.PERSONAL:
-            # Note we always re-populate here, in case the user has bought a new carrier. We should get a subsequent CAPI update to populate the rest.
-            self.carrier_id = entry.get('CarrierID', 0)
-            updates:dict = {'name': ['Name'],
-                            'callsign': ['Callsign'],
-                            'carrier_id': ['CarrierID'],
-                            'dockingAccess': ['DockingAccess'],
-                            'notoriousAccess': ['AllowNotorious'],
-                            'fuel': ['FuelLevel'],
-                            'bankBallance': ['Finance', 'CarrierBalance'],
-                            'bankReservedBalance': ['Finance', 'ReserveBalance'],
-                            'freeSpace': ['SpaceUsage', 'FreeSpace'],
-                            }
-            for k, v in updates.items():
-                self.overview[k] = get_by_path(entry, v, self.overview.get(k, ''))
+        if entry.get(KEY_CARRIER_TYPE) != FleetCarrierType.PERSONAL:
+            return
+        # Note we always re-populate here, in case the user has bought a new carrier. We should get a subsequent CAPI update to populate the rest.
+        self.carrier_id = entry.get('CarrierID', 0)
+        updates:dict = {'name': [self.overview, ['Name'], "----"],
+                        'currentStarSystem': [self.overview, ['currentStarSystem'], ''],
+                        'dockingAccess': [self.overview, ['DockingAccess'], 'None'],
+                        'carrier_id': [self.overview, ['CarrierID'], 0],
+                        'callsign': [self.overview, ['Callsign'], ''],
+                        'notoriousAccess': [self.overview, ['AllowNotorious'], False],
+                        'totalCapacity':  [self.overview, ['SpaceUsage', 'TotalCapacity'], 25000],
+                        'shipPacks': [self.overview, ['SpaceUsage', 'ShipPacks'], 0],
+                        'modulePacks': [self.overview, ['SpaceUsage', 'ModulePacks'], 0],
+                        'crew': [self.overview, ['SpaceUsage', 'Crew'], 0],
+                        'cargoSpaceReserved': [self.cargo['overview'], ['SpaceUsage', 'CargoSpaceReserved'], 0],
+                        'freeSpace': [self.overview, ['SpaceUsage', 'FreeSpace'], 0],
+                        'bankBalance': [self.overview, ['Finance', 'CarrierBalance'], 0],
+                        'bankReservedBalance': [self.overview, ['Finance', 'ReserveBalance'], 0],
+                        }
+        for k, v in updates.items():
+            v[0][k] = get_by_path(self.data, v[1], v[2])
 
 
     @catch_exceptions
@@ -338,20 +382,20 @@ class FleetCarrier:
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
 
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
-
-        title:str = __("Jump Scheduled for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=self.overview['name']) # LANG: Discord post title
-        description:str = __("A carrier jump has been scheduled", lang=self.bgstally.state.discord_lang) # LANG: Discord text
+        l:str = self.bgstally.state.discord_lang
+        title:str = __("Jump Scheduled for Carrier {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
+        description:str = __("A carrier jump has been scheduled", lang=l) # LANG: Discord text
 
         departure_datetime: datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
         departure_datetime = departure_datetime.replace(tzinfo=UTC)
 
         fields = []
-        fields.append({'name': __("From System", lang=self.bgstally.state.discord_lang), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("To System", lang=self.bgstally.state.discord_lang), 'value': entry.get('SystemName', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("To Body", lang=self.bgstally.state.discord_lang), 'value': entry.get('Body', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("Departure Time", lang=self.bgstally.state.discord_lang), 'value': f"<t:{round(departure_datetime.timestamp())}:R>"}) # LANG: Discord heading
-        fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("From System", lang=l), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("To System", lang=l), 'value': entry.get('SystemName', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("To Body", lang=l), 'value': entry.get('Body', "Unknown"), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Departure Time", lang=l), 'value': f"<t:{round(departure_datetime.timestamp())}:R>"}) # LANG: Discord heading
+        fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord heading
+        fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
@@ -359,14 +403,14 @@ class FleetCarrier:
     def jump_cancelled(self, entry: dict[str, str]) -> None:
         """ The user cancelled their carrier jump """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
-
-        title:str = __("Jump Cancelled for Carrier {carrier_name}", lang=self.bgstally.state.discord_lang).format(carrier_name=self.overview['name']) # LANG: Discord post title
-        description:str = __("The scheduled carrier jump was cancelled", lang=self.bgstally.state.discord_lang) # LANG: Discord text
+        l:str = self.bgstally.state.discord_lang
+        title:str = __("Jump Cancelled for Carrier {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
+        description:str = __("The scheduled carrier jump was cancelled", lang=l) # LANG: Discord text
 
         fields = []
-        fields.append({'name': __("Current System", lang=self.bgstally.state.discord_lang), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
-        fields.append({'name': __("Docking", lang=self.bgstally.state.discord_lang), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True})
-        fields.append({'name': __("Notorious Access", lang=self.bgstally.state.discord_lang), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True})
+        fields.append({'name': __("Current System", lang=l), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
+        fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True})
+        fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True})
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
@@ -406,17 +450,18 @@ class FleetCarrier:
                                             }
 
         if entry.get('SaleOrder') is not None:
-            self._update_space(-(entry.get('SaleOrder', 0) - self.cargo['normal'][comm]['stock']))
+            self._update_space(-(entry.get('SaleOrder', 0) - self.cargo['normal'][comm]['stock']), 'order')
             self.cargo['normal'][comm]['stock'] = entry.get('SaleOrder', 0)
 
         if entry.get('PurchaseOrder') is not None:
             # Reduce the space by the difference between previous and new order
-            self._update_space(-(entry.get('PurchaseOrder', 0) - self.cargo['normal'][comm]['buyTotal']))
+            self._update_space(-(entry.get('PurchaseOrder', 0) - self.cargo['normal'][comm]['buyTotal']), 'order')
             self.cargo['normal'][comm]['buyTotal'] = entry.get('PurchaseOrder', 0)
             self.cargo['normal'][comm]['outstanding'] = entry.get('PurchaseOrder', 0)
 
         if entry.get('CancelTrade') == True:
-            # @TODO: Adjust space
+            # @TODO: Return the outsanding to free space
+            self._update_space(self.cargo['normal'][comm]['outstanding'], 'order')
             self.cargo['normal'][comm]['buyTotal'] = 0
             self.cargo['normal'][comm]['outstanding'] = 0
 
@@ -452,7 +497,7 @@ class FleetCarrier:
 
                 # Someone else must have sold to us, so increase stock based on demand changes
                 if demand < outstanding:
-                    self._update_space(-(outstanding - demand))
+                    self._update_space(-(outstanding - demand), 'order')
                     self.cargo['normal'][comm]['stock'] += (outstanding - demand)
 
                 self.cargo['normal'][comm]['outstanding'] = demand
@@ -460,7 +505,7 @@ class FleetCarrier:
 
             # Stock is only useful if it's selling not when it's buying
             if item.get('Producer', False) == True:
-                self._update_space(-(self.cargo['normal'][comm]['stock'] - int(item.get('Stock', 0))))
+                self._update_space(-(self.cargo['normal'][comm]['stock'] - int(item.get('Stock', 0))), 'cargo')
                 self.cargo['normal'][comm]['price'] = int(item.get('BuyPrice', 0)) # Price player buys at
                 self.cargo['normal'][comm]['stock'] = int(item.get('Stock', 0))
 
@@ -485,11 +530,11 @@ class FleetCarrier:
                                             }
 
             if i.get('Direction') == 'tocarrier':
-                self._update_space(cargo=-int(i.get('Count', 0)))
+                self._update_space(-int(i.get('Count', 0)), 'cargo')
                 self.cargo['normal'][comm]['stock'] += int(i.get('Count', 0))
                 continue
 
-            self._update_space(cargo=int(i.get('Count', 0)))
+            self._update_space(int(i.get('Count', 0)), 'cargo')
             self.cargo['normal'][comm]['stock'] -= min(int(i.get('Count', 0)), self.cargo['normal'][comm]['stock'])
             Debug.logger.debug(f"Updated cargo: {self.cargo['normal'][comm]}")
 
@@ -512,13 +557,13 @@ class FleetCarrier:
                                         }
 
         if entry.get('event') == "MarketBuy":
-            self._update_space(int(entry.get('Count', 0)))
+            self._update_space(int(entry.get('Count', 0)), 'buy')
             self.cargo['normal'][comm]['stock'] -= min(entry.get('Count', 0), self.cargo['normal'][comm]['stock'])
             self.cargo['normal'][comm]['price'] = entry.get('BuyPrice', self.cargo['normal'][comm]['price'])
 
         # Sell
         if entry.get('event') == "MarketSell":
-            self._update_space(-int(entry.get('Count', 0)))
+            #self._update_space(-int(entry.get('Count', 0)), 'sale')
             self.cargo['normal'][comm]['stock'] += entry.get('Count', 0)
             self.cargo['normal'][comm]['outstanding'] -= min(entry.get('Count', 0), self.cargo['normal'][comm]['outstanding'])
             self.cargo['normal'][comm]['price'] = entry.get('SellPrice', self.cargo['normal'][comm]['price'])
@@ -588,7 +633,7 @@ class FleetCarrier:
     @catch_exceptions
     def _readable(self, field:str, discord:bool = False) -> str:
         """ Return a human-readable format of various attributes """
-        val = self.readable.get(field, "") if self.readable.get(field, None) != None else str(field)
+        val:str = self.readable.get(field, "") if self.readable.get(field, None) != None else str(field)
         return __(val, lang=self.bgstally.state.discord_lang) if discord else _(val)
 
 
@@ -605,7 +650,7 @@ class FleetCarrier:
         Debug.logger.debug(f"Getting items for category {category}")
         match category:
             case FleetCarrierItemType.MATERIALS_SELLING:
-                return self.locker, 'name', 'locName', 'quantity'
+                return self.locker, 'name', 'locName', 'stock'
             case FleetCarrierItemType.MATERIALS_BUYING:
                 return self.locker, 'name', 'locName', 'outstanding'
             case FleetCarrierItemType.COMMODITIES_SELLING:
@@ -621,7 +666,7 @@ class FleetCarrier:
                 return self.cargo['normal'], 'commodity', 'locName', 'stock'
             case FleetCarrierItemType.LOCKER:
                 # Return locker items
-                return self.locker, 'name', 'locName', 'quantity'
+                return self.locker, 'name', 'locName', 'stock'
             case _:
                 return None, None, None, None
 

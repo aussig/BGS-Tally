@@ -14,6 +14,7 @@ FILENAME = "colonisation.json"
 BASE_TYPES_FILENAME = 'base_types.json'
 CARGO_FILENAME = 'Cargo.json'
 MARKET_FILENAME = 'Market.json'
+RE_IGNORE_PATTERN = r"(^\$|[A-Z0-9]{3}-[A-Z0-9]{3}$| \| [A-Z]{4}$)" # Pattern to ignore stations like carriers, scenarios, etc.
 
 # Services we use for different types of import
 SYSTEM_SERVICE = Spansh()
@@ -109,12 +110,12 @@ class Colonisation:
         if entry.get('StarSystem', None) != None: self.current_system = entry.get('StarSystem')
         if entry.get('SystemAddress', None) != None: self.system_id = int(entry.get('SystemAddress'))
         if entry.get('MarketID', None) != None: self.market_id = entry.get('MarketID')
+
         if entry.get('Type', None) != None: self.station = entry.get('Type')
-        if entry.get('BodyType', None) != None == 'Station': self.station = entry.get('Body')
+        if entry.get('BodyType', None) == 'Station': self.station = entry.get('Body')
         if entry.get("StationName", None): self.station = entry.get('StationName')
         self.station = re.sub(r"^\$EXT_PANEL_ColonisationShip;", "System Colonisation Ship", f"{self.station}").strip()
-
-        self.station = re.sub(r"^\$EXT_PANEL_ColonisationShip;", "System Colonisation Ship", f"{self.station}").strip()
+        if entry.get('StationType', '') == 'FleetCarrier' : self.station = 'FleetCarrier'
 
         if cmdr != None: self.cmdr = cmdr
         if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
@@ -216,7 +217,7 @@ class Colonisation:
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
                     build_state = BuildState.PROGRESS
                 # Complete station so find it and add/update as appropriate.
-                elif system != None and self.station not in ['FleetCarrier', 'SquadronCarrier'] and re.search(r"^(...\-...$|\$)", f"{self.station}") == None :
+                elif system != None and self.station not in ['FleetCarrier', 'SquadronCarrier'] and re.search(RE_IGNORE_PATTERN, f"{self.station}") == None :
                     Debug.logger.debug(f"Docked at site. Finding/creating system and build {self.market_id} {self.station}")
                     build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
                     build_state = BuildState.COMPLETE
@@ -256,8 +257,6 @@ class Colonisation:
 
             case 'SupercruiseDestinationDrop':
                 self.location = 'Orbital'
-                if entry.get('Type', None) != None: self.station = entry.get('Type')
-                self.station = re.sub(r"^\$EXT_PANEL_ColonisationShip;", "System Colonisation Ship", f"{self.station}").strip()
 
             case 'ApproachBody':
                 self.location = 'Surface'
@@ -265,7 +264,6 @@ class Colonisation:
             case 'SupercruiseExit' | 'ApproachSettlement':
                 if entry.get('event') == 'ApproachSettlement':
                     self.location = 'Surface'
-                    self.station = entry.get('Name', self.station)
 
                 # Load progress for tracked builds.
                 # This will get called quite a lot but it uses a lightweight method
@@ -276,9 +274,8 @@ class Colonisation:
                         prog:dict|None = self.find_progress(b.get('ProjectID', 0))
                         if prog != None: rc.load_project(prog)
 
-                # If it's a carrier or other non-standard location we ignore it.
-                if self.station == None or 'Construction Site' in self.station or 'ColonisationShip' in self.station or \
-                    re.search(r"^\$", self.station) or re.search("[A-Z0-9]{3}-[A-Z0-9]{3}$", self.station):
+                # If it's a construction site, carrier or other non-standard location we ignore it at least til we dock.
+                if self.station == None or re.search(RE_IGNORE_PATTERN, self.station) or 'Construction Site' in self.station or 'System Colonisation Ship' in self.station:
                     return
 
                 # If we don't have this system in our list, we don't care about it.
@@ -656,7 +653,7 @@ class Colonisation:
         ''' Find a build by marketid or name, or create it if it doesn't exist '''
         build:dict|None = self.find_build(system, data)
         if build != None:
-            Debug.logger.debug(f"Build found")
+            Debug.logger.debug(f"Build found: {build.get('Name','')} {build.get('Base Type','')} {build.get('Body','')}")
             return build
 
         return self.add_build(system, data)
@@ -809,7 +806,6 @@ class Colonisation:
             data['Body'] = self.body_name(system['StarSystem'], body.get('name', ''))
             data['BodyNum'] = body.get('bodyId', None)
 
-        Debug.logger.debug(f"Modifying build {data}")
         # If the base type isn't set, try to get it from the layout
         if data.get('Base Type', '') == '' and data.get('Layout', '') != '':
             bt:dict = self.get_base_type(data.get('Layout', ''))
@@ -838,7 +834,7 @@ class Colonisation:
                     RavenColonial(self).upsert_project(system, build, p)
 
         if changed != {}:
-            self.save('Build modified')
+            self.save(f"Build modified {data}")
             self.bgstally.ui.window_colonisation.update_display()
             self.bgstally.ui.window_progress.update_display()
 
@@ -853,11 +849,11 @@ class Colonisation:
         if build == None or build.get('State') == BuildState.COMPLETE:
             return False
 
-        Debug.logger.debug(f"Completing build {self.current_system} {self.system_id} {market_id}")
+        Debug.logger.debug(f"Completing build {build.get('Name', '')} {market_id}")
         # Complete the project in RC.
         p:dict|None = self.find_progress(market_id)
-        if p.get('ProjectID', None) != None:
-            RavenColonial(self).complete_project(p.get('ProjectID', 0))
+        #if p.get('ProjectID', None) != None:
+        #    RavenColonial(self).complete_project(p.get('ProjectID', 0))
 
         # If we get here, the build is (newly) complete.
         # Since on completion the colonisation ship is removed/goes inactive and a new station is created

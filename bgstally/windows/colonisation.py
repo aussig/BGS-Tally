@@ -875,11 +875,8 @@ class ColonisationWindow:
 
         # Is the last line an uncategorized base? If not add another
         if len(details) == 0 or details[-1][1] != ' ' or details[-1][3] != ' ':
-            Debug.logger.debug(f"Adding empty row to details {system.get('StarSystem','')}")
             row:list = [' '] * (len(list(self.detail_cols.keys())) -1)
             details.append(row)
-        else:
-            Debug.logger.debug(f"Not adding empty row to details {system.get('StarSystem','')}")
         return details
 
 

@@ -2,8 +2,6 @@
 
 ## vx.x.x - xxxx-xx-xx
 
-## v5.3.2 - xxxx-xx-xx
-
 ### Bug fixes:
 
 * Improved project initiation with RavenColonial

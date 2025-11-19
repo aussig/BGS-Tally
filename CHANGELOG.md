@@ -7,7 +7,8 @@
 * Improved project initiation with RavenColonial
 * Fixed progress bug by modifying when/how progress is updated on tracking changes
 * Ensured RC projects sync even when created by other means
-
+* Fixed misidentification of squadron carriers as completed starports
+* Stopped BGS-Tally completing Raven Colonial projects as it's irreversible
 
 ## v5.3.1 - 2025-11-14
 

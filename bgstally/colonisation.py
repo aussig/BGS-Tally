@@ -103,24 +103,25 @@ class Colonisation:
         system:dict|None = None
         build:dict|None = None
 
-        if state.get('CargoCapacity', 0) != None and state.get('CargoCapacity', 0) > 16 and state.get('CargoCapacity', 0) != self.cargo_capacity:
+        if state.get('CargoCapacity', None) != None and state.get('CargoCapacity', 0) > 16 and state.get('CargoCapacity', 0) != self.cargo_capacity:
             self.cargo_capacity = state.get('CargoCapacity')
-            self.mof = True
 
         if entry.get('StarSystem', None) != None: self.current_system = entry.get('StarSystem')
         if entry.get('SystemAddress', None) != None: self.system_id = int(entry.get('SystemAddress'))
         if entry.get('MarketID', None) != None: self.market_id = entry.get('MarketID')
 
-        if entry.get('Type', None) != None: self.station = entry.get('Type')
-        if entry.get('BodyType', None) == 'Station': self.station = entry.get('Body')
-        if entry.get("StationName", None): self.station = entry.get('StationName')
-        self.station = re.sub(r"^\$EXT_PANEL_ColonisationShip;", "System Colonisation Ship", f"{self.station}").strip()
-        if entry.get('StationType', '') == 'FleetCarrier' : self.station = 'FleetCarrier'
+        if entry.get('Type', None) != None: self.station = entry.get('Type', None)
+        if entry.get('BodyType', None) == 'Station' and entry.get('Body', None) != None: self.station = entry.get('Body', None)
+        if entry.get("StationName", None) != None: self.station = entry.get('StationName', None)
+        if self.station != None:
+            self.station = re.sub(r"^\$EXT_PANEL_ColonisationShip;", "System Colonisation Ship", f"{self.station}").strip()
 
         if cmdr != None: self.cmdr = cmdr
         if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
 
         Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
+
+        if entry.get('StationType', '') == 'FleetCarrier' : self.station = 'FleetCarrier'
 
         match entry.get('event'):
             case 'StartUp': # Synthetic event.
@@ -145,7 +146,7 @@ class Colonisation:
                     if progress.get('ProjectID', None) != None and progress.get('ConstructionComplete', False) == False:
                         rc.load_project(progress)
 
-            case 'Cargo' | 'CargoTransfer':
+            case 'Cargo' | 'CargoTransfer' | 'CarrierTradeOrder':
                 self._update_cargo(state.get('Cargo'))
                 self._update_carrier()
 
@@ -239,7 +240,7 @@ class Colonisation:
                 if self.location != None and build.get('Location', None) != self.location: data['Location'] = self.location
                 if build_state == BuildState.PROGRESS and build.get('Track') != (build_state != BuildState.COMPLETE): data['Track'] = True
                 if data != {}:
-                    Debug.logger.debug(f"Docked updating build {self.station} in system {self.current_system} build: {build} data: {data}")
+                    Debug.logger.debug(f"Docked updating build {build.get('Name', None)} {self.station} in system {self.current_system} build: {build} data: {data}")
                     self.modify_build(system, build.get('BuildID', data.get('BuildID', '')), data)
                     self.dirty = True
 
@@ -265,6 +266,8 @@ class Colonisation:
                 if entry.get('event') == 'ApproachSettlement':
                     self.location = 'Surface'
 
+                Debug.logger.debug("Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
+
                 # Load progress for tracked builds.
                 # This will get called quite a lot but it uses a lightweight method
                 # to only get progress that's changed
@@ -273,26 +276,31 @@ class Colonisation:
                     if b.get('ProjectID', None) != None:
                         prog:dict|None = self.find_progress(b.get('ProjectID', 0))
                         if prog != None: rc.load_project(prog)
+                Debug.logger.debug("1 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 # If it's a construction site, carrier or other non-standard location we ignore it at least til we dock.
                 if self.station == None or re.search(RE_IGNORE_PATTERN, self.station) or 'Construction Site' in self.station or 'System Colonisation Ship' in self.station:
                     return
+                Debug.logger.debug("2 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 # If we don't have this system in our list, we don't care about it.
                 system:dict|None = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
                 if system == None:
                     return
+                Debug.logger.debug("3 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 # It's in a system we're building in, so we should find or create it.
                 Debug.logger.debug(f"Finding build {self.market_id} {self.station} {self.body}")
                 build = self.find_or_create_build(system, {'MarketID': self.market_id,
                                                            'Name': self.station,
                                                            'Body': self.body})
+                Debug.logger.debug("4 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 if 'Construction Site' in self.station or 'System Colonisation Ship' in self.station:
                     # We're at a construction site so set it to in progress
                     self.modify_build(system, build.get('BuildID', ''), {'State': BuildState.PROGRESS})
                     return
+                Debug.logger.debug("5 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 # We update site here because it's not possible to dock at installations once they're complete so
                 # you may miss their completion.
@@ -302,11 +310,12 @@ class Colonisation:
                 if build.get('State') == BuildState.PROGRESS and \
                     re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
                     self.try_complete_build(build.get('MarketID', 0))
+                Debug.logger.debug("6 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 data:dict = {}
                 if self.market_id != None: data['MarketID'] = self.market_id
                 build['State'] = BuildState.COMPLETE
-                if self.station != None: data['Name'] = self.station
+                if self.station != None and self.station != 'None': data['Name'] = self.station
                 if self.body != None: data['Body'] = self.body
                 if build.get('Track', False) == True: data['Track'] = False
                 if data != {}:
@@ -472,14 +481,18 @@ class Colonisation:
             Debug.logger.warning(f"Cannot update system, not found: {system}")
             return
 
+        changed:dict = {}
         # If they change which star system, we need to clear the system address
         if data.get('StarSystem', None) != None and data.get('StarSystem', None) != system.get('StarSystem'):
             system['SystemAddress'] = None
             system['StarSystem'] = data.get('StarSystem')
+            changed['SystemAddress'] = None
+            changed['StarSystem'] = data.get('StarSystem')
 
         for k, v in data.items():
-            if k not in self.system_keys or k == 'RCSync': continue
+            if k not in self.system_keys or system[k] == v or k == 'RCSync': continue
             system[k] = v
+            changed[k] = v
 
         # If we are hiding the system, stop tracking all builds
         if system.get('Hidden', False) == True:
@@ -500,8 +513,9 @@ class Colonisation:
         else:
             system['RCSync'] = data.get('RCSync', system.get('RCSync', False))
 
-        self.save('Modify system')
-        self.bgstally.ui.window_colonisation.update_display()
+        if changed != {}:
+            self.save(f"Modify system {changed}")
+            self.bgstally.ui.window_colonisation.update_display()
 
 
     @catch_exceptions
@@ -605,20 +619,24 @@ class Colonisation:
             return builds[0]
 
         # An existing/known build?
-        for m in ['BuildID', 'Name', 'MarketID']:
+        for m in ['BuildID', 'MarketID']:
             if data.get(m, None) != None:
                 for build in builds:
                     if build.get(m, None) == data.get(m, None):
                         return build
-                    if m == 'Name' and re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get(m, '')) == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get(m, '')):
-                        return build
+        # Match on site name.
+        if data.get('Name', None) != None:
+            for build in builds:
+                if build.get('Name', None) != None and build.get('Name', None) == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')):
+                    return build
 
-        # Do some fuzzy matching on name similarity, body, etc. for things that may have changed while we were away.
+        # Match on name if we can.
         loc:str = ''
         if data.get('Name', None) != None and 'Construction Site' in data.get('Name', ''):
             loc = re.sub(r" Construction Site:.*$", "", data.get('Name', ''))
             if loc == 'Planetary': loc = 'Surface'
 
+        # Do some fuzzy matching on similarity, body, etc. for things that may have changed while we were away.
         for build in builds:
             state:str|None = build.get('State', None)
             location:str|None = build.get('Location', None)
@@ -834,7 +852,7 @@ class Colonisation:
                     RavenColonial(self).upsert_project(system, build, p)
 
         if changed != {}:
-            self.save(f"Build modified {data}")
+            self.save(f"Build modified {changed}")
             self.bgstally.ui.window_colonisation.update_display()
             self.bgstally.ui.window_progress.update_display()
 
@@ -1019,7 +1037,7 @@ class Colonisation:
 
         fccargo, name_key, display_name_key, quantity_key = self.bgstally.fleet_carrier._get_items(FleetCarrierItemType.CARGO)
         for name, cargo_item in fccargo.items():
-            name = name.lower()
+            name:str = name.lower()
             cargo[name] = int(cargo_item.get(quantity_key, 0))
             if cargo_item.get('outstanding', 0) > 0:
                 buy[name] = int(cargo_item.get('outstanding', 0))
@@ -1030,7 +1048,6 @@ class Colonisation:
 
         self.carrier_buy = buy
         self.carrier_cargo = cargo
-
 
 
     def _update_cargo(self, cargo:dict) -> None:

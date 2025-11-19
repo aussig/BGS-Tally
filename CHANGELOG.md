@@ -2,12 +2,21 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+## New Feature:
+
+
+## v5.4.x - xxxx-xx-xx
+
 ### New Features:
+* Fully reworked fleet carrier window with improved tracking and much more detail
 * Added polling of Raven Colonial project progress
 * Added popup menu for progress options
 * More improvements to project/build matching
-* Added Outpost in a Box 'virtual' base
 * Added Carrier buy orders as a progress column
+
+### Changes:
+* Moved colonisation site name mapping to after BuildID and MarketID when finding a build
+* Killed the "no builds are being tracked" overlay message
 
 ### Bug Fixes:
 * Fixed capitalization typo that could sometimes cause a site to be assigned to the wrong body
@@ -16,6 +25,15 @@
 * Fixed progress bug by modifying when/how progress is updated on tracking changes
 * Ensured RC projects sync even when created by other means
 
+## v5.3.2 - xxxx-xx-xx
+
+### Bug fixes:
+
+* Improved project initiation with Raven Colonial
+* Fixed progress bug by modifying when/how progress is updated on tracking changes
+* Ensured RC projects sync even when created by other means
+* Fixed misidentification of squadron carriers as completed starports
+* Stopped BGS-Tally completing Raven Colonial projects as it's irreversible
 
 ## v5.3.1 - 2025-11-14
 

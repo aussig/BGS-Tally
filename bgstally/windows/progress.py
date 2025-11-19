@@ -278,9 +278,10 @@ class ProgressWindow:
             if b.get('ProjectID', None) != None:
                 menu.add_command(label=_('Open in RavenColonial'), command=partial(webbrowser.open, 'https://ravencolonial.com/#build='+b.get('ProjectID','')))  # Open ravencolonial project
 
-            params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in b.items()}
-            for k, v in self.links.items():
-                menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)))  # Open in Inara, Spansh, EDGIS, EDSM
+            if b.get('MarketID', None) != None:
+                params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in b.items()}
+                for k, v in self.links.items():
+                    menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)))  # Open in Inara, Spansh, EDGIS, EDSM
 
         menu.post(event.x_root, event.y_root)
 
@@ -296,7 +297,7 @@ class ProgressWindow:
         required:dict = self.colonisation.get_required(tracked)
         delivered:dict = self.colonisation.get_delivered(tracked)
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
-            return _("No builds or commodities being tracked") # LANG: No builds or commodities being tracked
+            return "" # LANG: No builds or commodities being tracked
 
         if self.build_index >= len(required): self.build_index = 0
 

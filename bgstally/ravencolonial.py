@@ -520,7 +520,7 @@ class RavenColonial:
         if projectid == None: return
 
         url:str = f"{RC_API}/project/{projectid}/last"
-        response:Response = requests.get(url, headers=self._headers(),timeout=5)
+        response:Response = requests.get(url, headers=self._headers(), timeout=10)
         if response.status_code != 200:
             Debug.logger.error(f"Error for {url} {response} {response.content}")
             return
@@ -539,7 +539,7 @@ class RavenColonial:
     @catch_exceptions
     def _load_project_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         """ Process the results of querying RavenColonial for the project details """
-        if response.status_code == 404:
+        if response != None and response.status_code == 404:
             Debug.logger.info(f"Project not found, {response} Response.content [{response.content}] Request [{request}]")
             # Remove this project ID from progress
             pid:str = re.search(r"/project/([^/]+)", request.endpoint).group(1)

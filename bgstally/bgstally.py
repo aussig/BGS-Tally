@@ -173,6 +173,7 @@ class BGSTally:
 
             case 'CarrierTradeOrder':
                 self.fleet_carrier.trade_order(entry)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'CollectCargo':
                 activity.cargo_collected(entry, self.state)

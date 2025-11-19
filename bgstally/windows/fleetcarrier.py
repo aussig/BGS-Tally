@@ -20,7 +20,9 @@ DATETIME_FORMAT_CARRIER = "%Y-%m-%d %H:%M"
 DATETIME_FORMAT_JSON = "%Y-%m-%d %H:%M:%S"
 class WindowFleetCarrier:
     """
-    Handles the Fleet Carrier window
+    Handles the Fleet Carrier window.
+    The window shows an overview of current carrier status and tabs for cargo, materials etc.
+    Buttons are provided to copy information to the clipboard or post directly to discord.
     """
 
     def __init__(self, bgstally) -> None:
@@ -30,7 +32,7 @@ class WindowFleetCarrier:
 
         self.tabs:dict = {
             'Summary': {
-                'fields': ['service', 'enabled', 'status', 'name', 'tax', 'salary', 'hiringPrice'],
+                'fields': ['service', 'enabled', 'status', 'name', 'taxation', 'salary', 'hiringPrice'],
                 'cols': [
                     {'title': _('Service'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 225},
                     {'title': _('Enabled'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 85},
@@ -83,7 +85,7 @@ class WindowFleetCarrier:
                 'buttons': True
             },
             'Itinerary': {
-                'fields': ['starsystem', 'visitDurationSeconds', 'arrivalTime', 'departureTime', 'state'],
+                'fields': ['starSystem', 'visitDurationSeconds', 'arrivalTime', 'departureTime', 'state'],
                 'cols': [
                     {'title': _('System'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250},
                     {'title': _('Duration'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 150},
@@ -107,7 +109,7 @@ class WindowFleetCarrier:
         self.window = tk.Toplevel(self.bgstally.ui.frame)
         self.window.title(_("{plugin_name} - Carrier {carrier_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=fc.overview.get('name'))) # LANG: Carrier window title
         self.window.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
-        self.window.geometry(f"{int(750*self.scale)}x{int(600*self.scale)}")
+        self.window.geometry(f"{int(850*self.scale)}x{int(600*self.scale)}")
 
         frame:ttk.Frame = ttk.Frame(self.window)
         if not config.get_bool('capi_fleetcarrier'):
@@ -129,8 +131,8 @@ class WindowFleetCarrier:
         """ Create and populate the Fleet Carrier tabs """
 
         style:ttk.Style = ttk.Style()
-        style.configure("White.TNotebook.Tab", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), padding=[10, 5], background='white')
-        tabbar:ScrollableNotebook = ScrollableNotebook(frame, wheelscroll=False, tabmenu=False, style='White.TNotebook')
+        style.configure("White.TNotebook.Tab", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), padding=[10, 5], background='green')
+        tabbar:ScrollableNotebook = ScrollableNotebook(frame, wheelscroll=True, tabmenu=False, style='White.TNotebook')
         tabbar.pack(fill=tk.X, padx=5, pady=5)
 
         for k, v in self.tabs.items():
@@ -167,7 +169,7 @@ class WindowFleetCarrier:
         services:dict = fc.get_services()
 
         table:TreeviewPlus = self._create_table(which['cols'], fr)
-        for s, v in sorted(services['crew'].items()):
+        for s, v in sorted(services.get('crew', {}).items()):
             if s in which['ignore']: continue
             row:list = []
             for c in which['fields']:
@@ -175,8 +177,6 @@ class WindowFleetCarrier:
                 val:str = ''
                 match c:
                     case 'service': val = s.title() if s not in which['names'].keys() else which['names'][s]
-                    case 'tax': val = f"{v.get('taxation', 0)}%"
-                    case 'enabled': val = v.get(c, 'No').title()
                     case _: val = self._format(v.get(c, ""))
                 row.append(val)
             table.insert("", 'end', values=row)
@@ -222,7 +222,7 @@ class WindowFleetCarrier:
             self._create_columns(locker['overview'], 4, summ, bg='white')
 
         table:TreeviewPlus = self._create_table(which['cols'], frame)
-        for cat, i in locker.get('inventory').items():
+        for cat, i in locker.get('inventory', {}).items():
             row:list = []
             for c in which['fields']:
                 val:str = ""
@@ -252,55 +252,58 @@ class WindowFleetCarrier:
         for jump in itinerary.get('completed', []):
             row:list = []
             for c in which['fields']:
-                val:str = ''
-                match c:
-                    case 'visitDurationSeconds':
-                        val = self._format(jump.get(c), 'interval')
-                    case 'arrivalTime' | 'departureTime':
-                        val = self._format(jump.get(c), 'datetime')
-                    case _:
-                        val = self._format(jump.get(c))
-                row.append(val)
+                row.append(self._format(jump.get(c)))
             table.insert("", 'end', values=row)
 
 
     def _format(self, val, type:str|None = None) -> str:
         """ A general customized formatting function for fc display """
+        units:str = ''
+        default:str = ''
+
+        if isinstance(val, tuple): # (value, type, default, units)
+            if len(val) > 1: type = val[1]
+            if len(val) > 2: default = val[2]
+            if len(val) > 3: units = val[3]
+            if len(val) > 0: value = val[0]
+        else:
+            value = val
+            if (isinstance(value, str) and re.match(value, r"^\d+-\d+-\d+ \d+\:\d+")): type = 'datetime'
+            if isinstance(value, bool): type = 'bool'
+            if isinstance(value, int) or isinstance(value, float): type = 'num'
 
         # Empty, zero or false we return an empty string so the display isn't full of "No" and "0" etc.
-        if val == None or val == 0 or val == '' or val == False: return ''
+        if value == None or value == 0 or value == '' or value == False: return default
 
-        # If it's a datetime convert it from the json date format to our date format.
-        if type == 'datetime' or (isinstance(type, str) and re.match(type, r"^\d+-\d+-\d+ \d+:=d+")):
-            return datetime.strptime(val, DATETIME_FORMAT_JSON).strftime(DATETIME_FORMAT_CARRIER)
+        ret:str = ""
+        match type:
+            case 'bool': # We're going to display Yes (blanks ar handled above)
+                ret = _("Yes") # LANG: Yes
 
-        # Approximated interval (no seconds, only show minutes if it's less than a day)
-        if type == 'interval':
-            days, rem = divmod(val, 60*60*24)
-            hours, rem = divmod(rem, 60*60)
-            mins, rem = divmod(rem, 60)
+            case 'datetime': # If it's a datetime convert it from the json date format to our date format
+                ret = datetime.strptime(str(value), DATETIME_FORMAT_JSON).strftime(DATETIME_FORMAT_CARRIER)
 
-            ret = []
-            if floor(days) > 1: ret.append(f"{floor(days)} days")
-            elif int(days) > 0: ret.append(f"1 day")
-            if floor(hours) > 1: ret.append(f"{floor(hours)} hours")
-            elif int(hours) > 0: ret.append(f" 1 hour")
-            if len(ret) < 2:
-                if floor(mins) > 1: ret.append(f" {int(mins)} minutes")
-                elif mins > 0: ret.append(f" 1 minute")
-            return ' '.join(ret)
+            case 'interval': # Approximated interval (no seconds, only show minutes if it's less than a day)
+                days , rem = divmod(int(value), 60*60*24)
+                hours, rem = divmod(rem, 60*60)
+                mins, rem = divmod(rem, 60)
+                tmp:list = []
+                if floor(days) > 1: tmp.append(f"{floor(days)} days")
+                elif int(days) > 0: tmp.append(f"1 day")
+                if floor(hours) > 1: tmp.append(f"{floor(hours)} hours")
+                elif int(hours) > 0: tmp.append(f" 1 hour")
+                if len(tmp) < 2:
+                    if floor(mins) > 1: tmp.append(f" {int(mins)} minutes")
+                    elif mins > 0: tmp.append(f" 1 minute")
+                ret = ' '.join(tmp)
 
-        # We're going to display Yes or leave it blank
-        if isinstance(val, bool) or type == 'bool':
-            return _("Yes") # LANG: Yes
+            case 'num': # We only shorten/simplify large numbers. Smaller ones we just display with commas at thousands
+                ret = human_format(int(value)) if int(value) > 100000 else f"{value:,}"
 
-        # We only shorten/simplify large numbers. Smaller ones we just display with commas at thousands
-        if isinstance(val, int) or type == 'num':
-            if val > 100000: return human_format(val)
-            return f"{val:,}"
+            case _: # Title case two words, leave longer strings as is
+                ret = str(value).title() if str(value).count(' ') <= 2 else str(value)
 
-        # Title case two words, leave longer strings as is
-        return val.title() if val.count(' ') <= 2 else val
+        return ret + units
 
 
     def _create_columns(self, data:dict, maxcols:int, frame:ttk.Frame, bg:str='None') -> None:
@@ -337,14 +340,14 @@ class WindowFleetCarrier:
 
         @catch_exceptions
         def _post(which:str, type:str|tk.StringVar, btn:ttk.Button) -> None:
-
             fc: FleetCarrier = self.bgstally.fleet_carrier
             l:str = self.bgstally.state.discord_lang
             btn.config(state=tk.DISABLED)
             output:str = self._get_as_text(which, type, True)
-            if len(output) > 1990:
-                while len(output) > 1990:
-                    split_at:int = output.rfind('\n', 0, 1990)
+
+            if len(output) > 1990: # Split it across multiple posts if it's too large.
+                while len(output) > 1900:
+                    split_at:int = output.rfind('\n', 0, 1000)
                     part:str = output[0:split_at]
                     self.bgstally.discord.post_plaintext(part, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
                     output = output[split_at+1:]
@@ -358,7 +361,7 @@ class WindowFleetCarrier:
         def _enable_post(btn:ttk.Button) -> None:
             btn.config(state=(tk.NORMAL if _discord_available() else tk.DISABLED))
 
-        def _post_type_selected(which:str, value: str) -> None:
+        def _post_type_selected(which:str, value:tk.StringVar) -> None: # Cargo or Materials
             self.bgstally.state.FcCargo.set(value) if which == 'Cargo' else self.bgstally.state.FcLocker.set(value)
 
         bar:ttk.Frame = ttk.Frame(frame)
@@ -371,17 +374,17 @@ class WindowFleetCarrier:
 
         strv:tk.StringVar = tk.StringVar(value=self.bgstally.state.FcCargo.get() if which == 'Cargo' else self.bgstally.state.FcLocker.get())
         menuv:ttk.OptionMenu = ttk.OptionMenu(bar, strv, strv.get(), *post_types.keys(),
-                                              command=partial(_post_type_selected, which),
+                                              command=lambda val: _post_type_selected(which, val),
                                               direction='above')
 
-        tkb:ttk.Button = ttk.Button(bar, text=_("Copy to Clipboard"), command=partial(_ctc, which, strv)) # LANG: Button label
-        tkb.pack(side=tk.LEFT, padx=5, pady=5)
-        tkb:ttk.Button = ttk.Button(bar, text=_("Post to Discord"), # LANG: Button label
-                                    command=partial(_post, which, strv, tkb),
+        cbtn:ttk.Button = ttk.Button(bar, text=_("Copy to Clipboard"), command=partial(_ctc, which, strv)) # LANG: Button label
+        cbtn.pack(side=tk.LEFT, padx=5, pady=5)
+        dbtn = ttk.Button(bar, text=_("Post to Discord"), # LANG: Button label
                                     state=(tk.NORMAL if _discord_available() else tk.DISABLED))
-        tkb.pack(side=tk.RIGHT, padx=5, pady=5)
+        dbtn.configure(command=partial(_post, which, strv, dbtn))
+        dbtn.pack(side=tk.RIGHT, padx=5, pady=5)
         if not _discord_available():
-            ToolTip(tkb, text=_("Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord").format(CR="\n")) # LANG: Post to Discord button tooltip
+            ToolTip(dbtn, text=_("Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord").format(CR="\n")) # LANG: Post to Discord button tooltip
 
         menuv.pack(side=tk.RIGHT, pady=5)
 
@@ -419,18 +422,18 @@ class WindowFleetCarrier:
         l:str = self.bgstally.state.discord_lang if discord else ""
         tab:dict = self.tabs[which]
         if isinstance(type, tk.StringVar): type = type.get()
-
         data:dict = fc.get_cargo() if which == 'Cargo' else self.bgstally.fleet_carrier.get_locker()
 
         output:str = ""
-        if discord == True: output += "### "
+        if discord == True: output += "## "
         output += __("Carrier: {carrier_name} - {which}\n", lang=l).format(carrier_name=fc.overview['name'], which=which.title()) # LANG: fleet carrier materials header
-        if discord == True: output += "#### "
-        output += __("System: {system}\n", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) # LANG: fleet carrier materials system line
+        if fc.overview.get('currentStarSystem', "") != "":
+            if discord == True: output += "### "
+            output += __("System: {system}\n", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) # LANG: fleet carrier materials system line
         output += "\n"
 
         # Header row for table
-        if discord == True: output += "```diff\n"
+        if discord == True: output += "```\n"
         header:list = []
         for i, fmt in enumerate(tab['format']):
             tmp:str = __(str_truncate(tab['cols'][i]['title'], tab['widths'][i]), lang=l)
@@ -455,8 +458,8 @@ class WindowFleetCarrier:
                 line.append(fmt.format(val=tmp))
             if line != []:
                 output += " | ".join(line) + "\n"
-        if discord == True: output += "```"
 
+        if discord == True: output += "```"
         return output
 
 

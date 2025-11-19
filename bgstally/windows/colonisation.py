@@ -874,10 +874,9 @@ class ColonisationWindow:
             details.append(row)
 
         # Is the last line an uncategorized base? If not add another
-        if len(details) == 0 or details[-1][1] != ' '  or details[-1][3] != ' ':
+        if len(details) == 0 or details[-1][1] != ' ' or details[-1][3] != ' ':
             row:list = [' '] * (len(list(self.detail_cols.keys())) -1)
             details.append(row)
-
         return details
 
 

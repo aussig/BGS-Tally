@@ -21,11 +21,8 @@
 ### Bug Fixes:
 * Fixed capitalization typo that could sometimes cause a site to be assigned to the wrong body
 * Fixed bug with checking for Open systems in RC
-* Improved project initiation with RavenColonial
-* Fixed progress bug by modifying when/how progress is updated on tracking changes
-* Ensured RC projects sync even when created by other means
-* Fixed misidentification of squadron carriers as completed starports
-* Stopped BGS-Tally completing Raven Colonial projects as it's irreversible
+* Fixed type error in self.station
+
 
 ## v5.3.2 - xxxx-xx-xx
 

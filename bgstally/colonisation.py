@@ -266,8 +266,6 @@ class Colonisation:
                 if entry.get('event') == 'ApproachSettlement':
                     self.location = 'Surface'
 
-                Debug.logger.debug("Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
-
                 # Load progress for tracked builds.
                 # This will get called quite a lot but it uses a lightweight method
                 # to only get progress that's changed
@@ -276,31 +274,26 @@ class Colonisation:
                     if b.get('ProjectID', None) != None:
                         prog:dict|None = self.find_progress(b.get('ProjectID', 0))
                         if prog != None: rc.load_project(prog)
-                Debug.logger.debug("1 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 # If it's a construction site, carrier or other non-standard location we ignore it at least til we dock.
                 if self.station == None or re.search(RE_IGNORE_PATTERN, self.station) or 'Construction Site' in self.station or 'System Colonisation Ship' in self.station:
                     return
-                Debug.logger.debug("2 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 # If we don't have this system in our list, we don't care about it.
                 system:dict|None = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
                 if system == None:
                     return
-                Debug.logger.debug("3 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 # It's in a system we're building in, so we should find or create it.
                 Debug.logger.debug(f"Finding build {self.market_id} {self.station} {self.body}")
                 build = self.find_or_create_build(system, {'MarketID': self.market_id,
                                                            'Name': self.station,
                                                            'Body': self.body})
-                Debug.logger.debug("4 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 if 'Construction Site' in self.station or 'System Colonisation Ship' in self.station:
                     # We're at a construction site so set it to in progress
                     self.modify_build(system, build.get('BuildID', ''), {'State': BuildState.PROGRESS})
                     return
-                Debug.logger.debug("5 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 # We update site here because it's not possible to dock at installations once they're complete so
                 # you may miss their completion.
@@ -310,12 +303,11 @@ class Colonisation:
                 if build.get('State') == BuildState.PROGRESS and \
                     re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
                     self.try_complete_build(build.get('MarketID', 0))
-                Debug.logger.debug("6 Station is None (noneType)") if self.station == None else Debug.logger.debug(f"Station is '{self.station}' (string)")
 
                 data:dict = {}
                 if self.market_id != None: data['MarketID'] = self.market_id
                 build['State'] = BuildState.COMPLETE
-                if self.station != None and self.station != 'None': data['Name'] = self.station
+                if self.station != None: data['Name'] = self.station
                 if self.body != None: data['Body'] = self.body
                 if build.get('Track', False) == True: data['Track'] = False
                 if data != {}:
@@ -863,11 +855,13 @@ class Colonisation:
 
         Debug.logger.debug(f"Trying complete build {market_id}")
         [system, build] = self.find_build_any({'MarketID' : market_id})
+
         # Not found or already completed there's nothing to do.
         if build == None or build.get('State') == BuildState.COMPLETE:
             return False
 
-        Debug.logger.debug(f"Completing build {build.get('Name', '')} {market_id}")
+        Debug.logger.info(f"Completing build {build.get('Name', '')} {market_id}")
+
         # Complete the project in RC.
         p:dict|None = self.find_progress(market_id)
         #if p.get('ProjectID', None) != None:

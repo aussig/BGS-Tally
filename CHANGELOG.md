@@ -1,14 +1,14 @@
 # Change Log
 
-## vx.x.x - xxxx-xx-xx
-
-## New Feature:
-
-
 ## v5.4.x - xxxx-xx-xx
 
 ### New Features:
-* Fully reworked fleet carrier window with improved tracking and much more detail
+* Fully reworked fleet carrier window with improved tracking and much more detail and four tabs:
+  * Summary shows overview of carier status
+  * Cargo shows cargo including market data
+  * Locker shows materials including market data
+  * Itinerary shows recent and scheduled jumps
+
 * Added polling of Raven Colonial project progress
 * Added popup menu for progress options
 * More improvements to project/build matching

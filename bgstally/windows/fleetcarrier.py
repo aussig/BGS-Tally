@@ -4,7 +4,7 @@ from tkinter import ttk
 from datetime import datetime
 from math import floor
 
-from bgstally.constants import FONT_TEXT_BOLD, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
+from bgstally.constants import DATETIME_FORMAT_JSON, DATETIME_FORMAT_CARRIER, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.utils import _, __, human_format, str_truncate, catch_exceptions
@@ -16,8 +16,7 @@ from thirdparty.Tooltip import ToolTip
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key, ICON_DEL, ICON_ADD, ICON_SORT_DESC, ICON_SORT_ASC, ICON_REDO
 
-DATETIME_FORMAT_CARRIER = "%Y-%m-%d %H:%M"
-DATETIME_FORMAT_JSON = "%Y-%m-%d %H:%M:%S"
+
 class WindowFleetCarrier:
     """
     Handles the Fleet Carrier window.

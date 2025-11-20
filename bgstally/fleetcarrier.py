@@ -4,7 +4,7 @@ import time
 from os import path, remove
 from copy import deepcopy
 
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA, KEY_CARRIER_TYPE, DiscordChannel, FleetCarrierItemType, FleetCarrierType
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, KEY_CARRIER_TYPE, DiscordChannel, FleetCarrierItemType, FleetCarrierType
 from bgstally.debug import Debug
 from bgstally.discord import DATETIME_FORMAT
 from bgstally.utils import _, __, get_by_path, catch_exceptions
@@ -19,7 +19,7 @@ class FleetCarrier:
     Activity is also tracked through sell, buy, market & order events since the CAPI is queried infrequently and
     can be unhelpfully out of date.
     """
-    def __init__(self, bgstally):
+    def __init__(self, bgstally) -> None:
         self.bgstally:BGSTally = bgstally # type: ignore
 
         # CAPI data is only received periodically and can be out of date so we take a copy of what we need and store it here.
@@ -66,9 +66,13 @@ class FleetCarrier:
             _('Tax Level'): (self.overview.get('taxation', 0), 'num', '0%', '%'),        # LANG: Carrier debt limit
         }
 
+
     @catch_exceptions
     def get_summary(self) -> dict:
         """ Return summary information as a dictionary """
+
+        self._update_location()
+
         summary:dict = {'finances': [], 'costs': [], 'capacity': []}
 
         summary['finances'] = {
@@ -196,12 +200,9 @@ class FleetCarrier:
     def get_itinerary(self) -> dict:
         """ Return the carrier itinerary """
 
-        Debug.logger.debug(f"{get_by_path(self.data, ['itinerary', 'currentJump'], '???')}")
-        sched:str = get_by_path(self.data, ["itinerary", "currentJump"], "None") if get_by_path(self.data, ["itinerary", "currentJump"], "None") != "null" else _("None") # LANG: Scheduled jump
-        if self.overview.get('jumpDestination', None) != None and self.overview.get('jumpDestination', '') not in self.overview.get('currentSystem', ''):
-            sched = self.overview.get('jumpDestination', '')
         summ:dict = {
-            _('Scheduled Jump'): sched,
+            _('Scheduled Jump'): self.overview.get('jumpDestination', 'None'),
+            _('Departure Time'): (self.overview.get('departureScheduled', ''), 'datetime'),
             _('Fuel'): (self.overview.get('fuel', 0), 'num', '0t', 't'),
             _('Tritium'): (get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0), 'num', '0t', 't'),
         }
@@ -216,6 +217,29 @@ class FleetCarrier:
                 'starSystem': (j.get('starsystem', ''), 'str', 'Unknown')
             })
         return {'overview': summ, 'completed': comp}
+
+
+    def _update_location(self) -> None:
+        """ Update the current carrier location after a jump """
+
+        # There's a jump scheduled
+        if get_by_path(self.data, ["itinerary", "currentJump"], None) != None:
+            self.overview['jumpDestination'] = get_by_path(self.data, ["itinerary", "currentJump"], '')
+            return
+
+        # Nothing to do here, we've updated everything already
+        if self.overview.get('departureScheduled', None) == None:
+            return
+
+        # Departure is scheduled but not yet
+        departure:datetime = datetime.strptime(self.overview['departureScheduled'], DATETIME_FORMAT_JSON)
+        Debug.logger.debug(f"Time: {datetime.now()} {departure}")
+        if datetime.now() > departure:
+            return
+
+        self.overview['currentStarSystem'] = self.overview.get('jumpDestination', '')
+        self.overview['jumpDestination'] = None
+        self.overview['departureScheduled'] = None
 
 
     def _update_cargo(self, data: dict) -> dict:
@@ -309,7 +333,6 @@ class FleetCarrier:
 
         # we can update all the local vars with this loop.
         updates:dict = {'name': [self.overview, ['name', 'vanityName'], "----"],
-                        'currentStarSystem': [self.overview, ['currentStarSystem'], ''],
                         'dockingAccess': [self.overview, ['dockingAccess'], 'None'],
                         'state': [self.overview, ['state'], ''],
                         'carrier_id': [self.overview, ['market', 'id'], 0],
@@ -335,9 +358,9 @@ class FleetCarrier:
         if self.overview.get('name', '') != updates['name'][2]:         # Name is encoded as hex string
             self.overview['name'] = bytes.fromhex(self.overview['name']).decode('utf-8')
         self.overview['fuel'] = int(self.data.get('fuel', 0))
-        # Destination has the body as well so use that if we're in the same system.
-        if self.overview.get('currentStarSystem', 'Unknown') in self.overview.get('jumpDestination', ''):
-            self.overview['currentStarSystem'] = self.overview['jumpDestination']
+
+        if self.overview.get('currentStarSystem', None) == None:
+            self.overview['currentStarSystem'] = get_by_path(self.data, ['currentStarSystem'], '')
 
         self.locker = self._update_locker(self.data)
 
@@ -346,9 +369,14 @@ class FleetCarrier:
             Debug.logger.debug("Ignoring CAPI update")
             return
 
-        # Do this here because we manage these locally and don't want to update them if the CAPI data may be out of date.
-        for item in ['freeSpace', 'cargoForSale', 'cargoNotForSale', 'cargoSpaceReserved']:
-            self.overview[item] = get_by_path(self.data, ['capacity', item], self.overview[item])
+        # Do these ones here because we manage them locally and don't want to update them if the CAPI data may be out of date.
+        self.overview['freeSpace'] = get_by_path(self.data, ['capacity', 'freeSpace'], self.overview.get('freeSpace'))
+        for item in ['cargoForSale', 'cargoNotForSale', 'cargoSpaceReserved']:
+            self.cargo['overview'][item] = get_by_path(self.data, ['capacity', item], self.cargo.get('overview', {}).get(item, 0))
+
+        # Somehow where we think we are and where CAPI says we are are two different things.
+        if get_by_path(self.data, ['currentStarSystem'], '') not in self.overview.get('currentStarSystem', None):
+            self.overview['currentStarSystem'] = get_by_path(self.data, ['currentStarSystem'], '')
 
         self.cargo = self._update_cargo(self.data)
 
@@ -401,7 +429,7 @@ class FleetCarrier:
         fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
-        self.overview['departureScheduled'] = entry.get('DepartureTime', "")
+        self.overview['departureScheduled'] = departure_datetime.strftime(DATETIME_FORMAT_JSON)
         self.overview['jumpDestination'] = entry.get('Body', '') if entry.get('Body', '') != '' else entry.get('SystemName', '')
 
 

@@ -1030,10 +1030,10 @@ class Colonisation:
         buyorder:dict = {}
 
         fccargo = self.bgstally.fleet_carrier.get_cargo()
-        for name, cargo_item in fccargo.get('normal', {}).items():
-            cargo[name] = int(cargo_item.get('stock', 0))
-            if cargo_item.get('outstanding', 0) > 0:
-                buyorder[name] = int(cargo_item.get('outstanding', 0))
+        for name, c in fccargo.get('inventory', {}).items():
+            cargo[name] = int(c.get('stock', 0))
+            if c.get('outstanding', 0) > 0:
+                buyorder[name] = int(c.get('outstanding', 0))
 
         if cargo != self.carrier_cargo and self.cmdr != None:
             RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)

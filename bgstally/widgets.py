@@ -348,9 +348,9 @@ class TreeviewPlus(ttk.Treeview):
 
     def _sort_by_num(self, column, reverse):
         def _str_to_int(string) -> int:
-            v = parse_human_format(string)
+            v:int = parse_human_format(string)
             return int(v) if v != '' else 0
-        
+
         self._sort(column, reverse, _str_to_int, self._sort_by_num)
 
     def _sort_by_name(self, column, reverse):

@@ -199,7 +199,7 @@ def parse_human_format(text: str) -> int:
     Convert shortened human-readable text into a number
     """
     if not isinstance(text, str) or text.replace(' ', '') == '': return 0
-    text = re.sub(r'[^0-9]', '', text) # Remove commas if we're showing them.
+    text = re.sub(r'[, ]', '', text) # Remove commas or spaces if we're showing them.
     match = human_readable_number_pat.match(text)
 
     if match:

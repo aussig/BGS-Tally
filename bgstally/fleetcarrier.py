@@ -459,7 +459,7 @@ class FleetCarrier:
 
 
     @catch_exceptions
-    def jump_requested(self, entry: dict[str, str]) -> None:
+    def jump_requested(self, entry:dict[str, str]) -> None:
         """ The user scheduled a carrier jump """
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
 

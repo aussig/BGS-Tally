@@ -89,12 +89,12 @@ class WindowFleetCarrier:
             },
             'Shipyard': {
                 'cols': {
-                    'name': {'title': 'Name', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 175, 'locName': _('Name')}, # LANG: Shipyard tab
-                    'type': {'title': 'Type', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 175, 'locName': _('Type')}, # LANG: Shipyard tab
+                    'name': {'title': 'Name', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 200, 'locName': _('Name')}, # LANG: Shipyard tab
+                    'type': {'title': 'Type', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 200, 'locName': _('Type')}, # LANG: Shipyard tab
                     #{'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 175, 'locName': _('Location')}, # LANG: Shipyard tab
-                    'transferTime': {'title': 'Transfer Time', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Transfer Time')}, # LANG: Shipyard tab
+                    'transferTime': {'title': 'Transfer Time', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 175, 'locName': _('Transfer Time')}, # LANG: Shipyard tab
                     'transferPrice': {'title': 'Transfer Cost', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 125, 'locName': _('Transfer Cost')}, # LANG: Shipyard tab
-                    'value': {'title': 'Value', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Value')}, # LANG: Shipyard tab
+                    'value': {'title': 'Value', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 90, 'locName': _('Value')}, # LANG: Shipyard tab
                     'hot': {'title': 'Hot', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Hot')}, # LANG: Shipyard tab
                 },
                 'func': self._shipyard

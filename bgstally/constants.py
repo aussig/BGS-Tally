@@ -45,20 +45,9 @@ class DiscordChannel(str, Enum):
     POWERPLAY = 'PP'
     THARGOIDWAR = 'TW'
 
-
-KEY_CARRIER_TYPE: str = "CarrierType"
 class FleetCarrierType(str, Enum):
     PERSONAL = 'FleetCarrier'
     SQUADRON = 'SquadronCarrier'
-
-
-class FleetCarrierItemType(Enum):
-    MATERIALS_SELLING = 0
-    MATERIALS_BUYING = 1
-    COMMODITIES_SELLING = 2
-    COMMODITIES_BUYING = 3
-    CARGO = 4
-    LOCKER = 5
 
 
 class DiscordPostStyle(str, Enum):

@@ -749,12 +749,6 @@ class ColonisationWindow:
                         totals['Planned'][name] += v
                         totals['Complete'][name] += v if self.is_build_started(build) and v < 1 else 0 # Need to substract points as soon as build starts as the points are nolonger available
                         totals['Complete'][name] += v if self.is_build_complete(build) else 0
-                    case 'Population':
-                        totals['Planned'][name] = ' '
-                        totals['Complete'][name] = human_format(system.get('Population', 0))
-                    case 'Development Level':
-                        totals['Planned'][name] += bt.get(name, 0)
-                        totals['Complete'][name] += bt.get(name, 0) if self.is_build_complete(build) else 0
                     case 'Cost' if row < len(required):
                         rc:int = build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values())
                         totals['Planned'][name] += rc
@@ -763,16 +757,42 @@ class ColonisationWindow:
                         trips:int = ceil((build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values())) / self.colonisation.cargo_capacity)
                         totals['Planned'][name] += trips
                         totals['Complete'][name] += trips if self.is_build_complete(build) else 0
+                    case 'Population':
+                        totals['Planned'][name] = ' '
+                        totals['Complete'][name] = human_format(system.get('Population', 0))
+                    case 'Development Level' | 'Security':
+                        amt:float = float(bt.get(name, 0))                        
+                        amt *= 1.4 if row == 0 else 0.9
+                        #amt2 = totals['Planned'][name]
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
+                        #if name == 'Security': Debug.logger.debug(f"{system.get('StarSystem')} security {amt2:.1f} + {amt:.1f} ({bt.get(name, 0)}) = {totals['Planned'][name]:.1f}")
+                    case 'Standard of Living':                        
+                        amt:float = float(bt.get(name, 0))
+                        amt *= 1.4 if row == 0 else 0.8
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
+                    case 'Technology Level':
+                        amt:float = float(bt.get(name, 0))
+                        amt *= 1.2 if row == 0 else 0.75
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
+                    case 'Wealth':
+                        amt:float = float(bt.get(name, 0))
+                        amt *= 1.4 if row == 0 else 0.75
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
                     case _ if col.get('format') == 'int':
                         totals['Planned'][name] += bt.get(name, 0)
                         totals['Complete'][name] += bt.get(name, 0) if self.is_build_complete(build) else 0
 
+        # Dont think this applies anymore.
         # Deal with the "if you have a starport (t2 orbital or higher) your tech level will be at least 35" rule
-        starports:list = self.colonisation.get_base_types('Starport')
-        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
-        totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
-        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.is_build_complete(build)]) > 0 else 0
-        totals['Complete']['Technology Level'] = max(totals['Complete']['Technology Level'], min)
+        #starports:list = self.colonisation.get_base_types('Starport')
+        #min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
+        #totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
+        #min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.is_build_complete(build)]) > 0 else 0
+        #totals['Complete']['Technology Level'] = max(totals['Complete']['Technology Level'], min)
 
         return totals
 
@@ -790,7 +810,7 @@ class ColonisationWindow:
                 if col.get('hide', False) == True:
                     row.append(' ')
                     continue
-                row.append(totals[r].get(name, 0))
+                row.append(round(totals[r].get(name, 0), 1) if isinstance(totals[r].get(name, 0), float) else totals[r].get(name, 0))
             summary.append(row)
 
         return summary

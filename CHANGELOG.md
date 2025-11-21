@@ -8,6 +8,7 @@
   * Cargo shows cargo including market data
   * Locker shows materials including market data
   * Itinerary shows recent and scheduled jumps
+  * Shipyard shows all the ships docked on your carrier
 
 * Added polling of Raven Colonial project progress
 * Added popup menu for progress options

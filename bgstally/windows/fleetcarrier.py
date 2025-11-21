@@ -5,22 +5,22 @@ from datetime import datetime
 from math import floor
 
 from bgstally.constants import DATETIME_FORMAT_JSON, DATETIME_FORMAT_CARRIER, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
-from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
+from bgstally.debug import Debug
 from bgstally.utils import _, __, human_format, str_truncate, catch_exceptions
-from bgstally.widgets import TextPlus, TreeviewPlus
+from bgstally.widgets import TreeviewPlus
 from config import config # type: ignore
 
 from thirdparty.colors import *
 from thirdparty.Tooltip import ToolTip
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key, ICON_DEL, ICON_ADD, ICON_SORT_DESC, ICON_SORT_ASC, ICON_REDO
 
 
 class WindowFleetCarrier:
     """
     Handles the Fleet Carrier window.
     The window shows an overview of current carrier status and tabs for cargo, materials etc.
+    Tabs have a summary and typically a table of relevant items.
     Buttons are provided to copy information to the clipboard or post directly to discord.
     """
 
@@ -31,68 +31,73 @@ class WindowFleetCarrier:
 
         self.tabs:dict = {
             'Summary': {
-                'fields': ['service', 'enabled', 'status', 'name', 'taxation', 'salary', 'hiringPrice'],
-                'cols': [
-                    {'title': _('Service'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 225},
-                    {'title': _('Enabled'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 85},
-                    {'title': _('Status'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 100},
-                    {'title': _('Crew Member'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 175},
-                    {'title': _('Tax Rate'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 75},
-                    {'title': _('Salary'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 85},
-                    {'title': _('Hiring Cost'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100},
-                ],
-                'names': {'vistagenomics': 'Vista Genomics', 'pioneersupplies': 'Pioneer Supplies',
-                            'voucherredemption': 'Redemption', 'carriermanagement' : 'Carrier Management',
-                            'stationmenu': 'Station Menu', 'Crew Lounge': 'Crew Lounge'},
-                'ignore': ['stationmenu', 'carrierfuel', 'commodities', 'carriermanagement',
-                           'dock', 'crewlounge', 'engineer', 'socialspace',
-                            'contacts', 'registeringcolonisation', 'livery',
-                            'lastEdit', 'faction', 'gender'],
+                'cols': {
+                    'service': {'title': 'Service', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 225, 'locName': _('Service')}, # LANG: Services summary tab
+                    'enabled': {'title': 'Enabled', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 85, 'locName': _('Enabled')}, # LANG: Services summary tab
+                    'status': {'title': 'Status', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 100, 'locName': _('Status')}, # LANG: Services summary tab
+                    'name': {'title': 'Crew Member', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 175, 'locName': _('Crew Member')}, # LANG: Services summary tab
+                    'taxation': {'title': 'Tax Rate', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 75, 'locName': _('Tax Rate')}, # LANG: Services summary tab
+                    'salary' : {'title': 'Salary', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 85, 'locName': _('Salary')}, # LANG: Services summary tab
+                    'hiringPrice': {'title': 'Hiring Cost', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Hiring Cost')}, # LANG: Services summary tab
+                },
+                'names': {'vistagenomics': _('Vista Genomics'), # LANG: Service name
+                          'pioneersupplies': _('Pioneer Supplies'), # LANG: Service name
+                          'voucherredemption': _('Redemption'), # LANG: Service name
+                },
+                'ignore': ['stationmenu', 'carrierfuel', 'commodities', 'carriermanagement', 'dock',
+                           'crewlounge', 'engineer', 'socialspace', 'contacts', 'registeringcolonisation',
+                           'livery', 'lastEdit', 'faction', 'gender'],
                 "func": self._summary
             },
             'Cargo': {
-                'fields': ['locName', 'category', 'stock', 'buy', 'sell', 'price', 'stolen', 'mission'],
-                'widths': [20, 14, 6, 6, 7, 7],
-                'format': ["{val:<20}", "{val:<14}", "{val:>6}", "{val:>6}", "{val:>7}", "{val:>7}"],
-                'cols': [
-                    {'title': _('Commodity'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250},
-                    {'title': _('Category'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150},
-                    {'title': _('Stock'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
-                    {'title': _('Buying'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
-                    {'title': _('Selling'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
-                    {'title': _('Price'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
-                    {'title': _('Stolen'), 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
-                    {'title': _('Mission'), 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70}
-                ],
+                'cols': {
+                    'locName': {'title': 'Commodity', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'discordWidth':20, 'locName': _('Hiring Cost')}, # LANG: Cargo tab
+                    'category': {'title': 'Category', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150, 'discordWidth':14, 'locName': _('Category')}, # LANG: Cargo tab
+                    'stock': {'title': 'Stock', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':6, 'locName': _('Stock')}, # LANG: Cargo tab
+                    'buy': {'title': 'Buying', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':6, 'locName': _('Buying')}, # LANG: Cargo tab
+                    'sell': {'title': 'Selling', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':7, 'locName': _('Selling')}, # LANG: Cargo tab
+                    'price': {'title': 'Price', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':7, 'locName': _('Price')}, # LANG: Cargo tab
+                    'stolen': {'title': 'Stolen', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Stolen')}, # LANG: Cargo tab
+                    'mission': {'title': 'Mission', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Mission')} # LANG: Cargo tab
+                },
                 "func": self._cargo,
-                'buttons': True
+                'discordButtons': True,
             },
             'Locker': {
-                'fields': ['locName', 'category', 'stock', 'buy', 'sell', 'price', 'mission'],
-                'widths': [20, 8, 5, 6, 7, 5],
-                'format': ["{val:<20}", "{val:<8}", "{val:>5}", "{val:>6}", "{val:>7}", "{val:>5}"],
-                'cols': [
-                    {'title': _('Material'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250},
-                    {'title': _('Category'), 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150},
-                    {'title': _('Stock'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
-                    {'title': _('Buying'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
-                    {'title': _('Selling'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
-                    {'title': _('Price'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70},
-                    {'title': _('Mission'), 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70}
-                ],
+                'cols': {
+                    'locName': {'title': 'Material', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'discordWidth':20, 'locName': _('Material')}, # LANG: Locker tab
+                    'category': {'title': 'Category', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150, 'discordWidth':8, 'locName': _('Category')}, # LANG: Locker tab
+                    'stock': {'title': 'Stock', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':5, 'locName': _('Stock')}, # LANG: Locker tab
+                    'buy': {'title': 'Buying', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':6, 'locName': _('Buying')}, # LANG: Locker tab
+                    'sell': {'title': 'Selling', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':7, 'locName': _('Selling')}, # LANG: Locker tab
+                    'price': {'title': 'Price', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':5, 'locName': _('Price')}, # LANG: Locker tab
+                    'mission': {'title': 'Mission', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Mission')} # LANG: Locker tab
+                },
                 "func": self._locker,
-                'buttons': True
+                'discordButtons': True,
+
             },
             'Itinerary': {
-                'fields': ['starSystem', 'visitDurationSeconds', 'arrivalTime', 'departureTime', 'state'],
-                'cols': [
-                    {'title': _('System'), 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250},
-                    {'title': _('Duration'), 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 150},
-                    {'title': _('Arrived'), 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150},
-                    {'title': _('Departed'), 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150},
-                    {'title': _('Status'), 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 100},
-                ],
+                'cols': {
+                    'destination': {'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Location')}, # LANG: Itinerary tab
+                    'visitDurationSeconds': {'title': 'Duration', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Duration')}, # LANG: Itinerary tab
+                    'arrivalTime': {'title': 'Arrived', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Arrived')}, # LANG: Itinerary tab
+                    'departureTime': {'title': 'Departed', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Departed')}, # LANG: Itinerary tab
+                    'state': {'title': 'Status', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Status')}, # LANG: Itinerary tab
+                },
                 'func': self._itinerary
+            },
+            'Shipyard': {
+                'cols': {
+                    'name': {'title': 'Name', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 175, 'locName': _('Name')}, # LANG: Shipyard tab
+                    'type': {'title': 'Type', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 175, 'locName': _('Type')}, # LANG: Shipyard tab
+                    #{'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 175, 'locName': _('Location')}, # LANG: Shipyard tab
+                    'transferTime': {'title': 'Transfer Time', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Transfer Time')}, # LANG: Shipyard tab
+                    'transferPrice': {'title': 'Transfer Cost', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 125, 'locName': _('Transfer Cost')}, # LANG: Shipyard tab
+                    'value': {'title': 'Value', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Value')}, # LANG: Shipyard tab
+                    'hot': {'title': 'Hot', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Hot')}, # LANG: Shipyard tab
+                },
+                'func': self._shipyard
             },
         }
 
@@ -138,7 +143,7 @@ class WindowFleetCarrier:
             fr:ttk.Frame = ttk.Frame(tabbar, relief=tk.FLAT)
             fr.pack(fill=tk.BOTH, expand=1)
             tabbar.add(fr, text=_(k))
-            if v.get('buttons', False) == True:
+            if v.get('discordButtons', False) == True:
                 self._create_buttons(k, fr)
             v['func'](fc, v, fr)
 
@@ -146,9 +151,10 @@ class WindowFleetCarrier:
     def _summary(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
         summary:dict = fc.get_summary()
 
-        sections:dict = {'finances': _('Finances'),
-                         'costs': _('Running Costs'),
-                         'capacity': _('Capacity')}
+        sections:dict = {'finances': _('Finances'), # LANG: Summary headings
+                         'costs': _('Running Costs'), # LANG: Summary headings
+                         'capacity': _('Capacity')} # LANG: Summary headings
+
         fr:ttk.Frame = ttk.Frame(frame, relief=tk.FLAT, style="White.TFrame")
         fr.pack(fill=tk.BOTH, expand=1)
         for k, v in sections.items():
@@ -171,7 +177,7 @@ class WindowFleetCarrier:
         for s, v in sorted(services.get('crew', {}).items()):
             if s in which['ignore']: continue
             row:list = []
-            for c in which['fields']:
+            for c in which['cols'].keys():
                 if c in which['ignore']: continue
                 val:str = ''
                 match c:
@@ -186,17 +192,12 @@ class WindowFleetCarrier:
         cargo:dict = fc.get_cargo()
 
         if cargo.get('overview', None) != None:
-            style:ttk.Style = ttk.Style()
-            style.configure("White.TFrame", background='white')
-            summ:ttk.Frame = ttk.Frame(frame, style="White.TFrame")
-            summ.configure(padding=10)
-            summ.pack(fill=tk.X)
-            self._create_columns(cargo['overview'], 4, summ, bg='white')
+            self._overview(cargo['overview'], 4, frame, bg='white')
 
         table:TreeviewPlus = self._create_table(which['cols'], frame)
         for name, i in cargo['inventory'].items():
             line:list = []
-            for c in which['fields']:
+            for c in which['cols'].keys():
                 val:str = ""
                 match c:
                     case "buy" if i.get("price", 0) > 0 and i.get("outstanding", 0) > 0: val = i.get("outstanding")
@@ -213,17 +214,12 @@ class WindowFleetCarrier:
         locker:dict = fc.get_locker()
 
         if locker.get('overview', None) != None:
-            style:ttk.Style = ttk.Style()
-            style.configure("White.TFrame", background='white')
-            summ:ttk.Frame = ttk.Frame(frame, style="White.TFrame")
-            summ.configure(padding=10)
-            summ.pack(fill=tk.X)
-            self._create_columns(locker['overview'], 4, summ, bg='white')
+            self._overview(locker['overview'], 4, frame, bg='white')
 
         table:TreeviewPlus = self._create_table(which['cols'], frame)
         for cat, i in locker.get('inventory', {}).items():
             row:list = []
-            for c in which['fields']:
+            for c in which['cols'].keys():
                 val:str = ""
                 match c:
                     case "buy" if i.get("price", 0) > 0 and i.get("outstanding", 0) > 0: val = i.get("outstanding")
@@ -240,18 +236,29 @@ class WindowFleetCarrier:
         itinerary:dict = fc.get_itinerary()
 
         if itinerary.get('overview', None) != None:
-            style:ttk.Style = ttk.Style()
-            style.configure("White.TFrame", background='white')
-            summ:ttk.Frame = ttk.Frame(frame, style="White.TFrame")
-            summ.configure(padding=10)
-            summ.pack(fill=tk.X)
-            self._create_columns(itinerary['overview'], 10, summ, bg='white')
+            self._overview(itinerary['overview'], 10, frame, bg='white')
 
         table:TreeviewPlus = self._create_table(which['cols'], frame)
         for jump in itinerary.get('completed', []):
             row:list = []
-            for c in which['fields']:
+            for c in which['cols'].keys():
                 row.append(self._format(jump.get(c)))
+            table.insert("", 'end', values=row)
+
+
+    def _shipyard(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
+        """ Create and display the Itinerary tab """
+        shipyard:dict = fc.get_shipyard()
+
+        if shipyard.get('overview', None) != None:
+            self._overview(shipyard['overview'], 10, frame, bg='white')
+
+        table:TreeviewPlus = self._create_table(which['cols'], frame)
+        for ship in shipyard.get('ships', []):
+            if ship.get('location')[0] != 'Carrier': continue # Only show ships stored at the carrier
+            row:list = []
+            for c in which['cols'].keys():
+                row.append(self._format(ship.get(c)))
             table.insert("", 'end', values=row)
 
 
@@ -300,9 +307,19 @@ class WindowFleetCarrier:
                 ret = human_format(int(value)) if int(value) > 100000 else f"{value:,}"
 
             case _: # Title case two words, leave longer strings as is
-                ret = str(value).title() if str(value).count(' ') <= 2 else str(value)
+                ret = str(value).title() if str(value).count(' ') < 2 else str(value)
 
         return ret + units
+
+
+    def _overview(self, data:dict, maxcols:int, frame:ttk.Frame, bg:str='None') -> None:
+        """ Create and display a standard Overview within a tab """
+        style:ttk.Style = ttk.Style()
+        style.configure("White.TFrame", background='white')
+        ovf:ttk.Frame = ttk.Frame(frame, style="White.TFrame")
+        ovf.configure(padding=10)
+        ovf.pack(fill=tk.X)
+        self._create_columns(data, maxcols, ovf, bg)
 
 
     def _create_columns(self, data:dict, maxcols:int, frame:ttk.Frame, bg:str='None') -> None:
@@ -388,7 +405,7 @@ class WindowFleetCarrier:
         menuv.pack(side=tk.RIGHT, pady=5)
 
 
-    def _create_table(self, cols:list, frame:ttk.Frame) -> TreeviewPlus:
+    def _create_table(self, cols:dict, frame:ttk.Frame) -> TreeviewPlus:
         """ Create a treeview table with headings and columns """
         style = ttk.Style()
         style.configure("My.Treeview.Heading", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background='lightgrey')
@@ -396,14 +413,14 @@ class WindowFleetCarrier:
         # Dummy since callback is mandatory
         def _selected(self) -> None: return None
 
-        table:TreeviewPlus = TreeviewPlus(frame, columns=[d['title'] for d in cols], show="headings", height=100, callback=_selected, datetime_format=DATETIME_FORMAT_CARRIER, style="My.Treeview")
+        table:TreeviewPlus = TreeviewPlus(frame, columns=[d['title'] for d in cols.values()], show="headings", height=100, callback=_selected, datetime_format=DATETIME_FORMAT_CARRIER, style="My.Treeview")
         sb:ttk.Scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=table.yview)
         sb.pack(fill=tk.Y, side=tk.RIGHT)
         table.configure(yscrollcommand=sb.set)
         table.pack(fill=tk.X, expand=1)
-        for column in cols:
-            table.heading(column['title'], text=column['title'].title(), anchor=column['align'], sort_by=column['sort'])
-            table.column(column['title'], anchor=column['align'], stretch=column['stretch'], width=column['width'])
+        for v in cols.values():
+            table.heading(v['title'], text=v['locName'].title(), anchor=v['align'], sort_by=v['sort'])
+            table.column(v['title'], anchor=v['align'], stretch=v['stretch'], width=v['width'])
 
         return table
 
@@ -428,17 +445,21 @@ class WindowFleetCarrier:
         output += __("Carrier: {carrier_name} - {which}\n", lang=l).format(carrier_name=fc.overview['name'], which=which.title()) # LANG: fleet carrier materials header
         if fc.overview.get('currentStarSystem', "") != "":
             if discord == True: output += "### "
-            output += __("System: {system}\n", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) # LANG: fleet carrier materials system line
+            output += __("Location: {system}\n", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) # LANG: fleet carrier materials system line
         output += "\n"
 
         # Header row for table
         if discord == True: output += "```\n"
         header:list = []
-        for i, fmt in enumerate(tab['format']):
-            tmp:str = __(str_truncate(tab['cols'][i]['title'], tab['widths'][i]), lang=l)
+        for col in tab['cols'].values():
+            if col.get('discordWidth', None) == None: continue
+            tmp:str = str_truncate(__(col['title'], lang=l), col['discordWidth'])
+            fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"
             header.append(fmt.format(val=tmp))
         output += " | ".join(header) + "\n"
-        output += "-" * (sum(tab['widths']) + (3 * (len(tab['widths']) -1))) + "\n"
+        w:int = sum([d.get('discordWidth', 0) for d in tab['cols'].values()])
+        output += "-" * (w + (3 * (len(header) -1))) + "\n"
+        #output += "-" * (sum(col['discordWidth']) + (3 * (len(col['discordWidth']) -1))) + "\n"
 
         # Table rows
         for item in data.get('inventory', {}).values():
@@ -447,32 +468,18 @@ class WindowFleetCarrier:
             if type == 'Both' and item.get('price', 0) == 0: continue
 
             line:list = []
-            for i, fmt in enumerate(tab['format']):
+            for f, col in tab['cols'].items():
+                if col.get('discordWidth', None) == None: continue
                 val:str = ""
-                match tab['fields'][i]:
+                match f:
                     case "buy" if item.get("price", 0) > 0 and item.get("outstanding", 0) > 0: val = item.get("outstanding")
                     case "sell" if item.get("price", 0) > 0 and item.get("stock", 0) > 0: val = item.get("stock")
-                    case _: val = item.get(tab['fields'][i], " ")
-                tmp:str = str_truncate(__(self._format(val), lang=l), tab['widths'][i])
+                    case _: val = item.get(f, " ")
+                tmp:str = str_truncate(__(self._format(val), lang=l), col['discordWidth'])
+                fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"
                 line.append(fmt.format(val=tmp))
             if line != []:
                 output += " | ".join(line) + "\n"
 
         if discord == True: output += "```"
         return output
-
-
-    def _(self, text: str, discord:bool = False) -> str:
-        """ Shortcut for translation """
-        if discord:
-            return __(text, lang=self.bgstally.state.discord_lang)
-        return _(text)
-
-
-# Just for translation
-labels:dict = {"Finances": _("Finances"), # LANG: Tab label
-                "Cargo": _("Cargo"), # LANG: Tab label
-                'Locker': _('Locker'), # LANG: Tab label
-                'Itinerary': _("Itinerary"), # LANG: Tab label
-                "Services": _("Services"), # LANG: Commodity name header
-            }

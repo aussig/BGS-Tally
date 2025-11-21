@@ -319,9 +319,9 @@ class ProgressWindow:
         output += f"{_('Progress')}: {self.progress:.0f}%\n"
         output += "\n"
         if discord:
-            output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7} |\n"
+            output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7}\n"
 
-        output += "-" * 67 + "\n"
+        output += "-" * 63 + "\n"
         comms:list = []
         qty:dict = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
         if self.colonisation.docked == True and '$EXT_PANEL_ColonisationShip' not in f"{self.colonisation.station}" and 'Construction Site' not in f"{self.colonisation.station}":
@@ -345,9 +345,9 @@ class ProgressWindow:
                 name:str = self.colonisation.get_commodity(c, 'name')
                 cat:str = self.colonisation.get_commodity(c, 'category')
                 if discord:
-                    output += f"{name:<28} | {cat:<20} | {remaining: 7,} {_('t')} |\n"
+                    output += f"{name:<28} | {cat:<20} | {remaining: 8,}{_('t')}\n"
                 else:
-                    output += f"{name}: {remaining} {_('t')}\n"
+                    output += f"{name}: {remaining}{_('t')}\n"
 
         if discord: output += "```\n"
         return output.strip()

@@ -5,7 +5,7 @@ import time
 import re
 from datetime import datetime, timedelta
 from config import config # type: ignore
-from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView, FleetCarrierItemType
+from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
 from bgstally.utils import _, catch_exceptions
 from bgstally.ravencolonial import RavenColonial, EDSM, Spansh
@@ -56,7 +56,7 @@ class Colonisation:
         self.market_id:int|None = None
         self.docked:bool = False
         self.base_types:dict = {}  # Loaded from bases.json
-        self.systems:list = []     # Systems with colonisation
+        self.systems:list[dict] = []     # Systems with colonisation
         self.progress:list = []    # Construction progress data
         self.dirty:bool = False
 
@@ -269,7 +269,7 @@ class Colonisation:
                 # Load progress for tracked builds.
                 # This will get called quite a lot but it uses a lightweight method
                 # to only get progress that's changed
-                tracked:list = self.get_tracked_builds()
+                tracked:list[dict] = self.get_tracked_builds()
                 for b in tracked:
                     if b.get('ProjectID', None) != None:
                         prog:dict|None = self.find_progress(b.get('ProjectID', 0))
@@ -670,7 +670,7 @@ class Colonisation:
 
 
     @catch_exceptions
-    def add_build(self, system, data:dict, silent:bool = False) -> dict:
+    def add_build(self, system:int|dict, data:dict, silent:bool = False) -> dict:
         ''' Add a new build to a system '''
 
         # Yea this is terrible but it works for now.
@@ -685,7 +685,7 @@ class Colonisation:
         # If we have a body name or id set the corresponding value.
         body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', '')))
         if body != None:
-            data['Body'] = self.body_name(system.get('StarSystem'), body.get('name', ''))
+            data['Body'] = self.body_name(system.get('StarSystem', ''), body.get('name', ''))
             data['BodyNum'] = body['bodyId']
 
         if data.get('Base Type', '') == '' and data.get('Layout', None) != None:
@@ -873,7 +873,7 @@ class Colonisation:
         data:dict = {
             'State': BuildState.COMPLETE,
             'Track': False,
-            'TotalCost': sum(p.get('Required').values()),
+            'TotalCost': sum(p.get('Required', {}).values()) if p != None else 0,
             'Readonly': True,
             'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
         }
@@ -1027,20 +1027,19 @@ class Colonisation:
             return
         Debug.logger.debug(f"Updating carrier cargo")
         cargo:dict = {}
-        buy:dict = {}
+        buyorder:dict = {}
 
-        fccargo, name_key, display_name_key, quantity_key = self.bgstally.fleet_carrier._get_items(FleetCarrierItemType.CARGO)
-        for name, cargo_item in fccargo.items():
-            name:str = name.lower()
-            cargo[name] = int(cargo_item.get(quantity_key, 0))
+        fccargo = self.bgstally.fleet_carrier.get_cargo()
+        for name, cargo_item in fccargo.get('normal', {}).items():
+            cargo[name] = int(cargo_item.get('stock', 0))
             if cargo_item.get('outstanding', 0) > 0:
-                buy[name] = int(cargo_item.get('outstanding', 0))
+                buyorder[name] = int(cargo_item.get('outstanding', 0))
 
         if cargo != self.carrier_cargo and self.cmdr != None:
             RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)
             self.dirty = True
 
-        self.carrier_buy = buy
+        self.carrier_buy = buyorder
         self.carrier_cargo = cargo
 
 
@@ -1099,10 +1098,10 @@ class Colonisation:
         ''' Save state to file '''
 
         Debug.logger.debug(f"Saving: {cause}")
-
+        ind:int = 4 if self.bgstally.dev_mode == True else 0
         file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
         with open(file, 'w') as outfile:
-            json.dump(self._as_dict(), outfile, indent=4)
+            json.dump(self._as_dict(), outfile, indent=ind)
 
         self.dirty = False
 

@@ -305,6 +305,9 @@ class BGSTally:
                 self.target_manager.ship_targeted(entry, system)
                 dirty = True
 
+            case 'Shipyard' | 'StoredShips' | 'ShipyardSwap':
+                self.fleet_carrier.shipyard_event(entry)
+
             case 'SupercruiseDestinationDrop':
                 activity.destination_dropped(entry, self.state)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)

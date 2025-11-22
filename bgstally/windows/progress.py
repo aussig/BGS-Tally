@@ -150,6 +150,7 @@ class ProgressWindow:
         self.progbar.grid(row=0, column=0, columnspan=bgs_cols, pady=0, ipady=0, sticky=tk.EW)
         self.progbar.rowconfigure(0, weight=1)
         row += 1; col = 0
+
         lbl:tk.Label = tk.Label(frame, text=_("Builds") + ":", anchor=tk.W) # LANG: Builds/bases
         lbl.grid(row=row, column=0, sticky=tk.W)
         self._set_weight(lbl)
@@ -183,34 +184,16 @@ class ProgressWindow:
         row += 1; col = 0
 
         # Commodity table frame
-        table_frame:tk.Frame
-        # Scrolly version is disabled, having too much trouble getting the canvas to stay sized and the scrollbar to work.
-        if self.bgstally.state.progress_scrollbar == True and False:
-            canvas:tk.Canvas = tk.Canvas(frame, borderwidth=0)
-            canvas.configure(height=400)
-            sb:ttk.Scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=canvas.yview)
-            canvas.configure(yscrollcommand=sb.set)
-
-            table_frame = tk.Frame(canvas)
-            #table_frame.grid(row=row, column=col, sticky=tk.EW)
-            table_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
-            canvas.create_window((0, 0), window=table_frame, anchor=tk.NW, tags='frame')
-
-            canvas.grid(row=row, column=0, columnspan=bgs_cols-1, pady=0, ipady=0, sticky=tk.NSEW)
-            sb.grid(sticky=tk.NS, row=row, column=bgs_cols)
-            canvas.bind("<Configure>", lambda e: canvas.itemconfig('frame', height=canvas.winfo_height(), width=canvas.winfo_width()))
-
-        else:
-            table_frame = tk.Frame(frame)
-            table_frame.grid(row=row, column=col, columnspan=5, sticky=tk.NSEW)
-
-        row = 0
+        table_frame:tk.Frame = tk.Frame(frame)
+        table_frame.grid(row=row, column=col, columnspan=bgs_cols, sticky=tk.NSEW)
+        table_frame.grid_rowconfigure(0, weight=1)
         table_frame.columnconfigure(0, weight=3)
         table_frame.columnconfigure(1, weight=1)
         table_frame.columnconfigure(2, weight=1)
         table_frame.columnconfigure(3, weight=1)
         self.table_frame = table_frame
 
+        row = 0
         # Column headings
         for col, v in enumerate(self.columns):
             if v >= len(self.headings): v = 0
@@ -245,6 +228,7 @@ class ProgressWindow:
             row += 1
 
         row += 1
+
         # Totals at the bottom
         r:dict = {}
         for col, v in enumerate(self.columns):
@@ -632,12 +616,12 @@ class ProgressWindow:
                 (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
                 ((self.colonisation.docked == False or self.colonisation.market == {}) and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
                 (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and self.view == ProgressView.MINIMAL) or \
-                (self.bgstally.state.progress_scrollbar == False and rc > int(self.bgstally.state.ColonisationMaxCommodities.get())):
+                (rc > int(self.bgstally.state.ColonisationMaxCommodities.get())):
                 for cell in row.values():
                     cell.grid_remove()
                 continue
 
-            if self.bgstally.state.progress_scrollbar == False and rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
+            if rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
                     cell['text'] = '… '
                     cell.grid()

@@ -111,10 +111,13 @@ class RavenColonial:
         return headers
 
 
-    def is_editable(self, system:dict) -> bool:
-        """ Determine if we can edit this system in RavenColonial """
-        if self.colonisation.cmdr == None:
+    def is_editable(self, system:dict|None = None) -> bool:
+        """ Determine if we can/should edit this system in RavenColonial """
+
+        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None:
             return False
+
+        if system == None: return True # General edit permission check
 
         return system.get('RCOpen', False) == True or \
             self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
@@ -152,6 +155,10 @@ class RavenColonial:
     @catch_exceptions
     def add_system(self, system_name:str) -> None:
         """ Add a system to RC. """
+
+        if self.is_editable() == False:
+            Debug.logger.info("Not adding system to RavenColonial")
+            return
 
         # Query the system to see if it exists
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
@@ -192,6 +199,11 @@ class RavenColonial:
     @catch_exceptions
     def complete_project(self, project_id:str) -> None:
         """ Complete a site """
+
+        if self.is_editable() == False:
+            Debug.logger.info("Not completing project in RavenColonial")
+            return
+
         url:str = f"{RC_API}/project/{project_id}/complete"
 
         response:Response = requests.post(url, headers=self._headers(), timeout=5)
@@ -205,6 +217,11 @@ class RavenColonial:
     @catch_exceptions
     def delete_project(self, project_id:str) -> None:
         """ Delete a project """
+
+        if self.is_editable() == False:
+            Debug.logger.info("Not allowed to delete project")
+            return
+
         url:str = f"{RC_API}/project/{project_id}"
 
         response:Response = requests.delete(url, headers=self._headers(), timeout=5)
@@ -255,6 +272,7 @@ class RavenColonial:
     @catch_exceptions
     def remove_site(self, system:dict, ind:int) -> None:
         """ Remove a site from RavenColonial """
+
         if self.is_editable(system) == False:
             Debug.logger.info(f"Not allowed to remove site")
             return
@@ -371,6 +389,7 @@ class RavenColonial:
 
     def _reorder_builds(self, system:dict, sites:list) -> None:
         """ Reorder the builds in the system to match the order from RavenColonial """
+
         new_order:list = []
         for s in sites:
             build:dict|None = self.colonisation.find_build(system, {'BuildID' : s.get('id', -1), 'Name': s.get('name', -1), 'BodyNum': s.get('bodyNum', -1)})
@@ -414,6 +433,11 @@ class RavenColonial:
     @catch_exceptions
     def create_project(self, system:dict, build:dict, progress:dict) -> str|None:
         """ Create a new project in RavenColonial """
+
+        if self.is_editable() == False:
+            Debug.logger.info("Not creating project in RavenColonial")
+            return
+
         payload:dict = {}
         for k, v in self.project_params.items():
             rcval:dict|None = None
@@ -466,6 +490,10 @@ class RavenColonial:
     def upsert_project(self, system:dict, build:dict, progress:dict) -> None:
         """ Update build progress """
 
+        if self.is_editable() == False:
+            Debug.logger.info("Not updating project in RavenColonial")
+            return
+
         # Create project if we don't have an id.
         if progress.get('ProjectID', None) == None:
             projectid:str|None = self.create_project(system, build, progress)
@@ -516,6 +544,8 @@ class RavenColonial:
 
     @catch_exceptions
     def load_project(self, progress:dict) -> None:
+        """ Load the latest project data from RavenColonial """
+
         projectid:str|None = progress.get('ProjectID', None)
         if projectid == None: return
 
@@ -567,6 +597,11 @@ class RavenColonial:
     @catch_exceptions
     def record_contribution(self, project_id:int, contributions:list[dict]) -> None:
         """ Record colonisation contributions made """
+
+        if self.is_editable() == False:
+            Debug.logger.info("Not recording contribution with RavenColonial")
+            return
+
         payload:dict = {re.sub(r"\$(.*)_name;$", r"\1", c.get('Name', '').lower()): c.get('Amount', 0) for c in contributions}
 
         # Which of the following to use?
@@ -582,8 +617,8 @@ class RavenColonial:
     @catch_exceptions
     def update_carrier(self, marketid:int, cargo:dict) -> None:
         """ Update the cargo of a fleet carrier """
-        if self.colonisation.cmdr == None:
-            Debug.logger.info("Cannot update carrier no cmdr")
+        if self.is_editable() == False:
+            Debug.logger.info("Not updating carrier in RavenColonial")
             return
 
         payload:dict = {comm : cargo.get(comm, 0) for comm in self.bgstally.ui.commodities.keys()}

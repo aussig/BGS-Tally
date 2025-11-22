@@ -715,7 +715,7 @@ class ColonisationWindow:
         ''' Build a summary of the system's builds and status. '''
         totals:dict = {'Planned': {}, 'Complete': {}}
         builds:list = system.get('Builds', [])
-        required:dict = self.colonisation.get_required(builds)
+        required:list = self.colonisation.get_required(builds)
 
         for name, col in self.summary_cols.items():
             if col.get('hide') == True:
@@ -761,13 +761,11 @@ class ColonisationWindow:
                         totals['Planned'][name] = ' '
                         totals['Complete'][name] = human_format(system.get('Population', 0))
                     case 'Development Level' | 'Security':
-                        amt:float = float(bt.get(name, 0))                        
+                        amt:float = float(bt.get(name, 0))
                         amt *= 1.4 if row == 0 else 0.9
-                        #amt2 = totals['Planned'][name]
                         totals['Planned'][name] += amt
                         totals['Complete'][name] += amt if self.is_build_complete(build) else 0
-                        #if name == 'Security': Debug.logger.debug(f"{system.get('StarSystem')} security {amt2:.1f} + {amt:.1f} ({bt.get(name, 0)}) = {totals['Planned'][name]:.1f}")
-                    case 'Standard of Living':                        
+                    case 'Standard of Living':
                         amt:float = float(bt.get(name, 0))
                         amt *= 1.4 if row == 0 else 0.8
                         totals['Planned'][name] += amt

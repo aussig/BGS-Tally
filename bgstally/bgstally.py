@@ -132,6 +132,10 @@ class BGSTally:
         activity:Activity = self.activity_manager.get_current_activity()
         activity.cmdr = cmdr
 
+        if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
+            activity.system_entered(entry, self.state)
+            dirty = True
+
         mission:dict = self.mission_log.get_mission(entry.get('MissionID'))
 
         match entry.get('event'):
@@ -167,6 +171,9 @@ class BGSTally:
 
             case 'CarrierJumpRequest':
                 self.fleet_carrier.jump_requested(entry)
+
+            case 'CarrierJump':
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'CarrierStats':
                 self.fleet_carrier.stats_received(entry)

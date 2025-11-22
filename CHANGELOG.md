@@ -1,6 +1,6 @@
 # Change Log
 
-## v5.4.x - xxxx-xx-xx
+## vx.x.x - xxxx-xx-xx
 
 ### New Features:
 * Fully reworked fleet carrier window with improved tracking and much more detail and four tabs:
@@ -26,11 +26,6 @@
 * Fixed bug with checking for Open systems in RC
 * Fixed type error in self.station
 * Cleaned and tidied the CLB formatter
-
-## v5.3.2 - xxxx-xx-xx
-
-### Bug fixes:
-
 * Improved project initiation with Raven Colonial
 * Fixed progress bug by modifying when/how progress is updated on tracking changes
 * Ensured RC projects sync even when created by other means

@@ -114,7 +114,8 @@ class RavenColonial:
     def is_editable(self, system:dict|None = None) -> bool:
         """ Determine if we can/should edit this system in RavenColonial """
 
-        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None:
+        if self.colonisation.cmdr == None or \
+            self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
             return False
 
         if system == None: return True # General edit permission check

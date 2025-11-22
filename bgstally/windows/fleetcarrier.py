@@ -356,17 +356,14 @@ class WindowFleetCarrier:
 
         @catch_exceptions
         def _post(which:str, type:str|tk.StringVar, btn:ttk.Button) -> None:
-            fc: FleetCarrier = self.bgstally.fleet_carrier
-            l:str = self.bgstally.state.discord_lang
             btn.config(state=tk.DISABLED)
             output:str = self._get_as_text(which, type, True)
 
-            if len(output) > 1990: # Split it across multiple posts if it's too large.
-                while len(output) > 1900:
-                    split_at:int = output.rfind('\n', 0, 1000)
-                    part:str = output[0:split_at]
-                    self.bgstally.discord.post_plaintext(part, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
-                    output = output[split_at+1:]
+            while len(output) > 1990:
+                split_at:int = output.rfind('\n', 0, 1900)
+                part:str = output[0:split_at]
+                self.bgstally.discord.post_plaintext(part, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
+                output = output[split_at+1:]
             self.bgstally.discord.post_plaintext(output, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
             btn.after(5000, _enable_post, btn)
 

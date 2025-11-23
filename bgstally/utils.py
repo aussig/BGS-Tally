@@ -5,7 +5,7 @@ from copy import deepcopy
 from os import listdir, path
 from os.path import join
 from pathlib import Path
-from re import Pattern, compile
+from re import Pattern, compile, Match
 from typing import Any, Callable, Tuple
 
 import semantic_version
@@ -15,7 +15,8 @@ import l10n
 from bgstally.debug import Debug
 from config import appversion, config
 
-human_readable_number_pat:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt%]?)$")
+PAT_HUMAN_READABLE_NUM:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt]?)$")
+PAT_HUMAN_READABLE_NUM_OR_PERC:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt%]?)$")
 
 # Language codes for languages that should be omitted
 BLOCK_LANGS: list = []
@@ -100,10 +101,12 @@ def available_langs() -> dict[str | None, str]:
     Returns:
         dict[str | None, str]: The available language names indexed by language code
     """
+    l10n_path:str | Path
+
     if edmc_version < semantic_version.Version('5.12.0'):
-        l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
+        l10n_path = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
     else:
-        l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
+        l10n_path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
 
     available: set[str] = {x[:-len('.strings')] for x in listdir(l10n_path)
                            if x.endswith('.strings')
@@ -194,28 +197,26 @@ def human_format(num:int) -> str:
     return '{}{}'.format('{:f}'.format(fnum).rstrip('0').rstrip('.'), abbrs[magnitude])
 
 
-def parse_human_format(text: str) -> int:
-    """
-    Convert shortened human-readable text into a number
+def parse_human_format(text:str, include_percent:bool = False) -> int:
+    """Convert shortened human-readable text into a number
+
+    Args:
+        text (str): The human-readable text to convert
+        include_percent (bool, optional): Allow % in the string. Defaults to False.
+
+    Returns:
+        int: The numeric result
     """
     if not isinstance(text, str) or text.replace(' ', '') == '': return 0
     text = re.sub(r'[, ]', '', text) # Remove commas or spaces if we're showing them.
-    match = human_readable_number_pat.match(text)
+    match:Match[str]|None = PAT_HUMAN_READABLE_NUM_OR_PERC.match(text) if include_percent else PAT_HUMAN_READABLE_NUM.match(text)
 
     if match:
-        num = float(match.group(1))
-        multiplier = {'': 1, 'k': 1000, 'm': 1000000, 'b': 1000000000, 't': 1000000000000}[match.group(2).lower()]
+        num:float = float(match.group(1))
+        multiplier:int = {'%': 0.01, '': 1, 'k': 1000, 'm': 1000000, 'b': 1000000000, 't': 1000000000000}[match.group(2).lower()]
         return int(num * multiplier)
     else:
         return int(text)
-
-
-def validate_human_format(text: str) -> bool:
-    """
-    Validate whether a string value is in standard shortened human-readable (integer) format
-    """
-    if not isinstance(text, str): return False
-    else: return human_readable_number_pat.match(text)
 
 
 def is_number(s: str) -> bool:

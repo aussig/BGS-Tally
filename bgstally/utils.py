@@ -15,7 +15,7 @@ import l10n
 from bgstally.debug import Debug
 from config import appversion, config
 
-human_readable_number_pat:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt%]?)$")
+human_readable_number_pat:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt]?)$")
 
 # Language codes for languages that should be omitted
 BLOCK_LANGS: list = []
@@ -199,7 +199,7 @@ def parse_human_format(text: str) -> int:
     Convert shortened human-readable text into a number
     """
     if not isinstance(text, str) or text.replace(' ', '') == '': return 0
-    text = re.sub(r'[, ]', '', text) # Remove commas or spaces if we're showing them.
+    text = re.sub(r'[, %]', '', text) # Remove commas or spaces if we're showing them.
     match = human_readable_number_pat.match(text)
 
     if match:

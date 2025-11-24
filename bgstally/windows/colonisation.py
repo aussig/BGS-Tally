@@ -16,6 +16,7 @@ from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, 
 from bgstally.debug import Debug
 from bgstally.utils import _, get_localised_filepath, human_format, str_truncate, catch_exceptions
 from bgstally.ravencolonial import RavenColonial
+from bgstally.colonisation import Colonisation
 
 from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
@@ -39,7 +40,7 @@ class ColonisationWindow:
     '''
     def __init__(self, bgstally) -> None:
         self.bgstally = bgstally
-        self.colonisation = None
+        self.colonisation:Colonisation|None = None
         self.image_tab_complete:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
         self.image_tab_progress:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
         self.image_tab_planned:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
@@ -188,7 +189,6 @@ class ColonisationWindow:
         ''' Create the system frame notebook and tabs for each system '''
         # Create system tabs notebook
         self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=False)
-        self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
         self.add_dialog = self.add_system_dialog()
         self.update_react_dialog()
         self.tabbar.add(self.add_dialog, text='+')
@@ -209,7 +209,7 @@ class ColonisationWindow:
                 if systems[t].get('Hidden', True) == False:
                     break
             self.tabbar.select(t+1) # Select the first non-hidden system tab
-
+        self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
     @catch_exceptions
     def _create_system_tab(self, tabnum:int, system:dict) -> None:
@@ -715,7 +715,7 @@ class ColonisationWindow:
         ''' Build a summary of the system's builds and status. '''
         totals:dict = {'Planned': {}, 'Complete': {}}
         builds:list = system.get('Builds', [])
-        required:dict = self.colonisation.get_required(builds)
+        required:list = self.colonisation.get_required(builds)
 
         for name, col in self.summary_cols.items():
             if col.get('hide') == True:
@@ -749,12 +749,6 @@ class ColonisationWindow:
                         totals['Planned'][name] += v
                         totals['Complete'][name] += v if self.is_build_started(build) and v < 1 else 0 # Need to substract points as soon as build starts as the points are nolonger available
                         totals['Complete'][name] += v if self.is_build_complete(build) else 0
-                    case 'Population':
-                        totals['Planned'][name] = ' '
-                        totals['Complete'][name] = human_format(system.get('Population', 0))
-                    case 'Development Level':
-                        totals['Planned'][name] += bt.get(name, 0)
-                        totals['Complete'][name] += bt.get(name, 0) if self.is_build_complete(build) else 0
                     case 'Cost' if row < len(required):
                         rc:int = build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values())
                         totals['Planned'][name] += rc
@@ -763,16 +757,40 @@ class ColonisationWindow:
                         trips:int = ceil((build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values())) / self.colonisation.cargo_capacity)
                         totals['Planned'][name] += trips
                         totals['Complete'][name] += trips if self.is_build_complete(build) else 0
+                    case 'Population':
+                        totals['Planned'][name] = ' '
+                        totals['Complete'][name] = human_format(system.get('Population', 0))
+                    case 'Development Level' | 'Security':
+                        amt:float = float(bt.get(name, 0))
+                        amt *= 1.4 if row == 0 else 0.9
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
+                    case 'Standard of Living':
+                        amt:float = float(bt.get(name, 0))
+                        amt *= 1.4 if row == 0 else 0.8
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
+                    case 'Technology Level':
+                        amt:float = float(bt.get(name, 0))
+                        amt *= 1.2 if row == 0 else 0.75
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
+                    case 'Wealth':
+                        amt:float = float(bt.get(name, 0))
+                        amt *= 1.4 if row == 0 else 0.75
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
                     case _ if col.get('format') == 'int':
                         totals['Planned'][name] += bt.get(name, 0)
                         totals['Complete'][name] += bt.get(name, 0) if self.is_build_complete(build) else 0
 
+        # Dont think this applies anymore.
         # Deal with the "if you have a starport (t2 orbital or higher) your tech level will be at least 35" rule
-        starports:list = self.colonisation.get_base_types('Starport')
-        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
-        totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
-        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.is_build_complete(build)]) > 0 else 0
-        totals['Complete']['Technology Level'] = max(totals['Complete']['Technology Level'], min)
+        #starports:list = self.colonisation.get_base_types('Starport')
+        #min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
+        #totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
+        #min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.is_build_complete(build)]) > 0 else 0
+        #totals['Complete']['Technology Level'] = max(totals['Complete']['Technology Level'], min)
 
         return totals
 
@@ -790,7 +808,7 @@ class ColonisationWindow:
                 if col.get('hide', False) == True:
                     row.append(' ')
                     continue
-                row.append(totals[r].get(name, 0))
+                row.append(round(totals[r].get(name, 0), 1) if isinstance(totals[r].get(name, 0), float) else totals[r].get(name, 0))
             summary.append(row)
 
         return summary
@@ -1063,16 +1081,12 @@ class ColonisationWindow:
 
                 self.update_display()
 
-        if event.selected.column > 0 and system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
-            Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
-            return
-
-        if event.eventname.endswith('move_rows'):
-            Debug.logger.debug(f"Row move {event}")
-            return
-
         # We only deal with edits.
         if not event.eventname.endswith('edit_table'):
+            return
+
+        if event.selected.column > 0 and system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
+            Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
             return
 
         # In the summary

@@ -45,20 +45,9 @@ class DiscordChannel(str, Enum):
     POWERPLAY = 'PP'
     THARGOIDWAR = 'TW'
 
-
-KEY_CARRIER_TYPE: str = "CarrierType"
 class FleetCarrierType(str, Enum):
     PERSONAL = 'FleetCarrier'
     SQUADRON = 'SquadronCarrier'
-
-
-class FleetCarrierItemType(Enum):
-    MATERIALS_SELLING = 0
-    MATERIALS_BUYING = 1
-    COMMODITIES_SELLING = 2
-    COMMODITIES_BUYING = 3
-    CARGO = 4
-    LOCKER = 5
 
 
 class DiscordPostStyle(str, Enum):
@@ -74,9 +63,10 @@ class DiscordActivity(str, Enum):
 
 
 class DiscordFleetCarrier(str, Enum):
-    MATERIALS = 'Materials'
-    COMMODITIES = 'Commodities'
+    BUYING = 'Buying'
+    SELLING = 'Selling'
     BOTH = 'Both'
+    ALL = 'All'
 
 
 class RequestMethod(Enum):
@@ -148,6 +138,8 @@ DATETIME_FORMAT_ACTIVITY: str = "%Y-%m-%dT%H:%M:%S.%fZ"
 DATETIME_FORMAT_API: str = "%Y-%m-%dT%H:%M:%SZ"
 DATETIME_FORMAT_DISPLAY = "%Y-%m-%d %H:%M:%S"
 DATETIME_FORMAT_JOURNAL: str = "%Y-%m-%dT%H:%M:%SZ"
+DATETIME_FORMAT_JSON = "%Y-%m-%d %H:%M:%S"
+DATETIME_FORMAT_CARRIER = "%Y-%m-%d %H:%M"
 DATETIME_FORMAT_TICK_DETECTOR_GALAXY = "%Y-%m-%dT%H:%M:%S.%fZ"
 DATETIME_FORMAT_TICK_DETECTOR_SYSTEM = "%Y-%m-%dT%H:%M:%SZ"
 DATETIME_FORMAT_TITLE: str = "%Y-%m-%d %H:%M:%S"

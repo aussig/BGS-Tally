@@ -1,15 +1,21 @@
 # Change Log
 
-## vx.x.x - xxxx-xx-xx
+## v5.4.0-xx - xxxx-xx-xx
+
+### Bug Fixes:
+* Fixed parameter change in Raven Colonial markets endpoint
+
+
+## v5.4.0-a1 - 2025-11-24
 
 ### New Features:
+
 * Fully reworked fleet carrier window with improved tracking and much more detail and four tabs:
-  * Summary shows overview of carier status
+  * Summary shows overview of carrier status
   * Cargo shows cargo including market data
   * Locker shows materials including market data
   * Itinerary shows recent and scheduled jumps
   * Shipyard shows all the ships docked on your carrier
-
 * Added polling of Raven Colonial project progress
 * Added popup menu for progress options
 * More improvements to project/build matching
@@ -31,6 +37,7 @@
 * Ensured RC projects sync even when created by other means
 * Fixed misidentification of squadron carriers as completed starports
 * Stopped BGS-Tally completing Raven Colonial projects as it's irreversible
+
 
 ## v5.3.1 - 2025-11-14
 

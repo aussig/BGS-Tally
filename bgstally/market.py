@@ -15,7 +15,7 @@ class Market:
         self.commodities:Dict = {}
 
 
-    def load(self):
+    def load(self) -> None:
         """
         Clear any existing data and load the latest market data
         """
@@ -29,6 +29,7 @@ class Market:
         """
         Return true if there is market data available matching the given market id
         """
+        if self.id != id: self.load()
         return self.id == id
 
 

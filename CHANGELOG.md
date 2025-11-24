@@ -1,6 +1,41 @@
 # Change Log
 
-## v5.3.2 - 2025-11-14
+## v5.4.0-a1 - 2025-11-24
+
+### New Features:
+
+* Fully reworked fleet carrier window with improved tracking and much more detail and four tabs:
+  * Summary shows overview of carrier status
+  * Cargo shows cargo including market data
+  * Locker shows materials including market data
+  * Itinerary shows recent and scheduled jumps
+  * Shipyard shows all the ships docked on your carrier
+* Added polling of Raven Colonial project progress
+* Added popup menu for progress options
+* More improvements to project/build matching
+* Added Carrier buy orders as a progress column
+
+### Changes:
+
+* Moved colonisation site name mapping to after BuildID and MarketID when finding a build
+* Killed the "no builds are being tracked" overlay message
+* Updated system calculations to reflect FDev's new rules
+* Modified so Raven Colonial is read-only unless they have an API Key configured
+
+### Bug Fixes:
+
+* Fixed capitalization typo that could sometimes cause a site to be assigned to the wrong body
+* Fixed bug with checking for Open systems in RC
+* Fixed type error in self.station
+* Cleaned and tidied the CLB formatter
+* Improved project initiation with Raven Colonial
+* Fixed progress bug by modifying when/how progress is updated on tracking changes
+* Ensured RC projects sync even when created by other means
+* Fixed misidentification of squadron carriers as completed starports
+* Stopped BGS-Tally completing Raven Colonial projects as it's irreversible
+
+
+## v5.3.1 - 2025-11-14
 
 ### Changes:
 
@@ -8,6 +43,13 @@
 
 
 ## v5.3.0 - 2025-11-06
+
+### New Features:
+
+* Added colonisation build reordering via popup menu
+* Modified readonly toggle through popup menu instead of by state
+* Modified so that RC systems can be edited if they're open or you're on the list as well as if they're yours
+* Modified so auto-created systems default to syncing with RC if the Commander has configured an API key
 
 ### New Features:
 

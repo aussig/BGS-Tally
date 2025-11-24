@@ -5,7 +5,7 @@ from copy import deepcopy
 from os import listdir, path
 from os.path import join
 from pathlib import Path
-from re import Pattern, compile
+from re import Pattern, compile, Match
 from typing import Any, Callable, Tuple
 
 import semantic_version
@@ -15,7 +15,8 @@ import l10n
 from bgstally.debug import Debug
 from config import appversion, config
 
-human_readable_number_pat:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt]?)$")
+PAT_HUMAN_READABLE_NUM:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt]?)$")
+PAT_HUMAN_READABLE_NUM_OR_PERC:Pattern = compile(r"^(\d*\.?\d*)([KkMmBbTt%]?)$")
 
 # Language codes for languages that should be omitted
 BLOCK_LANGS: list = []
@@ -100,10 +101,12 @@ def available_langs() -> dict[str | None, str]:
     Returns:
         dict[str | None, str]: The available language names indexed by language code
     """
+    l10n_path:str | Path
+
     if edmc_version < semantic_version.Version('5.12.0'):
-        l10n_path: str = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
+        l10n_path = join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR)
     else:
-        l10n_path: Path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
+        l10n_path = Path(join(bgstally.globals.this.plugin_dir, l10n.LOCALISATION_DIR))
 
     available: set[str] = {x[:-len('.strings')] for x in listdir(l10n_path)
                            if x.endswith('.strings')
@@ -174,7 +177,7 @@ def get_by_path(dic: dict[str, Any], keys: list[str], default: Any = None) -> An
     return dic
 
 
-def human_format(num: int) -> str:
+def human_format(num:int) -> str:
     """Format a number into a shortened human-readable string, using abbreviations for larger values, e.g. 1300 -> 1.3K.
 
     Args:
@@ -183,39 +186,37 @@ def human_format(num: int) -> str:
     Returns:
         str: The human-readable result
     """
-    abbrs: list[str] = ['', 'K', 'M', 'B', 'T']  # Abbreviations for thousands, millions, billions, trillions
-    num = float('{:.3g}'.format(num))
+    abbrs:list[str] = ['', 'K', 'M', 'B', 'T']  # Abbreviations for thousands, millions, billions, trillions
+    fnum:float = float('{:.3g}'.format(num))
     magnitude = 0
-    while abs(num) >= 1000:
+    while abs(fnum) >= 1000:
         if magnitude >= len(abbrs) - 1: break
         magnitude += 1
-        num /= 1000.0
+        fnum /= 1000.0
 
-    return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), abbrs[magnitude])
+    return '{}{}'.format('{:f}'.format(fnum).rstrip('0').rstrip('.'), abbrs[magnitude])
 
 
-def parse_human_format(text: str) -> int:
+def parse_human_format(text:str, include_percent:bool = False) -> int:
+    """Convert shortened human-readable text into a number
+
+    Args:
+        text (str): The human-readable text to convert
+        include_percent (bool, optional): Allow % in the string. Defaults to False.
+
+    Returns:
+        int: The numeric result
     """
-    Convert shortened human-readable text into a number
-    """
-    if not isinstance(text, str): return 0
-
-    match = human_readable_number_pat.match(text)
+    if not isinstance(text, str) or text.replace(' ', '') == '': return 0
+    text = re.sub(r'[, ]', '', text) # Remove commas or spaces if we're showing them.
+    match:Match[str]|None = PAT_HUMAN_READABLE_NUM_OR_PERC.match(text) if include_percent else PAT_HUMAN_READABLE_NUM.match(text)
 
     if match:
-        num = float(match.group(1))
-        multiplier = {'': 1, 'k': 1000, 'm': 1000000, 'b': 1000000000, 't': 1000000000000}[match.group(2).lower()]
+        num:float = float(match.group(1))
+        multiplier:int = {'%': 0.01, '': 1, 'k': 1000, 'm': 1000000, 'b': 1000000000, 't': 1000000000000}[match.group(2).lower()]
         return int(num * multiplier)
     else:
-        return 0
-
-
-def validate_human_format(text: str) -> bool:
-    """
-    Validate whether a string value is in standard shortened human-readable (integer) format
-    """
-    if not isinstance(text, str): return False
-    else: return human_readable_number_pat.match(text)
+        return int(text)
 
 
 def is_number(s: str) -> bool:

@@ -416,7 +416,7 @@ class ProgressWindow:
             return
 
         url:str = f"https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api/project/{projectid}/markets"
-        payload:dict = {"systemName": sys,
+        payload:dict = {"refSystem": sys,
                         "shipSize": 'medium',
                         "requireNeed": True}
         self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=RavenColonial(self.colonisation)._headers(), callback=self._markets_callback, attempts=3)

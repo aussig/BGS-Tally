@@ -573,9 +573,10 @@ class FleetCarrier:
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
 
         if entry.get('SaleOrder') is not None and \
-            self.cargo['normal'][comm]['stock'] != entry.get('SaleOrder', 0) : # Makes no difference to the amount of free space bu we may need to update the cargo qty if it's out of date.
+            self.cargo['normal'][comm]['stock'] != entry.get('SaleOrder', 0) : # Makes no difference to the amount of free space but we may need to update the cargo qty if it's out of date.
             self.overview['freeSpace'] += (self.cargo['normal'][comm]['stock'] - entry.get('SaleOrder', 0))
             self.cargo['normal'][comm]['stock'] = entry.get('SaleOrder', 0)
+            self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
 
         if entry.get('PurchaseOrder') is not None:
             # Reduce the space by the difference between previous and new order
@@ -586,6 +587,7 @@ class FleetCarrier:
             self.overview['freeSpace'] -= diff
             self.cargo['normal'][comm]['buyTotal'] = entry.get('PurchaseOrder', 0)
             self.cargo['normal'][comm]['outstanding'] = entry.get('PurchaseOrder', 0)
+            self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
 
         if entry.get('CancelTrade') == True:
             if self.cargo['overview'].get('cargoSpaceReserved', None) == None:
@@ -624,6 +626,7 @@ class FleetCarrier:
                 self.cargo['normal'][comm]['stock'] -= min(diff, self.cargo['normal'][comm]['stock'])
                 self.cargo['normal'][comm]['outstanding'] = int(item.get('Demand', 0))
                 self.cargo['normal'][comm]['price'] = int(item.get('SellPrice', 0)) # Price player sells at
+                Debug.logger.debug(f"Buying {self.cargo['normal'][comm]} freespace increased by {diff}")
 
             # We get stock so we can update with this.
             if item.get('Producer', False) == True:
@@ -631,12 +634,14 @@ class FleetCarrier:
                 self.overview['freeSpace'] -= diff
                 self.cargo['normal'][comm]['stock'] = int(item.get('Stock', 0))
                 self.cargo['normal'][comm]['price'] = int(item.get('BuyPrice', 0)) # Price player buys at
+                Debug.logger.debug(f"Selling {self.cargo['normal'][comm]} freespace reduced by {diff}")
 
         # Now check for completed orders by going through all the cargo and find any commodities
         # for sale or purchase that are no longer in the market data
         for comm, deets in self.cargo['normal'].items():
             if deets['outstanding'] > 0 and comm not in self.bgstally.market.commodities.keys():
                 Debug.logger.debug(f"Buy order completed or removed for {comm} {self.bgstally.market.commodities.items()}")
+                self.overview['freeSpace'] += deets['outstanding']
                 deets['outstanding'] = 0
                 deets['price'] = 0
 
@@ -645,7 +650,6 @@ class FleetCarrier:
                 self.overview['freeSpace'] += deets['stock']
                 deets['stock'] = 0
                 deets['price'] = 0
-        Debug.logger.debug(f"Market updated")
 
 
     @catch_exceptions

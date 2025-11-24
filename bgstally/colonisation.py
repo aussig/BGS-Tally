@@ -1025,12 +1025,11 @@ class Colonisation:
         ''' Update the carrier cargo data. '''
         if self.bgstally.fleet_carrier.available() == False:
             return
-        Debug.logger.debug(f"Updating carrier cargo")
         cargo:dict = {}
         buyorder:dict = {}
 
-        fccargo = self.bgstally.fleet_carrier.get_cargo()
-        for name, cargo_item in fccargo.get('normal', {}).items():
+        fccargo = self.bgstally.fleet_carrier.get_cargo('normal')
+        for name, cargo_item in fccargo.get('inventory', {}).items():
             cargo[name] = int(cargo_item.get('stock', 0))
             if cargo_item.get('outstanding', 0) > 0:
                 buyorder[name] = int(cargo_item.get('outstanding', 0))
@@ -1038,6 +1037,10 @@ class Colonisation:
         if cargo != self.carrier_cargo and self.cmdr != None:
             RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)
             self.dirty = True
+
+        Debug.logger.debug(f"Buy order {buyorder}")
+        if cargo != self.carrier_cargo or self.carrier_buy != buyorder:
+            self.bgstally.ui.window_progress.update_display()
 
         self.carrier_buy = buyorder
         self.carrier_cargo = cargo

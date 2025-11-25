@@ -55,11 +55,14 @@
 /* Colonisation 'Type' [base_types.json] */
 "Agriculture Tier 2 Lrg" = "Agriculture Tier 2 Lrg";
 
-/* Discord carrier docking access. [fleetcarrier.py] */
+/* Dropdown menu on activity window. [fleetcarrier.py] */
 "All" = "Összes";
 
 /* all tracked builds. [progress.py] */
 "All builds" = "All builds";
+
+/* Carrier overview. [fleetcarrier.py] */
+"Allow Notorious" = "Allow Notorious";
 
 /* [progress.py] */
 "Alphabetical order" = "Alphabetical order";
@@ -72,6 +75,9 @@
 
 /* Amount left to buy. [progress.py] */
 "Amount left to buy" = "Amount left to buy";
+
+/* Carrier buy order tooltip. [progress.py] */
+"Amount oustanding in carrier buy orders" = "Amount oustanding in carrier buy orders";
 
 /* Amount remaining tooltip. [progress.py] */
 "Amount remaining to be delivered" = "Amount remaining to be delivered";
@@ -106,6 +112,12 @@
 /* station distance from arrival heading. [progress.py] */
 "Arr (ls)" = "Arr (ls)";
 
+/* Carrier overview. [fleetcarrier.py] */
+"Arrival" = "Arrival";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"Arrived" = "Arrived";
+
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "A lent említett információért fordulj a szerver adminisztrátorhoz majd nyomb meg \"Kapcsolat létrehozása\" gombot a fojtatáshoz. Népszerú szerverekhez vannak előre készített gombok, de a saját egyedi API kulcsodat meg kell adnod.";
 
@@ -114,6 +126,15 @@
 
 /* Preferences checkbox label. [ui.py] */
 "Automatically Post BGS and TW Activity" = "Automatically Post BGS and TW Activity";
+
+/* Carrier summary. [fleetcarrier.py] */
+"Available Balance" = "Available Balance";
+
+/* Carrier summary. [fleetcarrier.py] */
+"Bank Balance" = "Bank Balance";
+
+/* Carrier summary. [fleetcarrier.py] */
+"Bank Reserve" = "Bank Reserve";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Bar" = "Bar";
@@ -151,6 +172,9 @@
 /* any boost effects for the base. [colonisation.py] */
 "Boosted By" = "Boosted By";
 
+/* Dropdown menu on activity window. [fleetcarrier.py] */
+"Both" = "Both";
+
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "BGS és TW egyben";
 
@@ -169,38 +193,44 @@
 /* Builds/bases. [progress.py] */
 "Builds" = "Builds";
 
-/* [fleetcarrier.py] */
-"Buying Commodities" = "Árúcikket Vásárol";
+/* Carrier buy order amount. [progress.py] */
+"Buy Orders" = "Buy Orders";
 
-/* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Buying Commodities:" = "Árúcikket Vásárol:";
+/* Carrier cargo. [fleetcarrier.py] */
+"Buying" = "Buying";
 
-/* [fleetcarrier.py] */
-"Buying Materials" = "Anyagot vásárol";
-
-/* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Buying Materials:" = "Anyagot vásárol:";
+/* Carrier overview. [fleetcarrier.py] */
+"Callsign" = "Callsign";
 
 /* Cancel button. [colonisation.py] */
 "Cancel" = "Cancel";
 
+/* Carrier cargo. [fleetcarrier.py] */
+"Capacity" = "Capacity";
+
 /* Discord heading. [default.py] */
 "cargo" = "rakomány";
 
-/* [fleetcarrier.py] */
+/* Cargo amount. [progress.py] */
 "Cargo" = "Cargo";
+
+/* Carrier summary. [fleetcarrier.py] */
+"Cargo For Sale" = "Cargo For Sale";
 
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Rakomány küldetések";
 
-/* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Cargo:" = "Cargo:";
+/* Carrier summary. [fleetcarrier.py] */
+"Cargo Not For Sale" = "Cargo Not For Sale";
+
+/* Carrier summary. [fleetcarrier.py] */
+"Cargo Reserved Space" = "Cargo Reserved Space";
 
 /* Carrier amount. [progress.py] */
 "Carrier" = "Carrier";
 
-/* Discord fleet carrier title. [fleetcarrier.py] */
-"Carrier {carrier_name}" = "Anyahajó {carrier_name}";
+/* fleet carrier materials header. [fleetcarrier.py] */
+"Carrier: {carrier_name} - {which}\n" = "Carrier: {carrier_name} - {which}\n";
 
 /* category of base. [colonisation.py] */
 "Category" = "Category";
@@ -219,9 +249,6 @@
 
 /* [sheet_options.py] */
 "Clear contents" = "Tartalom törlése";
-
-/* [progress.py] */
-"click to copy to clipboard" = "click to copy to clipboard";
 
 /* Label on CMDR window. [cmdrs.py] */
 "CMDR Details" = "CMDR Részletek";
@@ -283,6 +310,9 @@
 /* Button label. [activity.py] */
 "Copy to Clipboard" = "Másolás a vágólapra";
 
+/* Carrier summary. [fleetcarrier.py] */
+"Core Cost" = "Core Cost";
+
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Coriolis" = "Coriolis";
 
@@ -292,8 +322,20 @@
 /* Cost in tonnes of cargo. [colonisation.py] */
 "Cost" = "Cost";
 
+/* Carrier services. [fleetcarrier.py] */
+"Cost to date" = "Cost to date";
+
 /* Count of commodities available. [progress.py] */
 "Count" = "Count";
+
+/* Carrier summary. [fleetcarrier.py] */
+"Crew" = "Crew";
+
+/* Carrier services. [fleetcarrier.py] */
+"Crew Capacity" = "Crew Capacity";
+
+/* Services summary tab. [fleetcarrier.py] */
+"Crew Member" = "Crew Member";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Criminal Outpost" = "Criminal Outpost";
@@ -355,7 +397,10 @@
 /* [demo.py] */
 "Demo Data Only" = "Csak demo adat";
 
-/* Discord heading. [fleetcarrier.py] */
+/* Itinerary tab. [fleetcarrier.py] */
+"Departed" = "Departed";
+
+/* Carrier itinerary. [fleetcarrier.py] */
 "Departure Time" = "Indulás ideje";
 
 /* Label on API settings window. [api.py] */
@@ -385,11 +430,20 @@
 /* System distance heading. [progress.py] */
 "Dist (ly)" = "Dist (ly)";
 
-/* Discord heading. [fleetcarrier.py] */
+/* Carrier overview. [fleetcarrier.py] */
 "Docking" = "Dokkolás";
+
+/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+"Dodecahedron" = "Dodecahedron";
+
+/* Colonisation 'Type' [base_types.json] */
+"Dodecahedron Starport" = "Dodecahedron Starport";
 
 /* Label on activity window. [activity.py] */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Ellenőrizd a felszíni CZ tally-t, a méretek nem mindig helyesek";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"Duration" = "Duration";
 
 /* Economy influence. [colonisation.py] */
 "Econ Inf" = "Econ Inf";
@@ -432,6 +486,9 @@
 
 /* Checkbox on API settings window. [api.py] */
 "Enable {events_url} Requests" = "{events_url} kérelmek engedélyezése";
+
+/* Services summary tab. [fleetcarrier.py] */
+"Enabled" = "Enabled";
 
 /* Error when no plan name is given. [colonisation.py] */
 "Error" = "Error";
@@ -499,6 +556,9 @@
 /* Preferences table heading, abbreviation for fleet carrier operations. [ui.py] */
 "FC Ops" = "FC műv";
 
+/* Summary headings. [fleetcarrier.py] */
+"Finances" = "Finances";
+
 /* Preferences button label. [ui.py] */
 "Force Tick" = "Tick kényszerítése";
 
@@ -508,14 +568,17 @@
 /* Preferences label. [ui.py] */
 "Format for Discord Posts" = "Discord üzenetek formátuma";
 
+/* Carrier summary. [fleetcarrier.py] */
+"Free Space" = "Free Space";
+
 /* Discord CMDR information. [targetmanager.py] */
 "Friend request received from this CMDR" = "Barátkérelem érkezett ettől a CMDR-től";
 
-/* Discord carrier docking access. [fleetcarrier.py] */
-"Friends" = "Barátok";
-
 /* Discord heading. [fleetcarrier.py] */
 "From System" = "Indulási rendszer";
+
+/* Carrier overview. [fleetcarrier.py] */
+"Fuel" = "Fuel";
 
 /* Overlay galaxy tick message. [ui.py] */
 "Galaxy Tick: {tick_time}" = "Galaxis Tick: {tick_time}";
@@ -562,8 +625,14 @@
 /* Colonisation 'Type' [base_types.json] */
 "Hightech Planetary Outpost" = "Hightech Planetary Outpost";
 
+/* Services summary tab. [fleetcarrier.py] */
+"Hiring Cost" = "Hiring Cost";
+
 /* HMC World is a high metal content world. [colonisation.py] */
 "HMC world" = "HMC world";
+
+/* Shipyard tab. [fleetcarrier.py] */
+"Hot" = "Hot";
 
 /* Colonisation 'Category' [base_types.json] */
 "Hub" = "Hub";
@@ -718,6 +787,9 @@
 /* Discord post title. [fleetcarrier.py] */
 "Jump Cancelled for Carrier {carrier_name}" = "Ugrás törölve {carrier_name} anyahajónak";
 
+/* Carrier summary. [fleetcarrier.py] */
+"Jump Cost" = "Jump Cost";
+
 /* Discord post title. [fleetcarrier.py] */
 "Jump Scheduled for Carrier {carrier_name}" = "Ugrás naptárazva {carrier_name} anyahajónak";
 
@@ -757,6 +829,9 @@
 /* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
 "Left click for Inara market, right click to copy" = "Left click for Inara market, right click to copy";
 
+/* tooltip for the build name". [progress.py] */
+"left click to copy, right click menu" = "left click to copy, right click menu";
+
 /* tooltip for the copy to clipboard icon. [colonisation.py] */
 "Left click view system, right click menu" = "Left click view system, right click menu";
 
@@ -778,14 +853,11 @@
 /* Station location (O=Orbital, S=Surface). [colonisation.py] */
 "Loc" = "Loc";
 
-/* base location surface/orbital. [colonisation.py] */
+/* Carrier overview. [fleetcarrier.py] */
 "Location" = "Location";
 
-/* [fleetcarrier.py] */
-"Locker" = "Locker";
-
-/* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Locker:" = "Locker:";
+/* fleet carrier materials system line. [fleetcarrier.py] */
+"Location: {system}\n" = "Location: {system}\n";
 
 /* Activity window tooltip. [activity.py] */
 "Low" = "Alacsony";
@@ -793,8 +865,14 @@
 /* [legend.py] */
 "Massacre missions" = "Mészároló küldetések";
 
+/* Locker tab. [fleetcarrier.py] */
+"Material" = "Material";
+
 /* Preferences label. [ui.py] */
 "Maximum commodities" = "Maximum commodities";
+
+/* Carrier shipyard. [fleetcarrier.py] */
+"Maximum Ships" = "Maximum Ships";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Medical" = "Medical";
@@ -844,6 +922,9 @@
 /* Colonisation 'Prerequisites' [base_types.json] */
 "Mining Outpost Installation" = "Mining Outpost Installation";
 
+/* Cargo tab. [fleetcarrier.py] */
+"Mission" = "Mission";
+
 /* Activity window tooltip. [activity.py] */
 "Mission fails" = "Sikertelen küldetések";
 
@@ -853,10 +934,13 @@
 /* Discord heading, abbreviation for massacre (missions). [default.py] */
 "mm" = "mm";
 
+/* Carrier summary. [fleetcarrier.py] */
+"Module Packs" = "Module Packs";
+
 /* Discord heading. [default.py] */
 "Murders" = "Gyilkosságok";
 
-/* Label on API settings window. [api.py] */
+/* Carrier overview. [fleetcarrier.py] */
 "Name" = "Név";
 
 /* Label on CMDR window. [cmdrs.py] */
@@ -867,12 +951,6 @@
 
 /* Preferences table heading. [ui.py] */
 "Nickname" = "Felhasználónév";
-
-/* [fleetcarrier.py] */
-"No" = "Nem";
-
-/* No builds or commodities being tracked. [progress.py] */
-"No builds or commodities being tracked" = "No builds or commodities being tracked";
 
 /* No colonisation data available. [progress.py] */
 "No colonisation data available" = "No colonisation data available";
@@ -895,6 +973,12 @@
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Felszíni konfliktus zóna";
 
+/* [progress.py] */
+"Open in RavenColonial" = "Open in RavenColonial";
+
+/* [progress.py] */
+"Open in {k}" = "Open in {k}";
+
 /* Open Element In Selected Provider. [colonisation.py] */
 "Open in {w}" = "Open in {w}";
 
@@ -916,6 +1000,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Outpost Hub" = "Outpost Hub";
 
+/* Colonisation 'Type' [base_types.json] */
+"Outpost In A Box" = "Outpost In A Box";
+
 /* Landing pad size. [colonisation.py] */
 "Pad" = "Pad";
 
@@ -936,6 +1023,9 @@
 
 /* Checkbox label. [activity.py] */
 "Pin {system_name} to Overlay" = "{system_name} kitűzése az Átfedésre";
+
+/* Service name. [fleetcarrier.py] */
+"Pioneer Supplies" = "Pioneer Supplies";
 
 /* Colonisation 'Type' [base_types.json] */
 "Pirate Base" = "Pirate Base";
@@ -1012,6 +1102,9 @@
 /* Activity window column title, abbreviation for primary. [activity.py] */
 "Pri" = "Els.";
 
+/* Cargo tab. [fleetcarrier.py] */
+"Price" = "Price";
+
 /* Activity window tooltip. [activity.py] */
 "Primary" = "Elsődleges";
 
@@ -1020,6 +1113,9 @@
 
 /* Activity window column title, abbreviation for profit. [activity.py] */
 "Prof" = "Prof.";
+
+/* Carrier cargo. [fleetcarrier.py] */
+"Profit" = "Profit";
 
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
 "Profit at Z | L | M | H demand" = "Profit Z | L | M | H kereslet esetén";
@@ -1059,6 +1155,9 @@
 
 /* CMDR information. [targetmanager.py] */
 "Received team invite from" = "Team meghívás érkezett tőle";
+
+/* Service name. [fleetcarrier.py] */
+"Redemption" = "Redemption";
 
 /* [sheet_options.py] */
 "Redo" = "Redo";
@@ -1114,8 +1213,20 @@
 /* Colonisation 'Type' [base_types.json] */
 "Research Station" = "Research Station";
 
+/* Carrier summary. [fleetcarrier.py] */
+"Reserve Percentage" = "Reserve Percentage";
+
+/* Carrier cargo. [fleetcarrier.py] */
+"Reserved" = "Reserved";
+
 /* [colonisation.py] */
 "rings" = "rings";
+
+/* Summary headings. [fleetcarrier.py] */
+"Running Costs" = "Running Costs";
+
+/* Services summary tab. [fleetcarrier.py] */
+"Salary" = "Salary";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "Kut&Ment.";
@@ -1140,6 +1251,9 @@
 
 /* Activity window column title, abbreviation for scenarios. [activity.py] */
 "Scens" = "Szcen.";
+
+/* Carrier itinerary. [fleetcarrier.py] */
+"Scheduled Jump" = "Scheduled Jump";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Scientific" = "Scientific";
@@ -1189,20 +1303,17 @@
 /* [widgets.py] */
 "Select all" = "Mind kiválasztása";
 
-/* [fleetcarrier.py] */
-"Selling Commodities" = "Eladó árucikkek";
-
-/* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Selling Commodities:" = "Eladó árucikkek:";
-
-/* [fleetcarrier.py] */
-"Selling Materials" = "Eladó anyagok";
-
-/* Discord fleet carrier section heading. [fleetcarrier.py] */
-"Selling Materials:" = "Eladó anyagok:";
+/* Carrier cargo. [fleetcarrier.py] */
+"Selling" = "Selling";
 
 /* Label on API settings window. [api.py] */
 "Server URL" = "Szerver URL";
+
+/* Services summary tab. [fleetcarrier.py] */
+"Service" = "Service";
+
+/* Carrier summary. [fleetcarrier.py] */
+"Services Cost" = "Services Cost";
 
 /* Colonisation 'Category' [base_types.json] */
 "Settlement" = "Settlement";
@@ -1212,6 +1323,9 @@
 
 /* Activity window column title. [activity.py] */
 "Ship" = "Hajó";
+
+/* Carrier summary. [fleetcarrier.py] */
+"Ship Packs" = "Ship Packs";
 
 /* Label on API settings window. [api.py] */
 "Shortcuts for Popular Servers" = "Gyorsgombok népszerű szerverekhez";
@@ -1282,7 +1396,7 @@
 /* [sheet_options.py] */
 "Sort Desc." = "Sort Desc.";
 
-/* [clb.py] */
+/* Carrier overview. [fleetcarrier.py] */
 "Space" = "Űr";
 
 /* Colonisation 'Type' [base_types.json] */
@@ -1299,9 +1413,6 @@
 
 /* Discord heading, abbreviation for space conflict zones. [default.py] */
 "SpaceCZs" = "ŰrKZk";
-
-/* Discord carrier docking access. [fleetcarrier.py] */
-"Squadron and Friends" = "Osztag és Barátok";
 
 /* CMDR window column title. [cmdrs.py] */
 "Squadron ID" = "Osztag ID";
@@ -1324,6 +1435,21 @@
 /* Station name heading. [progress.py] */
 "Station" = "Station";
 
+/* Services summary tab. [fleetcarrier.py] */
+"Status" = "Status";
+
+/* Cargo tab. [fleetcarrier.py] */
+"Stock" = "Stock";
+
+/* Cargo tab. [fleetcarrier.py] */
+"Stolen" = "Stolen";
+
+/* Carrier cargo. [fleetcarrier.py] */
+"Stored" = "Stored";
+
+/* Carrier shipyard. [fleetcarrier.py] */
+"Stored Ships" = "Stored Ships";
+
 /* Number of ground/surface builds. [colonisation.py] */
 "Surface" = "Surface";
 
@@ -1345,9 +1471,6 @@
 /* Overlay system tick message. [ui.py] */
 "System Tick: {tick_time}" = "Rendszer Tick: {tick_time}";
 
-/* Label on carrier window. [fleetcarrier.py] */
-"System: {current_system} - Docking: {docking_access} - Notorious Allowed: {notorious}" = "Rendszer: {current_system} - Dokkolás: {docking_access} - Kőrözött engedve: {notorious}";
-
 /* [progress.py] */
 "t" = "t";
 
@@ -1362,6 +1485,12 @@
 
 /* Overlay message. [activity.py] */
 "Targeted Ally!" = "Célbavett szövetséges!";
+
+/* Carrier overview. [fleetcarrier.py] */
+"Tax Level" = "Tax Level";
+
+/* Services summary tab. [fleetcarrier.py] */
+"Tax Rate" = "Tax Rate";
 
 /* Discord CMDR information. [targetmanager.py] */
 "Team invite received from this CMDR" = "Csapat meghívó érkezett CMDR-től";
@@ -1417,14 +1546,23 @@
 /* Discord heading. [fleetcarrier.py] */
 "To System" = "Cél rendszer:";
 
-/* Total number of builds. [colonisation.py] */
+/* Carrier summary. [fleetcarrier.py] */
 "Total" = "Total";
+
+/* Carrier summary. [fleetcarrier.py] */
+"Total Capacity" = "Total Capacity";
 
 /* delivered amount tooltip. [progress.py] */
 "Total quantity delivered" = "Total quantity delivered";
 
 /* required amount tooltip. [progress.py] */
 "Total quantity required" = "Total quantity required";
+
+/* Carrier summary. [fleetcarrier.py] */
+"Total Used" = "Total Used";
+
+/* Carrier cargo. [fleetcarrier.py] */
+"Total Value" = "Total Value";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
 "Tourism" = "Tourism";
@@ -1459,6 +1597,12 @@
 /* Activity window column title. [activity.py] */
 "Trade" = "Kereskedés";
 
+/* Shipyard tab. [fleetcarrier.py] */
+"Transfer Cost" = "Transfer Cost";
+
+/* Shipyard tab. [fleetcarrier.py] */
+"Transfer Time" = "Transfer Time";
+
 /* Discord heading, abbreviation for trade black market profit. [default.py] */
 "TrdBMProfit" = "KerFPProfit";
 
@@ -1467,6 +1611,9 @@
 
 /* Discord heading, abbreviation for trade profit. [default.py] */
 "TrdProfit" = "KerProf";
+
+/* Carrier itinerary. [fleetcarrier.py] */
+"Tritium" = "Tritium";
 
 /* Discord heading, abbreviation for tissue sample. [default.py] */
 "ts" = "szm";
@@ -1489,7 +1636,7 @@
 /* [sheet_options.py] */
 "Undo" = "Vissza";
 
-/* Overlay CMDR information report message. [ui.py] */
+/* [fleetcarrier.py] */
 "Unknown" = "Ismeretlen";
 
 /* Main window label. [ui.py] */
@@ -1500,6 +1647,18 @@
 
 /* Discord message footer, legacy text mode. [discord.py] */
 "Updated at: {date_time} | {plugin_name} v{version}" = "Frissítve: {date_time} | {plugin_name} v{version}";
+
+/* Preferences checkbox label. [ui.py] */
+"Use scrollbar" = "Use scrollbar";
+
+/* Carrier cargo. [fleetcarrier.py] */
+"Used" = "Used";
+
+/* Shipyard tab. [fleetcarrier.py] */
+"Value" = "Value";
+
+/* Service name. [fleetcarrier.py] */
+"Vista Genomics" = "Vista Genomics";
 
 /* [clb.py] */
 "War Inf" = "Háborús Bef";
@@ -1522,6 +1681,9 @@
 /* Label on API settings window. [api.py] */
 "Website ⤴" = "Website ⤴";
 
+/* Carrier services. [fleetcarrier.py] */
+"Weekly Cost" = "Weekly Cost";
+
 /* Notice about the first base being special. [colonisation.py] */
 "When planning your system the first base is special, make sure that it is the first on the list." = "When planning your system the first base is special, make sure that it is the first on the list.";
 
@@ -1534,7 +1696,7 @@
 /* Label on legend window. [legend.py] */
 "Wounded evacuation missions" = "Sérült evakuáció küldetések";
 
-/* [fleetcarrier.py] */
+/* Yes. [fleetcarrier.py] */
 "Yes" = "Igen";
 
 /* Label on legend window. [legend.py] */
@@ -1547,7 +1709,7 @@
 "{plugin_name} - API Settings" = "{plugin_name} - API beállítások";
 
 /* Carrier window title. [fleetcarrier.py] */
-"{plugin_name} - Carrier {carrier_name} ({carrier_callsign}) in system: {system_name}" = "{plugin_name} - {carrier_name} ({carrier_callsign}) a(z) {system_name} rendszerben";
+"{plugin_name} - Carrier {carrier_name}" = "{plugin_name} - Carrier {carrier_name}";
 
 /* CMDR window title. [cmdrs.py] */
 "{plugin_name} - CMDR Interactions" = "{plugin_name} - CMDR interakciók";

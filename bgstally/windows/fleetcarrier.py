@@ -51,7 +51,7 @@ class WindowFleetCarrier:
             },
             'Cargo': {
                 'cols': {
-                    'locName': {'title': 'Commodity', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'discordWidth':20, 'locName': _('Hiring Cost')}, # LANG: Cargo tab
+                    'locName': {'title': 'Commodity', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'discordWidth':20, 'locName': _('Commodity')}, # LANG: Cargo tab
                     'category': {'title': 'Category', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150, 'discordWidth':14, 'locName': _('Category')}, # LANG: Cargo tab
                     'stock': {'title': 'Stock', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':6, 'locName': _('Stock')}, # LANG: Cargo tab
                     'buy': {'title': 'Buying', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':6, 'locName': _('Buying')}, # LANG: Cargo tab

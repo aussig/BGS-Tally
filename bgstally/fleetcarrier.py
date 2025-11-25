@@ -404,7 +404,7 @@ class FleetCarrier:
 
         self.carrier_id = get_by_path(self.data, ['market', 'id'], 0)
 
-        Debug.logger.debug(f"Updating carrier data CAPI {self.carrier_id}")
+        Debug.logger.debug(f"Received CAPI data {self.carrier_id}")
 
         # we can update most of the local vars with this loop.
         updates:dict = {'name': [self.overview, ['name', 'vanityName'], "----"],
@@ -443,9 +443,10 @@ class FleetCarrier:
         # All the following are time sensitive or updated locally
         # so only use the CAPI data for them if we haven't docked in the last N seconds
         if self.last_modified > int(time.time()) - 900:
-            Debug.logger.debug("Ignoring CAPI update")
+            Debug.logger.debug("Ignoring CAPI commodity update")
             return
 
+        Debug.logger.debug(f"Updating cargo")
         # Do these ones here because we manage them locally and don't want to update them if the CAPI data may be out of date.
         self.overview['freeSpace'] = get_by_path(self.data, ['capacity', 'freeSpace'], self.overview.get('freeSpace'))
         for item in ['cargoForSale', 'cargoNotForSale', 'cargoSpaceReserved']:
@@ -486,6 +487,10 @@ class FleetCarrier:
         for k, v in updates.items():
             v[0][k] = get_by_path(entry, v[1], v[2])
 
+        Debug.logger.debug(f"Received freespace: {self.overview['freeSpace']}, calculated: {self._get_free()}")
+        Debug.logger.debug(f"Received reserved: {self.cargo['overview']['cargoSpaceReserved']}, calculated: {self._get_reserved()}")
+        Debug.logger.debug(f"Markets used: {self._get_marketused()} For sale: {self._get_forsale()} not for sale {self._get_notforsale()}")
+
 
     @catch_exceptions
     def jump_requested(self, entry:dict[str, str]) -> None:
@@ -518,7 +523,6 @@ class FleetCarrier:
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
-
     @catch_exceptions
     def jump_cancelled(self, entry: dict[str, str]) -> None:
         """ The user cancelled their carrier jump producing a CarrierJumpCancelled journal event """
@@ -549,6 +553,7 @@ class FleetCarrier:
 
         Debug.logger.debug(f"event: {entry}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
+        # @NOTE: Note sure if we need this update to last_modified.
         self.last_modified = int(time.time())
 
         comm:str = entry.get('Commodity', "").lower()
@@ -572,34 +577,57 @@ class FleetCarrier:
             self.cargo['normal'][comm] = self._init_cargo_item(comm, entry.get('Commodity_Localised', comm))
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
 
-        if entry.get('SaleOrder') is not None and \
-            self.cargo['normal'][comm]['stock'] != entry.get('SaleOrder', 0) : # Makes no difference to the amount of free space but we may need to update the cargo qty if it's out of date.
-            self.overview['freeSpace'] += (self.cargo['normal'][comm]['stock'] - entry.get('SaleOrder', 0))
+        Debug.logger.debug(f"Initial cargo: {self.cargo['normal'][comm]}")
+        Debug.logger.debug(f"Free {self.overview['freeSpace']}, Sale: {self.cargo['overview']['cargoForSale']} No sale {self.cargo['overview']['cargoNotForSale']} Reserved {self.cargo['overview']['cargoSpaceReserved']}")
+
+        if entry.get('SaleOrder') is not None:
+            # If we were selling we need to clear the buy order and free up reserved space
+            if self.cargo['normal'][comm]['outstanding'] > 0:
+                self.cargo['overview']['cargoSpaceReserved'] -= self.cargo['normal'][comm]['outstanding']
+            self.cargo['normal'][comm]['outstanding'] = 0
+            self.cargo['normal'][comm]['buyTotal'] = 0
+
+            # Makes no difference to the amount of free space but we may need to update the cargo qty if it's out of date.
+            if self.cargo['normal'][comm]['stock'] != entry.get('SaleOrder', 0):
+                self.overview['freeSpace'] += (self.cargo['normal'][comm]['stock'] - entry.get('SaleOrder', 0))
+                self.overview['cargoForSale'] += entry.get('SaleOrder', 0)
+                self.overview['cargoNotForSale'] -= entry.get('SaleOrder', 0)
+            # Set price and stock
             self.cargo['normal'][comm]['stock'] = entry.get('SaleOrder', 0)
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
 
         if entry.get('PurchaseOrder') is not None:
+            # We were selling so switch for sale and not for sale
+            if self.cargo['normal'][comm].get('Price', 0) > 0:
+                self.overview['cargoForSale'] -= self.cargo['normal'][comm]['stock']
+                self.overview['cargoNotForSale'] += self.cargo['normal'][comm]['stock']
+
             # Reduce the space by the difference between previous and new order
             diff:int = self.cargo['normal'][comm]['buyTotal'] - entry.get('PurchaseOrder', 0)
             if self.cargo['overview'].get('cargoSpaceReserved', None) == None:
                 self.cargo['overview']['cargoSpaceReserved'] = 0
             self.cargo['overview']['cargoSpaceReserved'] += diff
             self.overview['freeSpace'] -= diff
+
             self.cargo['normal'][comm]['buyTotal'] = entry.get('PurchaseOrder', 0)
             self.cargo['normal'][comm]['outstanding'] = entry.get('PurchaseOrder', 0)
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
 
         if entry.get('CancelTrade') == True:
-            if self.cargo['overview'].get('cargoSpaceReserved', None) == None:
-                self.cargo['overview']['cargoSpaceReserved'] = 0
-            self.cargo['overview']['cargoSpaceReserved'] -= min(self.cargo['normal'][comm]['outstanding'], self.overview['cargoSpaceReserved'])
-            self.overview['freeSpace'] += min(self.cargo['normal'][comm]['outstanding'], self.overview['cargoSpaceReserved'])
-            self.cargo['normal'][comm]['buyTotal'] = 0
+            # Remove reserved space or switch sale/non-sale space
+            if self.cargo['normal'][comm]['outstanding'] > 0:
+                self.cargo['overview']['freeSpace'] += self.cargo['normal'][comm]['outstanding']
+                self.cargo['overview']['cargoSpaceReserved'] -= self.cargo['normal'][comm]['outstanding']
+            else:
+                self.overview['cargoNotForSale'] += self.cargo['normal'][comm]['stock']
+                self.overview['cargoForSale'] -= self.cargo['normal'][comm]['stock']
             self.cargo['normal'][comm]['outstanding'] = 0
+            self.cargo['normal'][comm]['buyTotal'] = 0
             self.cargo['normal'][comm]['price'] = 0
 
         Debug.logger.debug(f"Updated cargo: {self.cargo['normal'][comm]}")
-        # I don't like this, I don't know another way to notify progress that the orders have changed.
+
+        # I don't really like this but I don't know another way to notify progress that the orders have changed.
         if self.bgstally.ui.window_progress: self.bgstally.ui.window_progress.update_display()
 
 
@@ -621,12 +649,12 @@ class FleetCarrier:
 
             # Buying and someone else must have sold to us, so increase stock based on demand changes
             if item.get('Consumer', False) == True and int(item.get('Demand', 0)) != int(self.cargo['normal'][comm]['outstanding']):
-                diff:int = int(item.get('Demand', 0)) - int(self.cargo['normal'][comm]['outstanding'])
-                self.overview['cargoSpaceReserved'] += diff
-                self.cargo['normal'][comm]['stock'] -= min(diff, self.cargo['normal'][comm]['stock'])
+                diff:int = int(self.cargo['normal'][comm]['outstanding']) - int(item.get('Demand', 0))
+                self.cargo['overview']['cargoSpaceReserved'] -= diff
+                self.cargo['overview']['cargoNotForSale'] += diff
+                self.cargo['normal'][comm]['stock'] += diff
                 self.cargo['normal'][comm]['outstanding'] = int(item.get('Demand', 0))
                 self.cargo['normal'][comm]['price'] = int(item.get('SellPrice', 0)) # Price player sells at
-                Debug.logger.debug(f"Buying {self.cargo['normal'][comm]} freespace increased by {diff}")
 
             # We get stock so we can update with this.
             if item.get('Producer', False) == True:
@@ -665,24 +693,29 @@ class FleetCarrier:
             if comm not in self.cargo['normal']:
                 self.cargo['normal'][comm] = self._init_cargo_item(comm)
 
+            Debug.logger.debug(f"Transfering cargo {self.cargo['normal'][comm]} {i}")
+            Debug.logger.debug(f"Free {self.overview['freeSpace']}, Sale: {self.cargo['overview']['cargoForSale']} No sale {self.cargo['overview']['cargoNotForSale']} Reserved {self.cargo['overview']['cargoSpaceReserved']}")
+
             if i.get('Direction') == 'tocarrier':
                 self.overview['freeSpace'] -= min(int(i.get('Count', 0)), self.overview['freeSpace'])
-                if self.cargo['normal'][comm]['price'] != 0:
-                    if self.cargo['normal'][comm]['outstanding'] == 0: # Selling?
-                        self.cargo['overview']['cargoForSale'] += int(entry.get('Count', 0))
-                    else:
-                        self.cargo['overview']['cargoNotForSale'] += min(int(entry.get('Count', 0)), self.cargo['overview']['cargoNotForSale'])
+                if self.cargo['normal'][comm]['price'] != 0 and self.cargo['normal'][comm]['outstanding'] == 0: # Selling?
+                    self.cargo['overview']['cargoForSale'] += int(i.get('Count', 0))
+                else:
+                    Debug.logger.debug(f"Adding {int(i.get('Count', 0))} to {self.cargo['overview']['cargoNotForSale']}")
+                    self.cargo['overview']['cargoNotForSale'] += int(i.get('Count', 0))
                 self.cargo['normal'][comm]['stock'] += int(i.get('Count', 0))
 
             if i.get('Direction') == 'toship':
                 self.overview['freeSpace'] += int(i.get('Count', 0))
                 if self.cargo['normal'][comm]['price'] != 0:
                     if self.cargo['normal'][comm]['outstanding'] == 0: # Selling?
-                        self.cargo['overview']['cargoForSale'] -= int(entry.get('Count', 0))
+                        self.cargo['overview']['cargoForSale'] -= int(i.get('Count', 0))
                     else:
-                        self.cargo['overview']['cargoNotForSale'] -= min(int(entry.get('Count', 0)), self.cargo['overview']['cargoNotForSale'])
+                        self.cargo['overview']['cargoNotForSale'] -= min(int(i.get('Count', 0)), self.cargo['overview']['cargoNotForSale'])
                 self.cargo['normal'][comm]['stock'] -= min(int(i.get('Count', 0)), self.cargo['normal'][comm]['stock'])
-            Debug.logger.debug(f"Updated cargo: {self.cargo['normal'][comm]}")
+            Debug.logger.debug(f"Transferred cargo: {self.cargo['normal'][comm]}")
+            Debug.logger.debug(f"Free {self.overview['freeSpace']}, Sale: {self.cargo['overview']['cargoForSale']} No sale {self.cargo['overview']['cargoNotForSale']} Reserved {self.cargo['overview']['cargoSpaceReserved']}")
+
 
 
     @catch_exceptions
@@ -696,22 +729,24 @@ class FleetCarrier:
         if comm not in self.cargo['normal']:
             self.cargo['normal'][comm] = self._init_cargo_item(comm, entry.get('Type_Localised', comm))
 
+        Debug.logger.debug(f"Initial cargo {entry.get('event')}: {self.cargo['normal'][comm]}")
+        Debug.logger.debug(f"Free {self.overview['freeSpace']}, Sale: {self.cargo['overview']['cargoForSale']} No sale {self.cargo['overview']['cargoNotForSale']} Reserved {self.cargo['overview']['cargoSpaceReserved']}")
+
         if entry.get('event') == "MarketBuy": # Someone bought from us, we sold to them
-            Debug.logger.debug(f"Market buy: changed free space by {int(entry.get('Count', 0))} stock by -{min(entry.get('Count', 0), self.cargo['normal'][comm]['stock'])} set price to {entry.get('SellPrice', self.cargo['normal'][comm]['price'])}")
-            self.overview['freeSpace'] += int(entry.get('Count', 0))
-            self.cargo['overview']['cargoForSale'] -= int(entry.get('Count', 0))
-            self.cargo['normal'][comm]['stock'] -= min(entry.get('Count', 0), self.cargo['normal'][comm]['stock'])
+            self.overview['freeSpace'] += entry.get('Count', 0)
+            self.cargo['overview']['cargoForSale'] -= entry.get('Count', 0)
+            self.cargo['normal'][comm]['stock'] -= entry.get('Count', 0)
             self.cargo['normal'][comm]['price'] = entry.get('BuyPrice', self.cargo['normal'][comm]['price'])
 
         if entry.get('event') == "MarketSell": # We bought from someone
-            Debug.logger.debug(f"Market sell: changed outstanding by -{min(entry.get('Count', 0), self.cargo['normal'][comm]['outstanding'])} stock by {entry.get('Count', 0)} set price to {entry.get('SellPrice', self.cargo['normal'][comm]['price'])}")
-            self.cargo['overview']['cargoSpaceReserved'] -= min(entry.get('Count', 0), self.cargo['normal'][comm]['outstanding'])
-            self.cargo['overview']['cargoNotForSale'] += min(entry.get('Count', 0), self.cargo['normal'][comm]['outstanding'])
-            self.cargo['normal'][comm]['outstanding'] -= min(entry.get('Count', 0), self.cargo['normal'][comm]['outstanding'])
+            self.cargo['overview']['cargoSpaceReserved'] -= entry.get('Count', 0)
+            self.cargo['overview']['cargoNotForSale'] += entry.get('Count', 0)
+            self.cargo['normal'][comm]['outstanding'] -= entry.get('Count', 0)
             self.cargo['normal'][comm]['stock'] += entry.get('Count', 0)
             self.cargo['normal'][comm]['price'] = entry.get('SellPrice', self.cargo['normal'][comm]['price'])
 
-        Debug.logger.debug(f"Updated cargo ({entry.get('event')}): {self.cargo['normal'][comm]}")
+        Debug.logger.debug(f"Updated cargo {entry.get('event')}: {self.cargo['normal'][comm]}")
+        Debug.logger.debug(f"Free {self.overview['freeSpace']}, Sale: {self.cargo['overview']['cargoForSale']} No sale {self.cargo['overview']['cargoNotForSale']} Reserved {self.cargo['overview']['cargoSpaceReserved']}")
 
 
     @catch_exceptions
@@ -721,8 +756,6 @@ class FleetCarrier:
         StoredShips event happens before the ship is actually stored.
         The subsequent ShipyardSwap doesn't include all the ship details so we have to keep a record of all ships.
         """
-        if entry.get("MarketID") == self.overview.get('carrier_id', ''):
-            self.last_modified = int(time.time())
 
         match entry.get('event', ''):
             case 'Shipyard':
@@ -748,6 +781,39 @@ class FleetCarrier:
                     total_value += ship.get('Value', 0)
                 self.shipyard['overview']['shipCount'] = carrier_count
                 self.shipyard['overview']['totalValue'] = total_value
+
+
+    def _get_forsale(self) -> int:
+        ### Return the amount of cargo for sale on the carrier. ###
+
+        # For sale is price > 0, buyOrder = 0, and only normal cargo.
+        return sum([c.get('stock', 0) for c in self.cargo.get('normal', {}).values() if c.get('price') > 0 and c.get('outstanding') == 0])
+
+
+    def _get_notforsale(self) -> int:
+        ### Return the amount of cargo not for sale on the carrier. ###
+
+        # Not For sale is any cargo with price = 0
+        return sum([c.get('stock', 0) for c in self.cargo.get('normal', {}).values() if c.get('price', 0) == 0] +
+                   [c.get('stock', 0) for c in self.cargo.get('stolen', {}).values() if c.get('price', 0) == 0] +
+                   [c.get('stock', 0) for c in self.cargo.get('mission', {}).values() if c.get('price', 0) == 0])
+
+
+    def _get_marketused(self) -> int:
+        return self._get_forsale() + self._get_notforsale()
+
+
+    def _get_reserved(self) -> int:
+        ### Return the amount of cargo space reserved on the carrier. ###
+
+        # Not For sale is any cargo with price = 0
+        return sum([c.get('outstanding', 0) for c in self.cargo.get('normal', {}).values() if c.get('price', 0) > 0 and c.get('outstanding', 0) > 0])
+
+
+    def _get_free(self) -> int:
+        return self.overview.get('totalCapacity', 25000) - self.overview.get('crew', 0) - \
+            self.overview.get('ShipPacks', 0) - self.overview.get('modulePacks', 0) - \
+            self._get_forsale() - self._get_notforsale() - self._get_reserved()
 
 
     @catch_exceptions

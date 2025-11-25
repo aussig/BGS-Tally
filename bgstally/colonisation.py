@@ -635,7 +635,9 @@ class Colonisation:
             if location == None and build.get('Base Type', None) != None:
                 bt:dict = self.get_base_type(build.get('Base Type', ''))
                 location = bt.get('Location', None)
-            body:str|None = build.get('Body', str(build.get('BodyNum', None))).lower()
+            body:str|None = None
+            if build.get('Body', build.get('BodyNum', None)) != None:
+                body = build.get('Body', build.get('BodyNum', '')).lower()
             market:int|None = build.get('MarketID', None)
 
             # A build that was planned but is now a construction site
@@ -686,7 +688,7 @@ class Colonisation:
         body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', '')))
         if body != None:
             data['Body'] = self.body_name(system.get('StarSystem', ''), body.get('name', ''))
-            data['BodyNum'] = body['bodyId']
+            data['BodyNum'] = body.get('bodyId', None)
 
         if data.get('Base Type', '') == '' and data.get('Layout', None) != None:
             bt:dict = self.get_base_type(data.get('Layout', ''))

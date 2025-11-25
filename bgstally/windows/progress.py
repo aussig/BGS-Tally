@@ -254,10 +254,10 @@ class ProgressWindow:
         menu = tk.Menu(tearoff=tk.FALSE)
         menu.add_command(label=_('Copy to Clipboard'), command=partial(self.event, "copy"))  # LANG: Copy to cipboard
         #menu.add_command(label=_('Post to Discord'), command=partial(self.event, "post"))  # LANG: Post to discord
-        menu.add_separator()
 
         tracked:list = self.colonisation.get_tracked_builds()
         if self.build_index < len(tracked):
+            menu.add_separator()
             b:dict = tracked[self.build_index]
             if b.get('ProjectID', None) != None:
                 menu.add_command(label=_('Open in RavenColonial'), command=partial(webbrowser.open, 'https://ravencolonial.com/#build='+b.get('ProjectID','')))  # Open ravencolonial project

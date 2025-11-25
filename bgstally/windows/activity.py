@@ -13,7 +13,7 @@ from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, DATETIME_FORMA
                                 DiscordChannel, DiscordPostStyle)
 from bgstally.debug import Debug
 from bgstally.formatters.base import BaseActivityFormatterInterface
-from bgstally.utils import _, __, human_format, parse_human_format, validate_human_format
+from bgstally.utils import _, __, human_format, parse_human_format
 from bgstally.widgets import DiscordAnsiColorText, EntryPlus, TextPlus
 from thirdparty.colors import *
 from thirdparty.ScrollableNotebook import ScrollableNotebook

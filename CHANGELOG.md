@@ -1,114 +1,151 @@
 # Change Log
 
-## v5.2.0-xx - xxxx-xx-xx
-
-### New features:
-
-* Added synchronisation of marketIDs with Raven Colonial now it supports them
-* Better edit validation
-* In progress builds can be deleted from Raven Colonial
-* Added Surface/Orbital indicator to Colonisation window
-* Added synchronous update when Refresh button is pressed
-* Added recording of final build costs for bases
-* Added removal of planned builds that have been removed in RC.
-
-### Bug fixes:
-
-* Fixed bug with commodity display for non-fleetcarrier owners
-* Fixed issue with a long translation string
-* Fixed bug with deactivating the first system and removing tracking of hidden systems
-* Fixed repetetive update bug with empty values from Raven Colonial
-
-## v5.2.0-b1 - 2025-09-29
-
-### New features:
-
-* Colonisation: Added insert & remove menu options for adding/deleting builds
-
-### Bug fixes:
-
-* Fixed fleet carrier cargo bug
-* Improved migration of data
-* Fixed an overlay runtime error
-* Swapped order of planned and completed to be more logical
-* Small fixes for creating plans when logged out
-
-### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/xxxxxxxxxxxxxxxxxxxxxxx)):
-
-* `/activites` endpoint: `influence` percentage added to faction information for each faction.
-
-### New features:
-
-* Colonisation: Added insert & remove menu options for adding/deleting builds
-
-### Bug fixes:
-
-* Fixed fleet carrier cargo bug
-* Improved migration of data
-* Fixed an overlay runtime error
-* Swapped order of planned and completed to be more logical
-* Small fixes for creating plans when logged out
-
-## v5.2.0-a2 - 2025-09-20
-
-### New features:
-
-* Colonisation: Added RavenColonial markets window for linked builds
-* Colonisation: Added flexible sorting of bases popup
-* Added highglighting of missing base layout
-* Improved the tooltips for commodity lists
-* Improved a few RavenColonial integration in coordination with RC developer
-
-### Bug fixes:
-
-* Colonisation: Fixed issue with initial migration of data throwing an error
-* Colonisation: Fixed qty based sorting
-* Colonisation: Improved commodity filtering
-* Colonisation: Improved colonisation ship name display
-* Background threads now wait before they do anything, which avoids some possible errors on startup.
+## v5.4.0-xx - xxxx-xx-xx
 
 
-## v5.2.0-a1 - 2025-09-07
+
+
+## v5.4.0-a1 - 2025-11-24
 
 ### New Features:
 
-* Colonisation RavenColonial integration:
-  * Bi-directional, realtime integration with RC
-  * Importation of existing system plans from RC
-  * Creation of system plans and projects in RC
-  * Bi-directional synchronisation of system plans and project progress
-  * Submission of carrier cargo to RC
-  * Per-plan activation/deactivation of synchronisation at anytime
-* Colonisation window:
-  * The plan edit dialog enables toggling of RavenColonial syncing and plan deactivation
-  * The "+" (add plan) tab enables toggling of RavenColonial syncing and reactivation of deactivated plans
-  * Plan names go blue and link to RavenColonial when a plan is synced with RavenColonial
-  * Synced plans have a refresh button to force reading from RavenColonial
-  * Plans include an architect and the specific base layout
-  * System details (population, economy, etc.) are retreived from Spansh for better accuracy
-  * System and body links offer a dropdown menu for a range of destinations
+* Fully reworked fleet carrier window with improved tracking and much more detail and four tabs:
+  * Summary shows overview of carrier status
+  * Cargo shows cargo including market data
+  * Locker shows materials including market data
+  * Itinerary shows recent and scheduled jumps
+  * Shipyard shows all the ships docked on your carrier
+* Added polling of Raven Colonial project progress
+* Added popup menu for progress options
+* More improvements to project/build matching
+* Added Carrier buy orders as a progress column
+
+### Changes:
+
+* Moved colonisation site name mapping to after BuildID and MarketID when finding a build
+* Killed the "no builds are being tracked" overlay message
+* Updated system calculations to reflect FDev's new rules
+* Modified so Raven Colonial is read-only unless they have an API Key configured
+
+### Bug Fixes:
+
+* Fixed capitalization typo that could sometimes cause a site to be assigned to the wrong body
+* Fixed bug with checking for Open systems in RC
+* Fixed type error in self.station
+* Cleaned and tidied the CLB formatter
+* Improved project initiation with Raven Colonial
+* Fixed progress bug by modifying when/how progress is updated on tracking changes
+* Ensured RC projects sync even when created by other means
+* Fixed misidentification of squadron carriers as completed starports
+* Stopped BGS-Tally completing Raven Colonial projects as it's irreversible
+
+
+## v5.3.1 - 2025-11-14
+
+### Changes:
+
+* Added new Dodec Starport and Outpost in a box to Colonisation base types.
+
+
+## v5.3.0 - 2025-11-06
+
+### New Features:
+
+* Added colonisation build reordering via popup menu
+* Modified readonly toggle through popup menu instead of by state
+* Modified so that RC systems can be edited if they're open or you're on the list as well as if they're yours
+* Modified so auto-created systems default to syncing with RC if the Commander has configured an API key
+
+### New Features:
+
+* Added colonisation build reordering via popup menu
+* Modified readonly toggle through popup menu instead of by state
+* Modified so that RC systems can be edited if they're open or you're on the list as well as if they're yours
+* Modified so auto-created systems default to syncing with RC if the Commander has configured an API key
+
+### Bug Fixes
+
+* Fix for bug with connecting projectids to sites in Raven Colonial
+* Fix for popup windows on Linux
+* Fixed colonisation ship names
+* Made sure RC connects the project to the build
+
+
+## v5.2.0 - 2025-10-23
+
+### New Features:
+
+* Colonisation Raven Colonial integration:
+    - Bi-directional, realtime integration with RC
+    - Importation of existing system plans from RC
+    - Creation of system plans and projects in RC
+    - Bi-directional synchronisation of system plans and project progress
+    - Submission of carrier cargo to RC
+    - Per-plan activation/deactivation of synchronisation at anytime
+    - Raven Colonial markets window for linked builds
+* Colonisation windows:
+    - The plan edit dialog enables toggling of Raven Colonial syncing and plan deactivation
+    - The "+" (add plan) tab enables toggling of Raven Colonial syncing and reactivation of deactivated plans
+    - Plan names go blue and link to Raven Colonial when a plan is synced with Raven Colonial
+    - Synced plans have a refresh button to force reading from Raven Colonial
+    - Plans include an architect and the specific base layout
+    - System details (population, economy, etc.) are retreived from Spansh for better accuracy
+    - System and body links offer a dropdown menu for a range of destinations
+    - Added flexible sorting of bases popup
+    - Added highlighting of missing base layout
+    - Added insert & remove menu options for adding/deleting builds
+    - Added Surface/Orbital indicator to Colonisation window
+    - Added synchronous update when Refresh button is pressed
+    - Added recording of final build costs for bases
+
 * Colonisation Overlay:
-    * When visiting a market it switches to purchase view and lists only available commodities
+    - When visiting a market it switches to purchase view and lists only available commodities
 * Now tracks and reports your Powerplay merits earned each daily tick.
 * New Discord channel for Powerplay reporting.
 
 ### Changes:
 
 * Colonisation Progress view:
-  * All three columns can show any of: Required, Delivered, Remaining, Purchase, Cargo and Carrier
-  * Left clicking toggles through the views
-  * Right clicking toggles between tonnes and loads
-  * The loads view shows tonnes if less than one load
-  * Maximum commodities to show is a configuration option
-  * Build names adapt to fit width and include the build type
-  * Tooltips are adaptive showing the current option
-* Colonisation window:
-  * Column widths auto-adapt to content
-  * Base types popup column widths auto-adapt to content
-  * If a base type is a surface station, bodies dropdown will only list landable ones
-  * Builds are automatically sorted to Complete first, then In Progress, then Planned
-  * Multiple cells may be selected (useful for copying data)
-  * Plan sheet has a right click for edit, cut, copy, paste & delete
+    - All three columns can show any of: Required, Delivered, Remaining, Purchase, Cargo and Carrier
+    - Left clicking toggles through the views
+    - Right clicking toggles between tonnes and loads
+    - The loads view shows tonnes if less than one load
+    - Maximum commodities to show is a configuration option
+    - Build names adapt to fit width and include the build type
+    - Tooltips are adaptive showing the current option
+* Colonisation windows:
+    - Column widths auto-adapt to content
+    - Base types popup column widths auto-adapt to content
+    - If a base type is a surface station, bodies dropdown will only list landable ones
+    - Builds are automatically sorted to Complete first, then In Progress, then Planned
+    - Multiple cells may be selected (useful for copying data)
+    - Plan sheet has a right click for edit, cut, copy, paste & delete
+    - Improved the tooltips for commodity lists
+    - Swapped order of planned and completed to be more logical
+    - Better edit validation
+* Made debug logging only in dev_mode
+* Reduce time betwen automatic Discord posts from 5 mins to 1 min.
+* Tidy up Discord hooks presentation in settings panel.
+
+### Bug fixes:
+
+* Colonisation
+    - Fixed issue with initial migration of data throwing an error
+    - Fixed qty based sorting
+    - Improved commodity filtering
+    - Improved colonisation ship name display
+    - Small fixes for creating plans when logged out
+    - Fixed bug with deactivating the first system and removing tracking of hidden systems
+    - Fix for missing rare surface station update situation
+* Background threads now wait before they do anything, which avoids some possible errors on startup.
+* Fixed fleet carrier cargo bug
+* Fixed an overlay runtime error
+* Fixed bug with commodity display for non-fleetcarrier owners
+* Fixed issue with a long translation string
+
+### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/290c8aa2-50df-42ae-9bde-0e180bfb4df2)):
+
+* `/activites` endpoint: `influence` percentage added to faction information for each faction.
 
 
 ## v5.1.0 - 2025-09-05

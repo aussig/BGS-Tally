@@ -50,28 +50,32 @@ class BGSTally:
         """
         self.plugin_dir = plugin_dir
 
-        # Debug and Config Classes
-        self.debug: Debug = Debug(self)
+        # Config Classes
         self.config: Config = Config(self)
 
         # True only if we are running a dev version
         self.dev_mode: bool = False
+        if type(self.version.prerelease) is tuple and len(self.version.prerelease) > 0 and self.version.prerelease[0] == "dev":
+            self.dev_mode = True
+
+        # Debug Class
+        self.debug: Debug = Debug(self, self.dev_mode)
 
         # Load sentry to track errors during development - Hard check on "dev" versions ONLY (which never go out to testers)
         # If you are a developer and want to use sentry, install the sentry_sdk inside the ./thirdparty folder and add your full dsn
         # (starting https://) to a 'sentry' entry in config.ini file. Set the plugin version in load.py to include a 'dev' prerelease,
         # e.g. "3.3.0-dev"
-        if type(self.version.prerelease) is tuple and len(self.version.prerelease) > 0 and self.version.prerelease[0] == "dev":
-            self.dev_mode = True
+        if self.dev_mode:
             sys.path.append(path.join(plugin_dir, 'thirdparty'))
             try:
                 import sentry_sdk
-                sentry_sdk.init(
-                    dsn=self.config.apikey_sentry()
-                )
+                sentry_sdk.init(dsn=self.config.apikey_sentry())
                 Debug.logger.info("Enabling Sentry Error Logging")
             except ImportError:
                 pass
+
+        # Debug Class
+        self.debug: Debug = Debug(self, self.dev_mode)
 
         data_filepath = path.join(self.plugin_dir, FOLDER_OTHER_DATA)
         if not path.exists(data_filepath): mkdir(data_filepath)
@@ -113,6 +117,7 @@ class BGSTally:
         """
         Parse an incoming journal entry and store the data we need
         """
+        dirty:bool = False
 
         # Live galaxy check
         try:
@@ -121,14 +126,11 @@ class BGSTally:
             self.debug.logger.error(f"The EDMC Version is too old, please upgrade to v5.6.0 or later", exc_info=e)
             return
 
-        activity: Activity = self.activity_manager.get_current_activity()
-
         # Total hack for now. We need cmdr in Activity to allow us to send it to the API when the user changes values in the UI.
         # What **should** happen is each Activity object should be associated with a single CMDR, and then all reporting
         # kept separate per CMDR.
+        activity:Activity = self.activity_manager.get_current_activity()
         activity.cmdr = cmdr
-
-        dirty: bool = False
 
         if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
             activity.system_entered(entry, self.state)
@@ -171,6 +173,7 @@ class BGSTally:
 
             case 'CarrierTradeOrder':
                 self.fleet_carrier.trade_order(entry)
+                self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'CollectCargo':
                 activity.cargo_collected(entry, self.state)
@@ -302,6 +305,9 @@ class BGSTally:
                 self.target_manager.ship_targeted(entry, system)
                 dirty = True
 
+            case 'Shipyard' | 'StoredShips' | 'ShipyardSwap':
+                self.fleet_carrier.shipyard_event(entry)
+
             case 'SupercruiseDestinationDrop':
                 activity.destination_dropped(entry, self.state)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
@@ -323,7 +329,6 @@ class BGSTally:
 
             case 'WingInvite':
                 self.target_manager.team_invite(entry, system)
-
 
         if dirty:
             self.save_data()

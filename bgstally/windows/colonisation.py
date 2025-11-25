@@ -16,10 +16,11 @@ from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, 
 from bgstally.debug import Debug
 from bgstally.utils import _, get_localised_filepath, human_format, str_truncate, catch_exceptions
 from bgstally.ravencolonial import RavenColonial
+from bgstally.colonisation import Colonisation
 
 from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key, ICON_DEL, ICON_ADD
+from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key, ICON_DEL, ICON_ADD, ICON_SORT_DESC, ICON_SORT_ASC, ICON_REDO
 from thirdparty.Tooltip import ToolTip
 
 FILENAME_LEGEND = "colonisation_legend.txt"
@@ -39,7 +40,7 @@ class ColonisationWindow:
     '''
     def __init__(self, bgstally) -> None:
         self.bgstally = bgstally
-        self.colonisation = None
+        self.colonisation:Colonisation|None = None
         self.image_tab_complete:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
         self.image_tab_progress:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
         self.image_tab_planned:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_disabled.png"))
@@ -136,7 +137,7 @@ class ColonisationWindow:
             'Orbital' : '#d5deeb', 'Surface' : '#ebe6db',
             'Starport' : '#dce9cb', 'Outpost' : '#ddebff', 'Installation' : '#ffe5a0',
             'Planetary Outpost' : "#ddf5f5", 'Planetary Port': '#c0e1ff', 'Settlement' : '#bbe1ba', 'Hub' : '#bac9e5',
-            'Planned' : '#ffe5a0', 'Progress' : '#f5b60d', 'Complete' : '#d4edbc', #'#5a3286',
+            'Planned' : '#ffe5a0', 'Progress' : '#ddebff', 'Complete' : '#d4edbc', #'#5a3286',
             'L' : '#d4edbc', 'M' : '#dbe5ff', 'O' : '#d5deeb', 'S' : '#ebe6db', 'C' : '#e6dbeb'
         }
 
@@ -152,8 +153,8 @@ class ColonisationWindow:
                            'Base':   {'RavenColonial': 'https://ravencolonial.com/#vis={Layout}'}
                             }
         # UI components'
-        self.window:tk.Toplevel = None # type: ignore
-        self.tabbar:ScrollableNotebook = None # type: ignore
+        self.window:tk.Toplevel|None = None
+        self.tabbar:ScrollableNotebook|None = None
         self.add_dialog:tk.Frame|None = None
         self.react:tk.Frame|None = None
         self.sheets:list = []
@@ -173,7 +174,7 @@ class ColonisationWindow:
             return
         self.scale = config.get_int('ui_scale') / 100.00
         self.colonisation = self.bgstally.colonisation
-        self.window:tk.Toplevel = tk.Toplevel(self.bgstally.ui.frame)
+        self.window = tk.Toplevel(self.bgstally.ui.frame)
         self.window.title(_("{plugin_name} - Colonisation").format(plugin_name=self.bgstally.plugin_name)) # LANG: window title
 
         self.window.minsize(400, 100)
@@ -188,7 +189,6 @@ class ColonisationWindow:
         ''' Create the system frame notebook and tabs for each system '''
         # Create system tabs notebook
         self.tabbar = ScrollableNotebook(self.window, wheelscroll=True, tabmenu=False)
-        self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
         self.add_dialog = self.add_system_dialog()
         self.update_react_dialog()
         self.tabbar.add(self.add_dialog, text='+')
@@ -209,7 +209,7 @@ class ColonisationWindow:
                 if systems[t].get('Hidden', True) == False:
                     break
             self.tabbar.select(t+1) # Select the first non-hidden system tab
-
+        self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
     @catch_exceptions
     def _create_system_tab(self, tabnum:int, system:dict) -> None:
@@ -450,7 +450,6 @@ class ColonisationWindow:
 
         self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.bodies_fr.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the bodies popup window
-        self.bodies_fr.wm_attributes('-toolwindow', True) # makes it a tool window
         self.bodies_fr.minsize(600, 600)
         self.bodies_fr.geometry(f"{int(600*self.scale)}x{int(600*self.scale)}")
         self.bodies_fr.config(bd=2, relief=tk.FLAT)
@@ -550,7 +549,6 @@ class ColonisationWindow:
         self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
         self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        self.legend_fr.wm_attributes('-toolwindow', True) # makes it a tool window
         self.legend_fr.geometry(f"600x600")
         self.legend_fr.config(bd=2, relief=tk.FLAT)
         scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
@@ -594,9 +592,12 @@ class ColonisationWindow:
         sheet.edit_validation(func=partial(self._validate_edits, sheet))
         sheet.extra_bindings(['all_modified_events', 'cell_select', 'ctrl_row_select', 'rc_delete_row', 'rc_insert_row'], func=partial(self.sheet_modified, sheet, tabnum))
 
+        sheet.popup_menu_add_command(label="Move up", func=partial(self._row_modified, sheet, tabnum, 'MoveUp'), image=tk.PhotoImage(data=ICON_SORT_DESC), compound="left")
+        sheet.popup_menu_add_command(label="Move down", func=partial(self._row_modified, sheet, tabnum, 'MoveDown'), image=tk.PhotoImage(data=ICON_SORT_ASC), compound="left")
         sheet.popup_menu_add_command(label="Insert build above", func=partial(self._row_modified, sheet, tabnum, 'InsAbove'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
         sheet.popup_menu_add_command(label="Insert build below", func=partial(self._row_modified, sheet, tabnum, 'InsBelow'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
         sheet.popup_menu_add_command(label="Delete build", func=partial(self._row_modified, sheet, tabnum, 'Delete'), image=tk.PhotoImage(data=ICON_DEL), compound="left")
+        sheet.popup_menu_add_command(label="Toggle Readonly", func=partial(self._row_modified, sheet, tabnum, 'Readonly'), image=tk.PhotoImage(data=ICON_REDO), compound="left")
 
         if len(self.sheets) < tabnum:
             self.sheets.append(sheet)
@@ -631,6 +632,17 @@ class ColonisationWindow:
                 self.colonisation.remove_build(system, row)
                 sheet.del_row(row)
                 self._config_sheet(self.sheets[sysnum], system)
+            case 'MoveUp':
+                if row == 0:
+                    return
+                self.colonisation.move_build(system, row, row-1)
+            case 'MoveDown':
+                if row >= len(system.get('Builds', [])) -1:
+                    return
+                self.colonisation.move_build(system, row, row+1)
+            case 'Readonly':
+                self.colonisation.modify_build(system, row, {'Readonly': not system['Builds'][row].get('Readonly', False)}, True)
+
         self.update_display()
 
 
@@ -703,7 +715,7 @@ class ColonisationWindow:
         ''' Build a summary of the system's builds and status. '''
         totals:dict = {'Planned': {}, 'Complete': {}}
         builds:list = system.get('Builds', [])
-        required:dict = self.colonisation.get_required(builds)
+        required:list = self.colonisation.get_required(builds)
 
         for name, col in self.summary_cols.items():
             if col.get('hide') == True:
@@ -737,30 +749,48 @@ class ColonisationWindow:
                         totals['Planned'][name] += v
                         totals['Complete'][name] += v if self.is_build_started(build) and v < 1 else 0 # Need to substract points as soon as build starts as the points are nolonger available
                         totals['Complete'][name] += v if self.is_build_complete(build) else 0
-                    case 'Population':
-                        totals['Planned'][name] = ' '
-                        totals['Complete'][name] = human_format(system.get('Population', 0))
-                    case 'Development Level':
-                        totals['Planned'][name] += bt.get(name, 0)
-                        totals['Complete'][name] += bt.get(name, 0) if self.is_build_complete(build) else 0
                     case 'Cost' if row < len(required):
                         rc:int = build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values())
                         totals['Planned'][name] += rc
                         totals['Complete'][name] += rc if self.is_build_complete(build) else 0
                     case 'Trips' if row < len(required):
-                        trips:int = ceil(build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values()) / self.colonisation.cargo_capacity)
+                        trips:int = ceil((build.get('TotalCost', 0) if self.is_build_complete(build) and build.get('TotalCost', 0) > 0 else sum(required[row].values())) / self.colonisation.cargo_capacity)
                         totals['Planned'][name] += trips
                         totals['Complete'][name] += trips if self.is_build_complete(build) else 0
+                    case 'Population':
+                        totals['Planned'][name] = ' '
+                        totals['Complete'][name] = human_format(system.get('Population', 0))
+                    case 'Development Level' | 'Security':
+                        amt:float = float(bt.get(name, 0))
+                        amt *= 1.4 if row == 0 else 0.9
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
+                    case 'Standard of Living':
+                        amt:float = float(bt.get(name, 0))
+                        amt *= 1.4 if row == 0 else 0.8
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
+                    case 'Technology Level':
+                        amt:float = float(bt.get(name, 0))
+                        amt *= 1.2 if row == 0 else 0.75
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
+                    case 'Wealth':
+                        amt:float = float(bt.get(name, 0))
+                        amt *= 1.4 if row == 0 else 0.75
+                        totals['Planned'][name] += amt
+                        totals['Complete'][name] += amt if self.is_build_complete(build) else 0
                     case _ if col.get('format') == 'int':
                         totals['Planned'][name] += bt.get(name, 0)
                         totals['Complete'][name] += bt.get(name, 0) if self.is_build_complete(build) else 0
 
+        # Dont think this applies anymore.
         # Deal with the "if you have a starport (t2 orbital or higher) your tech level will be at least 35" rule
-        starports:list = self.colonisation.get_base_types('Starport')
-        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
-        totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
-        min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.is_build_complete(build)]) > 0 else 0
-        totals['Complete']['Technology Level'] = max(totals['Complete']['Technology Level'], min)
+        #starports:list = self.colonisation.get_base_types('Starport')
+        #min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports]) > 0 else 0
+        #totals['Planned']['Technology Level'] = max(totals['Planned']['Technology Level'], min)
+        #min:int = 35 if len([1 for build in builds if build.get('Base Type') in starports and self.is_build_complete(build)]) > 0 else 0
+        #totals['Complete']['Technology Level'] = max(totals['Complete']['Technology Level'], min)
 
         return totals
 
@@ -778,7 +808,7 @@ class ColonisationWindow:
                 if col.get('hide', False) == True:
                     row.append(' ')
                     continue
-                row.append(totals[r].get(name, 0))
+                row.append(round(totals[r].get(name, 0), 1) if isinstance(totals[r].get(name, 0), float) else totals[r].get(name, 0))
             summary.append(row)
 
         return summary
@@ -862,10 +892,9 @@ class ColonisationWindow:
             details.append(row)
 
         # Is the last line an uncategorized base? If not add another
-        if len(details) == 0 or details[-1][1] != ' ':
+        if len(details) == 0 or details[-1][1] != ' ' or details[-1][3] != ' ':
             row:list = [' '] * (len(list(self.detail_cols.keys())) -1)
             details.append(row)
-
         return details
 
 
@@ -902,8 +931,10 @@ class ColonisationWindow:
                 sheet[self._cell(i+srow,0)].data = ' '
                 sheet[self._cell(i+srow,self._detcol('Track'))].readonly()
 
-            if build.get('BuildID', '') != '' and new[i][self._detcol('Name')] != ' ' and new[i][self._detcol('Name')] != '' and \
-                new[i][self._detcol('Layout')] != ' ' and new[i][self._detcol('Body')] != ' ' and new[i][self._detcol('State')] == BuildState.COMPLETE: # Mark complete builds as readonly
+            # Handle readonly builds (must have required fields set)
+            if build.get('Readonly', False) == True and build.get('BuildID', '') != '' and \
+                new[i][self._detcol('Name')] not in ['', ' '] and new[i][self._detcol('Layout')] != ' ' and \
+                    new[i][self._detcol('Body')] != ' ':
                 # Base type
                 if new[i][self._detcol('Base Type')] in self.colonisation.get_base_types() and \
                     new[i][self._detcol('Layout')] in self.colonisation.get_base_layouts(): # Base type has been set so make it readonly
@@ -934,7 +965,8 @@ class ColonisationWindow:
                     sheet[self._cell(i+srow,self._detcol('Body'))].readonly()
                 continue
 
-            #  Tracking
+            # Editable builds below here
+            # Tracking
             if new[i][self._detcol('State')] != BuildState.COMPLETE:
                 sheet[self._cell(i+srow,self._detcol('Track'))].checkbox(state='normal', redraw=False)
                 sheet[self._cell(i+srow,self._detcol('Track'))].data = ' '
@@ -1000,7 +1032,7 @@ class ColonisationWindow:
             self._update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
             self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
             # Not our system? Then it's readonly
-            if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
+            if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
                 self.sheets[i]['B1:Z'].readonly()
 
 
@@ -1035,9 +1067,7 @@ class ColonisationWindow:
 
             # If the user clicks on the state column, toggle the state between planned and complete.
             # If it's in progress we'll update to that on our next delivery
-            if field == 'State' and row < len(system['Builds']):
-                r:int = event.selected.row
-
+            if field == 'State' and row < len(system['Builds']) and system['Builds'][row].get('Readonly', False) != True:
                 if system['Builds'][row].get('Base Type', '') in self.colonisation.get_base_types('All'):
                     match system['Builds'][row].get('State', ''):
                         case BuildState.PLANNED: newstate = BuildState.PROGRESS
@@ -1051,16 +1081,12 @@ class ColonisationWindow:
 
                 self.update_display()
 
-        if system.get('RCSync', False) == True and self.colonisation.cmdr != None and self.colonisation.cmdr != system.get('Architect', None):
-            Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
-            return
-
-        if event.eventname.endswith('move_rows'):
-            Debug.logger.debug(f"Row move {event}")
-            return
-
         # We only deal with edits.
         if not event.eventname.endswith('edit_table'):
+            return
+
+        if event.selected.column > 0 and system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
+            Debug.logger.info(f"Not our system, ignoring edit: {system.get('Architect', None)} != {self.colonisation.cmdr}")
             return
 
         # In the summary
@@ -1245,7 +1271,6 @@ class ColonisationWindow:
         system:dict = systems[sysnum]
         dialog:tk.Toplevel = tk.Toplevel(btn)
         dialog.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        dialog.wm_attributes('-toolwindow', True) # makes it a tool window
 
         dialog.title(_("Edit System")) # LANG: Rename a system
         dialog.minsize(500, 250)
@@ -1366,7 +1391,7 @@ class ColonisationWindow:
             Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
         system:dict = systems[sysnum]
-        if system.get('RCSync', 0) == 0:
+        if system.get('RCSync', False) == False:
             return
 
         # Refresh the RC data when the window is opened/created
@@ -1387,9 +1412,9 @@ class ColonisationWindow:
         if self.bodies_fr: self.bodies_fr.destroy()
 
         # UI components
-        self.tabbar:ScrollableNotebook
-        self.sheets:list = []
-        self.plan_titles:list = []
+        self.tabbar = None
+        self.sheets = []
+        self.plan_titles = []
         self.colonisation.save("Colonisation window close")
 
 
@@ -1417,7 +1442,7 @@ class ColonisationWindow:
     @catch_exceptions
     def _set_weight(self, item, wght:str = 'bold') -> None:
         ''' Set font weight '''
-        fnt = tkFont.Font(font=item['font']).actual()
+        fnt: tkFont._FontDict = tkFont.Font(font=item['font']).actual()
         item.configure(font=(fnt['family'], fnt['size'], wght))
 
 

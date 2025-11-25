@@ -50,6 +50,8 @@ class RavenColonial:
             'id64': 'SystemAddress',
             'name': 'StarSystem',
             'architect': 'Architect',
+            'cmdr': 'RCCommander',
+            'open': 'RCOpen',
             'rev': 'Rev',
             'slots': 'BuildSlots'
         }
@@ -60,8 +62,7 @@ class RavenColonial:
                                  'buildType' : 'Layout',
                                  'status' : 'State',
                                  'buildId' : 'ProjectID',
-                                 'marketId' : 'MarketID',
-                                 'architectName' : 'Architect'
+                                 'marketId' : 'MarketID'
                                  }
         # Project parameter mapping between colonisation & raven.
         self.project_params:dict = {
@@ -73,9 +74,12 @@ class RavenColonial:
             'systemSiteId': 'BuildID',
             'commodities': 'Remaining',
             'buildType': 'Layout',
-            'bodyNum': 'BodyNum',
             'architectName': 'Architect',
             'timeDue': 'Deadline',
+            'bodyNum': 'BodyNum',
+            'bodyName': 'Body',
+            'bodyNum': 'BodyNum',
+            'bodyName': 'Body',
             'bodyType': 'BodyType',
             'complete': 'ConstructionComplete'
             }
@@ -105,6 +109,19 @@ class RavenColonial:
         if self.colonisation.cmdr != None: headers["rcc-cmdr"] = self.colonisation.cmdr
         if self.bgstally.state.ColonisationRCAPIKey.get() != None: headers["rcc-key"] = self.bgstally.state.ColonisationRCAPIKey.get()
         return headers
+
+
+    def is_editable(self, system:dict|None = None) -> bool:
+        """ Determine if we can/should edit this system in RavenColonial """
+
+        if self.colonisation.cmdr == None or \
+            self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
+            return False
+
+        if system == None: return True # General edit permission check
+
+        return system.get('RCOpen', False) == True or \
+            self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
 
 
     @catch_exceptions
@@ -139,6 +156,10 @@ class RavenColonial:
     @catch_exceptions
     def add_system(self, system_name:str) -> None:
         """ Add a system to RC. """
+
+        if self.is_editable() == False:
+            Debug.logger.info("Not adding system to RavenColonial")
+            return
 
         # Query the system to see if it exists
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
@@ -179,6 +200,11 @@ class RavenColonial:
     @catch_exceptions
     def complete_project(self, project_id:str) -> None:
         """ Complete a site """
+
+        if self.is_editable() == False:
+            Debug.logger.info("Not completing project in RavenColonial")
+            return
+
         url:str = f"{RC_API}/project/{project_id}/complete"
 
         response:Response = requests.post(url, headers=self._headers(), timeout=5)
@@ -192,6 +218,11 @@ class RavenColonial:
     @catch_exceptions
     def delete_project(self, project_id:str) -> None:
         """ Delete a project """
+
+        if self.is_editable() == False:
+            Debug.logger.info("Not allowed to delete project")
+            return
+
         url:str = f"{RC_API}/project/{project_id}"
 
         response:Response = requests.delete(url, headers=self._headers(), timeout=5)
@@ -206,11 +237,8 @@ class RavenColonial:
     def upsert_site(self, system:dict, data:dict) -> None:
         """ Modify a site (build) in RavenColonial """
 
-        if self.colonisation.cmdr == None:
-            Debug.logger.info(f"Cannot upsert site, no cmdr")
-            return
-        if system.get('Architect', '') != self.colonisation.cmdr:
-            Debug.logger.info(f"Not architect, not updating")
+        if self.is_editable(system) == False:
+            Debug.logger.info(f"Not allowed to upsert site.")
             return
 
         # Create an ID if necessary
@@ -239,14 +267,15 @@ class RavenColonial:
 
         # Refresh the system info
         self.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
-        Debug.logger.info(f"RavenColonial site upserted {data.get('Name', '')} {update}")
+        Debug.logger.debug(f"RavenColonial site upserted {data.get('Name', '')} {update}")
 
 
     @catch_exceptions
     def remove_site(self, system:dict, ind:int) -> None:
         """ Remove a site from RavenColonial """
-        if system.get('Architect', '') != self.colonisation.cmdr:
-            Debug.logger.info(f"Not architect, not updating")
+
+        if self.is_editable(system) == False:
+            Debug.logger.info(f"Not allowed to remove site")
             return
 
         build:dict = system['Builds'][ind]
@@ -262,6 +291,25 @@ class RavenColonial:
             Debug.logger.error(f"{url} {self._headers()} {response} {response.content}")
 
         Debug.logger.info(f"RavenColonial site removed {build.get('Name', '')}")
+
+    @catch_exceptions
+    def update_build_order(self, system:dict) -> None:
+        """ Update the site order in RavenColonial to match our order """
+
+        if self.is_editable(system) == False:
+            Debug.logger.info(f"Not allowed to update build order")
+            return
+
+        payload:dict = {'update': [], 'delete':[], 'orderIDs': []}
+        for b in system.get('Builds', []):
+            payload['orderIDs'].append(b.get('BuildID', None))
+
+        url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
+        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
+        if response.status_code != 200:
+            Debug.logger.error(f"{url} {response} {response.content}")
+
+        Debug.logger.info(f"RavenColonial site order updated for system {system.get('StarSystem', '')}")
 
 
     def _merge_system_data(self, data:dict) -> None:
@@ -296,7 +344,10 @@ class RavenColonial:
                 build = self.colonisation.find_build(system, {'BuildID' : site.get('id', -1), 'Name': site.get('name', -1), 'BodyNum': site.get('bodyNum', -1)})
 
             if build != None:
-                tmp.remove(build)
+                for i, b in enumerate(tmp):
+                    if b.get('BuildID', None) == build.get('BuildID', None):
+                        tmp.remove(b)
+                        break
 
             # Avoid creating leftover construction sites
             if build == None and 'Construction Site' in site.get('name', ''):
@@ -321,8 +372,8 @@ class RavenColonial:
             # Skip placeholder responses
             if p == 'bodyNum' and site.get(p, -1) == -1: continue
 
-            # strip, initcap and replace spaces in strings except for id and buildid, name and architectName
-            rcval = site.get(p, '').strip().title().replace('_', ' ') if isinstance(site.get(p, None), str) and p not in ['id', 'buildId', 'name', 'architectName'] else site.get(p, None)
+            # strip, initcap and replace spaces in strings except for id and buildid, name, architectName and cmdr
+            rcval = site.get(p, '').strip().title().replace('_', ' ') if isinstance(site.get(p, None), str) and p not in ['id', 'buildId', 'name', 'architectName', 'cmdr'] else site.get(p, None)
             if p == 'status' and site[p] in self.status_map.keys(): rcval = self.status_map[site[p]]
             if rcval != None and rcval != build.get(m, None):
                 deets[m] = rcval
@@ -339,6 +390,7 @@ class RavenColonial:
 
     def _reorder_builds(self, system:dict, sites:list) -> None:
         """ Reorder the builds in the system to match the order from RavenColonial """
+
         new_order:list = []
         for s in sites:
             build:dict|None = self.colonisation.find_build(system, {'BuildID' : s.get('id', -1), 'Name': s.get('name', -1), 'BodyNum': s.get('bodyNum', -1)})
@@ -352,14 +404,14 @@ class RavenColonial:
             if build not in new_order:
                 new_order.append(build)
 
-        Debug.logger.debug(f"New build order: {[k.get('Name', '') for k in new_order]} old: {[k.get('Name', '') for k in system.get('Builds', [])]}")
+        #Debug.logger.debug(f"New build order: {[k.get('Name', '') for k in new_order]} old: {[k.get('Name', '') for k in system.get('Builds', [])]}")
         self.colonisation.modify_system(system, {'Builds': new_order})
 
 
     @catch_exceptions
     def _load_callback(self, success:bool, response:Response, request:BGSTallyRequest|None = None) -> None:
         """ Process the results of querying RavenColonial for the system details """
-        # @UNUSED?
+
         if success == False:
             Debug.logger.error(f"System load failed {response.content}")
             return
@@ -380,14 +432,20 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def create_project(self, system:dict, build:dict, progress:dict) -> None:
-        """ Create a new project in RavenColonial
-            RC requires: marketid, systemaddress, buildname, and commodities
-            Optional: buildType, bodyNum, architectName, timeDue, isPrimaryPort, bodyType
-        """
+    def create_project(self, system:dict, build:dict, progress:dict) -> str|None:
+        """ Create a new project in RavenColonial """
+
+        if self.is_editable() == False:
+            Debug.logger.info("Not creating project in RavenColonial")
+            return
+
         payload:dict = {}
         for k, v in self.project_params.items():
-            rcval = None
+            rcval:dict|None = None
+
+            if k == 'bodyName': # Reconstruction the bodyname if we're able
+                if system.get('Name', None) != None and build.get('Body', None) != None:
+                    rcval = system.get('Name', '') + ' ' + build.get('Body', '')
             if progress.get(v, None) != None:
                 rcval = progress.get(v, '').strip().lower().replace(' ', '_') if isinstance(progress.get(v, None), str) and 'name' not in k.lower() else progress.get(v, None)
             elif build.get(v, None) != None:
@@ -397,41 +455,51 @@ class RavenColonial:
             elif k == 'commodities' and  progress != {}:
                 rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v for k,v in progress.get('Required').items()}
 
-            if rcval != None and v != 'Updated':
+            if rcval != None and v not in ['ProjectID', 'Updated']:
                 payload[k] = rcval
 
         url:str = f"{RC_API}/project/"
         response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
+        projectid:str|None = None
+
+        if response.status_code in [200, 202]:
+            data:dict = response.json()
+            projectid = data.get('buildId', None)
+
         if response.status_code == 409:
-            Debug.logger.error(f"{url} already exists: {response.content}")
+            # This probably only happens if someone's done something weird like deleting & recreating a build.
+            projectid = build.get('ProjectID', None)
+
+        if projectid == None:
+            Debug.logger.error(f"Project not found {response} {response.content}")
             return
 
-        if response.status_code not in [200, 202]:
-            Debug.logger.error(f"{url} {response} {response.content}")
-            return
-
-        # Set the project ID in the progress
-        data:dict = response.json()
-        self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': data.get('buildId')}, True)
+        self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': projectid}, True)
 
         # Link the project to us.
-        url:str = f"{RC_API}/project/{data.get('buildId')}/link/{self.colonisation.cmdr}"
+        url:str = f"{RC_API}/project/{projectid}/link/{self.colonisation.cmdr}"
         response:Response = requests.put(url, headers=self._headers(), timeout=5)
         if response.status_code not in [200, 202]:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
 
-        Debug.logger.debug(f"RavenColonial project created {data.get('buildName', 'Unknown')}")
+        Debug.logger.info(f"RavenColonial project created {projectid}")
+        return projectid
 
 
     @catch_exceptions
     def upsert_project(self, system:dict, build:dict, progress:dict) -> None:
         """ Update build progress """
-        # Required: buildId (though maybe not if you use )
+
+        if self.is_editable() == False:
+            Debug.logger.info("Not updating project in RavenColonial")
+            return
+
         # Create project if we don't have an id.
         if progress.get('ProjectID', None) == None:
-            self.create_project(system, build, progress)
-            return
+            projectid:str|None = self.create_project(system, build, progress)
+            if projectid != None:
+                progress['ProjectID'] = projectid
 
         # Update project
         payload:dict = {}
@@ -459,22 +527,31 @@ class RavenColonial:
     @catch_exceptions
     def _project_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         """ Process the results of querying RavenColonial """
-        data:dict = response.json()
-
-        if success == False:
-            Debug.logger.warning(f"Project submission failed {success} {response.status_code} {response.content} {request}")
+        if response.status_code == 404:
+            Debug.logger.info(f"Project not found, cannot update {response} Response.content [{response.content}] Request [{request}]")
+            # Get projectid from request endpoint
+            pid:str = re.search(r"/project/([^/]+)", request.endpoint).group(1)
+            # Remove this project ID from progress
+            self.colonisation.update_progress(pid, {'ProjectID': None}, True)
             return
 
+        if success == False:
+            Debug.logger.warning(f"Project submission failed {success} {response.status_code} response.content [{response.content}] request [{request}]")
+            return
+
+        data:dict = response.json()
         self.colonisation.update_progress(data.get('buildId'), {'Updated': re.sub(r"\.\d+\+00:00$", "Z", str(data.get('timestamp')))}, True)
 
 
     @catch_exceptions
     def load_project(self, progress:dict) -> None:
+        """ Load the latest project data from RavenColonial """
+
         projectid:str|None = progress.get('ProjectID', None)
         if projectid == None: return
 
         url:str = f"{RC_API}/project/{projectid}/last"
-        response:Response = requests.get(url, headers=self._headers(),timeout=5)
+        response:Response = requests.get(url, headers=self._headers(), timeout=10)
         if response.status_code != 200:
             Debug.logger.error(f"Error for {url} {response} {response.content}")
             return
@@ -483,14 +560,22 @@ class RavenColonial:
             Debug.logger.error(f"Error with load project, doesn't exist")
             return
 
-        if response.content != progress.get('Updated', ''):
-            url = f"{RC_API}/project/{projectid}"
-            self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=self._load_project_callback)
+        if response.content == progress.get('Updated', ''):
+            return
+
+        url = f"{RC_API}/project/{projectid}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=self._load_project_callback)
 
 
     @catch_exceptions
     def _load_project_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         """ Process the results of querying RavenColonial for the project details """
+        if response != None and response.status_code == 404:
+            Debug.logger.info(f"Project not found, {response} Response.content [{response.content}] Request [{request}]")
+            # Remove this project ID from progress
+            pid:str = re.search(r"/project/([^/]+)", request.endpoint).group(1)
+            self.colonisation.update_progress(pid, {'ProjectID': None}, True)
+            return
         if success == False:
             Debug.logger.error(f"Project load failed {response}")
             return
@@ -513,6 +598,11 @@ class RavenColonial:
     @catch_exceptions
     def record_contribution(self, project_id:int, contributions:list[dict]) -> None:
         """ Record colonisation contributions made """
+
+        if self.is_editable() == False:
+            Debug.logger.info("Not recording contribution with RavenColonial")
+            return
+
         payload:dict = {re.sub(r"\$(.*)_name;$", r"\1", c.get('Name', '').lower()): c.get('Amount', 0) for c in contributions}
 
         # Which of the following to use?
@@ -522,14 +612,14 @@ class RavenColonial:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
 
-        Debug.logger.info(f"RavenColonial project contribution accepted {project_id}")
+        Debug.logger.debug(f"RavenColonial project contribution accepted {project_id}")
 
 
     @catch_exceptions
     def update_carrier(self, marketid:int, cargo:dict) -> None:
         """ Update the cargo of a fleet carrier """
-        if self.colonisation.cmdr == None:
-            Debug.logger.info("Cannot update carrier no cmdr")
+        if self.is_editable() == False:
+            Debug.logger.info("Not updating carrier in RavenColonial")
             return
 
         payload:dict = {comm : cargo.get(comm, 0) for comm in self.bgstally.ui.commodities.keys()}
@@ -546,7 +636,7 @@ class RavenColonial:
             Debug.logger.warning(f"Error updating carrier {response} {response.content}")
             return
 
-        Debug.logger.info(f"RavenColonial carrier updated: {response}")
+        Debug.logger.debug(f"RavenColonial carrier updated: {response}")
 
 
 
@@ -574,14 +664,14 @@ class EDSM:
     def import_stations(self, system_name:str) -> None:
         """ Retrieve the stations in a system """
         if system_name == None or system_name == '':
-            Debug.logger.info("no system name")
+            Debug.logger.info("No system name")
             return
 
         # Check when we last updated this system
         if not hasattr(RavenColonial(self), '_initialized'): return
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
-            Debug.logger.info(f"unknown system {system_name}")
+            Debug.logger.info(f"Unknown system {system_name}")
             return
 
         if system.get('Updated', 0) > int(time.time()) - EDSM_COOLDOWN:
@@ -595,14 +685,14 @@ class EDSM:
     @catch_exceptions
     def _stations(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Process the results of querying ESDM for the stations in a system '''
-        Debug.logger.info(f" discovery response received: {success}")
+
         data:dict = response.json()
         if data.get('name', None) == None:
-            Debug.logger.warning(f"stations response did not contain a name, ignoring")
+            Debug.logger.warning(f"Stations response did not contain a name, ignoring")
             return
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': data.get('name')})
         if system == None:
-            Debug.logger.warning(f"stations didn't find system {data.get('name')}")
+            Debug.logger.warning(f"Stations didn't find system {data.get('name')}")
             return
 
         stations:list = list(k for k in sorted(data.get('stations', []), key=lambda item: item['marketId']))
@@ -648,7 +738,7 @@ class EDSM:
                 'Body': body,
                 }
             RavenColonial(self).colonisation.add_build(system, build)
-            Debug.logger.info(f"Added station {build} to system {data.get('name')}")
+            Debug.logger.debug(f"Added station {build} to system {data.get('name')}")
 
         RavenColonial(self).bgstally.ui.window_colonisation.update_display()
 
@@ -657,7 +747,7 @@ class EDSM:
     def import_system(self, system_name:str) -> None:
         """ Retrieve the details of a system """
         if system_name == None or system_name == '':
-            Debug.logger.info("no system name")
+            Debug.logger.info("No system name")
             return
 
         if not hasattr(RavenColonial(self), '_initialized'): return
@@ -665,7 +755,7 @@ class EDSM:
         # Check when we last updated this system
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
-            Debug.logger.info(f"unknown system {system_name}")
+            Debug.logger.info(f"Unknown system {system_name}")
             return
 
         if system.get('EDSMUpdated', 0) > int(time.time()) - EDSM_COOLDOWN:
@@ -704,7 +794,7 @@ class EDSM:
     def import_bodies(self, system_name:str) -> None:
         """ Retrieve the bodies in a system """
         if system_name == None or system_name == '':
-            Debug.logger.info("no system name")
+            Debug.logger.info("No system name")
             return
 
         if not hasattr(RavenColonial(self), '_initialized'): return
@@ -712,7 +802,7 @@ class EDSM:
         # Check when we last updated this system
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
-            Debug.logger.info(f"unknown system {system_name}")
+            Debug.logger.info(f"Unknown system {system_name}")
             return
 
         if system.get('Bodies', None) != None:
@@ -729,14 +819,14 @@ class EDSM:
 
     def _bodies(self, success:bool, response:Response, request:BGSTallyRequest|None = None) -> None:
         ''' Process the results of querying ESDM for the bodies in a system '''
-        Debug.logger.info(f"bodies response received: {success}")
+
         data:dict = response.json()
         if data.get('name', None) == None:
-            Debug.logger.warning(f"bodies didn't contain a name, ignoring")
+            Debug.logger.info(f"Bodies didn't contain a name, ignoring")
             return
         system:dict = RavenColonial(self).colonisation.find_system({'StarSystem' : data.get('name')})
         if system == None:
-            Debug.logger.warning(f"bodies didn't find system {data.get('name')}")
+            Debug.logger.info(f"Bodies didn't find system {data.get('name')}")
             return
 
         # Only record the body details that we need since returns an enormous amount of data.
@@ -747,6 +837,13 @@ class EDSM:
                 if b.get(k, None): v[k] = b.get(k)
             if b.get('parents', None) != None:
                 v['parents'] = len(b.get('parents', []))
+
+            if b.get('belts', None) != None:
+                for belt in b.get('belts', []):
+                    if belt.get('type', '') == 'Ring':
+                        v['rings'] = v.get('rings', 0) + 1
+
+                v['belts'] = len(b.get('belts', []))
             bodies.append(v)
 
         RavenColonial(self).colonisation.modify_system(system, {'Bodies' : bodies})
@@ -792,7 +889,7 @@ class Spansh:
 
         system_address:int|None = system.get('SystemAddress', None)
         if system_address != None:
-            Debug.logger.info(f"System {system_name} has address {system_address} in local data")
+            Debug.logger.debug(f"System {system_name} has address {system_address} in local data")
             return system_address
 
         url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
@@ -925,7 +1022,7 @@ class Spansh:
                 'Name': name,
                 'MarketID': market_id
                 }
-            Debug.logger.info(f"Adding station base.get('name', '') to system {data.get('name')} {build}")
+            Debug.logger.debug(f"Adding station base.get('name', '') to system {data.get('name')} {build}")
             RavenColonial(self).colonisation.add_build(system, build)
 
 

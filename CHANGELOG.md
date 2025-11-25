@@ -4,7 +4,8 @@
 
 ### Bug Fixes:
 * Fixed parameter change in Raven Colonial markets endpoint
-
+* Removed vestigial separator in popup menu
+* Fixed bug in buy/sell order completion calculation
 
 ## v5.4.0-a1 - 2025-11-24
 

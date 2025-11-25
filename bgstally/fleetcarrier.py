@@ -639,14 +639,16 @@ class FleetCarrier:
         # Now check for completed orders by going through all the cargo and find any commodities
         # for sale or purchase that are no longer in the market data
         for comm, deets in self.cargo['normal'].items():
-            if deets['outstanding'] > 0 and comm not in self.bgstally.market.commodities.keys():
-                Debug.logger.debug(f"Buy order completed or removed for {comm} {self.bgstally.market.commodities.items()}")
+            # If we're still buying or selling this or we never were then nothing to do here.
+            if comm in self.bgstally.market.commodities.keys() or deets['price'] == 0: continue
+
+            if deets['outstanding'] > 0: # We were buying
+                Debug.logger.debug(f"Buy order completed for {comm}")
                 self.overview['freeSpace'] += deets['outstanding']
                 deets['outstanding'] = 0
                 deets['price'] = 0
-
-            if deets['price'] > 0 and deets['stock'] > 0 and comm not in self.bgstally.market.commodities.keys():
-                Debug.logger.debug(f"It's all been bought for {comm} {self.bgstally.market.commodities.items()}")
+            elif deets['stock'] > 0: # We were selling
+                Debug.logger.debug(f"All sold removed for {comm}")
                 self.overview['freeSpace'] += deets['stock']
                 deets['stock'] = 0
                 deets['price'] = 0

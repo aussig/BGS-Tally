@@ -99,6 +99,8 @@ class Colonisation:
         Parse and process incoming journal entries
         This method is called by the bgstally plugin when a journal entry is received.
         '''
+        if self.bgstally.state.enable_colonisation != True: return
+
         rc:RavenColonial = RavenColonial(self)
         system:dict|None = None
         build:dict|None = None

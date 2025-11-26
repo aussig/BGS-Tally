@@ -79,7 +79,7 @@ class WindowFleetCarrier:
             },
             'Itinerary': {
                 'cols': {
-                    'destination': {'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Location')}, # LANG: Itinerary tab
+                    'starsystem': {'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Location')}, # LANG: Itinerary tab
                     'visitDurationSeconds': {'title': 'Duration', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Duration')}, # LANG: Itinerary tab
                     'arrivalTime': {'title': 'Arrived', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Arrived')}, # LANG: Itinerary tab
                     'departureTime': {'title': 'Departed', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Departed')}, # LANG: Itinerary tab
@@ -166,7 +166,7 @@ class WindowFleetCarrier:
                 summ:ttk.Frame = ttk.Frame(fr, style="White.TFrame")
                 summ.configure(padding=10)
                 summ.pack(fill=tk.X)
-                self._create_columns(summary[k], 4, summ, bg='white')
+                self._create_columns(summary[k], 3 if k == 'capacity' else 4, summ, bg='white')
                 if k != 'capacity':
                     separator:ttk.Separator = ttk.Separator(fr, orient=tk.HORIZONTAL)
                     separator.pack(side=tk.TOP, fill=tk.X, pady=5, padx=5)

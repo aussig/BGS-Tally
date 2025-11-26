@@ -168,6 +168,9 @@ class BGSTally:
             case 'CarrierJumpRequest':
                 self.fleet_carrier.jump_requested(entry)
 
+            case 'CarrierLocation':
+                self.fleet_carrier.carrier_location(entry)
+
             case 'CarrierStats':
                 self.fleet_carrier.stats_received(entry)
 

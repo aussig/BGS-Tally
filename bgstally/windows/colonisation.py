@@ -169,6 +169,8 @@ class ColonisationWindow:
     @catch_exceptions
     def show(self) -> None:
         ''' Create and display the colonisation window. Called by ui.py when the colonisation icon is clicked. '''
+        if self.bgstally.state.enable_colonisation != True: return
+
         if self.window != None and self.window.winfo_exists():
             self.window.lift()
             return

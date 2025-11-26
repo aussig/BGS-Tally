@@ -2,16 +2,21 @@
 
 ## v5.4.0-xx - xxxx-xx-xx
 
+### New Features:
+* Colonisation can be completely disabled in the Settings.
+
 ### Bug Fixes:
 * Fixed parameter change in Raven Colonial markets endpoint
+* Fixed a runtime when body data is incomplete
 * Removed vestigial separator in popup menu
-* Fixed bug in buy/sell order completion calculation
+* Reworked carrier cargo tracking
+
 
 ## v5.4.0-a1 - 2025-11-24
 
 ### New Features:
 
-* Fully reworked fleet carrier window with improved tracking and much more detail and four tabs:
+* Reworked fleet carrier window with improved cargo tracking, much more detail, and four tabs:
   * Summary shows overview of carrier status
   * Cargo shows cargo including market data
   * Locker shows materials including market data

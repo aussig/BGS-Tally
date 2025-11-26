@@ -12,6 +12,7 @@ from thirdparty.colors import *
 FILENAME = "fleetcarrier.json"
 FC_MAX_SHIPS = 40
 FC_MAX_JUMPS_TRACKED = 100
+FDEV_SLACKING_TIME = 1800
 
 class FleetCarrier:
     """
@@ -59,9 +60,8 @@ class FleetCarrier:
     def get_overview(self) -> dict:
         """ Return the carrier overview as key value pairs """
 
-        itinerary = get_by_path(self.data, ['itinerary', 'completed'], [])
-        if len(itinerary) > 0:
-            arrival = itinerary[-1].get('arrivalTime', "")
+        itinerary:list = self.itinerary
+        arrival:str = itinerary[-1].get('arrivalTime', "") if len(itinerary) > 0 else ''
 
         return {
             _('Name'): self.overview.get('name', ''),                                    # LANG: Carrier overview
@@ -84,9 +84,6 @@ class FleetCarrier:
         Return summary information as a dictionary. The summary is different to other tabs in that it's just a group of
         key value pairs, there's no table of detailed listings
         """
-
-        self._update_location()
-
         summary:dict = {'finances': [], 'costs': [], 'capacity': []}
 
         summary['finances'] = {
@@ -107,13 +104,14 @@ class FleetCarrier:
             _('Total Capacity'): (self.overview.get('totalCapacity', 25000), 'num', 'Unknown', 't'),   # LANG: Carrier summary
             _('Total Used'): (self.overview.get('totalCapacity', 25000) - self.overview.get('freeSpace'), 'num', '0t', 't'), # LANG: Carrier summary
             _('Free Space'): (self.overview.get('freeSpace'), 'num', '0t', 't'), # LANG: Carrier summary
-            _('Ship Packs'): (self.overview.get('shipPacks', 0), 'num', '0t', 't'), # LANG: Carrier summary
-            _('Module Packs'): (self.overview.get('modulePacks', 0), 'num', '0t', 't'), # LANG: Carrier summary
 
             _('Cargo For Sale'): (self.cargo['overview'].get('cargoForSale', 0), 'num', '0t', 't'), # LANG: Carrier summary
             _('Cargo Not For Sale'): (self.cargo['overview'].get('cargoNotForSale', 0), 'num', '0t', 't'), # LANG: Carrier summary
             _('Cargo Reserved Space'): (self.cargo['overview'].get('cargoSpaceReserved', 0), 'num', '0t', 't'), # LANG: Carrier summary
+
             _('Crew') : (self.overview.get('crew', 0), 'num', 'Unknown', 't'), # LANG: Carrier summary
+            _('Ship Packs'): (self.overview.get('shipPacks', 0), 'num', '0t', 't'), # LANG: Carrier summary
+            _('Module Packs'): (self.overview.get('modulePacks', 0), 'num', '0t', 't'), # LANG: Carrier summary
         }
         return summary
 
@@ -242,7 +240,7 @@ class FleetCarrier:
                 'departureTime': (j.get('departureTime', ''), 'datetime', ''),
                 'state': (j.get('state',''), 'str', 'Unknown'),
                 'visitDurationSeconds': (j.get('visitDurationSeconds', 0), 'interval', 'Unknown'),
-                'destination': (j.get('destination', ''), 'str', 'Unknown')
+                'starsystem': (j.get('starsystem', ''), 'str', 'Unknown')
             })
         return {'overview': summ, 'completed': jumps}
 
@@ -271,30 +269,6 @@ class FleetCarrier:
                 'hot': (s.get('hot', False), 'bool'),
             })
         return {'overview': summ, 'ships': ships}
-
-
-    # Journal event and CAPI data update methods
-    def _update_location(self) -> None:
-        """ Update the current carrier location after a jump """
-
-        # There's still a jump scheduled, don't remove it
-        if get_by_path(self.data, ["itinerary", "currentJump"], None) != None:
-            self.overview['jumpDestination'] = get_by_path(self.data, ["itinerary", "currentJump"], '')
-            return
-
-        # we've already updated everything post jump
-        if self.overview.get('departureScheduled', None) == None:
-            return
-
-        # Departure is scheduled but not yet
-        departure:datetime = datetime.strptime(self.overview['departureScheduled'], DATETIME_FORMAT_JSON)
-        Debug.logger.debug(f"Time: {datetime.now()} {departure}")
-        if datetime.now() > departure:
-            return
-
-        self.overview['currentStarSystem'] = self.overview.get('jumpDestination', '')
-        self.overview['jumpDestination'] = None
-        self.overview['departureScheduled'] = None
 
 
     def _update_cargo(self, data: dict) -> dict:
@@ -358,15 +332,24 @@ class FleetCarrier:
         """ Update our local itinerary data from CAPI data structure """
 
         jumplist:list = self.itinerary
-        tmp:dict = deepcopy(get_by_path(data, ['itinerary', 'completed'], {}))
 
-        for jump in sorted(tmp, key=lambda item: datetime.strptime(item['arrivalTime'], '%Y-%m-%d %H:%M:%S'), reverse=True):
+        for jump in deepcopy(get_by_path(data, ['itinerary', 'completed'], [])):
             elem:int = next((index for (index, d) in enumerate(self.itinerary) if d['arrivalTime'] == jump.get('arrivalTime', '')), -1)
 
-            # We set the destination to include the body if we have that info otherwise just the starsystem.
-            jump['destination'] = self.overview.get('currentStarSystem', '') if jump.get('departureTime', None) == None else jump.get('starsystem', '')
-            if elem == -1: jumplist.append(jump)
-            else: jumplist[elem] = jump
+            if elem == -1: # New jump so put it at the beginning
+                Debug.logger.debug(f"Inserting {jump}")
+                jumplist.insert(0, jump)
+                continue
+
+            if jumplist[elem]['arrivalTime'] != jump['arrivalTime']:
+                Debug.logger.debug(f"Mismatch {elem} {jumplist[elem]} {jump}")
+                continue
+
+            # We set the starsystem to include the body if we have that info otherwise just the starsystem.
+            jumplist[elem]['departureTime'] = jump.get('departureTime', None)
+            if jumplist[elem]['departureTime'] == None:
+                Debug.logger.debug(f"No departure time, current location")
+                jumplist[elem]['starsystem'] = self.overview.get('currentStarSystem', '')
 
         return jumplist[0:FC_MAX_JUMPS_TRACKED]
 
@@ -392,7 +375,7 @@ class FleetCarrier:
                                          }
         return locker
 
-
+    # Journal event and CAPI data update methods
     @catch_exceptions
     def update(self, data: dict) -> None:
         """ Store the latest data from CAPI, called when new data is received """
@@ -443,7 +426,7 @@ class FleetCarrier:
 
         # All the following are time sensitive or updated locally
         # so only use the CAPI data for them if we haven't docked in the last N seconds
-        if self.last_modified > int(time.time()) - 900:
+        if self.last_modified > int(time.time()) - FDEV_SLACKING_TIME:
             Debug.logger.debug("Ignoring CAPI commodity update")
             return
 
@@ -488,9 +471,18 @@ class FleetCarrier:
         for k, v in updates.items():
             v[0][k] = get_by_path(entry, v[1], v[2])
 
+        if self.itinerary[0].get('departureTime', None) == None:
+            self.itinerary[0]['starsystem'] = self.overview['currentStarSystem']
+
         Debug.logger.debug(f"Received freespace: {self.overview['freeSpace']}, calculated: {self._get_free()}")
         Debug.logger.debug(f"Received reserved: {self.cargo['overview']['cargoSpaceReserved']}, calculated: {self._get_reserved()}")
-        Debug.logger.debug(f"Markets used: {self._get_marketused()} For sale: {self._get_forsale()} not for sale {self._get_notforsale()}")
+        Debug.logger.debug(f"Markets calculated: used: {self._get_marketused()} For sale: {self._get_forsale()} not for sale {self._get_notforsale()}")
+        # If these match then update the cargo utilization numbers as they're almost certainly right.
+        #if self.overview['freeSpace'] == self._get_free() and self.cargo['overview']['cargoSpaceReserved'] == self._get_reserved():
+        self.cargo['overview']['cargoForSale'] = self._get_forsale()
+        self.cargo['overview']['cargoNotForSale'] = self._get_notforsale()
+        self.cargo['overview']['cargoSpaceReserved'] = self._get_reserved()
+        self.overview['freeSpace'] = self._get_free()
 
 
     @catch_exceptions
@@ -504,6 +496,8 @@ class FleetCarrier:
         departure_datetime = departure_datetime.replace(tzinfo=UTC)
         self.overview['departureScheduled'] = departure_datetime.strftime(DATETIME_FORMAT_JSON)
         self.overview['jumpDestination'] = entry.get('Body', '') if entry.get('Body', '') != '' else entry.get('SystemName', '')
+
+        Debug.logger.debug(f"Jump scheduled to {self.overview['jumpDestination']} at {self.overview['departureScheduled']}")
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -529,6 +523,8 @@ class FleetCarrier:
         self.overview['jumpDestination'] = None
         self.overview['departureScheduled'] = None
 
+        Debug.logger.debug(f"Jump cancelled")
+
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
         l:str = self.bgstally.state.discord_lang
@@ -540,6 +536,21 @@ class FleetCarrier:
         fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True})
         fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True})
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+
+
+    @catch_exceptions
+    def carrier_location(self, entry:dict) -> None:
+        """ Update the current carrier location after a jump """
+        if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
+
+        # We haven't moved.
+        if entry.get('StarSystem') in self.overview.get('currentStarSystem', ''):
+            return
+
+        self.overview['currentStarSystem'] = self.overview.get('jumpDestination', entry.get('StarSystem', ''))
+        self.overview['jumpDestination'] = None
+        self.overview['departureScheduled'] = None
+        Debug.logger.debug(f"Jumped, updating location {self.overview['currentStarSystem']}")
 
 
     @catch_exceptions
@@ -587,8 +598,8 @@ class FleetCarrier:
             # Sales make no difference to the amount of free space but we may need to update the cargo qty if it's out of date.
             if self.cargo['normal'][comm]['stock'] != entry.get('SaleOrder', 0): # Someone sold to us since CAPI update.
                 self.overview['freeSpace'] += (self.cargo['normal'][comm]['stock'] - entry.get('SaleOrder', 0))
-                self.overview['cargoForSale'] += entry.get('SaleOrder', 0)
-                self.overview['cargoNotForSale'] -= entry.get('SaleOrder', 0)
+                self.cargo['overview']['cargoForSale'] += entry.get('SaleOrder', 0)
+                self.cargo['overview']['cargoNotForSale'] -= entry.get('SaleOrder', 0)
 
             # Set price and stock
             self.cargo['normal'][comm]['stock'] = entry.get('SaleOrder', 0)
@@ -597,8 +608,8 @@ class FleetCarrier:
         if entry.get('PurchaseOrder') is not None:
             # If we were selling switch for sale and not for sale amounts
             if self.cargo['normal'][comm].get('Price', 0) > 0:
-                self.overview['cargoForSale'] -= self.cargo['normal'][comm]['stock']
-                self.overview['cargoNotForSale'] += self.cargo['normal'][comm]['stock']
+                self.cargo['overview']['cargoForSale'] -= self.cargo['normal'][comm]['stock']
+                self.cargo['overview']['cargoNotForSale'] += self.cargo['normal'][comm]['stock']
 
             # Reduce the space by the difference between previous and new order
             diff:int = self.cargo['normal'][comm]['buyTotal'] - entry.get('PurchaseOrder', 0)
@@ -612,11 +623,11 @@ class FleetCarrier:
         if entry.get('CancelTrade') == True:
             # Remove reserved space or switch sale/non-sale space
             if self.cargo['normal'][comm]['outstanding'] > 0:
-                self.cargo['overview']['freeSpace'] += self.cargo['normal'][comm]['outstanding']
+                self.overview['freeSpace'] += self.cargo['normal'][comm]['outstanding']
                 self.cargo['overview']['cargoSpaceReserved'] -= self.cargo['normal'][comm]['outstanding']
             else:
-                self.overview['cargoNotForSale'] += self.cargo['normal'][comm]['stock']
-                self.overview['cargoForSale'] -= self.cargo['normal'][comm]['stock']
+                self.cargo['overview']['cargoNotForSale'] += self.cargo['normal'][comm]['stock']
+                self.cargo['overview']['cargoForSale'] -= self.cargo['normal'][comm]['stock']
             self.cargo['normal'][comm]['outstanding'] = 0
             self.cargo['normal'][comm]['buyTotal'] = 0
             self.cargo['normal'][comm]['price'] = 0
@@ -678,6 +689,8 @@ class FleetCarrier:
                 self.cargo['overview']['cargoForSale'] -= deets['stock']
                 deets['stock'] = 0
                 deets['price'] = 0
+        if self.bgstally.dev_mode == True:
+            self.save()
 
 
     @catch_exceptions
@@ -708,6 +721,8 @@ class FleetCarrier:
 
             Debug.logger.debug(f"Transferred cargo: {self.cargo['normal'][comm]}")
             Debug.logger.debug(f"Free {self.overview['freeSpace']}, Sale: {self.cargo['overview']['cargoForSale']} No sale {self.cargo['overview']['cargoNotForSale']} Reserved {self.cargo['overview']['cargoSpaceReserved']}")
+        if self.bgstally.dev_mode == True:
+            self.save()
 
 
 
@@ -729,17 +744,26 @@ class FleetCarrier:
         amt:int = entry.get('Count', 0) if entry.get('event') == 'MarketSell' else -entry.get('Count', 0)
 
         if self.cargo['normal'][comm]['outstanding'] > 0: # Buying
-                self.cargo['overview']['cargoSpaceReserved'] -= amt
-                self.cargo['overview']['cargoNotForSale'] += amt
-                self.cargo['normal'][comm]['outstanding'] -= amt
+            self.cargo['overview']['cargoSpaceReserved'] -= amt
+            self.cargo['overview']['cargoNotForSale'] += amt
+            self.cargo['normal'][comm]['outstanding'] -= amt
+            # Finished.
+            if self.cargo['normal'][comm]['outstanding'] == 0:
+                self.cargo['normal'][comm]['price'] = 0
+                self.cargo['normal'][comm]['buyTotal'] = 0
         else: # Selling
             self.cargo['overview']['cargoForSale'] += amt
+            # Finished
+            if self.cargo['normal'][comm]['stock'] + amt == 0:
+                self.cargo['normal'][comm]['price'] = 0
 
         self.overview['freeSpace'] -= amt
         self.cargo['normal'][comm]['stock'] += amt
 
         Debug.logger.debug(f"Updated cargo {entry.get('event')}: {self.cargo['normal'][comm]}")
         Debug.logger.debug(f"Free {self.overview['freeSpace']}, Sale: {self.cargo['overview']['cargoForSale']} No sale {self.cargo['overview']['cargoNotForSale']} Reserved {self.cargo['overview']['cargoSpaceReserved']}")
+        if self.bgstally.dev_mode == True:
+            self.save()
 
 
     @catch_exceptions

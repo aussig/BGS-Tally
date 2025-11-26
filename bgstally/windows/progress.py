@@ -72,7 +72,7 @@ class ProgressWindow:
             {
                 'Column' : 'BuyOrder',
                 'Label': f"{_('Buy Orders'): >13}", # LANG: Carrier buy order amount
-                'Tooltip' : f"{_('Amount oustanding in carrier buy orders')}" # LANG: Carrier buy order tooltip
+                'Tooltip' : f"{_('Amount outstanding in carrier buy orders')}" # LANG: Carrier buy order tooltip
             }
         ]
         self.ordertts:list = [_('Alphabetical order'), _('Category order'), _('Quantity order')]
@@ -252,20 +252,20 @@ class ProgressWindow:
         """ Display the context menu when right-clicked."""
 
         menu = tk.Menu(tearoff=tk.FALSE)
-        menu.add_command(label=_('Copy to Clipboard'), command=partial(self.event, "copy"))  # LANG: Copy to cipboard
-        #menu.add_command(label=_('Post to Discord'), command=partial(self.event, "post"))  # LANG: Post to discord
+        menu.add_command(label=_('Copy to Clipboard'), command=partial(self.event, "copy"))  # LANG: build popup menu
+        #menu.add_command(label=_('Post to Discord'), command=partial(self.event, "post"))  # LANG: build popup menu
 
         tracked:list = self.colonisation.get_tracked_builds()
         if self.build_index < len(tracked):
             menu.add_separator()
             b:dict = tracked[self.build_index]
             if b.get('ProjectID', None) != None:
-                menu.add_command(label=_('Open in RavenColonial'), command=partial(webbrowser.open, 'https://ravencolonial.com/#build='+b.get('ProjectID','')))  # Open ravencolonial project
+                menu.add_command(label=_('Open in RavenColonial'), command=partial(webbrowser.open, 'https://ravencolonial.com/#build='+b.get('ProjectID','')))  # LANG: build popup menu
 
             if b.get('MarketID', None) != None:
                 params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in b.items()}
                 for k, v in self.links.items():
-                    menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)))  # Open in Inara, Spansh, EDGIS, EDSM
+                    menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)))  # LANG: build popup menu
 
         menu.post(event.x_root, event.y_root)
 
@@ -525,6 +525,10 @@ class ProgressWindow:
         tracked:list = self.colonisation.get_tracked_builds()
         required:list = self.colonisation.get_required(tracked)
         delivered:list = self.colonisation.get_delivered(tracked)
+
+        if self.bgstally.state.enable_colonisation != True:
+            self.frame.grid_remove()
+            return
 
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
             self.frame.grid_remove()

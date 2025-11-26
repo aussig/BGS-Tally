@@ -3,14 +3,14 @@
 ## v5.4.0-xx - xxxx-xx-xx
 
 ### New Features:
-* Colonisation can be completely disabled in the Settings.
+* Added settings option to completely disable Colonisation features
 
 ### Bug Fixes:
 * Fixed parameter change in Raven Colonial markets endpoint
 * Fixed a runtime when body data is incomplete
 * Removed vestigial separator in popup menu
 * Reworked carrier cargo tracking
-
+* Improved itinerary tracking
 
 ## v5.4.0-a1 - 2025-11-24
 

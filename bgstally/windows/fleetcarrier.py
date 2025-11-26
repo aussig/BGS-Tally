@@ -278,6 +278,9 @@ class WindowFleetCarrier:
             if isinstance(value, bool): type = 'bool'
             if isinstance(value, int) or isinstance(value, float): type = 'num'
 
+        # Fixed is left entirely alone
+        if type == 'fixed': return str(value)
+
         # Empty, zero or false we return an empty string so the display isn't full of "No" and "0" etc.
         if value == None or value == 0 or value == '' or value == False: return default
 
@@ -338,7 +341,7 @@ class WindowFleetCarrier:
                 lbl = ttk.Label(frame, text=txt, font=FONT_SMALL, background=bg)
             else:
                 lbl = ttk.Label(frame, text=txt, font=FONT_SMALL)
-            lbl.grid(row=row, column=col+1, padx=10, pady=5, sticky=tk.W)
+            lbl.grid(row=row, column=col+1, padx=(0,10), pady=5, sticky=tk.W)
             col += 2
             if col >= maxcols*2:
                 col = 0

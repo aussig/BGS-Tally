@@ -437,7 +437,8 @@ class FleetCarrier:
             self.cargo['overview'][item] = get_by_path(self.data, ['capacity', item], self.cargo.get('overview', {}).get(item, 0))
 
         # Somehow where we think we are and where CAPI says we are can be two different things.
-        if get_by_path(self.data, ['currentStarSystem'], '') not in self.overview.get('currentStarSystem', None):
+        if get_by_path(self.data, ['currentStarSystem'], None) != None and \
+            get_by_path(self.data, ['currentStarSystem'], None) not in self.overview.get('currentStarSystem', None):
             self.overview['currentStarSystem'] = get_by_path(self.data, ['currentStarSystem'], '')
 
         self.cargo = self._update_cargo(self.data)
@@ -814,9 +815,9 @@ class FleetCarrier:
         ### Return the amount of cargo not for sale on the carrier. ###
 
         # Not For sale is any cargo with price = 0
-        return sum([c.get('stock', 0) for c in self.cargo.get('normal', {}).values() if c.get('price', 0) == 0] +
-                   [c.get('stock', 0) for c in self.cargo.get('stolen', {}).values() if c.get('price', 0) == 0] +
-                   [c.get('stock', 0) for c in self.cargo.get('mission', {}).values() if c.get('price', 0) == 0])
+        return sum([c.get('stock', 0) for c in self.cargo.get('normal', {}).values() if c.get('price', 0) == 0 or c.get('outstanding', 0) == 0] +
+                   [c.get('stock', 0) for c in self.cargo.get('stolen', {}).values() if c.get('price', 0) == 0 or c.get('outstanding', 0) == 0] +
+                   [c.get('stock', 0) for c in self.cargo.get('mission', {}).values() if c.get('price', 0) == 0 or c.get('outstanding', 0) == 0])
 
 
     def _get_marketused(self) -> int:

@@ -76,10 +76,8 @@ class RavenColonial:
             'buildType': 'Layout',
             'architectName': 'Architect',
             'timeDue': 'Deadline',
-            'bodyNum': 'BodyNum',
             'bodyName': 'Body',
             'bodyNum': 'BodyNum',
-            'bodyName': 'Body',
             'bodyType': 'BodyType',
             'complete': 'ConstructionComplete'
             }
@@ -154,13 +152,14 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def add_system(self, system_name:str) -> None:
+    def add_system(self, system:dict) -> None:
         """ Add a system to RC. """
 
         if self.is_editable() == False:
             Debug.logger.info("Not adding system to RavenColonial")
             return
 
+        system_name:str = system.get('StarSystem', '')
         # Query the system to see if it exists
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
         response:Response = requests.get(url, headers=self._headers(), timeout=5)
@@ -175,7 +174,6 @@ class RavenColonial:
                 return
 
             # Add Builds
-            system:dict = self.colonisation.find_system({'StarSystem': system_name})
             for b in system.get('Builds', []):
                 self.upsert_site(system, b)
 
@@ -183,12 +181,12 @@ class RavenColonial:
         data:dict = response.json()
         self._merge_system_data(data)
 
-        if data.get('architect', None) not in [None, self.colonisation.cmdr]:
+        if self.is_editable(system) == False:
             Debug.logger.info(f"Not architect, not updating system")
             return
 
-        payload:dict = {'architect': self.colonisation.cmdr, 'update': [], 'delete':[]}
-
+        payload:dict = {'update': [], 'delete':[]}
+        payload['architect'] = self.colonisation.cmdr if system.get('Architect', None) == None else system.get('Architect', '')
         url:str = f"{RC_API}/v2/system/{quote(system_name)}/sites"
         response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
         if response.status_code != 200:

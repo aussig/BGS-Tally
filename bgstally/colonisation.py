@@ -452,7 +452,7 @@ class Colonisation:
         if data.get('Builds', None) == None: data['Builds'] = []
         self.systems.append(data)
         if rcsync == True and data.get('StarSystem', None) != None:
-            RavenColonial(self).add_system(data.get('StarSystem', ''))
+            RavenColonial(self).add_system(data)
             data['RCSync'] = True
 
         # If we have a system address, we get the bodies and maybe stations
@@ -484,7 +484,7 @@ class Colonisation:
             changed['StarSystem'] = data.get('StarSystem')
 
         for k, v in data.items():
-            if k not in self.system_keys or system[k] == v or k == 'RCSync': continue
+            if k not in self.system_keys or system.get(k, None) == v or k == 'RCSync': continue
             system[k] = v
             changed[k] = v
 
@@ -502,7 +502,7 @@ class Colonisation:
         if data.get('RCSync', False) == True and system.get('RCSync', False) == False and \
             data.get('StarSystem', None) != None:
             Debug.logger.debug(f"Enabling RavenColonial sync for {system.get('StarSystem')}")
-            RavenColonial(self).add_system(system.get('StarSystem', ''))
+            RavenColonial(self).add_system(system)
             system['RCSync'] = True
         else:
             system['RCSync'] = data.get('RCSync', system.get('RCSync', False))
@@ -641,8 +641,8 @@ class Colonisation:
                 bt:dict = self.get_base_type(build.get('Base Type', ''))
                 location = bt.get('Location', None)
             body:str|None = None
-            if build.get('Body', build.get('BodyNum', None)) != None:
-                body = build.get('Body', build.get('BodyNum', '')).lower()
+            if isinstance(build.get('Body', build.get('BodyNum', None)), str):
+                body = build.get('Body', build.get('BodyNum', None)).lower()
             market:int|None = build.get('MarketID', None)
 
             # A build that was planned but is now a construction site

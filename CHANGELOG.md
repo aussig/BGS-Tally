@@ -4,6 +4,7 @@
 
 ### New Features:
 * Added settings option to completely disable Colonisation features
+* Added carrier fuel update
 
 ### Bug Fixes:
 * Fixed parameter change in Raven Colonial markets endpoint
@@ -11,6 +12,8 @@
 * Removed vestigial separator in popup menu
 * Reworked carrier cargo tracking
 * Improved itinerary tracking
+* Further improved build site fuzzy matching
+* Updated the base material requirements to match Frontier's latest
 
 ## v5.4.0-a1 - 2025-11-24
 

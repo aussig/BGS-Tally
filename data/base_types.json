@@ -445,7 +445,8 @@
             "superconductors": 60,
             "titanium": 1525,
             "water": 22,
-            "waterpurifiers": 13        }
+            "waterpurifiers": 13
+        }
     },
     "Coriolis Starport": {
         "Type": "Coriolis Starport",
@@ -1248,28 +1249,27 @@
         "Standard of Living": 0,
         "Development Level": 0,
         "Cost": {
-            "aluminium": 2414,
-            "$battleweapons_name$": 42,
-            "ceramiccomposites": 375,
-            "cmmcomposite": 333,
-            "$combatstabilisers_name$": 25,
-            "computercomponents": 75,
-            "copper": 105,
-            "foodcartridges": 125,
-            "fruitandvegetables": 42,
-            "polymers": 708,
-            "powergenerators": 38,
-            "steel": 3746,
-            "basicmedicines": 109,
-            "reactivearmour": 42,
-            "surfacestabilisers": 583,
-            "buildingfabricators": 333,
-            "structuralregulators": 542,
-            "evacuationshelter": 75,
-            "emergencypowercells": 63,
-            "microcontrollers": 55,
-            "militarygradefabrics": 42,
-            "survivalequipment": 50
+            "aluminium": 2373,
+            "basicmedicines": 24,
+            "battleweapons": 30,
+            "ceramiccomposites": 238,
+            "cmmcomposite": 356,
+            "combatstabilisers": 48,
+            "computercomponents": 42,
+            "copper": 105131,
+            "foodcartridges": 107,
+            "fruitandvegetables": 48,
+            "insulatingmembrane": 178,
+            "liquidoxygen": 1424,
+            "microcontrollers": 18,
+            "militarygradefabrics": 36,
+            "polymers": 416,
+            "powergenerators": 18,
+            "reactivearmour": 30,
+            "steel": 2966,
+            "titanium": 2373,
+            "water": 238,
+            "waterpurifiers": 42
         }
     },
     "Military Hub": {
@@ -1529,25 +1529,25 @@
         "Development Level": 0,
         "Cost": {
             "aluminium": 921,
+            "bioreducinglichen": 172,
             "ceramiccomposites": 86,
             "computercomponents": 13,
             "copper": 52,
             "foodcartridges": 52,
             "fruitandvegetables": 18,
+            "geologicalequipment": 26,
+            "hazardousenvironmentsuits": 13,
             "insulatingmembrane": 129,
             "liquidoxygen": 1028,
+            "mutomimager": 43,
             "polymers": 215,
             "powergenerators": 9,
+            "resonatingseparators": 22,
+            "robotics": 60,
             "steel": 2141,
             "titanium": 1628,
             "water": 73,
-            "waterpurifiers": 22,
-            "hazardousenvironmentsuits": 13,
-            "robotics": 60,
-            "resonatingseparators": 22,
-            "bioreducinglichen": 172,
-            "geologicalequipment": 26,
-            "mutomimager": 43
+            "waterpurifiers": 22
         }
     },
     "Ocellus Starport": {
@@ -1702,7 +1702,8 @@
         "Development Level": 0,
         "Cost": {
             "aluminium": 1233,
-            "$battleweapons_name$": 23,
+            "battleweapons": 23,
+            "beer": 380,
             "ceramiccomposites": 95,
             "computercomponents": 19,
             "copper": 57,
@@ -1710,15 +1711,14 @@
             "fruitandvegetables": 16,
             "insulatingmembrane": 95,
             "liquidoxygen": 911,
+            "liquor": 228,
             "polymers": 190,
             "powergenerators": 8,
+            "reactivearmour": 23,
             "steel": 1707,
             "titanium": 1594,
             "water": 65,
-            "waterpurifiers": 16,
-            "beer": 380,
-            "liquor": 228,
-            "reactivearmour": 23
+            "waterpurifiers": 16
         }
     },
     "Planetary Port": {
@@ -2258,26 +2258,26 @@
         "Standard of Living": 5,
         "Development Level": 1,
         "Cost": {
+            "agriculturalmedicines": 115,
             "aluminium": 842,
+            "biowaste": 153,
             "ceramiccomposites": 77,
             "computercomponents": 12,
             "copper": 46,
+            "cropharvesters": 77,
             "foodcartridges": 46,
             "fruitandvegetables": 69,
+            "grain": 92,
             "insulatingmembrane": 192,
             "liquidoxygen": 1071,
+            "pesticides": 123,
             "polymers": 230,
             "powergenerators": 8,
             "steel": 1912,
             "titanium": 1453,
             "water": 173,
-            "waterpurifiers": 31,
-            "grain": 92,
-            "pesticides": 123,
-            "agriculturalmedicines": 115,
-            "cropharvesters": 77,
-            "biowaste": 153
-        }
+            "waterpurifiers": 31
+          }
     },
     "Tourism Tier 1 Sml": {
         "Type": "Tourism Tier 1 Sml",

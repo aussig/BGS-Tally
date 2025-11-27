@@ -626,12 +626,15 @@ class Colonisation:
 
         # Match on name if we can.
         loc:str = ''
+        building:bool = False
         if data.get('Name', None) != None and 'Construction Site' in data.get('Name', ''):
+            building:bool = True
             loc = re.sub(r" Construction Site:.*$", "", data.get('Name', ''))
             if loc == 'Planetary': loc = 'Surface'
 
         # Do some fuzzy matching on similarity, body, etc. for things that may have changed while we were away.
-        for build in builds:
+        blist:list = sorted(builds[1:], key=lambda item: item.get('State', ''), reverse=True)
+        for build in blist:
             state:str|None = build.get('State', None)
             location:str|None = build.get('Location', None)
             if location == None and build.get('Base Type', None) != None:
@@ -654,7 +657,7 @@ class Colonisation:
                 return build
 
             # A completed but previously unvisited build.
-            if state == BuildState.COMPLETE and market == None and location == loc and \
+            if state == BuildState.COMPLETE and building == False and market == None and location == loc and \
                 body != None and body == data.get('Body', str(data.get('BodyNum'))).lower():
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build

@@ -339,6 +339,9 @@ class FleetCarrier:
 
             if elem == -1: # New jump so put it at the beginning
                 Debug.logger.debug(f"Inserting new jump {jump}")
+                if jump.get('departureTime', None) == None and jump['starsystem'] in self.overview.get('currentStarSystem', ''):
+                    Debug.logger.debug(f"No departure time, setting current location")
+                    jump['starsystem'] = self.overview.get('currentStarSystem', '')
                 jumplist.insert(0, jump)
                 continue
 
@@ -346,11 +349,8 @@ class FleetCarrier:
                 Debug.logger.debug(f"Mismatch {elem} {jumplist[elem]} {jump}")
                 continue
 
-            # We set the starsystem to include the body if we have that info otherwise just the starsystem.
+            # Update departure time
             jumplist[elem]['departureTime'] = jump.get('departureTime', None)
-            if jumplist[elem]['departureTime'] == None:
-                Debug.logger.debug(f"No departure time, setting current location")
-                jumplist[elem]['starsystem'] = self.overview.get('currentStarSystem', '')
 
         jumplist = sorted(jumplist, key=lambda item: datetime.strptime(item['arrivalTime'], DATETIME_FORMAT_JSON), reverse=True)
 
@@ -377,6 +377,7 @@ class FleetCarrier:
                                           'price': max(m.get('price', 0), sale.get('price', 0), purchase.get('price', 0))
                                          }
         return locker
+
 
     # Journal event and CAPI data update methods
     @catch_exceptions
@@ -495,12 +496,13 @@ class FleetCarrier:
 
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        departure_datetime: datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
-        departure_datetime = departure_datetime.replace(tzinfo=UTC)
-        self.overview['departureScheduled'] = departure_datetime.strftime(DATETIME_FORMAT_JSON)
         self.overview['jumpDestination'] = entry.get('Body', '') if entry.get('Body', '') != '' else entry.get('SystemName', '')
         if self.itinerary[0].get('departureTime', None) == None:
             self.itinerary[0]['starsystem'] = self.overview['currentStarSystem']
+
+        departure_datetime: datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
+        departure_datetime = departure_datetime.replace(tzinfo=UTC)
+        self.overview['departureScheduled'] = departure_datetime.astimezone().strftime(DATETIME_FORMAT_JSON)
 
         Debug.logger.debug(f"Jump scheduled to {self.overview['jumpDestination']} at {self.overview['departureScheduled']}")
         if self.bgstally.dev_mode == True: self.save()
@@ -551,34 +553,49 @@ class FleetCarrier:
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
         Debug.logger.debug(f"Carrier location event {entry}")
-
-        start:str = self.overview.get('currentStarSystem', '')
-        dest:str = entry.get('StarSystem', '')
-
         # We haven't moved or aren't jumping.
-        if dest in start or self.overview['jumpDestination'] == None:
+        if self.overview.get('departureScheduled', None) == None:
             return
 
+        # Check if the jump time is now or has passed.
+        sched:datetime = datetime.strptime(self.overview.get('departureScheduled', ""), DATETIME_FORMAT_JSON)
+        now:datetime = datetime.now()
+        now.replace(tzinfo=UTC)
+        Debug.logger.debug(f"{sched} {now}")
+        if sched > now:
+            Debug.logger.debug(f"Carrier location but departure in the future")
+            return
+
+        start:str = self.overview.get('currentStarSystem', '')
+        dest:str = self.overview.get('jumpDestination', '')
+
         # If we haven't received a new itinerary update the current one
-        if self.itinerary[0].get('departureTime', None) == None and dest not in self.itinerary[0].get('starsystem', ''):
+        if self.itinerary[0].get('departureTime', None) == None:
             Debug.logger.debug(f"Updating itinerary")
             self.itinerary[0]['starsystem'] = start
             self.itinerary[0]['departureTime'] = self.overview['departureScheduled']
             self.itinerary.insert(0, {
                                       'departureTime': None,
-                                      'arrivalTime': self.itinerary[0]['departureTime'],
+                                      'arrivalTime': self.overview['departureScheduled'],
                                       'state': "success",
                                       'visitDurationSeconds': 0,
-                                      'starsystem': self.overview.get('jumpDestination')
+                                      'starsystem': dest
                                       })
 
-        self.overview['currentStarSystem'] = self.overview.get('jumpDestination')
+        # Update our location and clear the jump
+        self.overview['currentStarSystem'] = dest
         self.overview['jumpDestination'] = None
         self.overview['departureScheduled'] = None
 
         Debug.logger.debug(f"Jumped, updating location {self.overview['currentStarSystem']}")
         if self.bgstally.dev_mode == True: self.save()
 
+
+    @catch_exceptions
+    def deposit_fuel(self, entry:dict) -> None:
+        """ Update our fuel tank, there has been a deposit """
+        if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
+        self.overview['fuel'] = entry.get('Total', 1000)
 
     @catch_exceptions
     def trade_order(self, entry:dict) -> None:
@@ -932,6 +949,9 @@ class FleetCarrier:
                     # the problem where a squadron carrier was accidentally stored as a personal one, when the user doesn't
                     # have a personal carrier.
                     self.overview = {}
+                    self.cargo = {}
+                    self.locker = {}
+                    self.itinerary = []
                 elif self.overview.get('callsign', None) != get_by_path(self.data, ['name', 'callsign']):
                     # The CAPI callsign doesn't match our stored callsign, so re-parse the CAPI data. This is to clear up
                     # the problem where a squadron carrier was accidentally stored as a personal one, overwriting the user's

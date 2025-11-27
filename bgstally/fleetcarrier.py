@@ -240,7 +240,7 @@ class FleetCarrier:
                 'arrivalTime': (j.get('arrivalTime', ''), 'datetime', 'Unknown'),
                 'departureTime': (j.get('departureTime', ''), 'datetime', ''),
                 'state': (j.get('state',''), 'str', 'Unknown'),
-                'visitDurationSeconds': (j.get('visitDurationSeconds', 0), 'interval', 'Unknown'),
+                'visitDurationSeconds': (j.get('visitDurationSeconds', 0), 'interval', ''),
                 'starsystem': (j.get('starsystem', ''), 'str', 'Unknown')
             })
         return {'overview': summ, 'completed': jumps}

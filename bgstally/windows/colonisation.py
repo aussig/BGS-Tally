@@ -213,6 +213,7 @@ class ColonisationWindow:
             self.tabbar.select(t+1) # Select the first non-hidden system tab
         self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
+
     @catch_exceptions
     def _create_system_tab(self, tabnum:int, system:dict) -> None:
         ''' Create the frame, title, and sheet for a system '''
@@ -236,7 +237,7 @@ class ColonisationWindow:
         ''' Update the tab image based on the system's progress '''
         tabstate:BuildState = BuildState.COMPLETE
         for b in system['Builds']:
-            build_state = self.colonisation.get_build_state(b)
+            build_state: BuildState = self.colonisation.get_build_state(b)
             if build_state == BuildState.PLANNED and tabstate != BuildState.PROGRESS:
                 tabstate = BuildState.PLANNED
             if build_state == BuildState.PROGRESS:

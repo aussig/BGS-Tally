@@ -144,9 +144,14 @@ class Colonisation:
 
                     SYSTEM_SERVICE.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
 
+                # Update progress for tracked, rc sync projects.
                 for progress in self.progress:
-                    if progress.get('ProjectID', None) != None and progress.get('ConstructionComplete', False) == False:
-                        rc.load_project(progress)
+                    if progress.get('ProjectID', None) != None or progress.get('ConstructionComplete', False) == True:
+                        continue
+                    found:list = self.find_build_any({'ProjectID' : progress.get('ProjectID')})
+                    if found[0] == None or found[1] == None or found[0].get('RCSync', False) == False or found[1].get('Track', False) == False:
+                        continue
+                    rc.load_project(progress)
 
             case 'Cargo' | 'CargoTransfer' | 'CarrierTradeOrder':
                 self._update_cargo(state.get('Cargo'))

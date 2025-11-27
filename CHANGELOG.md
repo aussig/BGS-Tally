@@ -8,6 +8,7 @@
 
 ### Changes:
 * Sped up colonisation window creation
+* Reduced Raven Colonial requests on startup
 
 ### Bug Fixes:
 * Fixed parameter change in Raven Colonial markets endpoint

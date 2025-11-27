@@ -219,8 +219,9 @@ class ColonisationWindow:
         tab:ttk.Frame = ttk.Frame(self.tabbar)
         tab.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
-        self._create_title_frame(tabnum, tab)
-        self._create_table_frame(tabnum, tab, system)
+        if system.get('Hidden', False) == False:
+            self._create_title_frame(tabnum, tab)
+            self._create_table_frame(tabnum, tab, system)
         self.tabbar.add(tab, text=system['Name'], compound='right', image=self.image_tab_planned)
         self.tabbar.select(tabnum)
 
@@ -1224,7 +1225,7 @@ class ColonisationWindow:
 
         for ind, system in enumerate(self.colonisation.get_all_systems()):
             if system.get('Hidden', False) == True:
-                lbl = ttk.Label(self.react, text=system.get("Name"))
+                lbl = ttk.Label(self.react, text=system.get("Name", ''))
                 lbl.grid(row=row, column=col, columnspan=2, padx=10, pady=0, sticky=tk.W)
                 activate_button:ttk.Button = ttk.Button(
                     self.react,
@@ -1237,10 +1238,16 @@ class ColonisationWindow:
 
     @catch_exceptions
     def _reactivate_system(self, sysnum:int) -> None:
-            Debug.logger.debug("Reactivating system: {sysnum}")
-            self.colonisation.modify_system(sysnum, {'Hidden':False})
-            self.tabbar.notebookTab.tab(sysnum+1, state='normal')
-            self.update_react_dialog()
+        Debug.logger.debug("Reactivating system: {sysnum}")
+        self.colonisation.modify_system(sysnum, {'Hidden':False})
+
+        # Destroy the existing frames and recreate them.
+        self.tabbar.destroy()
+        for s in self.sheets: s.destroy()
+        self.sheets = []
+        self._create_frames()   # Create main frames
+        self.update_display()   # Populate them
+        #self.update_react_dialog()
 
 
     @catch_exceptions
@@ -1417,7 +1424,6 @@ class ColonisationWindow:
         self.tabbar = None
         self.sheets = []
         self.plan_titles = []
-        self.colonisation.save("Colonisation window close")
 
 
     @catch_exceptions

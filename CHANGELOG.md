@@ -6,6 +6,9 @@
 * Added settings option to completely disable Colonisation features
 * Added carrier fuel update
 
+### Changes:
+* Sped up colonisation window creation
+
 ### Bug Fixes:
 * Fixed parameter change in Raven Colonial markets endpoint
 * Fixed a runtime when body data is incomplete

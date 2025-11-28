@@ -656,6 +656,9 @@ class ColonisationWindow:
         name:str = system.get('Name','') if system.get('Name',None) != None else system.get('StarSystem', _('Unknown')) # LANG: Default when we don't know the name
         sysname:str = system.get('StarSystem', '') if system.get('StarSystem') != '' else ''
 
+        if 'Name' not in self.plan_titles[index]:
+            return
+
         self.plan_titles[index]['Name']['text'] = name
         self.plan_titles[index]['System']['text'] = sysname
 
@@ -1031,7 +1034,7 @@ class ColonisationWindow:
 
         systems:list = self.colonisation.get_all_systems()
         for i, tab in enumerate(self.sheets):
-            system = systems[i]
+            system:dict = systems[i]
             self._update_title(i, system)
             self._update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
             self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)

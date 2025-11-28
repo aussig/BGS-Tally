@@ -228,7 +228,7 @@ class FleetCarrier:
 
         summ:dict = {
             _('Scheduled Jump'): (self.overview.get('jumpDestination', 'None'), 'str', 'None'), # LANG: Carrier itinerary
-            _('Departure Time'): (self.overview.get('departureScheduled', ''), 'datetime', 'None'), # LANG: Carrier itinerary
+            _('Departure Time'): (self._lt(self.overview.get('departureScheduled', '')), 'datetime', 'None'), # LANG: Carrier itinerary
             _('Fuel'): (self.overview.get('fuel', 0), 'num', '0t', 't'),       # LANG: Carrier itinerary
             _('Tritium'): (get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0), 'num', '0t', 't'), # LANG: Carrier itinerary
 
@@ -236,9 +236,10 @@ class FleetCarrier:
 
         jumps:list = []
         for j in self.itinerary:
+
             jumps.append({
-                'arrivalTime': (j.get('arrivalTime', ''), 'datetime', 'Unknown'),
-                'departureTime': (j.get('departureTime', ''), 'datetime', ''),
+                'arrivalTime': (self._lt(j.get('arrivalTime', '')), 'datetime', 'Unknown'),
+                'departureTime': (self._lt(j.get('departureTime', '')), 'datetime', ''),
                 'state': (j.get('state',''), 'str', 'Unknown'),
                 'visitDurationSeconds': (j.get('visitDurationSeconds', 0), 'interval', ''),
                 'starsystem': (j.get('starsystem', ''), 'str', 'Unknown')
@@ -502,7 +503,7 @@ class FleetCarrier:
 
         departure_datetime: datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
         departure_datetime = departure_datetime.replace(tzinfo=UTC)
-        self.overview['departureScheduled'] = departure_datetime.astimezone().strftime(DATETIME_FORMAT_JSON)
+        self.overview['departureScheduled'] = departure_datetime.strftime(DATETIME_FORMAT_JSON)
 
         Debug.logger.debug(f"Jump scheduled to {self.overview['jumpDestination']} at {self.overview['departureScheduled']}")
         if self.bgstally.dev_mode == True: self.save()
@@ -559,6 +560,7 @@ class FleetCarrier:
 
         # Check if the jump time is now or has passed.
         sched:datetime = datetime.strptime(self.overview.get('departureScheduled', ""), DATETIME_FORMAT_JSON)
+        sched = sched.replace(tzinfo=UTC)
         now:datetime = datetime.now()
         now.replace(tzinfo=UTC)
         Debug.logger.debug(f"{sched} {now}")
@@ -844,6 +846,14 @@ class FleetCarrier:
                 self.shipyard['overview']['totalValue'] = total_value
 
         if self.bgstally.dev_mode == True: self.save()
+
+
+    def _lt(self, tstr:str|None, fmt:str = DATETIME_FORMAT_JSON) -> str|None:
+        """ Convert a UTC datetime string into a local datetime string """
+        if tstr == None or tstr == 'None': return tstr
+        t:datetime = datetime.strptime(tstr, fmt).replace(tzinfo=UTC)
+        return t.astimezone(None).strftime(DATETIME_FORMAT_JSON)
+
 
     # Would it be better to just recalculate cargo, demand, and free space on the fly?
     # Pros: Simpler housekeeping

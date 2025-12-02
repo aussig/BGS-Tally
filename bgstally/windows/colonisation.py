@@ -1056,7 +1056,7 @@ class ColonisationWindow:
     @catch_exceptions
     def update_display(self) -> None:
         ''' Update the display with current system data '''
-        if self.window == None: return
+        if self.window == None or not self.window.winfo_exists(): return
 
         systems:list = self.colonisation.get_all_systems()
         for tabnum, sysnum in self.tl.items():

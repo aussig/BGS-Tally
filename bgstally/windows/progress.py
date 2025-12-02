@@ -105,8 +105,8 @@ class ProgressWindow:
 
         # By removing the carrier from here we remove it everywhere
         if not self.bgstally.fleet_carrier.available():
-            self.headings.pop()
-            self.headings.pop()
+            self.headings.pop() # Carrier
+            self.headings.pop() # Buy Orders
 
         # UI components
         self.frame:tk.Frame
@@ -618,9 +618,11 @@ class ProgressWindow:
             # If we're in minimal view we only show ones we still need to buy.
             if (reqcnt <= 0) or \
                 (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
+                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.REDUCED) or \
                 ((self.colonisation.docked == False or self.colonisation.market == {}) and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
                 (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and self.view == ProgressView.MINIMAL) or \
-                (rc > int(self.bgstally.state.ColonisationMaxCommodities.get())):
+                (self.colonisation.docked == True and self.colonisation.market_id != self.bgstally.fleet_carrier.carrier_id and remaining - carrier - cargo <= 0 and self.view == ProgressView.MINIMAL) or \
+                (rc > int(self.bgstally.state.ColonisationMaxCommodities.get()) > 0):
                 for cell in row.values():
                     cell.grid_remove()
                 continue

@@ -926,10 +926,12 @@ class FleetCarrier:
 
     def _lt(self, tstr:str|None, fmt:str = DATETIME_FORMAT_JSON) -> str|None:
         """ Convert a UTC datetime string into a local datetime string """
+        if tstr == None: return ''
         try:
             t:datetime = datetime.strptime(tstr, fmt).replace(tzinfo=UTC)
             return t.astimezone(None).strftime(DATETIME_FORMAT_JSON)
-        finally:
+        except Exception as e:
+            Debug.logger.error(f"Error parsing time {tstr} {e}")
             return ''
 
 

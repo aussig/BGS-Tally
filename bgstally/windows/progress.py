@@ -401,16 +401,16 @@ class ProgressWindow:
         for min in [500, 1000, 2500, 5000, 10000, 50000]:
             if min > rem: break
 
-        projectid:str = ''
+        projectid:str|None = None
         if self.build_index < len(tracked):
-            projectid = tracked[self.build_index].get('ProjectID', '')
-        if self.build_index < len(tracked) and projectid == '':
+            projectid = tracked[self.build_index].get('ProjectID', None)
+        if self.build_index < len(tracked) and projectid == None:
             progress:dict = self.colonisation.find_progress(tracked[self.build_index].get('MarketID'))
             if progress != None:
-                projectid = progress.get('ProjectID', '')
+                projectid = progress.get('ProjectID', None)
 
         # If we don't have a RavenColonial project ID then use Inara
-        if projectid == '':
+        if projectid == None:
             url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
             webbrowser.open(url)
             return

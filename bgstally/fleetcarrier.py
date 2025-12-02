@@ -211,7 +211,7 @@ class FleetCarrier:
 
         route:list = []
         tot:int = 0
-        for j in self.route[1:]:
+        for j in self.route[0:]:
             tot += int(j.get('fuel_used'))
             route.append({
                 'distance': (int(j.get('distance')), 'num'),
@@ -330,7 +330,7 @@ class FleetCarrier:
             Debug.logger.debug(f"{jobresp}")
             return
         route:list = get_by_path(json.loads(jobresp.content), ['result', 'jumps'], {})
-        self.route = route
+        self.route = route[1:]
 
 
     def clear_route(self) -> None:

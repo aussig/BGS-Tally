@@ -251,7 +251,7 @@ class WindowFleetCarrier:
         itinerary:dict = fc.get_itinerary()
 
         if itinerary.get('overview', None) != None:
-            self._overview(itinerary['overview'], 10, ifr, bg='white')
+            self._overview(itinerary['overview'], 4, ifr, bg='white')
 
         if itinerary.get('route', []) != []:
             rf:ttk.Frame = ttk.Frame(ifr)
@@ -447,7 +447,6 @@ class WindowFleetCarrier:
                 w.destroy()
             self._itinerary(self.bgstally.fleet_carrier, self.tabs['Itinerary'], self.itineraryfr)
             clear.config(state=tk.NORMAL)
-            btn.config(state=tk.DISABLED)
 
         def _clear() -> None:
             self.bgstally.fleet_carrier.clear_route()
@@ -455,8 +454,8 @@ class WindowFleetCarrier:
                 Debug.logger.debug(f"Destroying {w}")
                 w.destroy()
             self._itinerary(self.bgstally.fleet_carrier, self.tabs['Itinerary'], self.itineraryfr)
+            dest.delete(0, tk.END)
             clear.config(state=tk.DISABLED)
-            btn.config(state=tk.NORMAL)
 
         bar:tk.Frame = tk.Frame(frame)
         bar.pack(fill=tk.X, side=tk.BOTTOM)
@@ -482,17 +481,17 @@ class WindowFleetCarrier:
         #ph:str = _("Destination") if itinerary.get('route', []) == [] else itinerary['route'][-1].get('name') # LANG: Entry placeholder
         pho:Placeholder = Placeholder(bar, _("Destination"), width=30)
         dest:AutoCompleter = AutoCompleter(self.bgstally, bar, _("Destination"), width=30)
-        btn:ttk.Button = ttk.Button(bar, text=_("Calculate"), command=partial(_route, dest)) # LANG: Button label
+        calc:ttk.Button = ttk.Button(bar, text=_("Calculate"), command=partial(_route, dest)) # LANG: Button label
 
         lbl:ttk.Label = ttk.Label(bar, text=_("Plot Route"))
 
-        btn.config(state=tk.DISABLED if itinerary.get('route', []) != [] else tk.NORMAL)
+        calc.config(state=tk.DISABLED if itinerary.get('route', []) != [] else tk.NORMAL)
 
         clear:ttk.Button = ttk.Button(bar, text=_("Clear"), command=partial(_clear)) # LANG: Button label
         clear.config(state=tk.DISABLED if itinerary.get('route', []) == [] else tk.NORMAL)
 
         # At the bottom as order of definition and order of display are different
-        btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        calc.pack(side=tk.RIGHT, padx=5, pady=5)
         dest.pack(side=tk.RIGHT, padx=5, pady=5)
         lbl.pack(side=tk.RIGHT, padx=5, pady=5)
         clear.pack(side=tk.RIGHT, padx=5, pady=5)

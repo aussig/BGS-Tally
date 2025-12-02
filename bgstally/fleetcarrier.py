@@ -209,14 +209,6 @@ class FleetCarrier:
         completed jumps is a list of jumps to be displayed in a treeviewplus table.
         """
 
-        summ:dict = {
-            _('Scheduled Jump'): (self.overview.get('jumpDestination', 'None'), 'str', 'None'), # LANG: Carrier itinerary
-            _('Departure Time'): (self._lt(self.overview.get('departureScheduled', '')), 'datetime', 'None'), # LANG: Carrier itinerary
-            _('Fuel'): (self.overview.get('fuel', 0), 'num', '0t', 't'),       # LANG: Carrier itinerary
-            _('Tritium'): (get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0), 'num', '0t', 't'), # LANG: Carrier itinerary
-
-        }
-
         route:list = []
         tot:int = 0
         for j in self.route[1:]:
@@ -227,7 +219,7 @@ class FleetCarrier:
                 'fuel_used': (int(j.get('fuel_used')), 'num'),
                 'fuel_in_depot': (int(self.overview['fuel'] - tot), 'num'),
                 'state': 'planned',
-                'starsystem': j.get('name')
+                'starsystem': (j.get('name'), 'str')
             })
 
         jumps:list = []
@@ -239,6 +231,20 @@ class FleetCarrier:
                 'visitDurationSeconds': (j.get('visitDurationSeconds', 0), 'interval', ''),
                 'starsystem': (j.get('starsystem', ''), 'str', 'Unknown')
             })
+
+        summ:dict = {}
+
+        if route != []: # Only show route summary if there is a route planned
+            summ[_("Route Destination")] = route[-1].get('starsystem',"") # LANG: Carrier itinerary
+            summ[_("Departure")] = ("", 'str', "Unscheduled")                   # LANG: Carrier itinerary
+            summ[_("Distance")] = route[-1].get('distance_to_destination', 0)   # LANG: Carrier itinerary
+            summ[_("Fuel Required")] = (tot, 'num')                             # LANG: Carrier itinerary
+
+        summ[_('Scheduled Jump')] = (self.overview.get('jumpDestination', 'None'), 'str', 'None') # LANG: Carrier itinerary
+        summ[_('Departure Time')] = (self._lt(self.overview.get('departureScheduled', '')), 'datetime', 'None') # LANG: Carrier itinerary
+        summ[_('Fuel')] = (self.overview.get('fuel', 0), 'num', '0t', 't')       # LANG: Carrier itinerary
+        summ[_('Tritium')] = (get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0), 'num', '0t', 't') # LANG: Carrier itinerary
+
         return {'overview': summ, 'route': route, 'completed': jumps}
 
 
@@ -920,9 +926,11 @@ class FleetCarrier:
 
     def _lt(self, tstr:str|None, fmt:str = DATETIME_FORMAT_JSON) -> str|None:
         """ Convert a UTC datetime string into a local datetime string """
-        if tstr == None or tstr == 'None': return tstr
-        t:datetime = datetime.strptime(tstr, fmt).replace(tzinfo=UTC)
-        return t.astimezone(None).strftime(DATETIME_FORMAT_JSON)
+        try:
+            t:datetime = datetime.strptime(tstr, fmt).replace(tzinfo=UTC)
+            return t.astimezone(None).strftime(DATETIME_FORMAT_JSON)
+        finally:
+            return ''
 
 
     def _get_forsale(self) -> int:

@@ -678,6 +678,13 @@ class ProgressWindow:
     def _get_value(self, col:int, required:int, delivered:int, cargo:int, carrier:int, buyorder:int) -> str:
         ''' Calculate and format the commodity amount depending on the column and the units '''
         qty: int = 0
+        if col >= len(self.columns):
+            Debug.logger.debug(f"Col: {col} {self.columns}")
+            return ""
+        if self.columns[col] >= len(self.headings):
+            Debug.logger.debug(f"heading: {self.columns[col]} {self.headings}")
+            return ""
+
         which:str = self.headings[self.columns[col]].get('Column')
         match which:
             case 'Required': qty = required

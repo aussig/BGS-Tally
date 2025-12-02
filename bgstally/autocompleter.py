@@ -78,13 +78,11 @@ class AutoCompleter(Placeholder):
         self.lb:tk.Listbox = tk.Listbox(self.popup, selectmode=tk.SINGLE, **kw)
         self.lb.pack(fill=tk.BOTH, expand=True)
         self.popup.withdraw()
-        #self.lb:tk.Listbox = tk.Listbox(self.parent, selectmode=tk.SINGLE, **kw)
         self.lb_up = False
         self.has_selected = False
         self.queue:queue.Queue = queue.Queue()
 
         Placeholder.__init__(self, parent, placeholder, **kw)
-        #self.var.traceid = self.var.trace('w', self.changed)
         self.traceid = self.var.trace_add('write', self.changed)
 
         # Create right click menu
@@ -147,13 +145,11 @@ class AutoCompleter(Placeholder):
             self.has_selected = True
             index = self.lb.curselection()
 
-            #self.var.trace_vdelete("w", self.var.traceid)
             self.var.trace_remove("write", self.traceid)
 
             self.var.set(self.lb.get(index))
             self.hide_list()
             self.icursor(tk.END)
-            #self.traceid = self.var.trace('w', self.changed)
             self.traceid = self.var.trace_add('write', self.changed)
 
     def up(self, widget) -> None:
@@ -208,7 +204,6 @@ class AutoCompleter(Placeholder):
 
     def hide_list(self) -> None:
         if self.lb_up:
-            #self.lb.grid_remove()
             self.popup.withdraw()
             self.lb_up = False
 
@@ -242,12 +237,10 @@ class AutoCompleter(Placeholder):
             self.set_default_style()
 
         try:
-            #self.var.trace_vdelete("w", self.var.traceid)
             self.var.trace_remove("write", self.traceid)
         except:
             pass
         finally:
             self.delete(0, tk.END)
             self.insert(0, text)
-            #self.var.traceid = self.var.trace('w', self.changed)
             self.traceid = self.var.trace_add('write', self.changed)

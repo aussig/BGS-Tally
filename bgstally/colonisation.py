@@ -123,7 +123,7 @@ class Colonisation:
         if cmdr != None: self.cmdr = cmdr
         if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
 
-        Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
+        Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} ({station}) market: {self.market_id}")
 
         if entry.get('StationType', '') == 'FleetCarrier' : self.station = 'FleetCarrier'
 
@@ -138,7 +138,6 @@ class Colonisation:
                     if system.get('Hidden', False) == True: continue
 
                     if system.get('RCSync', False) == True:
-                        self.cmdr = cmdr # Used in RavenColonial sync
                         rc.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
 
                     if system.get('Bodies', None) == None: # In case we didn't get them for some reason
@@ -1151,6 +1150,7 @@ class Colonisation:
         units:list = [v.value for v in self.bgstally.ui.window_progress.units]
 
         return {
+            'Commander': self.cmdr,
             'Docked': self.docked,
             'SystemID': self.system_id,
             'CurrentSystem': self.current_system,
@@ -1213,6 +1213,7 @@ class Colonisation:
 
         # This is configuration that can get messed up during an upgrade, no problem, just ignore it and move on.
         try:
+            self.cmdr = dict.get('Commander', None)
             self.docked = dict.get('Docked', False)
             self.system_id = dict.get('SystemID', None)
             self.current_system = dict.get('CurrentSystem', None)

@@ -1,6 +1,7 @@
 import functools
 import re
 import traceback
+import threading
 from copy import deepcopy
 from os import listdir, path
 from os.path import join
@@ -322,3 +323,48 @@ def catch_exceptions(func):
             #Debug.logger.error("\n".join(trace[4:]))
             Debug.logger.error(trace[0] + "\n" + "\n".join(trace[4:]))
     return wrapper
+
+
+class DelayQueue:
+    """
+    Manages a queue of delayed updates to Fleet Carrier data,
+    to avoid excessive API calls when multiple events occur in quick succession.
+
+    Usage:
+        def notify(message:str) -> None:
+            print(f"Notified: {message}")
+    DelayQueue('notify', 60, self._notify, ['message'])
+    DelayQueue.cancel('notify')
+    """
+    _instance = None
+
+    # Singleton pattern
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, key:str, delay:float, function:callable, *args, **kwargs) -> None:
+        """
+        Adds a delayed function call to a queue.
+        If a function with the same key already exists, it is cancelled and replaced.
+        """
+
+        # Only initialize if it's the first time
+        if not hasattr(self, '_initialized'):
+            self.queue:dict[str,threading.Timer] = {}
+            self._initialized = True
+
+        # Add an item to the queue
+        if key in self.queue:
+            self.queue[key].cancel()
+        timer = threading.Timer(delay, function, args=args, kwargs=kwargs)
+        self.queue[key] = timer
+        timer.start()
+
+
+    def cancel(self, key:str) -> None:
+        """ Cancels a delayed function call in the queue. """
+        if key in self.queue:
+            self.queue[key].cancel()
+            del self.queue[key]

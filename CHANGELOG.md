@@ -3,14 +3,15 @@
 ## v5.4.0-xx - xxxx-xx-xx
 
 ### New Features:
+* Added ability to create and track a Spansh Fleetcarrier route
 * Added settings option to completely disable Colonisation features
 * Added carrier fuel update
 * Added support for Raven Colonial nicknames and notes as BGST already had both
 * Added support for Raven Colonial Open/Locked state
-* Added ability to create and track a Spansh Fleetcarrier route
 
 ### Changes:
 * Reduced Raven Colonial requests on startup
+* Sped up colonisation window display
 
 ### Bug Fixes:
 * Fixed parameter change in Raven Colonial markets endpoint

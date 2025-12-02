@@ -620,8 +620,8 @@ class ProgressWindow:
                 (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
                 (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.REDUCED) or \
                 ((self.colonisation.docked == False or self.colonisation.market == {}) and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
-                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and self.view == ProgressView.MINIMAL) or \
-                (self.colonisation.docked == True and self.colonisation.market_id != self.bgstally.fleet_carrier.carrier_id and remaining - carrier - cargo <= 0 and self.view == ProgressView.MINIMAL) or \
+                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
+                (self.colonisation.docked == True and self.colonisation.market_id != self.bgstally.fleet_carrier.carrier_id and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
                 (rc > int(self.bgstally.state.ColonisationMaxCommodities.get()) > 0):
                 for cell in row.values():
                     cell.grid_remove()

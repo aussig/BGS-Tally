@@ -34,7 +34,7 @@ class FleetCarrier:
         self.itinerary:list = [] # Local copy of jump data
         self.route:list = [] # Planned route
         self.shipyard:dict = {} # Local copy of shipyard data
-        self.last_modified:int = 0 # Record of when we last modified our local cargo data
+        self.last_modified:int = 0 # Record of when we last modified our local data. Used to avoid overwriting with out of date CAPI data.
         self.data:dict = {}  # Raw CAPI data
         self.load()
 
@@ -56,7 +56,7 @@ class FleetCarrier:
         return {
             _('Name'): self.overview.get('name', ''),                                    # LANG: Carrier overview
             _('Callsign'): self.overview.get('callsign', ''),                            # LANG: Carrier overview
-            _('Location'): self.overview.get('currentStarSystem', ''),                   # LANG: Carrier overview
+            _('Location'): self.overview.get('currentBody', self.overview.get('currentStarSystem', '')), # LANG: Carrier overview
 
             _('Arrival'): (arrival, 'datetime', 'Unknown'),                              # LANG: Carrier overview
             _('Docking'): (self._readable(self.overview.get('dockingAccess', '')), 'str', 'Unknown'), # LANG: Carrier overview
@@ -205,8 +205,8 @@ class FleetCarrier:
     @catch_exceptions
     def get_itinerary(self) -> dict:
         """
-        Return the carrier itinerary. Overview is key value pairs and
-        completed jumps is a list of jumps to be displayed in a treeviewplus table.
+        Return the carrier itinerary. Overview is key value pairs,
+        completed and route are lists of jumps (completed and planned) to be displayed in treeviewplus tables.
         """
 
         route:list = []
@@ -229,7 +229,7 @@ class FleetCarrier:
                 'departureTime': (self._lt(j.get('departureTime', '')), 'datetime', ''),
                 'state': (j.get('state',''), 'str', 'Unknown'),
                 'visitDurationSeconds': (j.get('visitDurationSeconds', 0), 'interval', ''),
-                'starsystem': (j.get('starsystem', ''), 'str', 'Unknown')
+                'starsystem': (j.get('body', j.get('starsystem', '')), 'str', 'Unknown')
             })
 
         summ:dict = {}
@@ -240,7 +240,7 @@ class FleetCarrier:
             summ[_("Distance")] = route[-1].get('distance_to_destination', 0)   # LANG: Carrier itinerary
             summ[_("Fuel Required")] = (tot, 'num')                             # LANG: Carrier itinerary
 
-        summ[_('Scheduled Jump')] = (self.overview.get('jumpDestination', 'None'), 'str', 'None') # LANG: Carrier itinerary
+        summ[_('Scheduled Jump')] = (self.overview.get('jumpDestinationBody', self.overview.get('jumpDestination', 'None')), 'str', 'None') # LANG: Carrier itinerary
         summ[_('Departure Time')] = (self._lt(self.overview.get('departureScheduled', '')), 'datetime', 'None') # LANG: Carrier itinerary
         summ[_('Fuel')] = (self.overview.get('fuel', 0), 'num', '0t', 't')       # LANG: Carrier itinerary
         summ[_('Tritium')] = (get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0), 'num', '0t', 't') # LANG: Carrier itinerary
@@ -297,9 +297,8 @@ class FleetCarrier:
         # "result":{"calculate_starting_fuel":true,"capacity":25000,"capacity_used":17579,"destinations":["Apurui"],"fuel_loaded":0,
         # "jumps":[{"distance":0,"distance_to_destination":2025.11992724544,"fuel_in_tank":468,"fuel_used":0,"has_icy_ring":false,"id64":11663386487017,"is_desired_destination":1,"is_system_pristine":false,"must_restock":1,"name":"Bleae Thua NI-B b27-5","restock_amount":468,"tritium_in_market":0,"x":-200.25,"y":20.6875,"z":2082.4375},{"distance":499.052589718446,"distance_to_destination":1526.54724595756,"fuel_in_tank":356,"fuel_used":112,"has_icy_ring":true,"id64":83651204114,"is_desired_destination":0,"is_system_pristine":true,"must_restock":0,"name":"Bleae Thua MN-W c1-0","restock_amount":0,"tritium_in_market":0,"x":-111.15625,"y":6.96875,"z":1591.59375},{"distance":499.97798193708,"distance_to_destination":1026.98374443227,"fuel_in_tank":244,"fuel_used":112,"has_icy_ring":false,"id64":22953915731648,"is_desired_destination":0,"is_system_pristine":false,"must_restock":0,"name":"M7 Sector RP-V a32-1","restock_amount":0,"tritium_in_market":0,"x":-53.5625,"y":-33.09375,"z":1096.5625},{"distance":499.887685627669,"distance_to_destination":527.979466819319,"fuel_in_tank":132,"fuel_used":112,"has_icy_ring":false,"id64":58147951365432,"is_desired_destination":0,"is_system_pristine":false,"must_restock":0,"name":"Col 359 Sector SJ-Y a45-3","restock_amount":0,"tritium_in_market":0,"x":37.59375,"y":-43,"z":605.15625},{"distance":499.33503829468,"distance_to_destination":68.911947043401,"fuel_in_tank":20,"fuel_used":112,"has_icy_ring":true,"id64":5070611162585,"is_desired_destination":0,"is_system_pristine":false,"must_restock":0,"name":"Garoju","restock_amount":0,"tritium_in_market":0,"x":122.03125,"y":-126.1875,"z":120.09375},{"distance":68.911947043401,"distance_to_destination":0,"fuel_in_tank":0,"fuel_used":20,"has_icy_ring":true,"id64":7505757278946,"is_desired_destination":1,"is_system_pristine":false,"must_restock":0,"name":"Apurui","restock_amount":0,"tritium_in_market":0,"x":96.21875,"y":-75.3125,"z":81.4375}],"mass":25000,"refuel_destinations":[],"source":"Bleae Thua NI-B b27-5","tritium_stored":0},
         # "state":"completed","status":"ok"}
-
-        res:requests.Response = requests.post(SPANSH_ROUTE, params={
-            "source":self.data.get('currentStarSystem'),
+        params:dict = {
+            "source": self.overview.get('currentStarSystem'),
             "destinations": dest,
             "capacity": self.overview.get('totalCapacity', 25000),
             "mass": self.overview.get('totalCapacity', 25000),
@@ -307,7 +306,8 @@ class FleetCarrier:
             "calculate_starting_fuel": 0,
             "fuel_loaded": self.overview.get('fuel', 1000),
             "tritium_stored" : get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)
-            }, headers={'User-Agent': f"BGSTally/{self.bgstally.version}"})
+            }
+        res:requests.Response = requests.post(SPANSH_ROUTE, params=params, headers={'User-Agent': f"BGSTally/{self.bgstally.version}"})
 
         if res.status_code != 202:
             Debug.logger.debug(f"Error: {res}")
@@ -327,7 +327,7 @@ class FleetCarrier:
             time.sleep(1)
 
         if jobresp.status_code != 200:
-            Debug.logger.debug(f"{jobresp}")
+            Debug.logger.debug(f"{jobresp} {params}")
             return
         route:list = get_by_path(json.loads(jobresp.content), ['result', 'jumps'], {})
         self.route = route[1:]
@@ -337,22 +337,33 @@ class FleetCarrier:
         """ Clear route """
         Debug.logger.debug(f"Route cleared")
         self.route = []
+        self.bgstally.ui.window_fc.update_display()
 
 
     def _update_route(self, dest:str) -> None:
         """ Remove any route entries that we aren't at.
         If we remove all of them that's ok because the route is invalid. """
 
+        Debug.logger.debug(f"Updating route")
+
         # This shouldn't happen unless we've made some jumps without ED:MC running
+        used:int = 0
         while self.route != [] and self.route[0]['name'] != dest:
+            Debug.logger.debug(f"Removing {self.route[0]}")
+            used += self.route[0]['fuel_used']
             self.route = self.route[1:]
         # If we're there take it out.
         if self.route != [] and self.route[0]['name'] == dest:
+            Debug.logger.debug(f"Assuming we jumped to {self.route[0]}, removing from route")
+            self.overview['fuel'] -= used + self.route[0]['fuel_used']
             self.route = self.route[1:]
+
         # And put the next stop in the clipboard
         if self.route != []:
+            Debug.logger.debug(f"Copying {self.route[0]['name']} to clipboard")
             self.bgstally.ui.frame.clipboard_clear()
             self.bgstally.ui.frame.clipboard_append(self.route[0]['name'])
+        self.bgstally.ui.window_fc.update_display()
 
 
     def _update_cargo(self, data:dict) -> dict:
@@ -406,7 +417,7 @@ class FleetCarrier:
                     'price': max(int(sale.get('price', 0)), int(purchase.get('price', 0)),
                                  int(market.get('sellPrice', 0)), int(market.get('buyPrice', 0)))
                 }
-            if cargo[type]['stock'] < 0:
+            if cargo['normal']['stock'] < 0:
                 Debug.logger.error(f"Negative stock {cargo[type]}")
             else:
                 Debug.logger.debug(f"Final cargo: {cargo[type]}")
@@ -426,7 +437,8 @@ class FleetCarrier:
             # Latest jump.
             if elem == 0: # Found it
                 if self._time_passed(self.overview.get('departureScheduled', None)):
-                    jumplist[elem]['starsystem'] = self.overview.get('jumpDestination')
+                    jumplist[elem]['starsystem'] = self.overview.get('jumpDestination', '')
+                    jumplist[elem]['body'] = self.overview.get('jumpDestinationBody', None)
                     self.overview['jumpDestination'] = None
                     self.overview['departureScheduled'] = None
                 continue
@@ -449,20 +461,23 @@ class FleetCarrier:
             # Check if the jump time is now or has passed.
             if self._time_passed(self.overview['departureScheduled']):
                 Debug.logger.debug(f"New jump")
-                if jump['starsystem'] in self.overview.get('currentStarSystem', ''):
-                    jump['starsystem'] = self.overview.get('currentStarSystem', '')
+                if jump['starsystem'] == self.overview.get('currentStarSystem', ''):
+                    jump['body'] = self.overview.get('currentBody', None)
                 jumplist.insert(0, jump)
                 continue
 
             # It must be a jump we had scheduled but haven't marked as completed.
-            jump['starsystem'] = self.overview.get('jumpDestination', jump['starsystem'])
+            jump['starsystem'] = self.overview.get('jumpDestination', jump.get('starsystem', ''))
+            jump['body'] = self.overview.get('jumpDestinationBody', jump.get('body', None))
             self.overview['jumpDestination'] = None
+            self.overview['jumpDestinationBody'] = None
             self.overview['departureScheduled'] = None
             jumplist.insert(0, jump)
 
         # clear past departure
         if self._time_passed(self.overview.get('departureScheduled', None)):
             self.overview['jumpDestination'] = None
+            self.overview['jumpDestinationBody'] = None
             self.overview['departureScheduled'] = None
 
         jumplist = sorted(jumplist, key=lambda item: datetime.strptime(item['arrivalTime'], DATETIME_FORMAT_JSON), reverse=True)
@@ -502,9 +517,7 @@ class FleetCarrier:
 
         # Store the whole data structure for later use
         self.data = data
-
         self.carrier_id = get_by_path(self.data, ['market', 'id'], 0)
-
         Debug.logger.debug(f"Received CAPI data {self.carrier_id}")
 
         # we can update most of the local vars with this loop.
@@ -535,8 +548,16 @@ class FleetCarrier:
             self.overview['name'] = bytes.fromhex(self.overview['name']).decode('utf-8')
         self.overview['fuel'] = int(self.data.get('fuel', 0))
 
+        # If we don't know where we are trust the CAPI.
         if self.overview.get('currentStarSystem', None) == None:
+            Debug.logger.debug(f"Setting current system from CAPI")
             self.overview['currentStarSystem'] = get_by_path(self.data, ['currentStarSystem'], '')
+            del self.overview['currentBody']
+
+        # If we have a body but it doesn't match the system, clear it.
+        if self.overview.get('currentBody', None) != None and self.overview.get('currentStarSystem', '') not in self.overview.get('currentBody', None):
+            Debug.logger.debug(f"System and body mismatch {self.overview.get('currentStarSystem', '')} vs {self.overview.get('currentBody', None)}, clearing body")
+            del self.overview['currentBody']
 
         self.locker = self._update_locker(self.data)
         self.itinerary = self._update_itinerary(self.data)
@@ -545,15 +566,12 @@ class FleetCarrier:
         # so only use the CAPI data for them if we haven't docked in the last N seconds
         if self.last_modified > int(time.time()) - FDEV_SLACKING_TIME:
             Debug.logger.debug("Ignoring CAPI cargo update")
+            self.bgstally.ui.window_fc.update_display()
             return
-
-        # Somehow where we think we are and where CAPI says we are can be two different things.
-        if get_by_path(self.data, ['currentStarSystem'], None) != None and \
-            get_by_path(self.data, ['currentStarSystem'], None) not in self.overview.get('currentStarSystem', None):
-            self.overview['currentStarSystem'] = get_by_path(self.data, ['currentStarSystem'], '')
 
         Debug.logger.debug(f"Updating cargo")
         self.cargo = self._update_cargo(self.data)
+        self.bgstally.ui.window_fc.update_display()
 
 
     @catch_exceptions
@@ -582,24 +600,41 @@ class FleetCarrier:
         for k, v in updates.items():
             v[0][k] = get_by_path(entry, v[1], v[2])
 
+        self.last_modified = int(time.time())
+
         # Sanity check
-        if get_by_path(entry, ['SpaceUsage', 'FreeSpace'], 0) != self._get_freespace():
-            Debug.logger.error(f"Free space mismatch")
-            self.last_modified
+        if get_by_path(entry, ['SpaceUsage', 'FreeSpace'], 0) != self._get_freespace() or \
+            get_by_path(entry, ['SpaceUsage', 'CargoSpaceReserved']) != self._get_reserved():
+            Debug.logger.info(f"CArrier space mismatch, clearing modification time")
+            self.last_modified = 0
 
         #self.itinerary = self._update_itinerary(self.data)
+        self.bgstally.ui.window_fc.update_display()
 
 
     @catch_exceptions
     def jump_requested(self, entry:dict[str, str]) -> None:
         """ The user scheduled a carrier jump generating a CarrierJumpRequest event """
+        # @TODO: Add posting to https://fleetcarrier.space/?
+        # All that's required is a POST to https://fleetcarrier.space/my_carrier with
+        # {
+        #        "cmdr": ,
+        #        "system": ,
+        #        "station": ,
+        #        "data": ,
+        #        "is_beta": ,
+        #        "user": ,
+        #        "key": ,
+        #    }
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
 
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        self.overview['jumpDestination'] = entry.get('Body', '') if entry.get('Body', '') != '' else entry.get('SystemName', '')
+        self.overview['jumpDestination'] = entry.get('SystemName', '')
+        self.overview['jumpDestinationBody'] = entry.get('Body', None)
         if self.itinerary[0].get('departureTime', None) == None:
-            self.itinerary[0]['starsystem'] = self.overview['currentStarSystem']
+            self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
+            self.itinerary[0]['body'] = self.overview.get('currentBody', None)
 
         departure_datetime: datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
         departure_datetime = departure_datetime.replace(tzinfo=UTC)
@@ -622,6 +657,7 @@ class FleetCarrier:
         fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord heading
         fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self.bgstally.ui.window_fc.update_display()
 
 
     @catch_exceptions
@@ -630,6 +666,7 @@ class FleetCarrier:
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
         self.overview['jumpDestination'] = None
+        self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
         Debug.logger.debug(f"Jump cancelled")
@@ -646,6 +683,7 @@ class FleetCarrier:
         fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True})
         fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True})
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self.bgstally.ui.window_fc.update_display()
 
 
     @catch_exceptions
@@ -659,38 +697,45 @@ class FleetCarrier:
         if self._time_passed(self.overview.get('departureScheduled', "")) == False:
             return
 
-        start:str = self.overview.get('currentStarSystem', '')
         dest:str = self.overview.get('jumpDestination', '')
 
         # We've already got this new jump
         if self.itinerary[1].get('departureTime', None) == self.overview['departureScheduled']:
             self.itinerary[1]['starsystem'] = dest
+            self.itinerary[1]['body'] = self.overview.get('jumpDestinationBody', None)
             Debug.logger.debug(f"Set itinerary[1] starsystem to {dest}")
+
         elif self.itinerary[0].get('departureTime', None) == None: # If we haven't received a new itinerary update the current one
             Debug.logger.debug(f"Updating jump setting [0] departure time to {self.overview['departureScheduled']}")
             dept:datetime = datetime.strptime(self.overview['departureScheduled'], DATETIME_FORMAT_JSON)
             arr:datetime = datetime.strptime(self.itinerary[0]['arrivalTime'], DATETIME_FORMAT_JSON)
             diff:timedelta = dept - arr
-            self.itinerary[0]['starsystem'] = start
+            self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
+            self.itinerary[0]['body'] = self.overview.get('currentBody', None)
             self.itinerary[0]['departureTime'] = self.overview['departureScheduled']
             self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
+
             Debug.logger.debug(f"Inserting new jump {dest}")
             self.itinerary.insert(0, {
                                       'departureTime': None,
                                       'arrivalTime': self.overview['departureScheduled'],
                                       'state': "success",
                                       'visitDurationSeconds': 0,
-                                      'starsystem': dest
+                                      'starsystem': self.overview.get('jumpDestination', ''),
+                                      'body': self.overview.get('jumpDestinationBody', None)
                                       })
 
         self._update_route(dest)
 
         # Update our location and clear the jump
-        self.overview['currentStarSystem'] = dest
+        self.overview['currentStarSystem'] = self.overview.get('jumpDestination', '')
+        self.overview['currentBody'] = self.overview.get('jumpDestinationBody', None)
         self.overview['jumpDestination'] = None
+        self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
         Debug.logger.debug(f"Jumped, updated location {self.overview['currentStarSystem']}")
+        self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
 
 
@@ -699,6 +744,7 @@ class FleetCarrier:
         """ Update our fuel tank, there has been a deposit """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
         self.overview['fuel'] = entry.get('Total', 1000)
+        self.bgstally.ui.window_fc.update_display()
 
     @catch_exceptions
     def trade_order(self, entry:dict) -> None:
@@ -759,6 +805,7 @@ class FleetCarrier:
         else:
             Debug.logger.debug(f"Updated cargo: {self.cargo['normal'][comm]}")
 
+        self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
 
 
@@ -840,6 +887,7 @@ class FleetCarrier:
             else:
                 Debug.logger.debug(f"Transferred cargo: {self.cargo['normal'][comm]}")
 
+        self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
 
 
@@ -875,6 +923,7 @@ class FleetCarrier:
         else:
             Debug.logger.debug(f"Updated cargo {entry.get('event')}: {self.cargo['normal'][comm]}")
 
+        self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
 
 
@@ -911,6 +960,7 @@ class FleetCarrier:
                 self.shipyard['overview']['shipCount'] = carrier_count
                 self.shipyard['overview']['totalValue'] = total_value
 
+        self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
 
 
@@ -1054,8 +1104,8 @@ class FleetCarrier:
                     # the problem where a squadron carrier was accidentally stored as a personal one, when the user doesn't
                     # have a personal carrier.
                     self.overview = {}
-                    self.cargo = {}
-                    self.locker = {}
+                    self.cargo = {'overview' : {}, 'normal': {}, 'stolen': {}, 'mission':{}}
+                    self.locker = {'normal': {}, 'mission': {}}
                     self.itinerary = []
                     self.route = []
                 elif self.overview.get('callsign', None) != get_by_path(self.data, ['name', 'callsign']):

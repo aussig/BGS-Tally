@@ -9,13 +9,12 @@ from bgstally.constants import DATETIME_FORMAT_JSON, DATETIME_FORMAT_CARRIER, FO
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.debug import Debug
 from bgstally.utils import _, __, human_format, str_truncate, catch_exceptions
-from bgstally.widgets import TreeviewPlus
+from bgstally.widgets import TreeviewPlus, AutoCompleter, Placeholder
 from config import config # type: ignore
 
 from thirdparty.colors import *
 from thirdparty.Tooltip import ToolTip
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from bgstally.autocompleter import AutoCompleter, Placeholder
 
 class WindowFleetCarrier:
     """
@@ -28,6 +27,7 @@ class WindowFleetCarrier:
     def __init__(self, bgstally) -> None:
         self.bgstally:BGSTally = bgstally # type: ignore
         self.window:tk.Toplevel|None = None
+        self.frame:ttk.Frame
         self.itineraryfr:ttk.Frame
         self.scale:float = 1.0
 
@@ -119,20 +119,30 @@ class WindowFleetCarrier:
             self.window.lift()
             return
 
-        fc:FleetCarrier = self.bgstally.fleet_carrier
         self.scale = config.get_int('ui_scale') / 100.00
         self.window = tk.Toplevel(self.bgstally.ui.frame)
-        self.window.title(_("{plugin_name} - Carrier {carrier_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=fc.overview.get('name'))) # LANG: Carrier window title
+        self.window.title(_("{plugin_name} - Carrier {carrier_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=self.bgstally.fleet_carrier.overview.get('name'))) # LANG: Carrier window title
         self.window.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
         self.window.geometry(f"{int(850*self.scale)}x{int(550*self.scale)}")
 
-        frame:ttk.Frame = ttk.Frame(self.window)
+        self.frame = ttk.Frame(self.window)
         if not config.get_bool('capi_fleetcarrier'):
-            ttk.Label(frame, text=_("Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration"), foreground=COLOUR_WARNING).pack(anchor=tk.NW) # LANG: Label on carrier window
+            ttk.Label(self.frame, text=_("Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration"), foreground=COLOUR_WARNING).pack(anchor=tk.NW) # LANG: Label on carrier window
 
-        self._show_overview(fc, frame)
-        self._create_tabs(fc, frame)
-        frame.pack(fill=tk.BOTH, expand=True)
+        self.update_display()
+        self.frame.pack(fill=tk.BOTH, expand=True)
+
+
+    def update_display(self) -> None:
+        """ Update the Fleet Carrier window contents """
+        if self.window == None or not self.window.winfo_exists(): return
+
+        # Clear existing contents
+        for w in self.frame.winfo_children(): w.destroy()
+
+        self._show_overview(self.bgstally.fleet_carrier, self.frame)
+        self._create_tabs(self.bgstally.fleet_carrier, self.frame)
+
 
     def _show_overview(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
         """ Show the Fleet Carrier overview tab """
@@ -154,7 +164,7 @@ class WindowFleetCarrier:
             fr.pack(fill=tk.BOTH, expand=1)
             tabbar.add(fr, text=_(k))
             if v.get('buttons', None) != None:
-                v['buttons'](fr)
+                v['buttons'](fc, fr)
             v['func'](fc, v, fr)
 
 
@@ -377,12 +387,14 @@ class WindowFleetCarrier:
                 row += 1
 
 
-    def _cargo_buttons(self, frame:ttk.Frame) -> None:
+    def _cargo_buttons(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
         self._discord_buttons('cargo', frame)
-    def _locker_buttons(self, frame:ttk.Frame) -> None:
+    def _locker_buttons(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
         self._discord_buttons('locker', frame)
     def _discord_buttons(self, which:str, frame:ttk.Frame) -> None:
         """ Create discord buttons for cargo or locker as appropriate """
+
+        state:tk.StringVar = self.bgstally.state.FcCargo if which == 'Cargo' else self.bgstally.state.FcLocker
 
         # Internal helper functions.
         def _ctc(which:str, type:str|tk.StringVar) -> None:
@@ -408,8 +420,8 @@ class WindowFleetCarrier:
         def _enable_post(btn:ttk.Button) -> None:
             btn.config(state=(tk.NORMAL if _discord_available() else tk.DISABLED))
 
-        def _post_type_selected(which:str, value:tk.StringVar) -> None: # Cargo or Materials
-            self.bgstally.state.FcCargo.set(value.get()) if which == 'Cargo' else self.bgstally.state.FcLocker.set(value.get())
+        def _post_type_selected(value:tk.StringVar) -> None:
+            state.set(value.get())
 
         bar:ttk.Frame = ttk.Frame(frame)
         bar.pack(fill=tk.X, side=tk.BOTTOM)
@@ -419,9 +431,9 @@ class WindowFleetCarrier:
                             _("Both") : DiscordFleetCarrier.BOTH, # LANG: Dropdown menu on activity window
                             _("All") : DiscordFleetCarrier.ALL} # LANG: Dropdown menu on activity window
 
-        strv:tk.StringVar = tk.StringVar(value=self.bgstally.state.FcCargo.get() if which == 'Cargo' else self.bgstally.state.FcLocker.get())
+        strv:tk.StringVar = tk.StringVar(value=state.get())
         menuv:ttk.OptionMenu = ttk.OptionMenu(bar, strv, strv.get(), *post_types.keys(),
-                                              command=lambda val: _post_type_selected(which, val),
+                                              command=lambda val: _post_type_selected(val),
                                               direction='above')
 
         cbtn:ttk.Button = ttk.Button(bar, text=_("Copy to Clipboard"), command=partial(_ctc, which, strv)) # LANG: Button label
@@ -435,27 +447,26 @@ class WindowFleetCarrier:
         menuv.pack(side=tk.RIGHT, pady=5)
 
 
-    def _routing_buttons(self, frame:ttk.Frame) -> None:
+    def _routing_buttons(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
         """ Create itinerary buttons for Spansh fleet carrier router """
         # Internal helper functions.
         def _route(dest:ttk.Entry|Placeholder) -> None:
             Debug.logger.debug(f"Creating route")
-            self.bgstally.fleet_carrier.spansh_route(dest.get())
+            fc.spansh_route(dest.get())
             Debug.logger.debug(f"Updating route")
             for w in self.itineraryfr.winfo_children():
-                Debug.logger.debug(f"Destroying {w}")
                 w.destroy()
-            self._itinerary(self.bgstally.fleet_carrier, self.tabs['Itinerary'], self.itineraryfr)
+            self._itinerary(fc, self.tabs['Itinerary'], self.itineraryfr)
             clear.config(state=tk.NORMAL)
 
         def _clear() -> None:
-            self.bgstally.fleet_carrier.clear_route()
+            fc.clear_route()
             for w in self.itineraryfr.winfo_children():
-                Debug.logger.debug(f"Destroying {w}")
                 w.destroy()
-            self._itinerary(self.bgstally.fleet_carrier, self.tabs['Itinerary'], self.itineraryfr)
+            self._itinerary(fc, self.tabs['Itinerary'], self.itineraryfr)
             dest.delete(0, tk.END)
             clear.config(state=tk.DISABLED)
+            calc.config(state=tk.NORMAL)
 
         bar:tk.Frame = tk.Frame(frame)
         bar.pack(fill=tk.X, side=tk.BOTTOM)
@@ -476,7 +487,7 @@ class WindowFleetCarrier:
         #ttk.Label(bar, text=_("Scheduled for")).pack(side=tk.RIGHT) # LANG: Label on itinerary window
 
 
-        itinerary:dict = self.bgstally.fleet_carrier.get_itinerary()
+        itinerary:dict = fc.get_itinerary()
         #dest:ttk.Entry = ttk.Entry(bar, width=30)
         #ph:str = _("Destination") if itinerary.get('route', []) == [] else itinerary['route'][-1].get('name') # LANG: Entry placeholder
         pho:Placeholder = Placeholder(bar, _("Destination"), width=30)
@@ -530,7 +541,7 @@ class WindowFleetCarrier:
         l:str|None = self.bgstally.state.discord_lang if discord else ""
         tab:dict = self.tabs[which]
         if isinstance(type, tk.StringVar): type = type.get()
-        data:dict = fc.get_cargo() if which == 'Cargo' else self.bgstally.fleet_carrier.get_locker()
+        data:dict = fc.get_cargo() if which == 'Cargo' else fc.get_locker()
 
         output:str = ""
         if discord == True: output += "## "

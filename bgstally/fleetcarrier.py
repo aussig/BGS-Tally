@@ -834,7 +834,8 @@ class FleetCarrier:
                 self.cargo['normal'][comm]['price'] = int(item.get('SellPrice', 0)) # Price player sells at
 
             # Selling and our stock has changed
-            if item.get('Producer', False) == True and int(item.get('Stock', 0)) != self.cargo['normal'][comm]['stock']:
+            if item.get('Producer', False) == True and \
+                (int(item.get('Stock', 0)) != self.cargo['normal'][comm]['stock'] or int(item.get('BuyPrice', 0)) != self.cargo['normal'][comm]['price']):
                 Debug.logger.debug(f"Adjusting due to change in stock {self.cargo['normal'][comm]['stock']} {item.get('Stock', 0)}")
                 self.cargo['normal'][comm]['stock'] = int(item.get('Stock', 0))
                 self.cargo['normal'][comm]['price'] = int(item.get('BuyPrice', 0)) # Price player buys at
@@ -862,6 +863,7 @@ class FleetCarrier:
                 deets['stock'] = 0
                 deets['price'] = 0
 
+        self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
 
 
@@ -876,7 +878,7 @@ class FleetCarrier:
             if comm not in self.cargo['normal']:
                 self.cargo['normal'][comm] = self._init_cargo_item(comm)
 
-            Debug.logger.debug(f"Transfering cargo {self.cargo['normal'][comm]} {i}")
+            Debug.logger.debug(f"Transferring cargo {self.cargo['normal'][comm]} {i}")
 
             # Transfer amount is positive if to carrier, negative if from carrier
             amt:int = i.get('Count', 0) if i.get('Direction') == 'tocarrier' else -i.get('Count', 0)

@@ -670,11 +670,15 @@ class ColonisationWindow:
             return
 
         self.plan_titles[index]['Name']['text'] = name
-        self.plan_titles[index]['System']['text'] = sysname
 
         # Hide the system name if it hasn't been set
+        if 'System' not in self.plan_titles[index]:
+            return
         if sysname == None:
             self.plan_titles[index]['System'].pack_forget()
+            return
+
+        self.plan_titles[index]['System']['text'] = sysname
 
 
     @catch_exceptions
@@ -1295,6 +1299,7 @@ class ColonisationWindow:
 
         systems:list = self.colonisation.get_all_systems()
         tabnum:int = max(self.tl.keys())+1 # Next available tab
+        self.tl[tabnum] = len(systems)-1
         self._create_system_tab(tabnum, system)
         self.update_display()
 
@@ -1416,6 +1421,7 @@ class ColonisationWindow:
         self.tabbar.forget(tabs[tabnum])
         del self.sheets[tabnum]
         del self.plan_titles[tabnum]
+        del self.tl[tabnum]
         self.colonisation.remove_system(sysnum)
 
         self.update_display()

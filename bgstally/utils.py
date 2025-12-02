@@ -54,7 +54,7 @@ def _get_tl_func(edmc_version: semantic_version.Version) -> Tuple[Callable[[str]
 _, translations_obj = _get_tl_func(edmc_version)
 
 
-def __(string: str, lang: str) -> str:
+def __(string: str, lang: str|None) -> str:
     """
     Translate a string using the specified language, compatible with all EDMC versions.
 

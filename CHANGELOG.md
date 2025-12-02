@@ -5,9 +5,11 @@
 ### New Features:
 * Added settings option to completely disable Colonisation features
 * Added carrier fuel update
+* Added support for Raven Colonial nicknames and notes as BGST already had both
+* Added support for Raven Colonial Open/Locked state
+* Added ability to create and track a Spansh Fleetcarrier route
 
 ### Changes:
-* Sped up colonisation window creation
 * Reduced Raven Colonial requests on startup
 
 ### Bug Fixes:

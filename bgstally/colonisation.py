@@ -5,6 +5,8 @@ import time
 import re
 from datetime import datetime, timedelta
 from config import config # type: ignore
+
+#from bgstally.bgstally import BGSTally
 from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
 from bgstally.utils import _, catch_exceptions
@@ -457,7 +459,7 @@ class Colonisation:
         if data.get('Builds', None) == None: data['Builds'] = []
         self.systems.append(data)
         if rcsync == True and data.get('StarSystem', None) != None:
-            RavenColonial(self).add_system(data)
+            RavenColonial(self).upsert_system(data)
             data['RCSync'] = True
 
         # If we have a system address, we get the bodies and maybe stations
@@ -489,7 +491,7 @@ class Colonisation:
             changed['StarSystem'] = data.get('StarSystem')
 
         for k, v in data.items():
-            if k not in self.system_keys or system.get(k, None) == v or k == 'RCSync': continue
+            if k not in self.system_keys or system.get(k, None) == v: continue
             system[k] = v
             changed[k] = v
 
@@ -503,18 +505,16 @@ class Colonisation:
         if system.get('StarSystem') != None and system.get('Bodies', None) == None:
             BODY_SERVICE.import_bodies(system.get('StarSystem', ''))
 
-        # Add the system to RC if the flag has switched from false to true
-        if data.get('RCSync', False) == True and system.get('RCSync', False) == False and \
-            data.get('StarSystem', None) != None:
-            Debug.logger.debug(f"Enabling RavenColonial sync for {system.get('StarSystem')}")
-            RavenColonial(self).add_system(system)
-            system['RCSync'] = True
-        else:
-            system['RCSync'] = data.get('RCSync', system.get('RCSync', False))
+        if changed == {}:
+            return
 
-        if changed != {}:
-            self.save(f"Modify system {changed}")
-            self.bgstally.ui.window_colonisation.update_display()
+        # Add the system to RC if the flag has switched from false to true
+        if system.get('RCSync', False) == True:
+            Debug.logger.debug(f"Updating system in RC {system.get('StarSystem')}")
+            RavenColonial(self).upsert_system(system)
+
+        self.save(f"Modify system {changed}")
+        self.bgstally.ui.window_colonisation.update_display()
 
 
     @catch_exceptions
@@ -1189,7 +1189,7 @@ class Colonisation:
 
         for p in dict.get('Progress', []):
             # Clean out old progress entries that are no longer relevant
-            if p.get('Updated', None) != None and datetime.now() > datetime.strptime(p.get('Updated', '2025-01-01')[0:10], "%Y-%m-%d") + timedelta(days=365) and \
+            if p.get('Updated', None) != None and datetime.now() > datetime.strptime(p.get('Updated', '2025-01-01')[0:10], "%Y-%m-%d") + timedelta(days=90) and \
                 (p.get('MarketID', 0) not in markets or p.get('ConstructionComplete', '') == True):
                 Debug.logger.debug(f"Info old progress entry {p}")
                 continue
@@ -1222,7 +1222,7 @@ class Colonisation:
             self.cargo_capacity = dict.get('CargoCapacity', 784)
             self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
             self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
-            if dict.get('ProgressColumns', None) != None: self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns')
+            if dict.get('ProgressColumns', None) != None: self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
             self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
         except:
             return

@@ -53,7 +53,9 @@ class RavenColonial:
             'cmdr': 'RCCommander',
             'open': 'RCOpen',
             'rev': 'Rev',
-            'slots': 'BuildSlots'
+            'slots': 'BuildSlots',
+            'notes': 'Notes',
+            'nickname': 'Name'
         }
         # map site/build parameters between colonisation & raven.
         self.site_params:dict = {'id' : 'BuildID',
@@ -89,7 +91,7 @@ class RavenColonial:
         }
 
         self.base_headers:dict = {
-            'User-Agent': f"BGSTally/{self.bgstally.version} (RavenColonial)",
+            'User-Agent': f"BGSTally/{self.bgstally.version}",
             'Content-Type': 'application/json',
             'Accept': 'application/json',
             "appName": 'BGSally',
@@ -112,14 +114,14 @@ class RavenColonial:
     def is_editable(self, system:dict|None = None) -> bool:
         """ Determine if we can/should edit this system in RavenColonial """
 
-        if self.colonisation.cmdr == None or \
-            self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
+        # General editable system check
+        if system == None or system.get('RCSync', False) == False or system.get('RCOpen', False) == True:
+            return True
+
+        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
             return False
 
-        if system == None: return True # General edit permission check
-
-        return system.get('RCOpen', False) == True or \
-            self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
+        return self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
 
 
     @catch_exceptions
@@ -152,7 +154,7 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def add_system(self, system:dict) -> None:
+    def upsert_system(self, system:dict) -> None:
         """ Add a system to RC. """
 
         if self.is_editable() == False:
@@ -163,7 +165,7 @@ class RavenColonial:
         # Query the system to see if it exists
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
         response:Response = requests.get(url, headers=self._headers(), timeout=5)
-
+        data:dict = response.json()
         # Add a new system to RavenColonial
         if response.status_code == 404:
             url:str = f"{RC_API}/v2/system/{quote(system_name)}/import/"
@@ -177,22 +179,22 @@ class RavenColonial:
             for b in system.get('Builds', []):
                 self.upsert_site(system, b)
 
-        # Merge RC data (either from the original get or from the import) with system data
-        data:dict = response.json()
-        self._merge_system_data(data)
-
-        if self.is_editable(system) == False:
-            Debug.logger.info(f"Not architect, not updating system")
-            return
+            # Merge RC data (either from the original get or from the import) with system data
+            self._merge_system_data(response.json())
 
         payload:dict = {'update': [], 'delete':[]}
+        for k, v in self.sys_params.items():
+            if k != 'rev' and system.get(v, None) != None and system.get(v, None) != data.get(k, None):
+                payload[k] = system.get(v, '').strip() if isinstance(system.get(v, None), str) else system.get(v, None)
+
         payload['architect'] = self.colonisation.cmdr if system.get('Architect', None) == None else system.get('Architect', '')
+
         url:str = f"{RC_API}/v2/system/{quote(system_name)}/sites"
         response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
         if response.status_code != 200:
             Debug.logger.error(f"{url} {response} {response.content}")
 
-        Debug.logger.info(f"RavenColonial system added {system_name}")
+        Debug.logger.info(f"RavenColonial system upserted {system_name}")
 
 
     @catch_exceptions
@@ -322,7 +324,7 @@ class RavenColonial:
         mod:dict = {}
         for k, v in self.sys_params.items():
             if k != 'rev' and data.get(k, None) != None and data.get(k, None) != system.get(v, None):
-                mod[v] = data.get(k, None).strip() if isinstance(data.get(k, None), str) else data.get(k, None)
+                mod[v] = data.get(k, '').strip() if isinstance(data.get(k, None), str) else data.get(k, None)
 
         if get_by_path(data, ['pop', 'pop'], 0) > system.get('Population', 0):
             mod['Population'] = get_by_path(data, ['pop', 'pop'], 0)
@@ -451,7 +453,7 @@ class RavenColonial:
             elif system.get(v, None) != None:
                 rcval = system.get(v, '').strip().lower().replace(' ', '_') if isinstance(system.get(v, None), str) and 'name' not in k.lower() else system.get(v, None)
             elif k == 'commodities' and  progress != {}:
-                rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v for k,v in progress.get('Required').items()}
+                rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v for k,v in progress.get('Required', {}).items()}
 
             if rcval != None and v not in ['ProjectID', 'Updated']:
                 payload[k] = rcval
@@ -510,7 +512,7 @@ class RavenColonial:
             elif system.get(v, None) != None:
                 rcval = system.get(v, '').strip().lower().replace(' ', '_') if isinstance(system.get(v, None), str) and 'name' not in k.lower() else system.get(v, None)
             elif k == 'commodities' and progress != {}:
-                rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v - progress['Delivered'].get(k) for k,v in progress.get('Required').items()}
+                rcval = {re.sub(r"\$(.*)_name;", r"\1", k).lower() : v - progress['Delivered'].get(k) for k,v in progress.get('Required', {}).items()}
 
             if rcval != None and v != 'Updated':
                 payload[k] = rcval
@@ -528,9 +530,11 @@ class RavenColonial:
         if response.status_code == 404:
             Debug.logger.info(f"Project not found, cannot update {response} Response.content [{response.content}] Request [{request}]")
             # Get projectid from request endpoint
-            pid:str = re.search(r"/project/([^/]+)", request.endpoint).group(1)
+            m:re.Match|None = re.search(r"/project/([^/]+)", request.endpoint)
+            pid:str|None = m.group(1) if m != None else None
             # Remove this project ID from progress
-            self.colonisation.update_progress(pid, {'ProjectID': None}, True)
+            if pid != None:
+                self.colonisation.update_progress(pid, {'ProjectID': None}, True)
             return
 
         if success == False:
@@ -571,8 +575,10 @@ class RavenColonial:
         if response != None and response.status_code == 404:
             Debug.logger.info(f"Project not found, {response} Response.content [{response.content}] Request [{request}]")
             # Remove this project ID from progress
-            pid:str = re.search(r"/project/([^/]+)", request.endpoint).group(1)
-            self.colonisation.update_progress(pid, {'ProjectID': None}, True)
+            m:re.Match|None = re.search(r"/project/([^/]+)", request.endpoint)
+            pid:str|None = m.group(1) if m != None else None
+            if pid != None:
+                self.colonisation.update_progress(pid, {'ProjectID': None}, True)
             return
         if success == False:
             Debug.logger.error(f"Project load failed {response}")

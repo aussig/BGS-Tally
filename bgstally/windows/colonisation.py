@@ -54,7 +54,7 @@ class ColonisationWindow:
         self.summary_cols:dict = {
             'Track': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
             'Architect': {'header': _("Architect"), 'background': None, 'hide': False}, # LANG: System architect heading
-            'Layout': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
+            'RCOpen': {'header': _("Security"), 'background': None, 'hide': False, 'format': 'dropdown'}, # LANG: RC security
             'State': {'header': "", 'background': None},
             'Total': {'header': _("Total"), 'background': None, 'format': 'int'}, # LANG: Total number of builds
             'Orbital': {'header': _("Orbital"), 'background': None, 'format': 'int'}, # LANG: Number of orbital/space builds
@@ -220,9 +220,9 @@ class ColonisationWindow:
         tab:ttk.Frame = ttk.Frame(self.tabbar)
         tab.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
-        if system.get('Hidden', False) == False:
-            self._create_title_frame(tabnum, tab)
-            self._create_table_frame(tabnum, tab, system)
+        #if system.get('Hidden', False) == False:
+        self._create_title_frame(tabnum, tab)
+        self._create_table_frame(tabnum, tab, system)
         self.tabbar.add(tab, text=system['Name'], compound='right', image=self.image_tab_planned)
         self.tabbar.select(tabnum)
 
@@ -269,12 +269,15 @@ class ColonisationWindow:
         while len(self.plan_titles) <= sysnum:
             self.plan_titles.append({})
 
-        name_label:ttk.Label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
+
+        name:str = systems[sysnum].get('Name', '')
         sysname:str = systems[sysnum].get('StarSystem', '')
         if systems[sysnum].get('RCSync', False) == True:
-            name_label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground="#0078d4", cursor="hand2")
+            name_label = ttk.Label(title_frame, text=name, font=FONT_HEADING_1, foreground="#0078d4", cursor="hand2")
             name_label.bind("<Button-1>", partial(self._link, systems[sysnum], 'System', 'RavenColonial'))
             ToolTip(name_label, text=_("Link to RavenColonial")) # LANG: tooltip for ravencolonial link
+        else:
+            name_label = ttk.Label(title_frame, text=name, font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
         name_label.pack(side=tk.LEFT, padx=10, pady=5)
         self.plan_titles[sysnum]['Name'] = name_label
 
@@ -517,8 +520,7 @@ class ColonisationWindow:
                 return
 
             notes:str = text.get("1.0", tk.END)
-            system['Notes'] = notes.strip()
-            self.colonisation.save("Notes popup close")
+            self.colonisation.modify_system(system, {'Notes': notes.strip()})
             self.notes_fr.destroy()
             self.notes_fr
 
@@ -652,8 +654,9 @@ class ColonisationWindow:
 
     @catch_exceptions
     def _update_title(self, index:int, system:dict) -> None:
+        # @TODO: Remove if nolonger needed
         ''' Update title with both display name and actual system name '''
-        name:str = system.get('Name','') if system.get('Name',None) != None else system.get('StarSystem', _('Unknown')) # LANG: Default when we don't know the name
+        name:str = system.get('Name','') if system.get('Name', '') != '' else system.get('StarSystem', _('Unknown')) # LANG: Default when we don't know the name
         sysname:str = system.get('StarSystem', '') if system.get('StarSystem') != '' else ''
 
         if 'Name' not in self.plan_titles[index]:
@@ -700,7 +703,7 @@ class ColonisationWindow:
 
         # Make the sections readonly that users can't edit.
         sheet[f"{num2alpha(self._detcol('Track'))}1:4"].readonly()
-        sheet['B2'].readonly(False) # Except Architect
+        sheet['B2:C2'].readonly(False) # Except Architect & RCOpen
 
         sheet[f"{num2alpha(self._detcol('Body Type'))}4:{num2alpha(len(self.detail_cols.keys())-1)}"].readonly() # Build columns from Body onwards
         # track, types, layouts, and names left.
@@ -741,6 +744,9 @@ class ColonisationWindow:
                 match name:
                     case 'Architect':
                         totals['Planned'][name] = system.get('Architect', _('Unknown'))
+                        totals['Complete'][name] = ' '
+                    case 'RCOpen':
+                        totals['Planned'][name] = _('Open') if system.get('RCOpen', False) else _('Secured')
                         totals['Complete'][name] = ' '
                     case 'State':
                         totals['Planned'][name] = _("Planned")
@@ -827,11 +833,24 @@ class ColonisationWindow:
         scol:int = 0
         new:list = self._build_summary(system)
 
+        Debug.logger.debug(f"System: {system.get('Name', '')}")
+        Debug.logger.debug(f"System: {new}")
         for i, x in enumerate(self.summary_rows.keys()):
             for j, details in enumerate(self.summary_cols.values()):
                 sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
                 if details.get('background') != None:
                     sheet[self._cell(i+srow,j+scol)].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
+
+        Debug.logger.debug(f"Security state: {system.get('Name', '')} {system.get('RCSync', False)}")
+        if system.get('RCSync', False) == True:
+            sheet[self._cell(srow,list(self.summary_cols.keys()).index('RCOpen'))].dropdown(values=['Open', 'Secured'])
+            sheet[self._cell(srow,list(self.summary_cols.keys()).index('RCOpen'))].data = 'Open' if system.get('RCOpen', True) == True else 'Secured'
+        else:
+            Debug.logger.debug(f"Setting readonly security")
+            sheet[self._cell(srow,list(self.summary_cols.keys()).index('RCOpen'))].del_dropdown()
+            sheet[self._cell(srow,list(self.summary_cols.keys()).index('RCOpen'))].readonly()
+            sheet[self._cell(srow,list(self.summary_cols.keys()).index('RCOpen'))].data = "N/A"
+
 
 
     @catch_exceptions
@@ -1099,8 +1118,11 @@ class ColonisationWindow:
         # In the summary
         if event.row < FIRST_BUILD_ROW:
             field:str = list(self.summary_cols.keys())[event.column]
-            if event.row == 1 and field == 'Architect':
-                self.colonisation.modify_system(system, {field: event.value})
+            if event.row == 1 and field in ['Architect', 'RCOpen']:
+                val = event.value
+                if field == 'RCOpen':
+                    val = True if event.value == 'Open' else False
+                self.colonisation.modify_system(system, {field: val})
             return
 
         field:str = list(self.detail_cols.keys())[event.column]
@@ -1242,7 +1264,6 @@ class ColonisationWindow:
 
     @catch_exceptions
     def _reactivate_system(self, sysnum:int) -> None:
-        Debug.logger.debug("Reactivating system: {sysnum}")
         self.colonisation.modify_system(sysnum, {'Hidden':False})
 
         # Destroy the existing frames and recreate them.

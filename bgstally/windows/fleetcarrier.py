@@ -4,6 +4,7 @@ from tkinter import ttk
 from datetime import datetime
 from math import floor
 
+#from bgstally.bgstally import BGSTally
 from bgstally.constants import DATETIME_FORMAT_JSON, DATETIME_FORMAT_CARRIER, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.debug import Debug
@@ -14,7 +15,7 @@ from config import config # type: ignore
 from thirdparty.colors import *
 from thirdparty.Tooltip import ToolTip
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-
+from bgstally.autocompleter import AutoCompleter, Placeholder
 
 class WindowFleetCarrier:
     """
@@ -27,6 +28,7 @@ class WindowFleetCarrier:
     def __init__(self, bgstally) -> None:
         self.bgstally:BGSTally = bgstally # type: ignore
         self.window:tk.Toplevel|None = None
+        self.itineraryfr:ttk.Frame
         self.scale:float = 1.0
 
         self.tabs:dict = {
@@ -61,7 +63,7 @@ class WindowFleetCarrier:
                     'mission': {'title': 'Mission', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Mission')} # LANG: Cargo tab
                 },
                 "func": self._cargo,
-                'discordButtons': True,
+                "buttons": self._cargo_buttons,
             },
             'Locker': {
                 'cols': {
@@ -74,8 +76,7 @@ class WindowFleetCarrier:
                     'mission': {'title': 'Mission', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Mission')} # LANG: Locker tab
                 },
                 "func": self._locker,
-                'discordButtons': True,
-
+                'buttons': self._locker_buttons,
             },
             'Itinerary': {
                 'cols': {
@@ -85,21 +86,31 @@ class WindowFleetCarrier:
                     'departureTime': {'title': 'Departed', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Departed')}, # LANG: Itinerary tab
                     'state': {'title': 'Status', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Status')}, # LANG: Itinerary tab
                 },
-                'func': self._itinerary
+                'route_cols': {
+                    'starsystem': {'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Location')}, # LANG: Itinerary tab
+                    'distance': {'title': 'Distance', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Distance')}, # LANG: Itinerary tab
+                    'distance_to_destination': {'title': 'Remaining Distance', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Remaining')}, # LANG: Itinerary tab
+                    'fuel_used': {'title': 'Arrived', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Fuel Used')}, # LANG: Itinerary tab
+                    'fuel_in_depot': {'title': 'Fuel In Depot', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Fuel In Depot')}, # LANG: Itinerary tab
+                    'state': {'title': 'Status', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Status')}, # LANG: Itinerary tab
+                },
+                'func': self._itinerary,
+                'buttons': self._routing_buttons,
             },
             'Shipyard': {
                 'cols': {
                     'name': {'title': 'Name', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 200, 'locName': _('Name')}, # LANG: Shipyard tab
                     'type': {'title': 'Type', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 200, 'locName': _('Type')}, # LANG: Shipyard tab
                     #{'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 175, 'locName': _('Location')}, # LANG: Shipyard tab
-                    'transferTime': {'title': 'Transfer Time', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 175, 'locName': _('Transfer Time')}, # LANG: Shipyard tab
-                    'transferPrice': {'title': 'Transfer Cost', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 125, 'locName': _('Transfer Cost')}, # LANG: Shipyard tab
                     'value': {'title': 'Value', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 90, 'locName': _('Value')}, # LANG: Shipyard tab
                     'hot': {'title': 'Hot', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Hot')}, # LANG: Shipyard tab
+                    'transferTime': {'title': 'Transfer Time', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 175, 'locName': _('Transfer Time')}, # LANG: Shipyard tab
+                    'transferPrice': {'title': 'Transfer Cost', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 125, 'locName': _('Transfer Cost')}, # LANG: Shipyard tab
                 },
                 'func': self._shipyard
             },
         }
+
 
     @catch_exceptions
     def show(self) -> None:
@@ -113,7 +124,7 @@ class WindowFleetCarrier:
         self.window = tk.Toplevel(self.bgstally.ui.frame)
         self.window.title(_("{plugin_name} - Carrier {carrier_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=fc.overview.get('name'))) # LANG: Carrier window title
         self.window.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
-        self.window.geometry(f"{int(850*self.scale)}x{int(600*self.scale)}")
+        self.window.geometry(f"{int(850*self.scale)}x{int(550*self.scale)}")
 
         frame:ttk.Frame = ttk.Frame(self.window)
         if not config.get_bool('capi_fleetcarrier'):
@@ -122,7 +133,6 @@ class WindowFleetCarrier:
         self._show_overview(fc, frame)
         self._create_tabs(fc, frame)
         frame.pack(fill=tk.BOTH, expand=True)
-
 
     def _show_overview(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
         """ Show the Fleet Carrier overview tab """
@@ -143,8 +153,8 @@ class WindowFleetCarrier:
             fr:ttk.Frame = ttk.Frame(tabbar, relief=tk.FLAT)
             fr.pack(fill=tk.BOTH, expand=1)
             tabbar.add(fr, text=_(k))
-            if v.get('discordButtons', False) == True:
-                self._create_buttons(k, fr)
+            if v.get('buttons', None) != None:
+                v['buttons'](fr)
             v['func'](fc, v, fr)
 
 
@@ -231,19 +241,38 @@ class WindowFleetCarrier:
                 table.insert("", 'end', values=row, iid=i.get('locName'))
 
 
+
     def _itinerary(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
         """ Create and display the Itinerary tab """
+        ifr:ttk.Frame = ttk.Frame(frame)
+        ifr.pack(fill=tk.BOTH, expand=True)
+        self.itineraryfr = ifr
+
         itinerary:dict = fc.get_itinerary()
 
         if itinerary.get('overview', None) != None:
-            self._overview(itinerary['overview'], 10, frame, bg='white')
+            self._overview(itinerary['overview'], 10, ifr, bg='white')
 
-        table:TreeviewPlus = self._create_table(which['cols'], frame)
+        if itinerary.get('route', []) != []:
+            rf:ttk.Frame = ttk.Frame(ifr)
+            rf.pack(fill=tk.X, side=tk.TOP)
+            rt:TreeviewPlus = self._create_table(which['route_cols'], rf)
+            for jump in itinerary.get('route', []):
+                row:list = []
+                for c in self.tabs['Itinerary']['route_cols'].keys():
+                    row.append(self._format(jump.get(c)))
+                rt.insert("", 'end', values=row)
+            rt.configure(height=min(len(itinerary.get('route', [])), 5))
+
+        it:ttk.Frame = ttk.Frame(ifr)
+        it.pack(fill=tk.X, side=tk.TOP)
+        table:TreeviewPlus = self._create_table(which['cols'], it)
         for jump in itinerary.get('completed', []):
             row:list = []
             for c in which['cols'].keys():
                 row.append(self._format(jump.get(c)))
             table.insert("", 'end', values=row)
+        table.pack(fill="both", expand=True)
 
 
     def _shipyard(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
@@ -263,7 +292,7 @@ class WindowFleetCarrier:
 
 
     def _format(self, val, type:str|None = None) -> str:
-        """ A general customized formatting function for fc display """
+        """ A general customized formatting function for fc display. Takes a tuple or a value and returns a string. """
         units:str = ''
         default:str = ''
 
@@ -281,7 +310,7 @@ class WindowFleetCarrier:
         # Fixed is left entirely alone
         if type == 'fixed': return str(value)
 
-        # Empty, zero or false we return an empty string so the display isn't full of "No" and "0" etc.
+        # Empty, zero or false we return the default so the display isn't full of "No" and "0" etc.
         if value == None or value == 0 or value == '' or value == False: return default
 
         ret:str = ""
@@ -315,7 +344,7 @@ class WindowFleetCarrier:
         return ret + units
 
 
-    def _overview(self, data:dict, maxcols:int, frame:ttk.Frame, bg:str='None') -> None:
+    def _overview(self, data:dict, maxcols:int, frame:ttk.Frame, bg:str = 'None') -> None:
         """ Create and display a standard Overview within a tab """
         style:ttk.Style = ttk.Style()
         style.configure("White.TFrame", background='white')
@@ -325,7 +354,7 @@ class WindowFleetCarrier:
         self._create_columns(data, maxcols, ovf, bg)
 
 
-    def _create_columns(self, data:dict, maxcols:int, frame:ttk.Frame, bg:str='None') -> None:
+    def _create_columns(self, data:dict, maxcols:int, frame:ttk.Frame, bg:str = 'None') -> None:
         ''' Create grid of title/value pairs in columns and rows '''
         row:int = 0; col = 0
         lbl:ttk.Label
@@ -348,16 +377,18 @@ class WindowFleetCarrier:
                 row += 1
 
 
-    def _create_buttons(self, which:str, frame:ttk.Frame) -> None:
-        """ Create tab buttons """
+    def _cargo_buttons(self, frame:ttk.Frame) -> None:
+        self._discord_buttons('cargo', frame)
+    def _locker_buttons(self, frame:ttk.Frame) -> None:
+        self._discord_buttons('locker', frame)
+    def _discord_buttons(self, which:str, frame:ttk.Frame) -> None:
+        """ Create discord buttons for cargo or locker as appropriate """
 
-        # Simple internal helper functions.
-        @catch_exceptions
+        # Internal helper functions.
         def _ctc(which:str, type:str|tk.StringVar) -> None:
             frame.clipboard_clear()
             frame.clipboard_append(self._get_as_text(which, type, False))
 
-        @catch_exceptions
         def _post(which:str, type:str|tk.StringVar, btn:ttk.Button) -> None:
             btn.config(state=tk.DISABLED)
             output:str = self._get_as_text(which, type, True)
@@ -378,7 +409,7 @@ class WindowFleetCarrier:
             btn.config(state=(tk.NORMAL if _discord_available() else tk.DISABLED))
 
         def _post_type_selected(which:str, value:tk.StringVar) -> None: # Cargo or Materials
-            self.bgstally.state.FcCargo.set(value) if which == 'Cargo' else self.bgstally.state.FcLocker.set(value)
+            self.bgstally.state.FcCargo.set(value.get()) if which == 'Cargo' else self.bgstally.state.FcLocker.set(value.get())
 
         bar:ttk.Frame = ttk.Frame(frame)
         bar.pack(fill=tk.X, side=tk.BOTTOM)
@@ -401,19 +432,87 @@ class WindowFleetCarrier:
         dbtn.pack(side=tk.RIGHT, padx=5, pady=5)
         if not _discord_available():
             ToolTip(dbtn, text=_("Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord").format(CR="\n")) # LANG: Post to Discord button tooltip
-
         menuv.pack(side=tk.RIGHT, pady=5)
 
 
+    def _routing_buttons(self, frame:ttk.Frame) -> None:
+        """ Create itinerary buttons for Spansh fleet carrier router """
+        # Internal helper functions.
+        def _route(dest:ttk.Entry|Placeholder) -> None:
+            Debug.logger.debug(f"Creating route")
+            self.bgstally.fleet_carrier.spansh_route(dest.get())
+            Debug.logger.debug(f"Updating route")
+            for w in self.itineraryfr.winfo_children():
+                Debug.logger.debug(f"Destroying {w}")
+                w.destroy()
+            self._itinerary(self.bgstally.fleet_carrier, self.tabs['Itinerary'], self.itineraryfr)
+            clear.config(state=tk.NORMAL)
+            btn.config(state=tk.DISABLED)
+
+        def _clear() -> None:
+            self.bgstally.fleet_carrier.clear_route()
+            for w in self.itineraryfr.winfo_children():
+                Debug.logger.debug(f"Destroying {w}")
+                w.destroy()
+            self._itinerary(self.bgstally.fleet_carrier, self.tabs['Itinerary'], self.itineraryfr)
+            clear.config(state=tk.DISABLED)
+            btn.config(state=tk.NORMAL)
+
+        bar:tk.Frame = tk.Frame(frame)
+        bar.pack(fill=tk.X, side=tk.BOTTOM)
+
+        # @TODO: Add scheduled time selection, copy to clipboard, and post to discord
+        #minutes = ttk.Spinbox(bar, from_=0, to=60, width=3)
+        #minutes.pack(side=tk.RIGHT)
+        #ttk.Label(bar, text=":").pack(side=tk.RIGHT)
+        #hours = ttk.Spinbox(bar, from_=0, to=24, width=3)
+        #hours.pack(side=tk.RIGHT, padx=5)
+        #strv:tk.StringVar = tk.StringVar(value='January')
+        #month:ttk.OptionMenu = ttk.OptionMenu(bar, strv, strv.get(), *[_('January'), _('February'), _('March'), _('April'), _('May'), _('June'), _('July'), _('August'), _('September'), _('October'), _('November'), _('December')],
+        #                                      command=lambda val: _post_type_selected(which, val),
+        #                                      direction='above')
+        #month.pack(side=tk.RIGHT)
+        #day = ttk.Spinbox(bar, from_=0, to=31, width=3)
+        #day.pack(side=tk.RIGHT)
+        #ttk.Label(bar, text=_("Scheduled for")).pack(side=tk.RIGHT) # LANG: Label on itinerary window
+
+
+        itinerary:dict = self.bgstally.fleet_carrier.get_itinerary()
+        #dest:ttk.Entry = ttk.Entry(bar, width=30)
+        #ph:str = _("Destination") if itinerary.get('route', []) == [] else itinerary['route'][-1].get('name') # LANG: Entry placeholder
+        pho:Placeholder = Placeholder(bar, _("Destination"), width=30)
+        dest:AutoCompleter = AutoCompleter(self.bgstally, bar, _("Destination"), width=30)
+        btn:ttk.Button = ttk.Button(bar, text=_("Calculate"), command=partial(_route, dest)) # LANG: Button label
+
+        lbl:ttk.Label = ttk.Label(bar, text=_("Plot Route"))
+
+        btn.config(state=tk.DISABLED if itinerary.get('route', []) != [] else tk.NORMAL)
+
+        clear:ttk.Button = ttk.Button(bar, text=_("Clear"), command=partial(_clear)) # LANG: Button label
+        clear.config(state=tk.DISABLED if itinerary.get('route', []) == [] else tk.NORMAL)
+
+        # At the bottom as order of definition and order of display are different
+        btn.pack(side=tk.RIGHT, padx=5, pady=5)
+        dest.pack(side=tk.RIGHT, padx=5, pady=5)
+        lbl.pack(side=tk.RIGHT, padx=5, pady=5)
+        clear.pack(side=tk.RIGHT, padx=5, pady=5)
+
+        return
+
+
+    @catch_exceptions
     def _create_table(self, cols:dict, frame:ttk.Frame) -> TreeviewPlus:
         """ Create a treeview table with headings and columns """
         style = ttk.Style()
         style.configure("My.Treeview.Heading", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background='lightgrey')
 
-        # Dummy since callback is mandatory
-        def _selected(self) -> None: return None
+        # On click copy the first column to the clipboard
+        def _selected(values, column, tr:TreeviewPlus, iid:str) -> None:
+            #Debug.logger.debug(f"Values: {values}, Column: {column}, iid: {iid}")
+            frame.clipboard_clear()
+            frame.clipboard_append(values[0])
 
-        table:TreeviewPlus = TreeviewPlus(frame, columns=[d['title'] for d in cols.values()], show="headings", height=100, callback=_selected, datetime_format=DATETIME_FORMAT_CARRIER, style="My.Treeview")
+        table:TreeviewPlus = TreeviewPlus(frame, height=100, columns=[d['title'] for d in cols.values()], show="headings", callback=_selected, datetime_format=DATETIME_FORMAT_CARRIER, style="My.Treeview")
         sb:ttk.Scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=table.yview)
         sb.pack(fill=tk.Y, side=tk.RIGHT)
         table.configure(yscrollcommand=sb.set)
@@ -425,17 +524,11 @@ class WindowFleetCarrier:
         return table
 
 
-    def _post_type_selected(self, post_types: dict, value: str) -> None:
-        """ The user has changed the dropdown to choose the type of data to post """
-        k: str = next(k for k, v in post_types.items() if v == value)
-        self.bgstally.state.DiscordFleetCarrier.set(k)
-
-
     @catch_exceptions
     def _get_as_text(self, which:str, type:str|tk.StringVar, discord:bool = False) -> str:
         """ Get the cargo or locker as text for pasting or posting to Discord """
         fc: FleetCarrier = self.bgstally.fleet_carrier
-        l:str = self.bgstally.state.discord_lang if discord else ""
+        l:str|None = self.bgstally.state.discord_lang if discord else ""
         tab:dict = self.tabs[which]
         if isinstance(type, tk.StringVar): type = type.get()
         data:dict = fc.get_cargo() if which == 'Cargo' else self.bgstally.fleet_carrier.get_locker()

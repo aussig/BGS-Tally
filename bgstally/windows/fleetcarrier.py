@@ -1,14 +1,12 @@
 import tkinter as tk
 from functools import partial
 from tkinter import ttk
-from datetime import datetime
-from math import floor
 
 #from bgstally.bgstally import BGSTally
-from bgstally.constants import DATETIME_FORMAT_JSON, DATETIME_FORMAT_CARRIER, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
+from bgstally.constants import DATETIME_FORMAT_CARRIER, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.debug import Debug
-from bgstally.utils import _, __, human_format, str_truncate, catch_exceptions
+from bgstally.utils import _, __, hfplus, str_truncate, catch_exceptions
 from bgstally.widgets import TreeviewPlus, AutoCompleter, Placeholder
 from config import config # type: ignore
 
@@ -202,7 +200,7 @@ class WindowFleetCarrier:
                 val:str = ''
                 match c:
                     case 'service': val = s.title() if s not in which['names'].keys() else which['names'][s]
-                    case _: val = self._format(v.get(c, ""))
+                    case _: val = hfplus(v.get(c, ""))
                 row.append(val)
             table.insert("", 'end', values=row)
 
@@ -224,7 +222,7 @@ class WindowFleetCarrier:
                     case "sell" if i.get("price", 0) > 0 and i.get("stock", 0) > 0 and i.get('buyTotal') == 0: val = i.get("stock")
                     case _: val = i.get(c, " ")
                 if i.get('stock', 0) > 0 or i.get('outstanding', 0) > 0:
-                    line.append(self._format(val))
+                    line.append(hfplus(val))
             if line != []:
                 table.insert("", 'end', values=line, iid=i.get('locName'))
 
@@ -246,10 +244,9 @@ class WindowFleetCarrier:
                     case "sell" if i.get("price", 0) > 0 and i.get("stock", 0) > 0: val = i.get("stock")
                     case _: val = i.get(c, " ")
                 if i.get('stock', 0) > 0 or i.get('outstanding', 0) > 0:
-                    row.append(self._format(val))
+                    row.append(hfplus(val))
             if row != []:
                 table.insert("", 'end', values=row, iid=i.get('locName'))
-
 
 
     def _itinerary(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
@@ -270,7 +267,7 @@ class WindowFleetCarrier:
             for jump in itinerary.get('route', []):
                 row:list = []
                 for c in self.tabs['Itinerary']['route_cols'].keys():
-                    row.append(self._format(jump.get(c)))
+                    row.append(hfplus(jump.get(c)))
                 rt.insert("", 'end', values=row)
             rt.configure(height=min(len(itinerary.get('route', [])), 5))
 
@@ -280,7 +277,7 @@ class WindowFleetCarrier:
         for jump in itinerary.get('completed', []):
             row:list = []
             for c in which['cols'].keys():
-                row.append(self._format(jump.get(c)))
+                row.append(hfplus(jump.get(c)))
             table.insert("", 'end', values=row)
         table.pack(fill="both", expand=True)
 
@@ -297,65 +294,12 @@ class WindowFleetCarrier:
             if ship.get('location')[0] != 'Carrier': continue # Only show ships stored at the carrier
             row:list = []
             for c in which['cols'].keys():
-                row.append(self._format(ship.get(c)))
+                row.append(hfplus(ship.get(c)))
             table.insert("", 'end', values=row)
 
 
-    def _format(self, val, type:str|None = None) -> str:
-        """ A general customized formatting function for fc display. Takes a tuple or a value and returns a string. """
-        units:str = ''
-        default:str = ''
-
-        if isinstance(val, tuple): # (value, type, default, units)
-            if len(val) > 1: type = val[1]
-            if len(val) > 2: default = val[2]
-            if len(val) > 3: units = val[3]
-            if len(val) > 0: value = val[0]
-        else:
-            value = val
-            if (isinstance(value, str) and re.match(value, r"^\d+-\d+-\d+ \d+\:\d+")): type = 'datetime'
-            if isinstance(value, bool): type = 'bool'
-            if isinstance(value, int) or isinstance(value, float): type = 'num'
-
-        # Fixed is left entirely alone
-        if type == 'fixed': return str(value)
-
-        # Empty, zero or false we return the default so the display isn't full of "No" and "0" etc.
-        if value == None or value == 0 or value == '' or value == False: return default
-
-        ret:str = ""
-        match type:
-            case 'bool': # We're going to display Yes (blanks ar handled above)
-                ret = _("Yes") # LANG: Yes
-
-            case 'datetime': # If it's a datetime convert it from the json date format to our date format
-                ret = datetime.strptime(str(value), DATETIME_FORMAT_JSON).strftime(DATETIME_FORMAT_CARRIER)
-
-            case 'interval': # Approximated interval (no seconds, only show minutes if it's less than a day)
-                days , rem = divmod(int(value), 60*60*24)
-                hours, rem = divmod(rem, 60*60)
-                mins, rem = divmod(rem, 60)
-                tmp:list = []
-                if floor(days) > 1: tmp.append(f"{floor(days)} days")
-                elif int(days) > 0: tmp.append(f"1 day")
-                if floor(hours) > 1: tmp.append(f"{floor(hours)} hours")
-                elif int(hours) > 0: tmp.append(f" 1 hour")
-                if len(tmp) < 2:
-                    if floor(mins) > 1: tmp.append(f" {int(mins)} minutes")
-                    elif mins > 0: tmp.append(f" 1 minute")
-                ret = ' '.join(tmp)
-
-            case 'num': # We only shorten/simplify large numbers. Smaller ones we just display with commas at thousands
-                ret = human_format(int(value)) if int(value) > 100000 else f"{value:,}"
-
-            case _: # Title case two words, leave longer strings as is
-                ret = str(value).title() if str(value).count(' ') < 2 else str(value)
-
-        return ret + units
-
-
     def _overview(self, data:dict, maxcols:int, frame:ttk.Frame, bg:str = 'None') -> None:
-        """ Create and display a standard Overview within a tab """
+        """ Create and display a standard Overview section within a tab """
         style:ttk.Style = ttk.Style()
         style.configure("White.TFrame", background='white')
         ovf:ttk.Frame = ttk.Frame(frame, style="White.TFrame")
@@ -375,7 +319,7 @@ class WindowFleetCarrier:
             else:
                 lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"))
             lbl.grid(row=row, column=col, padx=20, pady=5, sticky=tk.W)
-            txt:str = self._format(v)
+            txt:str = hfplus(v)
             if bg != 'None':
                 lbl = ttk.Label(frame, text=txt, font=FONT_SMALL, background=bg)
             else:
@@ -578,7 +522,7 @@ class WindowFleetCarrier:
                     case "buy" if item.get("price", 0) > 0 and item.get("outstanding", 0) > 0: val = item.get("outstanding")
                     case "sell" if item.get("price", 0) > 0 and item.get("stock", 0) > 0: val = item.get("stock")
                     case _: val = item.get(f, " ")
-                tmp:str = str_truncate(__(self._format(val), lang=l), col['discordWidth'])
+                tmp:str = str_truncate(__(hfplus(val), lang=l), col['discordWidth'])
                 fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"
                 line.append(fmt.format(val=tmp))
             if line != []:

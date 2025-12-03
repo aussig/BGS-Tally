@@ -2,12 +2,15 @@ import functools
 import re
 import traceback
 import threading
+from datetime import datetime
+from math import floor
 from copy import deepcopy
 from os import listdir, path
 from os.path import join
 from pathlib import Path
 from re import Pattern, compile, Match
 from typing import Any, Callable, Tuple
+from bgstally.constants import DATETIME_FORMAT_JSON, DATETIME_FORMAT_CARRIER
 
 import semantic_version
 
@@ -218,6 +221,69 @@ def parse_human_format(text:str, include_percent:bool = False) -> int:
         return int(num * multiplier)
     else:
         return int(text)
+
+
+def hfplus(val:int|float|str|bool|tuple, type:str|None = None) -> str:
+    """
+        A general customized formatting function.
+        It's a lot like human_format() and even uses human_format() but has more options for different types of data.
+
+
+    Args:
+        val (int|float|str|bool|tuple): A tuple or a value
+
+    Returns:
+        str: The human-readable result
+    """
+    units:str = ''
+    default:str = ''
+
+    if isinstance(val, tuple): # Handle a tuple of 1-4 elements: (value, type, default, units)
+        if len(val) > 1: type = val[1]
+        if len(val) > 2: default = val[2]
+        if len(val) > 3: units = val[3]
+        if len(val) > 0: value = val[0]
+    else:
+        value = val
+        if (isinstance(value, str) and re.match(value, r"^\d+-\d+-\d+ \d+\:\d+")): type = 'datetime'
+        if isinstance(value, bool): type = 'bool'
+        if isinstance(value, int) or isinstance(value, float): type = 'num'
+
+    # Fixed is left entirely alone
+    if type == 'fixed': return str(value)
+
+    # Empty, zero or false we return the default so the display isn't full of "No" and "0" etc.
+    if value == None or value == 0 or value == '' or value == False: return default
+
+    ret:str = ""
+    match type:
+        case 'bool': # We're going to display Yes (blanks and False are handled above)
+            ret = _("Yes") # LANG: Yes
+
+        case 'datetime': # If it's a datetime convert it from the json date format to our date format
+            ret = datetime.strptime(str(value), DATETIME_FORMAT_JSON).strftime(DATETIME_FORMAT_CARRIER)
+
+        case 'interval': # Approximated interval (no seconds, only show minutes if it's less than a day)
+            days , rem = divmod(int(value), 60*60*24)
+            hours, rem = divmod(rem, 60*60)
+            mins, rem = divmod(rem, 60)
+            tmp:list = []
+            if floor(days) > 1: tmp.append(f"{floor(days)} days")
+            elif int(days) > 0: tmp.append(f"1 day")
+            if floor(hours) > 1: tmp.append(f"{floor(hours)} hours")
+            elif int(hours) > 0: tmp.append(f" 1 hour")
+            if len(tmp) < 2:
+                if floor(mins) > 1: tmp.append(f" {int(mins)} minutes")
+                elif mins > 0: tmp.append(f" 1 minute")
+            ret = ' '.join(tmp)
+
+        case 'num': # We only shorten/simplify numbers over 100k. Smaller ones we just display with commas at thousands
+            ret = human_format(int(value)) if int(value) > 100000 else f"{value:,}"
+
+        case _: # Title case two words, leave longer strings as is
+            ret = str(value).title() if str(value).count(' ') < 2 else str(value)
+
+    return ret + units
 
 
 def is_number(s: str) -> bool:

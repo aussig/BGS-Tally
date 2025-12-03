@@ -166,6 +166,7 @@ class RavenColonial:
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
         response:Response = requests.get(url, headers=self._headers(), timeout=5)
         data:dict = response.json()
+
         # Add a new system to RavenColonial
         if response.status_code == 404:
             url:str = f"{RC_API}/v2/system/{quote(system_name)}/import/"
@@ -182,11 +183,16 @@ class RavenColonial:
             # Merge RC data (either from the original get or from the import) with system data
             self._merge_system_data(response.json())
 
-        payload:dict = {'update': [], 'delete':[]}
+        payload:dict = {}
         for k, v in self.sys_params.items():
             if k != 'rev' and system.get(v, None) != None and system.get(v, None) != data.get(k, None):
                 payload[k] = system.get(v, '').strip() if isinstance(system.get(v, None), str) else system.get(v, None)
 
+        if payload == {}:
+            return
+
+        payload['update'] = []
+        payload['delete'] = []
         payload['architect'] = self.colonisation.cmdr if system.get('Architect', None) == None else system.get('Architect', '')
 
         url:str = f"{RC_API}/v2/system/{quote(system_name)}/sites"

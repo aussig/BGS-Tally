@@ -2,7 +2,7 @@ import json
 from datetime import UTC, datetime, timedelta
 import time
 import requests
-from os import path, remove
+from os import path
 from copy import deepcopy
 
 #from bgstally.bgstally import BGSTally
@@ -14,7 +14,7 @@ from thirdparty.colors import *
 FILENAME = "fleetcarrier.json"
 FC_MAX_SHIPS = 40
 FC_MAX_JUMPS_TRACKED = 100
-FDEV_SLACKING_TIME = 1800
+FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
 class FleetCarrier:
     """
@@ -45,7 +45,7 @@ class FleetCarrier:
         return self.overview.get('name', None) is not None and self.overview.get('callsign', None) is not None
 
 
-    # UI Methods
+    # UI get methods
     @catch_exceptions
     def get_overview(self) -> dict:
         """ Return the carrier overview as key value pairs """
@@ -53,7 +53,6 @@ class FleetCarrier:
         itinerary:list = self.itinerary
         arrival:str = itinerary[-1].get('arrivalTime', "") if len(itinerary) > 0 else ''
 
-        Debug.logger.debug(f"Space: {int(self.overview.get('freeSpace', 0) * 100 / self.overview.get('totalCapacity', 25000))}")
         return {
             _('Name'): self.overview.get('name', ''),                                    # LANG: Carrier overview
             _('Callsign'): self.overview.get('callsign', ''),                            # LANG: Carrier overview
@@ -255,7 +254,6 @@ class FleetCarrier:
         Return the carrier shipyard. Overview is a set of key value pairs and
         ships is a list of ships with details to be displayed in a treeviewplus table.
         """
-
         summ:dict = {
             _('Maximum Ships'): FC_MAX_SHIPS,                                  # LANG: Carrier shipyard
             _('Stored Ships'): self.shipyard.get('overview', {}).get('shipCount', 'None'), # LANG: Carrier shipyard
@@ -275,8 +273,10 @@ class FleetCarrier:
         return {'overview': summ, 'ships': ships}
 
 
+    # UI Operations
+    @catch_exceptions
     def spansh_route(self, dest:str) -> None:
-        """ Create a spansh fleetcarrier route """
+        """ Create and store a Spansh fleetcarrier route """
         # Request:
         #   source=Bleae+Thua+NI-B+b27-5&
         #   destinations=Apurui&
@@ -309,15 +309,15 @@ class FleetCarrier:
             "tritium_stored" : get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)
             }
         res:requests.Response = requests.post(SPANSH_ROUTE, params=params, headers={'User-Agent': f"BGSTally/{self.bgstally.version}"})
-
         if res.status_code != 202:
             Debug.logger.debug(f"Error: {res}")
             return
 
+        # We get back a jobid
         content:dict = json.loads(res.content)
         job:str = content.get('job', '')
 
-        # We'll wait for a response.
+        # Then we wait for the job to finish.
         tries:int = 0
         while(tries < 20):
             jobresp:requests.Response = requests.get(f"https://spansh.co.uk/api/results/{job}", timeout=5)
@@ -330,12 +330,14 @@ class FleetCarrier:
         if jobresp.status_code != 200:
             Debug.logger.debug(f"{jobresp} {params}")
             return
+
+        # Store the route, drop the first entry as that's our current location
         route:list = get_by_path(json.loads(jobresp.content), ['result', 'jumps'], {})
         self.route = route[1:]
 
 
     def clear_route(self) -> None:
-        """ Clear route """
+        """ Remove the current route """
         Debug.logger.debug(f"Route cleared")
         self.route = []
         self.bgstally.ui.window_fc.update_display()
@@ -418,10 +420,10 @@ class FleetCarrier:
                     'price': max(int(sale.get('price', 0)), int(purchase.get('price', 0)),
                                  int(market.get('sellPrice', 0)), int(market.get('buyPrice', 0)))
                 }
-            if cargo['normal']['stock'] < 0:
-                Debug.logger.error(f"Negative stock {cargo[type]}")
+            if cargo['normal'][cname]['stock'] < 0:
+                Debug.logger.error(f"Negative stock {cargo['normal'][cname]}")
             else:
-                Debug.logger.debug(f"Final cargo: {cargo[type]}")
+                Debug.logger.debug(f"Final cargo: {cargo['normal'][cname]}")
 
         return cargo
 
@@ -435,48 +437,58 @@ class FleetCarrier:
         for jump in deepcopy(get_by_path(data, ['itinerary', 'completed'], [])):
             elem:int = next((index for (index, d) in enumerate(self.itinerary) if d['arrivalTime'] == jump.get('arrivalTime', '')), -1)
 
-            # Latest jump.
-            if elem == 0: # Found it
-                if self._time_passed(self.overview.get('departureScheduled', None)):
-                    jumplist[elem]['starsystem'] = self.overview.get('jumpDestination', '')
-                    jumplist[elem]['body'] = self.overview.get('jumpDestinationBody', None)
-                    self.overview['jumpDestination'] = None
-                    self.overview['departureScheduled'] = None
-                continue
-
-            if elem > 0: # Found it, update departure time and duration just in case
+            if elem > 0: # Found it, and it's an "old" one. Update departure time and duration just in case
+                Debug.logger.debug(f"Match on item {elem} so update it")
                 jumplist[elem]['departureTime'] = jump.get('departureTime', None)
                 jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', 0)
                 continue
 
-            # Previously unknown jump
+            if elem == 0:
+                Debug.logger.debug(f"Found, it's the first jump in our list")
+                if jump.get('departureTime', None) != None:
+                    jumplist[elem]['departureTime'] = jump.get('departureTime', None)
+                    jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', 0)
+                    continue
 
-            # Already completed, just add it
-            if jump.get('departureTime', None) != None or self.overview.get('departureScheduled', None):
-                Debug.logger.debug(f"Inserting completed jump {jump}")
+                if self.overview.get('departureScheduled', None) != None:
+                    Debug.logger.debug(f"There's a departure scheduled, setting our departure time")
+                    jumplist[elem]['departureTime'] = self.overview['departureScheduled']
+                    # @TODO: Calculate duration?
+                    continue
+
+                if jumplist[elem]['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
+                    Debug.logger.debug(f"Setting body to {self.overview['currentBody']}")
+                    jumplist[elem]['body'] = self.overview['currentBody']
+                continue
+
+            # Not found
+
+            # Already completed, and nothing scheduled so just add it with its details
+            if jump.get('departureTime', None) != None:
+                Debug.logger.debug(f"Inserting new completed jump {jump}")
                 jumplist.insert(0, jump)
                 continue
 
-            # It's the latest jump (i.e. our current location) and we still have it as scheduled.
-
-            # Check if the jump time is now or has passed.
-            if self._time_passed(self.overview['departureScheduled']):
-                Debug.logger.debug(f"New jump")
-                if jump['starsystem'] == self.overview.get('currentStarSystem', ''):
+            if self.overview.get('departureScheduled', None) == None:
+                Debug.logger.debug(f"Inserting new incomplete jump {jump}")
+                if jump['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
+                    Debug.logger.debug(f"Setting body to {self.overview['currentBody']}")
                     jump['body'] = self.overview.get('currentBody', None)
                 jumplist.insert(0, jump)
                 continue
 
-            # It must be a jump we had scheduled but haven't marked as completed.
-            jump['starsystem'] = self.overview.get('jumpDestination', jump.get('starsystem', ''))
-            jump['body'] = self.overview.get('jumpDestinationBody', jump.get('body', None))
-            self.overview['jumpDestination'] = None
-            self.overview['jumpDestinationBody'] = None
-            self.overview['departureScheduled'] = None
+            # Check if the jump time has passed. If not nothing to do
+            if self._time_passed(self.overview['departureScheduled']) == False:
+                continue
+
+            Debug.logger.debug(f"New incomplete jump and jump scheduled")
+            if jump['starsystem'] == self.overview.get('jumpDestination', ''):
+                Debug.logger.debug(f"Adding body {self.overview.get('jumpDestinationBody', None)}")
+                jump['body'] = self.overview.get('jumpDestinationBody', None)
+
+            Debug.logger.debug(f"Inserting {jump}")
             jumplist.insert(0, jump)
 
-        # clear past departure
-        if self._time_passed(self.overview.get('departureScheduled', None)):
             self.overview['jumpDestination'] = None
             self.overview['jumpDestinationBody'] = None
             self.overview['departureScheduled'] = None
@@ -696,6 +708,7 @@ class FleetCarrier:
 
         # Check if the jump time is now or has passed.
         if self._time_passed(self.overview.get('departureScheduled', "")) == False:
+            Debug.logger.debug(f"No departure scheduled")
             return
 
         dest:str = self.overview.get('jumpDestination', '')

@@ -509,7 +509,7 @@ class Colonisation:
 
         # Add the system to RC if the flag has switched from false to true
         if system.get('RCSync', False) == True:
-            Debug.logger.debug(f"Updating system in RC {system.get('StarSystem')}")
+            Debug.logger.debug(f"Updating system in RC {system.get('StarSystem')} {changed}")
             RavenColonial(self).upsert_system(system)
 
         self.save(f"Modify system {changed}")

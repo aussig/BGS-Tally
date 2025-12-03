@@ -53,6 +53,7 @@ class FleetCarrier:
         itinerary:list = self.itinerary
         arrival:str = itinerary[-1].get('arrivalTime', "") if len(itinerary) > 0 else ''
 
+        Debug.logger.debug(f"Space: {int(self.overview.get('freeSpace', 0) * 100 / self.overview.get('totalCapacity', 25000))}")
         return {
             _('Name'): self.overview.get('name', ''),                                    # LANG: Carrier overview
             _('Callsign'): self.overview.get('callsign', ''),                            # LANG: Carrier overview
@@ -63,7 +64,7 @@ class FleetCarrier:
             _('Allow Notorious'): (self.overview.get('notoriousAccess', ''), 'str', 'Unknown'), # LANG: Carrier overview
 
             _('Fuel'): (self.overview.get('fuel', 0), 'num', 0, 't'),                    # LANG: Carrier overview
-            _('Space'): (f"{self._get_freespace():,}t ({int(self.overview.get('freeSpace', 0) * 100 / self.overview.get('totalCapacity', 25000))}%)", 'fixed'), # LANG: Carrier overview
+            _('Space'): (f"{self._get_freespace():,}t ({int(self._get_freespace() * 100 / self.overview.get('totalCapacity', 25000))}%)", 'fixed'), # LANG: Carrier overview
             _('Tax Level'): (self.overview.get('taxation', 0), 'num', '0%', '%'),        # LANG: Carrier overview
         }
 

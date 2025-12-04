@@ -211,16 +211,29 @@ class FleetCarrier:
 
         route:list = []
         tot:int = 0
-        for j in self.route[0:]:
+        depot:int = int(self.overview.get('fuel', 0))
+        trit:int = int(get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0))
+        deposit:bool = False
+        for j in self.route:
             tot += int(j.get('fuel_used'))
+            if depot < int(j.get('fuel_used')):
+                trit -= (1000 - depot)
+                depot = 1000
+                deposit = True
+            depot -= int(j.get('fuel_used'))
+
             route.append({
-                'distance': (int(j.get('distance')), 'num'),
-                'distance_to_destination': (int(j.get('distance_to_destination')), 'num'),
+                'distance': (int(j.get('distance',0)), 'num'),
+                'distance_to_destination': (int(j.get('distance_to_destination',0)), 'num'),
                 'fuel_used': (int(j.get('fuel_used')), 'num'),
-                'fuel_in_depot': (int(self.overview['fuel'] - tot), 'num'),
+                'fuel_in_depot': (depot, 'num'),
+                'deposit': (deposit, 'boolean'),
+                'tritium': (trit, 'num'),
+                'refuel': (trit < 0, 'boolean'),
                 'state': 'planned',
                 'starsystem': (j.get('name'), 'str')
             })
+            deposit = False
 
         jumps:list = []
         for j in self.itinerary:
@@ -237,8 +250,8 @@ class FleetCarrier:
         if route != []: # Only show route summary if there is a route planned
             summ[_("Route Destination")] = route[-1].get('starsystem',"") # LANG: Carrier itinerary
             summ[_("Departure")] = ("", 'str', "Unscheduled")                   # LANG: Carrier itinerary
-            summ[_("Distance")] = route[-1].get('distance_to_destination', 0)   # LANG: Carrier itinerary
-            summ[_("Fuel Required")] = (tot, 'num')                             # LANG: Carrier itinerary
+            summ[_("Distance")] = (int(self.route[0].get('distance_to_destination', 0)+self.route[0].get('distance', 0)), 'num', 'Unknown', 'Ly')   # LANG: Carrier itinerary
+            summ[_("Fuel Required")] = (tot, 'num', 'Unknown', 't')                             # LANG: Carrier itinerary
 
         summ[_('Scheduled Jump')] = (self.overview.get('jumpDestinationBody', self.overview.get('jumpDestination', 'None')), 'str', 'None') # LANG: Carrier itinerary
         summ[_('Departure Time')] = (self._lt(self.overview.get('departureScheduled', '')), 'datetime', 'None') # LANG: Carrier itinerary
@@ -438,15 +451,15 @@ class FleetCarrier:
             elem:int = next((index for (index, d) in enumerate(self.itinerary) if d['arrivalTime'] == jump.get('arrivalTime', '')), -1)
 
             if elem > 0: # Found it, and it's an "old" one. Update departure time and duration just in case
-                Debug.logger.debug(f"Match on item {elem} so update it")
-                jumplist[elem]['departureTime'] = jump.get('departureTime', None)
-                jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', 0)
+                Debug.logger.debug(f"Match on item {elem} so update it {jump.get('departureTime', jumplist[elem].get('departureTime', None))} {jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))}")
+                jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
+                jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))
                 continue
 
             if elem == 0:
                 Debug.logger.debug(f"Found, it's the first jump in our list")
                 if jump.get('departureTime', None) != None:
-                    jumplist[elem]['departureTime'] = jump.get('departureTime', None)
+                    jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
                     jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', 0)
                     continue
 
@@ -582,7 +595,7 @@ class FleetCarrier:
             self.bgstally.ui.window_fc.update_display()
             return
 
-        Debug.logger.debug(f"Updating cargo")
+        Debug.logger.debug(f"Updating cargo {int(time.time())} {self.last_modified} {int(time.time()) - FDEV_SLACKING_TIME}")
         self.cargo = self._update_cargo(self.data)
         self.bgstally.ui.window_fc.update_display()
 
@@ -613,15 +626,17 @@ class FleetCarrier:
         for k, v in updates.items():
             v[0][k] = get_by_path(entry, v[1], v[2])
 
+        # Not sure if we want to do this here but the sanity check should help keep it honest
         self.last_modified = int(time.time())
 
         # Sanity check
         if get_by_path(entry, ['SpaceUsage', 'FreeSpace'], 0) != self._get_freespace() or \
             get_by_path(entry, ['SpaceUsage', 'CargoSpaceReserved']) != self._get_reserved():
-            Debug.logger.info(f"CArrier space mismatch, clearing modification time")
+            Debug.logger.error(f"CArrier space mismatch, clearing modification time")
             self.last_modified = 0
 
         #self.itinerary = self._update_itinerary(self.data)
+        if self.bgstally.dev_mode == True: self.save()
         self.bgstally.ui.window_fc.update_display()
 
 
@@ -654,7 +669,6 @@ class FleetCarrier:
         self.overview['departureScheduled'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00") # Seconds zeroed out
 
         Debug.logger.debug(f"Jump scheduled to {self.overview['jumpDestination']} at {self.overview['departureScheduled']}")
-        if self.bgstally.dev_mode == True: self.save()
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -670,6 +684,8 @@ class FleetCarrier:
         fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord heading
         fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+
+        if self.bgstally.dev_mode == True: self.save()
         self.bgstally.ui.window_fc.update_display()
 
 
@@ -759,6 +775,7 @@ class FleetCarrier:
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
         self.overview['fuel'] = entry.get('Total', 1000)
         self.bgstally.ui.window_fc.update_display()
+
 
     @catch_exceptions
     def trade_order(self, entry:dict) -> None:
@@ -962,7 +979,7 @@ class FleetCarrier:
                 carrier_count:int = 0
                 total_value:int = 0
                 for ship in entry.get('ShipsHere', []) + entry.get('ShipsRemote', []):
-                    self.shipyard['ships'][ship.get('ShipID', 0)] = {
+                    self.shipyard['ships'][str(ship.get('ShipID', ""))] = {
                         'name': ship.get('Name', ''),
                         'type': ship.get('ShipType_Localised', ship.get('ShipType', '')),
                         'location': 'Carrier' if ship.get('ShipMarketID', entry.get('MarketID', 0)) == self.carrier_id else ship.get('StarSystem', entry.get('StarSystem', self.shipyard.get('overview', {}).get('current', _('Unknown')))),
@@ -1080,6 +1097,7 @@ class FleetCarrier:
         """ Return a Dictionary representation of our data, suitable for serializing """
         return {
             'carrier_id': self.carrier_id,
+            'last_modified': self.last_modified,
             'overview': self.overview,
             'cargo': self.cargo,
             'locker': self.locker,
@@ -1094,6 +1112,7 @@ class FleetCarrier:
         """ Populate our data from a Dictionary that has been deserialized """
         Debug.logger.debug(f"Loading _from_dict")
         self.carrier_id = dict.get('carrier_id', 0)
+        self.last_modified = dict.get('last_modified', 0)
         self.overview = dict.get('overview', {})
         self.cargo = dict.get('cargo', {})
         if 'normal' not in self.cargo: self.cargo = {'overview': {}, 'stolen': {}, 'mission': {}, 'normal': {}} # For migration from old to new format

@@ -590,7 +590,7 @@ class ProgressWindow:
             Debug.logger.info(f"No commodities found")
             return
 
-        rc:int = 0
+        rowcnt:int = 0
         for i, c in enumerate(comms):
 
             if i >= len(self.rows): continue
@@ -616,22 +616,27 @@ class ProgressWindow:
             # We only show relevant (required) items. But.
             # If the view is reduced or minimal we don't show ones that are complete. Also.
             # If we're in minimal view we only show ones we still need to buy.
+            docked:bool = self.colonisation.docked
+            hasmarket:bool = self.colonisation.market != {}
+            forsale:bool = self.colonisation.market.get(f"${c}_name;", 0) > 0
+            atcarrier:bool = self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id
+            needtobuy:bool = remaining - carrier - cargo > 0
             if (reqcnt <= 0) or \
+                (rowcnt > int(self.bgstally.state.ColonisationMaxCommodities.get()) > 0) or \
                 (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
-                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.REDUCED) or \
-                ((self.colonisation.docked == False or self.colonisation.market == {}) and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
-                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
-                (self.colonisation.docked == True and self.colonisation.market_id != self.bgstally.fleet_carrier.carrier_id and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
-                (rc > int(self.bgstally.state.ColonisationMaxCommodities.get()) > 0):
+                (docked and not forsale and not needtobuy and cargo == 0 and self.view == ProgressView.REDUCED) or \
+                ((not docked or not hasmarket) and not needtobuy and cargo == 0 and self.view == ProgressView.MINIMAL) or \
+                (docked and not forsale and cargo == 0 and self.view == ProgressView.MINIMAL) or \
+                (docked and not atcarrier and not needtobuy and cargo == 0 and self.view == ProgressView.MINIMAL):
                 for cell in row.values():
                     cell.grid_remove()
                 continue
 
-            if rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
+            if rowcnt == int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
                     cell['text'] = '… '
                     cell.grid()
-                rc += 1
+                rowcnt += 1
                 continue
 
             for col, val in enumerate(self.columns):
@@ -649,7 +654,7 @@ class ProgressWindow:
                 row[col].grid()
 
             self._highlight_row(row, c, reqcnt, delcnt, cargo, carrier)
-            rc += 1
+            rowcnt += 1
 
         self._display_totals(self.rows[i+1], tracked, totals)
         if totals['Required'] > 0:

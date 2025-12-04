@@ -86,11 +86,14 @@ class WindowFleetCarrier:
                 },
                 'route_cols': {
                     'starsystem': {'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Location')}, # LANG: Itinerary tab
-                    'distance': {'title': 'Distance', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Distance')}, # LANG: Itinerary tab
+                    'distance': {'title': 'Distance', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 115, 'locName': _('Jump Distance')}, # LANG: Itinerary tab
                     'distance_to_destination': {'title': 'Remaining Distance', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Remaining')}, # LANG: Itinerary tab
-                    'fuel_used': {'title': 'Arrived', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Fuel Used')}, # LANG: Itinerary tab
-                    'fuel_in_depot': {'title': 'Fuel In Depot', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Fuel In Depot')}, # LANG: Itinerary tab
-                    'state': {'title': 'Status', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Status')}, # LANG: Itinerary tab
+                    'fuel_used': {'title': 'Arrived', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Fuel Used')}, # LANG: Itinerary tab
+                    'fuel_in_depot': {'title': 'Fuel In Depot', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('In Depot')}, # LANG: Itinerary tab
+                    'deposit' : {'title': 'Deposit', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 75, 'locName': _('Deposit')}, # LANG: Itinerary tab
+                    'tritium': {'title': 'Tritium', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 75, 'locName': _('Tritium')}, # LANG: Itinerary tab
+                    'refuel' : {'title': 'Refuel', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 75, 'locName': _('Refuel')}, # LANG: Itinerary tab
+                    'state': {'title': 'Status', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 75, 'locName': _('Status')}, # LANG: Itinerary tab
                 },
                 'func': self._itinerary,
                 'buttons': self._routing_buttons,

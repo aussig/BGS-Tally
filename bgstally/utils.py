@@ -281,7 +281,7 @@ def hfplus(val:int|float|str|bool|tuple, type:str|None = None) -> str:
             ret = human_format(int(value)) if int(value) > 100000 else f"{value:,}"
 
         case _: # Title case two words, leave longer strings as is
-            ret = str(value).title() if str(value).count(' ') < 2 else str(value)
+            ret = str(value).title() if str(value).count(' ') < 2 and re.search(r"[A-Z0-9]", str(value)) == None else str(value)
 
     return ret + units
 

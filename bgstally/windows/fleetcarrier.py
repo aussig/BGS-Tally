@@ -336,9 +336,9 @@ class WindowFleetCarrier:
 
 
     def _cargo_buttons(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
-        self._discord_buttons('cargo', frame)
+        self._discord_buttons('Cargo', frame)
     def _locker_buttons(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
-        self._discord_buttons('locker', frame)
+        self._discord_buttons('Locker', frame)
     def _discord_buttons(self, which:str, frame:ttk.Frame) -> None:
         """ Create discord buttons for cargo or locker as appropriate """
 

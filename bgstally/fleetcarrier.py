@@ -142,14 +142,13 @@ class FleetCarrier:
         stored:int = 0
         reserved:int = 0
         for t, ent in self.cargo.items():
-            if t == 'overview': continue
-            if type == 'all' or t == type:
-                for name, deets in ent.items():
-                    deets['locName'] = self.bgstally.ui.commodities.get(name, {}).get('Name', name)
-                    deets['category'] = self.bgstally.ui.commodities.get(name, {}).get('Category', '') if isinstance(self.bgstally.ui.commodities.get(name, {}).get('Category', ''), str) else 'Unknown'
-                    deets['mission'] = (t == 'mission')
-                    deets['stolen'] = (t == 'stolen')
-                    comm[name] = deets
+            if t == 'overview' or (type != 'all' and type != t): continue
+            for name, deets in ent.items():
+                deets['locName'] = self.bgstally.ui.commodities.get(name, {}).get('Name', name)
+                deets['category'] = self.bgstally.ui.commodities.get(name, {}).get('Category', '') if isinstance(self.bgstally.ui.commodities.get(name, {}).get('Category', ''), str) else 'Unknown'
+                deets['mission'] = (t == 'mission')
+                deets['stolen'] = (t == 'stolen')
+                comm[name] = deets
         comm = dict(sorted(comm.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
         summ:dict = {
@@ -171,14 +170,13 @@ class FleetCarrier:
         Return locker as a dictionary. overview is a set of key value pairs and
         inventory is a list of microresources with details to be displayed in a treeviewplus table.
         """
-        self.locker = self._update_locker(self.data) # Temporary
-
         res:dict = {}
         buying:int = 0
         selling:int = 0
         stored:int = 0
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
+                Debug.logger.debug(f"sending: {t} {mat} {deets}")
                 deets['mission'] = (t == 'mission')
                 buying += deets['outstanding']
                 if deets['outstanding'] == 0 and deets['price'] > 0 and (t == 'normal'):
@@ -794,16 +792,34 @@ class FleetCarrier:
         if comm not in self.bgstally.ui.commodities:
             # The order is for a material.
             mat:str = entry.get('Commodity', "")
+            Debug.logger.debug(f"Initial materials {self.locker['normal'].get(mat)}")
             if mat not in self.locker['normal']:
                 self.locker['normal'][mat] = {'locName': entry.get('Commodity_Localised', mat), 'category': '', 'price': 0, 'quantity': 0}
                 self.locker['normal'][mat]['price'] = int(entry.get('Price', 0))
                 self.locker['normal'][mat]['buyTotal'] = 0
 
-                if entry.get('SaleOrder') is not None:
-                    self.locker['normal'][mat]['quantity'] = int(entry.get('SaleOrder', 0))
+            if entry.get('SaleOrder') is not None:
+                # If we were selling we need to clear any existing buy order and free up reserved space
+                self.locker['normal'][mat]['outstanding'] = 0
+                self.locker['normal'][mat]['buyTotal'] = 0
 
-                if entry.get('PurchaseOrder') is not None:
-                    self.locker['normal'][mat]['buyTotal'] = int(entry.get('PurchaseOrder', 0))
+                self.locker['normal'][mat]['stock'] = entry.get('SaleOrder', 0)
+                self.locker['normal'][mat]['price'] = entry.get('Price', 0)
+
+            if entry.get('PurchaseOrder') is not None:
+                # Set price and stock
+                self.locker['normal'][mat]['buyTotal'] = int(entry.get('PurchaseOrder', 0))
+                self.locker['normal'][mat]['outstanding'] = int(entry.get('PurchaseOrder', 0))
+                self.locker['normal'][mat]['price'] = int(entry.get('Price', 0))
+
+            if entry.get('CancelTrade') == True:
+                self.locker['normal'][mat]['buyTotal'] = 0
+                self.locker['normal'][mat]['outstanding'] = 0
+                self.locker['normal'][mat]['price'] = 0
+
+            Debug.logger.debug(f"Final materials {self.locker['normal'].get(mat)}")
+            self.bgstally.ui.window_fc.update_display()
+            if self.bgstally.dev_mode == True: self.save()
             return
 
         # A new commodity order

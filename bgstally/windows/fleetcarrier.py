@@ -78,14 +78,15 @@ class WindowFleetCarrier:
             },
             'Itinerary': {
                 'cols': {
-                    'starsystem': {'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Location')}, # LANG: Itinerary tab
+                    'starsystem': {'title': 'System', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 250, 'locName': _('Star System')}, # LANG: Itinerary tab
+                    'body': {'title': 'Body', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 75, 'locName': _('Body')}, # LANG: Itinerary tab
                     'visitDurationSeconds': {'title': 'Duration', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Duration')}, # LANG: Itinerary tab
                     'arrivalTime': {'title': 'Arrived', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Arrived')}, # LANG: Itinerary tab
                     'departureTime': {'title': 'Departed', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Departed')}, # LANG: Itinerary tab
                     'state': {'title': 'Status', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Status')}, # LANG: Itinerary tab
                 },
                 'route_cols': {
-                    'starsystem': {'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Location')}, # LANG: Itinerary tab
+                    'starsystem': {'title': 'System', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Star System')}, # LANG: Itinerary tab
                     'distance': {'title': 'Distance', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 115, 'locName': _('Jump Distance')}, # LANG: Itinerary tab
                     'distance_to_destination': {'title': 'Remaining Distance', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Remaining')}, # LANG: Itinerary tab
                     'fuel_used': {'title': 'Arrived', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Fuel Used')}, # LANG: Itinerary tab

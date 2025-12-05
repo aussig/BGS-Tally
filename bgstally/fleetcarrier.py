@@ -242,7 +242,8 @@ class FleetCarrier:
                 'departureTime': (self._lt(j.get('departureTime', '')), 'datetime', ''),
                 'state': (j.get('state',''), 'str', 'Unknown'),
                 'visitDurationSeconds': (j.get('visitDurationSeconds', 0), 'interval', ''),
-                'starsystem': (j.get('body', j.get('starsystem', '')), 'str', 'Unknown')
+                'starsystem': (j.get('starsystem', ''), 'str', 'Unknown'),
+                'body': j.get('body', '').replace(j.get('starsystem', ''), '')
             })
 
         summ:dict = {}

@@ -308,7 +308,7 @@ class Colonisation:
 
                 # If we matched on a construction site and this is not (ie nolonger) one then we complete the build because
                 # someone else finished it
-                if build.get('State') == BuildState.PROGRESS and self.market_id == build.get('MarketID', 0) and \
+                if build.get('State') == BuildState.PROGRESS and \
                     re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
                     self.try_complete_build(build.get('MarketID', 0))
 

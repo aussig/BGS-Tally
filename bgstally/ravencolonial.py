@@ -200,7 +200,7 @@ class RavenColonial:
         if response.status_code != 200:
             Debug.logger.error(f"{url} {response} {response.content}")
 
-        Debug.logger.info(f"RavenColonial system upserted {system_name}")
+        Debug.logger.info(f"RavenColonial system upserted {system_name} {payload}")
 
 
     @catch_exceptions

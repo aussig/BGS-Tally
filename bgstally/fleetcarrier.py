@@ -176,7 +176,6 @@ class FleetCarrier:
         stored:int = 0
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
-                Debug.logger.debug(f"sending: {t} {mat} {deets}")
                 deets['mission'] = (t == 'mission')
                 buying += deets['outstanding']
                 if deets['outstanding'] == 0 and deets['price'] > 0 and (t == 'normal'):
@@ -518,7 +517,7 @@ class FleetCarrier:
             for m in v:
                 name:str = m.get('name', "").lower()
                 # all the ways a commodity may be listed in CAPI data
-                sale:dict = next((item for item in list(get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], {}).values()) if item.get('name', "").lower() == name), {})
+                sale:dict = next((item for item in list(get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], [])) if item.get('name', "").lower() == name), {})
                 purchase:dict = next((item for item in get_by_path(data, ['orders', 'onfootmicroresources', 'purchases'], []) if item.get('name', "").lower() == name), {})
                 type:str = 'mission' if m.get('mission', False) == True else 'normal'
                 if name not in locker[type] and m.get('quantity', 0) > 0 or purchase.get('outstanding', 0) > 0:

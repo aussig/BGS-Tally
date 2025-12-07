@@ -279,9 +279,10 @@ class Colonisation:
 
                 # If we matched on a construction site and this is not one then we complete the build because
                 # someone else finished it
-                if build.get('State') == BuildState.PROGRESS and self.market_id == build.get('MarketID', 0) and \
-                    re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
-                    self.try_complete_build(build.get('MarketID', 0))
+                # Commented out to be extra conservative.
+                #if build.get('State') == BuildState.PROGRESS and self.market_id == build.get('MarketID', 0) and \
+                #    re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
+                #    self.try_complete_build(build.get('MarketID', 0))
 
                 data:dict = {}
                 if self.market_id != None: data['MarketID'] = self.market_id

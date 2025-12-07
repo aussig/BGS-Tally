@@ -2,7 +2,9 @@
 
 ## v5.4.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
 
+* Fixed exception being thrown if current system has not yet been set
 
 
 ## v5.4.0-a1 - 2025-11-24

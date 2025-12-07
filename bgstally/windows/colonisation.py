@@ -1221,6 +1221,8 @@ class ColonisationWindow:
         row += 1
 
         rcsync_var = tk.BooleanVar()
+        if self.bgstally.state.ColonisationRCAPIKey.get() != None and self.bgstally.state.ColonisationRCAPIKey.get() != "":
+            rcsync_var.set(True)
         chk = tk.Checkbutton(add, text=_("Sync with RavenColonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with RavenColonial
         chk.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
         row += 1

@@ -308,7 +308,7 @@ class Colonisation:
 
                 # If we matched on a construction site and this is not (ie nolonger) one then we complete the build because
                 # someone else finished it
-                if build.get('State') == BuildState.PROGRESS and \
+                if build.get('State') == BuildState.PROGRESS and self.market_id == build.get('MarketID', 0) and \
                     re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
                     self.try_complete_build(build.get('MarketID', 0))
 
@@ -440,7 +440,7 @@ class Colonisation:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
         system:dict|None = self.find_system(data)
         if system == None:
-            return self.add_system(data, False, self.bgstally.state.ColonisationRCAPIKey.get() != None)
+            return self.add_system(data, False, False)
 
         return system
 
@@ -873,10 +873,10 @@ class Colonisation:
 
         Debug.logger.info(f"Completing build {build.get('Name', '')} {market_id}")
 
-        # Complete the project in RC.
+        # Complete the project in RC but only if we're sure construction is complete.
         p:dict|None = self.find_progress(market_id)
-        #if p.get('ProjectID', None) != None:
-        #    RavenColonial(self).complete_project(p.get('ProjectID', 0))
+        if p.get('ProjectID', None) != None and p.get('ConstructionComplete', False) == True:
+            RavenColonial(self).complete_project(p.get('ProjectID', 0))
 
         # If we get here, the build is (newly) complete.
         # Since on completion the colonisation ship is removed/goes inactive and a new station is created
@@ -1029,7 +1029,6 @@ class Colonisation:
         [system, build] = self.find_build_any({'MarketID': progress.get('MarketID', 0)})
         if system != None and build != None and system.get('RCSync', False) == True:
             RavenColonial(self).upsert_project(system, build, progress)
-
 
 
     def _update_carrier(self) -> None:

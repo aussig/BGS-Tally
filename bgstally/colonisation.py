@@ -279,7 +279,7 @@ class Colonisation:
 
                 # If we matched on a construction site and this is not one then we complete the build because
                 # someone else finished it
-                if build.get('State') == BuildState.PROGRESS and \
+                if build.get('State') == BuildState.PROGRESS and self.market_id == build.get('MarketID', 0) and \
                     re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
                     self.try_complete_build(build.get('MarketID', 0))
 
@@ -411,7 +411,7 @@ class Colonisation:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
         system:dict|None = self.find_system(data)
         if system == None:
-            return self.add_system(data, False, self.bgstally.state.ColonisationRCAPIKey.get() != None)
+            return self.add_system(data, False, False)
 
         return system
 

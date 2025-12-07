@@ -657,15 +657,15 @@ class FleetCarrier:
 
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
+        departure_datetime: datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
+        departure_datetime = departure_datetime.replace(tzinfo=UTC)
         self.overview['jumpDestination'] = entry.get('SystemName', '')
         self.overview['jumpDestinationBody'] = entry.get('Body', None)
+        self.overview['departureScheduled'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00") # Seconds zeroed out
         if self.itinerary[0].get('departureTime', None) == None:
             self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
-
-        departure_datetime: datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
-        departure_datetime = departure_datetime.replace(tzinfo=UTC)
-        self.overview['departureScheduled'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00") # Seconds zeroed out
+            self.itinerary[0]['departureTime'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00")
 
         Debug.logger.debug(f"Jump scheduled to {self.overview['jumpDestination']} at {self.overview['departureScheduled']}")
 
@@ -692,6 +692,10 @@ class FleetCarrier:
     def jump_cancelled(self, entry: dict[str, str]) -> None:
         """ The user cancelled their carrier jump producing a CarrierJumpCancelled journal event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
+
+
+        if self.itinerary[0]['departureTime'] == self.overview['departureScheduled']:
+            self.itinerary[0]['departureTime'] = None
 
         self.overview['jumpDestination'] = None
         self.overview['jumpDestinationBody'] = None

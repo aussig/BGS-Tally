@@ -567,7 +567,8 @@ class ProgressWindow:
 
         # Set the column headings according to the selected units
         for col, val in enumerate(self.columns):
-            if val >= len(self.headings): val = 0
+            if val >= len(self.headings): val = len(self.headings) -1
+            if col >= len(self.collbls): col = len(self.collbls) - 1
             if self.collbls[col] == None: col = 0
             self.collbls[col]['text'] = self.headings[val].get('Label')
             self.collbls[col].grid()

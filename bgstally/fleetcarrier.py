@@ -604,6 +604,7 @@ class FleetCarrier:
 
         if entry.get('CarrierType') != FleetCarrierType.PERSONAL: return
 
+        Debug.logger.debug(f"Stats received")
         # Note we always re-populate here, in case the user has bought a new carrier.
         # We should get a subsequent CAPI update to populate the rest.
         self.carrier_id = entry.get('CarrierID', 0)
@@ -625,12 +626,12 @@ class FleetCarrier:
             v[0][k] = get_by_path(entry, v[1], v[2])
 
         # Not sure if we want to do this here but the sanity check should help keep it honest
-        self.last_modified = int(time.time())
+        #self.last_modified = int(time.time())
 
         # Sanity check
         if get_by_path(entry, ['SpaceUsage', 'FreeSpace'], 0) != self._get_freespace() or \
             get_by_path(entry, ['SpaceUsage', 'CargoSpaceReserved']) != self._get_reserved():
-            Debug.logger.error(f"CArrier space mismatch, clearing modification time")
+            Debug.logger.error(f"Carrier space mismatch, clearing modification time")
             self.last_modified = 0
 
         #self.itinerary = self._update_itinerary(self.data)

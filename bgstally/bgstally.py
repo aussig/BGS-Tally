@@ -212,7 +212,7 @@ class BGSTally:
                 activity.cargo_ejected(entry)
                 dirty = True
 
-            case 'FactionKillBond' if state['Odyssey']:
+            case 'FactionKillBond':
                 activity.cb_received(entry, self.state, cmdr)
                 dirty = True
 

@@ -162,11 +162,17 @@ class BGSTally:
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
+            case 'CarrierDepositFuel':
+                self.fleet_carrier.deposit_fuel(entry)
+
             case 'CarrierJumpCancelled':
                 self.fleet_carrier.jump_cancelled(entry)
 
             case 'CarrierJumpRequest':
                 self.fleet_carrier.jump_requested(entry)
+
+            case 'CarrierLocation':
+                self.fleet_carrier.carrier_location(entry)
 
             case 'CarrierStats':
                 self.fleet_carrier.stats_received(entry)

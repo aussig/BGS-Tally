@@ -72,7 +72,7 @@ class ProgressWindow:
             {
                 'Column' : 'BuyOrder',
                 'Label': f"{_('Buy Orders'): >13}", # LANG: Carrier buy order amount
-                'Tooltip' : f"{_('Amount oustanding in carrier buy orders')}" # LANG: Carrier buy order tooltip
+                'Tooltip' : f"{_('Amount outstanding in carrier buy orders')}" # LANG: Carrier buy order tooltip
             }
         ]
         self.ordertts:list = [_('Alphabetical order'), _('Category order'), _('Quantity order')]
@@ -105,8 +105,8 @@ class ProgressWindow:
 
         # By removing the carrier from here we remove it everywhere
         if not self.bgstally.fleet_carrier.available():
-            self.headings.pop()
-            self.headings.pop()
+            self.headings.pop() # Carrier
+            self.headings.pop() # Buy Orders
 
         # UI components
         self.frame:tk.Frame
@@ -252,20 +252,20 @@ class ProgressWindow:
         """ Display the context menu when right-clicked."""
 
         menu = tk.Menu(tearoff=tk.FALSE)
-        menu.add_command(label=_('Copy to Clipboard'), command=partial(self.event, "copy"))  # LANG: Copy to cipboard
-        #menu.add_command(label=_('Post to Discord'), command=partial(self.event, "post"))  # LANG: Post to discord
-        menu.add_separator()
+        menu.add_command(label=_('Copy to Clipboard'), command=partial(self.event, "copy"))  # LANG: build popup menu
+        #menu.add_command(label=_('Post to Discord'), command=partial(self.event, "post"))  # LANG: build popup menu
 
         tracked:list = self.colonisation.get_tracked_builds()
         if self.build_index < len(tracked):
+            menu.add_separator()
             b:dict = tracked[self.build_index]
             if b.get('ProjectID', None) != None:
-                menu.add_command(label=_('Open in RavenColonial'), command=partial(webbrowser.open, 'https://ravencolonial.com/#build='+b.get('ProjectID','')))  # Open ravencolonial project
+                menu.add_command(label=_('Open in RavenColonial'), command=partial(webbrowser.open, 'https://ravencolonial.com/#build='+b.get('ProjectID','')))  # LANG: build popup menu
 
             if b.get('MarketID', None) != None:
                 params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in b.items()}
                 for k, v in self.links.items():
-                    menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)))  # Open in Inara, Spansh, EDGIS, EDSM
+                    menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)))  # LANG: build popup menu
 
         menu.post(event.x_root, event.y_root)
 
@@ -401,22 +401,22 @@ class ProgressWindow:
         for min in [500, 1000, 2500, 5000, 10000, 50000]:
             if min > rem: break
 
-        projectid:str = ''
+        projectid:str|None = None
         if self.build_index < len(tracked):
-            projectid = tracked[self.build_index].get('ProjectID', '')
-        if self.build_index < len(tracked) and projectid == '':
+            projectid = tracked[self.build_index].get('ProjectID', None)
+        if self.build_index < len(tracked) and projectid == None:
             progress:dict = self.colonisation.find_progress(tracked[self.build_index].get('MarketID'))
             if progress != None:
-                projectid = progress.get('ProjectID', '')
+                projectid = progress.get('ProjectID', None)
 
         # If we don't have a RavenColonial project ID then use Inara
-        if projectid == '':
+        if projectid == None:
             url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
             webbrowser.open(url)
             return
 
         url:str = f"https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api/project/{projectid}/markets"
-        payload:dict = {"systemName": sys,
+        payload:dict = {"refSystem": sys,
                         "shipSize": 'medium',
                         "requireNeed": True}
         self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=RavenColonial(self.colonisation)._headers(), callback=self._markets_callback, attempts=3)
@@ -526,6 +526,10 @@ class ProgressWindow:
         required:list = self.colonisation.get_required(tracked)
         delivered:list = self.colonisation.get_delivered(tracked)
 
+        if self.bgstally.state.enable_colonisation != True:
+            self.frame.grid_remove()
+            return
+
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
             self.frame.grid_remove()
             Debug.logger.info("No builds or commodities, hiding progress frame")
@@ -563,7 +567,8 @@ class ProgressWindow:
 
         # Set the column headings according to the selected units
         for col, val in enumerate(self.columns):
-            if val >= len(self.headings): val = 0
+            if val >= len(self.headings): val = len(self.headings) -1
+            if col >= len(self.collbls): col = len(self.collbls) - 1
             if self.collbls[col] == None: col = 0
             self.collbls[col]['text'] = self.headings[val].get('Label')
             self.collbls[col].grid()
@@ -586,7 +591,7 @@ class ProgressWindow:
             Debug.logger.info(f"No commodities found")
             return
 
-        rc:int = 0
+        rowcnt:int = 0
         for i, c in enumerate(comms):
 
             if i >= len(self.rows): continue
@@ -612,20 +617,27 @@ class ProgressWindow:
             # We only show relevant (required) items. But.
             # If the view is reduced or minimal we don't show ones that are complete. Also.
             # If we're in minimal view we only show ones we still need to buy.
+            docked:bool = self.colonisation.docked
+            hasmarket:bool = self.colonisation.market != {}
+            forsale:bool = self.colonisation.market.get(f"${c}_name;", 0) > 0
+            atcarrier:bool = self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id
+            needtobuy:bool = remaining - carrier - cargo > 0
             if (reqcnt <= 0) or \
+                (rowcnt > int(self.bgstally.state.ColonisationMaxCommodities.get()) > 0) or \
                 (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
-                ((self.colonisation.docked == False or self.colonisation.market == {}) and remaining - carrier - cargo <= 0 and cargo == 0 and self.view == ProgressView.MINIMAL) or \
-                (self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) <= 0 and self.view == ProgressView.MINIMAL) or \
-                (rc > int(self.bgstally.state.ColonisationMaxCommodities.get())):
+                (docked and not forsale and not needtobuy and cargo == 0 and self.view == ProgressView.REDUCED) or \
+                ((not docked or not hasmarket) and not needtobuy and cargo == 0 and self.view == ProgressView.MINIMAL) or \
+                (docked and not forsale and cargo == 0 and self.view == ProgressView.MINIMAL) or \
+                (docked and not atcarrier and not needtobuy and cargo == 0 and self.view == ProgressView.MINIMAL):
                 for cell in row.values():
                     cell.grid_remove()
                 continue
 
-            if rc == int(self.bgstally.state.ColonisationMaxCommodities.get()):
+            if rowcnt == int(self.bgstally.state.ColonisationMaxCommodities.get()):
                 for cell in row.values():
                     cell['text'] = '… '
                     cell.grid()
-                rc += 1
+                rowcnt += 1
                 continue
 
             for col, val in enumerate(self.columns):
@@ -643,7 +655,7 @@ class ProgressWindow:
                 row[col].grid()
 
             self._highlight_row(row, c, reqcnt, delcnt, cargo, carrier)
-            rc += 1
+            rowcnt += 1
 
         self._display_totals(self.rows[i+1], tracked, totals)
         if totals['Required'] > 0:
@@ -674,6 +686,13 @@ class ProgressWindow:
     def _get_value(self, col:int, required:int, delivered:int, cargo:int, carrier:int, buyorder:int) -> str:
         ''' Calculate and format the commodity amount depending on the column and the units '''
         qty: int = 0
+        if col >= len(self.columns):
+            Debug.logger.debug(f"Col: {col} {self.columns}")
+            return ""
+        if self.columns[col] >= len(self.headings):
+            Debug.logger.debug(f"heading: {self.columns[col]} {self.headings}")
+            return ""
+
         which:str = self.headings[self.columns[col]].get('Column')
         match which:
             case 'Required': qty = required

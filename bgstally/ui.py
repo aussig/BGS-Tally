@@ -492,8 +492,8 @@ class UI:
                 self.bgstally.overlay.display_message("tick", _("Galaxy Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)), True) # LANG: Overlay galaxy tick message
 
                 if current_activity is not None:
-                    current_system: dict = current_activity.get_current_system()
-                    system_tick: str = current_system.get('TickTime')
+                    current_system: dict|None = current_activity.get_current_system()
+                    system_tick: str|None = current_system.get('TickTime') if current_system is not None else None
 
                     if system_tick is not None and system_tick != "":
                         system_tick_datetime: datetime = datetime.strptime(system_tick, DATETIME_FORMAT_ACTIVITY)

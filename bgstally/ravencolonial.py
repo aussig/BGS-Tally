@@ -110,13 +110,17 @@ class RavenColonial:
 
     def is_editable(self, system:dict) -> bool:
         """ Determine if we can edit this system in RavenColonial """
-        if self.colonisation.cmdr == None:
-            return False
-        
-        return system.get('Open', False) == True or \
-            self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
+        # General editable system check
 
-    
+        if system == None or system.get('RCSync', False) == False or system.get('RCOpen', False) == True:
+            return True
+
+        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
+            return False
+
+        return self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
+
+
     @catch_exceptions
     def load_system(self, id64:str|None = None, rev:str|None = None, sync:bool = False) -> None:
         """ Retrieve the rcdata data with the latest system data from RC when we start. """

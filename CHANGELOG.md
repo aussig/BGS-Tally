@@ -1,8 +1,9 @@
 # Change Log
 
-## v5.4.0-xx - xxxx-xx-xx
+## v5.4.0-a2 - 2025-12-08
 
 ### New Features:
+
 * Added ability to create and track a Spansh Fleetcarrier route
 * Added settings option to completely disable Colonisation features
 * Added carrier fuel update
@@ -10,10 +11,12 @@
 * Added support for Raven Colonial Open/Locked state
 
 ### Changes:
+
 * Reduced Raven Colonial requests on startup
 * Sped up colonisation window display
 
 ### Bug Fixes:
+
 * Fixed parameter change in Raven Colonial markets endpoint
 * Fixed a runtime when body data is incomplete
 * Removed vestigial separator in popup menu

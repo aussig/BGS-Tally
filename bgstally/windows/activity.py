@@ -30,8 +30,8 @@ class WindowActivity:
     def __init__(self, bgstally, ui, activity: Activity):
         self.bgstally = bgstally
         self.activity: Activity = activity
-        self.toplevel: tk.Toplevel = None
-        self.window_geometry: dict = None
+        self.toplevel: tk.Toplevel|None = None
+        self.window_geometry: dict|None = None
 
         self.image_tab_active_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
         self.image_tab_active_part_enabled: PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))
@@ -637,25 +637,25 @@ class WindowActivity:
                 event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZOBJECTIVE
                 event_size: str = 'count'
                 event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ'].get('cs', 0))
-                objective_type: str = ApiSyntheticCZObjectiveType.CAPSHIP,
+                objective_type = ApiSyntheticCZObjectiveType.CAPSHIP,
                 faction['SpaceCZ']['cs'] = CZVar.get()
             case CZs.SPACE_SO:
                 event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZOBJECTIVE
                 event_size: str = 'count'
                 event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ'].get('so', 0))
-                objective_type: str = ApiSyntheticCZObjectiveType.SPECOPS,
+                objective_type = ApiSyntheticCZObjectiveType.SPECOPS,
                 faction['SpaceCZ']['so'] = CZVar.get()
             case CZs.SPACE_CP:
                 event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZOBJECTIVE
                 event_size: str = 'count'
                 event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ'].get('cp', 0))
-                objective_type: str = ApiSyntheticCZObjectiveType.GENERAL,
+                objective_type = ApiSyntheticCZObjectiveType.GENERAL,
                 faction['SpaceCZ']['cp'] = CZVar.get()
             case CZs.SPACE_PR:
                 event_type: ApiSyntheticEvent = ApiSyntheticEvent.CZOBJECTIVE
                 event_size: str = 'count'
                 event_diff: int = int(CZVar.get()) - int(faction['SpaceCZ'].get('pr', 0))
-                objective_type: str = ApiSyntheticCZObjectiveType.CORRESPONDENT,
+                objective_type = ApiSyntheticCZObjectiveType.CORRESPONDENT,
                 faction['SpaceCZ']['pr'] = CZVar.get()
 
             case CZs.GROUND_LOW:

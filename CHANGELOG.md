@@ -44,6 +44,15 @@
 * Stopped BGS-Tally completing Raven Colonial projects as it's irreversible
 
 
+## v5.3.2 - 2025-12-08
+
+### Changes:
+
+* Auto-created systems will not be added to Raven Colonial
+* Modified only to complete projects on construction complete event
+* Improved Raven Colonial permissions checking
+
+
 ## v5.3.1 - 2025-11-14
 
 ### Changes:

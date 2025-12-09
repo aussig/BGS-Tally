@@ -55,7 +55,7 @@
 /* Colonisation 'Type' [base_types.json] */
 "Agriculture Tier 2 Lrg" = "Agriculture Tier 2 Lrg";
 
-/* Dropdown menu on activity window. [fleetcarrier.py] */
+/* Readable carrier states. [fleetcarrier.py] */
 "All" = "Összes";
 
 /* all tracked builds. [progress.py] */
@@ -77,7 +77,7 @@
 "Amount left to buy" = "Amount left to buy";
 
 /* Carrier buy order tooltip. [progress.py] */
-"Amount oustanding in carrier buy orders" = "Amount oustanding in carrier buy orders";
+"Amount outstanding in carrier buy orders" = "Amount outstanding in carrier buy orders";
 
 /* Amount remaining tooltip. [progress.py] */
 "Amount remaining to be delivered" = "Amount remaining to be delivered";
@@ -181,6 +181,9 @@
 /* Post to Discord button tooltip. [activity.py] */
 "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Bounty Hunter" = "Bounty Hunter";
+
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Vérdíjak";
 
@@ -199,13 +202,16 @@
 /* Carrier cargo. [fleetcarrier.py] */
 "Buying" = "Buying";
 
+/* Button label. [fleetcarrier.py] */
+"Calculate" = "Calculate";
+
 /* Carrier overview. [fleetcarrier.py] */
 "Callsign" = "Callsign";
 
 /* Cancel button. [colonisation.py] */
 "Cancel" = "Cancel";
 
-/* Carrier cargo. [fleetcarrier.py] */
+/* Summary headings. [fleetcarrier.py] */
 "Capacity" = "Capacity";
 
 /* Discord heading. [default.py] */
@@ -247,6 +253,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Civilian Settlement" = "Civilian Settlement";
 
+/* Button label. [fleetcarrier.py] */
+"Clear" = "Clear";
+
 /* [sheet_options.py] */
 "Clear contents" = "Tartalom törlése";
 
@@ -262,6 +271,9 @@
 /* Preferences checkbox label. [ui.py] */
 "Colonisation" = "Colonisation";
 
+/* Preferences checkbox label. [ui.py] */
+"Colonisation Active" = "Colonisation Active";
+
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Colony" = "Colony";
 
@@ -274,7 +286,7 @@
 /* List of commodities available. [progress.py] */
 "Commodities" = "Commodities";
 
-/* Commodity. [progress.py] */
+/* Cargo tab. [fleetcarrier.py] */
 "Commodity" = "Commodity";
 
 /* Colonisation 'Building Type' [base_types.json] */
@@ -370,6 +382,9 @@
 /* Label for checkbox to remove a plan from the tab list. [colonisation.py] */
 "Deactivate (hide) this plan" = "Deactivate (hide) this plan";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Decommissioning" = "Decommissioning";
+
 /* any decrease effects for the base. [colonisation.py] */
 "Decreased By" = "Decreased By";
 
@@ -401,10 +416,19 @@
 "Departed" = "Departed";
 
 /* Carrier itinerary. [fleetcarrier.py] */
+"Departure" = "Departure";
+
+/* Carrier itinerary. [fleetcarrier.py] */
 "Departure Time" = "Indulás ideje";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"Deposit" = "Deposit";
 
 /* Label on API settings window. [api.py] */
 "Description" = "Leírás";
+
+/* Entry placeholder. [fleetcarrier.py] */
+"Destination" = "Destination";
 
 /* Label on legend window. [legend.py] */
 "Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "Részletes INF elosztva + / ++ / +++ / ++++ / +++++ kapott küldetésekből.";
@@ -429,6 +453,9 @@
 
 /* System distance heading. [progress.py] */
 "Dist (ly)" = "Dist (ly)";
+
+/* Carrier itinerary. [fleetcarrier.py] */
+"Distance" = "Distance";
 
 /* Carrier overview. [fleetcarrier.py] */
 "Docking" = "Dokkolás";
@@ -520,6 +547,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Exploration Hub" = "Exploration Hub";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Explorer" = "Explorer";
+
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Extraction" = "Extraction";
 
@@ -574,11 +604,20 @@
 /* Discord CMDR information. [targetmanager.py] */
 "Friend request received from this CMDR" = "Barátkérelem érkezett ettől a CMDR-től";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Friends" = "Friends";
+
 /* Discord heading. [fleetcarrier.py] */
 "From System" = "Indulási rendszer";
 
 /* Carrier overview. [fleetcarrier.py] */
 "Fuel" = "Fuel";
+
+/* Carrier itinerary. [fleetcarrier.py] */
+"Fuel Required" = "Fuel Required";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"Fuel Used" = "Fuel Used";
 
 /* Overlay galaxy tick message. [ui.py] */
 "Galaxy Tick: {tick_time}" = "Galaxis Tick: {tick_time}";
@@ -651,6 +690,9 @@
 
 /* Heading on legend window. [legend.py] */
 "Icons in Thargoid War Reports" = "Ikonok a Thargoid Háború riportokban";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"In Depot" = "In Depot";
 
 /* Discord heading. [cmdrs.py] */
 "In Ship" = "Hajóban";
@@ -784,11 +826,17 @@
 /* Discord CMDR information. [targetmanager.py] */
 "INTERDICTED BY this CMDR" = "ELTÉRÍTVE CMDR által";
 
+/* [fleetcarrier.py] */
+"January" = "January";
+
 /* Discord post title. [fleetcarrier.py] */
 "Jump Cancelled for Carrier {carrier_name}" = "Ugrás törölve {carrier_name} anyahajónak";
 
 /* Carrier summary. [fleetcarrier.py] */
 "Jump Cost" = "Jump Cost";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"Jump Distance" = "Jump Distance";
 
 /* Discord post title. [fleetcarrier.py] */
 "Jump Scheduled for Carrier {carrier_name}" = "Ugrás naptárazva {carrier_name} anyahajónak";
@@ -916,6 +964,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Military Tier 2 Lrg" = "Military Tier 2 Lrg";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Miner" = "Miner";
+
 /* Colonisation 'Type' [base_types.json] */
 "Mining Outpost" = "Mining Outpost";
 
@@ -958,6 +1009,9 @@
 /* Default power name if none. [activity.py] */
 "None" = "Senki";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Normal" = "Normal";
+
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Visszaesők is";
 
@@ -970,13 +1024,19 @@
 /* Colonisation 'Type' [base_types.json] */
 "Ocellus Starport" = "Ocellus Starport";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Offline" = "Offline";
+
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Felszíni konfliktus zóna";
+
+/* [colonisation.py] */
+"Open" = "Open";
 
 /* [progress.py] */
 "Open in RavenColonial" = "Open in RavenColonial";
 
-/* [progress.py] */
+/* build popup menu. [progress.py] */
 "Open in {k}" = "Open in {k}";
 
 /* Open Element In Selected Provider. [colonisation.py] */
@@ -1053,6 +1113,9 @@
 
 /* Text on API settings window. [api.py] */
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "GYŐZŐDJ MEG RÓLA, hogy MEGBÍZOL a szerverben, ahová ezt az információt elküldöd!";
+
+/* [fleetcarrier.py] */
+"Plot Route" = "Plot Route";
 
 /* [colonisation.py] */
 "Pop" = "Pop";
@@ -1171,6 +1234,9 @@
 /* tooltip for ravencolonial refresh button. [colonisation.py] */
 "Refresh from RavenColonial" = "Refresh from RavenColonial";
 
+/* Itinerary tab. [fleetcarrier.py] */
+"Refuel" = "Refuel";
+
 /* Colonisation 'Building Type' [base_types.json] */
 "Relay Installation" = "Relay Installation";
 
@@ -1180,7 +1246,7 @@
 /* Colonisation 'Prerequisites' [base_types.json] */
 "Relay Station Installation" = "Relay Station Installation";
 
-/* Amount remaining. [progress.py] */
+/* Itinerary tab. [fleetcarrier.py] */
 "Remaining" = "Remaining";
 
 /* Preferences checkbox label. [ui.py] */
@@ -1222,6 +1288,9 @@
 /* [colonisation.py] */
 "rings" = "rings";
 
+/* Carrier itinerary. [fleetcarrier.py] */
+"Route Destination" = "Route Destination";
+
 /* Summary headings. [fleetcarrier.py] */
 "Running Costs" = "Running Costs";
 
@@ -1251,6 +1320,9 @@
 
 /* Activity window column title, abbreviation for scenarios. [activity.py] */
 "Scens" = "Szcen.";
+
+/* Label on itinerary window. [fleetcarrier.py] */
+"Scheduled for" = "Scheduled for";
 
 /* Carrier itinerary. [fleetcarrier.py] */
 "Scheduled Jump" = "Scheduled Jump";
@@ -1291,7 +1363,7 @@
 /* Label on legend window. [legend.py] */
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "Másodlagos INF: A küldetés másodlagos hatásaként szerzett INF, például szállítási küldetés során a cél frakció számára.";
 
-/* Security impact. [colonisation.py] */
+/* RC security. [colonisation.py] */
 "Security" = "Security";
 
 /* Colonisation 'Building Type' [base_types.json] */
@@ -1414,6 +1486,9 @@
 /* Discord heading, abbreviation for space conflict zones. [default.py] */
 "SpaceCZs" = "ŰrKZk";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Squadron and Friends" = "Squadron and Friends";
+
 /* CMDR window column title. [cmdrs.py] */
 "Squadron ID" = "Osztag ID";
 
@@ -1425,6 +1500,9 @@
 
 /* Label on CMDR window. [cmdrs.py] */
 "Squadron: " = "Osztag: ";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"Star System" = "Star System";
 
 /* Colonisation 'Category' [base_types.json] */
 "Starport" = "Starport";
@@ -1597,6 +1675,9 @@
 /* Activity window column title. [activity.py] */
 "Trade" = "Kereskedés";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Trader" = "Trader";
+
 /* Shipyard tab. [fleetcarrier.py] */
 "Transfer Cost" = "Transfer Cost";
 
@@ -1696,7 +1777,10 @@
 /* Label on legend window. [legend.py] */
 "Wounded evacuation missions" = "Sérült evakuáció küldetések";
 
-/* Yes. [fleetcarrier.py] */
+/* Readable carrier states. [fleetcarrier.py] */
+"Xeno Hunter" = "Xeno Hunter";
+
+/* Yes. [utils.py] */
 "Yes" = "Igen";
 
 /* Label on legend window. [legend.py] */

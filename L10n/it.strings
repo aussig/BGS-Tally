@@ -55,7 +55,7 @@
 /* Colonisation 'Type' [base_types.json] */
 "Agriculture Tier 2 Lrg" = "Agriculture Tier 2 Lrg";
 
-/* Dropdown menu on activity window. [fleetcarrier.py] */
+/* Readable carrier states. [fleetcarrier.py] */
 "All" = "Tutti";
 
 /* all tracked builds. [progress.py] */
@@ -77,7 +77,7 @@
 "Amount left to buy" = "Quantità rimanente da acquistare";
 
 /* Carrier buy order tooltip. [progress.py] */
-"Amount oustanding in carrier buy orders" = "Amount oustanding in carrier buy orders";
+"Amount outstanding in carrier buy orders" = "Amount outstanding in carrier buy orders";
 
 /* Amount remaining tooltip. [progress.py] */
 "Amount remaining to be delivered" = "Quantità residua da consegnare";
@@ -181,6 +181,9 @@
 /* Post to Discord button tooltip. [activity.py] */
 "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Sia il campo 'Pubblica su Discord come' che un webhook Discord{CR}devono essere configurati nelle impostazioni per consentire la pubblicazione su Discord";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Bounty Hunter" = "Bounty Hunter";
+
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bounty vouchers";
 
@@ -199,13 +202,16 @@
 /* Carrier cargo. [fleetcarrier.py] */
 "Buying" = "Acquisti";
 
+/* Button label. [fleetcarrier.py] */
+"Calculate" = "Calculate";
+
 /* Carrier overview. [fleetcarrier.py] */
 "Callsign" = "Matricola";
 
 /* Cancel button. [colonisation.py] */
 "Cancel" = "Annulla";
 
-/* Carrier cargo. [fleetcarrier.py] */
+/* Summary headings. [fleetcarrier.py] */
 "Capacity" = "Capacità";
 
 /* Discord heading. [default.py] */
@@ -247,6 +253,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Civilian Settlement" = "Civilian Settlement";
 
+/* Button label. [fleetcarrier.py] */
+"Clear" = "Clear";
+
 /* [sheet_options.py] */
 "Clear contents" = "Cancella contenuto";
 
@@ -262,6 +271,9 @@
 /* Preferences checkbox label. [ui.py] */
 "Colonisation" = "Colonizzazione";
 
+/* Preferences checkbox label. [ui.py] */
+"Colonisation Active" = "Colonisation Active";
+
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Colony" = "Colony";
 
@@ -274,7 +286,7 @@
 /* List of commodities available. [progress.py] */
 "Commodities" = "Commodity";
 
-/* Commodity. [progress.py] */
+/* Cargo tab. [fleetcarrier.py] */
 "Commodity" = "Commodity";
 
 /* Colonisation 'Building Type' [base_types.json] */
@@ -370,6 +382,9 @@
 /* Label for checkbox to remove a plan from the tab list. [colonisation.py] */
 "Deactivate (hide) this plan" = "Disattiva (nascondere) questo progetto";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Decommissioning" = "Decommissioning";
+
 /* any decrease effects for the base. [colonisation.py] */
 "Decreased By" = "Ridotto Da";
 
@@ -401,10 +416,19 @@
 "Departed" = "Partito";
 
 /* Carrier itinerary. [fleetcarrier.py] */
+"Departure" = "Departure";
+
+/* Carrier itinerary. [fleetcarrier.py] */
 "Departure Time" = "Orario del Salto";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"Deposit" = "Deposit";
 
 /* Label on API settings window. [api.py] */
 "Description" = "Descrizione";
+
+/* Entry placeholder. [fleetcarrier.py] */
+"Destination" = "Destination";
 
 /* Label on legend window. [legend.py] */
 "Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "INF dettagliata suddivisa in + / ++ / +++ / ++++ / +++++ ricevuta dalle missioni.";
@@ -429,6 +453,9 @@
 
 /* System distance heading. [progress.py] */
 "Dist (ly)" = "Dist (ly)";
+
+/* Carrier itinerary. [fleetcarrier.py] */
+"Distance" = "Distance";
 
 /* Carrier overview. [fleetcarrier.py] */
 "Docking" = "Attracco";
@@ -520,6 +547,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Exploration Hub" = "Exploration Hub";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Explorer" = "Explorer";
+
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Extraction" = "Extraction";
 
@@ -574,11 +604,20 @@
 /* Discord CMDR information. [targetmanager.py] */
 "Friend request received from this CMDR" = "Richiesta di amicizia ricevuta da questo CMDR";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Friends" = "Friends";
+
 /* Discord heading. [fleetcarrier.py] */
 "From System" = "Dal Sistema";
 
 /* Carrier overview. [fleetcarrier.py] */
 "Fuel" = "Carburante";
+
+/* Carrier itinerary. [fleetcarrier.py] */
+"Fuel Required" = "Fuel Required";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"Fuel Used" = "Fuel Used";
 
 /* Overlay galaxy tick message. [ui.py] */
 "Galaxy Tick: {tick_time}" = "Tick Galattico: {tick_time}";
@@ -651,6 +690,9 @@
 
 /* Heading on legend window. [legend.py] */
 "Icons in Thargoid War Reports" = "Icone nei report di guerra Thargoid";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"In Depot" = "In Depot";
 
 /* Discord heading. [cmdrs.py] */
 "In Ship" = "In Nave";
@@ -784,11 +826,17 @@
 /* Discord CMDR information. [targetmanager.py] */
 "INTERDICTED BY this CMDR" = "INTERDICATI DA questa CMDR";
 
+/* [fleetcarrier.py] */
+"January" = "January";
+
 /* Discord post title. [fleetcarrier.py] */
 "Jump Cancelled for Carrier {carrier_name}" = "Salto annullato per la Fleet Carrier {carrier_name}";
 
 /* Carrier summary. [fleetcarrier.py] */
 "Jump Cost" = "Costo Del Salto";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"Jump Distance" = "Jump Distance";
 
 /* Discord post title. [fleetcarrier.py] */
 "Jump Scheduled for Carrier {carrier_name}" = "Salto pianificato per la Fleet Carrier {carrier_name}";
@@ -916,6 +964,9 @@
 /* Colonisation 'Type' [base_types.json] */
 "Military Tier 2 Lrg" = "Military Tier 2 Lrg";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Miner" = "Miner";
+
 /* Colonisation 'Type' [base_types.json] */
 "Mining Outpost" = "Mining Outpost";
 
@@ -958,6 +1009,9 @@
 /* Default power name if none. [activity.py] */
 "None" = "No";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Normal" = "Normal";
+
 /* Discord heading. [fleetcarrier.py] */
 "Notorious Access" = "Accesso con notorietà";
 
@@ -970,13 +1024,19 @@
 /* Colonisation 'Type' [base_types.json] */
 "Ocellus Starport" = "Ocellus Starport";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Offline" = "Offline";
+
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Zona di conflitto a terra";
+
+/* [colonisation.py] */
+"Open" = "Open";
 
 /* [progress.py] */
 "Open in RavenColonial" = "Open in RavenColonial";
 
-/* [progress.py] */
+/* build popup menu. [progress.py] */
 "Open in {k}" = "Aperto in {k}";
 
 /* Open Element In Selected Provider. [colonisation.py] */
@@ -1053,6 +1113,9 @@
 
 /* Text on API settings window. [api.py] */
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "ACCERTATI che il server a cui invii queste informazioni sia affidabile!";
+
+/* [fleetcarrier.py] */
+"Plot Route" = "Plot Route";
 
 /* [colonisation.py] */
 "Pop" = "Pop";
@@ -1171,6 +1234,9 @@
 /* tooltip for ravencolonial refresh button. [colonisation.py] */
 "Refresh from RavenColonial" = "Aggiorna da RavenColonial";
 
+/* Itinerary tab. [fleetcarrier.py] */
+"Refuel" = "Refuel";
+
 /* Colonisation 'Building Type' [base_types.json] */
 "Relay Installation" = "Relay Installation";
 
@@ -1180,7 +1246,7 @@
 /* Colonisation 'Prerequisites' [base_types.json] */
 "Relay Station Installation" = "Relay Station Installation";
 
-/* Amount remaining. [progress.py] */
+/* Itinerary tab. [fleetcarrier.py] */
 "Remaining" = "Rimanenti";
 
 /* Preferences checkbox label. [ui.py] */
@@ -1222,6 +1288,9 @@
 /* [colonisation.py] */
 "rings" = "anelli";
 
+/* Carrier itinerary. [fleetcarrier.py] */
+"Route Destination" = "Route Destination";
+
 /* Summary headings. [fleetcarrier.py] */
 "Running Costs" = "Costi Operativi";
 
@@ -1251,6 +1320,9 @@
 
 /* Activity window column title, abbreviation for scenarios. [activity.py] */
 "Scens" = "Scen.";
+
+/* Label on itinerary window. [fleetcarrier.py] */
+"Scheduled for" = "Scheduled for";
 
 /* Carrier itinerary. [fleetcarrier.py] */
 "Scheduled Jump" = "Salto Pianificato";
@@ -1291,7 +1363,7 @@
 /* Label on legend window. [legend.py] */
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "INF secondaria. Si tratta di INF guadagnata come effetto secondario della missione, ad esempio la fazione di destinazione per le missioni di consegna.";
 
-/* Security impact. [colonisation.py] */
+/* RC security. [colonisation.py] */
 "Security" = "Sicurez";
 
 /* Colonisation 'Building Type' [base_types.json] */
@@ -1414,6 +1486,9 @@
 /* Discord heading, abbreviation for space conflict zones. [default.py] */
 "SpaceCZs" = "CZ Spaziali";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Squadron and Friends" = "Squadron and Friends";
+
 /* CMDR window column title. [cmdrs.py] */
 "Squadron ID" = "ID Squadrone";
 
@@ -1425,6 +1500,9 @@
 
 /* Label on CMDR window. [cmdrs.py] */
 "Squadron: " = "Squadrone: ";
+
+/* Itinerary tab. [fleetcarrier.py] */
+"Star System" = "Star System";
 
 /* Colonisation 'Category' [base_types.json] */
 "Starport" = "Starport";
@@ -1597,6 +1675,9 @@
 /* Activity window column title. [activity.py] */
 "Trade" = "Commercio";
 
+/* Readable carrier states. [fleetcarrier.py] */
+"Trader" = "Trader";
+
 /* Shipyard tab. [fleetcarrier.py] */
 "Transfer Cost" = "Costi di Trasferimento";
 
@@ -1696,7 +1777,10 @@
 /* Label on legend window. [legend.py] */
 "Wounded evacuation missions" = "Missioni di evacuazione feriti";
 
-/* Yes. [fleetcarrier.py] */
+/* Readable carrier states. [fleetcarrier.py] */
+"Xeno Hunter" = "Xeno Hunter";
+
+/* Yes. [utils.py] */
 "Yes" = "Sì";
 
 /* Label on legend window. [legend.py] */

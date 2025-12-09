@@ -5,6 +5,8 @@ import time
 import re
 from datetime import datetime, timedelta
 from config import config # type: ignore
+
+#from bgstally.bgstally import BGSTally
 from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
 from bgstally.utils import _, catch_exceptions
@@ -99,6 +101,8 @@ class Colonisation:
         Parse and process incoming journal entries
         This method is called by the bgstally plugin when a journal entry is received.
         '''
+        if self.bgstally.state.enable_colonisation != True: return
+
         rc:RavenColonial = RavenColonial(self)
         system:dict|None = None
         build:dict|None = None
@@ -119,7 +123,7 @@ class Colonisation:
         if cmdr != None: self.cmdr = cmdr
         if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
 
-        Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} market: {self.market_id}")
+        Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} ({station}) market: {self.market_id}")
 
         if entry.get('StationType', '') == 'FleetCarrier' : self.station = 'FleetCarrier'
 
@@ -134,7 +138,6 @@ class Colonisation:
                     if system.get('Hidden', False) == True: continue
 
                     if system.get('RCSync', False) == True:
-                        self.cmdr = cmdr # Used in RavenColonial sync
                         rc.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
 
                     if system.get('Bodies', None) == None: # In case we didn't get them for some reason
@@ -142,9 +145,14 @@ class Colonisation:
 
                     SYSTEM_SERVICE.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
 
+                # Update progress for tracked, rc sync projects.
                 for progress in self.progress:
-                    if progress.get('ProjectID', None) != None and progress.get('ConstructionComplete', False) == False:
-                        rc.load_project(progress)
+                    if progress.get('ProjectID', None) != None or progress.get('ConstructionComplete', False) == True:
+                        continue
+                    found:list = self.find_build_any({'ProjectID' : progress.get('ProjectID')})
+                    if found[0] == None or found[1] == None or found[0].get('RCSync', False) == False or found[1].get('Track', False) == False:
+                        continue
+                    rc.load_project(progress)
 
             case 'Cargo' | 'CargoTransfer' | 'CarrierTradeOrder':
                 self._update_cargo(state.get('Cargo'))
@@ -300,9 +308,10 @@ class Colonisation:
 
                 # If we matched on a construction site and this is not (ie nolonger) one then we complete the build because
                 # someone else finished it
-                if build.get('State') == BuildState.PROGRESS and \
-                    re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
-                    self.try_complete_build(build.get('MarketID', 0))
+                # Commented out to be extra conservative.
+                #if build.get('State') == BuildState.PROGRESS and self.market_id == build.get('MarketID', 0) and \
+                #    re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
+                #    self.try_complete_build(build.get('MarketID', 0))
 
                 data:dict = {}
                 if self.market_id != None: data['MarketID'] = self.market_id
@@ -432,7 +441,7 @@ class Colonisation:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
         system:dict|None = self.find_system(data)
         if system == None:
-            return self.add_system(data, False, self.bgstally.state.ColonisationRCAPIKey.get() != None)
+            return self.add_system(data, False, False)
 
         return system
 
@@ -450,7 +459,7 @@ class Colonisation:
         if data.get('Builds', None) == None: data['Builds'] = []
         self.systems.append(data)
         if rcsync == True and data.get('StarSystem', None) != None:
-            RavenColonial(self).add_system(data.get('StarSystem', ''))
+            RavenColonial(self).upsert_system(data)
             data['RCSync'] = True
 
         # If we have a system address, we get the bodies and maybe stations
@@ -482,7 +491,7 @@ class Colonisation:
             changed['StarSystem'] = data.get('StarSystem')
 
         for k, v in data.items():
-            if k not in self.system_keys or system[k] == v or k == 'RCSync': continue
+            if k not in self.system_keys or system.get(k, None) == v: continue
             system[k] = v
             changed[k] = v
 
@@ -496,18 +505,16 @@ class Colonisation:
         if system.get('StarSystem') != None and system.get('Bodies', None) == None:
             BODY_SERVICE.import_bodies(system.get('StarSystem', ''))
 
-        # Add the system to RC if the flag has switched from false to true
-        if data.get('RCSync', False) == True and system.get('RCSync', False) == False and \
-            data.get('StarSystem', None) != None:
-            Debug.logger.debug(f"Enabling RavenColonial sync for {system.get('StarSystem')}")
-            RavenColonial(self).add_system(system.get('StarSystem', ''))
-            system['RCSync'] = True
-        else:
-            system['RCSync'] = data.get('RCSync', system.get('RCSync', False))
+        if changed == {}:
+            return
 
-        if changed != {}:
-            self.save(f"Modify system {changed}")
-            self.bgstally.ui.window_colonisation.update_display()
+        # Add the system to RC if the flag has switched from false to true
+        if system.get('RCSync', False) == True:
+            Debug.logger.debug(f"Updating system in RC {system.get('StarSystem')} {changed}")
+            RavenColonial(self).upsert_system(system)
+
+        self.save(f"Modify system {changed}")
+        self.bgstally.ui.window_colonisation.update_display()
 
 
     @catch_exceptions
@@ -624,18 +631,23 @@ class Colonisation:
 
         # Match on name if we can.
         loc:str = ''
+        building:bool = False
         if data.get('Name', None) != None and 'Construction Site' in data.get('Name', ''):
+            building:bool = True
             loc = re.sub(r" Construction Site:.*$", "", data.get('Name', ''))
             if loc == 'Planetary': loc = 'Surface'
 
         # Do some fuzzy matching on similarity, body, etc. for things that may have changed while we were away.
-        for build in builds:
+        blist:list = sorted(builds[1:], key=lambda item: item.get('State', ''), reverse=True)
+        for build in blist:
             state:str|None = build.get('State', None)
             location:str|None = build.get('Location', None)
             if location == None and build.get('Base Type', None) != None:
                 bt:dict = self.get_base_type(build.get('Base Type', ''))
                 location = bt.get('Location', None)
-            body:str|None = build.get('Body', str(build.get('BodyNum', None))).lower()
+            body:str|None = None
+            if isinstance(build.get('Body', build.get('BodyNum', None)), str):
+                body = build.get('Body', build.get('BodyNum', None)).lower()
             market:int|None = build.get('MarketID', None)
 
             # A build that was planned but is now a construction site
@@ -650,7 +662,7 @@ class Colonisation:
                 return build
 
             # A completed but previously unvisited build.
-            if state == BuildState.COMPLETE and market == None and location == loc and \
+            if state == BuildState.COMPLETE and building == False and market == None and location == loc and \
                 body != None and body == data.get('Body', str(data.get('BodyNum'))).lower():
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
@@ -686,7 +698,7 @@ class Colonisation:
         body:dict|None = self.get_body(system, data.get('BodyNum', data.get('Body', '')))
         if body != None:
             data['Body'] = self.body_name(system.get('StarSystem', ''), body.get('name', ''))
-            data['BodyNum'] = body['bodyId']
+            data['BodyNum'] = body.get('bodyId', None)
 
         if data.get('Base Type', '') == '' and data.get('Layout', None) != None:
             bt:dict = self.get_base_type(data.get('Layout', ''))
@@ -862,10 +874,10 @@ class Colonisation:
 
         Debug.logger.info(f"Completing build {build.get('Name', '')} {market_id}")
 
-        # Complete the project in RC.
+        # Complete the project in RC but only if we're sure construction is complete.
         p:dict|None = self.find_progress(market_id)
-        #if p.get('ProjectID', None) != None:
-        #    RavenColonial(self).complete_project(p.get('ProjectID', 0))
+        if p.get('ProjectID', None) != None and p.get('ConstructionComplete', False) == True:
+            RavenColonial(self).complete_project(p.get('ProjectID', 0))
 
         # If we get here, the build is (newly) complete.
         # Since on completion the colonisation ship is removed/goes inactive and a new station is created
@@ -1020,17 +1032,15 @@ class Colonisation:
             RavenColonial(self).upsert_project(system, build, progress)
 
 
-
     def _update_carrier(self) -> None:
         ''' Update the carrier cargo data. '''
         if self.bgstally.fleet_carrier.available() == False:
             return
-        Debug.logger.debug(f"Updating carrier cargo")
         cargo:dict = {}
         buyorder:dict = {}
 
-        fccargo = self.bgstally.fleet_carrier.get_cargo()
-        for name, cargo_item in fccargo.get('normal', {}).items():
+        fccargo = self.bgstally.fleet_carrier.get_cargo('normal')
+        for name, cargo_item in fccargo.get('inventory', {}).items():
             cargo[name] = int(cargo_item.get('stock', 0))
             if cargo_item.get('outstanding', 0) > 0:
                 buyorder[name] = int(cargo_item.get('outstanding', 0))
@@ -1038,6 +1048,9 @@ class Colonisation:
         if cargo != self.carrier_cargo and self.cmdr != None:
             RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)
             self.dirty = True
+
+        if cargo != self.carrier_cargo or self.carrier_buy != buyorder:
+            self.bgstally.ui.window_progress.update_display()
 
         self.carrier_buy = buyorder
         self.carrier_cargo = cargo
@@ -1137,6 +1150,7 @@ class Colonisation:
         units:list = [v.value for v in self.bgstally.ui.window_progress.units]
 
         return {
+            'Commander': self.cmdr,
             'Docked': self.docked,
             'SystemID': self.system_id,
             'CurrentSystem': self.current_system,
@@ -1175,7 +1189,7 @@ class Colonisation:
 
         for p in dict.get('Progress', []):
             # Clean out old progress entries that are no longer relevant
-            if p.get('Updated', None) != None and datetime.now() > datetime.strptime(p.get('Updated', '2025-01-01')[0:10], "%Y-%m-%d") + timedelta(days=365) and \
+            if p.get('Updated', None) != None and datetime.now() > datetime.strptime(p.get('Updated', '2025-01-01')[0:10], "%Y-%m-%d") + timedelta(days=90) and \
                 (p.get('MarketID', 0) not in markets or p.get('ConstructionComplete', '') == True):
                 Debug.logger.debug(f"Info old progress entry {p}")
                 continue
@@ -1199,6 +1213,7 @@ class Colonisation:
 
         # This is configuration that can get messed up during an upgrade, no problem, just ignore it and move on.
         try:
+            self.cmdr = dict.get('Commander', None)
             self.docked = dict.get('Docked', False)
             self.system_id = dict.get('SystemID', None)
             self.current_system = dict.get('CurrentSystem', None)
@@ -1208,7 +1223,7 @@ class Colonisation:
             self.cargo_capacity = dict.get('CargoCapacity', 784)
             self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
             self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
-            if dict.get('ProgressColumns', None) != None: self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns')
+            if dict.get('ProgressColumns', None) != None: self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
             self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
         except:
             return

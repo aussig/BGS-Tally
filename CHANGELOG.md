@@ -5,6 +5,35 @@
 
 
 
+## v5.4.0-a2 - 2025-12-08
+
+### New Features:
+
+* Added ability to create and track a Spansh Fleetcarrier route
+* Added settings option to completely disable Colonisation features
+* Added carrier fuel update
+* Added support for Raven Colonial nicknames and notes as BGST already had both
+* Added support for Raven Colonial Open/Locked state
+
+### Changes:
+
+* Reduced Raven Colonial requests on startup
+* Sped up colonisation window display
+
+### Bug Fixes:
+
+* Fixed parameter change in Raven Colonial markets endpoint
+* Fixed a runtime when body data is incomplete
+* Removed vestigial separator in popup menu
+* Reworked carrier cargo tracking
+* Improved itinerary tracking
+* Further improved build site fuzzy matching
+* Updated the base material requirements to match Frontier's latest
+* Fixed exception being thrown if current system has not yet been set.
+* Fixed Combat Bond tracking for non-Odyssey game client.
+* Fixed failure to send `MarketBuy` and `MarketSell` events via Events API when the commodity can't be found in the current market data.
+
+
 ## v5.4.0-a1 - 2025-11-24
 
 ### New Features:
@@ -38,6 +67,15 @@
 * Ensured RC projects sync even when created by other means
 * Fixed misidentification of squadron carriers as completed starports
 * Stopped BGS-Tally completing Raven Colonial projects as it's irreversible
+
+
+## v5.3.2 - 2025-12-08
+
+### Changes:
+
+* Auto-created systems will not be added to Raven Colonial
+* Modified only to complete projects on construction complete event
+* Improved Raven Colonial permissions checking
 
 
 ## v5.3.1 - 2025-11-14

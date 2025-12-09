@@ -20,6 +20,7 @@ class State:
         """
         # UI preference fields
         self.Status:tk.StringVar = tk.StringVar(value=config.get_str('BGST_Status', default=CheckStates.STATE_ON))
+        self.ColonisationStatus:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationStatus', default=CheckStates.STATE_ON))
         self.EnableOverlayCurrentTick:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCurrentTick', default=CheckStates.STATE_ON))
         self.EnableOverlayActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayActivity', default=CheckStates.STATE_ON))
         self.EnableOverlayTWProgress:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayTWProgress', default=CheckStates.STATE_ON))
@@ -92,10 +93,7 @@ class State:
         self.enable_overlay_warning:bool = (self.EnableOverlayWarning.get() == CheckStates.STATE_ON)
         self.enable_overlay_cmdr:bool = (self.EnableOverlayCMDR.get() == CheckStates.STATE_ON)
         self.enable_overlay_objectives:bool = (self.EnableOverlayObjectives.get() == CheckStates.STATE_ON)
-        self.enable_overlay_colonisation:bool = (self.EnableOverlayColonisation.get() == CheckStates.STATE_ON)
-
-        self.cargo:str = self.FcCargo.get()
-        self.locker:str = self.FcLocker.get()
+        self.enable_overlay_colonisation:bool = (self.EnableOverlayColonisation.get() == CheckStates.STATE_ON) and (self.ColonisationStatus.get() == CheckStates.STATE_ON)
 
         self.abbreviate_faction_names:bool = (self.AbbreviateFactionNames.get() == CheckStates.STATE_ON)
         self.secondary_inf:bool = (self.IncludeSecondaryInf.get() == CheckStates.STATE_ON)
@@ -104,6 +102,7 @@ class State:
         self.discord_bgstw_automatic:bool = (self.DiscordBGSTWAutomatic.get() == CheckStates.STATE_ON)
         self.showmerits:bool = (self.EnableShowMerits.get() == CheckStates.STATE_ON)
 
+        self.enable_colonisation:bool = (self.ColonisationStatus.get() == CheckStates.STATE_ON)
         self.progress_scrollbar:bool = (self.EnableProgressScrollbar.get() == CheckStates.STATE_ON)
 
     def save(self):
@@ -113,6 +112,7 @@ class State:
 
         # UI preference fields
         config.set('BGST_Status', self.Status.get())
+        config.set('BGST_ColonisationStatus', self.ColonisationStatus.get())
         config.set('BGST_ShowZeroActivity', self.ShowZeroActivitySystems.get())
         config.set('BGST_AbbreviateFactions', self.AbbreviateFactionNames.get())
         config.set('BGST_SecondaryInf', self.IncludeSecondaryInf.get())

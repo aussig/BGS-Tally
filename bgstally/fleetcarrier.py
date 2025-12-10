@@ -738,7 +738,7 @@ class FleetCarrier:
             self.itinerary[1]['body'] = self.overview.get('jumpDestinationBody', None)
             Debug.logger.debug(f"Set itinerary[1] starsystem to {dest}")
 
-        elif self.itinerary[0].get('departureTime', None) == None: # If we haven't received a new itinerary update the current one
+        if self.itinerary[0].get('departureTime', None) == None: # If we haven't received a new itinerary update the current one
             Debug.logger.debug(f"Updating jump setting [0] departure time to {self.overview['departureScheduled']}")
             dept:datetime = datetime.strptime(self.overview['departureScheduled'], DATETIME_FORMAT_JSON)
             arr:datetime = datetime.strptime(self.itinerary[0]['arrivalTime'], DATETIME_FORMAT_JSON)
@@ -748,6 +748,7 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = self.overview['departureScheduled']
             self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
 
+        if self.itinerary[0]['starsystem'] != dest:
             Debug.logger.debug(f"Inserting new jump {dest}")
             self.itinerary.insert(0, {
                                       'departureTime': None,

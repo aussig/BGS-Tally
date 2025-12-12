@@ -593,7 +593,7 @@ class FleetCarrier:
             self.bgstally.ui.window_fc.update_display()
             return
 
-        Debug.logger.debug(f"Updating cargo {int(time.time())} {self.last_modified} {int(time.time()) - FDEV_SLACKING_TIME}")
+        Debug.logger.debug(f"CAPI cargo update now: {int(time.time())} last mod: {self.last_modified} diff: {int(time.time()) - FDEV_SLACKING_TIME}")
         self.cargo = self._update_cargo(self.data)
         self.bgstally.ui.window_fc.update_display()
 
@@ -855,6 +855,8 @@ class FleetCarrier:
 
         if self.cargo['normal'][comm]['stock'] < 0:
             Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
+            self.cargo['normal'][comm]['stock'] = 0
+            self.last_modified = 0
         else:
             Debug.logger.debug(f"Updated cargo: {self.cargo['normal'][comm]}")
 
@@ -883,6 +885,7 @@ class FleetCarrier:
                 Debug.logger.debug(f"Adjusting due to change in demand {self.cargo['normal'][comm]['outstanding']} {item.get('Demand', 0)}")
                 diff:int = int(self.cargo['normal'][comm]['outstanding']) - int(item.get('Demand', 0))
                 self.cargo['normal'][comm]['stock'] += diff
+                if self.cargo['normal'][comm]['stock'] < 0: self.cargo['normal'][comm]['stock'] = 0
                 self.cargo['normal'][comm]['outstanding'] = int(item.get('Demand', 0))
                 self.cargo['normal'][comm]['price'] = int(item.get('SellPrice', 0)) # Price player sells at
 
@@ -895,6 +898,8 @@ class FleetCarrier:
 
             if self.cargo['normal'][comm]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
+                self.cargo['normal'][comm]['stock'] = 0
+                self.last_modified = 0
             else:
                 Debug.logger.debug(f"Updated cargo: {self.cargo['normal'][comm]}")
 
@@ -939,6 +944,8 @@ class FleetCarrier:
 
             if self.cargo['normal'][comm]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
+                self.cargo['normal'][comm]['stock'] = 0
+                self.last_modified = 0
             else:
                 Debug.logger.debug(f"Transferred cargo: {self.cargo['normal'][comm]}")
 
@@ -975,6 +982,7 @@ class FleetCarrier:
 
         if self.cargo['normal'][comm]['stock'] < 0:
             Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
+            self.cargo['normal'][comm]['stock'] = 0
         else:
             Debug.logger.debug(f"Updated cargo {entry.get('event')}: {self.cargo['normal'][comm]}")
 
@@ -996,6 +1004,9 @@ class FleetCarrier:
 
             case 'ShipyardSwap' if self.shipyard.get('ships', {}).get('ShipID', None) != None:
                 self.shipyard['ships'][entry.get('ShipID', 0)]['location'] = self.shipyard['overview']['current']
+
+            case 'ShipyardTransfer':
+                self.shipyard['ships'][str(entry.get('ShipID', ""))]['location'] = _('In Transit')  # LANG: Fleet carrier, ship in transit
 
             case 'StoredShips':
                 carrier_count:int = 0

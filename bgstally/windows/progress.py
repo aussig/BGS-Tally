@@ -157,7 +157,7 @@ class ProgressWindow:
         col += 1
 
         self.title = tk.Label(frame, text=_("None"), justify=tk.CENTER, anchor=tk.CENTER, cursor="hand2") # LANG: None
-        self.title.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
+        self.title.config(foreground=config.get_str('dark_text') if config.get_int('theme') > 0 else 'black')
         self.title.bind("<Button-1>", partial(self.event, "copy"))
         self.title.bind("<Button-3>", partial(self._context_menu))
         self.title.grid(row=row, column=col, sticky=tk.EW)
@@ -201,7 +201,7 @@ class ProgressWindow:
             lbl.bind("<Button-1>", partial(self.change_view, col, 'Column'))
             lbl.bind("<Button-3>", partial(self.change_view, col, 'Units'))
 
-            lbl.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
+            lbl.config(foreground=config.get_str('dark_text') if config.get_int('theme') > 0 else 'black')
             self._set_weight(lbl)
             lbl.grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
 
@@ -215,7 +215,7 @@ class ProgressWindow:
 
             for col, v in enumerate(self.columns):
                 lbl:tk.Label = tk.Label(table_frame, text='', cursor="hand2")
-                lbl.config(foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
+                lbl.config(foreground=config.get_str('dark_text') if config.get_int('theme') > 0 else 'black')
                 lbl.grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
                 #if row == 0:
                 #    lbl.bind("<Button-1>", partial(self.link, c, None))
@@ -556,6 +556,7 @@ class ProgressWindow:
                 name = ', '.join([pn, bt, bn])
         self.titlett.text = f"{name}\n{_('left click to copy, right click menu')}" # LANG: tooltip for the build name"
         self.title.config(text=str_truncate(name, 52, loc='middle'))
+        self.title.config(foreground=config.get_str('dark_text') if config.get_int('theme') > 0 else 'black')
 
         # Hide the table but not the progress frame so the change view icon is still available
         if self.view == ProgressView.NONE:
@@ -571,6 +572,7 @@ class ProgressWindow:
             if col >= len(self.collbls): col = len(self.collbls) - 1
             if self.collbls[col] == None: col = 0
             self.collbls[col]['text'] = self.headings[val].get('Label')
+            self.collbls[col].config(foreground=config.get_str('dark_text') if config.get_int('theme') > 0 else 'black')
             self.collbls[col].grid()
 
         totals:dict = {'Commodity': _("Total"),  # LANG: total commodities
@@ -723,7 +725,7 @@ class ProgressWindow:
         space:int = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
         for cell in row.values():
             # Get the ed:mc default color
-            cell['fg'] = config.get_str('dark_text') if config.get_int('theme') == 1 else 'black'
+            cell['fg'] = config.get_str('dark_text') if config.get_int('theme') > 0 else 'black'
             self._set_weight(cell, 'normal')
 
             if remaining <= 0: # Nothing left to deliver, grey it out

@@ -1422,12 +1422,16 @@ class ColonisationWindow:
         self.colonisation.remove_system(sysnum)
 
         # Destroy the existing frames and recreate them.
-        self.tabbar.destroy()
-        for s in self.sheets:
-            s.destroy()
-        self.sheets = []
-        self._create_frames()   # Create main frames
-        self.update_display()   # Populate them
+        try:
+            self.tabbar.destroy()
+            for s in self.sheets:
+                s.destroy()
+            self.sheets = []
+            self.plan_titles = []
+            self._create_frames()   # Create main frames
+            self.update_display()   # Populate them
+        except Exception:
+            return
 
 
     @catch_exceptions

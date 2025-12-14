@@ -32,6 +32,7 @@
 * Fixed exception being thrown if current system has not yet been set.
 * Fixed Combat Bond tracking for non-Odyssey game client.
 * Fixed failure to send `MarketBuy` and `MarketSell` events via Events API when the commodity can't be found in the current market data.
+* Fixed failure to launch overlay on Linux
 
 
 ## v5.4.0-a1 - 2025-11-24

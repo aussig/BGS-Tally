@@ -2,11 +2,16 @@
 
 ## v5.4.0-xx - xxxx-xx-xx
 
+### New Features:
+
+* Added the option to have the progress commodities window be fixed size and scrollable.
+
 ### Bug Fixes:
 
 * Fixed transparent theme colors
 * Updated colors properly when theme changes
 * Added some more carrier cargo sanity checks
+* Fixed a runtime when deleting a system
 
 
 ## v5.4.0-a2 - 2025-12-08

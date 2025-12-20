@@ -1419,14 +1419,19 @@ class ColonisationWindow:
             Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
         Debug.logger.info(f"Deleting system {tabnum}")
-        tabs:list = self.tabbar.tabs()
-        self.tabbar.forget(tabs[tabnum])
-        del self.sheets[tabnum]
-        del self.plan_titles[tabnum]
-        del self.tl[tabnum]
         self.colonisation.remove_system(sysnum)
 
-        self.update_display()
+        # Destroy the existing frames and recreate them.
+        try:
+            self.tabbar.destroy()
+            for s in self.sheets:
+                s.destroy()
+            self.sheets = []
+            self.plan_titles = []
+            self._create_frames()   # Create main frames
+            self.update_display()   # Populate them
+        except Exception:
+            return
 
 
     @catch_exceptions

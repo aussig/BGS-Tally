@@ -709,6 +709,9 @@
 /* Overlay CMDR information report message. [ui.py] */
 "In system: {system}" = "In system: {system}";
 
+/* Fleet carrier, ship in transit. [fleetcarrier.py] */
+"In Transit" = "In Transit";
+
 /* Preferences heading. [ui.py] */
 "In-game Overlay" = "In-game Overlay";
 
@@ -1730,7 +1733,7 @@
 "Updated at: {date_time} | {plugin_name} v{version}" = "Updated at: {date_time} | {plugin_name} v{version}";
 
 /* Preferences checkbox label. [ui.py] */
-"Use scrollbar" = "Use scrollbar";
+"Use scrollbar (restart required)" = "Use scrollbar (restart required)";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Used" = "Used";

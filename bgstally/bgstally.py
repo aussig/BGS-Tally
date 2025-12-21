@@ -311,7 +311,7 @@ class BGSTally:
                 self.target_manager.ship_targeted(entry, system)
                 dirty = True
 
-            case 'Shipyard' | 'StoredShips' | 'ShipyardSwap':
+            case 'Shipyard' | 'StoredShips' | 'ShipyardSwap' | 'ShipyardTransfer':
                 self.fleet_carrier.shipyard_event(entry)
 
             case 'SupercruiseDestinationDrop':

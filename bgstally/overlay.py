@@ -7,7 +7,10 @@ from bgstally.utils import _
 try:
     from EDMCOverlay import edmcoverlay
 except ImportError:
-    edmcoverlay = None
+    try:
+        from edmcoverlay import edmcoverlay
+    except ImportError:
+        edmcoverlay = None
 
 WIDTH_OVERLAY = 1280  # Virtual screen width of overlay
 HEIGHT_OVERLAY = 960  # Virtual screen height of overlay

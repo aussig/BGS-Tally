@@ -14,6 +14,21 @@
 * Fixed a runtime when deleting a system
 
 
+## v5.4.0-b1 - 2025-12-21
+
+### New Features:
+
+* Added the option to have the progress commodities window be fixed size and scrollable.
+
+### Bug Fixes:
+
+* Fixed transparent theme colors
+* Updated colors properly when theme changes
+* Added some more carrier cargo sanity checks
+* Fixed a runtime when deleting a system
+* Fixed a problem with activity window tabs not displaying correctly in Fedora Linux
+
+
 ## v5.4.0-a2 - 2025-12-08
 
 ### New Features:
@@ -41,6 +56,7 @@
 * Fixed exception being thrown if current system has not yet been set.
 * Fixed Combat Bond tracking for non-Odyssey game client.
 * Fixed failure to send `MarketBuy` and `MarketSell` events via Events API when the commodity can't be found in the current market data.
+* Fixed failure to launch overlay on Linux
 
 
 ## v5.4.0-a1 - 2025-11-24

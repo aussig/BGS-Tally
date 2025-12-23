@@ -122,7 +122,7 @@ class FleetCarrier:
         for k, v in get_by_path(self.data, ["market", "services"], {}).items(): # List of all services and their status
 
             services['crew'][k] = deepcopy(crew.get(k, {}).get('crewMember', {}))
-            services['crew'][k]['enabled'] = (services['crew'].get(k, {}).get('enabled', ''), 'str', 'No')
+            services['crew'][k]['enabled'] = (services['crew'].get(k, {}).get('enabled', 'No').title(), 'str', 'No')
 
             services['crew'][k]['status'] = v
             services['crew'][k]['taxation'] = (get_by_path(self.data, ['finance', 'service_taxation', k], 0), 'num', '0%', '%')

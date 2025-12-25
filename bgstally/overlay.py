@@ -28,6 +28,9 @@ class Overlay:
     def __init__(self, bgstally):
         self.bgstally = bgstally
         self.edmcoverlay: Overlay = None
+        # EDMCModernOverlay exposes define_plugin_group via overlay_plugin.
+        self.define_plugin_group = None
+        self.has_define_plugin_group: bool = False
         self.problem_displaying: bool = False
 
         overlay_config: dict | None = self.bgstally.config.overlay()
@@ -42,6 +45,15 @@ class Overlay:
             MAX_LINES_PER_PANEL = int(overlay_config.get('max_lines_per_panel', MAX_LINES_PER_PANEL))
 
         self._check_overlay()
+        if self.has_define_plugin_group:
+            self._define_plugin_group(
+                plugin_group=self.bgstally.plugin_name,
+                matching_prefixes=["bgstally-msg-info-"],
+                id_prefix_group="BGS Ready",
+                id_prefixes=["bgstally-msg-info-"],
+                background_color="#008000",
+                background_border_width=5,
+            )
 
 
     def display_message(self, frame_name: str, message: str, fit_to_text: bool = False, ttl_override: int = None, text_colour_override: str = None, title_colour_override: str = None, title: str = None):
@@ -186,6 +198,45 @@ class Overlay:
                 Debug.logger.warning(f"EDMCOverlay is not running")
             else:
                 Debug.logger.info(f"EDMCOverlay is running")
+
+                # Try to find out if the overlay running is EDMCModernOverlay
+                try:
+                    from overlay_plugin.overlay_api import define_plugin_group as _define_plugin_group
+                except Exception:
+                    self.define_plugin_group = None
+                    self.has_define_plugin_group = False
+                else:
+                    self.define_plugin_group = _define_plugin_group
+                    self.has_define_plugin_group = True
         else:
             # Couldn't load edmcoverlay python lib, the plugin probably isn't installed
             Debug.logger.warning(f"EDMCOverlay plugin is not installed")
+
+
+    def _define_plugin_group(
+        self,
+        *,
+        plugin_group: str,
+        matching_prefixes: list[str] | None = None,
+        id_prefix_group: str | None = None,
+        id_prefixes: list[str] | None = None,
+        background_color: str | None = None,
+        background_border_width: int | None = None,
+    ):
+        """
+        Register a plugin group with Modern Overlay if available.
+        """
+        if not self.define_plugin_group:
+            return
+
+        try:
+            self.define_plugin_group(
+                plugin_group=plugin_group,
+                matching_prefixes=matching_prefixes,
+                id_prefix_group=id_prefix_group,
+                id_prefixes=id_prefixes,
+                background_color=background_color,
+                background_border_width=background_border_width,
+            )
+        except Exception as e:
+            Debug.logger.warning(f"Could not register Modern Overlay plugin group", exc_info=e)

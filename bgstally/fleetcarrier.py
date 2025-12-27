@@ -398,7 +398,7 @@ class FleetCarrier:
             stolen:bool = c.get('stolen', False)
             mission:bool = c.get('mission', False)
 
-            Debug.logger.debug(f"Initial cargo: {self.cargo['normal'].get(cname, {})}")
+            #Debug.logger.debug(f"Initial cargo: {self.cargo['normal'].get(cname, {})}")
             # Deal with stolen and mission cargo first
             if stolen or mission:
                 for type in ['stolen', 'mission']:
@@ -433,8 +433,8 @@ class FleetCarrier:
                 }
             if cargo['normal'][cname]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {cargo['normal'][cname]}")
-            else:
-                Debug.logger.debug(f"Final cargo: {cargo['normal'][cname]}")
+            #else:
+                #Debug.logger.debug(f"Final cargo: {cargo['normal'][cname]}")
 
         return cargo
 
@@ -449,7 +449,7 @@ class FleetCarrier:
             elem:int = next((index for (index, d) in enumerate(self.itinerary) if d['arrivalTime'] == jump.get('arrivalTime', '')), -1)
 
             if elem > 0: # Found it, and it's an "old" one. Update departure time and duration just in case
-                Debug.logger.debug(f"Match on item {elem} so update it {jump.get('departureTime', jumplist[elem].get('departureTime', None))} {jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))}")
+                #Debug.logger.debug(f"Match on item {elem} so update it {jump.get('departureTime', jumplist[elem].get('departureTime', None))} {jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))}")
                 jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
                 jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))
                 continue

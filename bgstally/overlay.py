@@ -28,7 +28,6 @@ class Overlay:
     def __init__(self, bgstally):
         self.bgstally = bgstally
         self.edmcoverlay: Overlay = None
-        # EDMCModernOverlay exposes define_plugin_group via overlay_plugin.
         self.define_plugin_group = None
         self.has_define_plugin_group: bool = False
         self.problem_displaying: bool = False
@@ -45,16 +44,10 @@ class Overlay:
             MAX_LINES_PER_PANEL = int(overlay_config.get('max_lines_per_panel', MAX_LINES_PER_PANEL))
 
         self._check_overlay()
-        if self.has_define_plugin_group:
-            self._define_plugin_group(
-                plugin_group=self.bgstally.plugin_name,
-                matching_prefixes=["bgstally-msg-info-"],
-                id_prefix_group="BGS Ready",
-                id_prefixes=["bgstally-msg-info-"],
-                background_color="#008000",
-                background_border_width=5,
-            )
 
+        self._setup_plugin_groups() # Setup plugin groups for EDMCModernOverlay if available
+
+        self._declare_ready()
 
     def display_message(self, frame_name: str, message: str, fit_to_text: bool = False, ttl_override: int = None, text_colour_override: str = None, title_colour_override: str = None, title: str = None):
         """
@@ -80,12 +73,23 @@ class Overlay:
             title_colour: str = title_colour_override if title_colour_override else fi['title_colour']
             text_colour: str = text_colour_override if text_colour_override else fi['text_colour']
 
-            if fi.get('x_center', False):
-                x: int = int((WIDTH_OVERLAY - message_width) / 2) + int(fi['x'])   # Horizontally centred, offset by 'x' where 'x' can be negative
-            elif int(fi['x']) < 0:
-                x: int = WIDTH_OVERLAY + int(fi['x']) # Negative 'x', offset from right of overlay
+            # Let EDMCModernOverlay handle centering and right alignment via define_plugin_group for frame_names we've fully registered. If not in the allow list, fall back to manual positioning.
+            if not self.has_define_plugin_group:
+                Debug.logger.debug(f"new path : Plugin group defined {self.has_define_plugin_group} and frame name is {frame_name}")    
+                if fi.get('x_center', False):
+                    x: int = int((WIDTH_OVERLAY - message_width) / 2) + int(fi['x'])   # Horizontally centred, offset by 'x' where 'x' can be negative
+                elif int(fi['x']) < 0:
+                    x: int = WIDTH_OVERLAY + int(fi['x']) # Negative 'x', offset from right of overlay
+                else:
+                    x: int = int(fi['x'])
             else:
-                x: int = int(fi['x'])
+                Debug.logger.debug(f"old path : Plugin group defined {self.has_define_plugin_group} and frame name is {frame_name}")
+                if fi.get('x_center', False):
+                    x: int = int((WIDTH_OVERLAY)) # Let EDMCModernOverlayplugin group handle centering
+                elif int(fi['x']) < 0:
+                    x: int = WIDTH_OVERLAY # Let EDMCModernOverlayplugin plugin group handle right offset
+                else:
+                    x: int = int(fi['x']) # Let EDMCModernOverlayplugin plugin group handle left offset
 
             if fi.get('y_center', False):
                 y: int = int((HEIGHT_OVERLAY - message_height) / 2) + int(fi['y']) # Vertically centred, offset by 'y' where 'y' can be negative
@@ -94,9 +98,12 @@ class Overlay:
             else:
                 y: int = int(fi['y'])
 
-            # Border
-            if fi['border_colour'] and fi['fill_colour']:
+            # Border. Only send if the overlay being used is the legacy EDMCOverlay, as EDMCModernOverlay handles background shading as part of define_plugin_group.
+            if fi['border_colour'] and fi['fill_colour'] and not self.has_define_plugin_group:
                 self.edmcoverlay.send_shape(f"bgstally-frame-{frame_name}", "rect", fi['border_colour'], fi['fill_colour'], x, y, message_width + 30 if fit_to_text else fi['w'], message_height + 10 if fit_to_text else fi['h'], ttl=ttl)
+                Debug.logger.debug(f"Overlay frame '{frame_name}' border drawn at ({x},{y}) size ({message_width + 30 if fit_to_text else fi['w']},{message_height + 10 if fit_to_text else fi['h']})")
+            else:
+                Debug.logger.debug(f"Overlay frame '{frame_name}' border skipped")
 
             yoffset: int = 0
             index: int = 0
@@ -192,51 +199,173 @@ class Overlay:
         """
         if edmcoverlay:
             try:
-                self.edmcoverlay = edmcoverlay.Overlay()
-                self.display_message("info", _("{plugin_name} Ready").format(plugin_name=self.bgstally.plugin_name), True, 30) # LANG: Overlay message
-            except Exception as e:
-                Debug.logger.warning(f"EDMCOverlay is not running")
-            else:
-                Debug.logger.info(f"EDMCOverlay is running")
-
                 # Try to find out if the overlay running is EDMCModernOverlay
                 try:
                     from overlay_plugin.overlay_api import define_plugin_group as _define_plugin_group
                 except Exception:
                     self.define_plugin_group = None
                     self.has_define_plugin_group = False
+                    Debug.logger.info(f"Detected legacy EDMCOverlay")
                 else:
                     self.define_plugin_group = _define_plugin_group
                     self.has_define_plugin_group = True
+                    Debug.logger.info(f"Detected EDMCModernOverlay")
+                self.edmcoverlay = edmcoverlay.Overlay()
+            except Exception as e:
+                Debug.logger.warning(f"EDMCOverlay is not running")
+            else:
+                Debug.logger.info(f"EDMCOverlay is running")
         else:
             # Couldn't load edmcoverlay python lib, the plugin probably isn't installed
             Debug.logger.warning(f"EDMCOverlay plugin is not installed")
+
+    def _setup_plugin_groups(self):
+        # One time setup for EDMCModernOverlay Groups
+        if not self.has_define_plugin_group:
+            return
+
+        overlay_frame_names = self.bgstally.config.overlay_frame_names()
+        background_color = None
+        background_border_color = None
+        background_border_width = 3 # This is a border that extends the background beyond the boundaries of the payload group.
+        use_background = True
+
+        for frame_name in overlay_frame_names:
+            id_prefix_group = f"BGS-Tally {frame_name.capitalize()}"
+            id_prefixes = [f"bgstally-msg-{frame_name}-"]
+
+            fi: dict | None = self.bgstally.config.overlay_frame(frame_name)
+            if fi is not None:
+                background_color = fi['fill_colour']
+                background_border_color = fi['border_colour']
+                justification = fi.get("justification", "left")
+                anchor = fi.get("anchor", "nw")
+
+            if justification in ["ne", "right", "se"]:
+                # Assume a right side anchor means we're on the right side of the screen and force a small offset to avoid clipping.
+                id_prefix_offset_x = -5
+            else:
+                id_prefix_offset_x = None
+
+            if use_background:
+                if self._define_plugin_group(
+                    plugin_group=self.bgstally.plugin_name,
+                    matching_prefixes=["bgstally-"],
+                    id_prefix_group=id_prefix_group,
+                    id_prefixes=id_prefixes,
+                    id_prefix_offset_x=id_prefix_offset_x,
+                    background_color=background_color,
+                    background_border_color=background_border_color,
+                    background_border_width=background_border_width,
+                    payload_justification=justification,
+                    id_prefix_group_anchor=anchor,
+                    include_background=True,
+                    disable_on_error=False
+                ):
+                    Debug.logger.info(f"EDMCModernOverlay plugin group '{id_prefix_group}' configured using background args")
+                    continue
+
+                Debug.logger.info(f"EDMCModernOverlay background args unavailable; falling back to previous define_plugin_group specification without background")
+                use_background = False
+
+            if not self._define_plugin_group(
+                plugin_group=self.bgstally.plugin_name,
+                matching_prefixes=["bgstally-"],
+                id_prefix_group=id_prefix_group,
+                id_prefixes=id_prefixes,
+                id_prefix_offset_x=id_prefix_offset_x,
+                background_color=background_color,
+                background_border_color=background_border_color,
+                background_border_width=background_border_width,
+                payload_justification=justification,
+                id_prefix_group_anchor=anchor,
+                include_background=False,
+                disable_on_error=True
+            ):
+                break
+            Debug.logger.info(f"EDMCModernOverlay plugin group '{id_prefix_group}' configured using previous define_plugin_group specification")
+
+    def _declare_ready(self):
+        """
+        Declare to the overlay that BGS-Tally is ready
+        """
+        if self.edmcoverlay == None: return
+        if not self.bgstally.state.enable_overlay: return
+
+        try:
+            self.display_message("info", _("{plugin_name} Ready").format(plugin_name=self.bgstally.plugin_name), True, 30) # LANG: Overlay message
+        except Exception as e:
+            Debug.logger.warning(f"Could not declare overlay ready", exc_info=e)
+        
+
+
+    def _parse_int(self, value: str | None, default: int) -> int:
+        if value is None:
+            return default
+
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+
+
+    def _parse_prefixes(self, value: str | None, default: list[str]) -> list[str]:
+        if not value:
+            return default
+
+        prefixes = [prefix.strip() for prefix in value.split(",") if prefix.strip()]
+        return prefixes or default
 
 
     def _define_plugin_group(
         self,
         *,
         plugin_group: str,
-        matching_prefixes: list[str] | None = None,
-        id_prefix_group: str | None = None,
-        id_prefixes: list[str] | None = None,
+        matching_prefixes: list[str] | None = None,      # Broadly scope prefix(es) for the plugin group (different from payload group below). Should usually be ["bgstally-"]
+        id_prefix_group: str | None = None,              # A human readable payload group name we are configuring. Should usually be "BGS-Tally {frame_name}"
+        id_prefixes: list[str] | None = None,            # Prefixes to match for this payload group. Should usually be ["bgstally-msg-{frame_name}-"]. Leave frames out.
+        id_prefix_group_anchor: str | None = None,
+        id_prefix_offset_x: int | float | None = None,
+        id_prefix_offset_y: int | float | None = None,
+        payload_justification: str | None = None,
+        marker_label_position: str | None = None,
+        controller_preview_box_mode: str | None = None,
         background_color: str | None = None,
+        background_border_color: str | None = None,
         background_border_width: int | None = None,
-    ):
+        include_background: bool = True,
+        disable_on_error: bool = True,
+    ) -> bool:
         """
         Register a plugin group with Modern Overlay if available.
         """
         if not self.define_plugin_group:
-            return
+            return False
 
         try:
-            self.define_plugin_group(
+            kwargs = dict(
                 plugin_group=plugin_group,
                 matching_prefixes=matching_prefixes,
                 id_prefix_group=id_prefix_group,
                 id_prefixes=id_prefixes,
-                background_color=background_color,
-                background_border_width=background_border_width,
+                id_prefix_group_anchor=id_prefix_group_anchor,
+                id_prefix_offset_x=id_prefix_offset_x,
+                id_prefix_offset_y=id_prefix_offset_y,
+                payload_justification=payload_justification,
+                marker_label_position=marker_label_position,
+                controller_preview_box_mode=controller_preview_box_mode,
             )
+            if include_background:
+                kwargs.update(
+                    background_color=background_color,
+                    background_border_color=background_border_color,
+                    background_border_width=background_border_width,
+                )
+            self.define_plugin_group(**kwargs)
         except Exception as e:
-            Debug.logger.warning(f"Could not register Modern Overlay plugin group", exc_info=e)
+            if disable_on_error:
+                self.has_define_plugin_group = False
+                Debug.logger.warning(f"Could not register EDMCModernOverlay plugin group. Reverting to legacy EDMCOverlay. Most likely due to an outdated version of EDMCModernOverlay (pre 0.7.6)")
+            return False
+
+        return True

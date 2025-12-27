@@ -100,3 +100,20 @@ class Config(object):
             Debug.logger.error(f"Tried to access overlay frame config from '{name}' which doesn't exist", exc_info=e)
 
         return result
+
+
+    def overlay_frame_names(self) -> list[str]:
+        """Return a list of all configured overlay panel names."""
+        result: list[str] = []
+        prefix = "overlay.frame."
+
+        try:
+            result = [
+                section[len(prefix):]
+                for section in self.config.sections()
+                if section.startswith(prefix)
+            ]
+        except Exception as e:
+            Debug.logger.error(f"Unable to fetch overlay frame names", exc_info=e)
+
+        return result

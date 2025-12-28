@@ -115,24 +115,25 @@ class Overlay:
 
             yoffset: int = 0
             index: int = 0
+            message_x: int = x if self.is_modern_overlay and x_center else x + 10 # Let EDMCModernOverlay handle centering via the plugin group definition.
 
             while index <= MAX_LINES_PER_PANEL:
                 if index < len(segments):
                     if segments[index].find(TAG_OVERLAY_HIGHLIGHT) > -1:
-                        self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index].replace(TAG_OVERLAY_HIGHLIGHT, ''), title_colour, x + 10, y + 5 + yoffset, ttl=ttl, size="large")
+                        self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index].replace(TAG_OVERLAY_HIGHLIGHT, ''), title_colour, message_x, y + 5 + yoffset, ttl=ttl, size="large")
                         yoffset += HEIGHT_CHARACTER_LARGE
                     else:
                         if index < MAX_LINES_PER_PANEL:
                             # Line has content
-                            self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], text_colour, x + 10, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                            self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", segments[index], text_colour, message_x, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
                         else:
                             # Last line
-                            self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "[...]", text_colour, x + 10, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                            self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "[...]", text_colour, message_x, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
 
                         yoffset += HEIGHT_CHARACTER_NORMAL
                 else:
                     # Unused line, clear
-                    self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "", text_colour, x + 10, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
+                    self.edmcoverlay.send_message(f"bgstally-msg-{frame_name}-{index}", "", text_colour, message_x, y + 5 + yoffset, ttl=ttl, size=fi['text_size'])
                     yoffset += HEIGHT_CHARACTER_NORMAL
 
                 index += 1

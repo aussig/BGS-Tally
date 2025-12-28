@@ -388,11 +388,11 @@ class Overlay:
                 id_prefix_offset_x=id_prefix_offset_x,
                 id_prefix_offset_y=id_prefix_offset_y,
                 payload_justification=payload_justification,
-                marker_label_position=marker_label_position,
-                controller_preview_box_mode=controller_preview_box_mode,
             )
-            if include_background:
+            if include_background: # If the overlay supports background then we're not on a pre-0.7.6 version of EDMCModernOverlay.
                 kwargs.update(
+                    marker_label_position=marker_label_position,
+                    ontroller_preview_box_mode=controller_preview_box_mode,
                     background_color=background_color,
                     background_border_color=background_border_color,
                     background_border_width=background_border_width,

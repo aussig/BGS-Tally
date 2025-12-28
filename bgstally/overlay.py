@@ -237,13 +237,13 @@ class Overlay:
         background_border_color = None
         background_border_width = 3 # This is a border that extends the background beyond the boundaries of the payload group.
         use_background = True
+        progress_bar_frames = {"tw"}
 
         for frame_name in overlay_frame_names:
             id_prefix_group = f"BGS-Tally {frame_name.capitalize()}"
-            id_prefixes = [
-                f"bgstally-msg-{frame_name}-",
-                {"value": f"bgstally-frame-{frame_name}", "matchMode": "exact"}, # We are setting this up because the CMDR may be using 0.7.5 which doesn't support backgrounds.
-            ]
+            base_id_prefixes = [f"bgstally-msg-{frame_name}-"]
+            if frame_name in progress_bar_frames:
+                base_id_prefixes.append(f"bgstally-bar-{frame_name}")
 
             fi: dict | None = self.bgstally.config.overlay_frame(frame_name)
             if fi is not None:
@@ -254,6 +254,7 @@ class Overlay:
                 x_center = fi.get("x_center", False)
                 y_center = fi.get("y_center", False)
                 
+                # Make anchor assumptions based on x_center and y_center configs
                 if x_center and y_center:
                     anchor = "center"
                 elif x_center:
@@ -264,13 +265,15 @@ class Overlay:
                 if x_center:
                     justification = "center"
 
-            if justification in ["ne", "right", "se"]:
+            if anchor in ["ne", "right", "se"]:
                 # Assume a right side anchor means we're on the right side of the screen and force a small offset to avoid clipping.
                 id_prefix_offset_x = -5
+                justification = "right" # this does not work well with vector images.
             else:
                 id_prefix_offset_x = None
 
             if use_background:
+                id_prefixes = list(base_id_prefixes)
                 if self._define_plugin_group(
                     plugin_group=self.bgstally.plugin_name,
                     matching_prefixes=["bgstally-"],
@@ -291,6 +294,8 @@ class Overlay:
                 use_background = False
                 self.supports_modern_overlay_backgrounds = False
 
+            id_prefixes = list(base_id_prefixes)
+            id_prefixes.append({"value": f"bgstally-frame-{frame_name}", "matchMode": "exact"}) # For older Modern Overlay versions without background support.
             if not self._define_plugin_group(
                 plugin_group=self.bgstally.plugin_name,
                 matching_prefixes=["bgstally-"],

@@ -402,7 +402,7 @@ class Overlay:
             if disable_on_error:
                 self.is_modern_overlay = False
                 self.supports_modern_overlay_backgrounds = False
-                Debug.logger.warning(f"Could not register EDMCModernOverlay plugin group. Reverting to legacy EDMCOverlay. Most likely due to an outdated version of EDMCModernOverlay (pre 0.7.6)")
+                Debug.logger.warning(f"Could not register EDMCModernOverlay plugin group. Reverting to legacy EDMCOverlay. Most likely due to an outdated version of EDMCModernOverlay (pre 0.7.6)", exc_info=e)
             return False
 
         return True

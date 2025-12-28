@@ -2,16 +2,12 @@
 
 ## v5.4.0-xx - xxxx-xx-xx
 
-### New Features:
-
-* Added the option to have the progress commodities window be fixed size and scrollable.
-
 ### Bug Fixes:
 
-* Fixed transparent theme colors
-* Updated colors properly when theme changes
-* Added some more carrier cargo sanity checks
-* Fixed a runtime when deleting a system
+* Corrected erroneous listing of materials as buying in the fleetcarrier
+* Corrected too small price width for materials in discord post
+* Corrected trading header in discord post
+* Addressed a timing runtime if you close the markets frame during a request
 
 
 ## v5.4.0-b1 - 2025-12-21

@@ -513,7 +513,7 @@ class ProgressWindow:
     @catch_exceptions
     def _markets_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Callback from the RavenColonial materials request to open popup '''
-        if self.mkts_fr == None: return
+        if not self.mkts_fr or not self.mkts_fr.winfo_exists(): return
 
         if response == None or response.status_code != 200:
             Debug.logger.error(f"RavenColonial materials request failed")

@@ -100,8 +100,7 @@ class Overlay:
                     y: int = HEIGHT_OVERLAY # Let EDMCModernOverlay plugin group handle centering/bottom offset
                 else:
                     y: int = y_value
-            else:
-                Debug.logger.debug(f"old path : Plugin group defined {self.is_modern_overlay} and frame name is {frame_name}")              
+            else:             
                 if fi.get('y_center', False):
                     y: int = int((HEIGHT_OVERLAY - message_height) / 2) + y_value # Vertically centred, offset by 'y' where 'y' can be negative
                 elif y_value < 0:
@@ -242,7 +241,6 @@ class Overlay:
         progress_bar_frames = {"tw"}
 
         for frame_name in overlay_frame_names:
-            Debug.logger.info(f"Setting up EDMCModernOverlay Plugin group for {frame_name}")
             id_prefix_group = f"BGS-Tally {frame_name.capitalize()}"
             base_id_prefixes = [f"bgstally-msg-{frame_name}-"]
             if frame_name in progress_bar_frames:
@@ -291,6 +289,7 @@ class Overlay:
                     include_background=True,
                     disable_on_error=False
                 ):
+                    Debug.logger.info(f"EDMCModernOverlay plugin group '{id_prefix_group}' configured.")
                     continue
 
                 Debug.logger.info(f"EDMCModernOverlay background args unavailable; falling back to previous define_plugin_group specification without background")
@@ -313,8 +312,8 @@ class Overlay:
                 include_background=False,
                 disable_on_error=True
             ):
+                Debug.logger.info(f"EDMCModernOverlay plugin group '{id_prefix_group}' configured using previous define_plugin_group specification")
                 break
-            Debug.logger.info(f"EDMCModernOverlay plugin group '{id_prefix_group}' configured using previous define_plugin_group specification")
 
     def _declare_ready(self):
         """

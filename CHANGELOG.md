@@ -2,7 +2,9 @@
 
 ## v5.4.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
 
+* Fixed autopost failure after new tick fetched
 
 
 ## v5.4.0-b1 - 2025-12-21

@@ -233,6 +233,7 @@ class Overlay:
         if not self.is_modern_overlay:
             return
 
+
         overlay_frame_names = self.bgstally.config.overlay_frame_names()
         background_color = None
         background_border_color = None
@@ -241,6 +242,7 @@ class Overlay:
         progress_bar_frames = {"tw"}
 
         for frame_name in overlay_frame_names:
+            Debug.logger.info(f"Setting up EDMCModernOverlay Plugin group for {frame_name}")
             id_prefix_group = f"BGS-Tally {frame_name.capitalize()}"
             base_id_prefixes = [f"bgstally-msg-{frame_name}-"]
             if frame_name in progress_bar_frames:
@@ -326,8 +328,6 @@ class Overlay:
         except Exception as e:
             Debug.logger.warning(f"Could not declare overlay ready", exc_info=e)
         
-
-
     def _parse_int(self, value: str | None, default: int) -> int:
         if value is None:
             return default
@@ -389,20 +389,22 @@ class Overlay:
                 id_prefix_offset_y=id_prefix_offset_y,
                 payload_justification=payload_justification,
             )
+
             if include_background: # If the overlay supports background then we're not on a pre-0.7.6 version of EDMCModernOverlay.
                 kwargs.update(
                     marker_label_position=marker_label_position,
-                    ontroller_preview_box_mode=controller_preview_box_mode,
+                    controller_preview_box_mode=controller_preview_box_mode,
                     background_color=background_color,
                     background_border_color=background_border_color,
                     background_border_width=background_border_width,
                 )
             _define_plugin_group(**kwargs)
         except Exception as e:
+            Debug.logger.debug("EDMCModernOverlay define_plugin_group failed", exc_info=e)
             if disable_on_error:
                 self.is_modern_overlay = False
                 self.supports_modern_overlay_backgrounds = False
-                Debug.logger.warning(f"Could not register EDMCModernOverlay plugin group. Reverting to legacy EDMCOverlay. Most likely due to an outdated version of EDMCModernOverlay (pre 0.7.6)", exc_info=e)
+                Debug.logger.warning(f"Could not register EDMCModernOverlay plugin group. Reverting to legacy EDMCOverlay. Most likely due to an outdated version of EDMCModernOverlay (pre 0.7.6)")
             return False
 
         return True

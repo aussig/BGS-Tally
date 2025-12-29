@@ -326,16 +326,16 @@ class WindowActivity:
 
                     MissionPointsVar:tk.IntVar = tk.IntVar(value=faction['MissionPoints']['m'])
                     ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    MissionPointsVar.trace('w', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsVar, True, chk_enable_all, activity, system, faction, x))
+                    MissionPointsVar.trace_add('write', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsVar, True, chk_enable_all, activity, system, faction, x))
                     MissionPointsSecVar:tk.IntVar = tk.IntVar(value=faction['MissionPointsSecondary']['m'])
                     ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsSecVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    MissionPointsSecVar.trace('w', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsSecVar, False, chk_enable_all, activity, system, faction, x))
+                    MissionPointsSecVar.trace_add('write', partial(self._mission_points_change, nb_tab, tab_index, MissionPointsSecVar, False, chk_enable_all, activity, system, faction, x))
                     ttk.Label(frm_table, text=f"{human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeBuy'][2]['value'])} | {human_format(faction['TradeBuy'][3]['value'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
                     ttk.Label(frm_table, text=f"{human_format(faction['TradeSell'][0]['profit'])} | {human_format(faction['TradeBuy'][1]['value'])} | {human_format(faction['TradeSell'][2]['profit'])} | {human_format(faction['TradeSell'][3]['profit'])}").grid(row=x + header_rows, column=col, sticky=tk.N, padx=4); col += 1
                     ttk.Label(frm_table, text=human_format(faction['BlackMarketProfit'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ttk.Label(frm_table, text=human_format(faction['Bounties'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     CartVar:tk.StringVar = tk.StringVar(value=human_format(faction['CartData']))
-                    CartVar.trace('w', partial(self._cart_change, nb_tab, tab_index, CartVar, chk_enable_all, activity, system, faction, x))
+                    CartVar.trace_add('write', partial(self._cart_change, nb_tab, tab_index, CartVar, chk_enable_all, activity, system, faction, x))
                     CartVars.append(CartVar)
                     EntryPlus(frm_table, textvariable=CartVar, width=6).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     #ttk.Label(frm_table, text=human_format(faction['ExoData'])).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
@@ -345,7 +345,7 @@ class WindowActivity:
                     ttk.Label(frm_table, text=faction['Murdered']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
                     ScenariosVar = tk.IntVar(value=faction['Scenarios'])
                     ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=ScenariosVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
-                    ScenariosVar.trace('w', partial(self._scenarios_change, nb_tab, tab_index, ScenariosVar, chk_enable_all, activity, system, faction, x))
+                    ScenariosVar.trace_add('write', partial(self._scenarios_change, nb_tab, tab_index, ScenariosVar, chk_enable_all, activity, system, faction, x))
                     ttk.Label(frm_table, text=sum(faction.get('SandR', {}).values())).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
 
                     if (faction['FactionState'] in STATES_WAR):
@@ -373,16 +373,16 @@ class WindowActivity:
                         ttk.Spinbox(frm_table, from_=0, to=999, width=3, textvariable=CZGroundHVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
 
                         # Watch for changes on all SpinBox Variables. This approach catches any change, including manual editing, while using 'command' callbacks only catches clicks
-                        CZSpaceLVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceLVar, chk_enable_all, CZs.SPACE_LOW, activity, system, faction, x))
-                        CZSpaceMVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceMVar, chk_enable_all, CZs.SPACE_MED, activity, system, faction, x))
-                        CZSpaceHVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceHVar, chk_enable_all, CZs.SPACE_HIGH, activity, system, faction, x))
-                        CZSpaceCSVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceCSVar, chk_enable_all, CZs.SPACE_CS, activity, system, faction, x))
-                        CZSpaceSOVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceSOVar, chk_enable_all, CZs.SPACE_SO, activity, system, faction, x))
-                        CZSpaceCPVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpaceCPVar, chk_enable_all, CZs.SPACE_CP, activity, system, faction, x))
-                        CZSpacePRVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZSpacePRVar, chk_enable_all, CZs.SPACE_PR, activity, system, faction, x))
-                        CZGroundLVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZGroundLVar, chk_enable_all, CZs.GROUND_LOW, activity, system, faction, x))
-                        CZGroundMVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZGroundMVar, chk_enable_all, CZs.GROUND_MED, activity, system, faction, x))
-                        CZGroundHVar.trace('w', partial(self._cz_change, nb_tab, tab_index, CZGroundHVar, chk_enable_all, CZs.GROUND_HIGH, activity, system, faction, x))
+                        CZSpaceLVar.trace_add('write', partial(self._cz_change, nb_tab, tab_index, CZSpaceLVar, chk_enable_all, CZs.SPACE_LOW, activity, system, faction, x))
+                        CZSpaceMVar.trace_add('write', partial(self._cz_change, nb_tab, tab_index, CZSpaceMVar, chk_enable_all, CZs.SPACE_MED, activity, system, faction, x))
+                        CZSpaceHVar.trace_add('write', partial(self._cz_change, nb_tab, tab_index, CZSpaceHVar, chk_enable_all, CZs.SPACE_HIGH, activity, system, faction, x))
+                        CZSpaceCSVar.trace_add('write', partial(self._cz_change, nb_tab, tab_index, CZSpaceCSVar, chk_enable_all, CZs.SPACE_CS, activity, system, faction, x))
+                        CZSpaceSOVar.trace_add('write', partial(self._cz_change, nb_tab, tab_index, CZSpaceSOVar, chk_enable_all, CZs.SPACE_SO, activity, system, faction, x))
+                        CZSpaceCPVar.trace_add('write', partial(self._cz_change, nb_tab, tab_index, CZSpaceCPVar, chk_enable_all, CZs.SPACE_CP, activity, system, faction, x))
+                        CZSpacePRVar.trace_add('write', partial(self._cz_change, nb_tab, tab_index, CZSpacePRVar, chk_enable_all, CZs.SPACE_PR, activity, system, faction, x))
+                        CZGroundLVar.trace_add('write', partial(self._cz_change, nb_tab, tab_index, CZGroundLVar, chk_enable_all, CZs.GROUND_LOW, activity, system, faction, x))
+                        CZGroundMVar.trace_add('write', partial(self._cz_change, nb_tab, tab_index, CZGroundMVar, chk_enable_all, CZs.GROUND_MED, activity, system, faction, x))
+                        CZGroundHVar.trace_add('write', partial(self._cz_change, nb_tab, tab_index, CZGroundHVar, chk_enable_all, CZs.GROUND_HIGH, activity, system, faction, x))
 
                     x += 1
 
@@ -403,7 +403,7 @@ class WindowActivity:
         Callback for when user closes the window
         """
         self._store_window_geometry()
-        self.toplevel.destroy()
+        if self.toplevel: self.toplevel.destroy()
 
 
     def _store_window_geometry(self):

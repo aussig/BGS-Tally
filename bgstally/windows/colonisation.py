@@ -54,7 +54,7 @@ class ColonisationWindow:
         self.summary_cols:dict = {
             'Track': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
             'Architect': {'header': _("Architect"), 'background': None, 'hide': False}, # LANG: System architect heading
-            'Layout': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
+            'RCOpen': {'header': _("Security"), 'background': None, 'hide': False, 'format': 'dropdown'}, # LANG: RC security
             'State': {'header': "", 'background': None},
             'Total': {'header': _("Total"), 'background': None, 'format': 'int'}, # LANG: Total number of builds
             'Orbital': {'header': _("Orbital"), 'background': None, 'format': 'int'}, # LANG: Number of orbital/space builds
@@ -154,6 +154,7 @@ class ColonisationWindow:
                             }
         # UI components'
         self.window:tk.Toplevel|None = None
+        self.tl:dict = {} # Map of tab number to system index
         self.tabbar:ScrollableNotebook|None = None
         self.add_dialog:tk.Frame|None = None
         self.react:tk.Frame|None = None
@@ -169,6 +170,8 @@ class ColonisationWindow:
     @catch_exceptions
     def show(self) -> None:
         ''' Create and display the colonisation window. Called by ui.py when the colonisation icon is clicked. '''
+        if self.bgstally.state.enable_colonisation != True: return
+
         if self.window != None and self.window.winfo_exists():
             self.window.lift()
             return
@@ -199,17 +202,21 @@ class ColonisationWindow:
             Debug.logger.info(f"No systems so not creating colonisation section")
             return
 
+        tabnum:int = 1
         for sysnum, system in enumerate(systems): # Create a frame for the sytem
-            tabnum = sysnum + 1
+            if system.get('Hidden', False) == True: continue
+            self.tl[tabnum] = sysnum
             self._create_system_tab(tabnum, system)
+            tabnum += 1
 
         if tabnum > 0:
-            t = 0
-            for t in range(0, tabnum-1):
-                if systems[t].get('Hidden', True) == False:
+            for t in range(1, tabnum-1):
+                Debug.logger.debug(f"{t} {self.tl.get(t)} {tabnum-1}")
+                if systems[self.tl[t]].get('Hidden', True) == False:
                     break
-            self.tabbar.select(t+1) # Select the first non-hidden system tab
+            self.tabbar.select(t) # Select the first non-hidden system tab
         self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+
 
     @catch_exceptions
     def _create_system_tab(self, tabnum:int, system:dict) -> None:
@@ -217,6 +224,7 @@ class ColonisationWindow:
         tab:ttk.Frame = ttk.Frame(self.tabbar)
         tab.pack(fill=tk.X, side=tk.TOP, padx=5, pady=5)
 
+        #if system.get('Hidden', False) == False:
         self._create_title_frame(tabnum, tab)
         self._create_table_frame(tabnum, tab, system)
         self.tabbar.add(tab, text=system['Name'], compound='right', image=self.image_tab_planned)
@@ -233,7 +241,7 @@ class ColonisationWindow:
         ''' Update the tab image based on the system's progress '''
         tabstate:BuildState = BuildState.COMPLETE
         for b in system['Builds']:
-            build_state = self.colonisation.get_build_state(b)
+            build_state: BuildState = self.colonisation.get_build_state(b)
             if build_state == BuildState.PLANNED and tabstate != BuildState.PROGRESS:
                 tabstate = BuildState.PLANNED
             if build_state == BuildState.PROGRESS:
@@ -251,7 +259,7 @@ class ColonisationWindow:
     @catch_exceptions
     def _create_title_frame(self, tabnum:int, tab:ttk.Frame) -> None:
         ''' Create the title frame with system name and tick info '''
-        sysnum:int = tabnum -1
+        sysnum:int = self.tl[tabnum]
         systems:list = self.colonisation.get_all_systems()
 
         title_frame:ttk.Frame = ttk.Frame(tab, style="Title.TFrame")
@@ -262,17 +270,20 @@ class ColonisationWindow:
         style.configure("Title.TFrame")
 
         # System name label
-        while len(self.plan_titles) <= sysnum:
+        while len(self.plan_titles) <= tabnum:
             self.plan_titles.append({})
 
-        name_label:ttk.Label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
+
+        name:str = systems[sysnum].get('Name', '')
         sysname:str = systems[sysnum].get('StarSystem', '')
         if systems[sysnum].get('RCSync', False) == True:
-            name_label = ttk.Label(title_frame, text="", font=FONT_HEADING_1, foreground="#0078d4", cursor="hand2")
+            name_label = ttk.Label(title_frame, text=name, font=FONT_HEADING_1, foreground="#0078d4", cursor="hand2")
             name_label.bind("<Button-1>", partial(self._link, systems[sysnum], 'System', 'RavenColonial'))
             ToolTip(name_label, text=_("Link to RavenColonial")) # LANG: tooltip for ravencolonial link
+        else:
+            name_label = ttk.Label(title_frame, text=name, font=FONT_HEADING_1, foreground=COLOUR_HEADING_1)
         name_label.pack(side=tk.LEFT, padx=10, pady=5)
-        self.plan_titles[sysnum]['Name'] = name_label
+        self.plan_titles[tabnum]['Name'] = name_label
 
         if sysname != '':
             sys_label:ttk.Label = ttk.Label(title_frame, text=sysname, cursor="hand2")
@@ -282,7 +293,7 @@ class ColonisationWindow:
             sys_label.bind("<Button-3>", partial(self._context_menu, systems[sysnum], 'System'))
             ToolTip(sys_label, text=_("Left click view system, right click menu")) # LANG: tooltip for the copy to clipboard icon
             self._set_weight(sys_label)
-            self.plan_titles[sysnum]['System'] = sys_label
+            self.plan_titles[tabnum]['System'] = sys_label
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
             bodies:str = str(len(systems[sysnum]['Bodies'])) + " " + _("Bodies") # LANG: bodies in the system
@@ -458,7 +469,7 @@ class ColonisationWindow:
         text:tk.Text = tk.Text(self.bodies_fr, font=FONT_SMALL, yscrollcommand=scr.set)
         text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
 
-        sysnum:int = tabnum - 1
+        sysnum:int = self.tl[tabnum]
         systems:list = self.colonisation.get_all_systems()
 
         bodies:list = systems[sysnum].get('Bodies', None)
@@ -513,12 +524,11 @@ class ColonisationWindow:
                 return
 
             notes:str = text.get("1.0", tk.END)
-            system['Notes'] = notes.strip()
-            self.colonisation.save("Notes popup close")
+            self.colonisation.modify_system(system, {'Notes': notes.strip()})
             self.notes_fr.destroy()
             self.notes_fr
 
-        sysnum:int = tabnum -1
+        sysnum:int = self.tl[tabnum]
         systems:list = self.colonisation.get_all_systems()
 
         if self.notes_fr != None and self.notes_fr.winfo_exists():
@@ -588,21 +598,24 @@ class ColonisationWindow:
         sheet.set_sheet_data(data)
 
         self._config_sheet(sheet, system)
-        sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
-        sheet.edit_validation(func=partial(self._validate_edits, sheet))
-        sheet.extra_bindings(['all_modified_events', 'cell_select', 'ctrl_row_select', 'rc_delete_row', 'rc_insert_row'], func=partial(self.sheet_modified, sheet, tabnum))
-
-        sheet.popup_menu_add_command(label="Move up", func=partial(self._row_modified, sheet, tabnum, 'MoveUp'), image=tk.PhotoImage(data=ICON_SORT_DESC), compound="left")
-        sheet.popup_menu_add_command(label="Move down", func=partial(self._row_modified, sheet, tabnum, 'MoveDown'), image=tk.PhotoImage(data=ICON_SORT_ASC), compound="left")
-        sheet.popup_menu_add_command(label="Insert build above", func=partial(self._row_modified, sheet, tabnum, 'InsAbove'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
-        sheet.popup_menu_add_command(label="Insert build below", func=partial(self._row_modified, sheet, tabnum, 'InsBelow'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
-        sheet.popup_menu_add_command(label="Delete build", func=partial(self._row_modified, sheet, tabnum, 'Delete'), image=tk.PhotoImage(data=ICON_DEL), compound="left")
-        sheet.popup_menu_add_command(label="Toggle Readonly", func=partial(self._row_modified, sheet, tabnum, 'Readonly'), image=tk.PhotoImage(data=ICON_REDO), compound="left")
-
-        if len(self.sheets) < tabnum:
-            self.sheets.append(sheet)
+        if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
+            sheet.enable_bindings('single_select', 'drag_select', 'arrowkeys')
         else:
-            self.sheets[tabnum-1] = sheet
+            sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
+
+            sheet.edit_validation(func=partial(self._validate_edits, sheet))
+            sheet.extra_bindings(['all_modified_events', 'cell_select', 'ctrl_row_select', 'rc_delete_row', 'rc_insert_row'], func=partial(self.sheet_modified, sheet, tabnum))
+
+            sheet.popup_menu_add_command(label="Move up", func=partial(self._row_modified, sheet, tabnum, 'MoveUp'), image=tk.PhotoImage(data=ICON_SORT_DESC), compound="left")
+            sheet.popup_menu_add_command(label="Move down", func=partial(self._row_modified, sheet, tabnum, 'MoveDown'), image=tk.PhotoImage(data=ICON_SORT_ASC), compound="left")
+            sheet.popup_menu_add_command(label="Insert build above", func=partial(self._row_modified, sheet, tabnum, 'InsAbove'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
+            sheet.popup_menu_add_command(label="Insert build below", func=partial(self._row_modified, sheet, tabnum, 'InsBelow'), image=tk.PhotoImage(data=ICON_ADD), compound="left")
+            sheet.popup_menu_add_command(label="Delete build", func=partial(self._row_modified, sheet, tabnum, 'Delete'), image=tk.PhotoImage(data=ICON_DEL), compound="left")
+            sheet.popup_menu_add_command(label="Toggle Readonly", func=partial(self._row_modified, sheet, tabnum, 'Readonly'), image=tk.PhotoImage(data=ICON_REDO), compound="left")
+
+        while len(self.sheets) <= tabnum:
+            self.sheets.append(sheet)
+        self.sheets[tabnum] = sheet
 
 
     @catch_exceptions
@@ -615,7 +628,7 @@ class ColonisationWindow:
         row:int = selected.row - FIRST_BUILD_ROW                            # type: ignore
         if row < 0: return
 
-        sysnum:int = tabnum -1
+        sysnum:int = self.tl[tabnum]
         systems:list = self.colonisation.get_all_systems()
         system:dict = systems[sysnum]
 
@@ -631,7 +644,7 @@ class ColonisationWindow:
             case 'Delete':
                 self.colonisation.remove_build(system, row)
                 sheet.del_row(row)
-                self._config_sheet(self.sheets[sysnum], system)
+                self._config_sheet(self.sheets[tabnum], system)
             case 'MoveUp':
                 if row == 0:
                     return
@@ -648,16 +661,24 @@ class ColonisationWindow:
 
     @catch_exceptions
     def _update_title(self, index:int, system:dict) -> None:
+        # @TODO: Remove if nolonger needed
         ''' Update title with both display name and actual system name '''
-        name:str = system.get('Name','') if system.get('Name',None) != None else system.get('StarSystem', _('Unknown')) # LANG: Default when we don't know the name
+        name:str = system.get('Name','') if system.get('Name', '') != '' else system.get('StarSystem', _('Unknown')) # LANG: Default when we don't know the name
         sysname:str = system.get('StarSystem', '') if system.get('StarSystem') != '' else ''
 
+        if 'Name' not in self.plan_titles[index]:
+            return
+
         self.plan_titles[index]['Name']['text'] = name
-        self.plan_titles[index]['System']['text'] = sysname
 
         # Hide the system name if it hasn't been set
+        if 'System' not in self.plan_titles[index]:
+            return
         if sysname == None:
             self.plan_titles[index]['System'].pack_forget()
+            return
+
+        self.plan_titles[index]['System']['text'] = sysname
 
 
     @catch_exceptions
@@ -693,7 +714,7 @@ class ColonisationWindow:
 
         # Make the sections readonly that users can't edit.
         sheet[f"{num2alpha(self._detcol('Track'))}1:4"].readonly()
-        sheet['B2'].readonly(False) # Except Architect
+        sheet['B2:C2'].readonly(False) # Except Architect & RCOpen
 
         sheet[f"{num2alpha(self._detcol('Body Type'))}4:{num2alpha(len(self.detail_cols.keys())-1)}"].readonly() # Build columns from Body onwards
         # track, types, layouts, and names left.
@@ -734,6 +755,9 @@ class ColonisationWindow:
                 match name:
                     case 'Architect':
                         totals['Planned'][name] = system.get('Architect', _('Unknown'))
+                        totals['Complete'][name] = ' '
+                    case 'RCOpen':
+                        totals['Planned'][name] = _('Open') if system.get('RCOpen', False) else _('Secured')
                         totals['Complete'][name] = ' '
                     case 'State':
                         totals['Planned'][name] = _("Planned")
@@ -825,6 +849,15 @@ class ColonisationWindow:
                 sheet[self._cell(i+srow,j)].data = ' ' if new[i][j] == 0 else f"{new[i][j]:,}" if details.get('format') == 'int' else new[i][j]
                 if details.get('background') != None:
                     sheet[self._cell(i+srow,j+scol)].highlight(bg=self._set_background(details.get('background'), new[i][j], details.get('max', 1)))
+
+        if system.get('RCSync', False) == True:
+            sheet[self._cell(srow,list(self.summary_cols.keys()).index('RCOpen'))].dropdown(values=['Open', 'Secured'])
+            sheet[self._cell(srow,list(self.summary_cols.keys()).index('RCOpen'))].data = 'Open' if system.get('RCOpen', True) == True else 'Secured'
+        else:
+            sheet[self._cell(srow,list(self.summary_cols.keys()).index('RCOpen'))].del_dropdown()
+            sheet[self._cell(srow,list(self.summary_cols.keys()).index('RCOpen'))].readonly()
+            sheet[self._cell(srow,list(self.summary_cols.keys()).index('RCOpen'))].data = "N/A"
+
 
 
     @catch_exceptions
@@ -1023,17 +1056,18 @@ class ColonisationWindow:
     @catch_exceptions
     def update_display(self) -> None:
         ''' Update the display with current system data '''
-        if self.window == None: return
+        if self.window == None or not self.window.winfo_exists(): return
 
         systems:list = self.colonisation.get_all_systems()
-        for i, tab in enumerate(self.sheets):
-            system = systems[i]
-            self._update_title(i, system)
-            self._update_summary(FIRST_SUMMARY_ROW, self.sheets[i], system)
-            self._update_detail(FIRST_BUILD_ROW, self.sheets[i], system)
+        for tabnum, sysnum in self.tl.items():
+            system:dict = systems[sysnum]
+            #Debug.logger.debug(f"System: t {tabnum} sys {sysnum} {system.get('Name', '')}")
+            self._update_title(tabnum, system)
+            self._update_summary(FIRST_SUMMARY_ROW, self.sheets[tabnum], system)
+            self._update_detail(FIRST_BUILD_ROW, self.sheets[tabnum], system)
             # Not our system? Then it's readonly
             if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
-                self.sheets[i]['B1:Z'].readonly()
+                self.sheets[tabnum]['B1:Z'].readonly()
 
 
     @catch_exceptions
@@ -1054,7 +1088,7 @@ class ColonisationWindow:
     def sheet_modified(self, sheet:Sheet, tabnum:int, event = None) -> None:
         ''' Handle edits to the sheet. This is where we update the system data. '''
 
-        sysnum:int = tabnum -1
+        sysnum:int = self.tl[tabnum]
         systems:list = self.colonisation.get_all_systems()
         system:dict = systems[sysnum]
 
@@ -1092,8 +1126,11 @@ class ColonisationWindow:
         # In the summary
         if event.row < FIRST_BUILD_ROW:
             field:str = list(self.summary_cols.keys())[event.column]
-            if event.row == 1 and field == 'Architect':
-                self.colonisation.modify_system(system, {field: event.value})
+            if event.row == 1 and field in ['Architect', 'RCOpen']:
+                val = event.value
+                if field == 'RCOpen':
+                    val = True if event.value == 'Open' else False
+                self.colonisation.modify_system(system, {field: val})
             return
 
         field:str = list(self.detail_cols.keys())[event.column]
@@ -1108,10 +1145,10 @@ class ColonisationWindow:
                 else:
                     self.colonisation.set_base_type(system, row, val)
 
-                sdata:list = self.sheets[sysnum].data
+                sdata:list = self.sheets[tabnum].data
                 sdata.pop(row + FIRST_BUILD_ROW)
-                self.sheets[sysnum].set_sheet_data(sdata, redraw=False)
-                self._config_sheet(self.sheets[sysnum], system)
+                self.sheets[tabnum].set_sheet_data(sdata, redraw=False)
+                self._config_sheet(self.sheets[tabnum], system)
 
             case 'Base Type' | 'Layout' if val != ' ':
                 self.colonisation.set_base_type(system, row, val)
@@ -1124,8 +1161,8 @@ class ColonisationWindow:
                 sdata.append(self._get_detail_header())
                 sdata += self._build_detail(system)
 
-                self.sheets[sysnum].set_sheet_data(sdata, redraw=False)
-                self._config_sheet(self.sheets[sysnum], system)
+                self.sheets[tabnum].set_sheet_data(sdata, redraw=False)
+                self._config_sheet(self.sheets[tabnum], system)
 
             case 'Body':
                 # If the body is set, update the build data
@@ -1184,6 +1221,8 @@ class ColonisationWindow:
         row += 1
 
         rcsync_var = tk.BooleanVar()
+        if self.bgstally.state.ColonisationRCAPIKey.get() != None and self.bgstally.state.ColonisationRCAPIKey.get() != "":
+            rcsync_var.set(True)
         chk = tk.Checkbutton(add, text=_("Sync with RavenColonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with RavenColonial
         chk.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
         row += 1
@@ -1222,7 +1261,7 @@ class ColonisationWindow:
 
         for ind, system in enumerate(self.colonisation.get_all_systems()):
             if system.get('Hidden', False) == True:
-                lbl = ttk.Label(self.react, text=system.get("Name"))
+                lbl = ttk.Label(self.react, text=system.get("Name", ''))
                 lbl.grid(row=row, column=col, columnspan=2, padx=10, pady=0, sticky=tk.W)
                 activate_button:ttk.Button = ttk.Button(
                     self.react,
@@ -1235,10 +1274,16 @@ class ColonisationWindow:
 
     @catch_exceptions
     def _reactivate_system(self, sysnum:int) -> None:
-            Debug.logger.debug("Reactivating system: {sysnum}")
-            self.colonisation.modify_system(sysnum, {'Hidden':False})
-            self.tabbar.notebookTab.tab(sysnum+1, state='normal')
-            self.update_react_dialog()
+        self.colonisation.modify_system(sysnum, {'Hidden':False})
+
+        # Destroy the existing frames and recreate them.
+        self.tabbar.destroy()
+        for s in self.sheets:
+            s.destroy()
+        self.sheets = []
+        self._create_frames()   # Create main frames
+        self.update_display()   # Populate them
+        #self.update_react_dialog()
 
 
     @catch_exceptions
@@ -1255,7 +1300,9 @@ class ColonisationWindow:
             return
 
         systems:list = self.colonisation.get_all_systems()
-        self._create_system_tab(len(systems), system)
+        tabnum:int = max(self.tl.keys())+1 # Next available tab
+        self.tl[tabnum] = len(systems)-1
+        self._create_system_tab(tabnum, system)
         self.update_display()
 
 
@@ -1263,7 +1310,7 @@ class ColonisationWindow:
     def edit_system_dialog(self, tabnum:int, btn:ttk.Button) -> None:
         ''' Show dialog to edit a system '''
 
-        sysnum:int = tabnum -1
+        sysnum:int = self.tl[tabnum]
         systems:list = self.colonisation.get_all_systems()
         if sysnum > len(systems):
             Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
@@ -1334,7 +1381,7 @@ class ColonisationWindow:
     @catch_exceptions
     def _edit_system(self, tabnum:int, name:str, sysname:str, rcsync:bool, hide:bool, dialog:tk.Toplevel) -> None:
         ''' Edit a system's plan, name and sync state '''
-        sysnum:int = tabnum -1
+        sysnum:int = self.tl[tabnum]
 
         if not name:
             messagebox.showerror(_("Error"), _("Plan name is required"))
@@ -1360,7 +1407,7 @@ class ColonisationWindow:
     @catch_exceptions
     def delete_system(self, tabnum:int, tab: ttk.Frame) -> None:
         ''' Remove the current system '''
-        sysnum:int = tabnum -1
+        sysnum:int = self.tl[tabnum]
         # Confirm removal
         if not messagebox.askyesno(
             _("Confirm Removal"),
@@ -1372,20 +1419,26 @@ class ColonisationWindow:
             Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
         Debug.logger.info(f"Deleting system {tabnum}")
-        tabs:list = self.tabbar.tabs()
-        self.tabbar.forget(tabs[tabnum])
-        del self.sheets[sysnum]
-        del self.plan_titles[sysnum]
         self.colonisation.remove_system(sysnum)
 
-        self.update_display()
+        # Destroy the existing frames and recreate them.
+        try:
+            self.tabbar.destroy()
+            for s in self.sheets:
+                s.destroy()
+            self.sheets = []
+            self.plan_titles = []
+            self._create_frames()   # Create main frames
+            self.update_display()   # Populate them
+        except Exception:
+            return
 
 
     @catch_exceptions
     def _rc_refresh_system(self, tabnum:int) -> None:
         ''' Reload the current system from RavenColonial '''
 
-        sysnum:int = tabnum -1
+        sysnum:int = self.tl[tabnum]
         systems:list = self.colonisation.get_all_systems()
         if sysnum > len(systems):
             Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
@@ -1415,7 +1468,6 @@ class ColonisationWindow:
         self.tabbar = None
         self.sheets = []
         self.plan_titles = []
-        self.colonisation.save("Colonisation window close")
 
 
     @catch_exceptions

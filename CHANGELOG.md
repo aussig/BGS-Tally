@@ -8,7 +8,9 @@
 * Corrected too small price width for materials in discord post
 * Corrected trading header in discord post
 * Addressed a timing runtime if you close the markets frame during a request
-
+* Replaced colonisation icons with images for better cross-platform compatibility
+* Fixed bug where fleetcarrier data was being sent to RC when it shouldn't
+* Fixed runtime with fleetcarrier jumptime deltas
 
 ## v5.4.0-b1 - 2025-12-21
 

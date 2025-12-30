@@ -1031,7 +1031,7 @@ class FleetCarrier:
 
 
     def _time_passed(self, tstr:str|None) -> bool:
-        if tstr == None: return False
+        if tstr == None or tstr == "": return False
         then:datetime = datetime.strptime(tstr, DATETIME_FORMAT_JSON)
         then = then.replace(tzinfo=UTC).astimezone(None)
         now:datetime = datetime.now()

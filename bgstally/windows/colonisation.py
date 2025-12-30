@@ -318,11 +318,11 @@ class ColonisationWindow:
         self._set_weight(details)
         details.pack(side=tk.LEFT, padx=10, pady=5)
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, cursor="hand2", command=lambda: self.legend_popup())
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_info, width=3, cursor="hand2", command=lambda: self.legend_popup())
         btn.pack(side=tk.RIGHT, padx=(20, 5), pady=5)
         ToolTip(btn, text=_("Show legend window")) # LANG: tooltip for the show legend button
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("🗑️"), width=3, cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_delete, width=3, cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
         ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
@@ -330,28 +330,28 @@ class ColonisationWindow:
         #ToolTip(btn, text=_("Hide system plan")) # LANG: tooltip for the hide system button
         #btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("📝"), width=3, cursor="hand2", command=lambda: self.edit_system_dialog(tabnum, btn)) # LANG: Rename button
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_edit, width=3, cursor="hand2", command=lambda: self.edit_system_dialog(tabnum, btn)) # LANG: Rename button
         ToolTip(btn, text=_("Edit system plan")) # LANG: tooltip for the edit system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
-
-        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
+        # ⌕ ?
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_search, width=3, cursor="hand2", command=lambda: self.bases_popup())
         btn.pack(side=tk.RIGHT, padx=(5,20), pady=5)
         ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
-            btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
+            btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_world, width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
 
 
         # 📓 📝 📋
-        btn:ttk.Button = ttk.Button(title_frame, text=_("📋"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_note, cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
         if systems[sysnum].get('RCSync', False) == True:
             #🔄 ⟳
-            btn:ttk.Button = ttk.Button(title_frame, text=_("🔄"), cursor="hand2", width=3, command=partial(self._rc_refresh_system, tabnum))
+            btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_refresh, cursor="hand2", width=3, command=partial(self._rc_refresh_system, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Refresh from RavenColonial")) # LANG: tooltip for ravencolonial refresh button
 

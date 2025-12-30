@@ -11,6 +11,8 @@
 * Replaced colonisation icons with images for better cross-platform compatibility
 * Fixed bug where fleetcarrier data was being sent to RC when it shouldn't
 * Fixed runtime with fleetcarrier jumptime deltas
+* Fixed autopost failure after new tick fetched
+
 
 ## v5.4.0-b1 - 2025-12-21
 

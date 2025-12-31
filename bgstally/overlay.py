@@ -80,7 +80,7 @@ class Overlay:
                 if x_center:
                     x: int = int(WIDTH_OVERLAY / 2) + x_value   # Let EDMCModernOverlay plugin group handle horizontally centering
                 elif x_value < 0:
-                    x: int = WIDTH_OVERLAY # Let EDMCModernOverlay plugin group handle centering/right offset
+                    x: int = WIDTH_OVERLAY # Let EDMCModernOverlay plugin group handle right offset
                 else:
                     x: int = x_value
             else:
@@ -97,7 +97,7 @@ class Overlay:
                 if y_center:
                     y: int = int(HEIGHT_OVERLAY / 2) + y_value   # Let EDMCModernOverlay plugin group handle vertically centering
                 elif y_value < 0:
-                    y: int = HEIGHT_OVERLAY # Let EDMCModernOverlay plugin group handle centering/bottom offset
+                    y: int = HEIGHT_OVERLAY # Let EDMCModernOverlay plugin group handle bottom offset
                 else:
                     y: int = y_value
             else:             

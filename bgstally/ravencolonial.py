@@ -165,7 +165,6 @@ class RavenColonial:
         # Query the system to see if it exists
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
         response:Response = requests.get(url, headers=self._headers(), timeout=5)
-        data:dict = response.json()
 
         # Add a new system to RavenColonial
         if response.status_code == 404:
@@ -180,8 +179,11 @@ class RavenColonial:
             for b in system.get('Builds', []):
                 self.upsert_site(system, b)
 
-            # Merge RC data (either from the original get or from the import) with system data
-            self._merge_system_data(response.json())
+        data:dict = response.json()
+
+        # First time so merge RC data (either from the original get or from the import) with system data
+        if system.get('Rev', None) == None:
+            self._merge_system_data(data)
 
         payload:dict = {}
         for k, v in self.sys_params.items():

@@ -1,3 +1,4 @@
+# type: ignore[reportMemberAccess]
 import json
 from os import path
 from os.path import join
@@ -458,12 +459,12 @@ class Colonisation:
         if data.get('Name', None) == None: data['Name'] = data.get('StarSystem', '')
         if data.get('Builds', None) == None: data['Builds'] = []
         self.systems.append(data)
-        if rcsync == True and data.get('StarSystem', None) != None:
+        if rcsync == True and data.get('StarSystem', "") != "":
             RavenColonial(self).upsert_system(data)
             data['RCSync'] = True
 
         # If we have a system address, we get the bodies and maybe stations
-        if rcsync == False and data.get('StarSystem', None) != None:
+        if rcsync == False and data.get('StarSystem', "") != "":
             BODY_SERVICE.import_bodies(data.get('StarSystem', ''))
             if prepop == True: STATION_SERVICE.import_stations(data.get('StarSystem', ''))
             SYSTEM_SERVICE.import_system(data.get('StarSystem', ''))

@@ -200,6 +200,7 @@ class ColonisationWindow:
         systems:list = self.colonisation.get_all_systems()
         if len(systems) == 0:
             Debug.logger.info(f"No systems so not creating colonisation section")
+            self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
             return
 
         tabnum:int = 1

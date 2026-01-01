@@ -13,7 +13,7 @@
 * Fixed runtime with fleetcarrier jumptime deltas
 * Fixed autopost failure after new tick fetched
 * Fixed bugs with tracking locker/bartender materials trading
-
+* Fixed bug where colonisation tabbar would not show if there were no systems (introduced by recent performance improvements)
 
 ## v5.4.0-b1 - 2025-12-21
 

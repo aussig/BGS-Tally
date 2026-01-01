@@ -12,6 +12,7 @@
 * Fixed bug where fleetcarrier data was being sent to RC when it shouldn't
 * Fixed runtime with fleetcarrier jumptime deltas
 * Fixed autopost failure after new tick fetched
+* Fixed bugs with tracking locker/bartender materials trading
 
 
 ## v5.4.0-b1 - 2025-12-21

@@ -177,10 +177,10 @@ class FleetCarrier:
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
                 deets['mission'] = (t == 'mission')
-                buying += deets['outstanding']
+                buying += deets.get('outstanding', 0)
                 if deets['outstanding'] == 0 and deets['price'] > 0 and (t == 'normal'):
-                    selling += deets['stock']
-                stored += deets['stock']
+                    selling += deets.get('stock', 0)
+                stored += deets.get('stock', 0)
                 res[mat] = deets
         res = dict(sorted(res.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
@@ -517,7 +517,15 @@ class FleetCarrier:
             for m in v:
                 name:str = m.get('name', "").lower()
                 # all the ways a commodity may be listed in CAPI data
-                sale:dict = next((item for item in list(get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], [])) if item.get('name', "").lower() == name), {})
+
+                # Sale seems to switch from list to dict.
+                sale:dict = {}
+                if isinstance(get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], {}), dict):
+                    tmp:dict = get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], {})
+                    sale = next((item for id, item in tmp.items() if item.get('name', "").lower() == name), {})
+                else:
+                    sale = next((item for item in get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], []) if item.get('name', "").lower() == name), {})
+
                 purchase:dict = next((item for item in get_by_path(data, ['orders', 'onfootmicroresources', 'purchases'], []) if item.get('name', "").lower() == name), {})
                 type:str = 'mission' if m.get('mission', False) == True else 'normal'
                 if name not in locker[type] and m.get('quantity', 0) > 0 or purchase.get('outstanding', 0) > 0:

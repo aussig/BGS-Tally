@@ -2,8 +2,22 @@
 
 ## v5.4.0-xx - xxxx-xx-xx
 
+### New Features:
 
+* Updates to support CMDR SweetJonnySauce's new [EDMCModernOverlay](https://github.com/SweetJonnySauce/EDMCModernOverlay) plugin, with backward compatability for the legacy EDMCOverlay and edmcoverlay2 plugins for the moment, which are no longer maintained. From the next major release (v6) EDMCModernOverlay will be the only overlay plugin supported by BGS-Tally.
 
+### Bug Fixes:
+
+* Corrected erroneous listing of materials as buying in the fleetcarrier
+* Corrected too small price width for materials in discord post
+* Corrected trading header in discord post
+* Addressed a timing runtime if you close the markets frame during a request
+* Replaced colonisation icons with images for better cross-platform compatibility
+* Fixed bug where fleetcarrier data was being sent to RC when it shouldn't
+* Fixed runtime with fleetcarrier jumptime deltas
+* Fixed autopost failure after new tick fetched
+* Fixed bugs with tracking locker/bartender materials trading
+* Fixed bug where colonisation tabbar would not show if there were no systems (introduced by recent performance improvements)
 
 ## v5.4.0-b1 - 2025-12-21
 

@@ -110,6 +110,8 @@ class ActivityManager:
             new_activity.tick_forced = forced
             new_activity.discord_webhook_data = {}
             new_activity.discord_notes = ""
+            new_activity.dirty = False
+            new_activity.autopost = False
             new_activity.clear_activity(self.bgstally.mission_log)
             self.activity_data.append(new_activity)
             self.activity_data.sort(reverse=True)

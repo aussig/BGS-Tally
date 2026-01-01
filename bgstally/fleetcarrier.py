@@ -122,7 +122,7 @@ class FleetCarrier:
         for k, v in get_by_path(self.data, ["market", "services"], {}).items(): # List of all services and their status
 
             services['crew'][k] = deepcopy(crew.get(k, {}).get('crewMember', {}))
-            services['crew'][k]['enabled'] = (services['crew'].get(k, {}).get('enabled', ''), 'str', 'No')
+            services['crew'][k]['enabled'] = (services['crew'].get(k, {}).get('enabled', 'No').title(), 'str', 'No')
 
             services['crew'][k]['status'] = v
             services['crew'][k]['taxation'] = (get_by_path(self.data, ['finance', 'service_taxation', k], 0), 'num', '0%', '%')
@@ -177,10 +177,10 @@ class FleetCarrier:
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
                 deets['mission'] = (t == 'mission')
-                buying += deets['outstanding']
+                buying += deets.get('outstanding', 0)
                 if deets['outstanding'] == 0 and deets['price'] > 0 and (t == 'normal'):
-                    selling += deets['stock']
-                stored += deets['stock']
+                    selling += deets.get('stock', 0)
+                stored += deets.get('stock', 0)
                 res[mat] = deets
         res = dict(sorted(res.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
@@ -398,7 +398,7 @@ class FleetCarrier:
             stolen:bool = c.get('stolen', False)
             mission:bool = c.get('mission', False)
 
-            Debug.logger.debug(f"Initial cargo: {self.cargo['normal'].get(cname, {})}")
+            #Debug.logger.debug(f"Initial cargo: {self.cargo['normal'].get(cname, {})}")
             # Deal with stolen and mission cargo first
             if stolen or mission:
                 for type in ['stolen', 'mission']:
@@ -433,8 +433,8 @@ class FleetCarrier:
                 }
             if cargo['normal'][cname]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {cargo['normal'][cname]}")
-            else:
-                Debug.logger.debug(f"Final cargo: {cargo['normal'][cname]}")
+            #else:
+                #Debug.logger.debug(f"Final cargo: {cargo['normal'][cname]}")
 
         return cargo
 
@@ -449,7 +449,7 @@ class FleetCarrier:
             elem:int = next((index for (index, d) in enumerate(self.itinerary) if d['arrivalTime'] == jump.get('arrivalTime', '')), -1)
 
             if elem > 0: # Found it, and it's an "old" one. Update departure time and duration just in case
-                Debug.logger.debug(f"Match on item {elem} so update it {jump.get('departureTime', jumplist[elem].get('departureTime', None))} {jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))}")
+                #Debug.logger.debug(f"Match on item {elem} so update it {jump.get('departureTime', jumplist[elem].get('departureTime', None))} {jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))}")
                 jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
                 jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))
                 continue
@@ -517,7 +517,15 @@ class FleetCarrier:
             for m in v:
                 name:str = m.get('name', "").lower()
                 # all the ways a commodity may be listed in CAPI data
-                sale:dict = next((item for item in list(get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], [])) if item.get('name', "").lower() == name), {})
+
+                # Sale seems to switch from list to dict.
+                sale:dict = {}
+                if isinstance(get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], {}), dict):
+                    tmp:dict = get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], {})
+                    sale = next((item for id, item in tmp.items() if item.get('name', "").lower() == name), {})
+                else:
+                    sale = next((item for item in get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], []) if item.get('name', "").lower() == name), {})
+
                 purchase:dict = next((item for item in get_by_path(data, ['orders', 'onfootmicroresources', 'purchases'], []) if item.get('name', "").lower() == name), {})
                 type:str = 'mission' if m.get('mission', False) == True else 'normal'
                 if name not in locker[type] and m.get('quantity', 0) > 0 or purchase.get('outstanding', 0) > 0:
@@ -1031,7 +1039,7 @@ class FleetCarrier:
 
 
     def _time_passed(self, tstr:str|None) -> bool:
-        if tstr == None: return False
+        if tstr == None or tstr == "": return False
         then:datetime = datetime.strptime(tstr, DATETIME_FORMAT_JSON)
         then = then.replace(tzinfo=UTC).astimezone(None)
         now:datetime = datetime.now()

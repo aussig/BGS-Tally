@@ -196,6 +196,9 @@
 /* Builds/bases. [progress.py] */
 "Builds" = "Builds";
 
+/* [fleetcarrier.py] */
+"buy" = "buy";
+
 /* Carrier buy order amount. [progress.py] */
 "Buy Orders" = "Buy Orders";
 
@@ -236,7 +239,7 @@
 "Carrier" = "Carrier";
 
 /* fleet carrier materials header. [fleetcarrier.py] */
-"Carrier: {carrier_name} - {which}\n" = "Carrier: {carrier_name} - {which}\n";
+"Carrier {order} for {carrier_name} \n" = "Carrier {order} for {carrier_name} \n";
 
 /* category of base. [colonisation.py] */
 "Category" = "Category";
@@ -877,9 +880,6 @@
 /* building layout. [colonisation.py] */
 "Layout" = "Layout";
 
-/* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
-"Left click for Inara market, right click to copy" = "Left click for Inara market, right click to copy";
-
 /* tooltip for the build name". [progress.py] */
 "left click to copy, right click menu" = "left click to copy, right click menu";
 
@@ -1056,6 +1056,9 @@
 
 /* Number of orbital/space builds. [colonisation.py] */
 "Orbital" = "Orbital";
+
+/* [fleetcarrier.py] */
+"orders" = "orders";
 
 /* Colonisation 'Category' [base_types.json] */
 "Outpost" = "Outpost";
@@ -1377,6 +1380,9 @@
 
 /* [widgets.py] */
 "Select all" = "Select all";
+
+/* [fleetcarrier.py] */
+"sell" = "sell";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Selling" = "Selling";
@@ -1843,21 +1849,6 @@
 /* Objectives title. [objectivesmanager.py] */
 "{server_name} Objectives" = "{server_name} Objectives";
 
-/* [colonisation.py] */
-"ⓘ" = "ⓘ";
-
 /* Hide button. [colonisation.py] */
 "👁" = "👁";
-
-/* [colonisation.py] */
-"📋" = "📋";
-
-/* Rename button. [colonisation.py] */
-"📝" = "📝";
-
-/* [colonisation.py] */
-"🔄" = "🔄";
-
-/* Delete button. [colonisation.py] */
-"🗑️" = "🗑️";
 

@@ -196,6 +196,9 @@
 /* Builds/bases. [progress.py] */
 "Builds" = "Construcciones";
 
+/* [fleetcarrier.py] */
+"buy" = "buy";
+
 /* Carrier buy order amount. [progress.py] */
 "Buy Orders" = "Órdenes de compra";
 
@@ -236,7 +239,7 @@
 "Carrier" = "Portanaves";
 
 /* fleet carrier materials header. [fleetcarrier.py] */
-"Carrier: {carrier_name} - {which}\n" = "Portanaves: {carrier_name} - {which}\n";
+"Carrier {order} for {carrier_name} \n" = "Carrier {order} for {carrier_name} \n";
 
 /* category of base. [colonisation.py] */
 "Category" = "Categoría";
@@ -709,6 +712,9 @@
 /* Overlay CMDR information report message. [ui.py] */
 "In system: {system}" = "En el sistema: {system}";
 
+/* Fleet carrier, ship in transit. [fleetcarrier.py] */
+"In Transit" = "In Transit";
+
 /* Preferences heading. [ui.py] */
 "In-game Overlay" = "Overlay en el juego";
 
@@ -873,9 +879,6 @@
 
 /* building layout. [colonisation.py] */
 "Layout" = "Diseño";
-
-/* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
-"Left click for Inara market, right click to copy" = "Clic izquierdo para el mercado de Inara, click derecho para copiar";
 
 /* tooltip for the build name". [progress.py] */
 "left click to copy, right click menu" = "clic izquierdo para copiar, clic derecho para menú";
@@ -1053,6 +1056,9 @@
 
 /* Number of orbital/space builds. [colonisation.py] */
 "Orbital" = "Orbital";
+
+/* [fleetcarrier.py] */
+"orders" = "orders";
 
 /* Colonisation 'Category' [base_types.json] */
 "Outpost" = "Outpost";
@@ -1374,6 +1380,9 @@
 
 /* [widgets.py] */
 "Select all" = "Seleccionar todo";
+
+/* [fleetcarrier.py] */
+"sell" = "sell";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Selling" = "En venta";
@@ -1730,7 +1739,7 @@
 "Updated at: {date_time} | {plugin_name} v{version}" = "Actualizado el: {date_time} | {plugin_name} v{version}";
 
 /* Preferences checkbox label. [ui.py] */
-"Use scrollbar" = "Usar barra de desplazamiento";
+"Use scrollbar (restart required)" = "Use scrollbar (restart required)";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Used" = "Usado";
@@ -1840,20 +1849,5 @@
 /* Objectives title. [objectivesmanager.py] */
 "{server_name} Objectives" = "{server_name} - Objetivos";
 
-/* [colonisation.py] */
-"ⓘ" = "ⓘ";
-
 /* Hide button. [colonisation.py] */
 "👁" = "👁";
-
-/* [colonisation.py] */
-"📋" = "📋";
-
-/* Rename button. [colonisation.py] */
-"📝" = "📝";
-
-/* [colonisation.py] */
-"🔄" = "🔄";
-
-/* Delete button. [colonisation.py] */
-"🗑️" = "🗑️";

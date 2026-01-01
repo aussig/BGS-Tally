@@ -197,7 +197,6 @@ class ProgressWindow:
         self._set_weight(lbl)
         c += 1
         self.title = tk.Label(builds, text=_("None"), justify=tk.CENTER, anchor=tk.CENTER, cursor="hand2") # LANG: None
-        #self.title.config(foreground=config.get_str('dark_text') if config.get_int('theme') > 0 else 'black')
         self.title.bind("<Button-1>", partial(self.event, "copy"))
         self.title.bind("<Button-3>", partial(self._context_menu))
         self.title.grid(row=0, column=c, sticky=tk.EW)
@@ -228,14 +227,15 @@ class ProgressWindow:
         table_frame.grid(row=row, column=col, sticky=tk.NSEW)
         self.table_frame = table_frame
 
+        # Add the scrollbar frame
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
-            Debug.logger.debug(f"Using scrollbar")
             height=int((int(self.bgstally.state.ColonisationMaxCommodities.get())+2)*21*scale)
             scroll_canvas = tk.Canvas(table_frame, height=height, highlightthickness=0)
             scrollbar = ttk.Scrollbar(table_frame, orient='vertical', command=scroll_canvas.yview)
             table_frame.update()
             scrollable_frame = tk.Frame(scroll_canvas, width=table_frame.winfo_width())
-
+            if config.get_int('theme') > 0: scrollable_frame.configure(background='black')
+            if config.get_int('theme') == 2: scrollable_frame.configure(background='')
             scrollable_frame.bind(
                 '<Configure>',
                 lambda e: scroll_canvas.configure(
@@ -249,22 +249,16 @@ class ProgressWindow:
             scroll_canvas.create_window((0, 0), window=scrollable_frame, anchor=tk.NW, width=table_frame.winfo_width())
             scroll_canvas.configure(yscrollcommand=scrollbar.set)
             scroll_canvas.grid(row=1, column=0, sticky=tk.E)
-            #scroll_canvas.grid_rowconfigure(1, weight=1)
             scroll_canvas.columnconfigure(0, weight=3)
             scroll_canvas.columnconfigure(1, weight=1)
             scroll_canvas.columnconfigure(2, weight=1)
             scroll_canvas.columnconfigure(3, weight=1)
-            scrollbar.grid(row=1, column=5, sticky=tk.NS, ipadx=0, padx=0)
-            #if config.get_int('theme') == 1:
-            #    scroll_canvas.configure(background='black')
-            #    scrollable_frame.configure(background='black')
-                #scrollbar.configure(background='black', activebackground='black', troughcolor='black', highlightbackground='black')
-            table = scrollable_frame
+            scrollbar.grid(row=1, column=1, sticky=tk.NS, ipadx=0, padx=0)
+            table:tk.Frame = scrollable_frame
             # We have to make the column less wide to fit the scrollbar in
             self.headings[0]['Label'] = f"{_('Commodity'): <32}"
-            self.scroll_canvas = scroll_canvas
+            self.scroll_canvas:tk.Canvas = scroll_canvas
         else:
-            Debug.logger.debug(f"Not using scrollbar")
             table = tk.Frame(table_frame)
             table.grid(row=1, column=0, sticky=tk.NSEW)
 
@@ -273,11 +267,10 @@ class ProgressWindow:
         for col, v in enumerate(self.columns):
             if v >= len(self.headings): v = 0
             lbl = tk.Label(table, text=self.headings[v].get('Label'), cursor='hand2')
+            if config.get_int('theme') > 0 and self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
+                lbl.config(background='black', foreground=config.get_str('dark_text'))
             lbl.bind("<Button-1>", partial(self.change_view, col, 'Column'))
             lbl.bind("<Button-3>", partial(self.change_view, col, 'Units'))
-
-            #lbl.config(foreground=config.get_str('dark_text') if config.get_int('theme') > 0 else 'black')
-            #if config.get_int('theme') == 1: lbl.config(background='black')
             self._set_weight(lbl)
             lbl.grid(row=row, column=col, sticky=tk.EW if col == 0 else tk.E, padx=(0,5))
 
@@ -288,18 +281,11 @@ class ProgressWindow:
         # Go through the complete list of possible commodities and make a row for each and hide it.
         for c in self.colonisation.get_commodity_list():
             r:dict = {}
-
             for col, v in enumerate(self.columns):
-                lbl:tk.Label = tk.Label(table, text='', cursor="hand2")
-                #lbl.config(foreground=config.get_str('dark_text') if config.get_int('theme') > 0 else 'black')
-                #if config.get_int('theme') == 1: lbl.config(background='black')
+                lbl = tk.Label(table, text='', cursor='hand2')
+                if config.get_int('theme') > 0 and self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
+                    lbl.config(background='black', foreground=config.get_str('dark_text'))
                 lbl.grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
-                #if row == 0:
-                #    lbl.bind("<Button-1>", partial(self.link, c, None))
-                #    lbl.bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(c)))
-                #    ToolTip(lbl, text=_("Left click for Inara market, right click to copy")) # LANG: tooltip for the inara market commodity links and copy to clipboard
-                #    lbl.config(cursor='hand2', foreground=config.get_str('dark_text') if config.get_int('theme') == 1 else 'black')
-
                 r[col] = lbl
             self.rows.append(r)
             row += 1
@@ -310,8 +296,8 @@ class ProgressWindow:
         for col, v in enumerate(self.columns):
             r[col] = tk.Label(table, text=_("Total")) # LANG: Total amounts
             r[col].grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
-            #r[col].config(foreground=config.get_str('dark_text') if config.get_int('theme') > 0 else 'black')
-            #if config.get_int('theme') == 1: r[col].config(background='black')
+            if config.get_int('theme') > 0 and self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
+                r[col].config(background='black', foreground=config.get_str('dark_text'))
             self._set_weight(r[col])
         self.rows.append(r)
 
@@ -513,7 +499,7 @@ class ProgressWindow:
     @catch_exceptions
     def _markets_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
         ''' Callback from the RavenColonial materials request to open popup '''
-        if self.mkts_fr == None: return
+        if not self.mkts_fr or not self.mkts_fr.winfo_exists(): return
 
         if response == None or response.status_code != 200:
             Debug.logger.error(f"RavenColonial materials request failed")
@@ -634,7 +620,6 @@ class ProgressWindow:
                 name = ', '.join([pn, bt, bn])
         self.titlett.text = f"{name}\n{_('left click to copy, right click menu')}" # LANG: tooltip for the build name"
         self.title.config(text=str_truncate(name, 52, loc='middle'))
-        #self.title.config(foreground=config.get_str('dark_text') if config.get_int('theme') > 0 else 'black')
 
         # Hide the table but not the progress frame so the change view icon is still available
         if self.view == ProgressView.NONE:
@@ -650,7 +635,6 @@ class ProgressWindow:
             if col >= len(self.collbls): col = len(self.collbls) - 1
             if self.collbls[col] == None: col = 0
             self.collbls[col]['text'] = self.headings[val].get('Label')
-            #self.collbls[col].config(foreground=config.get_str('dark_text') if config.get_int('theme') > 0 else 'black')
             self.collbls[col].grid()
 
         totals:dict = {'Commodity': _("Total"),  # LANG: total commodities
@@ -742,7 +726,7 @@ class ProgressWindow:
 
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
             Debug.logger.debug(f"Resizing Cnvas: {self.bgstally.state.EnableProgressScrollbar.get()} {rowcnt < int(self.bgstally.state.ColonisationMaxCommodities.get())}")
-            rows = min(rowcnt, int(self.bgstally.state.ColonisationMaxCommodities.get()))
+            rows:int = min(rowcnt, int(self.bgstally.state.ColonisationMaxCommodities.get()))
             self.scroll_canvas.yview_moveto(0.0)
             height=int((rows+2)*21*(config.get_int('ui_scale') / 100.00))
             self.scroll_canvas.configure(height=height)

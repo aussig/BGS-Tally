@@ -628,7 +628,7 @@ class RavenColonial:
     @catch_exceptions
     def update_carrier(self, marketid:int, cargo:dict) -> None:
         """ Update the cargo of a fleet carrier """
-        if self.is_editable() == False:
+        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
             Debug.logger.info("Not updating carrier in RavenColonial")
             return
 

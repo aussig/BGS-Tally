@@ -2,6 +2,10 @@
 
 ## v5.4.0-xx - xxxx-xx-xx
 
+### New Features:
+
+* Updates to support CMDR SweetJonnySauce's new [EDMCModernOverlay](https://github.com/SweetJonnySauce/EDMCModernOverlay) plugin, with backward compatability for the legacy EDMCOverlay and edmcoverlay2 plugins for the moment, which are no longer maintained. From the next major release (v6) EDMCModernOverlay will be the only overlay plugin supported by BGS-Tally.
+
 ### Bug Fixes:
 
 * Corrected erroneous listing of materials as buying in the fleetcarrier

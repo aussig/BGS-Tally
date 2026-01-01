@@ -8,7 +8,7 @@ from tkinter import PhotoImage, ttk
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_TITLE, FOLDER_ASSETS, FONT_HEADING_1,
                                 FONT_HEADING_2, FONT_TEXT, ApiSizeLookup, ApiSyntheticCZObjectiveType, ApiSyntheticEvent, CheckStates, CZs, DiscordActivity,
-                                DiscordChannel)
+                                DiscordChannel, FavouriteActivity)
 from bgstally.debug import Debug
 from bgstally.factionmanager import FactionManager
 from bgstally.formatters.base import BaseActivityFormatterInterface
@@ -125,6 +125,14 @@ class WindowActivity:
         ttk.Checkbutton(frm_discordoptions, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         ttk.Checkbutton(frm_discordoptions, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         ttk.Checkbutton(frm_discordoptions, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
+        favourite_types: dict = {FavouriteActivity.IGNORE: _("Post all factions"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.FACTIONS: _("Post favourite factions only"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.SYSTEMS: _("Post systems containing favourite factions")} # LANG: Dropdown menu on activity window
+        var_favourite_type: tk.StringVar = tk.StringVar(value=favourite_types.get(self.bgstally.state.FavouriteActivity.get(), FavouriteActivity.IGNORE))
+        self.mnu_favourite_type: ttk.OptionMenu = ttk.OptionMenu(frm_discordoptions, var_favourite_type, var_favourite_type.get(),
+                                                            *favourite_types.values(),
+                                                            command=partial(self._favourite_type_selected, favourite_types, activity), direction='below')
+        self.mnu_favourite_type.grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1
 
         system_list = activity.get_ordered_systems()
 
@@ -466,6 +474,14 @@ class WindowActivity:
         self._update_discord_field(activity)
 
 
+    def _favourite_type_selected(self, favourite_types: dict, activity: Activity, value: str):
+        """The user has changed the dropdown to choose the favourite faction posting type
+        """
+        k: str = next(k for k, v in favourite_types.items() if v == value)
+        self.bgstally.state.FavouriteActivity.set(k)
+        self._update_discord_field(activity)
+
+
     def _post_to_discord(self, activity: Activity):
         """
         Callback to post to discord in the appropriate channel(s)
@@ -776,11 +792,11 @@ class WindowActivity:
                 else: notebook.notebookTab.tab(tab_index, image=self.image_tab_active_disabled)
 
 
-    def _copy_to_clipboard(self, frm_container: tk.Frame, activity: Activity):
+    def _copy_to_clipboard(self, frm_container: ttk.Frame, activity: Activity):
         """Get text version of the activity and put it in the Copy buffer
 
         Args:
-            frm_container (tk.Frame): The parent tk Frame
+            frm_container (ttk.Frame): The parent ttk Frame
             activity (Activity): The Activity object
         """
         formatter: BaseActivityFormatterInterface = self.bgstally.formatter_manager.get_current_formatter()

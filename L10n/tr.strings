@@ -196,6 +196,9 @@
 /* Builds/bases. [progress.py] */
 "Builds" = "İnşalar";
 
+/* [fleetcarrier.py] */
+"buy" = "buy";
+
 /* Carrier buy order amount. [progress.py] */
 "Buy Orders" = "Buy Orders";
 
@@ -236,7 +239,7 @@
 "Carrier" = "Filo Taşıyıcı";
 
 /* fleet carrier materials header. [fleetcarrier.py] */
-"Carrier: {carrier_name} - {which}\n" = "Carrier: {carrier_name} - {which}\n";
+"Carrier {order} for {carrier_name} \n" = "Carrier {order} for {carrier_name} \n";
 
 /* category of base. [colonisation.py] */
 "Category" = "Kategori";
@@ -709,6 +712,9 @@
 /* Overlay CMDR information report message. [ui.py] */
 "In system: {system}" = "Sistem: {system}";
 
+/* Fleet carrier, ship in transit. [fleetcarrier.py] */
+"In Transit" = "In Transit";
+
 /* Preferences heading. [ui.py] */
 "In-game Overlay" = "Oyun-içi Arayüz";
 
@@ -873,9 +879,6 @@
 
 /* building layout. [colonisation.py] */
 "Layout" = "Yerleşim";
-
-/* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
-"Left click for Inara market, right click to copy" = "Inara Market için sol tıklayın, kopyalamak için sağ tıklayın";
 
 /* tooltip for the build name". [progress.py] */
 "left click to copy, right click menu" = "left click to copy, right click menu";
@@ -1053,6 +1056,9 @@
 
 /* Number of orbital/space builds. [colonisation.py] */
 "Orbital" = "Orbital";
+
+/* [fleetcarrier.py] */
+"orders" = "orders";
 
 /* Colonisation 'Category' [base_types.json] */
 "Outpost" = "Karakol";
@@ -1374,6 +1380,9 @@
 
 /* [widgets.py] */
 "Select all" = "Tümünü seç";
+
+/* [fleetcarrier.py] */
+"sell" = "sell";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Selling" = "Selling";
@@ -1730,7 +1739,7 @@
 "Updated at: {date_time} | {plugin_name} v{version}" = "Güncellendi: {date_time} | {plugin_name} v{version}";
 
 /* Preferences checkbox label. [ui.py] */
-"Use scrollbar" = "Use scrollbar";
+"Use scrollbar (restart required)" = "Use scrollbar (restart required)";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Used" = "Used";
@@ -1840,20 +1849,5 @@
 /* Objectives title. [objectivesmanager.py] */
 "{server_name} Objectives" = "{server_name} Hedefler";
 
-/* [colonisation.py] */
-"ⓘ" = "ⓘ";
-
 /* Hide button. [colonisation.py] */
 "👁" = "👁";
-
-/* [colonisation.py] */
-"📋" = "📋";
-
-/* Rename button. [colonisation.py] */
-"📝" = "📝";
-
-/* [colonisation.py] */
-"🔄" = "🔄";
-
-/* Delete button. [colonisation.py] */
-"🗑️" = "🗑️";

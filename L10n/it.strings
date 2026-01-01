@@ -196,6 +196,9 @@
 /* Builds/bases. [progress.py] */
 "Builds" = "Strutture";
 
+/* [fleetcarrier.py] */
+"buy" = "buy";
+
 /* Carrier buy order amount. [progress.py] */
 "Buy Orders" = "Ordini di acquisto";
 
@@ -236,7 +239,7 @@
 "Carrier" = "Carrier";
 
 /* fleet carrier materials header. [fleetcarrier.py] */
-"Carrier: {carrier_name} - {which}\n" = "Carrier: {carrier_name} - {which}\n";
+"Carrier {order} for {carrier_name} \n" = "Carrier {order} for {carrier_name} \n";
 
 /* category of base. [colonisation.py] */
 "Category" = "Categoria";
@@ -254,7 +257,7 @@
 "Civilian Settlement" = "Civilian Settlement";
 
 /* Button label. [fleetcarrier.py] */
-"Clear" = "Clear";
+"Clear" = "Pulisci";
 
 /* [sheet_options.py] */
 "Clear contents" = "Cancella contenuto";
@@ -709,6 +712,9 @@
 /* Overlay CMDR information report message. [ui.py] */
 "In system: {system}" = "Nel sistema: {system}";
 
+/* Fleet carrier, ship in transit. [fleetcarrier.py] */
+"In Transit" = "In Transit";
+
 /* Preferences heading. [ui.py] */
 "In-game Overlay" = "Overlay in gioco";
 
@@ -827,7 +833,7 @@
 "INTERDICTED BY this CMDR" = "INTERDICATI DA questa CMDR";
 
 /* [fleetcarrier.py] */
-"January" = "January";
+"January" = "Gennaio";
 
 /* Discord post title. [fleetcarrier.py] */
 "Jump Cancelled for Carrier {carrier_name}" = "Salto annullato per la Fleet Carrier {carrier_name}";
@@ -873,9 +879,6 @@
 
 /* building layout. [colonisation.py] */
 "Layout" = "Layout";
-
-/* tooltip for the inara market commodity links and copy to clipboard. [progress.py] */
-"Left click for Inara market, right click to copy" = "Click sinistro per Inara market, click destro per copiare";
 
 /* tooltip for the build name". [progress.py] */
 "left click to copy, right click menu" = "clic sinistro per copiare, clic destro menu";
@@ -1053,6 +1056,9 @@
 
 /* Number of orbital/space builds. [colonisation.py] */
 "Orbital" = "Orbitale";
+
+/* [fleetcarrier.py] */
+"orders" = "orders";
 
 /* Colonisation 'Category' [base_types.json] */
 "Outpost" = "Outpost";
@@ -1374,6 +1380,9 @@
 
 /* [widgets.py] */
 "Select all" = "Seleziona tutto";
+
+/* [fleetcarrier.py] */
+"sell" = "sell";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Selling" = "In vendita";
@@ -1730,7 +1739,7 @@
 "Updated at: {date_time} | {plugin_name} v{version}" = "Aggiornato alle: {date_time} | {plugin_name} v{version}";
 
 /* Preferences checkbox label. [ui.py] */
-"Use scrollbar" = "Utilizza barra di scorrimento";
+"Use scrollbar (restart required)" = "Use scrollbar (restart required)";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Used" = "Utilizzato";
@@ -1840,20 +1849,5 @@
 /* Objectives title. [objectivesmanager.py] */
 "{server_name} Objectives" = "{server_name} - Obiettivi";
 
-/* [colonisation.py] */
-"ⓘ" = "ⓘ";
-
 /* Hide button. [colonisation.py] */
 "👁" = "👁";
-
-/* [colonisation.py] */
-"📋" = "📋";
-
-/* Rename button. [colonisation.py] */
-"📝" = "📝";
-
-/* [colonisation.py] */
-"🔄" = "🔄";
-
-/* Delete button. [colonisation.py] */
-"🗑️" = "🗑️";

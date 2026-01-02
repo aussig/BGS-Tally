@@ -1,3 +1,4 @@
+# type: ignore[reportMemberAccess]
 import re
 from functools import partial
 
@@ -210,7 +211,8 @@ class ColonisationWindow:
             self._create_system_tab(tabnum, system)
             tabnum += 1
 
-        if tabnum > 0:
+        if tabnum > 1:
+            t:int = 1
             for t in range(1, tabnum-1):
                 Debug.logger.debug(f"{t} {self.tl.get(t)} {tabnum-1}")
                 if systems[self.tl[t]].get('Hidden', True) == False:
@@ -1301,7 +1303,8 @@ class ColonisationWindow:
             return
 
         systems:list = self.colonisation.get_all_systems()
-        tabnum:int = max(self.tl.keys())+1 # Next available tab
+        tabnum:int = 1
+        if self.tl != {}: max(self.tl.keys())+1 # Next available tab
         self.tl[tabnum] = len(systems)-1
         self._create_system_tab(tabnum, system)
         self.update_display()

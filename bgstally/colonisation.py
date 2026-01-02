@@ -461,6 +461,7 @@ class Colonisation:
         self.systems.append(data)
         if rcsync == True and data.get('StarSystem', "") != "":
             RavenColonial(self).upsert_system(data)
+            # Get the list of projects and initialize them!
             data['RCSync'] = True
 
         # If we have a system address, we get the bodies and maybe stations
@@ -931,7 +932,7 @@ class Colonisation:
             if b.get('MarketID') != None:
                 for p in self.progress:
                     if p.get('MarketID') == b.get('MarketID') and p.get('ConstructionComplete', False) == False and p.get('ConstructionFailed', False) != True:
-                        res = p.get(type)
+                        res = p.get(type, {})
                         break
             # No actual data so we use the estimates from the base costs
             if res == {} and type != 'Delivered': res = self.base_types.get(b.get('Base Type'), {}).get('Cost', {})
@@ -967,7 +968,7 @@ class Colonisation:
         if p != None:
             return p
 
-        prog:dict = { 'MarketID': id }
+        prog:dict = {'MarketID': id, 'Required': {}, 'Delivered': {}}
         self.progress.append(prog)
 
         self.dirty = True

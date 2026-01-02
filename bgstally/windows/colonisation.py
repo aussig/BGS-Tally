@@ -1425,13 +1425,14 @@ class ColonisationWindow:
         Debug.logger.info(f"Deleting system {tabnum}")
         self.colonisation.remove_system(sysnum)
 
-        # Destroy the existing frames and recreate them.
+        # Destroy the existing frames and recreate them. It isn't pretty but it works.
         try:
             self.tabbar.destroy()
             for s in self.sheets:
                 s.destroy()
             self.sheets = []
             self.plan_titles = []
+            self.tl = {}
             self._create_frames()   # Create main frames
             self.update_display()   # Populate them
         except Exception:

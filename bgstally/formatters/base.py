@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 
 from bgstally.activity import Activity
-from bgstally.constants import DiscordActivity, DiscordPostStyle
+from bgstally.constants import DiscordActivity, DiscordPostStyle, FavouriteActivity
+from bgstally.debug import Debug
 from bgstally.utils import _
 
 
@@ -47,8 +48,49 @@ class BaseActivityFormatterInterface(ABC):
         return True
 
 
+    def include_system(self, system: dict) -> bool:
+        """Determine if a given system should be included in the output
+
+        Args:
+            system (dict): The system dict
+        Returns:
+            bool: True if the system should be included, false if not
+        """
+        match self.bgstally.state.FavouriteActivity.get():
+            case FavouriteActivity.IGNORE:
+                return True # All systems are included
+            case FavouriteActivity.SYSTEMS | FavouriteActivity.FACTIONS:
+                for faction in system['Factions'].values():
+                    Debug.logger.debug(f"Checking faction {faction}")
+                    if self.bgstally.faction_manager.is_favourite(faction['Faction']):
+                        return True # System is included if it contains a favourite faction
+
+        return False
+
+
+    def include_faction(self, faction: dict) -> bool:
+        """Determine if a given faction should be included in the output. It is assumed that include_system() has already been called on the parent system
+        and therefore the parent system is known to be included.
+
+        Args:
+            faction (dict): The faction dict
+        Returns:
+            bool: True if the faction should be included, false if not
+        """
+        match self.bgstally.state.FavouriteActivity.get():
+            case FavouriteActivity.IGNORE:
+                return True # All factions are included
+            case FavouriteActivity.SYSTEMS:
+                return True # All factions are included if we get this far, because the system will have been included as it contains a favourite faction
+            case FavouriteActivity.FACTIONS:
+                return self.bgstally.faction_manager.is_favourite(faction['Faction'])
+
+        return False
+
+
+
     @abstractmethod
-    def get_text(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> str:
+    def get_text(self, activity: Activity, activity_mode: DiscordActivity, system_names: list|None = None, lang: str|None = None) -> str:
         """Generate formatted text for a given instance of Activity. Must be implemented by subclasses.
         This method is used for getting the text for the 'copy and paste' function, and for direct posting
         to Discord for those Formatters that use text style posts (vs Discord embed style posts)
@@ -65,7 +107,7 @@ class BaseActivityFormatterInterface(ABC):
         pass
 
 
-    def get_preview(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> str:
+    def get_preview(self, activity: Activity, activity_mode: DiscordActivity, system_names: list|None = None, lang: str|None = None) -> str:
         """Get the activity window preview for a given instance of Activity. The on-screen previewer
         in BGS-Tally uses ANSI colour codes so this should return an ANSI-colour preview. By default
         just calls get_text() but if your Discord output is not ANSI-colour based (for example if it
@@ -118,7 +160,7 @@ class FieldActivityFormatterInterface(BaseActivityFormatterInterface):
 
 
     @abstractmethod
-    def get_fields(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> list[dict]:
+    def get_fields(self, activity: Activity, activity_mode: DiscordActivity, system_names: list|None = None, lang: str|None = None) -> list[dict]:
         """Generate a list of discord embed fields, conforming to the embed field spec defined here:
         https://birdie0.github.io/discord-webhooks-guide/structure/embed/fields.html - i.e. each field should be a dict
         containing 'name' and 'value' str keys, and optionally an 'inline' bool key

@@ -55,8 +55,9 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         discord_fields = []
 
         for system in sorted(activity.systems.copy().values(), key=lambda d: d['System']): # Use a copy for thread-safe operation
-            if system_names is not None and system['System'] not in system_names:
-                continue
+            if system_names is not None and system['System'] not in system_names: continue
+            if not self.include_system(system): continue
+
             system_text: str = ""
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
                 system_text += self._build_tw_system(system, lang, True)
@@ -64,6 +65,8 @@ class CLBActivityFormatter(DefaultActivityFormatter):
             if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
                 for faction in sorted(system['Factions'].values(), key=lambda d: d['Faction']):
                     if faction['Enabled'] != CheckStates.STATE_ON: continue
+                    if not self.include_faction(faction): continue
+
                     system_text += self._build_faction(faction, lang, True)
 
             if system_text != "":
@@ -88,8 +91,8 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         fp: bool = not discord
 
         for system in sorted(activity.systems.copy().values(), key=lambda d: d['System']): # Use a copy for thread-safe operation
-            if system_names is not None and system['System'] not in system_names:
-                continue
+            if system_names is not None and system['System'] not in system_names: continue
+            if not self.include_system(system): continue
 
             system_text:str = ""
 
@@ -98,8 +101,9 @@ class CLBActivityFormatter(DefaultActivityFormatter):
 
             if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
                 for faction in sorted(system['Factions'].values(), key=lambda d: d['Faction']):
-                    if faction['Enabled'] != CheckStates.STATE_ON:
-                        continue
+                    if faction['Enabled'] != CheckStates.STATE_ON: continue
+                    if not self.include_faction(faction): continue
+
                     system_text += self._build_faction(faction, lang, discord)
 
             if system_text != "":

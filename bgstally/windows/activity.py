@@ -125,9 +125,9 @@ class WindowActivity:
         ttk.Checkbutton(frm_discordoptions, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         ttk.Checkbutton(frm_discordoptions, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         ttk.Checkbutton(frm_discordoptions, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
-        favourite_types: dict = {FavouriteActivity.IGNORE: _("Post all factions"), # LANG: Dropdown menu on activity window
-                                 FavouriteActivity.FACTIONS: _("Post favourite factions only"), # LANG: Dropdown menu on activity window
-                                 FavouriteActivity.SYSTEMS: _("Post systems containing favourite factions")} # LANG: Dropdown menu on activity window
+        favourite_types: dict = {FavouriteActivity.IGNORE: _("Include all factions"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.FACTIONS: _("Include favourite factions only"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.SYSTEMS: _("Include systems containing favourite factions")} # LANG: Dropdown menu on activity window
         var_favourite_type: tk.StringVar = tk.StringVar(value=favourite_types.get(self.bgstally.state.FavouriteActivity.get(), FavouriteActivity.IGNORE))
         self.mnu_favourite_type: ttk.OptionMenu = ttk.OptionMenu(frm_discordoptions, var_favourite_type, var_favourite_type.get(),
                                                             *favourite_types.values(),
@@ -314,7 +314,7 @@ class WindowActivity:
                     lbl_favourite:ttk.Label = ttk.Label(frm_table, text="♥" if self.bgstally.faction_manager.is_favourite(faction['Faction']) else "♡", cursor="hand2", foreground="red")
                     lbl_favourite.grid(row=x + header_rows, column=col, padx=2, pady=2)
                     ToolTip(lbl_favourite, text=_("Favourite / un-favourite faction")) # LANG: Activity window tooltip
-                    lbl_favourite.bind("<Button-1>", partial(self._toggle_favourite_faction, faction['Faction'], lbl_favourite))
+                    lbl_favourite.bind("<Button-1>", partial(self._toggle_favourite_faction, faction['Faction'], activity, lbl_favourite))
                     col += 1
 
                     frm_faction = ttk.Frame(frm_table)
@@ -482,6 +482,22 @@ class WindowActivity:
         self._update_discord_field(activity)
 
 
+    def _toggle_favourite_faction(self, faction_name:str, activity: Activity, label:ttk.Label, *args):
+        """Toggle the favourite status of a faction
+
+        Args:
+            faction (str): The faction name
+            ttk.Label: The favourite label widget that was clicked
+        """
+        if self.bgstally.faction_manager.is_favourite(faction_name):
+            label.configure(text="♡")
+            self.bgstally.faction_manager.set_favourite(faction_name, False)
+        else:
+            label.configure(text="♥")
+            self.bgstally.faction_manager.set_favourite(faction_name, True)
+        self._update_discord_field(activity)
+
+
     def _post_to_discord(self, activity: Activity):
         """
         Callback to post to discord in the appropriate channel(s)
@@ -496,21 +512,6 @@ class WindowActivity:
         Re-enable the post to discord button if it should be enabled
         """
         self.btn_post_to_discord.config(state=(tk.NORMAL if self._discord_button_available() else tk.DISABLED))
-
-
-    def _toggle_favourite_faction(self, faction_name:str, label:ttk.Label, *args):
-        """Toggle the favourite status of a faction
-
-        Args:
-            faction (str): The faction name
-            ttk.Label: The favourite label widget that was clicked
-        """
-        if self.bgstally.faction_manager.is_favourite(faction_name):
-            label.configure(text="♡")
-            self.bgstally.faction_manager.set_favourite(faction_name, False)
-        else:
-            label.configure(text="♥")
-            self.bgstally.faction_manager.set_favourite(faction_name, True)
 
 
     def _pin_overlay_change(self, chk_pin_to_overlay:ttk.Checkbutton, system:dict):

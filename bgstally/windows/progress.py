@@ -725,7 +725,6 @@ class ProgressWindow:
         self._display_totals(self.rows[i+1], tracked, totals)
 
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
-            Debug.logger.debug(f"Resizing Cnvas: {self.bgstally.state.EnableProgressScrollbar.get()} {rowcnt < int(self.bgstally.state.ColonisationMaxCommodities.get())}")
             rows:int = min(rowcnt, int(self.bgstally.state.ColonisationMaxCommodities.get()))
             self.scroll_canvas.yview_moveto(0.0)
             height=int((rows+2)*21*(config.get_int('ui_scale') / 100.00))

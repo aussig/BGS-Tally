@@ -181,7 +181,7 @@ class RavenColonial:
 
         data:dict = response.json()
 
-        # Site is new to us but not to RC so merge RC data (either from the original get or from the import) with system data
+        # First time so merge RC data (either from the original get or from the import) with system data
         if system.get('Rev', None) == None:
             self._merge_system_data(data)
 

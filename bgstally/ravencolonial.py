@@ -181,7 +181,7 @@ class RavenColonial:
 
         data:dict = response.json()
 
-        # First time so merge RC data (either from the original get or from the import) with system data
+        # Site is new to us but not to RC so merge RC data (either from the original get or from the import) with system data
         if system.get('Rev', None) == None:
             self._merge_system_data(data)
 
@@ -351,6 +351,7 @@ class RavenColonial:
             else:
                 build = self.colonisation.find_build(system, {'BuildID' : site.get('id', -1), 'Name': site.get('name', -1), 'BodyNum': site.get('bodyNum', -1)})
 
+            # Take this build out of the tmp list because it's still in RC.
             if build != None:
                 for i, b in enumerate(tmp):
                     if b.get('BuildID', None) == build.get('BuildID', None):
@@ -373,7 +374,7 @@ class RavenColonial:
 
 
     def _sync_build(self, system:dict, build:dict, site:dict) -> None:
-        """ Update our records with the latest RavenColonial build details """
+        """ Update our records with the latest RavenColonial build (site) details """
 
         deets:dict = {}
         for p, m in self.site_params.items():
@@ -391,9 +392,14 @@ class RavenColonial:
 
         if build == {}:
             self.colonisation.add_build(system, deets, True)
-            return
+        else:
+            self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
 
-        self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
+        # An in progress build (project). Need to update it.
+        Debug.logger.debug(f"Project [{deets.get('State')}] {deets.get('ProjectID', '')}")
+        if deets.get('State', '') == BuildState.PROGRESS and deets.get('ProjectID', '') != '':
+            Debug.logger.debug(f"Loading project")
+            self.load_project({'ProjectID': deets.get('ProjectID', '')})
 
 
     def _reorder_builds(self, system:dict, sites:list) -> None:

@@ -981,17 +981,23 @@ class Colonisation:
         for p in self.progress:
             if p.get('MarketID', 0) == id or p.get('ProjectID', '') == id:
                 return p
-
         return None
-
 
     @catch_exceptions
     def update_progress(self, id:int, data:dict, silent:bool = False) -> None:
         ''' Update a progress record '''
-        progress:dict|None = self.find_progress(id)
-        if progress == None:
-            Debug.logger.debug(f"Progress not found {id}")
-            return
+        progress:dict|None = self.find_or_create_progress(id)
+
+        Debug.logger.debug(f"ID: {id} Project {progress} data{data}")
+        # Need to initialize the progress in order to update it properly.
+        if progress.get('Required', {}) == {}:
+            found:list = self.find_build_any({'MarketID' : id})
+            if found[0] == None or found[1] == None:
+                Debug.logger.debug(f"Progress can't be initialized, build not found {id}")
+                return
+            progress['Required'] = self.base_types.get(found[1].get('Base Type'), {}).get('Cost', {})
+        if progress.get('Delivered', {}) == {}:
+            progress['Delivered'] = {c:0 for c in progress['Required'].keys()}
 
         # Copy over changed/updated data
         for k, v in data.items():

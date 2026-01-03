@@ -158,7 +158,7 @@ class RavenColonial:
         """ Add a system to RC. """
 
         if self.is_editable() == False:
-            Debug.logger.info("Not updateing system in RavenColonial")
+            Debug.logger.info("Not updating system in RavenColonial")
             return
 
         system_name:str = system.get('StarSystem', '')

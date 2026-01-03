@@ -491,6 +491,7 @@ class UI:
         """
         k: str = next(k for k, v in favourite_types.items() if v == value)
         self.bgstally.state.FavouriteActivity.set(k)
+        self.bgstally.state.refresh
 
 
     def _worker(self) -> None:

@@ -114,8 +114,8 @@ class RavenColonial:
     def is_editable(self, system:dict|None = None) -> bool:
         """ Determine if we can/should edit this system in RavenColonial """
 
-        # General editable system check
-        if system == None or system.get('RCSync', False) == False or system.get('RCOpen', False) == True:
+        # General editable system check plus return true if we don't know because it's a new system.
+        if system == None or system.get('RCOpen', False) == True:
             return True
 
         if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
@@ -158,7 +158,7 @@ class RavenColonial:
         """ Add a system to RC. """
 
         if self.is_editable() == False:
-            Debug.logger.info("Not adding system to RavenColonial")
+            Debug.logger.info("Not updating system in RavenColonial")
             return
 
         system_name:str = system.get('StarSystem', '')
@@ -351,6 +351,7 @@ class RavenColonial:
             else:
                 build = self.colonisation.find_build(system, {'BuildID' : site.get('id', -1), 'Name': site.get('name', -1), 'BodyNum': site.get('bodyNum', -1)})
 
+            # Take this build out of the tmp list because it's still in RC.
             if build != None:
                 for i, b in enumerate(tmp):
                     if b.get('BuildID', None) == build.get('BuildID', None):
@@ -373,7 +374,7 @@ class RavenColonial:
 
 
     def _sync_build(self, system:dict, build:dict, site:dict) -> None:
-        """ Update our records with the latest RavenColonial build details """
+        """ Update our records with the latest RavenColonial build (site) details """
 
         deets:dict = {}
         for p, m in self.site_params.items():
@@ -391,9 +392,12 @@ class RavenColonial:
 
         if build == {}:
             self.colonisation.add_build(system, deets, True)
-            return
+        else:
+            self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
 
-        self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
+        # An in progress build (project). Need to update it.
+        if deets.get('State', '') == BuildState.PROGRESS and deets.get('ProjectID', '') != '':
+            self.load_project({'ProjectID': deets.get('ProjectID', '')})
 
 
     def _reorder_builds(self, system:dict, sites:list) -> None:
@@ -611,9 +615,9 @@ class RavenColonial:
     def record_contribution(self, project_id:int, contributions:list[dict]) -> None:
         """ Record colonisation contributions made """
 
-        if self.is_editable() == False:
-            Debug.logger.info("Not recording contribution with RavenColonial")
-            return
+        #if self.is_editable() == False:
+        #    Debug.logger.info("Not recording contribution with RavenColonial")
+        #    return
 
         payload:dict = {re.sub(r"\$(.*)_name;$", r"\1", c.get('Name', '').lower()): c.get('Amount', 0) for c in contributions}
 

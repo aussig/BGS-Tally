@@ -602,7 +602,8 @@ class ColonisationWindow:
 
         self._config_sheet(sheet, system)
         if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
-            sheet.enable_bindings('single_select', 'drag_select', 'arrowkeys')
+            sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'copy')
+            sheet.extra_bindings(['all_modified_events', 'cell_select'], func=partial(self.sheet_modified, sheet, tabnum))
         else:
             sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
 
@@ -1425,13 +1426,14 @@ class ColonisationWindow:
         Debug.logger.info(f"Deleting system {tabnum}")
         self.colonisation.remove_system(sysnum)
 
-        # Destroy the existing frames and recreate them.
+        # Destroy the existing frames and recreate them. It isn't pretty but it works.
         try:
             self.tabbar.destroy()
             for s in self.sheets:
                 s.destroy()
             self.sheets = []
             self.plan_titles = []
+            self.tl = {}
             self._create_frames()   # Create main frames
             self.update_display()   # Populate them
         except Exception:

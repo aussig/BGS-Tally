@@ -396,9 +396,7 @@ class RavenColonial:
             self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
 
         # An in progress build (project). Need to update it.
-        Debug.logger.debug(f"Project [{deets.get('State')}] {deets.get('ProjectID', '')}")
         if deets.get('State', '') == BuildState.PROGRESS and deets.get('ProjectID', '') != '':
-            Debug.logger.debug(f"Loading project")
             self.load_project({'ProjectID': deets.get('ProjectID', '')})
 
 

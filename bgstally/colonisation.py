@@ -875,8 +875,8 @@ class Colonisation:
 
         # Complete the project in RC.
         p:dict|None = self.find_progress(market_id)
-        #if p.get('ProjectID', None) != None:
-        #    RavenColonial(self).complete_project(p.get('ProjectID', 0))
+        if p.get('ProjectID', None) != None and p.get('ConstructionComplete', False) == True:
+            RavenColonial(self).complete_project(p.get('ProjectID', 0))
 
         # If we get here, the build is (newly) complete.
         # Since on completion the colonisation ship is removed/goes inactive and a new station is created

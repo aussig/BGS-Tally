@@ -114,8 +114,8 @@ class RavenColonial:
     def is_editable(self, system:dict|None = None) -> bool:
         """ Determine if we can/should edit this system in RavenColonial """
 
-        # General editable system check
-        if system == None or system.get('RCSync', False) == False or system.get('RCOpen', False) == True:
+        # General editable system check plus return true if we don't know because it's a new system.
+        if system == None or system.get('RCOpen', False) == True:
             return True
 
         if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
@@ -158,7 +158,7 @@ class RavenColonial:
         """ Add a system to RC. """
 
         if self.is_editable() == False:
-            Debug.logger.info("Not adding system to RavenColonial")
+            Debug.logger.info("Not updateing system in RavenColonial")
             return
 
         system_name:str = system.get('StarSystem', '')
@@ -617,9 +617,9 @@ class RavenColonial:
     def record_contribution(self, project_id:int, contributions:list[dict]) -> None:
         """ Record colonisation contributions made """
 
-        if self.is_editable() == False:
-            Debug.logger.info("Not recording contribution with RavenColonial")
-            return
+        #if self.is_editable() == False:
+        #    Debug.logger.info("Not recording contribution with RavenColonial")
+        #    return
 
         payload:dict = {re.sub(r"\$(.*)_name;$", r"\1", c.get('Name', '').lower()): c.get('Amount', 0) for c in contributions}
 

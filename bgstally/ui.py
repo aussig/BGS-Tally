@@ -575,7 +575,7 @@ class UI:
                 self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
 
             # Colonisation
-            if self.bgstally.state.ColonisationStatus == CheckStates.STATE_ON and self.bgstally.state.enable_overlay_colonisation:
+            if self.bgstally.state.ColonisationStatus.get() == CheckStates.STATE_ON and self.bgstally.state.enable_overlay_colonisation:
                 colonisation_text: str = self.window_progress.as_text(False)
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 

@@ -164,7 +164,7 @@ class WindowFleetCarrier:
         for k, v in self.tabs.items():
             fr:ttk.Frame = ttk.Frame(tabbar, relief=tk.FLAT)
             fr.pack(fill=tk.BOTH, expand=1)
-            tabbar.add(fr, text=_(k)) # LANG: Fleet Carrier tab title
+            tabbar.add(fr, text=_(k)) # LANG: Ignore
             if v.get('buttons', None) != None:
                 v['buttons'](fc, fr)
             v['func'](fc, v, fr)
@@ -501,10 +501,10 @@ class WindowFleetCarrier:
             case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
             case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
 
-        output += __("Carrier {order} for {carrier_name} \n", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) # LANG: fleet carrier materials header
+        output += __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) + "\n" # LANG: fleet carrier materials header
         if fc.overview.get('currentStarSystem', "") != "":
             if discord == True: output += "### "
-            output += __("Location: {system}\n", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) # LANG: fleet carrier materials system line
+            output += __("Location: {system}", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) + "\n" # LANG: fleet carrier materials system line
         output += "\n"
 
         # Header row for table

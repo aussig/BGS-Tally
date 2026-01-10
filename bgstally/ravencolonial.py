@@ -114,8 +114,8 @@ class RavenColonial:
     def is_editable(self, system:dict|None = None) -> bool:
         """ Determine if we can/should edit this system in RavenColonial """
 
-        # General editable system check
-        if system == None or system.get('RCSync', False) == False or system.get('RCOpen', False) == True:
+        # General editable system check plus return true if we don't know because it's a new system.
+        if system == None or system.get('RCOpen', False) == True:
             return True
 
         if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
@@ -158,14 +158,13 @@ class RavenColonial:
         """ Add a system to RC. """
 
         if self.is_editable() == False:
-            Debug.logger.info("Not adding system to RavenColonial")
+            Debug.logger.info("Not updating system in RavenColonial")
             return
 
         system_name:str = system.get('StarSystem', '')
         # Query the system to see if it exists
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
         response:Response = requests.get(url, headers=self._headers(), timeout=5)
-        data:dict = response.json()
 
         # Add a new system to RavenColonial
         if response.status_code == 404:
@@ -176,12 +175,18 @@ class RavenColonial:
                 Debug.logger.error(f"Failed to import system {system_name}: {response.status_code}")
                 return
 
-            # Add Builds
+            # Add Builds since (despite the url including /sites) upsert_system only deals with the system not the sites
             for b in system.get('Builds', []):
                 self.upsert_site(system, b)
 
-            # Merge RC data (either from the original get or from the import) with system data
-            self._merge_system_data(response.json())
+
+        # Either the data from the original GET or the data from the import.
+        data:dict = response.json()
+
+        # RC has updates since our last update so merge RC data (either from the original get or from the import) with system data
+        if system.get('Rev', 0) < data.get('rev'):
+            Debug.logger.debug(f"Merging updated system data from RC prior to upsert")
+            self._merge_system_data(data)
 
         payload:dict = {}
         for k, v in self.sys_params.items():
@@ -329,14 +334,14 @@ class RavenColonial:
 
         mod:dict = {}
         for k, v in self.sys_params.items():
-            if k != 'rev' and data.get(k, None) != None and data.get(k, None) != system.get(v, None):
+            if data.get(k, None) != None and data.get(k, None) != system.get(v, None):
                 mod[v] = data.get(k, '').strip() if isinstance(data.get(k, None), str) else data.get(k, None)
 
         if get_by_path(data, ['pop', 'pop'], 0) > system.get('Population', 0):
             mod['Population'] = get_by_path(data, ['pop', 'pop'], 0)
 
         if mod != {}:
-            Debug.logger.debug(f"Changes found, modifyng system {mod}")
+            Debug.logger.debug(f"Changes found, modifying system {mod}")
             self.colonisation.modify_system(system, mod)
 
         tmp:list = system.get('Builds', []).copy()
@@ -349,6 +354,7 @@ class RavenColonial:
             else:
                 build = self.colonisation.find_build(system, {'BuildID' : site.get('id', -1), 'Name': site.get('name', -1), 'BodyNum': site.get('bodyNum', -1)})
 
+            # Take this build out of the tmp list because it's still in RC.
             if build != None:
                 for i, b in enumerate(tmp):
                     if b.get('BuildID', None) == build.get('BuildID', None):
@@ -371,7 +377,7 @@ class RavenColonial:
 
 
     def _sync_build(self, system:dict, build:dict, site:dict) -> None:
-        """ Update our records with the latest RavenColonial build details """
+        """ Update our records with the latest RavenColonial build (site) details """
 
         deets:dict = {}
         for p, m in self.site_params.items():
@@ -389,9 +395,12 @@ class RavenColonial:
 
         if build == {}:
             self.colonisation.add_build(system, deets, True)
-            return
+        else:
+            self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
 
-        self.colonisation.modify_build(system, build.get('BuildID', ''), deets, True)
+        # An in progress build (project). Need to update it.
+        if deets.get('State', '') == BuildState.PROGRESS and deets.get('ProjectID', '') != '':
+            self.load_project({'ProjectID': deets.get('ProjectID', '')})
 
 
     def _reorder_builds(self, system:dict, sites:list) -> None:
@@ -609,9 +618,9 @@ class RavenColonial:
     def record_contribution(self, project_id:int, contributions:list[dict]) -> None:
         """ Record colonisation contributions made """
 
-        if self.is_editable() == False:
-            Debug.logger.info("Not recording contribution with RavenColonial")
-            return
+        #if self.is_editable() == False:
+        #    Debug.logger.info("Not recording contribution with RavenColonial")
+        #    return
 
         payload:dict = {re.sub(r"\$(.*)_name;$", r"\1", c.get('Name', '').lower()): c.get('Amount', 0) for c in contributions}
 
@@ -628,7 +637,7 @@ class RavenColonial:
     @catch_exceptions
     def update_carrier(self, marketid:int, cargo:dict) -> None:
         """ Update the cargo of a fleet carrier """
-        if self.is_editable() == False:
+        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
             Debug.logger.info("Not updating carrier in RavenColonial")
             return
 

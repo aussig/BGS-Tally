@@ -70,7 +70,7 @@ class WindowFleetCarrier:
                     'stock': {'title': 'Stock', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':5, 'locName': _('Stock')}, # LANG: Locker tab
                     'buy': {'title': 'Buying', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':6, 'locName': _('Buying')}, # LANG: Locker tab
                     'sell': {'title': 'Selling', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':7, 'locName': _('Selling')}, # LANG: Locker tab
-                    'price': {'title': 'Price', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':5, 'locName': _('Price')}, # LANG: Locker tab
+                    'price': {'title': 'Price', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':7, 'locName': _('Price')}, # LANG: Locker tab
                     'mission': {'title': 'Mission', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Mission')} # LANG: Locker tab
                 },
                 "func": self._locker,
@@ -245,7 +245,7 @@ class WindowFleetCarrier:
                 val:str = ""
                 match c:
                     case "buy" if i.get("price", 0) > 0 and i.get("outstanding", 0) > 0: val = i.get("outstanding")
-                    case "sell" if i.get("price", 0) > 0 and i.get("stock", 0) > 0: val = i.get("stock")
+                    case "sell" if i.get("price", 0) > 0 and i.get("stock", 0) > 0 and i.get('buyTotal') == 0: val = i.get("stock")
                     case _: val = i.get(c, " ")
                 if i.get('stock', 0) > 0 or i.get('outstanding', 0) > 0:
                     row.append(hfplus(val))
@@ -485,6 +485,7 @@ class WindowFleetCarrier:
     @catch_exceptions
     def _get_as_text(self, which:str, type:str|tk.StringVar, discord:bool = False) -> str:
         """ Get the cargo or locker as text for pasting or posting to Discord """
+
         fc: FleetCarrier = self.bgstally.fleet_carrier
         l:str|None = self.bgstally.state.discord_lang if discord else ""
         tab:dict = self.tabs[which]
@@ -493,7 +494,14 @@ class WindowFleetCarrier:
 
         output:str = ""
         if discord == True: output += "## "
-        output += __("Carrier: {carrier_name} - {which}\n", lang=l).format(carrier_name=fc.overview['name'], which=which.title()) # LANG: fleet carrier materials header
+
+        order:str = which
+        match type:
+            case 'Both': order += " " + __("orders", l)
+            case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l)
+            case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l)
+
+        output += __("Carrier {order} for {carrier_name} \n", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) # LANG: fleet carrier materials header
         if fc.overview.get('currentStarSystem', "") != "":
             if discord == True: output += "### "
             output += __("Location: {system}\n", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) # LANG: fleet carrier materials system line

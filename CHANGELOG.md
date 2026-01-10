@@ -5,6 +5,7 @@
 ### New Features:
 
 * Updates to support CMDR SweetJonnySauce's new [EDMCModernOverlay](https://github.com/SweetJonnySauce/EDMCModernOverlay) plugin, with backward compatability for the legacy EDMCOverlay and edmcoverlay2 plugins for the moment, which are no longer maintained. From the next major release (v6) EDMCModernOverlay will be the only overlay plugin supported by BGS-Tally.
+* Plugin is now compatible with the new EDMC Plugin Registry.
 
 ### Bug Fixes:
 

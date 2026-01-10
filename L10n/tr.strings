@@ -62,7 +62,7 @@
 "All builds" = "Tüm yapılar";
 
 /* Carrier overview. [fleetcarrier.py] */
-"Allow Notorious" = "Allow Notorious";
+"Allow Notorious" = "Notorious'a izin ver";
 
 /* [progress.py] */
 "Alphabetical order" = "Alfabetik sıra";
@@ -77,7 +77,7 @@
 "Amount left to buy" = "Satın almak için kalan miktar";
 
 /* Carrier buy order tooltip. [progress.py] */
-"Amount outstanding in carrier buy orders" = "Amount outstanding in carrier buy orders";
+"Amount outstanding in carrier buy orders" = "Filo Taşıyıcı alım siparişlerinde ödenmemiş tutar";
 
 /* Amount remaining tooltip. [progress.py] */
 "Amount remaining to be delivered" = "Teslim edilmesi gereken kalan miktar";
@@ -113,10 +113,10 @@
 "Arr (ls)" = "Arr (ls)";
 
 /* Carrier overview. [fleetcarrier.py] */
-"Arrival" = "Arrival";
+"Arrival" = "Varış";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Arrived" = "Arrived";
+"Arrived" = "Ulaştı";
 
 /* Text on API settings window. [api.py] */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Aşağıdaki bilgileri sunucu yöneticinize sorun, doldurduktan daha sonra 'Bağlantı Kur' ile devam edin. Popüler sunucular için bazı bilgiler önceden doldurulmuş olarak sağlanmıştır, ancak bu sunucuya ait size özel olan API anahtarınızı girmeniz gerekecektir.";
@@ -128,13 +128,13 @@
 "Automatically Post BGS and TW Activity" = "BGS ve TW Aktivitelerini Otomatik Yayınla";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Available Balance" = "Available Balance";
+"Available Balance" = "Kullanılabilir Bakiye";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Bank Balance" = "Bank Balance";
+"Bank Balance" = "Banka Bakiyesi";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Bank Reserve" = "Bank Reserve";
+"Bank Reserve" = "Banka rezervi";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Bar" = "Bar";
@@ -173,7 +173,7 @@
 "Boosted By" = "Tarafından desteklendi";
 
 /* Dropdown menu on activity window. [fleetcarrier.py] */
-"Both" = "Both";
+"Both" = "İkisi de";
 
 /* Dropdown menu on activity window. [activity.py] */
 "Both BGS and TW" = "Hem BGS hem TW";
@@ -182,7 +182,7 @@
 "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Hem 'Discord'a Gönder' alanı hem de Discord webhook{CR}, Discord'a göndermeye izin vermek için ayarlarda yapılandırılmalıdır";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Bounty Hunter" = "Bounty Hunter";
+"Bounty Hunter" = "Ödül Avcısı";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Kelle avcılığı geliri";
@@ -197,25 +197,25 @@
 "Builds" = "İnşalar";
 
 /* [fleetcarrier.py] */
-"buy" = "buy";
+"buy" = "satın al";
 
 /* Carrier buy order amount. [progress.py] */
-"Buy Orders" = "Buy Orders";
+"Buy Orders" = "Alış Emirleri";
 
 /* Carrier cargo. [fleetcarrier.py] */
-"Buying" = "Buying";
+"Buying" = "Satın Alım";
 
 /* Button label. [fleetcarrier.py] */
-"Calculate" = "Calculate";
+"Calculate" = "Hesapla";
 
 /* Carrier overview. [fleetcarrier.py] */
-"Callsign" = "Callsign";
+"Callsign" = "Çağrı işareti";
 
 /* Cancel button. [colonisation.py] */
 "Cancel" = "İptal Et";
 
 /* Summary headings. [fleetcarrier.py] */
-"Capacity" = "Capacity";
+"Capacity" = "Kapasite";
 
 /* Discord heading. [default.py] */
 "cargo" = "kargo";
@@ -224,22 +224,22 @@
 "Cargo" = "Kargo";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Cargo For Sale" = "Cargo For Sale";
+"Cargo For Sale" = "Satılan Kargo";
 
 /* Label on legend window. [legend.py] */
 "Cargo missions" = "Kargo görevleri";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Cargo Not For Sale" = "Cargo Not For Sale";
+"Cargo Not For Sale" = "Satışa Kapalı Kargo";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Cargo Reserved Space" = "Cargo Reserved Space";
+"Cargo Reserved Space" = "Kargo İçin Ayrılan Alan";
 
 /* Carrier amount. [progress.py] */
 "Carrier" = "Filo Taşıyıcı";
 
 /* fleet carrier materials header. [fleetcarrier.py] */
-"Carrier {order} for {carrier_name} \n" = "Carrier {order} for {carrier_name} \n";
+"Carrier {order} for {carrier_name} \n" = "{carrier_name} için Filo taşıyıcı {order} \n";
 
 /* category of base. [colonisation.py] */
 "Category" = "Kategori";
@@ -257,7 +257,7 @@
 "Civilian Settlement" = "Sivil Yerleşkesi";
 
 /* Button label. [fleetcarrier.py] */
-"Clear" = "Clear";
+"Clear" = "Temizle";
 
 /* [sheet_options.py] */
 "Clear contents" = "İçeriği temizle";
@@ -275,7 +275,7 @@
 "Colonisation" = "Kolonizasyon";
 
 /* Preferences checkbox label. [ui.py] */
-"Colonisation Active" = "Colonisation Active";
+"Colonisation Active" = "Aktif Kolonizasyon";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Colony" = "Koloni";
@@ -326,7 +326,7 @@
 "Copy to Clipboard" = "Panoya Kopyala";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Core Cost" = "Core Cost";
+"Core Cost" = "Ana Maliyet";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Coriolis" = "Coriolis";
@@ -338,19 +338,19 @@
 "Cost" = "Maliyet";
 
 /* Carrier services. [fleetcarrier.py] */
-"Cost to date" = "Cost to date";
+"Cost to date" = "Tarihe göre maliyet";
 
 /* Count of commodities available. [progress.py] */
 "Count" = "Miktar";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Crew" = "Crew";
+"Crew" = "Ekip";
 
 /* Carrier services. [fleetcarrier.py] */
-"Crew Capacity" = "Crew Capacity";
+"Crew Capacity" = "Ekip Kapasitesi";
 
 /* Services summary tab. [fleetcarrier.py] */
-"Crew Member" = "Crew Member";
+"Crew Member" = "Ekip Üyesi";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Criminal Outpost" = "Suçlu Barınağı";
@@ -386,7 +386,7 @@
 "Deactivate (hide) this plan" = "Bu planı devre dışı bırak (gizle)";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Decommissioning" = "Decommissioning";
+"Decommissioning" = "Devreden çıkarma";
 
 /* any decrease effects for the base. [colonisation.py] */
 "Decreased By" = "Azaltılan";
@@ -416,22 +416,22 @@
 "Demo Data Only" = "Sadece Demo Datası";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Departed" = "Departed";
+"Departed" = "Ayrıldı";
 
 /* Carrier itinerary. [fleetcarrier.py] */
-"Departure" = "Departure";
+"Departure" = "Kalkış";
 
 /* Carrier itinerary. [fleetcarrier.py] */
 "Departure Time" = "Hareket saati";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Deposit" = "Deposit";
+"Deposit" = "Depozito";
 
 /* Label on API settings window. [api.py] */
 "Description" = "Tanımlama";
 
 /* Entry placeholder. [fleetcarrier.py] */
-"Destination" = "Destination";
+"Destination" = "Varış noktası";
 
 /* Label on legend window. [legend.py] */
 "Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "Ayrıntılı INF, görevlerden alınan + / ++ / +++ / ++++ / +++++ olarak bölünmüştür.";
@@ -458,7 +458,7 @@
 "Dist (ly)" = "Dist (ly)";
 
 /* Carrier itinerary. [fleetcarrier.py] */
-"Distance" = "Distance";
+"Distance" = "Mesafe";
 
 /* Carrier overview. [fleetcarrier.py] */
 "Docking" = "Kenetlenme";
@@ -473,7 +473,7 @@
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Yüzey Çatışma Bölgelerini iki kez kontrol edin, bölge boyutları doğru kaydedilmeyebilir";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Duration" = "Duration";
+"Duration" = "Süre";
 
 /* Economy influence. [colonisation.py] */
 "Econ Inf" = "Eknm Inf";
@@ -518,7 +518,7 @@
 "Enable {events_url} Requests" = "{events_url} isteklerini etkinleştir";
 
 /* Services summary tab. [fleetcarrier.py] */
-"Enabled" = "Enabled";
+"Enabled" = "Etkin";
 
 /* Error when no plan name is given. [colonisation.py] */
 "Error" = "Hata";
@@ -551,7 +551,7 @@
 "Exploration Hub" = "Keşif Merkezi";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Explorer" = "Explorer";
+"Explorer" = "Gezgin";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Extraction" = "Çıkarma";
@@ -590,7 +590,7 @@
 "FC Ops" = "FT Ops";
 
 /* Summary headings. [fleetcarrier.py] */
-"Finances" = "Finances";
+"Finances" = "Finans";
 
 /* Preferences button label. [ui.py] */
 "Force Tick" = "Döngü Sıfırla";
@@ -602,25 +602,25 @@
 "Format for Discord Posts" = "Discord gönderileri için Format";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Free Space" = "Free Space";
+"Free Space" = "Boş Alan";
 
 /* Discord CMDR information. [targetmanager.py] */
 "Friend request received from this CMDR" = "Bu CMDR'dan arkadaşlık isteği alındı";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Friends" = "Friends";
+"Friends" = "Arkadaşlar";
 
 /* Discord heading. [fleetcarrier.py] */
 "From System" = "Sisteminden";
 
 /* Carrier overview. [fleetcarrier.py] */
-"Fuel" = "Fuel";
+"Fuel" = "Yakıt";
 
 /* Carrier itinerary. [fleetcarrier.py] */
-"Fuel Required" = "Fuel Required";
+"Fuel Required" = "Gerekli Yakıt";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Fuel Used" = "Fuel Used";
+"Fuel Used" = "Kullanılan Yakıt";
 
 /* Overlay galaxy tick message. [ui.py] */
 "Galaxy Tick: {tick_time}" = "Galaksi Döngüsü: {tick_time}";
@@ -668,7 +668,7 @@
 "Hightech Planetary Outpost" = "Yüksek Teknoloji Gezegen Karakolu";
 
 /* Services summary tab. [fleetcarrier.py] */
-"Hiring Cost" = "Hiring Cost";
+"Hiring Cost" = "Kiralama Maliyeti";
 
 /* HMC World is a high metal content world. [colonisation.py] */
 "HMC world" = "HMC gezegen";
@@ -695,7 +695,7 @@
 "Icons in Thargoid War Reports" = "Thargoid Savaş Raporlarındaki İkonlar";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"In Depot" = "In Depot";
+"In Depot" = "Depoda bulunan";
 
 /* Discord heading. [cmdrs.py] */
 "In Ship" = "Gemi tipi";
@@ -713,7 +713,7 @@
 "In system: {system}" = "Sistem: {system}";
 
 /* Fleet carrier, ship in transit. [fleetcarrier.py] */
-"In Transit" = "In Transit";
+"In Transit" = "Sevkiyatta";
 
 /* Preferences heading. [ui.py] */
 "In-game Overlay" = "Oyun-içi Arayüz";
@@ -833,16 +833,16 @@
 "INTERDICTED BY this CMDR" = "IŞIK HIZINDAN bu CMDR tarafından DÜŞÜRÜLDÜ";
 
 /* [fleetcarrier.py] */
-"January" = "January";
+"January" = "Ocak";
 
 /* Discord post title. [fleetcarrier.py] */
 "Jump Cancelled for Carrier {carrier_name}" = "Filo Taşıyıcı {carrier_name} için Atlama İptal Edildi";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Jump Cost" = "Jump Cost";
+"Jump Cost" = "Atlama maliyeti";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Jump Distance" = "Jump Distance";
+"Jump Distance" = "Atlama Mesafesi";
 
 /* Discord post title. [fleetcarrier.py] */
 "Jump Scheduled for Carrier {carrier_name}" = "Filo Taşıyıcı {carrier_name} için Planlanan Atlama";
@@ -881,7 +881,7 @@
 "Layout" = "Yerleşim";
 
 /* tooltip for the build name". [progress.py] */
-"left click to copy, right click menu" = "left click to copy, right click menu";
+"left click to copy, right click menu" = "sistem görüntüleme için sol, menü için sağ tıklayınız";
 
 /* tooltip for the copy to clipboard icon. [colonisation.py] */
 "Left click view system, right click menu" = "Sistem görüntüleme için sol, menü için sağ tıklayınız";
@@ -908,7 +908,7 @@
 "Location" = "Konum";
 
 /* fleet carrier materials system line. [fleetcarrier.py] */
-"Location: {system}\n" = "Location: {system}\n";
+"Location: {system}\n" = "Lokasyon: {system}\n";
 
 /* Activity window tooltip. [activity.py] */
 "Low" = "Düşük";
@@ -917,13 +917,13 @@
 "Massacre missions" = "Katliam görevleri";
 
 /* Locker tab. [fleetcarrier.py] */
-"Material" = "Material";
+"Material" = "Materyal";
 
 /* Preferences label. [ui.py] */
 "Maximum commodities" = "Maksimum emtialar";
 
 /* Carrier shipyard. [fleetcarrier.py] */
-"Maximum Ships" = "Maximum Ships";
+"Maximum Ships" = "Maksimum Gemiler";
 
 /* Colonisation 'Type (Listed as/under)' [base_types.json] */
 "Medical" = "Medikal";
@@ -968,7 +968,7 @@
 "Military Tier 2 Lrg" = "Askeri Seviye 2 Büyük";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Miner" = "Miner";
+"Miner" = "Madenci";
 
 /* Colonisation 'Type' [base_types.json] */
 "Mining Outpost" = "Maden Karakolu";
@@ -977,7 +977,7 @@
 "Mining Outpost Installation" = "Maden Karakol Üssü";
 
 /* Cargo tab. [fleetcarrier.py] */
-"Mission" = "Mission";
+"Mission" = "Görev";
 
 /* Activity window tooltip. [activity.py] */
 "Mission fails" = "Başarısız görevler";
@@ -989,7 +989,7 @@
 "mm" = "kg";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Module Packs" = "Module Packs";
+"Module Packs" = "Modül Paketleri";
 
 /* Discord heading. [default.py] */
 "Murders" = "Cinayetler";
@@ -1028,19 +1028,19 @@
 "Ocellus Starport" = "Ocellus Yıldızlimanı";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Offline" = "Offline";
+"Offline" = "Çevrimdışı";
 
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Yüzey Çatışma Bölgesi";
 
 /* [colonisation.py] */
-"Open" = "Open";
+"Open" = "Açık";
 
 /* [progress.py] */
-"Open in RavenColonial" = "Open in RavenColonial";
+"Open in RavenColonial" = "RavenColonial Linki";
 
 /* build popup menu. [progress.py] */
-"Open in {k}" = "Open in {k}";
+"Open in {k}" = "{k} ile Aç";
 
 /* Open Element In Selected Provider. [colonisation.py] */
 "Open in {w}" = "{w} ile Aç";
@@ -1058,7 +1058,7 @@
 "Orbital" = "Orbital";
 
 /* [fleetcarrier.py] */
-"orders" = "orders";
+"orders" = "siparişler";
 
 /* Colonisation 'Category' [base_types.json] */
 "Outpost" = "Karakol";
@@ -1067,7 +1067,7 @@
 "Outpost Hub" = "Karakol Merkezi";
 
 /* Colonisation 'Type' [base_types.json] */
-"Outpost In A Box" = "Outpost In A Box";
+"Outpost In A Box" = "Çevrelenmiş Karakol";
 
 /* Landing pad size. [colonisation.py] */
 "Pad" = "Ped büyüklüğü";
@@ -1091,7 +1091,7 @@
 "Pin {system_name} to Overlay" = "{system_name} arayüze sabitle";
 
 /* Service name. [fleetcarrier.py] */
-"Pioneer Supplies" = "Pioneer Supplies";
+"Pioneer Supplies" = "Pioneer ürün tedariği";
 
 /* Colonisation 'Type' [base_types.json] */
 "Pirate Base" = "Korsan Üssü";
@@ -1121,7 +1121,7 @@
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "LÜTFEN bu bilgiyi gönderdiğiniz sunucuya GÜVENDİĞİNİZDEN EMİN OLUN!";
 
 /* [fleetcarrier.py] */
-"Plot Route" = "Plot Route";
+"Plot Route" = "Rota Oluştur";
 
 /* [colonisation.py] */
 "Pop" = "Popülasyon";
@@ -1172,7 +1172,7 @@
 "Pri" = "Bir";
 
 /* Cargo tab. [fleetcarrier.py] */
-"Price" = "Price";
+"Price" = "Fiyat";
 
 /* Activity window tooltip. [activity.py] */
 "Primary" = "Birincil";
@@ -1184,7 +1184,7 @@
 "Prof" = "Kznç";
 
 /* Carrier cargo. [fleetcarrier.py] */
-"Profit" = "Profit";
+"Profit" = "Kâr";
 
 /* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
 "Profit at Z | L | M | H demand" = "Talep üzerinde Z | L | M | H kâr";
@@ -1241,7 +1241,7 @@
 "Refresh from RavenColonial" = "RavenColonial'dan yenileme yap";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Refuel" = "Refuel";
+"Refuel" = "Yakıt Doldur";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Relay Installation" = "Aktarım Üssü";
@@ -1286,22 +1286,22 @@
 "Research Station" = "Araştırma İstasyonu";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Reserve Percentage" = "Reserve Percentage";
+"Reserve Percentage" = "Rezerve Yüzdesi";
 
 /* Carrier cargo. [fleetcarrier.py] */
-"Reserved" = "Reserved";
+"Reserved" = "Rezerve";
 
 /* [colonisation.py] */
 "rings" = "halkalar";
 
 /* Carrier itinerary. [fleetcarrier.py] */
-"Route Destination" = "Route Destination";
+"Route Destination" = "Rota Hedefi";
 
 /* Summary headings. [fleetcarrier.py] */
-"Running Costs" = "Running Costs";
+"Running Costs" = "İşletme maliyetleri";
 
 /* Services summary tab. [fleetcarrier.py] */
-"Salary" = "Salary";
+"Salary" = "Maaş";
 
 /* Discord heading, abbreviation for search and rescue. [default.py] */
 "SandR" = "AraVeKur";
@@ -1328,10 +1328,10 @@
 "Scens" = "Snylr";
 
 /* Label on itinerary window. [fleetcarrier.py] */
-"Scheduled for" = "Scheduled for";
+"Scheduled for" = "Planlanan";
 
 /* Carrier itinerary. [fleetcarrier.py] */
-"Scheduled Jump" = "Scheduled Jump";
+"Scheduled Jump" = "Planlanan Atlama";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Scientific" = "Bilimsel";
@@ -1382,19 +1382,19 @@
 "Select all" = "Tümünü seç";
 
 /* [fleetcarrier.py] */
-"sell" = "sell";
+"sell" = "sat";
 
 /* Carrier cargo. [fleetcarrier.py] */
-"Selling" = "Selling";
+"Selling" = "Satış";
 
 /* Label on API settings window. [api.py] */
 "Server URL" = "Sunucu URL";
 
 /* Services summary tab. [fleetcarrier.py] */
-"Service" = "Service";
+"Service" = "Servis";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Services Cost" = "Services Cost";
+"Services Cost" = "Hizmet Maliyeti";
 
 /* Colonisation 'Category' [base_types.json] */
 "Settlement" = "Yerleşke";
@@ -1406,7 +1406,7 @@
 "Ship" = "Gemi";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Ship Packs" = "Ship Packs";
+"Ship Packs" = "Gemi Paketleri";
 
 /* Label on API settings window. [api.py] */
 "Shortcuts for Popular Servers" = "Popüler Sunucular için Kısayollar";
@@ -1496,7 +1496,7 @@
 "SpaceCZs" = "UzayÇB'leri";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Squadron and Friends" = "Squadron and Friends";
+"Squadron and Friends" = "Filo ve Arkadaşlar";
 
 /* CMDR window column title. [cmdrs.py] */
 "Squadron ID" = "Filo ID";
@@ -1511,7 +1511,7 @@
 "Squadron: " = "Filo: ";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Star System" = "Star System";
+"Star System" = "Yıldız Sistemi";
 
 /* Colonisation 'Category' [base_types.json] */
 "Starport" = "Yıldız Limanı";
@@ -1523,19 +1523,19 @@
 "Station" = "İstasyon";
 
 /* Services summary tab. [fleetcarrier.py] */
-"Status" = "Status";
+"Status" = "Durum";
 
 /* Cargo tab. [fleetcarrier.py] */
-"Stock" = "Stock";
+"Stock" = "Stok";
 
 /* Cargo tab. [fleetcarrier.py] */
-"Stolen" = "Stolen";
+"Stolen" = "Çalıntı";
 
 /* Carrier cargo. [fleetcarrier.py] */
-"Stored" = "Stored";
+"Stored" = "Depolanmış";
 
 /* Carrier shipyard. [fleetcarrier.py] */
-"Stored Ships" = "Stored Ships";
+"Stored Ships" = "Depolanmış Gemiler";
 
 /* Number of ground/surface builds. [colonisation.py] */
 "Surface" = "Yüzey";
@@ -1574,10 +1574,10 @@
 "Targeted Ally!" = "Hedeflenen Dost!";
 
 /* Carrier overview. [fleetcarrier.py] */
-"Tax Level" = "Tax Level";
+"Tax Level" = "Kesinti Seviyesi";
 
 /* Services summary tab. [fleetcarrier.py] */
-"Tax Rate" = "Tax Rate";
+"Tax Rate" = "Kesinti Oranı";
 
 /* Discord CMDR information. [targetmanager.py] */
 "Team invite received from this CMDR" = "Bu CMDR'dan ekip daveti alındı";
@@ -1637,7 +1637,7 @@
 "Total" = "Toplam";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Total Capacity" = "Total Capacity";
+"Total Capacity" = "Toplam Kapasite";
 
 /* delivered amount tooltip. [progress.py] */
 "Total quantity delivered" = "Toplam teslim edilen miktar";
@@ -1646,10 +1646,10 @@
 "Total quantity required" = "Toplam gerekli miktar";
 
 /* Carrier summary. [fleetcarrier.py] */
-"Total Used" = "Total Used";
+"Total Used" = "Toplam Kullanılan";
 
 /* Carrier cargo. [fleetcarrier.py] */
-"Total Value" = "Total Value";
+"Total Value" = "Toplam Değer";
 
 /* Colonisation 'Economy Influence' [base_types.json] */
 "Tourism" = "Turizm";
@@ -1685,13 +1685,13 @@
 "Trade" = "Ticaret";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Trader" = "Trader";
+"Trader" = "Tüccar";
 
 /* Shipyard tab. [fleetcarrier.py] */
-"Transfer Cost" = "Transfer Cost";
+"Transfer Cost" = "Aktarım Maliyetleri";
 
 /* Shipyard tab. [fleetcarrier.py] */
-"Transfer Time" = "Transfer Time";
+"Transfer Time" = "Transfer Süresi";
 
 /* Discord heading, abbreviation for trade black market profit. [default.py] */
 "TrdBMProfit" = "TcrtKBKznc";
@@ -1703,7 +1703,7 @@
 "TrdProfit" = "TcrtKznc";
 
 /* Carrier itinerary. [fleetcarrier.py] */
-"Tritium" = "Tritium";
+"Tritium" = "Trityum";
 
 /* Discord heading, abbreviation for tissue sample. [default.py] */
 "ts" = "dn";
@@ -1739,13 +1739,13 @@
 "Updated at: {date_time} | {plugin_name} v{version}" = "Güncellendi: {date_time} | {plugin_name} v{version}";
 
 /* Preferences checkbox label. [ui.py] */
-"Use scrollbar (restart required)" = "Use scrollbar (restart required)";
+"Use scrollbar (restart required)" = "Scrollbar Kullan (yeniden başlatma gereklidir)";
 
 /* Carrier cargo. [fleetcarrier.py] */
-"Used" = "Used";
+"Used" = "Kullanılan";
 
 /* Shipyard tab. [fleetcarrier.py] */
-"Value" = "Value";
+"Value" = "Değer";
 
 /* Service name. [fleetcarrier.py] */
 "Vista Genomics" = "Vista Genomics";
@@ -1772,7 +1772,7 @@
 "Website ⤴" = "Websitesi ⤴";
 
 /* Carrier services. [fleetcarrier.py] */
-"Weekly Cost" = "Weekly Cost";
+"Weekly Cost" = "Haftalık Bakım Masrafları";
 
 /* Notice about the first base being special. [colonisation.py] */
 "When planning your system the first base is special, make sure that it is the first on the list." = "Sisteminizi planlarken ilk üs özeldir, listenin başında yer aldığından emin olun.";
@@ -1787,7 +1787,7 @@
 "Wounded evacuation missions" = "Yaralı tahliye görevleri";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Xeno Hunter" = "Xeno Hunter";
+"Xeno Hunter" = "Xeno Avcısı";
 
 /* Yes. [utils.py] */
 "Yes" = "Evet";
@@ -1802,7 +1802,7 @@
 "{plugin_name} - API Settings" = "{plugin_name} - API Ayarları";
 
 /* Carrier window title. [fleetcarrier.py] */
-"{plugin_name} - Carrier {carrier_name}" = "{plugin_name} - Carrier {carrier_name}";
+"{plugin_name} - Carrier {carrier_name}" = "{plugin_name} - Filo taşıyıcı {carrier_name}";
 
 /* CMDR window title. [cmdrs.py] */
 "{plugin_name} - CMDR Interactions" = "{plugin_name} - CMDR Etkileşimleri";

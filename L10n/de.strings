@@ -197,7 +197,7 @@
 "Builds" = "Bauwerke";
 
 /* [fleetcarrier.py] */
-"buy" = "buy";
+"buy" = "kauf";
 
 /* Carrier buy order amount. [progress.py] */
 "Buy Orders" = "Kaufaufträge";
@@ -239,7 +239,7 @@
 "Carrier" = "Träger";
 
 /* fleet carrier materials header. [fleetcarrier.py] */
-"Carrier {order} for {carrier_name} \n" = "Carrier {order} for {carrier_name} \n";
+"Carrier {order} for {carrier_name} \n" = "Carrier {order} für {carrier_name} \n";
 
 /* category of base. [colonisation.py] */
 "Category" = "Kategorie";
@@ -1058,7 +1058,7 @@
 "Orbital" = "Orbital";
 
 /* [fleetcarrier.py] */
-"orders" = "orders";
+"orders" = "Bestellungen";
 
 /* Colonisation 'Category' [base_types.json] */
 "Outpost" = "Außenposten";
@@ -1382,7 +1382,7 @@
 "Select all" = "Alle auswählen";
 
 /* [fleetcarrier.py] */
-"sell" = "sell";
+"sell" = "Verkauf";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Selling" = "Verkauf";

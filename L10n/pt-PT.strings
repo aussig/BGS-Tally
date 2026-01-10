@@ -77,8 +77,7 @@
 "Amount left to buy" = "Valor restante para comprar";
 
 /* Carrier buy order tooltip. [progress.py] */
-"Amount outstanding in carrier buy orders" = "Valor pendente em ordens de compra da carrier
-";
+"Amount outstanding in carrier buy orders" = "Valor pendente em ordens de compra da carrier";
 
 /* Amount remaining tooltip. [progress.py] */
 "Amount remaining to be delivered" = "Quantia restante a ser entregue";
@@ -198,7 +197,7 @@
 "Builds" = "Construções";
 
 /* [fleetcarrier.py] */
-"buy" = "buy";
+"buy" = "comprar";
 
 /* Carrier buy order amount. [progress.py] */
 "Buy Orders" = "Ordens de Compra";
@@ -240,7 +239,7 @@
 "Carrier" = "Carrier";
 
 /* fleet carrier materials header. [fleetcarrier.py] */
-"Carrier {order} for {carrier_name} \n" = "Carrier {order} for {carrier_name} \n";
+"Carrier {order} for {carrier_name} \n" = "Carrier {order} para {carrier_name} \n";
 
 /* category of base. [colonisation.py] */
 "Category" = "Categoria";
@@ -1059,7 +1058,7 @@
 "Orbital" = "Orbital";
 
 /* [fleetcarrier.py] */
-"orders" = "orders";
+"orders" = "pedidos";
 
 /* Colonisation 'Category' [base_types.json] */
 "Outpost" = "Posto Avançado";
@@ -1383,7 +1382,7 @@
 "Select all" = "Seleccionar tudo";
 
 /* [fleetcarrier.py] */
-"sell" = "sell";
+"sell" = "vender";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Selling" = "A vender";

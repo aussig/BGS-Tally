@@ -175,14 +175,17 @@ class RavenColonial:
                 Debug.logger.error(f"Failed to import system {system_name}: {response.status_code}")
                 return
 
-            # Add Builds
+            # Add Builds since (despite the url including /sites) upsert_system only deals with the system not the sites
             for b in system.get('Builds', []):
                 self.upsert_site(system, b)
 
+
+        # Either the data from the original GET or the data from the import.
         data:dict = response.json()
 
-        # First time so merge RC data (either from the original get or from the import) with system data
-        if system.get('Rev', None) == None:
+        # RC has updates since our last update so merge RC data (either from the original get or from the import) with system data
+        if system.get('Rev', 0) < data.get('rev'):
+            Debug.logger.debug(f"Merging updated system data from RC prior to upsert")
             self._merge_system_data(data)
 
         payload:dict = {}
@@ -331,14 +334,14 @@ class RavenColonial:
 
         mod:dict = {}
         for k, v in self.sys_params.items():
-            if k != 'rev' and data.get(k, None) != None and data.get(k, None) != system.get(v, None):
+            if data.get(k, None) != None and data.get(k, None) != system.get(v, None):
                 mod[v] = data.get(k, '').strip() if isinstance(data.get(k, None), str) else data.get(k, None)
 
         if get_by_path(data, ['pop', 'pop'], 0) > system.get('Population', 0):
             mod['Population'] = get_by_path(data, ['pop', 'pop'], 0)
 
         if mod != {}:
-            Debug.logger.debug(f"Changes found, modifyng system {mod}")
+            Debug.logger.debug(f"Changes found, modifying system {mod}")
             self.colonisation.modify_system(system, mod)
 
         tmp:list = system.get('Builds', []).copy()

@@ -192,7 +192,6 @@ class UI:
             self.btn_carrier.config(state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'))
         self.btn_objectives.config(state=('normal' if self.bgstally.objectives_manager.objectives_available() else 'disabled'))
 
-        self.bgstally.state.enable_colonisation = (self.bgstally.state.ColonisationStatus.get() == CheckStates.STATE_ON)
         self.btn_colonisation.config(state=('normal' if self.bgstally.state.enable_colonisation == True else 'disabled'))
         self.window_progress.update_display()
 
@@ -214,7 +213,7 @@ class UI:
         nb.Label(frame, text=_("General Options"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
         nb.Checkbutton(frame, text=_("{plugin_name} Active").format(plugin_name=self.bgstally.plugin_name), variable=self.bgstally.state.Status, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.update_plugin_frame).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Show Systems with Zero Activity"), variable=self.bgstally.state.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(frame, text=_("Colonisation Active"), variable=self.bgstally.state.ColonisationStatus, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.update_plugin_frame).grid(row=current_row, column=1, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences checkbox label
+        nb.Checkbutton(frame, text=_("Colonisation Active"), variable=self.bgstally.state.ColonisationStatus, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self._colonisation_change).grid(row=current_row, column=1, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences checkbox label
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("Discord Options"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # Don't increment row because we want the 1st radio option to be opposite title # LANG: Preferences heading
@@ -486,6 +485,16 @@ class UI:
         self.bgstally.state.discord_formatter = formatters_by_name.get(self.formatter.get())
 
 
+    def _colonisation_change(self, event=None):
+        """Callback for change in colonisation status
+
+        Args:
+            event (_type_, optional): Variable related to the callback. Defaults to None.
+        """
+        self.bgstally.state.refresh()
+        self.update_plugin_frame()
+
+
     def _favourite_type_selected(self, favourite_types: dict, value: str):
         """The user has changed the dropdown to choose the favourite faction posting type
         """
@@ -590,7 +599,7 @@ class UI:
                 self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
 
             # Colonisation
-            if self.bgstally.state.ColonisationStatus.get() == CheckStates.STATE_ON and self.bgstally.state.enable_overlay_colonisation:
+            if self.bgstally.state.enable_overlay_colonisation:
                 colonisation_text: str = self.window_progress.as_text(False)
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 

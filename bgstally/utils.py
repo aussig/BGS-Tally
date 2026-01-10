@@ -28,7 +28,7 @@ BLOCK_LANGS: list = []
 edmc_version: semantic_version.Version = appversion()
 
 
-def _get_tl_func(edmc_version: semantic_version.Version) -> Tuple[Callable[[str], str], Any]:
+def _get_tl_func(edmc_version: semantic_version.Version) -> Tuple[Callable[[str], str], Any, l10n._Locale]:
     """
     Returns the appropriate translation function and translations object based on the EDMC version.
 
@@ -49,13 +49,13 @@ def _get_tl_func(edmc_version: semantic_version.Version) -> Tuple[Callable[[str]
             - Any: The translations object to use (l10n.Translations or l10n.translations).
     """
     if edmc_version < semantic_version.Version('5.11.0'):
-        return functools.partial(l10n.Translations.translate, context=__file__), l10n.Translations
+        return functools.partial(l10n.Translations.translate, context=__file__), l10n.Translations, l10n.Locale
     else:
-        return functools.partial(l10n.translations.tl, context=__file__), l10n.translations
+        return functools.partial(l10n.translations.tl, context=__file__), l10n.translations, l10n.Locale
 
 
 # Assign the translation function and the translations object based on the current EDMC version.
-_, translations_obj = _get_tl_func(edmc_version)
+_, translations_obj, translations_locale = _get_tl_func(edmc_version)
 
 
 def __(string: str, lang: str|None) -> str:
@@ -142,7 +142,10 @@ def get_localised_filepath(filename: str, basepath: str) -> str | None:
     Returns:
         str | None: The file path if it exists or None if the file is not found.
     """
-    lang:str = config.get_str('language')
+    lang: str | None = config.get_str('language')
+    if lang is None or lang == '': # This is the case when EDMC is set to the default (system) language
+        lang = get_system_lang()
+
     filepath: str | None = None
 
     if lang and lang != 'en':
@@ -158,6 +161,35 @@ def get_localised_filepath(filename: str, basepath: str) -> str | None:
 
     Debug.logger.info(f"Missing translatable file {filepath} for language: {lang}")
     return None
+
+
+def get_system_lang() -> str | None:
+    """
+    Attempt to retrieve the system language preference and select the first preferred language if available.
+    Return the selected language or None if no language is selected.
+
+    EDMC doesn't store the default (system) language so we use exactly the same logic here as l10n.install() to ensure
+    the same language is chosen
+    """
+    lang: str | None = None
+    available: set[str] = translations_obj.available()
+    available.add(translations_obj.FALLBACK)
+
+    for preferred in translations_locale.preferred_languages():
+        components = preferred.split('-')
+        if preferred in available:
+            lang = preferred
+
+        elif '-'.join(components[0:2]) in available:
+            lang = '-'.join(components[0:2])
+
+        elif components[0] in available:
+            lang = components[0]  # just base language
+
+        if lang:
+            break
+
+    return lang
 
 
 def get_by_path(dic: dict[str, Any], keys: list[str], default: Any = None) -> Any:

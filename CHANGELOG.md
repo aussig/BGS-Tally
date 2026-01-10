@@ -2,7 +2,9 @@
 
 ## v5.4.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
 
+* When EDMC was set to the default language, and the system language is not English, some parts were not translated, for example the colonisation legend window.
 
 
 ## v5.4.0-b2 - 2026-01-10

@@ -77,7 +77,7 @@
 "Amount left to buy" = "Cantidad restante por comprar";
 
 /* Carrier buy order tooltip. [progress.py] */
-"Amount outstanding in carrier buy orders" = "Amount outstanding in carrier buy orders";
+"Amount outstanding in carrier buy orders" = "Cantidad restante en órdenes de compra del portanaves";
 
 /* Amount remaining tooltip. [progress.py] */
 "Amount remaining to be delivered" = "Cantidad restante por entregar";
@@ -182,7 +182,7 @@
 "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Tanto el campo 'Post en Discord como' como un webhookde Discord{CR}deben ser configurados en la configuración para permitir publicar en Discord";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Bounty Hunter" = "Bounty Hunter";
+"Bounty Hunter" = "Cazarrecompensas";
 
 /* Activity window tooltip. [activity.py] */
 "Bounty vouchers" = "Bonos de recompensas";
@@ -197,7 +197,7 @@
 "Builds" = "Construcciones";
 
 /* [fleetcarrier.py] */
-"buy" = "buy";
+"buy" = "comprar";
 
 /* Carrier buy order amount. [progress.py] */
 "Buy Orders" = "Órdenes de compra";
@@ -206,7 +206,7 @@
 "Buying" = "Comprando";
 
 /* Button label. [fleetcarrier.py] */
-"Calculate" = "Calculate";
+"Calculate" = "Calcular";
 
 /* Carrier overview. [fleetcarrier.py] */
 "Callsign" = "Señal de llamada";
@@ -239,7 +239,7 @@
 "Carrier" = "Portanaves";
 
 /* fleet carrier materials header. [fleetcarrier.py] */
-"Carrier {order} for {carrier_name} \n" = "Carrier {order} for {carrier_name} \n";
+"Carrier {order} for {carrier_name} \n" = "Portanaves {order} para {carrier_name} \n";
 
 /* category of base. [colonisation.py] */
 "Category" = "Categoría";
@@ -257,7 +257,7 @@
 "Civilian Settlement" = "Asentamiento civil";
 
 /* Button label. [fleetcarrier.py] */
-"Clear" = "Clear";
+"Clear" = "Borrar";
 
 /* [sheet_options.py] */
 "Clear contents" = "Borrar contenido";
@@ -275,7 +275,7 @@
 "Colonisation" = "Colonización";
 
 /* Preferences checkbox label. [ui.py] */
-"Colonisation Active" = "Colonisation Active";
+"Colonisation Active" = "Colonización activa";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Colony" = "Colonia";
@@ -386,7 +386,7 @@
 "Deactivate (hide) this plan" = "Desactivar (ocultar) este plan";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Decommissioning" = "Decommissioning";
+"Decommissioning" = "Decomisionado";
 
 /* any decrease effects for the base. [colonisation.py] */
 "Decreased By" = "Reducido por";
@@ -419,19 +419,19 @@
 "Departed" = "Partió";
 
 /* Carrier itinerary. [fleetcarrier.py] */
-"Departure" = "Departure";
+"Departure" = "Salida";
 
 /* Carrier itinerary. [fleetcarrier.py] */
 "Departure Time" = "Hora de salida";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Deposit" = "Deposit";
+"Deposit" = "Depósito";
 
 /* Label on API settings window. [api.py] */
 "Description" = "Descripción";
 
 /* Entry placeholder. [fleetcarrier.py] */
-"Destination" = "Destination";
+"Destination" = "Destino";
 
 /* Label on legend window. [legend.py] */
 "Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "INF obtenida en misiones separada en + / ++ / +++ / ++++ / +++++.";
@@ -458,7 +458,7 @@
 "Dist (ly)" = "Dist (ly)";
 
 /* Carrier itinerary. [fleetcarrier.py] */
-"Distance" = "Distance";
+"Distance" = "Distancia";
 
 /* Carrier overview. [fleetcarrier.py] */
 "Docking" = "Atraque";
@@ -551,7 +551,7 @@
 "Exploration Hub" = "Hub de exploración";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Explorer" = "Explorer";
+"Explorer" = "Explorador";
 
 /* Colonisation 'Facility Economy' [base_types.json] */
 "Extraction" = "Extracción";
@@ -608,7 +608,7 @@
 "Friend request received from this CMDR" = "Solicitud de amistad recibida de este CMDR";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Friends" = "Friends";
+"Friends" = "Amigos";
 
 /* Discord heading. [fleetcarrier.py] */
 "From System" = "Del Sistema";
@@ -617,10 +617,10 @@
 "Fuel" = "Combustible";
 
 /* Carrier itinerary. [fleetcarrier.py] */
-"Fuel Required" = "Fuel Required";
+"Fuel Required" = "Necesita combustible";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Fuel Used" = "Fuel Used";
+"Fuel Used" = "Combustible usado";
 
 /* Overlay galaxy tick message. [ui.py] */
 "Galaxy Tick: {tick_time}" = "Tick galáctico: {tick_time}";
@@ -695,7 +695,7 @@
 "Icons in Thargoid War Reports" = "Iconos en informes de Guerra Thargoide";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"In Depot" = "In Depot";
+"In Depot" = "En almacén";
 
 /* Discord heading. [cmdrs.py] */
 "In Ship" = "En Nave";
@@ -713,7 +713,7 @@
 "In system: {system}" = "En el sistema: {system}";
 
 /* Fleet carrier, ship in transit. [fleetcarrier.py] */
-"In Transit" = "In Transit";
+"In Transit" = "En tránsito";
 
 /* Preferences heading. [ui.py] */
 "In-game Overlay" = "Overlay en el juego";
@@ -833,7 +833,7 @@
 "INTERDICTED BY this CMDR" = "INTERDICTADO POR este CMDR";
 
 /* [fleetcarrier.py] */
-"January" = "January";
+"January" = "Enero";
 
 /* Discord post title. [fleetcarrier.py] */
 "Jump Cancelled for Carrier {carrier_name}" = "Salto del portanaves {carrier_name} cancelado";
@@ -842,7 +842,7 @@
 "Jump Cost" = "Coste de salto";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Jump Distance" = "Jump Distance";
+"Jump Distance" = "Distancia de salto";
 
 /* Discord post title. [fleetcarrier.py] */
 "Jump Scheduled for Carrier {carrier_name}" = "Salto del portanaves {carrier_name} programado";
@@ -968,7 +968,7 @@
 "Military Tier 2 Lrg" = "Militar Tier 2 Grnd";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Miner" = "Miner";
+"Miner" = "Minero";
 
 /* Colonisation 'Type' [base_types.json] */
 "Mining Outpost" = "Outpost minería";
@@ -1028,13 +1028,13 @@
 "Ocellus Starport" = "Puerto Espacial Ocellus";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Offline" = "Offline";
+"Offline" = "Desconectado";
 
 /* Label on legend window. [legend.py] */
 "On-ground Conflict Zone" = "Zona de conflicto en tierra";
 
 /* [colonisation.py] */
-"Open" = "Open";
+"Open" = "Abrir";
 
 /* [progress.py] */
 "Open in RavenColonial" = "Abrir en RavenColonial";
@@ -1058,7 +1058,7 @@
 "Orbital" = "Orbital";
 
 /* [fleetcarrier.py] */
-"orders" = "orders";
+"orders" = "órdenes";
 
 /* Colonisation 'Category' [base_types.json] */
 "Outpost" = "Outpost";
@@ -1121,7 +1121,7 @@
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "¡POR FAVOR ASEGÚRATE DE QUE CONFÍAS en el servidor al que envíes esta información!";
 
 /* [fleetcarrier.py] */
-"Plot Route" = "Plot Route";
+"Plot Route" = "Trazar ruta";
 
 /* [colonisation.py] */
 "Pop" = "Pob";
@@ -1241,7 +1241,7 @@
 "Refresh from RavenColonial" = "Refrescar desde RavenColonial";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Refuel" = "Refuel";
+"Refuel" = "Repostaje";
 
 /* Colonisation 'Building Type' [base_types.json] */
 "Relay Installation" = "Instalación de relés";
@@ -1295,7 +1295,7 @@
 "rings" = "anillos";
 
 /* Carrier itinerary. [fleetcarrier.py] */
-"Route Destination" = "Route Destination";
+"Route Destination" = "Destino de ruta";
 
 /* Summary headings. [fleetcarrier.py] */
 "Running Costs" = "Coste operativo";
@@ -1328,7 +1328,7 @@
 "Scens" = "Escenarios";
 
 /* Label on itinerary window. [fleetcarrier.py] */
-"Scheduled for" = "Scheduled for";
+"Scheduled for" = "Planificada para";
 
 /* Carrier itinerary. [fleetcarrier.py] */
 "Scheduled Jump" = "Salto programado";
@@ -1382,7 +1382,7 @@
 "Select all" = "Seleccionar todo";
 
 /* [fleetcarrier.py] */
-"sell" = "sell";
+"sell" = "vender";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Selling" = "En venta";
@@ -1496,7 +1496,7 @@
 "SpaceCZs" = "CZs Espaciales";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Squadron and Friends" = "Squadron and Friends";
+"Squadron and Friends" = "Flota y Amigos";
 
 /* CMDR window column title. [cmdrs.py] */
 "Squadron ID" = "ID de Flota";
@@ -1511,7 +1511,7 @@
 "Squadron: " = "Flota: ";
 
 /* Itinerary tab. [fleetcarrier.py] */
-"Star System" = "Star System";
+"Star System" = "Sistema estelar";
 
 /* Colonisation 'Category' [base_types.json] */
 "Starport" = "Puerto Espacial";
@@ -1685,7 +1685,7 @@
 "Trade" = "Comercio";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Trader" = "Trader";
+"Trader" = "Comerciante";
 
 /* Shipyard tab. [fleetcarrier.py] */
 "Transfer Cost" = "Coste de Transferencia";
@@ -1739,7 +1739,7 @@
 "Updated at: {date_time} | {plugin_name} v{version}" = "Actualizado el: {date_time} | {plugin_name} v{version}";
 
 /* Preferences checkbox label. [ui.py] */
-"Use scrollbar (restart required)" = "Use scrollbar (restart required)";
+"Use scrollbar (restart required)" = "Usar la barra de desplazamiento (requiere reiniciar)";
 
 /* Carrier cargo. [fleetcarrier.py] */
 "Used" = "Usado";
@@ -1787,7 +1787,7 @@
 "Wounded evacuation missions" = "Misiones de evacuación de heridos";
 
 /* Readable carrier states. [fleetcarrier.py] */
-"Xeno Hunter" = "Xeno Hunter";
+"Xeno Hunter" = "Xenocazador";
 
 /* Yes. [utils.py] */
 "Yes" = "Sí";

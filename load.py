@@ -10,6 +10,7 @@ from bgstally.debug import Debug
 
 PLUGIN_NAME = "BGS-Tally"
 PLUGIN_VERSION = semantic_version.Version.coerce("5.4.0-dev")
+VERSION = str(PLUGIN_VERSION) # For compatability with the EDMC Plugin Registry: https://github.com/EDCD/EDMC-Plugin-Registry
 
 # Initialise the main plugin class
 bgstally.globals.this = this = BGSTally(PLUGIN_NAME, PLUGIN_VERSION)

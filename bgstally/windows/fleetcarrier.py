@@ -164,7 +164,7 @@ class WindowFleetCarrier:
         for k, v in self.tabs.items():
             fr:ttk.Frame = ttk.Frame(tabbar, relief=tk.FLAT)
             fr.pack(fill=tk.BOTH, expand=1)
-            tabbar.add(fr, text=_(k))
+            tabbar.add(fr, text=_(k)) # LANG: Fleet Carrier tab title
             if v.get('buttons', None) != None:
                 v['buttons'](fc, fr)
             v['func'](fc, v, fr)
@@ -319,9 +319,9 @@ class WindowFleetCarrier:
 
         for k, v in data.items():
             if bg != 'None':
-                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background=bg)
+                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background=bg) # LANG: Ignore
             else:
-                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"))
+                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold")) # LANG: Ignore
             lbl.grid(row=row, column=col, padx=20, pady=5, sticky=tk.W)
             txt:str = hfplus(v)
             if bg != 'None':
@@ -438,15 +438,15 @@ class WindowFleetCarrier:
         itinerary:dict = fc.get_itinerary()
         #dest:ttk.Entry = ttk.Entry(bar, width=30)
         #ph:str = _("Destination") if itinerary.get('route', []) == [] else itinerary['route'][-1].get('name') # LANG: Entry placeholder
-        pho:Placeholder = Placeholder(bar, _("Destination"), width=30)
-        dest:AutoCompleter = AutoCompleter(self.bgstally, bar, _("Destination"), width=30)
-        calc:ttk.Button = ttk.Button(bar, text=_("Calculate"), command=partial(_route, dest)) # LANG: Button label
+        pho:Placeholder = Placeholder(bar, _("Destination"), width=30) # LANG: Fleet carrier text label
+        dest:AutoCompleter = AutoCompleter(self.bgstally, bar, _("Destination"), width=30) # LANG: Fleet carrier text label
+        calc:ttk.Button = ttk.Button(bar, text=_("Calculate"), command=partial(_route, dest)) # LANG: Fleet carrier button label
 
-        lbl:ttk.Label = ttk.Label(bar, text=_("Plot Route"))
+        lbl:ttk.Label = ttk.Label(bar, text=_("Plot Route")) # LANG: Fleet carrier text label
 
         calc.config(state=tk.DISABLED if itinerary.get('route', []) != [] else tk.NORMAL)
 
-        clear:ttk.Button = ttk.Button(bar, text=_("Clear"), command=partial(_clear)) # LANG: Button label
+        clear:ttk.Button = ttk.Button(bar, text=_("Clear"), command=partial(_clear)) # LANG: Fleet carrier button label
         clear.config(state=tk.DISABLED if itinerary.get('route', []) == [] else tk.NORMAL)
 
         # At the bottom as order of definition and order of display are different
@@ -497,9 +497,9 @@ class WindowFleetCarrier:
 
         order:str = which
         match type:
-            case 'Both': order += " " + __("orders", l)
-            case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l)
-            case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l)
+            case 'Both': order += " " + __("orders", l) # LANG: fleet carrier orders discord label
+            case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
+            case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
 
         output += __("Carrier {order} for {carrier_name} \n", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) # LANG: fleet carrier materials header
         if fc.overview.get('currentStarSystem', "") != "":
@@ -512,7 +512,7 @@ class WindowFleetCarrier:
         header:list = []
         for col in tab['cols'].values():
             if col.get('discordWidth', None) == None: continue
-            tmp:str = str_truncate(__(col['title'], lang=l), col['discordWidth'])
+            tmp:str = str_truncate(__(col['title'], lang=l), col['discordWidth']) # LANG: Ignore
             fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"
             header.append(fmt.format(val=tmp))
         output += " | ".join(header) + "\n"
@@ -534,7 +534,7 @@ class WindowFleetCarrier:
                     case "buy" if item.get("price", 0) > 0 and item.get("outstanding", 0) > 0: val = item.get("outstanding")
                     case "sell" if item.get("price", 0) > 0 and item.get("stock", 0) > 0: val = item.get("stock")
                     case _: val = item.get(f, " ")
-                tmp:str = str_truncate(__(hfplus(val), lang=l), col['discordWidth'])
+                tmp:str = str_truncate(__(hfplus(val), lang=l), col['discordWidth']) # LANG: Ignore
                 fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"
                 line.append(fmt.format(val=tmp))
             if line != []:

@@ -76,7 +76,7 @@ def __(string: str, lang: str|None) -> str:
     """
     # Return the original string if the language is empty, None, or the fallback language.
     if lang == "":
-        return _(string)
+        return _(string)  # LANG: Ignore
 
     # Return original string and log warning if language is None.
     elif lang is None:

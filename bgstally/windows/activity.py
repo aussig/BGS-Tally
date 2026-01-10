@@ -155,9 +155,9 @@ class WindowActivity:
             if system_tick_datetime is not None:
                 system_tick_datetime = system_tick_datetime.replace(tzinfo=UTC)
                 if system_tick_datetime > activity.tick_time:
-                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime))).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime))).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1 # LANG: Label on activity window
                 else:
-                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime)), foreground=COLOUR_WARNING).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime)), foreground=COLOUR_WARNING).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1 # LANG: Label on activity window
 
             inara_btn: ttk.Button = ttk.Button(frm_header, image=self.bgstally.ui.image_logo_inara, cursor="hand2", command=partial(self._inara_link_clicked, system['System']))
             inara_btn.grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
@@ -227,7 +227,7 @@ class WindowActivity:
                 lbl_bvs: ttk.Label = ttk.Label(frm_table, text="BVs", font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for bounty vouchers
                 lbl_bvs.grid(row=0, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_bvs, text=_("Bounty vouchers")) # LANG: Activity window tooltip
-                lbl_expl: ttk.Label = ttk.Label(frm_table, text=_("Expl"), font=FONT_HEADING_2)
+                lbl_expl: ttk.Label = ttk.Label(frm_table, text=_("Expl"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for exploration
                 lbl_expl.grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for exploration
                 ToolTip(lbl_expl, text=_("Exploration data")) # LANG: Activity window tooltip
                 #ttk.Label(frm_table, text=_("Exo"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for exobiology
@@ -272,8 +272,8 @@ class WindowActivity:
                 lbl_spaceczpr.grid(row=1, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_spaceczpr, text=_("In-space Conflict Zone Side Objective: Propaganda wing")) # LANG: Activity window tooltip
 
-                lbl_groundczs: ttk.Label = ttk.Label(frm_table, text=_("GroundCZs"), font=FONT_HEADING_2, anchor=tk.CENTER)
-                lbl_groundczs.grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title, abbreviation for ground conflict zones
+                lbl_groundczs: ttk.Label = ttk.Label(frm_table, text=_("GroundCZs"), font=FONT_HEADING_2, anchor=tk.CENTER) # LANG: Activity window column title, abbreviation for ground conflict zones
+                lbl_groundczs.grid(row=0, column=col, columnspan=3, padx=2)
                 ToolTip(lbl_groundczs, text=_("Ground conflict zones")) # LANG: Activity window tooltip
                 lbl_groundczl: ttk.Label = ttk.Label(frm_table, text="L", font=FONT_HEADING_2)
                 lbl_groundczl.grid(row=1, column=col, padx=2, pady=2); col += 1

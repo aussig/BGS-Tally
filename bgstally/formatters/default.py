@@ -99,7 +99,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
                 discord_fields.append(discord_field)
 
         if activity_mode == DiscordActivity.POWERPLAY and self.bgstally.state.showmerits and activity.get_merits() > 0:
-            merits_title: str = __("Powerplay Merits", lang) + " (" + activity.get_power() + ")"
+            merits_title: str = __("Powerplay Merits", lang) + " (" + activity.get_power() + ")" # LANG: Powerplay merits in Discord
             discord_field = {'name': merits_title, 'value': f"```ansi\n{activity.get_merits()}```"}
             discord_fields.append(discord_field)
 
@@ -402,13 +402,13 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
             # Modern, detailed trade report - Split into values per supply / demand bracket
             if sum(int(d['value']) for d in trade_buy) > 0:
                 # Buy brackets currently range from 1 - 3
-                text += cyan(__("TrdBuy", lang), fp=fp) + " "
+                text += cyan(__("TrdBuy", lang), fp=fp) + " " # LANG: Abbreviation for trade buy in Discord
                 if int(trade_buy[1]['value']) != 0: text += f"{'🅻' if discord else '[L]'}:{green(human_format(trade_buy[1]['value']), fp=fp)} "
                 if int(trade_buy[2]['value']) != 0: text += f"{'🅼' if discord else '[M]'}:{green(human_format(trade_buy[2]['value']), fp=fp)} "
                 if int(trade_buy[3]['value']) != 0: text += f"{'🅷' if discord else '[H]'}:{green(human_format(trade_buy[3]['value']), fp=fp)} "
             if sum(int(d['value']) for d in trade_sell) > 0:
                 # Sell brackets currently range from 0 - 3
-                text += cyan(__("TrdProfit", lang), fp=fp) + " "
+                text += cyan(__("TrdProfit", lang), fp=fp) + " " # LANG: Abbreviation for trade profit in Discord
                 if int(trade_sell[0]['profit']) != 0: text += f"{'🆉' if discord else '[Z]'}:{green(human_format(trade_sell[0]['profit']), fp=fp)} "
                 if int(trade_sell[1]['profit']) != 0: text += f"{'🅻' if discord else '[L]'}:{green(human_format(trade_sell[1]['profit']), fp=fp)} "
                 if int(trade_sell[2]['profit']) != 0: text += f"{'🅼' if discord else '[M]'}:{green(human_format(trade_sell[2]['profit']), fp=fp)} "

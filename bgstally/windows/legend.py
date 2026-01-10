@@ -101,6 +101,7 @@ class WindowLegend:
         ttk.Label(frame_contents, image=self.image_icon_tw_reactivate).grid(row=current_row, column=0)
         ttk.Label(frame_contents, text=" " + _("Reactivation missions")).grid(row=current_row, column=1, sticky=tk.W); current_row += 1 # LANG: Label on legend window
         ttk.Label(frame_contents, image=self.image_icon_tw_mass_missions).grid(row=current_row, column=0)
+        # LANG: Label on legend window
         ttk.Label(frame_contents, text=" " + _("Massacre missions") + "\n" \
                                         + "   S - Scout" + "\n" \
                                         + "   C - Cyclops" + "\n" \
@@ -109,9 +110,11 @@ class WindowLegend:
                                         + "   H - Hydra" + "\n" \
                                         + "   O - Orthrus").grid(row=current_row, column=1, sticky=tk.W); current_row += 1
         ttk.Label(frame_contents, image=self.image_icon_tw_kills).grid(row=current_row, column=0)
+        # LANG: Label on legend window
         ttk.Label(frame_contents, text=" " + _("Kills") + "\n" \
                                         + "   R - Revenant\n" \
                                         + "   S - Scout\n" \
+        # LANG: Label on legend window associated with Scythe / Glaive
                                         + "   S/G - Scythe / Glaive " + _("(Cannot be automatically distinguished)") + "\n" \
                                         + "   C - Cyclops\n" \
                                         + "   B - Basilisk\n" \

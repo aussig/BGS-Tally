@@ -113,7 +113,7 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         offset = time.mktime(datetime.now().timetuple()) - time.mktime(datetime.now(timezone.utc).timetuple())
         tick = round(time.mktime(activity.tick_time.timetuple()) + offset)
 
-        return f"### {__('BGS Report', lang)} - {__('Tick', lang)} : <t:{tick}>\n```ansi{text}```"
+        return f"### {__('BGS Report', lang)} - {__('Tick', lang)} : <t:{tick}>\n```ansi{text}```"  # LANG: BGS Report Tick time
 
 
     def _build_inf_text(self, inf_data:dict, secondary_inf_data:dict, faction_state:str, lang:str = "", discord:bool = False) -> str:
@@ -125,11 +125,11 @@ class CLBActivityFormatter(DefaultActivityFormatter):
             inf += sum((1 if k == 'm' else int(k)) * int(v) for k, v in secondary_inf_data.items())
 
         if faction_state in STATES_ELECTION:
-            type = __("Election Inf", lang)
+            type = __("Election Inf", lang) # LANG: Election Influence in Discord report
         elif faction_state in STATES_WAR:
-            type = __("War Inf", lang)
+            type = __("War Inf", lang) # LANG: War Influence in Discord report
         else:
-            type = __("Inf", lang)
+            type = __("Inf", lang) # LANG: Influence in Discord report
         if inf == 0:
             return ""
 
@@ -147,20 +147,20 @@ class CLBActivityFormatter(DefaultActivityFormatter):
             activity.append(inf)
 
         # For all the other high level actions just loop through these and sum them up.
-        actions = {"Bounties" : "Bounties",
-                      "CombatBonds" : "Bonds",
-                      "SpaceCZ" : "SCZ",
-                      "GroundCZ" : "GCZ",
-                      "BlackMarketProfit" : "BlackMarket",
-                      "CartData" : "Carto",
-                      "ExoData" : "Exo",
-                      "Murdered" : "Ship Murders",
-                      "GroundMurdered" : "Foot Murders",
-                      "Scenarios" : "Scenarios",
-                      "MissionFailed" : "Failed",
-                      'TradeBuy': 'Spent',
-                      'TradeSell': "Profit",
-                      "SandR" : "S&R Units"
+        actions = {"Bounties" : __("Bounties", lang), # LANG: Bounties in Discord report
+                      "CombatBonds" : __("Bonds", lang), # LANG: Bonds in Discord report
+                      "SpaceCZ" : __("SCZ", lang), # LANG: Space CZ in Discord report
+                      "GroundCZ" : __("GCZ", lang), # LANG: Ground CZ in Discord report
+                      "BlackMarketProfit" : __("BlackMarket", lang), # LANG: Black Market profit in Discord report
+                      "CartData" : __("Carto", lang), # LANG: Cartographic data sold in Discord report
+                      "ExoData" : __("Exo", lang), # LANG: Exobiological data sold in Discord report
+                      "Murdered" : __("Ship Murders", lang), # LANG: Ship Murders in Discord report
+                      "GroundMurdered" : __("Foot Murders", lang), # LANG: Foot Murders in Discord report
+                      "Scenarios" : __("Scenarios", lang), # LANG: Scenarios in Discord report
+                      "MissionFailed" : __("Failed", lang), # LANG: Missions Failed in Discord report
+                      'TradeBuy': __('Spent', lang), # LANG: Trade Buy in Discord report
+                      'TradeSell': __('Profit', lang), # LANG: Trade Sell in Discord report
+                      "SandR" : __("S&R Units", lang) # LANG: Search and Rescue units in Discord report
                       }
 
         for a in actions:
@@ -174,7 +174,7 @@ class CLBActivityFormatter(DefaultActivityFormatter):
                 if isinstance(faction[a], dict):
                     amt: int = sum(int(v) for k, v in faction[a].items()) # Count the records
                 if amt > 0:
-                    activity.append(f"{green(human_format(amt), fp=fp)} {__(actions[a], lang)}")
+                    activity.append(f"{green(human_format(amt), fp=fp)} {actions[a]}") #
 
         activity_discord_text = ', '.join(activity)
 
@@ -202,32 +202,32 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         scz = faction.get('SpaceCZ')
         for w in ['h', 'm', 'l']:
             if scz != None and w in scz and int(scz[w]) != 0:
-                activity.append(grey(f"     {str(scz[w])} [{w.upper()}] {__('Space', lang)}"))
+                activity.append(grey(f"     {str(scz[w])} [{w.upper()}] {__('Space', lang)}")) # LANG: Space CZ details in Discord report
 
         # Details of Ground CZs so we know where folks have and haven't fought
         for settlement_name in faction.get('GroundCZSettlements', {}):
             if faction['GroundCZSettlements'][settlement_name]['enabled'] == CheckStates.STATE_ON:
-                activity.append(grey(f"     {faction['GroundCZSettlements'][settlement_name]['count']} [{faction['GroundCZSettlements'][settlement_name]['type'].upper()}] {__('Ground', lang)} - {settlement_name}"))
+                activity.append(grey(f"     {faction['GroundCZSettlements'][settlement_name]['count']} [{faction['GroundCZSettlements'][settlement_name]['type'].upper()}] {__('Ground', lang)} - {settlement_name}")) # LANG: Ground CZ details in Discord report
 
         # Trade details
         if self.bgstally.state.detailed_trade:
-            for action, desc in {'TradeBuy': 'Spent', 'TradeSell': "Profit"}.items():
+            for action, desc in {'TradeBuy': __('Spent', lang), 'TradeSell': __('Profit', lang)}.items(): # LANG: Trade in Discord report
                 for t, d in {3 : "H", 2 : "M", 1 : "L", 0 : "Z"}.items():
                     if faction[action][t] and faction[action][t]['value'] > 0:
-                        activity.append(grey(f"     {human_format(faction[action][t]['value'])} [{d}] {__(desc, lang)} ({str(faction[action][t]['items'])}T)"))
+                        activity.append(grey(f"     {human_format(faction[action][t]['value'])} [{d}] {desc} ({str(faction[action][t]['items'])}T)")) # LANG: Trade details in Discord report
 
         # Breakdown of mission influence
         for t, d in {'MissionPoints' : 'P', 'MissionPointsSecondary' : 'S'}.items():
             if self.bgstally.state.secondary_inf or t != 'MissionPointsSecondary':
                 for i in range(1, 6):
                     if faction[t].get(str(i), 0) != 0:
-                        activity.append(grey(f"     {faction[t][str(i)]} [{d}] {__('Inf', lang)}{'+' * i}", fp=fp))
+                        activity.append(grey(f"     {faction[t][str(i)]} [{d}] {__('Inf', lang)}{'+' * i}", fp=fp)) # LANG: Mission influence details in Discord report
 
         # Search and rescue, we treat this as detailed inf
         if 'SandR' in faction:
-            for t, d in {'op': 'Occupied Escape Pod', 'dp' : 'Damaged Escape Pod', 'bb' : 'Black Box'}.items():
+            for t, d in {'op': __('Occupied Escape Pod', lang), 'dp' : __('Damaged Escape Pod', lang), 'bb' : __('Black Box', lang)}.items(): # LANG: Search and Rescue in Discord report
                 if faction['SandR'][t]:
-                    activity.append(grey(f"     {faction['SandR'][t]} {__(d, lang)}", fp=fp))
+                    activity.append(grey(f"     {faction['SandR'][t]} {d}", fp=fp))
 
         if len(activity) == 0:
             return ""

@@ -56,8 +56,8 @@ class ObjectivesManager:
 
 
     def get_title(self) -> str:
-        if self.api is None: return _("Objectives") # LANG: Objectives title
-        else: return _("{server_name} Objectives".format(server_name=self.api.name)) # LANG: Objectives title
+        if self.api is None: return _("Objectives") # LANG: Objectives title where there is no server name
+        else: return _("{server_name} Objectives").format(server_name=self.api.name) # LANG: Objectives title
 
 
     def get_objectives(self) -> list:

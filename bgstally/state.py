@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from bgstally.constants import CheckStates, DiscordActivity
+from bgstally.constants import CheckStates, DiscordActivity, FavouriteActivity
 from config import config
 
 
@@ -36,6 +36,7 @@ class State:
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordActivity', default=DiscordActivity.BOTH))
         self.DiscordAvatarURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordAvatarURL', default=""))
         self.DiscordBGSTWAutomatic:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordBGSTWAutomatic', default=CheckStates.STATE_OFF))
+        self.FavouriteActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FavouriteActivity', default=FavouriteActivity.IGNORE))
 
         self.ColonisationMaxCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationMaxCommodities', default="20"))
         self.EnableProgressScrollbar:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableProgressScrollbar', default=CheckStates.STATE_OFF))
@@ -138,6 +139,7 @@ class State:
         config.set('BGST_ColonisationMaxCommodities', self.ColonisationMaxCommodities.get())
         config.set('BGST_EnableProgressScrollbar', self.EnableProgressScrollbar.get())
         config.set('BGST_ColonisationRCAPIKey', self.ColonisationRCAPIKey.get())
+        config.set('BGST_FavouriteActivity', self.FavouriteActivity.get())
 
         # Persistent values
         config.set('BGST_CurrentSystemID', self.current_system_id if self.current_system_id != None else "")

@@ -15,8 +15,8 @@ from bgstally.config import Config
 from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
 from bgstally.discord import Discord
+from bgstally.factionmanager import FactionManager
 from bgstally.fleetcarrier import FleetCarrier
-from bgstally.formatters.default import DefaultActivityFormatter
 from bgstally.formattermanager import ActivityFormatterManager
 from bgstally.market import Market
 from bgstally.missionlog import MissionLog
@@ -98,6 +98,7 @@ class BGSTally:
         self.formatter_manager: ActivityFormatterManager = ActivityFormatterManager(self)
         self.objectives_manager: ObjectivesManager = ObjectivesManager(self)
         self.colonisation: Colonisation = Colonisation(self)
+        self.faction_manager: FactionManager = FactionManager(self)
 
         self.tick_thread: Thread = Thread(target=self._tick_worker, name="BGSTally Tick worker")
         self.tick_thread.daemon = True
@@ -390,6 +391,7 @@ class BGSTally:
         self.fleet_carrier.save()
         self.api_manager.save()
         self.webhook_manager.save()
+        self.faction_manager.save()
 
 
     def new_tick(self, force: bool, uipolicy: UpdateUIPolicy):

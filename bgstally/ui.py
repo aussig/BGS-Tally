@@ -10,13 +10,12 @@ from tkinter.messagebox import askyesno
 from typing import List, Optional
 
 import myNotebook as nb
+from plugins.common_coreutils import api_keys_label_common, show_pwd_var_common
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from plugins.common_coreutils import (api_keys_label_common, PADX, PADY, BUTTONX, SEPY, show_pwd_var_common)
-
 from bgstally.activity import Activity
-from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity,
-                                UpdateUIPolicy)
+from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates,
+                                DiscordActivity, FavouriteActivity, UpdateUIPolicy)
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, get_by_path, get_localised_filepath
 from bgstally.widgets import EntryPlus
@@ -222,8 +221,16 @@ class UI:
         nb.Checkbutton(frame, text=_("Show Detailed INF"), variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Include Secondary INF"), variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(frame, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
+        nb.Checkbutton(frame, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
+        favourite_types: dict = {FavouriteActivity.IGNORE: _("Post all factions"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.FACTIONS: _("Post favourite factions only"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.SYSTEMS: _("Post systems containing favourite factions")} # LANG: Dropdown menu on activity window
+        var_favourite_type: tk.StringVar = tk.StringVar(value=favourite_types.get(self.bgstally.state.FavouriteActivity.get(), FavouriteActivity.IGNORE))
+        self.mnu_favourite_type: nb.OptionMenu = nb.OptionMenu(frame, var_favourite_type, var_favourite_type.get(),
+                                                            *favourite_types.values(),
+                                                            command=partial(self._favourite_type_selected, favourite_types), direction='below')
+        self.mnu_favourite_type.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(frame, text=_("Automatically Post BGS and TW Activity"), variable=self.bgstally.state.DiscordBGSTWAutomatic, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
@@ -486,6 +493,14 @@ class UI:
         """
         self.bgstally.state.refresh()
         self.update_plugin_frame()
+
+
+    def _favourite_type_selected(self, favourite_types: dict, value: str):
+        """The user has changed the dropdown to choose the favourite faction posting type
+        """
+        k: str = next(k for k, v in favourite_types.items() if v == value)
+        self.bgstally.state.FavouriteActivity.set(k)
+        self.bgstally.state.refresh
 
 
     def _worker(self) -> None:

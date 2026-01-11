@@ -31,7 +31,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return _("Default") # LANG: Name of default output formatter
 
 
-    def get_overlay(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> str:
+    def get_overlay(self, activity: Activity, activity_mode: DiscordActivity, system_names: list|None = None, lang: str|None = None) -> str:
         """Get the in-game overlay text for a given instance of Activity. The in-game overlay
         doesn't support any ANSI colouring and very few UTF-8 special characters. Basically,
         only plain text is safe.
@@ -48,7 +48,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return self._build_text(activity, activity_mode, system_names, lang, False)
 
 
-    def get_text(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> str:
+    def get_text(self, activity: Activity, activity_mode: DiscordActivity, system_names: list|None = None, lang: str|None = None) -> str:
         """Generate formatted text for a given instance of Activity. Must be implemented by subclasses.
         This method is used for getting the text for the 'copy and paste' function, and for direct posting
         to Discord for those Formatters that use text style posts (vs Discord embed style posts)
@@ -65,7 +65,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return self._build_text(activity, activity_mode, system_names, lang, True)
 
 
-    def get_fields(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None) -> list:
+    def get_fields(self, activity: Activity, activity_mode: DiscordActivity, system_names: list|None = None, lang: str|None = None) -> list:
         """Generate a list of discord embed fields, conforming to the embed field spec defined here:
         https://birdie0.github.io/discord-webhooks-guide/structure/embed/fields.html - i.e. each field should be a dict
         containing 'name' and 'value' str keys, and optionally an 'inline' bool key
@@ -83,6 +83,8 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
         for system in activity.systems.copy().values(): # Use a copy for thread-safe operation
             if system_names is not None and system['System'] not in system_names: continue
+            if not self.include_system(system): continue
+
             system_text: str = ""
 
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
@@ -91,6 +93,8 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
             if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
                 for faction in system['Factions'].values():
                     if faction['Enabled'] != CheckStates.STATE_ON: continue
+                    if not self.include_faction(faction): continue
+
                     system_text += self._build_faction(faction, True, lang)
 
             if system_text != "":
@@ -111,7 +115,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
     # Private functions
     #
 
-    def _build_text(self, activity: Activity, activity_mode: DiscordActivity, system_names: list = None, lang: str = None, discord: bool = True) -> str:
+    def _build_text(self, activity: Activity, activity_mode: DiscordActivity, system_names: list|None = None, lang: str|None = None, discord: bool = True) -> str:
         """Generate formatted text for a given instance of Activity.
 
         Args:
@@ -131,6 +135,8 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
         for system in activity.systems.copy().values(): # Use a copy for thread-safe operation
             if system_names is not None and system['System'] not in system_names: continue
+            if not self.include_system(system): continue
+
             system_text: str = ""
 
             if activity_mode == DiscordActivity.THARGOIDWAR or activity_mode == DiscordActivity.BOTH:
@@ -139,6 +145,8 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
             if (activity_mode == DiscordActivity.BGS or activity_mode == DiscordActivity.BOTH) and system.get('tw_status') is None:
                 for faction in system['Factions'].values():
                     if faction['Enabled'] != CheckStates.STATE_ON: continue
+                    if not self.include_faction(faction): continue
+
                     system_text += self._build_faction(faction, discord, lang)
 
             if system_text != "":
@@ -161,7 +169,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return text.replace("'", "")
 
 
-    def _build_faction(self, faction: dict, discord: bool, lang: str) -> str:
+    def _build_faction(self, faction: dict, discord: bool, lang: str|None) -> str:
         """Generate formatted text for a faction
 
         Args:
@@ -201,7 +209,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return faction_text
 
 
-    def _build_tw_system(self, system: dict, discord: bool, lang: str) -> str:
+    def _build_tw_system(self, system: dict, discord: bool, lang: str|None) -> str:
         """Create formatted text for Thargoid War in a system
 
         Args:
@@ -303,7 +311,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return system_text
 
 
-    def _build_inf(self, inf_data: dict, secondary_inf_data: dict, faction_state: str, discord: bool, lang: str) -> str:
+    def _build_inf(self, inf_data: dict, secondary_inf_data: dict, faction_state: str, discord: bool, lang: str|None) -> str:
         """Create a complete summary of INF for the faction, including both primary and secondary if user has requested
 
         Args:
@@ -373,7 +381,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return text
 
 
-    def _build_trade(self, trade_buy: list, trade_sell: list, discord: bool, lang: str) -> str:
+    def _build_trade(self, trade_buy: list, trade_sell: list, discord: bool, lang: str|None) -> str:
         """Create a summary of trade, with detailed breakdown if user has requested
 
         Args:
@@ -486,7 +494,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
         return text
 
 
-    def _build_sandr(self, sandr_data: dict, discord: bool, lang: str) -> str:
+    def _build_sandr(self, sandr_data: dict, discord: bool, lang: str|None) -> str:
         """Create a summary of BGS search and rescue activity
 
         Args:

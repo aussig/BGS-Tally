@@ -2,9 +2,17 @@
 
 ## v5.4.0-xx - xxxx-xx-xx
 
+### Bug Fixes:
+
+* When EDMC was set to the default language, and the system language is not English, some parts were not translated, for example the colonisation legend window.
+
+
+## v5.4.0-b2 - 2026-01-10
+
 ### New Features:
 
 * Updates to support CMDR SweetJonnySauce's new [EDMCModernOverlay](https://github.com/SweetJonnySauce/EDMCModernOverlay) plugin, with backward compatability for the legacy EDMCOverlay and edmcoverlay2 plugins for the moment, which are no longer maintained. From the next major release (v6) EDMCModernOverlay will be the only overlay plugin supported by BGS-Tally.
+* Plugin is now compatible with the new EDMC Plugin Registry.
 
 ### Bug Fixes:
 
@@ -18,6 +26,7 @@
 * Fixed autopost failure after new tick fetched
 * Fixed bugs with tracking locker/bartender materials trading
 * Fixed bug where colonisation tabbar would not show if there were no systems (introduced by recent performance improvements)
+
 
 ## v5.4.0-b1 - 2025-12-21
 

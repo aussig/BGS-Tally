@@ -231,6 +231,7 @@ class UI:
                                                             *favourite_types.values(),
                                                             command=partial(self._favourite_type_selected, favourite_types), direction='below')
         self.mnu_favourite_type.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text=_("Use Colonisation Plan name instead of System Name"), variable=self.bgstally.state.UseColonisationName, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Automatically Post BGS and TW Activity"), variable=self.bgstally.state.DiscordBGSTWAutomatic, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1

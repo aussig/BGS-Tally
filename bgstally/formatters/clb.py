@@ -70,7 +70,7 @@ class CLBActivityFormatter(DefaultActivityFormatter):
                     system_text += self._build_faction(faction, lang, True)
 
             if system_text != "":
-                discord_field = {'name': system['System'], 'value': f"```ansi\n{system_text}```"}
+                discord_field = {'name': self.get_system_display_name(system['System']), 'value': f"```ansi\n{system_text}```"}
                 discord_fields.append(discord_field)
 
         return discord_fields
@@ -107,7 +107,7 @@ class CLBActivityFormatter(DefaultActivityFormatter):
                     system_text += self._build_faction(faction, lang, discord)
 
             if system_text != "":
-                text += f"\n {color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
+                text += f"\n {color_wrap(self.get_system_display_name(system['System']), 'white', None, 'bold', fp=fp)}\n{system_text}"
 
         if text == "": return ""
 

@@ -48,6 +48,25 @@ class BaseActivityFormatterInterface(ABC):
         return True
 
 
+    def get_system_display_name(self, system_name: str) -> str:
+        """Get the display name for a given system, taking into account whether the user has chosen to use the colonisation
+        name instead
+
+        Args:
+            system_name (str): The name of the system
+        """
+
+        if self.bgstally.state.use_colonisation_name:
+            colonisation_system: dict|None = self.bgstally.colonisation.get_system('StarSystem', system_name)
+
+            if colonisation_system is not None:
+                # Return the colonisation plan name if it exists, otherwise fall back to the system name
+                return colonisation_system.get('Name', system_name)
+
+        # Just return the system name
+        return system_name
+
+
     def include_system(self, system: dict) -> bool:
         """Determine if a given system should be included in the output
 

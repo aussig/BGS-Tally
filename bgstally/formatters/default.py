@@ -99,7 +99,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
             if system_text != "":
                 system_text = system_text.replace("'", "")
-                discord_field = {'name': system['System'], 'value': f"```ansi\n{system_text}```"}
+                discord_field = {'name': self.get_system_display_name(system['System']), 'value': f"```ansi\n{system_text}```"}
                 discord_fields.append(discord_field)
 
         if activity_mode == DiscordActivity.POWERPLAY and self.bgstally.state.showmerits and activity.get_merits() > 0:
@@ -151,9 +151,9 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
 
             if system_text != "":
                 if discord:
-                    text += f"```ansi\n{color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}```"
+                    text += f"```ansi\n{color_wrap(self.get_system_display_name(system['System']), 'white', None, 'bold', fp=fp)}\n{system_text}```"
                 else:
-                    system_name: str = TAG_OVERLAY_HIGHLIGHT + system['System']
+                    system_name: str = TAG_OVERLAY_HIGHLIGHT + self.get_system_display_name(system['System'])
                     text += f"{system_name}\n{system_text}"
 
         if activity_mode == DiscordActivity.POWERPLAY and self.bgstally.state.showmerits and activity.get_merits() > 0:

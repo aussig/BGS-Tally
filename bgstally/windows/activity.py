@@ -133,7 +133,7 @@ class WindowActivity:
                                                             *favourite_types.values(),
                                                             command=partial(self._favourite_type_selected, favourite_types, activity), direction='below')
         self.mnu_favourite_type.grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1
-
+        ttk.Checkbutton(frm_discordoptions, text=_("Use Colonisation Plan name instead of System Name"), variable=self.bgstally.state.UseColonisationName, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         system_list = activity.get_ordered_systems()
 
         tab_index = 0

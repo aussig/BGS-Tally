@@ -362,7 +362,7 @@ class Activity:
         """
         Called when the activity has been updated, e.g. by user activity
         """
-        self.bgstally.ui.show_system_report(system_address)
+        self.bgstally.ui.show_system_activity(system_address)
         self.autopost = True # Ready for autoposting if autoposting is enabled
 
 
@@ -422,6 +422,15 @@ class Activity:
                     current_system['Factions'][faction_2]['FactionState'] = conflict_state
                     current_system['Factions'][faction_2]['Opponent'] = faction_1
 
+        if 'Population' in journal_entry:
+            current_system['Population'] = journal_entry['Population']
+
+        if 'SystemGovernment_Localised' in journal_entry:
+            current_system['Government'] = journal_entry['SystemGovernment_Localised']
+
+        if 'SystemSecurity_Localised' in journal_entry:
+            current_system['Security'] = journal_entry['SystemSecurity_Localised']
+
         # System tick handling
         system_tick: str = current_system.get('TickTime')
         system_tick_datetime: datetime|None = datetime.strptime(system_tick, DATETIME_FORMAT_ACTIVITY) if system_tick is not None and system_tick != "" else None
@@ -437,6 +446,8 @@ class Activity:
         self.recalculate_zero_activity()
         state.current_system_id = str(current_system['SystemAddress'])
         current_system['tw_status'] = journal_entry.get('ThargoidWar', None)
+
+        self.bgstally.ui.show_system_info(system_address)
 
 
     def mission_completed(self, journal_entry: dict, mission_log: MissionLog):

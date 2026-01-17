@@ -13,7 +13,7 @@ import myNotebook as nb
 from plugins.common_coreutils import api_keys_label_common, show_pwd_var_common
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from bgstally.activity import Activity
+from bgstally.activity import Activity, STATES_ELECTION, STATES_WAR
 from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates,
                                 DiscordActivity, FavouriteActivity, UpdateUIPolicy)
 from bgstally.debug import Debug
@@ -713,6 +713,27 @@ class UI:
         else:
             controlling_faction: dict = ordered_factions[0]
             result += _("Controlling Faction: {faction} Influence: {influence}%").format(faction=controlling_faction.get("Faction", _("Unknown")), influence=controlling_faction.get("Influence", 0) * 100) + "\n" # LANG: System information overlay controlling faction
+
+            conflicts: str = ""
+            factions_handled: list = []
+
+            for faction in ordered_factions:
+                if faction.get("Faction", "") in factions_handled:
+                    continue
+                if faction.get("FactionState", "None") in STATES_ELECTION + STATES_WAR:
+                    opposing_faction: dict = system['Factions'].get(faction.get("Opponent", ""), {})
+                    conflicts += _("  {state}: {faction1} vs {faction2} - {score_for}:{score_against}").format(
+                        state=faction.get("FactionState", _("Unknown")),
+                        faction1=faction.get("Faction", _("Unknown")),
+                        faction2=opposing_faction.get("Faction", _("Unknown")),
+                        score_for=faction.get("Score", _("Unknown")),
+                        score_against=opposing_faction.get("Score", _("Unknown"))) + "\n"  # LANG: System information overlay controlling faction conflict information
+                    conflicts += _("    Asset won: {stake}").format(stake=opposing_faction.get("Stake", _("Unknown"))) + "\n"  # LANG: System information overlay conflict asset at stake information
+                    conflicts += _("    Asset lost: {stake}").format(stake=faction.get("Stake", _("Unknown"))) + "\n"  # LANG: System information overlay conflict asset at stake information
+                    factions_handled.append(opposing_faction.get("Faction", ""))
+
+            if conflicts != "":
+                result += _("Conflicts:") + "\n" + conflicts  # LANG: System information overlay conflicts title
 
         result += _("Population: {population}").format(population=human_format(system.get("Population", 0))) + "\n" # LANG: System information overlay population
         result += _("Government: {government}").format(government=system.get("Government", _("Unknown"))) + "\n" # LANG: System information overlay government

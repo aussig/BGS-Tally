@@ -5,7 +5,6 @@ from tkinter import ttk
 #from bgstally.bgstally import BGSTally
 from bgstally.constants import DATETIME_FORMAT_CARRIER, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
 from bgstally.fleetcarrier import FleetCarrier
-from bgstally.debug import Debug
 from bgstally.utils import _, __, hfplus, str_truncate, catch_exceptions
 from bgstally.widgets import TreeviewPlus, AutoCompleter, Placeholder
 from config import config # type: ignore
@@ -399,9 +398,7 @@ class WindowFleetCarrier:
         """ Create itinerary buttons for Spansh fleet carrier router """
         # Internal helper functions.
         def _route(dest:ttk.Entry|Placeholder) -> None:
-            Debug.logger.debug(f"Creating route")
             fc.spansh_route(dest.get())
-            Debug.logger.debug(f"Updating route")
             for w in self.itineraryfr.winfo_children():
                 w.destroy()
             self._itinerary(fc, self.tabs['Itinerary'], self.itineraryfr)
@@ -466,9 +463,9 @@ class WindowFleetCarrier:
 
         # On click copy the first column to the clipboard
         def _selected(values, column, tr:TreeviewPlus, iid:str) -> None:
-            #Debug.logger.debug(f"Values: {values}, Column: {column}, iid: {iid}")
             frame.clipboard_clear()
             frame.clipboard_append(values[0])
+            frame.update()
 
         table:TreeviewPlus = TreeviewPlus(frame, height=100, columns=[d['title'] for d in cols.values()], show="headings", callback=_selected, datetime_format=DATETIME_FORMAT_CARRIER, style="My.Treeview")
         sb:ttk.Scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=table.yview)

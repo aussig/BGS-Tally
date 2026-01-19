@@ -105,13 +105,13 @@ class CLBActivityFormatter(DefaultActivityFormatter):
             if system_text != "":
                 text += f"\n {color_wrap(system['System'], 'white', None, 'bold', fp=fp)}\n{system_text}"
 
+        if text == "": return ""
+
         if discord and activity.discord_notes is not None and activity.discord_notes != "":
             text += "\n" + activity.discord_notes
 
         offset = time.mktime(datetime.now().timetuple()) - time.mktime(datetime.now(timezone.utc).timetuple())
         tick = round(time.mktime(activity.tick_time.timetuple()) + offset)
-
-        if text == "": return text
 
         return f"### {__('BGS Report', lang)} - {__('Tick', lang)} : <t:{tick}>\n```ansi{text}```"
 

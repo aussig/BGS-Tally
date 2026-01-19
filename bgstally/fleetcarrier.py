@@ -122,7 +122,7 @@ class FleetCarrier:
         for k, v in get_by_path(self.data, ["market", "services"], {}).items(): # List of all services and their status
 
             services['crew'][k] = deepcopy(crew.get(k, {}).get('crewMember', {}))
-            services['crew'][k]['enabled'] = (services['crew'].get(k, {}).get('enabled', ''), 'str', 'No')
+            services['crew'][k]['enabled'] = (services['crew'].get(k, {}).get('enabled', 'No').title(), 'str', 'No')
 
             services['crew'][k]['status'] = v
             services['crew'][k]['taxation'] = (get_by_path(self.data, ['finance', 'service_taxation', k], 0), 'num', '0%', '%')
@@ -142,14 +142,13 @@ class FleetCarrier:
         stored:int = 0
         reserved:int = 0
         for t, ent in self.cargo.items():
-            if t == 'overview': continue
-            if type == 'all' or t == type:
-                for name, deets in ent.items():
-                    deets['locName'] = self.bgstally.ui.commodities.get(name, {}).get('Name', name)
-                    deets['category'] = self.bgstally.ui.commodities.get(name, {}).get('Category', '') if isinstance(self.bgstally.ui.commodities.get(name, {}).get('Category', ''), str) else 'Unknown'
-                    deets['mission'] = (t == 'mission')
-                    deets['stolen'] = (t == 'stolen')
-                    comm[name] = deets
+            if t == 'overview' or (type != 'all' and type != t): continue
+            for name, deets in ent.items():
+                deets['locName'] = self.bgstally.ui.commodities.get(name, {}).get('Name', name)
+                deets['category'] = self.bgstally.ui.commodities.get(name, {}).get('Category', '') if isinstance(self.bgstally.ui.commodities.get(name, {}).get('Category', ''), str) else 'Unknown'
+                deets['mission'] = (t == 'mission')
+                deets['stolen'] = (t == 'stolen')
+                comm[name] = deets
         comm = dict(sorted(comm.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
         summ:dict = {
@@ -171,8 +170,6 @@ class FleetCarrier:
         Return locker as a dictionary. overview is a set of key value pairs and
         inventory is a list of microresources with details to be displayed in a treeviewplus table.
         """
-        self.locker = self._update_locker(self.data) # Temporary
-
         res:dict = {}
         buying:int = 0
         selling:int = 0
@@ -180,10 +177,10 @@ class FleetCarrier:
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
                 deets['mission'] = (t == 'mission')
-                buying += deets['outstanding']
+                buying += deets.get('outstanding', 0)
                 if deets['outstanding'] == 0 and deets['price'] > 0 and (t == 'normal'):
-                    selling += deets['stock']
-                stored += deets['stock']
+                    selling += deets.get('stock', 0)
+                stored += deets.get('stock', 0)
                 res[mat] = deets
         res = dict(sorted(res.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
@@ -242,7 +239,8 @@ class FleetCarrier:
                 'departureTime': (self._lt(j.get('departureTime', '')), 'datetime', ''),
                 'state': (j.get('state',''), 'str', 'Unknown'),
                 'visitDurationSeconds': (j.get('visitDurationSeconds', 0), 'interval', ''),
-                'starsystem': (j.get('body', j.get('starsystem', '')), 'str', 'Unknown')
+                'starsystem': (j.get('starsystem', ''), 'str', 'Unknown'),
+                'body': j.get('body', '').replace(j.get('starsystem', ''), '')
             })
 
         summ:dict = {}
@@ -323,7 +321,7 @@ class FleetCarrier:
             }
         res:requests.Response = requests.post(SPANSH_ROUTE, params=params, headers={'User-Agent': f"BGSTally/{self.bgstally.version}"})
         if res.status_code != 202:
-            Debug.logger.debug(f"Error: {res}")
+            Debug.logger.info(f"Spansh error: {res}")
             return
 
         # We get back a jobid
@@ -336,7 +334,6 @@ class FleetCarrier:
             jobresp:requests.Response = requests.get(f"https://spansh.co.uk/api/results/{job}", timeout=5)
             if jobresp.status_code != 202:
                 break
-            Debug.logger.debug(f"{jobresp}")
             tries += 1
             time.sleep(1)
 
@@ -351,7 +348,6 @@ class FleetCarrier:
 
     def clear_route(self) -> None:
         """ Remove the current route """
-        Debug.logger.debug(f"Route cleared")
         self.route = []
         self.bgstally.ui.window_fc.update_display()
 
@@ -360,17 +356,13 @@ class FleetCarrier:
         """ Remove any route entries that we aren't at.
         If we remove all of them that's ok because the route is invalid. """
 
-        Debug.logger.debug(f"Updating route")
-
         # This shouldn't happen unless we've made some jumps without ED:MC running
         used:int = 0
         while self.route != [] and self.route[0]['name'] != dest:
-            Debug.logger.debug(f"Removing {self.route[0]}")
             used += self.route[0]['fuel_used']
             self.route = self.route[1:]
         # If we're there take it out.
         if self.route != [] and self.route[0]['name'] == dest:
-            Debug.logger.debug(f"Assuming we jumped to {self.route[0]}, removing from route")
             self.overview['fuel'] -= used + self.route[0]['fuel_used']
             self.route = self.route[1:]
 
@@ -379,6 +371,7 @@ class FleetCarrier:
             Debug.logger.debug(f"Copying {self.route[0]['name']} to clipboard")
             self.bgstally.ui.frame.clipboard_clear()
             self.bgstally.ui.frame.clipboard_append(self.route[0]['name'])
+            self.bgstally.ui.frame.update()
         self.bgstally.ui.window_fc.update_display()
 
 
@@ -400,7 +393,7 @@ class FleetCarrier:
             stolen:bool = c.get('stolen', False)
             mission:bool = c.get('mission', False)
 
-            Debug.logger.debug(f"Initial cargo: {self.cargo['normal'].get(cname, {})}")
+            #Debug.logger.debug(f"Initial cargo: {self.cargo['normal'].get(cname, {})}")
             # Deal with stolen and mission cargo first
             if stolen or mission:
                 for type in ['stolen', 'mission']:
@@ -435,8 +428,8 @@ class FleetCarrier:
                 }
             if cargo['normal'][cname]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {cargo['normal'][cname]}")
-            else:
-                Debug.logger.debug(f"Final cargo: {cargo['normal'][cname]}")
+            #else:
+                #Debug.logger.debug(f"Final cargo: {cargo['normal'][cname]}")
 
         return cargo
 
@@ -451,26 +444,22 @@ class FleetCarrier:
             elem:int = next((index for (index, d) in enumerate(self.itinerary) if d['arrivalTime'] == jump.get('arrivalTime', '')), -1)
 
             if elem > 0: # Found it, and it's an "old" one. Update departure time and duration just in case
-                Debug.logger.debug(f"Match on item {elem} so update it {jump.get('departureTime', jumplist[elem].get('departureTime', None))} {jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))}")
                 jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
                 jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))
                 continue
 
             if elem == 0:
-                Debug.logger.debug(f"Found, it's the first jump in our list")
                 if jump.get('departureTime', None) != None:
                     jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
                     jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', 0)
                     continue
 
                 if self.overview.get('departureScheduled', None) != None:
-                    Debug.logger.debug(f"There's a departure scheduled, setting our departure time")
                     jumplist[elem]['departureTime'] = self.overview['departureScheduled']
                     # @TODO: Calculate duration?
                     continue
 
                 if jumplist[elem]['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
-                    Debug.logger.debug(f"Setting body to {self.overview['currentBody']}")
                     jumplist[elem]['body'] = self.overview['currentBody']
                 continue
 
@@ -478,14 +467,11 @@ class FleetCarrier:
 
             # Already completed, and nothing scheduled so just add it with its details
             if jump.get('departureTime', None) != None:
-                Debug.logger.debug(f"Inserting new completed jump {jump}")
                 jumplist.insert(0, jump)
                 continue
 
             if self.overview.get('departureScheduled', None) == None:
-                Debug.logger.debug(f"Inserting new incomplete jump {jump}")
                 if jump['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
-                    Debug.logger.debug(f"Setting body to {self.overview['currentBody']}")
                     jump['body'] = self.overview.get('currentBody', None)
                 jumplist.insert(0, jump)
                 continue
@@ -494,12 +480,9 @@ class FleetCarrier:
             if self._time_passed(self.overview['departureScheduled']) == False:
                 continue
 
-            Debug.logger.debug(f"New incomplete jump and jump scheduled")
             if jump['starsystem'] == self.overview.get('jumpDestination', ''):
-                Debug.logger.debug(f"Adding body {self.overview.get('jumpDestinationBody', None)}")
                 jump['body'] = self.overview.get('jumpDestinationBody', None)
 
-            Debug.logger.debug(f"Inserting {jump}")
             jumplist.insert(0, jump)
 
             self.overview['jumpDestination'] = None
@@ -519,7 +502,15 @@ class FleetCarrier:
             for m in v:
                 name:str = m.get('name', "").lower()
                 # all the ways a commodity may be listed in CAPI data
-                sale:dict = next((item for item in list(get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], {}).values()) if item.get('name', "").lower() == name), {})
+
+                # Sale seems to switch from list to dict.
+                sale:dict = {}
+                if isinstance(get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], {}), dict):
+                    tmp:dict = get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], {})
+                    sale = next((item for id, item in tmp.items() if item.get('name', "").lower() == name), {})
+                else:
+                    sale = next((item for item in get_by_path(data, ['orders', 'onfootmicroresources', 'sales'], []) if item.get('name', "").lower() == name), {})
+
                 purchase:dict = next((item for item in get_by_path(data, ['orders', 'onfootmicroresources', 'purchases'], []) if item.get('name', "").lower() == name), {})
                 type:str = 'mission' if m.get('mission', False) == True else 'normal'
                 if name not in locker[type] and m.get('quantity', 0) > 0 or purchase.get('outstanding', 0) > 0:
@@ -576,7 +567,6 @@ class FleetCarrier:
 
         # If we don't know where we are trust the CAPI.
         if self.overview.get('currentStarSystem', None) == None:
-            Debug.logger.debug(f"Setting current system from CAPI")
             self.overview['currentStarSystem'] = get_by_path(self.data, ['currentStarSystem'], '')
             del self.overview['currentBody']
 
@@ -595,7 +585,7 @@ class FleetCarrier:
             self.bgstally.ui.window_fc.update_display()
             return
 
-        Debug.logger.debug(f"Updating cargo {int(time.time())} {self.last_modified} {int(time.time()) - FDEV_SLACKING_TIME}")
+        Debug.logger.debug(f"CAPI cargo update now: {int(time.time())} last mod: {self.last_modified} diff: {int(time.time()) - FDEV_SLACKING_TIME}")
         self.cargo = self._update_cargo(self.data)
         self.bgstally.ui.window_fc.update_display()
 
@@ -627,12 +617,12 @@ class FleetCarrier:
             v[0][k] = get_by_path(entry, v[1], v[2])
 
         # Not sure if we want to do this here but the sanity check should help keep it honest
-        self.last_modified = int(time.time())
+        #self.last_modified = int(time.time())
 
         # Sanity check
         if get_by_path(entry, ['SpaceUsage', 'FreeSpace'], 0) != self._get_freespace() or \
             get_by_path(entry, ['SpaceUsage', 'CargoSpaceReserved']) != self._get_reserved():
-            Debug.logger.error(f"CArrier space mismatch, clearing modification time")
+            Debug.logger.error(f"Carrier space mismatch, clearing modification time")
             self.last_modified = 0
 
         #self.itinerary = self._update_itinerary(self.data)
@@ -658,17 +648,15 @@ class FleetCarrier:
 
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
+        departure_datetime: datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
+        departure_datetime = departure_datetime.replace(tzinfo=UTC)
         self.overview['jumpDestination'] = entry.get('SystemName', '')
         self.overview['jumpDestinationBody'] = entry.get('Body', None)
+        self.overview['departureScheduled'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00") # Seconds zeroed out
         if self.itinerary[0].get('departureTime', None) == None:
             self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
-
-        departure_datetime: datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
-        departure_datetime = departure_datetime.replace(tzinfo=UTC)
-        self.overview['departureScheduled'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00") # Seconds zeroed out
-
-        Debug.logger.debug(f"Jump scheduled to {self.overview['jumpDestination']} at {self.overview['departureScheduled']}")
+            self.itinerary[0]['departureTime'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00")
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -694,11 +682,14 @@ class FleetCarrier:
         """ The user cancelled their carrier jump producing a CarrierJumpCancelled journal event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
+
+        if self.itinerary[0]['departureTime'] == self.overview['departureScheduled']:
+            self.itinerary[0]['departureTime'] = None
+
         self.overview['jumpDestination'] = None
         self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
-        Debug.logger.debug(f"Jump cancelled")
         if self.bgstally.dev_mode == True: self.save()
 
         # Automatically post to whichever discord webhooks are set for carrier operations
@@ -720,11 +711,8 @@ class FleetCarrier:
         """ Update the current carrier location after a jump. If we logged out we may not get this event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        Debug.logger.debug(f"Carrier location event {entry}")
-
         # Check if the jump time is now or has passed.
         if self._time_passed(self.overview.get('departureScheduled', "")) == False:
-            Debug.logger.debug(f"No departure scheduled")
             return
 
         dest:str = self.overview.get('jumpDestination', '')
@@ -733,10 +721,8 @@ class FleetCarrier:
         if self.itinerary[1].get('departureTime', None) == self.overview['departureScheduled']:
             self.itinerary[1]['starsystem'] = dest
             self.itinerary[1]['body'] = self.overview.get('jumpDestinationBody', None)
-            Debug.logger.debug(f"Set itinerary[1] starsystem to {dest}")
 
-        elif self.itinerary[0].get('departureTime', None) == None: # If we haven't received a new itinerary update the current one
-            Debug.logger.debug(f"Updating jump setting [0] departure time to {self.overview['departureScheduled']}")
+        if self.itinerary[0].get('departureTime', None) == None: # If we haven't received a new itinerary update the current one
             dept:datetime = datetime.strptime(self.overview['departureScheduled'], DATETIME_FORMAT_JSON)
             arr:datetime = datetime.strptime(self.itinerary[0]['arrivalTime'], DATETIME_FORMAT_JSON)
             diff:timedelta = dept - arr
@@ -745,7 +731,7 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = self.overview['departureScheduled']
             self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
 
-            Debug.logger.debug(f"Inserting new jump {dest}")
+        if self.itinerary[0]['starsystem'] != dest:
             self.itinerary.insert(0, {
                                       'departureTime': None,
                                       'arrivalTime': self.overview['departureScheduled'],
@@ -764,7 +750,6 @@ class FleetCarrier:
         self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
-        Debug.logger.debug(f"Jumped, updated location {self.overview['currentStarSystem']}")
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
 
@@ -784,7 +769,6 @@ class FleetCarrier:
         # { "timestamp":"2024-02-17T16:33:51Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "PurchaseOrder":5, "Price":4516 }
         # { "timestamp":"2024-02-17T16:35:57Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "CancelTrade":true }
 
-        Debug.logger.debug(f"event: {entry}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
         # @NOTE: Not sure if we need this update to last_modified.
         self.last_modified = int(time.time())
@@ -798,19 +782,33 @@ class FleetCarrier:
                 self.locker['normal'][mat]['price'] = int(entry.get('Price', 0))
                 self.locker['normal'][mat]['buyTotal'] = 0
 
-                if entry.get('SaleOrder') is not None:
-                    self.locker['normal'][mat]['quantity'] = int(entry.get('SaleOrder', 0))
+            if entry.get('SaleOrder') is not None:
+                # If we were selling we need to clear any existing buy order and free up reserved space
+                self.locker['normal'][mat]['outstanding'] = 0
+                self.locker['normal'][mat]['buyTotal'] = 0
 
-                if entry.get('PurchaseOrder') is not None:
-                    self.locker['normal'][mat]['buyTotal'] = int(entry.get('PurchaseOrder', 0))
+                self.locker['normal'][mat]['stock'] = entry.get('SaleOrder', 0)
+                self.locker['normal'][mat]['price'] = entry.get('Price', 0)
+
+            if entry.get('PurchaseOrder') is not None:
+                # Set price and stock
+                self.locker['normal'][mat]['buyTotal'] = int(entry.get('PurchaseOrder', 0))
+                self.locker['normal'][mat]['outstanding'] = int(entry.get('PurchaseOrder', 0))
+                self.locker['normal'][mat]['price'] = int(entry.get('Price', 0))
+
+            if entry.get('CancelTrade') == True:
+                self.locker['normal'][mat]['buyTotal'] = 0
+                self.locker['normal'][mat]['outstanding'] = 0
+                self.locker['normal'][mat]['price'] = 0
+
+            self.bgstally.ui.window_fc.update_display()
+            if self.bgstally.dev_mode == True: self.save()
             return
 
         # A new commodity order
         if comm not in self.cargo['normal']:
             self.cargo['normal'][comm] = self._init_cargo_item(comm, entry.get('Commodity_Localised', comm))
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
-
-        Debug.logger.debug(f"Initial cargo: {self.cargo['normal'][comm]}")
 
         if entry.get('SaleOrder') is not None:
             # If we were selling we need to clear any existing buy order and free up reserved space
@@ -833,8 +831,8 @@ class FleetCarrier:
 
         if self.cargo['normal'][comm]['stock'] < 0:
             Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
-        else:
-            Debug.logger.debug(f"Updated cargo: {self.cargo['normal'][comm]}")
+            self.cargo['normal'][comm]['stock'] = 0
+            self.last_modified = 0
 
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
@@ -845,8 +843,6 @@ class FleetCarrier:
         """ Market event. If it's for our carrier we update the cargo amounts using BGS-Tally's copy of the market data"""
         if entry.get("MarketID") != self.overview.get('carrier_id', ''): return
         self.last_modified = int(time.time())
-
-        Debug.logger.debug(f"Market event {entry}")
 
         if not self.bgstally.market.available(entry.get("MarketID", 0)):
             Debug.logger.debug(f"No market data available for CarrierID {entry.get('MarketID')}")
@@ -861,6 +857,7 @@ class FleetCarrier:
                 Debug.logger.debug(f"Adjusting due to change in demand {self.cargo['normal'][comm]['outstanding']} {item.get('Demand', 0)}")
                 diff:int = int(self.cargo['normal'][comm]['outstanding']) - int(item.get('Demand', 0))
                 self.cargo['normal'][comm]['stock'] += diff
+                if self.cargo['normal'][comm]['stock'] < 0: self.cargo['normal'][comm]['stock'] = 0
                 self.cargo['normal'][comm]['outstanding'] = int(item.get('Demand', 0))
                 self.cargo['normal'][comm]['price'] = int(item.get('SellPrice', 0)) # Price player sells at
 
@@ -873,8 +870,8 @@ class FleetCarrier:
 
             if self.cargo['normal'][comm]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
-            else:
-                Debug.logger.debug(f"Updated cargo: {self.cargo['normal'][comm]}")
+                self.cargo['normal'][comm]['stock'] = 0
+                self.last_modified = 0
 
         # Now check for completed orders by going through all the cargo and find any commodities
         # for sale or purchase that are no longer in the market data.
@@ -885,12 +882,10 @@ class FleetCarrier:
             if comm in self.bgstally.market.commodities.keys() or deets['price'] == 0: continue
 
             if deets['outstanding'] > 0: # We were buying but someone must have completed the buy order
-                Debug.logger.debug(f"Buy order completed for {comm}")
                 deets['outstanding'] = 0
                 deets['buyTotal'] = 0
                 deets['price'] = 0
             elif deets['stock'] > 0: # We were selling, someone must have bought all our stock
-                Debug.logger.debug(f"All sold removed for {comm}")
                 deets['stock'] = 0
                 deets['price'] = 0
 
@@ -909,16 +904,14 @@ class FleetCarrier:
             if comm not in self.cargo['normal']:
                 self.cargo['normal'][comm] = self._init_cargo_item(comm)
 
-            Debug.logger.debug(f"Transferring cargo {self.cargo['normal'][comm]} {i}")
-
             # Transfer amount is positive if to carrier, negative if from carrier
             amt:int = i.get('Count', 0) if i.get('Direction') == 'tocarrier' else -i.get('Count', 0)
             self.cargo['normal'][comm]['stock'] += amt
 
             if self.cargo['normal'][comm]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
-            else:
-                Debug.logger.debug(f"Transferred cargo: {self.cargo['normal'][comm]}")
+                self.cargo['normal'][comm]['stock'] = 0
+                self.last_modified = 0
 
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
@@ -934,8 +927,6 @@ class FleetCarrier:
         comm:str = entry.get('Type', "").lower()
         if comm not in self.cargo['normal']:
             self.cargo['normal'][comm] = self._init_cargo_item(comm, entry.get('Type_Localised', comm))
-
-        Debug.logger.debug(f"Initial cargo {entry.get('event')}: {self.cargo['normal'][comm]}")
 
         # Sale amount is positive if to carrier, negative if from carrier (MarketSell to carrier, MarketBuy from carrier)
         amt:int = entry.get('Count', 0) if entry.get('event') == 'MarketSell' else -entry.get('Count', 0)
@@ -953,8 +944,7 @@ class FleetCarrier:
 
         if self.cargo['normal'][comm]['stock'] < 0:
             Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
-        else:
-            Debug.logger.debug(f"Updated cargo {entry.get('event')}: {self.cargo['normal'][comm]}")
+            self.cargo['normal'][comm]['stock'] = 0
 
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
@@ -974,6 +964,9 @@ class FleetCarrier:
 
             case 'ShipyardSwap' if self.shipyard.get('ships', {}).get('ShipID', None) != None:
                 self.shipyard['ships'][entry.get('ShipID', 0)]['location'] = self.shipyard['overview']['current']
+
+            case 'ShipyardTransfer':
+                self.shipyard['ships'][str(entry.get('ShipID', ""))]['location'] = _('In Transit')  # LANG: Fleet carrier, ship in transit
 
             case 'StoredShips':
                 carrier_count:int = 0
@@ -998,12 +991,11 @@ class FleetCarrier:
 
 
     def _time_passed(self, tstr:str|None) -> bool:
-        if tstr == None: return False
+        if tstr == None or tstr == "": return False
         then:datetime = datetime.strptime(tstr, DATETIME_FORMAT_JSON)
         then = then.replace(tzinfo=UTC).astimezone(None)
         now:datetime = datetime.now()
         now = now.astimezone(None)
-        Debug.logger.debug(f"{now} {then} {now >= then}")
         return now >= then
 
 
@@ -1110,7 +1102,6 @@ class FleetCarrier:
 
     def _from_dict(self, dict: dict) -> None:
         """ Populate our data from a Dictionary that has been deserialized """
-        Debug.logger.debug(f"Loading _from_dict")
         self.carrier_id = dict.get('carrier_id', 0)
         self.last_modified = dict.get('last_modified', 0)
         self.overview = dict.get('overview', {})

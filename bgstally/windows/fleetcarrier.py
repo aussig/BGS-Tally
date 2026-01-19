@@ -5,7 +5,6 @@ from tkinter import ttk
 #from bgstally.bgstally import BGSTally
 from bgstally.constants import DATETIME_FORMAT_CARRIER, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
 from bgstally.fleetcarrier import FleetCarrier
-from bgstally.debug import Debug
 from bgstally.utils import _, __, hfplus, str_truncate, catch_exceptions
 from bgstally.widgets import TreeviewPlus, AutoCompleter, Placeholder
 from config import config # type: ignore
@@ -70,7 +69,7 @@ class WindowFleetCarrier:
                     'stock': {'title': 'Stock', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':5, 'locName': _('Stock')}, # LANG: Locker tab
                     'buy': {'title': 'Buying', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':6, 'locName': _('Buying')}, # LANG: Locker tab
                     'sell': {'title': 'Selling', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':7, 'locName': _('Selling')}, # LANG: Locker tab
-                    'price': {'title': 'Price', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':5, 'locName': _('Price')}, # LANG: Locker tab
+                    'price': {'title': 'Price', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':7, 'locName': _('Price')}, # LANG: Locker tab
                     'mission': {'title': 'Mission', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Mission')} # LANG: Locker tab
                 },
                 "func": self._locker,
@@ -78,14 +77,15 @@ class WindowFleetCarrier:
             },
             'Itinerary': {
                 'cols': {
-                    'starsystem': {'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Location')}, # LANG: Itinerary tab
+                    'starsystem': {'title': 'System', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 250, 'locName': _('Star System')}, # LANG: Itinerary tab
+                    'body': {'title': 'Body', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 75, 'locName': _('Body')}, # LANG: Itinerary tab
                     'visitDurationSeconds': {'title': 'Duration', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Duration')}, # LANG: Itinerary tab
                     'arrivalTime': {'title': 'Arrived', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Arrived')}, # LANG: Itinerary tab
                     'departureTime': {'title': 'Departed', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 150, 'locName': _('Departed')}, # LANG: Itinerary tab
                     'state': {'title': 'Status', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Status')}, # LANG: Itinerary tab
                 },
                 'route_cols': {
-                    'starsystem': {'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Location')}, # LANG: Itinerary tab
+                    'starsystem': {'title': 'System', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Star System')}, # LANG: Itinerary tab
                     'distance': {'title': 'Distance', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 115, 'locName': _('Jump Distance')}, # LANG: Itinerary tab
                     'distance_to_destination': {'title': 'Remaining Distance', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Remaining')}, # LANG: Itinerary tab
                     'fuel_used': {'title': 'Arrived', 'sort': 'datetime', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Fuel Used')}, # LANG: Itinerary tab
@@ -244,7 +244,7 @@ class WindowFleetCarrier:
                 val:str = ""
                 match c:
                     case "buy" if i.get("price", 0) > 0 and i.get("outstanding", 0) > 0: val = i.get("outstanding")
-                    case "sell" if i.get("price", 0) > 0 and i.get("stock", 0) > 0: val = i.get("stock")
+                    case "sell" if i.get("price", 0) > 0 and i.get("stock", 0) > 0 and i.get('buyTotal') == 0: val = i.get("stock")
                     case _: val = i.get(c, " ")
                 if i.get('stock', 0) > 0 or i.get('outstanding', 0) > 0:
                     row.append(hfplus(val))
@@ -335,9 +335,9 @@ class WindowFleetCarrier:
 
 
     def _cargo_buttons(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
-        self._discord_buttons('cargo', frame)
+        self._discord_buttons('Cargo', frame)
     def _locker_buttons(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
-        self._discord_buttons('locker', frame)
+        self._discord_buttons('Locker', frame)
     def _discord_buttons(self, which:str, frame:ttk.Frame) -> None:
         """ Create discord buttons for cargo or locker as appropriate """
 
@@ -398,9 +398,7 @@ class WindowFleetCarrier:
         """ Create itinerary buttons for Spansh fleet carrier router """
         # Internal helper functions.
         def _route(dest:ttk.Entry|Placeholder) -> None:
-            Debug.logger.debug(f"Creating route")
             fc.spansh_route(dest.get())
-            Debug.logger.debug(f"Updating route")
             for w in self.itineraryfr.winfo_children():
                 w.destroy()
             self._itinerary(fc, self.tabs['Itinerary'], self.itineraryfr)
@@ -465,9 +463,9 @@ class WindowFleetCarrier:
 
         # On click copy the first column to the clipboard
         def _selected(values, column, tr:TreeviewPlus, iid:str) -> None:
-            #Debug.logger.debug(f"Values: {values}, Column: {column}, iid: {iid}")
             frame.clipboard_clear()
             frame.clipboard_append(values[0])
+            frame.update()
 
         table:TreeviewPlus = TreeviewPlus(frame, height=100, columns=[d['title'] for d in cols.values()], show="headings", callback=_selected, datetime_format=DATETIME_FORMAT_CARRIER, style="My.Treeview")
         sb:ttk.Scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=table.yview)
@@ -484,6 +482,7 @@ class WindowFleetCarrier:
     @catch_exceptions
     def _get_as_text(self, which:str, type:str|tk.StringVar, discord:bool = False) -> str:
         """ Get the cargo or locker as text for pasting or posting to Discord """
+
         fc: FleetCarrier = self.bgstally.fleet_carrier
         l:str|None = self.bgstally.state.discord_lang if discord else ""
         tab:dict = self.tabs[which]
@@ -492,7 +491,14 @@ class WindowFleetCarrier:
 
         output:str = ""
         if discord == True: output += "## "
-        output += __("Carrier: {carrier_name} - {which}\n", lang=l).format(carrier_name=fc.overview['name'], which=which.title()) # LANG: fleet carrier materials header
+
+        order:str = which
+        match type:
+            case 'Both': order += " " + __("orders", l)
+            case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l)
+            case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l)
+
+        output += __("Carrier {order} for {carrier_name} \n", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) # LANG: fleet carrier materials header
         if fc.overview.get('currentStarSystem', "") != "":
             if discord == True: output += "### "
             output += __("Location: {system}\n", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) # LANG: fleet carrier materials system line

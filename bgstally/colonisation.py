@@ -1,3 +1,4 @@
+# type: ignore[reportMemberAccess]
 import json
 from os import path
 from os.path import join
@@ -308,9 +309,10 @@ class Colonisation:
 
                 # If we matched on a construction site and this is not (ie nolonger) one then we complete the build because
                 # someone else finished it
-                if build.get('State') == BuildState.PROGRESS and \
-                    re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
-                    self.try_complete_build(build.get('MarketID', 0))
+                # Commented out to be extra conservative.
+                #if build.get('State') == BuildState.PROGRESS and self.market_id == build.get('MarketID', 0) and \
+                #    re.search(r"(Construction Site|System Colonisation Ship)", build.get('Name', '')):
+                #    self.try_complete_build(build.get('MarketID', 0))
 
                 data:dict = {}
                 if self.market_id != None: data['MarketID'] = self.market_id
@@ -440,7 +442,7 @@ class Colonisation:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
         system:dict|None = self.find_system(data)
         if system == None:
-            return self.add_system(data, False, self.bgstally.state.ColonisationRCAPIKey.get() != None)
+            return self.add_system(data, False, False)
 
         return system
 
@@ -457,12 +459,13 @@ class Colonisation:
         if data.get('Name', None) == None: data['Name'] = data.get('StarSystem', '')
         if data.get('Builds', None) == None: data['Builds'] = []
         self.systems.append(data)
-        if rcsync == True and data.get('StarSystem', None) != None:
+        if rcsync == True and data.get('StarSystem', "") != "":
             RavenColonial(self).upsert_system(data)
+            # Get the list of projects and initialize them!
             data['RCSync'] = True
 
         # If we have a system address, we get the bodies and maybe stations
-        if rcsync == False and data.get('StarSystem', None) != None:
+        if rcsync == False and data.get('StarSystem', "") != "":
             BODY_SERVICE.import_bodies(data.get('StarSystem', ''))
             if prepop == True: STATION_SERVICE.import_stations(data.get('StarSystem', ''))
             SYSTEM_SERVICE.import_system(data.get('StarSystem', ''))
@@ -873,7 +876,7 @@ class Colonisation:
 
         Debug.logger.info(f"Completing build {build.get('Name', '')} {market_id}")
 
-        # Complete the project in RC.
+        # Complete the project in RC but only if we're sure construction is complete.
         p:dict|None = self.find_progress(market_id)
         if p.get('ProjectID', None) != None and p.get('ConstructionComplete', False) == True:
             RavenColonial(self).complete_project(p.get('ProjectID', 0))
@@ -929,7 +932,7 @@ class Colonisation:
             if b.get('MarketID') != None:
                 for p in self.progress:
                     if p.get('MarketID') == b.get('MarketID') and p.get('ConstructionComplete', False) == False and p.get('ConstructionFailed', False) != True:
-                        res = p.get(type)
+                        res = p.get(type, {})
                         break
             # No actual data so we use the estimates from the base costs
             if res == {} and type != 'Delivered': res = self.base_types.get(b.get('Base Type'), {}).get('Cost', {})
@@ -965,7 +968,7 @@ class Colonisation:
         if p != None:
             return p
 
-        prog:dict = { 'MarketID': id }
+        prog:dict = {'MarketID': id, 'Required': {}, 'Delivered': {}}
         self.progress.append(prog)
 
         self.dirty = True
@@ -978,17 +981,23 @@ class Colonisation:
         for p in self.progress:
             if p.get('MarketID', 0) == id or p.get('ProjectID', '') == id:
                 return p
-
         return None
-
 
     @catch_exceptions
     def update_progress(self, id:int, data:dict, silent:bool = False) -> None:
         ''' Update a progress record '''
-        progress:dict|None = self.find_progress(id)
-        if progress == None:
-            Debug.logger.debug(f"Progress not found {id}")
-            return
+        progress:dict|None = self.find_or_create_progress(id)
+
+        Debug.logger.debug(f"ID: {id} Project {progress} data{data}")
+        # Need to initialize the progress in order to update it properly.
+        if progress.get('Required', {}) == {}:
+            found:list = self.find_build_any({'MarketID' : id})
+            if found[0] == None or found[1] == None:
+                Debug.logger.debug(f"Progress can't be initialized, build not found {id}")
+                return
+            progress['Required'] = self.base_types.get(found[1].get('Base Type'), {}).get('Cost', {})
+        if progress.get('Delivered', {}) == {}:
+            progress['Delivered'] = {c:0 for c in progress['Required'].keys()}
 
         # Copy over changed/updated data
         for k, v in data.items():
@@ -1029,7 +1038,6 @@ class Colonisation:
         [system, build] = self.find_build_any({'MarketID': progress.get('MarketID', 0)})
         if system != None and build != None and system.get('RCSync', False) == True:
             RavenColonial(self).upsert_project(system, build, progress)
-
 
 
     def _update_carrier(self) -> None:

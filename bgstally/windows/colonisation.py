@@ -1,3 +1,4 @@
+# type: ignore[reportMemberAccess]
 import re
 from functools import partial
 
@@ -200,6 +201,7 @@ class ColonisationWindow:
         systems:list = self.colonisation.get_all_systems()
         if len(systems) == 0:
             Debug.logger.info(f"No systems so not creating colonisation section")
+            self.tabbar.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
             return
 
         tabnum:int = 1
@@ -209,7 +211,8 @@ class ColonisationWindow:
             self._create_system_tab(tabnum, system)
             tabnum += 1
 
-        if tabnum > 0:
+        if tabnum > 1:
+            t:int = 1
             for t in range(1, tabnum-1):
                 Debug.logger.debug(f"{t} {self.tl.get(t)} {tabnum-1}")
                 if systems[self.tl[t]].get('Hidden', True) == False:
@@ -318,11 +321,11 @@ class ColonisationWindow:
         self._set_weight(details)
         details.pack(side=tk.LEFT, padx=10, pady=5)
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("ⓘ"), width=3, cursor="hand2", command=lambda: self.legend_popup())
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_info, width=3, cursor="hand2", command=lambda: self.legend_popup())
         btn.pack(side=tk.RIGHT, padx=(20, 5), pady=5)
         ToolTip(btn, text=_("Show legend window")) # LANG: tooltip for the show legend button
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("🗑️"), width=3, cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_delete, width=3, cursor="hand2", command=lambda: self.delete_system(tabnum, tab)) # LANG: Delete button
         ToolTip(btn, text=_("Delete system plan")) # LANG: tooltip for the delete system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
@@ -330,28 +333,28 @@ class ColonisationWindow:
         #ToolTip(btn, text=_("Hide system plan")) # LANG: tooltip for the hide system button
         #btn.pack(side=tk.RIGHT, padx=5, pady=5)
 
-        btn:ttk.Button = ttk.Button(title_frame, text=_("📝"), width=3, cursor="hand2", command=lambda: self.edit_system_dialog(tabnum, btn)) # LANG: Rename button
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_edit, width=3, cursor="hand2", command=lambda: self.edit_system_dialog(tabnum, btn)) # LANG: Rename button
         ToolTip(btn, text=_("Edit system plan")) # LANG: tooltip for the edit system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
-
-        btn:ttk.Button = ttk.Button(title_frame, text="🔍", width=3, cursor="hand2", command=lambda: self.bases_popup())
+        # ⌕ ?
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_search, width=3, cursor="hand2", command=lambda: self.bases_popup())
         btn.pack(side=tk.RIGHT, padx=(5,20), pady=5)
         ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
-            btn:ttk.Button = ttk.Button(title_frame, text="🌐", width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
+            btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_world, width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
 
 
         # 📓 📝 📋
-        btn:ttk.Button = ttk.Button(title_frame, text=_("📋"), cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_note, cursor="hand2", width=3, command=partial(self.notes_popup, tabnum))
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         ToolTip(btn, text=_("Show system notes window")) # LANG: tooltip for the show notes window
 
         if systems[sysnum].get('RCSync', False) == True:
             #🔄 ⟳
-            btn:ttk.Button = ttk.Button(title_frame, text=_("🔄"), cursor="hand2", width=3, command=partial(self._rc_refresh_system, tabnum))
+            btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_refresh, cursor="hand2", width=3, command=partial(self._rc_refresh_system, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Refresh from RavenColonial")) # LANG: tooltip for ravencolonial refresh button
 
@@ -599,7 +602,8 @@ class ColonisationWindow:
 
         self._config_sheet(sheet, system)
         if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
-            sheet.enable_bindings('single_select', 'drag_select', 'arrowkeys')
+            sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'copy')
+            sheet.extra_bindings(['all_modified_events', 'cell_select'], func=partial(self.sheet_modified, sheet, tabnum))
         else:
             sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
 
@@ -1221,6 +1225,8 @@ class ColonisationWindow:
         row += 1
 
         rcsync_var = tk.BooleanVar()
+        if self.bgstally.state.ColonisationRCAPIKey.get() != None and self.bgstally.state.ColonisationRCAPIKey.get() != "":
+            rcsync_var.set(True)
         chk = tk.Checkbutton(add, text=_("Sync with RavenColonial"), variable=rcsync_var, onvalue=True, offvalue=False) # LANG: Label for checkbox to sync data with RavenColonial
         chk.grid(row=row, column=1, padx=10, pady=0, sticky=tk.W)
         row += 1
@@ -1298,7 +1304,8 @@ class ColonisationWindow:
             return
 
         systems:list = self.colonisation.get_all_systems()
-        tabnum:int = max(self.tl.keys())+1 # Next available tab
+        tabnum:int = 1
+        if self.tl != {}: max(self.tl.keys())+1 # Next available tab
         self.tl[tabnum] = len(systems)-1
         self._create_system_tab(tabnum, system)
         self.update_display()
@@ -1417,14 +1424,20 @@ class ColonisationWindow:
             Debug.logger.info(f"Invalid tab {tabnum} {sysnum}")
 
         Debug.logger.info(f"Deleting system {tabnum}")
-        tabs:list = self.tabbar.tabs()
-        self.tabbar.forget(tabs[tabnum])
-        del self.sheets[tabnum]
-        del self.plan_titles[tabnum]
-        del self.tl[tabnum]
         self.colonisation.remove_system(sysnum)
 
-        self.update_display()
+        # Destroy the existing frames and recreate them. It isn't pretty but it works.
+        try:
+            self.tabbar.destroy()
+            for s in self.sheets:
+                s.destroy()
+            self.sheets = []
+            self.plan_titles = []
+            self.tl = {}
+            self._create_frames()   # Create main frames
+            self.update_display()   # Populate them
+        except Exception:
+            return
 
 
     @catch_exceptions

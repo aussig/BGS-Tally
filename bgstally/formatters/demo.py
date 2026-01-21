@@ -24,7 +24,7 @@ class DemoActivityFormatter(DefaultActivityFormatter):
         Returns:
             str: The name of this formatter for choosing in the UI
         """
-        return _("Demo Data Only")
+        return _("Demo Data Only") # LANG: Name of demo data formatter
 
 
     def is_visible(self) -> bool:

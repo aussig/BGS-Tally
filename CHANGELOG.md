@@ -1,5 +1,17 @@
 # Change Log
 
+## v5.5.0-xx - xxxx-xx-xx
+
+### New Features:
+
+* Favourite factions. You can now mark factions as favourites (♥ / ♡), and there are new Discord posting options to post only your favourites, or only systems that contain your favourites.
+* There is a new option to use your Colonisation plan names instead of system names in BGS/TW Discord reports. This defaults to `Off`.
+
+### Changes:
+
+* The method used to extract translatable strings has been updated, which means some text that was missing translations can now be translated.
+
+
 ## v5.4.0 - 2026-01-21
 
 ### New Features:

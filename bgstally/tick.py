@@ -82,7 +82,7 @@ class Tick:
 
         if not success:
             Debug.logger.error(f"Unable to fetch system tick from {request.endpoint}: {response}")
-            plug.show_error(_("{plugin_name} WARNING: Unable to fetch system tick").format(plugin_name=self.bgstally.plugin_name))
+            plug.show_error(_("{plugin_name} WARNING: Unable to fetch system tick").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
             return
 
         try:

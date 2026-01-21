@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from bgstally.constants import CheckStates, DiscordActivity
+from bgstally.constants import CheckStates, DiscordActivity, FavouriteActivity
 from config import config
 
 
@@ -36,6 +36,8 @@ class State:
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordActivity', default=DiscordActivity.BOTH))
         self.DiscordAvatarURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordAvatarURL', default=""))
         self.DiscordBGSTWAutomatic:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordBGSTWAutomatic', default=CheckStates.STATE_OFF))
+        self.FavouriteActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FavouriteActivity', default=FavouriteActivity.IGNORE))
+        self.UseColonisationName:tk.StringVar = tk.StringVar(value=config.get_str('BGST_UseColonisationName', default=CheckStates.STATE_OFF))
 
         self.ColonisationMaxCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationMaxCommodities', default="20"))
         self.EnableProgressScrollbar:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableProgressScrollbar', default=CheckStates.STATE_OFF))
@@ -101,6 +103,7 @@ class State:
         self.detailed_trade:bool = (self.DetailedTrade.get() == CheckStates.STATE_ON)
         self.discord_bgstw_automatic:bool = (self.DiscordBGSTWAutomatic.get() == CheckStates.STATE_ON)
         self.showmerits:bool = (self.EnableShowMerits.get() == CheckStates.STATE_ON)
+        self.use_colonisation_name:bool = (self.UseColonisationName.get() == CheckStates.STATE_ON)
 
         self.enable_colonisation:bool = (self.ColonisationStatus.get() == CheckStates.STATE_ON)
         self.progress_scrollbar:bool = (self.EnableProgressScrollbar.get() == CheckStates.STATE_ON)
@@ -138,6 +141,8 @@ class State:
         config.set('BGST_ColonisationMaxCommodities', self.ColonisationMaxCommodities.get())
         config.set('BGST_EnableProgressScrollbar', self.EnableProgressScrollbar.get())
         config.set('BGST_ColonisationRCAPIKey', self.ColonisationRCAPIKey.get())
+        config.set('BGST_FavouriteActivity', self.FavouriteActivity.get())
+        config.set('BGST_UseColonisationName', self.UseColonisationName.get())
 
         # Persistent values
         config.set('BGST_CurrentSystemID', self.current_system_id if self.current_system_id != None else "")

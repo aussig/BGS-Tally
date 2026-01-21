@@ -321,7 +321,7 @@ class FleetCarrier:
             }
         res:requests.Response = requests.post(SPANSH_ROUTE, params=params, headers={'User-Agent': f"BGSTally/{self.bgstally.version}"})
         if res.status_code != 202:
-            Debug.logger.debug(f"Error: {res}")
+            Debug.logger.info(f"Spansh error: {res}")
             return
 
         # We get back a jobid
@@ -334,7 +334,6 @@ class FleetCarrier:
             jobresp:requests.Response = requests.get(f"https://spansh.co.uk/api/results/{job}", timeout=5)
             if jobresp.status_code != 202:
                 break
-            Debug.logger.debug(f"{jobresp}")
             tries += 1
             time.sleep(1)
 
@@ -349,7 +348,6 @@ class FleetCarrier:
 
     def clear_route(self) -> None:
         """ Remove the current route """
-        Debug.logger.debug(f"Route cleared")
         self.route = []
         self.bgstally.ui.window_fc.update_display()
 
@@ -358,17 +356,13 @@ class FleetCarrier:
         """ Remove any route entries that we aren't at.
         If we remove all of them that's ok because the route is invalid. """
 
-        Debug.logger.debug(f"Updating route")
-
         # This shouldn't happen unless we've made some jumps without ED:MC running
         used:int = 0
         while self.route != [] and self.route[0]['name'] != dest:
-            Debug.logger.debug(f"Removing {self.route[0]}")
             used += self.route[0]['fuel_used']
             self.route = self.route[1:]
         # If we're there take it out.
         if self.route != [] and self.route[0]['name'] == dest:
-            Debug.logger.debug(f"Assuming we jumped to {self.route[0]}, removing from route")
             self.overview['fuel'] -= used + self.route[0]['fuel_used']
             self.route = self.route[1:]
 
@@ -377,6 +371,7 @@ class FleetCarrier:
             Debug.logger.debug(f"Copying {self.route[0]['name']} to clipboard")
             self.bgstally.ui.frame.clipboard_clear()
             self.bgstally.ui.frame.clipboard_append(self.route[0]['name'])
+            self.bgstally.ui.frame.update()
         self.bgstally.ui.window_fc.update_display()
 
 
@@ -449,26 +444,22 @@ class FleetCarrier:
             elem:int = next((index for (index, d) in enumerate(self.itinerary) if d['arrivalTime'] == jump.get('arrivalTime', '')), -1)
 
             if elem > 0: # Found it, and it's an "old" one. Update departure time and duration just in case
-                #Debug.logger.debug(f"Match on item {elem} so update it {jump.get('departureTime', jumplist[elem].get('departureTime', None))} {jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))}")
                 jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
                 jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))
                 continue
 
             if elem == 0:
-                Debug.logger.debug(f"Found, it's the first jump in our list")
                 if jump.get('departureTime', None) != None:
                     jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
                     jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', 0)
                     continue
 
                 if self.overview.get('departureScheduled', None) != None:
-                    Debug.logger.debug(f"There's a departure scheduled, setting our departure time")
                     jumplist[elem]['departureTime'] = self.overview['departureScheduled']
                     # @TODO: Calculate duration?
                     continue
 
                 if jumplist[elem]['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
-                    Debug.logger.debug(f"Setting body to {self.overview['currentBody']}")
                     jumplist[elem]['body'] = self.overview['currentBody']
                 continue
 
@@ -476,14 +467,11 @@ class FleetCarrier:
 
             # Already completed, and nothing scheduled so just add it with its details
             if jump.get('departureTime', None) != None:
-                Debug.logger.debug(f"Inserting new completed jump {jump}")
                 jumplist.insert(0, jump)
                 continue
 
             if self.overview.get('departureScheduled', None) == None:
-                Debug.logger.debug(f"Inserting new incomplete jump {jump}")
                 if jump['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
-                    Debug.logger.debug(f"Setting body to {self.overview['currentBody']}")
                     jump['body'] = self.overview.get('currentBody', None)
                 jumplist.insert(0, jump)
                 continue
@@ -492,12 +480,9 @@ class FleetCarrier:
             if self._time_passed(self.overview['departureScheduled']) == False:
                 continue
 
-            Debug.logger.debug(f"New incomplete jump and jump scheduled")
             if jump['starsystem'] == self.overview.get('jumpDestination', ''):
-                Debug.logger.debug(f"Adding body {self.overview.get('jumpDestinationBody', None)}")
                 jump['body'] = self.overview.get('jumpDestinationBody', None)
 
-            Debug.logger.debug(f"Inserting {jump}")
             jumplist.insert(0, jump)
 
             self.overview['jumpDestination'] = None
@@ -582,7 +567,6 @@ class FleetCarrier:
 
         # If we don't know where we are trust the CAPI.
         if self.overview.get('currentStarSystem', None) == None:
-            Debug.logger.debug(f"Setting current system from CAPI")
             self.overview['currentStarSystem'] = get_by_path(self.data, ['currentStarSystem'], '')
             del self.overview['currentBody']
 
@@ -612,7 +596,6 @@ class FleetCarrier:
 
         if entry.get('CarrierType') != FleetCarrierType.PERSONAL: return
 
-        Debug.logger.debug(f"Stats received")
         # Note we always re-populate here, in case the user has bought a new carrier.
         # We should get a subsequent CAPI update to populate the rest.
         self.carrier_id = entry.get('CarrierID', 0)
@@ -675,8 +658,6 @@ class FleetCarrier:
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
             self.itinerary[0]['departureTime'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00")
 
-        Debug.logger.debug(f"Jump scheduled to {self.overview['jumpDestination']} at {self.overview['departureScheduled']}")
-
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
         l:str|None = self.bgstally.state.discord_lang
@@ -709,7 +690,6 @@ class FleetCarrier:
         self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
-        Debug.logger.debug(f"Jump cancelled")
         if self.bgstally.dev_mode == True: self.save()
 
         # Automatically post to whichever discord webhooks are set for carrier operations
@@ -731,11 +711,8 @@ class FleetCarrier:
         """ Update the current carrier location after a jump. If we logged out we may not get this event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        Debug.logger.debug(f"Carrier location event {entry}")
-
         # Check if the jump time is now or has passed.
         if self._time_passed(self.overview.get('departureScheduled', "")) == False:
-            Debug.logger.debug(f"No departure scheduled")
             return
 
         dest:str = self.overview.get('jumpDestination', '')
@@ -744,10 +721,8 @@ class FleetCarrier:
         if self.itinerary[1].get('departureTime', None) == self.overview['departureScheduled']:
             self.itinerary[1]['starsystem'] = dest
             self.itinerary[1]['body'] = self.overview.get('jumpDestinationBody', None)
-            Debug.logger.debug(f"Set itinerary[1] starsystem to {dest}")
 
         if self.itinerary[0].get('departureTime', None) == None: # If we haven't received a new itinerary update the current one
-            Debug.logger.debug(f"Updating jump setting [0] departure time to {self.overview['departureScheduled']}")
             dept:datetime = datetime.strptime(self.overview['departureScheduled'], DATETIME_FORMAT_JSON)
             arr:datetime = datetime.strptime(self.itinerary[0]['arrivalTime'], DATETIME_FORMAT_JSON)
             diff:timedelta = dept - arr
@@ -757,7 +732,6 @@ class FleetCarrier:
             self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
 
         if self.itinerary[0]['starsystem'] != dest:
-            Debug.logger.debug(f"Inserting new jump {dest}")
             self.itinerary.insert(0, {
                                       'departureTime': None,
                                       'arrivalTime': self.overview['departureScheduled'],
@@ -776,7 +750,6 @@ class FleetCarrier:
         self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
-        Debug.logger.debug(f"Jumped, updated location {self.overview['currentStarSystem']}")
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
 
@@ -796,7 +769,6 @@ class FleetCarrier:
         # { "timestamp":"2024-02-17T16:33:51Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "PurchaseOrder":5, "Price":4516 }
         # { "timestamp":"2024-02-17T16:35:57Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "CancelTrade":true }
 
-        Debug.logger.debug(f"event: {entry}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
         # @NOTE: Not sure if we need this update to last_modified.
         self.last_modified = int(time.time())
@@ -805,7 +777,6 @@ class FleetCarrier:
         if comm not in self.bgstally.ui.commodities:
             # The order is for a material.
             mat:str = entry.get('Commodity', "")
-            Debug.logger.debug(f"Initial materials {self.locker['normal'].get(mat)}")
             if mat not in self.locker['normal']:
                 self.locker['normal'][mat] = {'locName': entry.get('Commodity_Localised', mat), 'category': '', 'price': 0, 'quantity': 0}
                 self.locker['normal'][mat]['price'] = int(entry.get('Price', 0))
@@ -830,7 +801,6 @@ class FleetCarrier:
                 self.locker['normal'][mat]['outstanding'] = 0
                 self.locker['normal'][mat]['price'] = 0
 
-            Debug.logger.debug(f"Final materials {self.locker['normal'].get(mat)}")
             self.bgstally.ui.window_fc.update_display()
             if self.bgstally.dev_mode == True: self.save()
             return
@@ -839,8 +809,6 @@ class FleetCarrier:
         if comm not in self.cargo['normal']:
             self.cargo['normal'][comm] = self._init_cargo_item(comm, entry.get('Commodity_Localised', comm))
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
-
-        Debug.logger.debug(f"Initial cargo: {self.cargo['normal'][comm]}")
 
         if entry.get('SaleOrder') is not None:
             # If we were selling we need to clear any existing buy order and free up reserved space
@@ -865,8 +833,6 @@ class FleetCarrier:
             Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
             self.cargo['normal'][comm]['stock'] = 0
             self.last_modified = 0
-        else:
-            Debug.logger.debug(f"Updated cargo: {self.cargo['normal'][comm]}")
 
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
@@ -877,8 +843,6 @@ class FleetCarrier:
         """ Market event. If it's for our carrier we update the cargo amounts using BGS-Tally's copy of the market data"""
         if entry.get("MarketID") != self.overview.get('carrier_id', ''): return
         self.last_modified = int(time.time())
-
-        Debug.logger.debug(f"Market event {entry}")
 
         if not self.bgstally.market.available(entry.get("MarketID", 0)):
             Debug.logger.debug(f"No market data available for CarrierID {entry.get('MarketID')}")
@@ -908,8 +872,6 @@ class FleetCarrier:
                 Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
                 self.cargo['normal'][comm]['stock'] = 0
                 self.last_modified = 0
-            else:
-                Debug.logger.debug(f"Updated cargo: {self.cargo['normal'][comm]}")
 
         # Now check for completed orders by going through all the cargo and find any commodities
         # for sale or purchase that are no longer in the market data.
@@ -920,12 +882,10 @@ class FleetCarrier:
             if comm in self.bgstally.market.commodities.keys() or deets['price'] == 0: continue
 
             if deets['outstanding'] > 0: # We were buying but someone must have completed the buy order
-                Debug.logger.debug(f"Buy order completed for {comm}")
                 deets['outstanding'] = 0
                 deets['buyTotal'] = 0
                 deets['price'] = 0
             elif deets['stock'] > 0: # We were selling, someone must have bought all our stock
-                Debug.logger.debug(f"All sold removed for {comm}")
                 deets['stock'] = 0
                 deets['price'] = 0
 
@@ -944,8 +904,6 @@ class FleetCarrier:
             if comm not in self.cargo['normal']:
                 self.cargo['normal'][comm] = self._init_cargo_item(comm)
 
-            Debug.logger.debug(f"Transferring cargo {self.cargo['normal'][comm]} {i}")
-
             # Transfer amount is positive if to carrier, negative if from carrier
             amt:int = i.get('Count', 0) if i.get('Direction') == 'tocarrier' else -i.get('Count', 0)
             self.cargo['normal'][comm]['stock'] += amt
@@ -954,8 +912,6 @@ class FleetCarrier:
                 Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
                 self.cargo['normal'][comm]['stock'] = 0
                 self.last_modified = 0
-            else:
-                Debug.logger.debug(f"Transferred cargo: {self.cargo['normal'][comm]}")
 
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
@@ -971,8 +927,6 @@ class FleetCarrier:
         comm:str = entry.get('Type', "").lower()
         if comm not in self.cargo['normal']:
             self.cargo['normal'][comm] = self._init_cargo_item(comm, entry.get('Type_Localised', comm))
-
-        Debug.logger.debug(f"Initial cargo {entry.get('event')}: {self.cargo['normal'][comm]}")
 
         # Sale amount is positive if to carrier, negative if from carrier (MarketSell to carrier, MarketBuy from carrier)
         amt:int = entry.get('Count', 0) if entry.get('event') == 'MarketSell' else -entry.get('Count', 0)
@@ -991,8 +945,6 @@ class FleetCarrier:
         if self.cargo['normal'][comm]['stock'] < 0:
             Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
             self.cargo['normal'][comm]['stock'] = 0
-        else:
-            Debug.logger.debug(f"Updated cargo {entry.get('event')}: {self.cargo['normal'][comm]}")
 
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
@@ -1044,7 +996,6 @@ class FleetCarrier:
         then = then.replace(tzinfo=UTC).astimezone(None)
         now:datetime = datetime.now()
         now = now.astimezone(None)
-        Debug.logger.debug(f"{now} {then} {now >= then}")
         return now >= then
 
 
@@ -1151,7 +1102,6 @@ class FleetCarrier:
 
     def _from_dict(self, dict: dict) -> None:
         """ Populate our data from a Dictionary that has been deserialized """
-        Debug.logger.debug(f"Loading _from_dict")
         self.carrier_id = dict.get('carrier_id', 0)
         self.last_modified = dict.get('last_modified', 0)
         self.overview = dict.get('overview', {})

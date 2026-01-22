@@ -447,7 +447,7 @@ class Activity:
         state.current_system_id = str(current_system['SystemAddress'])
         current_system['tw_status'] = journal_entry.get('ThargoidWar', None)
 
-        self.bgstally.ui.show_system_info(system_address)
+        self.bgstally.ui.show_system_info(current_system.get('SystemAddress'))
 
 
     def mission_completed(self, journal_entry: dict, mission_log: MissionLog):

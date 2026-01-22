@@ -712,7 +712,7 @@ class UI:
             result += _("No factions found in system") + "\n" # LANG: System information overlay no factions
         else:
             controlling_faction: dict = ordered_factions[0]
-            result += _("Controlling Faction: {faction} Influence: {influence}%").format(faction=controlling_faction.get("Faction", _("Unknown")), influence=controlling_faction.get("Influence", 0) * 100) + "\n" # LANG: System information overlay controlling faction
+            result += _("Controlling Faction: {faction} Influence: {influence}%").format(faction=controlling_faction.get("Faction", _("Unknown")), influence=round(controlling_faction.get("Influence", 0) * 100, 2)) + "\n" # LANG: System information overlay controlling faction
 
             conflicts: str = ""
             factions_handled: list = []

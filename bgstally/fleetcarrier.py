@@ -699,9 +699,9 @@ class FleetCarrier:
         description:str = __("The scheduled carrier jump was cancelled", lang=l) # LANG: Discord text
 
         fields:list = []
-        fields.append({'name': __("Current System", lang=l), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True})
-        fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True})
-        fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True})
+        fields.append({'name': __("Current System", lang=l), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Fleet Carrier Discord heading
+        fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Fleet Carrier Discord heading
+        fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}) # LANG: Fleet Carrier Discord heading
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
         self.bgstally.ui.window_fc.update_display()
 
@@ -975,7 +975,7 @@ class FleetCarrier:
                     self.shipyard['ships'][str(ship.get('ShipID', ""))] = {
                         'name': ship.get('Name', ''),
                         'type': ship.get('ShipType_Localised', ship.get('ShipType', '')),
-                        'location': 'Carrier' if ship.get('ShipMarketID', entry.get('MarketID', 0)) == self.carrier_id else ship.get('StarSystem', entry.get('StarSystem', self.shipyard.get('overview', {}).get('current', _('Unknown')))),
+                        'location': 'Carrier' if ship.get('ShipMarketID', entry.get('MarketID', 0)) == self.carrier_id else ship.get('StarSystem', entry.get('StarSystem', self.shipyard.get('overview', {}).get('current', _('Unknown')))), # LANG: Fleet carrier, unknown location
                         'value': ship.get('Value', 0),
                         'transferPrice': ship.get('TransferPrice', 0),
                         'transferTime': ship.get('TransferTime', 0),
@@ -1053,23 +1053,24 @@ class FleetCarrier:
 
     def _readable(self, field:str, discord:bool = False) -> str:
         """ Return translated, human-readable versions of various attributes """
-        readable:dict = {"all": ["All", _("All")], # LANG: Readable carrier states
-                        "squadronfriends": ["Squadron and Friends", _("Squadron and Friends")],  # LANG: Readable carrier states
-                        "friends" : ["Friends", _("Friends")], # LANG: Readable carrier states
-                        "normalOperation": ["Normal", _("Normal")],  # LANG: Readable carrier states
-                        "debtState": ["Offline", _("Offline")],  # LANG: Readable carrier states
-                        "pendingDecommission": ["Decommissioning", _("Decommissioning")], # LANG: Readable carrier states
-                        "SearchAndRescue": ["Search and Rescue", _("Decommissioning")],  # LANG: Readable carrier states
-                        "Mining": ["Miner", _("Miner")],  # LANG: Readable carrier states
-                        "Trader" : ["Trader", _("Trader")],  # LANG: Readable carrier states
-                        "Explorer" : ["Explorer", _("Explorer")], # LANG: Readable carrier states
-                        "AntiXeno": ["Xeno Hunter", _("Xeno Hunter")],  # LANG: Readable carrier states
-                        "BountyHunter": ["Bounty Hunter", _("Bounty Hunter")] # LANG: Readable carrier states
+        lang:str|None = self.bgstally.state.discord_lang
+        readable:dict = {"all": ["All", _("All"), __("All", lang=lang)], # LANG: Readable carrier states
+                        "squadronfriends": ["Squadron and Friends", _("Squadron and Friends"), __("Squadron and Friends", lang=lang)],  # LANG: Readable carrier states
+                        "friends" : ["Friends", _("Friends"), __("Friends", lang=lang)], # LANG: Readable carrier states
+                        "normalOperation": ["Normal", _("Normal"), __("Normal", lang=lang)],  # LANG: Readable carrier states
+                        "debtState": ["Offline", _("Offline"), __("Offline", lang=lang)],  # LANG: Readable carrier states
+                        "pendingDecommission": ["Decommissioning", _("Decommissioning"), __("Decommissioning", lang=lang)], # LANG: Readable carrier states
+                        "SearchAndRescue": ["Search and Rescue", _("Search and Rescue"), __("Search and Rescue", lang=lang)],  # LANG: Readable carrier states
+                        "Mining": ["Miner", _("Miner"), __("Miner", lang=lang)],  # LANG: Readable carrier states
+                        "Trader" : ["Trader", _("Trader"), __("Trader", lang=lang)],  # LANG: Readable carrier states
+                        "Explorer" : ["Explorer", _("Explorer"), __("Explorer", lang=lang)], # LANG: Readable carrier states
+                        "AntiXeno": ["Xeno Hunter", _("Xeno Hunter"), __("Xeno Hunter", lang=lang)],  # LANG: Readable carrier states
+                        "BountyHunter": ["Bounty Hunter", _("Bounty Hunter"), __("Bounty Hunter", lang=lang)] # LANG: Readable carrier states
                         }
         map:list = readable.get(field, [])
         if discord == False:
-            return map[1] if map != [] else _(str(field))
-        return __(map[0] if map != [] else str(field), lang=self.bgstally.state.discord_lang)
+            return map[1] if map != [] else str(field)
+        return map[2] if map != [] else str(field)
 
 
     def _init_cargo_item(self, item:str, alt:str = "") -> dict:

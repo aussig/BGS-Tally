@@ -10,13 +10,12 @@ from tkinter.messagebox import askyesno
 from typing import List, Optional
 
 import myNotebook as nb
+from plugins.common_coreutils import api_keys_label_common, show_pwd_var_common
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from plugins.common_coreutils import (api_keys_label_common, PADX, PADY, BUTTONX, SEPY, show_pwd_var_common)
-
 from bgstally.activity import Activity
-from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity,
-                                UpdateUIPolicy)
+from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates,
+                                DiscordActivity, FavouriteActivity, UpdateUIPolicy)
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, get_by_path, get_localised_filepath
 from bgstally.widgets import EntryPlus
@@ -217,22 +216,31 @@ class UI:
         nb.Checkbutton(frame, text=_("Colonisation Active"), variable=self.bgstally.state.ColonisationStatus, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self._colonisation_change).grid(row=current_row, column=1, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences checkbox label
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text=_("Discord Options"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # Don't increment row because we want the 1st radio option to be opposite title # LANG: Preferences heading
+        nb.Label(frame, text=_("Discord Options"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
         nb.Checkbutton(frame, text=_("Abbreviate Faction Names"), variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Show Detailed INF"), variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Include Secondary INF"), variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(frame, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
+        nb.Checkbutton(frame, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
+        favourite_types: dict = {FavouriteActivity.IGNORE: _("Post all factions"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.FACTIONS: _("Post favourite factions only"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.SYSTEMS: _("Post systems containing favourite factions")} # LANG: Dropdown menu on activity window
+        var_favourite_type: tk.StringVar = tk.StringVar(value=favourite_types.get(self.bgstally.state.FavouriteActivity.get(), FavouriteActivity.IGNORE))
+        self.mnu_favourite_type: nb.OptionMenu = nb.OptionMenu(frame, var_favourite_type, var_favourite_type.get(),
+                                                            *favourite_types.values(),
+                                                            command=partial(self._favourite_type_selected, favourite_types), direction='below')
+        self.mnu_favourite_type.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+        nb.Checkbutton(frame, text=_("Use Colonisation Plan name instead of System Name"), variable=self.bgstally.state.UseColonisationName, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Checkbutton(frame, text=_("Automatically Post BGS and TW Activity"), variable=self.bgstally.state.DiscordBGSTWAutomatic, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
         nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
         nb.Label(frame, text=_("Discord Avatar URL")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordAvatarURL, width=80).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
         self.languages: dict[str: str] = available_langs()
-        self.language:tk.StringVar = tk.StringVar(value=self.languages.get(self.bgstally.state.discord_lang, _('Default')))
+        self.language:tk.StringVar = tk.StringVar(value=self.languages.get(self.bgstally.state.discord_lang, _('Default'))) # LANG: Preferences label
         self.formatters: dict[str: str] = self.bgstally.formatter_manager.get_formatters()
-        self.formatter:tk.StringVar = tk.StringVar(value=self.formatters.get(self.bgstally.state.discord_formatter, _('Default')))
+        self.formatter:tk.StringVar = tk.StringVar(value=self.formatters.get(self.bgstally.state.discord_formatter, _('Default'))) # LANG: Preferences label
         nb.Label(frame, text=_("Language for Discord Posts")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         nb.OptionMenu(frame, self.language, self.language.get(), *self.languages.values(), command=self._language_modified).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
         nb.Label(frame, text=_("Format for Discord Posts")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
@@ -263,8 +271,8 @@ class UI:
         self.sheet_webhooks.enable_bindings(('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select', 'rc_insert_row',
                             'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell', 'modified'))
         self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)
-        nb.Label(frame, text=_("To add a webhook: Right-click on a row number and select 'Insert rows above / below'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
-        nb.Label(frame, text=_("To delete a webhook: Right-click on a row number and select 'Delete rows'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
+        nb.Label(frame, text=_("To add a webhook: Right-click on a row number and select 'Insert rows above / below'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences label
+        nb.Label(frame, text=_("To delete a webhook: Right-click on a row number and select 'Delete rows'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences label
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("In-game Overlay"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
@@ -276,7 +284,7 @@ class UI:
                        command=self.bgstally.state.refresh
                        ).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
-        nb.Label(frame, text=_("Panels")).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
+        nb.Label(frame, text=_("Panels")).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences label
         overlay_options_frame_1:ttk.Frame = ttk.Frame(frame)
         overlay_options_frame_1.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(overlay_options_frame_1, text=_("Activity Indicator"), # LANG: Preferences checkbox label
@@ -355,7 +363,7 @@ class UI:
         current_row += 1
         show_pwd_var_common(frame, current_row, self)
         current_row += 1
-        self.apikey_label.configure(text=_("RavenColonial API Key"))
+        self.apikey_label.configure(text=_("RavenColonial API Key")) # LANG: Preferences label
         self.apikey.configure(textvariable=self.bgstally.state.ColonisationRCAPIKey)
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
@@ -488,6 +496,14 @@ class UI:
         self.update_plugin_frame()
 
 
+    def _favourite_type_selected(self, favourite_types: dict, value: str):
+        """The user has changed the dropdown to choose the favourite faction posting type
+        """
+        k: str = next(k for k, v in favourite_types.items() if v == value)
+        self.bgstally.state.FavouriteActivity.set(k)
+        self.bgstally.state.refresh
+
+
     def _worker(self) -> None:
         """
         Handle thread work for overlay
@@ -526,11 +542,11 @@ class UI:
             minutes_delta:int = int((datetime.now(UTC) - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
             if self.bgstally.state.enable_overlay_current_tick:
                 if datetime.now(UTC) > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
-                    self.bgstally.overlay.display_message("tickwarn", _("Tick {minutes_delta}m Overdue (Estimated)").format(minutes_delta=minutes_delta), True) # Overlay tick message
+                    self.bgstally.overlay.display_message("tickwarn", _("Tick {minutes_delta}m Overdue (Estimated)").format(minutes_delta=minutes_delta), True) # LANG: Overlay overdue tick message
                 elif datetime.now(UTC) > self.bgstally.tick.next_predicted():
-                    self.bgstally.overlay.display_message("tickwarn", _("Past Estimated Tick Time"), True, text_colour_override="#FFA500") # Overlay tick message
+                    self.bgstally.overlay.display_message("tickwarn", _("Past Estimated Tick Time"), True, text_colour_override="#FFA500") # LANG: Overlay past estimated time tick message
                 elif datetime.now(UTC) > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
-                    self.bgstally.overlay.display_message("tickwarn", _("Within {minutes_to_tick}m of Next Tick (Estimated)").format(minutes_to_tick=TIME_TICK_ALERT_M), True, text_colour_override="yellow") # Overlay tick message
+                    self.bgstally.overlay.display_message("tickwarn", _("Within {minutes_to_tick}m of Next Tick (Estimated)").format(minutes_to_tick=TIME_TICK_ALERT_M), True, text_colour_override="yellow") # LANG: Overlay close to tick message
 
             # Activity Indicator
             if self.bgstally.state.enable_overlay_activity and self.indicate_activity:
@@ -544,7 +560,7 @@ class UI:
                     progress:float = float(get_by_path(current_system, ['tw_status', 'WarProgress'], 0))
                     percent:float = round(progress * 100, 2)
 
-                    self.bgstally.overlay.display_progress_bar("tw", _("TW War Progress in {current_system}: {percent}%").format(current_system=current_system.get('System', 'Unknown'), percent=percent), progress) # Overlay TW report message
+                    self.bgstally.overlay.display_progress_bar("tw", _("TW War Progress in {current_system}: {percent}%").format(current_system=current_system.get('System', 'Unknown'), percent=percent), progress) # LANG:Overlay TW report message
 
             # System Information
             if self.bgstally.state.enable_overlay_system and current_activity is not None:

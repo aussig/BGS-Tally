@@ -248,7 +248,7 @@
 "Carrier" = "Filo Taşıyıcı";
 
 /* fleetcarrier.py: fleet carrier materials header; In files: fleetcarrier.py:501:501 */
-"Carrier {order} for {carrier_name}" = "Carrier {order} for {carrier_name}";
+"Carrier {order} for {carrier_name}" = "{carrier_name} için Filo taşıyıcı {order}";
 
 /* clb.py: Cartographic data sold in Discord report; In files: clb.py:159:159 */
 "Carto" = "Carto";
@@ -944,7 +944,7 @@
 "Location" = "Konum";
 
 /* fleetcarrier.py: fleet carrier materials system line; In files: fleetcarrier.py:504:504 */
-"Location: {system}" = "Location: {system}";
+"Location: {system}" = "Lokasyon: {system}";
 
 /* activity.py: Activity window tooltip; In files: activity.py:263:263; activity.py:288:288 */
 "Low" = "Düşük";

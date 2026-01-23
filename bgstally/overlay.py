@@ -100,7 +100,7 @@ class Overlay:
                     y: int = HEIGHT_OVERLAY # Let EDMCModernOverlay plugin group handle bottom offset
                 else:
                     y: int = y_value
-            else:             
+            else:
                 if fi.get('y_center', False):
                     y: int = int((HEIGHT_OVERLAY - message_height) / 2) + y_value # Vertically centred, offset by 'y' where 'y' can be negative
                 elif y_value < 0:
@@ -254,7 +254,7 @@ class Overlay:
                 anchor = fi.get("anchor", "nw")
                 x_center = fi.get("x_center", False)
                 y_center = fi.get("y_center", False)
-                
+
                 # Make anchor assumptions based on x_center and y_center configs
                 if x_center and y_center:
                     anchor = "center"
@@ -262,9 +262,6 @@ class Overlay:
                     anchor = "top"
                 elif y_center:
                     anchor = "left"
-
-                if x_center:
-                    justification = "center"
 
             if anchor in ["ne", "right", "se"]:
                 # Assume a right side anchor means we're on the right side of the screen and force a small offset to avoid clipping.
@@ -326,7 +323,7 @@ class Overlay:
             self.display_message("info", _("{plugin_name} Ready").format(plugin_name=self.bgstally.plugin_name), True, 30) # LANG: Overlay message
         except Exception as e:
             Debug.logger.warning(f"Could not declare overlay ready", exc_info=e)
-        
+
     def _parse_int(self, value: str | None, default: int) -> int:
         if value is None:
             return default

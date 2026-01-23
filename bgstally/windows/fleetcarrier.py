@@ -5,7 +5,6 @@ from tkinter import ttk
 #from bgstally.bgstally import BGSTally
 from bgstally.constants import DATETIME_FORMAT_CARRIER, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
 from bgstally.fleetcarrier import FleetCarrier
-from bgstally.debug import Debug
 from bgstally.utils import _, __, hfplus, str_truncate, catch_exceptions
 from bgstally.widgets import TreeviewPlus, AutoCompleter, Placeholder
 from config import config # type: ignore
@@ -164,7 +163,7 @@ class WindowFleetCarrier:
         for k, v in self.tabs.items():
             fr:ttk.Frame = ttk.Frame(tabbar, relief=tk.FLAT)
             fr.pack(fill=tk.BOTH, expand=1)
-            tabbar.add(fr, text=_(k))
+            tabbar.add(fr, text=_(k)) # LANG: Ignore
             if v.get('buttons', None) != None:
                 v['buttons'](fc, fr)
             v['func'](fc, v, fr)
@@ -319,9 +318,9 @@ class WindowFleetCarrier:
 
         for k, v in data.items():
             if bg != 'None':
-                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background=bg)
+                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background=bg) # LANG: Ignore
             else:
-                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"))
+                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold")) # LANG: Ignore
             lbl.grid(row=row, column=col, padx=20, pady=5, sticky=tk.W)
             txt:str = hfplus(v)
             if bg != 'None':
@@ -399,9 +398,7 @@ class WindowFleetCarrier:
         """ Create itinerary buttons for Spansh fleet carrier router """
         # Internal helper functions.
         def _route(dest:ttk.Entry|Placeholder) -> None:
-            Debug.logger.debug(f"Creating route")
             fc.spansh_route(dest.get())
-            Debug.logger.debug(f"Updating route")
             for w in self.itineraryfr.winfo_children():
                 w.destroy()
             self._itinerary(fc, self.tabs['Itinerary'], self.itineraryfr)
@@ -438,15 +435,15 @@ class WindowFleetCarrier:
         itinerary:dict = fc.get_itinerary()
         #dest:ttk.Entry = ttk.Entry(bar, width=30)
         #ph:str = _("Destination") if itinerary.get('route', []) == [] else itinerary['route'][-1].get('name') # LANG: Entry placeholder
-        pho:Placeholder = Placeholder(bar, _("Destination"), width=30)
-        dest:AutoCompleter = AutoCompleter(self.bgstally, bar, _("Destination"), width=30)
-        calc:ttk.Button = ttk.Button(bar, text=_("Calculate"), command=partial(_route, dest)) # LANG: Button label
+        pho:Placeholder = Placeholder(bar, _("Destination"), width=30) # LANG: Fleet carrier text label
+        dest:AutoCompleter = AutoCompleter(self.bgstally, bar, _("Destination"), width=30) # LANG: Fleet carrier text label
+        calc:ttk.Button = ttk.Button(bar, text=_("Calculate"), command=partial(_route, dest)) # LANG: Fleet carrier button label
 
-        lbl:ttk.Label = ttk.Label(bar, text=_("Plot Route"))
+        lbl:ttk.Label = ttk.Label(bar, text=_("Plot Route")) # LANG: Fleet carrier text label
 
         calc.config(state=tk.DISABLED if itinerary.get('route', []) != [] else tk.NORMAL)
 
-        clear:ttk.Button = ttk.Button(bar, text=_("Clear"), command=partial(_clear)) # LANG: Button label
+        clear:ttk.Button = ttk.Button(bar, text=_("Clear"), command=partial(_clear)) # LANG: Fleet carrier button label
         clear.config(state=tk.DISABLED if itinerary.get('route', []) == [] else tk.NORMAL)
 
         # At the bottom as order of definition and order of display are different
@@ -466,9 +463,9 @@ class WindowFleetCarrier:
 
         # On click copy the first column to the clipboard
         def _selected(values, column, tr:TreeviewPlus, iid:str) -> None:
-            #Debug.logger.debug(f"Values: {values}, Column: {column}, iid: {iid}")
             frame.clipboard_clear()
             frame.clipboard_append(values[0])
+            frame.update()
 
         table:TreeviewPlus = TreeviewPlus(frame, height=100, columns=[d['title'] for d in cols.values()], show="headings", callback=_selected, datetime_format=DATETIME_FORMAT_CARRIER, style="My.Treeview")
         sb:ttk.Scrollbar = ttk.Scrollbar(frame, orient=tk.VERTICAL, command=table.yview)
@@ -497,14 +494,14 @@ class WindowFleetCarrier:
 
         order:str = which
         match type:
-            case 'Both': order += " " + __("orders", l)
-            case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l)
-            case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l)
+            case 'Both': order += " " + __("orders", l) # LANG: fleet carrier orders discord label
+            case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
+            case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
 
-        output += __("Carrier {order} for {carrier_name} \n", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) # LANG: fleet carrier materials header
+        output += __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) + "\n" # LANG: fleet carrier materials header
         if fc.overview.get('currentStarSystem', "") != "":
             if discord == True: output += "### "
-            output += __("Location: {system}\n", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) # LANG: fleet carrier materials system line
+            output += __("Location: {system}", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) + "\n" # LANG: fleet carrier materials system line
         output += "\n"
 
         # Header row for table
@@ -512,7 +509,7 @@ class WindowFleetCarrier:
         header:list = []
         for col in tab['cols'].values():
             if col.get('discordWidth', None) == None: continue
-            tmp:str = str_truncate(__(col['title'], lang=l), col['discordWidth'])
+            tmp:str = str_truncate(__(col['title'], lang=l), col['discordWidth']) # LANG: Ignore
             fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"
             header.append(fmt.format(val=tmp))
         output += " | ".join(header) + "\n"
@@ -534,7 +531,7 @@ class WindowFleetCarrier:
                     case "buy" if item.get("price", 0) > 0 and item.get("outstanding", 0) > 0: val = item.get("outstanding")
                     case "sell" if item.get("price", 0) > 0 and item.get("stock", 0) > 0: val = item.get("stock")
                     case _: val = item.get(f, " ")
-                tmp:str = str_truncate(__(hfplus(val), lang=l), col['discordWidth'])
+                tmp:str = str_truncate(__(hfplus(val), lang=l), col['discordWidth']) # LANG: Ignore
                 fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"
                 line.append(fmt.format(val=tmp))
             if line != []:

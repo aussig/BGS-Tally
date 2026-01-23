@@ -1,3 +1,4 @@
+# type: ignore[reportMemberAccess]
 import re
 from functools import partial
 
@@ -53,27 +54,27 @@ class ColonisationWindow:
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
         self.summary_cols:dict = {
             'Track': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
-            'Architect': {'header': _("Architect"), 'background': None, 'hide': False}, # LANG: System architect heading
-            'RCOpen': {'header': _("Security"), 'background': None, 'hide': False, 'format': 'dropdown'}, # LANG: RC security
+            'Architect': {'header': _("Architect"), 'background': None, 'hide': False}, # LANG: Colonisation column heading System architect
+            'RCOpen': {'header': _("Security"), 'background': None, 'hide': False, 'format': 'dropdown'}, # LANG: Colonisation column heading RC security
             'State': {'header': "", 'background': None},
-            'Total': {'header': _("Total"), 'background': None, 'format': 'int'}, # LANG: Total number of builds
-            'Orbital': {'header': _("Orbital"), 'background': None, 'format': 'int'}, # LANG: Number of orbital/space builds
-            'Surface': {'header': _("Surface"), 'background': None, 'format': 'int'}, # LANG: Number of ground/surface builds
-            'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 2 points
-            'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 3 points
-            'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max': 200000}, # LANG: Cost in tonnes of cargo
-            'Trips': {'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max': 260}, # LANG: Number of loads of cargo
+            'Total': {'header': _("Total"), 'background': None, 'format': 'int'}, # LANG: Colonisation column heading Total number of builds
+            'Orbital': {'header': _("Orbital"), 'background': None, 'format': 'int'}, # LANG: Colonisation column heading Number of orbital/space builds
+            'Surface': {'header': _("Surface"), 'background': None, 'format': 'int'}, # LANG: Colonisation column heading Number of ground/surface builds
+            'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Colonisation column heading Tier 2 points
+            'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Colonisation column heading Tier 3 points
+            'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max': 200000}, # LANG: Colonisation column heading Cost in tonnes of cargo
+            'Trips': {'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max': 260}, # LANG: Colonisation column heading Number of loads of cargo
             'Location': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
-            'Population': {'header': _("Pop"), 'background': None, 'hide': True, 'format': 'hidden'},
-            'Economy': {'header': _("Economy"), 'background': None, 'hide': True, 'format': 'hidden'},
-            'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population increase
-            'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population Maximum
-            'Economy Influence': {'header': _("Econ Inf"), 'background': None, 'hide': True, 'format': 'hidden'}, # LANG: Economy influence
-            'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Security impact
-            'Technology Level' : {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Technology level
-            'Wealth' : {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Wealth impact
-            'Standard of Living' : {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Standard of living impact
-            'Development Level' : {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20} # LANG: Development level impact
+            'Population': {'header': _("Pop"), 'background': None, 'hide': True, 'format': 'hidden'}, # LANG: Colonisation column heading Population
+            'Economy': {'header': _("Economy"), 'background': None, 'hide': True, 'format': 'hidden'}, # LANG: Colonisation column heading Economy
+            'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Population increase
+            'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Population Maximum
+            'Economy Influence': {'header': _("Econ Inf"), 'background': None, 'hide': True, 'format': 'hidden'}, # LANG: Colonisation column heading Economy influence
+            'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Security impact
+            'Technology Level' : {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Technology level
+            'Wealth' : {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Wealth impact
+            'Standard of Living' : {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Standard of living impact
+            'Development Level' : {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20} # LANG: Colonisation column heading Development level impact
         }
         # Table has two sections: summary and builds. This dict defines attributes for each build column
         self.detail_cols:dict = {
@@ -210,7 +211,8 @@ class ColonisationWindow:
             self._create_system_tab(tabnum, system)
             tabnum += 1
 
-        if tabnum > 0:
+        if tabnum > 1:
+            t:int = 1
             for t in range(1, tabnum-1):
                 Debug.logger.debug(f"{t} {self.tl.get(t)} {tabnum-1}")
                 if systems[self.tl[t]].get('Hidden', True) == False:
@@ -305,16 +307,16 @@ class ColonisationWindow:
             sys_bodies.bind("<Button-1>", partial(self.bodies_popup, tabnum))
             sys_bodies.bind("<Button-3>", partial(self._context_menu, systems[sysnum], 'Bodies'))
 
-        allattrs:dict = {'Population': _('Population'), # HINT: Population heading
-                         'Economy' : _('Economy'), # HINT: Economy heading
-                         'Security' : _('Security')} # HINT: Security heading
+        allattrs:dict = {'Population': _('Population'), # LANG: Population heading
+                         'Economy' : _('Economy'), # LANG: Economy heading
+                         'Security' : _('Security')} # LANG: Security heading
         attrs:list = []
         for k, v in allattrs.items():
             if systems[sysnum].get(k, '') != '' and systems[sysnum].get(k, '') != None:
                 if isinstance(systems[sysnum].get(k), int):
                     attrs.append(f"{human_format(systems[sysnum].get(k))} {v}")
                 else:
-                    attrs.append(f"{systems[sysnum].get(k)} {_(v)}")
+                    attrs.append(f"{systems[sysnum].get(k)} {v}")
         details:ttk.Label = ttk.Label(title_frame, text="   ".join(attrs))
         self._set_weight(details)
         details.pack(side=tk.LEFT, padx=10, pady=5)
@@ -363,7 +365,7 @@ class ColonisationWindow:
 
         menu = tk.Menu(tearoff=tk.FALSE)
         if type == 'System':
-            menu.add_command(label=_('Copy'), command=partial(self._ctc, system['StarSystem']))  # As in Copy and Paste
+            menu.add_command(label=_('Copy'), command=partial(self._ctc, system['StarSystem']))  # LANG: Copy system name to clipboard
             menu.add_separator()
 
         for which in self.links[type].keys():
@@ -490,16 +492,16 @@ class ColonisationWindow:
             bstr += "\n"
 
             attrs:list = []
-            if b.get('isLandable') == True: attrs.append(_('Landable'))
-            if b.get('rotationalPeriodTidallyLocked') == True: attrs.append(_('Tidally Locked'))
+            if b.get('isLandable') == True: attrs.append(_('Landable')) # LANG: Landable body
+            if b.get('rotationalPeriodTidallyLocked') == True: attrs.append(_('Tidally Locked')) # LANG: Tidally locked body
             rings:list = []
             for r in b.get('rings', []):
                 if r.get('type', None) != None: rings.append(r.get('type'))
             if len(rings):
-                attrs.append(b.get('reserveLevel') + " " +_("rings") + ": " + ", ".join(rings))
+                attrs.append(b.get('reserveLevel') + " " +_("rings") + ": " + ", ".join(rings)) # LANG: Rings label for body
 
             if b.get('type') == 'Planet':
-                if b.get('terraformingState') == 'Terraformable': attrs.append(_("Terraformable"))
+                if b.get('terraformingState') == 'Terraformable': attrs.append(_("Terraformable")) # LANG: Terraformable body
                 if b.get('atmosphereType') != 'No atmosphere' or len(attrs):
                     astr:str = b.get('atmosphereType', 'No atmosphere')
                     if astr != 'No atmosphere': astr += " atmosphere"
@@ -600,7 +602,8 @@ class ColonisationWindow:
 
         self._config_sheet(sheet, system)
         if system.get('RCSync', False) == True and RavenColonial(self.colonisation).is_editable(system) == False:
-            sheet.enable_bindings('single_select', 'drag_select', 'arrowkeys')
+            sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'copy')
+            sheet.extra_bindings(['all_modified_events', 'cell_select'], func=partial(self.sheet_modified, sheet, tabnum))
         else:
             sheet.enable_bindings('single_select', 'drag_select', 'edit_cell', 'arrowkeys', 'right_click_popup_menu', 'copy', 'cut', 'paste', 'delete', 'undo')
 
@@ -755,14 +758,14 @@ class ColonisationWindow:
                     continue
                 match name:
                     case 'Architect':
-                        totals['Planned'][name] = system.get('Architect', _('Unknown'))
+                        totals['Planned'][name] = system.get('Architect', _('Unknown')) # LANG: Unknown system architect
                         totals['Complete'][name] = ' '
                     case 'RCOpen':
-                        totals['Planned'][name] = _('Open') if system.get('RCOpen', False) else _('Secured')
+                        totals['Planned'][name] = _('Open') if system.get('RCOpen', False) else _('Secured') # LANG: System Raven Colonial status
                         totals['Complete'][name] = ' '
                     case 'State':
-                        totals['Planned'][name] = _("Planned")
-                        totals['Complete'][name] = _("Complete")
+                        totals['Planned'][name] = _("Planned") # LANG: Planned build state
+                        totals['Complete'][name] = _("Complete") # LANG: Completed build state
                     case 'Total':
                         totals['Planned'][name] += 1
                         totals['Complete'][name] += 1 if self.is_build_complete(build) else 0
@@ -952,7 +955,7 @@ class ColonisationWindow:
                 if b != None:
                     desc = b.get('subType', 'Unknown')
                     if b.get('type') == 'Star': desc = re.sub(r".*\((.+)\).*", r"\1", desc)
-                    if 'gas giant' in b.get('subType').lower(): desc = _('Gas giant')
+                    if 'gas giant' in b.get('subType').lower(): desc = _('Gas giant') # LANG: Gas giant body
                     if b.get('subType') == 'High metal content world': desc = _('HMC world') # LANG: HMC World is a high metal content world
                     desc = str_truncate(desc, 16)
                 sheet[self._cell(i+srow,self._detcol('Body Type'))].data = desc
@@ -1301,7 +1304,8 @@ class ColonisationWindow:
             return
 
         systems:list = self.colonisation.get_all_systems()
-        tabnum:int = max(self.tl.keys())+1 # Next available tab
+        tabnum:int = 1
+        if self.tl != {}: max(self.tl.keys())+1 # Next available tab
         self.tl[tabnum] = len(systems)-1
         self._create_system_tab(tabnum, system)
         self.update_display()
@@ -1385,7 +1389,7 @@ class ColonisationWindow:
         sysnum:int = self.tl[tabnum]
 
         if not name:
-            messagebox.showerror(_("Error"), _("Plan name is required"))
+            messagebox.showerror(_("Error"), _("Plan name is required")) # LANG: Error when no plan name is given
             return
 
         data:dict = {
@@ -1411,9 +1415,9 @@ class ColonisationWindow:
         sysnum:int = self.tl[tabnum]
         # Confirm removal
         if not messagebox.askyesno(
-            _("Confirm Removal"),
-            _("Are you sure you want to remove this system?")
-        ): # LANG: request system removal confirmation
+            _("Confirm Removal"), # LANG: confirm system removal dialog title
+            _("Are you sure you want to remove this system?") # LANG: confirm system removal dialog text
+        ):
             return
 
         if sysnum > len(self.colonisation.get_all_systems()):
@@ -1422,13 +1426,14 @@ class ColonisationWindow:
         Debug.logger.info(f"Deleting system {tabnum}")
         self.colonisation.remove_system(sysnum)
 
-        # Destroy the existing frames and recreate them.
+        # Destroy the existing frames and recreate them. It isn't pretty but it works.
         try:
             self.tabbar.destroy()
             for s in self.sheets:
                 s.destroy()
             self.sheets = []
             self.plan_titles = []
+            self.tl = {}
             self._create_frames()   # Create main frames
             self.update_display()   # Populate them
         except Exception:

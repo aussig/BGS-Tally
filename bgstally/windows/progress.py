@@ -38,7 +38,7 @@ class ProgressWindow:
             {
                 'Column' : 'Commodity',
                 'Label' : f"{_('Commodity'): <40}", # LANG: Commodity
-                'Tooltip' : f"{_('Commodity')}"
+                'Tooltip' : f"{_('Commodity')}" # LANG: Commodity tooltip
             },
             {
                 'Column' : 'Required',
@@ -76,7 +76,7 @@ class ProgressWindow:
                 'Tooltip' : f"{_('Amount outstanding in carrier buy orders')}" # LANG: Carrier buy order tooltip
             }
         ]
-        self.ordertts:list = [_('Alphabetical order'), _('Category order'), _('Quantity order')]
+        self.ordertts:list = [_('Alphabetical order'), _('Category order'), _('Quantity order')]  # LANG: Commodity order tooltips
 
         self.markets:dict = {
             'systemName' : {'header': _('System'), 'width': 175, 'align': "left"},      # LANG: System Name heading
@@ -256,7 +256,7 @@ class ProgressWindow:
             scrollbar.grid(row=1, column=1, sticky=tk.NS, ipadx=0, padx=0)
             table:tk.Frame = scrollable_frame
             # We have to make the column less wide to fit the scrollbar in
-            self.headings[0]['Label'] = f"{_('Commodity'): <32}"
+            self.headings[0]['Label'] = f"{_('Commodity'): <32}" # LANG: Commodity heading
             self.scroll_canvas:tk.Canvas = scroll_canvas
         else:
             table = tk.Frame(table_frame)
@@ -324,12 +324,12 @@ class ProgressWindow:
             menu.add_separator()
             b:dict = tracked[self.build_index]
             if b.get('ProjectID', None) != None:
-                menu.add_command(label=_('Open in RavenColonial'), command=partial(webbrowser.open, 'https://ravencolonial.com/#build='+b.get('ProjectID','')))  # LANG: build popup menu
+                menu.add_command(label=_('Open in RavenColonial'), command=partial(webbrowser.open, 'https://ravencolonial.com/#build='+b.get('ProjectID','')))  # LANG: Colonisation popup RC menu option
 
             if b.get('MarketID', None) != None:
                 params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in b.items()}
                 for k, v in self.links.items():
-                    menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)))  # LANG: build popup menu
+                    menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)))  # LANG: Colonisation popup menu option
 
         menu.post(event.x_root, event.y_root)
 
@@ -357,17 +357,17 @@ class ProgressWindow:
 
         if self.build_index < len(tracked):
             b:dict = tracked[self.build_index]
-            sn:str = b.get('Plan', _('Unknown')) # Unknown system name
+            sn:str = b.get('Plan', _('Unknown')) # LANG: Unknown system name
             bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
             if discord:
                 output = f"```{sn}, {bn}\n"
             else:
                 output = f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 30, loc='left')}\n"
 
-        output += f"{_('Progress')}: {self.progress:.0f}%\n"
+        output += f"{_('Progress')}: {self.progress:.0f}%\n" # LANG: Colonisation Progress
         output += "\n"
         if discord:
-            output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7}\n"
+            output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7}\n" # LANG: Colonisation discord headings
 
         output += "-" * 63 + "\n"
         comms:list = []
@@ -393,9 +393,9 @@ class ProgressWindow:
                 name:str = self.colonisation.get_commodity(c, 'name')
                 cat:str = self.colonisation.get_commodity(c, 'category')
                 if discord:
-                    output += f"{name:<28} | {cat:<20} | {remaining: 8,}{_('t')}\n"
+                    output += f"{name:<28} | {cat:<20} | {remaining: 8,}{_('t')}\n" # LANG: Colonisation tonnes abbreviation
                 else:
-                    output += f"{name}: {remaining}{_('t')}\n"
+                    output += f"{name}: {remaining}{_('t')}\n" # LANG: Colonisation tonnes abbreviation
 
         if discord: output += "```\n"
         return output.strip()
@@ -415,7 +415,7 @@ class ProgressWindow:
                 if self.build_index < 0: self.build_index = max
             case 'change':
                 self.view = ProgressView((self.view.value + 1) % len(ProgressView))
-                self.viewtt.text = _("Cycle commodity list details" + " (" + self.view.name.title()+")")
+                self.viewtt.text = _("Cycle commodity list details ({view_title})").format(view_title=self.view.name.title()) # LANG: tooltip for the commodity header
                 self.colonisation.dirty = True
             case 'copy':
                 self.frame.clipboard_clear()
@@ -613,8 +613,8 @@ class ProgressWindow:
             b:dict = tracked[self.build_index]
             bn:str = re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;) ", "", b.get('Name', ''))
             bt:str = b.get('Base Type', '')
-            pn:str = b.get('Plan', _('Unknown')) # Unknown system name
-            sn:str = b.get('StarSystem', _('Unknown')) # Unknown system name
+            pn:str = b.get('Plan', _('Unknown')) # LANG: Unknown colonisation plan name
+            sn:str = b.get('StarSystem', _('Unknown')) # LANG: Unknown colonisation system name
             name:str = ', '.join([pn, bt])
             if b.get('Name', '') != '':
                 name = ', '.join([pn, bt, bn])
@@ -725,7 +725,6 @@ class ProgressWindow:
         self._display_totals(self.rows[i+1], tracked, totals)
 
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
-            Debug.logger.debug(f"Resizing Cnvas: {self.bgstally.state.EnableProgressScrollbar.get()} {rowcnt < int(self.bgstally.state.ColonisationMaxCommodities.get())}")
             rows:int = min(rowcnt, int(self.bgstally.state.ColonisationMaxCommodities.get()))
             self.scroll_canvas.yview_moveto(0.0)
             height=int((rows+2)*21*(config.get_int('ui_scale') / 100.00))
@@ -750,7 +749,7 @@ class ProgressWindow:
             return
 
         for col, val in enumerate(self.columns):
-            row[col]['text'] = self._get_value(col, totals['Required'], totals['Delivered'], totals.get('Cargo',0), totals.get('Carrier', 0), totals.get('BuyOrder', 0)) if col != 0 else _("Total")
+            row[col]['text'] = self._get_value(col, totals['Required'], totals['Delivered'], totals.get('Cargo',0), totals.get('Carrier', 0), totals.get('BuyOrder', 0)) if col != 0 else _("Total") # LANG: Colonisation total commodities
             self._set_weight(row[col])
             row[col].grid()
 
@@ -778,15 +777,18 @@ class ProgressWindow:
 
         qty = max(qty, 0) # Never less than zero
         if self.units[col] == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
-            return f"{ceil(qty / self.colonisation.cargo_capacity): >10,}{_('L')}"
+            return f"{ceil(qty / self.colonisation.cargo_capacity): >10,}{_('L')}" # LANG: Colonisation loads abbreviation
 
-        return f"{qty: >10,}{_('t')}"
+        return f"{qty: >10,}{_('t')}" # LANG: Colonisation tonnes abbreviation
 
 
     def _set_weight(self, cell, w='bold') -> None:
         ''' Set font weight, defaults to bold '''
-        fnt:tkFont._FontDict = tkFont.Font(font=cell['font']).actual()
-        cell.configure(font=(fnt['family'], fnt['size'], w))
+        #fnt:tkFont._FontDict = tkFont.Font(font=cell['font']).actual()
+        #cell.configure(font=(fnt['family'], fnt['size'], w))
+        fnt:tkFont.Font = tkFont.Font(font=cell.cget("font"))
+        fnt.configure(weight=w)
+        cell.configure(font=fnt)
 
 
     @catch_exceptions

@@ -12,80 +12,7 @@
 * The method used to extract translatable strings has been updated, which means some text that was missing translations can now be translated.
 
 
-## v5.4.0-xx - xxxx-xx-xx
-
-### Bug Fixes:
-
-* When EDMC was set to the default language, and the system language is not English, some parts were not translated, for example the colonisation legend window.
-
-
-## v5.4.0-b2 - 2026-01-10
-
-### New Features:
-
-* Updates to support CMDR SweetJonnySauce's new [EDMCModernOverlay](https://github.com/SweetJonnySauce/EDMCModernOverlay) plugin, with backward compatability for the legacy EDMCOverlay and edmcoverlay2 plugins for the moment, which are no longer maintained. From the next major release (v6) EDMCModernOverlay will be the only overlay plugin supported by BGS-Tally.
-* Plugin is now compatible with the new EDMC Plugin Registry.
-
-### Bug Fixes:
-
-* Corrected erroneous listing of materials as buying in the fleetcarrier
-* Corrected too small price width for materials in discord post
-* Corrected trading header in discord post
-* Addressed a timing runtime if you close the markets frame during a request
-* Replaced colonisation icons with images for better cross-platform compatibility
-* Fixed bug where fleetcarrier data was being sent to RC when it shouldn't
-* Fixed runtime with fleetcarrier jumptime deltas
-* Fixed autopost failure after new tick fetched
-* Fixed bugs with tracking locker/bartender materials trading
-* Fixed bug where colonisation tabbar would not show if there were no systems (introduced by recent performance improvements)
-
-
-## v5.4.0-b1 - 2025-12-21
-
-### New Features:
-
-* Added the option to have the progress commodities window be fixed size and scrollable.
-
-### Bug Fixes:
-
-* Fixed transparent theme colors
-* Updated colors properly when theme changes
-* Added some more carrier cargo sanity checks
-* Fixed a runtime when deleting a system
-* Fixed a problem with activity window tabs not displaying correctly in Fedora Linux
-
-
-## v5.4.0-a2 - 2025-12-08
-
-### New Features:
-
-* Added ability to create and track a Spansh Fleetcarrier route
-* Added settings option to completely disable Colonisation features
-* Added carrier fuel update
-* Added support for Raven Colonial nicknames and notes as BGST already had both
-* Added support for Raven Colonial Open/Locked state
-
-### Changes:
-
-* Reduced Raven Colonial requests on startup
-* Sped up colonisation window display
-
-### Bug Fixes:
-
-* Fixed parameter change in Raven Colonial markets endpoint
-* Fixed a runtime when body data is incomplete
-* Removed vestigial separator in popup menu
-* Reworked carrier cargo tracking
-* Improved itinerary tracking
-* Further improved build site fuzzy matching
-* Updated the base material requirements to match Frontier's latest
-* Fixed exception being thrown if current system has not yet been set.
-* Fixed Combat Bond tracking for non-Odyssey game client.
-* Fixed failure to send `MarketBuy` and `MarketSell` events via Events API when the commodity can't be found in the current market data.
-* Fixed failure to launch overlay on Linux
-
-
-## v5.4.0-a1 - 2025-11-24
+## v5.4.0 - 2026-01-21
 
 ### New Features:
 
@@ -99,20 +26,49 @@
 * Added popup menu for progress options
 * More improvements to project/build matching
 * Added Carrier buy orders as a progress column
+* Updates to support CMDR SweetJonnySauce's new [EDMCModernOverlay](https://github.com/SweetJonnySauce/EDMCModernOverlay) plugin, with backward compatability for the legacy EDMCOverlay and edmcoverlay2 plugins for the moment, which are no longer maintained. From the next major BGS-Tally release (v6) EDMCModernOverlay will be the only overlay plugin supported by BGS-Tally.
+* Plugin is now compatible with the new EDMC Plugin Registry.
+* Added the option to have the progress commodities window be fixed size and scrollable.
+* Added ability to create and track a Spansh Fleetcarrier route
+* Added settings option to completely disable Colonisation features
+* Added carrier fuel update
+* Added support for Raven Colonial nicknames and notes as BGST already had both
+* Added support for Raven Colonial Open/Locked state
 
 ### Changes:
 
+* Reduced Raven Colonial requests on startup
+* Sped up colonisation window display
 * Moved colonisation site name mapping to after BuildID and MarketID when finding a build
 * Killed the "no builds are being tracked" overlay message
 * Updated system calculations to reflect FDev's new rules
 * Modified so Raven Colonial is read-only unless they have an API Key configured
+* Cleaned and tidied the CLB formatter
 
 ### Bug Fixes:
 
+* When EDMC was set to the default language, and the system language is not English, some parts were not translated, for example the colonisation legend window.
+* Addressed a timing runtime if you close the markets frame during a request
+* Replaced colonisation icons with images for better cross-platform compatibility
+* Fixed bug where fleetcarrier data was being sent to RC when it shouldn't
+* Fixed autopost failure after new tick fetched
+* Fixed bug where colonisation tabbar would not show if there were no systems (introduced by recent performance improvements)
+* Fixed transparent theme colors
+* Updated colors properly when theme changes
+* Fixed a runtime when deleting a system
+* Fixed a problem with activity window tabs not displaying correctly in Fedora Linux
+* Fixed parameter change in Raven Colonial markets endpoint
+* Fixed a runtime when body data is incomplete
+* Removed vestigial separator in popup men
+* Further improved build site fuzzy matching
+* Updated the base material requirements to match Frontier's latest
+* Fixed exception being thrown if current system has not yet been set.
+* Fixed Combat Bond tracking for non-Odyssey game client.
+* Fixed failure to send `MarketBuy` and `MarketSell` events via Events API when the commodity can't be found in the current market data.
+* Fixed failure to launch overlay on Linux
 * Fixed capitalization typo that could sometimes cause a site to be assigned to the wrong body
 * Fixed bug with checking for Open systems in RC
 * Fixed type error in self.station
-* Cleaned and tidied the CLB formatter
 * Improved project initiation with Raven Colonial
 * Fixed progress bug by modifying when/how progress is updated on tracking changes
 * Ensured RC projects sync even when created by other means

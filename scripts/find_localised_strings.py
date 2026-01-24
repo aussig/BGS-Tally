@@ -37,10 +37,10 @@ def get_func_name(thing: ast.AST) -> str:
     return ""
 
 
-def get_arg(call: ast.Call) -> str:
+def get_arg(call: ast.Call, file: str) -> str:
     """Extract the argument string to the translate function."""
-    if len(call.args) > 1:
-        print("??? > 1 args", call.args, file=sys.stderr)
+    if len(call.args) > 3:
+        print(f"??? > 3 args in {file} {call.lineno}:{call.end_lineno}: {ast.dump(call)}", file=sys.stderr)
 
     arg = call.args[0]
     if isinstance(arg, ast.Constant):
@@ -296,7 +296,7 @@ def generate_lang_template(data: dict[pathlib.Path, list[ast.Call]]) -> str:
             entries.append(
                 LangEntry(
                     [FileLocation.from_call(path, c)],
-                    get_arg(c),
+                    get_arg(c, path.name),
                     [getattr(c, "comment")],
                 )
             )
@@ -357,7 +357,7 @@ def main():  # noqa: CCR001
         template = parse_template(args.compare_lang)
         for file, calls in res.items():
             for c in calls:
-                arg = get_arg(c)
+                arg = get_arg(c, file.name)
                 if arg in template:
                     seen.add(arg)
                 else:
@@ -370,7 +370,7 @@ def main():  # noqa: CCR001
         to_print_data = [
             {
                 "path": str(path),
-                "string": get_arg(c),
+                "string": get_arg(c, path.name),
                 "reconstructed": ast.unparse(c),
                 "start_line": c.lineno,
                 "start_offset": c.col_offset,

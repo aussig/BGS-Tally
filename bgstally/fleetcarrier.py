@@ -234,13 +234,16 @@ class FleetCarrier:
 
         jumps:list = []
         for j in self.itinerary:
+            # Seems body can sometimes end up as null
+            body:str = j.get('body', '') or ''
+
             jumps.append({
                 'arrivalTime': (self._lt(j.get('arrivalTime', '')), 'datetime', 'Unknown'),
                 'departureTime': (self._lt(j.get('departureTime', '')), 'datetime', ''),
                 'state': (j.get('state',''), 'str', 'Unknown'),
                 'visitDurationSeconds': (j.get('visitDurationSeconds', 0), 'interval', ''),
                 'starsystem': (j.get('starsystem', ''), 'str', 'Unknown'),
-                'body': j.get('body', '').replace(j.get('starsystem', ''), '')
+                'body': body.replace(j.get('starsystem', ''), '')
             })
 
         summ:dict = {}

@@ -362,7 +362,7 @@ class Activity:
         """
         Called when the activity has been updated, e.g. by user activity
         """
-        self.bgstally.ui.show_system_report(system_address)
+        self.bgstally.ui.show_system_activity(system_address)
         self.autopost = True # Ready for autoposting if autoposting is enabled
 
 
@@ -412,15 +412,30 @@ class Activity:
             # Set war states for pairs of factions in War / Civil War / Elections
             for conflict in journal_entry.get('Conflicts', []):
                 if conflict['Status'] != "active": continue
-                faction_1:str = conflict['Faction1']['Name']
-                faction_2:str = conflict['Faction2']['Name']
+                faction_1:dict = conflict.get('Faction1', {})
+                faction_2:dict = conflict.get('Faction2', {})
+                faction_1_name:str|None = faction_1.get('Name', None)
+                faction_2_name:str|None = faction_2.get('Name', None)
 
-                if faction_1 in current_system['Factions'] and faction_2 in current_system['Factions']:
-                    conflict_state = "War" if conflict['WarType'] == "war" else "CivilWar" if conflict['WarType'] == "civilwar" else "Election" if conflict['WarType'] == "election" else "None"
-                    current_system['Factions'][faction_1]['FactionState'] = conflict_state
-                    current_system['Factions'][faction_1]['Opponent'] = faction_2
-                    current_system['Factions'][faction_2]['FactionState'] = conflict_state
-                    current_system['Factions'][faction_2]['Opponent'] = faction_1
+                if faction_1_name in current_system['Factions'] and faction_2_name in current_system['Factions']:
+                    conflict_state: str = "War" if conflict['WarType'] == "war" else "CivilWar" if conflict['WarType'] == "civilwar" else "Election" if conflict['WarType'] == "election" else "None"
+                    current_system['Factions'][faction_1_name]['FactionState'] = conflict_state
+                    current_system['Factions'][faction_1_name]['Opponent'] = faction_2_name
+                    current_system['Factions'][faction_1_name]['Score'] = faction_1.get('WonDays', 0)
+                    current_system['Factions'][faction_1_name]['Stake'] = faction_1.get('Stake', "")
+                    current_system['Factions'][faction_2_name]['FactionState'] = conflict_state
+                    current_system['Factions'][faction_2_name]['Opponent'] = faction_1_name
+                    current_system['Factions'][faction_2_name]['Score'] = faction_2.get('WonDays', 0)
+                    current_system['Factions'][faction_2_name]['Stake'] = faction_2.get('Stake', "")
+
+        if 'Population' in journal_entry:
+            current_system['Population'] = journal_entry['Population']
+
+        if 'SystemGovernment_Localised' in journal_entry:
+            current_system['Government'] = journal_entry['SystemGovernment_Localised']
+
+        if 'SystemSecurity_Localised' in journal_entry:
+            current_system['Security'] = journal_entry['SystemSecurity_Localised']
 
         # System tick handling
         system_tick: str = current_system.get('TickTime')

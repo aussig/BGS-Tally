@@ -10,7 +10,7 @@ from functools import partial
 from itertools import accumulate, chain, filterfalse, islice, product, repeat
 from operator import attrgetter
 from re import IGNORECASE, escape, sub
-from time import perf_counter
+from timeit import default_timer
 from tkinter import ttk
 from typing import Any, Literal
 
@@ -319,7 +319,7 @@ class Sheet(tk.Frame):
             highlightbackground=outline_color,
             highlightcolor=outline_color,
         )
-        self.unique_id = f"{perf_counter()}{self.winfo_id()}".replace(".", "")
+        self.unique_id = f"{default_timer()}{self.winfo_id()}".replace(".", "")
         self._startup_complete = False
         self.ops = new_sheet_options()
         if column_width is not None:
@@ -5077,20 +5077,11 @@ class Sheet(tk.Frame):
         """
         Finds the index of an item amongst it's siblings in the
         treeview.
-
-        'safety' is only necessary when the internal row number dict
-        is not able to provide row numbers, e.g. when modifying the
-        tree and before the action is complete.
-
-        When 'True' the fn uses list.index() instead.
         """
         if item not in self.RI.rns:
             raise ValueError(f"Item '{item}' does not exist.")
-        elif par := self.RI.iid_parent(item):
-            if not safety:
-                return self.RI.rns[item] - self.RI.rns[par] - 1
-            else:
-                return self.RI.parent_node(item).children.index(item)
+        elif self.RI.iid_parent(item):
+            return self.RI.parent_node(item).children.index(item)
         else:
             return next(index for index, iid in enumerate(self.get_children("")) if iid == item)
 

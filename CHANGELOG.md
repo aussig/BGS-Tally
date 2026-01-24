@@ -5,7 +5,7 @@
 ### New Features:
 
 * Favourite factions. You can now mark factions as favourites (♥ / ♡), and there are new Discord posting options to post only your favourites, or only systems that contain your favourites.
-* System summary information on the in-game overlay. If you are using the overlay, when you jump into a system (or on initial load of the game), a summary of the current system is displayed, including the faction in control and its influence %, any conflicts, the system population, government and security.
+* System / station summary information on the in-game overlay. If you are using the overlay, when you jump into a system (or on initial load of the game), a summary of the current system is displayed, including the faction in control and its influence %, any conflicts, the system population, government and security. When you dock at a station, the overlay displays the faction in control of the station.
 * There is a new option to use your Colonisation plan names instead of system names in BGS/TW Discord reports. This defaults to `Off`.
 
 ### Changes:

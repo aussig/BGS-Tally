@@ -136,9 +136,10 @@ class BGSTally:
         if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
             activity.system_entered(entry, self.state)
             self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+            self.ui.show_system_info(entry.get('SystemAddress'))
             dirty = True
 
-        mission:dict = self.mission_log.get_mission(entry.get('MissionID'))
+        mission:dict|None = self.mission_log.get_mission(entry.get('MissionID'))
 
         match entry.get('event'):
             case 'ApproachSettlement' if state['Odyssey']:
@@ -213,6 +214,7 @@ class BGSTally:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
                 self.state.station_type = entry.get('StationType', "")
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                self.ui.show_station_info(station, self.state.station_faction)
                 dirty = True
 
             case 'EjectCargo':
@@ -234,6 +236,7 @@ class BGSTally:
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
+                self.ui.show_station_info(station, self.state.station_faction)
                 dirty = True
 
             case 'Loadout':

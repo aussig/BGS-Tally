@@ -78,6 +78,7 @@ class UI:
         self.indicate_activity:bool = False
         self.activity_system_address:str|None = None
         self.info_system_address:str|None = None
+        self.info_station:dict[str, str]|None = None
         self.report_cmdr_data:dict|None = None
         self.warning:str|None = None
 
@@ -389,7 +390,17 @@ class UI:
         self.info_system_address = str(system_address)
 
 
-    def show_system_activity(self, system_address: int):
+    def show_station_info(self, station: str, station_faction: str):
+        """Show the station info overlay
+
+        Args:
+            station (str): The station name
+            station_faction (str): The station controlling faction name
+        """
+        self.info_station = {"station": station, "faction": station_faction}
+
+
+    def show_system_activity(self, system_address: str):
         """
         Show the system activity overlay
         """
@@ -570,7 +581,7 @@ class UI:
 
                     self.bgstally.overlay.display_progress_bar("tw", _("TW War Progress in {current_system}: {percent}%").format(current_system=current_system.get('System', 'Unknown'), percent=percent), progress) # LANG:Overlay TW report message
 
-            # System Activity. Shares same overlay panel as System Info
+            # System Activity. Shares same overlay panel as System Info and Station Info
             if self.bgstally.state.enable_overlay_system and current_activity is not None:
                 if self.activity_system_address is not None:
                     # Report recent activity in a designated system, overrides pinned systems
@@ -584,12 +595,23 @@ class UI:
                     if pinned_systems is not None and pinned_systems != []:
                         self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
 
-            # System Information. Shares same overlay panel as System Activity
+            system_and_station_info:str = ""
+
+            # System Information. Shares same overlay panel as System Activity and Station Info
             if self.info_system_address is not None and current_activity is not None:
                 report_system:dict|None = current_activity.get_system_by_address(self.info_system_address)
                 if report_system is not None:
-                    self.bgstally.overlay.display_message("system_info", self._build_system_info(current_activity, report_system), fit_to_text=True)
+                    system_and_station_info = self._build_system_info(current_activity, report_system)
                 self.info_system_address = None
+
+            # Station Information. Shares same overlay panel as System Activity and System Info
+            if self.info_station is not None:
+                system_and_station_info += "\n" if system_and_station_info != "" else ""
+                system_and_station_info += self._build_station_info(self.info_station)
+                self.info_station = None
+
+            if system_and_station_info != "":
+                self.bgstally.overlay.display_message("system_info", system_and_station_info, fit_to_text=True)
 
             # CMDR Information
             if self.bgstally.state.enable_overlay_cmdr and self.report_cmdr_data is not None:
@@ -695,8 +717,7 @@ class UI:
 
 
     def _build_system_info(self, activity: Activity, system: dict) -> str:
-        """
-        Build a human-readable system info string for overlay display
+        """ Build a human-readable system info string for overlay display
 
         Args:
             Activity (activity): The activity object containing the data
@@ -738,5 +759,22 @@ class UI:
         result += _("Population: {population}").format(population=human_format(system.get("Population", 0))) + "\n" # LANG: System information overlay population
         result += _("Government: {government}").format(government=system.get("Government", _("Unknown"))) + "\n" # LANG: System information overlay government
         result += _("Security: {security}").format(security=system.get("Security", _("Unknown"))) + "\n" # LANG: System information overlay security
+
+        return result
+
+
+    def _build_station_info(self, station_info: dict[str, str]) -> str:
+        """Build a human-readable station info string for overlay display
+
+        Args:
+            station_info (dict[str, str]): Dictionary containing station name and faction name
+
+        Returns:
+            str: The human-readable station info
+        """
+        result:str = ""
+
+        result += TAG_OVERLAY_HIGHLIGHT + _("Entered Station: {station}").format(station=station_info.get("station", _("Unknown"))) + "\n" # LANG: Station information overlay title
+        result += _("Controlling Faction: {faction}").format(faction=station_info.get("faction", _("Unknown"))) + "\n" # LANG: Station information overlay controlling faction
 
         return result

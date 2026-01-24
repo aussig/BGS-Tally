@@ -8,10 +8,11 @@ import tkinter as tk
 from bisect import bisect_left
 from collections import deque
 from collections.abc import Callable, Generator, Hashable, Iterable, Iterator, Sequence
-from difflib import SequenceMatcher
 from itertools import chain, islice, repeat
 from types import ModuleType
 from typing import Any, Literal
+
+from thirdparty.difflib import SequenceMatcher
 
 from .colors import color_map
 from .constants import align_value_error, symbols_set

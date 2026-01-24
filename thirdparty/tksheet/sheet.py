@@ -10,7 +10,7 @@ from functools import partial
 from itertools import accumulate, chain, filterfalse, islice, product, repeat
 from operator import attrgetter
 from re import IGNORECASE, escape, sub
-from timeit import default_timer
+from time import perf_counter
 from tkinter import ttk
 from typing import Any, Literal
 
@@ -319,7 +319,7 @@ class Sheet(tk.Frame):
             highlightbackground=outline_color,
             highlightcolor=outline_color,
         )
-        self.unique_id = f"{default_timer()}{self.winfo_id()}".replace(".", "")
+        self.unique_id = f"{perf_counter()}{self.winfo_id()}".replace(".", "")
         self._startup_complete = False
         self.ops = new_sheet_options()
         if column_width is not None:

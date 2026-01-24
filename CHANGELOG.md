@@ -11,6 +11,9 @@
 
 * The method used to extract translatable strings has been updated, which means some text that was missing translations can now be translated.
 
+### Bug Fixes:
+* Addressed formatting of carrier cargo and locker discord posts [Issue 420](https://github.com/aussig/BGS-Tally/issues/420)
+
 
 ## v5.4.0 - 2026-01-21
 

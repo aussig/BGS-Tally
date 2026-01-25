@@ -743,14 +743,14 @@ class UI:
                     continue
                 if faction.get("FactionState", "None") in STATES_ELECTION + STATES_WAR:
                     opposing_faction: dict = system['Factions'].get(faction.get("Opponent", ""), {})
-                    conflicts += _("  {state}: {faction1} vs {faction2} - {score_for}:{score_against}").format(
-                        state=faction.get("FactionState", _("Unknown")),
-                        faction1=faction.get("Faction", _("Unknown")),
-                        faction2=opposing_faction.get("Faction", _("Unknown")),
-                        score_for=faction.get("Score", _("Unknown")),
+                    conflicts += "  " + _("{state}: {faction1} vs {faction2} - {score_for}:{score_against}").format( # LANG: System information overlay conflict information
+                        state=faction.get("FactionState", _("Unknown")),  # LANG: System information overlay conflict state
+                        faction1=faction.get("Faction", _("Unknown")),  # LANG: System information overlay conflict faction
+                        faction2=opposing_faction.get("Faction", _("Unknown")), # LANG: System information overlay conflict opposing faction
+                        score_for=faction.get("Score", _("Unknown")), # LANG: System information overlay conflict score
                         score_against=opposing_faction.get("Score", _("Unknown"))) + "\n"  # LANG: System information overlay controlling faction conflict information
-                    conflicts += _("    Asset won: {stake}").format(stake=opposing_faction.get("Stake", _("Unknown"))) + "\n"  # LANG: System information overlay conflict asset at stake information
-                    conflicts += _("    Asset lost: {stake}").format(stake=faction.get("Stake", _("Unknown"))) + "\n"  # LANG: System information overlay conflict asset at stake information
+                    conflicts += "    " + _("Asset won: {stake}").format(stake=opposing_faction.get("Stake", _("Unknown"))) + "\n"  # LANG: System information overlay conflict asset at stake information
+                    conflicts += "    " + _("Asset lost: {stake}").format(stake=faction.get("Stake", _("Unknown"))) + "\n"  # LANG: System information overlay conflict asset at stake information
                     factions_handled.append(opposing_faction.get("Faction", ""))
 
             if conflicts != "":

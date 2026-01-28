@@ -62,9 +62,13 @@ class BGSTally:
         self.debug: Debug = Debug(self, self.dev_mode)
 
         # Load sentry to track errors during development - Hard check on "dev" versions ONLY (which never go out to testers)
-        # If you are a developer and want to use sentry, install the sentry_sdk inside the ./thirdparty folder and add your full dsn
-        # (starting https://) to a 'sentry' entry in config.ini file. Set the plugin version in load.py to include a 'dev' prerelease,
-        # e.g. "3.3.0-dev"
+        # If you are a developer and want to use sentry, download the SDK from  https://github.com/getsentry/sentry-python/releases
+        # and copy the `sentry_sdk` folder into the `./thirdparty` folder. And add your full dsn (starting https://) to a 'sentry' entry
+        # in config.ini file. Set the plugin version in `load.py` to include a 'dev' prerelease, e.g. "3.3.0-dev"
+        #
+        # Note that although sentry_sdk is listed in our `requirements-dev.txt`, that's just to keep development tools quiet about the
+        # import. It WILL NOT WORK WHEN RUNNING EDMC unless you either install sentry_sdk in EDMC's python environment (and run from source)
+        # or copy the sentry_sdk folder into `./thirdparty` as described above.
         if self.dev_mode:
             sys.path.append(path.join(plugin_dir, 'thirdparty'))
             try:
@@ -130,7 +134,10 @@ class BGSTally:
         # Total hack for now. We need cmdr in Activity to allow us to send it to the API when the user changes values in the UI.
         # What **should** happen is each Activity object should be associated with a single CMDR, and then all reporting
         # kept separate per CMDR.
-        activity:Activity = self.activity_manager.get_current_activity()
+        activity:Activity|None = self.activity_manager.get_current_activity()
+        if activity is None:
+            Debug.logger.error("No current activity found, cannot process journal entry")
+            return
         activity.cmdr = cmdr
 
         if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:

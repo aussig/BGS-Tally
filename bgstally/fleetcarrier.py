@@ -754,7 +754,26 @@ class FleetCarrier:
         self.overview['departureScheduled'] = None
 
         self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.frame.after(300000, lambda: self.cooldown_complete())
         if self.bgstally.dev_mode == True: self.save()
+
+
+    @catch_exceptions
+    def cooldown_complete(self) -> None:
+        Debug.logger.debug(f"Carrier cooldown completed.")
+
+        #self.bgstally.ui.warning = _("Carrier cooldown complete") # LANG: Cooldown overlay message
+        self.bgstally.ui.window_fc.cooldown_notice()
+
+        # Automatically post to whichever discord webhooks are set for carrier operations
+        # the discord class handles where and whether to post
+        l:str|None = self.bgstally.state.discord_lang
+        title:str = __("Cooldown completed for Carrier {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
+        description:str = __("Cooldown has completed", lang=l) # LANG: Discord text
+
+        fields:list = []
+        fields.append({'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
+        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
     @catch_exceptions

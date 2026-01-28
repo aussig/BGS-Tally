@@ -456,7 +456,8 @@ class RavenColonial:
 
         # Use /api/System/{systemAddress}/{marketid} to query for an existing project
         # and return it if one exists already
-        url:str = f"{RC_API}/system/{quote(system.get('SystemAddress', ''))}/{build.get('MarketID', '')}"
+        Debug.logger.debug(f"{system.get('SystemAddress', '')}")
+        url:str = f"{RC_API}/system/{system.get('SystemAddress', '')}/{build.get('MarketID', '')}"
         response:Response = requests.get(url, headers=self._headers(), timeout=5)
         if response.status_code == 200:
             data:dict = response.json()

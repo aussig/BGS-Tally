@@ -434,6 +434,19 @@ class FleetCarrier:
             #else:
                 #Debug.logger.debug(f"Final cargo: {cargo['normal'][cname]}")
 
+        # If we are buying but have zero stock we need to add here because it won't be on the list above.
+        for c in get_by_path(data, ['orders', 'commodities', 'purchases'], []):
+            cname = c['name']
+            if cname not in cargo['normal'] and not c.get('blackmarket', False):
+                cargo['normal'][c['name']] = {
+                    'locName': comms.get(cname, {}).get('Name', c.get('locName', cname).lower()),
+                    'category': comms.get(cname, {}).get('Category', c.get('categoryname', 'Unknown')),
+                    'stock': 0,
+                    'buyTotal': c.get('total', 0),
+                    'outstanding': c.get('outstanding', 0),
+                    'price': c.get('price')
+                }
+
         return cargo
 
 

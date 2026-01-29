@@ -1055,9 +1055,10 @@ class Colonisation:
 
         if cargo != self.carrier_cargo and self.cmdr != None:
             RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)
-            self.dirty = True
 
         if cargo != self.carrier_cargo or self.carrier_buy != buyorder:
+            self.carrier_buy = buyorder
+            self.carrier_cargo = cargo
             self.bgstally.ui.window_progress.update_display()
 
         self.carrier_buy = buyorder

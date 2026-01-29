@@ -78,6 +78,8 @@ class Colonisation:
         self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost', 'Readonly']
         self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
 
+        self.window_geometries:dict = {}
+
         # Load base commodities, types, costs, and saved data
         self._load_base_types()
         self._load()
@@ -1172,7 +1174,8 @@ class Colonisation:
             'ProgressView' : self.bgstally.ui.window_progress.view.value,
             'ProgressUnits': units,
             'ProgressColumns': self.bgstally.ui.window_progress.columns,
-            'BuildIndex'   : self.bgstally.ui.window_progress.build_index
+            'BuildIndex'   : self.bgstally.ui.window_progress.build_index,
+            'WindowGeometries' : self.window_geometries
             }
 
 
@@ -1234,5 +1237,6 @@ class Colonisation:
             self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
             if dict.get('ProgressColumns', None) != None: self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
             self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
+            self.window_geometries = dict.get('WindowGeometries', {})
         except:
             return

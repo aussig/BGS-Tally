@@ -182,7 +182,8 @@ class ColonisationWindow:
         self.window.title(_("{plugin_name} - Colonisation").format(plugin_name=self.bgstally.plugin_name)) # LANG: window title
 
         self.window.minsize(400, 100)
-        self.window.geometry(f"{int(1500*self.scale)}x{int(500*self.scale)}")
+        geometry:str = self.colonisation.window_geometries.get('Colonisation', f"{int(1500*self.scale)}x{int(500*self.scale)}")
+        self.window.geometry(geometry)
         self.window.protocol("WM_DELETE_WINDOW", self.close)
         self._create_frames()   # Create main frames
         self.update_display()   # Populate them
@@ -413,8 +414,9 @@ class ColonisationWindow:
 
         self.bases_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.bases_fr.wm_title(_("{plugin_name} - Colonisation Base Types").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the base type popup window
-        self.bases_fr.geometry(f"{int(1000*self.scale)}x{int(500*self.scale)}")
-        self.bases_fr.protocol("WM_DELETE_WINDOW", self.bases_fr.destroy)
+        geometry:str = self.colonisation.window_geometries.get('Bases', f"{int(1000*self.scale)}x{int(500*self.scale)}")
+        self.bases_fr.geometry(geometry)
+        self.bases_fr.protocol("WM_DELETE_WINDOW", partial(self.close, 'Bases', self.bases_fr))
         self.bases_fr.config(bd=2, relief=tk.FLAT)
         header_fnt:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
         sheet:Sheet = Sheet(self.bases_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
@@ -465,7 +467,9 @@ class ColonisationWindow:
         self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.bodies_fr.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the bodies popup window
         self.bodies_fr.minsize(600, 600)
-        self.bodies_fr.geometry(f"{int(600*self.scale)}x{int(600*self.scale)}")
+        geometry:str = self.colonisation.window_geometries.get('Bodies', f"{int(600*self.scale)}x{int(600*self.scale)}")
+        self.bodies_fr.geometry(geometry)
+        self.bodies_fr.protocol("WM_DELETE_WINDOW", partial(self.close, 'Bodies', self.bodies_fr))
         self.bodies_fr.config(bd=2, relief=tk.FLAT)
         scr:tk.Scrollbar = tk.Scrollbar(self.bodies_fr, orient=tk.VERTICAL)
         scr.pack(side=tk.RIGHT, fill=tk.Y)
@@ -528,8 +532,7 @@ class ColonisationWindow:
 
             notes:str = text.get("1.0", tk.END)
             self.colonisation.modify_system(system, {'Notes': notes.strip()})
-            self.notes_fr.destroy()
-            self.notes_fr
+            self.close('Notes', self.notes_fr)
 
         sysnum:int = self.tl[tabnum]
         systems:list = self.colonisation.get_all_systems()
@@ -540,7 +543,9 @@ class ColonisationWindow:
         self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.notes_fr.wm_title(_("{plugin_name} - Colonisation Notes for {system_name}").format(plugin_name=self.bgstally.plugin_name, system_name=systems[sysnum].get('Name', ''))) # LANG: Title of the notes popup window
         self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        self.notes_fr.geometry("600x600")
+        geometry:str = self.colonisation.window_geometries.get('Notes', "600x600")
+        self.notes_fr.geometry(geometry)
+        self.notes_fr.protocol("WM_DELETE_WINDOW", partial(self.close, 'Notes', self.notes_fr))
         self.notes_fr.config(bd=2, relief=tk.FLAT)
         scr:tk.Scrollbar = tk.Scrollbar(self.notes_fr, orient=tk.VERTICAL)
         scr.pack(side=tk.RIGHT, fill=tk.Y)
@@ -562,7 +567,9 @@ class ColonisationWindow:
         self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
         self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        self.legend_fr.geometry(f"600x600")
+        geometry:str = self.colonisation.window_geometries.get('Legend', f"600x600")
+        self.legend_fr.geometry(geometry)
+        self.legend_fr.protocol("WM_DELETE_WINDOW", partial(self.close, 'Legend', self.legend_fr))
         self.legend_fr.config(bd=2, relief=tk.FLAT)
         scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
         scr.pack(side=tk.RIGHT, fill=tk.Y)
@@ -1326,7 +1333,9 @@ class ColonisationWindow:
 
         dialog.title(_("Edit System")) # LANG: Rename a system
         dialog.minsize(500, 250)
-        dialog.geometry(f"{int(500*self.scale)}x{int(250*self.scale)}+{btn.winfo_x()-100}+{self.window.winfo_y()+50}")
+        geometry:str = self.colonisation.window_geometries.get('EditSystem', f"{int(500*self.scale)}x{int(250*self.scale)}+{btn.winfo_x()-100}+{self.window.winfo_y()+50}")
+        dialog.geometry(geometry)
+        dialog.protocol("WM_DELETE_WINDOW", partial(self.close, 'EditSystem', dialog))
         #dialog.transient(self.window)
         dialog.config(bd=2, relief=tk.FLAT)
         dialog.grab_set()
@@ -1375,7 +1384,7 @@ class ColonisationWindow:
         cancel_button:ttk.Button = ttk.Button(
             button_frame,
             text=_("Cancel"), # LANG: Cancel button
-            command=dialog.destroy
+            command=partial(self.close, 'EditSystem', dialog)
         ) # LANG: Cancel button
         cancel_button.pack(side=tk.LEFT, padx=5)
 
@@ -1405,7 +1414,7 @@ class ColonisationWindow:
         self.tabbar.notebookTab.tab(tabnum, text=name)
         self.update_react_dialog()
 
-        dialog.destroy()
+        self.close('EditSystem', dialog)
         self.update_display()
 
 
@@ -1462,13 +1471,24 @@ class ColonisationWindow:
 
 
     @catch_exceptions
-    def close(self) -> None:
+    def close(self, n:str = '', w:tk.Toplevel|None = None) -> None:
         ''' Close the window and any popups and clean up'''
-        if self.window: self.window.destroy()
-        if self.legend_fr: self.legend_fr.destroy()
-        if self.notes_fr: self.notes_fr.destroy()
-        if self.bases_fr: self.bases_fr.destroy()
-        if self.bodies_fr: self.bodies_fr.destroy()
+
+        # Close one window.
+        if w and w.winfo_exists():
+            self.colonisation.window_geometries[n] = w.winfo_geometry()
+            w.destroy()
+            return
+
+        # Close all windows
+        for n, w in {'Bodies' : self.bodies_fr,
+                     'Bases' : self.bases_fr,
+                     'Notes' : self.notes_fr,
+                     'Legend' : self.legend_fr,
+                     'Colonisation' : self.window}.items():
+            if w and w.winfo_exists():
+                self.colonisation.window_geometries[n] = w.winfo_geometry()
+                w.destroy()
 
         # UI components
         self.tabbar = None

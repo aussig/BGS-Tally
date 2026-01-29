@@ -114,6 +114,7 @@ class WindowFleetCarrier:
             },
         }
 
+        #self.cooldown_notice()
 
     @catch_exceptions
     def show(self) -> None:
@@ -126,7 +127,8 @@ class WindowFleetCarrier:
         self.window = tk.Toplevel(self.bgstally.ui.frame)
         self.window.title(_("{plugin_name} - Carrier {carrier_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=self.bgstally.fleet_carrier.overview.get('name'))) # LANG: Carrier window title
         self.window.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
-        self.window.geometry(f"{int(850*self.scale)}x{int(550*self.scale)}")
+        geometry:str = self.bgstally.fleet_carrier.window_geometries.get('Carrier', f"{int(850*self.scale)}x{int(550*self.scale)}")
+        self.window.geometry(geometry)
         self.window.protocol("WM_DELETE_WINDOW", self.close)
 
         self.frame = ttk.Frame(self.window)
@@ -147,9 +149,17 @@ class WindowFleetCarrier:
         self._show_overview(self.bgstally.fleet_carrier, self.frame)
         self._create_tabs(self.bgstally.fleet_carrier, self.frame)
 
-    def close(self) -> None:
+    def close(self, n:str = '', w:tk.Toplevel|None = None) -> None:
         ''' Close the window and any popups and clean up'''
-        if self.window: self.window.destroy()
+        # Close one window.
+        if w and w.winfo_exists():
+            self.bgstally.fleet_carrier.window_geometries['Alert'] = w.winfo_geometry()
+            w.destroy()
+            return
+
+        if self.window and self.window.winfo_exists():
+            self.bgstally.fleet_carrier.window_geometries['Carrier'] = self.window.winfo_geometry()
+            self.window.destroy()
 
         # UI components
         self.summfr = None
@@ -562,15 +572,39 @@ class WindowFleetCarrier:
         return output
 
     def cooldown_notice(self) -> None:
-        root = tk.Tk()
-        root.overrideredirect(True)
-        root.attributes("-alpha", 0.6)
-        root.geometry("300x150-1+0")
-        root.attributes("-topmost", True)
-        frame = tk.Frame(root, bg='red4', relief="raised")
-        frame.pack(fill="both", expand=True)
-        label = tk.Label(frame, text=_("Fleetcarrier cooldown\ncompleted"), fg="white", bg="red4", font=FONT_HEADING_1, justify=tk.CENTER)
+        PopupNotice(_("Fleetcarrier cooldown\ncompleted"), 20000, self.bgstally.fleet_carrier)
+
+class PopupNotice:
+    """ Create a temporary popup window """
+    def __init__(self, notice:str = '', timeout:int = 0, fc:FleetCarrier|None = None) -> None:
+        self.fc:FleetCarrier|None = fc
+        self.root = tk.Tk()
+        self.root.overrideredirect(True)
+        self.root.attributes("-alpha", 0.6)
+        self.root.geometry(fc.window_geometries.get('Alert', "300x150-1+0"))
+        self.root.attributes("-topmost", True)
+        self.frame = tk.Frame(self.root, bg='red4', relief="raised")
+        self.frame.pack(fill="both", expand=True)
+        label = tk.Label(self.frame, text=notice, fg="white", bg="red4", font=FONT_HEADING_1, justify=tk.CENTER)
         label.pack(pady=20, anchor=tk.CENTER)
-        exit_btn = tk.Button(frame, text=_("Close"), fg="white", bg="red4", command=root.destroy)
+        exit_btn = tk.Button(self.frame, text=_("Close"), fg="white", bg="red4", command=self.close)
         exit_btn.pack(pady=10)
-        root.after(20000, root.destroy)
+        if timeout > 0: self.root.after(timeout, self.close)
+        self.frame.bind("<Button-1>", self.start_move)
+        self.frame.bind("<B1-Motion>", self.do_move)
+
+    def start_move(self, event) -> None:
+        self.x:int = event.x
+        self.y:int = event.y
+
+    def do_move(self, event) -> None:
+        deltax:int = event.x - self.x
+        deltay:int = event.y - self.y
+        x:int = self.root.winfo_x() + deltax
+        y:int = self.root.winfo_y() + deltay
+        self.root.geometry(f"+{x}+{y}")
+
+    def close(self) -> None:
+        if self.root and self.root.winfo_exists():
+            self.fc.window_geometries['Alert'] = self.root.winfo_geometry()
+            self.root.destroy()

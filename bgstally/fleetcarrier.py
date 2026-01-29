@@ -36,6 +36,7 @@ class FleetCarrier:
         self.shipyard:dict = {} # Local copy of shipyard data
         self.last_modified:int = 0 # Record of when we last modified our local data. Used to avoid overwriting with out of date CAPI data.
         self.data:dict = {}  # Raw CAPI data
+        self.window_geometries:dict = {}
         self.load()
 
 
@@ -1132,7 +1133,8 @@ class FleetCarrier:
             'itinerary': self.itinerary,
             'route': self.route,
             'shipyard': self.shipyard,
-            'data': self.data
+            'data': self.data,
+            'windows': self.window_geometries
             }
 
 
@@ -1142,6 +1144,7 @@ class FleetCarrier:
         self.last_modified = dict.get('last_modified', 0)
         self.overview = dict.get('overview', {})
         self.cargo = dict.get('cargo', {})
+        self.window_geometries = dict.get('windows', {})
         if 'normal' not in self.cargo: self.cargo = {'overview': {}, 'stolen': {}, 'mission': {}, 'normal': {}} # For migration from old to new format
         self.locker = dict.get('locker', {})
         if 'normal' not in self.locker: self.locker = {'overview': {}, 'mission': {}, 'normal': {}} # For migration from old to new format

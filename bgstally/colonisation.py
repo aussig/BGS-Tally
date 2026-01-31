@@ -988,7 +988,6 @@ class Colonisation:
         ''' Update a progress record '''
         progress:dict|None = self.find_or_create_progress(id)
 
-        Debug.logger.debug(f"ID: {id} Project {progress} data{data}")
         # Need to initialize the progress in order to update it properly.
         if progress.get('Required', {}) == {}:
             found:list = self.find_build_any({'MarketID' : id})

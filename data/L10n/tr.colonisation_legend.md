@@ -1,82 +1,82 @@
-## Summary Rows
+## Özet Satırları
 
-- **Planned**: Information about builds/bases that have been planned but not yet completed
-- **Completed**: Information about builds/bases that have been completed
+- **Planlanan**: Planlanan ancak henüz tamamlanmayan yapılar/üsler hakkında bilgi
+- **Tamamlanan**: Tamamlanan yapılar/üsler hakkında bilgi
 
-## Summary Columns
+## Özet Sütunları
 
-- **Total**: total number of bases
+- **Toplam**: toplam üs sayısı
 
-- **Orbital**: number of orbital bases
+- **Orbital**: yörünge üslerinin sayısı
 
-- **Surface**: number of surface bases
+- **Yüzey**: yüzey üslerinin sayısı
 
-- **T2**: The net Tier 2 point cost or reward
+- **T2**: Net Kademe 2 puan maliyeti veya ödülü
 
-- **T3**: The net Tier 3 point cost or reward
+- **T3**: Net Kademe 3 puan maliyeti veya ödülü
 
-- **Cost**: The cost of the builds in tonnes required
+- **Maliyet**: Gerekli ton cinsinden yapıların maliyeti
 
-- **Loads**: The number of ship loads based on your current cargo capacity
+- **Yükler**: Mevcut kargo kapasitenize göre gemi yüklerinin sayısı
 
-- **Pop Inc**: combined population increase impact
+- **Pop Inc**: Toplam nüfus artışı etkisi
 
-- **Pop Max**: combined maximum population impact
+- **Pop Max**: Toplam maksimum nüfus etkisi
 
-- **Security**: combined system security impact
+- **Güvenlik**: Toplam sistem güvenliği etkisi
 
-- **Tech Lvl**: combined system technology level impact
+- **Tekn Lvl**: Toplam sistem teknoloji seviyesi etkisi
 
-- **Wealth**: combined system wealth impact
+- **Varlık**: Toplam sistem varlığı değişim etkisi
 
-- **SoL**: combined system standard of living impact
+- **SoL**: Toplam sistem yaşam standartları değişim etkisi
 
-- **Dev Lvl**: combined system development level impact
+- **Dev Lvl**: Toplam sistem gelişim seviyesi değişim etkisi
 
-## Detail Rows
+## Detay Satırları
 
-- One row per base
-- The first row should be the initial base
-- Other bases can be in any order but the cost of starports depends on their order so if you put them in the wrong order their cost may be incorrect
+- Her üs başına bir satır
+- İlk sıra başlangıç ​​üssünüz olmalıdır
+- Diğer üsler herhangi bir sırada olabilir ancak yıldız limanlarının maliyeti sıralarına bağlıdır bu yüzden onları yanlış sıraya koyarsanız maliyetleri yanlış olabilir
 
-## Detail Columns
+## Ayrıntı Sütunları
 
-- **Track**: Whether to track progress of this base in the main ED:MC progress display
+- **İzleme**: Bu üssün ilerlemesinin ana ED:MC ilerleme ekranında izlenip izlenmeyeceği
 
-- **Base Type**: The type of base to be built
+- **Üs Tipi**: İnşa edilecek üssün tipi
 
-- **Base Name**: The name of the base
+- **Üs İsmi**: Üsse verilecek isim
 
-- **Body**: The body on (or around) which the base is or will be
+- **Gezegen**: Üssün üzerinde bulunduğu veya bulunacağı gezegen (veya çevresi)
 
-- **Requirements**: Any prerequisites to building this type of base
+- **Gereksinimler**: Bu tür bir üssü inşa etmek için gereken ön koşullar
 
-- **State**: How far along is the base: Planned, Percentage completed, Completed
+- **Durum**: Üs kurulumu ne kadar ilerledi: Planlandı, Tamamlanma yüzdesi, Tamamlandı
 
-- **T2**: The net Tier 2 point cost or reward
+- **T2**: Net Kademe 2 puan maliyeti veya ödülü
 
-- **T3**: The net Tier 3 point cost or reward
+- **T3**: Net Kademe 3 puan maliyeti veya ödülü
 
-- **Cost**: The cost of the build in tonnes required
+- **Maliyet**: Gerekli ton cinsinden yapıların maliyeti
 
-- **Loads**: The number of ship loads based on your current cargo capacity
+- **Yükler**: Mevcut kargo kapasitenize göre gemi yüklerinin sayısı
 
-- **Pad**: The maximum landing pad size
+- **İniş Pisti**: Maksimum iniş pisti boyutu
 
-- **Economy**: Base economy type
+- **Ekonomi**: Üs ekonomi türü
 
-- **Pop Inc**: population increase impact
+- **Pop Inc**: nüfus artışı etkisi
 
-- **Pop Max**: maximum population impact
+- **Pop Max**: maksimum nüfus etkisi
 
-- **Econ Inf**: The influence this base has on the system economy
+- **Ekonomi Inf**: Bu üssün sistem ekonomisi üzerindeki etkisi
 
-- **Security**: system security impact
+- **Güvenlik**: sistem güvenliği etkisi
 
-- **Tech Lvl**: system technology level impact
+- **Tekn Lvl**: sistem teknoloji seviyesi etkisi
 
-- **Wealth**: system wealth impact
+- **Varlık**: sistem varlığı değişim etkisi
 
-- **SoL**: system standard of living impact
+- **SoL**: sistem yaşam standartları değişim etkisi
 
-- **Dev Lvl**: system development level impact
+- **Dev Lvl**: sistem gelişim seviyesi değişim etkisi

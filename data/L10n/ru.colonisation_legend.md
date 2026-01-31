@@ -1,82 +1,82 @@
-## Summary Rows
+## Сводка по строкам
 
-- **Planned**: Information about builds/bases that have been planned but not yet completed
-- **Completed**: Information about builds/bases that have been completed
+- **Запланировано**: Информация об объектах, строительство которых запланировано, но еще не завершено
+- **Завершено**: Информация об объектах, строительство которых завершено
 
-## Summary Columns
+## Сводка по столбцам
 
-- **Total**: total number of bases
+- **Total**: общее количество объектов
 
-- **Orbital**: number of orbital bases
+- **Orbital**: количество орбитальных объектов
 
-- **Surface**: number of surface bases
+- **Surface**: количество планетарных объектов
 
-- **T2**: The net Tier 2 point cost or reward
+- **T2**: Требует или даёт баллы 2 уровня
 
-- **T3**: The net Tier 3 point cost or reward
+- **T3**: Требует или даёт баллы 3 уровня
 
-- **Cost**: The cost of the builds in tonnes required
+- **Cost**: Стоимость постройки в тоннах
 
-- **Loads**: The number of ship loads based on your current cargo capacity
+- **Loads**: Количество ходок при вместимости текущего корабля
 
-- **Pop Inc**: combined population increase impact
+- **Pop Inc**: Влияние на совокупный прирост населения
 
-- **Pop Max**: combined maximum population impact
+- **Pop Max**: Влияние на совокупный максимум населения
 
-- **Security**: combined system security impact
+- **Security**: Влияние на совокупную безопасность системы
 
-- **Tech Lvl**: combined system technology level impact
+- **Tech Lvl**: Влияние на совокупный технологический уровень системы
 
-- **Wealth**: combined system wealth impact
+- **Wealth**: Влияние на совокупное богатство системы
 
-- **SoL**: combined system standard of living impact
+- **SoL**: Влияние на совокупный уровень жизни системы
 
-- **Dev Lvl**: combined system development level impact
+- **Dev Lvl**: Влияние на совокупный уровень развития системы
 
-## Detail Rows
+## Детали по строкам
 
-- One row per base
-- The first row should be the initial base
-- Other bases can be in any order but the cost of starports depends on their order so if you put them in the wrong order their cost may be incorrect
+- Одна строка на объект
+- Первая строка должна быть главной базой
+- Прочие объекты могут быть в любой последовательности, но стоимость портов зависит от неё, поэтому, если вы разместите порты в неправильном порядке, их стоимость может быть неверна
 
-## Detail Columns
+## Детали по столбцам
 
-- **Track**: Whether to track progress of this base in the main ED:MC progress display
+- **Track**: Отслеживать ли прогресс данного объекта в главном окне ED:MC
 
-- **Base Type**: The type of base to be built
+- **Base Type**: Тип строящегося объекта
 
-- **Base Name**: The name of the base
+- **Base Name**: Имя объекта
 
-- **Body**: The body on (or around) which the base is or will be
+- **Body**: Тело на котором (или у которого) расположен объект
 
-- **Requirements**: Any prerequisites to building this type of base
+- **Requirements**: Требования для постройки объекта этого типа
 
-- **State**: How far along is the base: Planned, Percentage completed, Completed
+- **State**: Прогресс строительства объекта: Запланировано, Процент завершения, Завершено
 
-- **T2**: The net Tier 2 point cost or reward
+- **T2**: Требует или даёт баллы 2 уровня
 
-- **T3**: The net Tier 3 point cost or reward
+- **T3**: Требует или даёт баллы 3 уровня
 
-- **Cost**: The cost of the build in tonnes required
+- **Cost**: Стоимость постройки в тоннах
 
-- **Loads**: The number of ship loads based on your current cargo capacity
+- **Loads**: Количество ходок при вместимости текущего корабля
 
-- **Pad**: The maximum landing pad size
+- **Pad**: Максимальный размер посадочной площадки
 
-- **Economy**: Base economy type
+- **Economy**: Основной тип экономики
 
-- **Pop Inc**: population increase impact
+- **Pop Inc**: Влияние на прирост населения
 
-- **Pop Max**: maximum population impact
+- **Pop Max**: Влияние на максимум населения
 
-- **Econ Inf**: The influence this base has on the system economy
+- **Econ Inf**: Влияние данного объекта на экономику системы
 
-- **Security**: system security impact
+- **Security**: Влияние на безопасность системы
 
-- **Tech Lvl**: system technology level impact
+- **Tech Lvl**: Влияние на технологический уровень системы
 
-- **Wealth**: system wealth impact
+- **Wealth**: Влияние на совокупное богатство системы
 
-- **SoL**: system standard of living impact
+- **SoL**: Влияние на уровень жизни системы
 
-- **Dev Lvl**: system development level impact
+- **Dev Lvl**: Влияние на уровень развития системы

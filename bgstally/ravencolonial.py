@@ -454,6 +454,18 @@ class RavenColonial:
             Debug.logger.info("Not creating project in RavenColonial")
             return
 
+        # Use /api/System/{systemAddress}/{marketid} to query for an existing project
+        # and return it if one exists already
+        Debug.logger.debug(f"{system.get('SystemAddress', '')}")
+        url:str = f"{RC_API}/system/{system.get('SystemAddress', '')}/{build.get('MarketID', '')}"
+        response:Response = requests.get(url, headers=self._headers(), timeout=5)
+        if response.status_code == 200:
+            data:dict = response.json()
+            projectid:str|None = data.get('buildId', None)
+            if projectid != None:
+                Debug.logger.info(f"Project already exists in RavenColonial {projectid}")
+                return projectid
+
         payload:dict = {}
         for k, v in self.project_params.items():
             rcval:dict|None = None
@@ -513,8 +525,10 @@ class RavenColonial:
         # Create project if we don't have an id.
         if progress.get('ProjectID', None) == None:
             projectid:str|None = self.create_project(system, build, progress)
-            if projectid != None:
-                progress['ProjectID'] = projectid
+            if projectid == None:
+                Debug.logger.error("Failed to create project in RavenColonial")
+                return
+            progress['ProjectID'] = projectid
 
         # Update project
         payload:dict = {}

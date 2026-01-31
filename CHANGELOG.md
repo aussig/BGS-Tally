@@ -16,6 +16,7 @@
 ### Bug Fixes:
 
 * Addressed formatting of carrier cargo and locker discord posts [Issue 420](https://github.com/aussig/BGS-Tally/issues/420)
+* Fix for error when Raven Colonial project already exists [Issue 421](https://github.com/aussig/BGS-Tally/issues/421)
 
 
 ## v5.4.0 - 2026-01-21

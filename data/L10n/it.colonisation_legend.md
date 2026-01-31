@@ -1,82 +1,82 @@
-## Summary Rows
+## Riepilogo Righe
 
-- **Planned**: Information about builds/bases that have been planned but not yet completed
-- **Completed**: Information about builds/bases that have been completed
+- **Pianificato**: informazioni su build/basi pianificate ma non ancora completate
+- **Completato**: informazioni sulle build/basi completate
 
-## Summary Columns
+## Riepilogo Colonne
 
-- **Total**: total number of bases
+- **Totale**: numero totale di basi
 
-- **Orbital**: number of orbital bases
+- **Orbitali**: numero di basi orbitali
 
-- **Surface**: number of surface bases
+- **Planetarie**: numero di basi Presenti sulla superficie
 
-- **T2**: The net Tier 2 point cost or reward
+- **T2**: Il costo o la ricompensa netto in punti del Livello 2
 
-- **T3**: The net Tier 3 point cost or reward
+- **T3**: Il costo o la ricompensa netto in punti del Livello 3
 
-- **Cost**: The cost of the builds in tonnes required
+- **Costo**: il costo delle costruzioni richieste in tonnellate
 
-- **Loads**: The number of ship loads based on your current cargo capacity
+- **Carichi**: Il numero di carichi della nave in base alla tua attuale capacità di carico
 
-- **Pop Inc**: combined population increase impact
+- **Aum Pop**: impatto complessivo sull’aumento della popolazione
 
-- **Pop Max**: combined maximum population impact
+- **Pop Max**: impatto complessivo sulla popolazione massima
 
-- **Security**: combined system security impact
+- **Securez**: impatto complessivo sulla sicurezza del sistema
 
-- **Tech Lvl**: combined system technology level impact
+- **Lv Tech**: impatto complessivo sul livello tecnologico del sistema
 
-- **Wealth**: combined system wealth impact
+- **Ricchez**: impatto complessivo sulla ricchezza del sistema
 
-- **SoL**: combined system standard of living impact
+- **SoL**: impatto complessivo sullo standard di vita del sistema
 
-- **Dev Lvl**: combined system development level impact
+- **Lv Svilup**: impatto complessivo sullo sviluppo del sistema
 
-## Detail Rows
+## Dettaglio delle Righe
 
-- One row per base
-- The first row should be the initial base
-- Other bases can be in any order but the cost of starports depends on their order so if you put them in the wrong order their cost may be incorrect
+- Una riga per base
+- Alla prima riga dovrebbe esserci la base iniziale
+- Le altre basi possono essere in qualsiasi ordine, ma il costo degli starport dipende dal loro ordine quindi se li metti nell'ordine sbagliato il loro costo potrebbe essere errato
 
-## Detail Columns
+## Dettaglio delle Colonne
 
-- **Track**: Whether to track progress of this base in the main ED:MC progress display
+- **Traccia**: se attivo traccia i progressi della base nella visualizzazione principale dei progressi ED:MC
 
-- **Base Type**: The type of base to be built
+- **Tipo di Base**: il tipo di base da costruire
 
-- **Base Name**: The name of the base
+- **Nome della Base**: il nome della base
 
-- **Body**: The body on (or around) which the base is or will be
+- **Corpo**: il corpo sul (o intorno al) quale si trova o si troverà la base
 
-- **Requirements**: Any prerequisites to building this type of base
+- **Requisiti**: eventuali prerequisiti per costruire questo tipo di base
 
-- **State**: How far along is the base: Planned, Percentage completed, Completed
+- **Stato**: livello di avanzamento della base — Pianificata, Percentuale completata, Completata
 
-- **T2**: The net Tier 2 point cost or reward
+- **T2**: Il costo o la ricompensa netto in punti del Livello 2
 
-- **T3**: The net Tier 3 point cost or reward
+- **T3**: Il costo o la ricompensa netto in punti del Livello 3
 
-- **Cost**: The cost of the build in tonnes required
+- **Costo**: quantità in tonnellate necessaria per la costruzione
 
-- **Loads**: The number of ship loads based on your current cargo capacity
+- **Carichi**: Il numero di carichi della nave in base alla tua attuale capacità di carico
 
-- **Pad**: The maximum landing pad size
+- **Pad**: la dimensione massima della baia di atterraggio
 
-- **Economy**: Base economy type
+- **Economia**: tipo di economia della base
 
-- **Pop Inc**: population increase impact
+- **Aum Pop**: impatto sull'aumento della popolazione
 
-- **Pop Max**: maximum population impact
+- **Pop Max**: impatto sulla popolazione massima
 
-- **Econ Inf**: The influence this base has on the system economy
+- **Inf Econ**: l'influenza che questa base ha sull'economia del sistema
 
-- **Security**: system security impact
+- **Sicurez**: impatto sulla sicurezza del sistema
 
-- **Tech Lvl**: system technology level impact
+- **Lv Tech**: impatto sul livello tecnologico del sistema
 
-- **Wealth**: system wealth impact
+- **Ricchezza**: impatto sulla ricchezza del sistema
 
-- **SoL**: system standard of living impact
+- **SoL**: impatto sullo standard di vita del sistema
 
-- **Dev Lvl**: system development level impact
+- **Lv Svilup**: impatto sul livello di sviluppo del sistema

@@ -571,7 +571,10 @@ class WindowFleetCarrier:
         if discord == True: output += "```"
         return output
 
+
     def cooldown_notice(self) -> None:
+        """ Display carrier cooldown notification """
+        self.bgstally.ui.show_warning("Fleetcarrier cooldown\ncompleted")
         PopupNotice(_("Fleetcarrier cooldown\ncompleted"), 20000, self.bgstally.fleet_carrier)
 
 class PopupNotice:

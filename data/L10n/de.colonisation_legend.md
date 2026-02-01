@@ -1,0 +1,82 @@
+## Zusammenfassungs-Zeilen
+
+- **Geplant**: Informationen über geplante und noch nicht abgeschlossene Bauwerke / Basen
+- **Abgeschlossen**: Informationen über abgeschlossene Bauwerke / Basen
+
+## Zusammenfassungs-Spalten
+
+- **Insgesamt**: Gesamtzahl der Basen
+
+- **Orbital**: Anzahl der orbitalen Basen
+
+- **Oberfläche**: Anzahl der Oberflächenbasen
+
+- **T2**: Die Nettopunktkosten oder -belohnung der Stufe 2
+
+- **T3**: Die Nettopunktkosten oder -belohnung der Stufe 3
+
+- **Kosten**: Die für den Bau gesamt erforderliche Ware in Tonnen
+
+- **Ladungen**: Die Anzahl der Schiffsladungen basierend auf Ihrer aktuellen Ladekapazität
+
+- **Pop-Inc**: Einfluß des Gesamtbevölkerungszuwachses
+
+- **Pop Max**: kombinierter maximaler Bevölkerungseinfluß
+
+- **Sicherheit**: zusammengefasste Auswirkungen auf die Systemsicherheit
+
+- **Tech Lvl**: zusammengefasste Auswirkung auf das Technologielevel des Systems
+
+- **Wealth**: zusammengefasste Auswirkung auf den Wohlstand des Systems
+
+- **SoL**: zusammengefasste Auswirkung auf den Lebensstandard des Systems
+
+- **Dev Lvl**: zusammengefasste Auswirkung auf die Entwicklungsstufe des Systems
+
+## Detailzeilen
+
+- Eine Reihe pro Basis
+- Die erste Reihe sollte der Primärhafen sein
+- Die anderen Basen können in beliebiger Reihenfolge angeordnet werden, aber die Kosten für Sternenhäfen hängen von ihrer Reihenfolge ab wenn Sie sie also in der falschen Reihenfolge anordnen, können ihre Kosten falsch sein
+
+## Detailspalten
+
+- **Verfolgen**: Ob der Fortschritt dieser Basis in der Hauptfortschrittsanzeige von ED:MC verfolgt werden soll
+
+- **Basistyp**: Der Typ der zu konstruierenden Basis
+
+- **Basisname**: Der Name der Basis
+
+- **Körper**: Der Körper, auf dem (oder um den) sich die Basis befindet oder befinden wird
+
+- **Anforderungen**: Alle Voraussetzungen für den Bau dieser Basis
+
+- **Zustand**: Wie weit ist die Basis: Geplant, Prozentsatz erledigt, Fertiggestellt
+
+- **T2**: Die Nettopunktkosten oder -belohnung der Stufe 2
+
+- **T3**: Die Nettopunktkosten oder -belohnung der Stufe 3
+
+- **Kosten**: Die für den Bau gesamt erforderliche Ware in Tonnen
+
+- **Ladungen**: Die Anzahl der Schiffsladungen basierend auf Ihrer aktuellen Ladekapazität
+
+- **Pad**: Die maximale Landeplatzgröße
+
+- **Wirtschaft**: Basisökonomie
+
+- **Pop-Inc**: Einfluß des Gesamtbevölkerungszuwachses
+
+- **Pop Max**: Kombinierter maximaler Bevölkerungseinfluß
+
+- **Econ Inf**: Der Einfluss dieser Basis auf die Systemwirtschaft
+
+- **Sicherheit**: zusammengefasster Einfluß auf die Systemsicherheit
+
+- **Tech Lvl**: zusammengefasster Einfluß auf das Technologielevel des Systems
+
+- **Wealth**: zusammengefasster Einfluß auf den Wohlstand des Systems
+
+- **SoL**: zusammengefasster Einfluß auf den Lebensstandard des Systems
+
+- **Dev Lvl**: zusammengefasster Einfluß auf die Entwicklungsstufe des Systems

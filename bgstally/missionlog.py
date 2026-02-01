@@ -62,7 +62,7 @@ class MissionLog:
         return self.missionlog
 
 
-    def get_mission(self, missionid: int):
+    def get_mission(self, missionid: int) -> dict | None:
         """
         Fetch a given mission from the missionlog, or None if not found
         """

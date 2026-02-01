@@ -1,0 +1,2 @@
+semantic-version ~= 2.10.0
+sentry-sdk ~= 2.50.0

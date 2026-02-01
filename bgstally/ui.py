@@ -13,11 +13,11 @@ import myNotebook as nb
 from plugins.common_coreutils import api_keys_label_common, show_pwd_var_common
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from bgstally.activity import Activity
+from bgstally.activity import Activity, STATES_ELECTION, STATES_WAR
 from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates,
                                 DiscordActivity, FavouriteActivity, UpdateUIPolicy)
 from bgstally.debug import Debug
-from bgstally.utils import _, available_langs, get_by_path, get_localised_filepath
+from bgstally.utils import _, available_langs, get_by_path, get_localised_filepath, human_format
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
@@ -48,7 +48,7 @@ class UI:
 
     def __init__(self, bgstally):
         self.bgstally = bgstally
-        self.frame = None
+        self.frame: tk.Frame|None = None
 
         self.image_logo_bgstally_100 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_100x67.png"))
         self.image_logo_bgstally_16 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_16x16.png"))
@@ -76,9 +76,11 @@ class UI:
         self.image_icon_refresh = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_refresh.png"))
 
         self.indicate_activity:bool = False
-        self.report_system_address:str = None
-        self.report_cmdr_data:dict = None
-        self.warning:str = None
+        self.activity_system_address:str|None = None
+        self.info_system_address:str|None = None
+        self.info_station:dict[str, str]|None = None
+        self.report_cmdr_data:dict|None = None
+        self.warning:str|None = None
 
         # RavenColonial API key management
         self.apikey:nb.EntryMenu
@@ -116,7 +118,7 @@ class UI:
         """
         Return a TK Frame for adding to the EDMC main window
         """
-        self.frame: tk.Frame = tk.Frame(parent_frame)
+        self.frame = tk.Frame(parent_frame)
 
         column_count: int = 3
         if self.bgstally.capi_fleetcarrier_available(): column_count += 1
@@ -148,12 +150,12 @@ class UI:
         current_column += 1
         ToolTip(self.btn_cmdrs, text=_("Show CMDR information window")) # LANG: Main window tooltip
         if self.bgstally.capi_fleetcarrier_available():
-            self.btn_carrier: tk.Button = tk.Button(self.frame, image=self.image_button_carrier, state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_fc_window)
+            self.btn_carrier: tk.Button|None = tk.Button(self.frame, image=self.image_button_carrier, state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_fc_window)
             self.btn_carrier.grid(row=current_row, column=current_column, padx=3)
             ToolTip(self.btn_carrier, text=_("Show fleet carrier window")) # LANG: Main window tooltip
             current_column += 1
         else:
-            self.btn_carrier: tk.Button = None
+            self.btn_carrier: tk.Button|None = None
 
         self.btn_objectives: tk.Button = tk.Button(self.frame, image=self.image_button_objectives, state=('normal' if self.bgstally.objectives_manager.objectives_available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_objectives_window)
         self.btn_objectives.grid(row=current_row, column=current_column, padx=3)
@@ -237,9 +239,9 @@ class UI:
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
         nb.Label(frame, text=_("Discord Avatar URL")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordAvatarURL, width=80).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
-        self.languages: dict[str: str] = available_langs()
+        self.languages: dict[str|None, str] = available_langs()
         self.language:tk.StringVar = tk.StringVar(value=self.languages.get(self.bgstally.state.discord_lang, _('Default'))) # LANG: Preferences label
-        self.formatters: dict[str: str] = self.bgstally.formatter_manager.get_formatters()
+        self.formatters: dict[str|None, str] = self.bgstally.formatter_manager.get_formatters()
         self.formatter:tk.StringVar = tk.StringVar(value=self.formatters.get(self.bgstally.state.discord_formatter, _('Default'))) # LANG: Preferences label
         nb.Label(frame, text=_("Language for Discord Posts")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         nb.OptionMenu(frame, self.language, self.language.get(), *self.languages.values(), command=self._language_modified).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
@@ -381,12 +383,29 @@ class UI:
         self._load_commodities()
 
 
-    def show_system_report(self, system_address: int):
+    def show_system_info(self, system_address: int):
         """
-        Show the system report overlay
+        Show the system info overlay
+        """
+        self.info_system_address = str(system_address)
+
+
+    def show_station_info(self, station: str, station_faction: str):
+        """Show the station info overlay
+
+        Args:
+            station (str): The station name
+            station_faction (str): The station controlling faction name
+        """
+        self.info_station = {"station": station, "faction": station_faction}
+
+
+    def show_system_activity(self, system_address: str):
+        """
+        Show the system activity overlay
         """
         self.indicate_activity = True
-        self.report_system_address = str(system_address)
+        self.activity_system_address = str(system_address)
 
 
     def show_cmdr_report(self, cmdr_data: dict):
@@ -555,26 +574,44 @@ class UI:
 
             # Thargoid War Progress Report
             if self.bgstally.state.enable_overlay_tw_progress and current_activity is not None:
-                current_system:dict = current_activity.get_current_system()
+                current_system:dict|None = current_activity.get_current_system()
                 if current_system and current_system.get('tw_status') is not None:
                     progress:float = float(get_by_path(current_system, ['tw_status', 'WarProgress'], 0))
                     percent:float = round(progress * 100, 2)
 
                     self.bgstally.overlay.display_progress_bar("tw", _("TW War Progress in {current_system}: {percent}%").format(current_system=current_system.get('System', 'Unknown'), percent=percent), progress) # LANG:Overlay TW report message
 
-            # System Information
+            # System Activity. Shares same overlay panel as System Info and Station Info
             if self.bgstally.state.enable_overlay_system and current_activity is not None:
-                if self.report_system_address is not None:
+                if self.activity_system_address is not None:
                     # Report recent activity in a designated system, overrides pinned systems
-                    report_system:dict = current_activity.get_system_by_address(self.report_system_address)
+                    report_system:dict|None = current_activity.get_system_by_address(self.activity_system_address)
                     if report_system is not None:
                         self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True)
-                    self.report_system_address = None
+                    self.activity_system_address = None
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
                     if pinned_systems is not None and pinned_systems != []:
                         self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
+
+            system_and_station_info:str = ""
+
+            # System Information. Shares same overlay panel as System Activity and Station Info
+            if self.info_system_address is not None and current_activity is not None:
+                report_system:dict|None = current_activity.get_system_by_address(self.info_system_address)
+                if report_system is not None:
+                    system_and_station_info = self._build_system_info(current_activity, report_system)
+                self.info_system_address = None
+
+            # Station Information. Shares same overlay panel as System Activity and System Info
+            if self.info_station is not None:
+                system_and_station_info += "\n" if system_and_station_info != "" else ""
+                system_and_station_info += self._build_station_info(self.info_station)
+                self.info_station = None
+
+            if system_and_station_info != "":
+                self.bgstally.overlay.display_message("system_info", system_and_station_info, fit_to_text=True)
 
             # CMDR Information
             if self.bgstally.state.enable_overlay_cmdr and self.report_cmdr_data is not None:
@@ -626,7 +663,7 @@ class UI:
         """
         Display the appropriate activity data window, using data from the passed in activity object
         """
-        existing_activity_window:WindowActivity = self.window_activity.get(activity.tick_id)
+        existing_activity_window:WindowActivity|None = self.window_activity.get(activity.tick_id)
         if existing_activity_window is not None:
             existing_activity_window.show(activity)
         else:
@@ -659,11 +696,13 @@ class UI:
         """
         self.window_api.show(parent_frame)
 
+
     def _show_colonisation_window(self):
         """
         Display the Colonisation Window
         """
         self.window_colonisation.show()
+
 
     def _confirm_force_tick(self):
         """
@@ -675,3 +714,67 @@ class UI:
 
         answer = askyesno(title=_("Confirm Force a New Tick"), message=message, default="no") # LANG: Preferences force tick popup title
         if answer: self.bgstally.new_tick(True, UpdateUIPolicy.IMMEDIATE)
+
+
+    def _build_system_info(self, activity: Activity, system: dict) -> str:
+        """ Build a human-readable system info string for overlay display
+
+        Args:
+            Activity (activity): The activity object containing the data
+        Returns:
+            str: The human-readable system info
+        """
+        result:str = ""
+
+        result += TAG_OVERLAY_HIGHLIGHT + _("Entered System: {system}").format(system=system.get("System", _("Unknown"))) + "\n" # LANG: System information overlay title
+
+        ordered_factions: list[dict] = activity.get_ordered_factions(system['Factions'])
+        if len(ordered_factions) == 0:
+            result += _("No factions found in system") + "\n" # LANG: System information overlay no factions
+        else:
+            controlling_faction: dict = ordered_factions[0]
+            result += _("Controlling Faction: {faction} - Influence: {influence}%").format(faction=controlling_faction.get("Faction", _("Unknown")), influence=round(controlling_faction.get("Influence", 0) * 100, 2)) + "\n" # LANG: System information overlay controlling faction
+
+            conflicts: str = ""
+            factions_handled: list = []
+
+            for faction in ordered_factions:
+                if faction.get("Faction", "") in factions_handled:
+                    continue
+                if faction.get("FactionState", "None") in STATES_ELECTION + STATES_WAR:
+                    opposing_faction: dict = system['Factions'].get(faction.get("Opponent", ""), {})
+                    conflicts += "  " + _("{state}: {faction1} vs {faction2} - {score_for}:{score_against}").format( # LANG: System information overlay conflict information
+                        state=faction.get("FactionState", _("Unknown")),  # LANG: System information overlay conflict state
+                        faction1=faction.get("Faction", _("Unknown")),  # LANG: System information overlay conflict faction
+                        faction2=opposing_faction.get("Faction", _("Unknown")), # LANG: System information overlay conflict opposing faction
+                        score_for=faction.get("Score", _("Unknown")), # LANG: System information overlay conflict score
+                        score_against=opposing_faction.get("Score", _("Unknown"))) + "\n"  # LANG: System information overlay controlling faction conflict information
+                    conflicts += "    " + _("Asset won: {stake}").format(stake=opposing_faction.get("Stake", _("Unknown"))) + "\n"  # LANG: System information overlay conflict asset at stake information
+                    conflicts += "    " + _("Asset lost: {stake}").format(stake=faction.get("Stake", _("Unknown"))) + "\n"  # LANG: System information overlay conflict asset at stake information
+                    factions_handled.append(opposing_faction.get("Faction", ""))
+
+            if conflicts != "":
+                result += _("Conflicts:") + "\n" + conflicts  # LANG: System information overlay conflicts title
+
+        result += _("Population: {population}").format(population=human_format(system.get("Population", 0))) + "\n" # LANG: System information overlay population
+        result += _("Government: {government}").format(government=system.get("Government", _("Unknown"))) + "\n" # LANG: System information overlay government
+        result += _("Security: {security}").format(security=system.get("Security", _("Unknown"))) + "\n" # LANG: System information overlay security
+
+        return result
+
+
+    def _build_station_info(self, station_info: dict[str, str]) -> str:
+        """Build a human-readable station info string for overlay display
+
+        Args:
+            station_info (dict[str, str]): Dictionary containing station name and faction name
+
+        Returns:
+            str: The human-readable station info
+        """
+        result:str = ""
+
+        result += TAG_OVERLAY_HIGHLIGHT + _("Entered Station: {station}").format(station=station_info.get("station", _("Unknown"))) + "\n" # LANG: Station information overlay title
+        result += _("Controlling Faction: {faction}").format(faction=station_info.get("faction", _("Unknown"))) + "\n" # LANG: Station information overlay controlling faction
+
+        return result

@@ -1,1853 +1,1961 @@
 /* Language name */
 "!Language" = "Türkçe";
 
-/* [legend.py] */
+/* legend.py: Label on legend window associated with Scythe / Glaive; In files: legend.py:118:118 */
 "(Cannot be automatically distinguished)" = "(Otomatik olarak ayırt edilemez)";
 
-/* Discord text. [fleetcarrier.py] */
+/* fleetcarrier.py: Discord text; In files: fleetcarrier.py:668:668 */
 "A carrier jump has been scheduled" = "Filo taşıyıcısı sistem atlaması planlandı";
 
-/* Preferences checkbox label. [ui.py] */
+/* activity.py: Checkbox label; ui.py: Preferences checkbox label; In files: ui.py:222:222; activity.py:122:122 */
 "Abbreviate Faction Names" = "Fraksiyon isimlerini kısalt";
 
-/* Label on API settings window. [api.py] */
+/* api.py: Label on API settings window; In files: api.py:89:89 */
 "About This" = "Bu bölüm hakkında";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences checkbox label; In files: ui.py:292:292 */
 "Activity Indicator" = "Etkinlik Göstergesi";
 
-/* Label on activity window. [activity.py] */
+/* activity.py: Label on activity window; In files: activity.py:87:87 */
 "Activity to post:" = "Paylaşılacak etkinlikler:";
 
-/* Add/create a new system. [colonisation.py] */
+/* colonisation.py: Add/create a new system; In files: colonisation.py:1244:1244 */
 "Add" = "Ekle";
 
-/* add plan. [colonisation.py] */
+/* colonisation.py: add plan; In files: colonisation.py:1204:1204 */
 "Add Plan" = "Plan Ekle";
 
-/* CMDR information. [targetmanager.py] */
+/* targetmanager.py: CMDR information; In files: targetmanager.py:272:272 */
 "Added a friend" = "Arkadaş olarak eklendi";
 
-/* Preferences heading. [ui.py] */
+/* ui.py: Preferences heading; In files: ui.py:372:372 */
 "Advanced" = "Gelişmiş";
 
-/* Colonisation 'Facility Economy' [base_types.json] */
+/* base_types.json: Colonisation 'Facility Economy' [base_types.json]; base_types.json: Colonisation 'Economy Influence' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Agricultural" = "Tarım";
 
-/* Colonisation 'Building Type' [base_types.json] */
+/* base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0: */
 "Agricultural Installation" = "Tarım Üssü";
 
-/* Colonisation 'Prerequisites' [base_types.json] */
+/* base_types.json: Colonisation 'Prerequisites' [base_types.json]; In files: base_types.json:0: */
 "Agriculture Settlement" = "Tarım Yerleşkesi";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Agriculture Tier 1" = "Tarım Tier 1";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Agriculture Tier 1 Med" = "Tarım Tier 1 Med";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Agriculture Tier 1 Sml" = "Tarım Tier 1 Sml";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Agriculture Tier 2" = "Tarım Tier 2";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Agriculture Tier 2 Lrg" = "Tarım Tier 2 Lrg";
 
-/* Readable carrier states. [fleetcarrier.py] */
+/* fleetcarrier.py: Dropdown menu on activity window; progress.py: all builds; fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1060:1060; fleetcarrier.py:1060:1060; fleetcarrier.py:379:379; progress.py:610:610 */
 "All" = "Hepsi";
 
-/* all tracked builds. [progress.py] */
+/* progress.py: all tracked builds; In files: progress.py:354:354; progress.py:356:356 */
 "All builds" = "Tüm yapılar";
 
-/* Carrier overview. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier overview; In files: fleetcarrier.py:63:63 */
 "Allow Notorious" = "Notorious'a izin ver";
 
-/* [progress.py] */
+/* progress.py: Commodity order tooltips; In files: progress.py:79:79 */
 "Alphabetical order" = "Alfabetik sıra";
 
-/* Cargo amount tooltip. [progress.py] */
+/* progress.py: Cargo amount tooltip; In files: progress.py:66:66 */
 "Amount in current cargo" = "Mevcut kargo miktarı";
 
-/* Carrier amount tooltip. [progress.py] */
+/* progress.py: Carrier amount tooltip; In files: progress.py:71:71 */
 "Amount in linked fleet carrier(s)" = "Bağlantılı filo taşıyıcısındaki miktar";
 
-/* Amount left to buy. [progress.py] */
+/* progress.py: Amount left to buy; In files: progress.py:61:61 */
 "Amount left to buy" = "Satın almak için kalan miktar";
 
-/* Carrier buy order tooltip. [progress.py] */
+/* progress.py: Carrier buy order tooltip; In files: progress.py:76:76 */
 "Amount outstanding in carrier buy orders" = "Filo Taşıyıcı alım siparişlerinde ödenmemiş tutar";
 
-/* Amount remaining tooltip. [progress.py] */
+/* progress.py: Amount remaining tooltip; In files: progress.py:56:56 */
 "Amount remaining to be delivered" = "Teslim edilmesi gereken kalan miktar";
 
-/* Tonnes of needed commodities available. [progress.py] */
+/* progress.py: Tonnes of needed commodities available; In files: progress.py:91:91 */
 "Amt (t)" = "Amt (t)";
 
-/* Main window label. [ui.py] */
+/* ui.py: Main window label; In files: ui.py:188:188 */
 "API changed, open settings to re-approve" = "API değişti, tekrar onaylamak için ayarları açın";
 
-/* Label on API settings window. [api.py] */
+/* api.py: Label on API settings window; In files: api.py:160:160 */
 "API Information" = "API bilgisi";
 
-/* Label on API settings window. [api.py] */
+/* api.py: Label on API settings window; In files: api.py:110:110 */
 "API Key" = "API Anahtarı";
 
-/* Label on API settings window. [api.py] */
+/* api.py: Label on API settings window; In files: api.py:99:99 */
 "API Settings" = "API ayarları";
 
-/* Label on API settings window. [api.py] */
+/* api.py: Label on API settings window; In files: api.py:177:177 */
 "Approved by you" = "Sizin tarafınızdan onaylandı";
 
-/* System architect heading. [colonisation.py] */
+/* colonisation.py: Colonisation column heading System architect; In files: colonisation.py:57:57 */
 "Architect" = "Mimar";
 
-/* Preferences force tick text. [ui.py] */
+/* ui.py: Preferences force tick text; In files: ui.py:713:713 */
 "Are you sure that you want to do this?" = "Bunu yapmak istediğinden emin misin?";
 
-/* [colonisation.py] */
+/* colonisation.py: confirm system removal dialog text; In files: colonisation.py:1419:1419 */
 "Are you sure you want to remove this system?" = "Bu öğeyi kaldırmak istediğinize emin misiniz?";
 
-/* station distance from arrival heading. [progress.py] */
+/* progress.py: station distance from arrival heading; In files: progress.py:85:85; progress.py:87:87 */
 "Arr (ls)" = "Arr (ls)";
 
-/* Carrier overview. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier overview; In files: fleetcarrier.py:61:61 */
 "Arrival" = "Varış";
 
-/* Itinerary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Itinerary tab; In files: fleetcarrier.py:83:83 */
 "Arrived" = "Ulaştı";
 
-/* Text on API settings window. [api.py] */
+/* api.py: Text on API settings window; In files: api.py:101:101 */
 "Ask the server administrator for the information below, then click 'Establish Connection' to continue. Buttons to pre-fill some information for popular servers are provided, but you will need to enter your API key which is unique to you." = "Aşağıdaki bilgileri sunucu yöneticinize sorun, doldurduktan daha sonra 'Bağlantı Kur' ile devam edin. Popüler sunucular için bazı bilgiler önceden doldurulmuş olarak sağlanmıştır, ancak bu sunucuya ait size özel olan API anahtarınızı girmeniz gerekecektir.";
 
-/* Colonisation 'Type' [base_types.json] */
+/* ui.py: System information overlay conflict asset at stake information; In files: ui.py:753:753 */
+"Asset lost: {stake}" = "Asset lost: {stake}";
+
+/* ui.py: System information overlay conflict asset at stake information; In files: ui.py:752:752 */
+"Asset won: {stake}" = "Asset won: {stake}";
+
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Asteroid Base" = "Astroid Üssü";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences checkbox label; In files: ui.py:237:237 */
 "Automatically Post BGS and TW Activity" = "BGS ve TW Aktivitelerini Otomatik Yayınla";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:82:82 */
 "Available Balance" = "Kullanılabilir Bakiye";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:80:80 */
 "Bank Balance" = "Banka Bakiyesi";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:81:81 */
 "Bank Reserve" = "Banka rezervi";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Bar" = "Bar";
 
-/* name of the base. [colonisation.py] */
+/* colonisation.py: name of the base; In files: colonisation.py:84:84 */
 "Base Name" = "Üs İsmi";
 
-/* type of base. [colonisation.py] */
+/* colonisation.py: type of base; In files: colonisation.py:82:82; colonisation.py:106:106 */
 "Base Type" = "Üs Tipi";
 
-/* Discord heading, abbreviation for black box. [default.py] */
+/* default.py: Discord heading, abbreviation for black box; In files: default.py:278:278 */
 "bb" = "kk";
 
-/* Discord post title. [activity.py] */
+/* activity.py: Discord post title; In files: activity.py:334:334 */
 "BGS Activity after Tick: {tick_time}" = "Döngü sonrası BGS Aktivitesi: {tick_time}";
 
-/* Dropdown menu on activity window. [activity.py] */
+/* activity.py: Dropdown menu on activity window; In files: activity.py:80:80 */
 "BGS Only" = "Sadece BGS";
 
-/* [clb.py] */
+/* clb.py: BGS Report Tick time; In files: clb.py:120:120 */
 "BGS Report" = "BGS Raporu";
 
-/* Discord heading. [default.py] */
+/* default.py: Discord heading; In files: default.py:276:276 */
 "bio-pod" = "bio-pod";
 
-/* Activity window tooltip. [activity.py] */
+/* clb.py: Search and Rescue in Discord report; In files: clb.py:232:232 */
+"Black Box" = "Black Box";
+
+/* activity.py: Activity window tooltip; In files: activity.py:234:234 */
 "Black market profit" = "Karaborsa kazancı";
 
-/* bodies in the system. [colonisation.py] */
+/* clb.py: Black Market profit in Discord report; In files: clb.py:158:158 */
+"BlackMarket" = "BlackMarket";
+
+/* colonisation.py: bodies in the system; In files: colonisation.py:302:302 */
 "Bodies" = "Gezegenler";
 
-/* Body the base is on or around. [colonisation.py] */
+/* colonisation.py: Body the base is on or around; fleetcarrier.py: Itinerary tab; In files: colonisation.py:85:85; fleetcarrier.py:81:81 */
 "Body" = "Gezegen";
 
-/* any boost effects for the base. [colonisation.py] */
+/* clb.py: Bonds in Discord report; In files: clb.py:155:155 */
+"Bonds" = "Bonds";
+
+/* colonisation.py: any boost effects for the base; In files: colonisation.py:128:128 */
 "Boosted By" = "Tarafından desteklendi";
 
-/* Dropdown menu on activity window. [fleetcarrier.py] */
+/* fleetcarrier.py: Dropdown menu on activity window; In files: fleetcarrier.py:378:378 */
 "Both" = "İkisi de";
 
-/* Dropdown menu on activity window. [activity.py] */
+/* activity.py: Dropdown menu on activity window; In files: activity.py:79:79 */
 "Both BGS and TW" = "Hem BGS hem TW";
 
-/* Post to Discord button tooltip. [activity.py] */
+/* fleetcarrier.py: Post to Discord button tooltip; activity.py: Post to Discord button tooltip; cmdrs.py: Post to Discord button tooltip; In files: activity.py:78:78; cmdrs.py:115:115; fleetcarrier.py:393:393 */
 "Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord" = "Hem 'Discord'a Gönder' alanı hem de Discord webhook{CR}, Discord'a göndermeye izin vermek için ayarlarda yapılandırılmalıdır";
 
-/* Readable carrier states. [fleetcarrier.py] */
+/* clb.py: Bounties in Discord report; In files: clb.py:154:154 */
+"Bounties" = "Bounties";
+
+/* fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1071:1071; fleetcarrier.py:1071:1071 */
 "Bounty Hunter" = "Ödül Avcısı";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:237:237 */
 "Bounty vouchers" = "Kelle avcılığı geliri";
 
-/* Building layout types. [colonisation.py] */
+/* colonisation.py: Building layout types; In files: colonisation.py:127:127 */
 "Building Layouts (click for details)" = "Bina Düzenleri (ayrıntılar için tıklayın)";
 
-/* Building type. [colonisation.py] */
-"Building Type" = "Bina Tipi";
-
-/* Builds/bases. [progress.py] */
+/* progress.py: Builds/bases; In files: progress.py:195:195 */
 "Builds" = "İnşalar";
 
-/* [fleetcarrier.py] */
+/* fleetcarrier.py: fleet carrier orders discord label; In files: fleetcarrier.py:497:497 */
 "buy" = "satın al";
 
-/* Carrier buy order amount. [progress.py] */
+/* progress.py: Carrier buy order amount; In files: progress.py:75:75 */
 "Buy Orders" = "Alış Emirleri";
 
-/* Carrier cargo. [fleetcarrier.py] */
+/* fleetcarrier.py: Cargo tab; fleetcarrier.py: Carrier locker; fleetcarrier.py: Carrier cargo; fleetcarrier.py: Dropdown menu on activity window; fleetcarrier.py: Locker tab; In files: fleetcarrier.py:160:160; fleetcarrier.py:195:195; fleetcarrier.py:56:56; fleetcarrier.py:70:70; fleetcarrier.py:376:376 */
 "Buying" = "Satın Alım";
 
-/* Button label. [fleetcarrier.py] */
+/* fleetcarrier.py: Fleet carrier button label; In files: fleetcarrier.py:440:440 */
 "Calculate" = "Hesapla";
 
-/* Carrier overview. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier overview; In files: fleetcarrier.py:58:58 */
 "Callsign" = "Çağrı işareti";
 
-/* Cancel button. [colonisation.py] */
+/* colonisation.py: Cancel button; In files: colonisation.py:1377:1377 */
 "Cancel" = "İptal Et";
 
-/* Summary headings. [fleetcarrier.py] */
+/* fleetcarrier.py: Summary headings; In files: fleetcarrier.py:177:177 */
 "Capacity" = "Kapasite";
 
-/* Discord heading. [default.py] */
+/* default.py: Discord heading; In files: default.py:296:296 */
 "cargo" = "kargo";
 
-/* Cargo amount. [progress.py] */
+/* progress.py: Cargo amount; In files: progress.py:65:65 */
 "Cargo" = "Kargo";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:98:98 */
 "Cargo For Sale" = "Satılan Kargo";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:94:94 */
 "Cargo missions" = "Kargo görevleri";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:99:99 */
 "Cargo Not For Sale" = "Satışa Kapalı Kargo";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:100:100 */
 "Cargo Reserved Space" = "Kargo İçin Ayrılan Alan";
 
-/* Carrier amount. [progress.py] */
+/* progress.py: Carrier amount; In files: progress.py:70:70 */
 "Carrier" = "Filo Taşıyıcı";
 
-/* fleet carrier materials header. [fleetcarrier.py] */
-"Carrier {order} for {carrier_name} \n" = "{carrier_name} için Filo taşıyıcı {order} \n";
+/* fleetcarrier.py: fleet carrier materials header; In files: fleetcarrier.py:500:500 */
+"Carrier {order} for {carrier_name}" = "{carrier_name} için Filo taşıyıcı {order}";
 
-/* category of base. [colonisation.py] */
+/* clb.py: Cartographic data sold in Discord report; In files: clb.py:159:159 */
+"Carto" = "Carto";
+
+/* colonisation.py: category of base; fleetcarrier.py: Cargo tab; progress.py: Colonisation discord headings; fleetcarrier.py: Locker tab; In files: colonisation.py:108:108; fleetcarrier.py:54:54; fleetcarrier.py:68:68; progress.py:370:370 */
 "Category" = "Kategori";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* progress.py: Commodity order tooltips; In files: progress.py:79:79 */
+"Category order" = "Category order";
+
+/* base_types.json: Colonisation 'Building Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Civilian" = "Sivil";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Civilian Outpost" = "Sivil Karakol";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Civilian Planetary Outpost" = "Sivil Gezegen Karakolu";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Civilian Settlement" = "Sivil Yerleşkesi";
 
-/* Button label. [fleetcarrier.py] */
+/* fleetcarrier.py: Fleet carrier button label; In files: fleetcarrier.py:446:446 */
 "Clear" = "Temizle";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:95:95 */
 "Clear contents" = "İçeriği temizle";
 
-/* Label on CMDR window. [cmdrs.py] */
+/* cmdrs.py: Label on CMDR window; In files: cmdrs.py:76:76 */
 "CMDR Details" = "CMDR Detayları";
 
-/* Discord heading. [cmdrs.py] */
+/* cmdrs.py: Discord heading; In files: cmdrs.py:297:297 */
 "CMDR Inara Link" = "CMDR Inara bağlantısı";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences checkbox label; In files: ui.py:299:299 */
 "CMDR Info" = "CMDR bilgisi";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences heading; ui.py: Preferences checkbox label; In files: ui.py:306:306; ui.py:359:359 */
 "Colonisation" = "Kolonizasyon";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences checkbox label; In files: ui.py:218:218 */
 "Colonisation Active" = "Aktif Kolonizasyon";
 
-/* Colonisation 'Facility Economy' [base_types.json] */
+/* base_types.json: Colonisation 'Facility Economy' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Colony" = "Koloni";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:244:244 */
 "Combat bonds" = "Savaş tahvilleri";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Commercial Outpost" = "Ticari Karakol";
 
-/* List of commodities available. [progress.py] */
+/* progress.py: List of commodities available; In files: progress.py:92:92 */
 "Commodities" = "Emtialar";
 
-/* Cargo tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Cargo tab; progress.py: Commodity heading; progress.py: Commodity; progress.py: Colonisation discord headings; progress.py: Commodity tooltip; In files: fleetcarrier.py:53:53; progress.py:40:40; progress.py:41:41; progress.py:259:259; progress.py:370:370 */
 "Commodity" = "Emtia";
 
-/* Colonisation 'Building Type' [base_types.json] */
+/* base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0: */
 "Comms Installation" = "İletişim Üssü";
 
-/* Colonisation 'Prerequisites' [base_types.json] */
+/* base_types.json: Colonisation 'Prerequisites' [base_types.json]; In files: base_types.json:0: */
 "Communication Installation" = "İletişim Yerleşkesi";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Communication Station" = "İletişim İstasyonu";
 
-/* Row heading of build totals i.e. ones that are done. [colonisation.py] */
+/* colonisation.py: Completed build state; colonisation.py: Complete (finished) state for a build; colonisation.py: Row heading of build totals i.e. ones that are done; In files: colonisation.py:51:51; colonisation.py:768:768; colonisation.py:916:916 */
 "Complete" = "Tamamlandı";
 
-/* Preferences button label. [ui.py] */
+/* ui.py: Preferences button label; In files: ui.py:356:356 */
 "Configure Remote Server" = "Uzak Sunucuyu Yapılandır";
 
-/* Preferences force tick popup title. [ui.py] */
+/* ui.py: Preferences force tick popup title; In files: ui.py:715:715 */
 "Confirm Force a New Tick" = "Döngü Sıfırlamayı Onayla";
 
-/* [colonisation.py] */
+/* colonisation.py: confirm system removal dialog title; In files: colonisation.py:1418:1418 */
 "Confirm Removal" = "Kaldırmayı Onayla";
 
-/* Colonisation 'Economy Influence' [base_types.json] */
+/* ui.py: System information overlay conflicts title; In files: ui.py:757:757 */
+"Conflicts:" = "Conflicts:";
+
+/* base_types.json: Colonisation 'Economy Influence' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Contraband" = "Kaçakçılık";
 
-/* [widgets.py] */
+/* ui.py: Station information overlay controlling faction; In files: ui.py:778:778 */
+"Controlling Faction: {faction}" = "Controlling Faction: {faction}";
+
+/* ui.py: System information overlay controlling faction; In files: ui.py:736:736 */
+"Controlling Faction: {faction} - Influence: {influence}%" = "Controlling Faction: {faction} - Influence: {influence}%";
+
+/* widgets.py: Right-click menu option; sheet_options.py: Spreadsheet menu item; colonisation.py: Copy system name to clipboard; In files: widgets.py:173:173; widgets.py:179:179; colonisation.py:368:368; sheet_options.py:75:75 */
 "Copy" = "Kopyala";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:80:80 */
 "Copy text" = "Metni kopyala";
 
-/* Button label. [activity.py] */
+/* cmdrs.py: Button label; fleetcarrier.py: Button label; progress.py: build popup menu; activity.py: Button label; In files: activity.py:73:73; cmdrs.py:107:107; fleetcarrier.py:386:386; progress.py:319:319 */
 "Copy to Clipboard" = "Panoya Kopyala";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:88:88 */
 "Core Cost" = "Ana Maliyet";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Coriolis" = "Coriolis";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Coriolis Starport" = "Coriolis Yıldızlimanı";
 
-/* Cost in tonnes of cargo. [colonisation.py] */
+/* colonisation.py: Colonisation column heading Cost in tonnes of cargo; colonisation.py: As above; In files: colonisation.py:65:65; colonisation.py:90:90; colonisation.py:114:114 */
 "Cost" = "Maliyet";
 
-/* Carrier services. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier services; In files: fleetcarrier.py:118:118 */
 "Cost to date" = "Tarihe göre maliyet";
 
-/* Count of commodities available. [progress.py] */
+/* progress.py: Count of commodities available; In files: progress.py:90:90 */
 "Count" = "Miktar";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:102:102 */
 "Crew" = "Ekip";
 
-/* Carrier services. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier services; In files: fleetcarrier.py:119:119 */
 "Crew Capacity" = "Ekip Kapasitesi";
 
-/* Services summary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Services summary tab; In files: fleetcarrier.py:37:37 */
 "Crew Member" = "Ekip Üyesi";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Criminal Outpost" = "Suçlu Barınağı";
 
-/* Discord heading, abbreviation for critically injured. [default.py] */
+/* default.py: Discord heading, abbreviation for critically injured; In files: default.py:293:293 */
 "crit" = "krit";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:100:100 */
 "Critically wounded evacuation missions" = "Kritik yaralı tahliye görevleri";
 
-/* tooltip for the build name. [progress.py] */
+/* progress.py: tooltip for the build name; In files: progress.py:203:203 */
 "Current build" = "Geçerli yapı";
 
-/* [fleetcarrier.py] */
+/* fleetcarrier.py: Fleet Carrier Discord heading; In files: fleetcarrier.py:705:705 */
 "Current System" = "Mevcut Sistem";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences checkbox label; In files: ui.py:313:313 */
 "Current Tick" = "Mevcut Döngü";
 
-/* [widgets.py] */
+/* widgets.py: Right-click menu option; sheet_options.py: Spreadsheet menu item; In files: widgets.py:172:172; widgets.py:178:178; sheet_options.py:70:70 */
 "Cut" = "Kes";
 
-/* tooltip for the commodity header. [progress.py] */
+/* progress.py: tooltip for the commodity header; In files: progress.py:215:215 */
 "Cycle commodity list details" = "Emtia listesi detay görünümlerini değiştir";
 
-/* CMDR window column title. [cmdrs.py] */
+/* progress.py: tooltip for the commodity header; In files: progress.py:418:418 */
+"Cycle commodity list details ({view_title})" = "Cycle commodity list details ({view_title})";
+
+/* clb.py: Search and Rescue in Discord report; In files: clb.py:232:232 */
+"Damaged Escape Pod" = "Damaged Escape Pod";
+
+/* cmdrs.py: CMDR window column title; In files: cmdrs.py:64:64 */
 "Date / Time" = "Tarih / Saat";
 
-/* Discord heading. [cmdrs.py] */
+/* cmdrs.py: Discord heading; In files: cmdrs.py:289:289 */
 "Date and Time" = "Tarih ve Saat";
 
-/* Label for checkbox to remove a plan from the tab list. [colonisation.py] */
+/* colonisation.py: Label for checkbox to remove a plan from the tab list; In files: colonisation.py:1357:1357 */
 "Deactivate (hide) this plan" = "Bu planı devre dışı bırak (gizle)";
 
-/* Readable carrier states. [fleetcarrier.py] */
+/* fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1065:1065; fleetcarrier.py:1065:1065 */
 "Decommissioning" = "Devreden çıkarma";
 
-/* any decrease effects for the base. [colonisation.py] */
+/* colonisation.py: any decrease effects for the base; In files: colonisation.py:129:129 */
 "Decreased By" = "Azaltılan";
 
-/* [ui.py] */
+/* default.py: Name of default output formatter; utils.py: The system default language choice in Settings > Appearance; ui.py: Preferences label; In files: default.py:31:31; ui.py:243:243; ui.py:245:245; utils.py:122:122 */
 "Default" = "Varsayılan";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:90:90 */
 "Delete" = "Sil";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:100:100 */
 "Delete columns" = "Sütunları sil";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:120:120 */
 "Delete rows" = "Satırları sil";
 
-/* Button on CMDR window. [cmdrs.py] */
+/* cmdrs.py: Button on CMDR window; In files: cmdrs.py:118:118 */
 "Delete Selected" = "Seçileni Sil";
 
-/* tooltip for the delete system button. [colonisation.py] */
+/* colonisation.py: tooltip for the delete system button; In files: colonisation.py:329:329 */
 "Delete system plan" = "Sistem Planını Sil";
 
-/* Delivered amount. [progress.py] */
+/* progress.py: Delivered amount; In files: progress.py:50:50 */
 "Delivered" = "Teslim Edildi";
 
-/* [demo.py] */
+/* demo.py: Name of demo data formatter; In files: demo.py:27:27 */
 "Demo Data Only" = "Sadece Demo Datası";
 
-/* Itinerary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Itinerary tab; In files: fleetcarrier.py:84:84 */
 "Departed" = "Ayrıldı";
 
-/* Carrier itinerary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier itinerary; In files: fleetcarrier.py:253:253 */
 "Departure" = "Kalkış";
 
-/* Carrier itinerary. [fleetcarrier.py] */
+/* fleetcarrier.py: Discord heading; fleetcarrier.py: Carrier itinerary; In files: fleetcarrier.py:258:258; fleetcarrier.py:674:674 */
 "Departure Time" = "Hareket saati";
 
-/* Itinerary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Itinerary tab; In files: fleetcarrier.py:93:93 */
 "Deposit" = "Depozito";
 
-/* Label on API settings window. [api.py] */
+/* api.py: Label on API settings window; In files: api.py:171:171 */
 "Description" = "Tanımlama";
 
-/* Entry placeholder. [fleetcarrier.py] */
+/* fleetcarrier.py: Fleet carrier text label; In files: fleetcarrier.py:438:438; fleetcarrier.py:439:439 */
 "Destination" = "Varış noktası";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:76:76 */
 "Detailed INF split into + / ++ / +++ / ++++ / +++++ received from missions." = "Ayrıntılı INF, görevlerden alınan + / ++ / +++ / ++++ / +++++ olarak bölünmüştür.";
 
-/* Development level impact. [colonisation.py] */
+/* colonisation.py: Colonisation column heading Development level impact; colonisation.py: As above; In files: colonisation.py:77:77; colonisation.py:102:102; colonisation.py:125:125 */
 "Dev Lvl" = "Glş Src";
 
-/* Label on activity window. [activity.py] */
+/* activity.py: Label on activity window; In files: activity.py:97:97 */
 "Discord Additional Notes" = "Discord Ek Notlar";
 
-/* Preferences label. [ui.py] */
+/* ui.py: Preferences label; In files: ui.py:240:240 */
 "Discord Avatar URL" = "Discord Avatar Linki";
 
-/* [ui.py] */
+/* ui.py: Preferences heading; activity.py: Label on activity window; In files: ui.py:221:221; activity.py:98:98 */
 "Discord Options" = "Discord Ayarları";
 
-/* Label on activity window. [activity.py] */
+/* activity.py: Label on activity window; In files: activity.py:93:93 */
 "Discord Report Preview ⓘ" = "Discord Raporu Önizlemesi ⓘ";
 
-/* Preferences heading. [ui.py] */
+/* ui.py: Preferences heading; In files: ui.py:252:252 */
 "Discord Webhooks" = "Discord Webhooks";
 
-/* System distance heading. [progress.py] */
+/* progress.py: System distance heading; In files: progress.py:84:84; progress.py:86:86 */
 "Dist (ly)" = "Dist (ly)";
 
-/* Carrier itinerary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier itinerary; In files: fleetcarrier.py:254:254 */
 "Distance" = "Mesafe";
 
-/* Carrier overview. [fleetcarrier.py] */
+/* fleetcarrier.py: Discord heading; fleetcarrier.py: Carrier overview; fleetcarrier.py: Fleet Carrier Discord heading; In files: fleetcarrier.py:62:62; fleetcarrier.py:675:675; fleetcarrier.py:706:706 */
 "Docking" = "Kenetlenme";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Dodecahedron" = "Dodecahedron";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Dodecahedron Starport" = "Dodecahedron Starport";
 
-/* Label on activity window. [activity.py] */
+/* activity.py: Label on activity window; In files: activity.py:99:99 */
 "Double-check on-ground CZ tallies, sizes are not always correct" = "Yüzey Çatışma Bölgelerini iki kez kontrol edin, bölge boyutları doğru kaydedilmeyebilir";
 
-/* Itinerary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Itinerary tab; In files: fleetcarrier.py:82:82 */
 "Duration" = "Süre";
 
-/* Economy influence. [colonisation.py] */
+/* colonisation.py: economy influence; colonisation.py: Colonisation column heading Economy influence; In files: colonisation.py:72:72; colonisation.py:97:97; colonisation.py:120:120 */
 "Econ Inf" = "Eknm Inf";
 
-/* [colonisation.py] */
+/* colonisation.py: Economy heading; colonisation.py: Colonisation column heading Economy; colonisation.py: facility economy; In files: colonisation.py:69:69; colonisation.py:94:94; colonisation.py:117:117; colonisation.py:311:311 */
 "Economy" = "Ekonomi";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:65:65 */
 "Edit cell" = "Hücreyi düzenle";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:55:55 */
 "Edit header" = "Başlığı düzenle";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:60:60 */
 "Edit index" = "Dizini düzenle";
 
-/* Rename a system. [colonisation.py] */
+/* colonisation.py: Rename a system; In files: colonisation.py:1327:1327 */
 "Edit System" = "Sistemi Yeniden Adlandır";
 
-/* tooltip for the edit system button. [colonisation.py] */
+/* colonisation.py: tooltip for the edit system button; In files: colonisation.py:337:337 */
 "Edit system plan" = "Sistem Planını Düzenle";
 
-/* [clb.py] */
+/* clb.py: Election Influence in Discord report; In files: clb.py:132:132 */
 "Election Inf" = "Seçim Inf";
 
-/* Discord heading, abbreviation for election INF. [default.py] */
+/* default.py: Discord heading, abbreviation for election INF; In files: default.py:336:336 */
 "ElectionINF" = "SeçimINF";
 
-/* Label on activity window. [activity.py] */
+/* activity.py: Label on activity window; In files: activity.py:193:193 */
 "Empty System, no BGS Activity Available" = "Boş Sistem, BGS Aktivitesi mevcut değil";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:208:208 */
 "Enable / disable all factions" = "Tüm fraksiyonları etkinleştir / devre dışı bırak";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:310:310 */
 "Enable / disable faction" = "Fraksiyonu etkinleştir / devre dışı bırak";
 
-/* Checkbox on API settings window. [api.py] */
+/* api.py: Checkbox on API settings window; In files: api.py:116:116 */
 "Enable {activities_url} Requests" = "{activities_url} isteklerini etkinleştir";
 
-/* Checkbox on API settings window. [api.py] */
+/* api.py: Checkbox on API settings window; In files: api.py:120:120 */
 "Enable {events_url} Requests" = "{events_url} isteklerini etkinleştir";
 
-/* Services summary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Services summary tab; In files: fleetcarrier.py:35:35 */
 "Enabled" = "Etkin";
 
-/* Error when no plan name is given. [colonisation.py] */
+/* ui.py: Station information overlay title; In files: ui.py:777:777 */
+"Entered Station: {station}" = "Entered Station: {station}";
+
+/* ui.py: System information overlay title; In files: ui.py:729:729 */
+"Entered System: {system}" = "Entered System: {system}";
+
+/* colonisation.py: General failure to create system error; colonisation.py: Error when no plan name is given; In files: colonisation.py:1297:1297; colonisation.py:1303:1303; colonisation.py:1392:1392 */
 "Error" = "Hata";
 
-/* Discord heading, abbreviation for escape pod. [default.py] */
+/* default.py: Discord heading, abbreviation for escape pod; In files: default.py:274:274 */
 "esc-pod" = "kaç-kap";
 
-/* Label on API settings window. [api.py] */
+/* api.py: Label on API settings window; In files: api.py:236:236; api.py:237:237; api.py:238:238 */
 "Establish a connection" = "Bir bağlantı kurun";
 
-/* Button on API settings window. [api.py] */
+/* api.py: Button on API settings window; In files: api.py:153:153 */
 "Establish Connection" = "Bağlantı Kur";
 
-/* Label on API settings window. [api.py] */
+/* api.py: Label on API settings window; In files: api.py:174:174 */
 "Events Requested" = "Talep Edilen Etkinlikler";
 
-/* Discord heading, abbreviation for exobiology. [default.py] */
+/* clb.py: Exobiological data sold in Discord report; In files: clb.py:160:160 */
 "Exo" = "Exo";
 
-/* Discord heading, abbreviation for exploration. [default.py] */
+/* default.py: Discord heading, abbreviation for exploration; activity.py: Activity window column title, abbreviation for exploration; In files: default.py:192:192; activity.py:238:238 */
 "Expl" = "Keşif";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Exploration" = "Keşif";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:240:240 */
 "Exploration data" = "Keşif verileri";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Exploration Hub" = "Keşif Merkezi";
 
-/* Readable carrier states. [fleetcarrier.py] */
+/* fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1069:1069; fleetcarrier.py:1069:1069 */
 "Explorer" = "Gezgin";
 
-/* Colonisation 'Facility Economy' [base_types.json] */
+/* base_types.json: Colonisation 'Facility Economy' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; base_types.json: Colonisation 'Economy Influence' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Extraction" = "Çıkarma";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Extraction Hub" = "Çıkarma Merkezi";
 
-/* Colonisation 'Prerequisites' [base_types.json] */
+/* base_types.json: Colonisation 'Prerequisites' [base_types.json]; In files: base_types.json:0: */
 "Extraction Settlement" = "Çıkarma Yerleşkesi";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Extraction Tier 1" = "Çıkarma Seviye 1";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Extraction Tier 1 Med" = "Çıkarma Seviye 1 Orta";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Extraction Tier 1 Sml" = "Çıkarma Seviye 1 Küçük";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Extraction Tier 2" = "Çıkarma Seviye 2";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Extraction Tier 2 Lrg" = "Çıkarma Seviye 2 Büyük";
 
-/* Activity window column title. [activity.py] */
+/* activity.py: Activity window column title; In files: activity.py:212:212 */
 "Faction" = "Fraksiyon";
 
-/* Discord heading, abbreviation for failed missions. [default.py] */
+/* clb.py: Missions Failed in Discord report; In files: clb.py:164:164 */
+"Failed" = "Failed";
+
+/* activity.py: Activity window column title, abbreviation for mission fails; default.py: Discord heading, abbreviation for failed missions; In files: default.py:197:197; activity.py:245:245 */
 "Fails" = "İptaller";
 
-/* Preferences table heading, abbreviation for fleet carrier commodities / materials. [ui.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:316:316 */
+"Favourite / un-favourite faction" = "Favourite / un-favourite faction";
+
+/* ui.py: Preferences table heading, abbreviation for fleet carrier commodities / materials; In files: ui.py:259:259 */
 "FC C/M" = "FT Ü/M";
 
-/* Preferences table heading, abbreviation for fleet carrier operations. [ui.py] */
+/* ui.py: Preferences table heading, abbreviation for fleet carrier operations; In files: ui.py:260:260 */
 "FC Ops" = "FT Ops";
 
-/* Summary headings. [fleetcarrier.py] */
+/* fleetcarrier.py: Summary headings; In files: fleetcarrier.py:175:175 */
 "Finances" = "Finans";
 
-/* Preferences button label. [ui.py] */
+/* clb.py: Foot Murders in Discord report; In files: clb.py:162:162 */
+"Foot Murders" = "Foot Murders";
+
+/* ui.py: Preferences button label; In files: ui.py:373:373 */
 "Force Tick" = "Döngü Sıfırla";
 
-/* Appended to tick time if a forced tick. [activity.py] */
+/* activity.py: Appended to tick time if a forced tick; In files: activity.py:220:220; activity.py:220:220 */
 "forced" = "sıfırlandı";
 
-/* Preferences label. [ui.py] */
+/* ui.py: Preferences label; In files: ui.py:248:248 */
 "Format for Discord Posts" = "Discord gönderileri için Format";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:96:96 */
 "Free Space" = "Boş Alan";
 
-/* Discord CMDR information. [targetmanager.py] */
+/* targetmanager.py: Discord CMDR information; In files: targetmanager.py:265:265 */
 "Friend request received from this CMDR" = "Bu CMDR'dan arkadaşlık isteği alındı";
 
-/* Readable carrier states. [fleetcarrier.py] */
+/* fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1062:1062; fleetcarrier.py:1062:1062 */
 "Friends" = "Arkadaşlar";
 
-/* Discord heading. [fleetcarrier.py] */
+/* fleetcarrier.py: Discord heading; In files: fleetcarrier.py:671:671 */
 "From System" = "Sisteminden";
 
-/* Carrier overview. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier overview; fleetcarrier.py: Carrier itinerary; In files: fleetcarrier.py:65:65; fleetcarrier.py:259:259 */
 "Fuel" = "Yakıt";
 
-/* Carrier itinerary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier itinerary; In files: fleetcarrier.py:255:255 */
 "Fuel Required" = "Gerekli Yakıt";
 
-/* Itinerary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Itinerary tab; In files: fleetcarrier.py:91:91 */
 "Fuel Used" = "Kullanılan Yakıt";
 
-/* Overlay galaxy tick message. [ui.py] */
+/* ui.py: Overlay galaxy tick message; In files: ui.py:543:543 */
 "Galaxy Tick: {tick_time}" = "Galaksi Döngüsü: {tick_time}";
 
-/* Appended to tick time if a normal tick. [activity.py] */
+/* activity.py: Appended to tick time if a normal tick; discord.py: Discord date/time suffix for game time; In files: activity.py:222:222; activity.py:222:222; discord.py:61:61 */
 "game" = "oyun";
 
-/* [colonisation.py] */
+/* colonisation.py: Gas giant body; In files: colonisation.py:958:958 */
 "Gas giant" = "Gaz Devi";
 
-/* Preferences heading. [ui.py] */
+/* clb.py: Ground CZ in Discord report; In files: clb.py:157:157 */
+"GCZ" = "GCZ";
+
+/* ui.py: Preferences heading; In files: ui.py:215:215 */
 "General Options" = "Genel Ayarlar";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Government" = "Devlet";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Government Installation" = "Devlet Üssü";
 
-/* [clb.py] */
+/* ui.py: System information overlay government; In files: ui.py:760:760 */
+"Government: {government}" = "Government: {government}";
+
+/* activity.py: Activity window column title; clb.py: Ground CZ details in Discord report; In files: clb.py:214:214; activity.py:249:249 */
 "Ground" = "Yüzey";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:285:285 */
 "Ground conflict zones" = "Yüzey çatışma bölgeleri";
 
-/* Discord heading, abbreviation for ground conflict zones. [default.py] */
+/* default.py: Discord heading, abbreviation for ground conflict zones; activity.py: Activity window column title, abbreviation for ground conflict zones; In files: default.py:199:199; activity.py:283:283 */
 "GroundCZs" = "YüzeyÇB'leri";
 
-/* Discord heading. [default.py] */
+/* default.py: Discord heading; In files: default.py:195:195 */
 "GroundMurders" = "YüzeyCinayetleri";
 
-/* tooltip for the hide system button. [colonisation.py] */
-"Hide system plan" = "Sistem planını düzenle";
-
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:269:269; activity.py:294:294 */
 "High" = "Yüksek";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Facility Economy' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; base_types.json: Colonisation 'Economy Influence' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "High Tech" = "Yüksek Teknoloji";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Hightech Hub" = "Yüksek Teknoloji Merkezi";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Hightech Planetary Outpost" = "Yüksek Teknoloji Gezegen Karakolu";
 
-/* Services summary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Services summary tab; In files: fleetcarrier.py:40:40 */
 "Hiring Cost" = "Kiralama Maliyeti";
 
-/* HMC World is a high metal content world. [colonisation.py] */
+/* colonisation.py: HMC World is a high metal content world; In files: colonisation.py:959:959 */
 "HMC world" = "HMC gezegen";
 
-/* Shipyard tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Shipyard tab; In files: fleetcarrier.py:107:107 */
 "Hot" = "Hot";
 
-/* Colonisation 'Category' [base_types.json] */
+/* base_types.json: Colonisation 'Category' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Hub" = "Merkez";
 
-/* Button on API settings window. [api.py] */
+/* api.py: Button on API settings window; In files: api.py:186:186 */
 "I Approve" = "Onaylıyorum";
 
-/* Button on API settings window. [api.py] */
+/* api.py: Button on API settings window; In files: api.py:184:184 */
 "I Do Not Approve" = "Onaylamıyorum";
 
-/* Discord CMDR information. [targetmanager.py] */
+/* targetmanager.py: Discord CMDR information; In files: targetmanager.py:295:295 */
 "I scanned this CMDR" = "Hedef CMDR taratıldı";
 
-/* Heading on legend window. [legend.py] */
+/* legend.py: Heading on legend window; In files: legend.py:70:70 */
 "Icons in BGS Reports" = "BGS Raporlarındaki İkonlar";
 
-/* Heading on legend window. [legend.py] */
+/* legend.py: Heading on legend window; In files: legend.py:90:90 */
 "Icons in Thargoid War Reports" = "Thargoid Savaş Raporlarındaki İkonlar";
 
-/* Itinerary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Itinerary tab; In files: fleetcarrier.py:92:92 */
 "In Depot" = "Depoda bulunan";
 
-/* Discord heading. [cmdrs.py] */
+/* cmdrs.py: Discord heading; In files: cmdrs.py:274:274 */
 "In Ship" = "Gemi tipi";
 
-/* Overlay CMDR information report message. [ui.py] */
+/* ui.py: Overlay CMDR information report message; In files: ui.py:622:622 */
 "In ship: {ship}" = "Gemi: {ship}";
 
-/* Discord heading. [cmdrs.py] */
+/* cmdrs.py: Discord heading; In files: cmdrs.py:279:279 */
 "In Squadron" = "Filo İsmi";
 
-/* Discord heading. [cmdrs.py] */
+/* cmdrs.py: Discord heading; In files: cmdrs.py:269:269 */
 "In System" = "Sistem ismi";
 
-/* Overlay CMDR information report message. [ui.py] */
+/* ui.py: Overlay CMDR information report message; In files: ui.py:620:620 */
 "In system: {system}" = "Sistem: {system}";
 
-/* Fleet carrier, ship in transit. [fleetcarrier.py] */
+/* fleetcarrier.py: Fleet carrier, ship in transit; In files: fleetcarrier.py:972:972 */
 "In Transit" = "Sevkiyatta";
 
-/* Preferences heading. [ui.py] */
+/* ui.py: Preferences heading; In files: ui.py:280:280 */
 "In-game Overlay" = "Oyun-içi Arayüz";
 
-/* Preferences label. [ui.py] */
+/* ui.py: Preferences label; In files: ui.py:352:352 */
 "In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information." = "Oyun-içi arayüz desteği EDMCOverlay eklentisinin ayrıca kurulumunu gerektirir - Daha fazla bilgi için talimatlara bakın.";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; legend.py: Label on legend window; In files: activity.py:272:272; legend.py:82:82 */
 "In-space Conflict Zone Side Objective: Cap ship" = "Uzay Çatışma alanı içi yan görev: Ana gemi";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; legend.py: Label on legend window; In files: activity.py:278:278; legend.py:86:86 */
 "In-space Conflict Zone Side Objective: Enemy captain" = "Uzay Çatışma alanı içi yan görev: Düşman kaptanı";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; legend.py: Label on legend window; In files: activity.py:281:281; legend.py:88:88 */
 "In-space Conflict Zone Side Objective: Propaganda wing" = "Uzay Çatışma alanı içi yan görev: Propoganda takımı";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; legend.py: Label on legend window; In files: activity.py:275:275; legend.py:84:84 */
 "In-space Conflict Zone Side Objective: Spec ops wing" = "Uzay Çatışma alanı içi yan görev: Özel Harekat takımı";
 
-/* Inara URL on CMDR window. [cmdrs.py] */
+/* cmdrs.py: Inara URL on CMDR window; In files: cmdrs.py:137:137; cmdrs.py:141:141 */
 "Inara Info Available ⤴" = "Inara Bilgisi Mevcut ⤴";
 
-/* Overlay CMDR information report message. [ui.py] */
+/* ui.py: Overlay CMDR information report message; In files: ui.py:624:624 */
 "INARA INFORMATION AVAILABLE" = "INARA BİLGİSİ MEVCUT";
 
-/* Label on CMDR window. [cmdrs.py] */
+/* cmdrs.py: Label on CMDR window; In files: cmdrs.py:80:80; cmdrs.py:86:86 */
 "Inara: " = "Inara: ";
 
-/* Checkbox label. [activity.py] */
+/* activity.py: Checkbox label; In files: activity.py:203:203 */
 "Include" = "Dahil et";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Dropdown menu on activity window; activity.py: Dropdown menu on activity window; In files: ui.py:228:228; activity.py:128:128 */
+"Include all factions" = "Include all factions";
+
+/* ui.py: Dropdown menu on activity window; activity.py: Dropdown menu on activity window; In files: ui.py:229:229; activity.py:129:129 */
+"Include favourite factions only" = "Include favourite factions only";
+
+/* activity.py: Checkbox label; ui.py: Preferences checkbox label; In files: ui.py:224:224; activity.py:124:124 */
 "Include Secondary INF" = "İkincil INF'i dahil et";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* ui.py: Dropdown menu on activity window; activity.py: Dropdown menu on activity window; In files: ui.py:230:230; activity.py:130:130 */
+"Include systems containing favourite factions" = "Include systems containing favourite factions";
+
+/* base_types.json: Colonisation 'Facility Economy' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; base_types.json: Colonisation 'Economy Influence' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Industrial" = "Endüstriyel";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Industrial Hub" = "Endüstriyel Merkez";
 
-/* Colonisation 'Building Type' [base_types.json] */
+/* base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0: */
 "Industrial Installation" = "Endüstriyel Üs";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Industrial Outpost" = "Endüstriyel Karakol";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Industrial Planetary Outpost" = "Endüstriyel Gezegen Karakolu";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Industrial Tier 1" = "Endüstriyel Seviye 1";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Industrial Tier 1 Med" = "Endüstriyel Seviye 1 Orta";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Industrial Tier 1 Sml" = "Endüstriyel Seviye 1 Küçük";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Industrial Tier 2" = "Endüstriyel Seviye 2";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Industrial Tier 2 Lrg" = "Endüstriyel Seviye 2 Büyük";
 
-/* [clb.py] */
+/* clb.py: Mission influence details in Discord report; clb.py: Influence in Discord report; In files: clb.py:136:136; clb.py:228:228 */
 "Inf" = "Inf";
 
-/* Discord heading, abbreviation for INF. [default.py] */
+/* default.py: Discord heading, abbreviation for INF; In files: default.py:340:340 */
 "INF" = "INF";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:217:217 */
 "Influence" = "Nüfuz";
 
-/* Discord heading. [default.py] */
+/* default.py: Discord heading; In files: default.py:299:299 */
 "injured" = "yaralı";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:96:96 */
 "Injured evacuation missions" = "Yaralı tahliye görevleri";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:115:115 */
 "Insert column" = "Sütun ekle";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:105:105 */
 "Insert columns left" = "Sola sütun ekle";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:110:110 */
 "Insert columns right" = "Sağa sütun ekle";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:135:135 */
 "Insert row" = "Satır ekle";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:125:125 */
 "Insert rows above" = "Yukarıya satır ekle";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:130:130 */
 "Insert rows below" = "Aşağıya satır ekle";
 
-/* Colonisation 'Category' [base_types.json] */
+/* base_types.json: Colonisation 'Category' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Installation" = "Yerleşke";
 
-/* Preferences label. [ui.py] */
+/* ui.py: Preferences label; In files: ui.py:212:212 */
 "Instructions for Use" = "Kullanım için talimatlar";
 
-/* Preferences heading. [ui.py] */
+/* ui.py: Preferences heading; In files: ui.py:355:355 */
 "Integrations" = "Entegrasyonlar";
 
-/* CMDR window column title. [cmdrs.py] */
+/* cmdrs.py: CMDR window column title; In files: cmdrs.py:65:65 */
 "Interaction" = "Etkileşim";
 
-/* Label on CMDR window. [cmdrs.py] */
+/* cmdrs.py: Label on CMDR window; In files: cmdrs.py:89:89 */
 "Interaction: " = "Etkileşim: ";
 
-/* CMDR information. [targetmanager.py] */
+/* targetmanager.py: CMDR information; In files: targetmanager.py:277:277 */
 "Interdicted by" = "Işık hızından düşürüldü";
 
-/* Discord CMDR information. [targetmanager.py] */
+/* targetmanager.py: Discord CMDR information; In files: targetmanager.py:275:275 */
 "INTERDICTED BY this CMDR" = "IŞIK HIZINDAN bu CMDR tarafından DÜŞÜRÜLDÜ";
 
-/* [fleetcarrier.py] */
-"January" = "Ocak";
-
-/* Discord post title. [fleetcarrier.py] */
+/* fleetcarrier.py: Discord post title; In files: fleetcarrier.py:701:701 */
 "Jump Cancelled for Carrier {carrier_name}" = "Filo Taşıyıcı {carrier_name} için Atlama İptal Edildi";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:90:90 */
 "Jump Cost" = "Atlama maliyeti";
 
-/* Itinerary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Itinerary tab; In files: fleetcarrier.py:89:89 */
 "Jump Distance" = "Atlama Mesafesi";
 
-/* Discord post title. [fleetcarrier.py] */
+/* fleetcarrier.py: Discord post title; In files: fleetcarrier.py:667:667 */
 "Jump Scheduled for Carrier {carrier_name}" = "Filo Taşıyıcı {carrier_name} için Planlanan Atlama";
 
-/* CMDR information. [targetmanager.py] */
+/* targetmanager.py: CMDR information; In files: targetmanager.py:282:282 */
 "Killed by" = "Öldürdü";
 
-/* Discord CMDR information. [targetmanager.py] */
+/* targetmanager.py: Discord CMDR information; In files: targetmanager.py:280:280 */
 "KILLED BY this CMDR" = "BU CMDR TARAFINDAN ÖLDÜRÜLDÜ";
 
-/* Discord heading. [default.py] */
+/* default.py: Discord heading; In files: default.py:269:269; default.py:269:269 */
 "kills" = "ölü";
 
-/* [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:114:114 */
 "Kills" = "Ölü";
 
-/* [progress.py] */
+/* progress.py: Colonisation loads abbreviation; In files: progress.py:780:780 */
 "L" = "Y";
 
-/* [colonisation.py] */
+/* colonisation.py: Landable body; In files: colonisation.py:495:495 */
 "Landable" = "İnilebilir";
 
-/* Preferences label. [ui.py] */
+/* ui.py: Preferences label; In files: ui.py:246:246 */
 "Language for Discord Posts" = "Discord Gönderilerinin Dili";
 
-/* Colonisation 'Building Type' [base_types.json] */
+/* base_types.json: Colonisation 'Pad' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Large" = "Büyük";
 
-/* Main window label. [ui.py] */
+/* ui.py: Main window label; In files: ui.py:138:138; ui.py:183:183 */
 "Last BGS Tick:" = "Son BGS Döngüsü:";
 
-/* Button label. [ui.py] */
+/* ui.py: Button label; In files: ui.py:142:142; ui.py:180:180 */
 "Latest BGS Tally" = "Son BGS Raporu";
 
-/* building layout. [colonisation.py] */
+/* colonisation.py: building layout; In files: colonisation.py:83:83 */
 "Layout" = "Yerleşim";
 
-/* tooltip for the build name". [progress.py] */
+/* progress.py: tooltip for the build name"; progress.py: tooltip for the build name; In files: progress.py:203:203; progress.py:621:621 */
 "left click to copy, right click menu" = "sistem görüntüleme için sol, menü için sağ tıklayınız";
 
-/* tooltip for the copy to clipboard icon. [colonisation.py] */
+/* colonisation.py: tooltip for the copy to clipboard icon; In files: colonisation.py:297:297 */
 "Left click view system, right click menu" = "Sistem görüntüleme için sol, menü için sağ tıklayınız";
 
-/* CMDR window column title. [cmdrs.py] */
+/* cmdrs.py: CMDR window column title; In files: cmdrs.py:63:63 */
 "Legal" = "Legal";
 
-/* Discord heading. [cmdrs.py] */
+/* cmdrs.py: Discord heading; In files: cmdrs.py:284:284 */
 "Legal Status" = "Legal Durum";
 
-/* Overlay CMDR information report message. [ui.py] */
+/* ui.py: Overlay CMDR information report message; In files: ui.py:623:623 */
 "Legal status: {legal}" = "Yasal durum: {legal}";
 
-/* tooltip for ravencolonial link. [colonisation.py] */
+/* colonisation.py: tooltip for ravencolonial link; In files: colonisation.py:285:285 */
 "Link to RavenColonial" = "RavenColonial Linki";
 
-/* Number of loads of cargo. [colonisation.py] */
+/* colonisation.py: As above; colonisation.py: Colonisation column heading Number of loads of cargo; In files: colonisation.py:66:66; colonisation.py:91:91; colonisation.py:115:115 */
 "Loads" = "Yük Miktarı";
 
-/* Station location (O=Orbital, S=Surface). [colonisation.py] */
+/* colonisation.py: Station location (O=Orbital, S=Surface); In files: colonisation.py:92:92 */
 "Loc" = "Konum";
 
-/* Carrier overview. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier overview; colonisation.py: base location surface/orbital; In files: fleetcarrier.py:59:59; colonisation.py:109:109 */
 "Location" = "Konum";
 
-/* fleet carrier materials system line. [fleetcarrier.py] */
-"Location: {system}\n" = "Lokasyon: {system}\n";
+/* fleetcarrier.py: fleet carrier materials system line; In files: fleetcarrier.py:502:502 */
+"Location: {system}" = "Lokasyon: {system}";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:263:263; activity.py:288:288 */
 "Low" = "Düşük";
 
-/* [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:105:105 */
 "Massacre missions" = "Katliam görevleri";
 
-/* Locker tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Locker tab; In files: fleetcarrier.py:67:67 */
 "Material" = "Materyal";
 
-/* Preferences label. [ui.py] */
+/* ui.py: Preferences label; In files: ui.py:360:360 */
 "Maximum commodities" = "Maksimum emtialar";
 
-/* Carrier shipyard. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier shipyard; In files: fleetcarrier.py:272:272 */
 "Maximum Ships" = "Maksimum Gemiler";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Medical" = "Medikal";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Medical Installation" = "Medikal Yerleşke";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; base_types.json: Colonisation 'Building Type' [base_types.json]; base_types.json: Colonisation 'Pad' [base_types.json]; In files: activity.py:266:266; activity.py:291:291; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Medium" = "Orta";
 
-/* Discord CMDR information. [targetmanager.py] */
+/* targetmanager.py: Discord CMDR information; In files: targetmanager.py:285:285 */
 "Message received from this CMDR in local chat" = "Yerel sohbette bu CMDR'dan mesaj alındı";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Facility Economy' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; base_types.json: Colonisation 'Economy Influence' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Military" = "Askeri";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Military Hub" = "Askeri Merkez";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Prerequisites' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Military Installation" = "Askeri üs";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Military Outpost" = "Askeri Karakol";
 
-/* Colonisation 'Prerequisites' [base_types.json] */
+/* base_types.json: Colonisation 'Prerequisites' [base_types.json]; In files: base_types.json:0: */
 "Military Settlement" = "Askeri Yerleşke";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Military Tier 1" = "Askeri Seviye 1";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Military Tier 1 Med" = "Askeri Seviye 1 Orta";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Military Tier 1 Sml" = "Askeri Seviye 1 Küçük";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Military Tier 2" = "Askeri Seviye 2";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Military Tier 2 Lrg" = "Askeri Seviye 2 Büyük";
 
-/* Readable carrier states. [fleetcarrier.py] */
+/* fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1067:1067; fleetcarrier.py:1067:1067 */
 "Miner" = "Madenci";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Mining Outpost" = "Maden Karakolu";
 
-/* Colonisation 'Prerequisites' [base_types.json] */
+/* base_types.json: Colonisation 'Prerequisites' [base_types.json]; In files: base_types.json:0: */
 "Mining Outpost Installation" = "Maden Karakol Üssü";
 
-/* Cargo tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Locker tab; fleetcarrier.py: Cargo tab; In files: fleetcarrier.py:60:60; fleetcarrier.py:73:73 */
 "Mission" = "Görev";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:247:247 */
 "Mission fails" = "Başarısız görevler";
 
-/* Discord heading. [default.py] */
+/* default.py: Discord heading; In files: default.py:288:288; default.py:291:291; default.py:294:294; default.py:297:297; default.py:300:300; default.py:303:303; default.py:306:306; default.py:309:309 */
 "missions" = "görevler";
 
-/* Discord heading, abbreviation for massacre (missions). [default.py] */
+/* default.py: Discord heading, abbreviation for massacre (missions); In files: default.py:305:305; default.py:305:305 */
 "mm" = "kg";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:104:104 */
 "Module Packs" = "Modül Paketleri";
 
-/* Discord heading. [default.py] */
+/* default.py: Discord heading; activity.py: Activity window column title; In files: default.py:194:194; activity.py:248:248 */
 "Murders" = "Cinayetler";
 
-/* Carrier overview. [fleetcarrier.py] */
+/* api.py: Label on API settings window; cmdrs.py: Discord heading; fleetcarrier.py: Shipyard tab; cmdrs.py: CMDR window column title; fleetcarrier.py: Carrier overview; In files: fleetcarrier.py:57:57; api.py:168:168; cmdrs.py:59:59; cmdrs.py:264:264; fleetcarrier.py:103:103 */
 "Name" = "İsim";
 
-/* Label on CMDR window. [cmdrs.py] */
+/* cmdrs.py: Label on CMDR window; In files: cmdrs.py:77:77 */
 "Name: " = "İsim: ";
 
-/* Overlay message. [bgstally.py] */
+/* bgstally.py: Overlay message; In files: bgstally.py:420:420 */
 "NEW TICK DETECTED!" = "YENİ DÖNGÜ TESPİT EDİLDİ!";
 
-/* Preferences table heading. [ui.py] */
+/* ui.py: Preferences table heading; In files: ui.py:255:255 */
 "Nickname" = "Takma ad";
 
-/* No colonisation data available. [progress.py] */
+/* progress.py: No colonisation data available; In files: progress.py:341:341 */
 "No colonisation data available" = "Kolonizasyon datası mevcut değil";
 
-/* Default power name if none. [activity.py] */
+/* ui.py: System information overlay no factions; In files: ui.py:733:733 */
+"No factions found in system" = "No factions found in system";
+
+/* progress.py: None; activity.py: Default power name if none; In files: activity.py:622:622; progress.py:199:199 */
 "None" = "Hiçbiri";
 
-/* Readable carrier states. [fleetcarrier.py] */
+/* fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1063:1063; fleetcarrier.py:1063:1063 */
 "Normal" = "Normal";
 
-/* Discord heading. [fleetcarrier.py] */
+/* fleetcarrier.py: Discord heading; fleetcarrier.py: Fleet Carrier Discord heading; In files: fleetcarrier.py:676:676; fleetcarrier.py:707:707 */
 "Notorious Access" = "Notorious Erişimi";
 
-/* Objectives title. [objectivesmanager.py] */
+/* ui.py: Preferences checkbox label; objectivesmanager.py: Objectives title where there is no server name; In files: objectivesmanager.py:59:59; ui.py:320:320 */
 "Objectives" = "Hedefler";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* clb.py: Search and Rescue in Discord report; In files: clb.py:232:232 */
+"Occupied Escape Pod" = "Occupied Escape Pod";
+
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Ocellus" = "Ocellus";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Ocellus Starport" = "Ocellus Yıldızlimanı";
 
-/* Readable carrier states. [fleetcarrier.py] */
+/* fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1064:1064; fleetcarrier.py:1064:1064 */
 "Offline" = "Çevrimdışı";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:78:78 */
 "On-ground Conflict Zone" = "Yüzey Çatışma Bölgesi";
 
-/* [colonisation.py] */
+/* colonisation.py: System Raven Colonial status; In files: colonisation.py:764:764 */
 "Open" = "Açık";
 
-/* [progress.py] */
+/* progress.py: Colonisation popup RC menu option; In files: progress.py:327:327 */
 "Open in RavenColonial" = "RavenColonial Linki";
 
-/* build popup menu. [progress.py] */
+/* progress.py: Colonisation popup menu option; In files: progress.py:332:332 */
 "Open in {k}" = "{k} ile Aç";
 
-/* Open Element In Selected Provider. [colonisation.py] */
+/* colonisation.py: Open Element In Selected Provider; In files: colonisation.py:372:372 */
 "Open in {w}" = "{w} ile Aç";
 
-/* Indicates the field is optional and case-sensitive. [colonisation.py] */
+/* colonisation.py: Indicates the field is optional and case-sensitive; colonisation.py: Elite dangerous system name; In files: colonisation.py:1215:1215; colonisation.py:1343:1343 */
 "optional and case sensitive" = "isteğe bağlı ve büyük/küçük harfe duyarlı";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Orbis" = "Orbis";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Orbis Starport" = "Orbis YıldızLimanı";
 
-/* Number of orbital/space builds. [colonisation.py] */
+/* base_types.json: Colonisation 'Location' [base_types.json]; colonisation.py: Colonisation column heading Number of orbital/space builds; In files: colonisation.py:61:61; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Orbital" = "Orbital";
 
-/* [fleetcarrier.py] */
+/* fleetcarrier.py: fleet carrier orders discord label; In files: fleetcarrier.py:497:497; fleetcarrier.py:498:498 */
+"order" = "order";
+
+/* fleetcarrier.py: fleet carrier orders discord label; In files: fleetcarrier.py:496:496 */
 "orders" = "siparişler";
 
-/* Colonisation 'Category' [base_types.json] */
+/* base_types.json: Colonisation 'Category' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Outpost" = "Karakol";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Outpost Hub" = "Karakol Merkezi";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Outpost In A Box" = "Çevrelenmiş Karakol";
 
-/* Landing pad size. [colonisation.py] */
+/* colonisation.py: Landing pad size; progress.py: Pad size (L, M, S); In files: colonisation.py:93:93; colonisation.py:116:116; progress.py:89:89 */
 "Pad" = "Ped büyüklüğü";
 
-/* [ui.py] */
+/* ui.py: Preferences label; In files: ui.py:289:289 */
 "Panels" = "Paneller";
 
-/* Discord heading, abbreviation for passengers. [default.py] */
+/* default.py: Discord heading, abbreviation for passengers; In files: default.py:302:302 */
 "passeng" = "yolcu";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:92:92 */
 "Passenger missions" = "Yolcu görevleri";
 
-/* [ui.py] */
+/* ui.py: Overlay past estimated time tick message; In files: ui.py:566:566 */
 "Past Estimated Tick Time" = "Geçmiş Tahmini Döngü Süresi";
 
-/* [widgets.py] */
+/* widgets.py: Right-click menu option; sheet_options.py: Spreadsheet menu item; In files: widgets.py:174:174; widgets.py:180:180; sheet_options.py:85:85 */
 "Paste" = "Yapıştır";
 
-/* Checkbox label. [activity.py] */
+/* activity.py: Checkbox label; In files: activity.py:179:179 */
 "Pin {system_name} to Overlay" = "{system_name} arayüze sabitle";
 
-/* Service name. [fleetcarrier.py] */
+/* fleetcarrier.py: Service name; In files: fleetcarrier.py:43:43 */
 "Pioneer Supplies" = "Pioneer ürün tedariği";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Pirate Base" = "Korsan Üssü";
 
-/* Colonisation 'Building Type' [base_types.json] */
+/* base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0: */
 "Pirate Installation" = "Korsan Üssü";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Pirate Outpost" = "Korsan Karakolu";
 
-/* the name you want to give your plan. [colonisation.py] */
+/* colonisation.py: the name you want to give your plan; In files: colonisation.py:1207:1207; colonisation.py:1336:1336 */
 "Plan Name" = "Plan İsmi";
 
-/* Colonisation 'Category' [base_types.json] */
+/* colonisation.py: Error when no plan name is given; In files: colonisation.py:1297:1297; colonisation.py:1392:1392 */
+"Plan name is required" = "Plan name is required";
+
+/* base_types.json: Colonisation 'Category' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Planetary Outpost" = "Gezegen Karakolu";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Category' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Planetary Port" = "Gezegen Limanı";
 
-/* Row heading of planned build totals i.e. ones that aren't complete. [colonisation.py] */
+/* colonisation.py: Planned (not started) state for a build; colonisation.py: Planned build state; colonisation.py: Row heading of planned build totals i.e. ones that aren't complete; In files: colonisation.py:50:50; colonisation.py:767:767; colonisation.py:907:907 */
 "Planned" = "Planlananlar";
 
-/* URL label on API settings window. [api.py] */
+/* api.py: URL label on API settings window; In files: api.py:164:164 */
 "Player Journal Documentation" = "Oyuncu Günlüğü Belgeleri";
 
-/* Text on API settings window. [api.py] */
+/* api.py: Text on API settings window; In files: api.py:93:93 */
 "PLEASE ENSURE YOU TRUST the server you send this information to!" = "LÜTFEN bu bilgiyi gönderdiğiniz sunucuya GÜVENDİĞİNİZDEN EMİN OLUN!";
 
-/* [fleetcarrier.py] */
+/* fleetcarrier.py: Fleet carrier text label; In files: fleetcarrier.py:442:442 */
 "Plot Route" = "Rota Oluştur";
 
-/* [colonisation.py] */
+/* colonisation.py: Colonisation column heading Population; In files: colonisation.py:68:68 */
 "Pop" = "Popülasyon";
 
-/* Population increase. [colonisation.py] */
+/* colonisation.py: As above; colonisation.py: Colonisation column heading Population increase; In files: colonisation.py:70:70; colonisation.py:95:95; colonisation.py:118:118 */
 "Pop Inc" = "Nfs Art";
 
-/* Population Maximum. [colonisation.py] */
+/* colonisation.py: Colonisation column heading Population Maximum; colonisation.py: As above; In files: colonisation.py:71:71; colonisation.py:96:96; colonisation.py:119:119 */
 "Pop Max" = "Mks Nfs";
 
-/* [colonisation.py] */
+/* colonisation.py: Population heading; In files: colonisation.py:310:310 */
 "Population" = "Popülasyon";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* ui.py: System information overlay population; In files: ui.py:759:759 */
+"Population: {population}" = "Population: {population}";
+
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Port" = "Liman";
 
-/* Button on CMDR window. [cmdrs.py] */
+/* cmdrs.py: Button on CMDR window; In files: cmdrs.py:165:165 */
 "Post CMDR List to Discord" = "CMDR listesini Discord'a gönder";
 
-/* Button on CMDR window. [cmdrs.py] */
+/* cmdrs.py: Button on CMDR window; In files: cmdrs.py:111:111; cmdrs.py:158:158; cmdrs.py:171:171 */
 "Post CMDR to Discord" = "CMDR bilgisini Discord'a gönder";
 
-/* Button label. [activity.py] */
+/* fleetcarrier.py: Button label; activity.py: Button label; In files: activity.py:74:74; fleetcarrier.py:388:388 */
 "Post to Discord" = "Discord'a gönder";
 
-/* Preferences label. [ui.py] */
+/* ui.py: Preferences label; In files: ui.py:238:238 */
 "Post to Discord as" = "Discord gönderim ismi";
 
-/* Discord message footer, legacy text mode. [discord.py] */
+/* discord.py: Discord footer message, modern embed mode; In files: discord.py:203:203 */
+"Posted at {date_time} (game)" = "Posted at {date_time} (game)";
+
+/* discord.py: Discord message footer, legacy text mode; In files: discord.py:71:71 */
 "Posted at: {date_time} | {plugin_name} v{version}" = "Gönderi zamanı: {date_time} | {plugin_name} v{version}";
 
-/* Discord post title. [activity.py] */
+/* activity.py: Discord post title; In files: activity.py:340:340 */
 "Powerplay Activity after Tick: {tick_time}" = "Döngü sonrası: {tick_time} Powerplay etkinliği";
 
-/* [default.py] */
+/* default.py: Powerplay merits in Discord; default.py: Heading for merits gained, with power name in brackets; In files: default.py:106:106; default.py:161:161; default.py:164:164 */
 "Powerplay Merits" = "Powerplay Merits";
 
-/* Label for checkbox to pre-populate bases. [colonisation.py] */
+/* colonisation.py: Label for checkbox to pre-populate bases; In files: colonisation.py:1223:1223 */
 "Pre-fill bases" = "Nüfus ön dolumlu üsler";
 
-/* Notice about prepopulation being challenging. [colonisation.py] */
+/* colonisation.py: Notice about prepopulation being challenging; In files: colonisation.py:1237:1237 */
 "Pre-filling requires a system name, can have mixed results, and will likely require manual base type selection. Use with caution!" = "Nüfus Ön dolum işlemi bir sistem adı gerektirir, karışık sonuçlar doğurabilir ve muhtemelen manuel üs türü seçimi gerektirecektir. Dikkatli kullanın!";
 
-/* Button label. [ui.py] */
+/* ui.py: Button label; In files: ui.py:145:145; ui.py:181:181 */
 "Previous BGS Tallies" = "Önceki BGS Raporlar";
 
-/* Activity window column title, abbreviation for primary. [activity.py] */
+/* activity.py: Activity window column title, abbreviation for primary; In files: activity.py:218:218 */
 "Pri" = "Bir";
 
-/* Cargo tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Locker tab; fleetcarrier.py: Cargo tab; In files: fleetcarrier.py:58:58; fleetcarrier.py:72:72 */
 "Price" = "Fiyat";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:220:220 */
 "Primary" = "Birincil";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:72:72 */
 "Primary INF. This is INF gained for the mission issuing faction." = "Birincil INF. Bu, görevi veren Fraksiyon için kazanılan INF'dir.";
 
-/* Activity window column title, abbreviation for profit. [activity.py] */
+/* activity.py: Activity window column title, abbreviation for profit; activity.py: Activity window column title, abbreviation for black market profit; In files: activity.py:228:228; activity.py:232:232 */
 "Prof" = "Kznç";
 
-/* Carrier cargo. [fleetcarrier.py] */
+/* clb.py: Trade in Discord report; fleetcarrier.py: Carrier locker; fleetcarrier.py: Carrier cargo; clb.py: Trade Sell in Discord report; In files: fleetcarrier.py:162:162; fleetcarrier.py:197:197; clb.py:166:166; clb.py:218:218 */
 "Profit" = "Kâr";
 
-/* Activity window tooltip for profit at zero | low | medium | high demand. [activity.py] */
+/* activity.py: Activity window tooltip for profit at zero | low | medium | high demand; In files: activity.py:230:230 */
 "Profit at Z | L | M | H demand" = "Talep üzerinde Z | L | M | H kâr";
 
-/* In progress (building) state for a build. [colonisation.py] */
+/* progress.py: progress tooltip; progress.py: tooltip for the progress bar; progress.py: Colonisation Progress; colonisation.py: In progress (building) state for a build; In files: colonisation.py:914:914; progress.py:182:182; progress.py:367:367; progress.py:736:736 */
 "Progress" = "İlerleme Durumu";
 
-/* Activity window column title, abbreviation for purchase. [activity.py] */
+/* activity.py: Activity window column title, abbreviation for purchase; In files: activity.py:225:225 */
 "Purch" = "StnAlm";
 
-/* Amount to buy. [progress.py] */
+/* progress.py: Amount to buy; In files: progress.py:60:60 */
 "Purchase" = "Satın Alım";
 
-/* Activity window tooltip for purchase at low | medium | high supply. [activity.py] */
+/* activity.py: Activity window tooltip for purchase at low | medium | high supply; In files: activity.py:227:227 */
 "Purchase at L | M | H supply" = "Satın alımda Z | L | M | H kâr";
 
-/* [ui.py] */
+/* progress.py: Commodity order tooltips; In files: progress.py:79:79 */
+"Quantity order" = "Quantity order";
+
+/* ui.py: Preferences label; In files: ui.py:368:368 */
 "RavenColonial API Key" = "RavenColonial API Anahtarı";
 
-/* Discord heading, abbreviation for reactivation (TW missions). [default.py] */
+/* default.py: Discord heading, abbreviation for reactivation (TW missions); default.py: Discord heading, abbreviation for TW reactivation (missions); In files: default.py:283:283; default.py:308:308 */
 "reac" = "ynet";
 
-/* Reactivate system. [colonisation.py] */
+/* colonisation.py: Reactivate system; In files: colonisation.py:1272:1272 */
 "Reactivate" = "Yeniden etkinleştir";
 
-/* reactivate plans. [colonisation.py] */
+/* colonisation.py: reactivate plans; In files: colonisation.py:1263:1263 */
 "Reactivate Plan" = "Planı Yeniden Etkinleştir";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:102:102 */
 "Reactivation missions" = "Yeniden etkinleştirme görevleri";
 
-/* CMDR information. [targetmanager.py] */
+/* targetmanager.py: CMDR information; In files: targetmanager.py:267:267 */
 "Received friend request from" = "Şu kişiden arkadaşlık isteği alındı";
 
-/* CMDR information. [targetmanager.py] */
+/* targetmanager.py: CMDR information; In files: targetmanager.py:287:287 */
 "Received message from" = "Şu kişiden mesaj alındı";
 
-/* CMDR information. [targetmanager.py] */
+/* targetmanager.py: CMDR information; In files: targetmanager.py:292:292 */
 "Received team invite from" = "Şu kişiden ekip daveti alındı";
 
-/* Service name. [fleetcarrier.py] */
+/* fleetcarrier.py: Service name; In files: fleetcarrier.py:44:44 */
 "Redemption" = "Redemption";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:207:207 */
 "Redo" = "Yeniden yap";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; base_types.json: Colonisation 'Economy Influence' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Refinery" = "Rafineri";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Refinery Hub" = "Rafineri Merkezi";
 
-/* tooltip for ravencolonial refresh button. [colonisation.py] */
+/* colonisation.py: tooltip for ravencolonial refresh button; In files: colonisation.py:359:359 */
 "Refresh from RavenColonial" = "RavenColonial'dan yenileme yap";
 
-/* Itinerary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Itinerary tab; In files: fleetcarrier.py:95:95 */
 "Refuel" = "Yakıt Doldur";
 
-/* Colonisation 'Building Type' [base_types.json] */
+/* base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0: */
 "Relay Installation" = "Aktarım Üssü";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Relay Station" = "Röle İstasyonu";
 
-/* Colonisation 'Prerequisites' [base_types.json] */
+/* base_types.json: Colonisation 'Prerequisites' [base_types.json]; In files: base_types.json:0: */
 "Relay Station Installation" = "Aktarım İstasyon Üssü";
 
-/* Itinerary tab. [fleetcarrier.py] */
+/* progress.py: Colonisation discord headings; fleetcarrier.py: Itinerary tab; progress.py: Amount remaining; In files: fleetcarrier.py:90:90; progress.py:55:55; progress.py:370:370 */
 "Remaining" = "Kalan";
 
-/* Preferences checkbox label. [ui.py] */
+/* activity.py: Checkbox label; ui.py: Preferences checkbox label; In files: ui.py:226:226; activity.py:126:126 */
 "Report Newly Visited System Activity By Default" = "Yeni Ziyaret Edilen Sistem Etkinliğini Varsayılan Olarak Raporla";
 
-/* Required amount. [progress.py] */
+/* progress.py: Required amount; In files: progress.py:45:45 */
 "Required" = "Gerekli miktar";
 
-/* any prerequisites for the base. [colonisation.py] */
+/* colonisation.py: any prerequisites for the base; In files: colonisation.py:111:111 */
 "Requirements" = "Gereksinimler";
 
-/* Colonisation 'Prerequisites' [base_types.json] */
+/* base_types.json: Colonisation 'Prerequisites' [base_types.json]; In files: base_types.json:0: */
 "Research Bio Settlement" = "Bio Araştıma Yerleşkesi";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Research Bio Tier 1" = "Araştırma Bio Seviye 1";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Research Bio Tier 1 Med" = "Araştırma Bio Seviye 1 Orta";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Research Bio Tier 1 Sml" = "Araştırma Bio Seviye 1 Küçük";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Research Bio Tier 2" = "Araştırma Bio Seviye 2";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Research Bio Tier 2 Lrg" = "Araştırma Bio Seviye 2 Büyük";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Research Station" = "Araştırma İstasyonu";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:83:83 */
 "Reserve Percentage" = "Rezerve Yüzdesi";
 
-/* Carrier cargo. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier locker; fleetcarrier.py: Carrier cargo; In files: fleetcarrier.py:158:158; fleetcarrier.py:193:193 */
 "Reserved" = "Rezerve";
 
-/* [colonisation.py] */
+/* colonisation.py: Rings label for body; In files: colonisation.py:501:501 */
 "rings" = "halkalar";
 
-/* Carrier itinerary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier itinerary; In files: fleetcarrier.py:252:252 */
 "Route Destination" = "Rota Hedefi";
 
-/* Summary headings. [fleetcarrier.py] */
+/* fleetcarrier.py: Summary headings; In files: fleetcarrier.py:176:176 */
 "Running Costs" = "İşletme maliyetleri";
 
-/* Services summary tab. [fleetcarrier.py] */
+/* clb.py: Search and Rescue units in Discord report; In files: clb.py:167:167 */
+"S&R Units" = "S&R Units";
+
+/* fleetcarrier.py: Services summary tab; In files: fleetcarrier.py:39:39 */
 "Salary" = "Maaş";
 
-/* Discord heading, abbreviation for search and rescue. [default.py] */
+/* default.py: Discord heading, abbreviation for search and rescue; activity.py: Activity window column title, abbreviation for search and rescue; In files: default.py:515:515; activity.py:254:254 */
 "SandR" = "AraVeKur";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Satellite" = "Uydu";
 
-/* Colonisation 'Building Type' [base_types.json] */
+/* base_types.json: Colonisation 'Prerequisites' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Satellite Installation" = "Uydu Üssü";
 
-/* Save button. [colonisation.py] */
+/* colonisation.py: Save button; In files: colonisation.py:1369:1369 */
 "Save" = "Kaydet";
 
-/* CMDR information. [targetmanager.py] */
+/* targetmanager.py: CMDR information; In files: targetmanager.py:297:297 */
 "Scanned" = "Tarandı";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:253:253 */
 "Scenario wins" = "Senaryo Galibiyetleri";
 
-/* Discord heading. [default.py] */
+/* default.py: Discord heading; clb.py: Scenarios in Discord report; In files: clb.py:163:163; default.py:196:196 */
 "Scenarios" = "Senaryolar";
 
-/* Activity window column title, abbreviation for scenarios. [activity.py] */
+/* activity.py: Activity window column title, abbreviation for scenarios; In files: activity.py:251:251 */
 "Scens" = "Snylr";
 
-/* Label on itinerary window. [fleetcarrier.py] */
-"Scheduled for" = "Planlanan";
-
-/* Carrier itinerary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier itinerary; In files: fleetcarrier.py:257:257 */
 "Scheduled Jump" = "Planlanan Atlama";
 
-/* Colonisation 'Building Type' [base_types.json] */
+/* base_types.json: Colonisation 'Building Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Scientific" = "Bilimsel";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Scientific Hub" = "Bilimsel Merkez";
 
-/* Colonisation 'Building Type' [base_types.json] */
+/* base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0: */
 "Scientific Installation" = "Bilim Üssü";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Scientific Outpost" = "Bilimsel araştırma karakolu";
 
-/* Label on legend window. [legend.py] */
+/* clb.py: Space CZ in Discord report; In files: clb.py:156:156 */
+"SCZ" = "SCZ";
+
+/* legend.py: Label on legend window; In files: legend.py:131:131 */
 "Search & Rescue Bio Pods" = "Arama ve Kurtarma Bio Pod'ları";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:125:125 */
 "Search & Rescue Black Boxes" = "Arama ve Kurtarma Kara Kutu'ları";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:127:127 */
 "Search & Rescue Escape Pods" = "Arama ve Kurtarma Kaçış Podları";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:129:129 */
 "Search & Rescue Tissue Samples" = "Arama ve Kurtarma Doku Örnekleri";
 
-/* Activity window tooltip. [activity.py] */
+/* fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1066:1066; fleetcarrier.py:1066:1066 */
+"Search and Rescue" = "Search and Rescue";
+
+/* activity.py: Activity window tooltip; In files: activity.py:256:256 */
 "Search and rescue" = "Arama kurtarma";
 
-/* Activity window column title, abbreviation for secondary. [activity.py] */
+/* activity.py: Activity window column title, abbreviation for secondary; In files: activity.py:221:221 */
 "Sec" = "İki";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:223:223 */
 "Secondary" = "İkincil";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:74:74 */
 "Secondary INF. This is INF gained as a secondary effect of the mission, for example the destination faction for delivery missions." = "İkincil INF. Bu, görevin ikincil bir etkisi olarak kazanılan INF'dir; örneğin teslimat görevleri için hedef grup.";
 
-/* RC security. [colonisation.py] */
+/* colonisation.py: System Raven Colonial status; In files: colonisation.py:764:764 */
+"Secured" = "Secured";
+
+/* colonisation.py: Colonisation column heading RC security; colonisation.py: Colonisation column heading Security impact; colonisation.py: As above; colonisation.py: Security heading; In files: colonisation.py:58:58; colonisation.py:73:73; colonisation.py:98:98; colonisation.py:121:121; colonisation.py:312:312 */
 "Security" = "Güvenlik";
 
-/* Colonisation 'Building Type' [base_types.json] */
+/* base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0: */
 "Security Installation" = "Güvenlik Üssü";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Security Station" = "Güvenlik İstasyonu";
 
-/* [widgets.py] */
+/* ui.py: System information overlay security; In files: ui.py:761:761 */
+"Security: {security}" = "Security: {security}";
+
+/* widgets.py: Right-click menu option; sheet_options.py: Spreadsheet menu item; In files: widgets.py:176:176; widgets.py:181:181; sheet_options.py:197:197 */
 "Select all" = "Tümünü seç";
 
-/* [fleetcarrier.py] */
+/* fleetcarrier.py: fleet carrier orders discord label; In files: fleetcarrier.py:498:498 */
 "sell" = "sat";
 
-/* Carrier cargo. [fleetcarrier.py] */
+/* fleetcarrier.py: Cargo tab; fleetcarrier.py: Carrier locker; fleetcarrier.py: Carrier cargo; fleetcarrier.py: Dropdown menu on activity window; fleetcarrier.py: Locker tab; In files: fleetcarrier.py:159:159; fleetcarrier.py:194:194; fleetcarrier.py:57:57; fleetcarrier.py:71:71; fleetcarrier.py:377:377 */
 "Selling" = "Satış";
 
-/* Label on API settings window. [api.py] */
+/* api.py: Label on API settings window; In files: api.py:105:105 */
 "Server URL" = "Sunucu URL";
 
-/* Services summary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Services summary tab; In files: fleetcarrier.py:34:34 */
 "Service" = "Servis";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:89:89 */
 "Services Cost" = "Hizmet Maliyeti";
 
-/* Colonisation 'Category' [base_types.json] */
+/* base_types.json: Colonisation 'Category' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Settlement" = "Yerleşke";
 
-/* Discord heading. [default.py] */
+/* default.py: Discord heading; In files: default.py:284:284 */
 "settlements" = "yerleşkeler";
 
-/* Activity window column title. [activity.py] */
+/* cmdrs.py: CMDR window column title; activity.py: Activity window column title; In files: activity.py:250:250; cmdrs.py:62:62 */
 "Ship" = "Gemi";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* clb.py: Ship Murders in Discord report; In files: clb.py:161:161 */
+"Ship Murders" = "Ship Murders";
+
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:103:103 */
 "Ship Packs" = "Gemi Paketleri";
 
-/* Label on API settings window. [api.py] */
+/* api.py: Label on API settings window; In files: api.py:125:125 */
 "Shortcuts for Popular Servers" = "Popüler Sunucular için Kısayollar";
 
-/* tooltip for the show bases button. [colonisation.py] */
+/* colonisation.py: tooltip for the show bases button; In files: colonisation.py:342:342 */
 "Show base types window" = "Üs tipi penceresini görüntüle";
 
-/* Main window tooltip. [ui.py] */
+/* ui.py: Main window tooltip; In files: ui.py:151:151 */
 "Show CMDR information window" = "CMDR bilgi penceresini göster";
 
-/* Main window tooltip. [ui.py] */
+/* ui.py: Main window tooltip; In files: ui.py:167:167 */
 "Show colonisation window" = "Kolonizasyon penceresini göster";
 
-/* Preferences checkbox label. [ui.py] */
+/* activity.py: Checkbox label; ui.py: Preferences checkbox label; In files: ui.py:223:223; activity.py:123:123 */
 "Show Detailed INF" = "Detaylı INF Göster";
 
-/* Preferences checkbox label. [ui.py] */
+/* activity.py: Checkbox label; ui.py: Preferences checkbox label; In files: ui.py:225:225; activity.py:125:125 */
 "Show Detailed Trade" = "Detaylı Ticareti Göster";
 
-/* Main window tooltip. [ui.py] */
+/* ui.py: Main window tooltip; In files: ui.py:155:155 */
 "Show fleet carrier window" = "Filo taşıyıcı penceresini göster";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences checkbox label; In files: ui.py:281:281 */
 "Show In-game Overlay" = "Oyun-içi Arayüzü Göster";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; colonisation.py: tooltip for the show legend button; In files: activity.py:96:96; colonisation.py:326:326 */
 "Show legend window" = "Geçmiş penceresini göster";
 
-/* tooltip for the next build icon. [progress.py] */
+/* progress.py: tooltip for the next build icon; In files: progress.py:221:221 */
 "Show next build" = "Sonraki yapılandırmayı göster";
 
-/* Main window tooltip. [ui.py] */
+/* ui.py: Main window tooltip; In files: ui.py:162:162 */
 "Show objectives / missions window" = "Hedefler / Görevler penceresini göster";
 
-/* Preferences checkbox label. [ui.py] */
+/* activity.py: Checkbox label; ui.py: Preferences checkbox label; In files: ui.py:227:227; activity.py:127:127 */
 "Show Powerplay Merits Gained" = "Kazanlılan Powerplay Meritlerini görüntüle";
 
-/* tooltip for the previous build icon. [progress.py] */
+/* progress.py: tooltip for the previous build icon; In files: progress.py:209:209 */
 "Show previous build" = "Önceki yapılandırmayı göster";
 
-/* tooltip for the show bodies window. [colonisation.py] */
+/* colonisation.py: tooltip for the show bodies window; In files: colonisation.py:305:305; colonisation.py:347:347 */
 "Show system bodies window" = "Sistem gezgenleri penceresini göster";
 
-/* tooltip for the Inara button. [activity.py] */
+/* activity.py: tooltip for the Inara button; In files: activity.py:171:171 */
 "Show system in Inara" = "Sistemi Inara'da göster";
 
-/* tooltip for the EDGIS button. [activity.py] */
+/* activity.py: tooltip for the EDGIS button; In files: activity.py:175:175 */
 "Show system map in EDGIS" = "Sistem haritasını EDGIS'te göster";
 
-/* tooltip for the show notes window. [colonisation.py] */
+/* colonisation.py: tooltip for the show notes window; In files: colonisation.py:353:353 */
 "Show system notes window" = "Sistem notları penceresini göster";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences checkbox label; In files: ui.py:217:217 */
 "Show Systems with Zero Activity" = "Aktivite Olmayan Sistemleri Göster";
 
-/* Colonisation 'Building Type' [base_types.json] */
+/* base_types.json: Colonisation 'Pad' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Small" = "Küçük";
 
-/* Standard of living impact. [colonisation.py] */
+/* colonisation.py: Colonisation column heading Standard of living impact; colonisation.py: As above; In files: colonisation.py:76:76; colonisation.py:101:101; colonisation.py:124:124 */
 "SoL" = "SoL";
 
-/* Label on carrier window. [fleetcarrier.py] */
+/* fleetcarrier.py: Label on carrier window; In files: fleetcarrier.py:131:131 */
 "Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration" = "Bazı bilgiler güncellenemiyor. Filo Taşıyıcı CAPI Sorgularını Dosya -> Ayarlar -> Yapılandırma'da etkinleştirin";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:141:141 */
 "Sort Asc." = "Artan şekilde sırala.";
 
-/* [sheet_options.py] */
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:148:148 */
 "Sort Desc." = "Azalan şekilde sırala.";
 
-/* Carrier overview. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier cargo; fleetcarrier.py: Carrier locker; fleetcarrier.py: Carrier overview; clb.py: Space CZ details in Discord report; In files: fleetcarrier.py:66:66; fleetcarrier.py:155:155; fleetcarrier.py:190:190; clb.py:209:209 */
 "Space" = "Boşluk";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Space Bar" = "Uzay Barı";
 
-/* Activity window tooltip. [activity.py] */
+/* activity.py: Activity window tooltip; In files: activity.py:260:260 */
 "Space conflict zones" = "Uzay Çatışma Bölgesi";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Space Farm" = "Uzay Çiftliği";
 
-/* Colonisation 'Prerequisites' [base_types.json] */
+/* base_types.json: Colonisation 'Prerequisites' [base_types.json]; In files: base_types.json:0: */
 "Space Farm Installation" = "Uzay tarım Üssü";
 
-/* Discord heading, abbreviation for space conflict zones. [default.py] */
+/* default.py: Discord heading, abbreviation for space conflict zones; activity.py: Activity window column title, abbreviation for space conflict zones; In files: default.py:198:198; activity.py:258:258 */
 "SpaceCZs" = "UzayÇB'leri";
 
-/* Readable carrier states. [fleetcarrier.py] */
+/* clb.py: Trade Buy in Discord report; clb.py: Trade in Discord report; In files: clb.py:165:165; clb.py:218:218 */
+"Spent" = "Spent";
+
+/* fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1061:1061; fleetcarrier.py:1061:1061 */
 "Squadron and Friends" = "Filo ve Arkadaşlar";
 
-/* CMDR window column title. [cmdrs.py] */
+/* cmdrs.py: CMDR window column title; In files: cmdrs.py:61:61 */
 "Squadron ID" = "Filo ID";
 
-/* Overlay CMDR information report message. [ui.py] */
+/* ui.py: Overlay CMDR information report message; In files: ui.py:621:621 */
 "Squadron ID: {squadron}" = "Filo ID: {squadron}";
 
-/* Discord heading. [cmdrs.py] */
+/* cmdrs.py: Discord heading; In files: cmdrs.py:306:306 */
 "Squadron Inara Link" = "Filo Inara Bağlantısı";
 
-/* Label on CMDR window. [cmdrs.py] */
+/* cmdrs.py: Label on CMDR window; In files: cmdrs.py:83:83 */
 "Squadron: " = "Filo: ";
 
-/* Itinerary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Itinerary tab; In files: fleetcarrier.py:80:80; fleetcarrier.py:88:88 */
 "Star System" = "Yıldız Sistemi";
 
-/* Colonisation 'Category' [base_types.json] */
+/* base_types.json: Colonisation 'Category' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Starport" = "Yıldız Limanı";
 
-/* Activity window column title. [activity.py] */
+/* activity.py: Activity window column title; colonisation.py: Current build state; In files: activity.py:214:214; colonisation.py:87:87 */
 "State" = "Durum";
 
-/* Station name heading. [progress.py] */
+/* progress.py: Station name heading; In files: progress.py:83:83 */
 "Station" = "İstasyon";
 
-/* Services summary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Itinerary tab; fleetcarrier.py: Services summary tab; In files: fleetcarrier.py:36:36; fleetcarrier.py:85:85; fleetcarrier.py:96:96 */
 "Status" = "Durum";
 
-/* Cargo tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Locker tab; fleetcarrier.py: Cargo tab; In files: fleetcarrier.py:55:55; fleetcarrier.py:69:69 */
 "Stock" = "Stok";
 
-/* Cargo tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Cargo tab; In files: fleetcarrier.py:59:59 */
 "Stolen" = "Çalıntı";
 
-/* Carrier cargo. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier locker; fleetcarrier.py: Carrier cargo; In files: fleetcarrier.py:157:157; fleetcarrier.py:192:192 */
 "Stored" = "Depolanmış";
 
-/* Carrier shipyard. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier shipyard; In files: fleetcarrier.py:273:273 */
 "Stored Ships" = "Depolanmış Gemiler";
 
-/* Number of ground/surface builds. [colonisation.py] */
+/* base_types.json: Colonisation 'Location' [base_types.json]; colonisation.py: Colonisation column heading Number of ground/surface builds; In files: colonisation.py:62:62; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Surface" = "Yüzey";
 
-/* Label for checkbox to sync data with RavenColonial. [colonisation.py] */
+/* colonisation.py: Label for checkbox to sync data with RavenColonial; In files: colonisation.py:1230:1230; colonisation.py:1351:1351 */
 "Sync with RavenColonial" = "RavenColonial ile senkronize et";
 
-/* CMDR window column title. [cmdrs.py] */
+/* cmdrs.py: CMDR window column title; progress.py: System Name heading; In files: cmdrs.py:60:60; progress.py:82:82 */
 "System" = "Sistem";
 
-/* Discord heading. [default.py] */
+/* default.py: Discord heading; In files: default.py:267:267 */
 "System activity" = "Sistem etkinliği";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences checkbox label; In files: ui.py:329:329 */
 "System Information" = "Sistem Bilgisi";
 
-/* Label for the system's name field in the UI. [colonisation.py] */
+/* colonisation.py: Label for the system's name field in the UI; colonisation.py: Elite dangerous system name; In files: colonisation.py:1214:1214; colonisation.py:1343:1343 */
 "System Name" = "Sistem İsmi";
 
-/* Overlay system tick message. [ui.py] */
+/* activity.py: Label on activity window; ui.py: Overlay system tick message; In files: ui.py:553:553; activity.py:165:165; activity.py:167:167 */
 "System Tick: {tick_time}" = "Sistem Döngüsü: {tick_time}";
 
-/* [progress.py] */
+/* progress.py: Colonisation tonnes abbreviation; In files: progress.py:396:396; progress.py:398:398; progress.py:782:782 */
 "t" = "t";
 
-/* Tier 2 points. [colonisation.py] */
+/* colonisation.py: Colonisation column heading Tier 2 points; colonisation.py: Tier 2 points; In files: colonisation.py:63:63; colonisation.py:88:88; colonisation.py:112:112 */
 "T2" = "T2";
 
-/* Tier 3 points. [colonisation.py] */
+/* colonisation.py: Colonisation column heading Tier 3 points; colonisation.py: Tier 3; In files: colonisation.py:64:64; colonisation.py:89:89; colonisation.py:113:113 */
 "T3" = "T3";
 
-/* Text on API settings window. [api.py] */
+/* api.py: Text on API settings window; In files: api.py:92:92 */
 "Take care when agreeing to this - if you approve this server, {plugin_name} will send your information to it, which will include CMDR details such as your location, missions and kills." = "Bunu kabul ederken dikkatli olun; bu sunucuyu onaylarsanız, {plugin_name}, konumunuz, görevleriniz ve öldürmeleriniz gibi CMDR ayrıntılarını içeren bilgilerinizi ona gönderecektir.";
 
-/* Overlay message. [activity.py] */
+/* activity.py: Overlay message; In files: activity.py:894:894 */
 "Targeted Ally!" = "Hedeflenen Dost!";
 
-/* Carrier overview. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier overview; In files: fleetcarrier.py:67:67 */
 "Tax Level" = "Kesinti Seviyesi";
 
-/* Services summary tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Services summary tab; In files: fleetcarrier.py:38:38 */
 "Tax Rate" = "Kesinti Oranı";
 
-/* Discord CMDR information. [targetmanager.py] */
+/* targetmanager.py: Discord CMDR information; In files: targetmanager.py:290:290 */
 "Team invite received from this CMDR" = "Bu CMDR'dan ekip daveti alındı";
 
-/* Technology level. [colonisation.py] */
+/* colonisation.py: As above; colonisation.py: Colonisation column heading Technology level; In files: colonisation.py:74:74; colonisation.py:99:99; colonisation.py:122:122 */
 "Tech Lvl" = "Tekn Lvl";
 
-/* [colonisation.py] */
+/* colonisation.py: Terraformable body; In files: colonisation.py:504:504 */
 "Terraformable" = "Dünyalaştırılabilir";
 
-/* Name of default output formatter. [text.py] */
+/* text.py: Name of default output formatter; In files: text.py:28:28 */
 "Text Only" = "Sadece metin";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences checkbox label; In files: ui.py:336:336 */
 "Thargoid War Progress" = "Thargoid Savaş Süreci";
 
-/* Label on activity window. [activity.py] */
+/* activity.py: Label on activity window; In files: activity.py:190:190 */
 "Thargoid War System, no BGS Activity is Counted" = "Thargoid Savaş Sistemi, BGS aktiviteleri sayılmayacaktır";
 
-/* Text on API settings window. [api.py] */
+/* api.py: Text on API settings window; In files: api.py:163:163 */
 "The exact set of Events that will be sent is listed in the 'Events Requested' section below. Further information about these Events and what they contain is provided here: " = "Gönderilecek Etkinliklerin tam seti aşağıdaki 'İstenen Etkinlikler' bölümünde listelenmiştir. Bu Etkinlikler ve içerdikleri hakkında daha fazla bilgi burada verilmektedir: ";
 
-/* Discord text. [fleetcarrier.py] */
+/* fleetcarrier.py: Discord text; In files: fleetcarrier.py:702:702 */
 "The scheduled carrier jump was cancelled" = "Planlanan filo taşıyıcı atlaması iptal edildi";
 
-/* Discord CMDR information. [targetmanager.py] */
+/* targetmanager.py: Discord CMDR information; In files: targetmanager.py:270:270 */
 "This CMDR was added as a friend" = "Bu CMDR arkadaş olarak eklendi";
 
-/* Text on API settings window. [api.py] */
+/* api.py: Text on API settings window; In files: api.py:91:91 */
 "This screen is used to set up a connection to a server." = "Bu ekran bir sunucuya bağlantı kurmak için kullanılır.";
 
-/* Preferences force tick popup text. [ui.py] */
+/* ui.py: Preferences force tick popup text; In files: ui.py:711:711 */
 "This will move your current activity into the previous tick, and clear activity for the current tick." = "Bu, mevcut etkinliğinizi önceki döngüye taşıyacak ve mevcut döngüye ilişkin etkinliği temizleyecektir.";
 
-/* [ui.py] */
+/* clb.py: BGS Report Tick time; In files: clb.py:120:120 */
+"Tick" = "Tick";
+
+/* ui.py: Overlay overdue tick message; In files: ui.py:564:564 */
 "Tick {minutes_delta}m Overdue (Estimated)" = "Döngü {minutes_delta}dk Rötarlı (Tahmini)";
 
-/* [colonisation.py] */
+/* colonisation.py: Tidally locked body; In files: colonisation.py:496:496 */
 "Tidally Locked" = "Çekimsel Kilitli";
 
-/* tier of base. [colonisation.py] */
+/* colonisation.py: tier of base; In files: colonisation.py:107:107 */
 "Tier" = "Kademe";
 
-/* [ui.py] */
+/* ui.py: Preferences label; In files: ui.py:276:276 */
 "To add a webhook: Right-click on a row number and select 'Insert rows above / below'." = "Bir webhook eklemek için: Satır numarasına sağ tıklayın ve 'Yukarıya / aşağıya satır ekle'ye basın.";
 
-/* Discord heading. [fleetcarrier.py] */
+/* fleetcarrier.py: Discord heading; In files: fleetcarrier.py:673:673 */
 "To Body" = "Gidilen Gezegen";
 
-/* [ui.py] */
+/* ui.py: Preferences label; In files: ui.py:277:277 */
 "To delete a webhook: Right-click on a row number and select 'Delete rows'." = "Bir webhook silmek için: Bir satır numarasına sağ tıklayın ve \"Satırları sil\"e basın.";
 
-/* Discord heading. [fleetcarrier.py] */
+/* fleetcarrier.py: Discord heading; In files: fleetcarrier.py:672:672 */
 "To System" = "Gidilen Sistem";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* progress.py: total commodities; progress.py: Colonisation total commodities; colonisation.py: Colonisation column heading Total number of builds; progress.py: Total amounts; fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:87:87; colonisation.py:60:60; progress.py:297:297; progress.py:640:640; progress.py:752:752 */
 "Total" = "Toplam";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:94:94 */
 "Total Capacity" = "Toplam Kapasite";
 
-/* delivered amount tooltip. [progress.py] */
+/* progress.py: delivered amount tooltip; In files: progress.py:51:51 */
 "Total quantity delivered" = "Toplam teslim edilen miktar";
 
-/* required amount tooltip. [progress.py] */
+/* progress.py: required amount tooltip; In files: progress.py:46:46 */
 "Total quantity required" = "Toplam gerekli miktar";
 
-/* Carrier summary. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier summary; In files: fleetcarrier.py:95:95 */
 "Total Used" = "Toplam Kullanılan";
 
-/* Carrier cargo. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier locker; fleetcarrier.py: Carrier cargo; fleetcarrier.py: Carrier shipyard; In files: fleetcarrier.py:161:161; fleetcarrier.py:196:196; fleetcarrier.py:274:274 */
 "Total Value" = "Toplam Değer";
 
-/* Colonisation 'Economy Influence' [base_types.json] */
+/* base_types.json: Colonisation 'Facility Economy' [base_types.json]; base_types.json: Colonisation 'Economy Influence' [base_types.json]; In files: base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0:; base_types.json:0: */
 "Tourism" = "Turizm";
 
-/* Colonisation 'Prerequisites' [base_types.json] */
+/* base_types.json: Colonisation 'Prerequisites' [base_types.json]; In files: base_types.json:0: */
 "Tourism Settlement" = "Turizm Yerleşkesi";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Tourism Tier 1" = "Turizm Seviye 1";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Tourism Tier 1 Med" = "Turizm Seviye 1 Orta";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Tourism Tier 1 Sml" = "Turizm Seviye 1 Küçük";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Tourism Tier 2" = "Turizm Seviye 2";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; In files: base_types.json:0: */
 "Tourism Tier 2 Lrg" = "Turizm Seviye 2 Büyük";
 
-/* Colonisation 'Type (Listed as/under)' [base_types.json] */
+/* base_types.json: Colonisation 'Type (Listed as/under)' [base_types.json]; In files: base_types.json:0: */
 "Tourist" = "Turist";
 
-/* Colonisation 'Type' [base_types.json] */
+/* base_types.json: Colonisation 'Type' [base_types.json]; base_types.json: Colonisation 'Building Type' [base_types.json]; In files: base_types.json:0:; base_types.json:0: */
 "Tourist Installation" = "Turist Üssü";
 
-/* Track this build?. [colonisation.py] */
+/* colonisation.py: Track this build?; In files: colonisation.py:81:81 */
 "Track" = "Takip et";
 
-/* Activity window column title. [activity.py] */
+/* activity.py: Activity window column title; In files: activity.py:224:224 */
 "Trade" = "Ticaret";
 
-/* Readable carrier states. [fleetcarrier.py] */
+/* fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1068:1068; fleetcarrier.py:1068:1068 */
 "Trader" = "Tüccar";
 
-/* Shipyard tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Shipyard tab; In files: fleetcarrier.py:109:109 */
 "Transfer Cost" = "Aktarım Maliyetleri";
 
-/* Shipyard tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Shipyard tab; In files: fleetcarrier.py:108:108 */
 "Transfer Time" = "Transfer Süresi";
 
-/* Discord heading, abbreviation for trade black market profit. [default.py] */
+/* default.py: Discord heading, abbreviation for trade black market profit; In files: default.py:191:191 */
 "TrdBMProfit" = "TcrtKBKznc";
 
-/* Discord heading, abbreviation for trade buy. [default.py] */
+/* default.py: Discord heading, abbreviation for trade buy; default.py: Abbreviation for trade buy in Discord; In files: default.py:407:407; default.py:413:413 */
 "TrdBuy" = "TcrtAlm";
 
-/* Discord heading, abbreviation for trade profit. [default.py] */
+/* default.py: Abbreviation for trade profit in Discord; default.py: Discord heading, abbreviation for trade profit; In files: default.py:408:408; default.py:419:419 */
 "TrdProfit" = "TcrtKznc";
 
-/* Carrier itinerary. [fleetcarrier.py] */
+/* fleetcarrier.py: Itinerary tab; fleetcarrier.py: Carrier itinerary; In files: fleetcarrier.py:260:260; fleetcarrier.py:94:94 */
 "Tritium" = "Trityum";
 
-/* Discord heading, abbreviation for tissue sample. [default.py] */
+/* default.py: Discord heading, abbreviation for tissue sample; In files: default.py:280:280 */
 "ts" = "dn";
 
-/* Discord post title. [activity.py] */
+/* activity.py: Discord post title; In files: activity.py:337:337 */
 "TW Activity after Tick: {tick_time}" = "Döngü sonrası TW etkinliği: {tick_time}";
 
-/* Dropdown menu on activity window. [activity.py] */
+/* activity.py: Dropdown menu on activity window; In files: activity.py:81:81 */
 "TW Only" = "Sadece TW";
 
-/* [ui.py] */
+/* ui.py: Overlay TW report message; In files: ui.py:582:582 */
 "TW War Progress in {current_system}: {percent}%" = "Mevcut sistemdeki TW Savaş Süreci {current_system}: {percent}%";
 
-/* body type details. [colonisation.py] */
+/* fleetcarrier.py: Shipyard tab; progress.py: Station type (O=Orbital, S=Surface, C=Carrier); colonisation.py: body type details; In files: colonisation.py:86:86; fleetcarrier.py:104:104; progress.py:88:88 */
 "Type" = "Tip";
 
-/* type of base as listed in the game. [colonisation.py] */
+/* colonisation.py: type of base as listed in the game; In files: colonisation.py:110:110 */
 "Type (Listed as)" = "Tip (Listelendiği Gibi)";
 
-/* [sheet_options.py] */
+/* colonisation.py: General failure to create system error; In files: colonisation.py:1303:1303 */
+"Unable to create system" = "Unable to create system";
+
+/* sheet_options.py: Spreadsheet menu item; In files: sheet_options.py:202:202 */
 "Undo" = "Geri al";
 
-/* [fleetcarrier.py] */
+/* ui.py: Overlay CMDR information report message; progress.py: Unknown colonisation plan name; ui.py: System information overlay security; fleetcarrier.py: Fleet carrier, unknown location; progress.py: Unknown system name; colonisation.py: Default when we don't know the name; colonisation.py: Unknown system architect; ui.py: Station information overlay title; ui.py: System information overlay government; ui.py: System information overlay conflict asset at stake information; progress.py: Unknown colonisation system name; ui.py: System information overlay controlling faction conflict information; ui.py: System information overlay title; ui.py: System information overlay conflict faction; ui.py: System information overlay conflict opposing faction; ui.py: System information overlay conflict state; ui.py: System information overlay conflict score; ui.py: System information overlay controlling faction; ui.py: Station information overlay controlling faction; In files: fleetcarrier.py:981:981; ui.py:619:619; ui.py:620:620; ui.py:621:621; ui.py:622:622; ui.py:623:623; ui.py:729:729; ui.py:736:736; ui.py:747:747; ui.py:748:748; ui.py:749:749; ui.py:750:750; ui.py:751:751; ui.py:752:752; ui.py:753:753; ui.py:760:760; ui.py:761:761; ui.py:777:777; ui.py:778:778; colonisation.py:670:670; colonisation.py:761:761; progress.py:360:360; progress.py:611:611; progress.py:616:616; progress.py:617:617 */
 "Unknown" = "Bilinmeyen";
 
-/* Main window label. [ui.py] */
+/* ui.py: Main window label; In files: ui.py:186:186 */
 "Update will be installed on shutdown" = "Uygulama kapatıldığında güncelleme yüklenecek";
 
-/* Discord footer message, modern embed mode. [discord.py] */
+/* discord.py: Discord footer message, modern embed mode; In files: discord.py:203:203 */
 "Updated at {date_time} (game)" = "{date_time} (oyun)'da güncellendi";
 
-/* Discord message footer, legacy text mode. [discord.py] */
+/* discord.py: Discord message footer, legacy text mode; In files: discord.py:82:82 */
 "Updated at: {date_time} | {plugin_name} v{version}" = "Güncellendi: {date_time} | {plugin_name} v{version}";
 
-/* Preferences checkbox label. [ui.py] */
+/* activity.py: Checkbox label; ui.py: Preferences checkbox label; In files: ui.py:236:236; activity.py:136:136 */
+"Use Colonisation Plan name instead of System Name" = "Use Colonisation Plan name instead of System Name";
+
+/* ui.py: Preferences checkbox label; In files: ui.py:362:362 */
 "Use scrollbar (restart required)" = "Scrollbar Kullan (yeniden başlatma gereklidir)";
 
-/* Carrier cargo. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier locker; fleetcarrier.py: Carrier cargo; In files: fleetcarrier.py:156:156; fleetcarrier.py:191:191 */
 "Used" = "Kullanılan";
 
-/* Shipyard tab. [fleetcarrier.py] */
+/* fleetcarrier.py: Shipyard tab; In files: fleetcarrier.py:106:106 */
 "Value" = "Değer";
 
-/* Service name. [fleetcarrier.py] */
+/* fleetcarrier.py: Service name; In files: fleetcarrier.py:42:42 */
 "Vista Genomics" = "Vista Genomics";
 
-/* [clb.py] */
+/* clb.py: War Influence in Discord report; In files: clb.py:134:134 */
 "War Inf" = "Savaş Inf";
 
-/* Discord heading, abbreviation for war INF. [default.py] */
+/* default.py: Discord heading, abbreviation for war INF; In files: default.py:338:338 */
 "WarINF" = "SavaşINF";
 
-/* Preferences force tick popup text. [ui.py] */
+/* ui.py: Preferences force tick popup text; In files: ui.py:712:712 */
 "WARNING: It is not usually necessary to force a tick. Only do this if you know FOR CERTAIN there has been a tick but {plugin_name} is not showing it." = "UYARI: Genellikle Döngüyü sıfırlamak gerekli değildir. Bunu yalnızca {plugin_name}'in bunu göstermediğinde ve Döngünün geldiğinden emin olduğunuzda yapın.";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences checkbox label; In files: ui.py:343:343 */
 "Warnings" = "Uyarılar";
 
-/* Wealth impact. [colonisation.py] */
+/* colonisation.py: As above; colonisation.py: Colonisation column heading Wealth impact; In files: colonisation.py:75:75; colonisation.py:100:100; colonisation.py:123:123 */
 "Wealth" = "Varlık";
 
-/* Preferences table heading. [ui.py] */
+/* ui.py: Preferences table heading; In files: ui.py:256:256 */
 "Webhook URL" = "Webhook URL";
 
-/* Label on API settings window. [api.py] */
+/* api.py: Label on API settings window; In files: api.py:133:133; api.py:145:145; api.py:151:151 */
 "Website ⤴" = "Websitesi ⤴";
 
-/* Carrier services. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier services; In files: fleetcarrier.py:117:117 */
 "Weekly Cost" = "Haftalık Bakım Masrafları";
 
-/* Notice about the first base being special. [colonisation.py] */
+/* colonisation.py: Notice about the first base being special; In files: colonisation.py:1234:1234 */
 "When planning your system the first base is special, make sure that it is the first on the list." = "Sisteminizi planlarken ilk üs özeldir, listenin başında yer aldığından emin olun.";
 
-/* [ui.py] */
+/* ui.py: Overlay close to tick message; In files: ui.py:568:568 */
 "Within {minutes_to_tick}m of Next Tick (Estimated)" = "Sonraki döngüden sonraki {minutes_to_tick}dk içinde (Tahmini)";
 
-/* Discord heading. [default.py] */
+/* default.py: Discord heading; In files: default.py:290:290 */
 "wounded" = "yaralı";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:98:98 */
 "Wounded evacuation missions" = "Yaralı tahliye görevleri";
 
-/* Readable carrier states. [fleetcarrier.py] */
+/* fleetcarrier.py: Readable carrier states; In files: fleetcarrier.py:1070:1070; fleetcarrier.py:1070:1070 */
 "Xeno Hunter" = "Xeno Avcısı";
 
-/* Yes. [utils.py] */
+/* utils.py: Yes; In files: utils.py:293:293 */
 "Yes" = "Evet";
 
-/* Label on legend window. [legend.py] */
+/* legend.py: Label on legend window; In files: legend.py:80:80 */
 "Zero / Low / Med / High demand level for trade buy / sell" = "Ticari alım / satım için Sıfır / Düşük / Orta / Yüksek talep seviyesi";
 
-/* Activity window title. [activity.py] */
+/* activity.py: Activity window title; In files: activity.py:59:59 */
 "{plugin_name} - Activity After Tick at: {tick_time}" = "{plugin_name} - Döngü sonrası etkinlik zamanı: {tick_time}";
 
-/* API settings window title. [api.py] */
+/* api.py: API settings window title; In files: api.py:55:55 */
 "{plugin_name} - API Settings" = "{plugin_name} - API Ayarları";
 
-/* Carrier window title. [fleetcarrier.py] */
+/* fleetcarrier.py: Carrier window title; In files: fleetcarrier.py:125:125 */
 "{plugin_name} - Carrier {carrier_name}" = "{plugin_name} - Filo taşıyıcı {carrier_name}";
 
-/* CMDR window title. [cmdrs.py] */
+/* cmdrs.py: CMDR window title; In files: cmdrs.py:42:42 */
 "{plugin_name} - CMDR Interactions" = "{plugin_name} - CMDR Etkileşimleri";
 
-/* window title. [colonisation.py] */
+/* colonisation.py: window title; In files: colonisation.py:182:182 */
 "{plugin_name} - Colonisation" = "{plugin_name} - Kolonizasyon";
 
-/* Title of the base type popup window. [colonisation.py] */
+/* colonisation.py: Title of the base type popup window; In files: colonisation.py:415:415 */
 "{plugin_name} - Colonisation Base Types" = "{plugin_name} - Kolonizasyon Üs Tipleri";
 
-/* Title of the bodies popup window. [colonisation.py] */
+/* colonisation.py: Title of the bodies popup window; In files: colonisation.py:466:466 */
 "{plugin_name} - Colonisation Bodies" = "{plugin_name} - Kolonizasyon Gezegenleri";
 
-/* Title of the legend popup window. [colonisation.py] */
+/* colonisation.py: Title of the legend popup window; In files: colonisation.py:563:563 */
 "{plugin_name} - Colonisation Legend" = "{plugin_name} - Kolonizasyon";
 
-/* Title of the notes popup window. [colonisation.py] */
+/* colonisation.py: Title of the notes popup window; In files: colonisation.py:541:541 */
 "{plugin_name} - Colonisation Notes for {system_name}" = "{plugin_name} - {system_name} için Kolonizasyon Notları";
 
-/* Legend window title. [legend.py] */
+/* legend.py: Legend window title; In files: legend.py:47:47 */
 "{plugin_name} - Icon Legend" = "{plugin_name} - Icon Geçmişi";
 
-/* Title of the markets popup window. [progress.py] */
+/* progress.py: Title of the markets popup window; In files: progress.py:492:492 */
 "{plugin_name} - Markets Window" = "{plugin_name} - Marketler Penceresi";
 
-/* Objectives window title. [objectives.py] */
+/* objectives.py: Objectives window title; In files: objectives.py:31:31 */
 "{plugin_name} - Objectives" = "{plugin_name} - Hedefler";
 
-/* Preferences checkbox label. [ui.py] */
+/* ui.py: Preferences checkbox label; In files: ui.py:216:216 */
 "{plugin_name} Active" = "{plugin_name} Aktif";
 
-/* Overlay message. [overlay.py] */
+/* overlay.py: Overlay message; In files: overlay.py:323:323 */
 "{plugin_name} Ready" = "{plugin_name} Hazır";
 
-/* Main window label. [ui.py] */
+/* ui.py: Main window label; In files: ui.py:133:133 */
 "{plugin_name} Status:" = "{plugin_name} Durum:";
 
-/* Main window error message. [tick.py] */
+/* tick.py: Main window error message; In files: tick.py:42:42; tick.py:50:50 */
 "{plugin_name} WARNING: Unable to fetch latest tick" = "{plugin_name} UYARI: Son döngü güncellemesi eşlenemedi";
 
-/* [tick.py] */
+/* tick.py: Main window error message; In files: tick.py:85:85 */
 "{plugin_name} WARNING: Unable to fetch system tick" = "{plugin_name} DİKKAT: Sistem Döngüsü Alınamadı";
 
-/* Objectives title. [objectivesmanager.py] */
+/* objectivesmanager.py: Objectives title; In files: objectivesmanager.py:60:60 */
 "{server_name} Objectives" = "{server_name} Hedefler";
 
-/* Hide button. [colonisation.py] */
-"👁" = "👁";
+/* ui.py: System information overlay conflict information; In files: ui.py:746:746 */
+"{state}: {faction1} vs {faction2} - {score_for}:{score_against}" = "{state}: {faction1} vs {faction2} - {score_for}:{score_against}";

@@ -23,8 +23,9 @@ from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key, ICON_DEL, ICON_ADD, ICON_SORT_DESC, ICON_SORT_ASC, ICON_REDO
 from thirdparty.Tooltip import ToolTip
+from thirdparty.tkrichtext import RichScrolledText
 
-FILENAME_LEGEND = "colonisation_legend.txt"
+FILENAME_LEGEND = "colonisation_legend.md"
 SUMMARY_HEADER_ROW = 0
 FIRST_SUMMARY_ROW = 1
 HEADER_ROW = 3
@@ -571,12 +572,11 @@ class ColonisationWindow:
         self.legend_fr.geometry(geometry)
         self.legend_fr.protocol("WM_DELETE_WINDOW", partial(self.close, 'Legend', self.legend_fr))
         self.legend_fr.config(bd=2, relief=tk.FLAT)
-        scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
-        scr.pack(side=tk.RIGHT, fill=tk.Y)
 
-        text:tk.Text = tk.Text(self.legend_fr, font=FONT_SMALL, yscrollcommand=scr.set)
-        text.insert(tk.END, self._load_legend())
-        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+        text:RichScrolledText = RichScrolledText(self.legend_fr, markdown=self._load_legend())
+        text.pack(fill="both", expand=True, ipadx=5, ipady=5)
+        text.fit_height()
+
 
 
     @catch_exceptions

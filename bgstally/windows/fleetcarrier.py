@@ -386,8 +386,8 @@ class WindowFleetCarrier:
             while len(output) > 1990:
                 split_at:int = output.rfind('\n', 0, 1900)
                 part:str = output[0:split_at]
-                self.bgstally.discord.post_plaintext(part, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
-                output = output[split_at+1:]
+                self.bgstally.discord.post_plaintext(part + "```", None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
+                output = "```\n" + output[split_at+1:]
             self.bgstally.discord.post_plaintext(output, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
             btn.after(5000, _enable_post, btn)
 
@@ -521,7 +521,6 @@ class WindowFleetCarrier:
         data:dict = fc.get_cargo() if which == 'Cargo' else fc.get_locker()
 
         output:str = ""
-        if discord == True: output += "## "
 
         order:str = which
         match type:
@@ -529,14 +528,12 @@ class WindowFleetCarrier:
             case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
             case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
 
-        output += __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) + "\n" # LANG: fleet carrier materials header
+        output += "## " + __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) + "\n" # LANG: fleet carrier materials header
         if fc.overview.get('currentStarSystem', "") != "":
-            if discord == True: output += "### "
-            output += __("Location: {system}", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) + "\n" # LANG: fleet carrier materials system line
-        output += "\n"
+            output += "### " + __("Location: {system}", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) + "\n" # LANG: fleet carrier materials system line
 
+        output += "\n```\n"
         # Header row for table
-        if discord == True: output += "```\n"
         header:list = []
         for col in tab['cols'].values():
             if col.get('discordWidth', None) == None: continue
@@ -546,7 +543,6 @@ class WindowFleetCarrier:
         output += " | ".join(header) + "\n"
         w:int = sum([d.get('discordWidth', 0) for d in tab['cols'].values()])
         output += "-" * (w + (3 * (len(header) -1))) + "\n"
-        #output += "-" * (sum(col['discordWidth']) + (3 * (len(col['discordWidth']) -1))) + "\n"
 
         # Table rows
         for item in data.get('inventory', {}).values():
@@ -567,8 +563,7 @@ class WindowFleetCarrier:
                 line.append(fmt.format(val=tmp))
             if line != []:
                 output += " | ".join(line) + "\n"
-
-        if discord == True: output += "```"
+        output += "```"
         return output
 
 

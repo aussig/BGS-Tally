@@ -70,6 +70,30 @@ class ObjectivesManager:
         else: return self.api.objectives
 
 
+    def _get_priority_stars(self, priority: str|None) -> str:
+        """Convert priority number to star representation
+
+        Args:
+            priority (str|None): Priority as string (1-5)
+
+        Returns:
+            str: Star representation (e.g., "★★★☆☆" or "[***  ]")
+        """
+        try:
+            priority_num = int(priority) if priority else 0
+        except (ValueError, TypeError):
+            priority_num = 0
+
+        # Clamp between 0 and 5
+        priority_num = max(0, min(5, priority_num))
+
+        # Use unicode stars for visual representation
+        filled_stars = "★" * priority_num
+        empty_stars = "☆" * (5 - priority_num)
+
+        return f"[{filled_stars}{empty_stars}]"
+
+
     def objectives_received(self, api: API):
         """Objectives have been received from the API
 
@@ -95,6 +119,7 @@ class ObjectivesManager:
 
         for mission in self.api.objectives:
             mission_title: str|None = mission.get('title')
+            mission_priority: str|None = mission.get('priority', '0')
             mission_description: str|None = mission.get('description')
             mission_system: str|None = mission.get('system')
             if mission_system is None: mission_system = _("Unknown") # LANG: Unknown system name
@@ -107,8 +132,11 @@ class ObjectivesManager:
             if mission_enddate < datetime.now(UTC): continue
             mission_activity: Activity = self.bgstally.activity_manager.query_activity(mission_startdate)
 
+            # Add priority stars
+            priority_stars: str = self._get_priority_stars(mission_priority)
+
             if mission_title:
-                result += "º " + mission_title + "\n"
+                result += f"{priority_stars} " + mission_title + "\n"
             else:
                 match mission.get('type'):
                     case MissionType.RECON: result += "º " + _("Recon Mission") + "\n" # LANG: Recon mission objective

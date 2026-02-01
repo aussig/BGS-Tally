@@ -266,7 +266,6 @@ class Overlay:
             if anchor in ["ne", "right", "se"]:
                 # Assume a right side anchor means we're on the right side of the screen and force a small offset to avoid clipping.
                 id_prefix_offset_x = -5
-                justification = "right" # this does not work well with vector images.
             else:
                 id_prefix_offset_x = None
 

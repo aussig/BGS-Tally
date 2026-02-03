@@ -1,4 +1,3 @@
-import json
 import tkinter as tk
 from datetime import UTC, datetime
 from tkinter import ttk
@@ -29,7 +28,7 @@ class WindowObjectives:
         self.collapsibles: list = []
 
         # Track state across refreshes
-        self.previous_objectives_json: str = ""  # JSON serialization of objectives data
+        self.previous_objectives_hash: str = ""  # Hash of objectives data for change detection
         self.collapsible_states: dict = {}  # Maps mission identifier to open/closed state
 
 
@@ -87,12 +86,9 @@ class WindowObjectives:
         # Build collapsible objectives
         self._build_objectives()
 
-        # Store initial state
+        # Store initial hash for change detection
         objectives = self.bgstally.objectives_manager.get_objectives()
-        try:
-            self.previous_objectives_json = json.dumps(objectives, sort_keys=True)
-        except (TypeError, ValueError):
-            self.previous_objectives_json = str(objectives)
+        self.previous_objectives_hash = self.bgstally.objectives_manager._get_objectives_hash(objectives)
 
         # Auto-refresh
         self.toplevel.after(5000, self._update_objectives)
@@ -124,28 +120,6 @@ class WindowObjectives:
             self.canvas.yview_scroll(-1, "units")
 
 
-    def _get_mission_key(self, mission: dict) -> str:
-        """Generate a unique identifier for a mission to track its state
-
-        Args:
-            mission: The mission dict
-
-        Returns:
-            A unique string identifier
-        """
-        title = mission.get('title', '')
-        mission_type = mission.get('type', '')
-        system = mission.get('system', '')
-        faction = mission.get('faction', '')
-        startdate = mission.get('startdate', '')
-
-        # Use title if available, otherwise use type + system + faction + startdate
-        if title:
-            return f"{title}_{system}_{faction}_{startdate}"
-        else:
-            return f"{mission_type}_{system}_{faction}_{startdate}"
-
-
     def _save_collapsible_states(self, objectives: list):
         """Save the current open/closed state of all collapsibles
 
@@ -154,7 +128,7 @@ class WindowObjectives:
         """
         for idx, collapsible in enumerate(self.collapsibles):
             if idx < len(objectives):
-                mission_key = self._get_mission_key(objectives[idx])
+                mission_key = self.bgstally.objectives_manager.get_mission_key(objectives[idx])
                 self.collapsible_states[mission_key] = collapsible.open
 
 
@@ -212,7 +186,7 @@ class WindowObjectives:
                 expanded_text = f"▼ {priority_stars} {default_title}"
 
             # Determine initial state from saved states
-            mission_key = self._get_mission_key(mission)
+            mission_key = self.bgstally.objectives_manager.get_mission_key(mission)
             initial_open_state = self.collapsible_states.get(mission_key, False)
 
             # Create collapsible frame
@@ -394,18 +368,14 @@ class WindowObjectives:
         # Get current objectives data
         objectives = self.bgstally.objectives_manager.get_objectives()
 
-        # Serialize to JSON for comparison (sorted keys for consistent comparison)
-        try:
-            current_objectives_json = json.dumps(objectives, sort_keys=True)
-        except (TypeError, ValueError) as e:
-            Debug.logger.warning(f"[ObjectivesWindow] Failed to serialize objectives: {e}")
-            current_objectives_json = str(objectives)
+        # Use shared hash function for efficient change detection
+        current_objectives_hash = self.bgstally.objectives_manager._get_objectives_hash(objectives)
 
         # Only rebuild if data has changed
-        if current_objectives_json != self.previous_objectives_json:
+        if current_objectives_hash != self.previous_objectives_hash:
             Debug.logger.debug("[ObjectivesWindow] Objectives data changed, rebuilding UI")
             self._build_objectives()
-            self.previous_objectives_json = current_objectives_json
+            self.previous_objectives_hash = current_objectives_hash
         else:
             Debug.logger.debug("[ObjectivesWindow] No changes in objectives data, skipping rebuild")
 

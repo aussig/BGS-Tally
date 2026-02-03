@@ -56,41 +56,41 @@ class WindowObjectivesOverlaySettings:
             row=current_row, column=0, sticky=tk.W, pady=(0, 15))
         current_row += 1
 
-        # Mode 0: Minimal notification for new objectives
+        # Mode 0: Notification
         tk.Radiobutton(
             frame_container,
-            text=_("New objective notification only (1 minute)"),
+            text=_("Show notification for new objectives"),
             variable=self.temp_mode,
             value="0"
         ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
         current_row += 1
-        tk.Label(frame_container, text="     " + _("Shows only \"New Objective\" text for 1 minute when a new objective is fetched."),
+        tk.Label(frame_container, text="     " + _("Shows a notification when a new objective is detected"),
                  wraplength=650, justify=tk.LEFT, foreground="gray").grid(
             row=current_row, column=0, sticky=tk.W, pady=(0, 8))
         current_row += 1
 
-        # Mode 1: Full text for new objectives
+        # Mode 1: New objectives
         tk.Radiobutton(
             frame_container,
-            text=_("New objective with full details (1 minute)"),
+            text=_("Show new objective"),
             variable=self.temp_mode,
             value="1"
         ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
         current_row += 1
-        tk.Label(frame_container, text="     " + _("Shows \"New Objective\" with full text and description for 1 minute when a new objective is fetched."),
+        tk.Label(frame_container, text="     " + _("Shows objective details when a new objective is detected."),
                  wraplength=650, justify=tk.LEFT, foreground="gray").grid(
             row=current_row, column=0, sticky=tk.W, pady=(0, 8))
         current_row += 1
 
-        # Mode 2: Full text for new and updated objectives
+        # Mode 2: New and updated objectives
         tk.Radiobutton(
             frame_container,
-            text=_("New and updated objectives with full details (1 minute)"),
+            text=_("Show new and updated objectives"),
             variable=self.temp_mode,
             value="2"
         ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
         current_row += 1
-        tk.Label(frame_container, text="     " + _("Shows full text for 1 minute when objectives are added or when existing objectives/targets are updated."),
+        tk.Label(frame_container, text="     " + _("Shows objective details when an objective and/or their target is added or updated."),
                  wraplength=650, justify=tk.LEFT, foreground="gray").grid(
             row=current_row, column=0, sticky=tk.W, pady=(0, 8))
         current_row += 1
@@ -103,20 +103,20 @@ class WindowObjectivesOverlaySettings:
             value="3"
         ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
         current_row += 1
-        tk.Label(frame_container, text="     " + _("Always displays the highest priority objective (most stars) in the overlay."),
+        tk.Label(frame_container, text="     " + _("Always displays the highest priority objective between the active ones."),
                  wraplength=650, justify=tk.LEFT, foreground="gray").grid(
             row=current_row, column=0, sticky=tk.W, pady=(0, 8))
         current_row += 1
 
-        # Mode 4: Show all objectives (current behavior)
+        # Mode 4: Show all objectives
         tk.Radiobutton(
             frame_container,
-            text=_("Always show all objectives (default)"),
+            text=_("Always show all objectives"),
             variable=self.temp_mode,
             value="4"
         ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
         current_row += 1
-        tk.Label(frame_container, text="     " + _("Shows all objectives at all times in the overlay (current behavior)."),
+        tk.Label(frame_container, text="     " + _("Shows all objectives."),
                  wraplength=650, justify=tk.LEFT, foreground="gray").grid(
             row=current_row, column=0, sticky=tk.W, pady=(0, 15))
         current_row += 1

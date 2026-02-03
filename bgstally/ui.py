@@ -26,6 +26,7 @@ from bgstally.windows.colonisation import ColonisationWindow
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
 from bgstally.windows.legend import WindowLegend
 from bgstally.windows.objectives import WindowObjectives
+from bgstally.windows.objectives_overlay_settings import WindowObjectivesOverlaySettings
 from bgstally.windows.progress import ProgressWindow
 from config import config
 from thirdparty.tksheet import Sheet
@@ -38,6 +39,7 @@ SIZE_BUTTON_PIXELS = 30
 SIZE_STATUS_ICON_PIXELS = 16
 TIME_WORKER_PERIOD_S = 2
 TIME_TICK_ALERT_M = 60
+TIME_TICK_OBJECTIVES_REFRESH_S = 30
 URL_LATEST_RELEASE = "https://github.com/aussig/BGS-Tally/releases/latest"
 URL_WIKI = "https://github.com/aussig/BGS-Tally/wiki"
 
@@ -91,6 +93,7 @@ class UI:
         self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally)
         self.window_legend:WindowLegend = WindowLegend(self.bgstally)
         self.window_objectives:WindowObjectives = WindowObjectives(self.bgstally)
+        self.window_objectives_overlay_settings:WindowObjectivesOverlaySettings = WindowObjectivesOverlaySettings(self.bgstally)
         self.window_colonisation:ColonisationWindow = ColonisationWindow(self.bgstally)
         self.window_progress:ProgressWindow = ProgressWindow(self.bgstally)
 
@@ -324,6 +327,10 @@ class UI:
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
+        ttk.Button(overlay_options_frame_1, text="⚙", width=3,
+                   state=self.overlay_options_state(),
+                   command=partial(self.window_objectives_overlay_settings.show, parent_frame)
+                   ).pack(side=tk.LEFT, padx=(2, 0))
         overlay_options_frame_2:ttk.Frame = ttk.Frame(frame)
         overlay_options_frame_2.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(overlay_options_frame_2, text=_("System Information"), # LANG: Preferences checkbox label
@@ -633,8 +640,45 @@ class UI:
 
             # Objectives
             if self.bgstally.state.enable_overlay_objectives and self.bgstally.objectives_manager.get_objectives() != []:
-                objectives_text: str = self.bgstally.objectives_manager.get_overlay_objectives()
-                self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
+                mode: int = self.bgstally.state.overlay_objectives_mode
+                objectives_text: str = ""
+                show_objectives: bool = False
+
+                # Check if we're within TIME_TICK_OBJECTIVES_REFRESH_S  of objectives changing (for modes 0-2)
+                time_since_change: timedelta|None = None
+                if self.bgstally.objectives_manager.objectives_changed_timestamp:
+                    time_since_change = datetime.now(UTC) - self.bgstally.objectives_manager.objectives_changed_timestamp
+
+                match mode:
+                    case 0:  # Notification for new objectives
+                        if (time_since_change is not None and
+                            time_since_change.total_seconds() <= TIME_TICK_OBJECTIVES_REFRESH_S and
+                            self.bgstally.objectives_manager.objectives_change_type == "new"):
+                            objectives_text = self.bgstally.objectives_manager.get_overlay_objectives_notification()
+                            show_objectives = True
+
+                    case 1:  # Full text for new objectives
+                        if (time_since_change is not None and
+                            time_since_change.total_seconds() <= TIME_TICK_OBJECTIVES_REFRESH_S and
+                            self.bgstally.objectives_manager.objectives_change_type == "new"):
+                            objectives_text = self.bgstally.objectives_manager.get_overlay_objectives_details(use_changed_objective=True)
+                            show_objectives = True
+
+                    case 2: # Full text for new objectives and for new or updated targets
+                        if time_since_change is not None and time_since_change.total_seconds() <= TIME_TICK_OBJECTIVES_REFRESH_S:
+                            objectives_text = self.bgstally.objectives_manager.get_overlay_objectives_details(use_changed_objective=True)
+                            show_objectives = True
+
+                    case 3:  # Always show top priority objective
+                        objectives_text = self.bgstally.objectives_manager.get_overlay_objectives_details(use_changed_objective=False)
+                        show_objectives = True
+
+                    case 4:  # Always show all objectives 
+                        objectives_text = self.bgstally.objectives_manager.get_overlay_objectives()
+                        show_objectives = True
+
+                if show_objectives and objectives_text:
+                    self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
 
             # Colonisation
             if self.bgstally.state.enable_overlay_colonisation:

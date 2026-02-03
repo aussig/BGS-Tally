@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 from enum import Enum
+import json
 
 from bgstally.activity import Activity
 from bgstally.api import API
@@ -44,6 +45,13 @@ class ObjectivesManager:
 
         self.api: API|None = None
 
+        # Change tracking for overlay notifications
+        self.previous_objectives_hash: str = ""
+        self.previous_objectives_map: dict[str, str] = {}  # Map of mission_key -> hash
+        self.objectives_changed_timestamp: datetime|None = None
+        self.objectives_change_type: str = ""  # "new" or "updated"
+        self.changed_objective_key: str|None = None  # Key of the objective that changed
+
 
     def objectives_available(self) -> bool:
         """Check whether any objectives are available
@@ -70,6 +78,31 @@ class ObjectivesManager:
         else: return self.api.objectives
 
 
+    def _get_objectives_hash(self, objectives: list) -> str:
+        """Create a hash of objectives for change detection
+
+        Args:
+            objectives (list): List of objective dictionaries
+
+        Returns:
+            str: JSON string representation of objectives (simplified for comparison)
+        """
+        # Create a simplified version of objectives for comparison
+        # Include key fields that matter for change detection
+        simplified = []
+        for obj in objectives:
+            simplified.append({
+                'title': obj.get('title'),
+                'type': obj.get('type'),
+                'priority': obj.get('priority'),
+                'description': obj.get('description'),
+                'targets': obj.get('targets', []),
+                'startdate': obj.get('startdate'),
+                'enddate': obj.get('enddate')
+            })
+        return json.dumps(simplified, sort_keys=True)
+
+
     def _get_priority_stars(self, priority: str|None) -> str:
         """Convert priority number to star representation
 
@@ -94,6 +127,74 @@ class ObjectivesManager:
         return f"[{filled_stars}{empty_stars}]"
 
 
+    def get_mission_key(self, mission: dict) -> str:
+        """Generate unique identifier for a mission (public method for shared use)
+
+        Args:
+            mission (dict): Mission dictionary
+
+        Returns:
+            str: Unique key combining title/type, system, faction, and startdate
+        """
+        mission_title = mission.get('title', '')
+        mission_type = mission.get('type', '')
+        mission_system = mission.get('system', '')
+        if isinstance(mission_system, dict):
+            mission_system = mission_system.get('name', '')
+        mission_faction = mission.get('faction', '')
+        mission_startdate = mission.get('startdate', '')
+
+        # Use title if available, otherwise use type
+        identifier = mission_title if mission_title else mission_type
+
+        return f"{identifier}|{mission_system}|{mission_faction}|{mission_startdate}"
+
+
+    def _get_mission_hash(self, mission: dict) -> str:
+        """Create a hash of a single mission for change detection
+
+        Args:
+            mission (dict): Mission dictionary
+
+        Returns:
+            str: JSON string representation of mission
+        """
+        simplified = {
+            'title': mission.get('title'),
+            'type': mission.get('type'),
+            'priority': mission.get('priority'),
+            'description': mission.get('description'),
+            'targets': mission.get('targets', []),
+            'startdate': mission.get('startdate'),
+            'enddate': mission.get('enddate')
+        }
+        return json.dumps(simplified, sort_keys=True)
+
+
+    def _filter_expired_objectives(self, objectives: list) -> list:
+        """Filter out expired objectives
+
+        Args:
+            objectives (list): List of objective dictionaries
+
+        Returns:
+            list: List of non-expired objectives
+        """
+        if not objectives:
+            return []
+
+        result = []
+        for mission in objectives:
+            mission_enddate_str = mission.get('enddate', datetime(3999, 12, 31, 23, 59, 59, 0, UTC).strftime(DATETIME_FORMAT_API))
+            mission_enddate = datetime.strptime(mission_enddate_str, DATETIME_FORMAT_API)
+            mission_enddate = mission_enddate.replace(tzinfo=UTC)
+
+            if mission_enddate >= datetime.now(UTC):
+                result.append(mission)
+
+        return result
+
+
     def objectives_received(self, api: API):
         """Objectives have been received from the API
 
@@ -101,7 +202,58 @@ class ObjectivesManager:
             api (API): The API object
         """
         previous_available: bool = self.objectives_available()
+        previous_hash: str = self.previous_objectives_hash
+        previous_map: dict[str, str] = self.previous_objectives_map.copy()
+
         self.api = api
+
+        # Detect changes in objectives
+        current_hash = self._get_objectives_hash(self.api.objectives if self.api else [])
+
+        # Build map of current objectives
+        current_map: dict[str, str] = {}
+        if self.api:
+            for mission in self.api.objectives:
+                mission_key = self.get_mission_key(mission)
+                mission_hash = self._get_mission_hash(mission)
+                current_map[mission_key] = mission_hash
+
+        if previous_hash != current_hash:
+            # Objectives have changed
+            self.objectives_changed_timestamp = datetime.now(UTC)
+
+            if previous_hash == "":
+                # First time receiving objectives (or previously empty)
+                self.objectives_change_type = "new"
+                # Find the highest priority objective as the "new" one
+                if self.api and self.api.objectives:
+                    sorted_objectives = sorted(self.api.objectives, key=lambda m: int(m.get('priority', '0')), reverse=True)
+                    self.changed_objective_key = self.get_mission_key(sorted_objectives[0])
+            else:
+                # Objectives were updated - find which one changed
+                self.objectives_change_type = "updated"
+                self.changed_objective_key = None
+
+                # Find new or updated objectives
+                for mission_key, mission_hash in current_map.items():
+                    if mission_key not in previous_map:
+                        # New objective
+                        self.objectives_change_type = "new"
+                        self.changed_objective_key = mission_key
+                        break
+                    elif previous_map[mission_key] != mission_hash:
+                        # Updated objective
+                        self.changed_objective_key = mission_key
+                        break
+
+                # If no changed objective found, default to highest priority
+                if self.changed_objective_key is None and self.api and self.api.objectives:
+                    sorted_objectives = sorted(self.api.objectives, key=lambda m: int(m.get('priority', '0')), reverse=True)
+                    self.changed_objective_key = self.get_mission_key(sorted_objectives[0])
+
+            self.previous_objectives_hash = current_hash
+            self.previous_objectives_map = current_map
+            Debug.logger.info(f"Objectives changed: {self.objectives_change_type}, key: {self.changed_objective_key}")
 
         if previous_available != self.objectives_available():
             # We've flipped from having objectives to not having objectives or vice versa. Refresh the plugin frame.

@@ -1,0 +1,148 @@
+import sys
+import tkinter as tk
+from tkinter import ttk
+
+from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_1, FONT_HEADING_2
+from bgstally.utils import _
+
+
+class WindowObjectivesOverlaySettings:
+    """
+    Handles a window for configuring objectives overlay display modes
+    """
+
+    def __init__(self, bgstally):
+        self.bgstally = bgstally
+        self.toplevel: tk.Toplevel = None
+        self.temp_mode: tk.StringVar = None
+
+
+    def show(self, parent_frame: tk.Frame = None):
+        """
+        Show the window
+        """
+        if self.toplevel is not None and self.toplevel.winfo_exists():
+            self.toplevel.lift()
+            self.toplevel.focus()
+            return
+
+        if parent_frame is None:
+            parent_frame = self.bgstally.ui.frame
+
+        self.toplevel: tk.Toplevel = tk.Toplevel(parent_frame)
+        self.toplevel.title(_("{plugin_name} - Objectives Overlay Settings").format(plugin_name=self.bgstally.plugin_name))
+        self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
+        self.toplevel.geometry("700x550")
+        self.toplevel.resizable(False, False)
+
+        if sys.platform == 'win32':
+            self.toplevel.attributes('-toolwindow', tk.TRUE)
+
+        # Create a temporary variable to hold the selection until Save is clicked
+        self.temp_mode = tk.StringVar(value=self.bgstally.state.OverlayObjectivesMode.get())
+
+        frame_container: ttk.Frame = ttk.Frame(self.toplevel, padding=15)
+        frame_container.pack(fill=tk.BOTH, expand=tk.YES)
+
+        current_row: int = 0
+
+        # Title
+        tk.Label(frame_container, text=_("Objectives Overlay Display Mode"), font=FONT_HEADING_2, foreground=COLOUR_HEADING_1).grid(
+            row=current_row, column=0, sticky=tk.W, pady=(0, 10))
+        current_row += 1
+
+        # Description
+        tk.Label(frame_container, text=_("Choose how objectives are displayed in the in-game overlay:"), wraplength=650, justify=tk.LEFT).grid(
+            row=current_row, column=0, sticky=tk.W, pady=(0, 15))
+        current_row += 1
+
+        # Mode 0: Minimal notification for new objectives
+        tk.Radiobutton(
+            frame_container,
+            text=_("New objective notification only (1 minute)"),
+            variable=self.temp_mode,
+            value="0"
+        ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
+        current_row += 1
+        tk.Label(frame_container, text="     " + _("Shows only \"New Objective\" text for 1 minute when a new objective is fetched."),
+                 wraplength=650, justify=tk.LEFT, foreground="gray").grid(
+            row=current_row, column=0, sticky=tk.W, pady=(0, 8))
+        current_row += 1
+
+        # Mode 1: Full text for new objectives
+        tk.Radiobutton(
+            frame_container,
+            text=_("New objective with full details (1 minute)"),
+            variable=self.temp_mode,
+            value="1"
+        ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
+        current_row += 1
+        tk.Label(frame_container, text="     " + _("Shows \"New Objective\" with full text and description for 1 minute when a new objective is fetched."),
+                 wraplength=650, justify=tk.LEFT, foreground="gray").grid(
+            row=current_row, column=0, sticky=tk.W, pady=(0, 8))
+        current_row += 1
+
+        # Mode 2: Full text for new and updated objectives
+        tk.Radiobutton(
+            frame_container,
+            text=_("New and updated objectives with full details (1 minute)"),
+            variable=self.temp_mode,
+            value="2"
+        ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
+        current_row += 1
+        tk.Label(frame_container, text="     " + _("Shows full text for 1 minute when objectives are added or when existing objectives/targets are updated."),
+                 wraplength=650, justify=tk.LEFT, foreground="gray").grid(
+            row=current_row, column=0, sticky=tk.W, pady=(0, 8))
+        current_row += 1
+
+        # Mode 3: Always show top priority
+        tk.Radiobutton(
+            frame_container,
+            text=_("Always show top priority objective"),
+            variable=self.temp_mode,
+            value="3"
+        ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
+        current_row += 1
+        tk.Label(frame_container, text="     " + _("Always displays the highest priority objective (most stars) in the overlay."),
+                 wraplength=650, justify=tk.LEFT, foreground="gray").grid(
+            row=current_row, column=0, sticky=tk.W, pady=(0, 8))
+        current_row += 1
+
+        # Mode 4: Show all objectives (current behavior)
+        tk.Radiobutton(
+            frame_container,
+            text=_("Always show all objectives (default)"),
+            variable=self.temp_mode,
+            value="4"
+        ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
+        current_row += 1
+        tk.Label(frame_container, text="     " + _("Shows all objectives at all times in the overlay (current behavior)."),
+                 wraplength=650, justify=tk.LEFT, foreground="gray").grid(
+            row=current_row, column=0, sticky=tk.W, pady=(0, 15))
+        current_row += 1
+
+        # Buttons frame
+        button_frame: ttk.Frame = ttk.Frame(frame_container)
+        button_frame.grid(row=current_row, column=0, sticky=tk.E, pady=(10, 0))
+
+        ttk.Button(button_frame, text=_("Cancel"), command=self._cancel).pack(side=tk.RIGHT, padx=(5, 0))
+        ttk.Button(button_frame, text=_("Save"), command=self._save).pack(side=tk.RIGHT)
+
+
+    def _save(self):
+        """
+        Save the selected mode and close the window
+        """
+        self.bgstally.state.OverlayObjectivesMode.set(self.temp_mode.get())
+        self.bgstally.state.save()
+        self.bgstally.state.refresh()
+        self.toplevel.destroy()
+        self.toplevel = None
+
+
+    def _cancel(self):
+        """
+        Close the window without saving
+        """
+        self.toplevel.destroy()
+        self.toplevel = None

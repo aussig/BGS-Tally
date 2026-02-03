@@ -1,4 +1,5 @@
 import sys
+from functools import partial
 from os import mkdir, path
 from threading import Thread
 from time import sleep
@@ -415,7 +416,8 @@ class BGSTally:
             case UpdateUIPolicy.IMMEDIATE:
                 self.ui.update_plugin_frame()
             case UpdateUIPolicy.LATER:
-                self.ui.frame.after(1000, self.ui.update_plugin_frame())
+                if self.ui.frame is not None:
+                    self.ui.frame.after(1000, partial(self.ui.update_plugin_frame))
 
         self.overlay.display_message("tickwarn", _("NEW TICK DETECTED!"), True, 180, "green") # LANG: Overlay message
 

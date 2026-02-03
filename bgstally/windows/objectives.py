@@ -129,7 +129,8 @@ class WindowObjectives:
         for idx, collapsible in enumerate(self.collapsibles):
             if idx < len(objectives):
                 mission_key = self.bgstally.objectives_manager.get_mission_key(objectives[idx])
-                self.collapsible_states[mission_key] = collapsible.open
+                # Get the actual boolean value, not the method reference
+                self.collapsible_states[mission_key] = bool(collapsible._variable.get())
 
 
     def _build_objectives(self):
@@ -201,7 +202,6 @@ class WindowObjectives:
 
             # Build content inside collapsible
             self._build_objective_content(collapsible.frame, mission)
-            Debug.logger.debug(f"[ObjectivesWindow] Successfully created collapsible for objective {idx + 1}")
 
         # Store the objectives we just displayed for next refresh
         self._displayed_objectives = active_objectives
@@ -373,11 +373,8 @@ class WindowObjectives:
 
         # Only rebuild if data has changed
         if current_objectives_hash != self.previous_objectives_hash:
-            Debug.logger.debug("[ObjectivesWindow] Objectives data changed, rebuilding UI")
             self._build_objectives()
             self.previous_objectives_hash = current_objectives_hash
-        else:
-            Debug.logger.debug("[ObjectivesWindow] No changes in objectives data, skipping rebuild")
 
         # Schedule next update
         self.toplevel.after(5000, self._update_objectives)

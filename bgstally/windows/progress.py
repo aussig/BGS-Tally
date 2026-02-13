@@ -3,11 +3,13 @@ import tkinter.font as tkFont
 import webbrowser
 import re
 import sys
+from typing import Literal
 from requests import Response
 from functools import partial
 from math import ceil
 from tkinter import ttk
 from urllib.parse import quote
+from typing import TYPE_CHECKING
 
 from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, FONT_SMALL, RequestMethod, CommodityOrder, ProgressUnits, ProgressView, CheckStates
 from bgstally.debug import Debug
@@ -18,6 +20,9 @@ from config import config # type: ignore
 from thirdparty.Tooltip import ToolTip
 from thirdparty.tksheet import Sheet, natural_sort_key
 
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+    from colonisation import Colonisation
 class ProgressWindow:
     '''
     Frame for displaying colonisation construction progress.
@@ -29,8 +34,8 @@ class ProgressWindow:
     It also provides a progress bar for the overall progress of the build (or builds).
     '''
     def __init__(self, bgstally) -> None:
-        self.bgstally = bgstally
-        self.colonisation = None
+        self.bgstally:BGSTally = bgstally
+        self.colonisation:Colonisation = None
 
         # The headings for each column, with the meanings for each unit type.
         # These are saved in the colonisation json file.
@@ -110,6 +115,7 @@ class ProgressWindow:
             self.headings.pop() # Buy Orders
 
         # UI components
+        self.scale:float = config.get_int('ui_scale') / 100.00
         self.frame:tk.Frame
         self.mkts_fr:tk.Toplevel|None = None # Markets popup window
         self.frame_row:int = 0 # Row in the parent frame
@@ -172,13 +178,12 @@ class ProgressWindow:
         row:int = 0; col:int = 0
 
         # Overall progress bar chart
-        scale:float = config.get_int('ui_scale') / 100.00
-        y=tk.LabelFrame(frame, border=1, height=10, width=int(398*scale))
+        y=tk.LabelFrame(frame, border=1, height=10, width=int(398*self.scale))
         y.grid(row=row, column=col, pady=0, sticky=tk.EW)
         y.grid_rowconfigure(0, weight=1)
         y.grid_propagate(False)
 
-        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=int(398*scale), mode='determinate')
+        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=int(398*self.scale), mode='determinate')
         self.progtt:ToolTip = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
         self.progbar.grid(row=0, column=0, pady=0, ipady=0, sticky=tk.EW)
         self.progbar.rowconfigure(0, weight=1)
@@ -229,7 +234,7 @@ class ProgressWindow:
 
         # Add the scrollbar frame
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
-            height=int((int(self.bgstally.state.ColonisationMaxCommodities.get())+2)*21*scale)
+            height=int((int(self.bgstally.state.ColonisationMaxCommodities.get())+2)*21*self.scale)
             scroll_canvas = tk.Canvas(table_frame, height=height, highlightthickness=0)
             scrollbar = ttk.Scrollbar(table_frame, orient='vertical', command=scroll_canvas.yview)
             table_frame.update()
@@ -308,6 +313,8 @@ class ProgressWindow:
             frame.grid_remove()
             return
 
+        #Debug.logger.info(f"Frames: parent {parent_frame.winfo_width()} outer {self.frame.winfo_width()} table_frame {table_frame.winfo_width()} frame {frame.winfo_width()}")
+
         self.update_display()
 
 
@@ -342,8 +349,8 @@ class ProgressWindow:
         self.colonisation = self.bgstally.colonisation
 
         tracked:list = self.colonisation.get_tracked_builds()
-        required:dict = self.colonisation.get_required(tracked)
-        delivered:dict = self.colonisation.get_delivered(tracked)
+        required:list = self.colonisation.get_required(tracked)
+        delivered:list = self.colonisation.get_delivered(tracked)
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
             return "" # LANG: No builds or commodities being tracked
 
@@ -404,7 +411,7 @@ class ProgressWindow:
     @catch_exceptions
     def event(self, event:str, tkEvent = None) -> None:
         ''' Process events from the buttons in the progress frame. '''
-        tracked:dict = self.colonisation.get_tracked_builds()
+        tracked:list = self.colonisation.get_tracked_builds()
         max:int = len(tracked) -1 if len(tracked) < 2 else len(tracked) # "All" if more than one build
         match event:
             case 'next':
@@ -458,9 +465,9 @@ class ProgressWindow:
         size:int = 2 if self.colonisation.cargo_capacity < 407 else 3
 
         # pi7=5000 - supply (100, 500, 1000, 2500, 5000, 10000, 50000)
-        tracked:dict = self.colonisation.get_tracked_builds()
-        required:dict = self.colonisation.get_required(tracked)
-        delivered:dict = self.colonisation.get_delivered(tracked)
+        tracked:list = self.colonisation.get_tracked_builds()
+        required:list = self.colonisation.get_required(tracked)
+        delivered:list = self.colonisation.get_delivered(tracked)
         rem:int = (required[self.build_index].get(comm, 0) if len(required) > self.build_index else 0) - (delivered[self.build_index].get(comm, 0) if len(delivered) > self.build_index else 0)
         for min in [500, 1000, 2500, 5000, 10000, 50000]:
             if min > rem: break
@@ -469,7 +476,7 @@ class ProgressWindow:
         if self.build_index < len(tracked):
             projectid = tracked[self.build_index].get('ProjectID', None)
         if self.build_index < len(tracked) and projectid == None:
-            progress:dict = self.colonisation.find_progress(tracked[self.build_index].get('MarketID'))
+            progress:dict|None = self.colonisation.find_progress(tracked[self.build_index].get('MarketID'))
             if progress != None:
                 projectid = progress.get('ProjectID', None)
 
@@ -487,11 +494,10 @@ class ProgressWindow:
 
         # Create/recreate the frame now since it takes a while to show the data
         if self.mkts_fr != None and self.mkts_fr.winfo_exists(): self.mkts_fr.destroy()
-        scale:float = config.get_int('ui_scale') / 100.00
         self.mkts_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.mkts_fr.wm_title(_("{plugin_name} - Markets Window").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the markets popup window
         width:int = sum([v.get('width') for v in self.markets.values()]) + 20
-        self.mkts_fr.geometry(f"{int(width*scale)}x{int(500*scale)}")
+        self.mkts_fr.geometry(f"{int(width*self.scale)}x{int(500*self.scale)}")
         self.mkts_fr.protocol("WM_DELETE_WINDOW", self.mkts_fr.destroy)
         self.mkts_fr.config(bd=2, relief=tk.FLAT)
 
@@ -513,7 +519,6 @@ class ProgressWindow:
             self.mkts_fr.destroy()
             return
 
-        scale:float = config.get_int('ui_scale') / 100.00
         header_fnt:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
         sheet:Sheet = Sheet(self.mkts_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False,
                         cell_auto_resize_enabled=True, height=4096,
@@ -521,16 +526,16 @@ class ProgressWindow:
                         align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                         show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
                         empty_vertical=0, empty_horizontal=0, header_font=header_fnt, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                        show_header=True, default_row_height=int(19*scale), table_wrap="w", alternate_color="gray95")
+                        show_header=True, default_row_height=int(19*self.scale), table_wrap="w", alternate_color="gray95")
         sheet.pack(fill=tk.BOTH, padx=0, pady=0)
 
         sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'sort_rows')
         sheet.set_header_data([v['header'] for v in self.markets.values()])
         sheet.extra_bindings('cell_select', func=partial(self._sheet_clicked, sheet))
 
-        tracked:dict = self.colonisation.get_tracked_builds()
-        required:dict = self.colonisation.get_required(tracked)
-        delivered:dict = self.colonisation.get_delivered(tracked)
+        tracked:list = self.colonisation.get_tracked_builds()
+        required:list = self.colonisation.get_required(tracked)
+        delivered:list = self.colonisation.get_delivered(tracked)
 
         data:list = []
         for i, m in enumerate(list(k for k in sorted(markets, key=lambda item: item.get('distance'), reverse=False))):
@@ -568,7 +573,7 @@ class ProgressWindow:
 
         for i, (k, v) in enumerate(self.markets.items()):
             sheet.align_columns(i, v.get('align'))
-            sheet.column_width(i, int(v.get('width')*scale))
+            sheet.column_width(i, int(v.get('width')*self.scale))
 
         #sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
         sheet.set_all_row_heights(height=None, only_set_if_too_small=True, redraw=True)
@@ -727,7 +732,7 @@ class ProgressWindow:
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
             rows:int = min(rowcnt, int(self.bgstally.state.ColonisationMaxCommodities.get()))
             self.scroll_canvas.yview_moveto(0.0)
-            height=int((rows+2)*21*(config.get_int('ui_scale') / 100.00))
+            height=int((rows+2)*21*self.scale)
             self.scroll_canvas.configure(height=height)
 
         if totals['Required'] > 0:
@@ -782,7 +787,7 @@ class ProgressWindow:
         return f"{qty: >10,}{_('t')}" # LANG: Colonisation tonnes abbreviation
 
 
-    def _set_weight(self, cell, w='bold') -> None:
+    def _set_weight(self, cell, w:Literal['normal', 'bold']='bold') -> None:
         ''' Set font weight, defaults to bold '''
         #fnt:tkFont._FontDict = tkFont.Font(font=cell['font']).actual()
         #cell.configure(font=(fnt['family'], fnt['size'], w))

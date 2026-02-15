@@ -280,16 +280,25 @@ class WindowObjectives:
 
     def _format_target(self, target: dict, mission: dict, mission_activity: Activity) -> str:
         """Format a single target for display"""
-        target_system: str|None = target.get('system')
+        target_system: str|dict|None = target.get('system')
         if target_system == "" or target_system is None:
-            target_system = mission.get('system') or "Unknown"
+            mission_system = mission.get('system')
+            if mission_system == "" or mission_system is None:
+                target_system = {'name': "Unknown", 'x': 0, 'y': 0, 'z': 0}
+            elif isinstance(mission_system, str): # API <= v1.7.0 TODO Remove after API v1.7.0 is obsolete
+                target_system = {'name': mission_system, 'x': 0, 'y': 0, 'z': 0}
+            else:
+                target_system = mission_system
+        elif isinstance(target_system, str): # API <= v1.7.0 TODO Remove after API v1.7.0 is obsolete
+            target_system = {'name': target_system, 'x': 0, 'y': 0, 'z': 0}
+        target_system_name: str = target_system.get('name', 'Unknown')
 
         target_faction: str|None = target.get('faction')
         if target_faction == "" or target_faction is None:
             target_faction = mission.get('faction') or "Unknown"
 
         target_station: str|None = target.get('station')
-        system_activity: dict|None = mission_activity.get_system_by_name(target_system)
+        system_activity: dict|None = mission_activity.get_system_by_name(target_system_name)
         faction_activity: dict|None = None if system_activity is None else get_by_path(system_activity, ['Factions', target_faction])
 
         status: str = ""
@@ -299,10 +308,10 @@ class WindowObjectives:
             case MissionTargetType.VISIT:
                 if target_station:
                     status, _ = self.bgstally.objectives_manager._get_status(target, True, numeric=False)
-                    return f"{status} Access the market in station '{target_station}' in '{target_system}'"
+                    return f"{status} Access the market in station '{target_station}' in '{target_system_name}'"
                 else:
                     status, _ = self.bgstally.objectives_manager._get_status(target, True, numeric=False)
-                    return f"{status} Visit system '{target_system}'"
+                    return f"{status} Visit system '{target_system_name}'"
 
             case MissionTargetType.INF:
                 progress_individual: int|None = None if faction_activity is None else \
@@ -310,56 +319,56 @@ class WindowObjectives:
                     sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity.get('MissionPointsSecondary', {}).items())
                 status, target_overall = self.bgstally.objectives_manager._get_status(target, True, progress_individual=progress_individual, label="INF")
                 if target_overall > 0:
-                    return f"{status} Boost '{target_faction}' in '{target_system}'"
+                    return f"{status} Boost '{target_faction}' in '{target_system_name}'"
                 elif target_overall < 0:
-                    return f"{status} Undermine '{target_faction}' in '{target_system}'"
+                    return f"{status} Undermine '{target_faction}' in '{target_system_name}'"
                 else:
-                    return f"{status} Boost '{target_faction}' in '{target_system}' with as much INF as possible"
+                    return f"{status} Boost '{target_faction}' in '{target_system_name}' with as much INF as possible"
 
             case MissionTargetType.BV:
                 progress_individual: int|None = None if faction_activity is None else faction_activity.get('Bounties')
                 status, _ = self.bgstally.objectives_manager._get_status(target, True, progress_individual=progress_individual, label="CR")
-                return f"{status} Bounty Vouchers for '{target_faction}' in '{target_system}'"
+                return f"{status} Bounty Vouchers for '{target_faction}' in '{target_system_name}'"
 
             case MissionTargetType.CB:
                 progress_individual: int|None = None if faction_activity is None else faction_activity.get('CombatBonds')
                 status, _ = self.bgstally.objectives_manager._get_status(target, True, progress_individual=progress_individual, label="CR")
-                return f"{status} Combat Bonds for '{target_faction}' in '{target_system}'"
+                return f"{status} Combat Bonds for '{target_faction}' in '{target_system_name}'"
 
             case MissionTargetType.EXPL:
                 progress_individual: int|None = None if faction_activity is None else faction_activity.get('CartData')
                 status, _ = self.bgstally.objectives_manager._get_status(target, True, progress_individual=progress_individual, label="CR")
-                return f"{status} Exploration Data for '{target_faction}' in '{target_system}'"
+                return f"{status} Exploration Data for '{target_faction}' in '{target_system_name}'"
 
             case MissionTargetType.TRADE_PROFIT:
                 progress_individual: int|None = None if faction_activity is None else sum(int(d.get('profit', 0)) for d in faction_activity.get('TradeSell', []))
                 status, _ = self.bgstally.objectives_manager._get_status(target, True, progress_individual=progress_individual, label="CR")
-                return f"{status} Trade Profit for '{target_faction}' in '{target_system}'"
+                return f"{status} Trade Profit for '{target_faction}' in '{target_system_name}'"
 
             case MissionTargetType.BM_PROF:
                 progress_individual: int|None = None if faction_activity is None else faction_activity.get('BlackMarketProfit')
                 status, _ = self.bgstally.objectives_manager._get_status(target, True, progress_individual=progress_individual, label="CR")
-                return f"{status} Black Market Profit for '{target_faction}' in '{target_system}'"
+                return f"{status} Black Market Profit for '{target_faction}' in '{target_system_name}'"
 
             case MissionTargetType.GROUND_CZ:
                 progress_individual: int|None = None if faction_activity is None else sum(faction_activity.get('GroundCZ', {}).values())
                 status, _ = self.bgstally.objectives_manager._get_status(target, True, progress_individual=progress_individual, label="wins")
-                return f"{status} Fight for '{target_faction}' at on-ground CZs in '{target_system}'"
+                return f"{status} Fight for '{target_faction}' at on-ground CZs in '{target_system_name}'"
 
             case MissionTargetType.SPACE_CZ:
                 progress_individual: int|None = None if faction_activity is None else sum(faction_activity.get('SpaceCZ', {}).values())
                 status, _ = self.bgstally.objectives_manager._get_status(target, True, progress_individual=progress_individual, label="wins")
-                return f"{status} Fight for '{target_faction}' at in-space CZs in '{target_system}'"
+                return f"{status} Fight for '{target_faction}' at in-space CZs in '{target_system_name}'"
 
             case MissionTargetType.MURDER:
                 progress_individual: int|None = None if faction_activity is None else faction_activity.get('Murdered')
                 status, _ = self.bgstally.objectives_manager._get_status(target, True, progress_individual=progress_individual, label="kills")
-                return f"{status} Murder '{target_faction}' ships in '{target_system}'"
+                return f"{status} Murder '{target_faction}' ships in '{target_system_name}'"
 
             case MissionTargetType.MISSION_FAIL:
                 progress_individual: int|None = None if faction_activity is None else faction_activity.get('MissionFailed')
                 status, _ = self.bgstally.objectives_manager._get_status(target, True, progress_individual=progress_individual, label="fails")
-                return f"{status} Fail missions against '{target_faction}' in '{target_system}'"
+                return f"{status} Fail missions against '{target_faction}' in '{target_system_name}'"
 
         Debug.logger.warning(f"[ObjectivesWindow] No case matched for target_type: {target_type}, returning empty string")
         return ""

@@ -97,17 +97,17 @@ class WindowObjectives:
     def _bind_mousewheel(self, event):
         """Bind mousewheel scrolling when mouse enters the canvas"""
         # Windows and MacOS
-        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+        self.canvas.bind("<MouseWheel>", self._on_mousewheel)
         # Linux
-        self.canvas.bind_all("<Button-4>", self._on_mousewheel)
-        self.canvas.bind_all("<Button-5>", self._on_mousewheel)
+        self.canvas.bind("<Button-4>", self._on_mousewheel)
+        self.canvas.bind("<Button-5>", self._on_mousewheel)
 
 
     def _unbind_mousewheel(self, event):
         """Unbind mousewheel scrolling when mouse leaves the canvas"""
-        self.canvas.unbind_all("<MouseWheel>")
-        self.canvas.unbind_all("<Button-4>")
-        self.canvas.unbind_all("<Button-5>")
+        self.canvas.unbind("<MouseWheel>")
+        self.canvas.unbind("<Button-4>")
+        self.canvas.unbind("<Button-5>")
 
 
     def _on_mousewheel(self, event):
@@ -136,16 +136,8 @@ class WindowObjectives:
         """Build collapsible sections for each objective"""
         objectives = self.bgstally.objectives_manager.get_objectives()
 
-        # Filter out expired objectives first
-        active_objectives = []
-        for mission in objectives:
-            mission_enddate: datetime = datetime.strptime(
-                mission.get('enddate', datetime(3999, 12, 31, 23, 59, 59, 0, UTC).strftime(DATETIME_FORMAT_API)),
-                DATETIME_FORMAT_API
-            )
-            mission_enddate = mission_enddate.replace(tzinfo=UTC)
-            if mission_enddate >= datetime.now(UTC):
-                active_objectives.append(mission)
+        # Filter out expired objectives using shared method
+        active_objectives = self.bgstally.objectives_manager._filter_expired_objectives(objectives)
 
         # Save current states before clearing (using the previous list of objectives)
         if hasattr(self, '_displayed_objectives'):

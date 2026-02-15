@@ -169,8 +169,6 @@ class WindowObjectives:
             mission_title: str|None = mission.get('title')
             mission_priority: str|None = mission.get('priority', '0')
             mission_type: str|None = mission.get('type')
-            mission_system: str|None = mission.get('system')
-            if mission_system is None: mission_system = _("Unknown")
 
             # Priority stars
             priority_stars = self.bgstally.objectives_manager._get_priority_stars(mission_priority)

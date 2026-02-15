@@ -17,6 +17,11 @@
 
 * Addressed formatting of carrier cargo and locker discord posts [Issue 420](https://github.com/aussig/BGS-Tally/issues/420)
 * Fix for error when Raven Colonial project already exists [Issue 421](https://github.com/aussig/BGS-Tally/issues/421)
+* None of the objectives text was localised, which included both the objectives window and the in-game overlay. Localisation is now enabled, so translators are able to translate this text.
+
+### API Changes ([v1.8](xxxxxxxxxxxx)):
+
+* `/objectives` endpoint: `system` is now an object containing `name`, `x`, `y` and `z` galaxy coordinates for the system. For the moment it still accepts a string instead of the object.
 
 
 ## v5.4.0 - 2026-01-21

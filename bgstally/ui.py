@@ -664,7 +664,7 @@ class UI:
                             objectives_text = self.bgstally.objectives_manager.get_overlay_objectives_details(use_changed_objective=True)
                             show_objectives = True
 
-                    case 2: # Full text for new objectives and for new or updated targets
+                    case 2: # Full text for new and updated objectives
                         if time_since_change is not None and time_since_change.total_seconds() <= TIME_TICK_OBJECTIVES_REFRESH_S:
                             objectives_text = self.bgstally.objectives_manager.get_overlay_objectives_details(use_changed_objective=True)
                             show_objectives = True

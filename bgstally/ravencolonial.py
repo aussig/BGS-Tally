@@ -690,8 +690,8 @@ class EDSM:
         if hasattr(self, '_initialized'): return
         self._initialized = True
         # Details to retrieve for bodies from EDSM
-        self.body_details:list = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
-
+        #self.body_details:list = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
+        self.body_details:list = ['name', 'bodyId', 'type', 'subType', 'isLandable', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival', 'gravity']
 
     @catch_exceptions
     def import_stations(self, system_name:str) -> None:
@@ -838,7 +838,7 @@ class EDSM:
             Debug.logger.info(f"Unknown system {system_name}")
             return
 
-        if system.get('Bodies', None) != None:
+        if system.get('Bodies', None) != None and system.get('Bodies', [{}])[0].get('parentId', None) != None:
             Debug.logger.info(f"Already have body info for {system_name}")
             return
 
@@ -864,12 +864,18 @@ class EDSM:
 
         # Only record the body details that we need since returns an enormous amount of data.
         bodies:list = []
+
+        all_body_ids:list = [b.get('bodyId', -1) for b in data.get('bodies', [])]
         for b in data.get('bodies', []):
-            v:dict = {}
+            v:dict = {'parentId': 0, 'features': []}
             for k in self.body_details:
                 if b.get(k, None): v[k] = b.get(k)
             if b.get('parents', None) != None:
-                v['parents'] = len(b.get('parents', []))
+                # Find the first parent that we have a body record for
+                for p in b.get('parents', []):
+                    if p.values() != [] and list(p.values())[0] in all_body_ids:
+                        v['parentId'] = list(p.values())[0]
+                        break
 
             if b.get('belts', None) != None:
                 for belt in b.get('belts', []):
@@ -877,10 +883,23 @@ class EDSM:
                         v['rings'] = v.get('rings', 0) + 1
 
                 v['belts'] = len(b.get('belts', []))
+
+
+            # Tidally locked
+            if b.get('rotationalPeriodTidallyLocked') == True: v['features'].append(_('T')) # LANG: Tidally locked body
+            # Atmosphere
+            if b.get('atmosphereType', 'No atmosphere') != 'No atmosphere': v['features'].append(_('A')) # LANG: Atmosphere body feature label
+            # Landable
+            if b.get('isLandable') == True: v['features'].append(_('L')) # LANG: Landable body feature label
+            # Volcanism
+            if b.get('type') == 'Planet' and b.get('volcanismType', 'No volcanism') != 'No volcanism': v['features'].append(_('G')) # LANG: Volcanism  (Geo) body feature label
+            # Rings
+            if b.get('rings', []) != []: v['features'].append(_('R')) # LANG: Rings body feature label
+
             bodies.append(v)
 
+        bodies[0]['parentId'] = 0 # The first star has no parent, set to 0 for ease of use later.
         RavenColonial(self).colonisation.modify_system(system, {'Bodies' : bodies})
-
 
 
 class Spansh:

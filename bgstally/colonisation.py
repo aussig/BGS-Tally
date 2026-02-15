@@ -141,7 +141,7 @@ class Colonisation:
                     if system.get('RCSync', False) == True:
                         rc.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
 
-                    if system.get('Bodies', None) == None: # In case we didn't get them for some reason
+                    if system.get('Bodies', None) == None or system.get('Bodies', [{}])[0].get('parentId', -1) == -1: # In case we didn't get them for some reason
                         BODY_SERVICE.import_bodies(system.get('StarSystem', ''))
 
                     SYSTEM_SERVICE.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM

@@ -544,13 +544,13 @@ class ObjectivesManager:
 
             # Metadata: Type, System, Faction
             mission_type_str = mission.get('type', _("Unknown")) # LANG: Unknown mission type
-            result += f"Type: {mission_type_str} | System: {mission_system_name} | Faction: {mission_faction}\n"
+            result += _("Type: {type} | System: {system} | Faction: {faction}").format(type=mission_type_str, system=mission_system_name, faction=mission_faction) + "\n" # LANG: Mission metadata line
 
             # Dates
             start_str = mission_startdate.strftime("%Y-%m-%d") if mission_startdate else "-"
             end_str = mission_enddate.strftime("%Y-%m-%d") if mission_enddate and mission_enddate.year < 3999 else "-"
             if start_str != "-" or end_str != "-":
-                result += f"Start: {start_str} | End: {end_str}\n"
+                result += _("Start: {start} | End: {end}").format(start=start_str, end=end_str) + "\n" # LANG: Mission date range
 
             # Description
             # Mission descriptions are intentionally omitted from this summary output.
@@ -711,7 +711,11 @@ class ObjectivesManager:
         # Render the objective with full details
         result: str = ""
         if use_changed_objective:
-            result += "🔔 " + _("NEW OBJECTIVE") + "\n"  # LANG: New objective header
+            # Show appropriate header based on change type
+            if self.objectives_change_type == "updated":
+                result += "🔔 " + _("OBJECTIVE UPDATED") + "\n"  # LANG: Updated objective header
+            else:
+                result += "🔔 " + _("NEW OBJECTIVE") + "\n"  # LANG: New objective header
             result += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
 
         mission_title: str|None = mission.get('title')

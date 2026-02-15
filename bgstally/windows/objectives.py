@@ -6,8 +6,8 @@ from bgstally.activity import Activity
 from bgstally.constants import COLOUR_HEADING_1, DATETIME_FORMAT_API, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, FONT_SMALL
 from bgstally.debug import Debug
 from bgstally.objectivesmanager import MissionTargetType, MissionType
-from bgstally.utils import _, __, get_by_path, human_format
-from bgstally.widgets import CollapsibleFrame, TextPlus
+from bgstally.utils import _, get_by_path
+from bgstally.widgets import CollapsibleFrame
 from thirdparty.colors import *
 
 
@@ -229,7 +229,7 @@ class WindowObjectives:
         mission_faction = mission.get('faction') or _("Unknown")
         mission_description = mission.get('description')
 
-        metadata_text = f"Type: {mission_type} | System: {mission_system} | Faction: {mission_faction}"
+        metadata_text = _("Type: {type} | System: {system} | Faction: {faction}").format(type=mission_type, system=mission_system, faction=mission_faction) # LANG: Mission metadata line
         ttk.Label(content_frame, text=metadata_text, font=FONT_SMALL, foreground="gray40").pack(anchor=tk.NW, pady=(0, 5))
 
         # Dates
@@ -241,7 +241,7 @@ class WindowObjectives:
         start_str = mission_startdate.strftime("%Y-%m-%d") if mission_startdate else "-"
         end_str = mission_enddate.strftime("%Y-%m-%d") if mission_enddate and mission_enddate.year < 3999 else "-"
         if start_str != "-" or end_str != "-":
-            date_text = f"Start: {start_str} | End: {end_str}"
+            date_text = _("Start: {start} | End: {end}").format(start=start_str, end=end_str) # LANG: Mission date range
             ttk.Label(content_frame, text=date_text, font=FONT_SMALL, foreground="gray40").pack(anchor=tk.NW, pady=(0, 5))
 
         # Description

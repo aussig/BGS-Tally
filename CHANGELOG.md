@@ -21,7 +21,7 @@
 
 ### API Changes ([v1.8](xxxxxxxxxxxx)):
 
-* `/objectives` endpoint: `system` is now an object containing `name`, `x`, `y` and `z` galaxy coordinates for the system. For the moment it still accepts a string instead of the object.
+* `/objectives` endpoint: `system` is now an object containing `name`, `x`, `y` and `z` galaxy coordinates for the system. For the moment it still accepts a string (as per API v1.7 and earlier) instead of the object.
 
 
 ## v5.4.0 - 2026-01-21

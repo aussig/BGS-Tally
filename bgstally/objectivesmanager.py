@@ -549,9 +549,7 @@ class ObjectivesManager:
                 result += f"Start: {start_str} | End: {end_str}\n"
 
             # Description
-            #if mission_description:
-            #    result += "─────────────────────────────────────────────────\n"
-            #    result += f"{mission_description}\n"
+            # Mission descriptions are intentionally omitted from this summary output.
 
             # Targets section
             if mission.get('targets'):

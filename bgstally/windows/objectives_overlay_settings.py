@@ -2,7 +2,7 @@ import sys
 import tkinter as tk
 from tkinter import ttk
 
-from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_1, FONT_HEADING_2
+from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2
 from bgstally.utils import _
 
 

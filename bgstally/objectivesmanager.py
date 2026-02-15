@@ -127,6 +127,21 @@ class ObjectivesManager:
         return f"[{filled_stars}{empty_stars}]"
 
 
+    def _get_priority_value(self, priority: str|None) -> int:
+        """Safely convert priority string to integer
+
+        Args:
+            priority (str|None): Priority as string
+
+        Returns:
+            int: Priority as integer, defaults to 0 for invalid values
+        """
+        try:
+            return int(priority) if priority else 0
+        except (ValueError, TypeError):
+            return 0
+
+
     def get_mission_key(self, mission: dict) -> str:
         """Generate unique identifier for a mission (public method for shared use)
 
@@ -227,7 +242,7 @@ class ObjectivesManager:
                 self.objectives_change_type = "new"
                 # Find the highest priority objective as the "new" one
                 if self.api and self.api.objectives:
-                    sorted_objectives = sorted(self.api.objectives, key=lambda m: int(m.get('priority', '0')), reverse=True)
+                    sorted_objectives = sorted(self.api.objectives, key=lambda m: self._get_priority_value(m.get('priority', '0')), reverse=True)
                     self.changed_objective_key = self.get_mission_key(sorted_objectives[0])
             else:
                 # Objectives were updated - find which one changed
@@ -248,7 +263,7 @@ class ObjectivesManager:
 
                 # If no changed objective found, default to highest priority
                 if self.changed_objective_key is None and self.api and self.api.objectives:
-                    sorted_objectives = sorted(self.api.objectives, key=lambda m: int(m.get('priority', '0')), reverse=True)
+                    sorted_objectives = sorted(self.api.objectives, key=lambda m: self._get_priority_value(m.get('priority', '0')), reverse=True)
                     self.changed_objective_key = self.get_mission_key(sorted_objectives[0])
 
             self.previous_objectives_hash = current_hash
@@ -336,8 +351,8 @@ class ObjectivesManager:
 
                     case MissionTargetType.INF:
                         progress_individual: int|None = None if faction_activity is None else \
-                            sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPoints'].items()) + \
-                            sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPointsSecondary'].items())
+                            sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity.get('MissionPoints', {}).items()) + \
+                            sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity.get('MissionPointsSecondary', {}).items())
                         status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="INF")
                         if target_overall > 0:
                             result += "  " + _("{status} Boost '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to boost a faction in a system
@@ -361,7 +376,7 @@ class ObjectivesManager:
                         result += "  " + _("{status} Exploration Data for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to collect exploration data for a faction in a system
 
                     case MissionTargetType.TRADE_PROFIT:
-                        progress_individual: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity['TradeSell'])
+                        progress_individual: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity.get('TradeSell', []))
                         status, target_overall = self._get_status(target, discord, progress_individual=progress_individual, label="CR")
                         result += "  " + _("{status} Trade Profit for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to collect trade profit for a faction in a system
 
@@ -498,7 +513,7 @@ class ObjectivesManager:
         if self.api is None: return result
 
         # We have to sort by priority first, assuming that no priority is 0
-        sorted_objectives = sorted(self.api.objectives, key=lambda m: int(m.get('priority', '0')), reverse=True)
+        sorted_objectives = sorted(self.api.objectives, key=lambda m: self._get_priority_value(m.get('priority', '0')), reverse=True)
 
         for idx, mission in enumerate(sorted_objectives):
             mission_title: str|None = mission.get('title')
@@ -586,8 +601,8 @@ class ObjectivesManager:
 
                         case MissionTargetType.INF:
                             progress_individual: int|None = None if faction_activity is None else \
-                                sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPoints'].items()) + \
-                                sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPointsSecondary'].items())
+                                sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity.get('MissionPoints', {}).items()) + \
+                                sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity.get('MissionPointsSecondary', {}).items())
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="INF")
                             if target_overall > 0:
                                 result += "  " + _("{status} Boost '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
@@ -612,7 +627,7 @@ class ObjectivesManager:
                             result += "  " + _("{status} Exploration Data for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
 
                         case MissionTargetType.TRADE_PROFIT:
-                            progress_individual: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity['TradeSell'])
+                            progress_individual: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity.get('TradeSell', []))
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
                             result += "  " + _("{status} Trade Profit for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
 
@@ -701,11 +716,11 @@ class ObjectivesManager:
 
             # If changed objective not found or not set, fall back to highest priority
             if mission is None:
-                active_objectives.sort(key=lambda m: int(m.get('priority', '0')), reverse=True)
+                active_objectives.sort(key=lambda m: self._get_priority_value(m.get('priority', '0')), reverse=True)
                 mission = active_objectives[0]
         else:
             # Mode 3: Show the top priority objective
-            active_objectives.sort(key=lambda m: int(m.get('priority', '0')), reverse=True)
+            active_objectives.sort(key=lambda m: self._get_priority_value(m.get('priority', '0')), reverse=True)
             mission = active_objectives[0]
 
         # Render the objective with full details
@@ -787,8 +802,8 @@ class ObjectivesManager:
 
                     case MissionTargetType.INF:
                         progress_individual: int|None = None if faction_activity is None else \
-                            sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPoints'].items()) + \
-                            sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity['MissionPointsSecondary'].items())
+                            sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity.get('MissionPoints', {}).items()) + \
+                            sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity.get('MissionPointsSecondary', {}).items())
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="INF")
                         if target_overall > 0:
                             result += "  " + _("{status} Boost '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
@@ -813,7 +828,7 @@ class ObjectivesManager:
                         result += "  " + _("{status} Exploration Data for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
 
                     case MissionTargetType.TRADE_PROFIT:
-                        progress_individual: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity['TradeSell'])
+                        progress_individual: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity.get('TradeSell', []))
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
                         result += "  " + _("{status} Trade Profit for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
 

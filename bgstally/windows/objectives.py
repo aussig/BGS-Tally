@@ -129,8 +129,17 @@ class WindowObjectives:
         for idx, collapsible in enumerate(self.collapsibles):
             if idx < len(objectives):
                 mission_key = self.bgstally.objectives_manager.get_mission_key(objectives[idx])
-                # Get the actual boolean value, not the method reference
-                self.collapsible_states[mission_key] = bool(collapsible._variable.get())
+                # Prefer a public API on CollapsibleFrame if available, with a fallback
+                if hasattr(collapsible, "is_open"):
+                    state = collapsible.is_open()
+                elif hasattr(collapsible, "get_state"):
+                    state = collapsible.get_state()
+                elif hasattr(collapsible, "get"):
+                    state = collapsible.get()
+                else:
+                    # Fallback to private attribute for backwards compatibility
+                    state = collapsible._variable.get()
+                self.collapsible_states[mission_key] = bool(state)
 
 
     def _build_objectives(self):

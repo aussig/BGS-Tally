@@ -498,9 +498,9 @@ class ObjectivesManager:
         if self.api is None: return result
 
         # We have to sort by priority first, assuming that no priority is 0
-        self.api.objectives.sort(key=lambda m: int(m.get('priority', '0')), reverse=True)
+        sorted_objectives = sorted(self.api.objectives, key=lambda m: int(m.get('priority', '0')), reverse=True)
 
-        for idx, mission in enumerate(self.api.objectives):
+        for idx, mission in enumerate(sorted_objectives):
             mission_title: str|None = mission.get('title')
             mission_priority: str|None = mission.get('priority', '0')
             mission_description: str|None = mission.get('description')

@@ -942,6 +942,10 @@ class FleetCarrier:
 
             # Transfer amount is positive if to carrier, negative if from carrier
             amt:int = i.get('Count', 0) if i.get('Direction') == 'tocarrier' else -i.get('Count', 0)
+            if abs(amt) > self.overview.get('TotalCapacity', 25000):
+                Debug.logger.error(f"Transfer amount {amt} exceeds total capacity, ignoring")
+                continue
+
             self.cargo['normal'][comm]['stock'] += amt
 
             if self.cargo['normal'][comm]['stock'] < 0:

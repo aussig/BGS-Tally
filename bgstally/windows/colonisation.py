@@ -166,8 +166,7 @@ class ColonisationWindow:
         self.legend_fr:tk.Toplevel|None = None
         self.notes_fr:tk.Toplevel|None = None
         self.bases_fr:tk.Toplevel|None = None
-        self.bodies_fr:tk.Toplevel|None = None
-        self.images:dict = {}
+        self.bodies_popup:BodiesPopup = None
         self.scale:float = 0
 
 
@@ -279,7 +278,6 @@ class ColonisationWindow:
         while len(self.plan_titles) <= tabnum:
             self.plan_titles.append({})
 
-
         name:str = systems[sysnum].get('Name', '')
         sysname:str = systems[sysnum].get('StarSystem', '')
         if systems[sysnum].get('RCSync', False) == True:
@@ -307,7 +305,7 @@ class ColonisationWindow:
             sys_bodies.pack(side=tk.LEFT, padx=10, pady=5)
             ToolTip(sys_bodies, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
             self._set_weight(sys_bodies)
-            sys_bodies.bind("<Button-1>", partial(self.bodies_popup, tabnum))
+            sys_bodies.bind("<Button-1>", partial(self._bodies_popup, systems[sysnum]))
             sys_bodies.bind("<Button-3>", partial(self._context_menu, systems[sysnum], 'Bodies'))
 
         allattrs:dict = {'Population': _('Population'), # LANG: Population heading
@@ -345,7 +343,7 @@ class ColonisationWindow:
         ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
-            btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_world, width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
+            btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_world, width=3, cursor="hand2", command=partial(self._bodies_popup, systems[sysnum]))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
 
@@ -360,6 +358,12 @@ class ColonisationWindow:
             btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_refresh, cursor="hand2", width=3, command=partial(self._rc_refresh_system, tabnum))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Refresh from RavenColonial")) # LANG: tooltip for ravencolonial refresh button
+
+
+    @catch_exceptions
+    def _bodies_popup(self, system:dict, event = None) -> None:
+        """ Display the bodies popup """
+        self.bodies_popup:BodiesPopup = BodiesPopup(self, system)
 
 
     @catch_exceptions
@@ -457,209 +461,6 @@ class ColonisationWindow:
                             sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), bt.get(name, ' ')), redraw=False)
 
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
-
-
-    @catch_exceptions
-    def bodies_popup(self, tabnum:int, event = None) -> None:
-        ''' Show a popup with details of all the bodies in the system using a hierarchical treeview '''
-        if self.bodies_fr != None and self.bodies_fr.winfo_exists():
-            self.bodies_fr.destroy()
-
-        self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
-        self.bodies_fr.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the bodies popup window
-        self.bodies_fr.minsize(800, 600)
-        self.bodies_fr.geometry(f"{int(800*self.scale)}x{int(600*self.scale)}")
-        self.bodies_fr.config(bd=2, relief=tk.FLAT)
-
-        sysnum:int = self.tl[tabnum]
-        systems:list = self.colonisation.get_all_systems()
-
-        bodies:list = systems[sysnum].get('Bodies', None)
-        if bodies == None:
-            return
-
-        # Create frame for treeview and scrollbars
-        tree_frame:ttk.Frame = ttk.Frame(self.bodies_fr)
-        tree_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
-
-        # Create scrollbars
-        vsb:ttk.Scrollbar = ttk.Scrollbar(tree_frame, orient=tk.VERTICAL)
-
-        # Define columns
-        columns:dict = {
-            'Description': [_('Description'), 300, 200], # LANG: Column heading for body description
-            'Distance': [_('Distance'), 60, 40], # LANG: Column heading for distance
-            'Gravity': [_('Gravity'), 60, 40], # LANG: Column heading for gravity
-            'Features': [_('Features'), 60, 40], # LANG: Column heading for body features
-        }
-
-        style = ttk.Style()
-
-        if not getattr(self, '_colonise_bodies_style_initialised', False):
-            blank = PhotoImage()                          # empty placeholder
-            style.element_create('NoIndicator', 'image', blank)
-            # copy the existing layout and recursively drop any indicator entries
-            layout = style.layout('Treeview.Item')
-            def _strip_indicator(lay):
-                new = []
-                for elem, opts in lay:
-                    if 'indicator' in elem:
-                        continue
-                    if 'children' in opts:
-                        opts['children'] = _strip_indicator(opts['children'])
-                    new.append((elem, opts))
-                return new
-            style.layout('NoIndicator.Treeview.Item', _strip_indicator(layout))
-            # eliminate any leftover indent space; the indicator is gone so the
-            # indent can be zero without affecting the visual hierarchy
-            style.configure('NoIndicator.Treeview', rowheight=int(19*self.scale), font=FONT_SMALL)
-            style.configure("NoIndicator.Treeview.Heading", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background='lightgrey')
-            # keep the blank image alive
-            self._colonise_bodies_blank:PhotoImage = blank
-            self._colonise_bodies_style_initialised = True
-
-        # Create treeview with columns using our no-indicator style
-        tree:ttk.Treeview = ttk.Treeview(tree_frame, columns=list(columns.keys()), yscrollcommand=vsb.set,
-                                         show="tree headings", style="NoIndicator.Treeview")
-        vsb.config(command=tree.yview)
-        tree.heading('#0', text=systems[sysnum].get('StarSystem', ''), anchor=tk.W) # First column for body names with system name as header
-        tree.column('#0', width=int(200*self.scale), minwidth=int(300*self.scale), stretch=True) # First column for body names with fixed width
-        for col, (header, width, minwidth) in columns.items():
-             tree.heading(col, text=_(header)) # LANG: Column heading for body attributes
-             tree.column(col, width=int(width*self.scale), minwidth=int(minwidth*self.scale), stretch=False)
-
-        tree.bind("<<TreeviewSelect>>", self._body_row_selected)
-        # Layout scrollbars and treeview
-        tree.grid(row=0, column=0, sticky=tk.NSEW)
-        vsb.grid(row=0, column=1, sticky=tk.NS)
-
-        tree_frame.columnconfigure(0, weight=1)
-        tree_frame.rowconfigure(0, weight=1)
-
-        # Build the tree structure
-        self._walk_tree(tree, bodies, systems[sysnum])
-
-        # Expand the root node by default
-        if len(tree.get_children()) > 0:
-            tree.item(tree.get_children()[0], open=True)
-
-    @catch_exceptions
-    def _walk_tree(self, tree:ttk.Treeview, bodies:list, system:dict, parent_id:int = 0, parent_node:str = ""):
-        ''' Recursive function to walk the body list and add items to the treeview.
-            It assumes the bodies are in order of parent-child relationships and that the 'parents' attribute indicates the level of the body in the hierarchy. '''
-
-        Debug.logger.debug(f"Walking tree with parent_id {parent_id} and parent_node {parent_node}")
-        for i, body in enumerate(bodies):
-            if body.get('parentId', 0) == parent_id:
-                Debug.logger.warning(f"Inserting {body.get('name', '')} ({body.get('parentId', -1)}) below {parent_id} ({parent_node})")
-
-                name:str = body.get('name', '')
-                if name.startswith(system.get('StarSystem', '')) and body.get('type', '') != 'Star':
-                    name = name.replace(system.get('StarSystem', '') + ' ', '')
-
-                details:tuple = self._get_body_columns(body)
-                item:str = tree.insert(parent_node, 'end', image=self._get_body_icon(body), text=" "+name, values=details, open=True)
-                self._add_builds_to_body(tree, item, body, system)
-
-                # Step down to find any children of this body
-                self._walk_tree(tree, deepcopy(bodies[i+1:]), system, body.get('bodyId', -1), item)
-
-
-    def _get_body_icon(self, item:dict) -> PhotoImage:
-        icons:dict = {
-            "Star": "icon_star",
-            "F (White) Star": "icon_white",
-            "G (White-Yellow) Star": "icon_yellow",
-            "K (Yellow-Orange) Star": "icon_star",
-            "L (Brown dwarf) Star": "icon_bd",
-            "M (Red dwarf) Star": "icon_rd",
-            "T (Brown dwarf) Star": "icon_bd",
-            "Y (Brown dwarf) Star": "icon_bd",
-            "High metal content world": "icon_hmc",
-            "Icy body": "icon_ib",
-            "Rocky body": "icon_rb",
-            #"Metal-rich body": "icon_mrb",
-            "Earth-like world": "icon_elw",
-            "Ammonia world": "icon_aw",
-            "Water world": "icon_ww",
-            "Surface_Planned": "icon_surface_planned",
-            "Orbital_Planned": "icon_orbital_planned",
-            "Surface_Progress": "icon_surface_progress",
-            "Orbital_Progress": "icon_orbital_progress",
-            "Surface_Complete": "icon_surface_complete",
-            "Orbital_Complete": "icon_orbital_complete",
-            "Surface": "icon_surface",
-            "Orbital": "icon_orbital",
-            "Primary": "icon_primary"
-        }
-
-        imagename:str = "icon_planet"
-        if item.get('subType', '') in icons.keys():
-            imagename = icons[item.get('subType')]
-        elif item.get('type', '') in icons.keys():
-            imagename = icons[item.get('type')]
-        elif item.get('Primary', False) == True:
-            imagename = icons['Primary']
-        elif f"{item.get('Location', '')}_{item.get('State', '')}" in icons.keys():
-            imagename = icons[f"{item.get('Location', '')}_{item.get('State', '')}"]
-
-        if imagename in self.images.keys():
-            return self.images[imagename]
-
-        #Debug.logger.debug(f"Loading image for {item.get('name', '')} type {item.get('type', '')} subType {item.get('subType', '')} from {imagename}")
-        image:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "bodies", f"{imagename}.png"))
-        self.images[imagename] = image
-        return image
-
-
-    def _get_body_columns(self, body:dict, show_distance:bool = True) -> tuple:
-        ''' Get column values for a body '''
-
-        # Type (subType)
-        body_type:str = body.get('subType', body.get('type', 'Unknown'))
-        if body.get('terraformingState', '') == 'Terraformable':
-            body_type = _("Terraformable") + " " + body_type # LANG: Terraformable body type label
-
-        # Distance
-        distance:str = ''
-        if show_distance and body.get('distanceToArrival'):
-            distance = human_format(body.get('distanceToArrival')) + 'Ls'
-        gravity:str = ''
-        if body.get('gravity', None) != None:
-            gravity = f"{body.get('gravity'):.2f}g"
-
-        features:str = ''
-        flist:list = []
-        if 'Features' in body and len(body['Features']) > 0:
-            flist = [f[0].upper() for f in body['Features'] if f not in ['Terraformable', 'Landable']]
-            features = " ".join(flist)
-
-        return (body_type, distance, gravity, features)
-
-
-
-    def _add_builds_to_body(self, tree:ttk.Treeview, item:str, body:dict, system:dict) -> None:
-        for i, b in enumerate(system.get('Builds', [])):
-            if b.get('BodyNum') == body.get('bodyId'):
-                # TODO: Add build location icon (colored by build state?)
-                bt:dict = self.colonisation.get_base_type(b.get('Base Type', ''))
-                bt['State'] = b.get('State', BuildState.PLANNED)
-                if i == 0: bt['Primary'] = True # Mark the first build as primary
-                Debug.logger.debug(f"Adding build {b.get('Name', '')} to body {body.get('name', '')} {b}")
-                build = tree.insert(item, 'end', image=self._get_body_icon(bt), text=" " +b.get('Base Type', ''), values=(b.get('Name'), '', '', ''), tags=('base',))
-                tree.item(build, tags=('base',))
-                style = ttk.Style()
-                style.configure(f"base.Treeview.Item", foreground='#444444')
-                tree.tag_configure('base', foreground='#444444')
-
-    @catch_exceptions
-    def _body_row_selected(self, event) -> None:
-        ''' Handle body selection in the treeview '''
-        treeview:ttk.Treeview = event.widget
-        iid:str = treeview.focus()
-        values:tuple = tuple(treeview.item(iid, 'values'))
-        column:str = treeview.identify_column(event.x)
-        Debug.logger.debug(f"Body selected: {values}, {column}, {iid}")
 
 
     @catch_exceptions
@@ -1612,7 +1413,7 @@ class ColonisationWindow:
         if self.legend_fr: self.legend_fr.destroy()
         if self.notes_fr: self.notes_fr.destroy()
         if self.bases_fr: self.bases_fr.destroy()
-        if self.bodies_fr: self.bodies_fr.destroy()
+        if self.bodies_popup and self.bodies_popup.window: self.bodies_popup.window.destroy()
 
         # UI components
         self.tabbar = None
@@ -1771,3 +1572,302 @@ class ColonisationWindow:
     def _cell(self, row:int, col:int) -> str:
         ''' Macro to shorten cell references '''
         return f"{num2alpha(col)}{row+1}"
+
+
+class BodiesPopup:
+    ''' Popup to show the bodies in a system '''
+
+    def __init__(self, parent:ColonisationWindow, system:dict) -> None:
+        ''' Show a popup with details of all the bodies in the system using a hierarchical treeview '''
+        if getattr(self, 'window', False) and self.window.winfo_exists():
+            self.window.destroy()
+
+        self.parent:ColonisationWindow = parent
+        self.system:dict = system
+        self.window:tk.Toplevel = tk.Toplevel(parent.bgstally.ui.frame)
+        self.window.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=parent.bgstally.plugin_name)) # LANG: Title of the bodies popup window
+        self.window.minsize(800, 600)
+        self.window.geometry(f"{int(800*parent.scale)}x{int(600*parent.scale)}")
+        self.window.config(bd=2, relief=tk.FLAT)
+
+        self.images:dict = {}
+
+        # Create frame for treeview and scrollbars
+        self.tree_frame:ttk.Frame = ttk.Frame(self.window)
+        self.tree_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        vsb:ttk.Scrollbar = ttk.Scrollbar(self.tree_frame, orient=tk.VERTICAL)
+
+        self.deets_frame:ttk.Frame = ttk.Frame(self.window, height=1)
+        self.deets_frame.pack(fill=tk.BOTH, expand=False, padx=5, pady=5)
+
+        # Define columns
+        columns:dict = {
+            'Id': ['', 0, 0], # Hidden column to store bodyId for linking to builds
+            'Description': [_('Description'), 250, 200], # LANG: Column heading for body description
+            'Distance': [_('Distance'), 70, 50], # LANG: Column heading for distance
+            'Gravity': [_('Gravity'), 70, 50], # LANG: Column heading for gravity
+            'Features': [_('Features'), 70, 50], # LANG: Column heading for body features
+        }
+
+        if getattr(self, '_colonise_bodies_style_initialised', False) == False:
+            self._init_style()
+
+        # Create treeview with columns using our no-indicator style
+        self.tree:ttk.Treeview = ttk.Treeview(self.tree_frame, columns=list(columns.keys()), yscrollcommand=vsb.set,
+                                         show="tree headings", style="NoIndicator.Treeview")
+        vsb.config(command=self.tree.yview)
+        self.tree.heading('#0', text=system.get('StarSystem', ''), anchor=tk.W) # First column for body names with system name as header
+        self.tree.column('#0', width=int(250*parent.scale), minwidth=int(200*parent.scale), stretch=True) # First column for body names with fixed width
+        for col, (header, width, minwidth) in columns.items():
+             self.tree.heading(col, text=_(header)) # LANG: Column heading for body attributes
+             self.tree.column(col, width=int(width*parent.scale), minwidth=int(minwidth*parent.scale), stretch=False)
+        self.tree.config(displaycolumns=list(columns.keys())[1:]) # Hide the bodyId column
+        self.tree.bind("<<TreeviewSelect>>", self._body_row_selected)
+        # Layout scrollbars and treeview
+        self.tree.grid(row=0, column=0, sticky=tk.NSEW)
+        vsb.grid(row=0, column=1, sticky=tk.NS)
+
+        self.tree_frame.columnconfigure(0, weight=1)
+        self.tree_frame.rowconfigure(0, weight=1)
+
+        # Build the tree structure
+        self._walk_tree(self.tree, system.get('Bodies', None), system)
+
+        # Expand the root node by default
+        if len(self.tree.get_children()) > 0:
+            self.tree.item(self.tree.get_children()[0], open=True)
+
+    @catch_exceptions
+    def _init_style(self) -> None:
+        """ Setup the treeview style to remove the expand/collapse indicators. """
+
+        def _strip_indicator(lay) -> list:
+            new:list = []
+            for elem, opts in lay:
+                if 'indicator' in elem:
+                    continue
+                if 'children' in opts:
+                    opts['children'] = _strip_indicator(opts['children'])
+                new.append((elem, opts))
+            return new
+
+        style = ttk.Style()
+        blank = PhotoImage()                          # empty placeholder
+        style.element_create('NoIndicator', 'image', blank)
+        # copy the existing layout and recursively drop any indicator entries
+        layout:list = style.layout('Treeview.Item')
+        style.layout('NoIndicator.Treeview.Item', _strip_indicator(layout))
+        # eliminate any leftover indent space; the indicator is gone so the
+        # indent can be zero without affecting the visual hierarchy
+        style.configure('NoIndicator.Treeview', rowheight=int(19*self.parent.scale), font=FONT_SMALL)
+        style.configure("NoIndicator.Treeview.Heading", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background='lightgrey')
+        # keep the blank image alive
+        self._colonise_bodies_blank:PhotoImage = blank
+        self._colonise_bodies_style_initialised = True
+
+
+    @catch_exceptions
+    def _walk_tree(self, tree:ttk.Treeview, bodies:list, system:dict, parent_id:int = 0, parent_node:str = ""):
+        ''' Recursive function to walk the body list and add items to the treeview.
+            It assumes the bodies are in order of parent-child relationships and that the 'parents' attribute indicates the level of the body in the hierarchy. '''
+
+        Debug.logger.debug(f"Walking tree with parent_id {parent_id} and parent_node {parent_node}")
+        for i, body in enumerate(bodies):
+            if body.get('parentId', 0) == parent_id:
+                Debug.logger.warning(f"Inserting {body.get('name', '')} ({body.get('parentId', -1)}) below {parent_id} ({parent_node})")
+
+                name:str = body.get('name', '')
+                if name.startswith(system.get('StarSystem', '')) and body.get('type', '') != 'Star':
+                    name = name.replace(system.get('StarSystem', '') + ' ', '')
+
+                details:tuple = self._get_body_columns(body)
+                item:str = tree.insert(parent_node, 'end', image=self._get_body_icon(body), text=" "+name, values=details, open=True)
+                self._add_builds_to_body(tree, item, body, system)
+
+                # Step down to find any children of this body
+                self._walk_tree(tree, deepcopy(bodies[i+1:]), system, body.get('bodyId', -1), item)
+
+
+    def _get_body_icon(self, item:dict) -> PhotoImage:
+        icons:dict = {
+            "Star": "icon_star",
+            "F (White) Star": "icon_white",
+            "G (White-Yellow) Star": "icon_yellow",
+            "K (Yellow-Orange) Star": "icon_star",
+            "L (Brown dwarf) Star": "icon_bd",
+            "M (Red dwarf) Star": "icon_rd",
+            "T (Brown dwarf) Star": "icon_bd",
+            "Y (Brown dwarf) Star": "icon_bd",
+            "High metal content world": "icon_hmc",
+            "Icy body": "icon_ib",
+            "Rocky body": "icon_rb",
+            #"Metal-rich body": "icon_mrb",
+            "Earth-like world": "icon_elw",
+            "Ammonia world": "icon_aw",
+            "Water world": "icon_ww",
+            "Surface_Planned": "icon_surface_planned",
+            "Orbital_Planned": "icon_orbital_planned",
+            "Surface_Progress": "icon_surface_progress",
+            "Orbital_Progress": "icon_orbital_progress",
+            "Surface_Complete": "icon_surface_complete",
+            "Orbital_Complete": "icon_orbital_complete",
+            "Surface": "icon_surface",
+            "Orbital": "icon_orbital",
+            "Primary": "icon_primary"
+        }
+
+        imagename:str = "icon_planet"
+        if item.get('subType', '') in icons.keys():
+            imagename = icons[item.get('subType')]
+        elif item.get('type', '') in icons.keys():
+            imagename = icons[item.get('type')]
+        elif item.get('Primary', False) == True:
+            imagename = icons['Primary']
+        elif f"{item.get('Location', '')}_{item.get('State', '')}" in icons.keys():
+            imagename = icons[f"{item.get('Location', '')}_{item.get('State', '')}"]
+
+        if imagename in self.images.keys():
+            return self.images[imagename]
+
+        #Debug.logger.debug(f"Loading image for {item.get('name', '')} type {item.get('type', '')} subType {item.get('subType', '')} from {imagename}")
+        image:PhotoImage = PhotoImage(file = path.join(self.parent.bgstally.plugin_dir, FOLDER_ASSETS, "bodies", f"{imagename}.png"))
+        self.images[imagename] = image
+        return image
+
+
+    @catch_exceptions
+    def _get_body_columns(self, body:dict, show_distance:bool = True) -> tuple:
+        ''' Get column values for a body '''
+
+        # Type (subType)
+        body_type:str = body.get('subType', body.get('type', 'Unknown'))
+        if body.get('terraformingState', '') == 'Terraformable':
+            body_type = _("Terraformable") + " " + body_type # LANG: Terraformable body type label
+
+        # Distance
+        distance:str = ''
+        if show_distance and body.get('distanceToArrival'):
+            distance = human_format(body.get('distanceToArrival')) + 'Ls'
+        gravity:str = ''
+        if body.get('gravity', None) != None:
+            gravity = f"{body.get('gravity'):.2f}g"
+
+        features:str = ''
+        flist:list = []
+        Debug.logger.debug(f"Calculating features for {body.get('name', '')} with features {body.get('features', [])}")
+        if 'features' in body and len(body['features']) > 0:
+            flist = [f[0].upper() for f in body['features'] if f not in ['Terraformable', 'Landable']]
+            features = " ".join(flist)
+
+        return (body.get('bodyId'), body_type, distance, gravity, features)
+
+    @catch_exceptions
+    def _add_builds_to_body(self, tree:ttk.Treeview, item:str, body:dict, system:dict) -> None:
+        for i, b in enumerate(system.get('Builds', [])):
+            if b.get('BodyNum') == body.get('bodyId'):
+                # TODO: Add build location icon (colored by build state?)
+                bt:dict = self.parent.colonisation.get_base_type(b.get('Base Type', ''))
+                bt['State'] = b.get('State', BuildState.PLANNED)
+                if i == 0: bt['Primary'] = True # Mark the first build as primary
+                Debug.logger.debug(f"Adding build {b.get('Name', '')} to body {body.get('name', '')} {b}")
+                build = tree.insert(item, 'end', image=self._get_body_icon(bt), text=" " +b.get('Base Type', ''), \
+                                    values=(b.get('BuildID'), b.get('Name'), '', '', ''), tags=('base',))
+                tree.item(build, tags=('base',))
+                style = ttk.Style()
+                style.configure(f"base.Treeview.Item", foreground='#444444')
+                tree.tag_configure('base', foreground='#444444')
+
+
+    @catch_exceptions
+    def _body_row_selected(self, event) -> None:
+        ''' Handle body selection in the treeview '''
+        treeview:ttk.Treeview = event.widget
+        iid:str = treeview.focus()
+        values:tuple = tuple(treeview.item(iid, 'values'))
+        item:str = values[0] if len(values) > 0 else ''
+        if item == '':
+            self.deets_frame.pack_forget()
+            return
+
+        if item.isdigit():
+            body_id:int = int(item)
+            body:dict = {}
+            for b in self.system.get('Bodies', []):
+                if b.get('bodyId', -1) == body_id:
+                    body = b
+                    break
+            if body:
+                self._show_body_details(body)
+            return
+
+        build:dict = {}
+        for b in self.system.get('Builds', []):
+            if b.get('BuildID', '') == item:
+                build = b
+                break
+        if build:
+            self._show_build_details(build)
+
+    def _show_body_details(self, body:dict) -> None:
+        ''' Show the details of a body in the details frame '''
+        for widget in self.deets_frame.winfo_children():
+            widget.destroy()
+
+        #ttk.Label(self.deets_frame, text=body.get('name', ''), font=FONT_HEADING_2).grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+
+        details:list = [
+            (_("Type"), body.get('subType', '').replace(' Star', '')), # LANG: Body type label
+            (_("Distance"), human_format(body.get('distanceToArrival', 0)) + ' Ls' if body.get('distanceToArrival', None) != None else ''), # LANG: Distance from arrival label
+            (_("Gravity"), f"{body.get('gravity', 0):.2f}g" if body.get('gravity', None) != None else ''), # LANG: Gravity label
+            (_("Tidally Locked"), _("Yes") if 'Tidally Locked' in body.get('features', []) else ''), # LANG: Tidally locked label
+            (_("Terraformable"), body.get('terraformingState', '')), # LANG: Terraforming state label
+            (_("Landable"), _("Yes") if body.get('isLandable', False) == True else ''), # LANG: Landable label
+            (_("Atmosphere"), body.get('atmosphereType', '') if body.get('atmosphereType', 'No atmosphere') != 'No atmosphere' else ''), # LANG: Atmosphere label
+            (_("Volcanism"), body.get('volcanismType', '') if body.get('volcanismType', 'No volcanism') != 'No volcanism' else ''), # LANG: Volcanism label
+        ]
+        font_bold:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
+        row:int = 1; col:int = 0; maxcols:int = 4
+        for (label, value) in details:
+            if value == '' or value == None:
+                continue
+            ttk.Label(self.deets_frame, text=label+":", font=font_bold).grid(row=row, column=col, padx=20, pady=5, sticky=tk.W)
+            ttk.Label(self.deets_frame, text=value, font=FONT_SMALL).grid(row=row, column=col+1, padx=(0,10), pady=5, sticky=tk.W)
+            col += 2
+            if col >= maxcols*2:
+                col = 0
+                row += 1
+
+
+    def _show_build_details(self, build:dict) -> None:
+        ''' Show the details of a build in the details frame '''
+        for widget in self.deets_frame.winfo_children():
+            widget.destroy()
+        font_bold:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
+        #ttk.Label(self.deets_frame, text=build.get('Name', ''), font=font_bold).grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+
+        bt:dict = self.parent.colonisation.get_base_type(build.get('Base Type', ''))
+        details:list = [
+            #(_("Type"), build.get('Base Type', '')), # LANG: Build type label
+            (_("Layout"), build.get('Layout', '')), # LANG: Build layout label
+            (_("Pad Size"), build.get('Pad', '')), # LANG: Build pad size label
+            #(_("Location"), build.get('Location', '')), # LANG: Build location label
+            #(_("Body"), build.get('Body', '')), # LANG: Build body label
+            (_("State"), build.get('State', '')), # LANG: Build state label
+            (_("Tier"), bt.get('Tier', '')), # LANG: Build tier label
+            (_("Category"), bt.get('Category', '')), # LANG: Build category label
+            (_("Prequisites"), bt.get('PreRequisites', '')), # LANG: Build prerequisites label
+            (_("Boosted by"), bt.get('Boosted By', '')), # LANG: Build boosted by label
+            (_("Decreased by"), bt.get('Decreased By', '')), # LANG: Build decreased by label
+            (_("Facility Economy"), bt.get('Facility Economy', '')), # LANG: Build facility economy label
+            (_("Economy Influence"), bt.get('Economy Influence', '')), # LANG: Build economy influence label
+        ]
+        font_bold:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
+
+        row:int = 1; col:int = 0; maxcols:int = 3
+        for (label, value) in details:
+            ttk.Label(self.deets_frame, text=label+":", font=font_bold).grid(row=row, column=col, padx=20, pady=5, sticky=tk.W)
+            ttk.Label(self.deets_frame, text=value, font=FONT_SMALL).grid(row=row, column=col+1, padx=(0,10), pady=5, sticky=tk.W)
+            col += 2
+            if col >= maxcols*2:
+                col = 0
+                row += 1

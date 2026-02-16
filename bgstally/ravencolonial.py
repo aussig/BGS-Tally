@@ -885,16 +885,18 @@ class EDSM:
                 v['belts'] = len(b.get('belts', []))
 
 
+            # Terraforamable
+            if b.get('terraformingState', '') == 'Terraformable': v['features'].append(_('Terraformable')) # LANG: Terraformable body feature label
             # Tidally locked
-            if b.get('rotationalPeriodTidallyLocked') == True: v['features'].append(_('T')) # LANG: Tidally locked body
+            if b.get('rotationalPeriodTidallyLocked') == True: v['features'].append(_('Tidally Locked')) # LANG: Tidally locked body
             # Atmosphere
-            if b.get('atmosphereType', 'No atmosphere') != 'No atmosphere': v['features'].append(_('A')) # LANG: Atmosphere body feature label
+            if b.get('atmosphereType', 'No atmosphere') != 'No atmosphere': v['features'].append(_('Atmosphere')) # LANG: Atmosphere body feature label
             # Landable
-            if b.get('isLandable') == True: v['features'].append(_('L')) # LANG: Landable body feature label
+            if b.get('isLandable') == True: v['features'].append(_('Landable')) # LANG: Landable body feature label
             # Volcanism
-            if b.get('type') == 'Planet' and b.get('volcanismType', 'No volcanism') != 'No volcanism': v['features'].append(_('G')) # LANG: Volcanism  (Geo) body feature label
+            if b.get('type') == 'Planet' and b.get('volcanismType', 'No volcanism') != 'No volcanism': v['features'].append(_('Geological')) # LANG: Volcanism  (Geo) body feature label
             # Rings
-            if b.get('rings', []) != []: v['features'].append(_('R')) # LANG: Rings body feature label
+            if b.get('rings', []) != []: v['features'].append(_('Rings')) # LANG: Rings body feature label
 
             bodies.append(v)
 

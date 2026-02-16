@@ -1689,42 +1689,54 @@ class BodiesPopup:
 
 
     def _get_body_icon(self, item:dict) -> PhotoImage:
-        icons:dict = {
-            "Star": "icon_star",
-            "F (White) Star": "icon_white",
-            "G (White-Yellow) Star": "icon_yellow",
-            "K (Yellow-Orange) Star": "icon_star",
-            "L (Brown dwarf) Star": "icon_bd",
-            "M (Red dwarf) Star": "icon_rd",
-            "T (Brown dwarf) Star": "icon_bd",
-            "Y (Brown dwarf) Star": "icon_bd",
-            "High metal content world": "icon_hmc",
-            "Icy body": "icon_ib",
-            "Rocky body": "icon_rb",
-            #"Metal-rich body": "icon_mrb",
-            "Earth-like world": "icon_elw",
-            "Ammonia world": "icon_aw",
-            "Water world": "icon_ww",
-            "Surface_Planned": "icon_surface_planned",
-            "Orbital_Planned": "icon_orbital_planned",
-            "Surface_Progress": "icon_surface_progress",
-            "Orbital_Progress": "icon_orbital_progress",
-            "Surface_Complete": "icon_surface_complete",
-            "Orbital_Complete": "icon_orbital_complete",
-            "Surface": "icon_surface",
-            "Orbital": "icon_orbital",
-            "Primary": "icon_primary"
-        }
+        if item.get('type', '') == 'Star' or ('Star' in item.get('subType', '') or 'Black Hole' in item.get('subType', '')):
+            imagename:str ="icon_star"
+            if 'Black' in item.get('subType', ''):
+                imagename = "icon_bh"
+            elif 'Neutron' in item.get('subType', ''):
+                imagename = "icon_neutron"
+            elif 'White Dwarf' in item.get('subType', ''):
+                imagename = "icon_wd"
+            elif 'Brown' in item.get('subType', ''):
+                imagename = "icon_bd"
+            elif 'Red' in item.get('subType', ''):
+                imagename = "icon_rd"
+            elif 'Orange' in item.get('subType', ''):
+                imagename = "icon_star"
+            elif 'Yellow' in item.get('subType', ''):
+                imagename = "icon_yellow"
+            elif 'White' in item.get('subType', ''):
+                imagename = "icon_white"
 
-        imagename:str = "icon_planet"
-        if item.get('subType', '') in icons.keys():
-            imagename = icons[item.get('subType')]
-        elif item.get('type', '') in icons.keys():
-            imagename = icons[item.get('type')]
-        elif item.get('Primary', False) == True:
-            imagename = icons['Primary']
-        elif f"{item.get('Location', '')}_{item.get('State', '')}" in icons.keys():
-            imagename = icons[f"{item.get('Location', '')}_{item.get('State', '')}"]
+        else:
+            icons:dict = {
+                "High metal content world": "icon_hmc",
+                "Icy body": "icon_ib",
+                "Rocky body": "icon_rb",
+                #"Metal-rich body": "icon_mrb",
+                "Earth-like world": "icon_elw",
+                "Ammonia world": "icon_aw",
+                "Water world": "icon_ww",
+                "Surface_Planned": "icon_surface_planned",
+                "Orbital_Planned": "icon_orbital_planned",
+                "Surface_Progress": "icon_surface_progress",
+                "Orbital_Progress": "icon_orbital_progress",
+                "Surface_Complete": "icon_surface_complete",
+                "Orbital_Complete": "icon_orbital_complete",
+                "Surface": "icon_surface",
+                "Orbital": "icon_orbital",
+                "Primary": "icon_primary"
+            }
+
+            imagename:str = "icon_planet"
+            if item.get('subType', '') in icons.keys():
+                imagename = icons[item.get('subType')]
+            elif item.get('type', '') in icons.keys():
+                imagename = icons[item.get('type')]
+            elif item.get('Primary', False) == True:
+                imagename = icons['Primary']
+            elif f"{item.get('Location', '')}_{item.get('State', '')}" in icons.keys():
+                imagename = icons[f"{item.get('Location', '')}_{item.get('State', '')}"]
 
         if imagename in self.images.keys():
             return self.images[imagename]
@@ -1828,8 +1840,7 @@ class BodiesPopup:
         font_bold:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
         row:int = 1; col:int = 0; maxcols:int = 4
         for (label, value) in details:
-            if value == '' or value == None:
-                continue
+            if value == '' or value == None: continue
             ttk.Label(self.deets_frame, text=label+":", font=font_bold).grid(row=row, column=col, padx=20, pady=5, sticky=tk.W)
             ttk.Label(self.deets_frame, text=value, font=FONT_SMALL).grid(row=row, column=col+1, padx=(0,10), pady=5, sticky=tk.W)
             col += 2
@@ -1847,15 +1858,12 @@ class BodiesPopup:
 
         bt:dict = self.parent.colonisation.get_base_type(build.get('Base Type', ''))
         details:list = [
-            #(_("Type"), build.get('Base Type', '')), # LANG: Build type label
             (_("Layout"), build.get('Layout', '')), # LANG: Build layout label
-            (_("Pad Size"), build.get('Pad', '')), # LANG: Build pad size label
-            #(_("Location"), build.get('Location', '')), # LANG: Build location label
-            #(_("Body"), build.get('Body', '')), # LANG: Build body label
+            (_("Pad Size"), build.get('Pad', _('None'))), # LANG: Build pad size label
             (_("State"), build.get('State', '')), # LANG: Build state label
             (_("Tier"), bt.get('Tier', '')), # LANG: Build tier label
             (_("Category"), bt.get('Category', '')), # LANG: Build category label
-            (_("Prequisites"), bt.get('PreRequisites', '')), # LANG: Build prerequisites label
+            (_("Prerequisites"), bt.get('Prerequisites', '')), # LANG: Build prerequisites label
             (_("Boosted by"), bt.get('Boosted By', '')), # LANG: Build boosted by label
             (_("Decreased by"), bt.get('Decreased By', '')), # LANG: Build decreased by label
             (_("Facility Economy"), bt.get('Facility Economy', '')), # LANG: Build facility economy label
@@ -1865,6 +1873,7 @@ class BodiesPopup:
 
         row:int = 1; col:int = 0; maxcols:int = 3
         for (label, value) in details:
+            if value == '' or value == None: continue
             ttk.Label(self.deets_frame, text=label+":", font=font_bold).grid(row=row, column=col, padx=20, pady=5, sticky=tk.W)
             ttk.Label(self.deets_frame, text=value, font=FONT_SMALL).grid(row=row, column=col+1, padx=(0,10), pady=5, sticky=tk.W)
             col += 2

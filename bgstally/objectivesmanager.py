@@ -91,12 +91,25 @@ class ObjectivesManager:
         # Include key fields that matter for change detection
         simplified = []
         for obj in objectives:
+            # Explicitly extract progress values from targets to ensure they're tracked
+            targets_simplified = []
+            for target in obj.get('targets', []):
+                targets_simplified.append({
+                    'type': target.get('type'),
+                    'progress': target.get('progress'),  # Explicitly track progress
+                    'targetoverall': target.get('targetoverall'),
+                    'targetindividual': target.get('targetindividual'),
+                    'system': target.get('system'),
+                    'faction': target.get('faction'),
+                    'station': target.get('station')
+                })
+            
             simplified.append({
                 'title': obj.get('title'),
                 'type': obj.get('type'),
                 'priority': obj.get('priority'),
                 'description': obj.get('description'),
-                'targets': obj.get('targets', []),
+                'targets': targets_simplified,
                 'startdate': obj.get('startdate'),
                 'enddate': obj.get('enddate')
             })
@@ -174,12 +187,25 @@ class ObjectivesManager:
         Returns:
             str: JSON string representation of mission
         """
+        # Explicitly extract progress values from targets to ensure they're tracked
+        targets_simplified = []
+        for target in mission.get('targets', []):
+            targets_simplified.append({
+                'type': target.get('type'),
+                'progress': target.get('progress'),  # Explicitly track progress
+                'targetoverall': target.get('targetoverall'),
+                'targetindividual': target.get('targetindividual'),
+                'system': target.get('system'),
+                'faction': target.get('faction'),
+                'station': target.get('station')
+            })
+        
         simplified = {
             'title': mission.get('title'),
             'type': mission.get('type'),
             'priority': mission.get('priority'),
             'description': mission.get('description'),
-            'targets': mission.get('targets', []),
+            'targets': targets_simplified,
             'startdate': mission.get('startdate'),
             'enddate': mission.get('enddate')
         }

@@ -12,6 +12,8 @@
 ### Changes:
 
 * The method used to extract translatable strings has been updated, which means some text that was missing translations can now be translated.
+* Reworked the Colonisation bodies popup to provide a prettier, more informative, and more detailed display
+* Updated the commodity requirements for colonisation bases to match FDev's latest changes
 
 ### Bug Fixes:
 

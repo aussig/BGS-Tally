@@ -890,7 +890,6 @@ class Colonisation:
         data:dict = {
             'State': BuildState.COMPLETE,
             'Track': False,
-            'TotalCost': sum(p.get('Required', {}).values()) if p != None else 0,
             'Readonly': True,
             'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
         }
@@ -943,8 +942,8 @@ class Colonisation:
                     sub = bt.get(s, "Unknown")
                     if sub in costs[cat]:
                         return costs[cat][sub]
-                
-        Debug.logger.error(f"Base costs not found for {type}: {cat} {sub}")
+
+        Debug.logger.error(f"Base costs not found for {type}: {bt.get('Category', '')} {sub}")
         return {}
 
     def _get_progress(self, builds:list[dict], type:str) -> list[dict]:
@@ -958,8 +957,8 @@ class Colonisation:
                 for p in self.progress:
                     if p.get('MarketID') == b.get('MarketID') and p.get('ConstructionComplete', False) == False and p.get('ConstructionFailed', False) != True:
                         res = p.get(type, {})
-                        break            
-            if res == {} and type != 'Delivered': 
+                        break
+            if res == {} and type != 'Delivered':
                 res = self._get_cost(b.get('Base Type', ''), i==0)
             found += 1
             prog.append(res)

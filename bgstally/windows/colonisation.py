@@ -1580,6 +1580,11 @@ class ColonisationWindow:
 
 class BodiesPopup:
     ''' Popup to show the bodies in a system '''
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(self, parent:ColonisationWindow, system:dict) -> None:
         ''' Show a popup with details of all the bodies in the system using a hierarchical treeview '''
@@ -1834,6 +1839,10 @@ class BodiesPopup:
         details:list = [
             (_("Type"), body.get('subType', '').replace(' Star', '')), # LANG: Body type label
             (_("Distance"), human_format(body.get('distanceToArrival', 0)) + ' Ls' if body.get('distanceToArrival', None) != None else ''), # LANG: Distance from arrival label
+            (_("Solar Masses"), f"{body.get('solarMasses', 0):.2f}g" if body.get('solarMasses', None) != None else ''), # LANG: Gravity label
+            (_("Solar Radius"), f"{body.get('solarRadius', 0):.2f}" if body.get('solarRadius', None) != None else ''), # LANG: Gravity label
+            (_("Earth Masses"), f"{body.get('earthMasses', 0):.2f}" if body.get('earthMasses', None) != None else ''), # LANG: Gravity label
+            (_("Radius"), f"{body.get('radius', 0):.0f}Km" if body.get('radius', None) != None else ''), # LANG: Gravity label
             (_("Gravity"), f"{body.get('gravity', 0):.2f}g" if body.get('gravity', None) != None else ''), # LANG: Gravity label
             (_("Tidally Locked"), _("Yes") if 'Tidally Locked' in body.get('features', []) else ''), # LANG: Tidally locked label
             (_("Terraformable"), body.get('terraformingState', '')), # LANG: Terraforming state label
@@ -1863,7 +1872,7 @@ class BodiesPopup:
         bt:dict = self.parent.colonisation.get_base_type(build.get('Base Type', ''))
         details:list = [
             (_("Layout"), build.get('Layout', '')), # LANG: Build layout label
-            (_("Pad Size"), build.get('Pad', _('None'))), # LANG: Build pad size label
+            (_("Pad Size"), bt.get('Pad') if bt.get('Pad', '') != '' else _('None')), # LANG: Build pad size label
             (_("State"), build.get('State', '')), # LANG: Build state label
             (_("Tier"), bt.get('Tier', '')), # LANG: Build tier label
             (_("Category"), bt.get('Category', '')), # LANG: Build category label

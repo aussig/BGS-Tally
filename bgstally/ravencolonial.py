@@ -691,7 +691,7 @@ class EDSM:
         self._initialized = True
         # Details to retrieve for bodies from EDSM
         #self.body_details:list = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
-        self.body_details:list = ['name', 'bodyId', 'type', 'subType', 'isLandable', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival', 'gravity']
+        self.body_details:list = ['name', 'bodyId', 'type', 'subType', 'isLandable', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival', 'solarMasses', 'solarRadius', 'earthMasses', 'radius', 'surfaceTemperature', 'surfacePressure', 'isScoopable', 'gravity']
 
     @catch_exceptions
     def import_stations(self, system_name:str) -> None:
@@ -885,7 +885,7 @@ class EDSM:
                 v['belts'] = len(b.get('belts', []))
 
 
-            # Terraforamable
+            # Terraformable
             if b.get('terraformingState', '') == 'Terraformable': v['features'].append(_('Terraformable')) # LANG: Terraformable body feature label
             # Tidally locked
             if b.get('rotationalPeriodTidallyLocked') == True: v['features'].append(_('Tidally Locked')) # LANG: Tidally locked body

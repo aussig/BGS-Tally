@@ -937,6 +937,12 @@ class Colonisation:
                     return costs[cat][sub]["Primary" if primary else "Secondary"]
             case "Planetary Outpost" | "Planetary Port":
                 return costs[cat]
+            case "Settlement":
+                # Costs are now a direct mulitiplier of the size.
+                sizes:list = ["", "Small", "Medium", "Large"]
+                sub = bt.get("Facility Economy", "Unknown")
+                if sub in costs[cat]:
+                    return {comm : cost * sizes.index(bt.get("Building Type")) for comm, cost in costs[cat][sub].items()}
             case _:
                 for s in ('Type (Listed as/under)', 'Facility Economy'):
                     sub = bt.get(s, "Unknown")

@@ -338,7 +338,7 @@ class ColonisationWindow:
         ToolTip(btn, text=_("Edit system plan")) # LANG: tooltip for the edit system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         # ⌕ ?
-        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_search, width=3, cursor="hand2", command=lambda: self.bases_popup())
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_base, width=3, cursor="hand2", command=lambda: self.bases_popup())
         btn.pack(side=tk.RIGHT, padx=(5,20), pady=5)
         ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
 
@@ -448,8 +448,12 @@ class ColonisationWindow:
                         v:int = bt.get(name, 0)
                         if name in ['T2', 'T3']:
                             v = bt.get(name+' Reward', 0) - bt.get(name + ' Cost', 0)
-                        if name == 'Trips':
-                            v = ceil(bt['Total Comm'] / self.colonisation.cargo_capacity)
+                        if name in ('Trips', 'Total Comm'):
+                            cost:dict = self.colonisation._get_cost(bt.get('Type'))
+                            if name == 'Trips':
+                                v = ceil(sum(list(cost.values())) / self.colonisation.cargo_capacity)
+                            else:
+                                v = sum(list(cost.values()))
                         sheet[self._cell(i,j)].data = ' ' if v == 0 else f"{v:,}"
                         sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), str(v), col.get('max')), redraw=False)
                     case _:

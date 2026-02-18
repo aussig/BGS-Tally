@@ -463,6 +463,13 @@ class FleetCarrier:
             if elem > 0: # Found it, and it's an "old" one. Update departure time and duration just in case
                 jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
                 jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))
+
+                # Still no departure time so figure it out from the arrival time of the next item.
+                if jumplist[elem]['departureTime'] == None and jumplist[elem-1]['arrivalTime'] != None:
+                    jumplist[elem]['departureTime'] = jumplist[elem-1]['arrivalTime']
+                if jumplist[elem]['visitDurationSeconds'] == None:
+                    diff:timedelta = datetime.strptime(jumplist[elem]['departureTime'], DATETIME_FORMAT_JSON) - datetime.strptime(jumplist[elem]['arrivalTime'], DATETIME_FORMAT_JSON)
+                    jumplist[elem]['visitDurationSeconds'] = int(diff.total_seconds())
                 continue
 
             if elem == 0:
@@ -674,6 +681,10 @@ class FleetCarrier:
             self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
             self.itinerary[0]['departureTime'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00")
+            arr:datetime = datetime.strptime(self.itinerary[0]['arrivalTime'], DATETIME_FORMAT_JSON)
+            diff:timedelta = departure_datetime - arr
+            self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
+
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -702,6 +713,7 @@ class FleetCarrier:
 
         if self.itinerary[0]['departureTime'] == self.overview['departureScheduled']:
             self.itinerary[0]['departureTime'] = None
+            self.itinerary[0]['visitDurationSeconds'] = None
 
         self.overview['jumpDestination'] = None
         self.overview['jumpDestinationBody'] = None
@@ -748,7 +760,7 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = self.overview['departureScheduled']
             self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
 
-        if self.itinerary[0]['starsystem'] != dest:
+        if self.itinerary[0]['starsystem'] != dest and self.itinerary[0]['arrivalTime'] != self.overview['departureScheduled']:
             self.itinerary.insert(0, {
                                       'departureTime': None,
                                       'arrivalTime': self.overview['departureScheduled'],

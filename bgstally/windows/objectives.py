@@ -225,7 +225,7 @@ class WindowObjectives:
         ttk.Label(content_frame, text=metadata_text, font=FONT_SMALL, foreground="gray40").pack(anchor=tk.NW, pady=(0, 5))
 
         # Dates
-        mission_startdate: datetime = datetime.strptime(mission.get('startdate', datetime.now(UTC).strftime(DATETIME_FORMAT_API)), DATETIME_FORMAT_API)
+        mission_startdate: datetime = datetime.strptime(mission.get('startdate') or datetime.now(UTC).strftime(DATETIME_FORMAT_API), DATETIME_FORMAT_API)
         mission_startdate = mission_startdate.replace(tzinfo=UTC)
         mission_enddate: datetime = datetime.strptime(mission.get('enddate', datetime(3999, 12, 31, 23, 59, 59, 0, UTC).strftime(DATETIME_FORMAT_API)), DATETIME_FORMAT_API)
         mission_enddate = mission_enddate.replace(tzinfo=UTC)

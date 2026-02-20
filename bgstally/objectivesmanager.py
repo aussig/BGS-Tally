@@ -321,7 +321,7 @@ class ObjectivesManager:
                 mission_system = {'name': mission_system, 'x': 0, 'y': 0, 'z': 0}
             mission_faction: str|None = mission.get('faction')
             if mission_faction is None: mission_faction = _("Unknown") # LANG: Unknown faction name
-            mission_startdate: datetime = datetime.strptime(mission.get('startdate', datetime.now(UTC).strftime(DATETIME_FORMAT_API)), DATETIME_FORMAT_API)
+            mission_startdate: datetime = datetime.strptime(mission.get('startdate') or datetime.now(UTC).strftime(DATETIME_FORMAT_API), DATETIME_FORMAT_API)
             mission_startdate = mission_startdate.replace(tzinfo=UTC)
             mission_enddate: datetime = datetime.strptime(mission.get('enddate', datetime(3999, 12, 31, 23, 59, 59, 0, UTC).strftime(DATETIME_FORMAT_API)), DATETIME_FORMAT_API)
             mission_enddate = mission_enddate.replace(tzinfo=UTC)
@@ -553,7 +553,7 @@ class ObjectivesManager:
             mission_system_name: str = mission_system.get('name', _('Unknown')) # LANG: Unknown system name
             mission_faction: str|None = mission.get('faction')
             if mission_faction is None: mission_faction = _("Unknown") # LANG: Unknown faction name
-            mission_startdate: datetime = datetime.strptime(mission.get('startdate', datetime.now(UTC).strftime(DATETIME_FORMAT_API)), DATETIME_FORMAT_API)
+            mission_startdate: datetime = datetime.strptime(mission.get('startdate') or datetime.now(UTC).strftime(DATETIME_FORMAT_API), DATETIME_FORMAT_API)
             mission_startdate = mission_startdate.replace(tzinfo=UTC)
             mission_enddate: datetime = datetime.strptime(mission.get('enddate', datetime(3999, 12, 31, 23, 59, 59, 0, UTC).strftime(DATETIME_FORMAT_API)), DATETIME_FORMAT_API)
             mission_enddate = mission_enddate.replace(tzinfo=UTC)
@@ -770,7 +770,7 @@ class ObjectivesManager:
         mission_system_name: str = mission_system.get('name', _('Unknown')) # LANG: Unknown system name
         mission_faction: str|None = mission.get('faction')
         if mission_faction is None: mission_faction = _("Unknown") # LANG: Unknown faction name
-        mission_startdate: datetime = datetime.strptime(mission.get('startdate', datetime.now(UTC).strftime(DATETIME_FORMAT_API)), DATETIME_FORMAT_API)
+        mission_startdate: datetime = datetime.strptime(mission.get('startdate') or datetime.now(UTC).strftime(DATETIME_FORMAT_API), DATETIME_FORMAT_API)
         mission_startdate = mission_startdate.replace(tzinfo=UTC)
         mission_activity: Activity = self.bgstally.activity_manager.query_activity(mission_startdate)
 

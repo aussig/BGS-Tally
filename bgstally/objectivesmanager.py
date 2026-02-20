@@ -226,7 +226,7 @@ class ObjectivesManager:
 
         result = []
         for mission in objectives:
-            mission_enddate_str = mission.get('enddate', datetime(3999, 12, 31, 23, 59, 59, 0, UTC).strftime(DATETIME_FORMAT_API))
+            mission_enddate_str = mission.get('enddate') or datetime(3999, 12, 31, 23, 59, 59, 0, UTC).strftime(DATETIME_FORMAT_API)
             mission_enddate = datetime.strptime(mission_enddate_str, DATETIME_FORMAT_API)
             mission_enddate = mission_enddate.replace(tzinfo=UTC)
 

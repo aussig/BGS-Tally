@@ -6,6 +6,7 @@
 
 * Favourite factions. You can now mark factions as favourites (♥ / ♡), and there are new Discord posting options to post only your favourites, or only systems that contain your favourites.
 * System / station summary information on the in-game overlay. If you are using the overlay, when you jump into a system (or on initial load of the game), a summary of the current system is displayed, including the faction in control and its influence %, any conflicts, the system population, government and security. When you dock at a station, the overlay displays the faction in control of the station.
+* A complete re-design of the display of Objectives - both in it's EDMC window and also on the in-game overlay.  In the EDMC window, missions are now expandable and have their priority clearly displayed.
 * There is a new option to use your Colonisation plan names instead of system names in BGS/TW Discord reports. This defaults to `Off`.
 * Added support for nicely formatted Markdown files, and converted the Colonisation help to Markdown format.
 
@@ -18,6 +19,10 @@
 * Addressed formatting of carrier cargo and locker discord posts [Issue 420](https://github.com/aussig/BGS-Tally/issues/420)
 * Fix for error when Raven Colonial project already exists [Issue 421](https://github.com/aussig/BGS-Tally/issues/421)
 * None of the objectives text was localised, which included both the objectives window and the in-game overlay. Localisation is now enabled, so translators are able to translate this text.
+
+### API Changes ([v1.8](xxxxxxxxxxxx)):
+
+* `/objectives` endpoint: `system` is now an object containing `name`, `x`, `y` and `z` galaxy coordinates for the system. For the moment it still accepts a string (as per API v1.7 and earlier) instead of the object.
 
 
 ## v5.4.0 - 2026-01-21

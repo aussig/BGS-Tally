@@ -2,6 +2,7 @@ import json
 from datetime import UTC, datetime
 from enum import Enum
 from os import path
+from typing import Any
 
 from bgstally.activity import Activity
 from bgstally.api import API
@@ -69,7 +70,7 @@ class APIManager:
             api.send_activity(api_activity)
 
 
-    def send_event(self, event: dict, activity: Activity, cmdr: str, mission: dict = {}):
+    def send_event(self, event: dict, activity: Activity, cmdr: str, mission: dict|None = {}):
         """Event has been received. Add it to the events queue.
 
         Args:
@@ -259,7 +260,7 @@ class APIManager:
         return api_activity
 
 
-    def _build_api_event(self, event:dict, activity:Activity, cmdr:str, mission:dict = {}):
+    def _build_api_event(self, event:dict, activity:Activity, cmdr:str, mission:dict|None = {}):
         """
         Build an API-ready event ready for sending. This just involves enhancing the event with some
         additional data
@@ -300,14 +301,14 @@ class APIManager:
         return event
 
 
-    def _filter_localised(self, d: dict[str, any]) -> dict[str, any]:
+    def _filter_localised(self, d: dict[str, Any]) -> dict[str, Any]:
         """
         Recursively remove any dict keys with names ending `_Localised` from a dict.
 
         :param d: dict to filter keys of.
         :return: The filtered dict.
         """
-        filtered: dict[str, any] = dict()
+        filtered: dict[str, Any] = dict()
         for k, v in d.items():
             if k.endswith('_Localised'):
                 pass

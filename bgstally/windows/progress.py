@@ -786,7 +786,11 @@ class ProgressWindow:
         ''' Set font weight, defaults to bold '''
         #fnt:tkFont._FontDict = tkFont.Font(font=cell['font']).actual()
         #cell.configure(font=(fnt['family'], fnt['size'], w))
-        fnt:tkFont.Font = tkFont.Font(font=cell.cget("font"))
+        fnt = getattr(cell, "_bgstally_font", None)
+        if fnt is None:
+            fnt = tkFont.Font(font=cell.cget("font"))
+            setattr(cell, "_bgstally_font", fnt)
+            cell.configure(font=fnt)
         fnt.configure(weight=w)
         cell.configure(font=fnt)
 

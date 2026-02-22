@@ -19,6 +19,7 @@
 * Addressed formatting of carrier cargo and locker discord posts [Issue 420](https://github.com/aussig/BGS-Tally/issues/420)
 * Fix for error when Raven Colonial project already exists [Issue 421](https://github.com/aussig/BGS-Tally/issues/421)
 * None of the objectives text was localised, which included both the objectives window and the in-game overlay. Localisation is now enabled, so translators are able to translate this text.
+* Fix intermittent font scaling issue in commodities list.
 
 ### API Changes ([v1.8](xxxxxxxxxxxx)):
 

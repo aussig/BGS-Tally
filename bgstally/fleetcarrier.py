@@ -682,6 +682,7 @@ class FleetCarrier:
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
             self.itinerary[0]['departureTime'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00")
             arr:datetime = datetime.strptime(self.itinerary[0]['arrivalTime'], DATETIME_FORMAT_JSON)
+            arr = arr.replace(tzinfo=UTC)
             diff:timedelta = departure_datetime - arr
             self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
 

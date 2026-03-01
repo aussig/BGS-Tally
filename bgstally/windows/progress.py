@@ -782,7 +782,7 @@ class ProgressWindow:
         return f"{qty: >10,}{_('t')}" # LANG: Colonisation tonnes abbreviation
 
 
-    def _set_weight(self, cell, w='bold') -> None:
+    def _set_weight(self, cell:tk.Label, w:str = 'bold') -> None:
         ''' Set font weight, defaults to bold '''
         #fnt:tkFont._FontDict = tkFont.Font(font=cell['font']).actual()
         #cell.configure(font=(fnt['family'], fnt['size'], w))
@@ -791,7 +791,7 @@ class ProgressWindow:
             fnt = tkFont.Font(font=cell.cget("font"))
             setattr(cell, "_bgstally_font", fnt)
             cell.configure(font=fnt)
-        fnt.configure(weight=w)
+        fnt.configure(weight=w) # type: ignore
         cell.configure(font=fnt)
 
 

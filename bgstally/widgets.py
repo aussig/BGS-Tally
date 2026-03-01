@@ -315,6 +315,10 @@ class CollapsibleFrame(ttk.Frame):
         self._variable.set(0)
         self._activate()
 
+    def is_open(self) -> bool:
+        """Returns True if the collapsible frame is currently open/expanded."""
+        return bool(self._variable.get())
+
 
 class TreeviewPlus(ttk.Treeview):
     def __init__(self, parent, callback, datetime_format, *args, **kwargs):

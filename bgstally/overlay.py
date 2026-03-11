@@ -1,4 +1,6 @@
 import textwrap
+from datetime import UTC, datetime, timedelta
+from threading import Thread, Event
 
 from bgstally.constants import CheckStates, TAG_OVERLAY_HIGHLIGHT
 from bgstally.debug import Debug
@@ -32,6 +34,8 @@ class Overlay:
         self.supports_modern_overlay_backgrounds: bool = False
         self.problem_displaying: bool = False
 
+        self.stoppers:dict[str, Event] = {}
+        
         overlay_config: dict | None = self.bgstally.config.overlay()
         if overlay_config is not None:
             global WIDTH_OVERLAY, HEIGHT_OVERLAY, HEIGHT_CHARACTER_NORMAL, HEIGHT_CHARACTER_LARGE, WIDTH_CHARACTER_NORMAL, WIDTH_CHARACTER_LARGE, MAX_LINES_PER_PANEL
@@ -199,6 +203,49 @@ class Overlay:
                 # Only log a warning about failure once
                 self.problem_displaying = True
                 Debug.logger.warning(f"Could not display overlay message", exc_info=e)
+
+    
+    def _timedelta_str(self, delta:timedelta) -> str:
+        """ Display remaining time showing hh:mm:ss """
+        s:int = delta.seconds
+        unit:int = 60
+        res:list = []
+        while unit > 0:
+            t, s = divmod(s, unit)
+            unit = int(unit / 60)
+            if t > 0 or unit < 3600:
+                res.append(f"{t:02d}")
+        return ':'.join(res)
+
+    def _countdown(self, frame:str, message:str, end:datetime, stop:Event) -> None:
+        """ Update the countdown display frame until zero or stopped """
+        rem:timedelta = end - datetime.now(tz=end.tzinfo)
+        while rem.seconds > 0 and not stop.wait(1):
+            rem = end - datetime.now(tz=end.tzinfo)
+            self.display_message(frame, message.format(t=self._timedelta_str(rem)))
+
+        stop.clear()
+        self.display_message(frame, '')
+        Debug.logger.debug("Countdown thread is ending.")
+
+
+    def stop_countdown(self, frame:str) -> None:
+        """ Stop a countdown display for a frame """
+        if frame not in self.stoppers: return
+        self.stoppers[frame].set()
+
+
+    def display_countdown(self, frame:str, message:str, end:datetime|int|None) -> None:
+        """
+        Display a countdown either until a specific time or for some number of seconds
+        The countdown should be in a variable {t} in the message
+        """
+        Debug.logger.debug(f"Countdown starting {message} {end}")        
+        self.stop_countdown(frame)
+        self.stoppers[frame] = Event()
+        if isinstance(end, int): end = datetime.now() + timedelta(seconds=end)
+        Thread(target=self._countdown, args=(frame, message, end, self.stoppers[frame]), daemon=True,
+               name=f"bgstally_{frame} overlay countdown worker").start()
 
 
     def _check_overlay(self):

@@ -581,8 +581,11 @@ class RavenColonial:
         projectid:str|None = progress.get('ProjectID', None)
         if projectid == None: return
 
-        url:str = f"{RC_API}/project/{projectid}/last"
-        response:Response = requests.get(url, headers=self._headers(), timeout=10)
+        #url:str = f"{RC_API}/project/{projectid}/last"
+        #response:Response = requests.get(url, headers=self._headers(), timeout=10)
+        url:str = f"{RC_API}/project/poll"
+        payload:list = [projectid]
+        response:Response = requests.post(url, headers=self._headers(), json=payload, timeout=10)
         if response.status_code != 200:
             Debug.logger.error(f"Error for {url} {response} {response.content}")
             return

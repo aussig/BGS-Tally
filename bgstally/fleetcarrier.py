@@ -677,8 +677,9 @@ class FleetCarrier:
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
         self.bgstally.overlay.display_countdown("fleetcarrier", _("Carrier jump in: {t}"), departure_datetime) # LANG: Carrier jump countdown
-        rem = departure_datetime - datetime.now(tz=departure_datetime.tzinfo)
-        self.bgstally.ui.frame.after((rem.seconds + 2) * 1000, lambda: self.jump_complete())
+        rem:timedelta = departure_datetime - datetime.now(tz=departure_datetime.tzinfo)
+        # We run this because we don't get notified in the Journal when a jump completes and we aren't aboard.
+        self.bgstally.ui.frame.after(rem.seconds * 1000, lambda: self.jump_complete())
         if self.bgstally.dev_mode == True: self.save()
         self.bgstally.ui.window_fc.update_display()
 
@@ -700,7 +701,7 @@ class FleetCarrier:
 
         self.bgstally.overlay.stop_countdown("fleetcarrier")
         self.bgstally.overlay.display_countdown("fleetcarrier", _("Carrier jump cooldown: {t}"), 60) # LANG: Carrier jump countdown
-        
+
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
         l:str|None = self.bgstally.state.discord_lang
@@ -765,12 +766,11 @@ class FleetCarrier:
 
 
     def jump_complete(self) -> None:
-        self.bgstally.ui.frame.after(300000, lambda: self.cooldown_complete())
+        """Called when carrier jump completes"""
+        if not self.overview['departureScheduled']: return
+        Debug.logger.debug(f"Carrier jump completed")
         self.bgstally.overlay.stop_countdown('Carrier')
         self.bgstally.overlay.display_countdown('Carrier', _("Carrier jump cooldown: {t}"), 300)
-
-    def cooldown_complete(self) -> None:        
-        self.bgstally.overlay.stop_countdown('Carrier')
 
 
     @catch_exceptions

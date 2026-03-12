@@ -359,6 +359,13 @@ class UI:
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame_2, text=_("Fleetcarrier"), # LANG: Preferences checkbox label
+                       variable=self.bgstally.state.EnableOverlayCarrier,
+                       state=self.overlay_options_state(),
+                       onvalue=CheckStates.STATE_ON,
+                       offvalue=CheckStates.STATE_OFF,
+                       command=self.bgstally.state.refresh
+                       ).pack(side=tk.LEFT)
 
         if self.bgstally.overlay.edmcoverlay == None:
             nb.Label(frame, text=_("In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.")).grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences label

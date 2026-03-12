@@ -6,7 +6,7 @@ from os import path
 from copy import deepcopy
 
 #from bgstally.bgstally import BGSTally
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierType
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierType, TAG_OVERLAY_HIGHLIGHT
 from bgstally.debug import Debug
 from bgstally.utils import _, __, get_by_path, catch_exceptions
 from thirdparty.colors import *
@@ -36,9 +36,8 @@ class FleetCarrier:
         self.shipyard:dict = {} # Local copy of shipyard data
         self.last_modified:int = 0 # Record of when we last modified our local data. Used to avoid overwriting with out of date CAPI data.
         self.data:dict = {}  # Raw CAPI data
-        self.load()
-
-
+        self.load()    
+    
     @catch_exceptions
     def available(self) -> bool:
         """ Return true if there is data available on a Fleet Carrier """
@@ -352,6 +351,7 @@ class FleetCarrier:
     def clear_route(self) -> None:
         """ Remove the current route """
         self.route = []
+        self.bgstally.overlay.display_message('fleetcarrier', "", ttl_override=1)
         self.bgstally.ui.window_fc.update_display()
 
 
@@ -373,9 +373,34 @@ class FleetCarrier:
         if self.route != []:
             Debug.logger.debug(f"Copying {self.route[0]['name']} to clipboard")
             self.bgstally.ui.frame.clipboard_clear()
-            self.bgstally.ui.frame.clipboard_append(self.route[0]['name'])
+            self.update_overlay()
             self.bgstally.ui.frame.update()
         self.bgstally.ui.window_fc.update_display()
+
+
+    def update_overlay(self, timer:datetime|int = None, cooldown:bool = False) -> None:
+        """ Display our next jump in the overlay or clear it if we have none. Show a countdown if it's in progress or coolingdown """
+        # Show our next jump
+        message:str = ""
+        if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
+            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
+        if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
+            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[0]['name']}"
+        if len(self.route) == 0 and self.overview.get('jumpDestination', None) != None:
+            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jump To')}: {self.overview.get('jumpDestination', None)}" #LANG: Carrier overlay
+        if self.overview.get('jumpDestinationBody') != None:
+            message += " " + self.overview['jumpDestinationBody']        
+        
+        if timer == None:
+            self.bgstally.overlay.display_message('fleetcarrier', message)
+            return        
+
+        if cooldown == True:
+            message += "\n" + _("Carrier jump cooldown: {t}") # LANG: Carrier overlay
+        if cooldown == False:
+            message += "\n" + _("Carrier jump in: {t}") # LANG: Carrier overlay
+
+        self.bgstally.overlay.display_countdown("fleetcarrier", message, timer)
 
 
     def _update_cargo(self, data:dict) -> dict:
@@ -675,8 +700,7 @@ class FleetCarrier:
         fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord heading
         fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
-
-        self.bgstally.overlay.display_countdown("fleetcarrier", _("Carrier jump in: {t}"), departure_datetime) # LANG: Carrier jump countdown
+        self.update_overlay(departure_datetime)
         rem:timedelta = departure_datetime - datetime.now(tz=departure_datetime.tzinfo)
         # Not sure this is needed because I'm not sure about the lack of notification in the Journal.
         # We run this because we don't get notified in the Journal when a jump completes and we aren't aboard.
@@ -701,7 +725,7 @@ class FleetCarrier:
         if self.bgstally.dev_mode == True: self.save()
 
         self.bgstally.overlay.stop_countdown("fleetcarrier")
-        self.bgstally.overlay.display_countdown("fleetcarrier", _("Carrier jump cooldown: {t}"), 60) # LANG: Carrier jump countdown
+        self.update_overlay(60, True)
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -781,7 +805,7 @@ class FleetCarrier:
         if not self.overview['departureScheduled']: return
         Debug.logger.debug(f"Carrier jump completed")
         self.bgstally.overlay.stop_countdown('fleetcarrier')
-        self.bgstally.overlay.display_countdown('fleetcarrier', _("Carrier jump cooldown: {t}"), 300)
+        self.update_overlay(300, True)        
 
 
     @catch_exceptions

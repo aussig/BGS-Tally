@@ -678,6 +678,7 @@ class FleetCarrier:
 
         self.bgstally.overlay.display_countdown("fleetcarrier", _("Carrier jump in: {t}"), departure_datetime) # LANG: Carrier jump countdown
         rem:timedelta = departure_datetime - datetime.now(tz=departure_datetime.tzinfo)
+        # Not sure this is needed because I'm not sure about the lack of notification in the Journal.
         # We run this because we don't get notified in the Journal when a jump completes and we aren't aboard.
         self.bgstally.ui.frame.after(rem.seconds * 1000, lambda: self.jump_complete())
         if self.bgstally.dev_mode == True: self.save()
@@ -721,8 +722,18 @@ class FleetCarrier:
         """ Update the current carrier location after a jump. If we logged out we may not get this event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        # Check if the jump time is now or has passed.
+        # Check if we have a jump scheduled and the jump time has passed. If not nothing to do.
         if self._time_passed(self.overview.get('departureScheduled', "")) == False:
+            # No jump scheduled but carrier isn't where we think it is so add current location to itinerary.
+            if self.itinerary[0]['starsystem'] != entry.get('StarSystem'):
+                self.itinerary.insert(0, {
+                                        'departureTime': None,
+                                        'arrivalTime': self.itinerary[0].get('departureTime', ''),
+                                        'state': "success",
+                                        'visitDurationSeconds': 0,
+                                        'starsystem': entry.get('StarSystem', ''),
+                                        'body': entry.get('Body', '')
+                                        })
             return
 
         dest:str = self.overview.get('jumpDestination', '')
@@ -769,8 +780,8 @@ class FleetCarrier:
         """Called when carrier jump completes"""
         if not self.overview['departureScheduled']: return
         Debug.logger.debug(f"Carrier jump completed")
-        self.bgstally.overlay.stop_countdown('Carrier')
-        self.bgstally.overlay.display_countdown('Carrier', _("Carrier jump cooldown: {t}"), 300)
+        self.bgstally.overlay.stop_countdown('fleetcarrier')
+        self.bgstally.overlay.display_countdown('fleetcarrier', _("Carrier jump cooldown: {t}"), 300)
 
 
     @catch_exceptions

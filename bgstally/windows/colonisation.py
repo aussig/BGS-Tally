@@ -166,7 +166,7 @@ class ColonisationWindow:
         self.legend_fr:tk.Toplevel|None = None
         self.notes_fr:tk.Toplevel|None = None
         self.bases_fr:tk.Toplevel|None = None
-        self.bodies_fr:BodiesPopup = None
+        self.bodies_fr:tk.Toplevel = None
         self.scale:float = 0
 
 
@@ -217,7 +217,7 @@ class ColonisationWindow:
         if tabnum > 1:
             t:int = 1
             for t in range(1, tabnum-1):
-                Debug.logger.debug(f"{t} {self.tl.get(t)} {tabnum-1}")
+                #Debug.logger.debug(f"{t} {self.tl.get(t)} {tabnum-1}")
                 if systems[self.tl[t]].get('Hidden', True) == False:
                     break
             self.tabbar.select(t) # Select the first non-hidden system tab
@@ -394,10 +394,10 @@ class ColonisationWindow:
         if dest == '' or dest == None:
             dest = config.get_str('system_provider')
         if type not in self.links.keys():
-            Debug.logger.debug(f"Unknown link type: {type}")
+            Debug.logger.info(f"Unknown link type: {type}")
             return
         if dest not in self.links[type].keys():
-            Debug.logger.debug(f"Unknown destination: {dest}")
+            Debug.logger.info(f"Unknown destination: {dest}")
             return
         params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in data.items()}
         webbrowser.open(self.links[type][dest].format(**params))
@@ -1426,7 +1426,7 @@ class ColonisationWindow:
             w.destroy()
             return
 
-        # Close all windows
+        # Save geometry nd close all windows
         for n, w in {'Bodies' : self.bodies_fr,
                      'Bases' : self.bases_fr,
                      'Notes' : self.notes_fr,
@@ -1613,8 +1613,12 @@ class BodiesPopup:
         self.window:tk.Toplevel = tk.Toplevel(parent.bgstally.ui.frame)
         self.window.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=parent.bgstally.plugin_name)) # LANG: Title of the bodies popup window
         self.window.minsize(800, 600)
-        self.window.geometry(f"{int(800*parent.scale)}x{int(600*parent.scale)}")
+        geometry:str = parent.colonisation.window_geometries.get('Bodies', f"{int(800*parent.scale)}x{int(600*parent.scale)}")
+        self.window.geometry(geometry)
         self.window.config(bd=2, relief=tk.FLAT)
+        # This handles geometry saving
+        parent.bodies_fr = self.window
+        self.window.protocol("WM_DELETE_WINDOW", partial(parent.close, 'Bodies', self.window))
 
         self.images:dict = {}
 
@@ -1697,10 +1701,10 @@ class BodiesPopup:
         ''' Recursive function to walk the body list and add items to the treeview.
             It assumes the bodies are in order of parent-child relationships and that the 'parents' attribute indicates the level of the body in the hierarchy. '''
 
-        Debug.logger.debug(f"Walking tree with parent_id {parent_id} and parent_node {parent_node}")
+        #Debug.logger.debug(f"Walking tree with parent_id {parent_id} and parent_node {parent_node}")
         for i, body in enumerate(bodies):
             if body.get('parentId', 0) == parent_id:
-                Debug.logger.warning(f"Inserting {body.get('name', '')} ({body.get('parentId', -1)}) below {parent_id} ({parent_node})")
+                #Debug.logger.warning(f"Inserting {body.get('name', '')} ({body.get('parentId', -1)}) below {parent_id} ({parent_node})")
 
                 name:str = body.get('name', '')
                 if name.startswith(system.get('StarSystem', '')) and body.get('type', '') != 'Star':
@@ -1792,7 +1796,7 @@ class BodiesPopup:
 
         features:str = ''
         flist:list = []
-        Debug.logger.debug(f"Calculating features for {body.get('name', '')} with features {body.get('features', [])}")
+        #Debug.logger.debug(f"Calculating features for {body.get('name', '')} with features {body.get('features', [])}")
         if 'features' in body and len(body['features']) > 0:
             flist = [f[0].upper() for f in body['features'] if f not in ['Terraformable', 'Landable']]
             features = " ".join(flist)
@@ -1807,7 +1811,7 @@ class BodiesPopup:
                 bt:dict = self.parent.colonisation.get_base_type(b.get('Base Type', ''))
                 bt['State'] = b.get('State', BuildState.PLANNED)
                 if i == 0: bt['Primary'] = True # Mark the first build as primary
-                Debug.logger.debug(f"Adding build {b.get('Name', '')} to body {body.get('name', '')} {b}")
+                #Debug.logger.debug(f"Adding build {b.get('Name', '')} to body {body.get('name', '')} {b}")
                 build = tree.insert(item, 'end', image=self._get_body_icon(bt), text=" " +b.get('Base Type', ''), \
                                     values=(b.get('BuildID'), b.get('Name'), '', '', ''), tags=('base',))
                 tree.item(build, tags=('base',))

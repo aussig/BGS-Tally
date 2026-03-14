@@ -376,26 +376,20 @@ class FleetCarrier:
     @catch_exceptions
     def update_overlay(self) -> str:
         """ Display our next jump in the overlay or clear it if we have none. Show a countdown if it's in progress or coolingdown """
-
-        # Show our next jump
-        Debug.logger.debug(f"update overlay called")
+        message:str = ""
 
         # Clear the timer and state
         if self.timer != None and self.timer < datetime.now(tz=self.timer.tzinfo):
             if self.jump_state == 'Cooldown': self._update_route()
             self.timer = None
             self.jump_state = 'Idle'
-            return ""
 
-        message:str = ""
         if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
         if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[0]['name']}"
         if len(self.route) == 0 and self.overview.get('jumpDestination', None) != None:
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jump To')}: {self.overview.get('jumpDestination', None)}" #LANG: Carrier overlay
-        #if self.overview.get('jumpDestinationBody') != None:
-        #    message += " " + self.overview['jumpDestinationBody']
 
         cd:str = ''
         if self.timer != None:

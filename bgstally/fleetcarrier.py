@@ -36,8 +36,10 @@ class FleetCarrier:
         self.shipyard:dict = {} # Local copy of shipyard data
         self.last_modified:int = 0 # Record of when we last modified our local data. Used to avoid overwriting with out of date CAPI data.
         self.data:dict = {}  # Raw CAPI data
-        self.load()    
-    
+        self.jump_state:str = 'Idle'
+        self.timer:datetime = None
+        self.load()
+
     @catch_exceptions
     def available(self) -> bool:
         """ Return true if there is data available on a Fleet Carrier """
@@ -136,10 +138,6 @@ class FleetCarrier:
         """
 
         comm:dict = {}
-        selling:int = 0
-        nosale:int = 0
-        stored:int = 0
-        reserved:int = 0
         for t, ent in self.cargo.items():
             if t == 'overview' or (type != 'all' and type != t): continue
             for name, deets in ent.items():
@@ -290,27 +288,6 @@ class FleetCarrier:
     @catch_exceptions
     def spansh_route(self, dest:str) -> None:
         """ Create and store a Spansh fleetcarrier route """
-        # Request:
-        #   source=Bleae+Thua+NI-B+b27-5&
-        #   destinations=Apurui&
-        #   capacity=25000&
-        #   mass=25000&
-        #   capacity_used=17579&
-        #   calculate_starting_fuel=1
-        # Response:
-        #   {"job":"3B517F04-CDB2-11F0-A808-D8E8969359E6","status":"queued"}
-        #
-        # GET https://spansh.co.uk/api/results/3B517F04-CDB2-11F0-A808-D8E8969359E6
-        # Response:
-        #   {"job":"3B517F04-CDB2-11F0-A808-D8E8969359E6",
-        # "parameters":{"calculate_starting_fuel":1,"capacity":25000,"capacity_used":17579,"current_fuel":0,"destination_systems":["Apurui"],"mass":25000,"refuel_destinations":[],"source_system":"Bleae Thua NI-B b27-5","tritium_amount":0},
-        # "state":"started","status":"queued"}
-        #
-        # {"job":"3B517F04-CDB2-11F0-A808-D8E8969359E6",
-        # "parameters":{"calculate_starting_fuel":1,"capacity":25000,"capacity_used":17579,"current_fuel":0,"destination_systems":["Apurui"],"mass":25000,"refuel_destinations":[],"source_system":"Bleae Thua NI-B b27-5","tritium_amount":0},
-        # "result":{"calculate_starting_fuel":true,"capacity":25000,"capacity_used":17579,"destinations":["Apurui"],"fuel_loaded":0,
-        # "jumps":[{"distance":0,"distance_to_destination":2025.11992724544,"fuel_in_tank":468,"fuel_used":0,"has_icy_ring":false,"id64":11663386487017,"is_desired_destination":1,"is_system_pristine":false,"must_restock":1,"name":"Bleae Thua NI-B b27-5","restock_amount":468,"tritium_in_market":0,"x":-200.25,"y":20.6875,"z":2082.4375},{"distance":499.052589718446,"distance_to_destination":1526.54724595756,"fuel_in_tank":356,"fuel_used":112,"has_icy_ring":true,"id64":83651204114,"is_desired_destination":0,"is_system_pristine":true,"must_restock":0,"name":"Bleae Thua MN-W c1-0","restock_amount":0,"tritium_in_market":0,"x":-111.15625,"y":6.96875,"z":1591.59375},{"distance":499.97798193708,"distance_to_destination":1026.98374443227,"fuel_in_tank":244,"fuel_used":112,"has_icy_ring":false,"id64":22953915731648,"is_desired_destination":0,"is_system_pristine":false,"must_restock":0,"name":"M7 Sector RP-V a32-1","restock_amount":0,"tritium_in_market":0,"x":-53.5625,"y":-33.09375,"z":1096.5625},{"distance":499.887685627669,"distance_to_destination":527.979466819319,"fuel_in_tank":132,"fuel_used":112,"has_icy_ring":false,"id64":58147951365432,"is_desired_destination":0,"is_system_pristine":false,"must_restock":0,"name":"Col 359 Sector SJ-Y a45-3","restock_amount":0,"tritium_in_market":0,"x":37.59375,"y":-43,"z":605.15625},{"distance":499.33503829468,"distance_to_destination":68.911947043401,"fuel_in_tank":20,"fuel_used":112,"has_icy_ring":true,"id64":5070611162585,"is_desired_destination":0,"is_system_pristine":false,"must_restock":0,"name":"Garoju","restock_amount":0,"tritium_in_market":0,"x":122.03125,"y":-126.1875,"z":120.09375},{"distance":68.911947043401,"distance_to_destination":0,"fuel_in_tank":0,"fuel_used":20,"has_icy_ring":true,"id64":7505757278946,"is_desired_destination":1,"is_system_pristine":false,"must_restock":0,"name":"Apurui","restock_amount":0,"tritium_in_market":0,"x":96.21875,"y":-75.3125,"z":81.4375}],"mass":25000,"refuel_destinations":[],"source":"Bleae Thua NI-B b27-5","tritium_stored":0},
-        # "state":"completed","status":"ok"}
         params:dict = {
             "source": self.overview.get('currentStarSystem'),
             "destinations": dest,
@@ -373,14 +350,36 @@ class FleetCarrier:
         if self.route != []:
             Debug.logger.debug(f"Copying {self.route[0]['name']} to clipboard")
             self.bgstally.ui.frame.clipboard_clear()
-            self.update_overlay()
             self.bgstally.ui.frame.update()
         self.bgstally.ui.window_fc.update_display()
 
+    def _td_str(self, delta:timedelta) -> str:
+        """ Display remaining time showing hh:mm:ss """
+        s:int = delta.seconds
+        unit:int = 60
+        res:list = []
+        while unit > 0:
+            t, s = divmod(s, unit)
+            unit = int(unit / 60)
+            if t > 0 or unit < 3600:
+                res.append(f"{t:02d}")
+        return ':'.join(res)
 
-    def update_overlay(self, timer:datetime|int = None, cooldown:bool = False) -> None:
+    @catch_exceptions
+    def update_overlay(self) -> str:
         """ Display our next jump in the overlay or clear it if we have none. Show a countdown if it's in progress or coolingdown """
+
         # Show our next jump
+        Debug.logger.debug(f"update overlay called")
+
+        # Clear the timer and state
+        if self.timer != None:
+            Debug.logger.debug(f"Timer: {self.timer} {datetime.now(tz=self.timer.tzinfo)}")
+        if self.timer != None and self.timer < datetime.now(tz=self.timer.tzinfo):
+            self.timer = None
+            self.state = 'Idle'
+            return ""
+
         message:str = ""
         if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
@@ -388,19 +387,20 @@ class FleetCarrier:
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[0]['name']}"
         if len(self.route) == 0 and self.overview.get('jumpDestination', None) != None:
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jump To')}: {self.overview.get('jumpDestination', None)}" #LANG: Carrier overlay
-        if self.overview.get('jumpDestinationBody') != None:
-            message += " " + self.overview['jumpDestinationBody']        
-        
-        if timer == None:
-            self.bgstally.overlay.display_message('fleetcarrier', message)
-            return        
+        #if self.overview.get('jumpDestinationBody') != None:
+        #    message += " " + self.overview['jumpDestinationBody']
 
-        if cooldown == True:
-            message += "\n" + _("Carrier jump cooldown: {t}") # LANG: Carrier overlay
-        if cooldown == False:
-            message += "\n" + _("Carrier jump in: {t}") # LANG: Carrier overlay
+        cd:str = ''
+        if self.timer != None:
+            cd = self._td_str(self.timer - datetime.now(tz=self.timer.tzinfo))
 
-        self.bgstally.overlay.display_countdown("fleetcarrier", message, timer)
+        if self.jump_state == 'Cooldown' and cd != '':
+            message += "\n" + _("Carrier jump cooldown: {t}").format(t=cd) # LANG: Carrier overlay
+        if self.jump_state == 'Jumping' and cd != '':
+            message += "\n" + _("Carrier jump in: {t}").format(t=cd) # LANG: Carrier overlay
+
+        Debug.logger.debug(f"Displaying overlay countdown {self.jump_state} {self.timer} {cd} {message}")
+        return message
 
 
     def _update_cargo(self, data:dict) -> dict:
@@ -676,7 +676,7 @@ class FleetCarrier:
 
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        departure_datetime: datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
+        departure_datetime:datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
         departure_datetime = departure_datetime.replace(tzinfo=UTC)
         self.overview['jumpDestination'] = entry.get('SystemName', '')
         self.overview['jumpDestinationBody'] = entry.get('Body', None)
@@ -700,11 +700,14 @@ class FleetCarrier:
         fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord heading
         fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
-        self.update_overlay(departure_datetime)
+        self.jump_state = 'Jumping'
+        self.timer = datetime.strptime(self.overview['departureScheduled'], "%Y-%m-%d %H:%M:00").replace(tzinfo=UTC)
+
         rem:timedelta = departure_datetime - datetime.now(tz=departure_datetime.tzinfo)
         # Not sure this is needed because I'm not sure about the lack of notification in the Journal.
         # We run this because we don't get notified in the Journal when a jump completes and we aren't aboard.
         self.bgstally.ui.frame.after(rem.seconds * 1000, lambda: self.jump_complete())
+
         if self.bgstally.dev_mode == True: self.save()
         self.bgstally.ui.window_fc.update_display()
 
@@ -724,8 +727,8 @@ class FleetCarrier:
 
         if self.bgstally.dev_mode == True: self.save()
 
-        self.bgstally.overlay.stop_countdown("fleetcarrier")
-        self.update_overlay(60, True)
+        self.jump_state = 'Cooldown'
+        self.timer = datetime.now() + timedelta(seconds=60)
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -804,8 +807,8 @@ class FleetCarrier:
         """Called when carrier jump completes"""
         if not self.overview['departureScheduled']: return
         Debug.logger.debug(f"Carrier jump completed")
-        self.bgstally.overlay.stop_countdown('fleetcarrier')
-        self.update_overlay(300, True)        
+        self.jump_state = 'Cooldown'
+        self.timer = datetime.now() + timedelta(seconds=300)
 
 
     @catch_exceptions

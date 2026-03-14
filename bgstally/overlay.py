@@ -221,42 +221,6 @@ class Overlay:
                 res.append(f"{t:02d}")
         return ':'.join(res)
 
-    def _countdown(self, frame:str, message:str, end:datetime, stop:Event) -> None:
-        """ Update the countdown display frame until zero or stopped """
-        rem:timedelta = end - datetime.now(tz=end.tzinfo)
-        while rem.seconds > 0 and not stop.wait(1):
-            rem = end - datetime.now(tz=end.tzinfo)
-            self.display_message(frame, message.format(t=self._timedelta_str(rem)))
-
-        stop.clear()
-        self.display_message(frame, '')
-        Debug.logger.debug("Countdown thread is ending.")
-
-
-    def stop_countdown(self, frame:str) -> None:
-        """ Stop a countdown display for a frame """
-        if frame not in self.stoppers: return
-        self.stoppers[frame].set()
-        del self.stoppers[frame]
-
-
-    def countdown_running(self, frame:str) -> bool:
-        """ Is a countdown being displayed for a frame """
-        return (frame in self.stoppers)
-
-
-    def display_countdown(self, frame:str, message:str, end:datetime|int|None) -> None:
-        """
-        Display a countdown either until a specific time or for some number of seconds
-        The countdown should be in a variable {t} in the message
-        """
-        Debug.logger.debug(f"Countdown starting {message} {end}")
-        self.stop_countdown(frame)
-        self.stoppers[frame] = Event()
-        if isinstance(end, int): end = datetime.now() + timedelta(seconds=end)
-        Thread(target=self._countdown, args=(frame, message, end, self.stoppers[frame]), daemon=True,
-               name=f"bgstally_{frame} overlay countdown worker").start()
-
 
     def _check_overlay(self):
         """

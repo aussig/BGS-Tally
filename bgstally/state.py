@@ -99,6 +99,7 @@ class State:
         self.enable_overlay_objectives:bool = (self.EnableOverlayObjectives.get() == CheckStates.STATE_ON)
         self.overlay_objectives_mode:int = int(self.OverlayObjectivesMode.get())
         self.enable_overlay_colonisation:bool = (self.EnableOverlayColonisation.get() == CheckStates.STATE_ON) and (self.ColonisationStatus.get() == CheckStates.STATE_ON)
+        self.enable_overlay_carrier:bool = (self.EnableOverlayCarrier.get() == CheckStates.STATE_ON)
 
         self.abbreviate_faction_names:bool = (self.AbbreviateFactionNames.get() == CheckStates.STATE_ON)
         self.secondary_inf:bool = (self.IncludeSecondaryInf.get() == CheckStates.STATE_ON)

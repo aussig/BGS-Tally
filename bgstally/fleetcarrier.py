@@ -700,13 +700,9 @@ class FleetCarrier:
         fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord heading
         fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+
         self.jump_state = 'Jumping'
         self.timer = datetime.strptime(self.overview['departureScheduled'], "%Y-%m-%d %H:%M:00").replace(tzinfo=UTC)
-
-        rem:timedelta = departure_datetime - datetime.now(tz=departure_datetime.tzinfo)
-        # Not sure this is needed because I'm not sure about the lack of notification in the Journal.
-        # We run this because we don't get notified in the Journal when a jump completes and we aren't aboard.
-        self.bgstally.ui.frame.after(rem.seconds * 1000, lambda: self.jump_complete())
 
         if self.bgstally.dev_mode == True: self.save()
         self.bgstally.ui.window_fc.update_display()
@@ -798,17 +794,12 @@ class FleetCarrier:
         self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
-        self.jump_complete()
+        if self.state == 'Jumping':
+            self.jump_state = 'Cooldown'
+            self.timer = datetime.now() + timedelta(seconds=300)
+
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
-
-
-    def jump_complete(self) -> None:
-        """Called when carrier jump completes"""
-        if not self.overview['departureScheduled']: return
-        Debug.logger.debug(f"Carrier jump completed")
-        self.jump_state = 'Cooldown'
-        self.timer = datetime.now() + timedelta(seconds=300)
 
 
     @catch_exceptions

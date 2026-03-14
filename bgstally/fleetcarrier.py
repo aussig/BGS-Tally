@@ -744,7 +744,6 @@ class FleetCarrier:
         """ The user cancelled their carrier jump producing a CarrierJumpCancelled journal event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-
         if self.itinerary[0]['departureTime'] == self.overview['departureScheduled']:
             self.itinerary[0]['departureTime'] = None
             self.itinerary[0]['visitDurationSeconds'] = None

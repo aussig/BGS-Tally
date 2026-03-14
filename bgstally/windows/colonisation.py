@@ -166,7 +166,7 @@ class ColonisationWindow:
         self.legend_fr:tk.Toplevel|None = None
         self.notes_fr:tk.Toplevel|None = None
         self.bases_fr:tk.Toplevel|None = None
-        self.bodies_popup:BodiesPopup = None
+        self.bodies_fr:BodiesPopup = None
         self.scale:float = 0
 
 
@@ -1420,11 +1420,21 @@ class ColonisationWindow:
     @catch_exceptions
     def close(self, n:str = '', w:tk.Toplevel|None = None) -> None:
         ''' Close the window and any popups and clean up'''
-        if self.window: self.window.destroy()
-        if self.legend_fr: self.legend_fr.destroy()
-        if self.notes_fr: self.notes_fr.destroy()
-        if self.bases_fr: self.bases_fr.destroy()
-        if self.bodies_popup and self.bodies_popup.window: self.bodies_popup.window.destroy()
+        # Close one window.
+        if w and w.winfo_exists():
+            self.colonisation.window_geometries[n] = w.winfo_geometry()
+            w.destroy()
+            return
+
+        # Close all windows
+        for n, w in {'Bodies' : self.bodies_fr,
+                     'Bases' : self.bases_fr,
+                     'Notes' : self.notes_fr,
+                     'Legend' : self.legend_fr,
+                     'Colonisation' : self.window}.items():
+            if w and w.winfo_exists():
+                self.colonisation.window_geometries[n] = w.winfo_geometry()
+                w.destroy()
 
         # UI components
         self.tabbar = None

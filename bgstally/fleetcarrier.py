@@ -804,7 +804,6 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = self.overview['departureScheduled']
             self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
 
-
         if self.itinerary[0]['starsystem'] != self.overview.get('jumpDestination', '') and self.itinerary[0]['arrivalTime'] != self.overview['departureScheduled']:
             self.itinerary.insert(0, {
                                       'departureTime': None,

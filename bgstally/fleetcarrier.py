@@ -378,9 +378,12 @@ class FleetCarrier:
         """ Display our next jump in the overlay or clear it if we have none. Show a countdown if it's in progress or coolingdown """
         message:str = ""
 
+        Debug.logger.debug(f"Overlay: {self.jump_state} {self.timer}")
+
         # Clear the timer and state
         if self.timer != None and self.timer < datetime.now(tz=self.timer.tzinfo):
-            if self.jump_state == 'Cooldown': self._update_route()
+            if self.jump_state == 'Cooldown':
+                self._cooldown_complete()
             self.timer = None
             self.jump_state = 'Idle'
 
@@ -388,17 +391,15 @@ class FleetCarrier:
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
         if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[0]['name']}"
-        if len(self.route) == 0 and self.overview.get('jumpDestination', None) != None:
-            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jump To')}: {self.overview.get('jumpDestination', None)}" #LANG: Carrier overlay
 
         cd:str = ''
         if self.timer != None:
             cd = self._td_str(self.timer - datetime.now(tz=self.timer.tzinfo))
 
         if self.jump_state == 'Cooldown' and cd != '':
-            message += "\n" + _("Carrier jump cooldown: {t}").format(t=cd) # LANG: Carrier overlay
+            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jump Cooldown')} {cd}" # LANG: Carrier overlay
         if self.jump_state == 'Jumping' and cd != '':
-            message += "\n" + _("Carrier jump in: {t}").format(t=cd) # LANG: Carrier overlay
+            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jump To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  #LANG: Carrier overlay
 
         return message
 
@@ -818,17 +819,17 @@ class FleetCarrier:
         if self.jump_state == 'Jumping':
             self.jump_state = 'Cooldown'
             self.timer = datetime.now() + timedelta(seconds=300)
+            self._update_route()
 
         self.bgstally.ui.window_fc.update_display()
-        self.bgstally.ui.frame.after(300000, lambda: self.cooldown_complete())
         if self.bgstally.dev_mode == True: self.save()
 
 
     @catch_exceptions
-    def cooldown_complete(self) -> None:
+    def _cooldown_complete(self) -> None:
         Debug.logger.debug(f"Carrier cooldown completed.")
 
-        #self.bgstally.ui.warning = _("Carrier cooldown complete") # LANG: Cooldown overlay message
+        self.bgstally.ui.warning = _("Carrier cooldown complete") # LANG: Cooldown overlay message
         self.bgstally.ui.window_fc.cooldown_notice()
 
         # Automatically post to whichever discord webhooks are set for carrier operations

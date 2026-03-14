@@ -114,7 +114,6 @@ class WindowFleetCarrier:
             },
         }
 
-        #self.cooldown_notice()
 
     @catch_exceptions
     def show(self) -> None:

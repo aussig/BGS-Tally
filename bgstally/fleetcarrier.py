@@ -36,6 +36,7 @@ class FleetCarrier:
         self.shipyard:dict = {} # Local copy of shipyard data
         self.last_modified:int = 0 # Record of when we last modified our local data. Used to avoid overwriting with out of date CAPI data.
         self.data:dict = {}  # Raw CAPI data
+        self.window_geometries:dict = {}
         self.jump_state:str = 'Idle'
         self.timer:datetime = None
         self.load()
@@ -375,26 +376,20 @@ class FleetCarrier:
     @catch_exceptions
     def update_overlay(self) -> str:
         """ Display our next jump in the overlay or clear it if we have none. Show a countdown if it's in progress or coolingdown """
-
-        # Show our next jump
-        Debug.logger.debug(f"update overlay called")
+        message:str = ""
 
         # Clear the timer and state
         if self.timer != None and self.timer < datetime.now(tz=self.timer.tzinfo):
             if self.jump_state == 'Cooldown': self._update_route()
             self.timer = None
             self.jump_state = 'Idle'
-            return ""
 
-        message:str = ""
         if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
         if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[0]['name']}"
         if len(self.route) == 0 and self.overview.get('jumpDestination', None) != None:
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jump To')}: {self.overview.get('jumpDestination', None)}" #LANG: Carrier overlay
-        #if self.overview.get('jumpDestinationBody') != None:
-        #    message += " " + self.overview['jumpDestinationBody']
 
         cd:str = ''
         if self.timer != None:
@@ -464,6 +459,19 @@ class FleetCarrier:
             #else:
                 #Debug.logger.debug(f"Final cargo: {cargo['normal'][cname]}")
 
+        # If we are buying but have zero stock we need to add here because it won't be on the list above.
+        for c in get_by_path(data, ['orders', 'commodities', 'purchases'], []):
+            cname = c['name']
+            if cname not in cargo['normal'] and not c.get('blackmarket', False):
+                cargo['normal'][c['name']] = {
+                    'locName': comms.get(cname, {}).get('Name', c.get('locName', cname).lower()),
+                    'category': comms.get(cname, {}).get('Category', c.get('categoryname', 'Unknown')),
+                    'stock': 0,
+                    'buyTotal': c.get('total', 0),
+                    'outstanding': c.get('outstanding', 0),
+                    'price': c.get('price')
+                }
+
         return cargo
 
 
@@ -479,6 +487,13 @@ class FleetCarrier:
             if elem > 0: # Found it, and it's an "old" one. Update departure time and duration just in case
                 jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
                 jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))
+
+                # Still no departure time so figure it out from the arrival time of the next item.
+                if jumplist[elem]['departureTime'] == None and jumplist[elem-1]['arrivalTime'] != None:
+                    jumplist[elem]['departureTime'] = jumplist[elem-1]['arrivalTime']
+                if jumplist[elem]['visitDurationSeconds'] == None:
+                    diff:timedelta = datetime.strptime(jumplist[elem]['departureTime'], DATETIME_FORMAT_JSON) - datetime.strptime(jumplist[elem]['arrivalTime'], DATETIME_FORMAT_JSON)
+                    jumplist[elem]['visitDurationSeconds'] = int(diff.total_seconds())
                 continue
 
             if elem == 0:
@@ -690,6 +705,11 @@ class FleetCarrier:
             self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
             self.itinerary[0]['departureTime'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00")
+            arr:datetime = datetime.strptime(self.itinerary[0]['arrivalTime'], DATETIME_FORMAT_JSON)
+            arr = arr.replace(tzinfo=UTC)
+            diff:timedelta = departure_datetime - arr
+            self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
+
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -718,9 +738,9 @@ class FleetCarrier:
         """ The user cancelled their carrier jump producing a CarrierJumpCancelled journal event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-
         if self.itinerary[0]['departureTime'] == self.overview['departureScheduled']:
             self.itinerary[0]['departureTime'] = None
+            self.itinerary[0]['visitDurationSeconds'] = None
 
         self.overview['jumpDestination'] = None
         self.overview['jumpDestinationBody'] = None
@@ -778,7 +798,7 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = self.overview['departureScheduled']
             self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
 
-        if self.itinerary[0]['starsystem'] != self.overview.get('jumpDestination', ''):
+        if self.itinerary[0]['starsystem'] != self.overview.get('jumpDestination', '') and self.itinerary[0]['arrivalTime'] != self.overview['departureScheduled']:
             self.itinerary.insert(0, {
                                       'departureTime': None,
                                       'arrivalTime': self.overview['departureScheduled'],
@@ -800,7 +820,26 @@ class FleetCarrier:
             self.timer = datetime.now() + timedelta(seconds=300)
 
         self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.frame.after(300000, lambda: self.cooldown_complete())
         if self.bgstally.dev_mode == True: self.save()
+
+
+    @catch_exceptions
+    def cooldown_complete(self) -> None:
+        Debug.logger.debug(f"Carrier cooldown completed.")
+
+        #self.bgstally.ui.warning = _("Carrier cooldown complete") # LANG: Cooldown overlay message
+        self.bgstally.ui.window_fc.cooldown_notice()
+
+        # Automatically post to whichever discord webhooks are set for carrier operations
+        # the discord class handles where and whether to post
+        l:str|None = self.bgstally.state.discord_lang
+        title:str = __("Cooldown completed for Carrier {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
+        description:str = __("Cooldown has completed", lang=l) # LANG: Discord text
+
+        fields:list = []
+        fields.append({'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
+        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
 
     @catch_exceptions
@@ -955,6 +994,10 @@ class FleetCarrier:
 
             # Transfer amount is positive if to carrier, negative if from carrier
             amt:int = i.get('Count', 0) if i.get('Direction') == 'tocarrier' else -i.get('Count', 0)
+            if abs(amt) > self.overview.get('TotalCapacity', 25000):
+                Debug.logger.error(f"Transfer amount {amt} exceeds total capacity, ignoring")
+                continue
+
             self.cargo['normal'][comm]['stock'] += amt
 
             if self.cargo['normal'][comm]['stock'] < 0:
@@ -1146,7 +1189,8 @@ class FleetCarrier:
             'itinerary': self.itinerary,
             'route': self.route,
             'shipyard': self.shipyard,
-            'data': self.data
+            'data': self.data,
+            'windows': self.window_geometries
             }
 
 
@@ -1156,6 +1200,7 @@ class FleetCarrier:
         self.last_modified = dict.get('last_modified', 0)
         self.overview = dict.get('overview', {})
         self.cargo = dict.get('cargo', {})
+        self.window_geometries = dict.get('windows', {})
         if 'normal' not in self.cargo: self.cargo = {'overview': {}, 'stolen': {}, 'mission': {}, 'normal': {}} # For migration from old to new format
         self.locker = dict.get('locker', {})
         if 'normal' not in self.locker: self.locker = {'overview': {}, 'mission': {}, 'normal': {}} # For migration from old to new format

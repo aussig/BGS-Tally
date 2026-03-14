@@ -784,15 +784,10 @@ class ProgressWindow:
 
     def _set_weight(self, cell:tk.Label, w:str = 'bold') -> None:
         ''' Set font weight, defaults to bold '''
-        #fnt:tkFont._FontDict = tkFont.Font(font=cell['font']).actual()
-        #cell.configure(font=(fnt['family'], fnt['size'], w))
-        fnt = getattr(cell, "_bgstally_font", None)
-        if fnt is None:
-            fnt = tkFont.Font(font=cell.cget("font"))
-            setattr(cell, "_bgstally_font", fnt)
-            cell.configure(font=fnt)
-        fnt.configure(weight=w) # type: ignore
-        cell.configure(font=fnt)
+        if getattr(self, "_fnt", None) is None:
+            self._fnt:tkFont.Font = tkFont.Font(font=cell.cget("font"))
+            Debug.logger.debug(f"Setting progress font value. size: {self._fnt['size']}")
+        cell.configure(font=(self._fnt['family'], self._fnt['size'], w))
 
 
     @catch_exceptions

@@ -6,7 +6,7 @@
 
 * Favourite factions. You can now mark factions as favourites (♥ / ♡), and there are new Discord posting options to post only your favourites, or only systems that contain your favourites.
 * System / station summary information on the in-game overlay. If you are using the overlay, when you jump into a system (or on initial load of the game), a summary of the current system is displayed, including the faction in control and its influence %, any conflicts, the system population, government and security. When you dock at a station, the overlay displays the faction in control of the station.
-* A complete re-design of the display of Objectives - both in it's EDMC window and also on the in-game overlay.  In the EDMC window, missions are now expandable and have their priority clearly displayed.
+* A complete re-design of the display of Objectives - both in its EDMC window and also on the in-game overlay. In the EDMC window, missions are now expandable and have their priority clearly displayed.
 * There is a new option to use your Colonisation plan names instead of system names in BGS/TW Discord reports. This defaults to `Off`.
 * Carrier jump cooldown notifications
 * Added support for nicely formatted Markdown files, and converted the Colonisation help to Markdown format.
@@ -14,6 +14,9 @@
 ### Changes:
 
 * The method used to extract translatable strings has been updated, which means some text that was missing translations can now be translated.
+* Reworked the Colonisation bodies popup to provide a prettier, more informative, and more detailed display
+* Updated the commodity requirements for colonisation bases to match FDev's latest changes
+* Shortened the preferences frame by switching the Discord section to two columns
 
 ### Bug Fixes:
 

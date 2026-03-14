@@ -365,6 +365,18 @@ class FleetCarrier:
                 res.append(f"{t:02d}")
         return ':'.join(res)
 
+    def cooldown_completed(self) -> None:
+        dest:str = ''
+        if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
+            dest = self.route[1]['name']
+        if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
+            dest = self.route[0]['name']
+        if dest != '':
+            self.bgstally.ui.frame.clipboard_clear()
+            self.bgstally.ui.frame.clipboard_append(dest)
+
+
+
     @catch_exceptions
     def update_overlay(self) -> str:
         """ Display our next jump in the overlay or clear it if we have none. Show a countdown if it's in progress or coolingdown """
@@ -376,6 +388,7 @@ class FleetCarrier:
         if self.timer != None:
             Debug.logger.debug(f"Timer: {self.timer} {datetime.now(tz=self.timer.tzinfo)}")
         if self.timer != None and self.timer < datetime.now(tz=self.timer.tzinfo):
+            if self.state == 'Cooldown': self.cooldown_completed()
             self.timer = None
             self.state = 'Idle'
             return ""
@@ -399,7 +412,6 @@ class FleetCarrier:
         if self.jump_state == 'Jumping' and cd != '':
             message += "\n" + _("Carrier jump in: {t}").format(t=cd) # LANG: Carrier overlay
 
-        Debug.logger.debug(f"Displaying overlay countdown {self.jump_state} {self.timer} {cd} {message}")
         return message
 
 

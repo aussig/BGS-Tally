@@ -332,17 +332,21 @@ class FleetCarrier:
         self.bgstally.ui.window_fc.update_display()
 
 
-    def _update_route(self, dest:str) -> None:
-        """ Remove any route entries that we aren't at.
-        If we remove all of them that's ok because the route is invalid. """
+    def _update_route(self) -> None:
+        """ Update the route to our current location if we're on the route """
 
-        # This shouldn't happen unless we've made some jumps without ED:MC running
+        # If we aren't currently on the route leave it alone
+        if self.overview['currentStarSystem'] not in [r.get('name') for r in self.route if 'name' in r]:
+            return
+
+        # Do catchup. This shouldn't happen unless we've made some jumps without ED:MC running
         used:int = 0
-        while self.route != [] and self.route[0]['name'] != dest:
+        while self.route != [] and self.route[0]['name'] != self.overview['currentStarSystem']:
             used += self.route[0]['fuel_used']
             self.route = self.route[1:]
+
         # If we're there take it out.
-        if self.route != [] and self.route[0]['name'] == dest:
+        if self.route != [] and self.route[0]['name'] == self.overview['currentStarSystem']:
             self.overview['fuel'] -= used + self.route[0]['fuel_used']
             self.route = self.route[1:]
 
@@ -351,7 +355,9 @@ class FleetCarrier:
             Debug.logger.debug(f"Copying {self.route[0]['name']} to clipboard")
             self.bgstally.ui.frame.clipboard_clear()
             self.bgstally.ui.frame.update()
+
         self.bgstally.ui.window_fc.update_display()
+
 
     def _td_str(self, delta:timedelta) -> str:
         """ Display remaining time showing hh:mm:ss """
@@ -365,17 +371,6 @@ class FleetCarrier:
                 res.append(f"{t:02d}")
         return ':'.join(res)
 
-    def cooldown_completed(self) -> None:
-        dest:str = ''
-        if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
-            dest = self.route[1]['name']
-        if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
-            dest = self.route[0]['name']
-        if dest != '':
-            self.bgstally.ui.frame.clipboard_clear()
-            self.bgstally.ui.frame.clipboard_append(dest)
-
-
 
     @catch_exceptions
     def update_overlay(self) -> str:
@@ -385,12 +380,10 @@ class FleetCarrier:
         Debug.logger.debug(f"update overlay called")
 
         # Clear the timer and state
-        if self.timer != None:
-            Debug.logger.debug(f"Timer: {self.timer} {datetime.now(tz=self.timer.tzinfo)}")
         if self.timer != None and self.timer < datetime.now(tz=self.timer.tzinfo):
-            if self.state == 'Cooldown': self.cooldown_completed()
+            if self.jump_state == 'Cooldown': self._update_route()
             self.timer = None
-            self.state = 'Idle'
+            self.jump_state = 'Idle'
             return ""
 
         message:str = ""
@@ -771,11 +764,9 @@ class FleetCarrier:
                                         })
             return
 
-        dest:str = self.overview.get('jumpDestination', '')
-
         # We've already got this new jump
         if self.itinerary[1].get('departureTime', None) == self.overview['departureScheduled']:
-            self.itinerary[1]['starsystem'] = dest
+            self.itinerary[1]['starsystem'] = self.overview.get('jumpDestination', '')
             self.itinerary[1]['body'] = self.overview.get('jumpDestinationBody', None)
 
         if self.itinerary[0].get('departureTime', None) == None: # If we haven't received a new itinerary update the current one
@@ -787,7 +778,7 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = self.overview['departureScheduled']
             self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
 
-        if self.itinerary[0]['starsystem'] != dest:
+        if self.itinerary[0]['starsystem'] != self.overview.get('jumpDestination', ''):
             self.itinerary.insert(0, {
                                       'departureTime': None,
                                       'arrivalTime': self.overview['departureScheduled'],
@@ -797,8 +788,6 @@ class FleetCarrier:
                                       'body': self.overview.get('jumpDestinationBody', None)
                                       })
 
-        self._update_route(dest)
-
         # Update our location and clear the jump
         self.overview['currentStarSystem'] = self.overview.get('jumpDestination', '')
         self.overview['currentBody'] = self.overview.get('jumpDestinationBody', None)
@@ -806,7 +795,7 @@ class FleetCarrier:
         self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
-        if self.state == 'Jumping':
+        if self.jump_state == 'Jumping':
             self.jump_state = 'Cooldown'
             self.timer = datetime.now() + timedelta(seconds=300)
 

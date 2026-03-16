@@ -158,7 +158,7 @@ class ProgressWindow:
         def on_mousewheel(event: tk.Event) -> None:
             """ Scroll pane mousewheel event handler """
             nonlocal canvas
-            
+
             shift = (event.state & 0x1) != 0 #type: ignore
             scroll = 0
             if event.num == 4 or event.delta == 120:
@@ -230,21 +230,21 @@ class ProgressWindow:
 
         row += 1; col = 0
 
-        # Commodity table frame        
+        # Commodity table frame
         table_frame:ttk.Frame = ttk.Frame(frame, width=int(398*self.scale))
         table_frame.grid(row=row, column=col, sticky=tk.NSEW)
-        table_frame.grid_propagate(False)
         self.table_frame = table_frame
 
         # Add the scrollbar frame
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
             height=int((int(self.bgstally.state.ColonisationMaxCommodities.get())+2)*21*self.scale)
             canvas = tk.Canvas(table_frame, height=height, highlightthickness=0)
-            scrollbar = ttk.Scrollbar(table_frame, orient='vertical', command=canvas.yview)
+            scrollbar = ttk.Scrollbar(table_frame, orient='vertical', command=canvas.yview, style='Vertical.TScrollbar')
+
             table_frame.update()
-            scrollable_frame = ttk.Frame(canvas, width=table_frame.winfo_width())
-            #if config.get_int('theme') > 0: scrollable_frame.configure(background='black')
-            #if config.get_int('theme') == 2: scrollable_frame.configure(background='')
+            scrollable_frame = tk.Frame(canvas, width=table_frame.winfo_width()-11)
+            if config.get_int('theme') > 0: scrollable_frame.configure(background='black')
+            if config.get_int('theme') == 2: scrollable_frame.configure(background='')
             scrollable_frame.bind(
                 '<Configure>',
                 lambda e: canvas.configure(
@@ -263,13 +263,13 @@ class ProgressWindow:
             canvas.columnconfigure(2, weight=1)
             canvas.columnconfigure(3, weight=1)
             scrollbar.grid(row=0, column=1, sticky=tk.NS, ipadx=0, padx=0)
-            table:ttk.Frame = scrollable_frame
+            table:tk.Frame = scrollable_frame
             # We have to make the column less wide to fit the scrollbar in
             self.headings[0]['Label'] = f"{_('Commodity'): <32}" # LANG: Commodity heading
             self.canvas:tk.Canvas = canvas
         else:
-            table = ttk.Frame(table_frame)
-            table.grid(row=0, column=0, sticky=tk.NSEW)
+            table:tk.Frame = tk.Frame(table_frame)
+            table.grid(row=1, column=0, sticky=tk.NSEW)
 
         row = 0
         # Column headings

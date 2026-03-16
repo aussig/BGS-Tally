@@ -137,25 +137,28 @@ class ProgressWindow:
         ''' Create the progress frame. This is called by ui.py on startup. '''
         def bind_mousewheel(event: tk.Event) -> None:
             """ Scroll pane mousewheel bind on mouseover """
+            nonlocal canvas
 
             if sys.platform in ('linux', 'cygwin', 'msys'):
-                scroll_canvas.bind_all('<Button-4>', on_mousewheel)
-                scroll_canvas.bind_all('<Button-5>', on_mousewheel)
+                canvas.bind_all('<Button-4>', on_mousewheel)
+                canvas.bind_all('<Button-5>', on_mousewheel)
             else:
-                scroll_canvas.bind_all('<MouseWheel>', on_mousewheel)
+                canvas.bind_all('<MouseWheel>', on_mousewheel)
 
         def unbind_mousewheel(event: tk.Event) -> None:
             """ Scroll pane mousewheel unbind on mouseout """
+            nonlocal canvas
 
             if sys.platform in ('linux', 'cygwin', 'msys'):
-                scroll_canvas.unbind_all('<Button-4>')
-                scroll_canvas.unbind_all('<Button-5>')
+                canvas.unbind_all('<Button-4>')
+                canvas.unbind_all('<Button-5>')
             else:
-                scroll_canvas.unbind_all('<MouseWheel>')
+                canvas.unbind_all('<MouseWheel>')
 
         def on_mousewheel(event: tk.Event) -> None:
             """ Scroll pane mousewheel event handler """
-
+            nonlocal canvas
+            
             shift = (event.state & 0x1) != 0 #type: ignore
             scroll = 0
             if event.num == 4 or event.delta == 120:
@@ -163,9 +166,9 @@ class ProgressWindow:
             if event.num == 5 or event.delta == -120:
                 scroll = 1
             if shift:
-                scroll_canvas.xview_scroll(scroll, 'units')
+                canvas.xview_scroll(scroll, 'units')
             else:
-                scroll_canvas.yview_scroll(scroll, 'units')
+                canvas.yview_scroll(scroll, 'units')
 
         bgs_cols:int = 6
         self.colonisation = self.bgstally.colonisation
@@ -227,45 +230,46 @@ class ProgressWindow:
 
         row += 1; col = 0
 
-        # Commodity table frame
-        table_frame:tk.Frame = tk.Frame(frame)
+        # Commodity table frame        
+        table_frame:ttk.Frame = ttk.Frame(frame, width=int(398*self.scale))
         table_frame.grid(row=row, column=col, sticky=tk.NSEW)
+        table_frame.grid_propagate(False)
         self.table_frame = table_frame
 
         # Add the scrollbar frame
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
             height=int((int(self.bgstally.state.ColonisationMaxCommodities.get())+2)*21*self.scale)
-            scroll_canvas = tk.Canvas(table_frame, height=height, highlightthickness=0)
-            scrollbar = ttk.Scrollbar(table_frame, orient='vertical', command=scroll_canvas.yview)
+            canvas = tk.Canvas(table_frame, height=height, highlightthickness=0)
+            scrollbar = ttk.Scrollbar(table_frame, orient='vertical', command=canvas.yview)
             table_frame.update()
-            scrollable_frame = tk.Frame(scroll_canvas, width=table_frame.winfo_width())
-            if config.get_int('theme') > 0: scrollable_frame.configure(background='black')
-            if config.get_int('theme') == 2: scrollable_frame.configure(background='')
+            scrollable_frame = ttk.Frame(canvas, width=table_frame.winfo_width())
+            #if config.get_int('theme') > 0: scrollable_frame.configure(background='black')
+            #if config.get_int('theme') == 2: scrollable_frame.configure(background='')
             scrollable_frame.bind(
                 '<Configure>',
-                lambda e: scroll_canvas.configure(
-                    scrollregion=scroll_canvas.bbox('all')
+                lambda e: canvas.configure(
+                    scrollregion=canvas.bbox('all')
                 )
             )
-            scroll_canvas.bind('<Enter>', bind_mousewheel)
-            scroll_canvas.bind('<Leave>', unbind_mousewheel)
+            canvas.bind('<Enter>', bind_mousewheel)
+            canvas.bind('<Leave>', unbind_mousewheel)
 
-            scroll_canvas.update()
-            scroll_canvas.create_window((0, 0), window=scrollable_frame, anchor=tk.NW, width=table_frame.winfo_width())
-            scroll_canvas.configure(yscrollcommand=scrollbar.set)
-            scroll_canvas.grid(row=1, column=0, sticky=tk.E)
-            scroll_canvas.columnconfigure(0, weight=3)
-            scroll_canvas.columnconfigure(1, weight=1)
-            scroll_canvas.columnconfigure(2, weight=1)
-            scroll_canvas.columnconfigure(3, weight=1)
-            scrollbar.grid(row=1, column=1, sticky=tk.NS, ipadx=0, padx=0)
-            table:tk.Frame = scrollable_frame
+            canvas.update()
+            canvas.create_window((0, 0), window=scrollable_frame, anchor=tk.NW)
+            canvas.configure(yscrollcommand=scrollbar.set)
+            canvas.grid(row=0, column=0, sticky=tk.E)
+            canvas.columnconfigure(0, weight=3)
+            canvas.columnconfigure(1, weight=1)
+            canvas.columnconfigure(2, weight=1)
+            canvas.columnconfigure(3, weight=1)
+            scrollbar.grid(row=0, column=1, sticky=tk.NS, ipadx=0, padx=0)
+            table:ttk.Frame = scrollable_frame
             # We have to make the column less wide to fit the scrollbar in
             self.headings[0]['Label'] = f"{_('Commodity'): <32}" # LANG: Commodity heading
-            self.scroll_canvas:tk.Canvas = scroll_canvas
+            self.canvas:tk.Canvas = canvas
         else:
-            table = tk.Frame(table_frame)
-            table.grid(row=1, column=0, sticky=tk.NSEW)
+            table = ttk.Frame(table_frame)
+            table.grid(row=0, column=0, sticky=tk.NSEW)
 
         row = 0
         # Column headings
@@ -731,9 +735,9 @@ class ProgressWindow:
 
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
             rows:int = min(rowcnt, int(self.bgstally.state.ColonisationMaxCommodities.get()))
-            self.scroll_canvas.yview_moveto(0.0)
+            self.canvas.yview_moveto(0.0)
             height=int((rows+2)*21*self.scale)
-            self.scroll_canvas.configure(height=height)
+            self.canvas.configure(height=height)
 
         if totals['Required'] > 0:
             self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))

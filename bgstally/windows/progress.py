@@ -318,7 +318,7 @@ class ProgressWindow:
         r:dict = {}
         for col, v in enumerate(self.columns):
             r[col] = tk.Label(table, text=_('Total')) # LANG: Total amounts
-            r[col].grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
+            r[col].grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5), pady=(0,2))
             if config.get_int('theme') > 0 and self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
                 r[col].config(background='black', foreground=config.get_str('dark_text'))
             self._set_weight(r[col])

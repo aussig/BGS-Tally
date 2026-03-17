@@ -39,45 +39,47 @@ class ProgressWindow:
 
         # The headings for each column, with the meanings for each unit type.
         # These are saved in the colonisation json file.
+        self.comm_width:int = 28
+        self.amt_width:int = 9
         self.headings:list = [
             {
                 'Column' : 'Commodity',
-                'Label' : f"{_('Commodity'): <40}", # LANG: Commodity
+                'Label' : _('Commodity'), # LANG: Commodity
                 'Tooltip' : f"{_('Commodity')}" # LANG: Commodity tooltip
             },
             {
                 'Column' : 'Required',
-                'Label': f"{_('Required'): >13}", # LANG: Required amount
+                'Label': _('Required'), # LANG: Required amount
                 'Tooltip' : f"{_('Total quantity required')}" # LANG: required amount tooltip
             },
             {
                 'Column' : 'Delivered',
-                'Label': f"{_('Delivered'): >13}", # LANG: Delivered amount
+                'Label': _('Delivered'), # LANG: Delivered amount
                 'Tooltip' : f"{_('Total quantity delivered')}" # LANG: delivered amount tooltip
             },
             {
                 'Column' : 'Remaining',
-                'Label': f"{_('Remaining'): >12}", # LANG: Amount remaining
+                'Label': _('Remaining'), # LANG: Amount remaining
                 'Tooltip' : f"{_('Amount remaining to be delivered')}" # LANG: Amount remaining tooltip
             },
             {
                 'Column' : 'Purchase',
-                'Label': f"{_('Purchase'): >13}", # LANG: Amount to buy
+                'Label': _('Purchase'), # LANG: Amount to buy
                 'Tooltip' : f"{_('Amount left to buy')}" # LANG: Amount left to buy
             },
             {
                 'Column' : 'Cargo',
-                'Label': f"{_('Cargo'): >13}", # LANG: Cargo amount
+                'Label': _('Cargo'), # LANG: Cargo amount
                 'Tooltip' : f"{_('Amount in current cargo')}" # LANG: Cargo amount tooltip
             },
             {
                 'Column' : 'Carrier',
-                'Label': f"{_('Carrier'): >13}", # LANG: Carrier amount
+                'Label': _('Carrier'), # LANG: Carrier amount
                 'Tooltip' : f"{_('Amount in linked fleet carrier(s)')}" # LANG: Carrier amount tooltip
             },
             {
                 'Column' : 'BuyOrder',
-                'Label': f"{_('Buy Orders'): >13}", # LANG: Carrier buy order amount
+                'Label': _('Buy Orders'), # LANG: Carrier buy order amount
                 'Tooltip' : f"{_('Amount outstanding in carrier buy orders')}" # LANG: Carrier buy order tooltip
             }
         ]
@@ -123,6 +125,7 @@ class ProgressWindow:
         self.title:tk.Label # Title object
         self.titlett:ToolTip # Title tooltip
         self.rows:list = []
+        self.rowtts:list = []
         self.progbar:ttk.Progressbar # Overall progress bar
         self.progvar:tk.IntVar = tk.IntVar(value=0)
         self.progress:int = 0 # Thread-safe version of progress percentage
@@ -175,18 +178,18 @@ class ProgressWindow:
 
         self.frame_row = start_row
         frame:tk.Frame = tk.Frame(parent_frame)
-        frame.grid(row=start_row, column=0, columnspan=bgs_cols, sticky=tk.EW)
+        frame.grid(row=start_row, column=0, columnspan=bgs_cols, sticky=tk.NSEW)
         self.frame = frame
 
         row:int = 0; col:int = 0
 
         # Overall progress bar chart
-        y=tk.LabelFrame(frame, border=1, height=10, width=int(398*self.scale))
+        y=tk.LabelFrame(frame, border=1, height=10, width=int(400*self.scale))
         y.grid(row=row, column=col, pady=0, sticky=tk.EW)
         y.grid_rowconfigure(0, weight=1)
         y.grid_propagate(False)
 
-        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=int(398*self.scale), mode='determinate')
+        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=int(400*self.scale), mode='determinate')
         self.progtt:ToolTip = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
         self.progbar.grid(row=0, column=0, pady=0, ipady=0, sticky=tk.EW)
         self.progbar.rowconfigure(0, weight=1)
@@ -204,7 +207,7 @@ class ProgressWindow:
         lbl.grid(row=0, column=c, sticky=tk.W)
         self._set_weight(lbl)
         c += 1
-        self.title = tk.Label(builds, text=_("None"), justify=tk.CENTER, anchor=tk.CENTER, cursor="hand2") # LANG: None
+        self.title = tk.Label(builds, text=_("None"), justify=tk.CENTER, anchor=tk.CENTER, width=45, cursor="hand2") # LANG: None
         self.title.bind("<Button-1>", partial(self.event, "copy"))
         self.title.bind("<Button-3>", partial(self._context_menu))
         self.title.grid(row=0, column=c, sticky=tk.EW)
@@ -231,18 +234,19 @@ class ProgressWindow:
         row += 1; col = 0
 
         # Commodity table frame
-        table_frame:ttk.Frame = ttk.Frame(frame, width=int(398*self.scale))
+        table_frame:ttk.Frame = ttk.Frame(frame, width=int(400*self.scale))
         table_frame.grid(row=row, column=col, sticky=tk.NSEW)
+        table_frame.grid_columnconfigure(0, weight=1)
         self.table_frame = table_frame
 
         # Add the scrollbar frame
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
             height=int((int(self.bgstally.state.ColonisationMaxCommodities.get())+2)*21*self.scale)
-            canvas = tk.Canvas(table_frame, height=height, highlightthickness=0)
-            scrollbar = ttk.Scrollbar(table_frame, orient='vertical', command=canvas.yview, style='Vertical.TScrollbar')
 
-            table_frame.update()
-            scrollable_frame = tk.Frame(canvas, width=table_frame.winfo_width()-11)
+            canvas = tk.Canvas(table_frame, height=height, highlightthickness=0)
+            scrollbar = tk.Scrollbar(table_frame, orient='vertical', command=canvas.yview)
+
+            scrollable_frame = tk.Frame(canvas)
             if config.get_int('theme') > 0: scrollable_frame.configure(background='black')
             if config.get_int('theme') == 2: scrollable_frame.configure(background='')
             scrollable_frame.bind(
@@ -254,10 +258,9 @@ class ProgressWindow:
             canvas.bind('<Enter>', bind_mousewheel)
             canvas.bind('<Leave>', unbind_mousewheel)
 
-            canvas.update()
             canvas.create_window((0, 0), window=scrollable_frame, anchor=tk.NW)
             canvas.configure(yscrollcommand=scrollbar.set)
-            canvas.grid(row=0, column=0, sticky=tk.E)
+            canvas.grid(row=0, column=0, sticky=tk.NSEW)
             canvas.columnconfigure(0, weight=3)
             canvas.columnconfigure(1, weight=1)
             canvas.columnconfigure(2, weight=1)
@@ -265,17 +268,22 @@ class ProgressWindow:
             scrollbar.grid(row=0, column=1, sticky=tk.NS, ipadx=0, padx=0)
             table:tk.Frame = scrollable_frame
             # We have to make the column less wide to fit the scrollbar in
-            self.headings[0]['Label'] = f"{_('Commodity'): <32}" # LANG: Commodity heading
+            self.comm_width -= 4
             self.canvas:tk.Canvas = canvas
         else:
             table:tk.Frame = tk.Frame(table_frame)
-            table.grid(row=1, column=0, sticky=tk.NSEW)
+            table.grid(row=0, column=0, sticky=tk.NS)
 
         row = 0
         # Column headings
         for col, v in enumerate(self.columns):
             if v >= len(self.headings): v = 0
             lbl = tk.Label(table, text=self.headings[v].get('Label'), cursor='hand2')
+            if col == 0:
+                lbl.configure(width=self.comm_width, anchor=tk.W)
+            else:
+                lbl.configure(width=self.amt_width, justify=tk.RIGHT, anchor=tk.E)
+
             if config.get_int('theme') > 0 and self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
                 lbl.config(background='black', foreground=config.get_str('dark_text'))
             lbl.bind("<Button-1>", partial(self.change_view, col, 'Column'))
@@ -292,18 +300,24 @@ class ProgressWindow:
             r:dict = {}
             for col, v in enumerate(self.columns):
                 lbl = tk.Label(table, text='', cursor='hand2')
+                if col == 0:
+                    lbl.configure(width=self.comm_width, anchor=tk.W)
+                else:
+                    lbl.configure(width=self.amt_width, justify=tk.RIGHT, anchor=tk.E)
+
                 if config.get_int('theme') > 0 and self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
                     lbl.config(background='black', foreground=config.get_str('dark_text'))
                 lbl.grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
                 r[col] = lbl
             self.rows.append(r)
+            self.rowtts.append(ToolTip(r[0], text='Category'))
             row += 1
         row += 1
 
         # Totals at the bottom
         r:dict = {}
         for col, v in enumerate(self.columns):
-            r[col] = tk.Label(table, text=_("Total")) # LANG: Total amounts
+            r[col] = tk.Label(table, text=_('Total')) # LANG: Total amounts
             r[col].grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5))
             if config.get_int('theme') > 0 and self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
                 r[col].config(background='black', foreground=config.get_str('dark_text'))
@@ -316,8 +330,6 @@ class ProgressWindow:
             Debug.logger.info("No builds or commodities, hiding progress frame")
             frame.grid_remove()
             return
-
-        #Debug.logger.info(f"Frames: parent {parent_frame.winfo_width()} outer {self.frame.winfo_width()} table_frame {table_frame.winfo_width()} frame {frame.winfo_width()}")
 
         self.update_display()
 
@@ -628,7 +640,7 @@ class ProgressWindow:
             if b.get('Name', '') != '':
                 name = ', '.join([pn, bt, bn])
         self.titlett.text = f"{name}\n{_('left click to copy, right click menu')}" # LANG: tooltip for the build name"
-        self.title.config(text=str_truncate(name, 52, loc='middle'))
+        self.title.config(text=str_truncate(name, 50, loc='middle'))
 
         # Hide the table but not the progress frame so the change view icon is still available
         if self.view == ProgressView.NONE:
@@ -721,7 +733,8 @@ class ProgressWindow:
 
                 if col == 0:
                     # Shorten and display the commodity name
-                    row[col]['text'] = str_truncate(self.colonisation.get_commodity(c), 23)
+                    row[col]['text'] = str_truncate(self.colonisation.get_commodity(c), self.comm_width)
+                    self.rowtts[i].text = self.colonisation.get_commodity(c, 'category')
                     row[col].grid()
                     continue
 
@@ -807,7 +820,6 @@ class ProgressWindow:
         space:int = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
         for cell in row.values():
             # Get the ed:mc default color
-            #cell['fg'] = config.get_str('dark_text') if config.get_int('theme') > 0 else 'black'
             self._set_weight(cell, 'normal')
 
             if remaining <= 0: # Nothing left to deliver, grey it out

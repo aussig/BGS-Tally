@@ -756,7 +756,7 @@ class ProgressWindow:
             self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))
             self.progress = round(totals['Delivered'] * 100 / totals['Required'])
             self.progtt.text = f"{_('Progress')}: {int(self.progvar.get())}%" # LANG: tooltip for the progress bar
-            self.progvar.set(100)
+
 
     @catch_exceptions
     def _display_totals(self, row:dict, tracked:list, totals:dict) -> None:
@@ -781,10 +781,8 @@ class ProgressWindow:
         ''' Calculate and format the commodity amount depending on the column and the units '''
         qty: int = 0
         if col >= len(self.columns):
-            Debug.logger.debug(f"Col: {col} {self.columns}")
             return ""
         if self.columns[col] >= len(self.headings):
-            Debug.logger.debug(f"heading: {self.columns[col]} {self.headings}")
             return ""
 
         which:str = self.headings[self.columns[col]].get('Column')

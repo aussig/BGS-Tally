@@ -41,6 +41,7 @@ class ProgressWindow:
         # These are saved in the colonisation json file.
         self.comm_width:int = 28
         self.amt_width:int = 9
+        self.bar_width:int = 500
         self.headings:list = [
             {
                 'Column' : 'Commodity',
@@ -184,12 +185,12 @@ class ProgressWindow:
         row:int = 0; col:int = 0
 
         # Overall progress bar chart
-        y=tk.LabelFrame(frame, border=1, height=10, width=int(400*self.scale))
+        y=tk.LabelFrame(frame, border=0, height=10)#, width=int(self.bar_width*self.scale))
         y.grid(row=row, column=col, pady=0, sticky=tk.EW)
         y.grid_rowconfigure(0, weight=1)
         y.grid_propagate(False)
 
-        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=int(400*self.scale), mode='determinate')
+        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=int(self.bar_width*self.scale), mode='determinate')
         self.progtt:ToolTip = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
         self.progbar.grid(row=0, column=0, pady=0, ipady=0, sticky=tk.EW)
         self.progbar.rowconfigure(0, weight=1)
@@ -234,7 +235,7 @@ class ProgressWindow:
         row += 1; col = 0
 
         # Commodity table frame
-        table_frame:ttk.Frame = ttk.Frame(frame, width=int(400*self.scale))
+        table_frame:ttk.Frame = ttk.Frame(frame)
         table_frame.grid(row=row, column=col, sticky=tk.NSEW)
         table_frame.grid_columnconfigure(0, weight=1)
         self.table_frame = table_frame
@@ -591,7 +592,6 @@ class ProgressWindow:
             sheet.align_columns(i, v.get('align'))
             sheet.column_width(i, int(v.get('width')*self.scale))
 
-        #sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
         sheet.set_all_row_heights(height=None, only_set_if_too_small=True, redraw=True)
 
 
@@ -756,7 +756,7 @@ class ProgressWindow:
             self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))
             self.progress = round(totals['Delivered'] * 100 / totals['Required'])
             self.progtt.text = f"{_('Progress')}: {int(self.progvar.get())}%" # LANG: tooltip for the progress bar
-
+            self.progvar.set(100)
 
     @catch_exceptions
     def _display_totals(self, row:dict, tracked:list, totals:dict) -> None:

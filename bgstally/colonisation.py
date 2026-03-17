@@ -150,6 +150,7 @@ class Colonisation:
                     SYSTEM_SERVICE.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
 
                 # Update progress for tracked, rc sync projects.
+                Debug.logger.debug(f"Loading projects")
                 for progress in self.progress:
                     if progress.get('ProjectID', None) != None or progress.get('ConstructionComplete', False) == True:
                         continue
@@ -216,7 +217,7 @@ class Colonisation:
                 if build != None and build.get('ProjectID', None) == None and entry.get('ProjectID', None) != None:
                     self.modify_build(system, build.get('BuildID', ''), {'ProjectID': entry.get('ProjectID', None)})
                 return
-            
+
             case 'Docked':
                 self._update_market(self.market_id)
                 self.docked = True
@@ -271,11 +272,11 @@ class Colonisation:
             case 'SupercruiseDestinationDrop':
                 self.location = 'Orbital'
                 return
-            
+
             case 'ApproachBody':
                 self.location = 'Surface'
                 return
-            
+
             case 'SupercruiseExit' | 'ApproachSettlement':
                 if entry.get('event') == 'ApproachSettlement':
                     self.location = 'Surface'
@@ -328,7 +329,7 @@ class Colonisation:
                 if data != {}:
                     self.modify_build(system, build.get('BuildID', data.get('BuildID', '')), data)
                 return
-            
+
             case 'Undocked':
                 self.market = {}
                 self.station = None
@@ -1060,7 +1061,7 @@ class Colonisation:
         self.save('Progress update')
         self.bgstally.ui.window_colonisation.update_display()
         self.bgstally.ui.window_progress.update_display()
-        
+
         if silent == True: return
 
         # If it's complete mark it as complete

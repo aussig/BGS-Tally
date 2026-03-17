@@ -806,11 +806,10 @@ class ProgressWindow:
 
     def _set_weight(self, cell, w:Literal['normal', 'bold']='bold') -> None:
         ''' Set font weight, defaults to bold '''
-        #fnt:tkFont._FontDict = tkFont.Font(font=cell['font']).actual()
-        #cell.configure(font=(fnt['family'], fnt['size'], w))
-        fnt:tkFont.Font = tkFont.Font(font=cell.cget("font"))
-        fnt.configure(weight=w)
-        cell.configure(font=fnt)
+        if getattr(self, "_fnt", None) is None:
+            self._fnt:tkFont.Font = tkFont.Font(font=cell.cget("font"))
+            Debug.logger.debug(f"Setting progress font value. size: {self._fnt['size']}")
+        cell.configure(font=(self._fnt['family'], self._fnt['size'], w))
 
 
     @catch_exceptions

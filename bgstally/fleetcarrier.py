@@ -13,7 +13,7 @@ from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
 FC_MAX_SHIPS = 40
-FC_MAX_JUMPS_TRACKED = 100
+FC_MAX_JUMPS_TRACKED = 250
 FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
 class FleetCarrier:
@@ -378,7 +378,7 @@ class FleetCarrier:
         """ Display our next jump in the overlay or clear it if we have none. Show a countdown if it's in progress or coolingdown """
         message:str = ""
 
-        Debug.logger.debug(f"Overlay: {self.jump_state} {self.timer}")
+        #Debug.logger.debug(f"Overlay: {self.jump_state} {self.timer}")
 
         # Clear the timer and state
         if self.timer != None and self.timer < datetime.now(tz=self.timer.tzinfo):

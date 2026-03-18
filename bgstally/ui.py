@@ -352,7 +352,7 @@ class UI:
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_2, text=_("Warnings"), # LANG: Preferences checkbox label
+        nb.Checkbutton(overlay_options_frame_2, text=_("Alerts and Warnings"), # LANG: Preferences checkbox label
                        variable=self.bgstally.state.EnableOverlayWarning,
                        state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,

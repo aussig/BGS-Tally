@@ -15,6 +15,10 @@
 * The method used to extract translatable strings has been updated, which means some text that was missing translations can now be translated.
 * Reworked the Colonisation bodies popup to provide a prettier, more informative, and more detailed display
 * Updated the commodity requirements for colonisation bases to match FDev's latest changes
+* Shortened the preferences frame by switching the Discord section to two columns
+* Changed RavenColonial project last update call to the new /poll endpoint. [Issue 449](https://github.com/aussig/BGS-Tally/issues/449)
+* Addressed progress view column width issues on Linux [Issue 442](https://github.com/aussig/BGS-Tally/issues/442)
+
 
 ### Bug Fixes:
 

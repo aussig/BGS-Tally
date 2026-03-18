@@ -581,8 +581,9 @@ class RavenColonial:
         projectid:str|None = progress.get('ProjectID', None)
         if projectid == None: return
 
-        url:str = f"{RC_API}/project/{projectid}/last"
-        response:Response = requests.get(url, headers=self._headers(), timeout=10)
+        url:str = f"{RC_API}/project/poll"
+        payload:list = [projectid]
+        response:Response = requests.post(url, headers=self._headers(), json=payload, timeout=10)
         if response.status_code != 200:
             Debug.logger.error(f"Error for {url} {response} {response.content}")
             return
@@ -591,7 +592,8 @@ class RavenColonial:
             Debug.logger.error(f"Error with load project, doesn't exist")
             return
 
-        if response.content == progress.get('Updated', ''):
+        data:dict = response.json()
+        if re.sub(r"\.\d+\+00:00$", "Z", data[projectid]) == progress.get('Updated', ''):
             return
 
         url = f"{RC_API}/project/{projectid}"

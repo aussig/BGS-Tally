@@ -150,6 +150,7 @@ class Colonisation:
                     SYSTEM_SERVICE.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
 
                 # Update progress for tracked, rc sync projects.
+                Debug.logger.debug(f"Loading projects")
                 for progress in self.progress:
                     if progress.get('ProjectID', None) != None or progress.get('ConstructionComplete', False) == True:
                         continue
@@ -215,6 +216,7 @@ class Colonisation:
                 build = self.find_build(system, {'MarketID': self.market_id})
                 if build != None and build.get('ProjectID', None) == None and entry.get('ProjectID', None) != None:
                     self.modify_build(system, build.get('BuildID', ''), {'ProjectID': entry.get('ProjectID', None)})
+                return
 
             case 'Docked':
                 self._update_market(self.market_id)
@@ -254,7 +256,6 @@ class Colonisation:
                 if data != {}:
                     Debug.logger.debug(f"Docked updating build {build.get('Name', None)} {self.station} in system {self.current_system} build: {build} data: {data}")
                     self.modify_build(system, build.get('BuildID', data.get('BuildID', '')), data)
-                    self.dirty = True
 
             case 'Market'|'MarketBuy'|'MarketSell':
                 self._update_market(self.market_id)
@@ -270,9 +271,11 @@ class Colonisation:
 
             case 'SupercruiseDestinationDrop':
                 self.location = 'Orbital'
+                return
 
             case 'ApproachBody':
                 self.location = 'Surface'
+                return
 
             case 'SupercruiseExit' | 'ApproachSettlement':
                 if entry.get('event') == 'ApproachSettlement':
@@ -325,6 +328,7 @@ class Colonisation:
                 if build.get('Track', False) == True: data['Track'] = False
                 if data != {}:
                     self.modify_build(system, build.get('BuildID', data.get('BuildID', '')), data)
+                return
 
             case 'Undocked':
                 self.market = {}
@@ -865,6 +869,7 @@ class Colonisation:
             self.bgstally.ui.window_colonisation.update_display()
             self.bgstally.ui.window_progress.update_display()
 
+
     @catch_exceptions
     def try_complete_build(self, market_id:int) -> bool:
         ''' If a build has been completed but isn't yet marked as such do so and clear the
@@ -1055,6 +1060,7 @@ class Colonisation:
         if self.dirty == False: return
         self.save('Progress update')
         self.bgstally.ui.window_colonisation.update_display()
+        self.bgstally.ui.window_progress.update_display()
 
         if silent == True: return
 
@@ -1086,9 +1092,6 @@ class Colonisation:
             RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)
             self.dirty = True
 
-        if cargo != self.carrier_cargo or self.carrier_buy != buyorder:
-            self.bgstally.ui.window_progress.update_display()
-
         self.carrier_buy = buyorder
         self.carrier_cargo = cargo
 
@@ -1113,10 +1116,7 @@ class Colonisation:
             for name, item in self.bgstally.market.commodities.items():
                 if item.get('Stock') > 0:
                     market[item.get('Name')] = item.get('Stock')
-            if market != {}:
-                self.market = market
-                self.bgstally.ui.window_progress.update_display()
-                return
+
         if self.bgstally.market.available(market_id) == False:
             return
 

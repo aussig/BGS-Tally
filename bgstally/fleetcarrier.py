@@ -378,10 +378,13 @@ class FleetCarrier:
         """ Display our next jump in the overlay or clear it if we have none. Show a countdown if it's in progress or coolingdown """
         message:str = ""
 
+        # Jump locked in 10 m before departure
+        # Lockdown 3m 40s before departure
         #Debug.logger.debug(f"Overlay: {self.jump_state} {self.timer}")
 
         # Clear the timer and state
         if self.timer != None and self.timer < datetime.now(tz=self.timer.tzinfo):
+            Debug.logger.debug(f"Clearing timer{self.jump_state}")
             if self.jump_state == 'Cooldown':
                 self._cooldown_complete()
             self.timer = None
@@ -392,14 +395,19 @@ class FleetCarrier:
         if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[0]['name']}"
 
-        cd:str = ''
+        cd:str = ''; delta:timedelta
         if self.timer != None:
-            cd = self._td_str(self.timer - datetime.now(tz=self.timer.tzinfo))
+            delta = self.timer - datetime.now(tz=self.timer.tzinfo)
+            cd = self._td_str(delta)
 
-        if self.jump_state == 'Cooldown' and cd != '':
+        if self.jump_state == 'Cooldown' and self.timer:
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jump Cooldown')} {cd}" # LANG: Carrier overlay
-        if self.jump_state == 'Jumping' and cd != '':
-            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jump To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  #LANG: Carrier overlay
+        if self.jump_state == 'Jumping' and self.timer:
+            if delta.seconds > 220:
+                note = f" {_('Lockdown in')} {self._td_str(delta - timedelta(seconds=220))}" # LANG: Carrier overlay
+            if delta.seconds > 600:
+                note = f" {_('Locked in')} {self._td_str(delta - timedelta(seconds=600))}" # LANG: Carrier overlay
+            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jumping To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd} {note}"  #LANG: Carrier overlay
 
         return message
 
@@ -701,11 +709,11 @@ class FleetCarrier:
         departure_datetime = departure_datetime.replace(tzinfo=UTC)
         self.overview['jumpDestination'] = entry.get('SystemName', '')
         self.overview['jumpDestinationBody'] = entry.get('Body', None)
-        self.overview['departureScheduled'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00") # Seconds zeroed out
+        self.overview['departureScheduled'] = departure_datetime.strftime("%Y-%m-%d %H:%M:%S")
         if self.itinerary[0].get('departureTime', None) == None:
             self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
-            self.itinerary[0]['departureTime'] = departure_datetime.strftime("%Y-%m-%d %H:%M:00")
+            self.itinerary[0]['departureTime'] = departure_datetime.strftime("%Y-%m-%d %H:%M:%S")
             arr:datetime = datetime.strptime(self.itinerary[0]['arrivalTime'], DATETIME_FORMAT_JSON)
             arr = arr.replace(tzinfo=UTC)
             diff:timedelta = departure_datetime - arr
@@ -728,9 +736,10 @@ class FleetCarrier:
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
         self.jump_state = 'Jumping'
-        self.timer = datetime.strptime(self.overview['departureScheduled'], "%Y-%m-%d %H:%M:00").replace(tzinfo=UTC)
-
-        if self.bgstally.dev_mode == True: self.save()
+        self.timer = departure_datetime
+        rem:timedelta = self.timer - datetime.now(tz=UTC)
+        self.bgstally.ui.frame.after((rem.seconds+1) * 1000, lambda: self._jump_complete())
+        Debug.logger.debug(f"Jump scheduled for {departure_datetime} ({(rem.seconds)} seconds) [{self.jump_state}]")
         self.bgstally.ui.window_fc.update_display()
 
 
@@ -739,7 +748,7 @@ class FleetCarrier:
         """ The user cancelled their carrier jump producing a CarrierJumpCancelled journal event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        if self.itinerary[0]['departureTime'] == self.overview['departureScheduled']:
+        if abs(self.itinerary[0]['departureTime'] - self.overview['departureScheduled']) < 60:
             self.itinerary[0]['departureTime'] = None
             self.itinerary[0]['visitDurationSeconds'] = None
 
@@ -749,8 +758,10 @@ class FleetCarrier:
 
         if self.bgstally.dev_mode == True: self.save()
 
-        self.jump_state = 'Cooldown'
-        self.timer = datetime.now() + timedelta(seconds=60)
+        if self.jump_state == 'Jumping':
+            self.jump_state = 'Cooldown'
+            self.timer = datetime.now() + timedelta(seconds=60)
+            self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -788,7 +799,7 @@ class FleetCarrier:
             return
 
         # We've already got this new jump
-        if self.itinerary[1].get('departureTime', None) == self.overview['departureScheduled']:
+        if abs(self.itinerary[1].get('departureTime', None) - self.overview['departureScheduled']) < 60:
             self.itinerary[1]['starsystem'] = self.overview.get('jumpDestination', '')
             self.itinerary[1]['body'] = self.overview.get('jumpDestinationBody', None)
 
@@ -801,7 +812,7 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = self.overview['departureScheduled']
             self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
 
-        if self.itinerary[0]['starsystem'] != self.overview.get('jumpDestination', '') and self.itinerary[0]['arrivalTime'] != self.overview['departureScheduled']:
+        if self.itinerary[0]['starsystem'] != self.overview.get('jumpDestination', '') and abs(self.itinerary[0]['arrivalTime'] - self.overview['departureScheduled']) > 60:
             self.itinerary.insert(0, {
                                       'departureTime': None,
                                       'arrivalTime': self.overview['departureScheduled'],
@@ -818,20 +829,35 @@ class FleetCarrier:
         self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
-        if self.jump_state == 'Jumping':
-            Debug.logger.debug(f"Carrier location after jump, starting cooldown")
-            self.jump_state = 'Cooldown'
-            self.timer = datetime.now() + timedelta(seconds=300)
-            self._update_route()
-
+        Debug.logger.debug(f"Calling jump complete")
+        self._jump_complete()
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
+
+
+    @catch_exceptions
+    def _jump_complete(self) -> None:
+        """ Jump may have completed """
+        Debug.logger.debug(f"Jump complete called state: {self.jump_state} {self.overview.get('departureScheduled', '')}")
+        if self.jump_state != 'Jumping': return
+        Debug.logger.debug(f"Starting cooldown")
+
+        self.jump_state = 'Cooldown'
+        arr:datetime = datetime.strptime(self.overview['departureScheduled'], DATETIME_FORMAT_JSON)
+        arr = arr.replace(tzinfo=UTC)
+        self.timer = arr + timedelta(seconds=300)
+        rem:timedelta = self.timer - datetime.now(tz=UTC)
+        self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
+        self._update_route()
 
 
     @catch_exceptions
     def _cooldown_complete(self) -> None:
         Debug.logger.debug(f"Carrier cooldown completed.")
 
+        if self.jump_state != 'Cooldown': return
+
+        self.jump_state = 'Idle'
         self.bgstally.ui.warning = _("Carrier cooldown complete") # LANG: Cooldown overlay message
         self.bgstally.ui.window_fc.cooldown_notice()
 

@@ -568,7 +568,7 @@ class WindowFleetCarrier:
 
     def cooldown_notice(self) -> None:
         """ Display carrier cooldown notification """
-        self.bgstally.ui.show_warning("Fleetcarrier cooldown\ncompleted")
+        self.bgstally.ui.show_warning("Fleetcarrier cooldown completed")
         PopupNotice(_("Fleetcarrier cooldown\ncompleted"), 20000, self.bgstally.fleet_carrier)
 
 class PopupNotice:

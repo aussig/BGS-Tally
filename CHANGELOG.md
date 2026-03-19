@@ -19,14 +19,14 @@
 * Reworked the Colonisation bodies popup to provide a prettier, more informative, and more detailed display
 * Updated the commodity requirements for colonisation bases to match FDev's latest changes
 * Shortened the preferences frame by switching the Discord section to two columns
-* Changed RavenColonial project last update call to the new /poll endpoint. [Issue 449](https://github.com/aussig/BGS-Tally/issues/449)
-* Addressed progress view column width issues on Linux [Issue 442](https://github.com/aussig/BGS-Tally/issues/442)
+* Changed RavenColonial project last update call to the new /poll endpoint.
+* Addressed progress view column width issues on Linux.
 
 
 ### Bug Fixes:
 
-* Addressed formatting of carrier cargo and locker discord posts [Issue 420](https://github.com/aussig/BGS-Tally/issues/420)
-* Fix for error when Raven Colonial project already exists [Issue 421](https://github.com/aussig/BGS-Tally/issues/421)
+* Addressed formatting of carrier cargo and locker discord posts.
+* Fix for error when Raven Colonial project already exists.
 * None of the objectives text was localised, which included both the objectives window and the in-game overlay. Localisation is now enabled, so translators are able to translate this text.
 * Fix intermittent font scaling issue in commodities list.
 

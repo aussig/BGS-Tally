@@ -769,10 +769,12 @@ class FleetCarrier:
     @catch_exceptions
     def carrier_location(self, entry:dict) -> None:
         """ Update the current carrier location after a jump. If we logged out we may not get this event """
+        Debug.logger.debug(f"Carrier location for {entry.get('CarrierID')} current state {self.jump_state}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
         # Check if we have a jump scheduled and the jump time has passed. If not nothing to do.
         if self._time_passed(self.overview.get('departureScheduled', "")) == False:
+            Debug.logger.debug(f"Time not passed")
             # No jump scheduled but carrier isn't where we think it is so add current location to itinerary.
             if self.itinerary[0]['starsystem'] != entry.get('StarSystem'):
                 self.itinerary.insert(0, {
@@ -817,6 +819,7 @@ class FleetCarrier:
         self.overview['departureScheduled'] = None
 
         if self.jump_state == 'Jumping':
+            Debug.logger.debug(f"Carrier location after jump, starting cooldown")
             self.jump_state = 'Cooldown'
             self.timer = datetime.now() + timedelta(seconds=300)
             self._update_route()

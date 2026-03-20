@@ -12,10 +12,8 @@ from pathlib import Path
 from typing import Generator, Optional
 from time import sleep
 from unittest.mock import Mock, patch, MagicMock
-import json
-import time
 import logging
-import tkinter as tk
+
 
 # Setup path for imports
 plugin_dir:Path = Path(__file__).parent
@@ -39,7 +37,6 @@ def harness() -> Generator:
 class TestStartup:
     """Test plugin startup behavior."""
 
-    def test_harness_initialization(self) -> None:
+    def test_harness_initialization(self, harness) -> None:
         """Test basic harness initialization."""
-        harness = TestHarness()
-        assert True == True
+        assert harness is not None

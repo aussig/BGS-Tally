@@ -649,6 +649,7 @@ class FleetCarrier:
         #    }
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
 
+        Debug.logger.info(f"Carrier: {self.overview.get('carrier_id', '')} {entry.get('CarrierID')}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
         departure_datetime: datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)

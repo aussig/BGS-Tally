@@ -6,7 +6,7 @@ from os import path
 from copy import deepcopy
 
 #from bgstally.bgstally import BGSTally
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierType, TAG_OVERLAY_HIGHLIGHT
+from bgstally.constants import DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierType, FleetCarrierJump, TAG_OVERLAY_HIGHLIGHT
 from bgstally.debug import Debug
 from bgstally.utils import _, __, get_by_path, catch_exceptions
 from thirdparty.colors import *
@@ -37,7 +37,7 @@ class FleetCarrier:
         self.last_modified:int = 0 # Record of when we last modified our local data. Used to avoid overwriting with out of date CAPI data.
         self.data:dict = {}  # Raw CAPI data
         self.window_geometries:dict = {}
-        self.jump_state:str = 'Idle'
+        self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
         self.timer:datetime = None
         self.load()
 
@@ -385,10 +385,10 @@ class FleetCarrier:
         # Clear the timer and state
         if self.timer != None and self.timer < datetime.now(tz=self.timer.tzinfo):
             Debug.logger.debug(f"Clearing timer{self.jump_state}")
-            if self.jump_state == 'Cooldown':
+            if self.jump_state == FleetCarrierJump.Cooldown:
                 self._cooldown_complete()
             self.timer = None
-            self.jump_state = 'Idle'
+            self.jump_state = FleetCarrierJump.Idle
 
         if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
@@ -400,9 +400,9 @@ class FleetCarrier:
             delta = self.timer - datetime.now(tz=self.timer.tzinfo)
             cd = self._td_str(delta)
 
-        if self.jump_state == 'Cooldown' and self.timer:
+        if self.jump_state == FleetCarrierJump.Cooldown and self.timer:
             message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jump Cooldown')} {cd}" # LANG: Carrier overlay
-        if self.jump_state == 'Jumping' and self.timer:
+        if self.jump_state == FleetCarrierJump.Jumping and self.timer:
             if delta.seconds > 220:
                 note = f" {_('Lockdown in')} {self._td_str(delta - timedelta(seconds=220))}" # LANG: Carrier overlay
             if delta.seconds > 600:
@@ -735,7 +735,7 @@ class FleetCarrier:
         fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
-        self.jump_state = 'Jumping'
+        self.jump_state = FleetCarrierJump.Jumping
         self.timer = departure_datetime
         rem:timedelta = self.timer - datetime.now(tz=UTC)
         self.bgstally.ui.frame.after((rem.seconds+1) * 1000, lambda: self._jump_complete())
@@ -758,8 +758,8 @@ class FleetCarrier:
 
         if self.bgstally.dev_mode == True: self.save()
 
-        if self.jump_state == 'Jumping':
-            self.jump_state = 'Cooldown'
+        if self.jump_state == FleetCarrierJump.Jumping:
+            self.jump_state = FleetCarrierJump.Cooldown
             self.timer = datetime.now() + timedelta(seconds=60)
             self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
 
@@ -839,10 +839,10 @@ class FleetCarrier:
     def _jump_complete(self) -> None:
         """ Jump may have completed """
         Debug.logger.debug(f"Jump complete called state: {self.jump_state} {self.overview.get('departureScheduled', '')}")
-        if self.jump_state != 'Jumping': return
+        if self.jump_state != FleetCarrierJump.Jumping: return
         Debug.logger.debug(f"Starting cooldown")
 
-        self.jump_state = 'Cooldown'
+        self.jump_state = FleetCarrierJump.Cooldown
         arr:datetime = datetime.strptime(self.overview['departureScheduled'], DATETIME_FORMAT_JSON)
         arr = arr.replace(tzinfo=UTC)
         self.timer = arr + timedelta(seconds=300)
@@ -855,7 +855,7 @@ class FleetCarrier:
     def _cooldown_complete(self) -> None:
         Debug.logger.debug(f"Carrier cooldown completed.")
 
-        if self.jump_state != 'Cooldown': return
+        if self.jump_state != FleetCarrierJump.Cooldown: return
 
         self.jump_state = 'Idle'
         self.bgstally.ui.warning = _("Carrier cooldown complete") # LANG: Cooldown overlay message

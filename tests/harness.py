@@ -35,9 +35,16 @@ class TestHarness:
     """ Main test harness for the Neutron Dancer plugin. """
     # Prevent pytest from trying to collect this helper class as a test class
     __test__ = False
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
     def __init__(self, plugin_dir:Optional[str] = None):
         """ Initialize the test harness. """
+
         if plugin_dir is None:
             plugin_dir = str(Path(__file__).parent.parent)
 
@@ -49,20 +56,21 @@ class TestHarness:
 
         # Event handlers registered by plugins
         self.journal_handlers: list[Callable] = []
-
+        
         self.config = MockConfig()
 
         os.environ['EDMC_NO_UI'] = '1'
 
         # Create Tk root for headless mode
         try:
-            root:tk.Tk = tk.Tk()
-            self.parent:tk.Frame = tk.Frame(root)
-            root.withdraw()
+            if not hasattr(self, '_initialized'): 
+                root:tk.Tk = tk.Tk()
+                self.parent:tk.Frame = tk.Frame(root)
+                root.withdraw()
         except Exception as e:
             print(f"Failed to create Tk root: {e}")
         
-        return
+        self._initialized = True        
 
 
     def setup(self, config_file:str = "test_config.json") -> None:
@@ -76,7 +84,6 @@ class TestHarness:
                     self.config._from_dict(json.load(f))
             except Exception as e:
                 print(f"Warning: Could not load setup file {config_path}: {e}")
-
 
     def set_edmc_config(self, config_file:str = "edmc_config.json") -> None:
         # Load config
@@ -94,7 +101,6 @@ class TestHarness:
     def register_journal_handler(self, handler: Callable) -> None:
         """ Register a journal event handler (simulates journal_entry callback). """
         self.journal_handlers.append(handler)
-
 
     def fire_event(self, event:dict, state:Optional[dict] = None) -> None:
         """ Fire a journal event through the harness. """

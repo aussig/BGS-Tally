@@ -21,8 +21,8 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 @pytest.fixture
 def harness() -> Generator:
-    """Provide a fresh test harness for each test."""
-    test_harness = TestHarness()
+    """ Provide a fresh test harness for each test. """  
+    test_harness = TestHarness() 
     test_harness.set_edmc_config()
 
     # Now we can import Router modules
@@ -39,8 +39,6 @@ def harness() -> Generator:
     test_harness.system = 'Sol'
         
     yield test_harness
-    # Cleanup if needed
-
 
 class TestStartup:
     """Test plugin startup behavior."""
@@ -60,6 +58,6 @@ class TestFleetCarrier:
         assert harness.config.get_str('BGST_Status', default='On') == 'On'
         harness.fire_event(events[0])
         assert harness.bgstally.fleet_carrier.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
-        #harness.fire_event(events[1])
-        #assert harness.overlay.msgs != {}
-
+        #assert harness.bgstally.fleet_carrier.jump_state == 'Jumping'
+        harness.fire_event(events[1])
+        

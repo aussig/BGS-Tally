@@ -35,7 +35,8 @@ if 'config' not in sys.modules:
     class MockConfig:
         def __init__(self):
             self.data = {'loglevel': 'DEBUG',
-                         'ui_scale': 100} # Any variables that need setting
+                         'ui_scale': 100,
+                         'theme' : 0} # Any variables that need setting
             self.shutting_down = False
             self.app_dir_path = this_dir
 
@@ -107,7 +108,6 @@ for name, val in MockEDLogs.__dict__.items():
 _monitor.monitor = MockEDLogs
 sys.modules['monitor'] = _monitor
 
-
 _plug = _types.ModuleType('Plugin')
 class MockPlugin:    
     def __init__(self) -> None:
@@ -118,7 +118,6 @@ for name, val in MockPlugin.__dict__.items():
         setattr(_plug, name, val)
 
 sys.modules['plug'] = _plug
-
 
 _l10n = _types.ModuleType('l10n')
 sys.modules['l10n'] = _l10n
@@ -145,7 +144,6 @@ for name, val in MockLocale.__dict__.items():
 _l10n.Locale = _locale
 
 sys.modules['l10n'] = _l10n
-
 class MockEDMCOverlay:
     def __init__(self): pass
 
@@ -220,6 +218,14 @@ class TestHarness:
         plugin_start3(str(self.live_dir))
         plugin_app(parent)
 
+        import bgstally.globals
+        self.bgstally = bgstally.globals.this
+
+        
+        self.is_beta = False
+        self.commander = 'Testy McTest Face'
+        self.system = 'Sol'
+
         # Event handlers registered by plugins
         self.journal_handlers: list[Callable] = []
         return
@@ -288,7 +294,6 @@ class TestHarness:
         logging.info(f"Events file: {EVENTS_FILE}")
         if not EVENTS_FILE.exists():
             return events
-
         try:
             with open(EVENTS_FILE, 'r') as f:
                 return json.load(f)

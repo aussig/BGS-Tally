@@ -175,3 +175,14 @@ for name, val in Mockoverlay_api.__dict__.items():
     if not name.startswith('__'):
         setattr(_overlay_api, name, val)
 sys.modules['overlay_plugin.overlay_api'] = _overlay_api
+
+# Monkey‑patch LogRecord.__init__ to always add 'osthreadid'
+_orig_init = logging.LogRecord.__init__
+
+def _patched_init(self, name, level, fn, lno, msg, args, exc_info, func=None, sinfo=None):
+    _orig_init(self, name, level, fn, lno, msg, args, exc_info, func, sinfo)
+    # Set a harmless default value
+    self.osthreadid = -1
+    self.qualname = 'TestHarness'
+    
+logging.LogRecord.__init__ = _patched_init

@@ -46,17 +46,15 @@ class TestHarness:
         """ Initialize the test harness. """
 
         if plugin_dir is None:
-            plugin_dir = str(Path(__file__).parent.parent)
+            plugin_dir = str(Path(__file__).parent)
 
         self.plugin_dir:Path = Path(plugin_dir).resolve()
-        self.test_dir = test_dir
-
+        
         # Load our event sequences
         self.events:Dict[str, list] = self._load_events()
 
         # Event handlers registered by plugins
         self.journal_handlers: list[Callable] = []
-        
         self.config = MockConfig()
 
         os.environ['EDMC_NO_UI'] = '1'
@@ -73,27 +71,14 @@ class TestHarness:
         self._initialized = True        
 
 
-    def setup(self, config_file:str = "test_config.json") -> None:
-        """ Setup the harness with a specific config file. """
-
-        # Load config
-        config_path:Path = self.test_dir / "config" / config_file
-        if config_path.exists():
-            try:
-                with open(config_path, 'r') as f:
-                    self.config._from_dict(json.load(f))
-            except Exception as e:
-                print(f"Warning: Could not load setup file {config_path}: {e}")
-
     def set_edmc_config(self, config_file:str = "edmc_config.json") -> None:
         # Load config
-        config_path:Path = self.test_dir / "config" / config_file               
+        config_path:Path = self.plugin_dir / "config" / config_file               
         if not config_path.is_file():
             self.config.data = {}
             return
         try:
             with open(config_path, 'r') as f:
-                #self.config.set(json.load(f))
                 self.config.data = json.load(f)                
         except Exception as e:
             print(f"Warning: Could not load edmc config file {config_path}: {e}")
@@ -133,7 +118,7 @@ class TestHarness:
         """ Load journal events from events.json file. """
         events:Dict[str, list] = {}
 
-        EVENTS_FILE = Path(self.test_dir, "config", "journal_events.json")
+        EVENTS_FILE = Path(self.plugin_dir, "config", "journal_events.json")
         logging.info(f"Events file: {EVENTS_FILE}")
         if not EVENTS_FILE.exists():
             return events

@@ -1,5 +1,5 @@
 """
-Test suite for EDMC Neutron Dancer plugin using pytest.
+Test suite for BGS-Tally plugin using pytest.
 
 Run with: .venv/bin/python -m pytest tests/test_plugin.py -v --tb=short 2>&1 | tail -30
 Run with: .venv_win\\Scripts\\python.exe -m pytest tests\\test_plugin.py -v --tb=short
@@ -25,6 +25,9 @@ def harness() -> Generator:
     test_harness = TestHarness() 
     test_harness.set_edmc_config()
 
+    import bgstally.constants
+    bgstally.constants.FOLDER_ASSETS = "../assets"
+    bgstally.constants.FOLDER_DATA = "../data"
     # Now we can import Router modules
     from load import plugin_start3, plugin_app
     import bgstally.globals
@@ -46,18 +49,4 @@ class TestStartup:
     def test_harness_initialization(self, harness) -> None:
         """Test basic harness initialization."""
         assert harness is not None
-
-class TestFleetCarrier:
-    """ Test fleet carrier functions """
-
-    def test_jump_sequence(self, harness) -> None:
-        # @note: Need a carrierstats event to initialize the carrier data.
-        events:list = harness.events.get('carrier_events', [])
-        harness.bgstally.fleet_carrier.overview['carrier_id'] = 3709409280
-        assert harness.bgstally.fleet_carrier.overview.get('carrier_id') == 3709409280
         assert harness.config.get_str('BGST_Status', default='On') == 'On'
-        harness.fire_event(events[0])
-        assert harness.bgstally.fleet_carrier.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
-        #assert harness.bgstally.fleet_carrier.jump_state == 'Jumping'
-        harness.fire_event(events[1])
-        

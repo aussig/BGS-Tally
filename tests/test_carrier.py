@@ -49,19 +49,33 @@ class TestFleetCarrier:
     """ Test fleet carrier functions """
 
     def test_jump_request(self, harness) -> None:
-        # @note: Need a carrierstats event to initialize the carrier data.
+        """ Test handling a jump request """
+        # Read the carrier events from the journal_events.json
         events:list = harness.events.get('carrier_events', [])
-        harness.bgstally.fleet_carrier.overview['carrier_id'] = 3709409280
+        # Pre-flight checks.         
         assert harness.bgstally.fleet_carrier.overview.get('carrier_id') == 3709409280
+        assert harness.bgstally.fleet_carrier.overview.get('currentStarSystem', '') == 'Sol'
+        # Send event 0
+        harness.fire_event(events[0])
+        # Confirm that the carrier's jump destination is now what the carrier event indicated.
+        assert harness.bgstally.fleet_carrier.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
+
+    def test_jump_completed(self, harness) -> None:
+        """ Test a successful jump """
+        events:list = harness.events.get('carrier_events', [])        
+        assert harness.bgstally.fleet_carrier.overview.get('carrier_id') == 3709409280
+        assert harness.bgstally.fleet_carrier.overview.get('currentStarSystem', '') == 'Sol'
         harness.fire_event(events[0])
         assert harness.bgstally.fleet_carrier.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
         harness.fire_event(events[1])
+        assert harness.bgstally.fleet_carrier.overview.get('currentStarSystem', '') == 'Bleae Thua ZE-I b23-1'
 
     def test_jump_cancellation(self, harness) -> None:
-        # @note: Need a carrierstats event to initialize the carrier data.
+        """ A cancelled jump """
         events:list = harness.events.get('carrier_events', [])
-        harness.bgstally.fleet_carrier.overview['carrier_id'] = 3709409280
+        
         assert harness.bgstally.fleet_carrier.overview.get('carrier_id') == 3709409280
+        assert harness.bgstally.fleet_carrier.overview.get('currentStarSystem', '') == 'Sol'
         harness.fire_event(events[0])
         assert harness.bgstally.fleet_carrier.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
         harness.fire_event(events[2])

@@ -37,7 +37,7 @@ class State:
         self.DiscordActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordActivity', default=DiscordActivity.BOTH))
         self.DiscordAvatarURL:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordAvatarURL', default=""))
         self.DiscordBGSTWAutomatic:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordBGSTWAutomatic', default=CheckStates.STATE_OFF))
-        self.FavouriteActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FavouriteActivity', default=FavouriteActivity.IGNORE))
+        self.FavouriteActivityMode:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FavouriteActivityMode', default=FavouriteActivity.IGNORE))
         self.UseColonisationName:tk.StringVar = tk.StringVar(value=config.get_str('BGST_UseColonisationName', default=CheckStates.STATE_OFF))
 
         self.ColonisationMaxCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationMaxCommodities', default="20"))
@@ -69,6 +69,7 @@ class State:
         config.delete('XStationType', suppress=True)  # Remove legacy config keys
         config.delete('XStatus', suppress=True)  # Remove legacy config keys
         config.delete('XDiscordPostStyle', suppress=True)  # Remove legacy config keys
+        config.delete('BGST_FavouriteActivity', suppress=True)  # Remove renamed key
 
         # Persistent values
         self.discord_lang:str|None = config.get_str('BGST_DiscordLang', default="")
@@ -88,6 +89,7 @@ class State:
         """
         Update all our mirror thread-safe values from their tk equivalents
         """
+        # Overlay booleans
         self.enable_overlay:bool = (self.EnableOverlay.get() == CheckStates.STATE_ON)
         self.enable_overlay_current_tick:bool = (self.EnableOverlayCurrentTick.get() == CheckStates.STATE_ON)
         self.enable_overlay_activity:bool = (self.EnableOverlayActivity.get() == CheckStates.STATE_ON)
@@ -96,9 +98,9 @@ class State:
         self.enable_overlay_warning:bool = (self.EnableOverlayWarning.get() == CheckStates.STATE_ON)
         self.enable_overlay_cmdr:bool = (self.EnableOverlayCMDR.get() == CheckStates.STATE_ON)
         self.enable_overlay_objectives:bool = (self.EnableOverlayObjectives.get() == CheckStates.STATE_ON)
-        self.overlay_objectives_mode:int = int(self.OverlayObjectivesMode.get())
         self.enable_overlay_colonisation:bool = (self.EnableOverlayColonisation.get() == CheckStates.STATE_ON) and (self.ColonisationStatus.get() == CheckStates.STATE_ON)
 
+        # Other booleans
         self.abbreviate_faction_names:bool = (self.AbbreviateFactionNames.get() == CheckStates.STATE_ON)
         self.secondary_inf:bool = (self.IncludeSecondaryInf.get() == CheckStates.STATE_ON)
         self.detailed_inf:bool = (self.DetailedInf.get() == CheckStates.STATE_ON)
@@ -106,9 +108,13 @@ class State:
         self.discord_bgstw_automatic:bool = (self.DiscordBGSTWAutomatic.get() == CheckStates.STATE_ON)
         self.showmerits:bool = (self.EnableShowMerits.get() == CheckStates.STATE_ON)
         self.use_colonisation_name:bool = (self.UseColonisationName.get() == CheckStates.STATE_ON)
-
         self.enable_colonisation:bool = (self.ColonisationStatus.get() == CheckStates.STATE_ON)
         self.progress_scrollbar:bool = (self.EnableProgressScrollbar.get() == CheckStates.STATE_ON)
+
+        # Non booleans
+        self.overlay_objectives_mode:int = int(self.OverlayObjectivesMode.get())
+        self.favourite_activity_mode:str = str(self.FavouriteActivityMode.get())
+
 
     def save(self):
         """
@@ -144,7 +150,7 @@ class State:
         config.set('BGST_ColonisationMaxCommodities', self.ColonisationMaxCommodities.get())
         config.set('BGST_EnableProgressScrollbar', self.EnableProgressScrollbar.get())
         config.set('BGST_ColonisationRCAPIKey', self.ColonisationRCAPIKey.get())
-        config.set('BGST_FavouriteActivity', self.FavouriteActivity.get())
+        config.set('BGST_FavouriteActivityMode', self.FavouriteActivityMode.get())
         config.set('BGST_UseColonisationName', self.UseColonisationName.get())
 
         # Persistent values

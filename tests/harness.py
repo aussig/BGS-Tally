@@ -29,6 +29,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 test_dir:Path = Path(__file__).parent
 sys.path.insert(0, str(test_dir))
 
+import tests.edmc.mocks
 from tests.edmc.mocks import MockConfig
 
 class TestHarness:

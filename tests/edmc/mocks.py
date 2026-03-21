@@ -131,6 +131,7 @@ for name, val in MockLocale.__dict__.items():
     if not name.startswith('__'):
         setattr(_locale, name, val)
 _l10n.Locale = _locale
+_l10n._Locale = _l10n
 
 sys.modules['l10n'] = _l10n
 class MockEDMCOverlay:

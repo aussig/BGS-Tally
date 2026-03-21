@@ -40,6 +40,7 @@ class FleetCarrier:
         self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
         self.timer:datetime = None
         self.load()
+        self._update_route()
 
     @catch_exceptions
     def available(self) -> bool:
@@ -225,7 +226,7 @@ class FleetCarrier:
                 'deposit': (deposit, 'boolean'),
                 'tritium': (trit, 'num'),
                 'refuel': (trit < 0, 'boolean'),
-                'state': 'planned',
+                'state': 'Scheduled' if j.get('name') == self.overview.get('jumpDestination', 'Unknown') else 'Planned',
                 'starsystem': (j.get('name'), 'str')
             })
             deposit = False
@@ -359,57 +360,35 @@ class FleetCarrier:
 
         self.bgstally.ui.window_fc.update_display()
 
-
-    def _td_str(self, delta:timedelta) -> str:
-        """ Display remaining time showing hh:mm:ss """
-        s:int = delta.seconds
-        unit:int = 60
-        res:list = []
-        while unit > 0:
-            t, s = divmod(s, unit)
-            unit = int(unit / 60)
-            if t > 0 or unit < 3600:
-                res.append(f"{t:02d}")
-        return ':'.join(res)
-
-
     @catch_exceptions
     def update_overlay(self) -> str:
         """ Display our next jump in the overlay or clear it if we have none. Show a countdown if it's in progress or coolingdown """
         message:str = ""
 
-        # Jump locked in 10 m before departure
-        # Lockdown 3m 40s before departure
-        #Debug.logger.debug(f"Overlay: {self.jump_state} {self.timer}")
-
-        # Clear the timer and state
-        if self.timer != None and self.timer < datetime.now(tz=self.timer.tzinfo):
-            Debug.logger.debug(f"Clearing timer{self.jump_state}")
-            if self.jump_state == FleetCarrierJump.Cooldown:
-                self._cooldown_complete()
-            self.timer = None
-            self.jump_state = FleetCarrierJump.Idle
-
         if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
-            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
+            message = f"{_('Carrier Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
         if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
-            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Route Next')}: {self.route[0]['name']}"
+            message = f"{_('Carrier Route Next')}: {self.route[0]['name']}"
 
-        cd:str = ''; delta:timedelta
+        cd:str = ''; delta:int
         if self.timer != None:
-            delta = self.timer - datetime.now(tz=self.timer.tzinfo)
+            # Subtract extra seconds because of the update delay.
+            delta = self._td(self.timer, datetime.now(tz=UTC)) - 1
             cd = self._td_str(delta)
+            Debug.logger.debug(f"Overlay: {self.jump_state} {self.timer} {delta} {cd}")
 
-        if self.jump_state == FleetCarrierJump.Cooldown and self.timer:
-            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jump Cooldown')} {cd}" # LANG: Carrier overlay
-        if self.jump_state == FleetCarrierJump.Jumping and self.timer:
-            if delta.seconds > 220:
-                note = f" {_('Lockdown in')} {self._td_str(delta - timedelta(seconds=220))}" # LANG: Carrier overlay
-            if delta.seconds > 600:
-                note = f" {_('Locked in')} {self._td_str(delta - timedelta(seconds=600))}" # LANG: Carrier overlay
-            message = f"{TAG_OVERLAY_HIGHLIGHT}{_('Carrier Jumping To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd} {note}"  #LANG: Carrier overlay
+        if self.jump_state == FleetCarrierJump.Cooldown and delta > 0:
+            message = f"{_('Carrier Jump Cooldown')} {cd}" # LANG: Carrier overlay
+        if self.jump_state == FleetCarrierJump.Jumping and delta > 0:
+            message = f"{_('Carrier Jumping To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  #LANG: Carrier overlay
+            # Lockdown 3m 20s before departure
+            if delta > 200:
+                message += f"\n{_('Landing Pad Lockdown in')} {self._td_str(delta - 200)}" # LANG: Carrier overlay
+            # Jump locked in 10 m before departure
+            if delta > 600:
+                message += f"\n{_('Jump Locked in')} {self._td_str(delta - 600)}" # LANG: Carrier overlay
 
-        return message
+        return TAG_OVERLAY_HIGHLIGHT + message
 
 
     def _update_cargo(self, data:dict) -> dict:
@@ -501,8 +480,7 @@ class FleetCarrier:
                 if jumplist[elem]['departureTime'] == None and jumplist[elem-1]['arrivalTime'] != None:
                     jumplist[elem]['departureTime'] = jumplist[elem-1]['arrivalTime']
                 if jumplist[elem]['visitDurationSeconds'] == None:
-                    diff:timedelta = datetime.strptime(jumplist[elem]['departureTime'], DATETIME_FORMAT_JSON) - datetime.strptime(jumplist[elem]['arrivalTime'], DATETIME_FORMAT_JSON)
-                    jumplist[elem]['visitDurationSeconds'] = int(diff.total_seconds())
+                    jumplist[elem]['visitDurationSeconds'] = self._td(jumplist[elem]['departureTime'], jumplist[elem]['arrivalTime'])
                 continue
 
             if elem == 0:
@@ -546,7 +524,7 @@ class FleetCarrier:
             self.overview['jumpDestinationBody'] = None
             self.overview['departureScheduled'] = None
 
-        jumplist = sorted(jumplist, key=lambda item: datetime.strptime(item['arrivalTime'], DATETIME_FORMAT_JSON), reverse=True)
+        jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)
 
         return jumplist[0:FC_MAX_JUMPS_TRACKED]
 
@@ -705,20 +683,15 @@ class FleetCarrier:
 
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        departure_datetime:datetime|None = datetime.strptime(entry.get('DepartureTime', ""), DATETIME_FORMAT_JOURNAL)
-        departure_datetime = departure_datetime.replace(tzinfo=UTC)
+        departure:datetime|None = self._parse_date(entry.get('DepartureTime', ""))
         self.overview['jumpDestination'] = entry.get('SystemName', '')
         self.overview['jumpDestinationBody'] = entry.get('Body', None)
-        self.overview['departureScheduled'] = departure_datetime.strftime("%Y-%m-%d %H:%M:%S")
+        self.overview['departureScheduled'] = departure.strftime("%Y-%m-%d %H:%M:%S")
         if self.itinerary[0].get('departureTime', None) == None:
             self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
-            self.itinerary[0]['departureTime'] = departure_datetime.strftime("%Y-%m-%d %H:%M:%S")
-            arr:datetime = datetime.strptime(self.itinerary[0]['arrivalTime'], DATETIME_FORMAT_JSON)
-            arr = arr.replace(tzinfo=UTC)
-            diff:timedelta = departure_datetime - arr
-            self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
-
+            self.itinerary[0]['departureTime'] = departure.strftime("%Y-%m-%d %H:%M:%S")
+            self.itinerary[0]['visitDurationSeconds'] = self._td(departure, self.itinerary[0]['arrivalTime'])
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -730,16 +703,16 @@ class FleetCarrier:
         fields.append({'name': __("From System", lang=l), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
         fields.append({'name': __("To System", lang=l), 'value': entry.get('SystemName', "Unknown"), 'inline': True}) # LANG: Discord heading
         fields.append({'name': __("To Body", lang=l), 'value': entry.get('Body', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("Departure Time", lang=l), 'value': f"<t:{round(departure_datetime.timestamp())}:R>"}) # LANG: Discord heading
+        fields.append({'name': __("Departure Time", lang=l), 'value': f"<t:{round(departure.timestamp())}:R>"}) # LANG: Discord heading
         fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord heading
         fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
 
         self.jump_state = FleetCarrierJump.Jumping
-        self.timer = departure_datetime
-        rem:timedelta = self.timer - datetime.now(tz=UTC)
-        self.bgstally.ui.frame.after((rem.seconds+1) * 1000, lambda: self._jump_complete())
-        Debug.logger.debug(f"Jump scheduled for {departure_datetime} ({(rem.seconds)} seconds) [{self.jump_state}]")
+        self.timer = departure
+        rem:int = self._td(self.timer, datetime.now(tz=UTC))
+        self.bgstally.ui.frame.after(rem * 1000, lambda: self._jump_complete())
+        Debug.logger.debug(f"Jump scheduled for {departure} ({(rem)} seconds) [{self.jump_state}]")
         self.bgstally.ui.window_fc.update_display()
 
 
@@ -748,20 +721,17 @@ class FleetCarrier:
         """ The user cancelled their carrier jump producing a CarrierJumpCancelled journal event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        if abs(self.itinerary[0]['departureTime'] - self.overview['departureScheduled']) < 60:
+        if abs(self._td(self.itinerary[0]['departureTime'], self.overview['departureScheduled'])) < 60:
             self.itinerary[0]['departureTime'] = None
             self.itinerary[0]['visitDurationSeconds'] = None
-
-        self.overview['jumpDestination'] = None
-        self.overview['jumpDestinationBody'] = None
-        self.overview['departureScheduled'] = None
 
         if self.bgstally.dev_mode == True: self.save()
 
         if self.jump_state == FleetCarrierJump.Jumping:
             self.jump_state = FleetCarrierJump.Cooldown
-            self.timer = datetime.now() + timedelta(seconds=60)
-            self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
+            self.timer = self._parse_date(self.overview['departureScheduled']) + timedelta(seconds=300)
+            rem:int = self._td(self.timer, datetime.now(tz=UTC)) + 60
+            self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -774,6 +744,11 @@ class FleetCarrier:
         fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Fleet Carrier Discord heading
         fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}) # LANG: Fleet Carrier Discord heading
         self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+
+        self.overview['jumpDestination'] = None
+        self.overview['jumpDestinationBody'] = None
+        self.overview['departureScheduled'] = None
+
         self.bgstally.ui.window_fc.update_display()
 
 
@@ -783,11 +758,19 @@ class FleetCarrier:
         Debug.logger.debug(f"Carrier location for {entry.get('CarrierID')} current state {self.jump_state}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        # Check if we have a jump scheduled and the jump time has passed. If not nothing to do.
-        if self._time_passed(self.overview.get('departureScheduled', "")) == False:
-            Debug.logger.debug(f"Time not passed")
+        # Did we move without getting notified? (logged out maybe)
+        if entry.get('StarSystem') != self.overview.get('currentStarSystem'):
+            self.overview['currentStarSystem'] = entry.get('StarSystem')
+            self.overview['currentBody'] = entry.get('StarSystem')
+            self._update_route() # Make sure our route is up to date.
+
+        # Check if we have a jump scheduled and the jump time has passed or no jump scheduled then
+        # make sure our itinerary is up to date and we're done
+        if self._time_passed(self.overview.get('departureScheduled', '')) == False:
+            Debug.logger.debug(f"No departure or time passed {self.overview.get('departureScheduled', '')}")
             # No jump scheduled but carrier isn't where we think it is so add current location to itinerary.
             if self.itinerary[0]['starsystem'] != entry.get('StarSystem'):
+                Debug.logger.debug(f"Adding jump to itinerary")
                 self.itinerary.insert(0, {
                                         'departureTime': None,
                                         'arrivalTime': self.itinerary[0].get('departureTime', ''),
@@ -799,20 +782,17 @@ class FleetCarrier:
             return
 
         # We've already got this new jump
-        if abs(self.itinerary[1].get('departureTime', None) - self.overview['departureScheduled']) < 60:
+        if abs(self._td(self.itinerary[1].get('departureTime', 0), self.overview['departureScheduled'])) < 60:
             self.itinerary[1]['starsystem'] = self.overview.get('jumpDestination', '')
             self.itinerary[1]['body'] = self.overview.get('jumpDestinationBody', None)
 
         if self.itinerary[0].get('departureTime', None) == None: # If we haven't received a new itinerary update the current one
-            dept:datetime = datetime.strptime(self.overview['departureScheduled'], DATETIME_FORMAT_JSON)
-            arr:datetime = datetime.strptime(self.itinerary[0]['arrivalTime'], DATETIME_FORMAT_JSON)
-            diff:timedelta = dept - arr
             self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
             self.itinerary[0]['departureTime'] = self.overview['departureScheduled']
-            self.itinerary[0]['visitDurationSeconds'] = int(diff.total_seconds())
+            self.itinerary[0]['visitDurationSeconds'] = self._td(self.overview['departureScheduled'], self.itinerary[0]['arrivalTime'])
 
-        if self.itinerary[0]['starsystem'] != self.overview.get('jumpDestination', '') and abs(self.itinerary[0]['arrivalTime'] - self.overview['departureScheduled']) > 60:
+        if self.itinerary[0]['starsystem'] != self.overview.get('jumpDestination', '') and abs(self._td(self.itinerary[0]['arrivalTime'], self.overview['departureScheduled'])) > 60:
             self.itinerary.insert(0, {
                                       'departureTime': None,
                                       'arrivalTime': self.overview['departureScheduled'],
@@ -843,10 +823,9 @@ class FleetCarrier:
         Debug.logger.debug(f"Starting cooldown")
 
         self.jump_state = FleetCarrierJump.Cooldown
-        arr:datetime = datetime.strptime(self.overview['departureScheduled'], DATETIME_FORMAT_JSON)
-        arr = arr.replace(tzinfo=UTC)
-        self.timer = arr + timedelta(seconds=300)
-        rem:timedelta = self.timer - datetime.now(tz=UTC)
+
+        self.timer = self._parse_date(self.overview['departureScheduled']) + timedelta(seconds=300)
+        rem:int = self._td(self.timer, datetime.now(tz=UTC))
         self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
         self._update_route()
 
@@ -1111,25 +1090,58 @@ class FleetCarrier:
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
 
+    def _parse_date(self, date:str) -> datetime:
+        """ Parse a datetime. We only have two formats """
+        dt:datetime
+        try:
+            dt = datetime.fromisoformat(date)
+        except ValueError:
+            dt = datetime.strptime(date, DATETIME_FORMAT_JSON)
+        return dt
+
+    def _td(self, t1:str|datetime|int|None, t2:str|datetime|int|None) -> int:
+        """ Return a time delta in seconds """
+        if t1 == None or t1 == '': t1 = datetime.now(tz=UTC)
+        if t2 == None or t2 == '': t2 = datetime.now(tz=UTC)
+        if isinstance(t1, int): t1 = datetime.now(tz=UTC) - timedelta(seconds=t1)
+        if isinstance(t1, str): t1 = self._parse_date(t1)
+        if isinstance(t2, int): t2 = datetime.now(tz=UTC) - timedelta(seconds=t2)
+        if isinstance(t2, str): t2 = self._parse_date(t2)
+        if t1.tzinfo is None: t1 = t1.replace(tzinfo=UTC)
+        if t2.tzinfo is None: t2 = t2.replace(tzinfo=UTC)
+        return (t1 - t2).seconds
+
+
+    def _td_str(self, delta:timedelta|int) -> str:
+        """ Display remaining time showing hh:mm:ss """
+        if isinstance(delta, timedelta): delta = delta.seconds
+        unit:int = 60
+        res:list = []
+        while unit > 0:
+            t, delta = divmod(delta, unit)
+            unit = int(unit / 60)
+            if t > 0 or unit < 3600:
+                res.append(f"{t:02d}")
+        return ':'.join(res)
+
 
     def _time_passed(self, tstr:str|None) -> bool:
+        """ Has a given time passed? """
         if tstr == None or tstr == "": return False
-        then:datetime = datetime.strptime(tstr, DATETIME_FORMAT_JSON)
-        then = then.replace(tzinfo=UTC).astimezone(None)
-        now:datetime = datetime.now()
-        now = now.astimezone(None)
+        then:datetime = self._parse_date(tstr)
+        now:datetime = datetime.now(tz=UTC)
         return now >= then
 
 
-    def _lt(self, tstr:str|None, fmt:str = DATETIME_FORMAT_JSON) -> str|None:
+    def _lt(self, tstr:str|None) -> str:
         """ Convert a UTC datetime string into a local datetime string """
         if tstr == None: return ''
         try:
-            t:datetime = datetime.strptime(tstr, fmt).replace(tzinfo=UTC)
+            t:datetime = self._parse_date(tstr)
             return t.astimezone(None).strftime(DATETIME_FORMAT_JSON)
         except Exception as e:
             Debug.logger.error(f"Error parsing time {tstr} {e}")
-            return ''
+        return ''
 
 
     def _get_forsale(self) -> int:

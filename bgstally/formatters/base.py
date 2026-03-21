@@ -75,7 +75,7 @@ class BaseActivityFormatterInterface(ABC):
         Returns:
             bool: True if the system should be included, false if not
         """
-        match self.bgstally.state.FavouriteActivity.get():
+        match self.bgstally.state.favourite_activity_mode:
             case FavouriteActivity.IGNORE:
                 return True # All systems are included
             case FavouriteActivity.SYSTEMS | FavouriteActivity.FACTIONS:
@@ -96,7 +96,7 @@ class BaseActivityFormatterInterface(ABC):
         Returns:
             bool: True if the faction should be included, false if not
         """
-        match self.bgstally.state.FavouriteActivity.get():
+        match self.bgstally.state.favourite_activity_mode:
             case FavouriteActivity.IGNORE:
                 return True # All factions are included
             case FavouriteActivity.SYSTEMS:

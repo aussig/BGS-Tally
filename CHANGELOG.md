@@ -19,7 +19,6 @@
 * Changed RavenColonial project last update call to the new /poll endpoint. [Issue 449](https://github.com/aussig/BGS-Tally/issues/449)
 * Addressed progress view column width issues on Linux [Issue 442](https://github.com/aussig/BGS-Tally/issues/442)
 
-
 ### Bug Fixes:
 
 * Addressed formatting of carrier cargo and locker discord posts [Issue 420](https://github.com/aussig/BGS-Tally/issues/420)

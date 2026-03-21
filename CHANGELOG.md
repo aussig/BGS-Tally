@@ -8,8 +8,8 @@
 * System / station summary information on the in-game overlay. If you are using the overlay, when you jump into a system (or on initial load of the game), a summary of the current system is displayed, including the faction in control and its influence %, any conflicts, the system population, government and security. When you dock at a station, the overlay displays the faction in control of the station.
 * A complete re-design of the display of Objectives - both in its EDMC window and also on the in-game overlay. In the EDMC window, missions are now expandable and have their priority clearly displayed.
 * There is a new option to use your Colonisation plan names instead of system names in BGS/TW Discord reports. This defaults to `Off`.
-* Carrier overlay to display route and countdown timers for jumps and cooldowns
-* Carrier jump cooldown notifications
+* Carrier overlay displaying route and countdown timers including time to jump lock, carrier lockdown, departure, and cooldown completion.
+* Carrier jump cooldown completion popup and overlay notifications
 * Added support for nicely formatted Markdown files, and converted the Colonisation help to Markdown format.
 * Colonisation windows and popups remember their location and geometry
 
@@ -21,7 +21,7 @@
 * Shortened the preferences frame by switching the Discord section to two columns
 * Changed RavenColonial project last update call to the new /poll endpoint.
 * Addressed progress view column width issues on Linux.
-
+* Made progress scroll position only reset if height changes
 
 ### Bug Fixes:
 

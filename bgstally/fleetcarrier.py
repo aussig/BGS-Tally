@@ -366,27 +366,27 @@ class FleetCarrier:
         message:str = ""
 
         if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
-            message = f"{_('Carrier Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
+            message = f"{_('Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
         if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
-            message = f"{_('Carrier Route Next')}: {self.route[0]['name']}"
+            message = f"{_('Route Next')}: {self.route[0]['name']}"
 
         cd:str = ''; delta:int
         if self.timer != None:
             # Subtract extra seconds because of the update delay.
             delta = self._td(self.timer, datetime.now(tz=UTC)) - 1
             cd = self._td_str(delta)
-            Debug.logger.debug(f"Overlay: {self.jump_state} {self.timer} {delta} {cd}")
 
         if self.jump_state == FleetCarrierJump.Cooldown and delta > 0:
-            message = f"{_('Carrier Jump Cooldown')} {cd}" # LANG: Carrier overlay
+            message = f"{_('Jump Cooldown')} {cd}" # LANG: Carrier overlay
         if self.jump_state == FleetCarrierJump.Jumping and delta > 0:
-            message = f"{_('Carrier Jumping To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  #LANG: Carrier overlay
-            # Lockdown 3m 20s before departure
-            if delta > 200:
+            message = f"{_('Departure To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  #LANG: Carrier overlay
+            if delta < 200:
+                message += f"\n{_('Landing Pads Locked down')}" # LANG: Carrier overlay
+            if 200 <= delta < 600:
                 message += f"\n{_('Landing Pad Lockdown in')} {self._td_str(delta - 200)}" # LANG: Carrier overlay
             # Jump locked in 10 m before departure
-            if delta > 600:
-                message += f"\n{_('Jump Locked in')} {self._td_str(delta - 600)}" # LANG: Carrier overlay
+            if 600 <= delta:
+                message += f"\n{_('Jump Initiation in')} {self._td_str(delta - 600)}" # LANG: Carrier overlay
 
         return TAG_OVERLAY_HIGHLIGHT + message
 
@@ -824,7 +824,13 @@ class FleetCarrier:
 
         self.jump_state = FleetCarrierJump.Cooldown
 
-        self.timer = self._parse_date(self.overview['departureScheduled']) + timedelta(seconds=300)
+        # It seems carrier cooldown is rounded to the nearest minute.
+        departure:datetime = self._parse_date(self.overview['departureScheduled'])
+        if departure.second >= 30: # Round up.
+            self.timer = departure + timedelta(minutes=1, seconds=60-departure.second + 300)
+        else: # round down.
+            self.timer = departure + timedelta(seconds=300 - departure.second)
+
         rem:int = self._td(self.timer, datetime.now(tz=UTC))
         self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
         self._update_route()
@@ -1097,6 +1103,7 @@ class FleetCarrier:
             dt = datetime.fromisoformat(date)
         except ValueError:
             dt = datetime.strptime(date, DATETIME_FORMAT_JSON)
+        if dt and dt.tzinfo is None: dt = dt.replace(tzinfo=UTC)
         return dt
 
     def _td(self, t1:str|datetime|int|None, t2:str|datetime|int|None) -> int:

@@ -233,7 +233,7 @@ class UI:
         favourite_types: dict = {FavouriteActivity.IGNORE: _("Include all factions"), # LANG: Dropdown menu on activity window
                                  FavouriteActivity.FACTIONS: _("Include favourite factions only"), # LANG: Dropdown menu on activity window
                                  FavouriteActivity.SYSTEMS: _("Include systems containing favourite factions")} # LANG: Dropdown menu on activity window
-        var_favourite_type: tk.StringVar = tk.StringVar(value=favourite_types.get(self.bgstally.state.FavouriteActivity.get(), FavouriteActivity.IGNORE))
+        var_favourite_type: tk.StringVar = tk.StringVar(value=favourite_types.get(self.bgstally.state.FavouriteActivityMode.get(), FavouriteActivity.IGNORE))
         self.mnu_favourite_type: nb.OptionMenu = nb.OptionMenu(discofr, var_favourite_type, var_favourite_type.get(),
                                                             *favourite_types.values(),
                                                             command=partial(self._favourite_type_selected, favourite_types), direction='below')
@@ -531,7 +531,7 @@ class UI:
         """The user has changed the dropdown to choose the favourite faction posting type
         """
         k: str = next(k for k, v in favourite_types.items() if v == value)
-        self.bgstally.state.FavouriteActivity.set(k)
+        self.bgstally.state.FavouriteActivityMode.set(k)
         self.bgstally.state.refresh
 
 

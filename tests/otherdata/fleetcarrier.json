@@ -50,164 +50,132 @@
         "mission": {},
         "normal": {
             "unknownartifact": {
-                "locName": "Thargoid Sensor",
-                "category": "Salvage",
+                "locName": "thargoid sensor",
+                "category": "Unknown",
                 "stock": 12,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "thargoidgeneratortissuesample": {
-                "locName": "Caustic Tissue Sample",
-                "category": "Salvage",
+                "locName": "caustic tissue sample",
+                "category": "Unknown",
                 "stock": 5,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "thargoidtissuesampletype5": {
-                "locName": "Thargoid Orthrus Tissue Sample",
-                "category": "Salvage",
+                "locName": "thargoid orthrus tissue sample",
+                "category": "Unknown",
                 "stock": 1,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "thargoidtissuesampletype7": {
-                "locName": "Thargoid Scythe Tissue Sample",
-                "category": "Salvage",
+                "locName": "thargoid scythe tissue sample",
+                "category": "Unknown",
                 "stock": 4,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "thargoidheart": {
-                "locName": "Thargoid Heart",
-                "category": "Salvage",
+                "locName": "thargoid heart",
+                "category": "Unknown",
                 "stock": 9,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "thargoidtissuesampletype9a": {
-                "locName": "Titan Deep Tissue Sample",
-                "category": "Salvage",
+                "locName": "titan deep tissue sample",
+                "category": "Unknown",
                 "stock": 7,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "thargoidtissuesampletype9b": {
-                "locName": "Titan Tissue Sample",
-                "category": "Salvage",
+                "locName": "titan tissue sample",
+                "category": "Unknown",
                 "stock": 2,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "thargoidtissuesampletype9c": {
-                "locName": "Titan Partial Tissue Sample",
-                "category": "Salvage",
+                "locName": "titan partial tissue sample",
+                "category": "Unknown",
                 "stock": 2,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "unknownresin": {
-                "locName": "Thargoid Resin",
-                "category": "Salvage",
+                "locName": "thargoid resin",
+                "category": "Unknown",
                 "stock": 2,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "thargoidtitandrivecomponent": {
-                "locName": "Titan Drive Component",
-                "category": "Salvage",
+                "locName": "titan drive component",
+                "category": "Unknown",
                 "stock": 3,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "thargoidpod": {
-                "locName": "Xenobiological Prison Pod",
-                "category": "Salvage",
+                "locName": "thargoid bio-storage capsule",
+                "category": "Unknown",
                 "stock": 6,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "platinum": {
-                "locName": "Platinum",
-                "category": "Metals",
+                "locName": "platinum",
+                "category": "Unknown",
                 "stock": 4,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "ancientrelictg": {
-                "locName": "Unclassified Relic",
-                "category": "Salvage",
+                "locName": "unclassified relic",
+                "category": "Unknown",
                 "stock": 4,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "emergencypowercells": {
-                "locName": "Emergency Power Cells",
-                "category": "Machinery",
+                "locName": "emergency power cells",
+                "category": "Unknown",
                 "stock": 84,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 2308,
-                "mission": false,
-                "stolen": false
+                "price": 2308
             },
             "damagedescapepod": {
-                "locName": "Damaged Escape Pod",
-                "category": "Salvage",
+                "locName": "damaged escape pod",
+                "category": "Unknown",
                 "stock": 100,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             },
             "occupiedcryopod": {
-                "locName": "Occupied Escape Pod",
-                "category": "Salvage",
+                "locName": "occupied escape pod",
+                "category": "Unknown",
                 "stock": 100,
                 "buyTotal": 0,
                 "outstanding": 0,
-                "price": 0,
-                "mission": false,
-                "stolen": false
+                "price": 0
             }
         }
     },
@@ -635,11 +603,43 @@
     "itinerary": [
         {
             "departureTime": null,
+            "arrivalTime": "2026-03-21 22:07:56",
+            "state": "success",
+            "visitDurationSeconds": 0,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-03-21 22:07:56",
+            "arrivalTime": "2026-03-21 15:01:03",
+            "state": "success",
+            "visitDurationSeconds": 25613,
+            "starsystem": "Sol",
+            "body": "Sol"
+        },
+        {
+            "departureTime": "2026-03-21 15:01:03",
+            "arrivalTime": "2026-03-21 14:53:45",
+            "state": "success",
+            "visitDurationSeconds": 438,
+            "starsystem": "Sol",
+            "body": "Sol"
+        },
+        {
+            "departureTime": "2026-03-21 14:53:45",
+            "arrivalTime": "2026-03-05 23:10:10",
+            "state": "success",
+            "visitDurationSeconds": 56615,
+            "starsystem": "Sol",
+            "body": "Sol"
+        },
+        {
+            "departureTime": "2026-03-05 23:10:10",
             "arrivalTime": "2026-03-19 18:20:00",
             "state": "success",
-            "visitDurationSeconds": 1537,
-            "starsystem": "CD-74 144",
-            "body": "CD-74 144 2 a+b"
+            "visitDurationSeconds": 17410,
+            "starsystem": "Sol",
+            "body": "Sol"
         },
         {
             "departureTime": "2026-03-19 18:20:00",
@@ -817,6 +817,14 @@
             "arrivalTime": "2026-03-05 23:37:00",
             "state": "success",
             "visitDurationSeconds": 30480,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": null,
+            "arrivalTime": "2026-03-05 23:10:10",
+            "state": "success",
+            "visitDurationSeconds": 0,
             "starsystem": "Bleae Thua ZE-I b23-1",
             "body": "Bleae Thua ZE-I b23-1 AB 1"
         },

@@ -8,6 +8,7 @@ Run with: .venv_win\\Scripts\\python.exe -m pytest tests\\test_plugin.py -v --tb
 import pytest # type: ignore
 import sys
 import os
+import semantic_version
 from pathlib import Path
 from typing import Generator, Optional
 from time import sleep
@@ -28,11 +29,12 @@ def harness() -> Generator:
     import bgstally.constants
     bgstally.constants.FOLDER_ASSETS = "../assets"
     bgstally.constants.FOLDER_DATA = "../data"
+    
     # Now we can import Router modules
     from load import plugin_start3, plugin_app
     import bgstally.globals
-    test_harness.bgstally = bgstally.globals.this
-    
+    test_harness.bgstally = bgstally.globals.this    
+
     plugin_start3(str(test_harness.plugin_dir))
     plugin_app(test_harness.parent)
 

@@ -13,7 +13,7 @@ import json
 import sys
 from pathlib import Path
 from typing import Optional, Callable, Dict
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta, UTC
 from time import sleep
 import logging
 import tkinter as tk
@@ -125,7 +125,21 @@ class TestHarness:
             return events
         try:
             with open(EVENTS_FILE, 'r') as f:
-                return json.load(f)
+                tmp:dict = json.load(f)
+
+                # The following allows the use of f strings in the json which enables time-based events.
+                res:dict = {}
+                for sequence, elements in tmp.items():
+                    lines:list = []
+                    for line in elements:
+                        event:dict = {}
+                        for k1, v1 in line.items():                            
+                            event[k1] = eval("f'" + v1 + "'") if isinstance(v1, str) else v1
+                        lines.append(event)
+                    res[sequence] = lines
+            print(res)
+            return res
+                        
         except Exception as e:
             print(f"Warning: Could not load journal_events.json: {e}")
 

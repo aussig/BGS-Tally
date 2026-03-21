@@ -6,10 +6,9 @@ Run with: .venv_win\\Scripts\\python.exe -m pytest tests\\test_plugin.py -v --tb
 """
 
 import pytest # type: ignore
-import sys
-import os
+import shutil
 from pathlib import Path
-from typing import Generator, Optional
+from typing import Generator
 from time import sleep
 from unittest.mock import Mock, patch, MagicMock
 import logging
@@ -30,6 +29,9 @@ def harness() -> Generator:
     bgstally.constants.FOLDER_ASSETS = "../assets"
     bgstally.constants.FOLDER_DATA = "../data"
 
+    # Make sure we always start with our clean fleetcarrier.json
+    shutil.copy(Path(__file__).parent / "otherdata" / "fleetcarrier.test.json", Path(__file__).parent / "otherdata" / "fleetcarrier.json")
+
     # Now we can import Router modules
     from load import plugin_start3, plugin_app
     import bgstally.globals
@@ -38,6 +40,7 @@ def harness() -> Generator:
     plugin_start3(str(test_harness.plugin_dir))
     plugin_app(test_harness.parent)
 
+    # Point code at a tmp dir so that saves won't overwrite our test data    
     test_harness.register_journal_handler(test_harness.bgstally.journal_entry)
     test_harness.commander = 'Testy'
     test_harness.is_beta = False
@@ -61,7 +64,7 @@ class TestFleetCarrier:
         assert harness.bgstally.fleet_carrier.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
 
     def test_jump_completed(self, harness) -> None:
-        """ Test a successful jump """
+        """ Test a successful jump """        
         events:list = harness.events.get('carrier_events', [])        
         assert harness.bgstally.fleet_carrier.overview.get('carrier_id') == 3709409280
         assert harness.bgstally.fleet_carrier.overview.get('currentStarSystem', '') == 'Sol'

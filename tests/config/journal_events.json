@@ -3,7 +3,7 @@
         { "event":"Startup", "System":"Sol", "Body":"Earth", "BodyID":3 }
     ],
    "carrier_events": [
-        { "event":"CarrierJumpRequest", "CarrierType":"FleetCarrier", "CarrierID":3709409280, "SystemName":"Bleae Thua ZE-I b23-1", "Body":"Bleae Thua ZE-I b23-1 AB 1", "SystemAddress":2867293399241, "BodyID":12, "DepartureTime":"2026-03-05T23:10:10Z"},
+        { "event":"CarrierJumpRequest", "CarrierType":"FleetCarrier", "CarrierID":3709409280, "SystemName":"Bleae Thua ZE-I b23-1", "Body":"Bleae Thua ZE-I b23-1 AB 1", "SystemAddress":2867293399241, "BodyID":12, "DepartureTime":"{datetime.now(tz=UTC):%Y-%m-%d %H:%M:%S}"},
         { "event":"CarrierLocation", "CarrierType":"FleetCarrier", "CarrierID":3709409280, "StarSystem":"Bleae Thua ZE-I b23-1", "SystemAddress":2867293399241, "BodyID":12 },
         { "event":"CarrierJumpCancelled", "CarrierType":"FleetCarrier", "CarrierID":3709409280}
     ]

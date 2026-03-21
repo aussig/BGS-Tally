@@ -755,6 +755,7 @@ class FleetCarrier:
     @catch_exceptions
     def carrier_location(self, entry:dict) -> None:
         """ Update the current carrier location after a jump. If we logged out we may not get this event """
+        
         Debug.logger.debug(f"Carrier location for {entry.get('CarrierID')} current state {self.jump_state}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
@@ -780,6 +781,9 @@ class FleetCarrier:
                                         'body': entry.get('Body', '')
                                         })
             return
+
+        Debug.logger.debug(f"Calling jump complete")
+        self._jump_complete()
 
         # We've already got this new jump
         if abs(self._td(self.itinerary[1].get('departureTime', 0), self.overview['departureScheduled'])) < 60:
@@ -809,8 +813,6 @@ class FleetCarrier:
         self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
-        Debug.logger.debug(f"Calling jump complete")
-        self._jump_complete()
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
 
@@ -827,7 +829,7 @@ class FleetCarrier:
         # It seems carrier cooldown is rounded to the nearest minute.
         departure:datetime = self._parse_date(self.overview['departureScheduled'])
         if departure.second >= 30: # Round up.
-            self.timer = departure + timedelta(minutes=1, seconds=60-departure.second + 300)
+            self.timer = departure + timedelta(minutes=1, seconds=300 - departure.second)
         else: # round down.
             self.timer = departure + timedelta(seconds=300 - departure.second)
 

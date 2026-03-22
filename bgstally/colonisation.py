@@ -936,6 +936,10 @@ class Colonisation:
         bt:dict = self.base_types.get(type, {})
         costs:dict = self.base_costs
         cat:str = bt.get('Category', '')
+        if cat not in costs:
+            Debug.logger.error(f"Unknown category {cat} for base type {type}")
+            return {}
+
         sub:str = ''
         match cat:
             case "Starport" | "Outpost":

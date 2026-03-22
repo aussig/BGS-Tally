@@ -26,6 +26,7 @@ class State:
         self.EnableOverlayTWProgress:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayTWProgress', default=CheckStates.STATE_ON))
         self.EnableOverlaySystem:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlaySystem', default=CheckStates.STATE_ON))
         self.EnableOverlayWarning:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayWarning', default=CheckStates.STATE_ON))
+        self.EnableOverlayCarrier:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCarrier', default=CheckStates.STATE_ON))
         self.EnableOverlayCMDR:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCMDR', default=CheckStates.STATE_ON))
         self.EnableOverlayObjectives:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayObjectives', default=CheckStates.STATE_ON))
         self.OverlayObjectivesMode:tk.StringVar = tk.StringVar(value=config.get_str('BGST_OverlayObjectivesMode', default="2"))
@@ -99,6 +100,7 @@ class State:
         self.enable_overlay_cmdr:bool = (self.EnableOverlayCMDR.get() == CheckStates.STATE_ON)
         self.enable_overlay_objectives:bool = (self.EnableOverlayObjectives.get() == CheckStates.STATE_ON)
         self.enable_overlay_colonisation:bool = (self.EnableOverlayColonisation.get() == CheckStates.STATE_ON) and (self.ColonisationStatus.get() == CheckStates.STATE_ON)
+        self.enable_overlay_carrier:bool = (self.EnableOverlayCarrier.get() == CheckStates.STATE_ON)
 
         # Other booleans
         self.abbreviate_faction_names:bool = (self.AbbreviateFactionNames.get() == CheckStates.STATE_ON)

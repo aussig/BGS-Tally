@@ -8,7 +8,10 @@
 * System / station summary information on the in-game overlay. If you are using the overlay, when you jump into a system (or on initial load of the game), a summary of the current system is displayed, including the faction in control and its influence %, any conflicts, the system population, government and security. When you dock at a station, the overlay displays the faction in control of the station.
 * A complete re-design of the display of Objectives - both in its EDMC window and also on the in-game overlay. In the EDMC window, missions are now expandable and have their priority clearly displayed.
 * There is a new option to use your Colonisation plan names instead of system names in BGS/TW Discord reports. This defaults to `Off`.
+* Carrier overlay displaying route and countdown timers including time to jump lock, carrier lockdown, departure, and cooldown completion.
+* Carrier jump cooldown completion popup and overlay notifications
 * Added support for nicely formatted Markdown files, and converted the Colonisation help to Markdown format.
+* Colonisation windows and popups remember their location and geometry
 
 ### Changes:
 
@@ -16,13 +19,14 @@
 * Reworked the Colonisation bodies popup to provide a prettier, more informative, and more detailed display
 * Updated the commodity requirements for colonisation bases to match FDev's latest changes
 * Shortened the preferences frame by switching the Discord section to two columns
-* Changed RavenColonial project last update call to the new /poll endpoint. [Issue 449](https://github.com/aussig/BGS-Tally/issues/449)
-* Addressed progress view column width issues on Linux [Issue 442](https://github.com/aussig/BGS-Tally/issues/442)
+* Changed RavenColonial project last update call to the new /poll endpoint.
+* Addressed progress view column width issues on Linux.
+* Made progress scroll position only reset if height changes
 
 ### Bug Fixes:
 
-* Addressed formatting of carrier cargo and locker discord posts [Issue 420](https://github.com/aussig/BGS-Tally/issues/420)
-* Fix for error when Raven Colonial project already exists [Issue 421](https://github.com/aussig/BGS-Tally/issues/421)
+* Addressed formatting of carrier cargo and locker discord posts.
+* Fix for error when Raven Colonial project already exists.
 * None of the objectives text was localised, which included both the objectives window and the in-game overlay. Localisation is now enabled, so translators are able to translate this text.
 * Fix intermittent font scaling issue in commodities list.
 

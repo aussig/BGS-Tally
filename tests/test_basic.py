@@ -24,7 +24,7 @@ def harness() -> Generator:
     bgstally.constants.FOLDER_DATA = "../data"
     
     # Now we can import Router modules
-    from load import plugin_start3, plugin_app
+    from load import plugin_start3, plugin_app, journal_entry
     import bgstally.globals
     test_harness.bgstally = bgstally.globals.this  
 
@@ -32,10 +32,7 @@ def harness() -> Generator:
     plugin_app(test_harness.parent)
 
     test_harness.load_events("journal_events.json")
-    test_harness.register_journal_handler(test_harness.bgstally.journal_entry)
-    test_harness.commander = 'Testy'
-    test_harness.is_beta = False
-    test_harness.system = 'Sol'
+    test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
         
     yield test_harness
 

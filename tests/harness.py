@@ -1,5 +1,5 @@
 """
-Test harness for EDMC Neutron Dancer plugin.
+Test harness for EDMC plugins.
 
 This harness simulates EDMC's journal entry events and provides tools to test
 the plugin's routing functionality without running the full EDMC application.
@@ -75,6 +75,7 @@ class TestHarness:
         config_path:Path = self.plugin_dir / "config" / config_file               
         if not config_path.is_file():
             self.config.data = {}
+            print(f"Warning: edmcs config file not found {config_path}")
             return
         try:
             with open(config_path, 'r') as f:
@@ -132,9 +133,12 @@ class TestHarness:
             print(f"Warning: Could not load {format} config file {config_path}: {e}")
             return
 
-    def register_journal_handler(self, handler: Callable) -> None:
+    def register_journal_handler(self, handler: Callable, commander:str, system:str, is_beta:bool) -> None:
         """ Register a journal event handler (simulates journal_entry callback). """
         self.journal_handlers.append(handler)
+        self.commander = commander
+        self.system = system
+        self.is_beta = is_beta
 
     def fire_event(self, event:dict, state:Optional[dict] = None) -> None:
         """ Fire a journal event through the harness. """

@@ -3,5 +3,7 @@
     "ui_scale": 100,
     "theme" : 0,
     "overlay": {},
-    "BGST_DiscordUsername": "NavlGazr"
+    "BGST_DiscordUsername": "NavlGazr",
+    "BGST_Status": "Yes",
+    "BGST_ColonisationStatus": "Yes"
 }

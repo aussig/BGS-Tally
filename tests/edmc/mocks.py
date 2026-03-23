@@ -8,58 +8,58 @@ from pathlib import Path
 # We keep a copy of edmc_data here.
 this_dir:Path = Path(__file__).parent
 
-if 'config' not in sys.modules:
-    class MockConfig:
-        _instance = None
+#if 'config' not in sys.modules:
+class MockConfig:
+    _instance = None
 
-        # Singleton pattern
-        def __new__(cls, *args, **kwargs):
-            if cls._instance is None:
-                cls._instance = super().__new__(cls)
-            return cls._instance
+    # Singleton pattern
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
-        def __init__(self):
-            if hasattr(self, '_initialized'): return
+    def __init__(self):
+        if hasattr(self, '_initialized'): return
 
-            self.data = {} # Any variables that need setting
-            self.shutting_down = False
-            self.app_dir_path = this_dir
-            self._initialized = True
+        self.data = {} # Any variables that need setting
+        self.shutting_down = False
+        self.app_dir_path = this_dir
+        self._initialized = True
 
-        def __setitem__(self, key, value):
-            self.data[key] = value
+    def __setitem__(self, key, value):
+        self.data[key] = value
 
-        def __getitem__(self, key):
-            return self.data.get(key)
+    def __getitem__(self, key):
+        return self.data.get(key)
 
-        def get(self, key, default=None):
-            return self.data.get(key, default)
+    def get(self, key, default=None):
+        return self.data.get(key, default)
 
-        def set(self, key, value):
-            self.data[key] = value
+    def set(self, key, value):
+        self.data[key] = value
 
-        def get_int(self, key, default=None):
-            return int(self.data.get(key, default)) #type: ignore
-        
-        def get_str(self, key, default=None):
-            return str(self.data.get(key, default)) #type: ignore
+    def get_int(self, key, default=None):
+        return int(self.data.get(key, default)) #type: ignore
+    
+    def get_str(self, key, default=None):
+        return str(self.data.get(key, default)) #type: ignore
 
-        def delete(self, key: str, *, suppress=False) -> None:
-            if key in self.data:
-                del self.data[key]
+    def delete(self, key: str, *, suppress=False) -> None:
+        if key in self.data:
+            del self.data[key]
 
-    def appversion() -> semantic_version.Version:
-        return semantic_version.Version('1.0.0')
+def appversion() -> semantic_version.Version:
+    return semantic_version.Version('1.0.0')
 
-    _cfg = _types.ModuleType('config')
-    _cfg.appname = 'EDMC' # type:ignore
-    _cfg.config = MockConfig() # type:ignore    
-    _cfg.appversion = appversion
-    _cfg.appcmdname = "EDMC"
-    _cfg.config_logger = logging.getLogger("pre_config")
-    _cfg.shutting_down = False # type:ignore
-    _cfg.logger = (logging.getLogger('TestHarness'))
-    sys.modules['config'] = _cfg
+_cfg = _types.ModuleType('config')
+_cfg.appname = 'EDMC' # type:ignore
+_cfg.config = MockConfig() # type:ignore    
+_cfg.appversion = appversion
+_cfg.appcmdname = "EDMC"
+_cfg.config_logger = logging.getLogger("pre_config")
+_cfg.shutting_down = False # type:ignore
+_cfg.logger = (logging.getLogger('TestHarness'))
+sys.modules['config'] = _cfg
 
 # Minimal EDMC `theme` module emulator for direct runs (examples.py / __main__)
 theme_mod = _types.ModuleType("theme")

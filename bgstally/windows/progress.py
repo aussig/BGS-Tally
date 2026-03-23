@@ -271,6 +271,7 @@ class ProgressWindow:
             # We have to make the column less wide to fit the scrollbar in
             self.comm_width -= 4
             self.canvas:tk.Canvas = canvas
+            self.scrollbar = scrollbar
         else:
             table:tk.Frame = tk.Frame(table_frame)
             table.grid(row=0, column=0, sticky=tk.NS)
@@ -753,6 +754,10 @@ class ProgressWindow:
             if current != height:
                 self.canvas.yview_moveto(0.0)
             self.canvas.configure(height=height)
+            if rowcnt <= int(self.bgstally.state.ColonisationMaxCommodities.get())+2:
+                self.scrollbar.grid_forget()
+            else:
+                Debug.logger.debug(f"Showing scrollbar")                
 
         if totals['Required'] > 0:
             self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))

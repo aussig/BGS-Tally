@@ -90,6 +90,10 @@ class TestCarrierJumps:
         # Confirm that the carrier's jump destination is now what the carrier event indicated.
         assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
 
+        # Wait for the worker thread and see if the overlay message is set.
+        sleep(2)
+        assert harness.plugin.overlay.edmcoverlay.messages != {}
+
     def test_jump_completed(self, harness) -> None:
         """ Test a successful jump """      
         fc = harness.plugin.fleet_carrier  
@@ -100,6 +104,10 @@ class TestCarrierJumps:
         assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
         harness.fire_event(events[1])
         assert fc.overview.get('currentStarSystem', '') == 'Bleae Thua ZE-I b23-1'
+
+        # Wait for the worker thread and see if the overlay message is set.
+        sleep(2)
+        assert harness.plugin.overlay.edmcoverlay.messages != {}
 
     def test_jump_cancellation(self, harness) -> None:
         """ A cancelled jump """
@@ -114,3 +122,7 @@ class TestCarrierJumps:
         assert fc.overview.get('currentStarSystem', '') == 'Sol'        
         assert fc.overview.get('jumpDestination') == None
         assert fc.timer == datetime.now(tz=UTC) + timedelta(seconds=60)
+
+        # Wait for the worker thread and see if the overlay message is set.
+        sleep(2)
+        assert harness.plugin.overlay.edmcoverlay.messages != {}

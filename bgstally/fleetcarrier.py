@@ -688,7 +688,7 @@ class FleetCarrier:
         self.overview['jumpDestination'] = entry.get('SystemName', '')
         self.overview['jumpDestinationBody'] = entry.get('Body', None)
         self.overview['departureScheduled'] = departure.strftime("%Y-%m-%d %H:%M:%S")
-        if self.itinerary[0].get('departureTime', None) == None:
+        if len(self.itinerary) > 0 and self.itinerary[0].get('departureTime', None) == None:
             self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
             self.itinerary[0]['departureTime'] = departure.strftime("%Y-%m-%d %H:%M:%S")

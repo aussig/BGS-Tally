@@ -144,8 +144,6 @@ thirdparty/sentry_sdk
 l10n.py
 L10n/en.template.new
 config/userconfig.ini
-tests/config/config.ini
-tests/config/userconfig.ini
 tests/logs
 MEMORY_BANK.md
 .DS_Store

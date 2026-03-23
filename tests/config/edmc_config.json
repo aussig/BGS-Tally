@@ -3,6 +3,7 @@
     "ui_scale": 100,
     "theme" : 0,
     "overlay": {},
+    "BGST_EnableOverlay": "Yes",
     "BGST_EnableOverlayCurrentTick": "Yes",
     "BGST_EnableOverlayActivity": "Yes",
     "BGST_EnableOverlayTWProgress": "Yes",

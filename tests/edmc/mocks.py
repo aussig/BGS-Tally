@@ -115,7 +115,7 @@ class MockTranslations:
     def __init__(self) -> None:
         pass
     def translate(self, x = "", context = None, lang = None) -> str:
-        return ""
+        return x
 
 for name, val in MockTranslations.__dict__.items():
     if not name.startswith('__'):
@@ -139,11 +139,18 @@ class MockEDMCOverlay:
 
 class Mockedmcoverlay:
     def __init__(self): pass
-
     class Overlay():
-        def __init__(self): pass
-        @staticmethod
-        def send_message(**kw): pass
+        def __init__(self): 
+            self.messages:dict = {}
+            self.shapes:dict = {}
+        
+        def send_message(self, *args, **kw):             
+            print(f"Overlay send_message called with {args} {kw}")
+            self.messages[args[0]] = [*args, kw]
+
+        def send_shape(self, *args, **kw):             
+            print(f"Overlay send_shape called with {args} {kw}")
+            self.shapes[args[0]] = [*args, kw]
 
 _edmcoverlay = _types.ModuleType('EDMCOverlay')
 for name, val in MockEDMCOverlay.__dict__.items():

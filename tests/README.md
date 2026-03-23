@@ -2,6 +2,8 @@
 
 This is a unit testing tool for EDMC that mocks up EDMC functionality in order to run pytest unit tests.
 
+This is a work in progress Not all EDMC or tool functionality is mocked up yet.
+
 ## Components
 
 ### Harness
@@ -30,6 +32,22 @@ At their most basic a test is just a matter of calling a BGS-Tally function and 
 
 Testing can get quite sophisticated. pytests's monkeypatch capability can intercept individual functions enabling some advanced setup.
 
-### Running test
+### Running tests
 
 Setup a python virtual environment and install `pytest`. You an then run pytest from the command line or from within an IDE such as VS Code. If you install the python debugger you can run the tests with the debugger enabling breakpoints and all that fun stuff.
+
+## Directories
+
+The test environment is entirely contained within the `/tests` directory. 
+
+### /tests/config
+
+This folder is used for test config files including `edmc_config.json` that is used to store EDMC config items, `journal_events.json` used to store journal events that can be replayed and test configuration files.
+
+### /tests/edmc
+
+This contains live and mock edmc modules used to emulate EDMC so the plugin can run standalone.
+
+### Others
+
+Other folders may be created by the plugin for saving data. These are in `/tests` to avoid overwriting or corrupting files in the main plugin directory.

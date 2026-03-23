@@ -39,13 +39,13 @@ def harness() -> Generator:
     
     plugin_start3(str(test_harness.plugin_dir))
     plugin_app(test_harness.parent)
-
-    # Point code at a tmp dir so that saves won't overwrite our test data    
+    
+    test_harness.load_events("journal_events.json")
     test_harness.register_journal_handler(test_harness.bgstally.journal_entry)
     test_harness.commander = 'Testy'
     test_harness.is_beta = False
     test_harness.system = 'Sol'
-        
+
     yield test_harness
 
 class TestFleetCarrier:
@@ -54,6 +54,7 @@ class TestFleetCarrier:
     def test_jump_request(self, harness) -> None:
         """ Test handling a jump request """
         # Read the carrier events from the journal_events.json
+        print(harness.events)
         events:list = harness.events.get('carrier_events', [])
         # Pre-flight checks.         
         assert harness.bgstally.fleet_carrier.overview.get('carrier_id') == 3709409280

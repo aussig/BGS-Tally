@@ -33,7 +33,7 @@ import tests.edmc.mocks
 from tests.edmc.mocks import MockConfig
 
 class TestHarness:
-    """ Main test harness for the Neutron Dancer plugin. """
+    """ Main test harness. """
     # Prevent pytest from trying to collect this helper class as a test class
     __test__ = False
     _instance = None
@@ -51,12 +51,10 @@ class TestHarness:
 
         self.plugin_dir:Path = Path(plugin_dir).resolve()
         
-        # Load our event sequences
-        self.events:Dict[str, list] = self._load_events()
-
         # Event handlers registered by plugins
         self.journal_handlers: list[Callable] = []
         self.config = MockConfig()
+        self.events:Dict[str, list] = {}
 
         os.environ['EDMC_NO_UI'] = '1'
 
@@ -115,16 +113,16 @@ class TestHarness:
         for event in self.events.get(name, []):
             self.fire_event(event)
 
-    def _load_events(self) -> Dict[str, list]:
-        """ Load journal events from events.json file. """
-        events:Dict[str, list] = {}
+    def load_events(self, source:str) -> None:
+        """ Load journal events from events.json file. """      
 
-        EVENTS_FILE = Path(self.plugin_dir, "config", "journal_events.json")
-        logging.info(f"Events file: {EVENTS_FILE}")
-        if not EVENTS_FILE.exists():
-            return events
+        events_file = Path(self.plugin_dir, "config", source)
+        logging.info(f"Events file: {events_file}")
+        if not events_file.exists():
+            print(f" Events file {events_file} not found")
+            return
         try:
-            with open(EVENTS_FILE, 'r') as f:
+            with open(events_file, 'r') as f:
                 tmp:dict = json.load(f)
 
                 # The following allows the use of f strings in the json which enables time-based events.
@@ -138,9 +136,8 @@ class TestHarness:
                         lines.append(event)
                     res[sequence] = lines
             print(res)
-            return res
+            self.events = res
                         
         except Exception as e:
-            print(f"Warning: Could not load journal_events.json: {e}")
+            print(f"Warning: Could not load {events_file}: {e}")
 
-        return events

@@ -757,7 +757,8 @@ class ProgressWindow:
             if rowcnt <= int(self.bgstally.state.ColonisationMaxCommodities.get())+2:
                 self.scrollbar.grid_forget()
             else:
-                Debug.logger.debug(f"Showing scrollbar")                
+                self.scrollbar.grid(row=0, column=1, sticky=tk.NS, ipadx=0, padx=0)
+                
 
         if totals['Required'] > 0:
             self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))

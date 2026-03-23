@@ -11,12 +11,11 @@ from pathlib import Path
 from typing import Generator
 from time import sleep
 from unittest.mock import Mock, patch, MagicMock
-import logging
 
-# Config is already mocked by conftest.py
+import filecmp
+from datetime import UTC, datetime, timedelta
+
 from harness import TestHarness
-
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 @pytest.fixture
 def harness() -> Generator:
@@ -29,8 +28,8 @@ def harness() -> Generator:
     bgstally.constants.FOLDER_ASSETS = "../assets"
     bgstally.constants.FOLDER_DATA = "../data"
 
-    # Make sure we always start with our clean fleetcarrier.json
-    shutil.copy(Path(__file__).parent / "otherdata" / "fleetcarrier.test.json", Path(__file__).parent / "otherdata" / "fleetcarrier.json")
+    # Make sure we always start with a consistent fleetcarrier.json
+    shutil.copy(Path(__file__).parent / "config" / "fleetcarrier_init.json", Path(__file__).parent / "otherdata" / "fleetcarrier.json")
 
     # Now we can import Router modules
     from load import plugin_start3, plugin_app
@@ -48,39 +47,68 @@ def harness() -> Generator:
 
     yield test_harness
 
-class TestFleetCarrier:
+class TestCarrierCAPI:
+    """ Test fleet carrier handling of CAPI data """
+
+    def test_capi_event(self, harness) -> None:
+        """ Test handling a jump request """
+        fc = harness.bgstally.fleet_carrier
+        capi_data:dict = harness.get_config_data('carrier_capi_data.json')
+
+        # Pre-flight checks.         
+        assert fc.overview.get('carrier_id') == 3709409280
+        assert fc.overview.get('currentStarSystem', '') == 'Sol'
+        assert len(fc.itinerary) == 0
+
+        fc.update(capi_data)
+        
+        assert fc.overview.get('currentStarSystem') == 'Sol'
+        
+        fc.save()
+        assert filecmp.cmp(harness.plugin_dir / "otherdata" / "fleetcarrier.json", 
+                           harness.plugin_dir / "config" / "fleetcarrier_capi_result.json", 
+                           shallow=False)
+
+class TestCarrierJumps:
     """ Test fleet carrier functions """
 
     def test_jump_request(self, harness) -> None:
         """ Test handling a jump request """
+        fc = harness.bgstally.fleet_carrier
         # Read the carrier events from the journal_events.json
-        print(harness.events)
         events:list = harness.events.get('carrier_events', [])
+
         # Pre-flight checks.         
-        assert harness.bgstally.fleet_carrier.overview.get('carrier_id') == 3709409280
-        assert harness.bgstally.fleet_carrier.overview.get('currentStarSystem', '') == 'Sol'
+        assert fc.overview.get('carrier_id') == 3709409280
+        assert fc.overview.get('currentStarSystem', '') == 'Sol'
+        
         # Send event 0
         harness.fire_event(events[0])
+        
         # Confirm that the carrier's jump destination is now what the carrier event indicated.
-        assert harness.bgstally.fleet_carrier.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
+        assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
 
     def test_jump_completed(self, harness) -> None:
-        """ Test a successful jump """        
+        """ Test a successful jump """      
+        fc = harness.bgstally.fleet_carrier  
         events:list = harness.events.get('carrier_events', [])        
-        assert harness.bgstally.fleet_carrier.overview.get('carrier_id') == 3709409280
-        assert harness.bgstally.fleet_carrier.overview.get('currentStarSystem', '') == 'Sol'
+        assert fc.overview.get('carrier_id') == 3709409280
+        assert fc.overview.get('currentStarSystem', '') == 'Sol'
         harness.fire_event(events[0])
-        assert harness.bgstally.fleet_carrier.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
+        assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
         harness.fire_event(events[1])
-        assert harness.bgstally.fleet_carrier.overview.get('currentStarSystem', '') == 'Bleae Thua ZE-I b23-1'
+        assert fc.overview.get('currentStarSystem', '') == 'Bleae Thua ZE-I b23-1'
 
     def test_jump_cancellation(self, harness) -> None:
         """ A cancelled jump """
+        fc = harness.bgstally.fleet_carrier
         events:list = harness.events.get('carrier_events', [])
         
-        assert harness.bgstally.fleet_carrier.overview.get('carrier_id') == 3709409280
-        assert harness.bgstally.fleet_carrier.overview.get('currentStarSystem', '') == 'Sol'
+        assert fc.overview.get('carrier_id') == 3709409280
+        assert fc.overview.get('currentStarSystem', '') == 'Sol'
         harness.fire_event(events[0])
-        assert harness.bgstally.fleet_carrier.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
+        assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
         harness.fire_event(events[2])
-        assert harness.bgstally.fleet_carrier.overview.get('jumpDestination') == None
+        assert fc.overview.get('currentStarSystem', '') == 'Sol'        
+        assert fc.overview.get('jumpDestination') == None
+        assert fc.timer == datetime.now(tz=UTC) + timedelta(seconds=60)

@@ -338,7 +338,7 @@ class FleetCarrier:
         """ Update the route to our current location if we're on the route """
 
         # If we aren't currently on the route leave it alone
-        if self.overview['currentStarSystem'] not in [r.get('name') for r in self.route if 'name' in r]:
+        if 'currentStarSystem' not in self.overview or self.overview['currentStarSystem'] not in [r.get('name') for r in self.route if 'name' in r]:
             return
 
         # Do catchup. This shouldn't happen unless we've made some jumps without ED:MC running
@@ -722,7 +722,7 @@ class FleetCarrier:
         """ The user cancelled their carrier jump producing a CarrierJumpCancelled journal event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        if abs(self._td(self.itinerary[0]['departureTime'], self.overview['departureScheduled'])) < 60:
+        if len(self.itinerary) > 0 and abs(self._td(self.itinerary[0]['departureTime'], self.overview['departureScheduled'])) < 60:
             self.itinerary[0]['departureTime'] = None
             self.itinerary[0]['visitDurationSeconds'] = None
 

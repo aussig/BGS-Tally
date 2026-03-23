@@ -82,6 +82,56 @@ class TestHarness:
         except Exception as e:
             print(f"Warning: Could not load edmc config file {config_path}: {e}")
 
+    def load_events(self, source:str) -> None:
+        """ Load journal events from events.json file. """      
+
+        events_file = Path(self.plugin_dir, "config", source)
+        logging.info(f"Events file: {events_file}")
+        if not events_file.exists():
+            print(f" Events file {events_file} not found")
+            return
+        try:
+            with open(events_file, 'r') as f:
+                tmp:dict = json.load(f)
+
+                # The following allows the use of f strings in the json which enables time-based events.
+                res:dict = {}
+                for sequence, elements in tmp.items():
+                    lines:list = []
+                    for line in elements:
+                        event:dict = {}
+                        for k1, v1 in line.items():                            
+                            event[k1] = eval("f'" + v1 + "'") if isinstance(v1, str) else v1
+                        lines.append(event)
+                    res[sequence] = lines
+            print(res)
+            self.events = res
+                        
+        except Exception as e:
+            print(f"Warning: Could not load {events_file}: {e}")
+
+    def get_config_data(self, config_file:str) -> str|dict|None:
+        """Load and return a chosen config file"""
+        
+        config_path:Path = self.plugin_dir / "config" / config_file               
+        format = config_file.split('.')[1]
+        if not config_path.is_file():
+            self.config.data = {}
+            return
+        try:
+            with open(config_path, 'r') as f:
+                match format:
+                    case 'json':
+                        return json.load(f)
+                    case 'csv': 
+                        #@TODO: Add csv support
+                        return None
+                    case _:
+                        return f.read()
+        except Exception as e:
+            print(f"Warning: Could not load {format} config file {config_path}: {e}")
+            return
+
     def register_journal_handler(self, handler: Callable) -> None:
         """ Register a journal event handler (simulates journal_entry callback). """
         self.journal_handlers.append(handler)
@@ -112,32 +162,4 @@ class TestHarness:
         """ Fire a sequence of events """
         for event in self.events.get(name, []):
             self.fire_event(event)
-
-    def load_events(self, source:str) -> None:
-        """ Load journal events from events.json file. """      
-
-        events_file = Path(self.plugin_dir, "config", source)
-        logging.info(f"Events file: {events_file}")
-        if not events_file.exists():
-            print(f" Events file {events_file} not found")
-            return
-        try:
-            with open(events_file, 'r') as f:
-                tmp:dict = json.load(f)
-
-                # The following allows the use of f strings in the json which enables time-based events.
-                res:dict = {}
-                for sequence, elements in tmp.items():
-                    lines:list = []
-                    for line in elements:
-                        event:dict = {}
-                        for k1, v1 in line.items():                            
-                            event[k1] = eval("f'" + v1 + "'") if isinstance(v1, str) else v1
-                        lines.append(event)
-                    res[sequence] = lines
-            print(res)
-            self.events = res
-                        
-        except Exception as e:
-            print(f"Warning: Could not load {events_file}: {e}")
 

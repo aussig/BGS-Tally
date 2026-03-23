@@ -50,6 +50,11 @@ class FleetCarrierType(str, Enum):
     SQUADRON = 'SquadronCarrier'
 
 
+class FleetCarrierJump(str, Enum):
+    Idle = 'Idle'
+    Jumping = 'Jumping'
+    Cooldown = 'Cooldown'
+
 class DiscordPostStyle(str, Enum):
     TEXT = 'Text'
     EMBED = 'Embed'

@@ -17,7 +17,7 @@ from bgstally.activity import Activity, STATES_ELECTION, STATES_WAR
 from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates,
                                 DiscordActivity, FavouriteActivity, UpdateUIPolicy)
 from bgstally.debug import Debug
-from bgstally.utils import _, available_langs, get_by_path, get_localised_filepath, human_format
+from bgstally.utils import _, available_langs, get_by_path, get_localised_filepath, human_format, catch_exceptions
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
@@ -352,13 +352,20 @@ class UI:
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_2, text=_("Warnings"), # LANG: Preferences checkbox label
+        nb.Checkbutton(overlay_options_frame_2, text=_("Alerts and Warnings"), # LANG: Preferences checkbox label
                        variable=self.bgstally.state.EnableOverlayWarning,
                        state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame_2, text=_("Fleetcarrier"), # LANG: Preferences checkbox label
+                    variable=self.bgstally.state.EnableOverlayCarrier,
+                    state=self.overlay_options_state(),
+                    onvalue=CheckStates.STATE_ON,
+                    offvalue=CheckStates.STATE_OFF,
+                    command=self.bgstally.state.refresh
+                    ).pack(side=tk.LEFT)
 
         if self.bgstally.overlay.edmcoverlay == None:
             nb.Label(frame, text=_("In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.")).grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences label
@@ -534,7 +541,7 @@ class UI:
         self.bgstally.state.FavouriteActivityMode.set(k)
         self.bgstally.state.refresh
 
-
+    @catch_exceptions
     def _worker(self) -> None:
         """
         Handle thread work for overlay
@@ -690,6 +697,9 @@ class UI:
                 colonisation_text: str = self.window_progress.as_text(False)
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 
+            if self.bgstally.state.enable_overlay_carrier:
+                carrier_text: str = self.bgstally.fleet_carrier.update_overlay()
+                self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True)
 
     def _previous_ticks_popup(self):
         """

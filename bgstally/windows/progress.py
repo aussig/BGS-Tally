@@ -748,8 +748,10 @@ class ProgressWindow:
 
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
             rows:int = min(rowcnt, int(self.bgstally.state.ColonisationMaxCommodities.get()))
-            self.canvas.yview_moveto(0.0)
+            current:int = self.canvas.winfo_height()
             height=int((rows+2)*21*self.scale)
+            if current != height:
+                self.canvas.yview_moveto(0.0)
             self.canvas.configure(height=height)
 
         if totals['Required'] > 0:

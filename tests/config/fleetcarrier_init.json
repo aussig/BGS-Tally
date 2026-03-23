@@ -1,0 +1,52 @@
+{
+    "carrier_id": 3709409280,
+    "last_modified": 1773960295,
+    "overview": {
+        "name": "Testy MctestFace",
+        "currentStarSystem": "Sol",
+        "currentBody": "Sol",
+        "dockingAccess": "squadronfriends",
+        "state": "normalOperation",
+        "carrier_id": 3709409280,
+        "callsign": "T3S-TY",
+        "notoriousAccess": true,
+        "theme": "Trader",
+        "bankBalance": 100000000,
+        "bankReservedBalance": 50000000,
+        "maintenance": 20000000,
+        "numJumps": 0,
+        "taxation": 0,
+        "fuel": 1000,
+        "totalCapacity": 25000,
+        "shipPacks": 0,
+        "modulePacks": 0,
+        "crew": 1520,
+        "coreCost": 5000000,
+        "servicesCost": 14556524,
+        "jumpsCost": 0,
+        "departureScheduled": null,
+        "jumpDestination": null,
+        "jumpDestinationBody": null
+    },
+    "cargo": {
+        "overview": {},
+        "stolen": {},
+        "mission": {},
+        "normal": {}
+    },
+    "locker": {},
+    "itinerary": [],
+    "route": [],
+    "shipyard": {},
+    "data": {
+        "name": {
+            "callsign": "T3S-TY",
+            "vanityName": "5b434c425d20535620426f6f7a6520437275697365",
+            "filteredVanityName": "5b434c425d20535620426f6f7a6520437275697365"
+        }
+    },
+    "windows": {
+        "Carrier": "1083x660+306+70",
+        "Alert": "300x150+17+40"
+    }
+}

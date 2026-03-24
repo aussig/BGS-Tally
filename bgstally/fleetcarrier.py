@@ -681,6 +681,7 @@ class FleetCarrier:
         #    }
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
 
+        Debug.logger.info(f"Carrier: {self.overview.get('carrier_id', '')} {entry.get('CarrierID')}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
         departure:datetime|None = self._parse_date(entry.get('DepartureTime', ""))
@@ -729,9 +730,8 @@ class FleetCarrier:
 
         if self.jump_state == FleetCarrierJump.Jumping:
             self.jump_state = FleetCarrierJump.Cooldown
-            self.timer = self._parse_date(self.overview['departureScheduled']) + timedelta(seconds=300)
-            rem:int = self._td(self.timer, datetime.now(tz=UTC)) + 60
-            self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
+            self.timer = datetime.now(tz=UTC) + timedelta(seconds=60)
+            self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post

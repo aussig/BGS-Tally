@@ -730,9 +730,8 @@ class FleetCarrier:
 
         if self.jump_state == FleetCarrierJump.Jumping:
             self.jump_state = FleetCarrierJump.Cooldown
-            self.timer = self._parse_date(self.overview['departureScheduled']) + timedelta(seconds=300)
-            rem:int = self._td(self.timer, datetime.now(tz=UTC)) + 60
-            self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
+            self.timer = datetime.now(tz=UTC) + timedelta(seconds=60)
+            self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post

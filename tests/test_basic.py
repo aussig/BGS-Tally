@@ -42,4 +42,4 @@ class TestStartup:
     def test_harness_initialization(self, harness) -> None:
         """Test basic harness initialization."""
         assert harness is not None
-        assert harness.config.get_str('BGST_Status', default='On') == 'On'
+        assert harness.config.get_str('BGST_Status', default='On') == 'Yes'

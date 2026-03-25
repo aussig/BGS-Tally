@@ -24,10 +24,9 @@ def harness() -> Generator:
     bgstally.constants.FOLDER_ASSETS = "../assets"
     bgstally.constants.FOLDER_DATA = "../data"
 
-    # Initialize colonisation state from template if available
-    init_file = Path(__file__).parent / "config" / "colonisation_init.json"
-    if init_file.exists():
-        shutil.copy(init_file, Path(__file__).parent / "otherdata" / "colonisation.json")
+    # Initialize colonisation state
+    shutil.copy(Path(__file__).parent / "config" / "colonisation_init.json", 
+                Path(__file__).parent / "otherdata" / "colonisation.json")
 
     from load import plugin_start3, plugin_app, journal_entry
     import bgstally.globals
@@ -41,6 +40,29 @@ def harness() -> Generator:
 
     yield test_harness
 
+
+class TestColonisationSystems:
+    def test_add_system(self, harness) -> None:
+        """ Test system creation """
+        c = harness.plugin.colonisation
+        
+        data:dict = {'Name': 'Test System'}
+        c.add_system(data, False, False)
+
+        assert len(c.systems) == 1
+        assert c.systems[0]['Name'] == 'Test System'
+        assert c.systems[0]['Builds'] == []
+
+    def test_modify_system(self, harness) -> None:
+        """ Test system creation """
+        c = harness.plugin.colonisation
+        
+        data:dict = {'Name': 'Test System'}
+        c.add_system(data, False, False)
+        c.modify_system(0, {'Name': 'Renamed'})
+        
+        assert len(c.systems) == 1
+        assert c.systems[0]['Name'] == 'Renamed'
 
 class TestColonisation:
     def test_body_name_variants(self, harness) -> None:

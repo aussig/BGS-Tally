@@ -8,6 +8,8 @@ from unittest.mock import patch
 
 # We keep a copy of edmc_data here.
 this_dir:Path = Path(__file__).parent
+parent:Path = Path(__file__).parent.parent
+
 
 # Force it to look like Linux
 #with patch.object(sys, 'platform', 'linux'):
@@ -34,7 +36,7 @@ if 'config' not in sys.modules:
 
             self.data = {} # Any variables that need setting
             self.shutting_down = False
-            self.app_dir_path = this_dir
+            self.app_dir_path = parent
             self._initialized = True
 
         def __setitem__(self, key, value):
@@ -65,13 +67,15 @@ if 'config' not in sys.modules:
     _cfg_attrs = {'appname': 'EDMC', 
                   'appversion': appversion, 
                   'appcmdname': 'EDMC',
-                  'config_logger': logging.getLogger("pre_config"),
+                  'app_dir_path': parent,
+                  'config_logger': logging.getLogger('TestHarness'),
                   'shutting_down': False,
                   'logger': logging.getLogger('TestHarness')
                 }
 
     _cfg = _types.ModuleType('config')
     _cfg.config = MockConfig() # type:ignore  
+    
     for name, val in MockConfig.__dict__.items():
         if not name.startswith('__'):
             setattr(_cfg, name, val)

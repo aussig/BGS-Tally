@@ -1,5 +1,5 @@
 {
-    "carrier_id": 3709409280,
+    "carrier_id": 12345,
     "last_modified": 1773960295,
     "overview": {
         "name": "Testy MctestFace",
@@ -7,7 +7,7 @@
         "currentBody": "Sol",
         "dockingAccess": "squadronfriends",
         "state": "normalOperation",
-        "carrier_id": 3709409280,
+        "carrier_id": 12345,
         "callsign": "T3S-TY",
         "notoriousAccess": true,
         "theme": "Trader",

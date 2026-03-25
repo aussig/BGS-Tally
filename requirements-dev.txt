@@ -4,3 +4,4 @@ l10n
 pytest
 requests
 Pillow
+tomli_w

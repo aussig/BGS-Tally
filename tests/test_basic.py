@@ -26,7 +26,7 @@ def harness() -> Generator:
     # Now we can import Router modules
     from load import plugin_start3, plugin_app, journal_entry
     import bgstally.globals
-    test_harness.bgstally = bgstally.globals.this  
+    test_harness.plugin = bgstally.globals.this  
 
     plugin_start3(str(test_harness.plugin_dir))
     plugin_app(test_harness.parent)

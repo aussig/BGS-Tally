@@ -41,8 +41,8 @@ def harness() -> Generator:
     yield test_harness
 
 
-class TestColonisationSystems:
-    def test_add_system(self, harness) -> None:
+class TestColonisation:
+    def test_add_modify_remove_system(self, harness) -> None:
         """ Test system creation """
         c = harness.plugin.colonisation
         
@@ -53,18 +53,34 @@ class TestColonisationSystems:
         assert c.systems[0]['Name'] == 'Test System'
         assert c.systems[0]['Builds'] == []
 
-    def test_modify_system(self, harness) -> None:
-        """ Test system creation """
-        c = harness.plugin.colonisation
-        
-        data:dict = {'Name': 'Test System'}
-        c.add_system(data, False, False)
-        c.modify_system(0, {'Name': 'Renamed'})
-        
+        c.modify_system(0, {'Name': 'Renamed'})        
         assert len(c.systems) == 1
         assert c.systems[0]['Name'] == 'Renamed'
 
-class TestColonisation:
+        c.remove_system(0)
+        assert len(c.systems) == 0
+
+    def test_add_modify_remove_build(self, harness) -> None:
+        """ Test build creation """
+        c = harness.plugin.colonisation
+
+        system = c.add_system({'Name': 'Test System'}, False, False)
+        assert system is not None
+
+        build_data = {'Name': 'Test Build', 'Base Type': 'Asteroid Base', 'State': BuildState.PLANNED, 'MarketID': 12345}
+        build = c.add_build(system, build_data, False)
+        assert build is not None
+        assert build['Name'] == 'Test Build'
+        assert build['Base Type'] == 'Asteroid Base'
+        assert build['State'] == BuildState.PLANNED
+        assert build['MarketID'] == 12345
+
+        c.modify_build(system, build['BuildID'], {'Name': 'Renamed Build'}, False)
+        assert build['Name'] == 'Renamed Build'
+
+        c.remove_build(system, build['MarketID'], False)
+        assert len(system['Builds']) == 0
+class TestColonisationOther:
     def test_body_name_variants(self, harness) -> None:
         c = harness.plugin.colonisation
 

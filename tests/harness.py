@@ -6,7 +6,6 @@ the plugin's routing functionality without running the full EDMC application.
 """
 import threading
 threading.get_native_id = lambda: 0
-threading.thread_native_id = lambda: 0
 
 import os
 import json
@@ -50,10 +49,11 @@ class TestHarness:
             plugin_dir = str(Path(__file__).parent)
 
         self.plugin_dir:Path = Path(plugin_dir).resolve()
-        
+        self.plugin = None
         # Event handlers registered by plugins
-        self.journal_handlers: list[Callable] = []
-        self.config = MockConfig()
+        self.journal_handlers: list[Callable] = []        
+        self.config = MockConfig()     
+        self.set_edmc_config() # Load config data into the mock config object
         self.events:Dict[str, list] = {}
 
         os.environ['EDMC_NO_UI'] = '1'
@@ -75,13 +75,13 @@ class TestHarness:
         config_path:Path = self.plugin_dir / "config" / config_file               
         if not config_path.is_file():
             self.config.data = {}
-            print(f"Warning: edmcs config file not found {config_path}")
-            return
+            print(f"Warning: edmc's config file not found {config_path}")
         try:
             with open(config_path, 'r') as f:
                 self.config.data = json.load(f)                
         except Exception as e:
             print(f"Warning: Could not load edmc config file {config_path}: {e}")
+        self.config.data['app_dir_path'] = str(self.plugin_dir) # Override app_dir_path to plugin dir for testing purposes
 
     def load_events(self, source:str) -> None:
         """ Load journal events from events.json file. """      

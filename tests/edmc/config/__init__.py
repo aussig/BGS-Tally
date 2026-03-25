@@ -1,0 +1,699 @@
+"""
+__init__.py - Code dealing with the configuration of the program.
+
+Copyright (c) EDCD, All Rights Reserved
+Licensed under the GNU General Public License v2 or later.
+See LICENSE file.
+
+Windows uses the Registry to store values in a flat manner.
+Linux uses a file, but for commonality it's still a flat data structure.
+"""
+from __future__ import annotations
+
+__all__ = [
+    # defined in the order they appear in the file
+    "GITVERSION_FILE",
+    "appname",
+    "applongname",
+    "appcmdname",
+    "copyright",
+    "update_interval",
+    "debug_senders",
+    "trace_on",
+    "capi_pretend_down",
+    "capi_debug_access_token",
+    "logger",
+    "git_shorthash_from_head",
+    "appversion",
+    "user_agent",
+    "appversion_nobuild",
+    "Config",
+    "config",
+    "get_update_feed",
+    "config_logger",
+    "IS_FROZEN",
+]
+
+import contextlib
+import logging
+import os
+import pathlib
+import re
+import subprocess
+import sys
+import tomllib
+import tomli_w
+import time
+import threading
+from typing import Any, TypeVar
+from collections import defaultdict
+import semantic_version
+from constants import GITVERSION_FILE, applongname, appname
+
+# Any of these may be imported by plugins
+appcmdname = "EDMC"
+# appversion **MUST** follow Semantic Versioning rules:
+# <https://semver.org/#semantic-versioning-specification-semver>
+# Major.Minor.Patch(-prerelease)(+buildmetadata)
+# NB: Do *not* import this, use the functions appversion() and appversion_nobuild()
+_static_appversion = "6.1.2"
+_cached_version: semantic_version.Version | None = None
+copyright = "© 2015-2019 Jonathan Harris, 2020-2026 EDCD"
+IS_FROZEN = getattr(sys, 'frozen', False)
+
+
+update_interval = 8 * 60 * 60  # 8 Hours
+# Providers marked to be in debug mode. Generally this is expected to switch to sending data to a log file
+debug_senders: list[str] = []
+# TRACE logging code that should actually be used.  Means not spamming it
+# *all* if only interested in some things.
+trace_on: list[str] = []
+
+capi_pretend_down: bool = False
+capi_debug_access_token: str | None = None
+# This must be done here in order to avoid an import cycle with EDMCLogging.
+# Other code should use EDMCLogging.get_main_logger
+logger = (
+    logging.getLogger(appcmdname)
+    if os.getenv("EDMC_NO_UI")
+    else logging.getLogger(appname)
+)
+
+
+_T = TypeVar("_T")
+
+
+def git_shorthash_from_head() -> str | None:
+    """
+    Determine short hash for current git HEAD.
+
+    Includes `.DIRTY` if any changes have been made from HEAD.
+
+    :return: str | None: None if we couldn't determine the short hash.
+    """
+    if IS_FROZEN or not os.path.exists(".git"):
+        return None
+
+    try:
+        result = subprocess.run(
+            ["git", "describe", "--always", "--dirty=.DIRTY", "--exclude=*", "--abbrev=7"],
+            capture_output=True,
+            text=True,
+            check=True,
+            encoding='utf-8'
+        )
+        shorthash = result.stdout.strip()
+
+        if not re.fullmatch(r"[0-9a-f]{7,}(\.DIRTY)?", shorthash):
+            logger.error(f"'{shorthash}' is not a valid git short hash format.")
+            return None
+
+        # Log stderr if git had complaints but still exited 0
+        if result.stderr:
+            logger.warning(f"Git stderr: {result.stderr.strip()}")
+        return shorthash
+
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        logger.info(f"Could not retrieve git hash: {e!r}")
+        return None
+
+
+def appversion() -> semantic_version.Version:
+    """
+    Determine app version including git short hash if possible.
+
+    :return: The augmented app version.
+    """
+    global _cached_version
+    if _cached_version is not None:
+        return _cached_version
+
+    if IS_FROZEN:
+        # Running frozen, so we should have a .gitversion file
+        # Yes, .parent because if frozen we're inside library.zip
+        with open(
+            pathlib.Path(sys.path[0]).parent / GITVERSION_FILE, encoding="utf-8"
+        ) as gitv:
+            shorthash: str | None = gitv.read()
+
+    else:
+        # Running from source. Use git rev-parse --short HEAD
+        # or fall back to .gitversion file if it exists.
+        # This is also required for the Flatpak
+        shorthash = git_shorthash_from_head()
+        if shorthash is None:
+            if pathlib.Path(sys.path[0] + "/" + GITVERSION_FILE).exists():
+                with open(
+                    pathlib.Path(sys.path[0] + "/" + GITVERSION_FILE), encoding="utf-8"
+                ) as gitv:
+                    shorthash = gitv.read()
+            else:
+                shorthash = "UNKNOWN"
+
+    _cached_version = semantic_version.Version(f"{_static_appversion}+{shorthash}")
+    return _cached_version
+
+
+user_agent: str = f"EDCD-{appname}-{appversion()}"
+
+
+def appversion_nobuild() -> semantic_version.Version:
+    """
+    Determine app version without *any* build meta data.
+
+    This will not only strip any added git short hash, but also any trailing
+    '+<string>' in _static_appversion.
+
+    :return: App version without any build meta data.
+    """
+    return appversion().truncate("prerelease")
+
+
+class Config:
+    """
+    Platform-unified Config class for 6.0+.
+
+    Commented lines are no longer supported or replaced.
+    """
+
+    OUT_EDDN_SEND_STATION_DATA = 1
+    # OUT_MKT_BPC = 2	# No longer supported
+    OUT_MKT_TD = 4
+    OUT_MKT_CSV = 8
+    OUT_SHIP = 16
+    # OUT_SHIP_EDS = 16	# Replaced by OUT_SHIP
+    # OUT_SYS_FILE = 32	# No longer supported
+    # OUT_STAT = 64	# No longer available
+    # OUT_SHIP_CORIOLIS = 128	# Replaced by OUT_SHIP
+    # OUT_SYS_EDSM = 256  # Now a plugin
+    # OUT_SYS_AUTO = 512  # Now always automatic
+    OUT_MKT_MANUAL = 1024
+    OUT_EDDN_SEND_NON_STATION = 2048
+    OUT_EDDN_DELAY = 4096
+    OUT_STATION_ANY = OUT_EDDN_SEND_STATION_DATA | OUT_MKT_TD | OUT_MKT_CSV
+
+    app_dir_path: pathlib.Path
+    plugin_dir_path: pathlib.Path
+    default_plugin_dir_path: pathlib.Path
+    internal_plugin_dir_path: pathlib.Path
+    respath_path: pathlib.Path
+    home_path: pathlib.Path
+    default_journal_dir_path: pathlib.Path
+    identifier: str
+
+    __in_shutdown = False  # Is the application currently shutting down ?
+    __auth_force_localserver = False  # Should we use localhost for auth callback ?
+    __auth_force_edmc_protocol = False  # Should we force edmc:// protocol ?
+    __eddn_url = None  # Non-default EDDN URL
+    __eddn_tracking_ui = False  # Show EDDN tracking UI ?
+    __skip_timecheck = False  # Skip checking event timestamps?
+
+    def __init__(self, app_path) -> None:
+        self.home_path = pathlib.Path.home()
+        # Set Needed Platform Var for app_dir_path
+        self.app_dir_path = app_path
+        self.toml_path: pathlib.Path = self.app_dir_path / "config.toml"
+        self._write_lock = threading.Lock()
+        self._dirty = False
+        self._batch_depth = 0
+        self.generated: str | None = None
+        self.source: str | None = None
+        self.settings: dict[str, Any] = {}
+        self._load()
+        self.default_plugin_dir_path = self.app_dir_path / "plugins"
+        plugdir_str = self.get_str("plugin_dir")
+
+        if not plugdir_str:
+            plugdir_str = str(self.default_plugin_dir_path)
+            self.plugin_dir_path = self.default_plugin_dir_path
+            self.set("plugin_dir", plugdir_str)
+
+        if not pathlib.Path(plugdir_str).is_dir():
+            self.set("plugin_dir", str(self.default_plugin_dir_path))
+            plugdir_str = self.default_plugin_dir
+        self.plugin_dir_path = pathlib.Path(self.get('plugin_dir'))
+        self.plugin_dir_path.mkdir(exist_ok=True)
+
+        # Call the rest of the platform var helpers
+        self._init_platform()
+
+    def _init_platform(self):
+        if sys.platform == "win32":
+            from .windows import win_helper
+
+            win_helper(self)
+        elif sys.platform == "linux":
+            from .linux import linux_helper
+
+            linux_helper(self)
+        else:
+            raise RuntimeError(f"Unsupported platform: {sys.platform}")
+
+    def set_shutdown(self):
+        """Set flag denoting we're in the shutdown sequence."""
+        self.__in_shutdown = True
+
+    def _default_data(self) -> dict:
+        return {
+            "generated": "",
+            "source": "",
+            "settings": {},
+        }
+
+    def _validate_data(self, data: dict) -> dict:
+        if not isinstance(data, dict):
+            raise ValueError("Config root is not a table")
+
+        settings = data.get("settings", {})
+        if not isinstance(settings, dict):
+            raise ValueError("Config 'settings' is not a table")
+
+        return {
+            "generated": data.get("generated", ""),
+            "source": data.get("source", ""),
+            "settings": dict(settings),
+        }
+
+    def _load(self):
+        """Load TOML from disk and store fields. Create file if missing."""
+        self.toml_path.parent.mkdir(parents=True, exist_ok=True)
+
+        if not self.toml_path.exists():
+            data = self._default_data()
+            self._write_atomic(data)
+            self._apply_loaded(data)
+            return
+
+        try:
+            with self.toml_path.open("rb") as f:
+                data = tomllib.load(f)
+            data = self._validate_data(data)
+            self._apply_loaded(data)
+            return
+
+        except (tomllib.TOMLDecodeError, OSError, ValueError) as e:
+            logger.error(f"Config load failed, attempting recovery: {e!r}")
+
+        # Attempt Recovery
+
+        broken = self.toml_path.with_suffix(f".toml.broken.{int(time.time())}")
+        with contextlib.suppress(Exception):
+            self.toml_path.replace(broken)
+
+        # Try backup
+        bak = self.toml_path.with_suffix(".toml.bak")
+        if bak.exists():
+            try:
+                with bak.open("rb") as f:
+                    data = tomllib.load(f)
+                data = self._validate_data(data)
+
+                # Restore backup as main
+                bak.replace(self.toml_path)
+                self._apply_loaded(data)
+                logger.warning("Recovered config from backup.")
+                return
+            except Exception as e:
+                logger.error(f"Backup recovery failed: {e!r}")
+
+        # Fallback: regenerate defaults
+        logger.error("All config recovery failed, regenerating defaults.")
+        data = self._default_data()
+        self._write_atomic(data)
+        self._apply_loaded(data)
+
+    def _apply_loaded(self, data: dict):
+        self.generated = data.get("generated", "")
+        self.source = data.get("source", "")
+
+        # Settings dict created by write_registry_to_toml()
+        self.settings = dict(data.get("settings", {}))
+
+    def _write_atomic(self, data: dict):
+        with self._write_lock:
+            tmp = self.toml_path.with_suffix(".toml.tmp")
+            bak = self.toml_path.with_suffix(".toml.bak")
+
+            with tmp.open("wb") as f:
+                tomli_w.dump(data, f)
+                f.flush()
+                os.fsync(f.fileno())
+
+            if self.toml_path.exists():
+                with contextlib.suppress(Exception):
+                    self.toml_path.replace(bak)
+
+            tmp.replace(self.toml_path)
+
+            # Best-effort directory fsync
+            with contextlib.suppress(Exception):
+                try:
+                    with self.toml_path.parent.open("rb") as d:
+                        os.fsync(d.fileno())
+                except (IsADirectoryError, PermissionError, OSError):
+                    pass
+
+    def get(self, key: str, default=None):
+        """Return raw stored value."""
+        return self.settings.get(key.lower(), default)
+
+    def get_str(self, key: str, default="") -> str:
+        """Return string value."""
+        val = self.get(key.lower(), None)
+        return str(val) if val is not None else default
+
+    def get_int(self, key: str, default=0) -> int:
+        """Adaptive int (handles booleans stored as ints)."""
+        val = self.get(key.lower())
+        if isinstance(val, int):
+            return val
+        try:
+            return int(val)
+        except (ValueError, TypeError):
+            return default
+
+    def get_bool(self, key: str, default=False) -> bool:
+        """
+        Adaptive boolean reader.
+
+          - Accepts ints 0/1
+          - Accepts strings "true"/"false"/"1"/"0"
+          - Accepts real booleans
+        """
+        val = self.get(key.lower())
+
+        if isinstance(val, bool):
+            return val
+
+        if isinstance(val, int):
+            return val != 0
+
+        if isinstance(val, str):
+            v = val.strip().lower()
+            if v in ("1", "true", "yes", "on"):
+                return True
+            if v in ("0", "false", "no", "off"):
+                return False
+
+        return default
+
+    def get_list(self, key: str, default=None):
+        """Return the list referred to by the given key if it exists, or the default."""
+        val = self.get(key.lower())
+        return val if isinstance(val, list) else (default if default is not None else [])
+
+    @property
+    def shutting_down(self) -> bool:
+        """
+        Determine if we're in the shutdown sequence.
+
+        :return: bool - True if in shutdown sequence.
+        """
+        return self.__in_shutdown
+
+    def set_auth_force_localserver(self):
+        """Set flag to force use of localhost web server for Frontier Auth callback."""
+        self.__auth_force_localserver = True
+
+    @property
+    def auth_force_localserver(self) -> bool:
+        """
+        Determine if use of localhost is forced for Frontier Auth callback.
+
+        :return: bool - True if we should use localhost web server.
+        """
+        return self.__auth_force_localserver
+
+    def set_auth_force_edmc_protocol(self):
+        """Set flag to force use of localhost web server for Frontier Auth callback."""
+        self.__auth_force_edmc_protocol = True
+
+    @property
+    def auth_force_edmc_protocol(self) -> bool:
+        """
+        Determine if use of localhost is forced for Frontier Auth callback.
+
+        :return: bool - True if we should use localhost web server.
+        """
+        return self.__auth_force_edmc_protocol
+
+    def set_eddn_url(self, eddn_url: str):
+        """Set the specified eddn URL."""
+        self.__eddn_url = eddn_url
+
+    @property
+    def eddn_url(self) -> str | None:
+        """
+        Provide the custom EDDN URL.
+
+        :return: str - Custom EDDN URL to use.
+        """
+        return self.__eddn_url
+
+    def set_eddn_tracking_ui(self):
+        """Activate EDDN tracking UI."""
+        self.__eddn_tracking_ui = True
+
+    @property
+    def eddn_tracking_ui(self) -> bool:
+        """
+        Determine if the EDDN tracking UI be shown.
+
+        :return: bool - Should tracking UI be active?
+        """
+        return self.__eddn_tracking_ui
+
+    def set_skip_timecheck(self):
+        """Set the Event Timecheck bool."""
+        self.__skip_timecheck = True
+
+    @property
+    def skip_timecheck(self) -> bool:
+        """
+        Determine if the Event Timecheck bool is enabled.
+
+        :return: bool - Should EDMC check event timechecks?
+        """
+        return self.__skip_timecheck
+
+    @property
+    def app_dir(self) -> str:
+        """Return a string version of app_dir."""
+        return str(self.app_dir_path)
+
+    @property
+    def plugin_dir(self) -> str:
+        """Return a string version of plugin_dir."""
+        return str(self.plugin_dir_path)
+
+    @property
+    def default_plugin_dir(self) -> str:
+        """Return a string version of plugin_dir."""
+        return str(self.default_plugin_dir_path)
+
+    @property
+    def internal_plugin_dir(self) -> str:
+        """Return a string version of internal_plugin_dir."""
+        return str(self.internal_plugin_dir_path)
+
+    @property
+    def respath(self) -> str:
+        """Return a string version of respath."""
+        return str(self.respath_path)
+
+    @property
+    def home(self) -> str:
+        """Return a string version of home."""
+        return str(self.home_path)
+
+    @property
+    def default_journal_dir(self) -> str:
+        """Return a string version of default_journal_dir."""
+        return str(self.default_journal_dir_path)
+
+    def reload_from_path(self, new_config_path: str | pathlib.Path) -> None:
+        """
+        Replace the active config TOML file path and reload all settings.
+
+        This allows the main application (after argparse) to override the
+        config file used without needing to recreate the Config instance.
+        """
+        with self._write_lock:
+            new_path = pathlib.Path(new_config_path)
+
+            if not new_path.is_file():
+                logger.error(f"Config file not found: {new_config_path}")
+                return  # Use the default config.
+
+            logger.info(f"Reloading config from alternate path: {new_path}")
+
+            # Update path and reload
+            self.toml_path = new_path
+            self.generated = None
+            self.source = None
+            self.settings = {}
+
+            # Load TOML content from the new file and setup system.
+            self._load()
+            self._init_platform()
+
+            # Re-run plugin_dir logic
+            plugdir_str = self.get_str("plugin_dir")
+            if not plugdir_str:
+                plugdir_str = str(self.default_plugin_dir_path)
+                self.plugin_dir_path = self.default_plugin_dir_path
+                self.set("plugin_dir", plugdir_str)
+            elif not pathlib.Path(plugdir_str).is_dir():
+                self.set("plugin_dir", str(self.default_plugin_dir_path))
+                plugdir_str = self.default_plugin_dir
+
+            self.plugin_dir_path = pathlib.Path(plugdir_str)
+            self.plugin_dir_path.mkdir(exist_ok=True)
+
+    def delete(self, key: str, *, suppress=False) -> None:
+        """Delete the given key from the config."""
+        try:
+            self.settings.pop(key.lower(), None)
+        except Exception:
+            if not suppress:
+                raise
+        self._dirty = True
+        if self._batch_depth == 0:
+            self.save()
+
+    def set(self, key: str, value: Any):
+        """Modify a setting and save to disk."""
+        if not isinstance(value, (str, int, float, bool, list, dict, type(None))):
+            raise TypeError(
+                f"Unsupported config value type for {key!r}: {type(value).__name__}"
+            )
+
+        key = key.lower().strip()
+        with self._write_lock:
+            self.settings[key] = value
+            self._dirty = True
+
+        if self._batch_depth == 0:
+            self.save()
+
+    def begin_batch(self) -> None:
+        """Start Batch Processing of Config Writes."""
+        self._batch_depth += 1
+
+    def end_batch(self) -> None:
+        """End Batch Processing of Config Writes."""
+        if self._batch_depth == 0:
+            raise RuntimeError("end_batch() called without matching begin_batch()")
+
+        self._batch_depth -= 1
+
+        if self._batch_depth == 0 and self._dirty:
+            self.save()
+
+    def save(self) -> None:
+        """Write updated config back to TOML."""
+        if self._batch_depth > 0:
+            return
+        data = {
+            "generated": self.generated,
+            "source": self.source,
+            "settings": self.settings,
+        }
+        self._write_atomic(data)
+        self._dirty = False
+
+    def close(self) -> None:
+        """Save config changes before closing."""
+        self.save()
+
+
+def get_appdirpath() -> pathlib.Path:
+    """Grab the Application Directory early."""
+    app_dir_path = None
+    if sys.platform == "win32":
+        base = pathlib.Path(os.getenv("LOCALAPPDATA"))  # type: ignore
+        app_dir_path = base / appname
+    if sys.platform == "linux":
+        xdg_data_home = pathlib.Path(
+            os.getenv("XDG_DATA_HOME", default="~/.local/share")
+        ).expanduser()
+        app_dir_path = xdg_data_home / appname
+    if app_dir_path is None:
+        raise ValueError
+    return app_dir_path
+
+
+def get_config(*args, **kwargs) -> Config:
+    """
+    Get the appropriate config class for the current platform.
+
+    :param args: Args to be passed through to implementation.
+    :param kwargs: Args to be passed through to implementation.
+    :return: Instance of the implementation.
+    """
+    app_dir_path = get_appdirpath()
+    config = None
+    if pathlib.Path.exists(app_dir_path / "config.toml"):
+        return Config(app_path=app_dir_path)
+
+    if sys.platform == "win32":  # pragma: sys-platform-win32
+        from .windows import WinConfigMinimal
+        try:
+            config = WinConfigMinimal()
+        except FileNotFoundError:
+            logger.error("No Config TOML found, no Windows Registry entry found.")
+            return Config(app_path=app_dir_path)  # Nothing to Convert
+
+    if sys.platform == "linux":  # pragma: sys-platform-linux
+        from .linux import LinuxConfigMinimal
+        try:
+            config = LinuxConfigMinimal()
+        except (FileNotFoundError, TypeError):
+            logger.error("No Config TOML found, no Linux ini file found.")
+            return Config(app_path=app_dir_path)  # Nothing to Convert
+
+    if config:
+        logger.info("Oldstyle config found. Converting...")
+        config.write_to_toml(f"{app_dir_path}/config.toml")  # type: ignore
+        return Config(app_path=app_dir_path)
+
+    raise ValueError(f"Unknown platform: {sys.platform=}")
+
+
+class LogBuffer(logging.Handler):
+    """Buffer log records in a dictionary until the main logger is available."""
+
+    def __init__(self):
+        super().__init__()
+        self.records: dict[str, list[logging.LogRecord]] = defaultdict(list)
+
+    def emit(self, record: logging.LogRecord) -> None:
+        """Send a given log record."""
+        self.records[record.name].append(record)
+
+    def replay_to(self, pre_logger: logging.Logger) -> None:
+        """Replay all buffered records to the given logger."""
+        for record_list in self.records.values():
+            for record in record_list:
+                pre_logger.handle(record)
+
+        self.records.clear()
+
+
+# Set internal Config logger, because config is set up before main logger.
+config_logger = logging.getLogger("pre_config")
+config_logger.setLevel(logging.DEBUG)
+buffer_handler = LogBuffer()
+buffer_handler.setLevel(logging.DEBUG)
+config_logger.addHandler(buffer_handler)
+config_logger.propagate = False
+
+config = get_config()
+
+
+# Wiki: https://github.com/EDCD/EDMarketConnector/blob/main/docs/Participating%20in%20Open%20Betas%20of%20EDMC.md
+def get_update_feed() -> str:
+    """Select the proper update feed for the current update track."""
+    if config.get_bool("beta_optin"):
+        return "https://raw.githubusercontent.com/EDCD/EDMarketConnector/releases/edmarketconnector-beta.xml"
+    return "https://raw.githubusercontent.com/EDCD/EDMarketConnector/releases/edmarketconnector.xml"

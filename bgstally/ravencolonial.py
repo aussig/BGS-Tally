@@ -276,9 +276,10 @@ class RavenColonial:
         if response.status_code != 200:
             Debug.logger.error(f"{url} {response} {response.content}")
 
-        # Refresh the system info
-        self.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
         Debug.logger.debug(f"RavenColonial site upserted {data.get('Name', '')} {update}")
+        # Refresh the system info
+        if system.get('SystemAddress', None) != None:
+            self.load_system(system.get('SystemAddress', ''), system.get('Rev', 0))
 
 
     @catch_exceptions

@@ -19,7 +19,6 @@ def harness(request) -> Generator:
     live = request.node.get_closest_marker('live_requests') is not None
 
     test_harness = TestHarness(live_requests=live) 
-    test_harness.set_edmc_config()
 
     import bgstally.constants
     bgstally.constants.FOLDER_ASSETS = "../assets"

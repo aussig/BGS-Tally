@@ -22,7 +22,6 @@ def harness(request) -> Generator:
     """ Provide a fresh test harness for each test. """  
     live = request.node.get_closest_marker('live_requests') is not None
     test_harness = TestHarness(live_requests=live) 
-    test_harness.set_edmc_config()
 
     # Use the "normal" locations for assets and data
     import bgstally.constants

@@ -10,9 +10,9 @@ This is a work in progress Not all EDMC or tool functionality is mocked up yet.
 
 The `harness.py` does the initialization of EDMC. It uses some actual EDMC modules and some mock modules from the `edmc` folder.
 
-The harness provides a mock edmc config object that can be loaded from a json file using the `set_edmc_config` function and a journal event replay capability.
+The harness provides a mock edmc config object loaded from `config/edmc_config.ini` and a journal event replay capability.
 
-Journal records can be loaded from a json file using `load_events` and then called individually with `fire_event` or in sequence with `play_sequence`. The journal record processing supports f strings to that they can be customized. e.g. `"DepartureTime":"{datetime.now(tz=UTC):%Y-%m-%d %H:%M:%S}"}` will always produce a departure time of now.
+Journal records can be loaded from a json file using `load_events()` and then called individually with `fire_event` or in sequence with `play_sequence`. The journal record processing supports f strings to that they can be customized. e.g. `"DepartureTime":"{datetime.now(tz=UTC):%Y-%m-%d %H:%M:%S}"}` will always produce a departure time of now.
 
 ### Test files
 
@@ -61,3 +61,9 @@ By default these are mocked and return nothing. This can be changed in any of th
 1. Initializing the harness object with `live_requests=True`, good for an entire suite of tests
 1. Adding the decorator `@pytest.mark.live_requests` to a test function, good for a single test
 1. Calling `set_requests_mode(True)` on the harness, good for changing the mode partway through a test
+
+### Mock EDMC Config
+
+The harness mocks the EDMC config and loads config/edmc_config.json as an initial config.
+
+If you want to use an entirely different config for a specific tests call `load_edmc_config(file)`.

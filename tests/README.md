@@ -51,3 +51,13 @@ This contains live and mock edmc modules used to emulate EDMC so the plugin can 
 ### Others
 
 Other folders may be created by the plugin for saving data. These are in `/tests` to avoid overwriting or corrupting files in the main plugin directory.
+
+## Tips and Tricks
+
+### Mock HTTP Requests
+
+By default these are mocked and return nothing. This can be changed in any of the following ways:
+
+1. Initializing the harness object with `live_requests=True`, good for an entire suite of tests
+1. Adding the decorator `@pytest.mark.live_requests` to a test function, good for a single test
+1. Calling `set_requests_mode(True)` on the harness, good for changing the mode partway through a test

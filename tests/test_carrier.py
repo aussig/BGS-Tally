@@ -18,9 +18,10 @@ from datetime import UTC, datetime, timedelta
 from harness import TestHarness
 
 @pytest.fixture
-def harness() -> Generator:
+def harness(request) -> Generator:
     """ Provide a fresh test harness for each test. """  
-    test_harness = TestHarness() 
+    live = request.node.get_closest_marker('live_requests') is not None
+    test_harness = TestHarness(live_requests=live) 
     test_harness.set_edmc_config()
 
     # Use the "normal" locations for assets and data
@@ -266,6 +267,7 @@ class TestCarrierRoute:
 
         assert fc.route == []
     
+    @pytest.mark.live_requests
     def test_spansh_route(self, harness) -> None:
         """ Test spansh_route() method """
         fc = harness.plugin.fleet_carrier

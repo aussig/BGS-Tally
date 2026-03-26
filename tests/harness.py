@@ -28,6 +28,7 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 test_dir:Path = Path(__file__).parent
 sys.path.insert(0, str(test_dir))
 
+import tests.edmc.requests
 import tests.edmc.mocks
 from tests.edmc.mocks import MockConfig
 
@@ -42,7 +43,7 @@ class TestHarness:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self, plugin_dir:Optional[str] = None):
+    def __init__(self, plugin_dir:Optional[str] = None, live_requests:bool = False):
         """ Initialize the test harness. """
 
         if plugin_dir is None:
@@ -55,6 +56,7 @@ class TestHarness:
         self.config = MockConfig()     
         self.set_edmc_config() # Load config data into the mock config object
         self.events:Dict[str, list] = {}
+        self.set_requests_mode(live_requests)
 
         os.environ['EDMC_NO_UI'] = '1'
 
@@ -69,6 +71,9 @@ class TestHarness:
         
         self._initialized = True        
 
+    def set_requests_mode(self, live_requests:bool) -> None:
+        self.live_requests = live_requests
+        tests.edmc.requests.live_requests(live_requests)
 
     def set_edmc_config(self, config_file:str = "edmc_config.json") -> None:
         # Load config

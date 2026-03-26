@@ -266,7 +266,7 @@ class TestCarrierRoute:
 
         assert fc.route == []
     
-    def test_spansh_route(self, mock_get, mock_post, harness) -> None:
+    def test_spansh_route(self, harness) -> None:
         """ Test spansh_route() method """
         fc = harness.plugin.fleet_carrier
         fc.overview = {
@@ -274,14 +274,16 @@ class TestCarrierRoute:
             'totalCapacity': 25000,
             'fuel': 1000
         }
-        fc.cargo = {'normal': {'tritium': {'stock': 500}}}
-
-        # Mock the API responses
-        mock_post.return_value.status_code = 202
-        mock_post.return_value.content = b'{"job": "test_job"}'
-        mock_get.return_value.status_code = 200
-        mock_get.return_value.content = b'{"result": {"jumps": [{"name": "Sol"}, {"name": "Alpha Centauri"}]}}'
-
+        fc.cargo = {'normal': {'tritium': {
+                "locName": "tritium",
+                "stock": 100,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": False,
+                "stolen": False
+            }}}
+        sleep(20)
         fc.spansh_route('Alpha Centauri')
 
         assert len(fc.route) == 1

@@ -16,12 +16,8 @@ from bgstally.constants import BuildState
 @pytest.fixture
 def harness(request) -> Generator:
     """ Provide a fresh test harness for each test. """
-    use_mock_requests = request.node.get_closest_marker('mock_requests') is not None
-    use_live_requests = request.node.get_closest_marker('live_requests') is not None
-    if use_mock_requests and use_live_requests:
-        raise ValueError('Tests cannot request both mock_requests and live_requests')
-
-    test_harness = TestHarness(mock_requests=use_mock_requests and not use_live_requests)
+    live = request.node.get_closest_marker('live_requests') is not None
+    test_harness = TestHarness(live_requests=live)
     test_harness.set_edmc_config()
 
     # Use the "normal" locations for assets and data

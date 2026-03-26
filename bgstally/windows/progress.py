@@ -35,7 +35,7 @@ class ProgressWindow:
     '''
     def __init__(self, bgstally) -> None:
         self.bgstally:BGSTally = bgstally
-        self.colonisation:Colonisation = None
+        self.colonisation:Colonisation
 
         # The headings for each column, with the meanings for each unit type.
         # These are saved in the colonisation json file.
@@ -120,9 +120,9 @@ class ProgressWindow:
         # UI components
         self.scale:float = config.get_int('ui_scale') / 100.00
         self.frame:tk.Frame
-        self.mkts_fr:tk.Toplevel|None = None # Markets popup window
+        self.mkts_fr:tk.Toplevel # Markets popup window
         self.frame_row:int = 0 # Row in the parent frame
-        self.table_frame:tk.Frame # Table frame
+        self.table_frame:ttk.Frame # Table frame
         self.title:tk.Label # Title object
         self.titlett:ToolTip # Title tooltip
         self.rows:list = []
@@ -164,7 +164,7 @@ class ProgressWindow:
             nonlocal canvas
 
             shift = (event.state & 0x1) != 0 #type: ignore
-            scroll = 0
+            scroll:int = 0
             if event.num == 4 or event.delta == 120:
                 scroll = -1
             if event.num == 5 or event.delta == -120:
@@ -190,7 +190,8 @@ class ProgressWindow:
         y.grid_rowconfigure(0, weight=1)
         y.grid_propagate(False)
 
-        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, length=int(self.bar_width*self.scale), mode='determinate')
+        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, 
+                                                       length=int(self.bar_width*self.scale), mode='determinate')
         self.progtt:ToolTip = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
         self.progbar.grid(row=0, column=0, pady=0, ipady=0, sticky=tk.EW)
         self.progbar.rowconfigure(0, weight=1)

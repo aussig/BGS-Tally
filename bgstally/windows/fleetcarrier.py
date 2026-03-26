@@ -573,8 +573,8 @@ class WindowFleetCarrier:
 
 class PopupNotice:
     """ Create a temporary popup window """
-    def __init__(self, notice:str = '', timeout:int = 0, fc:FleetCarrier|None = None) -> None:
-        self.fc:FleetCarrier|None = fc
+    def __init__(self, notice:str, timeout:int, fc:FleetCarrier) -> None:
+        self.fc:FleetCarrier = fc
         self.root = tk.Tk()
         self.root.overrideredirect(True)
         self.root.attributes("-alpha", 0.6)

@@ -38,7 +38,7 @@ class FleetCarrier:
         self.data:dict = {}  # Raw CAPI data
         self.window_geometries:dict = {}
         self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
-        self.timer:datetime = None
+        self.timer:datetime|None = None
         self.load()
         self._update_route()
 
@@ -373,11 +373,12 @@ class FleetCarrier:
         cd:str = ''; delta:int
         if self.timer != None:
             # Subtract extra seconds because of the update delay.
-            delta = self._td(self.timer, datetime.now(tz=UTC)) - 1
+            delta = self._td(self.timer, datetime.now(tz=UTC))
             cd = self._td_str(delta)
 
         if self.jump_state == FleetCarrierJump.Cooldown and delta > 0:
             message = f"{_('Jump Cooldown')} {cd}" # LANG: Carrier overlay
+
         if self.jump_state == FleetCarrierJump.Jumping and delta > 0:
             message = f"{_('Departure To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  #LANG: Carrier overlay
             if delta < 200:
@@ -387,8 +388,11 @@ class FleetCarrier:
             # Jump locked in 10 m before departure
             if 600 <= delta:
                 message += f"\n{_('Jump Initiation in')} {self._td_str(delta - 600)}" # LANG: Carrier overlay
+        
+        if message != "":
+            message = TAG_OVERLAY_HIGHLIGHT + message
 
-        return TAG_OVERLAY_HIGHLIGHT + message
+        return message
 
 
     def _update_cargo(self, data:dict) -> dict:
@@ -844,7 +848,7 @@ class FleetCarrier:
 
         if self.jump_state != FleetCarrierJump.Cooldown: return
 
-        self.jump_state = 'Idle'
+        self.jump_state = FleetCarrierJump.Idle
         self.bgstally.ui.warning = _("Carrier cooldown complete") # LANG: Cooldown overlay message
         self.bgstally.ui.window_fc.cooldown_notice()
 

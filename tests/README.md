@@ -12,7 +12,7 @@ The `harness.py` does the initialization of EDMC. It uses some actual EDMC modul
 
 The harness provides a mock edmc config object loaded from `config/edmc_config.ini` and a journal event replay capability.
 
-Journal records can be loaded from a json file using `load_events()` and then called individually with `fire_event` or in sequence with `play_sequence`. The journal record processing supports f strings to that they can be customized. e.g. `"DepartureTime":"{datetime.now(tz=UTC):%Y-%m-%d %H:%M:%S}"}` will always produce a departure time of now.
+Journal records can be loaded from a json file using `load_events()` and then called individually with `fire_event` or in sequence with `play_sequence`. The journal record processing supports f strings so that they can be customized and supports `delta:` and `now:` for times. e.g. `"DepartureTime": "delta:-60"` or `"CarrierID": "{self.plugin.fleet_carrier.carrier_id}"`.
 
 ### Test files
 
@@ -30,11 +30,19 @@ It will often load a set of journal events that the test series will require and
 
 At their most basic a test is just a matter of calling a BGS-Tally function and verifying the result or that the outcome is as expected.
 
-Testing can get quite sophisticated. pytests's monkeypatch capability can intercept individual functions enabling some advanced setup.
+Testing can get quite sophisticated. pytest's monkeypatch capability can intercept individual functions enabling some advanced setup.
 
 ### Running tests
 
-Setup a python virtual environment and install `pytest`. You an then run pytest from the command line or from within an IDE such as VS Code. If you install the python debugger you can run the tests with the debugger enabling breakpoints and all that fun stuff.
+Setup a python virtual environment and install `pytest`. You an then run `pytest` from the command line or from within an IDE such as VS Code. If you install the python debugger you can run the tests with the debugger enabling breakpoints and all that fun stuff.
+
+### Debugging tests
+
+With an IDE such as VS Code tests can be run using the python debugger to step through sections.
+
+### Test coverage
+
+`pytest-cov` enables code coverage. In VS Code which lines have, and have not, been executed are highlighted.
 
 ## Directories
 
@@ -88,12 +96,12 @@ Requests can be made live in any of the following ways:
 
 ### Mock Journal Events
 
-A journal event can be mocked simplly by calling `journal_entry` but the test harness also provides a more sophisticated solution.
+A journal event can be mocked simply by calling `journal_entry` but the test harness provides a more sophisticated solution.
 
 It works as follows:
 
 1. Sequences of journal events are loaded from a json file using `load_events`
-1. The plugin's journal handling function is registered with the harness using `register_journal_handler`
+1. The BGS-Tally's journal handling function is registered with the harness using `register_journal_handler`
 1. A test can then fire individual events with `fire_event` or replay an entire sequence with `play_sequence`
 
 Events fired this way will be given a current timestamp and the json event file can contain f strings enabling variable data or specific timing.

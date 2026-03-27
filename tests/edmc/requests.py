@@ -120,21 +120,40 @@ class MockResponse:
 
 
 class MockSession:
+    _instance = None
+
+    # Singleton pattern
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self) -> None:
+        if hasattr(self, '_initialized'): return
+
         self.calls = []
-        self.queued_responses = {'get': [], 'post': [], 'put': [], 'patch': [], 'delete': [],
-                                 'head': [], 'options': []}
+        self.queued_responses = {'get': {}, 'post': {}, 'put': {}, 'patch': {}, 'delete': {},
+                                 'head': {}, 'options': {}}
+        self.sticky_responses = {'get': {}, 'post': {}, 'put': {}, 'patch': {}, 'delete': {},
+                                 'head': {}, 'options': {}}
+        self._initialized = True
 
     def _mock_request(self, method: str, url: str, **kwargs) -> MockResponse:
         call = {'method': method, 'url': url, **kwargs}
         self.calls.append(call)
 
-        queued = self.queued_responses[method]
-        if queued:
-            response = queued.pop(0)
-        else:
-            response = MockResponse(url=url)
-
+        response:MockResponse|None = None
+        if url in self.queued_responses[method] and len(self.queued_responses[method][url]) > 0:
+            response = self.queued_responses[method][url].pop(0)
+        if response == None and url in self.sticky_responses[method]:
+            response = self.sticky_responses[method][url]
+        if response == None and 'any' in self.queued_responses[method] and len(self.queued_responses[method]['any']) > 0:
+            response = self.queued_responses[method]['any'].pop(0)
+        if response == None and 'any' in self.sticky_responses[method]:
+            response = self.sticky_responses[method]['any']
+        if response == None:
+            print(f"No response for {method.upper()} {url}, returning 404")
+            response = MockResponse(status_code=404, reason='Not Found')
         response.url = url
         return response
 
@@ -212,16 +231,24 @@ class RequestsSession:
 _mock_requests = MockSession()
 
 def _request(method: str, url: str, **kwargs):
+    """ Call the appropriate live or mock request method """
     if not _use_live or _live_requests is None:
         return getattr(_mock_requests, method)(url, **kwargs)
     return getattr(_live_requests, method)(url, **kwargs)
 
 
-def queue_response(method:str, response: MockResponse) -> None:
-    _mock_requests.queued_responses[method.lower()].append(response)
+def queue_response(method:str, response: MockResponse, url:str|None = None, sticky:bool = False) -> None:
+    """ Enable queuing a mock response. It can be one-time (sticky=False) or sticky (sticky=True), for a specific URL or any URL (url=None). """
+    if url is None: url = 'any'
+    if sticky:
+        _mock_requests.sticky_responses[method.lower()][url] = response
+    elif url not in _mock_requests.queued_responses[method.lower()]:
+        _mock_requests.queued_responses[method.lower()][url] = [response]
+    else:
+        _mock_requests.queued_responses[method.lower()][url].append(response)
 
-
-def live_requests(set:bool|None) -> bool:
+def live_requests(set:bool|None = None) -> bool:
+    """ Configure whether to use live requests or the mock. If set is None, returns the current state. """
     global _use_live
     if set != None:
         _use_live = set

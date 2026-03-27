@@ -24,6 +24,13 @@ def harness(request) -> Generator:
     bgstally.constants.FOLDER_ASSETS = "../assets"
     bgstally.constants.FOLDER_DATA = "../data"
 
+    # Put in a response for the update manager so it doesn't error
+    if not live:        
+        from tests.edmc.requests import queue_response, MockResponse
+        queue_response('get', MockResponse(200, url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest',
+                                           json_data={'tag_name': 'v1.0.0','draft': True,'prerelease': True,
+                                                       'assets': [{'browser_download_url': 'https://example.com/download'}]}))        
+
     # Initialize colonisation state
     shutil.copy(Path(__file__).parent / "config" / "colonisation_init.json", 
                 Path(__file__).parent / "otherdata" / "colonisation.json")
@@ -41,45 +48,83 @@ def harness(request) -> Generator:
     yield test_harness
 
 
-class TestColonisation:
+class TestColonisationSystems:
     def test_add_modify_remove_system(self, harness) -> None:
         """ Test system creation """
         c = harness.plugin.colonisation
-        
+        syscount:int = len(c.systems)
         data:dict = {'Name': 'Test System'}
         c.add_system(data, False, False)
 
-        assert len(c.systems) == 1
-        assert c.systems[0]['Name'] == 'Test System'
-        assert c.systems[0]['Builds'] == []
+        assert len(c.systems) == syscount + 1
+        assert c.systems[syscount]['Name'] == 'Test System'
+        assert c.systems[syscount]['Builds'] == []
 
-        c.modify_system(0, {'Name': 'Renamed'})        
-        assert len(c.systems) == 1
-        assert c.systems[0]['Name'] == 'Renamed'
+        c.modify_system(syscount, {'Name': 'Renamed'})        
+        assert len(c.systems) == syscount + 1
+        assert c.systems[syscount]['Name'] == 'Renamed'
 
-        c.remove_system(0)
-        assert len(c.systems) == 0
+        c.remove_system(syscount)
+        assert len(c.systems) == syscount
 
+class TestColonisationBuilds:
+    def test_find_build(self, harness) -> None:
+
+        c = harness.plugin.colonisation
+        system = c.systems[0]
+        build = system['Builds'][0]
+
+        # By ID
+        found_build:dict = c.find_build(system, {'BuildID': build['BuildID']})
+        assert found_build is not None
+        assert found_build['BuildID'] == build['BuildID']
+
+        # By Name
+        found_build:dict = c.find_build(system, {'Name': build['Name']})
+        assert found_build is not None
+        assert found_build['BuildID'] == build['BuildID']
+
+        # By Colonisation Ship (always matches the first build in the system)
+        found_build:dict = c.find_build(system, {'Name': 'System Colonisation Ship: Dummy'})
+        assert found_build is not None
+        assert found_build['BuildID'] == build['BuildID']
+
+        # By Name that matches a construction site
+        found_build:dict = c.find_build(system, {'Name': 'Numpty'})
+        assert found_build is not None
+        assert found_build['BuildID'] == system['Builds'][1]['BuildID']
+
+    
     def test_add_modify_remove_build(self, harness) -> None:
         """ Test build creation """
         c = harness.plugin.colonisation
 
-        system = c.add_system({'Name': 'Test System'}, False, False)
+        system:dict = c.find_system({'StarSystem' : 'M23 Sector AK-H b10-1', 'SystemAddress': 2867024963809})
         assert system is not None
+        first_build:dict = system['Builds'][0]
 
-        build_data = {'Name': 'Test Build', 'Base Type': 'Asteroid Base', 'State': BuildState.PLANNED, 'MarketID': 12345}
-        build = c.add_build(system, build_data, False)
+        new_build:dict = {"Track": "No", "State": "Planned", "Base Type": "Industrial Outpost", "Name": "Goddard Sanctuary",
+                          "Body": "B 7", "MarketID": 4224499459, "StationEconomy": "Extraction", "Layout": "Vulcan",
+                          "BuildID": "&4224499459", "BodyNum": 30, "Location": "Orbital", "Readonly": True}
+
+        build:dict = c.add_build(system, new_build, False)
         assert build is not None
-        assert build['Name'] == 'Test Build'
-        assert build['Base Type'] == 'Asteroid Base'
-        assert build['State'] == BuildState.PLANNED
-        assert build['MarketID'] == 12345
+        assert build['Name'] == new_build['Name']
+        assert build['Base Type'] == new_build['Base Type']
+        assert build['State'] == new_build['State']
+        assert build['MarketID'] == new_build['MarketID']
 
         c.modify_build(system, build['BuildID'], {'Name': 'Renamed Build'}, False)
         assert build['Name'] == 'Renamed Build'
 
+        c.move_build(system, 0, 1)
+        assert system['Builds'][0]['BuildID'] == build['BuildID']
+        assert system['Builds'][1]['BuildID'] == first_build['BuildID']
+
         c.remove_build(system, build['MarketID'], False)
-        assert len(system['Builds']) == 0
+        assert len(system['Builds']) == 1
+
+
 class TestColonisationOther:
     def test_body_name_variants(self, harness) -> None:
         c = harness.plugin.colonisation
@@ -223,36 +268,6 @@ class TestColonisationOther:
         assert build is not None
         assert build['State'] == BuildState.COMPLETE
         assert build['Track'] is False
-
-    def test_add_and_remove_build(self, harness) -> None:
-        c = harness.plugin.colonisation
-
-        system = c.add_system({'StarSystem': 'Sol', 'Name': 'SolPlan', 'Builds': []}, prepop=False, rcsync=False)
-
-        new_build = c.add_build(system, {
-            'Name': 'Test Base',
-            'Base Type': 'Asteroid Base',
-            'State': BuildState.PLANNED,
-            'MarketID': 8888,
-            'Track': False
-        }, silent=True)
-
-        assert new_build.get('BuildID', None) is not None
-        assert c.find_build(system, {'MarketID': 8888}) is not None
-
-        c.remove_build(system, 8888, silent=True)
-        assert c.find_build(system, {'MarketID': 8888}) is None
-
-    def test_move_build(self, harness) -> None:
-        c = harness.plugin.colonisation
-
-        system = c.add_system({'StarSystem': 'Sol', 'Name': 'SolPlan2', 'Builds': []}, prepop=False, rcsync=False)
-        c.add_build(system, {'Name': 'B1', 'Base Type': 'Asteroid Base', 'BuildID': 'b1', 'MarketID': 101, 'State': BuildState.PLANNED}, silent=True)
-        c.add_build(system, {'Name': 'B2', 'Base Type': 'Asteroid Base', 'BuildID': 'b2', 'MarketID': 102, 'State': BuildState.PLANNED}, silent=True)
-
-        c.move_build(system, 0, 1)
-        assert system['Builds'][0]['BuildID'] == 'b2'
-        assert system['Builds'][1]['BuildID'] == 'b1'
 
     def test_journal_entry_system_claim(self, harness) -> None:
         c = harness.plugin.colonisation

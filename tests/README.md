@@ -38,7 +38,7 @@ Setup a python virtual environment and install `pytest`. You an then run pytest 
 
 ## Directories
 
-The test environment is entirely contained within the `/tests` directory. 
+The test environment is entirely contained within the `/tests` directory.
 
 ### /tests/config
 
@@ -46,24 +46,42 @@ This folder is used for test config files including `edmc_config.json` that is u
 
 ### /tests/edmc
 
-This contains live and mock edmc modules used to emulate EDMC so the plugin can run standalone.
+This contains live and mock edmc modules used to emulate EDMC so the BGS-Tally can run standalone.
 
 ### Others
 
-Other folders may be created by the plugin for saving data. These are in `/tests` to avoid overwriting or corrupting files in the main plugin directory.
+Other folders created by BGS-Tally for saving data will be created in `/tests` to avoid overwriting or corrupting files in the main plugin directory.
 
 ## Tips and Tricks
-
-### Mock HTTP Requests
-
-By default these are mocked and return nothing. This can be changed in any of the following ways:
-
-1. Initializing the harness object with `live_requests=True`, good for an entire suite of tests
-1. Adding the decorator `@pytest.mark.live_requests` to a test function, good for a single test
-1. Calling `set_requests_mode(True)` on the harness, good for changing the mode partway through a test
 
 ### Mock EDMC Config
 
 The harness mocks the EDMC config and loads config/edmc_config.json as an initial config.
 
 If you want to use an entirely different config for a specific tests call `load_edmc_config(file)`.
+
+### Other data
+
+It's often desirable to use a consistent configuration for testing. BGS-Tally typically stores these in `otherdata`. This can be achieved by storing a standard version in `config` and copying it to `otherdata` prior to startup e.g.
+
+```python
+   shutil.copy(Path(__file__).parent / "config" / "colonisation.json",  Path(__file__).parent / "otherdata" / "colonisation.json")
+```
+
+### Mock HTTP Requests
+
+By default these are mocked and what they return can be set by using:
+
+```python
+from tests.edmc.requests import queue_response, MockResponse
+queue_response(method:str, response: MockResponse, url:str|None = None, sticky:bool = False)
+```
+
+* `sticky` indicates the response should be for all matching requests, otherwise it's returned just once
+* `url` will match only requests with the appropriate method and matching url. If blank any request will be matched.
+
+Requests can be made live in any of the following ways:
+
+1. Initializing the harness object with `live_requests=True`, good for an entire suite of tests
+1. Adding the decorator `@pytest.mark.live_requests` to a test function, good for a single test
+1. Calling `set_requests_mode(True)` on the harness, good for changing the mode partway through a test

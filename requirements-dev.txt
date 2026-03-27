@@ -5,3 +5,5 @@ pytest
 requests
 Pillow
 tomli_w
+pytest-cov
+pytest-mock

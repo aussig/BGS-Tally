@@ -17,6 +17,7 @@ from time import sleep
 import logging
 import tkinter as tk
 import threading
+from typing import Any
 
 edmc_dir:Path = Path(__file__).parent / 'edmc'
 sys.path.insert(0, str(edmc_dir))
@@ -50,7 +51,7 @@ class TestHarness:
             plugin_dir = str(Path(__file__).parent)
 
         self.plugin_dir:Path = Path(plugin_dir).resolve()
-        self.plugin = None
+        self.plugin:Any = None
         # Event handlers registered by plugins
         self.journal_handlers: list[Callable] = []        
         self.config = MockConfig()     

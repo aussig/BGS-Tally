@@ -80,8 +80,8 @@ else:
 
 
 class MockResponse:
-    def __init__(self, status_code: int = 200, content: bytes | str = b'', json_data=None, reason: str = 'OK',
-                 headers: dict | None = None, url: str = '') -> None:
+    def __init__(self, status_code:int = 200, content:bytes|str = b'', json_data = None, reason:str = 'OK',
+                 headers:dict|None = None, url:str = '') -> None:
         self.status_code = status_code
         self.reason = reason
         self.headers = headers or {}
@@ -217,7 +217,7 @@ def _request(method: str, url: str, **kwargs):
     return getattr(_live_requests, method)(url, **kwargs)
 
 
-def queue_response(method: str, response: MockResponse) -> None:
+def queue_response(method:str, response: MockResponse) -> None:
     _mock_requests.queued_responses[method.lower()].append(response)
 
 

@@ -190,10 +190,17 @@ class Mockedmcoverlay:
             self.messages:dict = {}
             self.shapes:dict = {}
         
-        def send_message(self, *args, **kw):             
-            self.messages[args[0]] = [*args, kw]
+        def send_message(self, *args, **kw):
+            msgid = args[0] if args else kw.get('msgid')
+            if not msgid:
+                print("send_message called with no msgid")
+                return
+            self.messages[msgid] = [*args, kw]
 
-        def send_shape(self, *args, **kw):             
+        def send_shape(self, *args, **kw):
+            if not args:
+                print("send_shape called with no positional arguments")
+                return             
             self.shapes[args[0]] = [*args, kw]
 
 _edmcoverlay = _types.ModuleType('EDMCOverlay')

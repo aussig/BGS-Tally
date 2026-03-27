@@ -755,7 +755,7 @@ class FleetCarrier:
     @catch_exceptions
     def carrier_location(self, entry:dict) -> None:
         """ Update the current carrier location after a jump. If we logged out we may not get this event """
-        
+
         Debug.logger.debug(f"Carrier location for {entry.get('CarrierID')} current state {self.jump_state}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 

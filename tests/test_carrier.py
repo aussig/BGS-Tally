@@ -19,9 +19,9 @@ from harness import TestHarness
 
 @pytest.fixture
 def harness(request) -> Generator:
-    """ Provide a fresh test harness for each test. """  
+    """ Provide a fresh test harness for each test. """
     live = request.node.get_closest_marker('live_requests') is not None
-    test_harness = TestHarness(live_requests=live) 
+    test_harness = TestHarness(live_requests=live)
 
     # Use the "normal" locations for assets and data
     import bgstally.constants
@@ -29,17 +29,17 @@ def harness(request) -> Generator:
     bgstally.constants.FOLDER_DATA = "../data"
 
     # Make sure we always start with a consistent fleetcarrier.json
-    shutil.copy(Path(__file__).parent / "config" / "fleetcarrier_init.json", 
+    shutil.copy(Path(__file__).parent / "config" / "fleetcarrier_init.json",
                 Path(__file__).parent / "otherdata" / "fleetcarrier.json")
 
     # Now we can import Router modules
     from load import plugin_start3, plugin_app, journal_entry
     import bgstally.globals
     test_harness.plugin = bgstally.globals.this
-    
+
     plugin_start3(str(test_harness.plugin_dir))
     plugin_app(test_harness.parent)
-    
+
     test_harness.load_events("journal_events.json")
     test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
 
@@ -79,8 +79,8 @@ class TestCarrierUIDataMethods:
     def test_get_overview(self, harness) -> None:
         """ Test get_overview() method """
         fc = harness.plugin.fleet_carrier
-        
-        data:dict = fc.get_overview()        
+        harness.load_events("journal_events.json")
+        data:dict = fc.get_overview()
 
         assert data['Name'] == 'Testy MctestFace'
         assert data['Callsign'] == 'T3S-TY'
@@ -191,15 +191,15 @@ class TestCarrierJumps:
         """ Test handling a jump request """
         fc = harness.plugin.fleet_carrier
         # Read the carrier events from the journal_events.json
-        events:list = harness.events.get('carrier_events', [])
+        events:list = harness.load_events("journal_events.json").get("carrier_events", [])
 
-        # Pre-flight checks.         
+        # Pre-flight checks.
         assert fc.overview.get('carrier_id') == 12345
         assert fc.overview.get('currentStarSystem', '') == 'Sol'
-        
+
         # Send event 0
         harness.fire_event(events[0])
-        
+
         # Confirm that the carrier's jump destination is now what the carrier event indicated.
         assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
         assert fc.jump_state == 'Jumping'
@@ -209,16 +209,16 @@ class TestCarrierJumps:
         assert harness.plugin.overlay.edmcoverlay.messages != {}
 
     def test_jump_completed(self, harness) -> None:
-        """ Test a successful jump """      
-        fc = harness.plugin.fleet_carrier  
-        
-        events:list = harness.events.get('carrier_events', [])        
+        """ Test a successful jump """
+        fc = harness.plugin.fleet_carrier
+
+        events:list = harness.load_events("journal_events.json").get("carrier_events", [])
         assert fc.overview.get('carrier_id') == 12345
         assert fc.overview.get('currentStarSystem', '') == 'Sol'
-        
+
         harness.fire_event(events[0])
         assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
-        
+
         harness.fire_event(events[1])
         assert fc.overview.get('currentStarSystem', '') == 'Bleae Thua ZE-I b23-1'
         assert fc.jump_state == 'Cooldown'
@@ -230,16 +230,16 @@ class TestCarrierJumps:
     def test_jump_cancellation(self, harness) -> None:
         """ A cancelled jump """
         fc = harness.plugin.fleet_carrier
-        events:list = harness.events.get('carrier_events', [])
-        
+        events:list = harness.load_events("journal_events.json").get("carrier_events", [])
+
         assert fc.overview.get('carrier_id') == 12345
         assert fc.overview.get('currentStarSystem', '') == 'Sol'
         harness.fire_event(events[0])
 
         assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
-        
+
         harness.fire_event(events[2])
-        assert fc.overview.get('currentStarSystem', '') == 'Sol'        
+        assert fc.overview.get('currentStarSystem', '') == 'Sol'
         assert fc.overview.get('jumpDestination') == None
         assert datetime.now(tz=UTC) + timedelta(seconds=58) <= fc.timer <= datetime.now(tz=UTC) + timedelta(seconds=60)
         assert fc.jump_state == 'Cooldown'
@@ -265,7 +265,7 @@ class TestCarrierRoute:
         fc.clear_route()
 
         assert fc.route == []
-    
+
     @pytest.mark.live_requests
     def test_spansh_route(self, harness) -> None:
         """ Test spansh_route() method """
@@ -314,7 +314,7 @@ class TestCarrierTrade:
             'SaleOrder': 100,
             'Price': 1000
         }
-        
+
         free:int = fc._get_freespace()
 
         fc.trade_order(entry)
@@ -323,7 +323,7 @@ class TestCarrierTrade:
         assert fc.cargo['normal']['tritium']['stock'] == 100
         assert fc.cargo['normal']['tritium']['price'] == 1000
         assert fc._get_freespace() == free - 100
-        
+
     def test_trade_order_purchase(self, harness) -> None:
         """ Test trade_order() for purchase order """
         fc = harness.plugin.fleet_carrier
@@ -350,7 +350,7 @@ class TestCarrierTrade:
         """ Test trade_order() for cancel order """
         fc = harness.plugin.fleet_carrier
         entry = {
-            'event': 'CarrierTradeOrder',            
+            'event': 'CarrierTradeOrder',
             'CarrierID': 12345,
             'Commodity': 'tritium',
             'CancelTrade': True
@@ -391,7 +391,7 @@ class TestCarrierTrade:
         assert fc.cargo['normal']['tritium']['stock'] == 50
         assert fc.cargo['normal']['steel']['stock'] == 75
         assert fc._get_freespace() == free - 50 + 25
-        
+
 
     def test_market_activity_buy(self, harness) -> None:
         """ Test market_activity() for sell event  """
@@ -429,31 +429,31 @@ class TestCarrierTrade:
             'Type': 'tritium',
             'Type_Localised': 'Tritium',
             'Count': 20
-        }        
-        free:int = fc._get_freespace()        
+        }
+        free:int = fc._get_freespace()
         fc.market_activity(entry)
 
         assert fc.cargo['normal']['tritium']['stock'] == 80
         assert fc._get_freespace() == free + 20
-    
+
 class TestCarrierEvents:
     def test_capi_event(self, harness) -> None:
         """ Test handling a jump request """
         fc = harness.plugin.fleet_carrier
         capi_data:dict = harness.get_config_data('carrier_capi_data.json')
 
-        # Pre-flight checks.         
+        # Pre-flight checks.
         assert fc.overview.get('carrier_id') == 12345
         assert fc.overview.get('currentStarSystem', '') == 'Sol'
         assert len(fc.itinerary) == 0
 
         fc.update(capi_data)
-        
+
         assert fc.overview.get('currentStarSystem') == 'Sol'
-        
+
         fc.save()
-        assert filecmp.cmp(harness.plugin_dir / "otherdata" / "fleetcarrier.json", 
-                           harness.plugin_dir / "config" / "fleetcarrier_capi_result.json", 
+        assert filecmp.cmp(harness.plugin_dir / "otherdata" / "fleetcarrier.json",
+                           harness.plugin_dir / "config" / "fleetcarrier_capi_result.json",
                            shallow=False)
 
     def test_stats_received_wrong_carrier(self, harness) -> None:
@@ -505,7 +505,7 @@ class TestCarrierEvents:
         fc = harness.plugin.fleet_carrier
         qty:int = 100
         assert fc.overview['fuel'] != qty
-        
+
         entry = {'CarrierID': 12345, 'Total': qty}
         fc.deposit_fuel(entry)
         assert fc.overview['fuel'] == qty
@@ -516,7 +516,7 @@ class TestCarrierEvents:
         entry = {
             'event': 'StoredShips',
             'ShipsHere': [
-                {'ShipID': 1, 'Name': 'Eagle', 'ShipType': 'Eagle', 'ShipType_Localised': 'Eagle', 
+                {'ShipID': 1, 'Name': 'Eagle', 'ShipType': 'Eagle', 'ShipType_Localised': 'Eagle',
                  'Value': 50000, 'TransferPrice': 1000, 'TransferTime': 300, 'Hot': False, 'ShipMarketID': 12345}
             ],
             'ShipsRemote': []

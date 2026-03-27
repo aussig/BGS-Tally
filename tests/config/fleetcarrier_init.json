@@ -35,7 +35,16 @@
         "normal": {}
     },
     "locker": {},
-    "itinerary": [],
+    "itinerary": [
+        {
+            "departureTime": null,
+            "arrivalTime": "2026-03-19 18:20:00",
+            "state": "success",
+            "visitDurationSeconds": 1537,
+            "starsystem": "Sol",
+            "body": "Sol"
+        }
+    ],
     "route": [],
     "shipyard": {},
     "data": {

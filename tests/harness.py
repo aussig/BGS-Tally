@@ -53,8 +53,8 @@ class TestHarness:
         self.plugin_dir:Path = Path(plugin_dir).resolve()
         self.plugin:Any = None
         # Event handlers registered by plugins
-        self.journal_handlers: list[Callable] = []        
-        self.config = MockConfig()     
+        self.journal_handlers: list[Callable] = []
+        self.config = MockConfig()
         self.set_edmc_config() # Load config data into the mock config object
         self.events:Dict[str, list] = {}
         self.set_requests_mode(live_requests)
@@ -63,14 +63,14 @@ class TestHarness:
 
         # Create Tk root for headless mode
         try:
-            if not hasattr(self, '_initialized'): 
+            if not hasattr(self, '_initialized'):
                 root:tk.Tk = tk.Tk()
                 self.parent:tk.Frame = tk.Frame(root)
                 root.withdraw()
         except Exception as e:
             print(f"Failed to create Tk root: {e}")
-        
-        self._initialized = True        
+
+        self._initialized = True
 
     def set_requests_mode(self, live_requests:bool) -> None:
         self.live_requests = live_requests
@@ -78,25 +78,47 @@ class TestHarness:
 
     def set_edmc_config(self, config_file:str = "edmc_config.json") -> None:
         # Load config
-        config_path:Path = self.plugin_dir / "config" / config_file               
+        config_path:Path = self.plugin_dir / "config" / config_file
         if not config_path.is_file():
             self.config.data = {}
             print(f"Warning: edmc's config file not found {config_path}")
         try:
             with open(config_path, 'r') as f:
-                self.config.data = json.load(f)                
+                self.config.data = json.load(f)
         except Exception as e:
             print(f"Warning: Could not load edmc config file {config_path}: {e}")
         self.config.data['app_dir_path'] = str(self.plugin_dir) # Override app_dir_path to plugin dir for testing purposes
 
-    def load_events(self, source:str) -> None:
-        """ Load journal events from events.json file. """      
+    def get_config_data(self, config_file:str) -> str|dict|None:
+        """Load and return a chosen config file"""
+
+        config_path:Path = self.plugin_dir / "config" / config_file
+        format = config_file.split('.')[1]
+        if not config_path.is_file():
+            self.config.data = {}
+            return
+        try:
+            with open(config_path, 'r') as f:
+                match format:
+                    case 'json':
+                        return json.load(f)
+                    case 'csv':
+                        #@TODO: Add csv support
+                        return None
+                    case _:
+                        return f.read()
+        except Exception as e:
+            print(f"Warning: Could not load {format} config file {config_path}: {e}")
+            return
+
+    def load_events(self, source:str) -> dict:
+        """ Load journal events from events.json file. """
 
         events_file = Path(self.plugin_dir, "config", source)
         logging.info(f"Events file: {events_file}")
         if not events_file.exists():
             print(f" Events file {events_file} not found")
-            return
+            return {}
         try:
             with open(events_file, 'r') as f:
                 tmp:dict = json.load(f)
@@ -107,37 +129,26 @@ class TestHarness:
                     lines:list = []
                     for line in elements:
                         event:dict = {}
-                        for k1, v1 in line.items():                            
-                            event[k1] = eval("f'" + v1 + "'") if isinstance(v1, str) else v1
+                        for k1, v1 in line.items():
+                            event[k1] = v1
+                            if isinstance(v1, str) and v1.startswith("delta:"):
+                                delta_seconds = int(v1.split(":")[1])
+                                event[k1] = (datetime.now(timezone.utc) + timedelta(seconds=delta_seconds)).isoformat()
+                            if isinstance(v1, str) and v1.startswith("now:"):
+                                event[k1] = datetime.now(timezone.utc).isoformat()
+                            if isinstance(v1, str) and '{' in v1 and '}' in v1:
+                                event[k1] = eval("f'" + v1 + "'")
+                            if isinstance(event[k1], str) and event[k1].isnumeric():
+                                event[k1] = int(event[k1])
                         lines.append(event)
                     res[sequence] = lines
             print(res)
             self.events = res
-                        
+            return res
+
         except Exception as e:
             print(f"Warning: Could not load {events_file}: {e}")
-
-    def get_config_data(self, config_file:str) -> str|dict|None:
-        """Load and return a chosen config file"""
-        
-        config_path:Path = self.plugin_dir / "config" / config_file               
-        format = config_file.split('.')[1]
-        if not config_path.is_file():
-            self.config.data = {}
-            return
-        try:
-            with open(config_path, 'r') as f:
-                match format:
-                    case 'json':
-                        return json.load(f)
-                    case 'csv': 
-                        #@TODO: Add csv support
-                        return None
-                    case _:
-                        return f.read()
-        except Exception as e:
-            print(f"Warning: Could not load {format} config file {config_path}: {e}")
-            return
+            return {}
 
     def register_journal_handler(self, handler: Callable, commander:str, system:str, is_beta:bool) -> None:
         """ Register a journal event handler (simulates journal_entry callback). """
@@ -172,4 +183,3 @@ class TestHarness:
         """ Fire a sequence of events """
         for event in self.events.get(name, []):
             self.fire_event(event)
-

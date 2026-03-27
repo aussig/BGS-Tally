@@ -42,7 +42,6 @@ def harness(request) -> Generator:
     plugin_start3(str(test_harness.plugin_dir))
     plugin_app(test_harness.parent)
 
-    test_harness.load_events("journal_events.json")
     test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
 
     yield test_harness

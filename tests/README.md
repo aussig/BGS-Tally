@@ -78,10 +78,26 @@ queue_response(method:str, response: MockResponse, url:str|None = None, sticky:b
 ```
 
 * `sticky` indicates the response should be for all matching requests, otherwise it's returned just once
-* `url` will match only requests with the appropriate method and matching url. If blank any request will be matched.
+* `url` will match only requests with the appropriate method and matching url. If blank any request will be matched
 
 Requests can be made live in any of the following ways:
 
 1. Initializing the harness object with `live_requests=True`, good for an entire suite of tests
 1. Adding the decorator `@pytest.mark.live_requests` to a test function, good for a single test
 1. Calling `set_requests_mode(True)` on the harness, good for changing the mode partway through a test
+
+### Mock Journal Events
+
+A journal event can be mocked simplly by calling `journal_entry` but the test harness also provides a more sophisticated solution.
+
+It works as follows:
+
+1. Sequences of journal events are loaded from a json file using `load_events`
+1. The plugin's journal handling function is registered with the harness using `register_journal_handler`
+1. A test can then fire individual events with `fire_event` or replay an entire sequence with `play_sequence`
+
+Events fired this way will be given a current timestamp and the json event file can contain f strings enabling variable data or specific timing.
+
+```json
+{ "timestamp": "delta:-900", "event":"CarrierJumpRequest", "CarrierType":"FleetCarrier", "CarrierID":"{self.plugin.fleet_carrier.overview.get('carrier_id')}", "SystemName":"Bleae Thua ZE-I b23-1", "Body":"Bleae Thua ZE-I b23-1 AB 1", "SystemAddress":2867293399241, "BodyID":12, "DepartureTime":"now:"}
+```

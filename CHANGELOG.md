@@ -12,6 +12,7 @@
 * Carrier jump cooldown completion popup and overlay notifications
 * Added support for nicely formatted Markdown files, and converted the Colonisation help to Markdown format.
 * Colonisation windows and popups remember their location and geometry
+* Added an API shortcut for the new elite-bgs.store BGS intelligence and tracking platform.
 
 ### Changes:
 

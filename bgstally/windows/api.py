@@ -34,6 +34,7 @@ class WindowAPI:
         self.image_logo_comguard = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_comguard.png"))
         self.image_logo_dcoh = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_dcoh.png"))
         self.image_logo_eic = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_eic.png"))
+        self.image_logo_elitebgs = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_elitebgs.png"))
         self.image_logo_spectrum = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_spectrum.png"))
 
 
@@ -143,6 +144,12 @@ class WindowAPI:
         frame_eic.pack(side=tk.LEFT)
         tk.Button(frame_eic, image=self.image_logo_eic, height=28, bg="Black", command=partial(self._autofill, 'eic')).pack(side=tk.TOP, padx=4)
         HyperlinkLabel(frame_eic, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
+
+        api_info = self.bgstally.config.api('elitebgs')
+        frame_elitebgs:ttk.Frame = ttk.Frame(frame_connection_buttons)
+        frame_elitebgs.pack(side=tk.LEFT)
+        tk.Button(frame_elitebgs, image=self.image_logo_elitebgs, height=28, bg="Black", command=partial(self._autofill, 'elitebgs')).pack(side=tk.TOP, padx=4)
+        HyperlinkLabel(frame_elitebgs, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
 
         api_info = self.bgstally.config.api('spectrum')
         frame_spectrum:ttk.Frame = ttk.Frame(frame_connection_buttons)

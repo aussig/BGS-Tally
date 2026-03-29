@@ -41,6 +41,7 @@ class FleetCarrier:
         self.timer:datetime|None = None
         self.load()
         self._update_route()
+        self._clean_itinerary()
 
     @catch_exceptions
     def available(self) -> bool:
@@ -388,7 +389,7 @@ class FleetCarrier:
             # Jump locked in 10 m before departure
             if 600 <= delta:
                 message += f"\n{_('Jump Initiation in')} {self._td_str(delta - 600)}" # LANG: Carrier overlay
-        
+
         if message != "":
             message = TAG_OVERLAY_HIGHLIGHT + message
 
@@ -470,9 +471,7 @@ class FleetCarrier:
     def _update_itinerary(self, data: dict) -> list:
         """ Update our local itinerary data from CAPI data structure """
 
-        Debug.logger.debug(f"Updating itinerary")
-        jumplist:list = self.itinerary
-
+        jumplist:list = deepcopy(self.itinerary)
         for jump in deepcopy(get_by_path(data, ['itinerary', 'completed'], [])):
             elem:int = next((index for (index, d) in enumerate(self.itinerary) if d['arrivalTime'] == jump.get('arrivalTime', '')), -1)
 
@@ -502,8 +501,6 @@ class FleetCarrier:
                     jumplist[elem]['body'] = self.overview['currentBody']
                 continue
 
-            # Not found
-
             # Already completed, and nothing scheduled so just add it with its details
             if jump.get('departureTime', None) != None:
                 jumplist.insert(0, jump)
@@ -529,8 +526,25 @@ class FleetCarrier:
             self.overview['departureScheduled'] = None
 
         jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)
-
         return jumplist[0:FC_MAX_JUMPS_TRACKED]
+
+
+    def _clean_itinerary(self):
+        """ Clean up the itinerary of duplicates and missing values """
+        jumplist:list = self.itinerary
+        for i, jump in enumerate(jumplist):
+            if i == 0:
+                jump['departureTime'] = None
+                jump['visitDurationSeconds'] = None
+                continue
+
+            if abs(self._td(jumplist[i-1].get('arrivalTime', ''), jump.get('arrivalTime', ''))) < 300:
+                del jumplist[i]
+
+            if jump.get('departureTime', '') in (None, ''):
+                jump['departureTime'] = jumplist[i-1]['arrivalTime']
+
+            jump['visitDurationSeconds'] = self._td(jump['departureTime'], jump['arrivalTime'])
 
 
     def _update_locker(self, data: dict) -> dict:
@@ -655,16 +669,12 @@ class FleetCarrier:
         for k, v in updates.items():
             v[0][k] = get_by_path(entry, v[1], v[2])
 
-        # Not sure if we want to do this here but the sanity check should help keep it honest
-        #self.last_modified = int(time.time())
-
         # Sanity check
         if get_by_path(entry, ['SpaceUsage', 'FreeSpace'], 0) != self._get_freespace() or \
             get_by_path(entry, ['SpaceUsage', 'CargoSpaceReserved']) != self._get_reserved():
             Debug.logger.error(f"Carrier space mismatch, clearing modification time")
             self.last_modified = 0
 
-        #self.itinerary = self._update_itinerary(self.data)
         if self.bgstally.dev_mode == True: self.save()
         self.bgstally.ui.window_fc.update_display()
 
@@ -759,7 +769,7 @@ class FleetCarrier:
     @catch_exceptions
     def carrier_location(self, entry:dict) -> None:
         """ Update the current carrier location after a jump. If we logged out we may not get this event """
-        
+
         Debug.logger.debug(f"Carrier location for {entry.get('CarrierID')} current state {self.jump_state}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
@@ -1117,12 +1127,12 @@ class FleetCarrier:
         if t1 == None or t1 == '': t1 = datetime.now(tz=UTC)
         if t2 == None or t2 == '': t2 = datetime.now(tz=UTC)
         if isinstance(t1, int): t1 = datetime.now(tz=UTC) - timedelta(seconds=t1)
-        if isinstance(t1, str): t1 = self._parse_date(t1)
         if isinstance(t2, int): t2 = datetime.now(tz=UTC) - timedelta(seconds=t2)
+        if isinstance(t1, str): t1 = self._parse_date(t1)
         if isinstance(t2, str): t2 = self._parse_date(t2)
         if t1.tzinfo is None: t1 = t1.replace(tzinfo=UTC)
         if t2.tzinfo is None: t2 = t2.replace(tzinfo=UTC)
-        return (t1 - t2).seconds
+        return int((t1 - t2).total_seconds())
 
 
     def _td_str(self, delta:timedelta|int) -> str:

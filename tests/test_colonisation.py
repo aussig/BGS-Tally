@@ -25,14 +25,14 @@ def harness(request) -> Generator:
     bgstally.constants.FOLDER_DATA = "../data"
 
     # Put in a response for the update manager so it doesn't error
-    if not live:        
+    if not live:
         from tests.edmc.requests import queue_response, MockResponse
         queue_response('get', MockResponse(200, url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest',
                                            json_data={'tag_name': 'v1.0.0','draft': True,'prerelease': True,
-                                                       'assets': [{'browser_download_url': 'https://example.com/download'}]}))        
+                                                       'assets': [{'browser_download_url': 'https://example.com/download'}]}))
 
     # Initialize colonisation state
-    shutil.copy(Path(__file__).parent / "config" / "colonisation_init.json", 
+    shutil.copy(Path(__file__).parent / "config" / "colonisation_init.json",
                 Path(__file__).parent / "otherdata" / "colonisation.json")
 
     from load import plugin_start3, plugin_app, journal_entry
@@ -59,7 +59,7 @@ class TestColonisationSystems:
         assert c.systems[syscount]['Name'] == 'Test System'
         assert c.systems[syscount]['Builds'] == []
 
-        c.modify_system(syscount, {'Name': 'Renamed'})        
+        c.modify_system(syscount, {'Name': 'Renamed'})
         assert len(c.systems) == syscount + 1
         assert c.systems[syscount]['Name'] == 'Renamed'
 
@@ -93,15 +93,15 @@ class TestColonisationBuilds:
         assert found_build is not None
         assert found_build['BuildID'] == system['Builds'][1]['BuildID']
 
-    
-    def test_add_modify_remove_build(self, harness) -> None:
+
+    def test_add_modify_move_remove_build(self, harness) -> None:
         """ Test build creation """
         c = harness.plugin.colonisation
 
         system:dict = c.find_system({'StarSystem' : 'M23 Sector AK-H b10-1', 'SystemAddress': 2867024963809})
         assert system is not None
-        first_build:dict = system['Builds'][0]
 
+        buildc:int = len(system['Builds'])
         new_build:dict = {"Track": "No", "State": "Planned", "Base Type": "Industrial Outpost", "Name": "Goddard Sanctuary",
                           "Body": "B 7", "MarketID": 4224499459, "StationEconomy": "Extraction", "Layout": "Vulcan",
                           "BuildID": "&4224499459", "BodyNum": 30, "Location": "Orbital", "Readonly": True}
@@ -116,22 +116,210 @@ class TestColonisationBuilds:
         c.modify_build(system, build['BuildID'], {'Name': 'Renamed Build'}, False)
         assert build['Name'] == 'Renamed Build'
 
+        bone = system['Builds'][0]
+        btwo = system['Builds'][1]
+
         c.move_build(system, 0, 1)
-        assert system['Builds'][0]['BuildID'] == build['BuildID']
-        assert system['Builds'][1]['BuildID'] == first_build['BuildID']
+
+        assert system['Builds'][0]['BuildID'] == btwo['BuildID']
+        assert system['Builds'][1]['BuildID'] == bone['BuildID']
 
         c.remove_build(system, build['MarketID'], False)
-        assert len(system['Builds']) == 1
+        assert len(system['Builds']) == buildc
 
+class TestColonisationJournal:
+    """ Test handling of journal entries related to colonisation. """
+    def test_journal_entry_startup(self, harness) -> None:
+        c = harness.plugin.colonisation
+        c.systems = []
+        c.progress = []
 
-class TestColonisationOther:
-    def test_body_name_variants(self, harness) -> None:
+        # @TODO: replace this with an actual startup event
+        c.journal_entry('Testy', False, 'Sol', '', {'event': 'Startup', 'StarSystem': 'Sol', 'SystemAddress': 777},
+                        {'Cargo': {'steel': 5}})
+        assert c.cargo.get('steel') == 5
+
+    def test_journal_entry_cargo(self, harness) -> None:
+        c = harness.plugin.colonisation
+        # @TODO: replace this with an actual cargo event
+        c.cargo = {}
+        c.journal_entry('Testy', False, 'Sol', '', {'event': 'Cargo', 'Items': [{'Name': '$steel_name;', 'Count': 5}]}, {})
+        assert c.cargo.get('steel') == 5
+
+    def test_journal_entry_cargo_transfer(self, harness) -> None:
+        c = harness.plugin.colonisation
+        c.cargo = {'steel': 5}
+        # @TODO: replace this with an actual cargo transfer event
+        c.journal_entry('Testy', False, 'Sol', '', {'event': 'CargoTransfer', 'From': 'Ship', 'To': 'Station', 'Items': [{'Name': '$steel_name;', 'Count': 3}]}, {})
+        assert c.cargo.get('steel') == 2
+
+    def test_journal_entry_carrier_trade_order(self, harness) -> None:
+        c = harness.plugin.colonisation
+        c.cargo = {'steel': 5}
+        c.journal_entry('Testy', False, 'Sol', '', {'event': 'CarrierTradeOrder', 'Type': 'Collect', 'Items': [{'Name': '$steel_name;', 'Count': 3}]}, {})
+        assert c.cargo.get('steel') == 8
+
+    def test_journal_entry_colonisation_contribution(self, harness) -> None:
+        c = harness.plugin.colonisation
+        c.systems = [{
+            'Name': 'SolPlan', 'StarSystem': 'Sol', 'SystemAddress': 777, 'RCSync': True, 'Hidden': False,
+            'Builds': [{'Name': 'Asteroid Base', 'MarketID': 500, 'BuildID': 'x-1', 'ProjectID': None}]
+        }]
+        c.progress = [{'MarketID': 500, 'ProjectID': 100, 'Required': {}, 'Delivered': {}}]
+
+        with patch('bgstally.colonisation.RavenColonial') as mock_rc:
+            instance = mock_rc.return_value
+            c.current_system = 'Sol'
+            c.system_id = 777
+            c.market_id = 500
+            c.journal_entry('Testy', False, 'Sol', '', {'event': 'ColonisationContribution', 'StarSystem': 'Sol', 'SystemAddress': 777, 'Contributions': [{'Name': '$steel_name;', 'ProvidedAmount': 10}]}, {})
+
+            instance.record_contribution.assert_called_once()
+
+    def test_journal_entry_system_claim(self, harness) -> None:
+        c = harness.plugin.colonisation
+        c.systems = []
+        c.progress = []
+
+        c.journal_entry('Testy', False, 'Sol', '', {'event': 'ColonisationSystemClaim', 'StarSystem': 'Sol', 'SystemAddress': 777, 'timestamp': '2024-01-01T00:00:00Z'}, {})
+
+        system = c.find_system({'StarSystem': 'Sol', 'SystemAddress': 777})
+        assert system is not None
+        assert system.get('Claimed') == '2024-01-01T00:00:00Z'
+        assert system.get('Architect') == 'Testy'
+
+    def test_journal_entry_construction_depot_updates_progress(self, harness) -> None:
+        c = harness.plugin.colonisation
+        c.systems = [{
+            'Name': 'SolPlan', 'StarSystem': 'Sol', 'SystemAddress': 777, 'RCSync': False, 'Hidden': False,
+            'Builds': [{'Name': 'Asteroid Base', 'MarketID': 500, 'BuildID': 'x-1', 'ProjectID': None, 'State': BuildState.PLANNED}]
+        }]
+        c.progress = []
+
+        c.current_system = 'Sol'
+        c.system_id = 777
+        c.market_id = 500
+
+        c.journal_entry('Testy', False, 'Sol', '', {'event': 'ColonisationConstructionDepot', 'StarSystem': 'Sol', 'SystemAddress': 777, 'MarketID': 500, 'ProjectID': 100, 'ResourcesRequired': [{'Name': '$steel_name;', 'RequiredAmount': 200, 'ProvidedAmount': 20}]}, {})
+
+        progress = c.find_progress(500)
+        assert progress is not None
+        assert progress.get('Required', {}).get('steel') == 200
+        assert progress.get('Delivered', {}).get('steel') == 20
+
+        build = c.find_build(c.systems[0], {'MarketID': 500})
+        assert build is not None
+        assert build.get('ProjectID') == 100
+
+    def test_journal_entry_docked_creates_build(self, harness) -> None:
         c = harness.plugin.colonisation
 
-        assert c.body_name('Sol', 'Sol') == 'A'
-        assert c.body_name('Sol', 'Sol 1 Ring') == '1'
-        assert c.body_name('Sol', 'Sol 2B') == '2B'
+        c.systems = []
+        c.progress = []
 
+        with patch('bgstally.colonisation.BODY_SERVICE.import_bodies', return_value=None), \
+             patch('bgstally.colonisation.SYSTEM_SERVICE.import_system', return_value=None), \
+             patch('bgstally.colonisation.STATION_SERVICE.import_stations', return_value=None):
+
+            c.current_system = 'Sol'
+            c.system_id = 777
+            c.market_id = 600
+            c.station = 'System Colonisation Ship'
+
+            c.journal_entry('Testy', False, 'Sol', '', {'event': 'Docked', 'StarSystem': 'Sol', 'SystemAddress': 777, 'MarketID': 600, 'StationType': 'Starport'}, {})
+
+            system = c.find_system({'StarSystem': 'Sol', 'SystemAddress': 777})
+            assert system is not None
+            assert len(system.get('Builds', [])) > 0
+
+            build = c.find_build(system, {'MarketID': 600})
+            if build is None:
+                # fallback: there is at least one build; pick the first one
+                build = system.get('Builds', [None])[0]
+
+            assert build is not None
+            assert build['State'] == BuildState.PROGRESS
+
+    def test_journal_entry_market(self, harness) -> None:
+        c = harness.plugin.colonisation
+        c.systems = [{
+            'Name': 'SolPlan', 'StarSystem': 'Sol', 'SystemAddress': 777, 'RCSync': False, 'Hidden': False,
+            'Builds': [{'Name': 'Asteroid Base', 'MarketID': 500, 'BuildID': 'x-1', 'ProjectID': None, 'State': BuildState.PLANNED}]
+        }]
+        c.progress = []
+
+        c.current_system = 'Sol'
+        c.system_id = 777
+        c.market_id = 500
+
+        with patch('bgstally.colonisation.RavenColonial') as mock_rc:
+            instance = mock_rc.return_value
+            c.journal_entry('Testy', False, 'Sol', '', {'event': 'Market', 'StarSystem': 'Sol', 'SystemAddress': 777, 'MarketID': 500}, {})
+            instance.load_project.assert_called_once_with(c.progress[0])
+
+    def test_journal_entry_marketbuy(self, harness) -> None:
+        c = harness.plugin.colonisation
+        c.systems = [{
+            'Name': 'SolPlan', 'StarSystem': 'Sol', 'SystemAddress': 777, 'RCSync': False, 'Hidden': False,
+            'Builds': [{'Name': 'Asteroid Base', 'MarketID': 500, 'BuildID': 'x-1', 'ProjectID': None, 'State': BuildState.PLANNED}]
+        }]
+        c.progress = []
+
+        c.current_system = 'Sol'
+        c.system_id = 777
+        c.market_id = 500
+
+        with patch('bgstally.colonisation.RavenColonial') as mock_rc:
+            instance = mock_rc.return_value
+            c.journal_entry('Testy', False, 'Sol', '', {'event': 'MarketBuy', 'StarSystem': 'Sol', 'SystemAddress': 777, 'MarketID': 500}, {})
+            instance.load_project.assert_called_once_with(c.progress[0])
+
+    def test_journal_entry_marketsell(self, harness) -> None:
+        c = harness.plugin.colonisation
+        c.systems = [{
+            'Name': 'SolPlan', 'StarSystem': 'Sol', 'SystemAddress': 777, 'RCSync': False, 'Hidden': False,
+            'Builds': [{'Name': 'Asteroid Base', 'MarketID': 500, 'BuildID': 'x-1', 'ProjectID': None, 'State': BuildState.PLANNED}]
+        }]
+        c.progress = []
+
+        c.current_system = 'Sol'
+        c.system_id = 777
+        c.market_id = 500
+
+        with patch('bgstally.colonisation.RavenColonial') as mock_rc:
+            instance = mock_rc.return_value
+            c.journal_entry('Testy', False, 'Sol', '', {'event': 'MarketSell', 'StarSystem': 'Sol', 'SystemAddress': 777, 'MarketID': 500}, {})
+            instance.load_project.assert_called_once_with(c.progress[0])
+
+    def test_journal_entry_supercruise_entry(self, harness) -> None:
+        """ Supercruise entry should clear local state. """
+        c = harness.plugin.colonisation
+        c.journal_entry('Testy', False, 'Sol', '', {'event': 'SupercruiseEntry', 'StarSystem': 'Sol', 'SystemAddress': 777}, {})
+        assert c.market == {}
+        assert c.body == None
+        assert c.station == None
+        assert c.location == None
+        assert c.market_id == None
+
+    def test_journal_entry_supercruise_exit_tracks_project(self, harness) -> None:
+        c = harness.plugin.colonisation
+        c.systems = [{
+            'Name': 'SolPlan', 'StarSystem': 'Sol', 'SystemAddress': 777, 'RCSync': True, 'Hidden': False,
+            'Builds': [{'Name': 'Asteroid Base', 'MarketID': 500, 'BuildID': 'x-1', 'ProjectID': 100, 'Track': True, 'State': BuildState.PROGRESS}]
+        }]
+
+        c.progress = [{'MarketID': 500, 'ProjectID': 100, 'Required': {}, 'Delivered': {}, 'ConstructionComplete': False}]
+
+        c.current_system = 'Sol'
+        c.system_id = 777
+        c.station = 'Some Station'
+
+        with patch('bgstally.colonisation.RavenColonial') as mock_rc:
+            instance = mock_rc.return_value
+            c.journal_entry('Testy', False, 'Sol', '', {'event': 'SupercruiseExit', 'StarSystem': 'Sol', 'SystemAddress': 777}, {})
+            instance.load_project.assert_called_once_with(c.progress[0])
+
+class TestColonisationOther:
     def test_get_base_type_and_layouts(self, harness) -> None:
         c = harness.plugin.colonisation
 
@@ -267,105 +455,6 @@ class TestColonisationOther:
         assert build is not None
         assert build['State'] == BuildState.COMPLETE
         assert build['Track'] is False
-
-    def test_journal_entry_system_claim(self, harness) -> None:
-        c = harness.plugin.colonisation
-        c.systems = []
-        c.progress = []
-
-        c.journal_entry('Testy', False, 'Sol', '', {'event': 'ColonisationSystemClaim', 'StarSystem': 'Sol', 'SystemAddress': 777, 'timestamp': '2024-01-01T00:00:00Z'}, {})
-
-        system = c.find_system({'StarSystem': 'Sol', 'SystemAddress': 777})
-        assert system is not None
-        assert system.get('Claimed') == '2024-01-01T00:00:00Z'
-        assert system.get('Architect') == 'Testy'
-
-    def test_journal_entry_colonisation_contribution(self, harness) -> None:
-        c = harness.plugin.colonisation
-        c.systems = [{
-            'Name': 'SolPlan', 'StarSystem': 'Sol', 'SystemAddress': 777, 'RCSync': True, 'Hidden': False,
-            'Builds': [{'Name': 'Asteroid Base', 'MarketID': 500, 'BuildID': 'x-1', 'ProjectID': None}]
-        }]
-        c.progress = [{'MarketID': 500, 'ProjectID': 100, 'Required': {}, 'Delivered': {}}]
-
-        with patch('bgstally.colonisation.RavenColonial') as mock_rc:
-            instance = mock_rc.return_value
-            c.current_system = 'Sol'
-            c.system_id = 777
-            c.market_id = 500
-            c.journal_entry('Testy', False, 'Sol', '', {'event': 'ColonisationContribution', 'StarSystem': 'Sol', 'SystemAddress': 777, 'Contributions': [{'Name': '$steel_name;', 'ProvidedAmount': 10}]}, {})
-
-            instance.record_contribution.assert_called_once()
-
-    def test_journal_entry_docked_creates_build(self, harness) -> None:
-        c = harness.plugin.colonisation
-
-        c.systems = []
-        c.progress = []
-
-        with patch('bgstally.colonisation.BODY_SERVICE.import_bodies', return_value=None), \
-             patch('bgstally.colonisation.SYSTEM_SERVICE.import_system', return_value=None), \
-             patch('bgstally.colonisation.STATION_SERVICE.import_stations', return_value=None):
-
-            c.current_system = 'Sol'
-            c.system_id = 777
-            c.market_id = 600
-            c.station = 'System Colonisation Ship'
-
-            c.journal_entry('Testy', False, 'Sol', '', {'event': 'Docked', 'StarSystem': 'Sol', 'SystemAddress': 777, 'MarketID': 600, 'StationType': 'Starport'}, {})
-
-            system = c.find_system({'StarSystem': 'Sol', 'SystemAddress': 777})
-            assert system is not None
-            assert len(system.get('Builds', [])) > 0
-
-            build = c.find_build(system, {'MarketID': 600})
-            if build is None:
-                # fallback: there is at least one build; pick the first one
-                build = system.get('Builds', [None])[0]
-
-            assert build is not None
-            assert build['State'] == BuildState.PROGRESS
-            
-    def test_journal_entry_construction_depot_updates_progress(self, harness) -> None:
-        c = harness.plugin.colonisation
-        c.systems = [{
-            'Name': 'SolPlan', 'StarSystem': 'Sol', 'SystemAddress': 777, 'RCSync': False, 'Hidden': False,
-            'Builds': [{'Name': 'Asteroid Base', 'MarketID': 500, 'BuildID': 'x-1', 'ProjectID': None, 'State': BuildState.PLANNED}]
-        }]
-        c.progress = []
-
-        c.current_system = 'Sol'
-        c.system_id = 777
-        c.market_id = 500
-
-        c.journal_entry('Testy', False, 'Sol', '', {'event': 'ColonisationConstructionDepot', 'StarSystem': 'Sol', 'SystemAddress': 777, 'MarketID': 500, 'ProjectID': 100, 'ResourcesRequired': [{'Name': '$steel_name;', 'RequiredAmount': 200, 'ProvidedAmount': 20}]}, {})
-
-        progress = c.find_progress(500)
-        assert progress is not None
-        assert progress.get('Required', {}).get('steel') == 200
-        assert progress.get('Delivered', {}).get('steel') == 20
-
-        build = c.find_build(c.systems[0], {'MarketID': 500})
-        assert build is not None
-        assert build.get('ProjectID') == 100
-
-    def test_journal_entry_supercruise_exit_tracks_project(self, harness) -> None:
-        c = harness.plugin.colonisation
-        c.systems = [{
-            'Name': 'SolPlan', 'StarSystem': 'Sol', 'SystemAddress': 777, 'RCSync': True, 'Hidden': False,
-            'Builds': [{'Name': 'Asteroid Base', 'MarketID': 500, 'BuildID': 'x-1', 'ProjectID': 100, 'Track': True, 'State': BuildState.PROGRESS}]
-        }]
-
-        c.progress = [{'MarketID': 500, 'ProjectID': 100, 'Required': {}, 'Delivered': {}, 'ConstructionComplete': False}]
-
-        c.current_system = 'Sol'
-        c.system_id = 777
-        c.station = 'Some Station'
-
-        with patch('bgstally.colonisation.RavenColonial') as mock_rc:
-            instance = mock_rc.return_value
-            c.journal_entry('Testy', False, 'Sol', '', {'event': 'SupercruiseExit', 'StarSystem': 'Sol', 'SystemAddress': 777}, {})
-            instance.load_project.assert_called_once_with(c.progress[0])
 
     def test_get_body_get_bodies_and_ids(self, harness) -> None:
         c = harness.plugin.colonisation

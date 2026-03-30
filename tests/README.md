@@ -107,5 +107,5 @@ It works as follows:
 Events fired this way will be given a current timestamp and the json event file can contain f strings enabling variable data or specific timing.
 
 ```json
-{ "timestamp": "delta:-900", "event":"CarrierJumpRequest", "CarrierType":"FleetCarrier", "CarrierID":"{self.plugin.fleet_carrier.overview.get('carrier_id')}", "SystemName":"Bleae Thua ZE-I b23-1", "Body":"Bleae Thua ZE-I b23-1 AB 1", "SystemAddress":2867293399241, "BodyID":12, "DepartureTime":"now:"}
+{ "event":"CarrierJumpRequest", "CarrierType":"FleetCarrier", "CarrierID":"{self.plugin.fleet_carrier.overview.get('carrier_id')}", "SystemName":"Bleae Thua ZE-I b23-1", "Body":"Bleae Thua ZE-I b23-1 AB 1", "SystemAddress":2867293399241, "BodyID":12, "DepartureTime":"now:" }
 ```

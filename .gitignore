@@ -150,3 +150,6 @@ MEMORY_BANK.md
 scripts/
 data/tmp.py
 BGS-Tally.dev.code-workspace
+tests/logs/
+tests/backups/
+tests/updates/

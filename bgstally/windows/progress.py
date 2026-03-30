@@ -41,7 +41,7 @@ class ProgressWindow:
         # These are saved in the colonisation json file.
         self.comm_width:int = 28
         self.amt_width:int = 9
-        self.bar_width:int = 500
+        self.bar_width:int = 400
         self.headings:list = [
             {
                 'Column' : 'Commodity',
@@ -190,8 +190,9 @@ class ProgressWindow:
         y.grid_rowconfigure(0, weight=1)
         y.grid_propagate(False)
 
-        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100, 
-                                                       length=int(self.bar_width*self.scale), mode='determinate')
+        self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100,
+                                                       length=int(self.bar_width*self.scale),
+                                                       mode='determinate')
         self.progtt:ToolTip = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
         self.progbar.grid(row=0, column=0, pady=0, ipady=0, sticky=tk.EW)
         self.progbar.rowconfigure(0, weight=1)
@@ -759,9 +760,11 @@ class ProgressWindow:
                 self.scrollbar.grid_forget()
             else:
                 self.scrollbar.grid(row=0, column=1, sticky=tk.NS, ipadx=0, padx=0)
-                
+
 
         if totals['Required'] > 0:
+            self.bar_width = self.progbar.master.winfo_width()
+            self.progbar.configure(length=self.bar_width)
             self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))
             self.progress = round(totals['Delivered'] * 100 / totals['Required'])
             self.progtt.text = f"{_('Progress')}: {int(self.progvar.get())}%" # LANG: tooltip for the progress bar

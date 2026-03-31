@@ -110,7 +110,8 @@ class ProgressWindow:
         self.units:list = [CommodityOrder.ALPHA, ProgressUnits.QTY, ProgressUnits.QTY, ProgressUnits.QTY]
         self.columns:list = [0, 2, 3, 5]
         self.collbls:list = [None, None, None, None] # Column headings
-        self.coltts: list = [None, None, None, None]
+        self.coltts:list = [None, None, None, None]
+        self.totals:list = [None, None, None, None]
 
         # By removing the carrier from here we remove it everywhere
         if not self.bgstally.fleet_carrier.available():
@@ -122,7 +123,7 @@ class ProgressWindow:
         self.frame:tk.Frame
         self.mkts_fr:tk.Toplevel # Markets popup window
         self.frame_row:int = 0 # Row in the parent frame
-        self.table_frame:ttk.Frame # Table frame
+        self.table_frame:tk.Frame # Table frame
         self.title:tk.Label # Title object
         self.titlett:ToolTip # Title tooltip
         self.rows:list = []
@@ -237,10 +238,36 @@ class ProgressWindow:
         row += 1; col = 0
 
         # Commodity table frame
-        table_frame:ttk.Frame = ttk.Frame(frame)
+        table_frame:tk.Frame = tk.Frame(frame)
         table_frame.grid(row=row, column=col, sticky=tk.NSEW)
         table_frame.grid_columnconfigure(0, weight=1)
         self.table_frame = table_frame
+
+        # We have to make the column less wide to fit the scrollbar in
+        if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
+            self.comm_width -= 4
+
+        row = 0
+        # Column headings
+        for col, v in enumerate(self.columns):
+            if v >= len(self.headings): v = 0
+            lbl = tk.Label(table_frame, text=self.headings[v].get('Label'), cursor='hand2')
+            if col == 0:
+                lbl.configure(width=self.comm_width, anchor=tk.W)
+            else:
+                lbl.configure(width=self.amt_width, justify=tk.RIGHT, anchor=tk.E)
+
+            if config.get_int('theme') == 0: lbl.config(foreground='black')
+            if config.get_int('theme') > 0 and self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
+                lbl.config(background='black', foreground=config.get_str('dark_text'))
+            lbl.bind("<Button-1>", partial(self.change_view, col, 'Column'))
+            lbl.bind("<Button-3>", partial(self.change_view, col, 'Units'))
+            self._set_weight(lbl)
+            lbl.grid(row=row, column=col, sticky=tk.EW if col == 0 else tk.E, padx=(0,5))
+
+            self.collbls[col] = lbl
+            self.coltts[col] = ToolTip(lbl, text=self.headings[v].get('Tooltip'))
+        row += 1
 
         # Add the scrollbar frame
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
@@ -263,42 +290,21 @@ class ProgressWindow:
 
             canvas.create_window((0, 0), window=scrollable_frame, anchor=tk.NW)
             canvas.configure(yscrollcommand=scrollbar.set)
-            canvas.grid(row=0, column=0, sticky=tk.NSEW)
+            canvas.grid(row=row, column=0, columnspan=4, sticky=tk.NSEW)
             canvas.columnconfigure(0, weight=3)
             canvas.columnconfigure(1, weight=1)
             canvas.columnconfigure(2, weight=1)
             canvas.columnconfigure(3, weight=1)
-            scrollbar.grid(row=0, column=1, sticky=tk.NS, ipadx=0, padx=0)
+            # This si done later.
+            scrollbar.grid(row=0, column=4, rowspan=3, sticky=tk.NS, ipadx=0, padx=0)
             table:tk.Frame = scrollable_frame
-            # We have to make the column less wide to fit the scrollbar in
-            self.comm_width -= 4
             self.canvas:tk.Canvas = canvas
             self.scrollbar = scrollbar
         else:
             table:tk.Frame = tk.Frame(table_frame)
-            table.grid(row=0, column=0, sticky=tk.NS)
+            table.grid(row=row, column=0, columnspan=4, sticky=tk.NS)
 
         row = 0
-        # Column headings
-        for col, v in enumerate(self.columns):
-            if v >= len(self.headings): v = 0
-            lbl = tk.Label(table, text=self.headings[v].get('Label'), cursor='hand2')
-            if col == 0:
-                lbl.configure(width=self.comm_width, anchor=tk.W)
-            else:
-                lbl.configure(width=self.amt_width, justify=tk.RIGHT, anchor=tk.E)
-
-            if config.get_int('theme') > 0 and self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
-                lbl.config(background='black', foreground=config.get_str('dark_text'))
-            lbl.bind("<Button-1>", partial(self.change_view, col, 'Column'))
-            lbl.bind("<Button-3>", partial(self.change_view, col, 'Units'))
-            self._set_weight(lbl)
-            lbl.grid(row=row, column=col, sticky=tk.EW if col == 0 else tk.E, padx=(0,5))
-
-            self.collbls[col] = lbl
-            self.coltts[col] = ToolTip(lbl, text=self.headings[v].get('Tooltip'))
-        row += 1
-
         # Go through the complete list of possible commodities and make a row for each and hide it.
         for c in self.colonisation.get_commodity_list():
             r:dict = {}
@@ -316,17 +322,15 @@ class ProgressWindow:
             self.rows.append(r)
             self.rowtts.append(ToolTip(r[0], text='Category'))
             row += 1
-        row += 1
 
+        row = 2
         # Totals at the bottom
-        r:dict = {}
         for col, v in enumerate(self.columns):
-            r[col] = tk.Label(table, text=_('Total')) # LANG: Total amounts
-            r[col].grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5), pady=(0,2))
+            self.totals[col] = tk.Label(table_frame, text=_('Total')) # LANG: Total amounts
+            self.totals[col].grid(row=row, column=col, sticky=tk.W if col == 0 else tk.E, padx=(0,5), pady=(0,2))
             if config.get_int('theme') > 0 and self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
-                r[col].config(background='black', foreground=config.get_str('dark_text'))
-            self._set_weight(r[col])
-        self.rows.append(r)
+                self.totals[col].config(background='black', foreground=config.get_str('dark_text'))
+            self._set_weight(self.totals[col])
 
         # No builds or no commodities so hide the frame entirely
         tracked:list = self.colonisation.get_tracked_builds()
@@ -747,7 +751,7 @@ class ProgressWindow:
             self._highlight_row(row, c, reqcnt, delcnt, cargo, carrier)
             rowcnt += 1
 
-        self._display_totals(self.rows[i+1], tracked, totals)
+        self._display_totals(tracked, totals)
 
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
             rows:int = min(rowcnt, int(self.bgstally.state.ColonisationMaxCommodities.get()))
@@ -759,7 +763,7 @@ class ProgressWindow:
             if rowcnt <= int(self.bgstally.state.ColonisationMaxCommodities.get())+2:
                 self.scrollbar.grid_forget()
             else:
-                self.scrollbar.grid(row=0, column=1, sticky=tk.NS, ipadx=0, padx=0)
+                self.scrollbar.grid(row=1, column=4, sticky=tk.NS, ipadx=0, padx=0)
 
 
         if totals['Required'] > 0:
@@ -771,7 +775,7 @@ class ProgressWindow:
 
 
     @catch_exceptions
-    def _display_totals(self, row:dict, tracked:list, totals:dict) -> None:
+    def _display_totals(self, tracked:list, totals:dict) -> None:
         ''' Display the totals at the bottom of the table '''
 
         # We're down to having nothing left to deliver.
@@ -783,19 +787,14 @@ class ProgressWindow:
             return
 
         for col, val in enumerate(self.columns):
-            row[col]['text'] = self._get_value(col, totals['Required'], totals['Delivered'], totals.get('Cargo',0), totals.get('Carrier', 0), totals.get('BuyOrder', 0)) if col != 0 else _("Total") # LANG: Colonisation total commodities
-            self._set_weight(row[col])
-            row[col].grid()
-
+            self.totals[col]['text'] = self._get_value(col, totals['Required'], totals['Delivered'], totals.get('Cargo',0), totals.get('Carrier', 0), totals.get('BuyOrder', 0)) if col != 0 else _("Total") # LANG: Colonisation total commodities
 
     @catch_exceptions
     def _get_value(self, col:int, required:int, delivered:int, cargo:int, carrier:int, buyorder:int) -> str:
         ''' Calculate and format the commodity amount depending on the column and the units '''
-        qty: int = 0
-        if col >= len(self.columns):
-            return ""
-        if self.columns[col] >= len(self.headings):
-            return ""
+        qty:int = 0
+        if col >= len(self.columns) or self.columns[col] >= len(self.headings):
+            return "?"
 
         which:str = self.headings[self.columns[col]].get('Column')
         match which:
@@ -807,6 +806,7 @@ class ProgressWindow:
             case 'Carrier': qty = carrier
             case 'BuyOrder': qty = buyorder
 
+        Debug.logger.debug(f"Calculating value for column {col} ({which}): {qty} (required: {required}, delivered: {delivered}, cargo: {cargo}, carrier: {carrier}, buyorder: {buyorder})")
         qty = max(qty, 0) # Never less than zero
         if self.units[col] == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
             return f"{ceil(qty / self.colonisation.cargo_capacity): >10,}{_('L')}" # LANG: Colonisation loads abbreviation

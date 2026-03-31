@@ -23,6 +23,7 @@
 * Addressed progress view column width issues on Linux.
 * Made progress scroll position only reset if height changes
 * Added a carrier itinerary cleanup to address
+* Made the title and totals stationary when the progress commodity display is scrollable
 
 ### Bug Fixes:
 

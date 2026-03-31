@@ -704,8 +704,6 @@ class ProgressWindow:
             if reqcnt - delcnt > 0: totals['Carrier'] += max(min(carrier, reqcnt - delcnt - cargo), 0)
             totals['BuyOrder'] += buyorder
 
-            #if reqcnt > 0: Debug.logger.debug(f"Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}")
-
             # We only show relevant (required) items. But.
             # If the view is reduced or minimal we don't show ones that are complete. Also.
             # If we're in minimal view we only show ones we still need to buy.
@@ -737,16 +735,16 @@ class ProgressWindow:
                 row[col].bind("<Button-1>", partial(self.link, c, None))
                 row[col].bind("<Button-2>", partial(self.link, c, sn))
                 row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(c)))
+                row[col].grid()
 
                 if col == 0:
                     # Shorten and display the commodity name
                     row[col]['text'] = str_truncate(self.colonisation.get_commodity(c), self.comm_width)
                     self.rowtts[i].text = self.colonisation.get_commodity(c, 'category')
-                    row[col].grid()
                     continue
 
                 row[col]['text'] = self._get_value(col, reqcnt, delcnt, cargo, carrier, buyorder)
-                row[col].grid()
+            Debug.logger.debug(f"Showing")
 
             self._highlight_row(row, c, reqcnt, delcnt, cargo, carrier)
             rowcnt += 1
@@ -756,15 +754,14 @@ class ProgressWindow:
         if self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON:
             rows:int = min(rowcnt, int(self.bgstally.state.ColonisationMaxCommodities.get()))
             current:int = self.canvas.winfo_height()
-            height=int((rows+2)*21*self.scale)
+            height=int(rows*21*self.scale)
             if current != height:
                 self.canvas.yview_moveto(0.0)
             self.canvas.configure(height=height)
             if rowcnt <= int(self.bgstally.state.ColonisationMaxCommodities.get())+2:
                 self.scrollbar.grid_forget()
             else:
-                self.scrollbar.grid(row=0, column=4, sticky=tk.NS, ipadx=0, padx=0)
-
+                self.scrollbar.grid(row=0, column=4, rowspan=3, sticky=tk.NS, ipadx=0, padx=0)
 
         if totals['Required'] > 0:
             self.bar_width = self.progbar.master.winfo_width()
@@ -772,7 +769,6 @@ class ProgressWindow:
             self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))
             self.progress = round(totals['Delivered'] * 100 / totals['Required'])
             self.progtt.text = f"{_('Progress')}: {int(self.progvar.get())}%" # LANG: tooltip for the progress bar
-
 
     @catch_exceptions
     def _display_totals(self, tracked:list, totals:dict) -> None:
@@ -788,6 +784,7 @@ class ProgressWindow:
 
         for col, val in enumerate(self.columns):
             self.totals[col]['text'] = self._get_value(col, totals['Required'], totals['Delivered'], totals.get('Cargo',0), totals.get('Carrier', 0), totals.get('BuyOrder', 0)) if col != 0 else _("Total") # LANG: Colonisation total commodities
+
 
     @catch_exceptions
     def _get_value(self, col:int, required:int, delivered:int, cargo:int, carrier:int, buyorder:int) -> str:

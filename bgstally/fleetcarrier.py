@@ -541,9 +541,7 @@ class FleetCarrier:
             if abs(self._td(jumplist[i-1].get('arrivalTime', ''), jump.get('arrivalTime', ''))) < 300:
                 del jumplist[i]
 
-            if jump.get('departureTime', '') in (None, ''):
-                jump['departureTime'] = jumplist[i-1]['arrivalTime']
-
+            jump['departureTime'] = jumplist[i-1]['arrivalTime']
             jump['visitDurationSeconds'] = self._td(jump['departureTime'], jump['arrivalTime'])
 
 

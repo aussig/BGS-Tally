@@ -806,7 +806,6 @@ class ProgressWindow:
             case 'Carrier': qty = carrier
             case 'BuyOrder': qty = buyorder
 
-        Debug.logger.debug(f"Calculating value for column {col} ({which}): {qty} (required: {required}, delivered: {delivered}, cargo: {cargo}, carrier: {carrier}, buyorder: {buyorder})")
         qty = max(qty, 0) # Never less than zero
         if self.units[col] == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
             return f"{ceil(qty / self.colonisation.cargo_capacity): >10,}{_('L')}" # LANG: Colonisation loads abbreviation

@@ -136,6 +136,19 @@ class MockSession:
                                  'head': {}, 'options': {}}
         self.sticky_responses = {'get': {}, 'post': {}, 'put': {}, 'patch': {}, 'delete': {},
                                  'head': {}, 'options': {}}
+
+        # Session attributes matching requests.Session
+        self.headers = {}
+        self.cookies = {}
+        self.params = {}
+        self.auth = None
+        self.proxies = {}
+        self.hooks = {}
+        self.verify = True
+        self.cert = None
+        self.timeout = None
+        self.trust_env = True
+
         self._initialized = True
 
     def _mock_request(self, method: str, url: str, **kwargs) -> MockResponse:

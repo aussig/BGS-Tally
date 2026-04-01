@@ -1,11 +1,10 @@
-import os
+import json
 import sys
 import types as _types
 import semantic_version
 import logging
 from pathlib import Path
 from unittest.mock import patch
-from tests.edmc import requests as edmc_requests
 
 # We keep a copy of edmc_data here.
 this_dir:Path = Path(__file__).parent
@@ -53,10 +52,12 @@ if 'config' not in sys.modules:
             self.data[key] = value
 
         def get_int(self, key, default=None):
-            return int(self.data.get(key, default)) #type: ignore
-        
+            value = self.data.get(key, default)
+            return int(value) if value is not None else default #type: ignore
+
         def get_str(self, key, default=None):
-            return str(self.data.get(key, default)) #type: ignore
+            value = self.data.get(key, default)
+            return value if value is not None else default
 
         def delete(self, key: str, *, suppress=False) -> None:
             if key in self.data:
@@ -65,8 +66,8 @@ if 'config' not in sys.modules:
     def appversion() -> semantic_version.Version:
         return semantic_version.Version('10.0.0')
 
-    _cfg_attrs = {'appname': 'EDMC', 
-                  'appversion': appversion, 
+    _cfg_attrs = {'appname': 'EDMC',
+                  'appversion': appversion,
                   'appcmdname': 'EDMC',
                   'app_dir_path': parent,
                   'config_logger': logging.getLogger('TestHarness'),
@@ -75,15 +76,15 @@ if 'config' not in sys.modules:
                 }
 
     _cfg = _types.ModuleType('config')
-    _cfg.config = MockConfig() # type:ignore  
-    
+    _cfg.config = MockConfig() # type:ignore
+
     for name, val in MockConfig.__dict__.items():
         if not name.startswith('__'):
             setattr(_cfg, name, val)
 
     for name, val in _cfg_attrs.items():
         setattr(_cfg, name, val)
-        
+
     sys.modules['config'] = _cfg
 
 # Minimal EDMC `theme` module emulator for direct runs (examples.py / __main__)
@@ -109,9 +110,9 @@ for name, val in MockCAPIData.__dict__.items():
 sys.modules['companion.CAPIData'] = _capidata
 
 _monitor = _types.ModuleType('EDLogs')
-class MockEDLogs:    
-    def __init__(self) -> None:        
-        pass        
+class MockEDLogs:
+    def __init__(self) -> None:
+        pass
     @staticmethod
     def is_live_galaxy() -> bool:
         return True
@@ -124,10 +125,10 @@ _monitor.monitor = MockEDLogs # type: ignore
 sys.modules['monitor'] = _monitor
 
 _plug = _types.ModuleType('Plugin')
-class MockPlugin:    
+class MockPlugin:
     def __init__(self) -> None:
         pass
-    @staticmethod        
+    @staticmethod
     def show_error(message:str) -> None:
         print(f"Plugin error: {message}")
 
@@ -142,8 +143,9 @@ _l10n.FALLBACK = 'en' # type: ignore
 _l10n.LOCALISATION_DIR = 'L10n' # type: ignore
 _translations = _types.ModuleType('Translations')
 class MockTranslations:
+    FALLBACK = 'en'
+
     def __init__(self) -> None:
-        FALLBACK = 'en'
         pass
     def translate(self, x = "", context = None, lang = None) -> str:
         return x
@@ -155,7 +157,7 @@ class MockTranslations:
     @staticmethod
     def get_system_lang() -> str:
         return 'en'
-    
+
 for name, val in MockTranslations.__dict__.items():
     if not name.startswith('__'):
         setattr(_translations, name, val)
@@ -186,10 +188,10 @@ class MockEDMCOverlay:
 class Mockedmcoverlay:
     def __init__(self): pass
     class Overlay():
-        def __init__(self): 
+        def __init__(self):
             self.messages:dict = {}
             self.shapes:dict = {}
-        
+
         def send_message(self, *args, **kw):
             msgid = args[0] if args else kw.get('msgid')
             if not msgid:
@@ -200,7 +202,7 @@ class Mockedmcoverlay:
         def send_shape(self, *args, **kw):
             if not args:
                 print("send_shape called with no positional arguments")
-                return             
+                return
             self.shapes[args[0]] = [*args, kw]
 
 _edmcoverlay = _types.ModuleType('EDMCOverlay')
@@ -235,6 +237,60 @@ for name, val in Mockoverlay_api.__dict__.items():
         setattr(_overlay_api, name, val)
 sys.modules['overlay_plugin.overlay_api'] = _overlay_api
 
+# Mock watchdog for file system monitoring
+class MockFileSystemEvent:
+    def __init__(self, event_type='', src_path=''):
+        self.event_type = event_type
+        self.src_path = src_path
+
+class MockFileSystemEventHandler:
+    def on_created(self, event): pass
+    def on_deleted(self, event): pass
+    def on_modified(self, event): pass
+    def on_moved(self, event): pass
+
+class MockBaseObserver:
+    def __init__(self): pass
+    def start(self): pass
+    def stop(self): pass
+    def join(self): pass
+    def schedule(self, event_handler, path, recursive=False): pass
+
+class MockObserver:
+    def __init__(self): pass
+    def start(self): pass
+    def stop(self): pass
+    def join(self): pass
+    def schedule(self, event_handler, path, recursive=False): pass
+
+_watchdog_events = _types.ModuleType('watchdog.events')
+_watchdog_events.FileSystemEvent = MockFileSystemEvent  # type: ignore
+_watchdog_events.FileSystemEventHandler = MockFileSystemEventHandler  # type: ignore
+sys.modules['watchdog.events'] = _watchdog_events
+
+_watchdog_observers_api = _types.ModuleType('watchdog.observers.api')
+_watchdog_observers_api.BaseObserver = MockBaseObserver  # type: ignore
+sys.modules['watchdog.observers.api'] = _watchdog_observers_api
+
+_watchdog_observers = _types.ModuleType('watchdog.observers')
+_watchdog_observers.Observer = MockObserver  # type: ignore
+sys.modules['watchdog.observers'] = _watchdog_observers
+
+_watchdog = _types.ModuleType('watchdog')
+sys.modules['watchdog'] = _watchdog
+
+from edmc_data import ship_name_map
+ship_map = ship_name_map.copy()
+
+# Ship masses
+with open(parent / "config" / "ships.json", encoding="utf-8") as ships_file_handle:
+    ships = json.load(ships_file_handle)
+
+_edshipyard = _types.ModuleType('edshipyard')
+setattr(_edshipyard, 'ship_name_map', ship_map)
+setattr(_edshipyard, 'ships', ships)
+sys.modules['edshipyard'] = _edshipyard
+
 # Monkey‑patch LogRecord.__init__ to always add 'osthreadid'
 _orig_init = logging.LogRecord.__init__
 
@@ -243,5 +299,5 @@ def _patched_init(self, name, level, fn, lno, msg, args, exc_info, func=None, si
     # Set a harmless default value
     self.osthreadid = -1
     self.qualname = 'TestHarness'
-    
+
 logging.LogRecord.__init__ = _patched_init # type: ignore

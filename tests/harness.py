@@ -114,6 +114,22 @@ class TestHarness:
             print(f"Warning: Could not load {format} config file {config_path}: {e}")
             return
 
+    def load_state(self, source:str) -> dict:
+        """ Load monitor state from a json file. """
+        state_file = Path(self.plugin_dir, "config", source)
+        logging.info(f"State file: {state_file}")
+        if not state_file.exists():
+            print(f" State file {state_file} not found")
+            return {}
+        try:
+            with open(state_file, 'r') as f:
+                state = json.load(f)
+                self.monitor.state.update(state)
+                return state
+        except Exception as e:
+            print(f"Warning: Could not load {state_file}: {e}")
+            return {}
+
     def load_events(self, source:str) -> dict:
         """ Load journal events from events.json file. """
 

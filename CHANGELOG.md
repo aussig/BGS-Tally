@@ -32,7 +32,7 @@
 * None of the objectives text was localised, which included both the objectives window and the in-game overlay. Localisation is now enabled, so translators are able to translate this text.
 * Fix intermittent font scaling issue in commodities list.
 * Fixed rare runtime error with RavenColonial responses.
-
+* Fixed the 'Force Tick' functionality which was broken by previous changes.
 
 ### API Changes ([v1.8](xxxxxxxxxxxx)):
 

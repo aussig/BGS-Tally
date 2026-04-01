@@ -85,6 +85,7 @@ class Colonisation:
         # Load base commodities, types, costs, and saved data
         self._load_base_types()
         self._load()
+        self._update_carrier()
 
 
     @catch_exceptions

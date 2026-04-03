@@ -22,6 +22,8 @@
 * Changed RavenColonial project last update call to the new /poll endpoint.
 * Addressed progress view column width issues on Linux.
 * Made progress scroll position only reset if height changes
+* Added a carrier itinerary cleanup to address
+* Made the title and totals stationary when the progress commodity display is scrollable
 
 ### Bug Fixes:
 
@@ -29,6 +31,7 @@
 * Fix for error when Raven Colonial project already exists.
 * None of the objectives text was localised, which included both the objectives window and the in-game overlay. Localisation is now enabled, so translators are able to translate this text.
 * Fix intermittent font scaling issue in commodities list.
+* Fixed rare runtime error with RavenColonial responses.
 * Fixed the 'Force Tick' functionality which was broken by previous changes.
 
 ### API Changes ([v1.8](xxxxxxxxxxxx)):

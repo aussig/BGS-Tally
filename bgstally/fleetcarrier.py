@@ -367,9 +367,9 @@ class FleetCarrier:
         message:str = ""
 
         if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
-            message = f"{_('Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
+            message = f"{_('Route Next')}: {self.route[1]['name']}" # LANG: Next system in route on carrier overlay
         if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
-            message = f"{_('Route Next')}: {self.route[0]['name']}"
+            message = f"{_('Route Next')}: {self.route[0]['name']}" # LANG: Next system in route on carrier overlay
 
         cd:str = ''; delta:int
         if self.timer != None:
@@ -381,7 +381,7 @@ class FleetCarrier:
             message = f"{_('Jump Cooldown')} {cd}" # LANG: Carrier overlay
 
         if self.jump_state == FleetCarrierJump.Jumping and delta > 0:
-            message = f"{_('Departure To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  #LANG: Carrier overlay
+            message = f"{_('Departure To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  # LANG: Carrier overlay
             if delta < 200:
                 message += f"\n{_('Landing Pads Locked down')}" # LANG: Carrier overlay
             if 200 <= delta < 600:

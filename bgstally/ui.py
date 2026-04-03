@@ -10,15 +10,14 @@ from tkinter.messagebox import askyesno
 from typing import List, Optional
 
 import myNotebook as nb
+from plugins.common_coreutils import api_keys_label_common, show_pwd_var_common
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from plugins.common_coreutils import (api_keys_label_common, PADX, PADY, BUTTONX, SEPY, show_pwd_var_common)
-
-from bgstally.activity import Activity
-from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity,
-                                UpdateUIPolicy)
+from bgstally.activity import Activity, STATES_ELECTION, STATES_WAR
+from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates,
+                                DiscordActivity, FavouriteActivity, UpdateUIPolicy)
 from bgstally.debug import Debug
-from bgstally.utils import _, available_langs, get_by_path, get_localised_filepath
+from bgstally.utils import _, available_langs, get_by_path, get_localised_filepath, human_format, catch_exceptions
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
@@ -27,6 +26,7 @@ from bgstally.windows.colonisation import ColonisationWindow
 from bgstally.windows.fleetcarrier import WindowFleetCarrier
 from bgstally.windows.legend import WindowLegend
 from bgstally.windows.objectives import WindowObjectives
+from bgstally.windows.objectives_overlay_settings import WindowObjectivesOverlaySettings
 from bgstally.windows.progress import ProgressWindow
 from config import config
 from thirdparty.tksheet import Sheet
@@ -39,6 +39,7 @@ SIZE_BUTTON_PIXELS = 30
 SIZE_STATUS_ICON_PIXELS = 16
 TIME_WORKER_PERIOD_S = 2
 TIME_TICK_ALERT_M = 60
+TIME_TICK_OBJECTIVES_REFRESH_S = 30
 URL_LATEST_RELEASE = "https://github.com/aussig/BGS-Tally/releases/latest"
 URL_WIKI = "https://github.com/aussig/BGS-Tally/wiki"
 
@@ -49,7 +50,7 @@ class UI:
 
     def __init__(self, bgstally):
         self.bgstally = bgstally
-        self.frame = None
+        self.frame: tk.Frame|None = None
 
         self.image_logo_bgstally_100 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_100x67.png"))
         self.image_logo_bgstally_16 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_16x16.png"))
@@ -73,13 +74,15 @@ class UI:
         self.image_icon_world = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_world.png"))
         self.image_icon_delete = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_delete.png"))
         self.image_icon_note = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_note.png"))
-        self.image_icon_search = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_search.png"))
+        self.image_icon_base = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_base.png"))
         self.image_icon_refresh = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_col_refresh.png"))
 
         self.indicate_activity:bool = False
-        self.report_system_address:str = None
-        self.report_cmdr_data:dict = None
-        self.warning:str = None
+        self.activity_system_address:str|None = None
+        self.info_system_address:str|None = None
+        self.info_station:dict[str, str]|None = None
+        self.report_cmdr_data:dict|None = None
+        self.warning:str|None = None
 
         # RavenColonial API key management
         self.apikey:nb.EntryMenu
@@ -90,6 +93,7 @@ class UI:
         self.window_fc:WindowFleetCarrier = WindowFleetCarrier(self.bgstally)
         self.window_legend:WindowLegend = WindowLegend(self.bgstally)
         self.window_objectives:WindowObjectives = WindowObjectives(self.bgstally)
+        self.window_objectives_overlay_settings:WindowObjectivesOverlaySettings = WindowObjectivesOverlaySettings(self.bgstally)
         self.window_colonisation:ColonisationWindow = ColonisationWindow(self.bgstally)
         self.window_progress:ProgressWindow = ProgressWindow(self.bgstally)
 
@@ -117,7 +121,7 @@ class UI:
         """
         Return a TK Frame for adding to the EDMC main window
         """
-        self.frame: tk.Frame = tk.Frame(parent_frame)
+        self.frame = tk.Frame(parent_frame)
 
         column_count: int = 3
         if self.bgstally.capi_fleetcarrier_available(): column_count += 1
@@ -149,12 +153,12 @@ class UI:
         current_column += 1
         ToolTip(self.btn_cmdrs, text=_("Show CMDR information window")) # LANG: Main window tooltip
         if self.bgstally.capi_fleetcarrier_available():
-            self.btn_carrier: tk.Button = tk.Button(self.frame, image=self.image_button_carrier, state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_fc_window)
+            self.btn_carrier: tk.Button|None = tk.Button(self.frame, image=self.image_button_carrier, state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_fc_window)
             self.btn_carrier.grid(row=current_row, column=current_column, padx=3)
             ToolTip(self.btn_carrier, text=_("Show fleet carrier window")) # LANG: Main window tooltip
             current_column += 1
         else:
-            self.btn_carrier: tk.Button = None
+            self.btn_carrier: tk.Button|None = None
 
         self.btn_objectives: tk.Button = tk.Button(self.frame, image=self.image_button_objectives, state=('normal' if self.bgstally.objectives_manager.objectives_available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_objectives_window)
         self.btn_objectives.grid(row=current_row, column=current_column, padx=3)
@@ -217,26 +221,42 @@ class UI:
         nb.Checkbutton(frame, text=_("Colonisation Active"), variable=self.bgstally.state.ColonisationStatus, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self._colonisation_change).grid(row=current_row, column=1, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences checkbox label
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text=_("Discord Options"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # Don't increment row because we want the 1st radio option to be opposite title # LANG: Preferences heading
-        nb.Checkbutton(frame, text=_("Abbreviate Faction Names"), variable=self.bgstally.state.AbbreviateFactionNames, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(frame, text=_("Show Detailed INF"), variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(frame, text=_("Include Secondary INF"), variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(frame, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(frame, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(frame, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(frame, text=_("Automatically Post BGS and TW Activity"), variable=self.bgstally.state.DiscordBGSTWAutomatic, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
+        nb.Label(frame, text=_("Discord Options"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
+        discofr = nb.Frame(frame)
+        discofr.grid(row=current_row, column=1, padx=0, sticky=tk.W); current_row += 1
+        row:int = 0; column:int = 0
+        nb.Checkbutton(discofr, text=_("Show Detailed INF"), variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=0, padx=10, sticky=tk.W)# LANG: Preferences checkbox label
+        nb.Checkbutton(discofr, text=_("Include Secondary INF"), variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=1, padx=10, sticky=tk.W); row += 1 # LANG: Preferences checkbox label
+        nb.Checkbutton(discofr, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=0, padx=10, sticky=tk.W)# LANG: Preferences checkbox label
+        nb.Checkbutton(discofr, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=row, column=1, padx=10, sticky=tk.W); row += 1 # LANG: Preferences checkbox label
+        nb.Checkbutton(discofr, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=0, padx=10, sticky=tk.W) # LANG: Preferences checkbox label
+        favourite_types: dict = {FavouriteActivity.IGNORE: _("Include all factions"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.FACTIONS: _("Include favourite factions only"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.SYSTEMS: _("Include systems containing favourite factions")} # LANG: Dropdown menu on activity window
+        var_favourite_type: tk.StringVar = tk.StringVar(value=favourite_types.get(self.bgstally.state.FavouriteActivityMode.get(), FavouriteActivity.IGNORE))
+        self.mnu_favourite_type: nb.OptionMenu = nb.OptionMenu(discofr, var_favourite_type, var_favourite_type.get(),
+                                                            *favourite_types.values(),
+                                                            command=partial(self._favourite_type_selected, favourite_types), direction='below')
+        self.mnu_favourite_type.grid(row=row, column=1, padx=10, sticky=tk.W); row += 1
+        nb.Checkbutton(discofr, text=_("Use Colonisation Plan name instead of System Name"), variable=self.bgstally.state.UseColonisationName, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=0, padx=10, sticky=tk.W); row += 1 # LANG: Preferences checkbox label
+
         nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordUsername).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
+        self.languages: dict[str|None, str] = available_langs()
+        self.language:tk.StringVar = tk.StringVar(value=self.languages.get(self.bgstally.state.discord_lang, _('Default'))) # LANG: Preferences label
+        self.formatters: dict[str|None, str] = self.bgstally.formatter_manager.get_formatters()
+        self.formatter:tk.StringVar = tk.StringVar(value=self.formatters.get(self.bgstally.state.discord_formatter, _('Default'))) # LANG: Preferences label
+        discofr2 = nb.Frame(frame)
+        discofr2.grid(row=current_row, column=1, padx=0, sticky=tk.W); current_row += 1
+        row = 0
+        EntryPlus(discofr2, textvariable=self.bgstally.state.DiscordUsername).grid(row=row, column=0, padx=10, pady=1, sticky=tk.W)
+        nb.Label(discofr2, text=_("Language for Discord Posts")).grid(row=row, column=1, padx=10, sticky=tk.W) # LANG: Preferences label
+        #nb.Label(discofr2, text=_("Post Language")).grid(row=row, column=1, padx=10, sticky=tk.W) # LANG: Preferences label
+        nb.OptionMenu(discofr2, self.language, self.language.get(), *self.languages.values(), command=self._language_modified).grid(row=row, column=2, padx=10, pady=1, sticky=tk.W)
+        nb.Label(discofr2, text=_("Format for Discord Posts")).grid(row=row, column=3, padx=(50,10), sticky=tk.W) # LANG: Preferences label
+        #nb.Label(discofr2, text=_("Post Format")).grid(row=row, column=3, padx=10, sticky=tk.W) # LANG: Preferences label
+        nb.OptionMenu(discofr2, self.formatter, self.formatter.get(), *sorted(self.formatters.values()), command=self._formatter_modified).grid(row=row, column=4, padx=10, pady=1, sticky=tk.W)
         nb.Label(frame, text=_("Discord Avatar URL")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         EntryPlus(frame, textvariable=self.bgstally.state.DiscordAvatarURL, width=80).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
-        self.languages: dict[str: str] = available_langs()
-        self.language:tk.StringVar = tk.StringVar(value=self.languages.get(self.bgstally.state.discord_lang, _('Default')))
-        self.formatters: dict[str: str] = self.bgstally.formatter_manager.get_formatters()
-        self.formatter:tk.StringVar = tk.StringVar(value=self.formatters.get(self.bgstally.state.discord_formatter, _('Default')))
-        nb.Label(frame, text=_("Language for Discord Posts")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
-        nb.OptionMenu(frame, self.language, self.language.get(), *self.languages.values(), command=self._language_modified).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
-        nb.Label(frame, text=_("Format for Discord Posts")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
-        nb.OptionMenu(frame, self.formatter, self.formatter.get(), *sorted(self.formatters.values()), command=self._formatter_modified).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("Discord Webhooks"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
@@ -263,8 +283,8 @@ class UI:
         self.sheet_webhooks.enable_bindings(('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select', 'rc_insert_row',
                             'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell', 'modified'))
         self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)
-        nb.Label(frame, text=_("To add a webhook: Right-click on a row number and select 'Insert rows above / below'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
-        nb.Label(frame, text=_("To delete a webhook: Right-click on a row number and select 'Delete rows'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1
+        nb.Label(frame, text=_("To add a webhook: Right-click on a row number and select 'Insert rows above / below'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences label
+        nb.Label(frame, text=_("To delete a webhook: Right-click on a row number and select 'Delete rows'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences label
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("In-game Overlay"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
@@ -276,7 +296,7 @@ class UI:
                        command=self.bgstally.state.refresh
                        ).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
-        nb.Label(frame, text=_("Panels")).grid(row=current_row, column=0, padx=10, sticky=tk.NW)
+        nb.Label(frame, text=_("Panels")).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences label
         overlay_options_frame_1:ttk.Frame = ttk.Frame(frame)
         overlay_options_frame_1.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(overlay_options_frame_1, text=_("Activity Indicator"), # LANG: Preferences checkbox label
@@ -314,6 +334,10 @@ class UI:
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
+        ttk.Button(overlay_options_frame_1, text="⚙", width=3,
+                   state=self.overlay_options_state(),
+                   command=partial(self.window_objectives_overlay_settings.show, parent_frame)
+                   ).pack(side=tk.LEFT, padx=(2, 0))
         overlay_options_frame_2:ttk.Frame = ttk.Frame(frame)
         overlay_options_frame_2.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
         nb.Checkbutton(overlay_options_frame_2, text=_("System Information"), # LANG: Preferences checkbox label
@@ -330,13 +354,20 @@ class UI:
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_2, text=_("Warnings"), # LANG: Preferences checkbox label
+        nb.Checkbutton(overlay_options_frame_2, text=_("Alerts and Warnings"), # LANG: Preferences checkbox label
                        variable=self.bgstally.state.EnableOverlayWarning,
                        state=self.overlay_options_state(),
                        onvalue=CheckStates.STATE_ON,
                        offvalue=CheckStates.STATE_OFF,
                        command=self.bgstally.state.refresh
                        ).pack(side=tk.LEFT)
+        nb.Checkbutton(overlay_options_frame_2, text=_("Fleetcarrier"), # LANG: Preferences checkbox label
+                    variable=self.bgstally.state.EnableOverlayCarrier,
+                    state=self.overlay_options_state(),
+                    onvalue=CheckStates.STATE_ON,
+                    offvalue=CheckStates.STATE_OFF,
+                    command=self.bgstally.state.refresh
+                    ).pack(side=tk.LEFT)
 
         if self.bgstally.overlay.edmcoverlay == None:
             nb.Label(frame, text=_("In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.")).grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences label
@@ -355,7 +386,7 @@ class UI:
         current_row += 1
         show_pwd_var_common(frame, current_row, self)
         current_row += 1
-        self.apikey_label.configure(text=_("RavenColonial API Key"))
+        self.apikey_label.configure(text=_("RavenColonial API Key")) # LANG: Preferences label
         self.apikey.configure(textvariable=self.bgstally.state.ColonisationRCAPIKey)
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
@@ -373,12 +404,29 @@ class UI:
         self._load_commodities()
 
 
-    def show_system_report(self, system_address: int):
+    def show_system_info(self, system_address: int):
         """
-        Show the system report overlay
+        Show the system info overlay
+        """
+        self.info_system_address = str(system_address)
+
+
+    def show_station_info(self, station: str, station_faction: str):
+        """Show the station info overlay
+
+        Args:
+            station (str): The station name
+            station_faction (str): The station controlling faction name
+        """
+        self.info_station = {"station": station, "faction": station_faction}
+
+
+    def show_system_activity(self, system_address: str):
+        """
+        Show the system activity overlay
         """
         self.indicate_activity = True
-        self.report_system_address = str(system_address)
+        self.activity_system_address = str(system_address)
 
 
     def show_cmdr_report(self, cmdr_data: dict):
@@ -488,6 +536,14 @@ class UI:
         self.update_plugin_frame()
 
 
+    def _favourite_type_selected(self, favourite_types: dict, value: str):
+        """The user has changed the dropdown to choose the favourite faction posting type
+        """
+        k: str = next(k for k, v in favourite_types.items() if v == value)
+        self.bgstally.state.FavouriteActivityMode.set(k)
+        self.bgstally.state.refresh
+
+    @catch_exceptions
     def _worker(self) -> None:
         """
         Handle thread work for overlay
@@ -526,11 +582,11 @@ class UI:
             minutes_delta:int = int((datetime.now(UTC) - self.bgstally.tick.next_predicted()) / timedelta(minutes=1))
             if self.bgstally.state.enable_overlay_current_tick:
                 if datetime.now(UTC) > self.bgstally.tick.next_predicted() + timedelta(minutes = TIME_TICK_ALERT_M):
-                    self.bgstally.overlay.display_message("tickwarn", _("Tick {minutes_delta}m Overdue (Estimated)").format(minutes_delta=minutes_delta), True) # Overlay tick message
+                    self.bgstally.overlay.display_message("tickwarn", _("Tick {minutes_delta}m Overdue (Estimated)").format(minutes_delta=minutes_delta), True) # LANG: Overlay overdue tick message
                 elif datetime.now(UTC) > self.bgstally.tick.next_predicted():
-                    self.bgstally.overlay.display_message("tickwarn", _("Past Estimated Tick Time"), True, text_colour_override="#FFA500") # Overlay tick message
+                    self.bgstally.overlay.display_message("tickwarn", _("Past Estimated Tick Time"), True, text_colour_override="#FFA500") # LANG: Overlay past estimated time tick message
                 elif datetime.now(UTC) > self.bgstally.tick.next_predicted() - timedelta(minutes = TIME_TICK_ALERT_M):
-                    self.bgstally.overlay.display_message("tickwarn", _("Within {minutes_to_tick}m of Next Tick (Estimated)").format(minutes_to_tick=TIME_TICK_ALERT_M), True, text_colour_override="yellow") # Overlay tick message
+                    self.bgstally.overlay.display_message("tickwarn", _("Within {minutes_to_tick}m of Next Tick (Estimated)").format(minutes_to_tick=TIME_TICK_ALERT_M), True, text_colour_override="yellow") # LANG: Overlay close to tick message
 
             # Activity Indicator
             if self.bgstally.state.enable_overlay_activity and self.indicate_activity:
@@ -539,26 +595,44 @@ class UI:
 
             # Thargoid War Progress Report
             if self.bgstally.state.enable_overlay_tw_progress and current_activity is not None:
-                current_system:dict = current_activity.get_current_system()
+                current_system:dict|None = current_activity.get_current_system()
                 if current_system and current_system.get('tw_status') is not None:
                     progress:float = float(get_by_path(current_system, ['tw_status', 'WarProgress'], 0))
                     percent:float = round(progress * 100, 2)
 
-                    self.bgstally.overlay.display_progress_bar("tw", _("TW War Progress in {current_system}: {percent}%").format(current_system=current_system.get('System', 'Unknown'), percent=percent), progress) # Overlay TW report message
+                    self.bgstally.overlay.display_progress_bar("tw", _("TW War Progress in {current_system}: {percent}%").format(current_system=current_system.get('System', 'Unknown'), percent=percent), progress) # LANG:Overlay TW report message
 
-            # System Information
+            # System Activity. Shares same overlay panel as System Info and Station Info
             if self.bgstally.state.enable_overlay_system and current_activity is not None:
-                if self.report_system_address is not None:
+                if self.activity_system_address is not None:
                     # Report recent activity in a designated system, overrides pinned systems
-                    report_system:dict = current_activity.get_system_by_address(self.report_system_address)
+                    report_system:dict|None = current_activity.get_system_by_address(self.activity_system_address)
                     if report_system is not None:
                         self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True)
-                    self.report_system_address = None
+                    self.activity_system_address = None
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
                     if pinned_systems is not None and pinned_systems != []:
                         self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
+
+            system_and_station_info:str = ""
+
+            # System Information. Shares same overlay panel as System Activity and Station Info
+            if self.info_system_address is not None and current_activity is not None:
+                report_system:dict|None = current_activity.get_system_by_address(self.info_system_address)
+                if report_system is not None:
+                    system_and_station_info = self._build_system_info(current_activity, report_system)
+                self.info_system_address = None
+
+            # Station Information. Shares same overlay panel as System Activity and System Info
+            if self.info_station is not None:
+                system_and_station_info += "\n" if system_and_station_info != "" else ""
+                system_and_station_info += self._build_station_info(self.info_station)
+                self.info_station = None
+
+            if system_and_station_info != "":
+                self.bgstally.overlay.display_message("system_info", system_and_station_info, fit_to_text=True)
 
             # CMDR Information
             if self.bgstally.state.enable_overlay_cmdr and self.report_cmdr_data is not None:
@@ -580,14 +654,54 @@ class UI:
 
             # Objectives
             if self.bgstally.state.enable_overlay_objectives and self.bgstally.objectives_manager.get_objectives() != []:
-                objectives_text: str = self.bgstally.objectives_manager.get_human_readable_objectives(False)
-                self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
+                mode: int = self.bgstally.state.overlay_objectives_mode
+                objectives_text: str = ""
+                show_objectives: bool = False
+
+                # Check if we're within TIME_TICK_OBJECTIVES_REFRESH_S  of objectives changing (for modes 0-2)
+                time_since_change: timedelta|None = None
+                if self.bgstally.objectives_manager.objectives_changed_timestamp:
+                    time_since_change = datetime.now(UTC) - self.bgstally.objectives_manager.objectives_changed_timestamp
+
+                match mode:
+                    case 0:  # Notification for new objectives
+                        if (time_since_change is not None and
+                            time_since_change.total_seconds() <= TIME_TICK_OBJECTIVES_REFRESH_S and
+                            self.bgstally.objectives_manager.objectives_change_type == "new"):
+                            objectives_text = self.bgstally.objectives_manager.get_overlay_objectives_notification()
+                            show_objectives = True
+
+                    case 1:  # Full text for new objectives
+                        if (time_since_change is not None and
+                            time_since_change.total_seconds() <= TIME_TICK_OBJECTIVES_REFRESH_S and
+                            self.bgstally.objectives_manager.objectives_change_type == "new"):
+                            objectives_text = self.bgstally.objectives_manager.get_overlay_objectives_details(use_changed_objective=True)
+                            show_objectives = True
+
+                    case 2: # Full text for new and updated objectives
+                        if time_since_change is not None and time_since_change.total_seconds() <= TIME_TICK_OBJECTIVES_REFRESH_S:
+                            objectives_text = self.bgstally.objectives_manager.get_overlay_objectives_details(use_changed_objective=True)
+                            show_objectives = True
+
+                    case 3:  # Always show top priority objective
+                        objectives_text = self.bgstally.objectives_manager.get_overlay_objectives_details(use_changed_objective=False)
+                        show_objectives = True
+
+                    case 4:  # Always show all objectives
+                        objectives_text = self.bgstally.objectives_manager.get_overlay_objectives()
+                        show_objectives = True
+
+                if show_objectives and objectives_text:
+                    self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
 
             # Colonisation
             if self.bgstally.state.enable_overlay_colonisation:
                 colonisation_text: str = self.window_progress.as_text(False)
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 
+            if self.bgstally.state.enable_overlay_carrier:
+                carrier_text: str = self.bgstally.fleet_carrier.update_overlay()
+                self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True)
 
     def _previous_ticks_popup(self):
         """
@@ -610,7 +724,7 @@ class UI:
         """
         Display the appropriate activity data window, using data from the passed in activity object
         """
-        existing_activity_window:WindowActivity = self.window_activity.get(activity.tick_id)
+        existing_activity_window:WindowActivity|None = self.window_activity.get(activity.tick_id)
         if existing_activity_window is not None:
             existing_activity_window.show(activity)
         else:
@@ -643,11 +757,13 @@ class UI:
         """
         self.window_api.show(parent_frame)
 
+
     def _show_colonisation_window(self):
         """
         Display the Colonisation Window
         """
         self.window_colonisation.show()
+
 
     def _confirm_force_tick(self):
         """
@@ -659,3 +775,67 @@ class UI:
 
         answer = askyesno(title=_("Confirm Force a New Tick"), message=message, default="no") # LANG: Preferences force tick popup title
         if answer: self.bgstally.new_tick(True, UpdateUIPolicy.IMMEDIATE)
+
+
+    def _build_system_info(self, activity: Activity, system: dict) -> str:
+        """ Build a human-readable system info string for overlay display
+
+        Args:
+            Activity (activity): The activity object containing the data
+        Returns:
+            str: The human-readable system info
+        """
+        result:str = ""
+
+        result += TAG_OVERLAY_HIGHLIGHT + _("Entered System: {system}").format(system=system.get("System", _("Unknown"))) + "\n" # LANG: System information overlay title
+
+        ordered_factions: list[dict] = activity.get_ordered_factions(system['Factions'])
+        if len(ordered_factions) == 0:
+            result += _("No factions found in system") + "\n" # LANG: System information overlay no factions
+        else:
+            controlling_faction: dict = ordered_factions[0]
+            result += _("Controlling Faction: {faction} - Influence: {influence}%").format(faction=controlling_faction.get("Faction", _("Unknown")), influence=round(controlling_faction.get("Influence", 0) * 100, 2)) + "\n" # LANG: System information overlay controlling faction
+
+            conflicts: str = ""
+            factions_handled: list = []
+
+            for faction in ordered_factions:
+                if faction.get("Faction", "") in factions_handled:
+                    continue
+                if faction.get("FactionState", "None") in STATES_ELECTION + STATES_WAR:
+                    opposing_faction: dict = system['Factions'].get(faction.get("Opponent", ""), {})
+                    conflicts += "  " + _("{state}: {faction1} vs {faction2} - {score_for}:{score_against}").format( # LANG: System information overlay conflict information
+                        state=faction.get("FactionState", _("Unknown")),  # LANG: System information overlay conflict state
+                        faction1=faction.get("Faction", _("Unknown")),  # LANG: System information overlay conflict faction
+                        faction2=opposing_faction.get("Faction", _("Unknown")), # LANG: System information overlay conflict opposing faction
+                        score_for=faction.get("Score", _("Unknown")), # LANG: System information overlay conflict score
+                        score_against=opposing_faction.get("Score", _("Unknown"))) + "\n"  # LANG: System information overlay controlling faction conflict information
+                    conflicts += "    " + _("Asset won: {stake}").format(stake=opposing_faction.get("Stake", _("Unknown"))) + "\n"  # LANG: System information overlay conflict asset at stake information
+                    conflicts += "    " + _("Asset lost: {stake}").format(stake=faction.get("Stake", _("Unknown"))) + "\n"  # LANG: System information overlay conflict asset at stake information
+                    factions_handled.append(opposing_faction.get("Faction", ""))
+
+            if conflicts != "":
+                result += _("Conflicts:") + "\n" + conflicts  # LANG: System information overlay conflicts title
+
+        result += _("Population: {population}").format(population=human_format(system.get("Population", 0))) + "\n" # LANG: System information overlay population
+        result += _("Government: {government}").format(government=system.get("Government", _("Unknown"))) + "\n" # LANG: System information overlay government
+        result += _("Security: {security}").format(security=system.get("Security", _("Unknown"))) + "\n" # LANG: System information overlay security
+
+        return result
+
+
+    def _build_station_info(self, station_info: dict[str, str]) -> str:
+        """Build a human-readable station info string for overlay display
+
+        Args:
+            station_info (dict[str, str]): Dictionary containing station name and faction name
+
+        Returns:
+            str: The human-readable station info
+        """
+        result:str = ""
+
+        result += TAG_OVERLAY_HIGHLIGHT + _("Entered Station: {station}").format(station=station_info.get("station", _("Unknown"))) + "\n" # LANG: Station information overlay title
+        result += _("Controlling Faction: {faction}").format(faction=station_info.get("faction", _("Unknown"))) + "\n" # LANG: Station information overlay controlling faction
+
+        return result

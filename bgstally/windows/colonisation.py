@@ -7,13 +7,14 @@ import tkinter as tk
 import tkinter.font as tkFont
 import traceback
 from textwrap import wrap
+from copy import deepcopy
 
 from math import ceil
 from os import path
 from tkinter import PhotoImage, messagebox, ttk
 from urllib.parse import quote
 
-from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, BuildState
+from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, BuildState, DATETIME_FORMAT_JOURNAL
 from bgstally.debug import Debug
 from bgstally.utils import _, get_localised_filepath, human_format, str_truncate, catch_exceptions
 from bgstally.ravencolonial import RavenColonial
@@ -23,8 +24,9 @@ from config import config # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
 from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key, ICON_DEL, ICON_ADD, ICON_SORT_DESC, ICON_SORT_ASC, ICON_REDO
 from thirdparty.Tooltip import ToolTip
+from thirdparty.tkrichtext import RichScrolledText
 
-FILENAME_LEGEND = "colonisation_legend.txt"
+FILENAME_LEGEND = "colonisation_legend.md"
 SUMMARY_HEADER_ROW = 0
 FIRST_SUMMARY_ROW = 1
 HEADER_ROW = 3
@@ -54,27 +56,27 @@ class ColonisationWindow:
         # Table has two sections: summary and builds. This dict defines attributes for each summary column
         self.summary_cols:dict = {
             'Track': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
-            'Architect': {'header': _("Architect"), 'background': None, 'hide': False}, # LANG: System architect heading
-            'RCOpen': {'header': _("Security"), 'background': None, 'hide': False, 'format': 'dropdown'}, # LANG: RC security
+            'Architect': {'header': _("Architect"), 'background': None, 'hide': False}, # LANG: Colonisation column heading System architect
+            'RCOpen': {'header': _("Security"), 'background': None, 'hide': False, 'format': 'dropdown'}, # LANG: Colonisation column heading RC security
             'State': {'header': "", 'background': None},
-            'Total': {'header': _("Total"), 'background': None, 'format': 'int'}, # LANG: Total number of builds
-            'Orbital': {'header': _("Orbital"), 'background': None, 'format': 'int'}, # LANG: Number of orbital/space builds
-            'Surface': {'header': _("Surface"), 'background': None, 'format': 'int'}, # LANG: Number of ground/surface builds
-            'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 2 points
-            'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Tier 3 points
-            'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max': 200000}, # LANG: Cost in tonnes of cargo
-            'Trips': {'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max': 260}, # LANG: Number of loads of cargo
+            'Total': {'header': _("Total"), 'background': None, 'format': 'int'}, # LANG: Colonisation column heading Total number of builds
+            'Orbital': {'header': _("Orbital"), 'background': None, 'format': 'int'}, # LANG: Colonisation column heading Number of orbital/space builds
+            'Surface': {'header': _("Surface"), 'background': None, 'format': 'int'}, # LANG: Colonisation column heading Number of ground/surface builds
+            'T2': {'header': _("T2"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Colonisation column heading Tier 2 points
+            'T3': {'header': _("T3"), 'background': 'rwg', 'format': 'int', 'max': 1}, # LANG: Colonisation column heading Tier 3 points
+            'Cost': {'header': _("Cost"), 'background': 'gyr', 'format': 'int', 'max': 200000}, # LANG: Colonisation column heading Cost in tonnes of cargo
+            'Trips': {'header': _("Loads"), 'background': 'gyr', 'format': 'int', 'max': 260}, # LANG: Colonisation column heading Number of loads of cargo
             'Location': {'header': "", 'background': None, 'hide': True, 'format': 'hidden'},
-            'Population': {'header': _("Pop"), 'background': None, 'hide': True, 'format': 'hidden'},
-            'Economy': {'header': _("Economy"), 'background': None, 'hide': True, 'format': 'hidden'},
-            'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population increase
-            'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Population Maximum
-            'Economy Influence': {'header': _("Econ Inf"), 'background': None, 'hide': True, 'format': 'hidden'}, # LANG: Economy influence
-            'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Security impact
-            'Technology Level' : {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Technology level
-            'Wealth' : {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Wealth impact
-            'Standard of Living' : {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Standard of living impact
-            'Development Level' : {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20} # LANG: Development level impact
+            'Population': {'header': _("Pop"), 'background': None, 'hide': True, 'format': 'hidden'}, # LANG: Colonisation column heading Population
+            'Economy': {'header': _("Economy"), 'background': None, 'hide': True, 'format': 'hidden'}, # LANG: Colonisation column heading Economy
+            'Pop Inc': {'header': _("Pop Inc"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Population increase
+            'Pop Max': {'header': _("Pop Max"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Population Maximum
+            'Economy Influence': {'header': _("Econ Inf"), 'background': None, 'hide': True, 'format': 'hidden'}, # LANG: Colonisation column heading Economy influence
+            'Security': {'header': _("Security"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Security impact
+            'Technology Level' : {'header': _("Tech Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Technology level
+            'Wealth' : {'header': _("Wealth"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Wealth impact
+            'Standard of Living' : {'header': _("SoL"), 'background': 'rwg', 'format': 'int', 'max': 20}, # LANG: Colonisation column heading Standard of living impact
+            'Development Level' : {'header': _("Dev Lvl"), 'background': 'rwg', 'format': 'int', 'max': 20} # LANG: Colonisation column heading Development level impact
         }
         # Table has two sections: summary and builds. This dict defines attributes for each build column
         self.detail_cols:dict = {
@@ -164,7 +166,7 @@ class ColonisationWindow:
         self.legend_fr:tk.Toplevel|None = None
         self.notes_fr:tk.Toplevel|None = None
         self.bases_fr:tk.Toplevel|None = None
-        self.bodies_fr:tk.Toplevel|None = None
+        self.bodies_fr:tk.Toplevel = None
         self.scale:float = 0
 
 
@@ -182,7 +184,8 @@ class ColonisationWindow:
         self.window.title(_("{plugin_name} - Colonisation").format(plugin_name=self.bgstally.plugin_name)) # LANG: window title
 
         self.window.minsize(400, 100)
-        self.window.geometry(f"{int(1500*self.scale)}x{int(500*self.scale)}")
+        geometry:str = self.colonisation.window_geometries.get('Colonisation', f"{int(1500*self.scale)}x{int(500*self.scale)}")
+        self.window.geometry(geometry)
         self.window.protocol("WM_DELETE_WINDOW", self.close)
         self._create_frames()   # Create main frames
         self.update_display()   # Populate them
@@ -214,7 +217,7 @@ class ColonisationWindow:
         if tabnum > 1:
             t:int = 1
             for t in range(1, tabnum-1):
-                Debug.logger.debug(f"{t} {self.tl.get(t)} {tabnum-1}")
+                #Debug.logger.debug(f"{t} {self.tl.get(t)} {tabnum-1}")
                 if systems[self.tl[t]].get('Hidden', True) == False:
                     break
             self.tabbar.select(t) # Select the first non-hidden system tab
@@ -276,7 +279,6 @@ class ColonisationWindow:
         while len(self.plan_titles) <= tabnum:
             self.plan_titles.append({})
 
-
         name:str = systems[sysnum].get('Name', '')
         sysname:str = systems[sysnum].get('StarSystem', '')
         if systems[sysnum].get('RCSync', False) == True:
@@ -304,19 +306,19 @@ class ColonisationWindow:
             sys_bodies.pack(side=tk.LEFT, padx=10, pady=5)
             ToolTip(sys_bodies, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
             self._set_weight(sys_bodies)
-            sys_bodies.bind("<Button-1>", partial(self.bodies_popup, tabnum))
+            sys_bodies.bind("<Button-1>", partial(self._bodies_popup, systems[sysnum]))
             sys_bodies.bind("<Button-3>", partial(self._context_menu, systems[sysnum], 'Bodies'))
 
-        allattrs:dict = {'Population': _('Population'), # HINT: Population heading
-                         'Economy' : _('Economy'), # HINT: Economy heading
-                         'Security' : _('Security')} # HINT: Security heading
+        allattrs:dict = {'Population': _('Population'), # LANG: Population heading
+                         'Economy' : _('Economy'), # LANG: Economy heading
+                         'Security' : _('Security')} # LANG: Security heading
         attrs:list = []
         for k, v in allattrs.items():
             if systems[sysnum].get(k, '') != '' and systems[sysnum].get(k, '') != None:
                 if isinstance(systems[sysnum].get(k), int):
                     attrs.append(f"{human_format(systems[sysnum].get(k))} {v}")
                 else:
-                    attrs.append(f"{systems[sysnum].get(k)} {_(v)}")
+                    attrs.append(f"{systems[sysnum].get(k)} {v}")
         details:ttk.Label = ttk.Label(title_frame, text="   ".join(attrs))
         self._set_weight(details)
         details.pack(side=tk.LEFT, padx=10, pady=5)
@@ -337,12 +339,12 @@ class ColonisationWindow:
         ToolTip(btn, text=_("Edit system plan")) # LANG: tooltip for the edit system button
         btn.pack(side=tk.RIGHT, padx=5, pady=5)
         # ⌕ ?
-        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_search, width=3, cursor="hand2", command=lambda: self.bases_popup())
+        btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_base, width=3, cursor="hand2", command=lambda: self.bases_popup())
         btn.pack(side=tk.RIGHT, padx=(5,20), pady=5)
         ToolTip(btn, text=_("Show base types window")) # LANG: tooltip for the show bases button
 
         if systems[sysnum].get('Bodies', None) != None and len(systems[sysnum]['Bodies']) > 0:
-            btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_world, width=3, cursor="hand2", command=partial(self.bodies_popup, tabnum))
+            btn:ttk.Button = ttk.Button(title_frame, image=self.bgstally.ui.image_icon_world, width=3, cursor="hand2", command=partial(self._bodies_popup, systems[sysnum]))
             btn.pack(side=tk.RIGHT, padx=5, pady=5)
             ToolTip(btn, text=_("Show system bodies window")) # LANG: tooltip for the show bodies window
 
@@ -360,12 +362,18 @@ class ColonisationWindow:
 
 
     @catch_exceptions
+    def _bodies_popup(self, system:dict, event = None) -> None:
+        """ Display the bodies popup """
+        self.bodies_popup:BodiesPopup = BodiesPopup(self, system)
+
+
+    @catch_exceptions
     def _context_menu(self, system:dict, type:str, event: tk.Event) -> None:
         """ Display the context menu when right-clicked."""
 
         menu = tk.Menu(tearoff=tk.FALSE)
         if type == 'System':
-            menu.add_command(label=_('Copy'), command=partial(self._ctc, system['StarSystem']))  # As in Copy and Paste
+            menu.add_command(label=_('Copy'), command=partial(self._ctc, system['StarSystem']))  # LANG: Copy system name to clipboard
             menu.add_separator()
 
         for which in self.links[type].keys():
@@ -386,10 +394,10 @@ class ColonisationWindow:
         if dest == '' or dest == None:
             dest = config.get_str('system_provider')
         if type not in self.links.keys():
-            Debug.logger.debug(f"Unknown link type: {type}")
+            Debug.logger.info(f"Unknown link type: {type}")
             return
         if dest not in self.links[type].keys():
-            Debug.logger.debug(f"Unknown destination: {dest}")
+            Debug.logger.info(f"Unknown destination: {dest}")
             return
         params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in data.items()}
         webbrowser.open(self.links[type][dest].format(**params))
@@ -413,8 +421,9 @@ class ColonisationWindow:
 
         self.bases_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.bases_fr.wm_title(_("{plugin_name} - Colonisation Base Types").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the base type popup window
-        self.bases_fr.geometry(f"{int(1000*self.scale)}x{int(500*self.scale)}")
-        self.bases_fr.protocol("WM_DELETE_WINDOW", self.bases_fr.destroy)
+        geometry:str = self.colonisation.window_geometries.get('Bases', f"{int(1000*self.scale)}x{int(500*self.scale)}")
+        self.bases_fr.geometry(geometry)
+        self.bases_fr.protocol("WM_DELETE_WINDOW", partial(self.close, 'Bases', self.bases_fr))
         self.bases_fr.config(bd=2, relief=tk.FLAT)
         header_fnt:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
         sheet:Sheet = Sheet(self.bases_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False, cell_auto_resize_enabled=True, height=4096,
@@ -441,8 +450,12 @@ class ColonisationWindow:
                         v:int = bt.get(name, 0)
                         if name in ['T2', 'T3']:
                             v = bt.get(name+' Reward', 0) - bt.get(name + ' Cost', 0)
-                        if name == 'Trips':
-                            v = ceil(bt['Total Comm'] / self.colonisation.cargo_capacity)
+                        if name in ('Trips', 'Total Comm'):
+                            cost:dict = self.colonisation._get_cost(bt.get('Type'))
+                            if name == 'Trips':
+                                v = ceil(sum(list(cost.values())) / self.colonisation.cargo_capacity)
+                            else:
+                                v = sum(list(cost.values()))
                         sheet[self._cell(i,j)].data = ' ' if v == 0 else f"{v:,}"
                         sheet[self._cell(i,j)].highlight(bg=self._set_background(col.get('background'), str(v), col.get('max')), redraw=False)
                     case _:
@@ -457,67 +470,6 @@ class ColonisationWindow:
 
 
     @catch_exceptions
-    def bodies_popup(self, tabnum:int, event = None) -> None:
-        ''' Show a popup with details of all the bodies in the system '''
-        if self.bodies_fr != None and self.bodies_fr.winfo_exists():
-            self.bodies_fr.destroy()
-
-        self.bodies_fr = tk.Toplevel(self.bgstally.ui.frame)
-        self.bodies_fr.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the bodies popup window
-        self.bodies_fr.minsize(600, 600)
-        self.bodies_fr.geometry(f"{int(600*self.scale)}x{int(600*self.scale)}")
-        self.bodies_fr.config(bd=2, relief=tk.FLAT)
-        scr:tk.Scrollbar = tk.Scrollbar(self.bodies_fr, orient=tk.VERTICAL)
-        scr.pack(side=tk.RIGHT, fill=tk.Y)
-        text:tk.Text = tk.Text(self.bodies_fr, font=FONT_SMALL, yscrollcommand=scr.set)
-        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
-
-        sysnum:int = self.tl[tabnum]
-        systems:list = self.colonisation.get_all_systems()
-
-        bodies:list = systems[sysnum].get('Bodies', None)
-        if bodies == None:
-            return
-
-        # Go through the bodies and format the output for display
-        bstr:str = f"{bodies[0].get('name')} - {bodies[0].get('subType')}\n\n"
-        for b in bodies[1:]:
-            indent:int = 0 if b.get('parents', None) == None else b.get('parents') * 4
-            name:str = b.get('name')
-            name = name.replace(systems[sysnum]['StarSystem'] + ' ', '')
-
-            bstr += f"{' ' * indent}{name} - {b.get('subType')}"
-            if b.get('distanceToArrival'):
-                bstr += (f", {human_format(b.get('distanceToArrival'))}Ls")
-            bstr += "\n"
-
-            attrs:list = []
-            if b.get('isLandable') == True: attrs.append(_('Landable'))
-            if b.get('rotationalPeriodTidallyLocked') == True: attrs.append(_('Tidally Locked'))
-            rings:list = []
-            for r in b.get('rings', []):
-                if r.get('type', None) != None: rings.append(r.get('type'))
-            if len(rings):
-                attrs.append(b.get('reserveLevel') + " " +_("rings") + ": " + ", ".join(rings))
-
-            if b.get('type') == 'Planet':
-                if b.get('terraformingState') == 'Terraformable': attrs.append(_("Terraformable"))
-                if b.get('atmosphereType') != 'No atmosphere' or len(attrs):
-                    astr:str = b.get('atmosphereType', 'No atmosphere')
-                    if astr != 'No atmosphere': astr += " atmosphere"
-                    attrs.append(astr)
-                if b.get('volcanismType', 'No volcanism') != 'No volcanism': attrs.append(b.get('volcanismType'))
-
-            if len(attrs) > 0:
-                bstr += f"{' ' * (indent+8)}"
-                bstr += ", ".join(attrs)
-                bstr += "\n"
-            bstr += "\n"
-
-        text.insert(tk.END, bstr)
-
-
-    @catch_exceptions
     def notes_popup(self, tabnum:int) -> None:
         ''' Show the notes popup window '''
         def savenotes(system:dict, text:tk.Text) -> None:
@@ -528,8 +480,7 @@ class ColonisationWindow:
 
             notes:str = text.get("1.0", tk.END)
             self.colonisation.modify_system(system, {'Notes': notes.strip()})
-            self.notes_fr.destroy()
-            self.notes_fr
+            self.close('Notes', self.notes_fr)
 
         sysnum:int = self.tl[tabnum]
         systems:list = self.colonisation.get_all_systems()
@@ -540,7 +491,9 @@ class ColonisationWindow:
         self.notes_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.notes_fr.wm_title(_("{plugin_name} - Colonisation Notes for {system_name}").format(plugin_name=self.bgstally.plugin_name, system_name=systems[sysnum].get('Name', ''))) # LANG: Title of the notes popup window
         self.notes_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        self.notes_fr.geometry("600x600")
+        geometry:str = self.colonisation.window_geometries.get('Notes', "600x600")
+        self.notes_fr.geometry(geometry)
+        self.notes_fr.protocol("WM_DELETE_WINDOW", partial(self.close, 'Notes', self.notes_fr))
         self.notes_fr.config(bd=2, relief=tk.FLAT)
         scr:tk.Scrollbar = tk.Scrollbar(self.notes_fr, orient=tk.VERTICAL)
         scr.pack(side=tk.RIGHT, fill=tk.Y)
@@ -562,14 +515,15 @@ class ColonisationWindow:
         self.legend_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.legend_fr.wm_title(_("{plugin_name} - Colonisation Legend").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the legend popup window
         self.legend_fr.wm_attributes('-topmost', True)     # keeps popup above everything until closed.
-        self.legend_fr.geometry(f"600x600")
+        geometry:str = self.colonisation.window_geometries.get('Legend', f"600x600")
+        self.legend_fr.geometry(geometry)
+        self.legend_fr.protocol("WM_DELETE_WINDOW", partial(self.close, 'Legend', self.legend_fr))
         self.legend_fr.config(bd=2, relief=tk.FLAT)
-        scr:tk.Scrollbar = tk.Scrollbar(self.legend_fr, orient=tk.VERTICAL)
-        scr.pack(side=tk.RIGHT, fill=tk.Y)
 
-        text:tk.Text = tk.Text(self.legend_fr, font=FONT_SMALL, yscrollcommand=scr.set)
-        text.insert(tk.END, self._load_legend())
-        text.pack(fill=tk.BOTH, side=tk.TOP, expand=True, padx=5, pady=5)
+        text:RichScrolledText = RichScrolledText(self.legend_fr, markdown=self._load_legend())
+        text.pack(fill="both", expand=True, ipadx=5, ipady=5)
+        text.fit_height()
+
 
 
     @catch_exceptions
@@ -758,14 +712,14 @@ class ColonisationWindow:
                     continue
                 match name:
                     case 'Architect':
-                        totals['Planned'][name] = system.get('Architect', _('Unknown'))
+                        totals['Planned'][name] = system.get('Architect', _('Unknown')) # LANG: Unknown system architect
                         totals['Complete'][name] = ' '
                     case 'RCOpen':
-                        totals['Planned'][name] = _('Open') if system.get('RCOpen', False) else _('Secured')
+                        totals['Planned'][name] = _('Open') if system.get('RCOpen', False) else _('Secured') # LANG: System Raven Colonial status
                         totals['Complete'][name] = ' '
                     case 'State':
-                        totals['Planned'][name] = _("Planned")
-                        totals['Complete'][name] = _("Complete")
+                        totals['Planned'][name] = _("Planned") # LANG: Planned build state
+                        totals['Complete'][name] = _("Complete") # LANG: Completed build state
                     case 'Total':
                         totals['Planned'][name] += 1
                         totals['Complete'][name] += 1 if self.is_build_complete(build) else 0
@@ -955,7 +909,7 @@ class ColonisationWindow:
                 if b != None:
                     desc = b.get('subType', 'Unknown')
                     if b.get('type') == 'Star': desc = re.sub(r".*\((.+)\).*", r"\1", desc)
-                    if 'gas giant' in b.get('subType').lower(): desc = _('Gas giant')
+                    if 'gas giant' in b.get('subType').lower(): desc = _('Gas giant') # LANG: Gas giant body
                     if b.get('subType') == 'High metal content world': desc = _('HMC world') # LANG: HMC World is a high metal content world
                     desc = str_truncate(desc, 16)
                 sheet[self._cell(i+srow,self._detcol('Body Type'))].data = desc
@@ -1326,7 +1280,9 @@ class ColonisationWindow:
 
         dialog.title(_("Edit System")) # LANG: Rename a system
         dialog.minsize(500, 250)
-        dialog.geometry(f"{int(500*self.scale)}x{int(250*self.scale)}+{btn.winfo_x()-100}+{self.window.winfo_y()+50}")
+        geometry:str = self.colonisation.window_geometries.get('EditSystem', f"{int(500*self.scale)}x{int(250*self.scale)}+{btn.winfo_x()-100}+{self.window.winfo_y()+50}")
+        dialog.geometry(geometry)
+        dialog.protocol("WM_DELETE_WINDOW", partial(self.close, 'EditSystem', dialog))
         #dialog.transient(self.window)
         dialog.config(bd=2, relief=tk.FLAT)
         dialog.grab_set()
@@ -1375,7 +1331,7 @@ class ColonisationWindow:
         cancel_button:ttk.Button = ttk.Button(
             button_frame,
             text=_("Cancel"), # LANG: Cancel button
-            command=dialog.destroy
+            command=partial(self.close, 'EditSystem', dialog)
         ) # LANG: Cancel button
         cancel_button.pack(side=tk.LEFT, padx=5)
 
@@ -1389,7 +1345,7 @@ class ColonisationWindow:
         sysnum:int = self.tl[tabnum]
 
         if not name:
-            messagebox.showerror(_("Error"), _("Plan name is required"))
+            messagebox.showerror(_("Error"), _("Plan name is required")) # LANG: Error when no plan name is given
             return
 
         data:dict = {
@@ -1405,7 +1361,7 @@ class ColonisationWindow:
         self.tabbar.notebookTab.tab(tabnum, text=name)
         self.update_react_dialog()
 
-        dialog.destroy()
+        self.close('EditSystem', dialog)
         self.update_display()
 
 
@@ -1415,9 +1371,9 @@ class ColonisationWindow:
         sysnum:int = self.tl[tabnum]
         # Confirm removal
         if not messagebox.askyesno(
-            _("Confirm Removal"),
-            _("Are you sure you want to remove this system?")
-        ): # LANG: request system removal confirmation
+            _("Confirm Removal"), # LANG: confirm system removal dialog title
+            _("Are you sure you want to remove this system?") # LANG: confirm system removal dialog text
+        ):
             return
 
         if sysnum > len(self.colonisation.get_all_systems()):
@@ -1462,13 +1418,23 @@ class ColonisationWindow:
 
 
     @catch_exceptions
-    def close(self) -> None:
+    def close(self, n:str = '', w:tk.Toplevel|None = None) -> None:
         ''' Close the window and any popups and clean up'''
-        if self.window: self.window.destroy()
-        if self.legend_fr: self.legend_fr.destroy()
-        if self.notes_fr: self.notes_fr.destroy()
-        if self.bases_fr: self.bases_fr.destroy()
-        if self.bodies_fr: self.bodies_fr.destroy()
+        # Close one window.
+        if w and w.winfo_exists():
+            self.colonisation.window_geometries[n] = w.winfo_geometry()
+            w.destroy()
+            return
+
+        # Save geometry nd close all windows
+        for n, w in {'Bodies' : self.bodies_fr,
+                     'Bases' : self.bases_fr,
+                     'Notes' : self.notes_fr,
+                     'Legend' : self.legend_fr,
+                     'Colonisation' : self.window}.items():
+            if w and w.winfo_exists():
+                self.colonisation.window_geometries[n] = w.winfo_geometry()
+                w.destroy()
 
         # UI components
         self.tabbar = None
@@ -1627,3 +1593,324 @@ class ColonisationWindow:
     def _cell(self, row:int, col:int) -> str:
         ''' Macro to shorten cell references '''
         return f"{num2alpha(col)}{row+1}"
+
+
+class BodiesPopup:
+    ''' Popup to show the bodies in a system '''
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self, parent:ColonisationWindow, system:dict) -> None:
+        ''' Show a popup with details of all the bodies in the system using a hierarchical treeview '''
+        if getattr(self, 'window', False) and self.window.winfo_exists():
+            self.window.destroy()
+
+        self.parent:ColonisationWindow = parent
+        self.system:dict = system
+        self.window:tk.Toplevel = tk.Toplevel(parent.bgstally.ui.frame)
+        self.window.wm_title(_("{plugin_name} - Colonisation Bodies").format(plugin_name=parent.bgstally.plugin_name)) # LANG: Title of the bodies popup window
+        self.window.minsize(800, 600)
+        geometry:str = parent.colonisation.window_geometries.get('Bodies', f"{int(800*parent.scale)}x{int(600*parent.scale)}")
+        self.window.geometry(geometry)
+        self.window.config(bd=2, relief=tk.FLAT)
+        # This handles geometry saving
+        parent.bodies_fr = self.window
+        self.window.protocol("WM_DELETE_WINDOW", partial(parent.close, 'Bodies', self.window))
+
+        self.images:dict = {}
+
+        # Create frame for treeview and scrollbars
+        self.tree_frame:ttk.Frame = ttk.Frame(self.window)
+        self.tree_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        vsb:ttk.Scrollbar = ttk.Scrollbar(self.tree_frame, orient=tk.VERTICAL)
+
+        self.deets_frame:ttk.Frame = ttk.Frame(self.window, height=1)
+        self.deets_frame.pack(fill=tk.BOTH, expand=False, padx=5, pady=5)
+
+        # Define columns
+        columns:dict = {
+            'Id': ['', 0, 0], # Hidden column to store bodyId for linking to builds
+            'Description': [_('Description'), 250, 200], # LANG: Column heading for body description
+            'Distance': [_('Distance'), 70, 50], # LANG: Column heading for distance
+            'Gravity': [_('Gravity'), 70, 50], # LANG: Column heading for gravity
+            'Features': [_('Features'), 70, 50], # LANG: Column heading for body features
+        }
+
+        if getattr(self, '_colonise_bodies_style_initialised', False) == False:
+            self._init_style()
+
+        # Create treeview with columns using our no-indicator style
+        self.tree:ttk.Treeview = ttk.Treeview(self.tree_frame, columns=list(columns.keys()), yscrollcommand=vsb.set,
+                                         show="tree headings", style="NoIndicator.Treeview")
+        vsb.config(command=self.tree.yview)
+        self.tree.heading('#0', text=system.get('StarSystem', ''), anchor=tk.W) # First column for body names with system name as header
+        self.tree.column('#0', width=int(250*parent.scale), minwidth=int(200*parent.scale), stretch=True) # First column for body names with fixed width
+        for col, (header, width, minwidth) in columns.items():
+             self.tree.heading(col, text=_(header)) # LANG: Column heading for body attributes
+             self.tree.column(col, width=int(width*parent.scale), minwidth=int(minwidth*parent.scale), stretch=False)
+        self.tree.config(displaycolumns=list(columns.keys())[1:]) # Hide the bodyId column
+        self.tree.bind("<<TreeviewSelect>>", self._body_row_selected)
+        # Layout scrollbars and treeview
+        self.tree.grid(row=0, column=0, sticky=tk.NSEW)
+        vsb.grid(row=0, column=1, sticky=tk.NS)
+
+        self.tree_frame.columnconfigure(0, weight=1)
+        self.tree_frame.rowconfigure(0, weight=1)
+
+        # Build the tree structure
+        self._walk_tree(self.tree, system.get('Bodies', None), system)
+
+        # Expand the root node by default
+        if len(self.tree.get_children()) > 0:
+            self.tree.item(self.tree.get_children()[0], open=True)
+
+    @catch_exceptions
+    def _init_style(self) -> None:
+        """ Setup the treeview style to remove the expand/collapse indicators. """
+
+        def _strip_indicator(lay) -> list:
+            new:list = []
+            for elem, opts in lay:
+                if 'indicator' in elem:
+                    continue
+                if 'children' in opts:
+                    opts['children'] = _strip_indicator(opts['children'])
+                new.append((elem, opts))
+            return new
+
+        style = ttk.Style()
+        blank = PhotoImage()                          # empty placeholder
+        style.element_create('NoIndicator', 'image', blank)
+        # copy the existing layout and recursively drop any indicator entries
+        layout:list = style.layout('Treeview.Item')
+        style.layout('NoIndicator.Treeview.Item', _strip_indicator(layout))
+        # eliminate any leftover indent space; the indicator is gone so the
+        # indent can be zero without affecting the visual hierarchy
+        style.configure('NoIndicator.Treeview', rowheight=int(19*self.parent.scale), font=FONT_SMALL)
+        style.configure("NoIndicator.Treeview.Heading", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background='lightgrey')
+        # keep the blank image alive
+        self._colonise_bodies_blank:PhotoImage = blank
+        self._colonise_bodies_style_initialised = True
+
+
+    @catch_exceptions
+    def _walk_tree(self, tree:ttk.Treeview, bodies:list, system:dict, parent_id:int = 0, parent_node:str = ""):
+        ''' Recursive function to walk the body list and add items to the treeview.
+            It assumes the bodies are in order of parent-child relationships and that the 'parents' attribute indicates the level of the body in the hierarchy. '''
+
+        #Debug.logger.debug(f"Walking tree with parent_id {parent_id} and parent_node {parent_node}")
+        for i, body in enumerate(bodies):
+            if body.get('parentId', 0) == parent_id:
+                #Debug.logger.warning(f"Inserting {body.get('name', '')} ({body.get('parentId', -1)}) below {parent_id} ({parent_node})")
+
+                name:str = body.get('name', '')
+                if name.startswith(system.get('StarSystem', '')) and body.get('type', '') != 'Star':
+                    name = name.replace(system.get('StarSystem', '') + ' ', '')
+
+                details:tuple = self._get_body_columns(body)
+                item:str = tree.insert(parent_node, 'end', image=self._get_body_icon(body), text=" "+name, values=details, open=True)
+                self._add_builds_to_body(tree, item, body, system)
+
+                # Step down to find any children of this body
+                self._walk_tree(tree, deepcopy(bodies[i+1:]), system, body.get('bodyId', -1), item)
+
+
+    def _get_body_icon(self, item:dict) -> PhotoImage:
+        if item.get('type', '') == 'Star' or ('Star' in item.get('subType', '') or 'Black Hole' in item.get('subType', '')):
+            imagename:str ="icon_star"
+            if 'Black' in item.get('subType', ''):
+                imagename = "icon_bh"
+            elif 'Neutron' in item.get('subType', ''):
+                imagename = "icon_neutron"
+            elif 'White Dwarf' in item.get('subType', ''):
+                imagename = "icon_wd"
+            elif 'Brown' in item.get('subType', ''):
+                imagename = "icon_bd"
+            elif 'Red' in item.get('subType', ''):
+                imagename = "icon_rd"
+            elif 'Orange' in item.get('subType', ''):
+                imagename = "icon_star"
+            elif 'Yellow' in item.get('subType', ''):
+                imagename = "icon_yellow"
+            elif 'White' in item.get('subType', ''):
+                imagename = "icon_white"
+
+        else:
+            icons:dict = {
+                "High metal content world": "icon_hmc",
+                "Icy body": "icon_ib",
+                "Rocky body": "icon_rb",
+                #"Metal-rich body": "icon_mrb",
+                "Earth-like world": "icon_elw",
+                "Ammonia world": "icon_aw",
+                "Water world": "icon_ww",
+                "Surface_Planned": "icon_surface_planned",
+                "Orbital_Planned": "icon_orbital_planned",
+                "Surface_Progress": "icon_surface_progress",
+                "Orbital_Progress": "icon_orbital_progress",
+                "Surface_Complete": "icon_surface_complete",
+                "Orbital_Complete": "icon_orbital_complete",
+                "Surface": "icon_surface",
+                "Orbital": "icon_orbital",
+                "Primary": "icon_primary"
+            }
+
+            imagename:str = "icon_planet"
+            if item.get('subType', '') in icons.keys():
+                imagename = icons[item.get('subType')]
+            elif item.get('type', '') in icons.keys():
+                imagename = icons[item.get('type')]
+            elif item.get('Primary', False) == True:
+                imagename = icons['Primary']
+            elif f"{item.get('Location', '')}_{item.get('State', '')}" in icons.keys():
+                imagename = icons[f"{item.get('Location', '')}_{item.get('State', '')}"]
+
+        if imagename in self.images.keys():
+            return self.images[imagename]
+
+        #Debug.logger.debug(f"Loading image for {item.get('name', '')} type {item.get('type', '')} subType {item.get('subType', '')} from {imagename}")
+        image:PhotoImage = PhotoImage(file = path.join(self.parent.bgstally.plugin_dir, FOLDER_ASSETS, "bodies", f"{imagename}.png"))
+        self.images[imagename] = image
+        return image
+
+
+    @catch_exceptions
+    def _get_body_columns(self, body:dict, show_distance:bool = True) -> tuple:
+        ''' Get column values for a body '''
+
+        # Type (subType)
+        body_type:str = body.get('subType', body.get('type', 'Unknown'))
+        if body.get('terraformingState', '') == 'Terraformable':
+            body_type = _("Terraformable") + " " + body_type # LANG: Terraformable body type label
+
+        # Distance
+        distance:str = ''
+        if show_distance and body.get('distanceToArrival'):
+            distance = human_format(body.get('distanceToArrival')) + 'Ls'
+        gravity:str = ''
+        if body.get('gravity', None) != None:
+            gravity = f"{body.get('gravity'):.2f}g"
+
+        features:str = ''
+        flist:list = []
+        #Debug.logger.debug(f"Calculating features for {body.get('name', '')} with features {body.get('features', [])}")
+        if 'features' in body and len(body['features']) > 0:
+            flist = [f[0].upper() for f in body['features'] if f not in ['Terraformable', 'Landable']]
+            features = " ".join(flist)
+
+        return (body.get('bodyId'), body_type, distance, gravity, features)
+
+    @catch_exceptions
+    def _add_builds_to_body(self, tree:ttk.Treeview, item:str, body:dict, system:dict) -> None:
+        for i, b in enumerate(system.get('Builds', [])):
+            if b.get('BodyNum') == body.get('bodyId'):
+                # TODO: Add build location icon (colored by build state?)
+                bt:dict = self.parent.colonisation.get_base_type(b.get('Base Type', ''))
+                bt['State'] = b.get('State', BuildState.PLANNED)
+                if i == 0: bt['Primary'] = True # Mark the first build as primary
+                #Debug.logger.debug(f"Adding build {b.get('Name', '')} to body {body.get('name', '')} {b}")
+                build = tree.insert(item, 'end', image=self._get_body_icon(bt), text=" " +b.get('Base Type', ''), \
+                                    values=(b.get('BuildID'), b.get('Name'), '', '', ''), tags=('base',))
+                tree.item(build, tags=('base',))
+                style = ttk.Style()
+                style.configure(f"base.Treeview.Item", foreground='#444444')
+                tree.tag_configure('base', foreground='#444444')
+
+
+    @catch_exceptions
+    def _body_row_selected(self, event) -> None:
+        ''' Handle body selection in the treeview '''
+        treeview:ttk.Treeview = event.widget
+        iid:str = treeview.focus()
+        values:tuple = tuple(treeview.item(iid, 'values'))
+        item:str = values[0] if len(values) > 0 else ''
+        if item == '':
+            self.deets_frame.pack_forget()
+            return
+
+        if item.isdigit():
+            body_id:int = int(item)
+            body:dict = {}
+            for b in self.system.get('Bodies', []):
+                if b.get('bodyId', -1) == body_id:
+                    body = b
+                    break
+            if body:
+                self._show_body_details(body)
+            return
+
+        build:dict = {}
+        for b in self.system.get('Builds', []):
+            if b.get('BuildID', '') == item:
+                build = b
+                break
+        if build:
+            self._show_build_details(build)
+
+    def _show_body_details(self, body:dict) -> None:
+        ''' Show the details of a body in the details frame '''
+        for widget in self.deets_frame.winfo_children():
+            widget.destroy()
+
+        #ttk.Label(self.deets_frame, text=body.get('name', ''), font=FONT_HEADING_2).grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+
+        details:list = [
+            (_("Type"), body.get('subType', '').replace(' Star', '')), # LANG: Body type label
+            (_("Distance"), human_format(body.get('distanceToArrival', 0)) + ' Ls' if body.get('distanceToArrival', None) != None else ''), # LANG: Distance from arrival label
+            (_("Solar Masses"), f"{body.get('solarMasses', 0):.2f}g" if body.get('solarMasses', None) != None else ''), # LANG: Gravity label
+            (_("Solar Radius"), f"{body.get('solarRadius', 0):.2f}" if body.get('solarRadius', None) != None else ''), # LANG: Gravity label
+            (_("Earth Masses"), f"{body.get('earthMasses', 0):.2f}" if body.get('earthMasses', None) != None else ''), # LANG: Gravity label
+            (_("Radius"), f"{body.get('radius', 0):.0f}Km" if body.get('radius', None) != None else ''), # LANG: Gravity label
+            (_("Gravity"), f"{body.get('gravity', 0):.2f}g" if body.get('gravity', None) != None else ''), # LANG: Gravity label
+            (_("Tidally Locked"), _("Yes") if 'Tidally Locked' in body.get('features', []) else ''), # LANG: Tidally locked label
+            (_("Terraformable"), body.get('terraformingState', '')), # LANG: Terraforming state label
+            (_("Landable"), _("Yes") if body.get('isLandable', False) == True else ''), # LANG: Landable label
+            (_("Atmosphere"), body.get('atmosphereType', '') if body.get('atmosphereType', 'No atmosphere') != 'No atmosphere' else ''), # LANG: Atmosphere label
+            (_("Volcanism"), body.get('volcanismType', '') if body.get('volcanismType', 'No volcanism') != 'No volcanism' else ''), # LANG: Volcanism label
+        ]
+        font_bold:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
+        row:int = 1; col:int = 0; maxcols:int = 4
+        for (label, value) in details:
+            if value == '' or value == None: continue
+            ttk.Label(self.deets_frame, text=label+":", font=font_bold).grid(row=row, column=col, padx=20, pady=5, sticky=tk.W)
+            ttk.Label(self.deets_frame, text=value, font=FONT_SMALL).grid(row=row, column=col+1, padx=(0,10), pady=5, sticky=tk.W)
+            col += 2
+            if col >= maxcols*2:
+                col = 0
+                row += 1
+
+
+    def _show_build_details(self, build:dict) -> None:
+        ''' Show the details of a build in the details frame '''
+        for widget in self.deets_frame.winfo_children():
+            widget.destroy()
+        font_bold:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
+        #ttk.Label(self.deets_frame, text=build.get('Name', ''), font=font_bold).grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+
+        bt:dict = self.parent.colonisation.get_base_type(build.get('Base Type', ''))
+        details:list = [
+            (_("Layout"), build.get('Layout', '')), # LANG: Build layout label
+            (_("Pad Size"), bt.get('Pad') if bt.get('Pad', '') != '' else _('None')), # LANG: Build pad size label
+            (_("State"), build.get('State', '')), # LANG: Build state label
+            (_("Tier"), bt.get('Tier', '')), # LANG: Build tier label
+            (_("Category"), bt.get('Category', '')), # LANG: Build category label
+            (_("Prerequisites"), bt.get('Prerequisites', '')), # LANG: Build prerequisites label
+            (_("Boosted by"), bt.get('Boosted By', '')), # LANG: Build boosted by label
+            (_("Decreased by"), bt.get('Decreased By', '')), # LANG: Build decreased by label
+            (_("Facility Economy"), bt.get('Facility Economy', '')), # LANG: Build facility economy label
+            (_("Economy Influence"), bt.get('Economy Influence', '')), # LANG: Build economy influence label
+        ]
+        font_bold:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
+
+        row:int = 1; col:int = 0; maxcols:int = 3
+        for (label, value) in details:
+            if value == '' or value == None: continue
+            ttk.Label(self.deets_frame, text=label+":", font=font_bold).grid(row=row, column=col, padx=20, pady=5, sticky=tk.W)
+            ttk.Label(self.deets_frame, text=value, font=FONT_SMALL).grid(row=row, column=col+1, padx=(0,10), pady=5, sticky=tk.W)
+            col += 2
+            if col >= maxcols*2:
+                col = 0
+                row += 1

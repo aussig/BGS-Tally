@@ -82,7 +82,7 @@ class Tick:
 
         if not success:
             Debug.logger.error(f"Unable to fetch system tick from {request.endpoint}: {response}")
-            plug.show_error(_("{plugin_name} WARNING: Unable to fetch system tick").format(plugin_name=self.bgstally.plugin_name))
+            plug.show_error(_("{plugin_name} WARNING: Unable to fetch system tick").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
             return
 
         try:
@@ -143,7 +143,7 @@ class Tick:
         Force a new tick, user-initiated
         """
         # Set the tick time to the current datetime and generate a new 24-digit tick id prefixed with "frc-" to signify a forced tick
-        self.tick_time = datetime.now()
+        self.tick_time = datetime.now(tz=UTC)
         h = hashlib.shake_128(self.get_formatted().encode("utf-8"), usedforsecurity=False)
         self.tick_id = f"frc-{h.hexdigest(10)}"
 

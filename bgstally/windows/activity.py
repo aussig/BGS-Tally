@@ -5,13 +5,12 @@ from functools import partial
 from os import path
 from tkinter import PhotoImage, ttk
 
-from ttkHyperlinkLabel import HyperlinkLabel
-
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_TITLE, FOLDER_ASSETS, FONT_HEADING_1,
                                 FONT_HEADING_2, FONT_TEXT, ApiSizeLookup, ApiSyntheticCZObjectiveType, ApiSyntheticEvent, CheckStates, CZs, DiscordActivity,
-                                DiscordChannel, DiscordPostStyle)
+                                DiscordChannel, FavouriteActivity)
 from bgstally.debug import Debug
+from bgstally.factionmanager import FactionManager
 from bgstally.formatters.base import BaseActivityFormatterInterface
 from bgstally.utils import _, __, human_format, parse_human_format
 from bgstally.widgets import DiscordAnsiColorText, EntryPlus, TextPlus
@@ -126,7 +125,15 @@ class WindowActivity:
         ttk.Checkbutton(frm_discordoptions, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         ttk.Checkbutton(frm_discordoptions, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         ttk.Checkbutton(frm_discordoptions, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
-
+        favourite_types: dict = {FavouriteActivity.IGNORE: _("Include all factions"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.FACTIONS: _("Include favourite factions only"), # LANG: Dropdown menu on activity window
+                                 FavouriteActivity.SYSTEMS: _("Include systems containing favourite factions")} # LANG: Dropdown menu on activity window
+        var_favourite_type: tk.StringVar = tk.StringVar(value=favourite_types.get(self.bgstally.state.FavouriteActivityMode.get(), FavouriteActivity.IGNORE))
+        self.mnu_favourite_type: ttk.OptionMenu = ttk.OptionMenu(frm_discordoptions, var_favourite_type, var_favourite_type.get(),
+                                                            *favourite_types.values(),
+                                                            command=partial(self._favourite_type_selected, favourite_types, activity), direction='below')
+        self.mnu_favourite_type.grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1
+        ttk.Checkbutton(frm_discordoptions, text=_("Use Colonisation Plan name instead of System Name"), variable=self.bgstally.state.UseColonisationName, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=partial(self._option_change, activity)).grid(row=current_row, column=0, padx=10, sticky=tk.W); current_row += 1 # LANG: Checkbox label
         system_list = activity.get_ordered_systems()
 
         tab_index = 0
@@ -155,9 +162,9 @@ class WindowActivity:
             if system_tick_datetime is not None:
                 system_tick_datetime = system_tick_datetime.replace(tzinfo=UTC)
                 if system_tick_datetime > activity.tick_time:
-                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime))).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime))).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1 # LANG: Label on activity window
                 else:
-                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime)), foreground=COLOUR_WARNING).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
+                    ttk.Label(frm_header, text=_("System Tick: {tick_time}").format(tick_time=self.bgstally.tick.get_formatted(DATETIME_FORMAT_TITLE, tick_time = system_tick_datetime)), foreground=COLOUR_WARNING).grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1 # LANG: Label on activity window
 
             inara_btn: ttk.Button = ttk.Button(frm_header, image=self.bgstally.ui.image_logo_inara, cursor="hand2", command=partial(self._inara_link_clicked, system['System']))
             inara_btn.grid(row=0, column=header_column, padx=2, pady=2, sticky=tk.W); header_column += 1
@@ -188,7 +195,7 @@ class WindowActivity:
                 # BGS system
                 frm_table:ttk.Frame = ttk.Frame(tab)
                 frm_table.pack(fill=tk.BOTH, side=tk.TOP, padx=5, pady=5, expand=tk.YES)
-                frm_table.columnconfigure(1, weight=1) # Make the second column (faction name) fill available space
+                frm_table.columnconfigure(2, weight=1) # Make the third column (faction name) fill available space
 
                 FactionEnableCheckbuttons: list[ttk.Checkbutton] = []
                 CartVars: list[tk.StringVar] = []
@@ -201,6 +208,7 @@ class WindowActivity:
                 ToolTip(chk_enable_all, text=_("Enable / disable all factions")) # LANG: Activity window tooltip
 
                 col: int = 1
+                ttk.Label(frm_table, text="").grid(row=0, column=col, padx=2, pady=2); col += 1
                 ttk.Label(frm_table, text=_("Faction"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
                 ttk.Label(frm_table, text="%", font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1
                 ttk.Label(frm_table, text=_("State"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title
@@ -227,7 +235,7 @@ class WindowActivity:
                 lbl_bvs: ttk.Label = ttk.Label(frm_table, text="BVs", font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for bounty vouchers
                 lbl_bvs.grid(row=0, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_bvs, text=_("Bounty vouchers")) # LANG: Activity window tooltip
-                lbl_expl: ttk.Label = ttk.Label(frm_table, text=_("Expl"), font=FONT_HEADING_2)
+                lbl_expl: ttk.Label = ttk.Label(frm_table, text=_("Expl"), font=FONT_HEADING_2) # LANG: Activity window column title, abbreviation for exploration
                 lbl_expl.grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for exploration
                 ToolTip(lbl_expl, text=_("Exploration data")) # LANG: Activity window tooltip
                 #ttk.Label(frm_table, text=_("Exo"), font=FONT_HEADING_2).grid(row=0, column=col, padx=2, pady=2); col += 1 # LANG: Activity window column title, abbreviation for exobiology
@@ -272,8 +280,8 @@ class WindowActivity:
                 lbl_spaceczpr.grid(row=1, column=col, padx=2, pady=2); col += 1
                 ToolTip(lbl_spaceczpr, text=_("In-space Conflict Zone Side Objective: Propaganda wing")) # LANG: Activity window tooltip
 
-                lbl_groundczs: ttk.Label = ttk.Label(frm_table, text=_("GroundCZs"), font=FONT_HEADING_2, anchor=tk.CENTER)
-                lbl_groundczs.grid(row=0, column=col, columnspan=3, padx=2) # LANG: Activity window column title, abbreviation for ground conflict zones
+                lbl_groundczs: ttk.Label = ttk.Label(frm_table, text=_("GroundCZs"), font=FONT_HEADING_2, anchor=tk.CENTER) # LANG: Activity window column title, abbreviation for ground conflict zones
+                lbl_groundczs.grid(row=0, column=col, columnspan=3, padx=2)
                 ToolTip(lbl_groundczs, text=_("Ground conflict zones")) # LANG: Activity window tooltip
                 lbl_groundczl: ttk.Label = ttk.Label(frm_table, text="L", font=FONT_HEADING_2)
                 lbl_groundczl.grid(row=1, column=col, padx=2, pady=2); col += 1
@@ -293,15 +301,24 @@ class WindowActivity:
                 faction_list: list = activity.get_ordered_factions(system['Factions'])
 
                 for faction in faction_list:
+                    col = 0
+
                     chk_enable = ttk.Checkbutton(frm_table)
-                    chk_enable.grid(row=x + header_rows, column=0, sticky=tk.N, padx=2, pady=2)
+                    chk_enable.grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2)
                     chk_enable.configure(command=partial(self._enable_faction_change, nb_tab, tab_index, chk_enable_all, FactionEnableCheckbuttons, activity, system, faction, x))
                     chk_enable.state(['selected', '!alternate'] if faction['Enabled'] == CheckStates.STATE_ON else ['!selected', '!alternate'])
                     ToolTip(chk_enable, text=_("Enable / disable faction")) # LANG: Activity window tooltip
                     FactionEnableCheckbuttons.append(chk_enable)
+                    col += 1
+
+                    lbl_favourite:ttk.Label = ttk.Label(frm_table, text="♥" if self.bgstally.faction_manager.is_favourite(faction['Faction']) else "♡", cursor="hand2", foreground="red")
+                    lbl_favourite.grid(row=x + header_rows, column=col, padx=2, pady=2)
+                    ToolTip(lbl_favourite, text=_("Favourite / un-favourite faction")) # LANG: Activity window tooltip
+                    lbl_favourite.bind("<Button-1>", partial(self._toggle_favourite_faction, faction['Faction'], activity, lbl_favourite))
+                    col += 1
 
                     frm_faction = ttk.Frame(frm_table)
-                    frm_faction.grid(row=x + header_rows, column=1, sticky=tk.NW)
+                    frm_faction.grid(row=x + header_rows, column=col, sticky=tk.NW)
                     lbl_faction = ttk.Label(frm_faction, text=faction['Faction'])
                     lbl_faction.grid(row=0, column=0, columnspan=2, sticky=tk.W, padx=2, pady=2)
                     lbl_faction.bind("<Button-1>", partial(self._faction_name_clicked, nb_tab, tab_index, chk_enable, chk_enable_all, FactionEnableCheckbuttons, activity, system, faction, x))
@@ -315,14 +332,15 @@ class WindowActivity:
                         lbl_settlement.grid(row=settlement_row_index, column=1, sticky=tk.W, padx=2, pady=2)
                         lbl_settlement.bind("<Button-1>", partial(self._settlement_name_clicked, chk_settlement, settlement_name, activity, faction, x))
                         settlement_row_index += 1
+                    col += 1
 
-                    col = 2
+                    ttk.Label(frm_table, text="{0:.2f}".format(faction['Influence'] * 100)).grid(row=x + header_rows, column=col, sticky=tk.N)
+                    col += 1
 
-                    ttk.Label(frm_table, text="{0:.2f}".format(faction['Influence'] * 100)).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-
-                    if (faction['FactionState'] in STATES_WAR): ttk.Label(frm_table, foreground="red", text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                    elif (faction['FactionState'] in STATES_ELECTION): ttk.Label(frm_table, foreground="orange", text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
-                    else: ttk.Label(frm_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N); col += 1
+                    if (faction['FactionState'] in STATES_WAR): ttk.Label(frm_table, foreground="red", text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N)
+                    elif (faction['FactionState'] in STATES_ELECTION): ttk.Label(frm_table, foreground="orange", text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N)
+                    else: ttk.Label(frm_table, text=faction['FactionState']).grid(row=x + header_rows, column=col, sticky=tk.N)
+                    col += 1
 
                     MissionPointsVar:tk.IntVar = tk.IntVar(value=faction['MissionPoints']['m'])
                     ttk.Spinbox(frm_table, from_=-999, to=999, width=3, textvariable=MissionPointsVar).grid(row=x + header_rows, column=col, sticky=tk.N, padx=2, pady=2); col += 1
@@ -453,6 +471,31 @@ class WindowActivity:
         """
         k: str = next(k for k, v in post_types.items() if v == value)
         self.bgstally.state.DiscordActivity.set(k)
+        self._update_discord_field(activity)
+
+
+    def _favourite_type_selected(self, favourite_types: dict, activity: Activity, value: str):
+        """The user has changed the dropdown to choose the favourite faction posting type
+        """
+        k: str = next(k for k, v in favourite_types.items() if v == value)
+        self.bgstally.state.FavouriteActivityMode.set(k)
+        self._update_discord_field(activity)
+        self.bgstally.state.refresh
+
+
+    def _toggle_favourite_faction(self, faction_name:str, activity: Activity, label:ttk.Label, *args):
+        """Toggle the favourite status of a faction
+
+        Args:
+            faction (str): The faction name
+            ttk.Label: The favourite label widget that was clicked
+        """
+        if self.bgstally.faction_manager.is_favourite(faction_name):
+            label.configure(text="♡")
+            self.bgstally.faction_manager.set_favourite(faction_name, False)
+        else:
+            label.configure(text="♥")
+            self.bgstally.faction_manager.set_favourite(faction_name, True)
         self._update_discord_field(activity)
 
 
@@ -751,11 +794,11 @@ class WindowActivity:
                 else: notebook.notebookTab.tab(tab_index, image=self.image_tab_active_disabled)
 
 
-    def _copy_to_clipboard(self, frm_container: tk.Frame, activity: Activity):
+    def _copy_to_clipboard(self, frm_container: ttk.Frame, activity: Activity):
         """Get text version of the activity and put it in the Copy buffer
 
         Args:
-            frm_container (tk.Frame): The parent tk Frame
+            frm_container (ttk.Frame): The parent ttk Frame
             activity (Activity): The Activity object
         """
         formatter: BaseActivityFormatterInterface = self.bgstally.formatter_manager.get_current_formatter()

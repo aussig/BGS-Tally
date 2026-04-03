@@ -50,6 +50,11 @@ class FleetCarrierType(str, Enum):
     SQUADRON = 'SquadronCarrier'
 
 
+class FleetCarrierJump(str, Enum):
+    Idle = 'Idle'
+    Jumping = 'Jumping'
+    Cooldown = 'Cooldown'
+
 class DiscordPostStyle(str, Enum):
     TEXT = 'Text'
     EMBED = 'Embed'
@@ -61,6 +66,10 @@ class DiscordActivity(str, Enum):
     BOTH = 'Both'      # Both BGS and Thargoid War. Others below are always posted separately.
     POWERPLAY = 'PP'
 
+class FavouriteActivity(str, Enum):
+    IGNORE = 'Ignore'
+    FACTIONS = 'Factions'
+    SYSTEMS = 'Systems'
 
 class DiscordFleetCarrier(str, Enum):
     BUYING = 'Buying'

@@ -276,9 +276,10 @@ class RavenColonial:
         if response.status_code != 200:
             Debug.logger.error(f"{url} {response} {response.content}")
 
-        # Refresh the system info
-        self.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
         Debug.logger.debug(f"RavenColonial site upserted {data.get('Name', '')} {update}")
+        # Refresh the system info
+        if system.get('SystemAddress', None) != None:
+            self.load_system(system.get('SystemAddress', ''), system.get('Rev', 0))
 
 
     @catch_exceptions
@@ -454,6 +455,18 @@ class RavenColonial:
             Debug.logger.info("Not creating project in RavenColonial")
             return
 
+        # Use /api/System/{systemAddress}/{marketid} to query for an existing project
+        # and return it if one exists already
+        Debug.logger.debug(f"{system.get('SystemAddress', '')}")
+        url:str = f"{RC_API}/system/{system.get('SystemAddress', '')}/{build.get('MarketID', '')}"
+        response:Response = requests.get(url, headers=self._headers(), timeout=5)
+        if response.status_code == 200:
+            data:dict = response.json()
+            projectid:str|None = data.get('buildId', None)
+            if projectid != None:
+                Debug.logger.info(f"Project already exists in RavenColonial {projectid}")
+                return projectid
+
         payload:dict = {}
         for k, v in self.project_params.items():
             rcval:dict|None = None
@@ -513,8 +526,10 @@ class RavenColonial:
         # Create project if we don't have an id.
         if progress.get('ProjectID', None) == None:
             projectid:str|None = self.create_project(system, build, progress)
-            if projectid != None:
-                progress['ProjectID'] = projectid
+            if projectid == None:
+                Debug.logger.error("Failed to create project in RavenColonial")
+                return
+            progress['ProjectID'] = projectid
 
         # Update project
         payload:dict = {}
@@ -567,8 +582,9 @@ class RavenColonial:
         projectid:str|None = progress.get('ProjectID', None)
         if projectid == None: return
 
-        url:str = f"{RC_API}/project/{projectid}/last"
-        response:Response = requests.get(url, headers=self._headers(), timeout=10)
+        url:str = f"{RC_API}/project/poll"
+        payload:list = [projectid]
+        response:Response = requests.post(url, headers=self._headers(), json=payload, timeout=10)
         if response.status_code != 200:
             Debug.logger.error(f"Error for {url} {response} {response.content}")
             return
@@ -577,7 +593,8 @@ class RavenColonial:
             Debug.logger.error(f"Error with load project, doesn't exist")
             return
 
-        if response.content == progress.get('Updated', ''):
+        data:dict = response.json()
+        if re.sub(r"\.\d+\+00:00$", "Z", data[projectid]) == progress.get('Updated', ''):
             return
 
         url = f"{RC_API}/project/{projectid}"
@@ -676,8 +693,8 @@ class EDSM:
         if hasattr(self, '_initialized'): return
         self._initialized = True
         # Details to retrieve for bodies from EDSM
-        self.body_details:list = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
-
+        #self.body_details:list = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
+        self.body_details:list = ['name', 'bodyId', 'type', 'subType', 'isLandable', 'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival', 'solarMasses', 'solarRadius', 'earthMasses', 'radius', 'surfaceTemperature', 'surfacePressure', 'isScoopable', 'gravity']
 
     @catch_exceptions
     def import_stations(self, system_name:str) -> None:
@@ -824,7 +841,7 @@ class EDSM:
             Debug.logger.info(f"Unknown system {system_name}")
             return
 
-        if system.get('Bodies', None) != None:
+        if system.get('Bodies', None) != None and system.get('Bodies', [{}])[0].get('parentId', None) != None:
             Debug.logger.info(f"Already have body info for {system_name}")
             return
 
@@ -850,12 +867,18 @@ class EDSM:
 
         # Only record the body details that we need since returns an enormous amount of data.
         bodies:list = []
+
+        all_body_ids:list = [b.get('bodyId', -1) for b in data.get('bodies', [])]
         for b in data.get('bodies', []):
-            v:dict = {}
+            v:dict = {'parentId': 0, 'features': []}
             for k in self.body_details:
                 if b.get(k, None): v[k] = b.get(k)
             if b.get('parents', None) != None:
-                v['parents'] = len(b.get('parents', []))
+                # Find the first parent that we have a body record for
+                for p in b.get('parents', []):
+                    if p.values() != [] and list(p.values())[0] in all_body_ids:
+                        v['parentId'] = list(p.values())[0]
+                        break
 
             if b.get('belts', None) != None:
                 for belt in b.get('belts', []):
@@ -863,10 +886,25 @@ class EDSM:
                         v['rings'] = v.get('rings', 0) + 1
 
                 v['belts'] = len(b.get('belts', []))
+
+
+            # Terraformable
+            if b.get('terraformingState', '') == 'Terraformable': v['features'].append(_('Terraformable')) # LANG: Terraformable body feature label
+            # Tidally locked
+            if b.get('rotationalPeriodTidallyLocked') == True: v['features'].append(_('Tidally Locked')) # LANG: Tidally locked body
+            # Atmosphere
+            if b.get('atmosphereType', 'No atmosphere') != 'No atmosphere': v['features'].append(_('Atmosphere')) # LANG: Atmosphere body feature label
+            # Landable
+            if b.get('isLandable') == True: v['features'].append(_('Landable')) # LANG: Landable body feature label
+            # Volcanism
+            if b.get('type') == 'Planet' and b.get('volcanismType', 'No volcanism') != 'No volcanism': v['features'].append(_('Geological')) # LANG: Volcanism  (Geo) body feature label
+            # Rings
+            if b.get('rings', []) != []: v['features'].append(_('Rings')) # LANG: Rings body feature label
+
             bodies.append(v)
 
+        bodies[0]['parentId'] = 0 # The first star has no parent, set to 0 for ease of use later.
         RavenColonial(self).colonisation.modify_system(system, {'Bodies' : bodies})
-
 
 
 class Spansh:

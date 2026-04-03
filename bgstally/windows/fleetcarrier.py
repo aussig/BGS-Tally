@@ -3,7 +3,7 @@ from functools import partial
 from tkinter import ttk
 
 #from bgstally.bgstally import BGSTally
-from bgstally.constants import DATETIME_FORMAT_CARRIER, FONT_SMALL, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
+from bgstally.constants import DATETIME_FORMAT_CARRIER, FONT_SMALL, FONT_HEADING_1, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.utils import _, __, hfplus, str_truncate, catch_exceptions
 from bgstally.widgets import TreeviewPlus, AutoCompleter, Placeholder
@@ -26,6 +26,8 @@ class WindowFleetCarrier:
         self.window:tk.Toplevel|None = None
         self.frame:ttk.Frame
         self.itineraryfr:ttk.Frame
+        self.summfr:ttk.Frame|None = None
+        self.tabbar:ScrollableNotebook|None = None
         self.scale:float = 1.0
 
         self.tabs:dict = {
@@ -124,7 +126,9 @@ class WindowFleetCarrier:
         self.window = tk.Toplevel(self.bgstally.ui.frame)
         self.window.title(_("{plugin_name} - Carrier {carrier_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=self.bgstally.fleet_carrier.overview.get('name'))) # LANG: Carrier window title
         self.window.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
-        self.window.geometry(f"{int(850*self.scale)}x{int(550*self.scale)}")
+        geometry:str = self.bgstally.fleet_carrier.window_geometries.get('Carrier', f"{int(850*self.scale)}x{int(550*self.scale)}")
+        self.window.geometry(geometry)
+        self.window.protocol("WM_DELETE_WINDOW", self.close)
 
         self.frame = ttk.Frame(self.window)
         if not config.get_bool('capi_fleetcarrier'):
@@ -139,34 +143,60 @@ class WindowFleetCarrier:
         if self.window == None or not self.window.winfo_exists(): return
 
         # Clear existing contents
-        for w in self.frame.winfo_children(): w.destroy()
+        #for w in self.frame.winfo_children(): w.destroy()
 
         self._show_overview(self.bgstally.fleet_carrier, self.frame)
         self._create_tabs(self.bgstally.fleet_carrier, self.frame)
 
+    def close(self, n:str = '', w:tk.Toplevel|None = None) -> None:
+        ''' Close the window and any popups and clean up'''
+        # Close one window.
+        if w and w.winfo_exists():
+            self.bgstally.fleet_carrier.window_geometries['Alert'] = w.winfo_geometry()
+            w.destroy()
+            return
+
+        if self.window and self.window.winfo_exists():
+            self.bgstally.fleet_carrier.window_geometries['Carrier'] = self.window.winfo_geometry()
+            self.window.destroy()
+
+        # UI components
+        self.summfr = None
+        self.tabbar = None
+        for k, v in self.tabs.items():
+            v['fr'] = None
+
 
     def _show_overview(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
         """ Show the Fleet Carrier overview tab """
-        summ:ttk.Frame = ttk.Frame(frame)
-        summ.pack(fill=tk.X)
-        self._create_columns(fc.get_overview(), 3, summ)
+        if self.summfr == None:
+            self.summfr = ttk.Frame(frame)
+            self.summfr.pack(fill=tk.X)
+        self._create_columns(fc.get_overview(), 3, self.summfr)
 
 
     def _create_tabs(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
         """ Create and populate the Fleet Carrier tabs """
 
-        style:ttk.Style = ttk.Style()
-        style.configure("White.TNotebook.Tab", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), padding=[10, 5], background='green')
-        tabbar:ScrollableNotebook = ScrollableNotebook(frame, wheelscroll=True, tabmenu=False, style='White.TNotebook')
-        tabbar.pack(fill=tk.X, padx=5, pady=5)
+        # Only create this once.
+        if self.tabbar == None:
+            style:ttk.Style = ttk.Style()
+            style.configure("White.TNotebook.Tab", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), padding=[10, 5], background='green')
+            self.tabbar = ScrollableNotebook(frame, wheelscroll=True, tabmenu=False, style='White.TNotebook')
+            self.tabbar.pack(fill=tk.X, padx=5, pady=5)
 
         for k, v in self.tabs.items():
-            fr:ttk.Frame = ttk.Frame(tabbar, relief=tk.FLAT)
-            fr.pack(fill=tk.BOTH, expand=1)
-            tabbar.add(fr, text=_(k))
+            # Only create these once
+            if v.get('fr', None) == None:
+                v['fr'] = ttk.Frame(self.tabbar, relief=tk.FLAT)
+                v['fr'].pack(fill=tk.BOTH, expand=1)
+                self.tabbar.add(v['fr'], text=_(k)) # LANG: Ignore
+
+            # Create/Recreate the contents of each tab
+            for w in v['fr'].winfo_children(): w.destroy()
             if v.get('buttons', None) != None:
-                v['buttons'](fc, fr)
-            v['func'](fc, v, fr)
+                v['buttons'](fc, v['fr'])
+            v['func'](fc, v, v['fr'])
 
 
     def _summary(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
@@ -315,12 +345,12 @@ class WindowFleetCarrier:
         ''' Create grid of title/value pairs in columns and rows '''
         row:int = 0; col = 0
         lbl:ttk.Label
-
+        for w in frame.winfo_children(): w.destroy()
         for k, v in data.items():
             if bg != 'None':
-                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background=bg)
+                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), background=bg) # LANG: Ignore
             else:
-                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold"))
+                lbl = ttk.Label(frame, text=_(k), font=(FONT_SMALL[0], FONT_SMALL[1], "bold")) # LANG: Ignore
             lbl.grid(row=row, column=col, padx=20, pady=5, sticky=tk.W)
             txt:str = hfplus(v)
             if bg != 'None':
@@ -355,8 +385,8 @@ class WindowFleetCarrier:
             while len(output) > 1990:
                 split_at:int = output.rfind('\n', 0, 1900)
                 part:str = output[0:split_at]
-                self.bgstally.discord.post_plaintext(part, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
-                output = output[split_at+1:]
+                self.bgstally.discord.post_plaintext(part + "```", None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
+                output = "```\n" + output[split_at+1:]
             self.bgstally.discord.post_plaintext(output, None, DiscordChannel.FLEETCARRIER_MATERIALS, None)
             btn.after(5000, _enable_post, btn)
 
@@ -435,15 +465,15 @@ class WindowFleetCarrier:
         itinerary:dict = fc.get_itinerary()
         #dest:ttk.Entry = ttk.Entry(bar, width=30)
         #ph:str = _("Destination") if itinerary.get('route', []) == [] else itinerary['route'][-1].get('name') # LANG: Entry placeholder
-        pho:Placeholder = Placeholder(bar, _("Destination"), width=30)
-        dest:AutoCompleter = AutoCompleter(self.bgstally, bar, _("Destination"), width=30)
-        calc:ttk.Button = ttk.Button(bar, text=_("Calculate"), command=partial(_route, dest)) # LANG: Button label
+        pho:Placeholder = Placeholder(bar, _("Destination"), width=30) # LANG: Fleet carrier text label
+        dest:AutoCompleter = AutoCompleter(self.bgstally, bar, _("Destination"), width=30) # LANG: Fleet carrier text label
+        calc:ttk.Button = ttk.Button(bar, text=_("Calculate"), command=partial(_route, dest)) # LANG: Fleet carrier button label
 
-        lbl:ttk.Label = ttk.Label(bar, text=_("Plot Route"))
+        lbl:ttk.Label = ttk.Label(bar, text=_("Plot Route")) # LANG: Fleet carrier text label
 
         calc.config(state=tk.DISABLED if itinerary.get('route', []) != [] else tk.NORMAL)
 
-        clear:ttk.Button = ttk.Button(bar, text=_("Clear"), command=partial(_clear)) # LANG: Button label
+        clear:ttk.Button = ttk.Button(bar, text=_("Clear"), command=partial(_clear)) # LANG: Fleet carrier button label
         clear.config(state=tk.DISABLED if itinerary.get('route', []) == [] else tk.NORMAL)
 
         # At the bottom as order of definition and order of display are different
@@ -490,32 +520,28 @@ class WindowFleetCarrier:
         data:dict = fc.get_cargo() if which == 'Cargo' else fc.get_locker()
 
         output:str = ""
-        if discord == True: output += "## "
 
         order:str = which
         match type:
-            case 'Both': order += " " + __("orders", l)
-            case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l)
-            case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l)
+            case 'Both': order += " " + __("orders", l) # LANG: fleet carrier orders discord label
+            case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
+            case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
 
-        output += __("Carrier {order} for {carrier_name} \n", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) # LANG: fleet carrier materials header
+        output += "## " + __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) + "\n" # LANG: fleet carrier materials header
         if fc.overview.get('currentStarSystem', "") != "":
-            if discord == True: output += "### "
-            output += __("Location: {system}\n", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) # LANG: fleet carrier materials system line
-        output += "\n"
+            output += "### " + __("Location: {system}", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) + "\n" # LANG: fleet carrier materials system line
 
+        output += "\n```\n"
         # Header row for table
-        if discord == True: output += "```\n"
         header:list = []
         for col in tab['cols'].values():
             if col.get('discordWidth', None) == None: continue
-            tmp:str = str_truncate(__(col['title'], lang=l), col['discordWidth'])
+            tmp:str = str_truncate(__(col['title'], lang=l), col['discordWidth']) # LANG: Ignore
             fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"
             header.append(fmt.format(val=tmp))
         output += " | ".join(header) + "\n"
         w:int = sum([d.get('discordWidth', 0) for d in tab['cols'].values()])
         output += "-" * (w + (3 * (len(header) -1))) + "\n"
-        #output += "-" * (sum(col['discordWidth']) + (3 * (len(col['discordWidth']) -1))) + "\n"
 
         # Table rows
         for item in data.get('inventory', {}).values():
@@ -531,11 +557,51 @@ class WindowFleetCarrier:
                     case "buy" if item.get("price", 0) > 0 and item.get("outstanding", 0) > 0: val = item.get("outstanding")
                     case "sell" if item.get("price", 0) > 0 and item.get("stock", 0) > 0: val = item.get("stock")
                     case _: val = item.get(f, " ")
-                tmp:str = str_truncate(__(hfplus(val), lang=l), col['discordWidth'])
+                tmp:str = str_truncate(__(hfplus(val), lang=l), col['discordWidth']) # LANG: Ignore
                 fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"
                 line.append(fmt.format(val=tmp))
             if line != []:
                 output += " | ".join(line) + "\n"
-
-        if discord == True: output += "```"
+        output += "```"
         return output
+
+
+    def cooldown_notice(self) -> None:
+        """ Display carrier cooldown notification """
+        self.bgstally.ui.show_warning("Fleetcarrier cooldown completed")
+        PopupNotice(_("Fleetcarrier cooldown\ncompleted"), 20000, self.bgstally.fleet_carrier)
+
+class PopupNotice:
+    """ Create a temporary popup window """
+    def __init__(self, notice:str, timeout:int, fc:FleetCarrier) -> None:
+        self.fc:FleetCarrier = fc
+        self.root = tk.Tk()
+        self.root.overrideredirect(True)
+        self.root.attributes("-alpha", 0.6)
+        self.root.geometry(fc.window_geometries.get('Alert', "300x150-1+0"))
+        self.root.attributes("-topmost", True)
+        self.frame = tk.Frame(self.root, bg='red4', relief="raised")
+        self.frame.pack(fill="both", expand=True)
+        label = tk.Label(self.frame, text=notice, fg="white", bg="red4", font=FONT_HEADING_1, justify=tk.CENTER)
+        label.pack(pady=20, anchor=tk.CENTER)
+        exit_btn = tk.Button(self.frame, text=_("Close"), fg="white", bg="red4", command=self.close)
+        exit_btn.pack(pady=10)
+        if timeout > 0: self.root.after(timeout, self.close)
+        self.frame.bind("<Button-1>", self.start_move)
+        self.frame.bind("<B1-Motion>", self.do_move)
+
+    def start_move(self, event) -> None:
+        self.x:int = event.x
+        self.y:int = event.y
+
+    def do_move(self, event) -> None:
+        deltax:int = event.x - self.x
+        deltay:int = event.y - self.y
+        x:int = self.root.winfo_x() + deltax
+        y:int = self.root.winfo_y() + deltay
+        self.root.geometry(f"+{x}+{y}")
+
+    def close(self) -> None:
+        if self.root and self.root.winfo_exists():
+            self.fc.window_geometries['Alert'] = self.root.winfo_geometry()
+            self.root.destroy()

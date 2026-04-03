@@ -15,6 +15,7 @@ from bgstally.ravencolonial import RavenColonial, EDSM, Spansh
 
 FILENAME = "colonisation.json"
 BASE_TYPES_FILENAME = 'base_types.json'
+BASE_COSTS_FILENAME = 'base_costs.json'
 CARGO_FILENAME = 'Cargo.json'
 MARKET_FILENAME = 'Market.json'
 RE_IGNORE_PATTERN = r"(^\$|[A-Z0-9]{3}-[A-Z0-9]{3}$| \| [A-Z]{4}$)" # Pattern to ignore stations like carriers, scenarios, etc.
@@ -46,6 +47,7 @@ class Colonisation:
       - otherdata/colonisation.json: Stores the current state of colonisation data, including systems, builds, and progress.
     and the following readonly data files:
       - data/base_types.json: Contains definitions of base types for colonisation.
+      - data/base_costs.json: Contains the updated base costs
       - data/commodity.csv: Contains the list of commodities and their categories.
       - data/colonisation_legend.txt and L10n/ localized legends: Contains text for the colonisation legend popup.
     '''
@@ -78,23 +80,27 @@ class Colonisation:
         self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost', 'Readonly']
         self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
 
+        self.window_geometries:dict = {}
+
         # Load base commodities, types, costs, and saved data
         self._load_base_types()
         self._load()
+        self._update_carrier()
 
 
     @catch_exceptions
     def _load_base_types(self) -> None:
-        ''' Load base type definitions from bases.json
-        '''
+        ''' Load base type definitions from bases.json '''
+
+        base_costs_path:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_COSTS_FILENAME)
+        with open(base_costs_path, 'r') as f:
+            self.base_costs = json.load(f)
+            Debug.logger.info(f"Loaded {len(self.base_costs)} base costs for colonisation")
+
         base_types_path:str = path.join(self.bgstally.plugin_dir, FOLDER_DATA, BASE_TYPES_FILENAME)
         with open(base_types_path, 'r') as f:
             self.base_types = json.load(f)
             Debug.logger.info(f"Loaded {len(self.base_types)} base types for colonisation")
-
-        for base_type in self.base_types.keys():
-            self.base_types[base_type]['Total Comm'] = sum(self.base_types[base_type].get('Cost', []).values())
-
 
     @catch_exceptions
     def journal_entry(self, cmdr, is_beta, sys, station, entry, state) -> None:
@@ -141,12 +147,13 @@ class Colonisation:
                     if system.get('RCSync', False) == True:
                         rc.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
 
-                    if system.get('Bodies', None) == None: # In case we didn't get them for some reason
+                    if system.get('Bodies', None) == None or system.get('Bodies', [{}])[0].get('parentId', -1) == -1: # In case we didn't get them for some reason
                         BODY_SERVICE.import_bodies(system.get('StarSystem', ''))
 
                     SYSTEM_SERVICE.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
 
                 # Update progress for tracked, rc sync projects.
+                Debug.logger.debug(f"Loading projects")
                 for progress in self.progress:
                     if progress.get('ProjectID', None) != None or progress.get('ConstructionComplete', False) == True:
                         continue
@@ -212,6 +219,7 @@ class Colonisation:
                 build = self.find_build(system, {'MarketID': self.market_id})
                 if build != None and build.get('ProjectID', None) == None and entry.get('ProjectID', None) != None:
                     self.modify_build(system, build.get('BuildID', ''), {'ProjectID': entry.get('ProjectID', None)})
+                return
 
             case 'Docked':
                 self._update_market(self.market_id)
@@ -251,7 +259,6 @@ class Colonisation:
                 if data != {}:
                     Debug.logger.debug(f"Docked updating build {build.get('Name', None)} {self.station} in system {self.current_system} build: {build} data: {data}")
                     self.modify_build(system, build.get('BuildID', data.get('BuildID', '')), data)
-                    self.dirty = True
 
             case 'Market'|'MarketBuy'|'MarketSell':
                 self._update_market(self.market_id)
@@ -267,9 +274,11 @@ class Colonisation:
 
             case 'SupercruiseDestinationDrop':
                 self.location = 'Orbital'
+                return
 
             case 'ApproachBody':
                 self.location = 'Surface'
+                return
 
             case 'SupercruiseExit' | 'ApproachSettlement':
                 if entry.get('event') == 'ApproachSettlement':
@@ -322,6 +331,7 @@ class Colonisation:
                 if build.get('Track', False) == True: data['Track'] = False
                 if data != {}:
                     self.modify_build(system, build.get('BuildID', data.get('BuildID', '')), data)
+                return
 
             case 'Undocked':
                 self.market = {}
@@ -862,6 +872,7 @@ class Colonisation:
             self.bgstally.ui.window_colonisation.update_display()
             self.bgstally.ui.window_progress.update_display()
 
+
     @catch_exceptions
     def try_complete_build(self, market_id:int) -> bool:
         ''' If a build has been completed but isn't yet marked as such do so and clear the
@@ -887,7 +898,6 @@ class Colonisation:
         data:dict = {
             'State': BuildState.COMPLETE,
             'Track': False,
-            'TotalCost': sum(p.get('Required', {}).values()) if p != None else 0,
             'Readonly': True,
             'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
         }
@@ -922,11 +932,43 @@ class Colonisation:
         return 'Unknown'
 
 
+    def _get_cost(self, type:dict, primary:bool = False) -> dict:
+        ''' Get the commodity amounts for a build '''
+        bt:dict = self.base_types.get(type, {})
+        costs:dict = self.base_costs
+        cat:str = bt.get('Category', '')
+        if cat not in costs:
+            Debug.logger.error(f"Unknown category {cat} for base type {type}")
+            return {}
+
+        sub:str = ''
+        match cat:
+            case "Starport" | "Outpost":
+                sub = "Dodecahedron" if bt.get("Type") == "Dodecahedron Starport" else str(bt.get("Tier"))
+                if sub in costs[cat]:
+                    return costs[cat][sub]["Primary" if primary else "Secondary"]
+            case "Planetary Outpost" | "Planetary Port":
+                return costs[cat]
+            case "Settlement":
+                # Costs are now a direct mulitiplier of the size.
+                sizes:list = ["", "Small", "Medium", "Large"]
+                sub = bt.get("Facility Economy", "Unknown")
+                if sub in costs[cat]:
+                    return {comm : cost * sizes.index(bt.get("Building Type")) for comm, cost in costs[cat][sub].items()}
+            case _:
+                for s in ('Type (Listed as/under)', 'Facility Economy'):
+                    sub = bt.get(s, "Unknown")
+                    if sub in costs[cat]:
+                        return costs[cat][sub]
+
+        Debug.logger.error(f"Base costs not found for {type}: {bt.get('Category', '')} {sub}")
+        return {}
+
     def _get_progress(self, builds:list[dict], type:str) -> list[dict]:
         ''' Internal function to get progress details '''
         prog:list = []
         found:int = 0
-        for b in builds:
+        for i, b in enumerate(builds):
             res:dict = {}
             # See if we have actual data
             if b.get('MarketID') != None:
@@ -934,8 +976,8 @@ class Colonisation:
                     if p.get('MarketID') == b.get('MarketID') and p.get('ConstructionComplete', False) == False and p.get('ConstructionFailed', False) != True:
                         res = p.get(type, {})
                         break
-            # No actual data so we use the estimates from the base costs
-            if res == {} and type != 'Delivered': res = self.base_types.get(b.get('Base Type'), {}).get('Cost', {})
+            if res == {} and type != 'Delivered' and b.get('Base Type', '') != '':
+                res = self._get_cost(b.get('Base Type', ''), i==0)
             found += 1
             prog.append(res)
 
@@ -988,14 +1030,13 @@ class Colonisation:
         ''' Update a progress record '''
         progress:dict|None = self.find_or_create_progress(id)
 
-        Debug.logger.debug(f"ID: {id} Project {progress} data{data}")
         # Need to initialize the progress in order to update it properly.
         if progress.get('Required', {}) == {}:
             found:list = self.find_build_any({'MarketID' : id})
             if found[0] == None or found[1] == None:
                 Debug.logger.debug(f"Progress can't be initialized, build not found {id}")
                 return
-            progress['Required'] = self.base_types.get(found[1].get('Base Type'), {}).get('Cost', {})
+            progress['Required'] = self._get_cost(found[1].get('Base Type', ''))
         if progress.get('Delivered', {}) == {}:
             progress['Delivered'] = {c:0 for c in progress['Required'].keys()}
 
@@ -1026,6 +1067,7 @@ class Colonisation:
         if self.dirty == False: return
         self.save('Progress update')
         self.bgstally.ui.window_colonisation.update_display()
+        self.bgstally.ui.window_progress.update_display()
 
         if silent == True: return
 
@@ -1055,9 +1097,10 @@ class Colonisation:
 
         if cargo != self.carrier_cargo and self.cmdr != None:
             RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)
-            self.dirty = True
 
         if cargo != self.carrier_cargo or self.carrier_buy != buyorder:
+            self.carrier_buy = buyorder
+            self.carrier_cargo = cargo
             self.bgstally.ui.window_progress.update_display()
 
         self.carrier_buy = buyorder
@@ -1084,10 +1127,7 @@ class Colonisation:
             for name, item in self.bgstally.market.commodities.items():
                 if item.get('Stock') > 0:
                     market[item.get('Name')] = item.get('Stock')
-            if market != {}:
-                self.market = market
-                self.bgstally.ui.window_progress.update_display()
-                return
+
         if self.bgstally.market.available(market_id) == False:
             return
 
@@ -1171,7 +1211,8 @@ class Colonisation:
             'ProgressView' : self.bgstally.ui.window_progress.view.value,
             'ProgressUnits': units,
             'ProgressColumns': self.bgstally.ui.window_progress.columns,
-            'BuildIndex'   : self.bgstally.ui.window_progress.build_index
+            'BuildIndex'   : self.bgstally.ui.window_progress.build_index,
+            'WindowGeometries' : self.window_geometries
             }
 
 
@@ -1233,5 +1274,6 @@ class Colonisation:
             self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
             if dict.get('ProgressColumns', None) != None: self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
             self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
+            self.window_geometries = dict.get('WindowGeometries', {})
         except:
             return

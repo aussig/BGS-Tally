@@ -1,4 +1,5 @@
 import sys
+from functools import partial
 from os import mkdir, path
 from threading import Thread
 from time import sleep
@@ -15,8 +16,8 @@ from bgstally.config import Config
 from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy
 from bgstally.debug import Debug
 from bgstally.discord import Discord
+from bgstally.factionmanager import FactionManager
 from bgstally.fleetcarrier import FleetCarrier
-from bgstally.formatters.default import DefaultActivityFormatter
 from bgstally.formattermanager import ActivityFormatterManager
 from bgstally.market import Market
 from bgstally.missionlog import MissionLog
@@ -62,9 +63,13 @@ class BGSTally:
         self.debug: Debug = Debug(self, self.dev_mode)
 
         # Load sentry to track errors during development - Hard check on "dev" versions ONLY (which never go out to testers)
-        # If you are a developer and want to use sentry, install the sentry_sdk inside the ./thirdparty folder and add your full dsn
-        # (starting https://) to a 'sentry' entry in config.ini file. Set the plugin version in load.py to include a 'dev' prerelease,
-        # e.g. "3.3.0-dev"
+        # If you are a developer and want to use sentry, download the SDK from  https://github.com/getsentry/sentry-python/releases
+        # and copy the `sentry_sdk` folder into the `./thirdparty` folder. And add your full dsn (starting https://) to a 'sentry' entry
+        # in config.ini file. Set the plugin version in `load.py` to include a 'dev' prerelease, e.g. "3.3.0-dev"
+        #
+        # Note that although sentry_sdk is listed in our `requirements-dev.txt`, that's just to keep development tools quiet about the
+        # import. It WILL NOT WORK WHEN RUNNING EDMC unless you either install sentry_sdk in EDMC's python environment (and run from source)
+        # or copy the sentry_sdk folder into `./thirdparty` as described above.
         if self.dev_mode:
             sys.path.append(path.join(plugin_dir, 'thirdparty'))
             try:
@@ -98,6 +103,7 @@ class BGSTally:
         self.formatter_manager: ActivityFormatterManager = ActivityFormatterManager(self)
         self.objectives_manager: ObjectivesManager = ObjectivesManager(self)
         self.colonisation: Colonisation = Colonisation(self)
+        self.faction_manager: FactionManager = FactionManager(self)
 
         self.tick_thread: Thread = Thread(target=self._tick_worker, name="BGSTally Tick worker")
         self.tick_thread.daemon = True
@@ -129,15 +135,19 @@ class BGSTally:
         # Total hack for now. We need cmdr in Activity to allow us to send it to the API when the user changes values in the UI.
         # What **should** happen is each Activity object should be associated with a single CMDR, and then all reporting
         # kept separate per CMDR.
-        activity:Activity = self.activity_manager.get_current_activity()
+        activity:Activity|None = self.activity_manager.get_current_activity()
+        if activity is None:
+            Debug.logger.error("No current activity found, cannot process journal entry")
+            return
         activity.cmdr = cmdr
 
         if entry.get('event') in ['StartUp', 'Location', 'FSDJump', 'CarrierJump']:
             activity.system_entered(entry, self.state)
             self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+            self.ui.show_system_info(entry.get('SystemAddress'))
             dirty = True
 
-        mission:dict = self.mission_log.get_mission(entry.get('MissionID'))
+        mission:dict|None = self.mission_log.get_mission(entry.get('MissionID'))
 
         match entry.get('event'):
             case 'ApproachSettlement' if state['Odyssey']:
@@ -212,6 +222,7 @@ class BGSTally:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
                 self.state.station_type = entry.get('StationType', "")
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
+                self.ui.show_station_info(station, self.state.station_faction)
                 dirty = True
 
             case 'EjectCargo':
@@ -233,6 +244,7 @@ class BGSTally:
 
             case 'Location' | 'StartUp' if entry.get('Docked') == True:
                 self.state.station_faction = get_by_path(entry, ['StationFaction', 'Name'], self.state.station_faction) # Default to existing value
+                self.ui.show_station_info(station, self.state.station_faction)
                 dirty = True
 
             case 'Loadout':
@@ -390,6 +402,7 @@ class BGSTally:
         self.fleet_carrier.save()
         self.api_manager.save()
         self.webhook_manager.save()
+        self.faction_manager.save()
 
 
     def new_tick(self, force: bool, uipolicy: UpdateUIPolicy):
@@ -403,7 +416,8 @@ class BGSTally:
             case UpdateUIPolicy.IMMEDIATE:
                 self.ui.update_plugin_frame()
             case UpdateUIPolicy.LATER:
-                self.ui.frame.after(1000, self.ui.update_plugin_frame())
+                if self.ui.frame is not None:
+                    self.ui.frame.after(1000, partial(self.ui.update_plugin_frame))
 
         self.overlay.display_message("tickwarn", _("NEW TICK DETECTED!"), True, 180, "green") # LANG: Overlay message
 

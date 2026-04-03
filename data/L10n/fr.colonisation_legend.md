@@ -1,0 +1,82 @@
+## Sommaire des lignes
+
+- **Planifié**: Informations sur les constructions/bases qui ont été planifiés mais qui ne sont pas encore terminés
+- **Completé**: Informations sur les constructions/bases qui ont été completées
+
+## Sommaire des colonnes
+
+- **Total**: Nombre total de bases
+
+- **Orbitale**: Nombre de bases orbitales
+
+- **Surface**: Nombre de bases de surface
+
+- **T2**: Le coût net ou la récompense de point de niveau 2
+
+- **T3**: Le coût net ou la récompense de point de niveau 3
+
+- **Coût**: Le coût des constructions en tonnes nécessaires
+
+- **Charges**: Le nombre de livraisons en fonction de la capacité de chargement de votre vaisseau actuel
+
+- **Pop Inc**: Augmentation de la population globale
+
+- **Pop Max**: Impact maximum sur la population
+
+- **Sécurité**: Impact sur la sécurité du système combiné
+
+- **Niv Tech**: Impact de la technologie du système combiné
+
+- **Capital**: Impact sur la richesse du système
+
+- **Niv Vie**: Impact du système combiné sur le niveau de vie
+
+- **Niv Dev**: Impact sur le niveau de développement du système combiné
+
+## Détail des lignes
+
+- Une ligne par base
+- La première ligne doit être la base initiale
+- Les autres bases peuvent être dans n'importe quel ordre mais le coût des starports dépend de leur commande donc si vous les mettez dans le mauvais ordre leur coût peut être incorrect
+
+## Détail des colonnes
+
+- **Suivre**: Si vous voulez suivre la progression de cette base dans l'affichage principal de ED:MC
+
+- **Type de base**: Le type de base à construire
+
+- **Nom**: Le nom de la base
+
+- **Corps**: Le corps sur (ou autour) que la base est ou sera
+
+- **Exigences**: Tous les prérequis pour construire ce type de base
+
+- **État**: État actuel de la base : Planifié, Pourcentage terminé, Completé
+
+- **T2**: Le coût net ou la récompense de point de niveau 2
+
+- **T3**: Le coût net ou la récompense de point de niveau 3
+
+- **Coût**: Le coût des constructions en tonnes nécessaires
+
+- **Charges**: Le nombre de charges du vaisseau en fonction de votre capacité de chargement actuelle
+
+- **Pad**: La taille maximale du palée d'atterrissage
+
+- **Économie**: Type d'économie de base
+
+- **Pop Aug**: Impact sur l'augmentation de la population
+
+- **Pop Max**: Impact sur le maximum de population
+
+- **Influence**: L'influence de cette base sur l'économie du système
+
+- **Sécurité**: Impact sur la sécurité du système
+
+- **Niv Tech**: Impact sur le niveau de technologie du système
+
+- **Capital**: impact sur la richesse du système
+
+- **Niv Vie**: Impact sur le niveau de vie du système
+
+- **Niv Dev**: Impact sur le niveau de développement du système

@@ -1,0 +1,82 @@
+## Resumo - Linhas
+
+- **Planejado**: Informações sobre construções/bases que foram planejadas, mas que ainda não foram concluídas
+- **Completado**: Informações sobre construções/bases que foram concluídas
+
+## Resumo - Colunas
+
+- **Total**: número total de bases
+
+- **Orbital**: número de bases orbitais
+
+- **Superfície**: número de bases de superfície
+
+- **T2**: A pontuação de custo ou recompensa Tier 2
+
+- **T3**: A pontuação de custo ou recompensa Tier 3
+
+- **Custo**: O custo das construções em toneladas necessárias
+
+- **Cargas**: O número de cargas da nave baseado na sua capacidade atual de carga
+
+- **Aum Pop**: impacto no aumento de população, combinado
+
+- **Max Pop**: impacto na população máxima, combinado
+
+- **Segurança**: impacto na segurança do sistema, combinado
+
+- **Nív Tecn**: impacto no nível de tecnologia do sistema, combinado
+
+- **Riqueza**: impacto na riqueza do sistema, combinado
+
+- **PdV**: impacto no padrão de vida
+
+- **Nív Des**: impacto no nível de desenvolvimento do sistema, combinado
+
+## Detalhes - Linhas
+
+- Uma linha por base
+- A primeira linha deve ser a base inicial
+- Outras bases podem estar em qualquer ordem, mas o custo das estações depende da ordem de inclusão portanto, se você colocá-los na ordem errada, o custo pode estar incorreto
+
+## Detalhes - Colunas
+
+- **Rastrear**: Acompanhár o progresso desta base na janela principal do ED:MC
+
+- **Tipo de base**: O tipo de base a ser construído
+
+- **Nome da base**: O nome da base
+
+- **Corpo**: O corpo onde (ou ao redor) a base está ou estará
+
+- **Requisitos**: Quaisquer pré-requisitos para a construção deste tipo de base
+
+- **Estado**: Quão construída está a base: Planejada, Porcentagem completada, Concluída
+
+- **T2**: A pontuação de custo ou recompensa Tier 2
+
+- **T3**: A pontuação de custo ou recompensa Tier 3
+
+- **Custo**: O custo da construção em toneladas necessárias
+
+- **Cargas**: O número de cargas da nave baseado na sua capacidade atual de carga
+
+- **Plat**: Tamanho da maior plataforma de pouso
+
+- **Economia**: tipo de economia da base
+
+- **Aum Pop**: impacto no aumento de população
+
+- **Max Pop**: impacto na população máxima
+
+- **Inf Econ**: A influência que essa base tem na economia do sistema
+
+- **Segurança**: impacto na segurança do sistema
+
+- **Nív Tecn**: impacto no nível de tecnologia do sistema
+
+- **Riqueza**: impacto na riqueza do sistema
+
+- **PdV**: impacto no padrão de vida
+
+- **Nív Des**: impacto no nível de desenvolvimento do sistema

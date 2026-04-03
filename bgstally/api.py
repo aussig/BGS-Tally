@@ -13,7 +13,7 @@ from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import get_by_path, string_to_alphanumeric
 
-API_VERSION = "1.6.0"
+API_VERSION = "1.8.0"
 
 ENDPOINT_ACTIVITIES = "activities"           # Used as both the dict key and default path
 ENDPOINT_DISCOVERY = "discovery"             # Used as the path
@@ -44,7 +44,7 @@ class API:
     Handles data for an API.
     """
 
-    def __init__(self, bgstally, data: list = None):
+    def __init__(self, bgstally, data: dict|None = None):
         """
         Instantiate
         """
@@ -66,7 +66,7 @@ class API:
             self._revert_discovery_to_defaults()
 
         # Used to store a single dict containing BGS activity when it's been updated.
-        self.activity: dict = None
+        self.activity: dict|None = None
 
         # Events queue is used to batch up events API messages. All batched messages are sent when the worker works.
         self.events_queue: Queue = Queue()
@@ -125,13 +125,13 @@ class API:
 
         # Discovery state
         self.name: str = data['name']
-        self.version: semantic_version = semantic_version.Version.coerce(data['version'])
+        self.version: semantic_version.Version = semantic_version.Version.coerce(data['version'])
         self.description: str = data['description']
         self.endpoints: dict = data['endpoints']
         self.events: dict = data['events']
 
 
-    def discover(self, callback:callable):
+    def discover(self, callback:object):
         """
         Call the discovery endpoint
         """
@@ -147,7 +147,7 @@ class API:
             self._revert_discovery_to_defaults()
             return
 
-        discovery_data:dict = None
+        discovery_data:dict|None = None
 
         try:
             discovery_data = response.json()
@@ -211,7 +211,7 @@ class API:
         Revert all API information to default values
         """
         self.name:str = NAME_DEFAULT
-        self.version:semantic_version = semantic_version.Version.coerce(VERSION_DEFAULT)
+        self.version:semantic_version.Version = semantic_version.Version.coerce(VERSION_DEFAULT)
         self.description:str = DESCRIPTION_DEFAULT
         self.endpoints:dict = ENDPOINTS_DEFAULT
         self.events:dict = EVENTS_FILTER_DEFAULTS
@@ -330,10 +330,10 @@ class API:
             Debug.logger.info(f"Unable to receive objectives")
             return
 
-        objectives_data: list = None
+        objectives_data: list|None = None
 
         try:
-            objectives_data: list = response.json()
+            objectives_data = response.json()
         except JSONDecodeError:
             Debug.logger.warning(f"Objectives data is invalid (not valid JSON)")
             return

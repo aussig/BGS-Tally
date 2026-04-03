@@ -569,12 +569,12 @@ class WindowFleetCarrier:
     def cooldown_notice(self) -> None:
         """ Display carrier cooldown notification """
         self.bgstally.ui.show_warning("Fleetcarrier cooldown completed")
-        PopupNotice(_("Fleetcarrier cooldown\ncompleted"), 20000, self.bgstally.fleet_carrier)
+        PopupNotice(_("Fleetcarrier cooldown\ncompleted"), 20000, self.bgstally.fleet_carrier) # LANG: Fleet carrier cooldown notification
 
 class PopupNotice:
     """ Create a temporary popup window """
-    def __init__(self, notice:str = '', timeout:int = 0, fc:FleetCarrier|None = None) -> None:
-        self.fc:FleetCarrier|None = fc
+    def __init__(self, notice:str, timeout:int, fc:FleetCarrier) -> None:
+        self.fc:FleetCarrier = fc
         self.root = tk.Tk()
         self.root.overrideredirect(True)
         self.root.attributes("-alpha", 0.6)
@@ -584,7 +584,7 @@ class PopupNotice:
         self.frame.pack(fill="both", expand=True)
         label = tk.Label(self.frame, text=notice, fg="white", bg="red4", font=FONT_HEADING_1, justify=tk.CENTER)
         label.pack(pady=20, anchor=tk.CENTER)
-        exit_btn = tk.Button(self.frame, text=_("Close"), fg="white", bg="red4", command=self.close)
+        exit_btn = tk.Button(self.frame, text=_("Close"), fg="white", bg="red4", command=self.close) # LANG: Button label on Carrier window
         exit_btn.pack(pady=10)
         if timeout > 0: self.root.after(timeout, self.close)
         self.frame.bind("<Button-1>", self.start_move)

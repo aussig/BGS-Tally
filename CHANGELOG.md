@@ -2,6 +2,11 @@
 
 ## v5.5.0-xx - xxxx-xx-xx
 
+
+
+
+## v5.5.0-a1 - 2026-04-03
+
 ### New Features:
 
 * Favourite factions. You can now mark factions as favourites (♥ / ♡), and there are new Discord posting options to post only your favourites, or only systems that contain your favourites.
@@ -22,6 +27,8 @@
 * Changed RavenColonial project last update call to the new /poll endpoint.
 * Addressed progress view column width issues on Linux.
 * Made progress scroll position only reset if height changes
+* Added a carrier itinerary cleanup to address
+* Made the title and totals stationary when the progress commodity display is scrollable
 
 ### Bug Fixes:
 
@@ -29,6 +36,9 @@
 * Fix for error when Raven Colonial project already exists.
 * None of the objectives text was localised, which included both the objectives window and the in-game overlay. Localisation is now enabled, so translators are able to translate this text.
 * Fix intermittent font scaling issue in commodities list.
+* Renamed the two Tellus base layouts to Tellus I and Tellus E to prevent clashes in Raven Colonial
+* Fixed rare runtime error with RavenColonial responses.
+* Fixed the 'Force Tick' functionality which was broken by previous changes.
 
 ### API Changes ([v1.8](xxxxxxxxxxxx)):
 
@@ -211,7 +221,7 @@
 * Fixed bug with commodity display for non-fleetcarrier owners
 * Fixed issue with a long translation string
 
-### API Changes ([v1.7](https://studio-ws.apicur.io/sharing/290c8aa2-50df-42ae-9bde-0e180bfb4df2)):
+### API Changes ([v1.7](https://app.swaggerhub.com/apis-docs/bgstally/BGS-Tally/1.7.0)):
 
 * `/activites` endpoint: `influence` percentage added to faction information for each faction.
 
@@ -279,7 +289,7 @@
 * Fixed bug which would cause the Fleetcarrier window to fail to load properly if newer Trailblazers or Thargoid war commodities had buy or sell orders set.
 * Fix an occasional initial loading issue with the API configuration window
 
-### API Changes ([v1.6](https://studio-ws.apicur.io/sharing/4cc039a5-fcdf-4bdb-adb3-1cd4b78f70d8)):
+### API Changes ([v1.6](https://app.swaggerhub.com/apis-docs/bgstally/BGS-Tally/1.6.0)):
 
 * New `/objectives` endpoint.
 * `/events` endpoint: Synthetic events added for certain activities in game that the game itself doesn't log in the journal:
@@ -417,7 +427,7 @@
 * If any Discord post got bigger than the limits imposed by Discord, it would silently fail to post. Now, the post is truncated to the Discord limit and '...' appended to the end.
 * The 'Post to Discord' button on the CMDRs information window was sometimes becoming enabled even if there were no valid discord webhooks set up.
 
-### API Changes ([v1.5](https://studio-ws.apicur.io/sharing/0f4472d2-d6b8-4718-8d38-205fc4539402)):
+### API Changes ([v1.5](https://app.swaggerhub.com/apis-docs/bgstally/BGS-Tally/1.5.0)):
 
 * `/activities` endpoint: Search and Rescue handins now included at `systems/[system]/factions/[faction]/sandr`, containing `damagedpods`, `occupiedpods`, `thargoidpods`, `blackboxes`, `wreckagecomponents`, `personaleffects`, `politicalprisoners` and `hostages` as properties.
 
@@ -463,7 +473,7 @@
 * Fixed a rare crash that would stop the in-game overlay working.
 * Sometimes BGS-Tally wasn't realising you had left a megaship scenario.
 
-### API Changes ([v1.4](https://studio-ws.apicur.io/sharing/3164656a-eea9-4588-a9b9-e3f5f7ee66bc)):
+### API Changes ([v1.4](https://app.swaggerhub.com/apis-docs/bgstally/BGS-Tally/1.4.0)):
 
 * `/activities` endpoint: Added `thargoidpods` to `systems/[system]/twsandr`.
 
@@ -524,7 +534,7 @@
 
 * Fix (another) crash in code that detects drop from supercruise at megaships.
 
-### API Changes ([v1.3](https://studio-ws.apicur.io/sharing/d352797e-c40e-4f91-bcd8-773a14f40fc0)):
+### API Changes ([v1.3](https://app.swaggerhub.com/apis-docs/bgstally/BGS-Tally/1.3.0)):
 
 * `/events` endpoint: All localised fields are now stripped before sending. i.e. fields who's name ends with `_Localised`.
 * `/activities` endpoint: Added `banshee` to `systems/[system]/twkills`.
@@ -572,7 +582,7 @@
 * Fix crash in code that detects drop from supercruise at megaships.
 
 
-### API Changes ([v1.2](https://studio-ws.apicur.io/sharing/cc3753c2-6569-4d74-8448-8fb9363898ce)):
+### API Changes ([v1.2](https://app.swaggerhub.com/apis-docs/bgstally/BGS-Tally/1.2.0)):
 
 * `/activities` endpoint: Thargoid War reactivation missions now included in `systems/[system]/factions/[faction]/stations/[station]/twreactivate`
 * `/activities` endpoint: Thargoid War number of settlements reactivated now included in `systems/[system]/twreactivate`
@@ -622,7 +632,7 @@
 * Potential fix for mis-tallying of ground CZs when other commanders are fighting.
 * Check for main UI frame before attempting to update the status text. Protects against rare errors where the status bar was updated before the main window has fully initialised.
 
-### API Changes ([v1.1](https://studio-ws.apicur.io/sharing/c2adeddc-f874-42d3-b450-49bd59ed1a79)):
+### API Changes ([v1.1](https://app.swaggerhub.com/apis-docs/bgstally/BGS-Tally/1.1.0)):
 
 * `/activities` endpoint: Thargoid war kills now included in `systems/[system]/twkills`
 * `/activities` endpoint: Thargoid search and rescue counts now included in `systems/[system]/twsandr`

@@ -30,7 +30,7 @@ class WindowObjectivesOverlaySettings:
             parent_frame = self.bgstally.ui.frame
 
         self.toplevel: tk.Toplevel = tk.Toplevel(parent_frame)
-        self.toplevel.title(_("{plugin_name} - Objectives Overlay Settings").format(plugin_name=self.bgstally.plugin_name))
+        self.toplevel.title(_("{plugin_name} - Objectives Overlay Settings").format(plugin_name=self.bgstally.plugin_name)) # LANG: Objectives overlay settings window title
         self.toplevel.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
         self.toplevel.geometry("700x550")
         self.toplevel.resizable(False, False)
@@ -47,24 +47,24 @@ class WindowObjectivesOverlaySettings:
         current_row: int = 0
 
         # Title
-        tk.Label(frame_container, text=_("Objectives Overlay Display Mode"), font=FONT_HEADING_2, foreground=COLOUR_HEADING_1).grid(
+        tk.Label(frame_container, text=_("Objectives Overlay Display Mode"), font=FONT_HEADING_2, foreground=COLOUR_HEADING_1).grid( # LANG: Label on objectives overlay settings window
             row=current_row, column=0, sticky=tk.W, pady=(0, 10))
         current_row += 1
 
         # Description
-        tk.Label(frame_container, text=_("Choose how objectives are displayed in the in-game overlay:"), wraplength=650, justify=tk.LEFT).grid(
+        tk.Label(frame_container, text=_("Choose how objectives are displayed in the in-game overlay:"), wraplength=650, justify=tk.LEFT).grid( # LANG: Label on objectives overlay settings window
             row=current_row, column=0, sticky=tk.W, pady=(0, 15))
         current_row += 1
 
         # Mode 0: Notification
         tk.Radiobutton(
             frame_container,
-            text=_("Show notification for new objectives"),
+            text=_("Show notification for new objectives"),  # LANG: Radio button on objectives overlay settings window
             variable=self.temp_mode,
             value="0"
         ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
         current_row += 1
-        tk.Label(frame_container, text="     " + _("Shows a notification when a new objective is detected"),
+        tk.Label(frame_container, text="     " + _("Shows a notification when a new objective is detected"), # LANG: Label on objectives overlay settings window
                  wraplength=650, justify=tk.LEFT, foreground="gray").grid(
             row=current_row, column=0, sticky=tk.W, pady=(0, 8))
         current_row += 1
@@ -72,12 +72,12 @@ class WindowObjectivesOverlaySettings:
         # Mode 1: New objectives
         tk.Radiobutton(
             frame_container,
-            text=_("Show new objective"),
+            text=_("Show new objective"), # LANG: Radio button on objectives overlay settings window
             variable=self.temp_mode,
             value="1"
         ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
         current_row += 1
-        tk.Label(frame_container, text="     " + _("Shows objective details when a new objective is detected."),
+        tk.Label(frame_container, text="     " + _("Shows objective details when a new objective is detected."), # LANG: Label on objectives overlay settings window
                  wraplength=650, justify=tk.LEFT, foreground="gray").grid(
             row=current_row, column=0, sticky=tk.W, pady=(0, 8))
         current_row += 1
@@ -85,12 +85,12 @@ class WindowObjectivesOverlaySettings:
         # Mode 2: New and updated objectives
         tk.Radiobutton(
             frame_container,
-            text=_("Show new and updated objectives"),
+            text=_("Show new and updated objectives"), # LANG: Radio button on objectives overlay settings window
             variable=self.temp_mode,
             value="2"
         ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
         current_row += 1
-        tk.Label(frame_container, text="     " + _("Shows objective details when an objective and/or their target is added or updated."),
+        tk.Label(frame_container, text="     " + _("Shows objective details when an objective and/or their target is added or updated."), # LANG: Label on objectives overlay settings window
                  wraplength=650, justify=tk.LEFT, foreground="gray").grid(
             row=current_row, column=0, sticky=tk.W, pady=(0, 8))
         current_row += 1
@@ -98,12 +98,12 @@ class WindowObjectivesOverlaySettings:
         # Mode 3: Always show top priority
         tk.Radiobutton(
             frame_container,
-            text=_("Always show top priority objective"),
+            text=_("Always show top priority objective"), # LANG: Radio button on objectives overlay settings window
             variable=self.temp_mode,
             value="3"
         ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
         current_row += 1
-        tk.Label(frame_container, text="     " + _("Always displays the highest priority objective between the active ones."),
+        tk.Label(frame_container, text="     " + _("Always displays the highest priority objective between the active ones."), # LANG: Label on objectives overlay settings window
                  wraplength=650, justify=tk.LEFT, foreground="gray").grid(
             row=current_row, column=0, sticky=tk.W, pady=(0, 8))
         current_row += 1
@@ -111,12 +111,12 @@ class WindowObjectivesOverlaySettings:
         # Mode 4: Show all objectives
         tk.Radiobutton(
             frame_container,
-            text=_("Always show all objectives"),
+            text=_("Always show all objectives"), # LANG: Radio button on objectives overlay settings window
             variable=self.temp_mode,
             value="4"
         ).grid(row=current_row, column=0, sticky=tk.W, pady=2)
         current_row += 1
-        tk.Label(frame_container, text="     " + _("Shows all objectives."),
+        tk.Label(frame_container, text="     " + _("Shows all objectives."), # LANG: Label on objectives overlay settings window
                  wraplength=650, justify=tk.LEFT, foreground="gray").grid(
             row=current_row, column=0, sticky=tk.W, pady=(0, 15))
         current_row += 1
@@ -125,8 +125,8 @@ class WindowObjectivesOverlaySettings:
         button_frame: ttk.Frame = ttk.Frame(frame_container)
         button_frame.grid(row=current_row, column=0, sticky=tk.E, pady=(10, 0))
 
-        ttk.Button(button_frame, text=_("Cancel"), command=self._cancel).pack(side=tk.RIGHT, padx=(5, 0))
-        ttk.Button(button_frame, text=_("Save"), command=self._save).pack(side=tk.RIGHT)
+        ttk.Button(button_frame, text=_("Cancel"), command=self._cancel).pack(side=tk.RIGHT, padx=(5, 0)) # LANG: Button on objectives overlay settings window
+        ttk.Button(button_frame, text=_("Save"), command=self._save).pack(side=tk.RIGHT) # LANG: Button on objectives overlay settings window
 
 
     def _save(self):

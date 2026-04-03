@@ -85,6 +85,7 @@ class Colonisation:
         # Load base commodities, types, costs, and saved data
         self._load_base_types()
         self._load()
+        self._update_carrier()
 
 
     @catch_exceptions
@@ -975,7 +976,7 @@ class Colonisation:
                     if p.get('MarketID') == b.get('MarketID') and p.get('ConstructionComplete', False) == False and p.get('ConstructionFailed', False) != True:
                         res = p.get(type, {})
                         break
-            if res == {} and type != 'Delivered':
+            if res == {} and type != 'Delivered' and b.get('Base Type', '') != '':
                 res = self._get_cost(b.get('Base Type', ''), i==0)
             found += 1
             prog.append(res)

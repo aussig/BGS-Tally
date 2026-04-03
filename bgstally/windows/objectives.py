@@ -149,7 +149,7 @@ class WindowObjectives:
         self.collapsibles = []
 
         if not active_objectives:
-            ttk.Label(self.scrollable_frame, text=_("No objectives available"), font=FONT_TEXT).pack(pady=20)
+            ttk.Label(self.scrollable_frame, text=_("No objectives available"), font=FONT_TEXT).pack(pady=20) # LANG: Message shown when no objectives are available
             self._displayed_objectives = []
             return
 
@@ -197,17 +197,17 @@ class WindowObjectives:
     def _get_default_title(self, mission_type: str|None) -> str:
         """Get default title based on mission type"""
         match mission_type:
-            case MissionType.RECON: return _("Recon Mission")
-            case MissionType.WIN_WAR: return _("Win a War")
-            case MissionType.DRAW_WAR: return _("Draw a War")
-            case MissionType.WIN_ELECTION: return _("Win an Election")
-            case MissionType.DRAW_ELECTION: return _("Draw an Election")
-            case MissionType.BOOST: return _("Boost a Faction")
-            case MissionType.EXPAND: return _("Expand from a System")
-            case MissionType.REDUCE: return _("Reduce a Faction")
-            case MissionType.RETREAT: return _("Retreat a Faction from a System")
-            case MissionType.EQUALISE: return _("Equalise two Factions")
-            case _: return _("Objective")
+            case MissionType.RECON: return _("Recon Mission") # LANG: Default title for recon missions
+            case MissionType.WIN_WAR: return _("Win a War") # LANG: Default title for winning war missions
+            case MissionType.DRAW_WAR: return _("Draw a War") # LANG: Default title for drawing war missions
+            case MissionType.WIN_ELECTION: return _("Win an Election") # LANG: Default title for winning elections missions
+            case MissionType.DRAW_ELECTION: return _("Draw an Election") # LANG: Default title for drawing elections missions
+            case MissionType.BOOST: return _("Boost a Faction") # LANG: Default title for boosting factions missions
+            case MissionType.EXPAND: return _("Expand from a System") # LANG: Default title for expansion missions
+            case MissionType.REDUCE: return _("Reduce a Faction") # LANG: Default title for reducing influence missions
+            case MissionType.RETREAT: return _("Retreat a Faction from a System") # LANG: Default title for retreat missions
+            case MissionType.EQUALISE: return _("Equalise two Factions") # LANG: Default title for equalisation missions
+            case _: return _("Objective") # LANG: Default title for unknown mission types
 
 
     def _build_objective_content(self, parent: ttk.Frame, mission: dict):
@@ -216,9 +216,9 @@ class WindowObjectives:
         content_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
         # Mission metadata
-        mission_type = mission.get('type', _("Unknown"))
-        mission_system = mission.get('system') or _("Unknown")
-        mission_faction = mission.get('faction') or _("Unknown")
+        mission_type = mission.get('type', _("Unknown")) # LANG: Unknown mission type
+        mission_system = mission.get('system') or _("Unknown") # LANG: Unknown system name
+        mission_faction = mission.get('faction') or _("Unknown") # LANG: Unknown faction name
         mission_description = mission.get('description')
 
         metadata_text = _("Type: {type} | System: {system} | Faction: {faction}").format(type=mission_type, system=mission_system, faction=mission_faction) # LANG: Mission metadata line
@@ -246,7 +246,7 @@ class WindowObjectives:
         targets = mission.get('targets', [])
         if targets:
             ttk.Separator(content_frame, orient=tk.HORIZONTAL).pack(fill=tk.X, pady=5)
-            ttk.Label(content_frame, text=_("Targets:"), font=FONT_HEADING_2).pack(anchor=tk.NW, pady=(0, 5))
+            ttk.Label(content_frame, text=_("Targets:"), font=FONT_HEADING_2).pack(anchor=tk.NW, pady=(0, 5)) # LANG: Mission targets section header
 
             # Get activity for progress calculation
             mission_activity: Activity = self.bgstally.activity_manager.query_activity(mission_startdate)

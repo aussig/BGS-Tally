@@ -34,6 +34,7 @@ class WindowAPI:
         self.image_logo_comguard = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_comguard.png"))
         self.image_logo_dcoh = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_dcoh.png"))
         self.image_logo_eic = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_eic.png"))
+        self.image_logo_local = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_local.png"))
         self.image_logo_spectrum = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_spectrum.png"))
 
 
@@ -149,6 +150,13 @@ class WindowAPI:
         frame_spectrum.pack(side=tk.LEFT)
         tk.Button(frame_spectrum, image=self.image_logo_spectrum, height=28, bg="White", command=partial(self._autofill, 'spectrum')).pack(side=tk.TOP, padx=4)
         HyperlinkLabel(frame_spectrum, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
+
+        api_info:dict = self.bgstally.config.api('local')
+        frame_local:ttk.Frame = ttk.Frame(frame_connection_buttons)
+        frame_local.pack(side=tk.LEFT)
+        tk.Button(frame_local, image=self.image_logo_local, height=28, bg="white", command=partial(self._autofill, 'local')).pack(side=tk.TOP, padx=4)
+        HyperlinkLabel(frame_local, text=_("Documentation ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
+
 
         self.btn_fetch = tk.Button(frame_main, text=_("Establish Connection"), command=partial(self._discover)) # LANG: Button on API settings window
         self.btn_fetch.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1

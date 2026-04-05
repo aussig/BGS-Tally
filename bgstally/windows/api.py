@@ -122,6 +122,10 @@ class WindowAPI:
         self.cb_apievents.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
         self.cb_apievents.configure(command=partial(self._field_edited, self.cb_apievents))
         self.cb_apievents.state(['selected', '!alternate'] if self.api.events_enabled else ['!selected', '!alternate'])
+        self.cb_apiobjectives:ttk.Checkbutton = ttk.Checkbutton(frame_main, text=_("Enable {objectives_url} Requests").format(objectives_url="/objectives")) # LANG: Checkbox on API settings window
+        self.cb_apiobjectives.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
+        self.cb_apiobjectives.configure(command=partial(self._field_edited, self.cb_apiobjectives))
+        self.cb_apiobjectives.state(['selected', '!alternate'] if self.api.objectives_enabled else ['!selected', '!alternate'])
 
         tk.Label(frame_main, text=_("Shortcuts for Popular Servers")).grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
         frame_connection_buttons:ttk.Frame = ttk.Frame(frame_main)
@@ -260,6 +264,7 @@ class WindowAPI:
         self.var_apiurl.set(api_info.get('url', ""))
         self.cb_apiactivities.state(['selected', '!alternate'] if api_info.get('activities_enabled', "False") == "True" else ['!selected', '!alternate'])
         self.cb_apievents.state(['selected', '!alternate'] if api_info.get('events_enabled', "False") == "True" else ['!selected', '!alternate'])
+        self.cb_apiobjectives.state(['selected', '!alternate'] if api_info.get('objectives_enabled', "False") == "True" else ['!selected', '!alternate'])
         self._field_edited(self.entry_apiurl)
 
 

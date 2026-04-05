@@ -66,7 +66,7 @@ class FleetCarrier:
             _('Docking'): (self._readable(self.overview.get('dockingAccess', '')), 'str', 'Unknown'), # LANG: Carrier overview
             _('Allow Notorious'): (self.overview.get('notoriousAccess', ''), 'str', 'Unknown'), # LANG: Carrier overview
 
-            _('Fuel'): (self.overview.get('fuel', 0), 'num', 0, 't'),                    # LANG: Carrier overview
+            _('Fuel'):(f"{self.overview.get('fuel', 0):,}t (+{int(get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)):,}t)", 'fixed'),                    # LANG: Carrier overview
             _('Space'): (f"{self._get_freespace():,}t ({int(self._get_freespace() * 100 / self.overview.get('totalCapacity', 25000))}%)", 'fixed'), # LANG: Carrier overview
             _('Tax Level'): (self.overview.get('taxation', 0), 'num', '0%', '%'),        # LANG: Carrier overview
         }
@@ -486,7 +486,7 @@ class FleetCarrier:
                     jumplist[elem]['visitDurationSeconds'] = self._td(jumplist[elem]['departureTime'], jumplist[elem]['arrivalTime'])
                 continue
 
-            if elem == 0:
+            if elem == 0: # Found it, it's the latest
                 if jump.get('departureTime', None) != None:
                     jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
                     jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', 0)
@@ -501,14 +501,17 @@ class FleetCarrier:
                     jumplist[elem]['body'] = self.overview['currentBody']
                 continue
 
+            # Not found.
             # Already completed, and nothing scheduled so just add it with its details
             if jump.get('departureTime', None) != None:
                 jumplist.insert(0, jump)
+                Debug.logger.debug(f"Adding completed jump to itinerary {elem} {jump}")
                 continue
 
             if self.overview.get('departureScheduled', None) == None:
                 if jump['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
                     jump['body'] = self.overview.get('currentBody', None)
+                Debug.logger.debug(f"Adding scheduled jump to itinerary {elem} {jump}")
                 jumplist.insert(0, jump)
                 continue
 
@@ -519,6 +522,7 @@ class FleetCarrier:
             if jump['starsystem'] == self.overview.get('jumpDestination', ''):
                 jump['body'] = self.overview.get('jumpDestinationBody', None)
 
+            Debug.logger.debug(f"Adding new jump to itinerary {elem} {jump}")
             jumplist.insert(0, jump)
 
             self.overview['jumpDestination'] = None

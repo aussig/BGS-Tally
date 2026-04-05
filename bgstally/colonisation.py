@@ -679,6 +679,12 @@ class Colonisation:
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
+        # Primary port. We completed it but don't know its new name or marketid.
+        if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('MarketID', None) == None and \
+             builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == data.get('Body', str(data.get('BodyNum', ''))).lower():
+            Debug.logger.debug(f"Matched completed primary port {data.get('Name', None)} {data.get('Body', str(data.get('BodyNum', ''))).lower()}")
+            return builds[0]
+
         return None
 
 
@@ -895,13 +901,20 @@ class Colonisation:
         # If we get here, the build is (newly) complete.
         # Since on completion the colonisation ship is removed/goes inactive and a new station is created
         # we need to clear some fields.
+        name = None if 'System Colonisation Ship' in build.get('Name', '') else build.get('Name', None)
         data:dict = {
             'State': BuildState.COMPLETE,
             'Track': False,
             'Readonly': True,
-            'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
+            'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', '')),
+            'MarketID': build.get('MarketID', None)
         }
-        data['MarketID'] = None if 'System Colonisation Ship' in build.get('Name', '') else build.get('MarketID', None)
+
+        # These change for initial colonisation
+        if 'System Colonisation Ship' in build.get('Name', ''):
+            data['MarketID'] = None
+            data['Name'] = None
+
         self.modify_build(system, build.get('BuildID', ''), data)
         return True
 

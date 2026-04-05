@@ -179,7 +179,7 @@ class ProgressWindow:
                 canvas.yview_scroll(scroll, 'units')
 
         bgs_cols:int = 6
-        self.colonisation = self.bgstally.colonisation
+        self.colonisation:Colonisation = self.bgstally.colonisation
 
         self.frame_row = start_row
         frame:tk.Frame = tk.Frame(parent_frame)

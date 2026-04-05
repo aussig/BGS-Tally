@@ -11,6 +11,7 @@ from bgstally.utils import _, get_by_path, catch_exceptions
 
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
 RC_COOLDOWN = 30
+TIMEOUT=10
 
 EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
 EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
@@ -140,13 +141,13 @@ class RavenColonial:
 
         # This just returns a commanders list of project (or system?) revisions.
         #url:str = f"{RC_API}/v2/system/revs"
-        #response:Response = requests.get(url, headers=self.headers,timeout=5)
+        #response:Response = requests.get(url, headers=self.headers,timeout=TIMEOUT)
         #Debug.logger.info(f"Response for /revs {id64}: {response.status_code} {response}")
         #data:dict = response.json()
 
         url:str = f"{RC_API}/v2/system/{id64}"
         if sync == True:  # For requested refreshes only
-            response:Response = requests.get(url, headers=self._headers(), timeout=5)
+            response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
             self._load_callback(response.status_code == 200, response)
             return
 
@@ -164,12 +165,12 @@ class RavenColonial:
         system_name:str = system.get('StarSystem', '')
         # Query the system to see if it exists
         url:str = f"{RC_API}/v2/system/{quote(system_name)}"
-        response:Response = requests.get(url, headers=self._headers(), timeout=5)
+        response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
 
         # Add a new system to RavenColonial
         if response.status_code == 404:
             url:str = f"{RC_API}/v2/system/{quote(system_name)}/import/"
-            response:Response = requests.post(url, headers=self._headers(), timeout=5)
+            response:Response = requests.post(url, headers=self._headers(), timeout=TIMEOUT)
 
             if response.status_code != 200:
                 Debug.logger.error(f"Failed to import system {system_name}: {response.status_code}")
@@ -201,7 +202,7 @@ class RavenColonial:
         payload['architect'] = self.colonisation.cmdr if system.get('Architect', None) == None else system.get('Architect', '')
 
         url:str = f"{RC_API}/v2/system/{quote(system_name)}/sites"
-        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
+        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=TIMEOUT)
         if response.status_code != 200:
             Debug.logger.error(f"{url} {response} {response.content}")
 
@@ -218,7 +219,7 @@ class RavenColonial:
 
         url:str = f"{RC_API}/project/{project_id}/complete"
 
-        response:Response = requests.post(url, headers=self._headers(), timeout=5)
+        response:Response = requests.post(url, headers=self._headers(), timeout=TIMEOUT)
         if response.status_code not in [200, 202]:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
@@ -236,7 +237,7 @@ class RavenColonial:
 
         url:str = f"{RC_API}/project/{project_id}"
 
-        response:Response = requests.delete(url, headers=self._headers(), timeout=5)
+        response:Response = requests.delete(url, headers=self._headers(), timeout=TIMEOUT)
         if response.status_code not in [200, 202]:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
@@ -272,7 +273,7 @@ class RavenColonial:
         payload:dict = {'update': [update], 'delete':[]}
 
         url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
-        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
+        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=TIMEOUT)
         if response.status_code != 200:
             Debug.logger.error(f"{url} {response} {response.content}")
 
@@ -298,7 +299,7 @@ class RavenColonial:
 
         payload:dict = {'update': [], 'delete':[build.get('BuildID')]}
         url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
-        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
+        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=TIMEOUT)
         if response.status_code != 200:
             Debug.logger.error(f"{url} {self._headers()} {response} {response.content}")
 
@@ -317,7 +318,7 @@ class RavenColonial:
             payload['orderIDs'].append(b.get('BuildID', None))
 
         url:str = f"{RC_API}/v2/system/{system.get('SystemAddress')}/sites"
-        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
+        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=TIMEOUT)
         if response.status_code != 200:
             Debug.logger.error(f"{url} {response} {response.content}")
 
@@ -459,7 +460,7 @@ class RavenColonial:
         # and return it if one exists already
         Debug.logger.debug(f"{system.get('SystemAddress', '')}")
         url:str = f"{RC_API}/system/{system.get('SystemAddress', '')}/{build.get('MarketID', '')}"
-        response:Response = requests.get(url, headers=self._headers(), timeout=5)
+        response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
         if response.status_code == 200:
             data:dict = response.json()
             projectid:str|None = data.get('buildId', None)
@@ -487,7 +488,7 @@ class RavenColonial:
                 payload[k] = rcval
 
         url:str = f"{RC_API}/project/"
-        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=5)
+        response:Response = requests.put(url, json=payload, headers=self._headers(), timeout=TIMEOUT)
         projectid:str|None = None
 
         if response.status_code in [200, 202]:
@@ -506,7 +507,7 @@ class RavenColonial:
 
         # Link the project to us.
         url:str = f"{RC_API}/project/{projectid}/link/{self.colonisation.cmdr}"
-        response:Response = requests.put(url, headers=self._headers(), timeout=5)
+        response:Response = requests.put(url, headers=self._headers(), timeout=TIMEOUT)
         if response.status_code not in [200, 202]:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
@@ -643,7 +644,7 @@ class RavenColonial:
 
         # Which of the following to use?
         url:str = f"{RC_API}/project/{project_id}/contribute/{self.colonisation.cmdr}"
-        response:Response = requests.post(url, json=payload, headers=self._headers(), timeout=5)
+        response:Response = requests.post(url, json=payload, headers=self._headers(), timeout=TIMEOUT)
         if response.status_code not in [200, 202]:
             Debug.logger.error(f"{url} {response} {response.content}")
             return
@@ -847,7 +848,7 @@ class EDSM:
 
         url:str = f"{EDSM_BODIES}{quote(system_name)}"
         # We're going to do this synchronously since we need the data before we can proceed and it's a one-time call.
-        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=5)
+        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
         if response.status_code == 200:
             self._bodies(True, response)
         return
@@ -950,7 +951,7 @@ class Spansh:
             return system_address
 
         url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
-        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=5)
+        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
         if response.status_code != 200:
             Debug.logger.error(f"Query system response for {system_name}: {response.status_code}")
             return None
@@ -992,7 +993,7 @@ class Spansh:
             return
 
         url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
-        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=5)
+        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
         RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
 
 

@@ -149,11 +149,11 @@ class WindowAPI:
         tk.Button(frame_eic, image=self.image_logo_eic, height=28, bg="Black", command=partial(self._autofill, 'eic')).pack(side=tk.TOP, padx=4)
         HyperlinkLabel(frame_eic, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
 
-        api_info = self.bgstally.config.api('spectrum')
-        frame_spectrum:ttk.Frame = ttk.Frame(frame_connection_buttons)
-        frame_spectrum.pack(side=tk.LEFT)
-        tk.Button(frame_spectrum, image=self.image_logo_spectrum, height=28, bg="White", command=partial(self._autofill, 'spectrum')).pack(side=tk.TOP, padx=4)
-        HyperlinkLabel(frame_spectrum, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
+        # api_info = self.bgstally.config.api('spectrum')
+        # frame_spectrum:ttk.Frame = ttk.Frame(frame_connection_buttons)
+        # frame_spectrum.pack(side=tk.LEFT)
+        # tk.Button(frame_spectrum, image=self.image_logo_spectrum, height=28, bg="White", command=partial(self._autofill, 'spectrum')).pack(side=tk.TOP, padx=4)
+        # HyperlinkLabel(frame_spectrum, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
 
         api_info:dict = self.bgstally.config.api('local')
         frame_local:ttk.Frame = ttk.Frame(frame_connection_buttons)

@@ -9,6 +9,7 @@
 ### Changes:
 
 * The API setup now has a checkbox to enable / disable the objectives API. Also, all the quick shortcut buttons have now been enhanced to set/unset this checkbox appropriately for each integration.
+* Removed the quick-setup button for the Spectrum integration as the service appears to be dead and the maintainer has vanished.
 
 
 ## v5.5.0-a1 - 2026-04-03

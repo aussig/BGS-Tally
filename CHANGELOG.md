@@ -2,7 +2,9 @@
 
 ## v5.5.0-xx - xxxx-xx-xx
 
+### New Features:
 
+* API quick-setup button for local server connection, if you need to ingest your data to a local server or use a relay such as [CMDR JanJonTheo's local relay server](https://github.com/JanJonTheo/VALKBGSTallyRelayServer) to send data to multiple destinations.
 
 
 ## v5.5.0-a1 - 2026-04-03

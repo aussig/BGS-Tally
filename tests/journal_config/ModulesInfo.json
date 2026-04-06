@@ -1,0 +1,17 @@
+{ "event":"ModuleInfo", "Modules":[
+{ "Slot":"MainEngines", "Item":"int_engine_size8_class5", "Power":12.096001, "Priority":0 },
+{ "Slot":"FrameShiftDrive", "Item":"int_hyperdrive_overcharge_size7_class5", "Power":1.035000, "Priority":0 },
+{ "Slot":"PowerDistributor", "Item":"int_powerdistributor_size6_class5", "Power":0.820000, "Priority":0 },
+{ "Slot":"LifeSupport", "Item":"int_lifesupport_size5_class2", "Power":0.640000, "Priority":0 },
+{ "Slot":"CargoHatch", "Item":"modularcargobaydoor", "Power":0.600000, "Priority":2 },
+{ "Slot":"Slot10_Size1", "Item":"int_dockingcomputer_advanced", "Power":0.450000, "Priority":1 },
+{ "Slot":"Radar", "Item":"int_sensors_size5_class2", "Power":0.370000, "Priority":0 },
+{ "Slot":"ShipCockpit", "Item":"panthermkii_cockpit", "Power":0.000000 },
+{ "Slot":"PowerPlant", "Item":"int_powerplant_size5_class5", "Power":0.000000 },
+{ "Slot":"WeaponColour", "Item":"weaponcustomisation_white", "Power":0.000000 },
+{ "Slot":"EngineColour", "Item":"enginecustomisation_white", "Power":0.000000 },
+{ "Slot":"DataLinkScanner", "Item":"hpt_shipdatalinkscanner", "Power":0.000000, "Priority":0 },
+{ "Slot":"CodexScanner", "Item":"int_codexscanner", "Power":0.000000 },
+{ "Slot":"DiscoveryScanner", "Item":"int_stellarbodydiscoveryscanner_standard", "Power":0.000000 },
+{ "Slot":"ColonisationSuite", "Item":"int_colonisation", "Power":0.000000 }
+ ] }

@@ -4,6 +4,7 @@ Test harness for EDMC plugins.
 This harness simulates EDMC's journal entry events and provides tools to test
 the plugin's routing functionality without running the full EDMC application.
 """
+import shutil
 import threading
 threading.get_native_id = lambda: 0
 
@@ -29,6 +30,17 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 test_dir:Path = Path(__file__).parent
 sys.path.insert(0, str(test_dir))
 
+CONFIG_FILES:dict = {'Backpack': 'Backpack.json',
+                     'Cargo': 'Cargo.json',
+                     'Market': 'Market.json',
+                     'ModuleInfo': 'ModulesInfo.json',
+                     'NavRouteClear': 'NavRoute.json',
+                     'Outfitting': 'Outfitting.json',
+                     'ShipLocker': 'ShipLocker.json',
+                     'Shipyard': 'Shipyard.json',
+                     'Status': 'Status.json'
+        }
+
 import tests.edmc.requests
 import tests.edmc.mocks
 from tests.edmc.mocks import MockConfig
@@ -52,6 +64,12 @@ class TestHarness:
 
         self.plugin_dir:Path = Path(plugin_dir).resolve()
         self.plugin:Any = None
+
+        # Copy the initial config state files
+        Path(__file__).parent.joinpath("journal_folder").mkdir(exist_ok=True)
+        for file in CONFIG_FILES.values():
+            shutil.copy(Path(__file__).parent / "journal_config" / file,
+                Path(__file__).parent / "journal_folder" / file)
 
         self.monitor = monitor
 
@@ -186,6 +204,12 @@ class TestHarness:
         if 'timestamp' not in event:
             event['timestamp'] = datetime.now(timezone.utc).isoformat()
         self.monitor.parse_entry(json.dumps(event).encode("utf-8"))
+
+        # Update the separate journal files that ED maintains
+        # @TODO: Figure out what gets written to NavRoute.json.
+        if event['event'] in CONFIG_FILES:
+            with open(self.plugin_dir / "journal_folder" / CONFIG_FILES[event['event']], 'w') as f:
+                json.dump(event, f)
 
         # Call registered handlers
         for handler in self.journal_handlers:

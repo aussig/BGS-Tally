@@ -18,23 +18,23 @@ def harness(request) -> Generator:
     """ Provide a fresh test harness for each test. """
     live = request.node.get_closest_marker('live_requests') is not None
 
-    test_harness = TestHarness(live_requests=live) 
+    test_harness = TestHarness(live_requests=live)
 
     import bgstally.constants
     bgstally.constants.FOLDER_ASSETS = "../assets"
     bgstally.constants.FOLDER_DATA = "../data"
-    
-    # Now we can import Router modules
+
+    # Now we can start the plugin
     from load import plugin_start3, plugin_app, journal_entry
     import bgstally.globals
-    test_harness.plugin = bgstally.globals.this  
+    test_harness.plugin = bgstally.globals.this
 
     plugin_start3(str(test_harness.plugin_dir))
     plugin_app(test_harness.parent)
 
     test_harness.load_events("journal_events.json")
     test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
-        
+
     yield test_harness
 
 class TestStartup:

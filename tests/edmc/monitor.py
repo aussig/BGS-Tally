@@ -72,7 +72,7 @@ class EDLogs(FileSystemEventHandler):
         self.currentdir: str | None = None  # The actual logdir that we're monitoring
         self.logfile: str | None = None
         self.observer: BaseObserver | None = None
-        self.observed = None  # a watchdog ObservedWatch, or None if polligng
+        self.observed = None  # a watchdog ObservedWatch, or None if polling
         self.thread: threading.Thread | None = None
         # For communicating journal entries back to main thread
         self.event_queue: queue.Queue = queue.Queue(maxsize=0)

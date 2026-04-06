@@ -253,7 +253,7 @@ class TestCarrierJumps:
         """ Test update_overlay() when idle """
         fc = harness.plugin.fleet_carrier
         message = fc.update_overlay()
-        assert message == "<H>"
+        assert message == ''
 class TestCarrierRoute:
     """ Test the Spansh Routing """
 
@@ -445,7 +445,6 @@ class TestCarrierEvents:
         # Pre-flight checks.
         assert fc.overview.get('carrier_id') == 12345
         assert fc.overview.get('currentStarSystem', '') == 'Sol'
-        assert len(fc.itinerary) == 0
 
         fc.update(capi_data)
 

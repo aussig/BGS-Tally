@@ -339,17 +339,17 @@ class FleetCarrier:
         """ Update the route to our current location if we're on the route """
 
         # If we aren't currently on the route leave it alone
-        if self.overview['currentStarSystem'] not in [r.get('name') for r in self.route if 'name' in r]:
+        if self.overview.get('currentStarSystem', 'None') not in [r.get('name') for r in self.route if 'name' in r]:
             return
 
         # Do catchup. This shouldn't happen unless we've made some jumps without ED:MC running
         used:int = 0
-        while self.route != [] and self.route[0]['name'] != self.overview['currentStarSystem']:
+        while self.route != [] and self.route[0]['name'] != self.overview.get('currentStarSystem', 'None'):
             used += self.route[0]['fuel_used']
             self.route = self.route[1:]
 
         # If we're there take it out.
-        if self.route != [] and self.route[0]['name'] == self.overview['currentStarSystem']:
+        if self.route != [] and self.route[0]['name'] == self.overview.get('currentStarSystem', 'None'):
             self.overview['fuel'] -= used + self.route[0]['fuel_used']
             self.route = self.route[1:]
 

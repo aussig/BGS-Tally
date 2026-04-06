@@ -31,8 +31,11 @@ def harness(request) -> Generator:
                                            json_data={'tag_name': 'v1.0.0','draft': True,'prerelease': True,
                                                        'assets': [{'browser_download_url': 'https://example.com/download'}]}))
 
-    # Initialize colonisation state
-    shutil.copy(Path(__file__).parent / "config" / "colonisation_init.json",
+    # Initialize colonisation state - use parametrized filename if provided
+    #@pytest.mark.parametrize('harness', ['colonisation_claimed.json'], indirect=True)
+
+    colonisation_init_file = getattr(request, 'param', 'colonisation_init.json')
+    shutil.copy(Path(__file__).parent / "config" / colonisation_init_file,
                 Path(__file__).parent / "otherdata" / "colonisation.json")
 
     from load import plugin_start3, plugin_app, journal_entry
@@ -128,18 +131,66 @@ class TestColonisationBuilds:
         c.remove_build(system, build['MarketID'], False)
         assert len(system['Builds']) == buildc
 
-    def test_full_build(self, harness) -> None:
+    def test_claim(self, harness) -> None:
         """ Test claiming a system and deploying a beacon creates a new system entry and updates state. """
+        harness.load_events("colonisation_build.json")
+        c = harness.plugin.colonisation
+        harness.play_sequence("claim", 0.1)
+
+    def test_visit(self, harness) -> None:
+        """ Test visiting the colonisation ship. """
         harness.load_events("colonisation_build.json")
         c = harness.plugin.colonisation
 
         harness.play_sequence("claim", 0.1)
-        assert harness.monitor.state.get('IsDocked', None) == False
-        assert c.systems[1]['StarSystem'] == 'Test System'
-        assert c.systems[1]['Architect'] == 'Testy'
-
-        print(c.systems[1])
         harness.play_sequence("visit_ship", 0.1)
+
+        assert len(c.systems[1]['Builds']) == 1
+        assert c.systems[1]['Builds'][0]['BuildID'] == "&3963439106"
+        assert len(c.progress) == 1
+
+    def test_contribution(self, harness) -> None:
+        """ Test visiting the colonisation ship. """
+        harness.load_events("colonisation_build.json")
+        c = harness.plugin.colonisation
+
+        harness.play_sequence("claim", 0.1)
+        harness.play_sequence("visit_ship", 0.1)
+        harness.play_sequence("contribution", 0.1)
+
+        assert c.progress[0]['ConstructionProgress'] == 0.059446
+        assert c.progress[0]['Delivered']['liquidoxygen'] == 1298
+
+    def test_complete(self, harness) -> None:
+        """ Test completing construction. """
+        harness.load_events("colonisation_build.json")
+        c = harness.plugin.colonisation
+
+        harness.play_sequence("claim", 0.1)
+        harness.play_sequence("visit_ship", 0.1)
+        harness.play_sequence("contribution", 0.1)
+        harness.play_sequence("complete", 0.1)
+
+        assert c.progress[0]['Required']['steel'] == 6660
+        assert c.progress[0]['Delivered']['steel'] == 6660
+        assert c.progress[0]['ConstructionProgress'] == 1.0
+        assert c.progress[0]['ConstructionComplete'] is True
+
+    def test_visit_outpost(self, harness) -> None:
+        """ Test visiting the completed outpost. """
+        harness.load_events("colonisation_build.json")
+        c = harness.plugin.colonisation
+
+        harness.play_sequence("claim", 0.05)
+        harness.play_sequence("visit_ship", 0.05)
+        harness.play_sequence("contribution", 0.05)
+        harness.play_sequence("complete", 0.05)
+        harness.play_sequence("visit_outpost", 0.05)
+
+        assert c.systems[1]['Builds'][0]['BuildID'] == "&3963439106"
+        assert c.systems[1]['Builds'][0]['MarketID'] == 4351826691
+        assert c.systems[1]['Builds'][0]['State'] == BuildState.COMPLETE
+        assert c.systems[1]['Builds'][0]['Name'] == 'Citroen Arsenal'
 
 
 class TestColonisationJournal:

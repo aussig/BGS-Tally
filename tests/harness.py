@@ -255,7 +255,9 @@ class TestHarness:
 
         # Update the separate journal files that ED maintains
         # @TODO: Figure out what gets written to NavRoute.json.
-        if event['event'] in CONFIG_FILES:
+        if event['event'] in CONFIG_FILES.keys():
+            if event['event'] == 'Market' and 'Items' not in event:
+                event['Items'] = [] # Just add an empty market since we can't produce one.
             with open(self.plugin_dir / "journal_folder" / CONFIG_FILES[event['event']], 'w') as f:
                 json.dump(event, f)
 

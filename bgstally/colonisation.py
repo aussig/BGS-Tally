@@ -680,6 +680,9 @@ class Colonisation:
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
+        if len(builds) == 0:
+            return None
+
         # Primary port. We completed it but don't know its new name or marketid.
         if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('MarketID', None) == None and \
              builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == data.get('Body', str(data.get('BodyNum', ''))).lower():

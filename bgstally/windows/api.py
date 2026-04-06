@@ -34,6 +34,7 @@ class WindowAPI:
         self.image_logo_comguard = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_comguard.png"))
         self.image_logo_dcoh = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_dcoh.png"))
         self.image_logo_eic = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_eic.png"))
+        self.image_logo_local = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_local.png"))
         self.image_logo_spectrum = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_spectrum.png"))
 
 
@@ -121,6 +122,10 @@ class WindowAPI:
         self.cb_apievents.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
         self.cb_apievents.configure(command=partial(self._field_edited, self.cb_apievents))
         self.cb_apievents.state(['selected', '!alternate'] if self.api.events_enabled else ['!selected', '!alternate'])
+        self.cb_apiobjectives:ttk.Checkbutton = ttk.Checkbutton(frame_main, text=_("Enable {objectives_url} Requests").format(objectives_url="/objectives")) # LANG: Checkbox on API settings window
+        self.cb_apiobjectives.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
+        self.cb_apiobjectives.configure(command=partial(self._field_edited, self.cb_apiobjectives))
+        self.cb_apiobjectives.state(['selected', '!alternate'] if self.api.objectives_enabled else ['!selected', '!alternate'])
 
         tk.Label(frame_main, text=_("Shortcuts for Popular Servers")).grid(row=current_row, column=0, sticky=tk.NW, pady=4) # LANG: Label on API settings window
         frame_connection_buttons:ttk.Frame = ttk.Frame(frame_main)
@@ -144,11 +149,18 @@ class WindowAPI:
         tk.Button(frame_eic, image=self.image_logo_eic, height=28, bg="Black", command=partial(self._autofill, 'eic')).pack(side=tk.TOP, padx=4)
         HyperlinkLabel(frame_eic, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
 
-        api_info = self.bgstally.config.api('spectrum')
-        frame_spectrum:ttk.Frame = ttk.Frame(frame_connection_buttons)
-        frame_spectrum.pack(side=tk.LEFT)
-        tk.Button(frame_spectrum, image=self.image_logo_spectrum, height=28, bg="White", command=partial(self._autofill, 'spectrum')).pack(side=tk.TOP, padx=4)
-        HyperlinkLabel(frame_spectrum, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
+        # api_info = self.bgstally.config.api('spectrum')
+        # frame_spectrum:ttk.Frame = ttk.Frame(frame_connection_buttons)
+        # frame_spectrum.pack(side=tk.LEFT)
+        # tk.Button(frame_spectrum, image=self.image_logo_spectrum, height=28, bg="White", command=partial(self._autofill, 'spectrum')).pack(side=tk.TOP, padx=4)
+        # HyperlinkLabel(frame_spectrum, text=_("Website ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
+
+        api_info:dict = self.bgstally.config.api('local')
+        frame_local:ttk.Frame = ttk.Frame(frame_connection_buttons)
+        frame_local.pack(side=tk.LEFT)
+        tk.Button(frame_local, image=self.image_logo_local, height=28, bg="white", command=partial(self._autofill, 'local')).pack(side=tk.TOP, padx=4)
+        HyperlinkLabel(frame_local, text=_("Documentation ⤴"), font=FONT_SMALL, url=api_info.get('url_website', ""), underline=True).pack(side=tk.BOTTOM, padx=4) # LANG: Label on API settings window
+
 
         self.btn_fetch = tk.Button(frame_main, text=_("Establish Connection"), command=partial(self._discover)) # LANG: Button on API settings window
         self.btn_fetch.grid(row=current_row, column=1, pady=4, sticky=tk.W); current_row += 1
@@ -252,6 +264,7 @@ class WindowAPI:
         self.var_apiurl.set(api_info.get('url', ""))
         self.cb_apiactivities.state(['selected', '!alternate'] if api_info.get('activities_enabled', "False") == "True" else ['!selected', '!alternate'])
         self.cb_apievents.state(['selected', '!alternate'] if api_info.get('events_enabled', "False") == "True" else ['!selected', '!alternate'])
+        self.cb_apiobjectives.state(['selected', '!alternate'] if api_info.get('objectives_enabled', "False") == "True" else ['!selected', '!alternate'])
         self._field_edited(self.entry_apiurl)
 
 

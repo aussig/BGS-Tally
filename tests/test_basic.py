@@ -36,6 +36,7 @@ def harness(request) -> Generator:
     test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
 
     yield test_harness
+    test_harness.assert_no_unhandled_exceptions()
 
 class TestStartup:
     """Test plugin startup behavior."""

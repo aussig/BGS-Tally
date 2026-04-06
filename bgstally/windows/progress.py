@@ -628,6 +628,10 @@ class ProgressWindow:
     @catch_exceptions
     def update_display(self) -> None:
         ''' Main display update function. '''
+        if not hasattr(self.bgstally, 'frame') or self.frame == None or not self.frame.winfo_exists():
+            Debug.logger.debug("Progress frame does not exist, skipping update")
+            return
+
         if not hasattr(self.bgstally, 'colonisation'):
             self.frame.grid_remove()
             return

@@ -45,6 +45,7 @@ def harness(request) -> Generator:
     test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
 
     yield test_harness
+    test_harness.assert_no_unhandled_exceptions()
 
 
 class TestColonisationSystems:
@@ -127,12 +128,19 @@ class TestColonisationBuilds:
         c.remove_build(system, build['MarketID'], False)
         assert len(system['Builds']) == buildc
 
-    def test_build(self, harness) -> None:
+    def test_full_build(self, harness) -> None:
+        """ Test claiming a system and deploying a beacon creates a new system entry and updates state. """
         harness.load_events("colonisation_build.json")
         c = harness.plugin.colonisation
 
-        harness.play_sequence("build", 0.1)
-        assert c.cargo.get('steel') == 5
+        harness.play_sequence("claim", 0.1)
+        assert harness.monitor.state.get('IsDocked', None) == False
+        assert c.systems[1]['StarSystem'] == 'Test System'
+        assert c.systems[1]['Architect'] == 'Testy'
+
+        print(c.systems[1])
+        harness.play_sequence("visit_ship", 0.1)
+
 
 class TestColonisationJournal:
     """ Test handling of journal entries related to colonisation. """

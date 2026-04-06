@@ -43,11 +43,8 @@ def harness(request) -> Generator:
     test_harness.load_events("journal_events.json")
     test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
 
-    # Used in event firing
-    test_harness.commander = 'Testy'
-    test_harness.is_beta = False
-
     yield test_harness
+    test_harness.assert_no_unhandled_exceptions()
 
 class TestCarrierInitialization:
     def test_available_no_data(self, harness) -> None:
@@ -84,7 +81,7 @@ class TestCarrierUIDataMethods:
 
         assert data['Name'] == 'Testy MctestFace'
         assert data['Callsign'] == 'T3S-TY'
-        assert data['Fuel'][0] == 1000
+        assert data['Fuel'][0] == '1,000t (+0t)'
 
 
     def test_get_summary(self, harness) -> None:

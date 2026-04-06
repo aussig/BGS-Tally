@@ -89,7 +89,7 @@ class TestColonisationBuilds:
         assert found_build['BuildID'] == build['BuildID']
 
         # By Name that matches a construction site
-        found_build:dict = c.find_build(system, {'Name': 'Numpty'})
+        found_build:dict = c.find_build(system, {'Name': 'Surface Construction Site: Numpty'})
         assert found_build is not None
         assert found_build['BuildID'] == system['Builds'][1]['BuildID']
 
@@ -126,6 +126,13 @@ class TestColonisationBuilds:
 
         c.remove_build(system, build['MarketID'], False)
         assert len(system['Builds']) == buildc
+
+    def test_build(self, harness) -> None:
+        harness.load_events("colonisation_build.json")
+        c = harness.plugin.colonisation
+
+        harness.play_sequence("build", 0.1)
+        assert c.cargo.get('steel') == 5
 
 class TestColonisationJournal:
     """ Test handling of journal entries related to colonisation. """
@@ -318,6 +325,8 @@ class TestColonisationJournal:
             instance = mock_rc.return_value
             c.journal_entry('Testy', False, 'Sol', '', {'event': 'SupercruiseExit', 'StarSystem': 'Sol', 'SystemAddress': 777}, {})
             instance.load_project.assert_called_once_with(c.progress[0])
+
+
 
 class TestColonisationOther:
     def test_get_base_type_and_layouts(self, harness) -> None:

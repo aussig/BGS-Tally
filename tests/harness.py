@@ -161,7 +161,6 @@ class TestHarness:
                                 event[k1] = int(event[k1])
                         lines.append(event)
                     res[sequence] = lines
-            print(res)
             self.events = res
             return res
 
@@ -179,6 +178,7 @@ class TestHarness:
     def fire_event(self, event:dict, state:dict = {}) -> None:
         """ Fire a journal event through the harness. """
 
+        print(f"Firing event: {event['event']}")
         # Update monitor state with provided state data before firing the event
         for k, v in state.items():
             self.monitor.state[k] = v

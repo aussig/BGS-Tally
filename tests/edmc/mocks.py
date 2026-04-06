@@ -38,6 +38,7 @@ if 'config' not in sys.modules:
             self.shutting_down = False
             self.app_dir_path = parent
             self._initialized = True
+            self.default_journal_dir = str(parent / "config")
 
         def __setitem__(self, key, value):
             self.data[key] = value

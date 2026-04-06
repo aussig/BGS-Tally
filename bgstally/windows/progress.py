@@ -628,6 +628,10 @@ class ProgressWindow:
     @catch_exceptions
     def update_display(self) -> None:
         ''' Main display update function. '''
+        if not hasattr(self.bgstally, 'colonisation'):
+            self.frame.grid_remove()
+            return
+
         tracked:list = self.colonisation.get_tracked_builds()
         required:list = self.colonisation.get_required(tracked)
         delivered:list = self.colonisation.get_delivered(tracked)

@@ -638,6 +638,7 @@ class Colonisation:
         # Match on site name.
         if data.get('Name', None) != None:
             for build in builds:
+                Debug.logger.debug(f"Matching on name {data.get('Name', None)} against build {build.get('Name', None)}")
                 if build.get('Name', None) != None and build.get('Name', None) == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')):
                     return build
 

@@ -154,3 +154,4 @@ BGS-Tally.dev.code-workspace
 tests/logs/
 tests/backups/
 tests/updates/
+.vscode/launch.json

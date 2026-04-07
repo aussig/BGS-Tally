@@ -29,10 +29,16 @@ def harness(request) -> Generator:
     bgstally.constants.FOLDER_DATA = "../data"
 
     # Make sure we always start with a consistent fleetcarrier.json
-    shutil.copy(Path(__file__).parent / "config" / "fleetcarrier_init.json",
-                Path(__file__).parent / "otherdata" / "fleetcarrier.json")
+    #@pytest.mark.parametrize('harness', ['empty.json'], indirect=True)
 
-    # Now we can import Router modules
+    carrier_init_file:str = getattr(request, 'param', 'fleetcarrier_init.json')
+    if carrier_init_file == 'None':
+        shutil.rmtree(Path(__file__).parent / "otherdata" / "fleetcarrier.json", ignore_errors=True)
+    else:
+        shutil.copy(Path(__file__).parent / "config" / carrier_init_file,
+                    Path(__file__).parent / "otherdata" / "fleetcarrier.json")
+
+    # Now we can import plugin modules
     from load import plugin_start3, plugin_app, journal_entry
     import bgstally.globals
     test_harness.plugin = bgstally.globals.this
@@ -47,6 +53,13 @@ def harness(request) -> Generator:
     test_harness.assert_no_unhandled_exceptions()
 
 class TestCarrierInitialization:
+
+    @pytest.mark.parametrize('harness', ['None', 'carrier_empty.json', 'fleetcarrier-5.1.0.json'], indirect=True)
+    def test_no_save(self, harness) -> None:
+        """ Test that the plugin initializes correctly with no existing data and doesn't save an empty overview. """
+        fc = harness.plugin.fleet_carrier
+        assert fc.overview == {}
+
     def test_available_no_data(self, harness) -> None:
         """ Test available() with no carrier data """
         fc = harness.plugin.fleet_carrier

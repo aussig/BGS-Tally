@@ -134,11 +134,12 @@ class TestHarness:
         )
 
     def set_requests_mode(self, live_requests:bool) -> None:
+        """ Set whether the harness should use live HTTPS requests or mocked responses. """
         self.live_requests = live_requests
         tests.edmc.requests.live_requests(live_requests)
 
     def set_edmc_config(self, config_file:str = "edmc_config.json") -> None:
-        # Load config
+        """ Load a config file from the config directory and set it in the mock config object. """
         config_path:Path = self.plugin_dir / "config" / config_file
         if not config_path.is_file():
             self.config.data = {}
@@ -151,7 +152,7 @@ class TestHarness:
         self.config.data['app_dir_path'] = str(self.plugin_dir) # Override app_dir_path to plugin dir for testing purposes
 
     def get_config_data(self, config_file:str) -> str|dict|None:
-        """Load and return a chosen config file"""
+        """Load and return a chosen config file. Useful for comparing plugin output to expected config data."""
 
         config_path:Path = self.plugin_dir / "config" / config_file
         format = config_file.split('.')[1]
@@ -189,7 +190,7 @@ class TestHarness:
             return {}
 
     def load_events(self, source:str) -> dict:
-        """ Load journal events from events.json file. """
+        """ Load journal events from a json file. """
 
         events_file = Path(self.plugin_dir, "journal_config", source)
         logging.info(f"Events file: {events_file}")
@@ -254,10 +255,13 @@ class TestHarness:
             self.monitor.parse_entry(json.dumps(event).encode("utf-8"))
 
         # Update the separate journal files that ED maintains
-        # @TODO: Figure out what gets written to NavRoute.json.
         if event['event'] in CONFIG_FILES.keys():
-            if event['event'] == 'Market' and 'Items' not in event:
-                event['Items'] = [] # Just add an empty market since we can't produce one.
+            match event['event']:
+                case 'Market' if 'Items' not in event:
+                    event['Items'] = [] # Just add an empty market since we can't produce one.
+                case 'NavRoute' if 'Route' not in event:
+                    event['Route'] = [] # Just add an empty route since we can't produce one.
+
             with open(self.plugin_dir / "journal_folder" / CONFIG_FILES[event['event']], 'w') as f:
                 json.dump(event, f)
 

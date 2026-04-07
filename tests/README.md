@@ -108,8 +108,28 @@ It works as follows:
 1. The BGS-Tally's journal handling function is registered with the harness using `register_journal_handler`
 1. A test can then fire individual events with `fire_event` or replay an entire sequence with `play_sequence`
 
-Events fired this way will be given a current timestamp and the json event file can contain f strings enabling variable data or specific timing.
+Events fired this way will be given a current timestamp and the json event file can contain f strings enabling variable data or specific timing. Customisation options include:
+
+* `now:` or `delta:<int>` will be replaced by the current datetime or the current datetime plus a number of seconds respectively
+* `params.<param>` any named parameter passed to the `load_events` function.
+* any variable in the harness. eg. `harness.myplugin.somevar`
+
+For example:
 
 ```json
-{ "event":"CarrierJumpRequest", "CarrierType":"FleetCarrier", "CarrierID":"{self.plugin.fleet_carrier.overview.get('carrier_id')}", "SystemName":"Bleae Thua ZE-I b23-1", "Body":"Bleae Thua ZE-I b23-1 AB 1", "SystemAddress":2867293399241, "BodyID":12, "DepartureTime":"now:" }
+{
+    "startup": [
+        { "event":"Startup", "System":"Sol", "Body":"Earth", "BodyID":3 }
+    ],
+   "carrier_events": [
+        { "timestamp": "delta:-900", "event":"CarrierJumpRequest", "CarrierType":"FleetCarrier", "CarrierID":"{self.plugin.fleet_carrier.overview.get(\"carrier_id\")}", "SystemName":"Bleae Thua ZE-I b23-1", "Body":"Bleae Thua ZE-I b23-1 AB 1", "SystemAddress":2867293399241, "BodyID":12, "DepartureTime":"delta:-1"},
+        { "event":"CarrierLocation", "CarrierType":"FleetCarrier", "CarrierID":"{self.plugin.fleet_carrier.overview.get(\"carrier_id\")}", "StarSystem":"Bleae Thua ZE-I b23-1", "SystemAddress":2867293399241, "BodyID": "{params.BodyId}" }
+   ]
+}
 ```
+
+Two file formats are supported.
+
+1. `.json` data files. These should be a dictionary of lists where the dictionary keys are the action to run and the list is a series of log entries.
+
+1. ED journal `.log` files. These can be taken directly from the ED journal folder. All the entries will be loaded and given the action name "default".

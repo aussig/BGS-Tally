@@ -19,6 +19,7 @@ import logging
 import tkinter as tk
 import threading
 from typing import Any
+from types import SimpleNamespace
 
 edmc_dir:Path = Path(__file__).parent / 'edmc'
 sys.path.insert(0, str(edmc_dir))
@@ -189,17 +190,22 @@ class TestHarness:
             print(f"Warning: Could not load {state_file}: {e}")
             return {}
 
-    def load_events(self, source:str) -> dict:
-        """ Load journal events from a json file. """
+    def load_events(self, source:str, **kwargs) -> dict:
+        """ Load journal events from a json file or a direct ED log. """
 
         events_file = Path(self.plugin_dir, "journal_config", source)
         logging.info(f"Events file: {events_file}")
+        params = SimpleNamespace(**kwargs)
         if not events_file.exists():
             print(f" Events file {events_file} not found")
             return {}
         try:
             with open(events_file, 'r') as f:
-                tmp:dict = json.load(f)
+                if events_file.suffix == '.json':
+                    tmp:dict = json.load(f)
+                else:
+                    # Assume it's a direct ED log
+                    tmp = {"default": [json.loads(line) for line in f.readlines()]}
 
                 # The following allows the use of f strings in the json which enables time-based events.
                 res:dict = {}

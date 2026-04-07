@@ -46,7 +46,6 @@ def harness(request) -> Generator:
     plugin_start3(str(test_harness.plugin_dir))
     plugin_app(test_harness.parent)
 
-    test_harness.load_events("journal_events.json")
     test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
 
     yield test_harness
@@ -89,7 +88,6 @@ class TestCarrierUIDataMethods:
     def test_get_overview(self, harness) -> None:
         """ Test get_overview() method """
         fc = harness.plugin.fleet_carrier
-        harness.load_events("journal_events.json")
         data:dict = fc.get_overview()
 
         assert data['Name'] == 'Testy MctestFace'
@@ -201,7 +199,7 @@ class TestCarrierJumps:
         """ Test handling a jump request """
         fc = harness.plugin.fleet_carrier
         # Read the carrier events from the journal_events.json
-        events:list = harness.load_events("journal_events.json").get("carrier_events", [])
+        events:list = harness.load_events("journal_events.json", BodyID=12).get("carrier_events", [])
 
         # Pre-flight checks.
         assert fc.overview.get('carrier_id') == 12345
@@ -222,7 +220,7 @@ class TestCarrierJumps:
         """ Test a successful jump """
         fc = harness.plugin.fleet_carrier
 
-        events:list = harness.load_events("journal_events.json").get("carrier_events", [])
+        events:list = harness.load_events("journal_events.json", BodyID=12).get("carrier_events", [])
         assert fc.overview.get('carrier_id') == 12345
         assert fc.overview.get('currentStarSystem', '') == 'Sol'
 
@@ -240,7 +238,7 @@ class TestCarrierJumps:
     def test_jump_cancellation(self, harness) -> None:
         """ A cancelled jump """
         fc = harness.plugin.fleet_carrier
-        events:list = harness.load_events("journal_events.json").get("carrier_events", [])
+        events:list = harness.load_events("journal_events.json", BodyID=12).get("carrier_events", [])
 
         assert fc.overview.get('carrier_id') == 12345
         assert fc.overview.get('currentStarSystem', '') == 'Sol'

@@ -9,6 +9,7 @@ from typing import Generator
 from time import sleep
 from unittest.mock import patch, MagicMock
 
+from datetime import datetime, UTC
 from harness import TestHarness
 from bgstally.constants import BuildState
 
@@ -28,10 +29,16 @@ def harness(request) -> Generator:
     # Put in a response for the update manager so it doesn't error
     if not live:
         from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get', MockResponse(200, url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest',
+        queue_response('get', MockResponse(200,
+                                           url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest',
                                            json_data={'tag_name': 'v1.0.0','draft': True,'prerelease': True,
-                                                       'assets': [{'browser_download_url': 'https://example.com/download'}]}))
-
+                                                       'assets': [{'browser_download_url': 'https://example.com/download'}]}),
+                                            url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest')
+        queue_response('get', MockResponse(200,
+                                           url='http://tick.infomancer.uk/galtick.json',
+                                           json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
+                                           url='http://tick.infomancer.uk/galtick.json',
+                                           sticky=True)
     # Initialize colonisation state - use parametrized filename if provided
     #@pytest.mark.parametrize('harness', ['colonisation_claimed.json'], indirect=True)
 

@@ -8,6 +8,7 @@ Run with: .venv_win\\Scripts\\python.exe -m pytest tests\\test_plugin.py -v --tb
 import pytest # type: ignore
 from typing import Generator
 from time import sleep
+from datetime import datetime, UTC
 from unittest.mock import patch
 
 # Config is already mocked by conftest.py
@@ -23,6 +24,19 @@ def harness(request) -> Generator:
     import bgstally.constants
     bgstally.constants.FOLDER_ASSETS = "../assets"
     bgstally.constants.FOLDER_DATA = "../data"
+
+    if not live:
+        from tests.edmc.requests import queue_response, MockResponse
+        queue_response('get', MockResponse(200,
+                                           url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest',
+                                           json_data={'tag_name': 'v1.0.0','draft': True,'prerelease': True,
+                                                       'assets': [{'browser_download_url': 'https://example.com/download'}]}),
+                                            url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest')
+        queue_response('get', MockResponse(200,
+                                           url='http://tick.infomancer.uk/galtick.json',
+                                           json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
+                                           url='http://tick.infomancer.uk/galtick.json',
+                                           sticky=True)
 
     # Now we can start the plugin
     from load import plugin_start3, plugin_app, journal_entry

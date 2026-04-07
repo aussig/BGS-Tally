@@ -36,6 +36,9 @@ class MockConfig:
         self.data = {} # Any variables that need setting
         self.shutting_down = False
         self.app_dir_path = parent
+        self.default_journal_dir = parent / "journal_folder"
+        self.internal_plugin_dir_path = self.default_journal_dir
+        self.plugin_dir_path = parent
         self._initialized = True
 
     def __setitem__(self, key, value):
@@ -55,6 +58,7 @@ class MockConfig:
         return int(value) if value is not None else default #type: ignore
 
     def get_str(self, key, default=None):
+        if key == "journaldir": return self.default_journal_dir
         value = self.data.get(key, default)
         return value if value is not None else default
 

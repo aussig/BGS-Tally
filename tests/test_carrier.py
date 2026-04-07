@@ -10,11 +10,9 @@ import shutil
 from pathlib import Path
 from typing import Generator
 from time import sleep
+from datetime import datetime, UTC, timedelta
 from unittest.mock import Mock, patch, MagicMock
-
 import filecmp
-from datetime import UTC, datetime, timedelta
-
 from harness import TestHarness
 
 @pytest.fixture
@@ -28,6 +26,20 @@ def harness(request) -> Generator:
     bgstally.constants.FOLDER_ASSETS = "../assets"
     bgstally.constants.FOLDER_DATA = "../data"
 
+    # Put in a response for the update manager so it doesn't error
+    if not live:
+        from tests.edmc.requests import queue_response, MockResponse
+        queue_response('get', MockResponse(200,
+                                           url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest',
+                                           json_data={'tag_name': 'v1.0.0','draft': True,'prerelease': True,
+                                                       'assets': [{'browser_download_url': 'https://example.com/download'}]}),
+                                            url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest')
+        queue_response('get', MockResponse(200,
+                                           url='http://tick.infomancer.uk/galtick.json',
+                                           json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
+                                           url='http://tick.infomancer.uk/galtick.json',
+                                           sticky=True)
+
     # Make sure we always start with a consistent fleetcarrier.json
     #@pytest.mark.parametrize('harness', ['empty.json'], indirect=True)
 
@@ -37,6 +49,7 @@ def harness(request) -> Generator:
     else:
         shutil.copy(Path(__file__).parent / "config" / carrier_init_file,
                     Path(__file__).parent / "otherdata" / "fleetcarrier.json")
+
 
     # Now we can import plugin modules
     from load import plugin_start3, plugin_app, journal_entry

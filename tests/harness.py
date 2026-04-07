@@ -109,7 +109,7 @@ class TestHarness:
                 self.parent:tk.Frame = tk.Frame(root)
                 root.withdraw()
         except Exception as e:
-            print(f"Failed to create Tk root: {e}")
+            logging.error(f"Failed to create Tk root: {e}")
 
         self._initialized = True
 
@@ -144,12 +144,13 @@ class TestHarness:
         config_path:Path = self.plugin_dir / "config" / config_file
         if not config_path.is_file():
             self.config.data = {}
-            print(f"Warning: edmc's config file not found {config_path}")
+            logging.warning(f"Warning: edmc's config file not found {config_path}")
+            return
         try:
             with open(config_path, 'r') as f:
                 self.config.data = json.load(f)
         except Exception as e:
-            print(f"Warning: Could not load edmc config file {config_path}: {e}")
+            logging.warning(f"Warning: Could not load edmc config file {config_path}: {e}")
         self.config.data['app_dir_path'] = str(self.plugin_dir) # Override app_dir_path to plugin dir for testing purposes
 
     def get_config_data(self, config_file:str) -> str|dict|None:
@@ -171,7 +172,7 @@ class TestHarness:
                     case _:
                         return f.read()
         except Exception as e:
-            print(f"Warning: Could not load {format} config file {config_path}: {e}")
+            logging.warning(f"Warning: Could not load {format} config file {config_path}: {e}")
             return
 
     def load_state(self, source:str) -> dict:
@@ -179,7 +180,7 @@ class TestHarness:
         state_file = Path(self.plugin_dir, "config", source)
         logging.info(f"State file: {state_file}")
         if not state_file.exists():
-            print(f" State file {state_file} not found")
+            logging.warning(f" State file {state_file} not found")
             return {}
         try:
             with open(state_file, 'r') as f:
@@ -187,30 +188,30 @@ class TestHarness:
                 self.monitor.state.update(state)
                 return state
         except Exception as e:
-            print(f"Warning: Could not load {state_file}: {e}")
+            logging.warning(f"Warning: Could not load {state_file}: {e}")
             return {}
 
-    def load_events(self, source:str, **kwargs) -> dict:
+    def load_events(self, source:str, **kwargs) -> dict[str, list[dict]]:
         """ Load journal events from a json file or a direct ED log. """
 
         events_file = Path(self.plugin_dir, "journal_config", source)
         logging.info(f"Events file: {events_file}")
         params = SimpleNamespace(**kwargs)
         if not events_file.exists():
-            print(f" Events file {events_file} not found")
+            logging.warning(f" Events file {events_file} not found")
             return {}
         try:
             with open(events_file, 'r') as f:
                 if events_file.suffix == '.json':
-                    tmp:dict = json.load(f)
+                    tmp:dict[str, list[dict]] = json.load(f)
                 else:
                     # Assume it's a direct ED log
-                    tmp = {"default": [json.loads(line) for line in f.readlines()]}
+                    tmp:dict[str, list[dict]] = {"default": [json.loads(line) for line in f.readlines()]}
 
                 # The following allows the use of f strings in the json which enables time-based events.
-                res:dict = {}
+                res:dict[str, list[dict]] = {}
                 for sequence, elements in tmp.items():
-                    lines:list = []
+                    lines:list[dict] = []
                     for line in elements:
                         event:dict = {}
                         for k1, v1 in line.items():
@@ -230,7 +231,7 @@ class TestHarness:
             return res
 
         except Exception as e:
-            print(f"Warning: Could not load {events_file}: {e}")
+            logging.warning(f"Warning: Could not load {events_file}: {e}")
             return {}
 
     def register_journal_handler(self, handler: Callable, commander:str, system:str, is_beta:bool) -> None:
@@ -243,7 +244,6 @@ class TestHarness:
     def fire_event(self, event:dict, state:dict = {}) -> None:
         """ Fire a journal event through the harness. """
 
-        print(f"Firing event: {event['event']}")
         # Update monitor state with provided state data before firing the event
         self.monitor.state.update(state)
         # Add a timestamp if not provided.
@@ -271,7 +271,7 @@ class TestHarness:
             with open(self.plugin_dir / "journal_folder" / CONFIG_FILES[event['event']], 'w') as f:
                 json.dump(event, f)
 
-        # Call registered handlers
+        # Call registered handler(s)
         for handler in self.journal_handlers:
             try:
                 handler(
@@ -283,11 +283,12 @@ class TestHarness:
                     state=self.monitor.state
                 )
             except Exception as e:
-                print(f"Error in journal handler: {e}")
+                logging.error(f"Error in journal handler: {e}")
                 raise
 
-    def play_sequence(self, name:str, delay:float = 0.5) -> None:
+    def play_sequence(self, name:str, delay:float = 0.5, state:dict = {}) -> None:
         """ Fire a sequence of events """
         for event in self.events.get(name, []):
-            self.fire_event(event)
+            self.fire_event(event, state=state)
+            state = {}  # Clear state after the first event
             sleep(delay)

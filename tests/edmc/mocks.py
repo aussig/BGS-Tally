@@ -21,74 +21,70 @@ parent:Path = Path(__file__).parent.parent
 
 #config.get_appdirpath = _mock_app_dir # type: ignore
 
-if 'config' not in sys.modules:
-    class MockConfig:
-        _instance = None
+class MockConfig:
+    _instance = None
 
-        # Singleton pattern
-        def __new__(cls, *args, **kwargs):
-            if cls._instance is None:
-                cls._instance = super().__new__(cls)
-            return cls._instance
+    # Singleton pattern
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
 
-        def __init__(self):
-            if hasattr(self, '_initialized'): return
+    def __init__(self):
+        if hasattr(self, '_initialized'): return
 
-            self.data = {} # Any variables that need setting
-            self.shutting_down = False
-            self.app_dir_path = parent
-            self.plugin_dir_path = parent
-            self.internal_plugin_dir_path = parent
-            self._initialized = True
-            self.default_journal_dir = str(parent / "journal_folder")
+        self.data = {} # Any variables that need setting
+        self.shutting_down = False
+        self.app_dir_path = parent
+        self._initialized = True
 
-        def __setitem__(self, key, value):
-            self.data[key] = value
+    def __setitem__(self, key, value):
+        self.data[key] = value
 
-        def __getitem__(self, key):
-            return self.data.get(key)
+    def __getitem__(self, key):
+        return self.data.get(key)
 
-        def get(self, key, default=None):
-            return self.data.get(key, default)
+    def get(self, key, default=None):
+        return self.data.get(key, default)
 
-        def set(self, key, value):
-            self.data[key] = value
+    def set(self, key, value):
+        self.data[key] = value
 
-        def get_int(self, key, default=None):
-            value = self.data.get(key, default)
-            return int(value) if value is not None else default #type: ignore
+    def get_int(self, key, default=None):
+        value = self.data.get(key, default)
+        return int(value) if value is not None else default #type: ignore
 
-        def get_str(self, key, default=None):
-            value = self.data.get(key, default)
-            return value if value is not None else default
+    def get_str(self, key, default=None):
+        value = self.data.get(key, default)
+        return value if value is not None else default
 
-        def delete(self, key: str, *, suppress=False) -> None:
-            if key in self.data:
-                del self.data[key]
+    def delete(self, key: str, *, suppress=False) -> None:
+        if key in self.data:
+            del self.data[key]
 
-    def appversion() -> semantic_version.Version:
-        return semantic_version.Version('10.0.0')
+def appversion() -> semantic_version.Version:
+    return semantic_version.Version('10.0.0')
 
-    _cfg_attrs = {'appname': 'EDMC',
-                  'appversion': appversion,
-                  'appcmdname': 'EDMC',
-                  'app_dir_path': parent,
-                  'config_logger': logging.getLogger('TestHarness'),
-                  'shutting_down': False,
-                  'logger': logging.getLogger('TestHarness')
-                }
+_cfg_attrs = {'appname': 'EDMC',
+                'appversion': appversion,
+                'appcmdname': 'EDMC',
+                'app_dir_path': parent,
+                'config_logger': logging.getLogger('TestHarness'),
+                'shutting_down': False,
+                'logger': logging.getLogger('TestHarness')
+            }
 
-    _cfg = _types.ModuleType('config')
-    _cfg.config = MockConfig() # type:ignore
+_cfg = _types.ModuleType('config')
+_cfg.config = MockConfig() # type:ignore
 
-    for name, val in MockConfig.__dict__.items():
-        if not name.startswith('__'):
-            setattr(_cfg, name, val)
-
-    for name, val in _cfg_attrs.items():
+for name, val in MockConfig.__dict__.items():
+    if not name.startswith('__'):
         setattr(_cfg, name, val)
 
-    sys.modules['config'] = _cfg
+for name, val in _cfg_attrs.items():
+    setattr(_cfg, name, val)
+
+sys.modules['config'] = _cfg
 
 # Minimal EDMC `theme` module emulator for direct runs (examples.py / __main__)
 theme_mod = _types.ModuleType("theme")

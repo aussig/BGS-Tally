@@ -33,7 +33,7 @@ def harness(request) -> Generator:
 
     carrier_init_file:str = getattr(request, 'param', 'fleetcarrier_init.json')
     if carrier_init_file == 'None':
-        Path(Path(__file__).parent / "otherdata" / "fleetcarrier.json").unlink(missing_ok=False)
+        Path(Path(__file__).parent / "otherdata" / "fleetcarrier.json").unlink(missing_ok=True)
     else:
         shutil.copy(Path(__file__).parent / "config" / carrier_init_file,
                     Path(__file__).parent / "otherdata" / "fleetcarrier.json")

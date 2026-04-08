@@ -11,6 +11,7 @@ threading.get_native_id = lambda: 0
 import os
 import json
 import sys
+import tomllib
 from pathlib import Path
 from typing import Optional, Callable, Dict
 from datetime import datetime, timezone, timedelta, UTC
@@ -139,7 +140,7 @@ class TestHarness:
         self.live_requests = live_requests
         tests.edmc.requests.live_requests(live_requests)
 
-    def set_edmc_config(self, config_file:str = "edmc_config.json") -> None:
+    def set_edmc_config(self, config_file:str = "config.toml") -> None:
         """ Load a config file from the config directory and set it in the mock config object. """
         config_path:Path = self.plugin_dir / "config" / config_file
         if not config_path.is_file():
@@ -147,30 +148,45 @@ class TestHarness:
             logging.warning(f"Warning: edmc's config file not found {config_path}")
             return
         try:
-            with open(config_path, 'r') as f:
-                self.config.data = json.load(f)
+            with config_path.open('rb') as f:
+                match config_path.suffix:
+                    case '.toml':
+                        self.config.data = tomllib.load(f)
+                        self.config.data = self.config.data['settings']
+                    case '.json':
+                        self.config.data = json.load(f)
+                    case _:
+                        self.config.data = {}
+
         except Exception as e:
             logging.warning(f"Warning: Could not load edmc config file {config_path}: {e}")
-        self.config.data['app_dir_path'] = str(self.plugin_dir) # Override app_dir_path to plugin dir for testing purposes
+
+        self.config.data['app_dir_path'] = str(self.plugin_dir) # Override app_dir_path
+        self.config.data['outdir'] = str(self.plugin_dir) # Override outdir path
+        logging.info(f"Config data: {self.config.data}")
 
     def get_config_data(self, config_file:str) -> str|dict|None:
-        """Load and return a chosen config file. Useful for comparing plugin output to expected config data."""
+        """Read and return a chosen config file. Useful for comparing plugin output to expected config data."""
 
         config_path:Path = self.plugin_dir / "config" / config_file
         format = config_file.split('.')[1]
         if not config_path.is_file():
-            self.config.data = {}
             return
         try:
-            with open(config_path, 'r') as f:
+            with config_path.open('rb') as f:
                 match format:
+                    case 'toml':
+                        data = tomllib.load(f)
+                        if 'settings' in data:
+                            return data['settings']
+                        return data
                     case 'json':
                         return json.load(f)
                     case 'csv':
                         #@TODO: Add csv support
                         return None
                     case _:
-                        return f.read()
+                        return f.read().decode('utf-8')
         except Exception as e:
             logging.warning(f"Warning: Could not load {format} config file {config_path}: {e}")
             return

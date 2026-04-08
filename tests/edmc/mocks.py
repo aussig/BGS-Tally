@@ -1,10 +1,16 @@
 import json
+import importlib
 import sys
 import types as _types
 import semantic_version
 import logging
 from pathlib import Path
 from unittest.mock import patch
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python < 3.11 fallback
+    tomllib = importlib.import_module('tomli')
 
 # We keep a copy of edmc_data here.
 this_dir:Path = Path(__file__).parent
@@ -42,25 +48,31 @@ class MockConfig:
         self._initialized = True
 
     def __setitem__(self, key, value):
-        self.data[key] = value
+        self.data[key.lower()] = value
 
     def __getitem__(self, key):
-        return self.data.get(key)
+        a = self.data.get(key)
+        b = self.data.get(key.lower())
+        logging.info(f"Returning config key: {a} or {b}")
+        return self.data.get(key, self.data.get(key.lower(), None))
 
     def get(self, key, default=None):
-        return self.data.get(key, default)
+        value = self.__getitem__(key)
+        return default if value is None else value
 
     def set(self, key, value):
-        self.data[key] = value
+        self.__setitem__(key, value)
 
     def get_int(self, key, default=None):
-        value = self.data.get(key, default)
-        return int(value) if value is not None else default #type: ignore
+        value = self.__getitem__(key)
+        if value is None: return default
+        return int(value)
 
     def get_str(self, key, default=None):
         if key == "journaldir": return self.default_journal_dir
-        value = self.data.get(key, default)
-        return value if value is not None else default
+        value = self.__getitem__(key)
+        if value is None: return default
+        return str(value)
 
     def delete(self, key: str, *, suppress=False) -> None:
         if key in self.data:

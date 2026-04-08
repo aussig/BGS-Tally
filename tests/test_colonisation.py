@@ -267,22 +267,6 @@ class TestColonisationOther:
     def test_system_and_build_tracking(self, harness) -> None:
         c = harness.plugin.colonisation
 
-        c.systems = [{
-            'Name': 'TestPlan',
-            'StarSystem': 'Sol',
-            'SystemAddress': 1234,
-            'Builds': [{
-                'Name': 'Asteroid Base',
-                'Base Type': 'Asteroid Base',
-                'State': BuildState.PLANNED,
-                'BuildID': 'x-123',
-                'MarketID': 9999,
-                'Track': True
-            }]
-        }]
-
-        c.progress = [{'MarketID': 9999, 'Required': {}, 'Delivered': {}, 'ConstructionComplete': False}]
-
         system = c.find_system({'StarSystem': 'Sol'})
         assert system is not None
 

@@ -13,7 +13,7 @@ from datetime import datetime, UTC
 from harness import TestHarness
 from bgstally.constants import BuildState
 
-SHORT_DELAY = 0.05
+SHORT_DELAY = 0.01
 
 @pytest.fixture
 def harness(request) -> Generator:
@@ -59,6 +59,156 @@ def harness(request) -> Generator:
     test_harness.assert_no_unhandled_exceptions()
 
 
+class TestColonisationMethods:
+    """Test individual colonisation functions."""
+    def test_load_base_types_and_costs(self, harness) -> None:
+        c = harness.plugin.colonisation
+        c._load_base_types()
+        assert isinstance(c.base_types, dict)
+        assert 'Asteroid Base' in c.base_types
+
+        assert isinstance(c.base_costs, dict)
+        assert 'Hub' in c.base_costs
+
+    def test_body_name(self, harness) -> None:
+        c = harness.plugin.colonisation
+        name = c.body_name('Bleae Thua ED-D c12-5', 'Bleae Thua ED-D c12-5 8 b')
+        assert name == '8 b'
+
+    def test_get_base_type(self, harness) -> None:
+        c = harness.plugin.colonisation
+
+        asteroid = c.get_base_type('Asteroid Base')
+        assert asteroid.get('Category') == 'Starport'
+
+        layout = c.get_base_type('Dec Truss')
+        assert layout.get('Type') == "Dodecahedron Starport"
+
+        layout = c.get_base_type('NoneExistent')
+        assert layout == {}
+
+    def test_get_base_types(self, harness) -> None:
+        c = harness.plugin.colonisation
+
+        for t, count in {'Any': 55, 'Initial': 11, 'Starport': 5, 'Ports': 6, 'Settlement': 18, 'Nonexistent': 0}.items():
+            types = c.get_base_types(t)
+            assert isinstance(types, list)
+            assert len(types) == count
+
+    def test_get_base_layouts(self, harness) -> None:
+        c = harness.plugin.colonisation
+
+        for l, count in {'Any': 110, 'Installation': 31, 'Satellite': 3, 'Nonexistent': 0}.items():
+            layouts = c.get_base_layouts(l)
+            assert isinstance(layouts, list)
+            assert len(layouts) == count
+
+    def test_get_all_systems(self, harness) -> None:
+        c = harness.plugin.colonisation
+        systems = c.get_all_systems()
+        assert isinstance(systems, list)
+        assert len(systems) == 1
+        assert systems[0].get('Name') == c.systems[0].get('Name')
+
+
+    def test_get_system(self, harness) -> None:
+        c = harness.plugin.colonisation
+        sys = c.systems[0]
+        for k, v in sys.items():
+            assert c.get_system(k, v) == sys
+        assert c.get_system('NonexistentKey', 'NonexistentValue') is None
+
+    def test_get_system_tracking(self, harness) -> None:
+        c = harness.plugin.colonisation
+        sys = c.systems[0]
+        for i, state in enumerate(['None', 'Partial', 'All']):
+            if i > 0: sys['Builds'][i-1]['Track'] = True
+            res = c.get_system_tracking(sys)
+            assert res == state
+
+    def test_find_system(self, harness) -> None:
+        c = harness.plugin.colonisation
+        sys = c.systems[0]
+        for k in ['SystemAddress', 'StarSystem', 'Name']:
+            assert c.find_system({k: sys[k]}) == sys
+            assert c.find_system({k: 'NonexistentValue'}) is None
+
+    def test_get_body(self, harness) -> None:
+        c = harness.plugin.colonisation
+        sys = c.systems[0]
+        body = sys['Bodies'][0]
+        assert c.get_body(sys, body['bodyId']) == body
+        assert c.get_body(sys, 'NonexistentID') is None
+
+    def test_get_bodies(self, harness) -> None:
+        c = harness.plugin.colonisation
+        sys = c.systems[0]
+
+        for type, count in {'All': len(sys['Bodies']), 'Surface': 0, 'Orbital': len(sys['Bodies'])}.items():
+            bodies = c.get_bodies(sys, type)
+            assert isinstance(bodies, list)
+            assert len(bodies) == count
+
+
+    def test_set_base_type(self, harness) -> None:
+        c = harness.plugin.colonisation
+
+        sys = c.systems[0]
+        buildid = sys['Builds'][0]['BuildID']
+        type = sys['Builds'][0]['Base Type']
+        c.set_base_type(sys, buildid, 'Scientific Outpost')
+
+        assert sys['Builds'][0]['Base Type'] == 'Scientific Outpost'
+
+    def test_get_cost(self, harness) -> None:
+        """ Get base costs for various base types"""
+        c = harness.plugin.colonisation
+
+        for v, amt in {'Dodecahedron Starport': [63342, 74062],
+                       'Pirate Outpost': [5588, 6660],
+                       'Civilian Planetary Outpost': [10164, 10164],
+                       'Agriculture Tier 1 Sml': [768, 768],
+                       'Extraction Tier 2 Lrg': [3084, 3084],
+                       'Space Bar': [2483, 2483]}.items():
+            for i, a in enumerate(amt):
+                cost = c._get_cost(v, bool(i))
+                assert isinstance(cost, dict)
+                assert 'steel' in cost
+                assert cost['steel'] == a
+
+        cost = c._get_cost('Dummy', False)
+        assert cost == {}
+
+    def test_generate_buildid(self, harness) -> None:
+        c = harness.plugin.colonisation
+        id1 = c._generate_buildid(None)
+        assert id1.startswith('x')
+        id2 = c._generate_buildid(123)
+        assert id2 == '&123'
+
+    def test_from_dict_migrates_resourcesrequired(self, harness) -> None:
+        """This can likely go away soon and the code can be removed """
+        c = harness.plugin.colonisation
+        payload = {
+            'Systems': [],
+            'Progress': [{'MarketID': 500, 'ResourcesRequired': [{'Name': '$steel_name;', 'RequiredAmount': 12, 'ProvidedAmount': 3}], 'Updated': '2026-03-01'}],
+            'ProgressView': 0,
+            'ProgressUnits': [0],
+            'ProgressColumns': [],
+            'BuildIndex': 0,
+            'WindowGeometries': {}
+        }
+
+        c.progress = []
+        c._from_dict(payload)
+
+        progress_list = [p for p in c.progress if p.get('MarketID') == 500 and p.get('Required', {}).get('steel') == 12]
+        assert len(progress_list) == 1
+
+        progress = progress_list[0]
+        assert progress['Required']['steel'] == 12
+        assert progress['Delivered']['steel'] == 3
+
 class TestColonisationSystems:
     def test_add_system(self, harness) -> None:
         """ Test system creation """
@@ -74,13 +224,15 @@ class TestColonisationSystems:
     def test_modify_system(self, harness) -> None:
         """ Test system modification """
         c = harness.plugin.colonisation
-        syscount:int = len(c.systems)
         data:dict = {'Name': 'Test System'}
 
-        c.add_system(data, False, False)
-        c.modify_system(syscount, {'Name': 'Renamed'})
-        assert len(c.systems) == syscount + 1
-        assert c.systems[syscount]['Name'] == 'Renamed'
+        c.modify_system(0, {'Name': 'Renamed'})
+        assert c.systems[0]['Name'] == 'Renamed'
+
+        c.modify_system(0, {'StarSystem': 'Nowhere'})
+
+        assert c.systems[0]['StarSystem'] == 'Nowhere'
+        assert c.systems[0]['SystemAddress'] == None
 
     def test_remove_system(self, harness) -> None:
         """ Test system removal """
@@ -120,7 +272,6 @@ class TestColonisationBuilds:
         assert found_build is not None
         assert found_build['BuildID'] == system['Builds'][1]['BuildID']
 
-
     def test_add_build(self, harness) -> None:
         """ Test build creation """
         c = harness.plugin.colonisation
@@ -142,13 +293,16 @@ class TestColonisationBuilds:
         c = harness.plugin.colonisation
 
         system:dict = c.systems[0]
-        new_build:dict = {"Track": "No", "State": "Planned", "Base Type": "Industrial Outpost", "Name": "Goddard Sanctuary",
-                          "Body": "B 7", "MarketID": 4224499459, "StationEconomy": "Extraction", "Layout": "Vulcan",
-                          "BuildID": "&4224499459", "BodyNum": 30, "Location": "Orbital", "Readonly": True}
-
-        build:dict = c.add_build(system, new_build, False)
-        c.modify_build(system, build['BuildID'], {'Name': 'Renamed Build'}, False)
+        build:dict = system['Builds'][0]
+        assert build['Name'] != 'Renamed Build'
+        c.modify_build(system, build['BuildID'], {'Name': 'Renamed Build', 'Base Type': 'Scientific Outpost'}, False)
         assert build['Name'] == 'Renamed Build'
+        assert build['Base Type'] == 'Scientific Outpost'
+
+        c.modify_build(system, "&1111111111", {'Name': 'Error Name'}, False)
+        for b in system['Builds']:
+            assert b['Name'] != 'Error Name'
+
 
     def test_move_build(self, harness) -> None:
         """ Test build order change """
@@ -247,171 +401,6 @@ class TestColonisationFullBuild:
         assert c.systems[1]['Builds'][0]['State'] == BuildState.COMPLETE
         assert c.systems[1]['Builds'][0]['Name'] == 'Citroen Arsenal'
 
-
-class TestColonisationOther:
-    def test_get_base_type_and_layouts(self, harness) -> None:
-        c = harness.plugin.colonisation
-
-        asteroid = c.get_base_type('Asteroid Base')
-        assert asteroid.get('Category') == 'Starport'
-
-        asteroid_by_layout = c.get_base_type('Asteroid')
-        assert asteroid_by_layout.get('Type') == asteroid.get('Type')
-
-        assert 'Asteroid Base' in c.get_base_types('All')
-        assert 'Asteroid Base' in c.get_base_types('Initial')
-        assert 'Asteroid Base' not in c.get_base_types('Settlement')
-
-        assert 'Asteroid' in c.get_base_layouts('Asteroid Base')
-
-    def test_system_and_build_tracking(self, harness) -> None:
-        c = harness.plugin.colonisation
-
-        system = c.find_system({'StarSystem': 'Sol'})
-        assert system is not None
-
-        assert c.get_system_tracking(system) == 'All'
-
-        tracked = c.get_tracked_builds()
-        assert isinstance(tracked, list)
-        assert len(tracked) == 0 or tracked[0].get('MarketID') == 9999
-
-        build = c.find_build(system, {'MarketID': 9999})
-        assert build is not None
-        assert c.get_build_state(build) in [BuildState.PLANNED, BuildState.PROGRESS, BuildState.COMPLETE]
-
-        required = c.get_required(system['Builds'])
-        assert isinstance(required, list)
-        assert len(required) >= 1
-        assert 'steel' in required[0]
-
-    def test_progress_update_and_find(self, harness) -> None:
-        c = harness.plugin.colonisation
-
-        c.systems = [{
-            'Name': 'TestPlan',
-            'StarSystem': 'Sol',
-            'SystemAddress': 1234,
-            'Builds': [{
-                'Name': 'Asteroid Base',
-                'Base Type': 'Asteroid Base',
-                'State': BuildState.PLANNED,
-                'BuildID': 'x-123',
-                'MarketID': 9999,
-                'Track': True
-            }]
-        }]
-
-        c.progress = []
-        c.find_or_create_progress(9999)
-
-        assert c.find_progress(9999) is not None
-
-        c.update_progress(9999, {
-            'ResourcesRequired': [
-                {'Name': '$steel_name;', 'RequiredAmount': 100, 'ProvidedAmount': 10}
-            ],
-            'ConstructionComplete': False
-        }, silent=True)
-
-        progress = c.find_progress(9999)
-        assert progress is not None
-        assert progress.get('Required', {}).get('steel') == 100
-        assert progress.get('Delivered', {}).get('steel') == 10
-
-    def test_commodity_and_cargo_helpers(self, harness) -> None:
-        c = harness.plugin.colonisation
-
-        c.bgstally.ui.commodities = {
-            'water': {'Name': 'Water', 'Category': 'Consumer'}
-        }
-
-        assert c.get_commodity('water') == 'Water'
-        assert c.get_commodity('unknown') == 'Unknown'
-
-        c._update_cargo({'water': 5, 'iron': 0})
-        assert c.cargo == {'water': 5}
-
-    def test_get_cost_and_try_complete_build(self, harness) -> None:
-        c = harness.plugin.colonisation
-
-        cost = c._get_cost('Asteroid Base')
-        assert isinstance(cost, dict)
-        assert cost.get('steel', None) is not None
-
-        c.systems = [{
-            'Name': 'TestPlan',
-            'StarSystem': 'Sol',
-            'SystemAddress': 1234,
-            'Builds': [{
-                'Name': 'Test Construction Site',
-                'Base Type': 'Asteroid Base',
-                'State': BuildState.PROGRESS,
-                'BuildID': 'x-123',
-                'MarketID': 9999,
-                'Track': True
-            }]
-        }]
-
-        c.progress = [{
-            'MarketID': 9999,
-            'ProjectID': 'p100',
-            'ConstructionComplete': True,
-            'Required': {},
-            'Delivered': {}
-        }]
-
-        result = c.try_complete_build(9999)
-        assert result is True
-
-        build = c.find_build(c.systems[0], {'MarketID': 9999})
-        assert build is not None
-        assert build['State'] == BuildState.COMPLETE
-        assert build['Track'] is False
-
-    def test_get_body_get_bodies_and_ids(self, harness) -> None:
-        c = harness.plugin.colonisation
-        system = {
-            'StarSystem': 'Sol',
-            'Bodies': [{'name': 'Sol 1', 'bodyId': 1, 'isLandable': True}, {'name': 'Sol 2', 'bodyId': 2, 'isLandable': False}]
-        }
-
-        assert c.get_body(system, '1') is not None
-        assert c.get_body(system, 1) is not None
-        bodies_all = c.get_bodies(system, 'All')
-        assert '1' in bodies_all
-        bodies_surface = c.get_bodies(system, 'Surface')
-        assert '1' in bodies_surface
-        assert '2' not in bodies_surface
-
-    def test_from_dict_migrates_resourcesrequired(self, harness) -> None:
-        c = harness.plugin.colonisation
-        payload = {
-            'Systems': [],
-            'Progress': [{'MarketID': 500, 'ResourcesRequired': [{'Name': '$steel_name;', 'RequiredAmount': 12, 'ProvidedAmount': 3}], 'Updated': '2026-03-01'}],
-            'ProgressView': 0,
-            'ProgressUnits': [0],
-            'ProgressColumns': [],
-            'BuildIndex': 0,
-            'WindowGeometries': {}
-        }
-
-        c.progress = []
-        c._from_dict(payload)
-
-        progress_list = [p for p in c.progress if p.get('MarketID') == 500 and p.get('Required', {}).get('steel') == 12]
-        assert len(progress_list) == 1
-
-        progress = progress_list[0]
-        assert progress['Required']['steel'] == 12
-        assert progress['Delivered']['steel'] == 3
-
-    def test_generate_buildid(self, harness) -> None:
-        c = harness.plugin.colonisation
-        id1 = c._generate_buildid(None)
-        assert id1.startswith('x')
-        id2 = c._generate_buildid(123)
-        assert id2 == '&123'
 
 
 # Unused tests that do some interesting things

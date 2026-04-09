@@ -434,7 +434,6 @@ class Colonisation:
 
         return status
 
-
     @catch_exceptions
     def find_system(self, data:dict) -> dict|None:
         ''' Find a system by address, system name, or plan name '''
@@ -455,7 +454,6 @@ class Colonisation:
             return self.add_system(data, False, False)
 
         return system
-
 
     @catch_exceptions
     def add_system(self, data:dict, prepop:bool = False, rcsync:bool = False) -> dict:
@@ -482,7 +480,6 @@ class Colonisation:
 
         self.save('Add system')
         return data
-
 
     @catch_exceptions
     def modify_system(self, system, data:dict) -> None:

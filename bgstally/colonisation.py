@@ -638,6 +638,7 @@ class Colonisation:
         # Match on site name.
         if data.get('Name', None) != None:
             for build in builds:
+                Debug.logger.debug(f"Matching on name {data.get('Name', None)} against build {build.get('Name', None)}")
                 if build.get('Name', None) != None and build.get('Name', None) == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')):
                     return build
 
@@ -662,8 +663,8 @@ class Colonisation:
                 body = build.get('Body', build.get('BodyNum', None)).lower()
             market:int|None = build.get('MarketID', None)
 
-            # A build that was planned but is now a construction site
-            if state == BuildState.PLANNED and market == None and location == loc and body == data.get('Body', str(data.get('BodyNum'))).lower():
+            # A build that was planned but is now a construction site or progress but we've never been there
+            if state in (BuildState.PLANNED, BuildState.PROGRESS) and market == None and location == loc and body == data.get('Body', str(data.get('BodyNum'))).lower():
                 Debug.logger.debug(f"Matched planned build {data['Body']} {build.get('State', None)} {loc} Build: {build}")
                 return build
 
@@ -678,6 +679,9 @@ class Colonisation:
                 body != None and body == data.get('Body', str(data.get('BodyNum'))).lower():
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
+
+        if len(builds) == 0:
+            return None
 
         # Primary port. We completed it but don't know its new name or marketid.
         if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('MarketID', None) == None and \

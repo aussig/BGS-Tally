@@ -1,0 +1,1 @@
+{ "event":"Status", "Flags":16843336, "Flags2":4194304, "Pips":[6,0,6], "FireGroup":0, "GuiFocus":0, "Fuel":{ "FuelMain":20.0, "FuelReservoir":0.1 }, "Cargo":4.0, "LegalState":"IllegalCargo", "Balance":1000, "Destination":{ "System":11111, "Body":12, "Name":"TheFinalFrontier", "Name_Localised":"The Final Frontier" } }

@@ -1,3 +1,4 @@
+import os
 import json
 import importlib
 import sys
@@ -16,16 +17,10 @@ except ModuleNotFoundError:  # pragma: no cover - Python < 3.11 fallback
 this_dir:Path = Path(__file__).parent
 parent:Path = Path(__file__).parent.parent
 
-
 # Force it to look like Linux
 #with patch.object(sys, 'platform', 'linux'):
 #    with patch.dict(os.environ, {'XDG_DATA_HOME': str(this_dir)}, clear=False):
 #        import config
-
-#def _mock_app_dir() -> Path:
-#    return this_dir
-
-#config.get_appdirpath = _mock_app_dir # type: ignore
 
 class MockConfig:
     _instance = None
@@ -46,6 +41,10 @@ class MockConfig:
         self.internal_plugin_dir_path = self.default_journal_dir
         self.plugin_dir_path = parent
         self._initialized = True
+
+    @staticmethod
+    def get_appdirpath() -> Path:
+        return this_dir
 
     def __setitem__(self, key, value):
         self.data[key.lower()] = value

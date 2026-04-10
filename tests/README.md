@@ -10,7 +10,7 @@ This is a work in progress Not all EDMC or tool functionality is mocked up yet.
 
 The `harness.py` does the initialization of EDMC. It uses some actual EDMC modules and some mock modules from the `edmc` folder.
 
-The harness provides a mock edmc config object loaded from `config/edmc_config.ini` and a journal event replay capability.
+The harness provides a mock edmc config object loaded from `config/config.toml` and a journal event replay capability.
 
 Journal records can be loaded from a json file using `load_events()` and then called individually with `fire_event` or in sequence with `play_sequence`. The journal record processing supports f strings so that they can be customized and supports `delta:` and `now:` for times. e.g. `"DepartureTime": "delta:-60"` or `"CarrierID": "{self.plugin.fleet_carrier.carrier_id}"`.
 
@@ -62,15 +62,15 @@ This contains live and mock edmc modules used to emulate EDMC so BGS-Tally can r
 
 ### Others
 
-Other folders created by BGS-Tally for saving data will be created in `/tests` to avoid overwriting or corrupting files in the main plugin directory.
+Other folders may be created by EDMC and/or BGS-Tally for saving data, log files etc. in `/tests` to avoid overwriting or corrupting files in the main plugin directory.
 
 ## Tips and Tricks
 
 ### Mock EDMC Config
 
-The harness mocks the EDMC config and loads config/edmc_config.json as an initial config.
+The harness mocks the EDMC config and loads config/config.tml as an initial config.
 
-If you want to use an entirely different config for a specific tests call `load_edmc_config(file)`.
+If you want to use an entirely different config for a specific tests call `load_edmc_config(file)` and pass it either a `toml` or `json` file.
 
 ### Other data
 

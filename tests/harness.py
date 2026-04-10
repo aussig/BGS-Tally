@@ -86,7 +86,7 @@ class TestHarness:
         for file in CONFIG_FILES.values():
             shutil.copy(Path(__file__).parent / "journal_config" / file,
                 Path(__file__).parent / "journal_folder" / file)
-
+        monitor.currentdir = str(Path(__file__).parent / "journal_folder")
         self.monitor = monitor
         self.unhandled_exceptions:list[str] = []
 

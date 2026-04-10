@@ -33,15 +33,8 @@ class MockConfig:
 
     def __init__(self):
         if hasattr(self, '_initialized'): return
-
         self.data = {} # Any variables that need setting
-        self.shutting_down = False
-        self.app_dir_path = parent
-        self.default_journal_dir = parent / "journal_folder"
-        self.internal_plugin_dir_path = self.default_journal_dir
-        self.plugin_dir_path = parent
         self._initialized = True
-
     @staticmethod
     def get_appdirpath() -> Path:
         return this_dir
@@ -52,7 +45,6 @@ class MockConfig:
     def __getitem__(self, key):
         a = self.data.get(key)
         b = self.data.get(key.lower())
-        logging.info(f"Returning config key: {a} or {b}")
         return self.data.get(key, self.data.get(key.lower(), None))
 
     def get(self, key, default=None):
@@ -68,7 +60,7 @@ class MockConfig:
         return int(value)
 
     def get_str(self, key, default=None):
-        if key == "journaldir": return self.default_journal_dir
+        if key == "journaldir": return parent / "journal_folder"
         value = self.__getitem__(key)
         if value is None: return default
         return str(value)
@@ -80,14 +72,19 @@ class MockConfig:
 def appversion() -> semantic_version.Version:
     return semantic_version.Version('10.0.0')
 
-_cfg_attrs = {'appname': 'EDMC',
-                'appversion': appversion,
-                'appcmdname': 'EDMC',
-                'app_dir_path': parent,
-                'config_logger': logging.getLogger('TestHarness'),
-                'shutting_down': False,
-                'logger': logging.getLogger('TestHarness')
-            }
+_cfg_attrs = {
+    'appname': 'EDMC',
+    'appversion': appversion,
+    'appcmdname': 'EDMC',
+    'app_dir_path': parent,
+    'default_journal_dir': parent / "journal_folder",
+    'internal_plugin_dir_path': parent / "journal_folder",
+    'plugin_dir_path': parent,
+    'config_logger': logging.getLogger('TestHarness'),
+    'shutting_down': False,
+    'logger': logging.getLogger('TestHarness'),
+    'trace_on': []
+    }
 
 _cfg = _types.ModuleType('config')
 _cfg.config = MockConfig() # type:ignore
@@ -97,6 +94,7 @@ for name, val in MockConfig.__dict__.items():
         setattr(_cfg, name, val)
 
 for name, val in _cfg_attrs.items():
+    setattr(_cfg.config, name, val)
     setattr(_cfg, name, val)
 
 sys.modules['config'] = _cfg

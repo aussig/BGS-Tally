@@ -40,12 +40,13 @@ def harness(request) -> Generator:
                                            json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
                                            url='http://tick.infomancer.uk/galtick.json',
                                            sticky=True)
-    # Initialize colonisation state - use parametrized filename if provided
-    #@pytest.mark.parametrize('harness', ['colonisation_claimed.json'], indirect=True)
 
+    # Initialize colonisation state - use parametrized filename if provided
+    Path(Path(__file__).parent / "otherdata" / "colonisation.json").unlink(missing_ok=True)
     colonisation_init_file = getattr(request, 'param', 'colonisation_init.json')
-    shutil.copy(Path(__file__).parent / "config" / colonisation_init_file,
-                Path(__file__).parent / "otherdata" / "colonisation.json")
+    if colonisation_init_file != 'None':
+        shutil.copy(Path(__file__).parent / "config" / colonisation_init_file,
+                    Path(__file__).parent / "otherdata" / "colonisation.json")
 
     from load import plugin_start3, plugin_app, journal_entry
     import bgstally.globals
@@ -59,9 +60,13 @@ def harness(request) -> Generator:
     yield test_harness
     test_harness.assert_no_unhandled_exceptions()
 
+class TestColonisationInitialization:
+    @pytest.mark.parametrize('harness', ['None', 'colonisation_empty.json', 'colonisation-5.4.0.json'], indirect=True)
+    def test_save_files(self, harness) -> None:
+        """ Test that the plugin initializes correctly with no existing data and doesn't save an empty overview. """
+        assert isinstance(harness.plugin.colonisation.systems, list)
+        assert len(harness.plugin.ui.window_progress.columns) == 4
 
-class TestColonisationMethods:
-    """Synthetic tests of individual colonisation functions."""
     def test_load_base_types_and_costs(self, harness) -> None:
         c = harness.plugin.colonisation
         c._load_base_types()
@@ -70,6 +75,9 @@ class TestColonisationMethods:
 
         assert isinstance(c.base_costs, dict)
         assert 'Hub' in c.base_costs
+
+class TestColonisationMethods:
+    """Synthetic tests of individual colonisation functions."""
 
     def test_body_name(self, harness) -> None:
         c = harness.plugin.colonisation

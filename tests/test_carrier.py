@@ -41,15 +41,11 @@ def harness(request) -> Generator:
                                            sticky=True)
 
     # Make sure we always start with a consistent fleetcarrier.json
-    #@pytest.mark.parametrize('harness', ['empty.json'], indirect=True)
-
+    Path(Path(__file__).parent / "otherdata" / "fleetcarrier.json").unlink(missing_ok=True)
     carrier_init_file:str = getattr(request, 'param', 'fleetcarrier_init.json')
-    if carrier_init_file == 'None':
-        Path(Path(__file__).parent / "otherdata" / "fleetcarrier.json").unlink(missing_ok=True)
-    else:
+    if carrier_init_file != 'None':
         shutil.copy(Path(__file__).parent / "config" / carrier_init_file,
                     Path(__file__).parent / "otherdata" / "fleetcarrier.json")
-
 
     # Now we can import plugin modules
     from load import plugin_start3, plugin_app, journal_entry
@@ -67,7 +63,7 @@ def harness(request) -> Generator:
 class TestCarrierInitialization:
 
     @pytest.mark.parametrize('harness', ['None', 'carrier_empty.json', 'fleetcarrier-5.1.0.json'], indirect=True)
-    def test_no_save(self, harness) -> None:
+    def test_save_files(self, harness) -> None:
         """ Test that the plugin initializes correctly with no existing data and doesn't save an empty overview. """
         fc = harness.plugin.fleet_carrier
         assert fc.overview == {}

@@ -404,12 +404,13 @@ class WindowFleetCarrier:
         bar.pack(fill=tk.X, side=tk.BOTTOM)
 
         post_types:dict = {_("Buying") : DiscordFleetCarrier.BUYING, # LANG: Dropdown menu on activity window
-                            _("Selling") : DiscordFleetCarrier.SELLING, # LANG: Dropdown menu on activity window
-                            _("Both") : DiscordFleetCarrier.BOTH, # LANG: Dropdown menu on activity window
-                            _("All") : DiscordFleetCarrier.ALL} # LANG: Dropdown menu on activity window
+                           _("Selling") : DiscordFleetCarrier.SELLING, # LANG: Dropdown menu on activity window
+                           _("Both") : DiscordFleetCarrier.BOTH, # LANG: Dropdown menu on activity window
+                           _("All") : DiscordFleetCarrier.ALL} # LANG: Dropdown menu on activity window
 
         strv:tk.StringVar = tk.StringVar(value=state.get())
-        menuv:ttk.OptionMenu = ttk.OptionMenu(bar, strv, strv.get(), *post_types.keys(),
+        sel:str = strv.get() if strv.get() in post_types.keys() else _("All")
+        menuv:ttk.OptionMenu = ttk.OptionMenu(bar, strv, sel, *post_types.keys(),
                                               command=lambda val: _post_type_selected(val),
                                               direction='above')
 

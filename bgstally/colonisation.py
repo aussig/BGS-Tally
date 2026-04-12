@@ -142,7 +142,7 @@ class Colonisation:
 
                 # Update systems with external data if required
                 for system in self.systems:
-                    if system.get('Hidden', False) == True: continue
+                    if system.get('Hidden', False) == True or system.get('SystemAddress', 0) == 0: continue
 
                     if system.get('RCSync', False) == True:
                         rc.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))

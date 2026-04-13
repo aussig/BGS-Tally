@@ -4,6 +4,7 @@ Test suite for colonisation module of BGS-Tally.
 
 import pytest # type: ignore
 import shutil
+import json
 from pathlib import Path
 from typing import Generator
 from time import sleep
@@ -408,6 +409,16 @@ class TestColonisationMethods:
 
         assert c.progress[0]['ConstructionProgress'] == 0.059446
 
+    def test_update_cargo(self, harness) -> None:
+        """ Test _update_cargo """
+        c = harness.plugin.colonisation
+        assert len(c.cargo) == 0
+
+        shutil.copy(Path(__file__).parent / "journal_config" / 'cargo_init.json',
+                    Path(__file__).parent / "journal_folder" / "Cargo.json")
+
+        harness.fire_event({"event": "Cargo", "Vessel": "Ship"})
+        assert len(c.cargo) == 3
 
     def test_generate_buildid(self, harness) -> None:
         """ Generate an ID for a build """

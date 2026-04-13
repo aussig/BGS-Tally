@@ -238,7 +238,10 @@ class TestHarness:
                             if isinstance(v1, str) and v1.startswith("now:"):
                                 event[k1] = datetime.now(timezone.utc).isoformat()
                             if isinstance(v1, str) and '{' in v1 and '}' in v1:
-                                event[k1] = eval("f'" + v1 + "'")
+                                try:
+                                    event[k1] = eval("f'" + v1 + "'")
+                                except Exception as e:
+                                    pass
                             if isinstance(event[k1], str) and event[k1].isnumeric():
                                 event[k1] = int(event[k1])
                         lines.append(event)

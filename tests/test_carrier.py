@@ -1,8 +1,5 @@
 """
-Test suite for EDMC plugins using pytest.
-
-Run with: .venv/bin/python -m pytest tests/test_plugin.py -v --tb=short 2>&1 | tail -30
-Run with: .venv_win\\Scripts\\python.exe -m pytest tests\\test_plugin.py -v --tb=short
+Test suite for carrier module of BGS-Tally.
 """
 
 import pytest # type: ignore

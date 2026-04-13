@@ -135,23 +135,20 @@ dmypy.json
 config/config.ini
 
 # custom
-test.py
-activitydata/
-otherdata/
-backups/
-updates/
-thirdparty/sentry_sdk
-l10n.py
-L10n/en.template.new
-config/userconfig.ini
-tests/logs
-tests/journal_folder
-MEMORY_BANK.md
 .DS_Store
-scripts/
-data/tmp.py
+.vscode/
+activitydata/
+backups/
 BGS-Tally.dev.code-workspace
-tests/logs/
+config/userconfig.ini
+data/tmp.py
+L10n/en.template.new
+MEMORY_BANK.md
+otherdata/
+scripts/
 tests/backups/
+tests/journal_folder/
+tests/logs/
 tests/updates/
-.vscode/launch.json
+thirdparty/sentry_sdk/
+updates/

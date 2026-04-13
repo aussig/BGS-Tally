@@ -15,6 +15,8 @@
 ### Bug Fixes:
 
 * Error in completely clean install fixed in Fleet Carrier route code.
+* Fix flashing of Fleet Carrier panel on in-game overlay
+* Fix for Discord dropdown showing "Yes" on Fleetcarrier window
 
 
 ## v5.5.0-a1 - 2026-04-03

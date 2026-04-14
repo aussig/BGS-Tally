@@ -33,15 +33,15 @@ test_dir:Path = Path(__file__).parent
 sys.path.insert(0, str(test_dir))
 
 CONFIG_FILES:dict = {
-    'Backpack': 'Backpack.json',
-    'Cargo': 'Cargo.json',
-    'Market': 'Market.json',
-    'ModuleInfo': 'ModulesInfo.json',
-    'NavRouteClear': 'NavRoute.json',
-    'Outfitting': 'Outfitting.json',
-    'ShipLocker': 'ShipLocker.json',
-    'Shipyard': 'Shipyard.json',
-    'Status': 'Status.json'
+    'Backpack': ('Backpack.json', "Items"),
+    'Cargo': ('Cargo.json', "Inventory"),
+    'Market': ('Market.json', "Items"),
+    'ModuleInfo': ('ModulesInfo.json', "Modules"),
+    'NavRouteClear': ('NavRoute.json', 'Route'),
+    'Outfitting': ('Outfitting.json', 'Items'),
+    'ShipLocker': ('ShipLocker.json', 'Items'),
+    'Shipyard': ('Shipyard.json', 'Pricelist'),
+    'Status': ('Status.json', '')
 }
 
 STARTUP_ATTRS:dict = {
@@ -58,8 +58,7 @@ STARTUP_ATTRS:dict = {
 }
 
 import tests.edmc.requests
-import tests.edmc.mocks
-from tests.edmc.mocks import MockConfig
+import tests.edmc.mocks as mocks
 from tests.edmc.monitor import monitor
 class TestHarness:
     """ Main test harness. """
@@ -83,16 +82,18 @@ class TestHarness:
 
         # Copy the initial config state files
         Path(__file__).parent.joinpath("journal_folder").mkdir(exist_ok=True)
-        for file in CONFIG_FILES.values():
+        for (file, key) in CONFIG_FILES.values():
             shutil.copy(Path(__file__).parent / "journal_config" / file,
                 Path(__file__).parent / "journal_folder" / file)
+
         monitor.currentdir = str(Path(__file__).parent / "journal_folder")
         self.monitor = monitor
+        self.monitor.state['Credits'] = 1000000
         self.unhandled_exceptions:list[str] = []
 
         # Event handlers registered by plugins
         self.journal_handlers: list[Callable] = []
-        self.config = MockConfig()
+        self.config = mocks.MockConfig()
         self.set_edmc_config() # Load config data into the mock config object
         self.events:Dict[str, list] = {}
         self.set_requests_mode(live_requests)
@@ -165,13 +166,13 @@ class TestHarness:
         self.config.data['outdir'] = str(self.plugin_dir) # Override outdir path
         logging.info(f"Config data: {self.config.data}")
 
-    def get_config_data(self, config_file:str) -> str|dict|None:
+    def get_config_data(self, config_file:str) -> dict:
         """Read and return a chosen config file. Useful for comparing plugin output to expected config data."""
 
         config_path:Path = self.plugin_dir / "config" / config_file
         format = config_file.split('.')[1]
         if not config_path.is_file():
-            return
+            return {}
         try:
             with config_path.open('rb') as f:
                 match format:
@@ -184,12 +185,13 @@ class TestHarness:
                         return json.load(f)
                     case 'csv':
                         #@TODO: Add csv support
-                        return None
+                        return {}
                     case _:
-                        return f.read().decode('utf-8')
+                        logging.warning(f"Warning: Unsupported config file format: {format}")
+                        return {}
         except Exception as e:
             logging.warning(f"Warning: Could not load {format} config file {config_path}: {e}")
-            return
+            return {}
 
     def load_state(self, source:str) -> dict:
         """ Load monitor state from a json file. """
@@ -241,7 +243,7 @@ class TestHarness:
                                 try:
                                     event[k1] = eval("f'" + v1 + "'")
                                 except Exception as e:
-                                    pass
+                                    logging.warning(f"Warning: Could not evaluate f-string {v1}: {e}")
                             if isinstance(event[k1], str) and event[k1].isnumeric():
                                 event[k1] = int(event[k1])
                         lines.append(event)
@@ -265,6 +267,10 @@ class TestHarness:
 
         # Update monitor state with provided state data before firing the event
         self.monitor.state.update(state)
+        self.monitor.state['Credits'] = state.get('Credits', self.monitor.state.get('Credits', 1000000))
+
+        self._update_journal_files(event, state)
+
         # Add a timestamp if not provided.
         if 'timestamp' not in event:
             event['timestamp'] = datetime.now(timezone.utc).isoformat()
@@ -274,21 +280,10 @@ class TestHarness:
             for k, v in STARTUP_ATTRS.items():
                 if k in event:
                     self.monitor.state[v] = event[k]
-            if 'stationName' in event:
+            if 'StationName' in event:
                 self.monitor.state['Docked'] = True
         else:
             self.monitor.parse_entry(json.dumps(event).encode("utf-8"))
-
-        # Update the separate journal files that ED maintains
-        if event['event'] in CONFIG_FILES.keys():
-            match event['event']:
-                case 'Market' if 'Items' not in event:
-                    event['Items'] = [] # Just add an empty market since we can't produce one.
-                case 'NavRoute' if 'Route' not in event:
-                    event['Route'] = [] # Just add an empty route since we can't produce one.
-
-            with open(self.plugin_dir / "journal_folder" / CONFIG_FILES[event['event']], 'w') as f:
-                json.dump(event, f)
 
         # Call registered handler(s)
         for handler in self.journal_handlers:
@@ -311,3 +306,54 @@ class TestHarness:
             self.fire_event(event, state=state)
             state = {}  # Clear state after the first event
             sleep(delay)
+
+    def _update_journal_files(self, event:dict, state:dict = {}) -> None:
+        """ Simulate EDMC's journal file updates based on the event type. """
+        # Update the separate journal files that ED maintains
+        match event['event']:
+            case 'Cargo' | 'MarketBuy' | 'MarketSell' | 'CargoTransfer' | 'CollectCargo' | 'EjectCargo' | 'MiningRefined' | 'LaunchDrone':
+                cargo:dict = state.get('Cargo', {})
+                if not cargo:
+                    with open(self.plugin_dir / "journal_folder" / CONFIG_FILES['Cargo'][0], 'r') as f:
+                        cargo = json.load(f)
+                cargo['Inventory'] = cargo.get('Inventory', [])
+
+                match event['event']:
+                    case 'CargoTransfer':
+                        for item in event.get('Transfers', []):
+                            cargo['Inventory'].append({
+                                'Name': self.monitor.canonicalise(item['Type']),
+                                'Name_Localised': item.get('Type_Localised', self.monitor.canonicalise(item['Type'])),
+                                'Count': item['Count'] if item.get('Direction') == "toship" else -item['Count'],
+                                'Stolen': item.get('Stolen', 0)
+                            })
+                    case 'MarketBuy' | 'MarketSell' | 'CollectCargo' | 'EjectCargo' | 'MiningRefined':
+                        cargo['Inventory'].append({
+                            'Name': self.monitor.canonicalise(event['Type']),
+                            'Name_Localised': event.get('Type_Localised', self.monitor.canonicalise(event['Type'])),
+                            'Count': event['Count'] if event['event'] in ['MarketBuy', 'CollectCargo'] else -event['Count'],
+                            'Stolen': event.get('Stolen', 0)
+                        })
+                    case 'LaunchDrone':
+                        cargo['Inventory'].append({
+                            'Name': "drone",
+                            'Name_Localised': "Drone",
+                            'Count': -1,
+                            'Stolen': 0
+                        })
+                    case 'Cargo' if 'Cargo' in state:
+                        cargo = state['Cargo']
+                        if 'Inventory' not in cargo: cargo['Inventory'] = []
+
+                cargo['Inventory'] = self.monitor.coalesce_cargo(cargo['Inventory'])
+                cargo['Count'] = sum(item['Count'] for item in cargo['Inventory'])
+
+                with open(self.plugin_dir / "journal_folder" / CONFIG_FILES['Cargo'][0], 'w') as f:
+                    json.dump(cargo, f)
+
+            case _ if event['event'] in CONFIG_FILES.keys():
+                # Add empty elements where we're unable to infer them.
+                if CONFIG_FILES[event['event']][1] and CONFIG_FILES[event['event']][1] not in event:
+                     event[CONFIG_FILES[event['event']][1]] = state.get(CONFIG_FILES[event['event']][1], [])
+                with open(self.plugin_dir / "journal_folder" / CONFIG_FILES[event['event']][0], 'w') as f:
+                    json.dump(event, f)

@@ -1,7 +1,6 @@
 """
 Test suite for market module of BGS-Tally.
 """
-
 import pytest # type: ignore
 from typing import Generator
 from pathlib import Path

@@ -838,6 +838,7 @@ class ProgressWindow:
         if getattr(self, "_fnt", None) is None:
             self._fnt:tkFont.Font = tkFont.Font(font=cell.cget("font"))
             Debug.logger.debug(f"Setting progress font value. size: {self._fnt['size']}")
+        Debug.logger.debug(f"Setting progress size: {self._fnt['size']}")
         cell.configure(font=(self._fnt['family'], self._fnt['size'], w))
 
 

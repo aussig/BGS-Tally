@@ -1,4 +1,3 @@
-import os
 import json
 import importlib
 import sys
@@ -6,7 +5,7 @@ import types as _types
 import semantic_version
 import logging
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 try:
     import tomllib
@@ -16,11 +15,6 @@ except ModuleNotFoundError:  # pragma: no cover - Python < 3.11 fallback
 # We keep a copy of edmc_data here.
 this_dir:Path = Path(__file__).parent
 parent:Path = Path(__file__).parent.parent
-
-# Force it to look like Linux
-#with patch.object(sys, 'platform', 'linux'):
-#    with patch.dict(os.environ, {'XDG_DATA_HOME': str(this_dir)}, clear=False):
-#        import config
 
 class MockConfig:
     _instance = None
@@ -140,9 +134,7 @@ _plug = _types.ModuleType('Plugin')
 class MockPlugin:
     def __init__(self) -> None:
         pass
-    @staticmethod
-    def show_error(message:str) -> None:
-        print(f"Plugin error: {message}")
+    show_error = MagicMock(name='show_error')
 
 for name, val in MockPlugin.__dict__.items():
     if not name.startswith('__'):
@@ -231,11 +223,10 @@ sys.modules['EDMCOverlay.edmcoverlay'] = _overlay
 
 # Mock up the modern overlay and its plugin
 class MockOverlay_Plugin:
-    def __init__(self, **kw): pass
+    __init__ = MagicMock(name='overlay_plugin_init')
 class Mockoverlay_api:
-    def __init__(self, **kw): pass
-    @staticmethod
-    def define_plugin_group(**kw): pass
+    __init__ = MagicMock(name='overlay_api_init')
+    define_plugin_group = MagicMock(name='define_plugin_group')
 
 _overlay_plugin = _types.ModuleType('overlay_plugin')
 for name, val in MockOverlay_Plugin.__dict__.items():
@@ -256,24 +247,24 @@ class MockFileSystemEvent:
         self.src_path = src_path
 
 class MockFileSystemEventHandler:
-    def on_created(self, event): pass
-    def on_deleted(self, event): pass
-    def on_modified(self, event): pass
-    def on_moved(self, event): pass
+    on_created = MagicMock(name='on_created')
+    on_deleted = MagicMock(name='on_deleted')
+    on_modified = MagicMock(name='on_modified')
+    on_moved = MagicMock(name='on_moved')
 
 class MockBaseObserver:
-    def __init__(self): pass
-    def start(self): pass
-    def stop(self): pass
-    def join(self): pass
-    def schedule(self, event_handler, path, recursive=False): pass
+    def __init__(self):
+        self.start = MagicMock(name='observer_start')
+        self.stop = MagicMock(name='observer_stop')
+        self.join = MagicMock(name='observer_join')
+        self.schedule = MagicMock(name='observer_schedule')
 
 class MockObserver:
-    def __init__(self): pass
-    def start(self): pass
-    def stop(self): pass
-    def join(self): pass
-    def schedule(self, event_handler, path, recursive=False): pass
+    def __init__(self):
+        self.start = MagicMock(name='observer_start')
+        self.stop = MagicMock(name='observer_stop')
+        self.join = MagicMock(name='observer_join')
+        self.schedule = MagicMock(name='observer_schedule')
 
 _watchdog_events = _types.ModuleType('watchdog.events')
 _watchdog_events.FileSystemEvent = MockFileSystemEvent  # type: ignore

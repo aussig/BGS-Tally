@@ -10,9 +10,9 @@
     "colonisation_events": [
         { "event":"Market", "MarketID":4292118787, "StationName":"Nakamura's Syntheticals", "StationType":"CraterOutpost", "StarSystem":"Bleae Thua NI-B b27-5" },
         { "event":"MarketBuy", "MarketID":4292118787, "Type":"cmmcomposite", "Type_Localised":"CMM Composite", "Count":1298, "BuyPrice":5461, "TotalCost":7088378 },
-        { "event":"MarketSell", "MarketID":3709409280, "Type":"titanium", "Count":336, "SellPrice":4447, "TotalSale":1494192, "AvgPricePaid":4138 },
+        { "event":"MarketSell", "MarketID":3709409280, "Type":"titanium", "Type_Localised": "Titanium", "Count":336, "SellPrice":4447, "TotalSale":1494192, "AvgPricePaid":4138 },
         { "event":"Cargo", "Vessel":"Ship", "Count":1298 },
-        { "event":"CargoTransfer", "Transfers":[ { "Type":"titanium", "Count":962, "Direction":"tocarrier" } ] },
+        { "event":"CargoTransfer", "Transfers":[ { "Type":"titanium", "Type_Localised":"Titanium", "Count":962, "Direction":"tocarrier" } ] },
         { "event":"CarrierTradeOrder", "CarrierID":3709409280, "CarrierType":"FleetCarrier", "BlackMarket":false, "Commodity":"liquidoxygen", "Commodity_Localised":"Liquid oxygen", "SaleOrder":1792, "Price":1375 },
         { "event":"ColonisationContribution", "MarketID":3963794178, "Contributions":[ { "Name":"$LiquidOxygen_name;", "Name_Localised":"Liquid oxygen", "Amount":1298 } ] },
         { "event":"ColonisationSystemClaim", "StarSystem":"Bleae Thua GL-G b24-5", "SystemAddress":11664191727825 },

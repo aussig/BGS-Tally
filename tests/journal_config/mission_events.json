@@ -1,0 +1,12 @@
+{
+    "accepted": [
+        { "event":"MissionAccepted", "Faction":"Celestial Light Brigade", "Name":"Mission_Courier_Expansion", "LocalisedName":"Expansion Data Couriering", "TargetFaction":"Celestial Light Brigade", "DestinationSystem":"Bleae Thua ZW-E c11-7", "DestinationStation":"Roentgen Penal colony", "Expiry":"delta:3600", "Wing":false, "Influence":"++", "Reputation":"+", "Reward":162746, "MissionID":1051401969 },
+        { "event":"MissionAccepted", "Faction":"Celestial Light Brigade", "Name":"Mission_Altruism", "LocalisedName":"Donate 72 units of Clothing", "Commodity":"$Clothing_Name;", "Commodity_Localised":"Clothing", "Count":72, "DestinationSystem":"Bleae Thua GL-G b24-5", "DestinationStation":"Skjellerup Barracks", "Expiry":"delta:3600", "Wing":false, "Influence":"++", "Reputation":"++", "MissionID":1050888290 }
+
+    ],
+    "abandoned": [
+        { "event":"MissionAccepted", "Faction":"Celestial Light Brigade", "Name":"Mission_Altruism", "LocalisedName":"Donate 72 units of Clothing", "Commodity":"$Clothing_Name;", "Commodity_Localised":"Clothing", "Count":72, "DestinationSystem":"Bleae Thua GL-G b24-5", "DestinationStation":"Skjellerup Barracks", "Expiry":"delta:3600", "Wing":false, "Influence":"++", "Reputation":"++", "MissionID":1050888290 },
+        { "timestamp":"2026-04-09T04:54:58Z", "event":"MissionAbandoned", "Name":"Mission_Altruism_name", "LocalisedName":"Donate 72 units of Clothing", "MissionID":1050888290 }
+
+    ]
+}

@@ -42,7 +42,6 @@ def harness(request) -> Generator:
         shutil.copy(Path(__file__).parent / "journal_config" / market_init_file,
                     Path(__file__).parent / "journal_folder" / "Market.json")
 
-
     # Now we can start the plugin
     from load import plugin_start3, plugin_app, journal_entry
     import bgstally.globals

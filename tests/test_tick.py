@@ -36,7 +36,6 @@ def harness(request) -> Generator:
     plugin_start3(str(test_harness.plugin_dir))
     plugin_app(test_harness.parent)
 
-
     yield test_harness
     test_harness.assert_no_unhandled_exceptions()
 

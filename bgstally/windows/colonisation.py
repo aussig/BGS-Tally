@@ -1467,9 +1467,9 @@ class ColonisationWindow:
     def _set_weight(self, item, wght:str = 'bold') -> None:
         ''' Set font weight '''
         if getattr(self, "_fnt", None) is None:
-            self._fnt:tkFont.Font = tkFont.Font(font=item.cget("font"))
-            Debug.logger.debug(f"Setting progress font value. size: {self._fnt['size']}")
-        item.configure(font=(fnt['family'], fnt['size'], wght))
+            self._fnt: tkFont._FontDict = tkFont.Font(font=item['font']).actual()
+            Debug.logger.debug(f"Setting colonisation font value. size: {self._fnt['size']}")
+        item.configure(font=(self._fnt['family'], self._fnt['size'], wght))
 
 
     @catch_exceptions

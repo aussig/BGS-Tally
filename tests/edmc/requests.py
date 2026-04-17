@@ -159,10 +159,10 @@ class MockSession:
         response:MockResponse|None = None
         if url in self.queued_responses[method] and len(self.queued_responses[method][url]) > 0:
             response = self.queued_responses[method][url].pop(0)
-        if response == None and url in self.sticky_responses[method]:
-            response = self.sticky_responses[method][url]
         if response == None and 'any' in self.queued_responses[method] and len(self.queued_responses[method]['any']) > 0:
             response = self.queued_responses[method]['any'].pop(0)
+        if response == None and url in self.sticky_responses[method]:
+            response = self.sticky_responses[method][url]
         if response == None and 'any' in self.sticky_responses[method]:
             response = self.sticky_responses[method]['any']
         if response == None:

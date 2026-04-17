@@ -9,13 +9,14 @@ import threading
 threading.get_native_id = lambda: 0
 
 import os
+import atexit
 import json
 import sys
 import tomllib
 from pathlib import Path
 from typing import Optional, Callable, Dict
 from datetime import datetime, timezone, timedelta, UTC
-from time import sleep
+from time import sleep, monotonic
 import logging
 import tkinter as tk
 import threading
@@ -59,7 +60,10 @@ STARTUP_ATTRS:dict = {
 
 import tests.edmc.requests
 import tests.edmc.mocks as mocks
+from tests.edmc.TkScheduler import HarnessTkScheduler
 from tests.edmc.monitor import monitor
+
+
 class TestHarness:
     """ Main test harness. """
     # Prevent pytest from trying to collect this helper class as a test class
@@ -102,16 +106,23 @@ class TestHarness:
             self._original_threading_excepthook = threading.excepthook
         threading.excepthook = self._capture_thread_exception
 
-        os.environ['EDMC_NO_UI'] = '1'
+        #os.environ['EDMC_NO_UI'] = '1'
 
         # Create Tk root for headless mode
         try:
             if not hasattr(self, '_initialized'):
-                root:tk.Tk = tk.Tk()
-                self.parent:tk.Frame = tk.Frame(root)
-                root.withdraw()
+                self.root:tk.Tk = tk.Tk()
+                self.parent:tk.Frame = tk.Frame(self.root)
+                #root.withdraw()
         except Exception as e:
             logging.error(f"Failed to create Tk root: {e}")
+
+        if hasattr(self, 'root') and not hasattr(self, '_tk_scheduler'):
+            self._tk_scheduler = HarnessTkScheduler(self.root)
+            self._tk_scheduler.install()
+            if not hasattr(self, '_atexit_registered'):
+                atexit.register(self._tk_scheduler.uninstall)
+                self._atexit_registered = True
 
         self._initialized = True
 
@@ -126,6 +137,14 @@ class TestHarness:
 
     def assert_no_unhandled_exceptions(self) -> None:
         """Fail the current test if any unhandled thread exceptions were captured."""
+        self.pump_ui(timeout_s=0.4)
+
+        scheduler_failures: list[str] = []
+        if hasattr(self, '_tk_scheduler'):
+            scheduler_failures = self._tk_scheduler.consume_failures()
+            if scheduler_failures:
+                self.unhandled_exceptions.extend(scheduler_failures)
+
         if not self.unhandled_exceptions:
             return
 
@@ -135,6 +154,32 @@ class TestHarness:
             "Unhandled exception(s) were raised by background thread(s):\n"
             f"{failures}"
         )
+
+    def pump_ui(self, timeout_s: float = 0.2, poll_interval_s: float = 0.01) -> None:
+        """Pump deferred Tk callbacks and process pending UI events."""
+        if not hasattr(self, 'root'):
+            return
+
+        end_time = monotonic() + max(timeout_s, 0.0)
+
+        while True:
+            callbacks_ran = 0
+            if hasattr(self, '_tk_scheduler'):
+                callbacks_ran = self._tk_scheduler.drain_due_callbacks()
+
+            try:
+                self.root.update_idletasks()
+                self.root.update()
+            except tk.TclError:
+                return
+
+            pending = self._tk_scheduler.pending_count() if hasattr(self, '_tk_scheduler') else 0
+            if pending == 0 and callbacks_ran == 0:
+                return
+            if monotonic() >= end_time:
+                return
+
+            sleep(poll_interval_s)
 
     def set_requests_mode(self, live_requests:bool) -> None:
         """ Set whether the harness should use live HTTPS requests or mocked responses. """
@@ -300,12 +345,15 @@ class TestHarness:
                 logging.error(f"Error in journal handler: {e}")
                 raise
 
+        self.pump_ui()
+
     def play_sequence(self, name:str, delay:float = 0.5, state:dict = {}) -> None:
         """ Fire a sequence of events """
         for event in self.events.get(name, []):
             self.fire_event(event, state=state)
             state = {}  # Clear state after the first event
             sleep(delay)
+            self.pump_ui()
 
     def _update_journal_files(self, event:dict, state:dict = {}) -> None:
         """ Simulate EDMC's journal file updates based on the event type. """

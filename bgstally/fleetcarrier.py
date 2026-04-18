@@ -860,7 +860,6 @@ class FleetCarrier:
         if self.jump_state != FleetCarrierJump.Cooldown: return
 
         self.jump_state = FleetCarrierJump.Idle
-        self.bgstally.ui.warning = _("Carrier cooldown complete") # LANG: Cooldown overlay message
         self.bgstally.ui.window_fc.cooldown_notice()
 
         # Automatically post to whichever discord webhooks are set for carrier operations

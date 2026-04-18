@@ -5,12 +5,16 @@ Test suite for carrier module of BGS-Tally.
 import pytest # type: ignore
 import shutil
 from pathlib import Path
-from typing import Generator
+from typing import TYPE_CHECKING, Generator
 from time import sleep
 from datetime import datetime, UTC, timedelta
 from unittest.mock import Mock, patch, MagicMock
 import filecmp
 from harness import TestHarness
+
+if TYPE_CHECKING:
+    import bgstally.ui
+    from bgstally.windows.fleetcarrier import PopupNotice
 
 @pytest.fixture
 def harness(request) -> Generator:
@@ -268,6 +272,27 @@ class TestCarrierJumps:
         fc = harness.plugin.fleet_carrier
         message = fc.update_overlay()
         assert message == ''
+
+    @pytest.mark.parametrize('which', ['none', 'popup', 'overlay', 'both'])
+    def test_cooldown_complete(self, harness, which) -> None:
+        """ Test cooldown complete handling """
+
+        harness.plugin.state.fc_cooldown = which
+        fc = harness.plugin.fleet_carrier
+        fc.jump_state = 'Cooldown'
+
+        assert harness.plugin.state.fc_cooldown == which
+        with patch('bgstally.ui.UI.show_warning') as mock_warning, \
+             patch('bgstally.windows.fleetcarrier.PopupNotice.__init__', return_value=None) as mock_popup:
+            fc._cooldown_complete()
+
+            # warning called if overlay or both, not otherwise
+            assert (which in ['overlay', 'both']) == mock_warning.call_count
+            # popup called if popup or both, not otherwise
+            assert (which in ['popup', 'both']) == mock_popup.call_count
+
+        assert fc.jump_state == 'Idle'
+
 class TestCarrierRoute:
     """ Test the Spansh Routing """
 

@@ -142,7 +142,7 @@ class Colonisation:
 
                 # Update systems with external data if required
                 for system in self.systems:
-                    if system.get('Hidden', False) == True: continue
+                    if system.get('Hidden', False) == True or system.get('SystemAddress', 0) == 0: continue
 
                     if system.get('RCSync', False) == True:
                         rc.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
@@ -434,7 +434,6 @@ class Colonisation:
 
         return status
 
-
     @catch_exceptions
     def find_system(self, data:dict) -> dict|None:
         ''' Find a system by address, system name, or plan name '''
@@ -455,7 +454,6 @@ class Colonisation:
             return self.add_system(data, False, False)
 
         return system
-
 
     @catch_exceptions
     def add_system(self, data:dict, prepop:bool = False, rcsync:bool = False) -> dict:
@@ -482,7 +480,6 @@ class Colonisation:
 
         self.save('Add system')
         return data
-
 
     @catch_exceptions
     def modify_system(self, system, data:dict) -> None:
@@ -638,6 +635,7 @@ class Colonisation:
         # Match on site name.
         if data.get('Name', None) != None:
             for build in builds:
+                Debug.logger.debug(f"Matching on name {data.get('Name', None)} against build {build.get('Name', None)}")
                 if build.get('Name', None) != None and build.get('Name', None) == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')):
                     return build
 
@@ -662,8 +660,8 @@ class Colonisation:
                 body = build.get('Body', build.get('BodyNum', None)).lower()
             market:int|None = build.get('MarketID', None)
 
-            # A build that was planned but is now a construction site
-            if state == BuildState.PLANNED and market == None and location == loc and body == data.get('Body', str(data.get('BodyNum'))).lower():
+            # A build that was planned but is now a construction site or progress but we've never been there
+            if state in (BuildState.PLANNED, BuildState.PROGRESS) and market == None and location == loc and body == data.get('Body', str(data.get('BodyNum'))).lower():
                 Debug.logger.debug(f"Matched planned build {data['Body']} {build.get('State', None)} {loc} Build: {build}")
                 return build
 
@@ -678,6 +676,15 @@ class Colonisation:
                 body != None and body == data.get('Body', str(data.get('BodyNum'))).lower():
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
+
+        if len(builds) == 0:
+            return None
+
+        # Primary port. We completed it but don't know its new name or marketid.
+        if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('MarketID', None) == None and \
+             builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == data.get('Body', str(data.get('BodyNum', ''))).lower():
+            Debug.logger.debug(f"Matched completed primary port {data.get('Name', None)} {data.get('Body', str(data.get('BodyNum', ''))).lower()}")
+            return builds[0]
 
         return None
 
@@ -895,13 +902,20 @@ class Colonisation:
         # If we get here, the build is (newly) complete.
         # Since on completion the colonisation ship is removed/goes inactive and a new station is created
         # we need to clear some fields.
+        name = None if 'System Colonisation Ship' in build.get('Name', '') else build.get('Name', None)
         data:dict = {
             'State': BuildState.COMPLETE,
             'Track': False,
             'Readonly': True,
-            'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
+            'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', '')),
+            'MarketID': build.get('MarketID', None)
         }
-        data['MarketID'] = None if 'System Colonisation Ship' in build.get('Name', '') else build.get('MarketID', None)
+
+        # These change for initial colonisation
+        if 'System Colonisation Ship' in build.get('Name', ''):
+            data['MarketID'] = None
+            data['Name'] = None
+
         self.modify_build(system, build.get('BuildID', ''), data)
         return True
 
@@ -1271,8 +1285,10 @@ class Colonisation:
             self.market_id = dict.get('MarketID', None)
             self.cargo_capacity = dict.get('CargoCapacity', 784)
             self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
-            self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
-            if dict.get('ProgressColumns', None) != None: self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
+            if dict.get('ProgressUnits', []) != []:
+                self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
+            if dict.get('ProgressColumns', None) != None:
+                self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
             self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
             self.window_geometries = dict.get('WindowGeometries', {})
         except:

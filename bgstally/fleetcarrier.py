@@ -66,7 +66,7 @@ class FleetCarrier:
             _('Docking'): (self._readable(self.overview.get('dockingAccess', '')), 'str', 'Unknown'), # LANG: Carrier overview
             _('Allow Notorious'): (self.overview.get('notoriousAccess', ''), 'str', 'Unknown'), # LANG: Carrier overview
 
-            _('Fuel'): (self.overview.get('fuel', 0), 'num', 0, 't'),                    # LANG: Carrier overview
+            _('Fuel'):(f"{self.overview.get('fuel', 0):,}t (+{int(get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)):,}t)", 'fixed'),                    # LANG: Carrier overview
             _('Space'): (f"{self._get_freespace():,}t ({int(self._get_freespace() * 100 / self.overview.get('totalCapacity', 25000))}%)", 'fixed'), # LANG: Carrier overview
             _('Tax Level'): (self.overview.get('taxation', 0), 'num', '0%', '%'),        # LANG: Carrier overview
         }
@@ -339,17 +339,17 @@ class FleetCarrier:
         """ Update the route to our current location if we're on the route """
 
         # If we aren't currently on the route leave it alone
-        if self.overview['currentStarSystem'] not in [r.get('name') for r in self.route if 'name' in r]:
+        if self.overview.get('currentStarSystem', 'None') not in [r.get('name') for r in self.route if 'name' in r]:
             return
 
         # Do catchup. This shouldn't happen unless we've made some jumps without ED:MC running
         used:int = 0
-        while self.route != [] and self.route[0]['name'] != self.overview['currentStarSystem']:
+        while self.route != [] and self.route[0]['name'] != self.overview.get('currentStarSystem', 'None'):
             used += self.route[0]['fuel_used']
             self.route = self.route[1:]
 
         # If we're there take it out.
-        if self.route != [] and self.route[0]['name'] == self.overview['currentStarSystem']:
+        if self.route != [] and self.route[0]['name'] == self.overview.get('currentStarSystem', 'None'):
             self.overview['fuel'] -= used + self.route[0]['fuel_used']
             self.route = self.route[1:]
 
@@ -367,9 +367,9 @@ class FleetCarrier:
         message:str = ""
 
         if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
-            message = f"{_('Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
+            message = f"{_('Route Next')}: {self.route[1]['name']}" # LANG: Next system in route on carrier overlay
         if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
-            message = f"{_('Route Next')}: {self.route[0]['name']}"
+            message = f"{_('Route Next')}: {self.route[0]['name']}" # LANG: Next system in route on carrier overlay
 
         cd:str = ''; delta:int
         if self.timer != None:
@@ -381,7 +381,7 @@ class FleetCarrier:
             message = f"{_('Jump Cooldown')} {cd}" # LANG: Carrier overlay
 
         if self.jump_state == FleetCarrierJump.Jumping and delta > 0:
-            message = f"{_('Departure To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  #LANG: Carrier overlay
+            message = f"{_('Departure To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  # LANG: Carrier overlay
             if delta < 200:
                 message += f"\n{_('Landing Pads Locked down')}" # LANG: Carrier overlay
             if 200 <= delta < 600:
@@ -486,7 +486,7 @@ class FleetCarrier:
                     jumplist[elem]['visitDurationSeconds'] = self._td(jumplist[elem]['departureTime'], jumplist[elem]['arrivalTime'])
                 continue
 
-            if elem == 0:
+            if elem == 0: # Found it, it's the latest
                 if jump.get('departureTime', None) != None:
                     jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
                     jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', 0)
@@ -501,14 +501,17 @@ class FleetCarrier:
                     jumplist[elem]['body'] = self.overview['currentBody']
                 continue
 
+            # Not found.
             # Already completed, and nothing scheduled so just add it with its details
             if jump.get('departureTime', None) != None:
                 jumplist.insert(0, jump)
+                Debug.logger.debug(f"Adding completed jump to itinerary {elem} {jump}")
                 continue
 
             if self.overview.get('departureScheduled', None) == None:
                 if jump['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
                     jump['body'] = self.overview.get('currentBody', None)
+                Debug.logger.debug(f"Adding scheduled jump to itinerary {elem} {jump}")
                 jumplist.insert(0, jump)
                 continue
 
@@ -519,6 +522,7 @@ class FleetCarrier:
             if jump['starsystem'] == self.overview.get('jumpDestination', ''):
                 jump['body'] = self.overview.get('jumpDestinationBody', None)
 
+            Debug.logger.debug(f"Adding new jump to itinerary {elem} {jump}")
             jumplist.insert(0, jump)
 
             self.overview['jumpDestination'] = None
@@ -693,14 +697,13 @@ class FleetCarrier:
         #    }
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
 
-        Debug.logger.info(f"Carrier: {self.overview.get('carrier_id', '')} {entry.get('CarrierID')}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
         departure:datetime|None = self._parse_date(entry.get('DepartureTime', ""))
         self.overview['jumpDestination'] = entry.get('SystemName', '')
         self.overview['jumpDestinationBody'] = entry.get('Body', None)
         self.overview['departureScheduled'] = departure.strftime("%Y-%m-%d %H:%M:%S")
-        if self.itinerary[0].get('departureTime', None) == None:
+        if len(self.itinerary) > 0 and self.itinerary[0].get('departureTime', None) == None:
             self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
             self.itinerary[0]['departureTime'] = departure.strftime("%Y-%m-%d %H:%M:%S")
@@ -734,7 +737,7 @@ class FleetCarrier:
         """ The user cancelled their carrier jump producing a CarrierJumpCancelled journal event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        if abs(self._td(self.itinerary[0]['departureTime'], self.overview['departureScheduled'])) < 60:
+        if len(self.itinerary) > 0 and abs(self._td(self.itinerary[0]['departureTime'], self.overview['departureScheduled'])) < 60:
             self.itinerary[0]['departureTime'] = None
             self.itinerary[0]['visitDurationSeconds'] = None
 
@@ -798,7 +801,7 @@ class FleetCarrier:
         self._jump_complete()
 
         # We've already got this new jump
-        if abs(self._td(self.itinerary[1].get('departureTime', 0), self.overview['departureScheduled'])) < 60:
+        if len(self.itinerary) > 1 and abs(self._td(self.itinerary[1].get('departureTime', 0), self.overview['departureScheduled'])) < 60:
             self.itinerary[1]['starsystem'] = self.overview.get('jumpDestination', '')
             self.itinerary[1]['body'] = self.overview.get('jumpDestinationBody', None)
 

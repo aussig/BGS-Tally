@@ -179,7 +179,7 @@ class ProgressWindow:
                 canvas.yview_scroll(scroll, 'units')
 
         bgs_cols:int = 6
-        self.colonisation = self.bgstally.colonisation
+        self.colonisation:Colonisation = self.bgstally.colonisation
 
         self.frame_row = start_row
         frame:tk.Frame = tk.Frame(parent_frame)
@@ -628,13 +628,17 @@ class ProgressWindow:
     @catch_exceptions
     def update_display(self) -> None:
         ''' Main display update function. '''
+        if not hasattr(self, 'frame') or self.frame == None or not self.frame.winfo_exists():
+            Debug.logger.debug("Progress frame does not exist, skipping update")
+            return
+
+        if not hasattr(self.bgstally, 'colonisation') or self.bgstally.state.enable_colonisation != True:
+            self.frame.grid_remove()
+            return
+
         tracked:list = self.colonisation.get_tracked_builds()
         required:list = self.colonisation.get_required(tracked)
         delivered:list = self.colonisation.get_delivered(tracked)
-
-        if self.bgstally.state.enable_colonisation != True:
-            self.frame.grid_remove()
-            return
 
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
             self.frame.grid_remove()
@@ -834,6 +838,7 @@ class ProgressWindow:
         if getattr(self, "_fnt", None) is None:
             self._fnt:tkFont.Font = tkFont.Font(font=cell.cget("font"))
             Debug.logger.debug(f"Setting progress font value. size: {self._fnt['size']}")
+        #Debug.logger.debug(f"Setting progress size: {self._fnt['size']}")
         cell.configure(font=(self._fnt['family'], self._fnt['size'], w))
 
 

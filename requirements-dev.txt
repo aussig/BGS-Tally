@@ -1,2 +1,10 @@
 semantic-version ~= 2.10.0
 sentry-sdk ~= 2.50.0
+l10n
+pytest
+requests
+Pillow
+tomli_w
+pytest-cov
+pytest-mock
+psutil

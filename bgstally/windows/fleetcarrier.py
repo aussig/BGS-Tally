@@ -404,12 +404,13 @@ class WindowFleetCarrier:
         bar.pack(fill=tk.X, side=tk.BOTTOM)
 
         post_types:dict = {_("Buying") : DiscordFleetCarrier.BUYING, # LANG: Dropdown menu on activity window
-                            _("Selling") : DiscordFleetCarrier.SELLING, # LANG: Dropdown menu on activity window
-                            _("Both") : DiscordFleetCarrier.BOTH, # LANG: Dropdown menu on activity window
-                            _("All") : DiscordFleetCarrier.ALL} # LANG: Dropdown menu on activity window
+                           _("Selling") : DiscordFleetCarrier.SELLING, # LANG: Dropdown menu on activity window
+                           _("Both") : DiscordFleetCarrier.BOTH, # LANG: Dropdown menu on activity window
+                           _("All") : DiscordFleetCarrier.ALL} # LANG: Dropdown menu on activity window
 
         strv:tk.StringVar = tk.StringVar(value=state.get())
-        menuv:ttk.OptionMenu = ttk.OptionMenu(bar, strv, strv.get(), *post_types.keys(),
+        sel:str = strv.get() if strv.get() in post_types.keys() else _("All")
+        menuv:ttk.OptionMenu = ttk.OptionMenu(bar, strv, sel, *post_types.keys(),
                                               command=lambda val: _post_type_selected(val),
                                               direction='above')
 
@@ -569,7 +570,7 @@ class WindowFleetCarrier:
     def cooldown_notice(self) -> None:
         """ Display carrier cooldown notification """
         self.bgstally.ui.show_warning("Fleetcarrier cooldown completed")
-        PopupNotice(_("Fleetcarrier cooldown\ncompleted"), 20000, self.bgstally.fleet_carrier)
+        PopupNotice(_("Fleetcarrier cooldown\ncompleted"), 20000, self.bgstally.fleet_carrier) # LANG: Fleet carrier cooldown notification
 
 class PopupNotice:
     """ Create a temporary popup window """
@@ -584,7 +585,7 @@ class PopupNotice:
         self.frame.pack(fill="both", expand=True)
         label = tk.Label(self.frame, text=notice, fg="white", bg="red4", font=FONT_HEADING_1, justify=tk.CENTER)
         label.pack(pady=20, anchor=tk.CENTER)
-        exit_btn = tk.Button(self.frame, text=_("Close"), fg="white", bg="red4", command=self.close)
+        exit_btn = tk.Button(self.frame, text=_("Close"), fg="white", bg="red4", command=self.close) # LANG: Button label on Carrier window
         exit_btn.pack(pady=10)
         if timeout > 0: self.root.after(timeout, self.close)
         self.frame.bind("<Button-1>", self.start_move)

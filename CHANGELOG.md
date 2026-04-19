@@ -1,5 +1,25 @@
 # Change Log
 
+## v5.5.0-b1 - 2026-04-19
+
+### New Features:
+
+* API quick-setup button for local server connection, if you need to ingest your data to a local server or use a relay such as [CMDR JanJonTheo's local relay server](https://github.com/JanJonTheo/VALKBGSTallyRelayServer) to send data to multiple destinations.
+* API quick-setup button added for the Sinistra platform.
+
+### Changes:
+
+* The API setup now has a checkbox to enable / disable the objectives API. Also, all the quick shortcut buttons have now been enhanced to set/unset this checkbox appropriately for each integration.
+* Removed the quick-setup button for the Spectrum integration as the service appears to be dead and the maintainer has vanished.
+* `/scripts` folder is now excluded from the distribution zip.
+
+### Bug Fixes:
+
+* Error in completely clean install fixed in Fleet Carrier route code.
+* Fix flashing of Fleet Carrier panel on in-game overlay.
+* Fix for Discord dropdown showing "Yes" on Fleetcarrier window.
+
+
 ## v5.5.0-a1 - 2026-04-03
 
 ### New Features:

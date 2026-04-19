@@ -1,0 +1,11 @@
+{
+    "timestamp":"2026-04-13T20:01:24Z",
+    "event":"Cargo",
+    "Vessel":"Ship",
+    "Count":16,
+    "Inventory":[
+        { "Name":"cmmcomposite", "Name_Localised":"CMM Composite", "Count":6, "Stolen":0 },
+        { "Name":"advancedcatalysers", "Name_Localised":"Advanced Catalysers", "Count":4, "Stolen":4 },
+        { "Name":"ceramiccomposites", "Name_Localised":"Ceramic Composites", "Count":6, "Stolen":0 }
+    ]
+}

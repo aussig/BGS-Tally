@@ -1,18 +1,23 @@
-import tkinter as tk
-from tkinter import CURRENT, END, ttk
-from functools import partial
-from datetime import datetime
-import re
 import json
 import queue
+import re
 import threading
+import tkinter as tk
+from datetime import datetime
+from functools import partial
+from tkinter import CURRENT, END, ttk
+from typing import TYPE_CHECKING
+
 import requests
 
-from config import config # type: ignore
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
-from bgstally.constants import FONT_TEXT, FONT_TEXT_BOLD, FONT_TEXT_UNDERLINE, FONT_TEXT_BOLD_UNDERLINE
+from bgstally.constants import FONT_TEXT, FONT_TEXT_BOLD, FONT_TEXT_BOLD_UNDERLINE, FONT_TEXT_UNDERLINE
 from bgstally.debug import Debug
 from bgstally.utils import _, catch_exceptions, parse_human_format
+
+
 class TextPlus(tk.Text):
     """
     Subclass of tk.Text to install a context-sensitive menu on right-click
@@ -439,8 +444,8 @@ class AutoCompleter(Placeholder):
 
         @TODO: Modify to support a configurable function to query an API and return a list
     """
-    def __init__(self, bgstally, parent:tk.Frame, placeholder:str, **kw) -> None:
-        self.bgstally:BGSTally = bgstally # type: ignore
+    def __init__(self, bgstally: 'BGSTally', parent:tk.Frame, placeholder:str, **kw) -> None:
+        self.bgstally:BGSTally = bgstally
         self.parent:tk.Frame = parent
 
         self.popup:tk.Toplevel = tk.Toplevel(self.parent.winfo_toplevel())

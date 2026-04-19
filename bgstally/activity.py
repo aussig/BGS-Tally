@@ -2,7 +2,10 @@ import json
 import re
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
-from typing import Dict
+from typing import TYPE_CHECKING, Dict
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_TITLE, FILE_SUFFIX, ApiSizeLookup,
                                 ApiSyntheticCZObjectiveType, ApiSyntheticEvent, ApiSyntheticScenarioType, CheckStates, DiscordActivity, DiscordChannel,
@@ -126,7 +129,7 @@ class Activity:
     factions with their activity
     """
 
-    def __init__(self, bgstally, tick: Tick = None, sample: bool = False, cmdr = None):
+    def __init__(self, bgstally: 'BGSTally', tick: Tick = None, sample: bool = False, cmdr = None):
         """Constructor
 
         Args:
@@ -135,7 +138,7 @@ class Activity:
             sample (bool, optional): Populate with sample data. Defaults to False.
             cmdr (str, optional): The CMDR name. This is not done properly (yet) - the cmdr name is simply updated often to be the latest cmdr seen.
         """
-        self.bgstally = bgstally
+        self.bgstally: BGSTally = bgstally
         if tick == None: tick = Tick(self.bgstally)
 
         # Stored data. Remember to modify __deepcopy__(), _as_dict() and _from_dict() if these are changed or new data added.

@@ -4,6 +4,10 @@ from datetime import UTC, datetime
 from functools import partial
 from os import path
 from tkinter import PhotoImage, ttk
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import (COLOUR_HEADING_1, COLOUR_WARNING, DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_TITLE, FOLDER_ASSETS, FONT_HEADING_1,
@@ -26,8 +30,8 @@ class WindowActivity:
     Handles an activity window
     """
 
-    def __init__(self, bgstally, ui, activity: Activity):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally', ui, activity: Activity):
+        self.bgstally: BGSTally = bgstally
         self.activity: Activity = activity
         self.toplevel: tk.Toplevel|None = None
         self.window_geometry: dict|None = None

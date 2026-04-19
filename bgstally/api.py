@@ -4,6 +4,10 @@ from queue import Queue
 from re import match
 from threading import Thread
 from time import sleep
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 import semantic_version
 from requests import Response
@@ -44,11 +48,11 @@ class API:
     Handles data for an API.
     """
 
-    def __init__(self, bgstally, data: dict|None = None):
+    def __init__(self, bgstally: 'BGSTally', data: dict|None = None):
         """
         Instantiate
         """
-        self.bgstally = bgstally
+        self.bgstally: BGSTally = bgstally
 
         # Populate API user and discovery settings
         if data is not None:

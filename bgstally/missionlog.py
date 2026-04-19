@@ -1,6 +1,10 @@
 import json
 from datetime import UTC, datetime, timedelta
 from os import path, remove
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA
 from bgstally.debug import Debug
@@ -14,8 +18,8 @@ class MissionLog:
     """
     Handle a log of all in-progress missions
     """
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
         self.missionlog = []
         self.load()
         self._expire_old_missions()

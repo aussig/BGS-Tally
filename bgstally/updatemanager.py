@@ -1,9 +1,12 @@
 import errno
 from datetime import datetime
 from os import listdir, makedirs, path, unlink, walk
+from typing import TYPE_CHECKING
 from zipfile import ZIP_DEFLATED, ZipFile
 
-import plug
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
 from requests import Response
 from semantic_version import Version
 
@@ -24,8 +27,8 @@ class UpdateManager:
     Responsible for handling automatic self-updates of the plugin
     """
 
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
 
         self.updates_folder:str = path.join(self.bgstally.plugin_dir, FOLDER_UPDATES)
         self.backups_folder:str = path.join(self.bgstally.plugin_dir, FOLDER_BACKUPS)

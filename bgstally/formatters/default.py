@@ -1,5 +1,10 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import CheckStates, DiscordActivity, TAG_OVERLAY_HIGHLIGHT
+from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity
 from bgstally.debug import Debug
 from bgstally.formatters.base import FieldActivityFormatterInterface
 from bgstally.utils import _, __, human_format, is_number
@@ -13,7 +18,7 @@ class DefaultActivityFormatter(FieldActivityFormatterInterface):
     The DefaultFormatter's get_text() method is used to deliver formatted text to the activity windows
     """
 
-    def __init__(self, bgstally):
+    def __init__(self, bgstally: 'BGSTally'):
         """Instantiate class
 
         Args:

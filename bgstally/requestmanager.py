@@ -2,6 +2,10 @@ from queue import Queue
 from re import IGNORECASE, compile, match
 from threading import Thread
 from time import sleep
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 import requests
 from requests import Response
@@ -57,8 +61,8 @@ class RequestManager:
     """
     Handles the queuing and processing of requests
     """
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
         self.re_url = compile(
             r'^(?:http|ftp)s?://' # http:// or https://
             r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|' #domain...

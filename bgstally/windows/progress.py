@@ -1,28 +1,30 @@
+import re
+import sys
 import tkinter as tk
 import tkinter.font as tkFont
 import webbrowser
-import re
-import sys
-from typing import Literal
-from requests import Response
 from functools import partial
 from math import ceil
 from tkinter import ttk
+from typing import TYPE_CHECKING, Literal
 from urllib.parse import quote
-from typing import TYPE_CHECKING
 
-from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, FONT_SMALL, RequestMethod, CommodityOrder, ProgressUnits, ProgressView, CheckStates
-from bgstally.debug import Debug
-from bgstally.utils import _, str_truncate, catch_exceptions, human_format
-from bgstally.ravencolonial import RavenColonial
-from bgstally.requestmanager import BGSTallyRequest
-from config import config # type: ignore
-from thirdparty.Tooltip import ToolTip
-from thirdparty.tksheet import Sheet, natural_sort_key
+from requests import Response
 
 if TYPE_CHECKING:
-    from bgstally.bgstally import BGSTally
     from colonisation import Colonisation
+    from bgstally.bgstally import BGSTally
+
+from bgstally.constants import FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates, CommodityOrder, ProgressUnits, ProgressView, RequestMethod
+from bgstally.debug import Debug
+from bgstally.ravencolonial import RavenColonial
+from bgstally.requestmanager import BGSTallyRequest
+from bgstally.utils import _, catch_exceptions, human_format, str_truncate
+from config import config  # type: ignore
+from thirdparty.tksheet import Sheet, natural_sort_key
+from thirdparty.Tooltip import ToolTip
+
+
 class ProgressWindow:
     '''
     Frame for displaying colonisation construction progress.
@@ -33,7 +35,7 @@ class ProgressWindow:
 
     It also provides a progress bar for the overall progress of the build (or builds).
     '''
-    def __init__(self, bgstally) -> None:
+    def __init__(self, bgstally: 'BGSTally') -> None:
         self.bgstally:BGSTally = bgstally
         self.colonisation:Colonisation
 

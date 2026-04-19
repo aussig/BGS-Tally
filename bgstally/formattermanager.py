@@ -1,5 +1,9 @@
 from importlib import import_module
 from os import listdir, path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.debug import Debug
 from bgstally.formatters.base import BaseActivityFormatterInterface, FieldActivityFormatterInterface, TextActivityFormatterInterface
@@ -16,8 +20,8 @@ class ActivityFormatterManager:
     Handles the management of output formatters
     """
 
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
 
         # Create list of instances of each subclass of FormatterInterface
         self._formatters: dict[str: BaseActivityFormatterInterface] = {}

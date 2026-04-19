@@ -1,6 +1,10 @@
 
 import json
 from os import path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.constants import FOLDER_OTHER_DATA
 from bgstally.debug import Debug
@@ -12,13 +16,13 @@ class FactionManager:
     """Handles favourite factions
     """
 
-    def __init__(self, bgstally):
+    def __init__(self, bgstally: 'BGSTally'):
         """Initialise the class
 
         Args:
             bgstally (bgstally): The bgstally plugin object
         """
-        self.bgstally = bgstally
+        self.bgstally: BGSTally = bgstally
         self.factions: list[str] = []
         self.load()
 

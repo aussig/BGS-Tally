@@ -3,6 +3,10 @@ from datetime import datetime, timedelta
 from os import listdir, mkdir, path, remove, rename
 from threading import Thread
 from time import sleep
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.activity import Activity
 from bgstally.constants import FILE_SUFFIX
@@ -24,8 +28,8 @@ class ActivityManager:
     the data storage of Activity logs.
     """
 
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
 
         self.activity_data: list[Activity] = []
         self.current_activity: Activity|None = None

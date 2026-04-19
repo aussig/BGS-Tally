@@ -1,6 +1,10 @@
+import json
 from datetime import UTC, datetime
 from enum import Enum
-import json
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.activity import Activity
 from bgstally.api import API
@@ -40,8 +44,8 @@ class ObjectivesManager:
     Note that the objectives are stored inside the API object and there is only a single API tracked here.  So, if multiple APIs
     are implemented in future, it will flip-flop between them and we either need to handle that or limit objectives to a single API.
     """
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
 
         self.api: API|None = None
 

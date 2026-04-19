@@ -1,6 +1,10 @@
 import tkinter as tk
 from os import path
 from tkinter import PhotoImage, ttk
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.constants import COLOUR_HEADING_1, FOLDER_ASSETS, FONT_HEADING_1, FONT_TEXT
 from bgstally.utils import _, __
@@ -11,8 +15,8 @@ class WindowLegend:
     Handles a window showing the Discord legend / key window
     """
 
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
 
         self.image_icon_bgs_cz:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz.png"))
         self.image_icon_bgs_cz_cs:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "icon_bgs_cz_cs.png"))

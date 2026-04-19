@@ -9,7 +9,7 @@ from bgstally.constants import CheckStates, UpdateUIPolicy
 from bgstally.debug import Debug
 
 PLUGIN_NAME = "BGS-Tally"
-PLUGIN_VERSION = semantic_version.Version.coerce("5.5.0-dev")
+PLUGIN_VERSION = semantic_version.Version.coerce("5.5.0-b1")
 VERSION = str(PLUGIN_VERSION) # For compatability with the EDMC Plugin Registry: https://github.com/EDCD/EDMC-Plugin-Registry
 
 # Initialise the main plugin class

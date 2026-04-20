@@ -232,6 +232,7 @@ class TestCarrierJumps:
 
         harness.fire_event(events[0])
         assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
+        sleep(2) # Wait for the jump time to pass
 
         harness.fire_event(events[1])
         assert fc.overview.get('currentStarSystem', '') == 'Bleae Thua ZE-I b23-1'

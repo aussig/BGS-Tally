@@ -207,6 +207,7 @@ class TestCarrierJumps:
         events:list = harness.load_events("journal_events.json", BodyID=12).get("carrier_events", [])
 
         # Pre-flight checks.
+        assert fc.jump_state == 'Idle'
         assert fc.overview.get('carrier_id') == 12345
         assert fc.overview.get('currentStarSystem', '') == 'Sol'
 

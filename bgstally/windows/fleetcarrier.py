@@ -570,7 +570,7 @@ class WindowFleetCarrier:
 
     def cooldown_notice(self) -> None:
         """ Display carrier cooldown notification """
-        Debug.logger.debug(f"Checking if fleet carrier cooldown notification should be displayed, current setting is {self.bgstally.state.fc_cooldown}")
+        Debug.logger.debug(f"Checking if fleet carrier cooldown notification should be displayed, current setting is {self.bgstally.state.fc_cooldown} {config.get('bgst_fccooldown')}")
         if self.bgstally.state.fc_cooldown in ('overlay', 'both'):
             Debug.logger.debug(f"Showing fleet carrier cooldown notification as overlay")
             self.bgstally.ui.show_warning(_("Fleetcarrier cooldown completed")) # LANG: Fleet carrier cooldown notification

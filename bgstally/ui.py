@@ -559,7 +559,7 @@ class UI:
     def _cooldown_selected(self, cooldown_types: dict, value: str):
         k: str = next(k for k, v in cooldown_types.items() if v == value)
         self.bgstally.state.FcCooldown.set(k)
-        self.bgstally.state.refresh
+        self.bgstally.state.refresh()
 
     @catch_exceptions
     def _worker(self) -> None:

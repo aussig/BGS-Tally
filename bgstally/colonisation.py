@@ -130,7 +130,7 @@ class Colonisation:
         if cmdr != None: self.cmdr = cmdr
         if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
 
-        Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} ({station}) market: {self.market_id}")
+        #Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} ({station}) market: {self.market_id}")
 
         if entry.get('StationType', '') == 'FleetCarrier' : self.station = 'FleetCarrier'
 
@@ -635,7 +635,6 @@ class Colonisation:
         # Match on site name.
         if data.get('Name', None) != None:
             for build in builds:
-                Debug.logger.debug(f"Matching on name {data.get('Name', None)} against build {build.get('Name', None)}")
                 if build.get('Name', None) != None and build.get('Name', None) == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')):
                     return build
 
@@ -1146,7 +1145,7 @@ class Colonisation:
             return
 
         for name, item in self.bgstally.market.commodities.items():
-            if item.get('Stock') > 0:
+            if 'Stock' in item:
                 market[item.get('Name')] = item.get('Stock')
         if market == {}:
             Debug.logger.debug(f"No market update")

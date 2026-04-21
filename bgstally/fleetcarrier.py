@@ -468,7 +468,7 @@ class FleetCarrier:
         return cargo
 
 
-    def _update_itinerary(self, data: dict) -> list:
+    def _update_itinerary(self, data:dict) -> list:
         """ Update our local itinerary data from CAPI data structure """
 
         jumplist:list = deepcopy(self.itinerary)
@@ -529,6 +529,7 @@ class FleetCarrier:
             self.overview['jumpDestinationBody'] = None
             self.overview['departureScheduled'] = None
 
+        Debug.logger.debug(f"Updated itinerary: {jumplist[0:2]}")
         jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)
         return jumplist[0:FC_MAX_JUMPS_TRACKED]
 
@@ -547,7 +548,6 @@ class FleetCarrier:
 
             jump['departureTime'] = jumplist[i-1]['arrivalTime']
             jump['visitDurationSeconds'] = self._td(jump['departureTime'], jump['arrivalTime'])
-
 
     def _update_locker(self, data: dict) -> dict:
         """ Update locker data from CAPI data structure """
@@ -632,6 +632,7 @@ class FleetCarrier:
 
         self.locker = self._update_locker(self.data)
         self.itinerary = self._update_itinerary(self.data)
+        self._clean_itinerary()
 
         # All the following are time sensitive or updated locally
         # so only use the CAPI data for them if we haven't docked in the last N seconds

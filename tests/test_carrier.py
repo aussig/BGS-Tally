@@ -93,6 +93,23 @@ class TestCarrierInitialization:
         fc.overview = {'name': 'Test Carrier'}
         assert not fc.available()
 
+    def test_clean_itinerary(self, harness) -> None:
+        """ Fix missing fields in itinerary entries """
+        fc = harness.plugin.fleet_carrier
+        before:int = len(fc.itinerary)
+        fc.itinerary.insert(1, {'arrivalTime': fc.itinerary[2]['departureTime'],
+                                'departureTime': None, 'state': 'success', 'visitDurationSeconds': None,
+                                'starsystem': 'Sol', 'body': 'Earth'})
+        after:int = len(fc.itinerary)
+        assert after == before + 1
+
+        fc._clean_itinerary()
+        assert fc.itinerary[0]['departureTime'] == None
+        assert fc.itinerary[0]['visitDurationSeconds'] == None
+        assert fc.itinerary[1]['starsystem'] == 'Sol'
+        assert fc.itinerary[1]['departureTime'] == fc.itinerary[0]['arrivalTime']
+        assert fc.itinerary[1]['visitDurationSeconds'] != 0
+
 class TestCarrierUIDataMethods:
     """ Test the methods used by the UI to retrieve carrier data """
     def test_get_overview(self, harness) -> None:
@@ -213,7 +230,7 @@ class TestCarrierJumps:
 
         # Pre-flight checks.
         assert fc.overview.get('carrier_id') == 12345
-        assert fc.overview.get('currentStarSystem', '') == 'Sol'
+        assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
 
         # Send event 0
         harness.fire_event(events[0])
@@ -232,7 +249,7 @@ class TestCarrierJumps:
 
         events:list = harness.load_events("journal_events.json", BodyID=12).get("carrier_events", [])
         assert fc.overview.get('carrier_id') == 12345
-        assert fc.overview.get('currentStarSystem', '') == 'Sol'
+        assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
 
         harness.fire_event(events[0])
         assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
@@ -251,13 +268,13 @@ class TestCarrierJumps:
         events:list = harness.load_events("journal_events.json", BodyID=12).get("carrier_events", [])
 
         assert fc.overview.get('carrier_id') == 12345
-        assert fc.overview.get('currentStarSystem', '') == 'Sol'
+        assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
         harness.fire_event(events[0])
 
         assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
 
         harness.fire_event(events[2])
-        assert fc.overview.get('currentStarSystem', '') == 'Sol'
+        assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
         assert fc.overview.get('jumpDestination') == None
         assert datetime.now(tz=UTC) + timedelta(seconds=58) <= fc.timer <= datetime.now(tz=UTC) + timedelta(seconds=60)
         assert fc.jump_state == 'Cooldown'
@@ -481,13 +498,9 @@ class TestCarrierEvents:
         fc = harness.plugin.fleet_carrier
         capi_data:dict = harness.get_config_data('carrier_capi_data.json')
 
-        # Pre-flight checks.
-        assert fc.overview.get('carrier_id') == 12345
-        assert fc.overview.get('currentStarSystem', '') == 'Sol'
-
         fc.update(capi_data)
 
-        assert fc.overview.get('currentStarSystem') == 'Sol'
+        assert fc.overview.get('currentStarSystem') == capi_data['currentStarSystem']
 
         fc.save()
         assert filecmp.cmp(harness.plugin_dir / "otherdata" / "fleetcarrier.json",
@@ -523,10 +536,10 @@ class TestCarrierEvents:
         assert fc.overview['name'] != 'Test Carrier'
         assert fc.overview['callsign'] != 'ABC-123'
 
-
     def test_carrier_location(self, harness) -> None:
         """ Test carrier_location() method """
         fc = harness.plugin.fleet_carrier
+        before:int = len(fc.itinerary)
         entry = {
             'CarrierID': 12345,
             'StarSystem': 'Alpha Centauri',
@@ -537,6 +550,11 @@ class TestCarrierEvents:
 
         assert fc.overview['currentStarSystem'] == 'Alpha Centauri'
         assert fc.overview['currentBody'] == 'Alpha Centauri' # location doesn't provide body
+
+        after:int = len(fc.itinerary)
+        assert after == before + 1
+        assert fc.itinerary[0]['starsystem'] == 'Alpha Centauri'
+        assert fc.itinerary[0]['body'] == 'Alpha Centauri A'
 
     def test_deposit_fuel(self, harness) -> None:
         """ Test deposit_fuel() method """
@@ -566,7 +584,6 @@ class TestCarrierEvents:
         assert fc.shipyard['ships']['1']['name'] == 'Eagle'
         assert fc.shipyard['overview']['shipCount'] == 1
         assert fc.shipyard['overview']['totalValue'] == 50000
-
 
 class CarrierUnused:
     def test_parse_date(self, harness) -> None:

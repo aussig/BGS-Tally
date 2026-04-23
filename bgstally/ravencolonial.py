@@ -4,10 +4,16 @@ import time
 from functools import partial
 import requests
 from requests import Response
+from typing import TYPE_CHECKING
+
 from bgstally.constants import RequestMethod, BuildState
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
 from bgstally.utils import _, get_by_path, catch_exceptions
+
+if TYPE_CHECKING:
+    from colonisation import Colonisation
+    from bgstally.bgstally import BGSTally
 
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
 RC_COOLDOWN = 30
@@ -328,7 +334,7 @@ class RavenColonial:
     def _merge_system_data(self, data:dict) -> None:
         """ Merge the data from RavenColonial into the system data """
 
-        system:dict = self.colonisation.find_system({'SystemAddress' : data.get('id64', None),
+        system:dict|None = self.colonisation.find_system({'SystemAddress' : data.get('id64', None),
                                                      'StarSystem': data.get('name', None)})
         if system == None:
             Debug.logger.info(f"Can't merge, system {data.get('name', None)} not found")
@@ -350,9 +356,9 @@ class RavenColonial:
         for site in data.get('sites', []):
             # A site whose id has become the project id (this is how we find projectids if we're missing them)
             if not re.match(r"^[&x]\d+$", site.get('id', '')) and self.colonisation.find_progress(site.get('id')) != None:
-                build = self.colonisation.find_build(system, {'Name': site.get('name')})
+                build:dict|None = self.colonisation.find_build(system, {'Name': site.get('name')})
                 if build != None and build.get('MarketID', None) != None:
-                    self.colonisation.update_progress(build.get('MarketID'), {'ProjectID' : site.get('id')}, True)
+                    self.colonisation.update_progress(build.get('MarketID', 0), {'ProjectID' : site.get('id')}, True)
             else:
                 build = self.colonisation.find_build(system, {'BuildID' : site.get('id', -1), 'Name': site.get('name', -1), 'BodyNum': site.get('bodyNum', -1)})
 
@@ -434,7 +440,7 @@ class RavenColonial:
             return
 
         data:dict = response.json()
-        system:dict = self.colonisation.find_system({'SystemAddress': data.get('id64', None),
+        system:dict|None = self.colonisation.find_system({'SystemAddress': data.get('id64', None),
                                                         'StarSystem': data.get('name', None)})
         if system == None:
             Debug.logger.info(f"System {data.get('id64', None)} not found")
@@ -503,7 +509,7 @@ class RavenColonial:
             Debug.logger.error(f"Project not found {response} {response.content}")
             return
 
-        self.colonisation.update_progress(progress.get('MarketID'), {'ProjectID': projectid}, True)
+        self.colonisation.update_progress(progress.get('MarketID', 0), {'ProjectID': projectid}, True)
 
         # Link the project to us.
         url:str = f"{RC_API}/project/{projectid}/link/{self.colonisation.cmdr}"
@@ -565,7 +571,7 @@ class RavenColonial:
             pid:str|None = m.group(1) if m != None else None
             # Remove this project ID from progress
             if pid != None:
-                self.colonisation.update_progress(pid, {'ProjectID': None}, True)
+                self.colonisation.update_progress(int(pid), {'ProjectID': None}, True)
             return
 
         if success == False:
@@ -573,7 +579,7 @@ class RavenColonial:
             return
 
         data:dict = response.json()
-        self.colonisation.update_progress(data.get('buildId'), {'Updated': re.sub(r"\.\d+\+00:00$", "Z", str(data.get('timestamp')))}, True)
+        self.colonisation.update_progress(data.get('buildId', 0), {'Updated': re.sub(r"\.\d+\+00:00$", "Z", str(data.get('timestamp')))}, True)
 
 
     @catch_exceptions
@@ -611,7 +617,7 @@ class RavenColonial:
             m:re.Match|None = re.search(r"/project/([^/]+)", request.endpoint)
             pid:str|None = m.group(1) if m != None else None
             if pid != None:
-                self.colonisation.update_progress(pid, {'ProjectID': None}, True)
+                self.colonisation.update_progress(int(pid), {'ProjectID': None}, True)
             return
         if success == False:
             Debug.logger.error(f"Project load failed {response}")
@@ -629,7 +635,7 @@ class RavenColonial:
             update[v] = data.get(k, '') if isinstance(data.get(k, None), str) and 'name' not in k.lower() else data.get(k, None)
 
         if update != {}:
-            self.colonisation.update_progress(data.get('marketId'), update, True)
+            self.colonisation.update_progress(data.get('marketId', 0), update, True)
 
 
     @catch_exceptions
@@ -759,13 +765,13 @@ class EDSM:
                     continue
 
             if 'Construction Site' in name:
-                build = RavenColonial(self).colonisation.find_build(system, {'MarketID': base.get('marketId'), 'Name': name})
+                build = RavenColonial(self).colonisation.find_build(system, {'MarketID': base.get('marketId', 0), 'Name': name})
                 state = BuildState.PROGRESS
 
             body:str = get_by_path(base, ['body', 'name'], '')
             body = body.replace(system.get('StarSystem', '') + ' ', '')
 
-            build:dict = {
+            build:dict|None = {
                 'Base Type': base.get('type'),
                 'StationEconomy': base.get('economy'),
                 'State': state,
@@ -811,7 +817,7 @@ class EDSM:
         if data.get('name', None) == None:
             Debug.logger.warning(f"system didn't contain a name, ignoring")
             return
-        system:dict = RavenColonial(self).colonisation.find_system({'StarSystem' : data.get('name')})
+        system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem' : data.get('name')})
         if system == None:
             Debug.logger.warning(f"system didn't find system {data.get('name')}")
             return
@@ -861,7 +867,7 @@ class EDSM:
         if data.get('name', None) == None:
             Debug.logger.info(f"Bodies didn't contain a name, ignoring")
             return
-        system:dict = RavenColonial(self).colonisation.find_system({'StarSystem' : data.get('name')})
+        system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem' : data.get('name')})
         if system == None:
             Debug.logger.info(f"Bodies didn't find system {data.get('name')}")
             return

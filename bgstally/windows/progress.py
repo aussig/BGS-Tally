@@ -147,8 +147,6 @@ class ProgressWindow:
         ''' Create the progress frame. This is called by ui.py on startup. '''
         def bind_mousewheel(event: tk.Event) -> None:
             """ Scroll pane mousewheel bind on mouseover """
-            nonlocal canvas
-
             if sys.platform in ('linux', 'cygwin', 'msys'):
                 canvas.bind_all('<Button-4>', on_mousewheel)
                 canvas.bind_all('<Button-5>', on_mousewheel)
@@ -157,8 +155,6 @@ class ProgressWindow:
 
         def unbind_mousewheel(event: tk.Event) -> None:
             """ Scroll pane mousewheel unbind on mouseout """
-            nonlocal canvas
-
             if sys.platform in ('linux', 'cygwin', 'msys'):
                 canvas.unbind_all('<Button-4>')
                 canvas.unbind_all('<Button-5>')
@@ -167,8 +163,6 @@ class ProgressWindow:
 
         def on_mousewheel(event: tk.Event) -> None:
             """ Scroll pane mousewheel event handler """
-            nonlocal canvas
-
             shift = (event.state & 0x1) != 0 #type: ignore
             scroll:int = 0
             if event.num == 4 or event.delta == 120:

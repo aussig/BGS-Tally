@@ -31,11 +31,6 @@ def harness(request) -> Generator:
     if not live:
         from tests.edmc.requests import queue_response, MockResponse
         queue_response('get',
-                       MockResponse(200, url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest',
-                                    json_data={'tag_name': 'v1.0.0','draft': True,'prerelease': True,
-                                                'assets': [{'browser_download_url': 'https://example.com/download'}]}),
-                        url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest')
-        queue_response('get',
                        MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
                                     json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
                         url='http://tick.infomancer.uk/galtick.json', sticky=True)
@@ -177,7 +172,7 @@ class TestState:
         config.data['XStationFaction'] = "LegacyFaction"
         config.data['XStationType'] = "LegacyStation"
 
-        state = State(None)
+        state = State(harness.plugin)
 
         assert state.ShowZeroActivitySystems.get() == CheckStates.STATE_OFF
         assert state.AbbreviateFactionNames.get() == CheckStates.STATE_ON

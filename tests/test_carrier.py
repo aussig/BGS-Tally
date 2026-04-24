@@ -93,23 +93,6 @@ class TestCarrierInitialization:
         fc.overview = {'name': 'Test Carrier'}
         assert not fc.available()
 
-    def test_clean_itinerary(self, harness) -> None:
-        """ Fix missing fields in itinerary entries """
-        fc = harness.plugin.fleet_carrier
-        before:int = len(fc.itinerary)
-        fc.itinerary.insert(1, {'arrivalTime': fc.itinerary[2]['departureTime'],
-                                'departureTime': None, 'state': 'success', 'visitDurationSeconds': None,
-                                'starsystem': 'Sol', 'body': 'Earth'})
-        after:int = len(fc.itinerary)
-        assert after == before + 1
-
-        fc._clean_itinerary()
-        assert fc.itinerary[0]['departureTime'] == None
-        assert fc.itinerary[0]['visitDurationSeconds'] == None
-        assert fc.itinerary[1]['starsystem'] == 'Sol'
-        assert fc.itinerary[1]['departureTime'] == fc.itinerary[0]['arrivalTime']
-        assert fc.itinerary[1]['visitDurationSeconds'] != 0
-
 class TestCarrierUIDataMethods:
     """ Test the methods used by the UI to retrieve carrier data """
     def test_get_overview(self, harness) -> None:

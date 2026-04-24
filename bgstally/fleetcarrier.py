@@ -146,8 +146,8 @@ class FleetCarrier:
             for name, deets in ent.items():
                 deets['locName'] = self.bgstally.ui.commodities.get(name, {}).get('Name', name)
                 deets['category'] = self.bgstally.ui.commodities.get(name, {}).get('Category', '') if isinstance(self.bgstally.ui.commodities.get(name, {}).get('Category', ''), str) else 'Unknown'
-                deets['mission'] = (t == 'mission')
-                deets['stolen'] = (t == 'stolen')
+                deets['mission'] = _('Yes') if t == 'mission' else ''
+                deets['stolen'] = _('Yes') if t == 'stolen' else ''
                 comm[name] = deets
         comm = dict(sorted(comm.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
@@ -176,7 +176,7 @@ class FleetCarrier:
         stored:int = 0
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
-                deets['mission'] = (t == 'mission')
+                deets['mission'] = _('Yes') if (t == 'mission') else ''
                 buying += deets.get('outstanding', 0)
                 if deets['outstanding'] == 0 and deets['price'] > 0 and (t == 'normal'):
                     selling += deets.get('stock', 0)
@@ -993,11 +993,18 @@ class FleetCarrier:
                 Debug.logger.error(f"Transfer amount {amt} exceeds total capacity, ignoring")
                 continue
 
+            # We just have to assume it's not stolen because the journal doesn't say.
             self.cargo['normal'][comm]['stock'] += amt
 
             if self.cargo['normal'][comm]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
-                self.cargo['normal'][comm]['stock'] = 0
+                # See if we have any stolen cargo of this type and if so subtract that
+                if comm in self.cargo['stolen']:
+                    Debug.logger.debug(f"Try removing stolen {self.cargo['stolen'][comm]}")
+                    self.cargo['stolen'][comm]['stock'] += self.cargo['normal'][comm]['stock']
+                    if self.cargo['stolen'][comm]['stock'] <= 0:
+                        del self.cargo['stolen'][comm]
+                del self.cargo['normal'][comm]
                 self.last_modified = 0
 
         self.bgstally.ui.window_fc.update_display()

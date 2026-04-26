@@ -1,4 +1,8 @@
 import tkinter as tk
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.constants import CheckStates, DiscordActivity, FavouriteActivity
 from config import config
@@ -9,8 +13,8 @@ class State:
     Manage plugin user state and preferences
     """
 
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
         self.load()
 
 

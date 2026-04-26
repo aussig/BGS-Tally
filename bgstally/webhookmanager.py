@@ -1,8 +1,12 @@
 import json
 from os import path, remove
 from secrets import token_hex
+from typing import TYPE_CHECKING
 
-from bgstally.constants import DiscordChannel, FOLDER_OTHER_DATA
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
+from bgstally.constants import FOLDER_OTHER_DATA, DiscordChannel
 from bgstally.debug import Debug
 from thirdparty.colors import *
 
@@ -13,8 +17,8 @@ class WebhookManager:
     """
     Handle the user's Discord webhooks
     """
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
         self.data:dict = {}
 
         self.load()

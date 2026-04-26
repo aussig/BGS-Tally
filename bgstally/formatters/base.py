@@ -1,4 +1,8 @@
 from abc import ABC, abstractmethod
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.activity import Activity
 from bgstally.constants import DiscordActivity, DiscordPostStyle, FavouriteActivity
@@ -10,13 +14,13 @@ class BaseActivityFormatterInterface(ABC):
     """The base interface for discord formatters
     """
 
-    def __init__(self, bgstally):
+    def __init__(self, bgstally: 'BGSTally'):
         """Instantiate class
 
         Args:
             bgstally (BGSTally): The BGSTally object
         """
-        self.bgstally = bgstally
+        self.bgstally: BGSTally = bgstally
 
 
     @abstractmethod

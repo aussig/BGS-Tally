@@ -1,17 +1,21 @@
 # type: ignore[reportMemberAccess]
 import json
+import re
+import time
+from datetime import datetime, timedelta
 from os import path
 from os.path import join
-import time
-import re
-from datetime import datetime, timedelta
-from config import config # type: ignore
+from typing import TYPE_CHECKING
 
-#from bgstally.bgstally import BGSTally
-from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
+from config import config  # type: ignore
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
+from bgstally.constants import FOLDER_DATA, FOLDER_OTHER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
+from bgstally.ravencolonial import EDSM, RavenColonial, Spansh
 from bgstally.utils import _, catch_exceptions
-from bgstally.ravencolonial import RavenColonial, EDSM, Spansh
 
 FILENAME = "colonisation.json"
 BASE_TYPES_FILENAME = 'base_types.json'
@@ -51,8 +55,8 @@ class Colonisation:
       - data/commodity.csv: Contains the list of commodities and their categories.
       - data/colonisation_legend.txt and L10n/ localized legends: Contains text for the colonisation legend popup.
     '''
-    def __init__(self, bgstally) -> None:
-        self.bgstally:BGSTally = bgstally # type: ignore
+    def __init__(self, bgstally: 'BGSTally') -> None:
+        self.bgstally:BGSTally = bgstally
         self.system_id:int|None = None
         self.current_system:str|None = None
         self.body:str|None = None

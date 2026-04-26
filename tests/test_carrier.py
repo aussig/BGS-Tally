@@ -30,16 +30,10 @@ def harness(request) -> Generator:
     # Put in a response for the update manager so it doesn't error
     if not live:
         from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get', MockResponse(200,
-                                           url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest',
-                                           json_data={'tag_name': 'v1.0.0','draft': True,'prerelease': True,
-                                                       'assets': [{'browser_download_url': 'https://example.com/download'}]}),
-                                            url='https://api.github.com/repos/aussig/BGS-Tally/releases/latest')
-        queue_response('get', MockResponse(200,
-                                           url='http://tick.infomancer.uk/galtick.json',
-                                           json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
-                                           url='http://tick.infomancer.uk/galtick.json',
-                                           sticky=True)
+        queue_response('get',
+                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
+                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
+                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
 
     # Make sure we always start with a consistent fleetcarrier.json
     Path(Path(__file__).parent / "otherdata" / "fleetcarrier.json").unlink(missing_ok=True)
@@ -212,6 +206,7 @@ class TestCarrierJumps:
         events:list = harness.load_events("journal_events.json", BodyID=12).get("carrier_events", [])
 
         # Pre-flight checks.
+        assert fc.jump_state == 'Idle'
         assert fc.overview.get('carrier_id') == 12345
         assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
 
@@ -236,6 +231,7 @@ class TestCarrierJumps:
 
         harness.fire_event(events[0])
         assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
+        sleep(2) # Wait for the jump time to pass
 
         harness.fire_event(events[1])
         assert fc.overview.get('currentStarSystem', '') == 'Bleae Thua ZE-I b23-1'

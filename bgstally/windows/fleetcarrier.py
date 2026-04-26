@@ -1,18 +1,21 @@
 import tkinter as tk
 from functools import partial
 from tkinter import ttk
+from typing import TYPE_CHECKING
 
-#from bgstally.bgstally import BGSTally
-from bgstally.constants import DATETIME_FORMAT_CARRIER, FONT_SMALL, FONT_HEADING_1, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
-from bgstally.fleetcarrier import FleetCarrier
-from bgstally.utils import _, __, hfplus, str_truncate, catch_exceptions
-from bgstally.widgets import TreeviewPlus, AutoCompleter, Placeholder
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
+from bgstally.constants import COLOUR_WARNING, DATETIME_FORMAT_CARRIER, FONT_HEADING_1, FONT_SMALL, DiscordChannel, DiscordFleetCarrier
 from bgstally.debug import Debug
-from config import config # type: ignore
-
+from bgstally.fleetcarrier import FleetCarrier
+from bgstally.utils import _, __, catch_exceptions, hfplus, str_truncate
+from bgstally.widgets import AutoCompleter, Placeholder, TreeviewPlus
+from config import config  # type: ignore
 from thirdparty.colors import *
-from thirdparty.Tooltip import ToolTip
 from thirdparty.ScrollableNotebook import ScrollableNotebook
+from thirdparty.Tooltip import ToolTip
+
 
 class WindowFleetCarrier:
     """
@@ -22,8 +25,8 @@ class WindowFleetCarrier:
     Buttons are provided to copy information to the clipboard or post directly to discord.
     """
 
-    def __init__(self, bgstally) -> None:
-        self.bgstally:BGSTally = bgstally # type: ignore
+    def __init__(self, bgstally: 'BGSTally') -> None:
+        self.bgstally:BGSTally = bgstally
         self.window:tk.Toplevel|None = None
         self.frame:ttk.Frame
         self.itineraryfr:ttk.Frame

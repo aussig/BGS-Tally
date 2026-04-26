@@ -1,13 +1,19 @@
 import json
-from datetime import UTC, datetime, timedelta
 import time
-import requests
-from os import path
 from copy import deepcopy
+from datetime import UTC, datetime, timedelta
+from os import path
+from typing import TYPE_CHECKING
 
-from bgstally.constants import DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierType, FleetCarrierJump, TAG_OVERLAY_HIGHLIGHT
+import requests
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
+from bgstally.constants import (DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DiscordChannel, FleetCarrierJump,
+                                FleetCarrierType)
 from bgstally.debug import Debug
-from bgstally.utils import _, __, get_by_path, catch_exceptions
+from bgstally.utils import _, __, catch_exceptions, get_by_path
 from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
@@ -15,6 +21,7 @@ FC_MAX_SHIPS = 40
 FC_MAX_JUMPS_TRACKED = 250
 FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
+
 class FleetCarrier:
     """
     Used to store, track and return fleetcarrier data.
@@ -23,8 +30,8 @@ class FleetCarrier:
     since the CAPI is queried infrequently and can be unhelpfully out of date.
     Some data is managed and updated locally to work around the CAPI data being out of date.
     """
-    def __init__(self, bgstally) -> None:
-        self.bgstally:BGSTally = bgstally # type: ignore
+    def __init__(self, bgstally: 'BGSTally') -> None:
+        self.bgstally:BGSTally = bgstally
 
         self.carrier_id:int = 0
         self.overview:dict = {} # Top level data
@@ -383,9 +390,9 @@ class FleetCarrier:
         if self.jump_state == FleetCarrierJump.Jumping and delta > 0:
             message = f"{_('Departure To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  # LANG: Carrier overlay
             if delta < 200:
-                message += f"\n{_('Landing Pads Locked down')}" # LANG: Carrier overlay
+                message += f"\n{_('Landing Pads Locked down')}" # LANG: Carrier overlay, notification indicating that landing pad lockdown is currently active
             if 200 <= delta < 600:
-                message += f"\n{_('Landing Pad Lockdown in')} {self._td_str(delta - 200)}" # LANG: Carrier overlay
+                message += f"\n{_('Landing Pad Lockdown in')} {self._td_str(delta - 200)}" # LANG: Carrier overlay, label followed by a countdown indicating time remaining until landing pad lockdown
             # Jump locked in 10 m before departure
             if 600 <= delta:
                 message += f"\n{_('Jump Initiation in')} {self._td_str(delta - 600)}" # LANG: Carrier overlay

@@ -28,6 +28,14 @@ def harness(request) -> Generator:
     bgstally.constants.FOLDER_ASSETS = "../assets"
     bgstally.constants.FOLDER_DATA = "../data"
 
+    # Put in a response for the update manager so it doesn't error
+    if not live:
+        from tests.edmc.requests import queue_response, MockResponse
+        queue_response('get',
+                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
+                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
+                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
+
     # Now we can start the plugin
     from load import plugin_start3, plugin_app, journal_entry
     import bgstally.globals
@@ -48,8 +56,7 @@ class TestTick:
 
         harness.plugin.tick.tick_time = datetime(2000, 1, 1, tzinfo=UTC)
 
-        queue_response('get', MockResponse(200,
-                                           url=URL_GALAXY_TICK_DETECTOR,
+        queue_response('get', MockResponse(200, url=URL_GALAXY_TICK_DETECTOR,
                                            json_data={'lastGalaxyTick': datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
                        url=URL_GALAXY_TICK_DETECTOR)
 

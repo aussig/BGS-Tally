@@ -2,7 +2,10 @@ import json
 from datetime import UTC, datetime
 from enum import Enum
 from os import path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.activity import Activity
 from bgstally.api import API
@@ -17,8 +20,8 @@ class APIManager:
     Handles a list of API objects.
     """
 
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
 
         self.apis:list[API] = []
         self.api_updated:bool = False

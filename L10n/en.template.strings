@@ -1015,7 +1015,7 @@ completed";
 "Landing Pad Lockdown in" = "Landing Pad Lockdown in";
 
 /* fleetcarrier.py: Carrier overlay, notification indicating that landing pad lockdown is currently active; In files: fleetcarrier.py:392:392 */
-"Landing Pads Locked-down" = "Landing Pads Locked-down";
+"Landing Pads Locked down" = "Landing Pads Locked down";
 
 /* ui.py: Preferences label; In files: ui.py:252:252 */
 "Language for Discord Posts" = "Language for Discord Posts";

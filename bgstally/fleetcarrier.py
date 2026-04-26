@@ -389,9 +389,9 @@ class FleetCarrier:
         if self.jump_state == FleetCarrierJump.Jumping and delta > 0:
             message = f"{_('Departure To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  # LANG: Carrier overlay
             if delta < 200:
-                message += f"\n{_('Landing Pads Locked down')}" # LANG: Carrier overlay
+                message += f"\n{_('Landing Pads Locked down')}" # LANG: Carrier overlay, notification indicating that landing pad lockdown is currently active
             if 200 <= delta < 600:
-                message += f"\n{_('Landing Pad Lockdown in')} {self._td_str(delta - 200)}" # LANG: Carrier overlay
+                message += f"\n{_('Landing Pad Lockdown in')} {self._td_str(delta - 200)}" # LANG: Carrier overlay, label followed by a countdown indicating time remaining until landing pad lockdown
             # Jump locked in 10 m before departure
             if 600 <= delta:
                 message += f"\n{_('Jump Initiation in')} {self._td_str(delta - 600)}" # LANG: Carrier overlay

@@ -1011,10 +1011,10 @@ completed";
 /* colonisation.py: Landable label; ravencolonial.py: Landable body feature label; In files: ravencolonial.py:898:898; colonisation.py:1870:1870 */
 "Landable" = "Landable";
 
-/* fleetcarrier.py: Carrier overlay; In files: fleetcarrier.py:388:388 */
+/* fleetcarrier.py: Carrier overlay, label followed by a countdown indicating time remaining until landing pad lockdown; In files: fleetcarrier.py:394:394 */
 "Landing Pad Lockdown in" = "Landing Pad Lockdown in";
 
-/* fleetcarrier.py: Carrier overlay; In files: fleetcarrier.py:386:386 */
+/* fleetcarrier.py: Carrier overlay, notification indicating that landing pad lockdown is currently active; In files: fleetcarrier.py:392:392 */
 "Landing Pads Locked down" = "Landing Pads Locked down";
 
 /* ui.py: Preferences label; In files: ui.py:252:252 */

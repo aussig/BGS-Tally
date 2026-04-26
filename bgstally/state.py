@@ -51,6 +51,7 @@ class State:
 
         self.FcCargo:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcCargo', default="Both"))
         self.FcLocker:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcLocker', default="Both"))
+        self.FcCooldown:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcCooldown', default="both"))
 
         # Legacy values migrating to new names
         # TODO: Remove migration in future version
@@ -120,6 +121,7 @@ class State:
         # Non booleans
         self.overlay_objectives_mode:int = int(self.OverlayObjectivesMode.get())
         self.favourite_activity_mode:str = str(self.FavouriteActivityMode.get())
+        self.fc_cooldown:str = str(self.FcCooldown.get())
 
 
     def save(self):
@@ -153,6 +155,7 @@ class State:
         config.set('BGST_DiscordBGSTWAutomatic', self.DiscordBGSTWAutomatic.get())
         config.set('BGST_FcCargo', self.FcCargo.get())
         config.set('BGST_FcLocker', self.FcLocker.get())
+        config.set('BGST_FcCooldown', self.FcCooldown.get())
         config.set('BGST_ColonisationMaxCommodities', self.ColonisationMaxCommodities.get())
         config.set('BGST_EnableProgressScrollbar', self.EnableProgressScrollbar.get())
         config.set('BGST_ColonisationRCAPIKey', self.ColonisationRCAPIKey.get())

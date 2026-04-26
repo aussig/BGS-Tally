@@ -1,13 +1,13 @@
 {
-    "carrier_id": 3709409280,
+    "carrier_id": 12345,
     "last_modified": 1773960295,
     "overview": {
         "name": "[CLB] SV Booze Cruise",
-        "currentStarSystem": "Sol",
-        "currentBody": "Sol",
+        "currentStarSystem": "M23 Sector AA-Q c5-22",
+        "currentBody": "M23 Sector AA-Q c5-22 5a",
         "dockingAccess": "squadronfriends",
         "state": "normalOperation",
-        "carrier_id": 3709409280,
+        "carrier_id": 12345,
         "callsign": "T3S-TY",
         "notoriousAccess": true,
         "theme": "Trader",
@@ -603,18 +603,1053 @@
     "itinerary": [
         {
             "departureTime": null,
-            "arrivalTime": "2026-03-19 18:20:00",
+            "arrivalTime": "2026-04-18 05:28:00",
             "state": "success",
             "visitDurationSeconds": null,
-            "starsystem": "Sol",
-            "body": "Sol"
+            "starsystem": "Bleae Thua ED-D c12-5"
+        },
+        {
+            "departureTime": "2026-04-18 05:28:00",
+            "arrivalTime": "2026-04-18 03:17:00",
+            "state": "success",
+            "visitDurationSeconds": 7860,
+            "starsystem": "Bleae Thua ED-D c12-5"
+        },
+        {
+            "departureTime": "2026-04-18 03:17:00",
+            "arrivalTime": "2026-04-17 23:29:00",
+            "state": "success",
+            "visitDurationSeconds": 13680,
+            "starsystem": "Bleae Thua ED-D c12-5"
+        },
+        {
+            "departureTime": "2026-04-17 23:29:00",
+            "arrivalTime": "2026-04-16 23:33:00",
+            "state": "success",
+            "visitDurationSeconds": 86160,
+            "starsystem": "M23 Sector AA-Q c5-22",
+            "body": "M23 Sector AA-Q c5-22"
+        },
+        {
+            "departureTime": "2026-04-16 23:33:00",
+            "arrivalTime": "2026-04-16 00:05:00",
+            "state": "success",
+            "visitDurationSeconds": 84480,
+            "starsystem": "Bleae Thua ED-D c12-5",
+            "body": "Bleae Thua ED-D c12-5 8 c"
+        },
+        {
+            "departureTime": "2026-04-16 00:05:00",
+            "arrivalTime": "2026-04-13 23:38:00",
+            "state": "success",
+            "visitDurationSeconds": 174420,
+            "starsystem": "Bleae Thua ED-D c12-5",
+            "body": "Bleae Thua ED-D c12-5 8 c"
+        },
+        {
+            "departureTime": "2026-04-13 23:38:00",
+            "arrivalTime": "2026-04-11 05:06:00",
+            "state": "success",
+            "visitDurationSeconds": 239520,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2026-04-11 05:06:00",
+            "arrivalTime": "2026-04-10 05:21:00",
+            "state": "success",
+            "visitDurationSeconds": 85500,
+            "starsystem": "Bleae Thua ED-D c12-5",
+            "body": "Bleae Thua ED-D c12-5 8 d"
+        },
+        {
+            "departureTime": "2026-04-10 05:21:00",
+            "arrivalTime": "2026-04-09 05:21:00",
+            "state": "success",
+            "visitDurationSeconds": 86400,
+            "starsystem": "Bleae Thua ED-D c12-5",
+            "body": "Bleae Thua ED-D c12-5 8 d"
+        },
+        {
+            "departureTime": "2026-04-09 05:21:00",
+            "arrivalTime": "2026-04-06 05:03:00",
+            "state": "success",
+            "visitDurationSeconds": 260280,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2026-04-06 05:03:00",
+            "arrivalTime": "2026-04-03 22:56:00",
+            "state": "success",
+            "visitDurationSeconds": 194820,
+            "starsystem": "Bleae Thua ED-D c12-5"
+        },
+        {
+            "departureTime": "2026-04-03 22:56:00",
+            "arrivalTime": "2026-04-02 00:41:00",
+            "state": "success",
+            "visitDurationSeconds": 166500,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2026-04-02 00:41:00",
+            "arrivalTime": "2026-04-01 06:17:00",
+            "state": "success",
+            "visitDurationSeconds": 66240,
+            "starsystem": "Bleae Thua GL-G b24-5",
+            "body": "Bleae Thua GL-G b24-5 1"
+        },
+        {
+            "departureTime": "2026-04-01 06:17:00",
+            "arrivalTime": "2026-03-30 06:16:10",
+            "state": "success",
+            "visitDurationSeconds": 172850,
+            "starsystem": "Bleae Thua GL-G b24-5",
+            "body": "Bleae Thua GL-G b24-5"
+        },
+        {
+            "departureTime": "2026-03-30 06:16:10",
+            "arrivalTime": "2026-03-30 04:16:10",
+            "state": "success",
+            "visitDurationSeconds": 7200,
+            "starsystem": "Bleae Thua FL-G b24-3",
+            "body": "Bleae Thua FL-G b24-3 7 b"
+        },
+        {
+            "departureTime": "2026-03-30 04:16:10",
+            "arrivalTime": "2026-03-27 06:18:10",
+            "state": "success",
+            "visitDurationSeconds": 251880,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-03-27 06:18:10",
+            "arrivalTime": "2026-03-27 03:27:10",
+            "state": "success",
+            "visitDurationSeconds": 10260,
+            "starsystem": "Bleae Thua BF-I b23-5",
+            "body": "Bleae Thua BF-I b23-5 6"
+        },
+        {
+            "departureTime": "2026-03-27 03:27:10",
+            "arrivalTime": "2026-03-26 05:18:00",
+            "state": "success",
+            "visitDurationSeconds": 79750,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-03-26 05:18:00",
+            "arrivalTime": "2026-03-24 01:24:10",
+            "state": "success",
+            "visitDurationSeconds": 186830,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-03-24 01:24:10",
+            "arrivalTime": "2026-03-23 06:17:00",
+            "state": "success",
+            "visitDurationSeconds": 68830,
+            "starsystem": "M23 Sector HC-C b13-3",
+            "body": "M23 Sector HC-C b13-3 A"
+        },
+        {
+            "departureTime": "2026-03-23 06:17:00",
+            "arrivalTime": "2026-03-23 05:43:10",
+            "state": "success",
+            "visitDurationSeconds": 2030,
+            "starsystem": "M23 Sector HC-C b13-3",
+            "body": "M23 Sector HC-C b13-3 A"
+        },
+        {
+            "departureTime": "2026-03-23 05:43:10",
+            "arrivalTime": "2026-03-23 04:35:00",
+            "state": "success",
+            "visitDurationSeconds": 4090,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-03-23 04:35:00",
+            "arrivalTime": "2026-03-21 19:12:00",
+            "state": "success",
+            "visitDurationSeconds": 120180,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-03-21 19:12:00",
+            "arrivalTime": "2026-03-21 18:30:00",
+            "state": "success",
+            "visitDurationSeconds": 2520,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-03-21 18:30:00",
+            "arrivalTime": "2026-03-21 18:01:00",
+            "state": "success",
+            "visitDurationSeconds": 1740,
+            "starsystem": "M23 Sector KR-W d1-5"
+        },
+        {
+            "departureTime": "2026-03-21 18:01:00",
+            "arrivalTime": "2026-03-21 16:08:00",
+            "state": "success",
+            "visitDurationSeconds": 6780,
+            "starsystem": "Bleae Thua MI-Y b3",
+            "body": "Bleae Thua MI-Y b3"
+        },
+        {
+            "departureTime": "2026-03-21 16:08:00",
+            "arrivalTime": "2026-03-21 05:44:10",
+            "state": "success",
+            "visitDurationSeconds": 37430,
+            "starsystem": "Parrot's Head Sector NO-Q b5-5",
+            "body": "Parrot's Head Sector NO-Q b5-5"
+        },
+        {
+            "departureTime": "2026-03-21 05:44:10",
+            "arrivalTime": "2026-03-21 05:19:00",
+            "state": "success",
+            "visitDurationSeconds": 1510,
+            "starsystem": "Corona Austr. Dark Region VP-N b7-3",
+            "body": "Corona Austr. Dark Region VP-N b7-3"
+        },
+        {
+            "departureTime": "2026-03-21 05:19:00",
+            "arrivalTime": "2026-03-19 18:20:00",
+            "state": "success",
+            "visitDurationSeconds": 125940,
+            "starsystem": "CD-74 144",
+            "body": "CD-74 144 2 a+b"
+        },
+        {
+            "departureTime": "2026-03-19 18:20:00",
+            "arrivalTime": "2026-03-19 17:51:00",
+            "state": "success",
+            "visitDurationSeconds": 1740,
+            "starsystem": "CD-74 144"
+        },
+        {
+            "departureTime": "2026-03-19 17:51:00",
+            "arrivalTime": "2026-03-19 16:56:00",
+            "state": "success",
+            "visitDurationSeconds": 3300,
+            "starsystem": "CD-74 144",
+            "body": "CD-74 144 2 a+b"
+        },
+        {
+            "departureTime": "2026-03-19 16:56:00",
+            "arrivalTime": "2026-03-19 16:32:00",
+            "state": "success",
+            "visitDurationSeconds": 1440,
+            "starsystem": "CD-74 144"
+        },
+        {
+            "departureTime": "2026-03-19 16:32:00",
+            "arrivalTime": "2026-03-19 06:29:00",
+            "state": "success",
+            "visitDurationSeconds": 36180,
+            "starsystem": "CD-74 144",
+            "body": "CD-74 144 2 a+b"
+        },
+        {
+            "departureTime": "2026-03-19 06:29:00",
+            "arrivalTime": "2026-03-19 06:01:00",
+            "state": "success",
+            "visitDurationSeconds": 1680,
+            "starsystem": "CD-74 144"
+        },
+        {
+            "departureTime": "2026-03-19 06:01:00",
+            "arrivalTime": "2026-03-19 00:53:00",
+            "state": "success",
+            "visitDurationSeconds": 18480,
+            "starsystem": "CD-74 144",
+            "body": "CD-74 144 2 a+b"
+        },
+        {
+            "departureTime": "2026-03-19 00:53:00",
+            "arrivalTime": "2026-03-18 03:42:00",
+            "state": "success",
+            "visitDurationSeconds": 76260,
+            "starsystem": "Eta-2 Hydri",
+            "body": "Eta-2 Hydri 4"
+        },
+        {
+            "departureTime": "2026-03-18 03:42:00",
+            "arrivalTime": "2026-03-14 21:07:00",
+            "state": "success",
+            "visitDurationSeconds": 282900,
+            "starsystem": "Caspatsuria",
+            "body": "Caspatsuria 4 a"
+        },
+        {
+            "departureTime": "2026-03-14 21:07:00",
+            "arrivalTime": "2026-03-14 20:41:00",
+            "state": "success",
+            "visitDurationSeconds": 1560,
+            "starsystem": "Caspatsuria"
+        },
+        {
+            "departureTime": "2026-03-14 20:41:00",
+            "arrivalTime": "2026-03-14 06:20:00",
+            "state": "success",
+            "visitDurationSeconds": 51660,
+            "starsystem": "Caspatsuria",
+            "body": "Caspatsuria 4 a"
+        },
+        {
+            "departureTime": "2026-03-14 06:20:00",
+            "arrivalTime": "2026-03-14 05:42:00",
+            "state": "success",
+            "visitDurationSeconds": 2280,
+            "starsystem": "Col 359 Sector PA-U b18-3",
+            "body": "Col 359 Sector PA-U b18-3"
+        },
+        {
+            "departureTime": "2026-03-14 05:42:00",
+            "arrivalTime": "2026-03-14 05:16:00",
+            "state": "success",
+            "visitDurationSeconds": 1560,
+            "starsystem": "Col 359 Sector PA-U b18-3",
+            "body": "Col 359 Sector PA-U b18-3"
+        },
+        {
+            "departureTime": "2026-03-14 05:16:00",
+            "arrivalTime": "2026-03-14 00:25:00",
+            "state": "success",
+            "visitDurationSeconds": 17460,
+            "starsystem": "Bleae Thua PI-Y b8",
+            "body": "Bleae Thua PI-Y b8"
+        },
+        {
+            "departureTime": "2026-03-14 00:25:00",
+            "arrivalTime": "2026-03-11 21:59:00",
+            "state": "success",
+            "visitDurationSeconds": 181560,
+            "starsystem": "Bleae Thua ED-D c12-5",
+            "body": "Bleae Thua ED-D c12-5 8"
+        },
+        {
+            "departureTime": "2026-03-11 21:59:00",
+            "arrivalTime": "2026-03-10 04:23:00",
+            "state": "success",
+            "visitDurationSeconds": 149760,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-03-10 04:23:00",
+            "arrivalTime": "2026-03-09 04:56:00",
+            "state": "success",
+            "visitDurationSeconds": 84420,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 2"
+        },
+        {
+            "departureTime": "2026-03-09 04:56:00",
+            "arrivalTime": "2026-03-07 08:16:00",
+            "state": "success",
+            "visitDurationSeconds": 160800,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 2"
+        },
+        {
+            "departureTime": "2026-03-07 08:16:00",
+            "arrivalTime": "2026-03-07 01:18:00",
+            "state": "success",
+            "visitDurationSeconds": 25080,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-03-07 01:18:00",
+            "arrivalTime": "2026-03-07 00:53:00",
+            "state": "success",
+            "visitDurationSeconds": 1500,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-03-07 00:53:00",
+            "arrivalTime": "2026-03-06 23:51:00",
+            "state": "success",
+            "visitDurationSeconds": 3720,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2026-03-06 23:51:00",
+            "arrivalTime": "2026-03-06 08:05:00",
+            "state": "success",
+            "visitDurationSeconds": 56760,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-03-06 08:05:00",
+            "arrivalTime": "2026-03-05 23:37:00",
+            "state": "success",
+            "visitDurationSeconds": 30480,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-03-05 23:37:00",
+            "arrivalTime": "2026-03-05 23:10:00",
+            "state": "success",
+            "visitDurationSeconds": 1620,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
         },
         {
             "departureTime": "2026-03-05 23:10:00",
             "arrivalTime": "2026-03-04 07:09:00",
             "state": "success",
             "visitDurationSeconds": 144060,
-            "starsystem": "Bleae Thua NI-B b27-5"
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-03-04 07:09:00",
+            "arrivalTime": "2026-03-04 02:18:00",
+            "state": "success",
+            "visitDurationSeconds": 17460,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-03-04 02:18:00",
+            "arrivalTime": "2026-03-03 07:03:00",
+            "state": "success",
+            "visitDurationSeconds": 69300,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-03-03 07:03:00",
+            "arrivalTime": "2026-03-03 06:20:00",
+            "state": "success",
+            "visitDurationSeconds": 2580,
+            "starsystem": "Bleae Thua YW-E c11-0",
+            "body": "Bleae Thua YW-E c11-0"
+        },
+        {
+            "departureTime": "2026-03-03 06:20:00",
+            "arrivalTime": "2026-02-18 07:14:00",
+            "state": "success",
+            "visitDurationSeconds": 1119960,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-02-18 07:14:00",
+            "arrivalTime": "2026-02-18 04:56:00",
+            "state": "success",
+            "visitDurationSeconds": 8280,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-02-18 04:56:00",
+            "arrivalTime": "2026-02-18 01:33:00",
+            "state": "success",
+            "visitDurationSeconds": 12180,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-02-18 01:33:00",
+            "arrivalTime": "2026-02-17 23:33:00",
+            "state": "success",
+            "visitDurationSeconds": 7200,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-02-17 23:33:00",
+            "arrivalTime": "2026-02-17 06:46:00",
+            "state": "success",
+            "visitDurationSeconds": 60420,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-02-17 06:46:00",
+            "arrivalTime": "2026-02-16 06:05:00",
+            "state": "success",
+            "visitDurationSeconds": 88860,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-02-16 06:05:00",
+            "arrivalTime": "2026-02-16 05:43:00",
+            "state": "success",
+            "visitDurationSeconds": 1320,
+            "starsystem": "Bleae Thua ML-P d5-58",
+            "body": "Bleae Thua ML-P d5-58 A"
+        },
+        {
+            "departureTime": "2026-02-16 05:43:00",
+            "arrivalTime": "2026-02-16 05:22:00",
+            "state": "success",
+            "visitDurationSeconds": 1260,
+            "starsystem": "Bleae Thua PA-A d68",
+            "body": "Bleae Thua PA-A d68"
+        },
+        {
+            "departureTime": "2026-02-16 05:22:00",
+            "arrivalTime": "2026-02-16 05:00:00",
+            "state": "success",
+            "visitDurationSeconds": 1320,
+            "starsystem": "M7 Sector SK-N c7-24",
+            "body": "M7 Sector SK-N c7-24"
+        },
+        {
+            "departureTime": "2026-02-16 05:00:00",
+            "arrivalTime": "2026-02-16 04:38:00",
+            "state": "success",
+            "visitDurationSeconds": 1320,
+            "starsystem": "Col 359 Sector WK-F a42-3",
+            "body": "Col 359 Sector WK-F a42-3"
+        },
+        {
+            "departureTime": "2026-02-16 04:38:00",
+            "arrivalTime": "2026-02-02 06:37:00",
+            "state": "success",
+            "visitDurationSeconds": 1202460,
+            "starsystem": "Apurui",
+            "body": "Apurui 7 f"
+        },
+        {
+            "departureTime": "2026-02-02 06:37:00",
+            "arrivalTime": "2026-02-02 05:51:00",
+            "state": "success",
+            "visitDurationSeconds": 2760,
+            "starsystem": "Apurui",
+            "body": "Apurui 7 f"
+        },
+        {
+            "departureTime": "2026-02-02 05:51:00",
+            "arrivalTime": "2026-02-02 05:29:00",
+            "state": "success",
+            "visitDurationSeconds": 1320,
+            "starsystem": "Pipe (stem) Sector UZ-P b5-7",
+            "body": "Pipe (stem) Sector UZ-P b5-7"
+        },
+        {
+            "departureTime": "2026-02-02 05:29:00",
+            "arrivalTime": "2026-02-02 04:55:00",
+            "state": "success",
+            "visitDurationSeconds": 2040,
+            "starsystem": "M7 Sector VC-G b12-0"
+        },
+        {
+            "departureTime": "2026-02-02 04:55:00",
+            "arrivalTime": "2026-02-02 03:09:00",
+            "state": "success",
+            "visitDurationSeconds": 6360,
+            "starsystem": "Bleae Thua CR-A b1",
+            "body": "Bleae Thua CR-A b1"
+        },
+        {
+            "departureTime": "2026-02-02 03:09:00",
+            "arrivalTime": "2026-02-01 06:30:00",
+            "state": "success",
+            "visitDurationSeconds": 74340,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-02-01 06:30:00",
+            "arrivalTime": "2026-02-01 03:18:00",
+            "state": "success",
+            "visitDurationSeconds": 11520,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-02-01 03:18:00",
+            "arrivalTime": "2026-01-30 02:51:00",
+            "state": "success",
+            "visitDurationSeconds": 174420,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-01-30 02:51:00",
+            "arrivalTime": "2026-01-30 00:42:00",
+            "state": "success",
+            "visitDurationSeconds": 7740,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-01-30 00:42:00",
+            "arrivalTime": "2026-01-28 06:04:00",
+            "state": "success",
+            "visitDurationSeconds": 153480,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-01-28 06:04:00",
+            "arrivalTime": "2026-01-28 01:52:00",
+            "state": "success",
+            "visitDurationSeconds": 15120,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-01-28 01:52:00",
+            "arrivalTime": "2026-01-27 04:50:00",
+            "state": "success",
+            "visitDurationSeconds": 75720,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-01-27 04:50:00",
+            "arrivalTime": "2026-01-27 04:06:00",
+            "state": "success",
+            "visitDurationSeconds": 2640,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A"
+        },
+        {
+            "departureTime": "2026-01-27 04:06:00",
+            "arrivalTime": "2026-01-27 03:08:00",
+            "state": "success",
+            "visitDurationSeconds": 3480,
+            "starsystem": "Bleae Thua TV-G c10-26",
+            "body": "Bleae Thua TV-G c10-26 A"
+        },
+        {
+            "departureTime": "2026-01-27 03:08:00",
+            "arrivalTime": "2026-01-27 02:40:00",
+            "state": "success",
+            "visitDurationSeconds": 1680,
+            "starsystem": "Pru Euq WY-U b57-1",
+            "body": "Pru Euq WY-U b57-1"
+        },
+        {
+            "departureTime": "2026-01-27 02:40:00",
+            "arrivalTime": "2026-01-27 01:12:00",
+            "state": "success",
+            "visitDurationSeconds": 5280,
+            "starsystem": "Parrot's Head Sector BQ-Y d19",
+            "body": "Parrot's Head Sector BQ-Y d19"
+        },
+        {
+            "departureTime": "2026-01-27 01:12:00",
+            "arrivalTime": "2026-01-27 00:40:00",
+            "state": "success",
+            "visitDurationSeconds": 1920,
+            "starsystem": "Corona Austr. Dark Region RI-S b4-5",
+            "body": "Corona Austr. Dark Region RI-S b4-5 A"
+        },
+        {
+            "departureTime": "2026-01-27 00:40:00",
+            "arrivalTime": "2026-01-24 08:40:06",
+            "state": "success",
+            "visitDurationSeconds": 230394,
+            "starsystem": "Kuwemaki",
+            "body": "Kuwemaki A 3 a"
+        },
+        {
+            "departureTime": "2026-01-24 08:40:06",
+            "arrivalTime": "2026-01-23 07:12:00",
+            "state": "success",
+            "visitDurationSeconds": 91686,
+            "starsystem": "Kuk",
+            "body": "Kuk B 3"
+        },
+        {
+            "departureTime": "2026-01-23 07:12:00",
+            "arrivalTime": "2026-01-23 04:49:00",
+            "state": "success",
+            "visitDurationSeconds": 8580,
+            "starsystem": "Deciat",
+            "body": "Deciat 6"
+        },
+        {
+            "departureTime": "2026-01-23 04:49:00",
+            "arrivalTime": "2026-01-16 23:23:00",
+            "state": "success",
+            "visitDurationSeconds": 537960,
+            "starsystem": "Apurui",
+            "body": "Apurui 8 e"
+        },
+        {
+            "departureTime": "2026-01-16 23:23:00",
+            "arrivalTime": "2026-01-16 06:22:00",
+            "state": "success",
+            "visitDurationSeconds": 61260,
+            "starsystem": "Apurui",
+            "body": "Apurui 8 e"
+        },
+        {
+            "departureTime": "2026-01-16 06:22:00",
+            "arrivalTime": "2026-01-15 02:55:00",
+            "state": "success",
+            "visitDurationSeconds": 98820,
+            "starsystem": "Jastreb Sector PT-R b4-7",
+            "body": "Jastreb Sector PT-R b4-7 3"
+        },
+        {
+            "departureTime": "2026-01-15 02:55:00",
+            "arrivalTime": "2026-01-15 02:11:00",
+            "state": "success",
+            "visitDurationSeconds": 2640,
+            "starsystem": "Alrai Sector IR-W c1-29",
+            "body": "Alrai Sector IR-W c1-29 A"
+        },
+        {
+            "departureTime": "2026-01-15 02:11:00",
+            "arrivalTime": "2026-01-15 01:30:00",
+            "state": "success",
+            "visitDurationSeconds": 2460,
+            "starsystem": "B92 Sector GB-X c1-30",
+            "body": "B92 Sector GB-X c1-30"
+        },
+        {
+            "departureTime": "2026-01-15 01:30:00",
+            "arrivalTime": "2026-01-15 00:45:00",
+            "state": "success",
+            "visitDurationSeconds": 2700,
+            "starsystem": "Col 359 Sector TP-L c22-27",
+            "body": "Col 359 Sector TP-L c22-27 A"
+        },
+        {
+            "departureTime": "2026-01-15 00:45:00",
+            "arrivalTime": "2026-01-15 00:13:00",
+            "state": "success",
+            "visitDurationSeconds": 1920,
+            "starsystem": "Bleae Thua SP-T b3-6",
+            "body": "Bleae Thua SP-T b3-6"
+        },
+        {
+            "departureTime": "2026-01-15 00:13:00",
+            "arrivalTime": "2026-01-02 03:23:00",
+            "state": "success",
+            "visitDurationSeconds": 1111800,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2026-01-02 03:23:00",
+            "arrivalTime": "2026-01-01 08:17:00",
+            "state": "success",
+            "visitDurationSeconds": 68760,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-01-01 08:17:00",
+            "arrivalTime": "2026-01-01 07:50:00",
+            "state": "success",
+            "visitDurationSeconds": 1620,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2026-01-01 07:50:00",
+            "arrivalTime": "2025-12-28 07:41:00",
+            "state": "success",
+            "visitDurationSeconds": 346140,
+            "starsystem": "M23 Sector AA-Q c5-22",
+            "body": "M23 Sector AA-Q c5-22 5 a"
+        },
+        {
+            "departureTime": "2025-12-28 07:41:00",
+            "arrivalTime": "2025-12-28 03:19:00",
+            "state": "success",
+            "visitDurationSeconds": 15720,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2025-12-28 03:19:00",
+            "arrivalTime": "2025-12-27 02:38:00",
+            "state": "success",
+            "visitDurationSeconds": 88860,
+            "starsystem": "Bleae Thua MA-Y c14-3",
+            "body": "Bleae Thua MA-Y c14-3 A"
+        },
+        {
+            "departureTime": "2025-12-27 02:38:00",
+            "arrivalTime": "2025-12-26 07:26:00",
+            "state": "success",
+            "visitDurationSeconds": 69120,
+            "starsystem": "Bleae Thua MA-Y c14-3",
+            "body": "Bleae Thua MA-Y c14-3 A"
+        },
+        {
+            "departureTime": "2025-12-26 07:26:00",
+            "arrivalTime": "2025-12-26 07:01:00",
+            "state": "success",
+            "visitDurationSeconds": 1500,
+            "starsystem": "M20 Sector FM-K b9-1",
+            "body": "M20 Sector FM-K b9-1"
+        },
+        {
+            "departureTime": "2025-12-26 07:01:00",
+            "arrivalTime": "2025-12-26 06:34:00",
+            "state": "success",
+            "visitDurationSeconds": 1620,
+            "starsystem": "Smojue PC-W b15-2",
+            "body": "Smojue PC-W b15-2 A"
+        },
+        {
+            "departureTime": "2025-12-26 06:34:00",
+            "arrivalTime": "2025-12-26 06:10:00",
+            "state": "success",
+            "visitDurationSeconds": 1440,
+            "starsystem": "Smojue GA-E b39-0",
+            "body": "Smojue GA-E b39-0 A"
+        },
+        {
+            "departureTime": "2025-12-26 06:10:00",
+            "arrivalTime": "2025-12-26 05:37:00",
+            "state": "success",
+            "visitDurationSeconds": 1980,
+            "starsystem": "Traikaae KA-A d64",
+            "body": "Traikaae KA-A d64"
+        },
+        {
+            "departureTime": "2025-12-26 05:37:00",
+            "arrivalTime": "2025-12-26 05:07:00",
+            "state": "success",
+            "visitDurationSeconds": 1800,
+            "starsystem": "Traikaae PV-E b25-5",
+            "body": "Traikaae PV-E b25-5"
+        },
+        {
+            "departureTime": "2025-12-26 05:07:00",
+            "arrivalTime": "2025-12-14 01:00:00",
+            "state": "success",
+            "visitDurationSeconds": 1051620,
+            "starsystem": "Trifid Sector CQ-Y d177",
+            "body": "Trifid Sector CQ-Y d177 A 2"
+        },
+        {
+            "departureTime": "2025-12-14 01:00:00",
+            "arrivalTime": "2025-12-13 22:19:00",
+            "state": "success",
+            "visitDurationSeconds": 9660,
+            "starsystem": "Traikaae DG-N c20-44",
+            "body": "Traikaae DG-N c20-44"
+        },
+        {
+            "departureTime": "2025-12-13 22:19:00",
+            "arrivalTime": "2025-12-13 21:49:00",
+            "state": "success",
+            "visitDurationSeconds": 1800,
+            "starsystem": "Lagoon Sector PF-L a9-7",
+            "body": "Lagoon Sector PF-L a9-7"
+        },
+        {
+            "departureTime": "2025-12-13 21:49:00",
+            "arrivalTime": "2025-12-13 21:18:00",
+            "state": "success",
+            "visitDurationSeconds": 1860,
+            "starsystem": "M21 Sector PI-T d3-29",
+            "body": "M21 Sector PI-T d3-29 A"
+        },
+        {
+            "departureTime": "2025-12-13 21:18:00",
+            "arrivalTime": "2025-12-13 20:53:00",
+            "state": "success",
+            "visitDurationSeconds": 1500,
+            "starsystem": "Smojue RX-L d7-75",
+            "body": "Smojue RX-L d7-75"
+        },
+        {
+            "departureTime": "2025-12-13 20:53:00",
+            "arrivalTime": "2025-12-13 20:27:00",
+            "state": "success",
+            "visitDurationSeconds": 1560,
+            "starsystem": "NGC 6546 Sector FG-X c1-12",
+            "body": "NGC 6546 Sector FG-X c1-12 A"
+        },
+        {
+            "departureTime": "2025-12-13 20:27:00",
+            "arrivalTime": "2025-12-13 20:01:00",
+            "state": "success",
+            "visitDurationSeconds": 1560,
+            "starsystem": "M20 Sector BV-Y d99",
+            "body": "M20 Sector BV-Y d99"
+        },
+        {
+            "departureTime": "2025-12-13 20:01:00",
+            "arrivalTime": "2025-12-12 22:03:00",
+            "state": "success",
+            "visitDurationSeconds": 79080,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 AB 1"
+        },
+        {
+            "departureTime": "2025-12-12 22:03:00",
+            "arrivalTime": "2025-12-12 05:59:00",
+            "state": "success",
+            "visitDurationSeconds": 57840,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2025-12-12 05:59:00",
+            "arrivalTime": "2025-12-12 05:30:00",
+            "state": "success",
+            "visitDurationSeconds": 1740,
+            "starsystem": "M23 Sector VT-R c4-19",
+            "body": "M23 Sector VT-R c4-19 A"
+        },
+        {
+            "departureTime": "2025-12-12 05:30:00",
+            "arrivalTime": "2025-12-12 05:09:00",
+            "state": "success",
+            "visitDurationSeconds": 1260,
+            "starsystem": "Bleia Eohn ZR-L a7-1",
+            "body": "Bleia Eohn ZR-L a7-1 A"
+        },
+        {
+            "departureTime": "2025-12-12 05:09:00",
+            "arrivalTime": "2025-12-12 04:32:00",
+            "state": "success",
+            "visitDurationSeconds": 2220,
+            "starsystem": "M7 Sector MN-T d3-44",
+            "body": "M7 Sector MN-T d3-44 A"
+        },
+        {
+            "departureTime": "2025-12-12 04:32:00",
+            "arrivalTime": "2025-12-12 03:22:00",
+            "state": "success",
+            "visitDurationSeconds": 4200,
+            "starsystem": "Col 359 Sector DO-O b21-3",
+            "body": "Col 359 Sector DO-O b21-3"
+        },
+        {
+            "departureTime": "2025-12-12 03:22:00",
+            "arrivalTime": "2025-12-10 06:36:00",
+            "state": "success",
+            "visitDurationSeconds": 161160,
+            "starsystem": "LTT 8906",
+            "body": "LTT 8906 AB 2"
+        },
+        {
+            "departureTime": "2025-12-10 06:36:00",
+            "arrivalTime": "2025-12-07 18:53:00",
+            "state": "success",
+            "visitDurationSeconds": 214980,
+            "starsystem": "Agartha",
+            "body": "Agartha 2"
+        },
+        {
+            "departureTime": "2025-12-07 18:53:00",
+            "arrivalTime": "2025-12-05 01:15:00",
+            "state": "success",
+            "visitDurationSeconds": 236280,
+            "starsystem": "LTT 8906",
+            "body": "LTT 8906 AB 2"
+        },
+        {
+            "departureTime": "2025-12-05 01:15:00",
+            "arrivalTime": "2025-12-04 05:42:00",
+            "state": "success",
+            "visitDurationSeconds": 70380,
+            "starsystem": "Col 359 Sector GK-L b10-0",
+            "body": "Col 359 Sector GK-L b10-0"
+        },
+        {
+            "departureTime": "2025-12-04 05:42:00",
+            "arrivalTime": "2025-12-04 04:32:00",
+            "state": "success",
+            "visitDurationSeconds": 4200,
+            "starsystem": "LTT 8906",
+            "body": "LTT 8906 A"
+        },
+        {
+            "departureTime": "2025-12-04 04:32:00",
+            "arrivalTime": "2025-12-04 04:04:00",
+            "state": "success",
+            "visitDurationSeconds": 1680,
+            "starsystem": "Corona Austr. Dark Region GR-V c2-35",
+            "body": "Corona Austr. Dark Region GR-V c2-35 A"
+        },
+        {
+            "departureTime": "2025-12-04 04:04:00",
+            "arrivalTime": "2025-12-04 03:43:00",
+            "state": "success",
+            "visitDurationSeconds": 1260,
+            "starsystem": "M7 Sector GM-V d2-84",
+            "body": "M7 Sector GM-V d2-84 A"
+        },
+        {
+            "departureTime": "2025-12-04 03:43:00",
+            "arrivalTime": "2025-12-04 03:15:00",
+            "state": "success",
+            "visitDurationSeconds": 1680,
+            "starsystem": "Bleae Thua HH-A b4",
+            "body": "Bleae Thua HH-A b4 A"
+        },
+        {
+            "departureTime": "2025-12-04 03:15:00",
+            "arrivalTime": "2025-12-03 22:38:00",
+            "state": "success",
+            "visitDurationSeconds": 16620,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 ABC 1 b"
+        },
+        {
+            "departureTime": "2025-12-03 22:38:00",
+            "arrivalTime": "2025-12-03 07:33:00",
+            "state": "success",
+            "visitDurationSeconds": 54300,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 ABC 1 a"
+        },
+        {
+            "departureTime": "2025-12-03 07:33:00",
+            "arrivalTime": "2025-12-02 23:19:00",
+            "state": "success",
+            "visitDurationSeconds": 29640,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 C 2 a"
+        },
+        {
+            "departureTime": "2025-12-02 23:19:00",
+            "arrivalTime": "2025-12-02 07:33:00",
+            "state": "success",
+            "visitDurationSeconds": 56760,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 C 2 a"
+        },
+        {
+            "departureTime": "2025-12-02 07:33:00",
+            "arrivalTime": "2025-12-02 07:09:00",
+            "state": "success",
+            "visitDurationSeconds": 1440,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A"
+        },
+        {
+            "departureTime": "2025-12-02 07:09:00",
+            "arrivalTime": "2025-12-02 06:09:00",
+            "state": "success",
+            "visitDurationSeconds": 3600,
+            "starsystem": "M20 Sector QY-O b7-0",
+            "body": "M20 Sector QY-O b7-0 A"
+        },
+        {
+            "departureTime": "2025-12-02 06:09:00",
+            "arrivalTime": "2025-12-01 04:32:00",
+            "state": "success",
+            "visitDurationSeconds": 92220,
+            "starsystem": "Bleae Thua NI-B b27-5 A 4",
+            "body": null
         }
     ],
     "route": [],
@@ -628,7 +1663,7 @@
             "vanityName": "5b434c425d20535620426f6f7a6520437275697365",
             "filteredVanityName": "5b434c425d20535620426f6f7a6520437275697365"
         },
-        "currentStarSystem": "Apurui",
+        "currentStarSystem": "M23 Sector AA-Q c5-22",
         "balance": "200000000",
         "fuel": "500",
         "state": "normalOperation",
@@ -652,11 +1687,81 @@
         "itinerary": {
             "completed": [
                 {
-                    "departureTime": "2026-03-05 23:10:00",
-                    "arrivalTime": "2026-03-04 07:09:00",
+                    "departureTime": null,
+                    "arrivalTime": "2026-04-18 05:28:00",
                     "state": "success",
-                    "visitDurationSeconds": 144060,
+                    "visitDurationSeconds": null,
+                    "starsystem": "Bleae Thua ED-D c12-5"
+                },
+                {
+                    "departureTime": "2026-04-18 05:28:00",
+                    "arrivalTime": "2026-04-18 03:17:00",
+                    "state": "success",
+                    "visitDurationSeconds": 7860,
+                    "starsystem": "Bleae Thua ED-D c12-5"
+                },
+                {
+                    "departureTime": "2026-04-18 03:17:00",
+                    "arrivalTime": "2026-04-17 23:29:10",
+                    "state": "success",
+                    "visitDurationSeconds": 13670,
+                    "starsystem": "M23 Sector AA-Q c5-22"
+                },
+                {
+                    "departureTime": "2026-04-18 03:17:00",
+                    "arrivalTime": "2026-04-17 23:29:00",
+                    "state": "success",
+                    "visitDurationSeconds": 13680,
+                    "starsystem": "Bleae Thua ED-D c12-5"
+                },
+                {
+                    "departureTime": "2026-04-17 23:29:00",
+                    "arrivalTime": "2026-04-16 23:33:00",
+                    "state": "success",
+                    "visitDurationSeconds": 86160,
+                    "starsystem": "M23 Sector AA-Q c5-22"
+                },
+                {
+                    "departureTime": "2026-04-16 23:33:00",
+                    "arrivalTime": "2026-04-16 00:05:00",
+                    "state": "success",
+                    "visitDurationSeconds": 84480,
+                    "starsystem": "Bleae Thua ED-D c12-5"
+                },
+                {
+                    "departureTime": "2026-04-16 00:05:00",
+                    "arrivalTime": "2026-04-13 23:38:00",
+                    "state": "success",
+                    "visitDurationSeconds": 174420,
+                    "starsystem": "Bleae Thua ED-D c12-5"
+                },
+                {
+                    "departureTime": "2026-04-13 23:38:00",
+                    "arrivalTime": "2026-04-11 05:06:10",
+                    "state": "success",
+                    "visitDurationSeconds": 239510,
+                    "starsystem": "Bleae Thua ED-D c12-5"
+                },
+                {
+                    "departureTime": "2026-04-13 23:38:00",
+                    "arrivalTime": "2026-04-11 05:06:00",
+                    "state": "success",
+                    "visitDurationSeconds": 239520,
                     "starsystem": "Bleae Thua NI-B b27-5"
+                },
+                {
+                    "departureTime": "2026-04-11 05:06:00",
+                    "arrivalTime": "2026-04-10 05:21:00",
+                    "state": "success",
+                    "visitDurationSeconds": 85500,
+                    "starsystem": "Bleae Thua ED-D c12-5"
+                },
+                {
+                    "departureTime": "2026-04-10 05:21:00",
+                    "arrivalTime": "2026-04-09 05:21:00",
+                    "state": "success",
+                    "visitDurationSeconds": 86400,
+                    "starsystem": "Bleae Thua ED-D c12-5"
                 }
             ],
             "totalDistanceJumpedLY": 500,
@@ -2216,8 +3321,8 @@
             }
         ],
         "market": {
-            "id": 3709409280,
-            "name": "T9M-33M",
+            "id": 12345,
+            "name": "T3S-TY",
             "outpostType": "fleetcarrier",
             "imported": [],
             "exported": [],

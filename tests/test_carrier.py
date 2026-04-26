@@ -5,12 +5,16 @@ Test suite for carrier module of BGS-Tally.
 import pytest # type: ignore
 import shutil
 from pathlib import Path
-from typing import Generator
+from typing import TYPE_CHECKING, Generator
 from time import sleep
 from datetime import datetime, UTC, timedelta
 from unittest.mock import Mock, patch, MagicMock
 import filecmp
 from harness import TestHarness
+
+if TYPE_CHECKING:
+    import bgstally.ui
+    from bgstally.windows.fleetcarrier import PopupNotice
 
 @pytest.fixture
 def harness(request) -> Generator:
@@ -204,7 +208,7 @@ class TestCarrierJumps:
         # Pre-flight checks.
         assert fc.jump_state == 'Idle'
         assert fc.overview.get('carrier_id') == 12345
-        assert fc.overview.get('currentStarSystem', '') == 'Sol'
+        assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
 
         # Send event 0
         harness.fire_event(events[0])
@@ -223,7 +227,7 @@ class TestCarrierJumps:
 
         events:list = harness.load_events("journal_events.json", BodyID=12).get("carrier_events", [])
         assert fc.overview.get('carrier_id') == 12345
-        assert fc.overview.get('currentStarSystem', '') == 'Sol'
+        assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
 
         harness.fire_event(events[0])
         assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
@@ -243,13 +247,13 @@ class TestCarrierJumps:
         events:list = harness.load_events("journal_events.json", BodyID=12).get("carrier_events", [])
 
         assert fc.overview.get('carrier_id') == 12345
-        assert fc.overview.get('currentStarSystem', '') == 'Sol'
+        assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
         harness.fire_event(events[0])
 
         assert fc.overview.get('jumpDestination') == 'Bleae Thua ZE-I b23-1'
 
         harness.fire_event(events[2])
-        assert fc.overview.get('currentStarSystem', '') == 'Sol'
+        assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
         assert fc.overview.get('jumpDestination') == None
         assert datetime.now(tz=UTC) + timedelta(seconds=58) <= fc.timer <= datetime.now(tz=UTC) + timedelta(seconds=60)
         assert fc.jump_state == 'Cooldown'
@@ -264,6 +268,27 @@ class TestCarrierJumps:
         fc = harness.plugin.fleet_carrier
         message = fc.update_overlay()
         assert message == ''
+
+    @pytest.mark.parametrize('which', ['none', 'popup', 'overlay', 'both'])
+    def test_cooldown_complete(self, harness, which) -> None:
+        """ Test cooldown complete handling """
+
+        harness.plugin.state.fc_cooldown = which
+        fc = harness.plugin.fleet_carrier
+        fc.jump_state = 'Cooldown'
+
+        assert harness.plugin.state.fc_cooldown == which
+        with patch('bgstally.ui.UI.show_warning') as mock_warning, \
+             patch('bgstally.windows.fleetcarrier.PopupNotice.__init__', return_value=None) as mock_popup:
+            fc._cooldown_complete()
+
+            # warning called if overlay or both, not otherwise
+            assert (which in ['overlay', 'both']) == mock_warning.call_count
+            # popup called if popup or both, not otherwise
+            assert (which in ['popup', 'both']) == mock_popup.call_count
+
+        assert fc.jump_state == 'Idle'
+
 class TestCarrierRoute:
     """ Test the Spansh Routing """
 
@@ -452,13 +477,9 @@ class TestCarrierEvents:
         fc = harness.plugin.fleet_carrier
         capi_data:dict = harness.get_config_data('carrier_capi_data.json')
 
-        # Pre-flight checks.
-        assert fc.overview.get('carrier_id') == 12345
-        assert fc.overview.get('currentStarSystem', '') == 'Sol'
-
         fc.update(capi_data)
 
-        assert fc.overview.get('currentStarSystem') == 'Sol'
+        assert fc.overview.get('currentStarSystem') == capi_data['currentStarSystem']
 
         fc.save()
         assert filecmp.cmp(harness.plugin_dir / "otherdata" / "fleetcarrier.json",
@@ -494,10 +515,10 @@ class TestCarrierEvents:
         assert fc.overview['name'] != 'Test Carrier'
         assert fc.overview['callsign'] != 'ABC-123'
 
-
     def test_carrier_location(self, harness) -> None:
         """ Test carrier_location() method """
         fc = harness.plugin.fleet_carrier
+        before:int = len(fc.itinerary)
         entry = {
             'CarrierID': 12345,
             'StarSystem': 'Alpha Centauri',
@@ -508,6 +529,11 @@ class TestCarrierEvents:
 
         assert fc.overview['currentStarSystem'] == 'Alpha Centauri'
         assert fc.overview['currentBody'] == 'Alpha Centauri' # location doesn't provide body
+
+        after:int = len(fc.itinerary)
+        assert after == before + 1
+        assert fc.itinerary[0]['starsystem'] == 'Alpha Centauri'
+        assert fc.itinerary[0]['body'] == 'Alpha Centauri A'
 
     def test_deposit_fuel(self, harness) -> None:
         """ Test deposit_fuel() method """
@@ -537,7 +563,6 @@ class TestCarrierEvents:
         assert fc.shipyard['ships']['1']['name'] == 'Eagle'
         assert fc.shipyard['overview']['shipCount'] == 1
         assert fc.shipyard['overview']['totalValue'] == 50000
-
 
 class CarrierUnused:
     def test_parse_date(self, harness) -> None:

@@ -393,6 +393,19 @@ class UI:
         self.apikey.configure(textvariable=self.bgstally.state.ColonisationRCAPIKey)
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text=_("Fleet Carrier"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
+        nb.Label(frame, text=_("Fleet Carrier Cooldown Notifications")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
+        cdnotifications: dict = {"none": _("None"), # LANG: Dropdown menu on prefs window
+                                 "popup": _("Popup only"), # LANG: Dropdown menu on prefs window
+                                 "overlay": _("Overlay only"), # LANG: Dropdown menu on prefs window
+                                 "both": _("Popup and Overlay")} # LANG: Dropdown menu on prefs window
+        notifications_var:tk.StringVar = tk.StringVar(value=cdnotifications.get(self.bgstally.state.FcCooldown.get(), "Both"))
+        self.fccooldown:nb.OptionMenu = nb.OptionMenu(frame, notifications_var, notifications_var.get(),
+                                                            *cdnotifications.values(),
+                                                            command=partial(self._cooldown_selected, cdnotifications), direction='below')
+        self.fccooldown.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
+
+        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("Advanced"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
         tk.Button(frame, text=_("Force Tick"), command=self._confirm_force_tick, bg="red", fg="white").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences button label
 
@@ -545,6 +558,11 @@ class UI:
         k: str = next(k for k, v in favourite_types.items() if v == value)
         self.bgstally.state.FavouriteActivityMode.set(k)
         self.bgstally.state.refresh
+
+    def _cooldown_selected(self, cooldown_types: dict, value: str):
+        k: str = next(k for k, v in cooldown_types.items() if v == value)
+        self.bgstally.state.FcCooldown.set(k)
+        self.bgstally.state.refresh()
 
     @catch_exceptions
     def _worker(self) -> None:

@@ -29,6 +29,7 @@ class MockConfig:
         if hasattr(self, '_initialized'): return
         self.data = {} # Any variables that need setting
         self._initialized = True
+
     @staticmethod
     def get_appdirpath() -> Path:
         return this_dir

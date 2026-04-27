@@ -1,0 +1,4077 @@
+{
+    "carrier_id": 3709409280,
+    "last_modified": 1765083611,
+    "overview": {
+        "name": "[CLB] SV Booze Cruise",
+        "currentStarSystem": "LTT 8906",
+        "currentBody": "LTT 8906 AB 2",
+        "dockingAccess": "squadronfriends",
+        "state": "normalOperation",
+        "carrier_id": 3709409280,
+        "callsign": "T9M-33M",
+        "notoriousAccess": true,
+        "theme": "Trader",
+        "bankBalance": 34125177962,
+        "bankReservedBalance": 9149269451,
+        "maintenance": 19656524,
+        "numJumps": 1,
+        "taxation": 0,
+        "fuel": 173,
+        "totalCapacity": 25000,
+        "shipPacks": 0,
+        "modulePacks": 0,
+        "crew": 1520,
+        "coreCost": 5000000,
+        "servicesCost": 14556524,
+        "jumpsCost": 100000,
+        "departureScheduled": null,
+        "jumpDestination": null,
+        "jumpDestinationBody": null
+    },
+    "cargo": {
+        "overview": {},
+        "stolen": {},
+        "mission": {},
+        "normal": {
+            "unknownartifact": {
+                "locName": "Thargoid Sensor",
+                "category": "Salvage",
+                "stock": 12,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "thargoidgeneratortissuesample": {
+                "locName": "Caustic Tissue Sample",
+                "category": "Salvage",
+                "stock": 5,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "thargoidtissuesampletype5": {
+                "locName": "Thargoid Orthrus Tissue Sample",
+                "category": "Salvage",
+                "stock": 1,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "thargoidtissuesampletype7": {
+                "locName": "Thargoid Scythe Tissue Sample",
+                "category": "Salvage",
+                "stock": 4,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "thargoidheart": {
+                "locName": "Thargoid Heart",
+                "category": "Salvage",
+                "stock": 9,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "thargoidtissuesampletype9a": {
+                "locName": "Titan Deep Tissue Sample",
+                "category": "Salvage",
+                "stock": 7,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "thargoidtissuesampletype9b": {
+                "locName": "Titan Tissue Sample",
+                "category": "Salvage",
+                "stock": 2,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "thargoidtissuesampletype9c": {
+                "locName": "Titan Partial Tissue Sample",
+                "category": "Salvage",
+                "stock": 2,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "unknownresin": {
+                "locName": "Thargoid Resin",
+                "category": "Salvage",
+                "stock": 2,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "thargoidtitandrivecomponent": {
+                "locName": "Titan Drive Component",
+                "category": "Salvage",
+                "stock": 3,
+                "buyTotal": 10,
+                "outstanding": 10,
+                "price": 365624,
+                "mission": false,
+                "stolen": false
+            },
+            "thargoidpod": {
+                "locName": "Xenobiological Prison Pod",
+                "category": "Salvage",
+                "stock": 6,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "platinum": {
+                "locName": "Platinum",
+                "category": "Metals",
+                "stock": 5,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "tritium": {
+                "locName": "Tritium",
+                "category": "Chemicals",
+                "stock": 823,
+                "buyTotal": 169,
+                "outstanding": 169,
+                "price": 51294,
+                "mission": false,
+                "stolen": false
+            },
+            "ancientrelictg": {
+                "locName": "Unclassified Relic",
+                "category": "Salvage",
+                "stock": 4,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "survivalequipment": {
+                "locName": "Survival Equipment",
+                "category": "Consumer Items",
+                "stock": 42,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 666,
+                "mission": false,
+                "stolen": false
+            },
+            "buildingfabricators": {
+                "locName": "Building Fabricators",
+                "category": "Machinery",
+                "stock": 165,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 2224,
+                "mission": false,
+                "stolen": false
+            },
+            "waterpurifiers": {
+                "locName": "Water Purifiers",
+                "category": "Machinery",
+                "stock": 2,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 447,
+                "mission": false,
+                "stolen": false
+            },
+            "geologicalequipment": {
+                "locName": "Geological Equipment",
+                "category": "Machinery",
+                "stock": 27,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 1830,
+                "mission": false,
+                "stolen": false
+            },
+            "basicmedicines": {
+                "locName": "Basic Medicines",
+                "category": "Medicines",
+                "stock": 14,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 489,
+                "mission": false,
+                "stolen": false
+            },
+            "surfacestabilisers": {
+                "locName": "Surface Stabilisers",
+                "category": "Chemicals",
+                "stock": 204,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 668,
+                "mission": false,
+                "stolen": false
+            },
+            "evacuationshelter": {
+                "locName": "Evacuation Shelter",
+                "category": "Consumer Items",
+                "stock": 63,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 500,
+                "mission": false,
+                "stolen": false
+            },
+            "thermalcoolingunits": {
+                "locName": "Thermal Cooling Units",
+                "category": "Machinery",
+                "stock": 42,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 3700,
+                "mission": false,
+                "stolen": false
+            },
+            "resonatingseparators": {
+                "locName": "Resonating Separators",
+                "category": "Technology",
+                "stock": 42,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 5692,
+                "mission": false,
+                "stolen": false
+            },
+            "structuralregulators": {
+                "locName": "Structural Regulators",
+                "category": "Technology",
+                "stock": 204,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 1909,
+                "mission": false,
+                "stolen": false
+            },
+            "ceramiccomposites": {
+                "locName": "Ceramic Composites",
+                "category": "Industrial Materials",
+                "stock": 165,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 402,
+                "mission": false,
+                "stolen": false
+            },
+            "emergencypowercells": {
+                "locName": "Emergency Power Cells",
+                "category": "Machinery",
+                "stock": 84,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 2308,
+                "mission": false,
+                "stolen": false
+            },
+            "powergenerators": {
+                "locName": "Power Generators",
+                "category": "Machinery",
+                "stock": 5,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 2388,
+                "mission": false,
+                "stolen": false
+            },
+            "mineralextractors": {
+                "locName": "Mineral Extractors",
+                "category": "Machinery",
+                "stock": 492,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 791,
+                "mission": false,
+                "stolen": false
+            },
+            "heliostaticfurnaces": {
+                "locName": "Microbial Furnaces",
+                "category": "Machinery",
+                "stock": 246,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 418,
+                "mission": false,
+                "stolen": false
+            },
+            "advancedcatalysers": {
+                "locName": "Advanced Catalysers",
+                "category": "Technology",
+                "stock": 123,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 2888,
+                "mission": false,
+                "stolen": false
+            },
+            "microcontrollers": {
+                "locName": "Micro Controllers",
+                "category": "Technology",
+                "stock": 42,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 5404,
+                "mission": false,
+                "stolen": false
+            },
+            "hazardousenvironmentsuits": {
+                "locName": "H.E. Suits",
+                "category": "Technology",
+                "stock": 42,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 518,
+                "mission": false,
+                "stolen": false
+            },
+            "robotics": {
+                "locName": "Robotics",
+                "category": "Technology",
+                "stock": 165,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 1915,
+                "mission": false,
+                "stolen": false
+            },
+            "steel": {
+                "locName": "Steel",
+                "category": "Metals",
+                "stock": 471,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 4186,
+                "mission": false,
+                "stolen": false
+            },
+            "aluminium": {
+                "locName": "Aluminium",
+                "category": "Metals",
+                "stock": 208,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 2540,
+                "mission": false,
+                "stolen": false
+            },
+            "fish": {
+                "locName": "Fish",
+                "category": "Foods",
+                "stock": 1,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "water": {
+                "locName": "Water",
+                "category": "Chemicals",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "titanium": {
+                "locName": "Titanium",
+                "category": "Metals",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "copper": {
+                "locName": "Copper",
+                "category": "Metals",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "fruitandvegetables": {
+                "locName": "Fruit and Vegetables",
+                "category": "Foods",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "grain": {
+                "locName": "Grain",
+                "category": "Foods",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "foodcartridges": {
+                "locName": "Food Cartridges",
+                "category": "Foods",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "polymers": {
+                "locName": "Polymers",
+                "category": "Industrial Materials",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "semiconductors": {
+                "locName": "Semiconductors",
+                "category": "Industrial Materials",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "superconductors": {
+                "locName": "Superconductors",
+                "category": "Industrial Materials",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "pesticides": {
+                "locName": "Pesticides",
+                "category": "Chemicals",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "agriculturalmedicines": {
+                "locName": "Agri-Medicines",
+                "category": "Medicines",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "beer": {
+                "locName": "Beer",
+                "category": "Legal Drugs",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "cropharvesters": {
+                "locName": "Crop Harvesters",
+                "category": "Machinery",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "computercomponents": {
+                "locName": "Computer Components",
+                "category": "Technology",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "terrainenrichmentsystems": {
+                "locName": "Land Enrichment Systems",
+                "category": "Technology",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "battleweapons": {
+                "locName": "Battle Weapons",
+                "category": "Weapons",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "reactivearmour": {
+                "locName": "Reactive Armour",
+                "category": "Weapons",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "nonlethalweapons": {
+                "locName": "Non-Lethal Weapons",
+                "category": "Weapons",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "biowaste": {
+                "locName": "Biowaste",
+                "category": "Waste",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "combatstabilisers": {
+                "locName": "Combat Stabilisers",
+                "category": "Medicines",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "bioreducinglichen": {
+                "locName": "Bioreducing Lichen",
+                "category": "Technology",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "osmium": {
+                "locName": "Osmium",
+                "category": "Metals",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "mutomimager": {
+                "locName": "Muon Imager",
+                "category": "Technology",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "metaalloys": {
+                "locName": "Meta-Alloys",
+                "category": "Industrial Materials",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "bromellite": {
+                "locName": "Bromellite",
+                "category": "Minerals",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "liquidoxygen": {
+                "locName": "Liquid oxygen",
+                "category": "Chemicals",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "insulatingmembrane": {
+                "locName": "Insulating Membrane",
+                "category": "Industrial Materials",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "cmmcomposite": {
+                "locName": "CMM Composite",
+                "category": "Industrial Materials",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "neofabricinsulation": {
+                "locName": "Neofabric Insulation",
+                "category": "Industrial Materials",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "militarygradefabrics": {
+                "locName": "Military Grade Fabrics",
+                "category": "Textiles",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "medicaldiagnosticequipment": {
+                "locName": "Medical Diagnostic Equipment",
+                "category": "Technology",
+                "stock": 0,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            },
+            "tea": {
+                "locName": "Tea",
+                "category": "Foods",
+                "stock": 2,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0,
+                "mission": false,
+                "stolen": false
+            }
+        }
+    },
+    "locker": {
+        "mission": {},
+        "normal": {
+            "graphene": {
+                "locName": "Graphene",
+                "category": "Assets",
+                "stock": 163,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "electricalwiring": {
+                "locName": "Electrical Wiring",
+                "category": "Assets",
+                "stock": 10,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "encryptedmemorychip": {
+                "locName": "Encrypted Memory Chip",
+                "category": "Assets",
+                "stock": 11,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "metalcoil": {
+                "locName": "Metal Coil",
+                "category": "Assets",
+                "stock": 48,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "opticalfibre": {
+                "locName": "Optical Fibre",
+                "category": "Assets",
+                "stock": 31,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "ionbattery": {
+                "locName": "Ion Battery",
+                "category": "Assets",
+                "stock": 74,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "microsupercapacitor": {
+                "locName": "Micro Supercapacitor",
+                "category": "Assets",
+                "stock": 11,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "microthrusters": {
+                "locName": "Micro Thrusters",
+                "category": "Assets",
+                "stock": 5,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "microtransformer": {
+                "locName": "Micro Transformer",
+                "category": "Assets",
+                "stock": 50,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "motor": {
+                "locName": "Motor",
+                "category": "Assets",
+                "stock": 8,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "circuitswitch": {
+                "locName": "Circuit Switch",
+                "category": "Assets",
+                "stock": 17,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "electromagnet": {
+                "locName": "Electromagnet",
+                "category": "Assets",
+                "stock": 20,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "microelectrode": {
+                "locName": "Microelectrode",
+                "category": "Assets",
+                "stock": 90,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "opticallens": {
+                "locName": "Optical Lens",
+                "category": "Assets",
+                "stock": 9,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "tungstencarbide": {
+                "locName": "Tungsten Carbide",
+                "category": "Assets",
+                "stock": 10,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "viscoelasticpolymer": {
+                "locName": "Viscoelastic Polymer",
+                "category": "Assets",
+                "stock": 11,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "carbonfibreplating": {
+                "locName": "Carbon Fibre Plating",
+                "category": "Assets",
+                "stock": 3,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "chemicalcatalyst": {
+                "locName": "Chemical Catalyst",
+                "category": "Assets",
+                "stock": 4,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "epoxyadhesive": {
+                "locName": "Epoxy Adhesive",
+                "category": "Assets",
+                "stock": 10,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "memorychip": {
+                "locName": "Memory Chip",
+                "category": "Assets",
+                "stock": 16,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "microhydraulics": {
+                "locName": "Micro Hydraulics",
+                "category": "Assets",
+                "stock": 5,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "scrambler": {
+                "locName": "Scrambler",
+                "category": "Assets",
+                "stock": 11,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "transmitter": {
+                "locName": "Transmitter",
+                "category": "Assets",
+                "stock": 6,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "rdx": {
+                "locName": "RDX",
+                "category": "Assets",
+                "stock": 3,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "oxygenicbacteria": {
+                "locName": "Oxygenic Bacteria",
+                "category": "Assets",
+                "stock": 6,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "epinephrine": {
+                "locName": "Epinephrine",
+                "category": "Assets",
+                "stock": 6,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "insightentertainmentsuite": {
+                "locName": "Insight Entertainment Suite",
+                "category": "Goods",
+                "stock": 31,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "hush": {
+                "locName": "Hush",
+                "category": "Goods",
+                "stock": 6,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "vehicleschematic": {
+                "locName": "Vehicle Schematic",
+                "category": "Goods",
+                "stock": 1,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "pyrolyticcatalyst": {
+                "locName": "Pyrolytic Catalyst",
+                "category": "Goods",
+                "stock": 2,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "geneticrepairmeds": {
+                "locName": "Genetic Repair Meds",
+                "category": "Goods",
+                "stock": 11,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "buildingschematic": {
+                "locName": "Building Schematic",
+                "category": "Goods",
+                "stock": 1,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "weaponschematic": {
+                "locName": "Weapon Schematic",
+                "category": "Goods",
+                "stock": 8,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "biochemicalagent": {
+                "locName": "Biochemical Agent",
+                "category": "Goods",
+                "stock": 2,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "personaldocuments": {
+                "locName": "Personal Documents",
+                "category": "Goods",
+                "stock": 1,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "opinionpolls": {
+                "locName": "Opinion Polls",
+                "category": "Data",
+                "stock": 14,
+                "buyTotal": 10,
+                "outstanding": 5,
+                "price": 5000
+            },
+            "catmedia": {
+                "locName": "Cat Media",
+                "category": "Data",
+                "stock": 7,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "classicentertainment": {
+                "locName": "Classic Entertainment",
+                "category": "Data",
+                "stock": 10,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "multimediaentertainment": {
+                "locName": "Multimedia Entertainment",
+                "category": "Data",
+                "stock": 12,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "smearcampaignplans": {
+                "locName": "Smear Campaign Plans",
+                "category": "Data",
+                "stock": 5,
+                "buyTotal": 10,
+                "outstanding": 5,
+                "price": 26000
+            },
+            "radioactivitydata": {
+                "locName": "Radioactivity Data",
+                "category": "Data",
+                "stock": 50,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "surveilleancelogs": {
+                "locName": "Surveillance Logs",
+                "category": "Data",
+                "stock": 50,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "biometricdata": {
+                "locName": "Biometric Data",
+                "category": "Data",
+                "stock": 11,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "nocdata": {
+                "locName": "NOC Data",
+                "category": "Data",
+                "stock": 33,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "airqualityreports": {
+                "locName": "Air Quality Reports",
+                "category": "Data",
+                "stock": 30,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "atmosphericdata": {
+                "locName": "Atmospheric Data",
+                "category": "Data",
+                "stock": 38,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "audiologs": {
+                "locName": "Audio Logs",
+                "category": "Data",
+                "stock": 10,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "ballisticsdata": {
+                "locName": "Ballistics Data",
+                "category": "Data",
+                "stock": 8,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            },
+            "weaponinventory": {
+                "locName": "Weapon Inventory",
+                "category": "Data",
+                "stock": 7,
+                "buyTotal": 0,
+                "outstanding": 0,
+                "price": 0
+            }
+        }
+    },
+    "itinerary": [
+        {
+            "departureTime": null,
+            "arrivalTime": "2025-12-05 01:15:00",
+            "state": "success",
+            "visitDurationSeconds": 0,
+            "starsystem": "LTT 8906",
+            "body": "LTT 8906 AB 2"
+        },
+        {
+            "departureTime": "2025-12-05 01:15:00",
+            "arrivalTime": "2025-12-04 05:42:00",
+            "state": "success",
+            "visitDurationSeconds": 70380,
+            "starsystem": "Col 359 Sector GK-L b10-0",
+            "body": "Col 359 Sector GK-L b10-0"
+        },
+        {
+            "departureTime": "2025-12-04 05:42:00",
+            "arrivalTime": "2025-12-04 04:32:00",
+            "state": "success",
+            "visitDurationSeconds": 4200,
+            "starsystem": "LTT 8906",
+            "body": "LTT 8906 A"
+        },
+        {
+            "departureTime": "2025-12-04 04:32:00",
+            "arrivalTime": "2025-12-04 04:04:00",
+            "state": "success",
+            "visitDurationSeconds": 1680,
+            "starsystem": "Corona Austr. Dark Region GR-V c2-35",
+            "body": "Corona Austr. Dark Region GR-V c2-35 A"
+        },
+        {
+            "departureTime": "2025-12-04 04:04:00",
+            "arrivalTime": "2025-12-04 03:43:00",
+            "state": "success",
+            "visitDurationSeconds": 1260,
+            "starsystem": "M7 Sector GM-V d2-84",
+            "body": "M7 Sector GM-V d2-84 A"
+        },
+        {
+            "departureTime": "2025-12-04 03:43:00",
+            "arrivalTime": "2025-12-04 03:15:00",
+            "state": "success",
+            "visitDurationSeconds": 1680,
+            "starsystem": "Bleae Thua HH-A b4",
+            "body": "Bleae Thua HH-A b4 A"
+        },
+        {
+            "departureTime": "2025-12-04 03:15:00",
+            "arrivalTime": "2025-12-03 22:38:00",
+            "state": "success",
+            "visitDurationSeconds": 16620,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 ABC 1 b"
+        },
+        {
+            "departureTime": "2025-12-03 22:38:00",
+            "arrivalTime": "2025-12-03 07:33:00",
+            "state": "success",
+            "visitDurationSeconds": 54300,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 ABC 1 a"
+        },
+        {
+            "departureTime": "2025-12-03 07:33:00",
+            "arrivalTime": "2025-12-02 23:19:00",
+            "state": "success",
+            "visitDurationSeconds": 29640,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 C 2 a"
+        },
+        {
+            "departureTime": "2025-12-02 23:19:00",
+            "arrivalTime": "2025-12-02 07:33:00",
+            "state": "success",
+            "visitDurationSeconds": 56760,
+            "starsystem": "Bleae Thua ZE-I b23-1",
+            "body": "Bleae Thua ZE-I b23-1 C 2 a"
+        },
+        {
+            "departureTime": "2025-12-02 07:33:00",
+            "arrivalTime": "2025-12-02 07:09:00",
+            "state": "success",
+            "visitDurationSeconds": 1440,
+            "starsystem": "Bleae Thua NI-B b27-5",
+            "body": "Bleae Thua NI-B b27-5 A"
+        },
+        {
+            "departureTime": "2025-12-02 07:09:00",
+            "arrivalTime": "2025-12-02 06:09:00",
+            "state": "success",
+            "visitDurationSeconds": 3600,
+            "starsystem": "M20 Sector QY-O b7-0",
+            "body": "M20 Sector QY-O b7-0 A"
+        },
+        {
+            "departureTime": "2025-12-02 06:09:00",
+            "arrivalTime": "2025-12-01 04:32:00",
+            "state": "success",
+            "visitDurationSeconds": 92220,
+            "starsystem": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2025-12-01 04:32:00",
+            "arrivalTime": "2025-12-01 03:58:00",
+            "state": "success",
+            "visitDurationSeconds": 2040,
+            "starsystem": "Bleae Thua ZE-I b23-1 C 4 a"
+        },
+        {
+            "departureTime": "2025-12-01 03:58:00",
+            "arrivalTime": "2025-11-30 06:03:00",
+            "state": "success",
+            "visitDurationSeconds": 78900,
+            "starsystem": "Bleae Thua ZE-I b23-1 C 1"
+        },
+        {
+            "departureTime": "2025-11-30 06:03:00",
+            "arrivalTime": "2025-11-29 21:47:00",
+            "state": "success",
+            "visitDurationSeconds": 29760,
+            "starsystem": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2025-11-29 21:47:00",
+            "arrivalTime": "2025-11-27 01:13:00",
+            "state": "success",
+            "visitDurationSeconds": 246840,
+            "starsystem": "Bleae Thua ZE-I b23-1 C 2 a"
+        },
+        {
+            "departureTime": "2025-11-27 01:13:00",
+            "arrivalTime": "2025-11-26 19:40:00",
+            "state": "success",
+            "visitDurationSeconds": 19980,
+            "starsystem": "Bleae Thua ZE-I b23-1 C 2 a"
+        },
+        {
+            "departureTime": "2025-11-26 19:40:00",
+            "arrivalTime": "2025-11-26 08:50:00",
+            "state": "success",
+            "visitDurationSeconds": 39000,
+            "starsystem": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2025-11-26 08:50:00",
+            "arrivalTime": "2025-11-26 06:32:00",
+            "state": "success",
+            "visitDurationSeconds": 8280,
+            "starsystem": "Bleae Thua ZE-I b23-1"
+        },
+        {
+            "departureTime": "2025-11-26 06:32:00",
+            "arrivalTime": "2025-11-26 01:51:00",
+            "state": "success",
+            "visitDurationSeconds": 16860,
+            "starsystem": "Bleae Thua ZE-I b23-1 C 2 a"
+        },
+        {
+            "departureTime": "2025-11-26 01:51:00",
+            "arrivalTime": "2025-11-25 05:42:00",
+            "state": "success",
+            "visitDurationSeconds": 72540,
+            "starsystem": "Bleae Thua NI-B b27-5 A 4"
+        },
+        {
+            "departureTime": "2025-11-25 05:42:00",
+            "arrivalTime": "2025-11-19 23:39:00",
+            "state": "success",
+            "visitDurationSeconds": 453780,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-19 23:39:00",
+            "arrivalTime": "2025-11-19 22:25:00",
+            "state": "success",
+            "visitDurationSeconds": 4440,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-19 22:25:00",
+            "arrivalTime": "2025-11-19 07:45:00",
+            "state": "success",
+            "visitDurationSeconds": 52800,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-19 07:45:00",
+            "arrivalTime": "2025-11-19 02:36:00",
+            "state": "success",
+            "visitDurationSeconds": 18540,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-19 02:36:00",
+            "arrivalTime": "2025-11-18 08:16:00",
+            "state": "success",
+            "visitDurationSeconds": 66000,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-18 08:16:00",
+            "arrivalTime": "2025-11-17 05:29:00",
+            "state": "success",
+            "visitDurationSeconds": 96420,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-17 05:29:00",
+            "arrivalTime": "2025-11-12 05:59:00",
+            "state": "success",
+            "visitDurationSeconds": 430200,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-12 05:59:00",
+            "arrivalTime": "2025-11-11 08:02:00",
+            "state": "success",
+            "visitDurationSeconds": 79020,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-11 08:02:00",
+            "arrivalTime": "2025-11-08 09:00:00",
+            "state": "success",
+            "visitDurationSeconds": 255720,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-08 09:00:00",
+            "arrivalTime": "2025-11-08 07:11:00",
+            "state": "success",
+            "visitDurationSeconds": 6540,
+            "starsystem": "Bleae Thua UX-L d7-32"
+        },
+        {
+            "departureTime": "2025-11-08 07:11:00",
+            "arrivalTime": "2025-11-08 05:44:00",
+            "state": "success",
+            "visitDurationSeconds": 5220,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-08 05:44:00",
+            "arrivalTime": "2025-11-08 05:21:00",
+            "state": "success",
+            "visitDurationSeconds": 1380,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-08 05:21:00",
+            "arrivalTime": "2025-11-08 00:02:00",
+            "state": "success",
+            "visitDurationSeconds": 19140,
+            "starsystem": "Bleae Thua NI-B b27-5"
+        },
+        {
+            "departureTime": "2025-11-08 00:02:00",
+            "arrivalTime": "2025-11-03 03:09:00",
+            "state": "success",
+            "visitDurationSeconds": 420780,
+            "starsystem": "M23 Sector AA-Q c5-22"
+        }
+    ],
+    "route": [],
+    "shipyard": {
+        "overview": {
+            "current": "Carrier",
+            "shipCount": 34,
+            "value": 6750389315,
+            "totalValue": 6736378184
+        },
+        "ships": {
+            "101": {
+                "name": "Prime",
+                "type": "corsair",
+                "location": "Carrier",
+                "value": 0,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "104": {
+                "name": "Principialis",
+                "type": "Panther Clipper Mk II",
+                "location": "Carrier",
+                "value": 0,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "112": {
+                "name": "Alpha",
+                "type": "Type-11 Prospector",
+                "location": "Carrier",
+                "value": 0,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "11": {
+                "name": "Curious Bird",
+                "type": "eagle",
+                "location": "Carrier",
+                "value": 753558,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "35": {
+                "name": "Micro Terror",
+                "type": "eagle",
+                "location": "Carrier",
+                "value": 1612297,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "2": {
+                "name": "Asajj Express",
+                "type": "Imperial Courier",
+                "location": "Shinrarta Dezhra",
+                "value": 4654866,
+                "transferPrice": 46217,
+                "transferTime": 1723,
+                "hot": false
+            },
+            "22": {
+                "name": "Darth Talons",
+                "type": "Imperial Eagle",
+                "location": "Shinrarta Dezhra",
+                "value": 4764788,
+                "transferPrice": 47285,
+                "transferTime": 1723,
+                "hot": false
+            },
+            "42": {
+                "name": "Goldie",
+                "type": "Eagle",
+                "location": "Snake Sector BQ-Y d38",
+                "value": 5406096,
+                "transferPrice": 2463,
+                "transferTime": 5711,
+                "hot": false
+            },
+            "108": {
+                "name": "",
+                "type": "Cobra Mk V",
+                "location": "Shinrarta Dezhra",
+                "value": 5502631,
+                "transferPrice": 54453,
+                "transferTime": 1723,
+                "hot": false
+            },
+            "1": {
+                "name": "Tiny Terror",
+                "type": "Cobra Mk III",
+                "location": "Carrier",
+                "value": 5512041,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "41": {
+                "name": "Bubble V",
+                "type": "Viper Mk IV",
+                "location": "Shinrarta Dezhra",
+                "value": 10902306,
+                "transferPrice": 106906,
+                "transferTime": 1723,
+                "hot": false
+            },
+            "82": {
+                "name": "RANGE D",
+                "type": "Diamondback Explorer",
+                "location": "Carrier",
+                "value": 12570454,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "44": {
+                "name": "Bubble D",
+                "type": "Diamondback Explorer",
+                "location": "Carrier",
+                "value": 13456263,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "23": {
+                "name": "Dual Terror",
+                "type": "vulture",
+                "location": "Carrier",
+                "value": 22871407,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "92": {
+                "name": "Shipping Delay",
+                "type": "mandalay",
+                "location": "Carrier",
+                "value": 32071465,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "103": {
+                "name": "T8NT",
+                "type": "Type-8 Transporter",
+                "location": "Carrier",
+                "value": 37512663,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "9": {
+                "name": "Transit 1.3L Passenger",
+                "type": "python",
+                "location": "Carrier",
+                "value": 43876956,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "96": {
+                "name": "Regurgit8",
+                "type": "Type-8 Transporter",
+                "location": "Carrier",
+                "value": 45792558,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "20": {
+                "name": "Darth Evader",
+                "type": "Imperial Clipper",
+                "location": "Carrier",
+                "value": 46346442,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "87": {
+                "name": "Long Delay",
+                "type": "mandalay",
+                "location": "Carrier",
+                "value": 48751838,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "16": {
+                "name": "Prawn Cocktail",
+                "type": "Krait Phantom",
+                "location": "Carrier",
+                "value": 60454251,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "84": {
+                "name": "",
+                "type": "Mamba",
+                "location": "Shinrarta Dezhra",
+                "value": 63056787,
+                "transferPrice": 613540,
+                "transferTime": 1723,
+                "hot": false
+            },
+            "32": {
+                "name": "Daisy Dogger",
+                "type": "Alliance Chieftain",
+                "location": "Carrier",
+                "value": 64026728,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "5": {
+                "name": "MON FRERE",
+                "type": "Type-9 Heavy",
+                "location": "Shinrarta Dezhra",
+                "value": 65686329,
+                "transferPrice": 639084,
+                "transferTime": 1723,
+                "hot": false
+            },
+            "48": {
+                "name": "Smoky Bacon",
+                "type": "Krait Phantom",
+                "location": "Carrier",
+                "value": 66164817,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "93": {
+                "name": "",
+                "type": "Mamba",
+                "location": "Luchtaine",
+                "value": 68741352,
+                "transferPrice": 100603508,
+                "transferTime": 219790,
+                "hot": false
+            },
+            "29": {
+                "name": "Transit 1.5L",
+                "type": "python",
+                "location": "Carrier",
+                "value": 69105026,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "10": {
+                "name": "49ER",
+                "type": "Python",
+                "location": "Snake Sector BQ-Y d38",
+                "value": 80088408,
+                "transferPrice": 2908049,
+                "transferTime": 5711,
+                "hot": false
+            },
+            "33": {
+                "name": "Bug Boner",
+                "type": "Alliance Challenger",
+                "location": "Carrier",
+                "value": 83214010,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "113": {
+                "name": "Yukon",
+                "type": "Type-11 Prospector",
+                "location": "Col 285 Sector NV-I b24-5",
+                "value": 84862899,
+                "transferPrice": 1066849,
+                "transferTime": 2150,
+                "hot": false
+            },
+            "80": {
+                "name": "Transit 2.8 Ghia",
+                "type": "Python Mk II",
+                "location": "Carrier",
+                "value": 87165249,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "83": {
+                "name": "Petunia Porker",
+                "type": "Python Mk II",
+                "location": "Carrier",
+                "value": 91126044,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "45": {
+                "name": "Oops!...I Did It Again",
+                "type": "Fer-de-Lance",
+                "location": "Bleia Dryiae BL-O b26-12",
+                "value": 98700996,
+                "transferPrice": 30131584,
+                "transferTime": 46057,
+                "hot": false
+            },
+            "97": {
+                "name": "Wesley",
+                "type": "Python Mk II",
+                "location": "Carrier",
+                "value": 106323996,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "24": {
+                "name": "Flower Fecker",
+                "type": "Krait Mk II",
+                "location": "Carrier",
+                "value": 129213201,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "102": {
+                "name": "Sutter's Mill",
+                "type": "corsair",
+                "location": "Carrier",
+                "value": 142333831,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "111": {
+                "name": "Paci",
+                "type": "Corsair",
+                "location": "Bleae Thua NI-B b27-5",
+                "value": 160962323,
+                "transferPrice": 21665794,
+                "transferTime": 20455,
+                "hot": false
+            },
+            "7": {
+                "name": "Jesus H",
+                "type": "Krait Mk II",
+                "location": "Carrier",
+                "value": 188750034,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "105": {
+                "name": "Onca LR",
+                "type": "Panther Clipper Mk II",
+                "location": "Carrier",
+                "value": 284675242,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "46": {
+                "name": "Lyrical Gangster",
+                "type": "Type-10 Defender",
+                "location": "Apurui",
+                "value": 303632032,
+                "transferPrice": 1446959,
+                "transferTime": 980,
+                "hot": false
+            },
+            "21": {
+                "name": "Darth Haul",
+                "type": "Imperial Cutter",
+                "location": "Carrier",
+                "value": 305499525,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "100": {
+                "name": "Yuthura Van",
+                "type": "Imperial Cutter",
+                "location": "Carrier",
+                "value": 340227001,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "91": {
+                "name": "Darth Trader",
+                "type": "Imperial Cutter",
+                "location": "Carrier",
+                "value": 362407589,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "72": {
+                "name": "Begonia Buggerer",
+                "type": "anaconda",
+                "location": "Carrier",
+                "value": 394613313,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "106": {
+                "name": "Pardus",
+                "type": "Panther Clipper Mk II",
+                "location": "Carrier",
+                "value": 418353518,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "114": {
+                "name": "Needs Must",
+                "type": "Panther Clipper Mk II",
+                "location": "Bleia Dryiae BL-O b26-12",
+                "value": 473893504,
+                "transferPrice": 144667099,
+                "transferTime": 46057,
+                "hot": false
+            },
+            "12": {
+                "name": "LIL RED",
+                "type": "Federal Corvette",
+                "location": "Bleae Thua NI-B b27-5",
+                "value": 506106278,
+                "transferPrice": 68120596,
+                "transferTime": 20455,
+                "hot": false
+            },
+            "52": {
+                "name": "Darth Tyranis",
+                "type": "Imperial Cutter",
+                "location": "Carrier",
+                "value": 610862539,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "107": {
+                "name": "Atrox",
+                "type": "Panther Clipper Mk II",
+                "location": "Carrier",
+                "value": 683772733,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            },
+            "86": {
+                "name": "Main Delay",
+                "type": "mandalay",
+                "location": "Apurui",
+                "value": 6187059,
+                "transferPrice": 0,
+                "transferTime": 0,
+                "hot": false
+            }
+        }
+    },
+    "data": {
+        "name": {
+            "callsign": "T9M-33M",
+            "vanityName": "5b434c425d20535620426f6f7a6520437275697365",
+            "filteredVanityName": "5b434c425d20535620426f6f7a6520437275697365"
+        },
+        "currentStarSystem": "LTT 8906",
+        "balance": "34125177962",
+        "fuel": "173",
+        "state": "normalOperation",
+        "theme": "Trader",
+        "dockingAccess": "squadronfriends",
+        "notoriousAccess": true,
+        "capacity": {
+            "shipPacks": 0,
+            "modulePacks": 0,
+            "cargoForSale": 2848,
+            "cargoNotForSale": 888,
+            "cargoSpaceReserved": 179,
+            "crew": 1520,
+            "freeSpace": 19565,
+            "microresourceCapacityTotal": 1000,
+            "microresourceCapacityFree": 2,
+            "microresourceCapacityUsed": 998,
+            "microresourceCapacityReserved": 12,
+            "squadronBankTotal": 0
+        },
+        "itinerary": {
+            "completed": [
+                {
+                    "departureTime": "2025-11-25 05:42:00",
+                    "arrivalTime": "2025-11-19 23:39:00",
+                    "state": "success",
+                    "visitDurationSeconds": 453780,
+                    "starsystem": "Bleae Thua NI-B b27-5"
+                },
+                {
+                    "departureTime": "2025-11-26 01:51:00",
+                    "arrivalTime": "2025-11-25 05:42:00",
+                    "state": "success",
+                    "visitDurationSeconds": 72540,
+                    "starsystem": "Bleae Thua ZE-I b23-1"
+                },
+                {
+                    "departureTime": "2025-11-26 06:32:00",
+                    "arrivalTime": "2025-11-26 01:51:00",
+                    "state": "success",
+                    "visitDurationSeconds": 16860,
+                    "starsystem": "Bleae Thua NI-B b27-5"
+                },
+                {
+                    "departureTime": "2025-11-26 08:50:00",
+                    "arrivalTime": "2025-11-26 06:32:00",
+                    "state": "success",
+                    "visitDurationSeconds": 8280,
+                    "starsystem": "Bleae Thua ZE-I b23-1"
+                },
+                {
+                    "departureTime": "2025-11-26 19:40:00",
+                    "arrivalTime": "2025-11-26 08:50:00",
+                    "state": "success",
+                    "visitDurationSeconds": 39000,
+                    "starsystem": "Bleae Thua NI-B b27-5"
+                },
+                {
+                    "departureTime": "2025-11-27 01:13:00",
+                    "arrivalTime": "2025-11-26 19:40:00",
+                    "state": "success",
+                    "visitDurationSeconds": 19980,
+                    "starsystem": "Bleae Thua ZE-I b23-1"
+                },
+                {
+                    "departureTime": "2025-11-29 21:47:00",
+                    "arrivalTime": "2025-11-27 01:13:00",
+                    "state": "success",
+                    "visitDurationSeconds": 246840,
+                    "starsystem": "Bleae Thua ZE-I b23-1"
+                },
+                {
+                    "departureTime": "2025-11-30 06:03:00",
+                    "arrivalTime": "2025-11-29 21:47:00",
+                    "state": "success",
+                    "visitDurationSeconds": 29760,
+                    "starsystem": "Bleae Thua NI-B b27-5"
+                },
+                {
+                    "departureTime": "2025-12-01 03:58:00",
+                    "arrivalTime": "2025-11-30 06:03:00",
+                    "state": "success",
+                    "visitDurationSeconds": 78900,
+                    "starsystem": "Bleae Thua ZE-I b23-1"
+                },
+                {
+                    "departureTime": "2025-12-01 04:32:00",
+                    "arrivalTime": "2025-12-01 03:58:00",
+                    "state": "success",
+                    "visitDurationSeconds": 2040,
+                    "starsystem": "Bleae Thua ZE-I b23-1"
+                },
+                {
+                    "departureTime": "2025-12-02 06:09:00",
+                    "arrivalTime": "2025-12-01 04:32:00",
+                    "state": "success",
+                    "visitDurationSeconds": 92220,
+                    "starsystem": "Bleae Thua NI-B b27-5"
+                },
+                {
+                    "departureTime": "2025-12-02 07:09:00",
+                    "arrivalTime": "2025-12-02 06:09:00",
+                    "state": "success",
+                    "visitDurationSeconds": 3600,
+                    "starsystem": "M20 Sector QY-O b7-0"
+                },
+                {
+                    "departureTime": "2025-12-02 07:33:00",
+                    "arrivalTime": "2025-12-02 07:09:00",
+                    "state": "success",
+                    "visitDurationSeconds": 1440,
+                    "starsystem": "Bleae Thua NI-B b27-5"
+                },
+                {
+                    "departureTime": "2025-12-02 23:19:00",
+                    "arrivalTime": "2025-12-02 07:33:00",
+                    "state": "success",
+                    "visitDurationSeconds": 56760,
+                    "starsystem": "Bleae Thua ZE-I b23-1"
+                },
+                {
+                    "departureTime": "2025-12-03 07:33:00",
+                    "arrivalTime": "2025-12-02 23:19:00",
+                    "state": "success",
+                    "visitDurationSeconds": 29640,
+                    "starsystem": "Bleae Thua ZE-I b23-1"
+                },
+                {
+                    "departureTime": "2025-12-03 22:38:00",
+                    "arrivalTime": "2025-12-03 07:33:00",
+                    "state": "success",
+                    "visitDurationSeconds": 54300,
+                    "starsystem": "Bleae Thua ZE-I b23-1"
+                },
+                {
+                    "departureTime": "2025-12-04 03:15:00",
+                    "arrivalTime": "2025-12-03 22:38:00",
+                    "state": "success",
+                    "visitDurationSeconds": 16620,
+                    "starsystem": "Bleae Thua ZE-I b23-1"
+                },
+                {
+                    "departureTime": "2025-12-04 03:43:00",
+                    "arrivalTime": "2025-12-04 03:15:00",
+                    "state": "success",
+                    "visitDurationSeconds": 1680,
+                    "starsystem": "Bleae Thua HH-A b4"
+                },
+                {
+                    "departureTime": "2025-12-04 04:04:00",
+                    "arrivalTime": "2025-12-04 03:43:00",
+                    "state": "success",
+                    "visitDurationSeconds": 1260,
+                    "starsystem": "M7 Sector GM-V d2-84"
+                },
+                {
+                    "departureTime": "2025-12-04 04:32:00",
+                    "arrivalTime": "2025-12-04 04:04:00",
+                    "state": "success",
+                    "visitDurationSeconds": 1680,
+                    "starsystem": "Corona Austr. Dark Region GR-V c2-35"
+                },
+                {
+                    "departureTime": "2025-12-04 05:42:00",
+                    "arrivalTime": "2025-12-04 04:32:00",
+                    "state": "success",
+                    "visitDurationSeconds": 4200,
+                    "starsystem": "LTT 8906"
+                },
+                {
+                    "departureTime": "2025-12-05 01:15:00",
+                    "arrivalTime": "2025-12-04 05:42:00",
+                    "state": "success",
+                    "visitDurationSeconds": 70380,
+                    "starsystem": "Col 359 Sector GK-L b10-0"
+                },
+                {
+                    "departureTime": null,
+                    "arrivalTime": "2025-12-05 01:15:00",
+                    "state": "success",
+                    "visitDurationSeconds": 186321,
+                    "starsystem": "LTT 8906"
+                }
+            ],
+            "totalDistanceJumpedLY": 4502,
+            "currentJump": null
+        },
+        "marketFinances": {
+            "cargoTotalValue": 46263848,
+            "allTimeProfit": 2313548790,
+            "numCommodsForSale": 52,
+            "numCommodsPurchaseOrders": 2,
+            "balanceAllocForPurchaseOrders": 12324926
+        },
+        "blackmarketFinances": {
+            "cargoTotalValue": 0,
+            "allTimeProfit": 0,
+            "numCommodsForSale": 0,
+            "numCommodsPurchaseOrders": 0,
+            "balanceAllocForPurchaseOrders": 0
+        },
+        "finance": {
+            "bankBalance": 34125177962,
+            "bankReservedBalance": 9149269451,
+            "taxation": 0,
+            "service_taxation": {
+                "bartender": 0,
+                "pioneersupplies": 0,
+                "rearm": 0,
+                "refuel": 0,
+                "repair": 0,
+                "shipyard": 0,
+                "outfitting": 0
+            },
+            "numServices": 11,
+            "numOptionalServices": 0,
+            "debtThreshold": -300000000,
+            "maintenance": 19656524,
+            "maintenanceToDate": 11140340,
+            "coreCost": 5000000,
+            "servicesCost": 14556524,
+            "servicesCostToDate": 6040340,
+            "jumpsCost": 100000,
+            "numJumps": 1,
+            "bartender": {
+                "microresourcesTotalValue": 7170900,
+                "allTimeProfit": 0,
+                "microresourcesForSale": 3,
+                "microresourcesPurchaseOrders": 0,
+                "balanceAllocForPurchaseOrders": 163000,
+                "profitHistory": [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0
+                ]
+            }
+        },
+        "servicesCrew": {
+            "refuel": {
+                "crewMember": {
+                    "name": "Deanna Short",
+                    "gender": "F",
+                    "enabled": "YES",
+                    "faction": "federation",
+                    "salary": 1500000,
+                    "hiringPrice": 40000000,
+                    "lastEdit": "2025-12-04 07:30:01"
+                },
+                "invoicesWeekToDate": [
+                    {
+                        "wages": 620582,
+                        "from": "2025-12-04 07:30:01",
+                        "until": "2025-12-07 05:00:20",
+                        "type": "current"
+                    },
+                    {
+                        "wages": 1495533,
+                        "from": "2025-12-07 05:00:20",
+                        "until": "2025-12-11 07:00:00",
+                        "type": "expected"
+                    }
+                ],
+                "status": "ok"
+            },
+            "repair": {
+                "crewMember": {
+                    "name": "Kayli Arnold",
+                    "gender": "F",
+                    "enabled": "YES",
+                    "faction": "empire",
+                    "salary": 1500000,
+                    "hiringPrice": 50000000,
+                    "lastEdit": "2025-12-04 07:30:01"
+                },
+                "invoicesWeekToDate": [
+                    {
+                        "wages": 620582,
+                        "from": "2025-12-04 07:30:01",
+                        "until": "2025-12-07 05:00:20",
+                        "type": "current"
+                    },
+                    {
+                        "wages": 1495533,
+                        "from": "2025-12-07 05:00:20",
+                        "until": "2025-12-11 07:00:00",
+                        "type": "expected"
+                    }
+                ],
+                "status": "ok"
+            },
+            "rearm": {
+                "crewMember": {
+                    "name": "Tim Welch",
+                    "gender": "M",
+                    "enabled": "YES",
+                    "faction": "federation",
+                    "salary": 1500000,
+                    "hiringPrice": 95000000,
+                    "lastEdit": "2025-12-04 07:30:01"
+                },
+                "invoicesWeekToDate": [
+                    {
+                        "wages": 620582,
+                        "from": "2025-12-04 07:30:01",
+                        "until": "2025-12-07 05:00:20",
+                        "type": "current"
+                    },
+                    {
+                        "wages": 1495533,
+                        "from": "2025-12-07 05:00:20",
+                        "until": "2025-12-11 07:00:00",
+                        "type": "expected"
+                    }
+                ],
+                "status": "ok"
+            },
+            "exploration": {
+                "crewMember": {
+                    "name": "Sebastian Cobb",
+                    "gender": "M",
+                    "enabled": "YES",
+                    "faction": "federation",
+                    "salary": 1850000,
+                    "hiringPrice": 150000000,
+                    "lastEdit": "2025-12-04 07:30:01"
+                },
+                "invoicesWeekToDate": [
+                    {
+                        "wages": 765385,
+                        "from": "2025-12-04 07:30:01",
+                        "until": "2025-12-07 05:00:20",
+                        "type": "current"
+                    },
+                    {
+                        "wages": 1844490,
+                        "from": "2025-12-07 05:00:20",
+                        "until": "2025-12-11 07:00:00",
+                        "type": "expected"
+                    }
+                ],
+                "status": "ok"
+            },
+            "bartender": {
+                "crewMember": {
+                    "name": "Kendra Fisher",
+                    "gender": "F",
+                    "enabled": "YES",
+                    "faction": "empire",
+                    "salary": 1750000,
+                    "hiringPrice": 200000000,
+                    "lastEdit": "2025-12-04 07:30:01"
+                },
+                "invoicesWeekToDate": [
+                    {
+                        "wages": 724013,
+                        "from": "2025-12-04 07:30:01",
+                        "until": "2025-12-07 05:00:20",
+                        "type": "current"
+                    },
+                    {
+                        "wages": 1744788,
+                        "from": "2025-12-07 05:00:20",
+                        "until": "2025-12-11 07:00:00",
+                        "type": "expected"
+                    }
+                ],
+                "status": "ok"
+            },
+            "vistagenomics": {
+                "crewMember": {
+                    "name": "Elmo Mckinney",
+                    "gender": "M",
+                    "enabled": "YES",
+                    "faction": "federation",
+                    "salary": 1500000,
+                    "hiringPrice": 150000000,
+                    "lastEdit": "2025-12-04 07:30:01"
+                },
+                "invoicesWeekToDate": [
+                    {
+                        "wages": 620582,
+                        "from": "2025-12-04 07:30:01",
+                        "until": "2025-12-07 05:00:20",
+                        "type": "current"
+                    },
+                    {
+                        "wages": 1495533,
+                        "from": "2025-12-07 05:00:20",
+                        "until": "2025-12-11 07:00:00",
+                        "type": "expected"
+                    }
+                ],
+                "status": "ok"
+            },
+            "pioneersupplies": {
+                "crewMember": {
+                    "name": "Calvin Barnes",
+                    "gender": "M",
+                    "enabled": "YES",
+                    "faction": "independent",
+                    "salary": 5000000,
+                    "hiringPrice": 250000000,
+                    "lastEdit": "2025-12-04 07:30:01"
+                },
+                "invoicesWeekToDate": [
+                    {
+                        "wages": 2068609,
+                        "from": "2025-12-04 07:30:01",
+                        "until": "2025-12-07 05:00:20",
+                        "type": "current"
+                    },
+                    {
+                        "wages": 4985110,
+                        "from": "2025-12-07 05:00:20",
+                        "until": "2025-12-11 07:00:00",
+                        "type": "expected"
+                    }
+                ],
+                "status": "ok"
+            }
+        },
+        "cargo": [
+            {
+                "commodity": "Unknownartifact",
+                "originSystem": 285338470723,
+                "mission": false,
+                "qty": 3,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Sensor"
+            },
+            {
+                "commodity": "Unknownartifact",
+                "originSystem": 285338470723,
+                "mission": false,
+                "qty": 3,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Sensor"
+            },
+            {
+                "commodity": "Unknownartifact",
+                "originSystem": 285338470723,
+                "mission": false,
+                "qty": 3,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Sensor"
+            },
+            {
+                "commodity": "Unknownartifact",
+                "originSystem": 285338470723,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Sensor"
+            },
+            {
+                "commodity": "Unknownartifact",
+                "originSystem": 285338470723,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Sensor"
+            },
+            {
+                "commodity": "Thargoidgeneratortissuesample",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 2,
+                "value": 0,
+                "stolen": false,
+                "locName": "Caustic Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidtissuesampletype5",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Orthrus Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidtissuesampletype7",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 2,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Scythe Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidheart",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Heart"
+            },
+            {
+                "commodity": "Thargoidgeneratortissuesample",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Caustic Tissue Sample"
+            },
+            {
+                "commodity": "Unknownartifact",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Sensor"
+            },
+            {
+                "commodity": "Thargoidtissuesampletype9a",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Titan Deep Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidtissuesampletype9b",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 2,
+                "value": 0,
+                "stolen": false,
+                "locName": "Titan Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidtissuesampletype9c",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Titan Partial Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidtissuesampletype7",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 2,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Scythe Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidheart",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 2,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Heart"
+            },
+            {
+                "commodity": "Thargoidgeneratortissuesample",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Caustic Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidtissuesampletype9a",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Titan Deep Tissue Sample"
+            },
+            {
+                "commodity": "Unknownresin",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Resin"
+            },
+            {
+                "commodity": "Unknownresin",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Resin"
+            },
+            {
+                "commodity": "Thargoidheart",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 2,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Heart"
+            },
+            {
+                "commodity": "Thargoidgeneratortissuesample",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Caustic Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidtissuesampletype9a",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 2,
+                "value": 0,
+                "stolen": false,
+                "locName": "Titan Deep Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidtissuesampletype9c",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Titan Partial Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidheart",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 3,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Heart"
+            },
+            {
+                "commodity": "Thargoidtissuesampletype9a",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 2,
+                "value": 0,
+                "stolen": false,
+                "locName": "Titan Deep Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidtitandrivecomponent",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 2,
+                "value": 0,
+                "stolen": false,
+                "locName": "Titan Drive Component"
+            },
+            {
+                "commodity": "Thargoidpod",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 6,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Bio-storage Capsule"
+            },
+            {
+                "commodity": "Thargoidtissuesampletype9a",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Titan Deep Tissue Sample"
+            },
+            {
+                "commodity": "Thargoidtitandrivecomponent",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Titan Drive Component"
+            },
+            {
+                "commodity": "Thargoidheart",
+                "originSystem": 13866167510393,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Thargoid Heart"
+            },
+            {
+                "commodity": "Platinum",
+                "originSystem": 220354045116,
+                "mission": false,
+                "qty": 4,
+                "value": 0,
+                "stolen": false,
+                "locName": "Platinum"
+            },
+            {
+                "commodity": "Platinum",
+                "originSystem": 220354045116,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": false,
+                "locName": "Platinum"
+            },
+            {
+                "commodity": "Tritium",
+                "originSystem": null,
+                "mission": false,
+                "qty": 823,
+                "value": 40691589,
+                "stolen": false,
+                "locName": "Tritium"
+            },
+            {
+                "commodity": "Ancientrelictg",
+                "originSystem": 2833906537146,
+                "mission": false,
+                "qty": 4,
+                "value": 0,
+                "stolen": false,
+                "locName": "Unclassified Relic"
+            },
+            {
+                "commodity": "Survivalequipment",
+                "originSystem": null,
+                "mission": false,
+                "qty": 42,
+                "value": 27576,
+                "stolen": false,
+                "locName": "Survival Equipment"
+            },
+            {
+                "commodity": "Buildingfabricators",
+                "originSystem": null,
+                "mission": false,
+                "qty": 165,
+                "value": 366243,
+                "stolen": false,
+                "locName": "Building Fabricators"
+            },
+            {
+                "commodity": "Waterpurifiers",
+                "originSystem": null,
+                "mission": false,
+                "qty": 2,
+                "value": 692,
+                "stolen": false,
+                "locName": "Water Purifiers"
+            },
+            {
+                "commodity": "Geologicalequipment",
+                "originSystem": null,
+                "mission": false,
+                "qty": 27,
+                "value": 44604,
+                "stolen": false,
+                "locName": "Geological Equipment"
+            },
+            {
+                "commodity": "Basicmedicines",
+                "originSystem": null,
+                "mission": false,
+                "qty": 14,
+                "value": 5068,
+                "stolen": false,
+                "locName": "Basic Medicines"
+            },
+            {
+                "commodity": "Surfacestabilisers",
+                "originSystem": null,
+                "mission": false,
+                "qty": 204,
+                "value": 136680,
+                "stolen": false,
+                "locName": "Surface Stabilisers"
+            },
+            {
+                "commodity": "Evacuationshelter",
+                "originSystem": null,
+                "mission": false,
+                "qty": 63,
+                "value": 31500,
+                "stolen": false,
+                "locName": "Evacuation Shelter"
+            },
+            {
+                "commodity": "Thermalcoolingunits",
+                "originSystem": null,
+                "mission": false,
+                "qty": 42,
+                "value": 155400,
+                "stolen": false,
+                "locName": "Thermal Cooling Units"
+            },
+            {
+                "commodity": "Resonatingseparators",
+                "originSystem": null,
+                "mission": false,
+                "qty": 42,
+                "value": 240114,
+                "stolen": false,
+                "locName": "Resonating Separators"
+            },
+            {
+                "commodity": "Structuralregulators",
+                "originSystem": null,
+                "mission": false,
+                "qty": 130,
+                "value": 248170,
+                "stolen": false,
+                "locName": "Structural Regulators"
+            },
+            {
+                "commodity": "Ceramiccomposites",
+                "originSystem": null,
+                "mission": false,
+                "qty": 165,
+                "value": 66330,
+                "stolen": false,
+                "locName": "Ceramic Composites"
+            },
+            {
+                "commodity": "Emergencypowercells",
+                "originSystem": null,
+                "mission": false,
+                "qty": 84,
+                "value": 195216,
+                "stolen": false,
+                "locName": "Emergency Power Cells"
+            },
+            {
+                "commodity": "Powergenerators",
+                "originSystem": null,
+                "mission": false,
+                "qty": 5,
+                "value": 9615,
+                "stolen": false,
+                "locName": "Power Generators"
+            },
+            {
+                "commodity": "Mineralextractors",
+                "originSystem": null,
+                "mission": false,
+                "qty": 492,
+                "value": 389172,
+                "stolen": false,
+                "locName": "Mineral Extractors"
+            },
+            {
+                "commodity": "Heliostaticfurnaces",
+                "originSystem": null,
+                "mission": false,
+                "qty": 246,
+                "value": 102828,
+                "stolen": false,
+                "locName": "Microbial Furnaces"
+            },
+            {
+                "commodity": "Advancedcatalysers",
+                "originSystem": null,
+                "mission": false,
+                "qty": 123,
+                "value": 352149,
+                "stolen": false,
+                "locName": "Advanced Catalysers"
+            },
+            {
+                "commodity": "Microcontrollers",
+                "originSystem": null,
+                "mission": false,
+                "qty": 42,
+                "value": 226968,
+                "stolen": false,
+                "locName": "Micro Controllers"
+            },
+            {
+                "commodity": "Structuralregulators",
+                "originSystem": null,
+                "mission": false,
+                "qty": 74,
+                "value": 141266,
+                "stolen": false,
+                "locName": "Structural Regulators"
+            },
+            {
+                "commodity": "Hazardousenvironmentsuits",
+                "originSystem": null,
+                "mission": false,
+                "qty": 42,
+                "value": 21756,
+                "stolen": false,
+                "locName": "H.E. Suits"
+            },
+            {
+                "commodity": "Robotics",
+                "originSystem": null,
+                "mission": false,
+                "qty": 165,
+                "value": 315975,
+                "stolen": false,
+                "locName": "Robotics"
+            },
+            {
+                "commodity": "Steel",
+                "originSystem": null,
+                "mission": false,
+                "qty": 471,
+                "value": 1963599,
+                "stolen": false,
+                "locName": "Steel"
+            },
+            {
+                "commodity": "Aluminium",
+                "originSystem": null,
+                "mission": false,
+                "qty": 208,
+                "value": 528320,
+                "stolen": false,
+                "locName": "Aluminium"
+            },
+            {
+                "commodity": "Fish",
+                "originSystem": 7505757278946,
+                "mission": false,
+                "qty": 1,
+                "value": 0,
+                "stolen": true,
+                "locName": "Fish"
+            },
+            {
+                "commodity": "Tea",
+                "originSystem": null,
+                "mission": false,
+                "qty": 2,
+                "value": 3018,
+                "stolen": false,
+                "locName": "Tea"
+            }
+        ],
+        "orders": {
+            "commodities": {
+                "sales": [
+                    {
+                        "name": "water",
+                        "stock": "0",
+                        "price": "260",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "titanium",
+                        "stock": "0",
+                        "price": "4446",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "copper",
+                        "stock": "0",
+                        "price": "631",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "aluminium",
+                        "stock": "208",
+                        "price": "2540",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "fruitandvegetables",
+                        "stock": "0",
+                        "price": "483",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "grain",
+                        "stock": "0",
+                        "price": "387",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "foodcartridges",
+                        "stock": "0",
+                        "price": "252",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "polymers",
+                        "stock": "0",
+                        "price": "306",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "semiconductors",
+                        "stock": "0",
+                        "price": "1084",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "superconductors",
+                        "stock": "0",
+                        "price": "6551",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "pesticides",
+                        "stock": "0",
+                        "price": "412",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "agriculturalmedicines",
+                        "stock": "0",
+                        "price": "1197",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "basicmedicines",
+                        "stock": "14",
+                        "price": "489",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "beer",
+                        "stock": "0",
+                        "price": "350",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "powergenerators",
+                        "stock": "5",
+                        "price": "2388",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "waterpurifiers",
+                        "stock": "2",
+                        "price": "447",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "heliostaticfurnaces",
+                        "stock": "246",
+                        "price": "418",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "mineralextractors",
+                        "stock": "492",
+                        "price": "791",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "cropharvesters",
+                        "stock": "0",
+                        "price": "2211",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "computercomponents",
+                        "stock": "0",
+                        "price": "708",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "hazardousenvironmentsuits",
+                        "stock": "42",
+                        "price": "518",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "robotics",
+                        "stock": "165",
+                        "price": "1915",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "advancedcatalysers",
+                        "stock": "123",
+                        "price": "2888",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "terrainenrichmentsystems",
+                        "stock": "0",
+                        "price": "4693",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "battleweapons",
+                        "stock": "0",
+                        "price": "7137",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "reactivearmour",
+                        "stock": "0",
+                        "price": "2102",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "nonlethalweapons",
+                        "stock": "0",
+                        "price": "1848",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "biowaste",
+                        "stock": "0",
+                        "price": "271",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "combatstabilisers",
+                        "stock": "0",
+                        "price": "3392",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "resonatingseparators",
+                        "stock": "42",
+                        "price": "5692",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "bioreducinglichen",
+                        "stock": "0",
+                        "price": "1178",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "osmium",
+                        "stock": "0",
+                        "price": "44051",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "ceramiccomposites",
+                        "stock": "165",
+                        "price": "402",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "surfacestabilisers",
+                        "stock": "204",
+                        "price": "668",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "geologicalequipment",
+                        "stock": "27",
+                        "price": "1830",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "thermalcoolingunits",
+                        "stock": "42",
+                        "price": "3700",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "buildingfabricators",
+                        "stock": "165",
+                        "price": "2224",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "mutomimager",
+                        "stock": "0",
+                        "price": "6166",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "structuralregulators",
+                        "stock": "204",
+                        "price": "1909",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "evacuationshelter",
+                        "stock": "63",
+                        "price": "500",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "metaalloys",
+                        "stock": "0",
+                        "price": "9773",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "bromellite",
+                        "stock": "0",
+                        "price": "1522",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "liquidoxygen",
+                        "stock": "0",
+                        "price": "1375",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "insulatingmembrane",
+                        "stock": "0",
+                        "price": "10605",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "cmmcomposite",
+                        "stock": "0",
+                        "price": "5972",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "neofabricinsulation",
+                        "stock": "0",
+                        "price": "5046",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "emergencypowercells",
+                        "stock": "84",
+                        "price": "2308",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "microcontrollers",
+                        "stock": "42",
+                        "price": "5404",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "militarygradefabrics",
+                        "stock": "0",
+                        "price": "899",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "medicaldiagnosticequipment",
+                        "stock": "0",
+                        "price": "2944",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "survivalequipment",
+                        "stock": "42",
+                        "price": "666",
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "steel",
+                        "stock": "471",
+                        "price": "4186",
+                        "blackmarket": false
+                    }
+                ],
+                "purchases": [
+                    {
+                        "name": "tritium",
+                        "total": 169,
+                        "outstanding": 169,
+                        "price": 51294,
+                        "blackmarket": false
+                    },
+                    {
+                        "name": "thargoidtitandrivecomponent",
+                        "total": 10,
+                        "outstanding": 10,
+                        "price": 365624,
+                        "blackmarket": false
+                    }
+                ]
+            },
+            "onfootmicroresources": {
+                "sales": [],
+                "purchases": [
+                    {
+                        "name": "accidentlogs",
+                        "locName": "Accident Logs",
+                        "total": 2,
+                        "outstanding": 2,
+                        "price": 4000
+                    },
+                    {
+                        "name": "opinionpolls",
+                        "locName": "Opinion Polls",
+                        "total": 10,
+                        "outstanding": 5,
+                        "price": 5000
+                    },
+                    {
+                        "name": "smearcampaignplans",
+                        "locName": "Smear Campaign Plans",
+                        "total": 10,
+                        "outstanding": 5,
+                        "price": 26000
+                    }
+                ]
+            }
+        },
+        "carrierLocker": {
+            "assets": [
+                {
+                    "id": 128064021,
+                    "quantity": 163,
+                    "name": "graphene",
+                    "locName": "Graphene"
+                },
+                {
+                    "id": 128961532,
+                    "quantity": 10,
+                    "name": "electricalwiring",
+                    "locName": "Electrical Wiring"
+                },
+                {
+                    "id": 128961533,
+                    "quantity": 11,
+                    "name": "encryptedmemorychip",
+                    "locName": "Encrypted Memory Chip"
+                },
+                {
+                    "id": 128961538,
+                    "quantity": 48,
+                    "name": "metalcoil",
+                    "locName": "Metal Coil"
+                },
+                {
+                    "id": 128961544,
+                    "quantity": 31,
+                    "name": "opticalfibre",
+                    "locName": "Optical Fibre"
+                },
+                {
+                    "id": 128965844,
+                    "quantity": 74,
+                    "name": "ionbattery",
+                    "locName": "Ion Battery"
+                },
+                {
+                    "id": 128961540,
+                    "quantity": 11,
+                    "name": "microsupercapacitor",
+                    "locName": "Micro Supercapacitor"
+                },
+                {
+                    "id": 128961541,
+                    "quantity": 5,
+                    "name": "microthrusters",
+                    "locName": "Micro Thrusters"
+                },
+                {
+                    "id": 128961542,
+                    "quantity": 50,
+                    "name": "microtransformer",
+                    "locName": "Micro Transformer"
+                },
+                {
+                    "id": 128961543,
+                    "quantity": 8,
+                    "name": "motor",
+                    "locName": "Motor"
+                },
+                {
+                    "id": 128961524,
+                    "quantity": 0,
+                    "name": "aerogel",
+                    "locName": "Aerogel"
+                },
+                {
+                    "id": 128961549,
+                    "quantity": 0,
+                    "name": "titaniumplating",
+                    "locName": "Titanium Plating"
+                },
+                {
+                    "id": 128961530,
+                    "quantity": 17,
+                    "name": "circuitswitch",
+                    "locName": "Circuit Switch"
+                },
+                {
+                    "id": 128962573,
+                    "quantity": 20,
+                    "name": "electromagnet",
+                    "locName": "Electromagnet"
+                },
+                {
+                    "id": 128964025,
+                    "quantity": 90,
+                    "name": "microelectrode",
+                    "locName": "Microelectrode"
+                },
+                {
+                    "id": 128961531,
+                    "quantity": 0,
+                    "name": "electricalfuse",
+                    "locName": "Electrical Fuse"
+                },
+                {
+                    "id": 128961545,
+                    "quantity": 9,
+                    "name": "opticallens",
+                    "locName": "Optical Lens"
+                },
+                {
+                    "id": 128961551,
+                    "quantity": 10,
+                    "name": "tungstencarbide",
+                    "locName": "Tungsten Carbide"
+                },
+                {
+                    "id": 128961552,
+                    "quantity": 11,
+                    "name": "viscoelasticpolymer",
+                    "locName": "Viscoelastic Polymer"
+                },
+                {
+                    "id": 128965845,
+                    "quantity": 0,
+                    "name": "weaponcomponent",
+                    "locName": "Weapon Component"
+                },
+                {
+                    "id": 128961528,
+                    "quantity": 0,
+                    "name": "chemicalsuperbase",
+                    "locName": "Chemical Superbase"
+                },
+                {
+                    "id": 128961526,
+                    "quantity": 3,
+                    "name": "carbonfibreplating",
+                    "locName": "Carbon Fibre Plating"
+                },
+                {
+                    "id": 128961527,
+                    "quantity": 4,
+                    "name": "chemicalcatalyst",
+                    "locName": "Chemical Catalyst"
+                },
+                {
+                    "id": 128961529,
+                    "quantity": 0,
+                    "name": "circuitboard",
+                    "locName": "Circuit Board"
+                },
+                {
+                    "id": 128961534,
+                    "quantity": 10,
+                    "name": "epoxyadhesive",
+                    "locName": "Epoxy Adhesive"
+                },
+                {
+                    "id": 128961537,
+                    "quantity": 16,
+                    "name": "memorychip",
+                    "locName": "Memory Chip"
+                },
+                {
+                    "id": 128961539,
+                    "quantity": 5,
+                    "name": "microhydraulics",
+                    "locName": "Micro Hydraulics"
+                },
+                {
+                    "id": 128961547,
+                    "quantity": 11,
+                    "name": "scrambler",
+                    "locName": "Scrambler"
+                },
+                {
+                    "id": 128961550,
+                    "quantity": 6,
+                    "name": "transmitter",
+                    "locName": "Transmitter"
+                },
+                {
+                    "id": 128962572,
+                    "quantity": 3,
+                    "name": "rdx",
+                    "locName": "RDX"
+                },
+                {
+                    "id": 128962574,
+                    "quantity": 6,
+                    "name": "oxygenicbacteria",
+                    "locName": "Oxygenic Bacteria"
+                },
+                {
+                    "id": 128962575,
+                    "quantity": 6,
+                    "name": "epinephrine",
+                    "locName": "Epinephrine"
+                }
+            ],
+            "goods": [
+                {
+                    "id": 128961565,
+                    "quantity": 0,
+                    "name": "gmeds",
+                    "locName": "G-Meds"
+                },
+                {
+                    "id": 128961566,
+                    "quantity": 0,
+                    "name": "healthmonitor",
+                    "locName": "Health Monitor"
+                },
+                {
+                    "id": 128961570,
+                    "quantity": 0,
+                    "name": "ionisedgas",
+                    "locName": "Ionised Gas"
+                },
+                {
+                    "id": 128965840,
+                    "quantity": 0,
+                    "name": "compressionliquefiedgas",
+                    "locName": "Compression-Liquefied Gas"
+                },
+                {
+                    "id": 128962609,
+                    "quantity": 0,
+                    "name": "suitschematic",
+                    "locName": "Suit Schematic"
+                },
+                {
+                    "id": 128965842,
+                    "quantity": 0,
+                    "name": "largecapacitypowerregulator",
+                    "locName": "Power Regulator"
+                },
+                {
+                    "id": 128962602,
+                    "quantity": 31,
+                    "name": "insightentertainmentsuite",
+                    "locName": "Insight Entertainment Suite"
+                },
+                {
+                    "id": 128962603,
+                    "quantity": 0,
+                    "name": "lazarus",
+                    "locName": "Lazarus"
+                },
+                {
+                    "id": 128962607,
+                    "quantity": 0,
+                    "name": "push",
+                    "locName": "Push"
+                },
+                {
+                    "id": 128962610,
+                    "quantity": 0,
+                    "name": "surveillanceequipment",
+                    "locName": "Surveillance Equipment"
+                },
+                {
+                    "id": 128962612,
+                    "quantity": 0,
+                    "name": "universaltranslator",
+                    "locName": "Universal Translator"
+                },
+                {
+                    "id": 128962600,
+                    "quantity": 6,
+                    "name": "hush",
+                    "locName": "Hush"
+                },
+                {
+                    "id": 128962613,
+                    "quantity": 1,
+                    "name": "vehicleschematic",
+                    "locName": "Vehicle Schematic"
+                },
+                {
+                    "id": 128965835,
+                    "quantity": 2,
+                    "name": "pyrolyticcatalyst",
+                    "locName": "Pyrolytic Catalyst"
+                },
+                {
+                    "id": 128962315,
+                    "quantity": 11,
+                    "name": "geneticrepairmeds",
+                    "locName": "Genetic Repair Meds"
+                },
+                {
+                    "id": 128962597,
+                    "quantity": 1,
+                    "name": "buildingschematic",
+                    "locName": "Building Schematic"
+                },
+                {
+                    "id": 128962614,
+                    "quantity": 8,
+                    "name": "weaponschematic",
+                    "locName": "Weapon Schematic"
+                },
+                {
+                    "id": 128961554,
+                    "quantity": 2,
+                    "name": "biochemicalagent",
+                    "locName": "Biochemical Agent"
+                },
+                {
+                    "id": 128962606,
+                    "quantity": 1,
+                    "name": "personaldocuments",
+                    "locName": "Personal Documents"
+                }
+            ],
+            "data": [
+                {
+                    "id": 128972342,
+                    "quantity": 14,
+                    "name": "opinionpolls",
+                    "locName": "Opinion Polls"
+                },
+                {
+                    "id": 128972331,
+                    "quantity": 0,
+                    "name": "manufacturinginstructions",
+                    "locName": "Manufacturing Instructions"
+                },
+                {
+                    "id": 128972341,
+                    "quantity": 0,
+                    "name": "operationalmanual",
+                    "locName": "Operational Manual"
+                },
+                {
+                    "id": 128972296,
+                    "quantity": 0,
+                    "name": "chemicalpatents",
+                    "locName": "Chemical Patents"
+                },
+                {
+                    "id": 128972291,
+                    "quantity": 7,
+                    "name": "catmedia",
+                    "locName": "Cat Media"
+                },
+                {
+                    "id": 128972298,
+                    "quantity": 10,
+                    "name": "classicentertainment",
+                    "locName": "Classic Entertainment"
+                },
+                {
+                    "id": 128972337,
+                    "quantity": 12,
+                    "name": "multimediaentertainment",
+                    "locName": "Multimedia Entertainment"
+                },
+                {
+                    "id": 128972367,
+                    "quantity": 5,
+                    "name": "smearcampaignplans",
+                    "locName": "Smear Campaign Plans"
+                },
+                {
+                    "id": 128972294,
+                    "quantity": 0,
+                    "name": "chemicalformulae",
+                    "locName": "Chemical Formulae"
+                },
+                {
+                    "id": 128972336,
+                    "quantity": 0,
+                    "name": "mininganalytics",
+                    "locName": "Mining Analytics"
+                },
+                {
+                    "id": 128972368,
+                    "quantity": 0,
+                    "name": "spectralanalysisdata",
+                    "locName": "Spectral Analysis Data"
+                },
+                {
+                    "id": 128972371,
+                    "quantity": 0,
+                    "name": "tacticalplans",
+                    "locName": "Tactical Plans"
+                },
+                {
+                    "id": 128972317,
+                    "quantity": 0,
+                    "name": "financialprojections",
+                    "locName": "Financial Projections"
+                },
+                {
+                    "id": 128972355,
+                    "quantity": 50,
+                    "name": "radioactivitydata",
+                    "locName": "Radioactivity Data"
+                },
+                {
+                    "id": 128972370,
+                    "quantity": 50,
+                    "name": "surveilleancelogs",
+                    "locName": "Surveillance Logs"
+                },
+                {
+                    "id": 128972300,
+                    "quantity": 0,
+                    "name": "combattrainingmaterial",
+                    "locName": "Combat Training Material"
+                },
+                {
+                    "id": 128972301,
+                    "quantity": 0,
+                    "name": "combatantperformance",
+                    "locName": "Combatant Performance"
+                },
+                {
+                    "id": 128972305,
+                    "quantity": 0,
+                    "name": "digitaldesigns",
+                    "locName": "Digital Designs"
+                },
+                {
+                    "id": 128972309,
+                    "quantity": 0,
+                    "name": "employeegeneticdata",
+                    "locName": "Employee Genetic Data"
+                },
+                {
+                    "id": 128972335,
+                    "quantity": 0,
+                    "name": "mineralsurvey",
+                    "locName": "Mineral Survey"
+                },
+                {
+                    "id": 128972351,
+                    "quantity": 0,
+                    "name": "productionschedule",
+                    "locName": "Production Schedule"
+                },
+                {
+                    "id": 128972356,
+                    "quantity": 0,
+                    "name": "reactoroutputreview",
+                    "locName": "Reactor Output Review"
+                },
+                {
+                    "id": 128972357,
+                    "quantity": 0,
+                    "name": "recyclinglogs",
+                    "locName": "Recycling Logs"
+                },
+                {
+                    "id": 128972361,
+                    "quantity": 0,
+                    "name": "securityexpenses",
+                    "locName": "Security Expenses"
+                },
+                {
+                    "id": 128972384,
+                    "quantity": 0,
+                    "name": "weapontestdata",
+                    "locName": "Weapon Test Data"
+                },
+                {
+                    "id": 128964034,
+                    "quantity": 11,
+                    "name": "biometricdata",
+                    "locName": "Biometric Data"
+                },
+                {
+                    "id": 128972280,
+                    "quantity": 33,
+                    "name": "nocdata",
+                    "locName": "NOC Data"
+                },
+                {
+                    "id": 128972283,
+                    "quantity": 30,
+                    "name": "airqualityreports",
+                    "locName": "Air Quality Reports"
+                },
+                {
+                    "id": 128972284,
+                    "quantity": 38,
+                    "name": "atmosphericdata",
+                    "locName": "Atmospheric Data"
+                },
+                {
+                    "id": 128972285,
+                    "quantity": 10,
+                    "name": "audiologs",
+                    "locName": "Audio Logs"
+                },
+                {
+                    "id": 128972286,
+                    "quantity": 8,
+                    "name": "ballisticsdata",
+                    "locName": "Ballistics Data"
+                },
+                {
+                    "id": 128961514,
+                    "quantity": 0,
+                    "name": "spyware",
+                    "locName": "Spyware"
+                },
+                {
+                    "id": 128972383,
+                    "quantity": 7,
+                    "name": "weaponinventory",
+                    "locName": "Weapon Inventory"
+                }
+            ]
+        },
+        "reputation": [
+            {
+                "majorFaction": "empire",
+                "score": 100
+            },
+            {
+                "majorFaction": "federation",
+                "score": 100
+            },
+            {
+                "majorFaction": "independent",
+                "score": 100
+            }
+        ],
+        "market": {
+            "id": 3709409280,
+            "name": "T9M-33M",
+            "outpostType": "fleetcarrier",
+            "imported": [],
+            "exported": [],
+            "services": {
+                "commodities": "ok",
+                "carrierfuel": "ok",
+                "socialspace": "ok",
+                "shipyard": "private",
+                "refuel": "ok",
+                "repair": "ok",
+                "rearm": "ok",
+                "outfitting": "private",
+                "blackmarket": "unavailable",
+                "voucherredemption": "unavailable",
+                "exploration": "ok",
+                "bartender": "ok",
+                "vistagenomics": "ok",
+                "pioneersupplies": "ok",
+                "carriermanagement": "ok",
+                "stationmenu": "ok",
+                "dock": "ok",
+                "crewlounge": "ok",
+                "engineer": "ok",
+                "contacts": "ok",
+                "registeringcolonisation": "faction",
+                "livery": "private"
+            },
+            "economies": {
+                "136": {
+                    "name": "Carrier",
+                    "proportion": 1
+                }
+            },
+            "prohibited": [],
+            "commodities": [
+                {
+                    "id": 128672305,
+                    "categoryname": "Chemicals",
+                    "name": "SurfaceStabilisers",
+                    "stock": 204,
+                    "buyPrice": 668,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Surface Stabilisers"
+                },
+                {
+                    "id": 128961249,
+                    "categoryname": "Chemicals",
+                    "name": "Tritium",
+                    "stock": 0,
+                    "buyPrice": 0,
+                    "sellPrice": 51294,
+                    "demand": 169,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": 2,
+                    "stockBracket": "",
+                    "locName": "Tritium"
+                },
+                {
+                    "id": 128672314,
+                    "categoryname": "Consumer Items",
+                    "name": "EvacuationShelter",
+                    "stock": 63,
+                    "buyPrice": 500,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Evacuation Shelter"
+                },
+                {
+                    "id": 128682048,
+                    "categoryname": "Consumer Items",
+                    "name": "SurvivalEquipment",
+                    "stock": 42,
+                    "buyPrice": 666,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Survival Equipment"
+                },
+                {
+                    "id": 128672302,
+                    "categoryname": "Industrial Materials",
+                    "name": "CeramicComposites",
+                    "stock": 165,
+                    "buyPrice": 402,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Ceramic Composites"
+                },
+                {
+                    "id": 128672309,
+                    "categoryname": "Machinery",
+                    "name": "BuildingFabricators",
+                    "stock": 165,
+                    "buyPrice": 2224,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Building Fabricators"
+                },
+                {
+                    "id": 128673861,
+                    "categoryname": "Machinery",
+                    "name": "EmergencyPowerCells",
+                    "stock": 84,
+                    "buyPrice": 2308,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Emergency Power Cells"
+                },
+                {
+                    "id": 128672307,
+                    "categoryname": "Machinery",
+                    "name": "GeologicalEquipment",
+                    "stock": 27,
+                    "buyPrice": 1830,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Geological Equipment"
+                },
+                {
+                    "id": 128049220,
+                    "categoryname": "Machinery",
+                    "name": "HeliostaticFurnaces",
+                    "stock": 246,
+                    "buyPrice": 418,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Microbial Furnaces"
+                },
+                {
+                    "id": 128049221,
+                    "categoryname": "Machinery",
+                    "name": "MineralExtractors",
+                    "stock": 492,
+                    "buyPrice": 791,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Mineral Extractors"
+                },
+                {
+                    "id": 128049217,
+                    "categoryname": "Machinery",
+                    "name": "PowerGenerators",
+                    "stock": 5,
+                    "buyPrice": 2388,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Power Generators"
+                },
+                {
+                    "id": 128672308,
+                    "categoryname": "Machinery",
+                    "name": "ThermalCoolingUnits",
+                    "stock": 42,
+                    "buyPrice": 3700,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Thermal Cooling Units"
+                },
+                {
+                    "id": 128049218,
+                    "categoryname": "Machinery",
+                    "name": "WaterPurifiers",
+                    "stock": 2,
+                    "buyPrice": 447,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Water Purifiers"
+                },
+                {
+                    "id": 128049210,
+                    "categoryname": "Medicines",
+                    "name": "BasicMedicines",
+                    "stock": 14,
+                    "buyPrice": 489,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Basic Medicines"
+                },
+                {
+                    "id": 128049176,
+                    "categoryname": "Metals",
+                    "name": "Aluminium",
+                    "stock": 208,
+                    "buyPrice": 2540,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Aluminium"
+                },
+                {
+                    "id": 129031238,
+                    "categoryname": "Metals",
+                    "name": "Steel",
+                    "stock": 471,
+                    "buyPrice": 4186,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Steel"
+                },
+                {
+                    "id": 128066403,
+                    "categoryname": "NonMarketable",
+                    "name": "Drones",
+                    "stock": 999999,
+                    "buyPrice": 95,
+                    "sellPrice": 95,
+                    "demand": 9999999,
+                    "legality": "",
+                    "meanPrice": 95,
+                    "demandBracket": 2,
+                    "stockBracket": 2,
+                    "locName": "Limpet"
+                },
+                {
+                    "id": 129030459,
+                    "categoryname": "Salvage",
+                    "name": "ThargoidTitanDriveComponent",
+                    "stock": 0,
+                    "buyPrice": 0,
+                    "sellPrice": 365624,
+                    "demand": 10,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": 2,
+                    "stockBracket": "",
+                    "locName": "Titan Drive Component"
+                },
+                {
+                    "id": 128049231,
+                    "categoryname": "Technology",
+                    "name": "AdvancedCatalysers",
+                    "stock": 123,
+                    "buyPrice": 2888,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Advanced Catalysers"
+                },
+                {
+                    "id": 128049226,
+                    "categoryname": "Technology",
+                    "name": "HazardousEnvironmentSuits",
+                    "stock": 42,
+                    "buyPrice": 518,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "H.E. Suits"
+                },
+                {
+                    "id": 128673873,
+                    "categoryname": "Technology",
+                    "name": "MicroControllers",
+                    "stock": 42,
+                    "buyPrice": 5404,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Micro Controllers"
+                },
+                {
+                    "id": 128049671,
+                    "categoryname": "Technology",
+                    "name": "ResonatingSeparators",
+                    "stock": 42,
+                    "buyPrice": 5692,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Resonating Separators"
+                },
+                {
+                    "id": 128049227,
+                    "categoryname": "Technology",
+                    "name": "Robotics",
+                    "stock": 165,
+                    "buyPrice": 1915,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Robotics"
+                },
+                {
+                    "id": 128672311,
+                    "categoryname": "Technology",
+                    "name": "StructuralRegulators",
+                    "stock": 204,
+                    "buyPrice": 1909,
+                    "sellPrice": 0,
+                    "demand": 0,
+                    "legality": "",
+                    "meanPrice": 0,
+                    "demandBracket": "",
+                    "stockBracket": 2,
+                    "locName": "Structural Regulators"
+                }
+            ]
+        },
+        "ships": {
+            "shipyard_list": [],
+            "discount_list": []
+        },
+        "modules": [],
+        "timestamp": "2025-12-07T05:00:20Z"
+    }
+}

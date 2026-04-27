@@ -10,7 +10,7 @@ import requests
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
-from bgstally.constants import (DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DiscordChannel, FleetCarrierJump,
+from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DiscordChannel, FleetCarrierJump,
                                 FleetCarrierType)
 from bgstally.debug import Debug
 from bgstally.utils import _, __, catch_exceptions, get_by_path
@@ -361,8 +361,7 @@ class FleetCarrier:
             self.route = self.route[1:]
 
         # And put the next stop in the clipboard
-        if self.route != []:
-            Debug.logger.debug(f"Copying {self.route[0]['name']} to clipboard")
+        if self.route != [] and self.bgstally.ui.frame:
             self.bgstally.ui.frame.clipboard_clear()
             self.bgstally.ui.frame.update()
 
@@ -478,6 +477,9 @@ class FleetCarrier:
     def _update_itinerary(self, data:dict) -> list:
         """ Update our local itinerary data from CAPI data structure """
 
+        if not self.itinerary:
+            self.itinerary = []
+
         if not get_by_path(self.data, ['itinerary', 'completed']):
             return self.itinerary
 
@@ -514,7 +516,7 @@ class FleetCarrier:
             if atime in capidict:
                 for k, v in capidict[atime].items():
                     jumplist[i][k] = v
-                if 'body' in jumplist[i] and jumplist[i]['starsystem'] not in jumplist[i]['body']:
+                if jumplist[i].get('body') and jumplist[i]['starsystem'] not in jumplist[i]['body']:
                     del jumplist[i]['body']
 
         return jumplist[0:FC_MAX_JUMPS_TRACKED]
@@ -698,7 +700,8 @@ class FleetCarrier:
         self.jump_state = FleetCarrierJump.Jumping
         self.timer = departure
         rem:int = self._td(self.timer, datetime.now(tz=UTC))
-        self.bgstally.ui.frame.after(rem * 1000, lambda: self._jump_complete())
+        if self.bgstally.ui.frame:
+            self.bgstally.ui.frame.after(rem * 1000, lambda: self._jump_complete())
         Debug.logger.debug(f"Jump scheduled for {departure} ({(rem)} seconds) [{self.jump_state}]")
         self.bgstally.ui.window_fc.update_display()
 
@@ -717,7 +720,8 @@ class FleetCarrier:
         if self.jump_state == FleetCarrierJump.Jumping:
             self.jump_state = FleetCarrierJump.Cooldown
             self.timer = datetime.now(tz=UTC) + timedelta(seconds=60)
-            self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
+            if self.bgstally.ui.frame:
+                self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -820,7 +824,8 @@ class FleetCarrier:
             self.timer = departure + timedelta(seconds=300 - departure.second)
 
         rem:int = self._td(self.timer, datetime.now(tz=UTC))
-        self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
+        if self.bgstally.ui.frame:
+            self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
         self._update_route()
 
 
@@ -1006,7 +1011,7 @@ class FleetCarrier:
             if self.cargo['normal'][comm]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
                 # See if we have any stolen cargo of this type and if so subtract that
-                if comm in self.cargo['stolen']:
+                if comm in self.cargo.get('stolen', []):
                     Debug.logger.debug(f"Try removing stolen {self.cargo['stolen'][comm]}")
                     self.cargo['stolen'][comm]['stock'] += self.cargo['normal'][comm]['stock']
                     if self.cargo['stolen'][comm]['stock'] <= 0:
@@ -1044,7 +1049,7 @@ class FleetCarrier:
         self.cargo['normal'][comm]['stock'] += amt
 
         if self.cargo['normal'][comm]['stock'] < 0:
-            Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
+            Debug.logger.error(f"Correcting negative stock {self.cargo['normal'][comm]}")
             self.cargo['normal'][comm]['stock'] = 0
 
         self.bgstally.ui.window_fc.update_display()

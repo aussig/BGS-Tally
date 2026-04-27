@@ -113,7 +113,7 @@ class TestHarness:
             if not hasattr(self, '_initialized'):
                 self.root:tk.Tk = tk.Tk()
                 self.parent:tk.Frame = tk.Frame(self.root)
-                #root.withdraw()
+                self.root.withdraw()
         except Exception as e:
             logging.error(f"Failed to create Tk root: {e}")
 

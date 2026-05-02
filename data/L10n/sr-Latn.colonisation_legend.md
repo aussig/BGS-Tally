@@ -1,33 +1,33 @@
-## Summary Rows
+## Ukupno
 
-- **Planned**: Information about builds/bases that have been planned but not yet completed
-- **Completed**: Information about builds/bases that have been completed
+- **Planirano**: Informacije o planiranim ali nezavršenim konstrukcijama/bazama
+- **Završeno**: Informacije o završenim konstrukcijama/bazama
 
-## Summary Columns
+## Ukupno
 
-- **Total**: total number of bases
+- **Ukupno**: ukupan broj baza
 
-- **Orbital**: number of orbital bases
+- **Orbitalne**: broj orbitalnih baza
 
-- **Surface**: number of surface bases
+- **Površinske**: broj površinskih baza
 
-- **T2**: The net Tier 2 point cost or reward
+- **T2**: Neto nagradnih/potrebnih Tir 2 poena
 
-- **T3**: The net Tier 3 point cost or reward
+- **T3**: Neto nagradnih/potrebnih Tir 3 poena
 
-- **Cost**: The cost of the builds in tonnes required
+- **Trošak**: Cena izgradnje izražena u Tonama
 
-- **Loads**: The number of ship loads based on your current cargo capacity
+- **Ture**: Broj tura prema vašem trenutnom kapacitetu broda
 
-- **Pop Inc**: combined population increase impact
+- **Rast Populacije**: kombinovani uticaj porasta populacijeimpact
 
-- **Pop Max**: combined maximum population impact
+- **Max Populacija**: kombinovani maksimalni uticaj populacije
 
-- **Security**: combined system security impact
+- **Bezbednost**: kombinovani uticaj na bezbednost u sistemu
 
-- **Tech Lvl**: combined system technology level impact
+- **Tehnološki nivo**: Kombinovani uticaj na bezbednost u sistemu
 
-- **Wealth**: combined system wealth impact
+- **Bogatstvo**: kombinovani uticaj na bogatstvo u sistemu
 
 - **SoL**: combined system standard of living impact
 

@@ -13,7 +13,7 @@ Note that 2, 4, and 5 have been submited to the EDMC project as PR #2587.
 
 Typical usage to update en.template.new file:
 
-`$ python .\find_localised_strings.py --directory=.. --lang=../L10n/en.template.new`
+`$ python .\find_localised_strings.py --directory=.. --lang=../L10n/en.template.new --ignore=../tests --ignore=../scripts`
 """
 
 from __future__ import annotations

@@ -6,6 +6,10 @@
 
 * Added options for fleetcarrier cooldown notifications: Overlay, Popup, Both, None.
 
+### Bug Fixes:
+
+* Fix for crash in Fleet Carrier code on startup.
+
 
 ## v5.5.0-b1 - 2026-04-19
 

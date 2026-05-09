@@ -1,6 +1,10 @@
 import sys
 import tkinter as tk
 from tkinter import ttk
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2
 from bgstally.utils import _
@@ -11,8 +15,8 @@ class WindowObjectivesOverlaySettings:
     Handles a window for configuring objectives overlay display modes
     """
 
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
         self.toplevel: tk.Toplevel = None
         self.temp_mode: tk.StringVar = None
 

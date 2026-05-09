@@ -1,13 +1,18 @@
 import logging
 from os import path
+from typing import TYPE_CHECKING
 
-from config import appname # type: ignore
+from config import appname  # type: ignore
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
 
 
 class Debug:
     logger: logging.Logger
 
-    def __init__(self, bgstally, dev_mode: bool = False) -> None:
+    def __init__(self, bgstally: 'BGSTally', dev_mode: bool = False) -> None:
         # A Logger is used per 'found' plugin to make it easy to include the plugin's
         # folder name in the logging output format.
         # NB: plugin_name here *must* be the plugin's folder name as per the preceding

@@ -1,28 +1,30 @@
+import re
+import sys
 import tkinter as tk
 import tkinter.font as tkFont
 import webbrowser
-import re
-import sys
-from typing import Literal
-from requests import Response
 from functools import partial
 from math import ceil
 from tkinter import ttk
+from typing import TYPE_CHECKING, Literal
 from urllib.parse import quote
-from typing import TYPE_CHECKING
 
-from bgstally.constants import TAG_OVERLAY_HIGHLIGHT, FONT_SMALL, RequestMethod, CommodityOrder, ProgressUnits, ProgressView, CheckStates
-from bgstally.debug import Debug
-from bgstally.utils import _, str_truncate, catch_exceptions, human_format
-from bgstally.ravencolonial import RavenColonial
-from bgstally.requestmanager import BGSTallyRequest
-from config import config # type: ignore
-from thirdparty.Tooltip import ToolTip
-from thirdparty.tksheet import Sheet, natural_sort_key
+from requests import Response
 
 if TYPE_CHECKING:
-    from bgstally.bgstally import BGSTally
     from colonisation import Colonisation
+    from bgstally.bgstally import BGSTally
+
+from bgstally.constants import FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates, CommodityOrder, ProgressUnits, ProgressView, RequestMethod
+from bgstally.debug import Debug
+from bgstally.ravencolonial import RavenColonial
+from bgstally.requestmanager import BGSTallyRequest
+from bgstally.utils import _, catch_exceptions, human_format, str_truncate
+from config import config  # type: ignore
+from thirdparty.tksheet import Sheet, natural_sort_key
+from thirdparty.Tooltip import ToolTip
+
+
 class ProgressWindow:
     '''
     Frame for displaying colonisation construction progress.
@@ -33,7 +35,7 @@ class ProgressWindow:
 
     It also provides a progress bar for the overall progress of the build (or builds).
     '''
-    def __init__(self, bgstally) -> None:
+    def __init__(self, bgstally: 'BGSTally') -> None:
         self.bgstally:BGSTally = bgstally
         self.colonisation:Colonisation
 
@@ -145,8 +147,6 @@ class ProgressWindow:
         ''' Create the progress frame. This is called by ui.py on startup. '''
         def bind_mousewheel(event: tk.Event) -> None:
             """ Scroll pane mousewheel bind on mouseover """
-            nonlocal canvas
-
             if sys.platform in ('linux', 'cygwin', 'msys'):
                 canvas.bind_all('<Button-4>', on_mousewheel)
                 canvas.bind_all('<Button-5>', on_mousewheel)
@@ -155,8 +155,6 @@ class ProgressWindow:
 
         def unbind_mousewheel(event: tk.Event) -> None:
             """ Scroll pane mousewheel unbind on mouseout """
-            nonlocal canvas
-
             if sys.platform in ('linux', 'cygwin', 'msys'):
                 canvas.unbind_all('<Button-4>')
                 canvas.unbind_all('<Button-5>')
@@ -165,8 +163,6 @@ class ProgressWindow:
 
         def on_mousewheel(event: tk.Event) -> None:
             """ Scroll pane mousewheel event handler """
-            nonlocal canvas
-
             shift = (event.state & 0x1) != 0 #type: ignore
             scroll:int = 0
             if event.num == 4 or event.delta == 120:

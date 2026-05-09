@@ -1,14 +1,19 @@
 import json
-from datetime import UTC, datetime, timedelta
 import time
-import requests
-from os import path
 from copy import deepcopy
+from datetime import UTC, datetime, timedelta
+from os import path
+from typing import TYPE_CHECKING
 
-#from bgstally.bgstally import BGSTally
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierType, FleetCarrierJump, TAG_OVERLAY_HIGHLIGHT
+import requests
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
+from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DiscordChannel, FleetCarrierJump,
+                                FleetCarrierType)
 from bgstally.debug import Debug
-from bgstally.utils import _, __, get_by_path, catch_exceptions
+from bgstally.utils import _, __, catch_exceptions, get_by_path
 from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
@@ -16,6 +21,7 @@ FC_MAX_SHIPS = 40
 FC_MAX_JUMPS_TRACKED = 250
 FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
+
 class FleetCarrier:
     """
     Used to store, track and return fleetcarrier data.
@@ -24,8 +30,8 @@ class FleetCarrier:
     since the CAPI is queried infrequently and can be unhelpfully out of date.
     Some data is managed and updated locally to work around the CAPI data being out of date.
     """
-    def __init__(self, bgstally) -> None:
-        self.bgstally:BGSTally = bgstally # type: ignore
+    def __init__(self, bgstally: 'BGSTally') -> None:
+        self.bgstally:BGSTally = bgstally
 
         self.carrier_id:int = 0
         self.overview:dict = {} # Top level data
@@ -41,7 +47,8 @@ class FleetCarrier:
         self.timer:datetime|None = None
         self.load()
         self._update_route()
-        self._clean_itinerary()
+        if self.data != {}:
+            self.itinerary = self._update_itinerary(self.data)
 
     @catch_exceptions
     def available(self) -> bool:
@@ -146,8 +153,8 @@ class FleetCarrier:
             for name, deets in ent.items():
                 deets['locName'] = self.bgstally.ui.commodities.get(name, {}).get('Name', name)
                 deets['category'] = self.bgstally.ui.commodities.get(name, {}).get('Category', '') if isinstance(self.bgstally.ui.commodities.get(name, {}).get('Category', ''), str) else 'Unknown'
-                deets['mission'] = (t == 'mission')
-                deets['stolen'] = (t == 'stolen')
+                deets['mission'] = _('Yes') if t == 'mission' else ''
+                deets['stolen'] = _('Yes') if t == 'stolen' else ''
                 comm[name] = deets
         comm = dict(sorted(comm.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
@@ -176,7 +183,7 @@ class FleetCarrier:
         stored:int = 0
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
-                deets['mission'] = (t == 'mission')
+                deets['mission'] = _('Yes') if (t == 'mission') else ''
                 buying += deets.get('outstanding', 0)
                 if deets['outstanding'] == 0 and deets['price'] > 0 and (t == 'normal'):
                     selling += deets.get('stock', 0)
@@ -354,8 +361,7 @@ class FleetCarrier:
             self.route = self.route[1:]
 
         # And put the next stop in the clipboard
-        if self.route != []:
-            Debug.logger.debug(f"Copying {self.route[0]['name']} to clipboard")
+        if self.route != [] and self.bgstally.ui.frame:
             self.bgstally.ui.frame.clipboard_clear()
             self.bgstally.ui.frame.update()
 
@@ -383,9 +389,9 @@ class FleetCarrier:
         if self.jump_state == FleetCarrierJump.Jumping and delta > 0:
             message = f"{_('Departure To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  # LANG: Carrier overlay
             if delta < 200:
-                message += f"\n{_('Landing Pads Locked down')}" # LANG: Carrier overlay
+                message += f"\n{_('Landing Pads Locked down')}" # LANG: Carrier overlay, notification indicating that landing pad lockdown is currently active
             if 200 <= delta < 600:
-                message += f"\n{_('Landing Pad Lockdown in')} {self._td_str(delta - 200)}" # LANG: Carrier overlay
+                message += f"\n{_('Landing Pad Lockdown in')} {self._td_str(delta - 200)}" # LANG: Carrier overlay, label followed by a countdown indicating time remaining until landing pad lockdown
             # Jump locked in 10 m before departure
             if 600 <= delta:
                 message += f"\n{_('Jump Initiation in')} {self._td_str(delta - 600)}" # LANG: Carrier overlay
@@ -468,85 +474,52 @@ class FleetCarrier:
         return cargo
 
 
-    def _update_itinerary(self, data: dict) -> list:
+    def _update_itinerary(self, data:dict) -> list:
         """ Update our local itinerary data from CAPI data structure """
 
+        if not self.itinerary:
+            self.itinerary = []
+
+        if not get_by_path(self.data, ['itinerary', 'completed']):
+            return self.itinerary
+
         jumplist:list = deepcopy(self.itinerary)
-        for jump in deepcopy(get_by_path(data, ['itinerary', 'completed'], [])):
-            elem:int = next((index for (index, d) in enumerate(self.itinerary) if d['arrivalTime'] == jump.get('arrivalTime', '')), -1)
+        centries:list = [x['arrivalTime'][:-3] for x in get_by_path(self.data, ['itinerary', 'completed'])]
+        ientries:list = [x['arrivalTime'][:-3] for x in self.itinerary]
 
-            if elem > 0: # Found it, and it's an "old" one. Update departure time and duration just in case
-                jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
-                jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))
+        # Add entries that aren't in our itinerary
+        jumplist += [j for j in get_by_path(data, ['itinerary', 'completed'], []) if j['arrivalTime'][:-3] not in ientries]
 
-                # Still no departure time so figure it out from the arrival time of the next item.
-                if jumplist[elem]['departureTime'] == None and jumplist[elem-1]['arrivalTime'] != None:
-                    jumplist[elem]['departureTime'] = jumplist[elem-1]['arrivalTime']
-                if jumplist[elem]['visitDurationSeconds'] == None:
-                    jumplist[elem]['visitDurationSeconds'] = self._td(jumplist[elem]['departureTime'], jumplist[elem]['arrivalTime'])
-                continue
+        # Remove entires that are in our itinerary but not in the capi data
+        # (for as far back as the capi data goes)
+        jumplist = [j for i, j in enumerate(jumplist) if j['arrivalTime'][:-3] in centries or i >= len(centries)]
 
-            if elem == 0: # Found it, it's the latest
-                if jump.get('departureTime', None) != None:
-                    jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
-                    jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', 0)
-                    continue
-
-                if self.overview.get('departureScheduled', None) != None:
-                    jumplist[elem]['departureTime'] = self.overview['departureScheduled']
-                    # @TODO: Calculate duration?
-                    continue
-
-                if jumplist[elem]['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
-                    jumplist[elem]['body'] = self.overview['currentBody']
-                continue
-
-            # Not found.
-            # Already completed, and nothing scheduled so just add it with its details
-            if jump.get('departureTime', None) != None:
-                jumplist.insert(0, jump)
-                Debug.logger.debug(f"Adding completed jump to itinerary {elem} {jump}")
-                continue
-
-            if self.overview.get('departureScheduled', None) == None:
-                if jump['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
-                    jump['body'] = self.overview.get('currentBody', None)
-                Debug.logger.debug(f"Adding scheduled jump to itinerary {elem} {jump}")
-                jumplist.insert(0, jump)
-                continue
-
-            # Check if the jump time has passed. If not nothing to do
-            if self._time_passed(self.overview['departureScheduled']) == False:
-                continue
-
-            if jump['starsystem'] == self.overview.get('jumpDestination', ''):
-                jump['body'] = self.overview.get('jumpDestinationBody', None)
-
-            Debug.logger.debug(f"Adding new jump to itinerary {elem} {jump}")
-            jumplist.insert(0, jump)
-
-            self.overview['jumpDestination'] = None
-            self.overview['jumpDestinationBody'] = None
-            self.overview['departureScheduled'] = None
-
+        # Sort & dedup
         jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)
+        jumplist = list({j['arrivalTime'][:-3]: j for j in jumplist}.values())
+
+        # Cleanup
+        capidict:dict = {j['arrivalTime'][:-3]: j for j in get_by_path(self.data, ['itinerary', 'completed'])}
+        jumplist[0]['departureTime'] = None
+        jumplist[0]['visitDurationSeconds'] = None
+        if 'body' not in jumplist[0] and jumplist[0]['starsystem'] == self.overview['currentStarSystem']:
+            jumplist[0]['body'] = self.overview['currentBody']
+
+        # Treat CAPI as authoritative copying over anything from there
+        for i in range(0, len(jumplist)):
+            if i > 0:
+                jumplist[i]['departureTime'] = jumplist[i-1]['arrivalTime']
+                jumplist[i]['visitDurationSeconds'] = self._td(jumplist[i]['departureTime'], jumplist[i]['arrivalTime'])
+
+            # Copy CAPI data verbatim where we have it
+            atime:str = jumplist[i]['arrivalTime'][:-3]
+            if atime in capidict:
+                for k, v in capidict[atime].items():
+                    jumplist[i][k] = v
+                if jumplist[i].get('body') and jumplist[i]['starsystem'] not in jumplist[i]['body']:
+                    del jumplist[i]['body']
+
         return jumplist[0:FC_MAX_JUMPS_TRACKED]
-
-
-    def _clean_itinerary(self):
-        """ Clean up the itinerary of duplicates and missing values """
-        jumplist:list = self.itinerary
-        for i, jump in enumerate(jumplist):
-            if i == 0:
-                jump['departureTime'] = None
-                jump['visitDurationSeconds'] = None
-                continue
-
-            if abs(self._td(jumplist[i-1].get('arrivalTime', ''), jump.get('arrivalTime', ''))) < 300:
-                del jumplist[i]
-
-            jump['departureTime'] = jumplist[i-1]['arrivalTime']
-            jump['visitDurationSeconds'] = self._td(jump['departureTime'], jump['arrivalTime'])
 
 
     def _update_locker(self, data: dict) -> dict:
@@ -727,7 +700,8 @@ class FleetCarrier:
         self.jump_state = FleetCarrierJump.Jumping
         self.timer = departure
         rem:int = self._td(self.timer, datetime.now(tz=UTC))
-        self.bgstally.ui.frame.after(rem * 1000, lambda: self._jump_complete())
+        if self.bgstally.ui.frame:
+            self.bgstally.ui.frame.after(rem * 1000, lambda: self._jump_complete())
         Debug.logger.debug(f"Jump scheduled for {departure} ({(rem)} seconds) [{self.jump_state}]")
         self.bgstally.ui.window_fc.update_display()
 
@@ -746,7 +720,8 @@ class FleetCarrier:
         if self.jump_state == FleetCarrierJump.Jumping:
             self.jump_state = FleetCarrierJump.Cooldown
             self.timer = datetime.now(tz=UTC) + timedelta(seconds=60)
-            self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
+            if self.bgstally.ui.frame:
+                self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -849,7 +824,8 @@ class FleetCarrier:
             self.timer = departure + timedelta(seconds=300 - departure.second)
 
         rem:int = self._td(self.timer, datetime.now(tz=UTC))
-        self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
+        if self.bgstally.ui.frame:
+            self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
         self._update_route()
 
 
@@ -860,7 +836,6 @@ class FleetCarrier:
         if self.jump_state != FleetCarrierJump.Cooldown: return
 
         self.jump_state = FleetCarrierJump.Idle
-        self.bgstally.ui.warning = _("Carrier cooldown complete") # LANG: Cooldown overlay message
         self.bgstally.ui.window_fc.cooldown_notice()
 
         # Automatically post to whichever discord webhooks are set for carrier operations
@@ -1030,11 +1005,18 @@ class FleetCarrier:
                 Debug.logger.error(f"Transfer amount {amt} exceeds total capacity, ignoring")
                 continue
 
+            # We just have to assume it's not stolen because the journal doesn't say.
             self.cargo['normal'][comm]['stock'] += amt
 
             if self.cargo['normal'][comm]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
-                self.cargo['normal'][comm]['stock'] = 0
+                # See if we have any stolen cargo of this type and if so subtract that
+                if comm in self.cargo.get('stolen', []):
+                    Debug.logger.debug(f"Try removing stolen {self.cargo['stolen'][comm]}")
+                    self.cargo['stolen'][comm]['stock'] += self.cargo['normal'][comm]['stock']
+                    if self.cargo['stolen'][comm]['stock'] <= 0:
+                        del self.cargo['stolen'][comm]
+                del self.cargo['normal'][comm]
                 self.last_modified = 0
 
         self.bgstally.ui.window_fc.update_display()
@@ -1067,7 +1049,7 @@ class FleetCarrier:
         self.cargo['normal'][comm]['stock'] += amt
 
         if self.cargo['normal'][comm]['stock'] < 0:
-            Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
+            Debug.logger.error(f"Correcting negative stock {self.cargo['normal'][comm]}")
             self.cargo['normal'][comm]['stock'] = 0
 
         self.bgstally.ui.window_fc.update_display()

@@ -1,17 +1,21 @@
 import tkinter as tk
 from functools import partial
 from tkinter import ttk
+from typing import TYPE_CHECKING
 
-#from bgstally.bgstally import BGSTally
-from bgstally.constants import DATETIME_FORMAT_CARRIER, FONT_SMALL, FONT_HEADING_1, COLOUR_WARNING, DiscordChannel, DiscordFleetCarrier
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
+from bgstally.constants import COLOUR_WARNING, DATETIME_FORMAT_CARRIER, FONT_HEADING_1, FONT_SMALL, DiscordChannel, DiscordFleetCarrier
+from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
-from bgstally.utils import _, __, hfplus, str_truncate, catch_exceptions
-from bgstally.widgets import TreeviewPlus, AutoCompleter, Placeholder
-from config import config # type: ignore
-
+from bgstally.utils import _, __, catch_exceptions, hfplus, str_truncate
+from bgstally.widgets import AutoCompleter, Placeholder, TreeviewPlus
+from config import config  # type: ignore
 from thirdparty.colors import *
-from thirdparty.Tooltip import ToolTip
 from thirdparty.ScrollableNotebook import ScrollableNotebook
+from thirdparty.Tooltip import ToolTip
+
 
 class WindowFleetCarrier:
     """
@@ -21,8 +25,8 @@ class WindowFleetCarrier:
     Buttons are provided to copy information to the clipboard or post directly to discord.
     """
 
-    def __init__(self, bgstally) -> None:
-        self.bgstally:BGSTally = bgstally # type: ignore
+    def __init__(self, bgstally: 'BGSTally') -> None:
+        self.bgstally:BGSTally = bgstally
         self.window:tk.Toplevel|None = None
         self.frame:ttk.Frame
         self.itineraryfr:ttk.Frame
@@ -569,8 +573,13 @@ class WindowFleetCarrier:
 
     def cooldown_notice(self) -> None:
         """ Display carrier cooldown notification """
-        self.bgstally.ui.show_warning("Fleetcarrier cooldown completed")
-        PopupNotice(_("Fleetcarrier cooldown\ncompleted"), 20000, self.bgstally.fleet_carrier) # LANG: Fleet carrier cooldown notification
+        Debug.logger.debug(f"Checking if fleet carrier cooldown notification should be displayed, current setting is {self.bgstally.state.fc_cooldown} {config.get('bgst_fccooldown')}")
+        if self.bgstally.state.fc_cooldown in ('overlay', 'both'):
+            Debug.logger.debug(f"Showing fleet carrier cooldown notification as overlay")
+            self.bgstally.ui.show_warning(_("Fleetcarrier cooldown completed")) # LANG: Fleet carrier cooldown notification
+        if self.bgstally.state.fc_cooldown in ('popup', 'both'):
+            Debug.logger.debug(f"Showing fleet carrier cooldown notification as popup")
+            PopupNotice(_("Fleetcarrier cooldown\ncompleted"), 20000, self.bgstally.fleet_carrier) # LANG: Fleet carrier cooldown notification
 
 class PopupNotice:
     """ Create a temporary popup window """

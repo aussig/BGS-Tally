@@ -1,9 +1,13 @@
 import tkinter as tk
 from datetime import UTC, datetime
 from tkinter import ttk
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.activity import Activity
-from bgstally.constants import COLOUR_HEADING_1, DATETIME_FORMAT_API, FONT_HEADING_1, FONT_HEADING_2, FONT_TEXT, FONT_SMALL
+from bgstally.constants import COLOUR_HEADING_1, DATETIME_FORMAT_API, FONT_HEADING_1, FONT_HEADING_2, FONT_SMALL, FONT_TEXT
 from bgstally.debug import Debug
 from bgstally.objectivesmanager import MissionTargetType, MissionType
 from bgstally.utils import _, get_by_path
@@ -16,8 +20,8 @@ class WindowObjectives:
     Handles the Objectives window
     """
 
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
 
         self.toplevel: tk.Toplevel = None
         # We need a new canvas and scrollable frame to hold the collapsibles

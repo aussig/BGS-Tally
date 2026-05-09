@@ -1,30 +1,31 @@
 # type: ignore[reportMemberAccess]
 import re
-from functools import partial
-
-import webbrowser
 import tkinter as tk
 import tkinter.font as tkFont
 import traceback
-from textwrap import wrap
+import webbrowser
 from copy import deepcopy
-
+from functools import partial
 from math import ceil
 from os import path
+from textwrap import wrap
 from tkinter import PhotoImage, messagebox, ttk
+from typing import TYPE_CHECKING
 from urllib.parse import quote
 
-from bgstally.constants import COLOUR_HEADING_1, FONT_HEADING_2, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_SMALL, BuildState, DATETIME_FORMAT_JOURNAL
-from bgstally.debug import Debug
-from bgstally.utils import _, get_localised_filepath, human_format, str_truncate, catch_exceptions
-from bgstally.ravencolonial import RavenColonial
-from bgstally.colonisation import Colonisation
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
-from config import config # type: ignore
+from bgstally.colonisation import Colonisation
+from bgstally.constants import COLOUR_HEADING_1, DATETIME_FORMAT_JOURNAL, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_1, FONT_HEADING_2, FONT_SMALL, BuildState
+from bgstally.debug import Debug
+from bgstally.ravencolonial import RavenColonial
+from bgstally.utils import _, catch_exceptions, get_localised_filepath, human_format, str_truncate
+from config import config  # type: ignore
 from thirdparty.ScrollableNotebook import ScrollableNotebook
-from thirdparty.tksheet import Sheet, num2alpha, natural_sort_key, ICON_DEL, ICON_ADD, ICON_SORT_DESC, ICON_SORT_ASC, ICON_REDO
-from thirdparty.Tooltip import ToolTip
 from thirdparty.tkrichtext import RichScrolledText
+from thirdparty.tksheet import ICON_ADD, ICON_DEL, ICON_REDO, ICON_SORT_ASC, ICON_SORT_DESC, Sheet, natural_sort_key, num2alpha
+from thirdparty.Tooltip import ToolTip
 
 FILENAME_LEGEND = "colonisation_legend.md"
 SUMMARY_HEADER_ROW = 0
@@ -41,8 +42,8 @@ class ColonisationWindow:
 
     It can create popup windows for showing base types, system notes, and system bodies.
     '''
-    def __init__(self, bgstally) -> None:
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally') -> None:
+        self.bgstally: BGSTally = bgstally
         self.colonisation:Colonisation|None = None
         self.image_tab_complete:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_enabled.png"))
         self.image_tab_progress:PhotoImage = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "tab_active_part_enabled.png"))

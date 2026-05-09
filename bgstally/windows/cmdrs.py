@@ -2,7 +2,11 @@ import tkinter as tk
 from datetime import datetime
 from functools import partial
 from tkinter import ttk
+from typing import TYPE_CHECKING
 from urllib.parse import quote
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from ttkHyperlinkLabel import HyperlinkLabel
 
@@ -21,8 +25,8 @@ class WindowCMDRs:
     Handles the CMDR list window
     """
 
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
 
         self.selected_cmdr: dict = None
         self.selected_items: list = None

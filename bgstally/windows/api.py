@@ -4,6 +4,10 @@ import webbrowser
 from functools import partial
 from os import path
 from tkinter import PhotoImage, ttk
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from requests import Response
 from ttkHyperlinkLabel import HyperlinkLabel
@@ -23,8 +27,8 @@ class WindowAPI:
     Handles a window showing details for the currently configured API
     """
 
-    def __init__(self, bgstally, api:API):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally', api:API):
+        self.bgstally: BGSTally = bgstally
         self.api:API = api
         self.toplevel:tk.Toplevel = None
 

@@ -1,4 +1,8 @@
 import tkinter as tk
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.constants import CheckStates, DiscordActivity, FavouriteActivity
 from config import config
@@ -9,8 +13,8 @@ class State:
     Manage plugin user state and preferences
     """
 
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
         self.load()
 
 
@@ -47,6 +51,7 @@ class State:
 
         self.FcCargo:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcCargo', default="Both"))
         self.FcLocker:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcLocker', default="Both"))
+        self.FcCooldown:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcCooldown', default="both"))
 
         # Legacy values migrating to new names
         # TODO: Remove migration in future version
@@ -116,6 +121,7 @@ class State:
         # Non booleans
         self.overlay_objectives_mode:int = int(self.OverlayObjectivesMode.get())
         self.favourite_activity_mode:str = str(self.FavouriteActivityMode.get())
+        self.fc_cooldown:str = str(self.FcCooldown.get())
 
 
     def save(self):
@@ -149,6 +155,7 @@ class State:
         config.set('BGST_DiscordBGSTWAutomatic', self.DiscordBGSTWAutomatic.get())
         config.set('BGST_FcCargo', self.FcCargo.get())
         config.set('BGST_FcLocker', self.FcLocker.get())
+        config.set('BGST_FcCooldown', self.FcCooldown.get())
         config.set('BGST_ColonisationMaxCommodities', self.ColonisationMaxCommodities.get())
         config.set('BGST_EnableProgressScrollbar', self.EnableProgressScrollbar.get())
         config.set('BGST_ColonisationRCAPIKey', self.ColonisationRCAPIKey.get())

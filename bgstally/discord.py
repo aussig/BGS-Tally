@@ -2,6 +2,10 @@ from copy import deepcopy
 from datetime import UTC, datetime
 
 from requests import Response
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.constants import DiscordChannel, RequestMethod
 from bgstally.debug import Debug
@@ -32,8 +36,8 @@ class Discord:
     """
     Handle Discord integration
     """
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
 
 
     def post_plaintext(self, discord_text:str, webhooks_data:dict|None, channel:DiscordChannel, callback:callable):

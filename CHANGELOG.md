@@ -1,26 +1,6 @@
 # Change Log
 
-## v5.5.0-b1 - 2026-04-19
-
-### New Features:
-
-* API quick-setup button for local server connection, if you need to ingest your data to a local server or use a relay such as [CMDR JanJonTheo's local relay server](https://github.com/JanJonTheo/VALKBGSTallyRelayServer) to send data to multiple destinations.
-* API quick-setup button added for the Sinistra platform.
-
-### Changes:
-
-* The API setup now has a checkbox to enable / disable the objectives API. Also, all the quick shortcut buttons have now been enhanced to set/unset this checkbox appropriately for each integration.
-* Removed the quick-setup button for the Spectrum integration as the service appears to be dead and the maintainer has vanished.
-* `/scripts` folder is now excluded from the distribution zip.
-
-### Bug Fixes:
-
-* Error in completely clean install fixed in Fleet Carrier route code.
-* Fix flashing of Fleet Carrier panel on in-game overlay.
-* Fix for Discord dropdown showing "Yes" on Fleetcarrier window.
-
-
-## v5.5.0-a1 - 2026-04-03
+## v5.5.0 - 2026-05-09
 
 ### New Features:
 
@@ -29,12 +9,17 @@
 * A complete re-design of the display of Objectives - both in its EDMC window and also on the in-game overlay. In the EDMC window, missions are now expandable and have their priority clearly displayed.
 * There is a new option to use your Colonisation plan names instead of system names in BGS/TW Discord reports. This defaults to `Off`.
 * Carrier overlay displaying route and countdown timers including time to jump lock, carrier lockdown, departure, and cooldown completion.
-* Carrier jump cooldown completion popup and overlay notifications
+* Carrier jump cooldown completion popup and overlay notifications, with options for fleetcarrier cooldown notifications: Overlay, Popup, Both, None.
 * Added support for nicely formatted Markdown files, and converted the Colonisation help to Markdown format.
 * Colonisation windows and popups remember their location and geometry
+* API quick-setup button for local server connection, if you need to ingest your data to a local server or use a relay such as [CMDR JanJonTheo's local relay server](https://github.com/JanJonTheo/VALKBGSTallyRelayServer) to send data to multiple destinations.
+* API quick-setup button added for the Sinistra platform.
 
 ### Changes:
 
+* The API setup now has a checkbox to enable / disable the objectives API. Also, all the quick shortcut buttons have now been enhanced to set/unset this checkbox appropriately for each integration.
+* Removed the quick-setup button for the Spectrum integration as the service appears to be dead and the maintainer has vanished.
+* `/scripts` folder is now excluded from the distribution zip.
 * The method used to extract translatable strings has been updated, which means some text that was missing translations can now be translated.
 * Reworked the Colonisation bodies popup to provide a prettier, more informative, and more detailed display
 * Updated the commodity requirements for colonisation bases to match FDev's latest changes
@@ -47,6 +32,10 @@
 
 ### Bug Fixes:
 
+* Fix for crash in Fleet Carrier code on startup.
+* Error in completely clean install fixed in Fleet Carrier route code.
+* Fix flashing of Fleet Carrier panel on in-game overlay.
+* Fix for Discord dropdown showing "Yes" on Fleetcarrier window.
 * Addressed formatting of carrier cargo and locker discord posts.
 * Fix for error when Raven Colonial project already exists.
 * None of the objectives text was localised, which included both the objectives window and the in-game overlay. Localisation is now enabled, so translators are able to translate this text.
@@ -55,7 +44,7 @@
 * Fixed rare runtime error with RavenColonial responses.
 * Fixed the 'Force Tick' functionality which was broken by previous changes.
 
-### API Changes ([v1.8](xxxxxxxxxxxx)):
+### API Changes ([v1.8](https://app.swaggerhub.com/apis-docs/bgstally/BGS-Tally/1.8.0)):
 
 * `/objectives` endpoint: `system` is now an object containing `name`, `x`, `y` and `z` galaxy coordinates for the system. For the moment it still accepts a string (as per API v1.7 and earlier) instead of the object.
 

@@ -135,7 +135,7 @@ class ProgressWindow:
         self.viewtt:ToolTip # View tooltip
         self.comm_order:CommodityOrder = CommodityOrder.ALPHA # Commodity order
         self.use_scrollbar:bool = self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON
-        self.max_rows:int = int(self.bgstally.state.ColonisationMaxCommodities.get())
+        self.max_rows:int = int(self.bgstally.state.ColonisationMaxCommodities.get()) if self.bgstally.state.ColonisationMaxCommodities.get().isdigit() else 10
 
         self.comm_width:int = 24 if self.use_scrollbar else 26
         self.amt_width:int = 9

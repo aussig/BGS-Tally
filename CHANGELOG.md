@@ -2,7 +2,9 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### Bug Fixes:
 
+* Show / hide system information overlay wasn't respecting the user's choice in settings.
 
 
 ## v5.5.0 - 2026-05-09

@@ -652,7 +652,7 @@ class UI:
                 system_and_station_info += self._build_station_info(self.info_station)
                 self.info_station = None
 
-            if system_and_station_info != "":
+            if self.bgstally.state.enable_overlay_system and system_and_station_info != "":
                 self.bgstally.overlay.display_message("system_info", system_and_station_info, fit_to_text=True)
 
             # CMDR Information

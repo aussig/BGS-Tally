@@ -56,7 +56,7 @@ def harness(request) -> Generator:
     test_harness.assert_no_unhandled_exceptions()
 
 class TestColonisationInitialization:
-    @pytest.mark.parametrize('harness', ['None', 'colonisation_empty.json', 'colonisation-5.4.0.json'], indirect=True)
+    @pytest.mark.parametrize('harness', ['None', 'colonisation_empty.json', 'colonisation-5.4.0.json', 'colonisation-5.5.0.json'], indirect=True)
     def test_save_files(self, harness) -> None:
         """ Test that the plugin initializes correctly with no existing data and doesn't save an empty overview. """
         assert isinstance(harness.plugin.colonisation.systems, list)

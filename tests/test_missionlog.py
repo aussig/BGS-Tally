@@ -140,11 +140,10 @@ class TestMissionLogFunctions:
     def test_save_and_load_missionlog(self, harness) -> None:
         mission_log = harness.plugin.mission_log
         mission_log.missionlog = [
-            {"MissionID": 111111, "System": "Sol", "Name": "Saved Mission", "Expiry": datetime(2026, 5, 1, 0, 0, 0, tzinfo=UTC).strftime(DATETIME_FORMAT_JOURNAL)}
+            {"MissionID": 111111, "System": "Sol", "Name": "Saved Mission", "Expiry": (datetime.now(UTC) - timedelta(days=1)).strftime(DATETIME_FORMAT_JOURNAL)}
         ]
 
         mission_log.save()
-        saved_file = Path(harness.plugin.plugin_dir) / FOLDER_OTHER_DATA / "missionlog.json"
 
         loaded = MissionLog(harness.plugin)
 

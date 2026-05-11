@@ -477,49 +477,56 @@ class FleetCarrier:
     def _update_itinerary(self, data:dict) -> list:
         """ Update our local itinerary data from CAPI data structure """
 
-        if not self.itinerary:
-            self.itinerary = []
+        # There seems to be a lot of weird edge cases for itinerary data where it can be missing or in the wrong format,
+        # so we'll catch exceptions and just return our existing data if it doesn't work.
+        try:
+            if not self.itinerary:
+                self.itinerary = []
 
-        if not get_by_path(self.data, ['itinerary', 'completed']):
+            if not get_by_path(self.data, ['itinerary', 'completed']):
+                return self.itinerary
+
+            jumplist:list = deepcopy(self.itinerary)
+            centries:list = [x['arrivalTime'][:-3] for x in get_by_path(self.data, ['itinerary', 'completed'])]
+            ientries:list = [x['arrivalTime'][:-3] for x in self.itinerary]
+
+            # Add entries that aren't in our itinerary
+            jumplist += [j for j in get_by_path(data, ['itinerary', 'completed'], []) if j['arrivalTime'][:-3] not in ientries]
+
+            # Remove entires that are in our itinerary but not in the capi data
+            # (for as far back as the capi data goes)
+            jumplist = [j for i, j in enumerate(jumplist) if j['arrivalTime'][:-3] in centries or i >= len(centries)]
+
+            # Sort & dedup
+            jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)
+            jumplist = list({j['arrivalTime'][:-3]: j for j in jumplist}.values())
+
+            # Cleanup
+            capidict:dict = {j['arrivalTime'][:-3]: j for j in get_by_path(self.data, ['itinerary', 'completed'])}
+            jumplist[0]['departureTime'] = None
+            jumplist[0]['visitDurationSeconds'] = None
+            if 'body' not in jumplist[0] and 'currentBody' in self.overview and jumplist[0]['starsystem'] == self.overview['currentStarSystem']:
+                jumplist[0]['body'] = self.overview['currentBody']
+
+            # Treat CAPI as authoritative copying over anything from there
+            for i in range(0, len(jumplist)):
+                if i > 0:
+                    jumplist[i]['departureTime'] = jumplist[i-1]['arrivalTime']
+                    jumplist[i]['visitDurationSeconds'] = self._td(jumplist[i]['departureTime'], jumplist[i]['arrivalTime'])
+
+                # Copy CAPI data verbatim where we have it
+                atime:str = jumplist[i]['arrivalTime'][:-3]
+                if atime in capidict:
+                    for k, v in capidict[atime].items():
+                        jumplist[i][k] = v
+                    if jumplist[i].get('body') and jumplist[i]['starsystem'] not in jumplist[i]['body']:
+                        del jumplist[i]['body']
+
+            return jumplist[0:FC_MAX_JUMPS_TRACKED]
+
+        except Exception as e:
+            Debug.logger.error(f"Error updating itinerary {e}")
             return self.itinerary
-
-        jumplist:list = deepcopy(self.itinerary)
-        centries:list = [x['arrivalTime'][:-3] for x in get_by_path(self.data, ['itinerary', 'completed'])]
-        ientries:list = [x['arrivalTime'][:-3] for x in self.itinerary]
-
-        # Add entries that aren't in our itinerary
-        jumplist += [j for j in get_by_path(data, ['itinerary', 'completed'], []) if j['arrivalTime'][:-3] not in ientries]
-
-        # Remove entires that are in our itinerary but not in the capi data
-        # (for as far back as the capi data goes)
-        jumplist = [j for i, j in enumerate(jumplist) if j['arrivalTime'][:-3] in centries or i >= len(centries)]
-
-        # Sort & dedup
-        jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)
-        jumplist = list({j['arrivalTime'][:-3]: j for j in jumplist}.values())
-
-        # Cleanup
-        capidict:dict = {j['arrivalTime'][:-3]: j for j in get_by_path(self.data, ['itinerary', 'completed'])}
-        jumplist[0]['departureTime'] = None
-        jumplist[0]['visitDurationSeconds'] = None
-        if 'body' not in jumplist[0] and jumplist[0]['starsystem'] == self.overview['currentStarSystem']:
-            jumplist[0]['body'] = self.overview['currentBody']
-
-        # Treat CAPI as authoritative copying over anything from there
-        for i in range(0, len(jumplist)):
-            if i > 0:
-                jumplist[i]['departureTime'] = jumplist[i-1]['arrivalTime']
-                jumplist[i]['visitDurationSeconds'] = self._td(jumplist[i]['departureTime'], jumplist[i]['arrivalTime'])
-
-            # Copy CAPI data verbatim where we have it
-            atime:str = jumplist[i]['arrivalTime'][:-3]
-            if atime in capidict:
-                for k, v in capidict[atime].items():
-                    jumplist[i][k] = v
-                if jumplist[i].get('body') and jumplist[i]['starsystem'] not in jumplist[i]['body']:
-                    del jumplist[i]['body']
-
-        return jumplist[0:FC_MAX_JUMPS_TRACKED]
 
 
     def _update_locker(self, data: dict) -> dict:

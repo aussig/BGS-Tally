@@ -505,7 +505,7 @@ class FleetCarrier:
             capidict:dict = {j['arrivalTime'][:-3]: j for j in get_by_path(self.data, ['itinerary', 'completed'])}
             jumplist[0]['departureTime'] = None
             jumplist[0]['visitDurationSeconds'] = None
-            if 'body' not in jumplist[0] and jumplist[0]['starsystem'] == self.overview['currentStarSystem']:
+            if 'body' not in jumplist[0] and 'currentBody' in self.overview and jumplist[0]['starsystem'] == self.overview['currentStarSystem']:
                 jumplist[0]['body'] = self.overview['currentBody']
 
             # Treat CAPI as authoritative copying over anything from there

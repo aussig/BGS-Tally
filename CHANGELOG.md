@@ -2,9 +2,15 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+
+
+
+## v5.5.1 - 2026-05-11
+
 ### Bug Fixes:
 
 * Show / hide system information overlay wasn't respecting the user's choice in settings.
+* Plugin failed to load on startup if fleet carrier data was incomplete.
 
 
 ## v5.5.0 - 2026-05-09

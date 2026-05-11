@@ -57,11 +57,11 @@ def harness(request) -> Generator:
 
 class TestCarrierInitialization:
 
-    @pytest.mark.parametrize('harness', ['None', 'carrier_empty.json', 'fleetcarrier-5.1.0.json', 'fleetcarrier-5.4.0.json', 'fleetcarrier-5.5.0.json'], indirect=True)
+    @pytest.mark.parametrize('harness', ['None', 'fleetcarrier-empty.json', 'fleetcarrier-err.json', 'fleetcarrier-bad-capi.json', 'fleetcarrier-5.1.0.json', 'fleetcarrier-5.4.0.json', 'fleetcarrier-5.5.0.json'], indirect=True)
     def test_save_files(self, harness) -> None:
         """ Test that the plugin initializes correctly with no existing data and doesn't save an empty overview. """
         fc = harness.plugin.fleet_carrier
-        #assert fc.overview == {}
+        fc.save()
 
     def test_available_no_data(self, harness) -> None:
         """ Test available() with no carrier data """
@@ -475,7 +475,7 @@ class TestCarrierEvents:
     def test_capi_event(self, harness) -> None:
         """ Test handling a jump request """
         fc = harness.plugin.fleet_carrier
-        capi_data:dict = harness.get_config_data('carrier_capi_data.json')
+        capi_data:dict = harness.get_config_data('fleetcarrier-capi-data.json')
 
         fc.update(capi_data)
 
@@ -483,7 +483,7 @@ class TestCarrierEvents:
 
         fc.save()
         assert filecmp.cmp(harness.plugin_dir / "otherdata" / "fleetcarrier.json",
-                           harness.plugin_dir / "config" / "fleetcarrier_capi_result.json",
+                           harness.plugin_dir / "config" / "fleetcarrier-capi-results.json",
                            shallow=False)
 
     def test_stats_received_wrong_carrier(self, harness) -> None:

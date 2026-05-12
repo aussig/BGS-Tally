@@ -621,6 +621,77 @@ class ProgressWindow:
             self.bgstally.ui.window_colonisation._link({'StarSystem': system}, 'System')
 
 
+    def _get_display_rows(self, comms:list, required:list, delivered:list, totals:dict) -> list:
+        '''Build the display rows for commodities using the selected four columns.'''
+        display_rows:list = []
+
+        for i, c in enumerate(comms):
+            if i >= len(self.rows):
+                continue
+
+            reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
+            delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
+
+            cargo:int = self.colonisation.cargo.get(c, 0)
+            carrier:int = self.colonisation.carrier_cargo.get(c, 0)
+            buyorder:int = self.colonisation.carrier_buy.get(c, 0)
+
+            totals['Required'] += reqcnt
+            totals['Delivered'] += delcnt
+            if reqcnt - delcnt > 0:
+                totals['Cargo'] += max(min(cargo, reqcnt - delcnt), 0)
+                totals['Carrier'] += max(min(carrier, reqcnt - delcnt - cargo), 0)
+            totals['BuyOrder'] += buyorder
+
+            row_values:list[str|None] = [c, str_truncate(self.colonisation.get_commodity(c), self.comm_width)]
+            for col in range(1, len(self.columns)):
+                row_values.append(self._get_value(col, reqcnt, delcnt, cargo, carrier, buyorder))
+
+            display_rows.append(row_values)
+
+        return display_rows
+
+
+    def _skip_row(self, view:ProgressView, c:str, reqcnt:int, delcnt:int, cargo:int, carrier:int, rowcnt:int) -> bool:
+        '''Return True if the commodity row should be skipped from display.'''
+        remaining:int = reqcnt - delcnt
+        docked:bool = self.colonisation.docked
+        hasmarket:bool = self.colonisation.market != {}
+        forsale:bool = self.colonisation.market.get(f"${c}_name;", 0) > 0
+        atcarrier:bool = self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id
+        needtobuy:bool = remaining - carrier - cargo > 0
+
+        # Always ignore commodities that aren't required at all
+        if reqcnt <= 0:
+            return True
+        # Skip rows that exceed the maximum if we're not using the scrollbar (if we are using the scrollbar then we show them all and let the user scroll)
+        if (rowcnt > self.max_rows > 0) and not self.use_scrollbar:
+            return True
+
+        if view == ProgressView.FULL: # FULL show everything else
+            return False
+
+        # Skip if no more required and not in cargo unless we're in FULL view
+        if remaining <= 0 and cargo == 0:
+            return True
+
+        # If we're docked and the market doesn't have this commodity and we don't need to buy it and we don't have any in cargo then skip unless we're in FULL view
+        if docked and not forsale and not needtobuy and cargo == 0:
+            return True
+
+        if view == ProgressView.MINIMAL: # Minimal show everything else
+            return False
+
+        if (not docked or not hasmarket) and not needtobuy and cargo == 0:
+            return True
+        if docked and not forsale and cargo == 0:
+            return True
+        if docked and not atcarrier and not needtobuy and cargo == 0:
+            return True
+
+        return False
+
+
     @catch_exceptions
     def update_display(self) -> None:
         ''' Main display update function. '''
@@ -698,71 +769,46 @@ class ProgressWindow:
             return
 
         rowcnt:int = 0
-        for i, c in enumerate(comms):
-
-            if i >= len(self.rows): continue
-            row:dict = self.rows[i]
+        for row_values in self._get_display_rows(comms, required, delivered, totals):
+            c = row_values[0]
+            row:dict = self.rows[rowcnt]
             reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
             delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
-            remaining:int = reqcnt - delcnt
 
             cargo:int = self.colonisation.cargo.get(c, 0)
             carrier:int = self.colonisation.carrier_cargo.get(c, 0)
-            buyorder:int = self.colonisation.carrier_buy.get(c, 0)
 
-            totals['Required'] += reqcnt
-            totals['Delivered'] += delcnt
-
-            # We only count relevant cargo not stuff we don't need.
-            if reqcnt - delcnt > 0: totals['Cargo'] += max(min(cargo, reqcnt - delcnt), 0)
-            if reqcnt - delcnt > 0: totals['Carrier'] += max(min(carrier, reqcnt - delcnt - cargo), 0)
-            totals['BuyOrder'] += buyorder
-
-            #if reqcnt > 0: Debug.logger.debug(f"Commodity {c}: Required {reqcnt}, Delivered {delcnt}, Remaining {remaining}, Cargo {cargo}, Carrier {carrier}")
-
-            # We only show relevant (required) items. But.
-            # If the view is reduced or minimal we don't show ones that are complete. Also.
-            # If we're in minimal view we only show ones we still need to buy.
-            docked:bool = self.colonisation.docked
-            hasmarket:bool = self.colonisation.market != {}
-            forsale:bool = self.colonisation.market.get(f"${c}_name;", 0) > 0
-            atcarrier:bool = self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id
-            needtobuy:bool = remaining - carrier - cargo > 0
-            if (reqcnt <= 0) or \
-                ((rowcnt > self.max_rows > 0) and not self.use_scrollbar) or \
-                (remaining <= 0 and cargo == 0 and self.view != ProgressView.FULL) or \
-                (docked and not forsale and not needtobuy and cargo == 0 and self.view == ProgressView.REDUCED) or \
-                ((not docked or not hasmarket) and not needtobuy and cargo == 0 and self.view == ProgressView.MINIMAL) or \
-                (docked and not forsale and cargo == 0 and self.view == ProgressView.MINIMAL) or \
-                (docked and not atcarrier and not needtobuy and cargo == 0 and self.view == ProgressView.MINIMAL):
-                for cell in row.values():
-                    cell.grid_remove()
+            if self._skip_row(self.view, c, reqcnt, delcnt, cargo, carrier, rowcnt):
                 continue
 
             if rowcnt == self.max_rows and not self.use_scrollbar:
                 for cell in row.values():
-                    cell['text'] = '… '
-                    cell.grid()
+                    cell.grid_remove()
+                row[0]['text'] = '… '
+                row[0].grid()
                 rowcnt += 1
-                continue
+                break
 
-            for col, val in enumerate(self.columns):
+            for col, val in enumerate(row_values[1:]):
                 row[col].bind("<Button-1>", partial(self.link, c, None))
                 row[col].bind("<Button-2>", partial(self.link, c, sn))
                 row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(c)))
 
                 if col == 0:
-                    # Shorten and display the commodity name
-                    row[col]['text'] = str_truncate(self.colonisation.get_commodity(c), self.comm_width)
-                    self.rowtts[i].text = self.colonisation.get_commodity(c, 'category')
+                    row[col]['text'] = val
+                    self.rowtts[rowcnt].text = self.colonisation.get_commodity(c, 'category')
                     row[col].grid()
                     continue
 
-                row[col]['text'] = self._get_value(col, reqcnt, delcnt, cargo, carrier, buyorder)
+                row[col]['text'] = val
                 row[col].grid()
 
             self._highlight_row(row, c, reqcnt, delcnt, cargo, carrier)
             rowcnt += 1
+
+        for j in range(rowcnt, len(self.rows)):
+            for cell in self.rows[j].values():
+                cell.grid_remove()
 
         self._display_totals(tracked, totals)
 

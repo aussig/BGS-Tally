@@ -1,3 +1,4 @@
+from dataclasses import dataclass, field
 import re
 import sys
 import tkinter as tk
@@ -6,7 +7,7 @@ import webbrowser
 from functools import partial
 from math import ceil
 from tkinter import ttk
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, Tuple
 from urllib.parse import quote
 
 from requests import Response
@@ -24,6 +25,29 @@ from config import config  # type: ignore
 from thirdparty.tksheet import Sheet, natural_sort_key
 from thirdparty.Tooltip import ToolTip
 
+@dataclass
+class Commodity:
+    '''Class to hold commodity details needed for progress display'''
+    col_obj:'Colonisation'
+    comm:str
+    required:int
+    delivered:int
+    name:str = field(init=False)
+    category:str = field(init=False)
+    cargo:int = field(init=False)
+    carrier:int = field(init=False)
+    buyorder:int = field(init=False)
+    remaining:int = field(init=False)
+    purchase:int = field(init=False)
+
+    def __post_init__(self):
+        self.name = self.col_obj.get_commodity(self.comm, 'name')
+        self.category = self.col_obj.get_commodity(self.comm, 'category')
+        self.cargo = self.col_obj.cargo.get(self.comm, 0)
+        self.carrier = self.col_obj.carrier_cargo.get(self.comm, 0)
+        self.buyorder = self.col_obj.carrier_buy.get(self.comm, 0)
+        self.remaining = max(0, self.required - self.delivered)
+        self.purchase = max(0, self.required - self.delivered - self.cargo - self.carrier)
 
 class ProgressWindow:
     '''
@@ -621,48 +645,15 @@ class ProgressWindow:
             self.bgstally.ui.window_colonisation._link({'StarSystem': system}, 'System')
 
 
-    def _get_display_rows(self, comms:list, required:list, delivered:list, totals:dict) -> list:
-        '''Build the display rows for commodities using the selected four columns.'''
-        display_rows:list = []
-
-        for i, c in enumerate(comms):
-            if i >= len(self.rows):
-                continue
-
-            reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
-            delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
-
-            cargo:int = self.colonisation.cargo.get(c, 0)
-            carrier:int = self.colonisation.carrier_cargo.get(c, 0)
-            buyorder:int = self.colonisation.carrier_buy.get(c, 0)
-
-            totals['Required'] += reqcnt
-            totals['Delivered'] += delcnt
-            if reqcnt - delcnt > 0:
-                totals['Cargo'] += max(min(cargo, reqcnt - delcnt), 0)
-                totals['Carrier'] += max(min(carrier, reqcnt - delcnt - cargo), 0)
-            totals['BuyOrder'] += buyorder
-
-            row_values:list[str|None] = [c, str_truncate(self.colonisation.get_commodity(c), self.comm_width)]
-            for col in range(1, len(self.columns)):
-                row_values.append(self._get_value(col, reqcnt, delcnt, cargo, carrier, buyorder))
-
-            display_rows.append(row_values)
-
-        return display_rows
-
-
-    def _skip_row(self, view:ProgressView, c:str, reqcnt:int, delcnt:int, cargo:int, carrier:int, rowcnt:int) -> bool:
+    def _skip_row(self, view:ProgressView, comm:Commodity, rowcnt:int) -> bool:
         '''Return True if the commodity row should be skipped from display.'''
-        remaining:int = reqcnt - delcnt
         docked:bool = self.colonisation.docked
         hasmarket:bool = self.colonisation.market != {}
-        forsale:bool = self.colonisation.market.get(f"${c}_name;", 0) > 0
+        forsale:bool = self.colonisation.market.get(f"${comm.comm}_name;", 0) > 0
         atcarrier:bool = self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id
-        needtobuy:bool = remaining - carrier - cargo > 0
 
         # Always ignore commodities that aren't required at all
-        if reqcnt <= 0:
+        if comm.required <= 0:
             return True
         # Skip rows that exceed the maximum if we're not using the scrollbar (if we are using the scrollbar then we show them all and let the user scroll)
         if (rowcnt > self.max_rows > 0) and not self.use_scrollbar:
@@ -672,21 +663,21 @@ class ProgressWindow:
             return False
 
         # Skip if no more required and not in cargo unless we're in FULL view
-        if remaining <= 0 and cargo == 0:
+        if comm.remaining <= 0 and comm.cargo == 0:
             return True
 
         # If we're docked and the market doesn't have this commodity and we don't need to buy it and we don't have any in cargo then skip unless we're in FULL view
-        if docked and not forsale and not needtobuy and cargo == 0:
+        if docked and not forsale and not comm.purchase > 0 and comm.cargo == 0:
             return True
 
         if view == ProgressView.MINIMAL: # Minimal show everything else
             return False
 
-        if (not docked or not hasmarket) and not needtobuy and cargo == 0:
+        if (not docked or not hasmarket) and not comm.purchase > 0 and comm.cargo == 0:
             return True
-        if docked and not forsale and cargo == 0:
+        if docked and not forsale and comm.cargo == 0:
             return True
-        if docked and not atcarrier and not needtobuy and cargo == 0:
+        if docked and not atcarrier and not comm.purchase > 0 and comm.cargo == 0:
             return True
 
         return False
@@ -734,6 +725,13 @@ class ProgressWindow:
         self.titlett.text = f"{name}\n{_('left click to copy, right click menu')}" # LANG: tooltip for the build name"
         self.title.config(text=str_truncate(name, self.build_width, loc='middle'))
 
+        # Get an ordered list of commodities
+        comms:list[Commodity] = self._get_comms(required, delivered)
+
+        if comms == []:
+            Debug.logger.info(f"No commodities found")
+            return
+
         # Hide the table but not the progress frame so the change view icon is still available
         if self.view == ProgressView.NONE:
             self.table_frame.grid_remove()
@@ -750,35 +748,18 @@ class ProgressWindow:
             self.collbls[col]['text'] = self.headings[val].get('Label')
             self.collbls[col].grid()
 
-        totals:dict = {'Commodity': _("Total"),  # LANG: total commodities
-                        'Required': 0, 'Delivered': 0, 'Cargo' : 0, 'Carrier': 0, 'BuyOrder': 0}
+        totals:Commodity = Commodity(self.colonisation, 'total', 0, 0)
 
-        # Go through each commodity and show or hide it as appropriate and display the appropriate values
-        comms:list = []
-        if self.colonisation.docked == True and '$EXT_PANEL_ColonisationShip' not in f"{self.colonisation.station}" and 'Construction Site' not in f"{self.colonisation.station}":
-            comms = self.colonisation.get_commodity_list(CommodityOrder.CATEGORY)
-        else:
-            if self.build_index >= len(required):
-                comms = self.colonisation.get_commodity_list(self.comm_order)
-            else:
-                qty:dict = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
-                comms = self.colonisation.get_commodity_list(self.comm_order, qty)
-
-        if comms == None or comms == []:
-            Debug.logger.info(f"No commodities found")
-            return
+        cols = []
+        for i, col in enumerate(self.columns):
+             cols.append([self.headings[col].get('Column'), self.units[i]])
 
         rowcnt:int = 0
-        for row_values in self._get_display_rows(comms, required, delivered, totals):
-            c = row_values[0]
+        for comm, row_values in self._row_values(cols, comms, totals):
             row:dict = self.rows[rowcnt]
-            reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
-            delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
 
-            cargo:int = self.colonisation.cargo.get(c, 0)
-            carrier:int = self.colonisation.carrier_cargo.get(c, 0)
-
-            if self._skip_row(self.view, c, reqcnt, delcnt, cargo, carrier, rowcnt):
+            if self._skip_row(self.view, comm, rowcnt):
+                Debug.logger.debug(f"Skipping row for {comm}")
                 continue
 
             if rowcnt == self.max_rows and not self.use_scrollbar:
@@ -789,28 +770,35 @@ class ProgressWindow:
                 rowcnt += 1
                 break
 
-            for col, val in enumerate(row_values[1:]):
-                row[col].bind("<Button-1>", partial(self.link, c, None))
-                row[col].bind("<Button-2>", partial(self.link, c, sn))
-                row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(c)))
+            for col, val in enumerate(row_values):
+                row[col].bind("<Button-1>", partial(self.link, comm.comm, None))
+                row[col].bind("<Button-2>", partial(self.link, comm.comm, sn))
+                row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(comm.comm)))
 
                 if col == 0:
                     row[col]['text'] = val
-                    self.rowtts[rowcnt].text = self.colonisation.get_commodity(c, 'category')
+                    self.rowtts[rowcnt].text = self.colonisation.get_commodity(comm.comm, 'category')
                     row[col].grid()
                     continue
 
                 row[col]['text'] = val
                 row[col].grid()
 
-            self._highlight_row(row, c, reqcnt, delcnt, cargo, carrier)
+            self._highlight_row(row, comm)
             rowcnt += 1
 
         for j in range(rowcnt, len(self.rows)):
             for cell in self.rows[j].values():
                 cell.grid_remove()
 
-        self._display_totals(tracked, totals)
+        # We're down to having nothing left to deliver.
+        if (totals.required - totals.delivered) == 0:
+            if len(tracked) == 0: # Nothing at all, remove the entire frame
+                self.frame.grid_remove()
+            else: # Just this one build? Hide the table
+                self.table_frame.grid_remove()
+        else:
+            self._display_totals(cols, totals)
 
         if self.use_scrollbar:
             rows:int = min(rowcnt, self.max_rows)
@@ -824,55 +812,79 @@ class ProgressWindow:
             else:
                 self.scrollbar.grid(row=0, column=1, rowspan=3, sticky=tk.NS, ipadx=0, padx=0)
 
-        if totals['Required'] > 0:
+        if totals.required > 0:
             self.bar_width = self.progbar.master.winfo_width() - 10
             self.progbar.configure(length=self.bar_width)
-            self.progvar.set(round(totals['Delivered'] * 100 / totals['Required']))
-            self.progress = round(totals['Delivered'] * 100 / totals['Required'])
+            self.progvar.set(round(totals.delivered * 100 / totals.required))
+            self.progress = round(totals.delivered * 100 / totals.required)
             self.progtt.text = f"{_('Progress')}: {int(self.progvar.get())}%" # LANG: tooltip for the progress bar
 
+
+    def _get_comms(self, required:list[dict], delivered:list[dict]) -> list[Commodity]:
+        ''' Get the list of commodities to display in the order they should be displayed. '''
+        r:dict = required[self.build_index if self.build_index < len(required) else 0]
+        d:dict = delivered[self.build_index if self.build_index < len(delivered) else 0]
+
+        # Force category order when docked at a station
+        if self.colonisation.docked == True and '$EXT_PANEL_ColonisationShip' not in f"{self.colonisation.station}" and \
+            'Construction Site' not in f"{self.colonisation.station}":
+            return [Commodity(self.colonisation, c,r.get(c, 0), d.get(c, 0)) for c in self.colonisation.get_commodity_list(CommodityOrder.CATEGORY) if c in r.keys()]
+
+        qty:dict = {}
+        if self.build_index < len(required):
+            qty = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
+        return [Commodity(self.colonisation, c,r.get(c, 0), d.get(c, 0)) for c in self.colonisation.get_commodity_list(self.comm_order, qty) if c in r.keys()]
+
+
+    def _row_values(self, cols:list, comms:list, totals:Commodity) -> list[tuple]:
+        '''Build the display rows for commodities using the selected four columns.'''
+        display_rows:list[tuple] = []
+
+        for i, comm in enumerate(comms):
+            if i >= len(self.rows):
+                continue
+
+            totals.required += comm.required
+            totals.delivered += comm.delivered
+            totals.buyorder += comm.buyorder
+            totals.remaining += comm.remaining
+            totals.purchase += comm.purchase
+            if comm.remaining > 0:
+                totals.cargo += max(min(comm.cargo, comm.remaining), 0)
+                totals.carrier += max(min(comm.carrier, comm.remaining - comm.cargo), 0)
+
+            row_values:list = []
+            for col in cols:
+                row_values.append(self._get_value(col[0], col[1], comm))
+
+            display_rows.append((comm, row_values))
+
+        return display_rows
+
+
     @catch_exceptions
-    def _display_totals(self, tracked:list, totals:dict) -> None:
+    def _display_totals(self, cols:list, totals:Commodity) -> None:
         ''' Display the totals at the bottom of the table '''
-
-        # We're down to having nothing left to deliver.
-        if (totals['Required'] - totals['Delivered']) == 0:
-            if len(tracked) == 0: # Nothing at all, remove the entire frame
-                self.frame.grid_remove()
-            else: # Just this one build? Hide the table
-                self.table_frame.grid_remove()
-            return
-
-        for col, val in enumerate(self.columns):
-            self.total_row[col]['text'] = self._get_value(col, totals['Required'], totals['Delivered'], totals.get('Cargo',0), totals.get('Carrier', 0), totals.get('BuyOrder', 0)) if col != 0 else _("Total") # LANG: Colonisation total commodities
-            self._set_weight(self.total_row[col])
-            self.total_row[col].grid()
+        Debug.logger.debug(f"Displaying totals: {cols}")
+        for i, col in enumerate(cols):
+            self.total_row[i]['text'] = self._get_value(col[0], col[1], totals)
+            self._set_weight(self.total_row[i])
+            self.total_row[i].grid()
 
 
     @catch_exceptions
-    def _get_value(self, col:int, required:int, delivered:int, cargo:int, carrier:int, buyorder:int) -> str:
+    def _get_value(self, which:str, units:ProgressUnits, comm:Commodity) -> str:
         ''' Calculate and format the commodity amount depending on the column and the units '''
-        qty: int = 0
-        if col >= len(self.columns):
-            return ""
-        if self.columns[col] >= len(self.headings):
-            return ""
-
-        which:str = self.headings[self.columns[col]].get('Column')
         match which:
-            case 'Required': qty = required
-            case 'Remaining': qty = required - delivered
-            case 'Delivered': qty = delivered
-            case 'Purchase': qty = required - delivered-cargo-carrier
-            case 'Cargo': qty = cargo
-            case 'Carrier': qty = carrier
-            case 'BuyOrder': qty = buyorder
+            case 'Commodity': return comm.name
+            case 'Category': return comm.category
+            case _:
+                qty:int = getattr(comm, which.lower(), 0)
 
-        qty = max(qty, 0) # Never less than zero
-        if self.units[col] == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
-            return f"{ceil(qty / self.colonisation.cargo_capacity): >10,}{_('L')}" # LANG: Colonisation loads abbreviation
+                if units == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
+                    return f"{ceil(qty / self.colonisation.cargo_capacity): >10,}{_('L')}" # LANG: Colonisation loads abbreviation
 
-        return f"{qty: >10,}{_('t')}" # LANG: Colonisation tonnes abbreviation
+                return f"{qty: >10,}{_('t')}" # LANG: Colonisation tonnes abbreviation
 
 
     def _set_weight(self, cell, w:Literal['normal', 'bold']='bold') -> None:
@@ -885,37 +897,37 @@ class ProgressWindow:
 
 
     @catch_exceptions
-    def _highlight_row(self, row:dict, c:str, required:int, delivered:int, cargo:int, carrier:int) -> None:
+    def _highlight_row(self, row:dict, comm:Commodity) -> None:
         ''' Color rows depending on the state '''
-        remaining:int = required - delivered
         space:int = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
         for cell in row.values():
             # Get the ed:mc default color
             if config.get_int('theme') == 0: cell['fg'] = 'black'
             self._set_weight(cell, 'normal')
 
-            if remaining <= 0: # Nothing left to deliver, grey it out
+            if comm.remaining <= 0: # Nothing left to deliver, grey it out
                 cell['fg'] = 'grey'; self._set_weight(cell, 'normal')
                 continue
 
-            if remaining <= cargo: # Have enough in our hold? green and bold
+            if comm.remaining <= comm.cargo: # Have enough in our hold? green and bold
                 cell['fg'] = 'green'; self._set_weight(cell, 'bold')
                 continue
 
             # We're at our carrier, highlight what's available
-            if self.colonisation.docked == True and self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id and self.colonisation.market.get(f"${c}_name;", 0) > 0:
+            if self.colonisation.docked == True and self.colonisation.market_id == self.bgstally.fleet_carrier.carrier_id and \
+                self.colonisation.market.get(f"${comm.comm}_name;", 0) > 0:
                 cell['fg'] = 'goldenrod3'
                 # bold if need any and have room, otherwise normal
-                self._set_weight(cell, 'bold' if remaining-cargo-carrier <= 0 and space > 0 else 'normal')
+                self._set_weight(cell, 'bold' if comm.purchase <= 0 and space > 0 else 'normal')
                 continue
 
-            if remaining <= cargo+carrier : # Have enough between our hold and the carrier? green and normal
+            if comm.purchase == 0: # Have enough between our hold and the carrier? green and normal
                 cell['fg'] = 'green'; self._set_weight(cell, 'normal')
                 continue
 
             # What's available at this market?
-            if self.colonisation.docked == True and self.colonisation.market.get(f"${c}_name;", 0): # market!
+            if self.colonisation.docked == True and self.colonisation.market.get(f"${comm.comm}_name;", 0): # market!
                 cell['fg'] = 'steelblue'
                 # bold if need any and have room, otherwise normal
-                self._set_weight(cell, 'bold' if remaining-cargo-carrier > 0 and space > 0 else 'normal')
+                self._set_weight(cell, 'bold' if comm.purchase > 0 and space > 0 else 'normal')
                 continue

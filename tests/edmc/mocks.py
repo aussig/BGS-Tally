@@ -60,6 +60,23 @@ class MockConfig:
         if value is None: return default
         return str(value)
 
+    def get_bool(self, key: str, default=False) -> bool:
+        val = self.get(key.lower())
+
+        if isinstance(val, bool): return val
+        if isinstance(val, int): return val != 0
+
+        if isinstance(val, str) and val.strip().lower() in ("1", "true", "yes", "on"): return True
+        if isinstance(val, str) and val.strip().lower() in ("0", "false", "no", "off"): return False
+
+        return default
+
+    def get_list(self, key: str, default=None):
+        val = self.get(key.lower())
+        return (
+            val if isinstance(val, list) else (default if default is not None else [])
+        )
+
     def delete(self, key: str, *, suppress=False) -> None:
         if key in self.data:
             del self.data[key]

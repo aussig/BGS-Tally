@@ -2,6 +2,10 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### Changes:
+
+* Now set a default Discord 'Post as' username to help speed up setup. You should still set your own though.
+
 ### Bug Fixes:
 
 * Discord preview wasn't refreshing after changing the favourite faction mode in the drop-down

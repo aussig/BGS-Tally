@@ -2,7 +2,9 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### Bug Fixes:
 
+* Discord preview wasn't refreshing after changing the favourite faction mode in the drop-down
 
 
 ## v5.5.1 - 2026-05-11

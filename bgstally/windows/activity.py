@@ -483,8 +483,8 @@ class WindowActivity:
         """
         k: str = next(k for k, v in favourite_types.items() if v == value)
         self.bgstally.state.FavouriteActivityMode.set(k)
+        self.bgstally.state.refresh()
         self._update_discord_field(activity)
-        self.bgstally.state.refresh
 
 
     def _toggle_favourite_faction(self, faction_name:str, activity: Activity, label:ttk.Label, *args):

@@ -9,6 +9,7 @@
 ### Bug Fixes:
 
 * Discord preview wasn't refreshing after changing the favourite faction mode in the drop-down
+* Checkbox for enabling / disabling automatic Discord posting had gone missing
 
 
 ## v5.5.1 - 2026-05-11

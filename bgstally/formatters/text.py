@@ -1,3 +1,8 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
 from bgstally.constants import DiscordPostStyle
 from bgstally.debug import Debug
 from bgstally.formatters.default import DefaultActivityFormatter
@@ -10,7 +15,7 @@ class TextOnlyActivityFormatter(DefaultActivityFormatter):
     UTF8 emojis to represent activity, but send as text only
     """
 
-    def __init__(self, bgstally):
+    def __init__(self, bgstally: 'BGSTally'):
         """Instantiate class
 
         Args:

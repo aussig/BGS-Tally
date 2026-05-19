@@ -1,0 +1,155 @@
+{
+    "Progress": [
+        {
+            "MarketID": 3960978946,
+            "ConstructionProgress": 0.001194,
+            "ConstructionComplete": false,
+            "ConstructionFailed": false,
+            "Required": {
+                "aluminium": 1377,
+                "ceramiccomposites": 88,
+                "computercomponents": 22,
+                "copper": 83,
+                "foodcartridges": 25,
+                "fruitandvegetables": 9,
+                "insulatingmembrane": 105,
+                "liquidoxygen": 689,
+                "microcontrollers": 13,
+                "polymers": 168,
+                "powergenerators": 9,
+                "semiconductors": 34,
+                "steel": 2523,
+                "superconductors": 61,
+                "titanium": 1459,
+                "water": 22,
+                "waterpurifiers": 13
+            },
+            "Delivered": {
+                "aluminium": 0,
+                "ceramiccomposites": 0,
+                "computercomponents": 0,
+                "copper": 0,
+                "foodcartridges": 8,
+                "fruitandvegetables": 0,
+                "insulatingmembrane": 0,
+                "liquidoxygen": 0,
+                "microcontrollers": 0,
+                "polymers": 0,
+                "powergenerators": 0,
+                "semiconductors": 0,
+                "steel": 0,
+                "superconductors": 0,
+                "titanium": 0,
+                "water": 0,
+                "waterpurifiers": 0
+            },
+            "ProjectID": "45135c16-cbbe-412e-b0b0-f097a1ac06e0",
+            "Updated": "2026-03-11T00:08:21Z"
+        }
+    ],
+    "Systems": [
+        {
+            "Name": "M23 AK-H b10-1",
+            "Claimed": "2025-07-05T19:04:17Z",
+            "Builds": [
+                {
+                    "Name": "Lavrador's Progress",
+                    "State": "Complete",
+                    "MarketID": 4263615235,
+                    "StationEconomy": "Industrial",
+                    "Location": "Orbital",
+                    "Track": false,
+                    "Body": "A 1",
+                    "Base Type": "Civilian Outpost",
+                    "Layout": "Vesta",
+                    "BuildID": "&4263615235",
+                    "BodyNum": 3,
+                    "Readonly": true
+                },
+                {
+                    "BuildID": "x1761002173685",
+                    "Name": "Orbital Construction Site: Womack Landing",
+                    "BodyNum": 30,
+                    "Layout": "Eirene",
+                    "State": "Progress",
+                    "Body": "B",
+                    "Base Type": "Satellite",
+                    "MarketID": 3960978946,
+                    "Location": "Orbital",
+                    "Track": false,
+                    "ProjectID": "45135c16-cbbe-412e-b0b0-f097a1ac06e0",
+                    "Readonly": false
+                },
+                {
+                    "Name": "Numpty",
+                    "State": "Complete",
+                    "MarketID": 4263615236,
+                    "StationEconomy": "Industrial",
+                    "Location": "Orbital",
+                    "Track": false,
+                    "Body": "A 1",
+                    "Base Type": "Civilian Outpost",
+                    "Layout": "Vesta",
+                    "BuildID": "&4263615236",
+                    "BodyNum": 3,
+                    "Readonly": true
+                }
+            ],
+            "StarSystem": "M23 Sector AK-H b10-1",
+            "SystemAddress": 2867024963809,
+            "Notes": "Zero ground slots\n\n\n\n\n\n",
+            "Population": 318768,
+            "Economy": "Industrial/High Tech",
+            "Bodies": [
+                {
+                    "name": "M23 Sector AK-H b10-1 A",
+                    "bodyId": 1,
+                    "type": "Star",
+                    "subType": "M (Red dwarf) Star",
+                    "parents": 1
+                },
+                {
+                    "name": "M23 Sector AK-H b10-1 A 1",
+                    "bodyId": 3,
+                    "type": "Planet",
+                    "subType": "Gas giant with water-based life",
+                    "terraformingState": "Not terraformable",
+                    "atmosphereType": "No atmosphere",
+                    "volcanismType": "No volcanism",
+                    "distanceToArrival": 1261,
+                    "parents": 2
+                },
+                {
+                    "name": "M23 Sector AK-H b10-1 B",
+                    "bodyId": 2,
+                    "type": "Star",
+                    "subType": "L (Brown dwarf) Star",
+                    "distanceToArrival": 22879,
+                    "parents": 1
+                }
+            ],
+            "EDSMUpdated": 1756190239,
+            "RCSync": false,
+            "Architect": "NavlGazr",
+            "Rev": 1,
+            "Hidden": true,
+            "SpanshUpdated": 1762908547,
+            "BuildSlots": {
+                "1": [
+                    2,
+                    -1
+                ],
+                "2": [
+                    2,
+                    -1
+                ],
+                "3": [
+                    3,
+                    -1
+                ]
+            },
+            "RCCommander": "NavlGazr",
+            "RCOpen": false
+        }
+    ]
+}

@@ -1,17 +1,21 @@
 # type: ignore[reportMemberAccess]
 import json
+import re
+import time
+from datetime import datetime, timedelta
 from os import path
 from os.path import join
-import time
-import re
-from datetime import datetime, timedelta
-from config import config # type: ignore
+from typing import TYPE_CHECKING
 
-#from bgstally.bgstally import BGSTally
-from bgstally.constants import FOLDER_OTHER_DATA, FOLDER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
+from config import config  # type: ignore
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
+from bgstally.constants import FOLDER_DATA, FOLDER_OTHER_DATA, BuildState, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
+from bgstally.ravencolonial import EDSM, RavenColonial, Spansh
 from bgstally.utils import _, catch_exceptions
-from bgstally.ravencolonial import RavenColonial, EDSM, Spansh
 
 FILENAME = "colonisation.json"
 BASE_TYPES_FILENAME = 'base_types.json'
@@ -51,8 +55,8 @@ class Colonisation:
       - data/commodity.csv: Contains the list of commodities and their categories.
       - data/colonisation_legend.txt and L10n/ localized legends: Contains text for the colonisation legend popup.
     '''
-    def __init__(self, bgstally) -> None:
-        self.bgstally:BGSTally = bgstally # type: ignore
+    def __init__(self, bgstally: 'BGSTally') -> None:
+        self.bgstally:BGSTally = bgstally
         self.system_id:int|None = None
         self.current_system:str|None = None
         self.body:str|None = None
@@ -85,6 +89,7 @@ class Colonisation:
         # Load base commodities, types, costs, and saved data
         self._load_base_types()
         self._load()
+        self._update_carrier()
 
 
     @catch_exceptions
@@ -129,7 +134,7 @@ class Colonisation:
         if cmdr != None: self.cmdr = cmdr
         if self.current_system != None and self.current_system in entry.get('Body', ' '): self.body = self.body_name(self.current_system, entry.get('Body'))
 
-        Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} ({station}) market: {self.market_id}")
+        #Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} ({station}) market: {self.market_id}")
 
         if entry.get('StationType', '') == 'FleetCarrier' : self.station = 'FleetCarrier'
 
@@ -141,7 +146,7 @@ class Colonisation:
 
                 # Update systems with external data if required
                 for system in self.systems:
-                    if system.get('Hidden', False) == True: continue
+                    if system.get('Hidden', False) == True or system.get('SystemAddress', 0) == 0: continue
 
                     if system.get('RCSync', False) == True:
                         rc.load_system(system.get('SystemAddress', 0), system.get('Rev', 0))
@@ -433,7 +438,6 @@ class Colonisation:
 
         return status
 
-
     @catch_exceptions
     def find_system(self, data:dict) -> dict|None:
         ''' Find a system by address, system name, or plan name '''
@@ -454,7 +458,6 @@ class Colonisation:
             return self.add_system(data, False, False)
 
         return system
-
 
     @catch_exceptions
     def add_system(self, data:dict, prepop:bool = False, rcsync:bool = False) -> dict:
@@ -481,7 +484,6 @@ class Colonisation:
 
         self.save('Add system')
         return data
-
 
     @catch_exceptions
     def modify_system(self, system, data:dict) -> None:
@@ -661,8 +663,8 @@ class Colonisation:
                 body = build.get('Body', build.get('BodyNum', None)).lower()
             market:int|None = build.get('MarketID', None)
 
-            # A build that was planned but is now a construction site
-            if state == BuildState.PLANNED and market == None and location == loc and body == data.get('Body', str(data.get('BodyNum'))).lower():
+            # A build that was planned but is now a construction site or progress but we've never been there
+            if state in (BuildState.PLANNED, BuildState.PROGRESS) and market == None and location == loc and body == data.get('Body', str(data.get('BodyNum'))).lower():
                 Debug.logger.debug(f"Matched planned build {data['Body']} {build.get('State', None)} {loc} Build: {build}")
                 return build
 
@@ -677,6 +679,15 @@ class Colonisation:
                 body != None and body == data.get('Body', str(data.get('BodyNum'))).lower():
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
+
+        if len(builds) == 0:
+            return None
+
+        # Primary port. We completed it but don't know its new name or marketid.
+        if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('MarketID', None) == None and \
+             builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == data.get('Body', str(data.get('BodyNum', ''))).lower():
+            Debug.logger.debug(f"Matched completed primary port {data.get('Name', None)} {data.get('Body', str(data.get('BodyNum', ''))).lower()}")
+            return builds[0]
 
         return None
 
@@ -894,13 +905,20 @@ class Colonisation:
         # If we get here, the build is (newly) complete.
         # Since on completion the colonisation ship is removed/goes inactive and a new station is created
         # we need to clear some fields.
+        name = None if 'System Colonisation Ship' in build.get('Name', '') else build.get('Name', None)
         data:dict = {
             'State': BuildState.COMPLETE,
             'Track': False,
             'Readonly': True,
-            'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', ''))
+            'Name': re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', '')),
+            'MarketID': build.get('MarketID', None)
         }
-        data['MarketID'] = None if 'System Colonisation Ship' in build.get('Name', '') else build.get('MarketID', None)
+
+        # These change for initial colonisation
+        if 'System Colonisation Ship' in build.get('Name', ''):
+            data['MarketID'] = None
+            data['Name'] = None
+
         self.modify_build(system, build.get('BuildID', ''), data)
         return True
 
@@ -975,7 +993,7 @@ class Colonisation:
                     if p.get('MarketID') == b.get('MarketID') and p.get('ConstructionComplete', False) == False and p.get('ConstructionFailed', False) != True:
                         res = p.get(type, {})
                         break
-            if res == {} and type != 'Delivered':
+            if res == {} and type != 'Delivered' and b.get('Base Type', '') != '':
                 res = self._get_cost(b.get('Base Type', ''), i==0)
             found += 1
             prog.append(res)
@@ -1131,7 +1149,7 @@ class Colonisation:
             return
 
         for name, item in self.bgstally.market.commodities.items():
-            if item.get('Stock') > 0:
+            if 'Stock' in item:
                 market[item.get('Name')] = item.get('Stock')
         if market == {}:
             Debug.logger.debug(f"No market update")
@@ -1270,8 +1288,10 @@ class Colonisation:
             self.market_id = dict.get('MarketID', None)
             self.cargo_capacity = dict.get('CargoCapacity', 784)
             self.bgstally.ui.window_progress.view = ProgressView(dict.get('ProgressView', 0))
-            self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
-            if dict.get('ProgressColumns', None) != None: self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
+            if dict.get('ProgressUnits', []) != []:
+                self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
+            if dict.get('ProgressColumns', None) != None:
+                self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
             self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
             self.window_geometries = dict.get('WindowGeometries', {})
         except:

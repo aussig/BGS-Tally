@@ -1,3 +1,8 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
 from bgstally.activity import Activity
 from bgstally.constants import DiscordActivity
 from bgstally.debug import Debug
@@ -9,7 +14,7 @@ class DemoActivityFormatter(DefaultActivityFormatter):
     """Activity formatter that outputs Lorum Ipsum
     """
 
-    def __init__(self, bgstally):
+    def __init__(self, bgstally: 'BGSTally'):
         """Instantiate class
 
         Args:

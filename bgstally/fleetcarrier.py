@@ -1,14 +1,19 @@
 import json
-from datetime import UTC, datetime, timedelta
 import time
-import requests
-from os import path
 from copy import deepcopy
+from datetime import UTC, datetime, timedelta
+from os import path
+from typing import TYPE_CHECKING
 
-#from bgstally.bgstally import BGSTally
-from bgstally.constants import DATETIME_FORMAT_JOURNAL, DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, DiscordChannel, FleetCarrierType, FleetCarrierJump, TAG_OVERLAY_HIGHLIGHT
+import requests
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
+from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DiscordChannel, FleetCarrierJump,
+                                FleetCarrierType)
 from bgstally.debug import Debug
-from bgstally.utils import _, __, get_by_path, catch_exceptions
+from bgstally.utils import _, __, catch_exceptions, get_by_path
 from thirdparty.colors import *
 
 FILENAME = "fleetcarrier.json"
@@ -16,6 +21,7 @@ FC_MAX_SHIPS = 40
 FC_MAX_JUMPS_TRACKED = 250
 FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
+
 class FleetCarrier:
     """
     Used to store, track and return fleetcarrier data.
@@ -24,8 +30,8 @@ class FleetCarrier:
     since the CAPI is queried infrequently and can be unhelpfully out of date.
     Some data is managed and updated locally to work around the CAPI data being out of date.
     """
-    def __init__(self, bgstally) -> None:
-        self.bgstally:BGSTally = bgstally # type: ignore
+    def __init__(self, bgstally: 'BGSTally') -> None:
+        self.bgstally:BGSTally = bgstally
 
         self.carrier_id:int = 0
         self.overview:dict = {} # Top level data
@@ -38,9 +44,11 @@ class FleetCarrier:
         self.data:dict = {}  # Raw CAPI data
         self.window_geometries:dict = {}
         self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
-        self.timer:datetime = None
+        self.timer:datetime|None = None
         self.load()
         self._update_route()
+        if self.data != {}:
+            self.itinerary = self._update_itinerary(self.data)
 
     @catch_exceptions
     def available(self) -> bool:
@@ -65,7 +73,7 @@ class FleetCarrier:
             _('Docking'): (self._readable(self.overview.get('dockingAccess', '')), 'str', 'Unknown'), # LANG: Carrier overview
             _('Allow Notorious'): (self.overview.get('notoriousAccess', ''), 'str', 'Unknown'), # LANG: Carrier overview
 
-            _('Fuel'): (self.overview.get('fuel', 0), 'num', 0, 't'),                    # LANG: Carrier overview
+            _('Fuel'):(f"{self.overview.get('fuel', 0):,}t (+{int(get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)):,}t)", 'fixed'),                    # LANG: Carrier overview
             _('Space'): (f"{self._get_freespace():,}t ({int(self._get_freespace() * 100 / self.overview.get('totalCapacity', 25000))}%)", 'fixed'), # LANG: Carrier overview
             _('Tax Level'): (self.overview.get('taxation', 0), 'num', '0%', '%'),        # LANG: Carrier overview
         }
@@ -145,8 +153,8 @@ class FleetCarrier:
             for name, deets in ent.items():
                 deets['locName'] = self.bgstally.ui.commodities.get(name, {}).get('Name', name)
                 deets['category'] = self.bgstally.ui.commodities.get(name, {}).get('Category', '') if isinstance(self.bgstally.ui.commodities.get(name, {}).get('Category', ''), str) else 'Unknown'
-                deets['mission'] = (t == 'mission')
-                deets['stolen'] = (t == 'stolen')
+                deets['mission'] = _('Yes') if t == 'mission' else ''
+                deets['stolen'] = _('Yes') if t == 'stolen' else ''
                 comm[name] = deets
         comm = dict(sorted(comm.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
@@ -175,7 +183,7 @@ class FleetCarrier:
         stored:int = 0
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
-                deets['mission'] = (t == 'mission')
+                deets['mission'] = _('Yes') if (t == 'mission') else ''
                 buying += deets.get('outstanding', 0)
                 if deets['outstanding'] == 0 and deets['price'] > 0 and (t == 'normal'):
                     selling += deets.get('stock', 0)
@@ -338,23 +346,22 @@ class FleetCarrier:
         """ Update the route to our current location if we're on the route """
 
         # If we aren't currently on the route leave it alone
-        if self.overview['currentStarSystem'] not in [r.get('name') for r in self.route if 'name' in r]:
+        if self.overview.get('currentStarSystem', 'None') not in [r.get('name') for r in self.route if 'name' in r]:
             return
 
         # Do catchup. This shouldn't happen unless we've made some jumps without ED:MC running
         used:int = 0
-        while self.route != [] and self.route[0]['name'] != self.overview['currentStarSystem']:
+        while self.route != [] and self.route[0]['name'] != self.overview.get('currentStarSystem', 'None'):
             used += self.route[0]['fuel_used']
             self.route = self.route[1:]
 
         # If we're there take it out.
-        if self.route != [] and self.route[0]['name'] == self.overview['currentStarSystem']:
+        if self.route != [] and self.route[0]['name'] == self.overview.get('currentStarSystem', 'None'):
             self.overview['fuel'] -= used + self.route[0]['fuel_used']
             self.route = self.route[1:]
 
         # And put the next stop in the clipboard
-        if self.route != []:
-            Debug.logger.debug(f"Copying {self.route[0]['name']} to clipboard")
+        if self.route != [] and self.bgstally.ui.frame:
             self.bgstally.ui.frame.clipboard_clear()
             self.bgstally.ui.frame.update()
 
@@ -366,29 +373,33 @@ class FleetCarrier:
         message:str = ""
 
         if len(self.route) > 1 and self.route[0]['name'] == self.overview.get('currentStarSystem', 'Unknown'):
-            message = f"{_('Route Next')}: {self.route[1]['name']}" #LANG: Carrier overlay
+            message = f"{_('Route Next')}: {self.route[1]['name']}" # LANG: Next system in route on carrier overlay
         if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
-            message = f"{_('Route Next')}: {self.route[0]['name']}"
+            message = f"{_('Route Next')}: {self.route[0]['name']}" # LANG: Next system in route on carrier overlay
 
         cd:str = ''; delta:int
         if self.timer != None:
             # Subtract extra seconds because of the update delay.
-            delta = self._td(self.timer, datetime.now(tz=UTC)) - 1
+            delta = self._td(self.timer, datetime.now(tz=UTC))
             cd = self._td_str(delta)
 
         if self.jump_state == FleetCarrierJump.Cooldown and delta > 0:
             message = f"{_('Jump Cooldown')} {cd}" # LANG: Carrier overlay
+
         if self.jump_state == FleetCarrierJump.Jumping and delta > 0:
-            message = f"{_('Departure To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  #LANG: Carrier overlay
+            message = f"{_('Departure To')} {self.overview.get('jumpBody', self.overview.get('jumpDestination', 'Unknown'))} {_('in')} {cd}"  # LANG: Carrier overlay
             if delta < 200:
-                message += f"\n{_('Landing Pads Locked down')}" # LANG: Carrier overlay
+                message += f"\n{_('Landing Pads Locked down')}" # LANG: Carrier overlay, notification indicating that landing pad lockdown is currently active
             if 200 <= delta < 600:
-                message += f"\n{_('Landing Pad Lockdown in')} {self._td_str(delta - 200)}" # LANG: Carrier overlay
+                message += f"\n{_('Landing Pad Lockdown in')} {self._td_str(delta - 200)}" # LANG: Carrier overlay, label followed by a countdown indicating time remaining until landing pad lockdown
             # Jump locked in 10 m before departure
             if 600 <= delta:
                 message += f"\n{_('Jump Initiation in')} {self._td_str(delta - 600)}" # LANG: Carrier overlay
 
-        return TAG_OVERLAY_HIGHLIGHT + message
+        if message != "":
+            message = TAG_OVERLAY_HIGHLIGHT + message
+
+        return message
 
 
     def _update_cargo(self, data:dict) -> dict:
@@ -463,70 +474,59 @@ class FleetCarrier:
         return cargo
 
 
-    def _update_itinerary(self, data: dict) -> list:
+    def _update_itinerary(self, data:dict) -> list:
         """ Update our local itinerary data from CAPI data structure """
 
-        Debug.logger.debug(f"Updating itinerary")
-        jumplist:list = self.itinerary
+        # There seems to be a lot of weird edge cases for itinerary data where it can be missing or in the wrong format,
+        # so we'll catch exceptions and just return our existing data if it doesn't work.
+        try:
+            if not self.itinerary:
+                self.itinerary = []
 
-        for jump in deepcopy(get_by_path(data, ['itinerary', 'completed'], [])):
-            elem:int = next((index for (index, d) in enumerate(self.itinerary) if d['arrivalTime'] == jump.get('arrivalTime', '')), -1)
+            if not get_by_path(self.data, ['itinerary', 'completed']):
+                return self.itinerary
 
-            if elem > 0: # Found it, and it's an "old" one. Update departure time and duration just in case
-                jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
-                jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', jumplist[elem].get('visitDurationSeconds', 0))
+            jumplist:list = deepcopy(self.itinerary)
+            centries:list = [x['arrivalTime'][:-3] for x in get_by_path(self.data, ['itinerary', 'completed'])]
+            ientries:list = [x['arrivalTime'][:-3] for x in self.itinerary]
 
-                # Still no departure time so figure it out from the arrival time of the next item.
-                if jumplist[elem]['departureTime'] == None and jumplist[elem-1]['arrivalTime'] != None:
-                    jumplist[elem]['departureTime'] = jumplist[elem-1]['arrivalTime']
-                if jumplist[elem]['visitDurationSeconds'] == None:
-                    jumplist[elem]['visitDurationSeconds'] = self._td(jumplist[elem]['departureTime'], jumplist[elem]['arrivalTime'])
-                continue
+            # Add entries that aren't in our itinerary
+            jumplist += [j for j in get_by_path(data, ['itinerary', 'completed'], []) if j['arrivalTime'][:-3] not in ientries]
 
-            if elem == 0:
-                if jump.get('departureTime', None) != None:
-                    jumplist[elem]['departureTime'] = jump.get('departureTime', jumplist[elem].get('departureTime', None))
-                    jumplist[elem]['visitDurationSeconds'] = jump.get('visitDurationSeconds', 0)
-                    continue
+            # Remove entires that are in our itinerary but not in the capi data
+            # (for as far back as the capi data goes)
+            jumplist = [j for i, j in enumerate(jumplist) if j['arrivalTime'][:-3] in centries or i >= len(centries)]
 
-                if self.overview.get('departureScheduled', None) != None:
-                    jumplist[elem]['departureTime'] = self.overview['departureScheduled']
-                    # @TODO: Calculate duration?
-                    continue
+            # Sort & dedup
+            jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)
+            jumplist = list({j['arrivalTime'][:-3]: j for j in jumplist}.values())
 
-                if jumplist[elem]['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
-                    jumplist[elem]['body'] = self.overview['currentBody']
-                continue
+            # Cleanup
+            capidict:dict = {j['arrivalTime'][:-3]: j for j in get_by_path(self.data, ['itinerary', 'completed'])}
+            jumplist[0]['departureTime'] = None
+            jumplist[0]['visitDurationSeconds'] = None
+            if 'body' not in jumplist[0] and 'currentBody' in self.overview and jumplist[0]['starsystem'] == self.overview['currentStarSystem']:
+                jumplist[0]['body'] = self.overview['currentBody']
 
-            # Not found
+            # Treat CAPI as authoritative copying over anything from there
+            for i in range(0, len(jumplist)):
+                if i > 0:
+                    jumplist[i]['departureTime'] = jumplist[i-1]['arrivalTime']
+                    jumplist[i]['visitDurationSeconds'] = self._td(jumplist[i]['departureTime'], jumplist[i]['arrivalTime'])
 
-            # Already completed, and nothing scheduled so just add it with its details
-            if jump.get('departureTime', None) != None:
-                jumplist.insert(0, jump)
-                continue
+                # Copy CAPI data verbatim where we have it
+                atime:str = jumplist[i]['arrivalTime'][:-3]
+                if atime in capidict:
+                    for k, v in capidict[atime].items():
+                        jumplist[i][k] = v
+                    if jumplist[i].get('body') and jumplist[i]['starsystem'] not in jumplist[i]['body']:
+                        del jumplist[i]['body']
 
-            if self.overview.get('departureScheduled', None) == None:
-                if jump['starsystem'] == self.overview.get('currentStarSystem', '') and self.overview.get('currentBody', '') != '':
-                    jump['body'] = self.overview.get('currentBody', None)
-                jumplist.insert(0, jump)
-                continue
+            return jumplist[0:FC_MAX_JUMPS_TRACKED]
 
-            # Check if the jump time has passed. If not nothing to do
-            if self._time_passed(self.overview['departureScheduled']) == False:
-                continue
-
-            if jump['starsystem'] == self.overview.get('jumpDestination', ''):
-                jump['body'] = self.overview.get('jumpDestinationBody', None)
-
-            jumplist.insert(0, jump)
-
-            self.overview['jumpDestination'] = None
-            self.overview['jumpDestinationBody'] = None
-            self.overview['departureScheduled'] = None
-
-        jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)
-
-        return jumplist[0:FC_MAX_JUMPS_TRACKED]
+        except Exception as e:
+            Debug.logger.error(f"Error updating itinerary {e}")
+            return self.itinerary
 
 
     def _update_locker(self, data: dict) -> dict:
@@ -651,16 +651,12 @@ class FleetCarrier:
         for k, v in updates.items():
             v[0][k] = get_by_path(entry, v[1], v[2])
 
-        # Not sure if we want to do this here but the sanity check should help keep it honest
-        #self.last_modified = int(time.time())
-
         # Sanity check
         if get_by_path(entry, ['SpaceUsage', 'FreeSpace'], 0) != self._get_freespace() or \
             get_by_path(entry, ['SpaceUsage', 'CargoSpaceReserved']) != self._get_reserved():
             Debug.logger.error(f"Carrier space mismatch, clearing modification time")
             self.last_modified = 0
 
-        #self.itinerary = self._update_itinerary(self.data)
         if self.bgstally.dev_mode == True: self.save()
         self.bgstally.ui.window_fc.update_display()
 
@@ -681,14 +677,13 @@ class FleetCarrier:
         #    }
         # {"timestamp": "2020-04-20T09:30:58Z", "event": "CarrierJumpRequest", "CarrierID": 3700005632, "SystemName": "Paesui Xena", "Body": "Paesui Xena A", "SystemAddress": 7269634680241, "BodyID": 1, "DepartureTime":"2020-04-20T09:45:00Z"}
 
-        Debug.logger.info(f"Carrier: {self.overview.get('carrier_id', '')} {entry.get('CarrierID')}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
         departure:datetime|None = self._parse_date(entry.get('DepartureTime', ""))
         self.overview['jumpDestination'] = entry.get('SystemName', '')
         self.overview['jumpDestinationBody'] = entry.get('Body', None)
         self.overview['departureScheduled'] = departure.strftime("%Y-%m-%d %H:%M:%S")
-        if self.itinerary[0].get('departureTime', None) == None:
+        if len(self.itinerary) > 0 and self.itinerary[0].get('departureTime', None) == None:
             self.itinerary[0]['starsystem'] = self.overview.get('currentStarSystem', '')
             self.itinerary[0]['body'] = self.overview.get('currentBody', None)
             self.itinerary[0]['departureTime'] = departure.strftime("%Y-%m-%d %H:%M:%S")
@@ -712,7 +707,8 @@ class FleetCarrier:
         self.jump_state = FleetCarrierJump.Jumping
         self.timer = departure
         rem:int = self._td(self.timer, datetime.now(tz=UTC))
-        self.bgstally.ui.frame.after(rem * 1000, lambda: self._jump_complete())
+        if self.bgstally.ui.frame:
+            self.bgstally.ui.frame.after(rem * 1000, lambda: self._jump_complete())
         Debug.logger.debug(f"Jump scheduled for {departure} ({(rem)} seconds) [{self.jump_state}]")
         self.bgstally.ui.window_fc.update_display()
 
@@ -722,7 +718,7 @@ class FleetCarrier:
         """ The user cancelled their carrier jump producing a CarrierJumpCancelled journal event """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
-        if abs(self._td(self.itinerary[0]['departureTime'], self.overview['departureScheduled'])) < 60:
+        if len(self.itinerary) > 0 and abs(self._td(self.itinerary[0]['departureTime'], self.overview['departureScheduled'])) < 60:
             self.itinerary[0]['departureTime'] = None
             self.itinerary[0]['visitDurationSeconds'] = None
 
@@ -731,7 +727,8 @@ class FleetCarrier:
         if self.jump_state == FleetCarrierJump.Jumping:
             self.jump_state = FleetCarrierJump.Cooldown
             self.timer = datetime.now(tz=UTC) + timedelta(seconds=60)
-            self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
+            if self.bgstally.ui.frame:
+                self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
 
         # Automatically post to whichever discord webhooks are set for carrier operations
         # the discord class handles where and whether to post
@@ -755,7 +752,7 @@ class FleetCarrier:
     @catch_exceptions
     def carrier_location(self, entry:dict) -> None:
         """ Update the current carrier location after a jump. If we logged out we may not get this event """
-        
+
         Debug.logger.debug(f"Carrier location for {entry.get('CarrierID')} current state {self.jump_state}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
@@ -786,7 +783,7 @@ class FleetCarrier:
         self._jump_complete()
 
         # We've already got this new jump
-        if abs(self._td(self.itinerary[1].get('departureTime', 0), self.overview['departureScheduled'])) < 60:
+        if len(self.itinerary) > 1 and abs(self._td(self.itinerary[1].get('departureTime', 0), self.overview['departureScheduled'])) < 60:
             self.itinerary[1]['starsystem'] = self.overview.get('jumpDestination', '')
             self.itinerary[1]['body'] = self.overview.get('jumpDestinationBody', None)
 
@@ -834,7 +831,8 @@ class FleetCarrier:
             self.timer = departure + timedelta(seconds=300 - departure.second)
 
         rem:int = self._td(self.timer, datetime.now(tz=UTC))
-        self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
+        if self.bgstally.ui.frame:
+            self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
         self._update_route()
 
 
@@ -844,8 +842,7 @@ class FleetCarrier:
 
         if self.jump_state != FleetCarrierJump.Cooldown: return
 
-        self.jump_state = 'Idle'
-        self.bgstally.ui.warning = _("Carrier cooldown complete") # LANG: Cooldown overlay message
+        self.jump_state = FleetCarrierJump.Idle
         self.bgstally.ui.window_fc.cooldown_notice()
 
         # Automatically post to whichever discord webhooks are set for carrier operations
@@ -1015,11 +1012,18 @@ class FleetCarrier:
                 Debug.logger.error(f"Transfer amount {amt} exceeds total capacity, ignoring")
                 continue
 
+            # We just have to assume it's not stolen because the journal doesn't say.
             self.cargo['normal'][comm]['stock'] += amt
 
             if self.cargo['normal'][comm]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
-                self.cargo['normal'][comm]['stock'] = 0
+                # See if we have any stolen cargo of this type and if so subtract that
+                if comm in self.cargo.get('stolen', []):
+                    Debug.logger.debug(f"Try removing stolen {self.cargo['stolen'][comm]}")
+                    self.cargo['stolen'][comm]['stock'] += self.cargo['normal'][comm]['stock']
+                    if self.cargo['stolen'][comm]['stock'] <= 0:
+                        del self.cargo['stolen'][comm]
+                del self.cargo['normal'][comm]
                 self.last_modified = 0
 
         self.bgstally.ui.window_fc.update_display()
@@ -1052,7 +1056,7 @@ class FleetCarrier:
         self.cargo['normal'][comm]['stock'] += amt
 
         if self.cargo['normal'][comm]['stock'] < 0:
-            Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
+            Debug.logger.error(f"Correcting negative stock {self.cargo['normal'][comm]}")
             self.cargo['normal'][comm]['stock'] = 0
 
         self.bgstally.ui.window_fc.update_display()
@@ -1113,12 +1117,12 @@ class FleetCarrier:
         if t1 == None or t1 == '': t1 = datetime.now(tz=UTC)
         if t2 == None or t2 == '': t2 = datetime.now(tz=UTC)
         if isinstance(t1, int): t1 = datetime.now(tz=UTC) - timedelta(seconds=t1)
-        if isinstance(t1, str): t1 = self._parse_date(t1)
         if isinstance(t2, int): t2 = datetime.now(tz=UTC) - timedelta(seconds=t2)
+        if isinstance(t1, str): t1 = self._parse_date(t1)
         if isinstance(t2, str): t2 = self._parse_date(t2)
         if t1.tzinfo is None: t1 = t1.replace(tzinfo=UTC)
         if t2.tzinfo is None: t2 = t2.replace(tzinfo=UTC)
-        return (t1 - t2).seconds
+        return int((t1 - t2).total_seconds())
 
 
     def _td_str(self, delta:timedelta|int) -> str:

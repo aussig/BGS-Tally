@@ -1,5 +1,9 @@
 import json
 from os.path import join
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.debug import Debug
 from config import config
@@ -7,8 +11,8 @@ from config import config
 FILENAME_MARKET = "Market.json"
 
 class Market:
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
         self.name:str|None = None
         self.id:int|None = None
         self.commodities:dict = {}

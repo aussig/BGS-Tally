@@ -1,6 +1,12 @@
 import configparser as cp
 import os.path
+from typing import TYPE_CHECKING
+
 from bgstally.debug import Debug
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
 
 FOLDERNAME = "config"
 MAIN_FILENAME = "config.ini"
@@ -11,7 +17,7 @@ class Config(object):
     """
     Manages the plugin config files
     """
-    def __init__(self, bgstally):
+    def __init__(self, bgstally: 'BGSTally'):
         self.config: cp.ConfigParser = cp.ConfigParser()
 
         main_filepath: str = os.path.join(bgstally.plugin_dir, FOLDERNAME, MAIN_FILENAME)

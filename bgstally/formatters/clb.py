@@ -1,21 +1,24 @@
-from datetime import datetime, timedelta, timezone
 import time
-import traceback
-import re
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import CheckStates, DiscordActivity, DiscordPostStyle
 from bgstally.debug import Debug
 from bgstally.formatters.default import DefaultActivityFormatter
-#from bgstally.formatters.base import FieldActivityFormatterInterface
-from bgstally.utils import _, __, human_format, is_number, catch_exceptions
+from bgstally.utils import _, __, catch_exceptions, human_format, is_number
 from thirdparty.colors import *
+
 
 class CLBActivityFormatter(DefaultActivityFormatter):
     """
     Activity formatter that outputs in a format suitable for Celestial Light Brigade Discord channel
     """
 
-    def __init__(self, bgstally):
+    def __init__(self, bgstally: 'BGSTally'):
         super().__init__(bgstally)
 
 

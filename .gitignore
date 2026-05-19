@@ -125,8 +125,8 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# oath service account
-*.json
+# oath service account (too generic to ignore by type)
+#*.json
 
 # data files
 *.txt
@@ -135,17 +135,20 @@ dmypy.json
 config/config.ini
 
 # custom
-test.py
-activitydata/
-otherdata/
-backups/
-updates/
-thirdparty/sentry_sdk
-l10n.py
-L10n/en.template.new
-config/userconfig.ini
-MEMORY_BANK.md
 .DS_Store
-scripts/
-data/tmp.py
+.vscode/
+activitydata/
+backups/
 BGS-Tally.dev.code-workspace
+config/userconfig.ini
+data/tmp.py
+L10n/en.template.new
+MEMORY_BANK.md
+otherdata/
+scripts/
+tests/backups/
+tests/journal_folder/
+tests/logs/
+tests/updates/
+thirdparty/sentry_sdk/
+updates/

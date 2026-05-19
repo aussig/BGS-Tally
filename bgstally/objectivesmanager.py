@@ -1,6 +1,10 @@
+import json
 from datetime import UTC, datetime
 from enum import Enum
-import json
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.activity import Activity
 from bgstally.api import API
@@ -40,8 +44,8 @@ class ObjectivesManager:
     Note that the objectives are stored inside the API object and there is only a single API tracked here.  So, if multiple APIs
     are implemented in future, it will flip-flop between them and we either need to handle that or limit objectives to a single API.
     """
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
 
         self.api: API|None = None
 
@@ -103,7 +107,7 @@ class ObjectivesManager:
                     'faction': target.get('faction'),
                     'station': target.get('station')
                 })
-            
+
             simplified.append({
                 'title': obj.get('title'),
                 'type': obj.get('type'),
@@ -199,7 +203,7 @@ class ObjectivesManager:
                 'faction': target.get('faction'),
                 'station': target.get('station')
             })
-        
+
         simplified = {
             'title': mission.get('title'),
             'type': mission.get('type'),
@@ -620,10 +624,10 @@ class ObjectivesManager:
                         case MissionTargetType.VISIT:
                             if target_station:
                                 status, target_overall = self._get_status(target, False, numeric=False)
-                                result += "  " + _("{status} Access the market in station '{target_station}' in '{target_system}'").format(status=status, target_station=target_station, target_system=target_system_name) + "\n"
+                                result += "  " + _("{status} Access the market in station '{target_station}' in '{target_system}'").format(status=status, target_station=target_station, target_system=target_system_name) + "\n" # LANG: Mission to access a market in a station
                             else:
                                 status, target_overall = self._get_status(target, False, numeric=False)
-                                result += "  " + _("{status} Visit system '{target_system}'").format(status=status, target_system=target_system_name) + "\n"
+                                result += "  " + _("{status} Visit system '{target_system}'").format(status=status, target_system=target_system_name) + "\n" # LANG: Mission to visit a system
 
                         case MissionTargetType.INF:
                             progress_individual: int|None = None if faction_activity is None else \
@@ -631,41 +635,41 @@ class ObjectivesManager:
                                 sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity.get('MissionPointsSecondary', {}).items())
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="INF")
                             if target_overall > 0:
-                                result += "  " + _("{status} Boost '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                                result += "  " + _("{status} Boost '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to boost a faction
                             elif target_overall < 0:
-                                result += "  " + _("{status} Undermine '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                                result += "  " + _("{status} Undermine '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to undermine a faction
                             else:
-                                result += "  " + _("{status} Boost '{target_faction}' in '{target_system}' with as much INF as possible").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                                result += "  " + _("{status} Boost '{target_faction}' in '{target_system}' with as much INF as possible").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to boost a faction
 
                         case MissionTargetType.BV:
                             progress_individual: int|None = None if faction_activity is None else faction_activity.get('Bounties')
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
-                            result += "  " + _("{status} Bounty Vouchers for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Bounty Vouchers for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to collect bounty vouchers
 
                         case MissionTargetType.CB:
                             progress_individual: int|None = None if faction_activity is None else faction_activity.get('CombatBonds')
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
-                            result += "  " + _("{status} Combat Bonds for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Combat Bonds for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to collect combat bonds
 
                         case MissionTargetType.EXPL:
                             progress_individual: int|None = None if faction_activity is None else faction_activity.get('CartData')
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
-                            result += "  " + _("{status} Exploration Data for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Exploration Data for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to collect exploration data
 
                         case MissionTargetType.TRADE_PROFIT:
                             progress_individual: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity.get('TradeSell', []))
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
-                            result += "  " + _("{status} Trade Profit for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Trade Profit for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to make trade profit
 
                         case MissionTargetType.BM_PROF:
                             progress_individual: int|None = None if faction_activity is None else faction_activity.get('BlackMarketProfit')
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
-                            result += "  " + _("{status} Black Market Profit for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Black Market Profit for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to make black market profit
 
                         case MissionTargetType.GROUND_CZ:
                             progress_individual: int|None = None if faction_activity is None else sum(faction_activity.get('GroundCZ', {}).values())
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="wins")
-                            result += "  " + _("{status} Fight for '{target_faction}' at on-ground CZs in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Fight for '{target_faction}' at on-ground CZs in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to fight for a faction at on-ground CZs
 
                             for settlement in target.get('settlements', []):
                                 settlement_name: str|None = settlement.get('name')
@@ -673,22 +677,22 @@ class ObjectivesManager:
                                 settlement_activity: dict|None = None if faction_activity is None else get_by_path(faction_activity, ['GroundCZSettlements', settlement_name], None)
                                 progress_individual: int|None = None if settlement_activity is None else settlement_activity.get('count')
                                 status, target_overall = self._get_status(settlement, False, progress_individual=progress_individual, label="wins")
-                                result += "    " + _("{status} Fight at '{settlement_name}'").format(status=status, settlement_name=settlement_name) + "\n"
+                                result += "    " + _("{status} Fight at '{settlement_name}'").format(status=status, settlement_name=settlement_name) + "\n" # LANG: Settlement name for a mission
 
                         case MissionTargetType.SPACE_CZ:
                             progress_individual: int|None = None if faction_activity is None else sum(faction_activity.get('SpaceCZ', {}).values())
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="wins")
-                            result += "  " + _("{status} Fight for '{target_faction}' at in-space CZs in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Fight for '{target_faction}' at in-space CZs in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to fight for a faction at in-space CZs
 
                         case MissionTargetType.MURDER:
                             progress_individual: int|None = None if faction_activity is None else faction_activity.get('Murdered')
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="kills")
-                            result += "  " + _("{status} Murder '{target_faction}' ships in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Murder '{target_faction}' ships in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to murder a faction's ships
 
                         case MissionTargetType.MISSION_FAIL:
                             progress_individual: int|None = None if faction_activity is None else faction_activity.get('MissionFailed')
                             status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="fails")
-                            result += "  " + _("{status} Fail missions against '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Fail missions against '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to fail missions against a faction
 
             result += "\n"
 
@@ -782,16 +786,16 @@ class ObjectivesManager:
             result += f"{priority_stars} {mission_title}\n"
         else:
             match mission.get('type'):
-                case MissionType.RECON: result += f"{priority_stars} " + _("Recon Mission") + "\n"
-                case MissionType.WIN_WAR: result += f"{priority_stars} " + _("Win a War") + "\n"
-                case MissionType.DRAW_WAR: result += f"{priority_stars} " + _("Draw a War") + "\n"
-                case MissionType.WIN_ELECTION: result += f"{priority_stars} " + _("Win an Election") + "\n"
-                case MissionType.DRAW_ELECTION: result += f"{priority_stars} " + _("Draw an Election") + "\n"
-                case MissionType.BOOST: result += f"{priority_stars} " + _("Boost a Faction") + "\n"
-                case MissionType.EXPAND: result += f"{priority_stars} " + _("Expand from a System") + "\n"
-                case MissionType.REDUCE: result += f"{priority_stars} " + _("Reduce a Faction") + "\n"
-                case MissionType.RETREAT: result += f"{priority_stars} " + _("Retreat a Faction from a System") + "\n"
-                case MissionType.EQUALISE: result += f"{priority_stars} " + _("Equalise two Factions") + "\n"
+                case MissionType.RECON: result += f"{priority_stars} " + _("Recon Mission") + "\n" # LANG: Recon mission objective with priority
+                case MissionType.WIN_WAR: result += f"{priority_stars} " + _("Win a War") + "\n" # LANG: Win a War objective with priority
+                case MissionType.DRAW_WAR: result += f"{priority_stars} " + _("Draw a War") + "\n" # LANG: Draw a War objective with priority
+                case MissionType.WIN_ELECTION: result += f"{priority_stars} " + _("Win an Election") + "\n" # LANG: Win an Election objective with priority
+                case MissionType.DRAW_ELECTION: result += f"{priority_stars} " + _("Draw an Election") + "\n" # LANG: Draw an Election objective with priority
+                case MissionType.BOOST: result += f"{priority_stars} " + _("Boost a Faction") + "\n" # LANG: Boost a Faction objective with priority
+                case MissionType.EXPAND: result += f"{priority_stars} " + _("Expand from a System") + "\n" # LANG: Expand from a System objective with priority
+                case MissionType.REDUCE: result += f"{priority_stars} " + _("Reduce a Faction") + "\n" # LANG: Reduce a Faction objective with priority
+                case MissionType.RETREAT: result += f"{priority_stars} " + _("Retreat a Faction from a System") + "\n" # LANG: Retreat a Faction from a System objective with priority
+                case MissionType.EQUALISE: result += f"{priority_stars} " + _("Equalise two Factions") + "\n" # LANG: Equalise two Factions objective with priority
 
         # Description
         if mission_description:
@@ -821,10 +825,10 @@ class ObjectivesManager:
                     case MissionTargetType.VISIT:
                         if target_station:
                             status, target_overall = self._get_status(target, False, numeric=False)
-                            result += "  " + _("{status} Access the market in station '{target_station}' in '{target_system}'").format(status=status, target_station=target_station, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Access the market in station '{target_station}' in '{target_system}'").format(status=status, target_station=target_station, target_system=target_system_name) + "\n" # LANG: Mission to access the market in a station
                         else:
                             status, target_overall = self._get_status(target, False, numeric=False)
-                            result += "  " + _("{status} Visit system '{target_system}'").format(status=status, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Visit system '{target_system}'").format(status=status, target_system=target_system_name) + "\n" # LANG: Mission to visit a system
 
                     case MissionTargetType.INF:
                         progress_individual: int|None = None if faction_activity is None else \
@@ -832,41 +836,41 @@ class ObjectivesManager:
                             sum((1 if k == 'm' else int(k)) * int(v) for k, v in faction_activity.get('MissionPointsSecondary', {}).items())
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="INF")
                         if target_overall > 0:
-                            result += "  " + _("{status} Boost '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Boost '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to boost a faction
                         elif target_overall < 0:
-                            result += "  " + _("{status} Undermine '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Undermine '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to undermine a faction
                         else:
-                            result += "  " + _("{status} Boost '{target_faction}' in '{target_system}' with as much INF as possible").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                            result += "  " + _("{status} Boost '{target_faction}' in '{target_system}' with as much INF as possible").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to boost a faction with as much INF as possible
 
                     case MissionTargetType.BV:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('Bounties')
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
-                        result += "  " + _("{status} Bounty Vouchers for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                        result += "  " + _("{status} Bounty Vouchers for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to collect bounty vouchers for a faction
 
                     case MissionTargetType.CB:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('CombatBonds')
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
-                        result += "  " + _("{status} Combat Bonds for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                        result += "  " + _("{status} Combat Bonds for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to collect combat bonds for a faction
 
                     case MissionTargetType.EXPL:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('CartData')
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
-                        result += "  " + _("{status} Exploration Data for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                        result += "  " + _("{status} Exploration Data for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to collect exploration data for a faction
 
                     case MissionTargetType.TRADE_PROFIT:
                         progress_individual: int|None = None if faction_activity is None else sum(int(d['profit']) for d in faction_activity.get('TradeSell', []))
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
-                        result += "  " + _("{status} Trade Profit for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                        result += "  " + _("{status} Trade Profit for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to make trade profit for a faction
 
                     case MissionTargetType.BM_PROF:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('BlackMarketProfit')
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="CR")
-                        result += "  " + _("{status} Black Market Profit for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                        result += "  " + _("{status} Black Market Profit for '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to make black market profit for a faction
 
                     case MissionTargetType.GROUND_CZ:
                         progress_individual: int|None = None if faction_activity is None else sum(faction_activity.get('GroundCZ', {}).values())
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="wins")
-                        result += "  " + _("{status} Fight for '{target_faction}' at on-ground CZs in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                        result += "  " + _("{status} Fight for '{target_faction}' at on-ground CZs in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to fight for a faction at on-ground CZs
 
                         for settlement in target.get('settlements', []):
                             settlement_name: str|None = settlement.get('name')
@@ -874,22 +878,22 @@ class ObjectivesManager:
                             settlement_activity: dict|None = None if faction_activity is None else get_by_path(faction_activity, ['GroundCZSettlements', settlement_name], None)
                             progress_individual: int|None = None if settlement_activity is None else settlement_activity.get('count')
                             status, target_overall = self._get_status(settlement, False, progress_individual=progress_individual, label="wins")
-                            result += "    " + _("{status} Fight at '{settlement_name}'").format(status=status, settlement_name=settlement_name) + "\n"
+                            result += "    " + _("{status} Fight at '{settlement_name}'").format(status=status, settlement_name=settlement_name) + "\n" # LANG: Settlement name for a mission
 
                     case MissionTargetType.SPACE_CZ:
                         progress_individual: int|None = None if faction_activity is None else sum(faction_activity.get('SpaceCZ', {}).values())
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="wins")
-                        result += "  " + _("{status} Fight for '{target_faction}' at in-space CZs in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                        result += "  " + _("{status} Fight for '{target_faction}' at in-space CZs in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to fight for a faction at in-space CZs
 
                     case MissionTargetType.MURDER:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('Murdered')
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="kills")
-                        result += "  " + _("{status} Murder '{target_faction}' ships in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                        result += "  " + _("{status} Murder '{target_faction}' ships in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to murder a faction's ships
 
                     case MissionTargetType.MISSION_FAIL:
                         progress_individual: int|None = None if faction_activity is None else faction_activity.get('MissionFailed')
                         status, target_overall = self._get_status(target, False, progress_individual=progress_individual, label="fails")
-                        result += "  " + _("{status} Fail missions against '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n"
+                        result += "  " + _("{status} Fail missions against '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to fail missions against a faction
 
         return result
 

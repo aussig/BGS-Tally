@@ -2,10 +2,14 @@ import hashlib
 from datetime import UTC, datetime, timedelta
 from functools import partial
 from json import JSONDecodeError
+from typing import TYPE_CHECKING
 
 import plug
 import requests
 from requests import Response
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_DISPLAY, DATETIME_FORMAT_TICK_DETECTOR_GALAXY, DATETIME_FORMAT_TICK_DETECTOR_SYSTEM,
                                 RequestMethod)
@@ -23,8 +27,8 @@ class Tick:
     Information about a tick
     """
 
-    def __init__(self, bgstally, load: bool = False):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally', load: bool = False):
+        self.bgstally: BGSTally = bgstally
         self.tick_id: str = TICKID_UNKNOWN
         self.tick_time: datetime = (datetime.now(UTC) - timedelta(days = 30)) # Default to a tick a month old
         if load: self.load()
@@ -143,7 +147,7 @@ class Tick:
         Force a new tick, user-initiated
         """
         # Set the tick time to the current datetime and generate a new 24-digit tick id prefixed with "frc-" to signify a forced tick
-        self.tick_time = datetime.now()
+        self.tick_time = datetime.now(tz=UTC)
         h = hashlib.shake_128(self.get_formatted().encode("utf-8"), usedforsecurity=False)
         self.tick_id = f"frc-{h.hexdigest(10)}"
 

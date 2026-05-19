@@ -1,8 +1,12 @@
 import textwrap
-from datetime import UTC, datetime, timedelta
-from threading import Thread, Event
+from datetime import timedelta
+from threading import Event
+from typing import TYPE_CHECKING
 
-from bgstally.constants import CheckStates, TAG_OVERLAY_HIGHLIGHT
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
+
+from bgstally.constants import TAG_OVERLAY_HIGHLIGHT
 from bgstally.debug import Debug
 from bgstally.utils import _
 
@@ -27,8 +31,8 @@ class Overlay:
     """
     Handles the game overlay. Provides purpose-agnostic functions to display information and data in frames on screen.
     """
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
         self.edmcoverlay: Overlay = None
         self.is_modern_overlay: bool = False
         self.supports_modern_overlay_backgrounds: bool = False

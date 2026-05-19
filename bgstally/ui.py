@@ -7,17 +7,20 @@ from threading import Thread
 from time import sleep
 from tkinter import PhotoImage, ttk
 from tkinter.messagebox import askyesno
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
+
+if TYPE_CHECKING:
+    from bgstally.bgstally import BGSTally
 
 import myNotebook as nb
 from plugins.common_coreutils import api_keys_label_common, show_pwd_var_common
 from ttkHyperlinkLabel import HyperlinkLabel
 
-from bgstally.activity import Activity, STATES_ELECTION, STATES_WAR
+from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
 from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates,
                                 DiscordActivity, FavouriteActivity, UpdateUIPolicy)
 from bgstally.debug import Debug
-from bgstally.utils import _, available_langs, get_by_path, get_localised_filepath, human_format, catch_exceptions
+from bgstally.utils import _, available_langs, catch_exceptions, get_by_path, get_localised_filepath, human_format
 from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
@@ -48,8 +51,8 @@ class UI:
     Display the user's activity
     """
 
-    def __init__(self, bgstally):
-        self.bgstally = bgstally
+    def __init__(self, bgstally: 'BGSTally'):
+        self.bgstally: BGSTally = bgstally
         self.frame: tk.Frame|None = None
 
         self.image_logo_bgstally_100 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_100x67.png"))
@@ -238,6 +241,9 @@ class UI:
                                                             *favourite_types.values(),
                                                             command=partial(self._favourite_type_selected, favourite_types), direction='below')
         self.mnu_favourite_type.grid(row=row, column=1, padx=10, sticky=tk.W); row += 1
+        nb.Checkbutton(discofr, text=_("Use Colonisation Plan name instead of System Name"), variable=self.bgstally.state.UseColonisationName, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=0, padx=10, sticky=tk.W) # LANG: Preferences checkbox label
+        nb.Checkbutton(discofr, text=_("Automatically Post BGS and TW Activity"), variable=self.bgstally.state.DiscordBGSTWAutomatic, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
+
         nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
         self.languages: dict[str|None, str] = available_langs()
         self.language:tk.StringVar = tk.StringVar(value=self.languages.get(self.bgstally.state.discord_lang, _('Default'))) # LANG: Preferences label
@@ -386,6 +392,19 @@ class UI:
         current_row += 1
         self.apikey_label.configure(text=_("RavenColonial API Key")) # LANG: Preferences label
         self.apikey.configure(textvariable=self.bgstally.state.ColonisationRCAPIKey)
+
+        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        nb.Label(frame, text=_("Fleet Carrier"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
+        nb.Label(frame, text=_("Fleet Carrier Cooldown Notifications")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
+        cdnotifications: dict = {"none": _("None"), # LANG: Dropdown menu on prefs window
+                                 "popup": _("Popup only"), # LANG: Dropdown menu on prefs window
+                                 "overlay": _("Overlay only"), # LANG: Dropdown menu on prefs window
+                                 "both": _("Popup and Overlay")} # LANG: Dropdown menu on prefs window
+        notifications_var:tk.StringVar = tk.StringVar(value=cdnotifications.get(self.bgstally.state.FcCooldown.get(), "Both"))
+        self.fccooldown:nb.OptionMenu = nb.OptionMenu(frame, notifications_var, notifications_var.get(),
+                                                            *cdnotifications.values(),
+                                                            command=partial(self._cooldown_selected, cdnotifications), direction='below')
+        self.fccooldown.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("Advanced"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
@@ -541,6 +560,11 @@ class UI:
         self.bgstally.state.FavouriteActivityMode.set(k)
         self.bgstally.state.refresh
 
+    def _cooldown_selected(self, cooldown_types: dict, value: str):
+        k: str = next(k for k, v in cooldown_types.items() if v == value)
+        self.bgstally.state.FcCooldown.set(k)
+        self.bgstally.state.refresh()
+
     @catch_exceptions
     def _worker(self) -> None:
         """
@@ -629,7 +653,7 @@ class UI:
                 system_and_station_info += self._build_station_info(self.info_station)
                 self.info_station = None
 
-            if system_and_station_info != "":
+            if self.bgstally.state.enable_overlay_system and system_and_station_info != "":
                 self.bgstally.overlay.display_message("system_info", system_and_station_info, fit_to_text=True)
 
             # CMDR Information

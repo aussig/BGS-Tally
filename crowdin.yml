@@ -1,19 +1,13 @@
 files:
   - source: /L10n/en.template.strings
     translation: /L10n/%two_letters_code%.strings
-
   - source: /data/colonisation_legend.md
     translation: /data/L10n/%two_letters_code%.colonisation_legend.md
-    file_type: markdown
-
   - source: /data/commodity.csv
     translation: /data/L10n/%two_letters_code%.commodity.csv
-    file_type: csv
-    first_line_contains_header: true
-    scheme: none,identifier,none,context,source_or_translation
-
+    first_line_contains_header: 1
+    scheme: 'none,identifier,none,context,source_or_translation'
   - source: /data/rare_commodity.csv
     translation: /data/L10n/%two_letters_code%.rare_commodity.csv
-    file_type: csv
-    first_line_contains_header: true
-    scheme: none,identifier,context,source_or_translation
+    first_line_contains_header: 1
+    scheme: 'none,identifier,context,source_or_translation'

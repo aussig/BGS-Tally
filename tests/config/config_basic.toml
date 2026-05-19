@@ -1,0 +1,24 @@
+[settings]
+outdir = "../journal_folder"
+plugin_dir = ""
+journaldir = ""
+ui_scale = 120
+theme = 0
+dark_text = "#ff8040"
+dark_highlight = "#ff8040"
+beta_optin = 0
+cmdrs = [
+    "Testy",
+]
+xcurrentsystem = ""
+xcurrentbody = ""
+no_systray = false
+prefsversion = 4
+output = 3073
+loglevel = "INFO"
+language = ""
+edsm_out = 0
+inara_out = 0
+edastro_send = 0
+capi_fleetcarrier = true
+fleetcarrierquerytime = 1775627669

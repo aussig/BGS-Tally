@@ -76,7 +76,8 @@ class BGSTally:
                 import sentry_sdk
                 sentry_sdk.init(dsn=self.config.apikey_sentry())
                 Debug.logger.info("Enabling Sentry Error Logging")
-            except ImportError:
+            except:
+            #except ImportError:  # This causing harness issues when the sentry sdk exists but no valid key 
                 pass
 
         # Debug Class

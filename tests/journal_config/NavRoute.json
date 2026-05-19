@@ -1,0 +1,4 @@
+{ "timestamp":"2026-04-07T06:17:46Z", "event":"NavRoute", "Route":[
+{ "StarSystem":"Start System", "SystemAddress":11111, "StarPos":[0,0,0], "StarClass":"A" },
+{ "StarSystem":"End System", "SystemAddress":22222, "StarPos":[1,1,1], "StarClass":"Z" }
+ ] }

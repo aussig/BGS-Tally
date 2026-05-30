@@ -867,7 +867,7 @@ class ProgressWindow:
         ''' Display the totals at the bottom of the table '''
         Debug.logger.debug(f"Displaying totals: {cols}")
         for i, col in enumerate(cols):
-            self.total_row[i]['text'] = self._get_value(col[0], col[1], totals)
+            self.total_row[i]['text'] = self._get_value(col[0], col[1], totals) if i > 0 else _('Total') # LANG: Total amounts
             self._set_weight(self.total_row[i])
             self.total_row[i].grid()
 

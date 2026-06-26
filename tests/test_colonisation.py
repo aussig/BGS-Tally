@@ -424,10 +424,12 @@ class TestColonisationMethods:
 
     def test_from_dict_migrates_resourcesrequired(self, harness) -> None:
         """This can likely go away soon and the code can be removed """
+        from datetime import datetime, timedelta
         c = harness.plugin.colonisation
+        last_week = (datetime.now() - timedelta(weeks=1)).strftime('%Y-%m-%d')
         payload = {
             'Systems': [],
-            'Progress': [{'MarketID': 500, 'ResourcesRequired': [{'Name': '$steel_name;', 'RequiredAmount': 12, 'ProvidedAmount': 3}], 'Updated': '2026-03-01'}],
+            'Progress': [{'MarketID': 500, 'ResourcesRequired': [{'Name': '$steel_name;', 'RequiredAmount': 12, 'ProvidedAmount': 3}], 'Updated': last_week}],
             'ProgressView': 0,
             'ProgressUnits': [0],
             'ProgressColumns': [],

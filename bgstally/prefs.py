@@ -3,7 +3,7 @@ from typing import get_origin
 from copy import deepcopy
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 from functools import partial
 import tkinter as tk
 from tkinter import ttk
@@ -26,10 +26,15 @@ URL_WIKI = "https://github.com/aussig/BGS-Tally/wiki"
 PREFS_STRUCTURE = "prefs_structure" + FILE_SUFFIX
 
 @dataclass
-class Tab:
-    """Class to hold a single tab of preferences."""
+class Pref:
+    """Class to hold a single preference."""
     name:str = ""
-    sections:list[Section] = field(default_factory=list)
+    type:str = ""
+    var:Any = None
+    default:Any = None
+    desc:str = ""
+    options:dict = field(default_factory=dict)
+    custom:str|None = None
 
 @dataclass
 class Section:
@@ -40,15 +45,10 @@ class Section:
     prefs:list[Pref] = field(default_factory=list)
 
 @dataclass
-class Pref:
-    """Class to hold a single preference."""
+class Tab:
+    """Class to hold a single tab of preferences."""
     name:str = ""
-    type:str = ""
-    var:Any = None
-    default:Any = None
-    desc:str = ""
-    options:dict = field(default_factory=dict)
-    custom:str|None = None
+    sections:list[Section] = field(default_factory=list)
 
 class Prefs:
     """Class to hold and manage user preferences."""
@@ -121,19 +121,22 @@ class Prefs:
         nb.Label(parent_frame, text=pref.desc).grid(row=row, column=column, padx=10, sticky=tk.W)
         match pref.type:
             case "bool":
-                nb.Checkbutton(parent_frame, variable=getattr(self.bgstally.state, pref.var), onvalue=CheckStates.STATE_ON,
+                nb.Checkbutton(parent_frame, variable=getattr(self.bgstally.state, pref.var, ""), onvalue=CheckStates.STATE_ON,
                                offvalue=CheckStates.STATE_OFF).grid(row=row, column=column+1, padx=10, sticky=tk.W)
             case "menu":
-                options = pref.options
-                var = tk.StringVar(value=options.get(getattr(self.bgstally.state, pref.var).get(), "default"))
-                Debug.logger.debug(f"Creating menu for {pref.var} with options {options} and initial value {var.get()}")
+                options:dict = pref.options
+                Debug.logger.debug(f"Creating menu for {pref.var} state: {getattr(self.bgstally.state, pref.var, '')}")
+                var:tk.StringVar|str = getattr(self.bgstally.state, pref.var)
+                if isinstance(var, str): # Sometimes the state variable is a string instead of a StringVar, so we need to convert it
+                    var = tk.StringVar(value=var, name=pref.var)
+                Debug.logger.debug(f"Creating menu for {pref.var} with options {options} and initial value {var}")
                 nb.OptionMenu(parent_frame, var, var.get(), *options.values(), command=partial(self._menu_selected, pref.var, options)).\
                     grid(row=row, column=column+1, padx=10, sticky=tk.W)
             case "custom" if pref.custom is not None:
-                func = getattr(self, pref.custom)
+                func:Callable = getattr(self, pref.custom)
                 func(parent_frame, row, column+1)
             case _:
-                EntryPlus(parent_frame, textvariable=getattr(self.bgstally.state, pref.var)).grid(row=row, column=column+1, padx=10, pady=1, sticky=tk.W)
+                EntryPlus(parent_frame, textvariable=getattr(self.bgstally.state, pref.var, "")).grid(row=row, column=column+1, padx=10, pady=1, sticky=tk.W)
 
     def _menu_selected(self, var_name:str, options:dict, value:str) -> None:
         """
@@ -184,7 +187,8 @@ class Prefs:
 
         return [tab for tab in (self._from_dict(tab_data, "tab") for tab_data in raw) if isinstance(tab, Tab)]
 
-    def _discord_webhooks(self, frame:tk.Frame, current_row:int) -> None:
+    @catch_exceptions
+    def _discord_webhooks(self, frame:tk.Frame, row:int, column:int) -> None:
         ui_scaling:float = frame.tk.call('tk', 'scaling')
         sheet_headings:list = ["UUID",
                                _("Nickname"), # LANG: Preferences table heading
@@ -195,11 +199,12 @@ class Prefs:
                                _("FC Ops"), # LANG: Preferences table heading, abbreviation for fleet carrier operations
                                "CMDR",
                                "PP"]
-        self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, cell_auto_resize_enabled=False, height=140, width=880,
-                                     column_width=int(45 * ui_scaling), header_align="left", empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
-                                     show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
-                                     headers=sheet_headings)
-        self.sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
+        self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, cell_auto_resize_enabled=False,
+                                          height=140, width=880, column_width=int(45 * ui_scaling), header_align="left",
+                                          empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
+                                          show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
+                                          headers=sheet_headings)
+        self.sheet_webhooks.grid(row=row, column=column, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); row += 1
         self.sheet_webhooks.hide_columns(columns=[0])                       # Visible column indexes
         self.sheet_webhooks.checkbox_column(c=[3, 4, 5, 6, 7, 8])           # Data column indexes
         self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks_as_list())

@@ -1,174 +1,276 @@
 [
-  {
-    "name": "General",
-    "sections": [
-      {
-        "name": "Misc",
-        "desc": "Miscellaneous Settings",
-        "cols": 1,
-        "prefs": [
-          {
-            "name": "plugin_active",
-            "type": "bool",
-            "var": "Status",
-            "default": "Yes",
-            "desc": "BGS-Tally Active"
-          },
-          {
-            "name": "show_zero_activity_systems",
-            "type": "bool",
-            "var": "ShowZeroActivitySystems",
-            "default": "Yes",
-            "desc": "Show Systems with Zero Activity"
-          },
-          {
-            "name": "colonisation_active",
-            "type": "bool",
-            "var": "ColonisationStatus",
-            "default": "Yes",
-            "desc": "Colonisation Active"
-          }
+    {
+        "name": "General Options",
+        "sections": [
+            {
+                "name": "Misc",
+                "desc": "Miscellaneous Settings",
+                "cols": 1,
+                "prefs": [
+                    {
+                        "name": "plugin_active",
+                        "type": "bool",
+                        "var": "Status",
+                        "default": "Yes",
+                        "desc": "BGS-Tally Active"
+                    },
+                    {
+                        "name": "show_zero_activity_systems",
+                        "type": "bool",
+                        "var": "ShowZeroActivitySystems",
+                        "default": "Yes",
+                        "desc": "Show Systems with Zero Activity"
+                    },
+                    {
+                        "name": "colonisation_active",
+                        "type": "bool",
+                        "var": "ColonisationStatus",
+                        "default": "Yes",
+                        "desc": "Colonisation Active"
+                    }
+                ]
+            }
         ]
-      }
-    ]
-  },
-  {
-    "name": "Discord",
-    "sections": [
-      {
-        "name": "Misc",
-        "desc": "Miscellaneous Settings",
-        "cols": 2,
-        "prefs": [
-          {
-            "name": "detailed_inf",
-            "type": "bool",
-            "desc": "Show Detailed INF"
-          },
-          {
-            "name": "include_secondary_inf",
-            "type": "bool",
-            "desc": "Include Secondary INF"
-          },
-          {
-            "name": "detailed_trade",
-            "type": "bool",
-            "desc": "Show Detailed Trade"
-          },
-          {
-            "name": "enable_system_activity_by_default",
-            "type": "bool",
-            "desc": "Report Newly Visited System Activity By Default"
-          },
-          {
-            "name": "enable_show_merits",
-            "type": "bool",
-            "desc": "Show Powerplay Merits Gained"
-          },
-          {
-            "name": "favourite_activity_mode",
-            "type": "menu",
-            "default": "default",
-            "desc": "Favourite Activity Mode",
-            "options": {
-                "Ignore": "Include all factions",
-                "Factions": "Include favourite factions only",
-                "Systems": "Include systems containing favourite factions"
-              }
-          },
-          {
-            "name": "use_colonisation_name",
-            "type": "bool",
-            "default": "No",
-            "desc": "Use Colonisation Plan name instead of System Name"
-          },
-          {
-            "name": "discord_bgs_tw_automatic",
-            "type": "bool",
-            "var": "DiscordBGSTWAutomatic",
-            "desc": "Automatically Post BGS and TW Activity"
-          }
+    },
+    {
+        "name": "Discord Options",
+        "sections": [
+            {
+                "name": "Misc",
+                "desc": "Miscellaneous Settings",
+                "cols": 2,
+                "prefs": [
+                    {
+                        "name": "detailed_inf",
+                        "type": "bool",
+                        "desc": "Show Detailed INF"
+                    },
+                    {
+                        "name": "include_secondary_inf",
+                        "type": "bool",
+                        "desc": "Include Secondary INF"
+                    },
+                    {
+                        "name": "detailed_trade",
+                        "type": "bool",
+                        "desc": "Show Detailed Trade"
+                    },
+                    {
+                        "name": "enable_system_activity_by_default",
+                        "type": "bool",
+                        "desc": "Report Newly Visited System Activity By Default"
+                    },
+                    {
+                        "name": "enable_show_merits",
+                        "type": "bool",
+                        "desc": "Show Powerplay Merits Gained"
+                    },
+                    {
+                        "name": "use_colonisation_name",
+                        "type": "bool",
+                        "default": "No",
+                        "desc": "Use Colonisation Plan name instead of System Name"
+                    },
+                    {
+                        "name": "discord_bgs_tw_automatic",
+                        "type": "bool",
+                        "var": "DiscordBGSTWAutomatic",
+                        "desc": "Automatically Post BGS and TW Activity"
+                    }
+                ]
+            },
+            {
+                "name": "",
+                "desc": "",
+                "cols": 1,
+                "prefs": [
+                    {
+                        "name": "favourite_activity_mode",
+                        "type": "menu",
+                        "default": "default",
+                        "desc": "Favourite Activity Mode",
+                        "options": {
+                            "Ignore": "Include all factions",
+                            "Factions": "Include favourite factions only",
+                            "Systems": "Include systems containing favourite factions"
+                        }
+                    },
+                    {
+                        "name": "discord_username",
+                        "type": "str",
+                        "desc": "Post to Discord as"
+                    },
+                    {
+                        "name": "discord_lang",
+                        "type": "menu",
+                        "var": "discord_lang",
+                        "default": "Default",
+                        "desc": "Language for Discord Posts"
+                    },
+                    {
+                        "name": "discord_formatter",
+                        "type": "menu",
+                        "var": "discord_formatter",
+                        "default": "default",
+                        "desc": "Format for Discord Posts"
+                    },
+                    {
+                        "name": "discord_avatar_url",
+                        "width": 80,
+                        "type": "str",
+                        "desc": "Discord Avatar URL"
+                    }
+                ]
+            },
+            {
+                "name": "Webhooks",
+                "desc": "Discord Webhooks",
+                "cols": 1,
+                "prefs": [
+                    {
+                        "name": "discord_webhooks",
+                        "type": "custom",
+                        "default": null,
+                        "desc": "",
+                        "custom": "_discord_webhooks"
+                    }
+                ]
+            }
         ]
-      },
-      {
-        "name": " ",
-        "desc": "",
-        "cols": 1,
-        "prefs": [
-          {
-            "name": "discord_username",
-            "type": "str",
-            "desc": "Post to Discord as"
-          },
-          {
-            "name": "discord_lang",
-            "type": "menu",
-            "var": "discord_lang",
-            "default": "default",
-            "desc": "Language for Discord Posts"
-          },
-          {
-            "name": "discord_formatter",
-            "type": "menu",
-            "var": "discord_formatter",
-            "default": "default",
-            "desc": "Format for Discord Posts"
-          },
-          {
-            "name": "discord_avatar_url",
-            "type": "str",
-            "desc": "Discord Avatar URL"
-          }
+    },
+    {
+        "name": "Overlay Settings",
+        "state": "_overlay_options_state",
+        "sections": [
+            {
+                "name": "Misc",
+                "desc": "Miscellaneous Settings",
+                "cols": 1,
+                "prefs": [
+                    {
+                        "name": "enable_overlay",
+                        "type": "bool",
+                        "desc": "Show In-game Overlay"
+                    }
+                ]
+            },
+            {
+                "name": "Panels",
+                "desc": "Overlay Panels",
+                "cols": 6,
+                "prefs": [
+                    {
+                        "name": "enable_overlay_activity",
+                        "type": "bool",
+                        "desc": "Activity Indicator"
+                    },
+                    {
+                        "name": "enable_overlay_cmdr",
+                        "type": "bool",
+                        "desc": "CMDR Info"
+                    },
+                    {
+                        "name": "enable_overlay_colonisation",
+                        "type": "bool",
+                        "desc": "Colonisation"
+                    },
+                    {
+                        "name": "enable_overlay_current_tick",
+                        "type": "bool",
+                        "desc": "Current Tick"
+                    },
+                    {
+                        "name": "enable_overlay_objectives",
+                        "type": "bool",
+                        "desc": "Objectives"
+                    },
+                    {
+                        "name": "enable_overlay_system",
+                        "type": "bool",
+                        "desc": "System Information"
+                    },
+                    {
+                        "name": "enable_overlay_tw_progress",
+                        "var": "EnableOverlayTWProgress",
+                        "type": "bool",
+                        "desc": "Thargoid War Progress"
+                    },
+                    {
+                        "name": "enable_overlay_warning",
+                        "type": "bool",
+                        "desc": "Alerts and Warnings"
+                    },
+                    {
+                        "name": "enable_overlay_carrier",
+                        "type": "bool",
+                        "desc": "Fleetcarrier"
+                    },
+                    {
+                        "name": "overlay_label",
+                        "type": "label",
+                        "desc": "In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information."
+                    }
+                ]
+            },
+            {
+                "name": "Objectives",
+                "desc": "Objectives Overlay Settings",
+                "cols": 2,
+                "prefs": [
+                    {
+                        "name": "overlay_objectives_mode_notifynew",
+                        "type": "radio",
+                        "var": "OverlayObjectivesMode",
+                        "value": "0",
+                        "desc": "Show notification for new objectives"
+                    },
+                    {
+                        "name": "overlay_objectives_mode_new",
+                        "type": "radio",
+                        "var": "OverlayObjectivesMode",
+                        "value": "1",
+                        "desc": "Show new objective"
+                    },
+                    {
+                        "name": "overlay_objectives_mode_new_updated",
+                        "type": "radio",
+                        "var": "OverlayObjectivesMode",
+                        "value": "2",
+                        "desc": "Show new and updated objectives"
+                    },
+                    {
+                        "name": "overlay_objectives_mode_top_priority",
+                        "type": "radio",
+                        "var": "OverlayObjectivesMode",
+                        "value": "3",
+                        "desc": "Always show top priority objective"
+                    },
+                    {
+                        "name": "overlay_objectives_mode_all",
+                        "type": "radio",
+                        "var": "OverlayObjectivesMode",
+                        "value": "4",
+                        "desc": "Always show all objectives"
+                    }
+                ]
+            }
         ]
-      },
-      {
-        "name": "Webhooks",
-        "desc": "Discord Webhooks",
-        "cols": 1,
-        "prefs": [
-          {
-            "name": "discord_webhooks",
-            "type": "custom",
-            "default": null,
-            "desc": "Discord Webhooks",
-            "custom": "_discord_webhooks"
-          }
+    },
+    {
+        "name": "Integrations",
+        "sections": [
+            {
+                "name": "Misc",
+                "desc": "Miscellaneous Settings",
+                "cols": 1,
+                "prefs": [
+                    {
+                        "name": "enable_remote_server",
+                        "type": "bool",
+                        "desc": "Enable Remote Server"
+                    }
+                ]
+            }
         ]
-      }
-    ]
-  },
-  {
-    "name": "Overlay",
-    "sections": [
-      {
-        "name": "Misc",
-        "desc": "Miscellaneous Settings",
-        "cols": 1,
-        "prefs": [
-          {
-            "name": "enable_overlay",
-            "type": "bool",
-            "desc": "Show In-game Overlay"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Integrations",
-    "sections": [
-      {
-        "name": "Misc",
-        "desc": "Miscellaneous Settings",
-        "cols": 1,
-        "prefs": [
-          {
-            "name": "enable_remote_server",
-            "type": "bool",
-            "desc": "Enable Remote Server"
-          }
-        ]
-      }
-    ]
-  }
+    }
 ]

@@ -29,6 +29,47 @@
                         "desc": "Colonisation Active"
                     }
                 ]
+            },
+            {
+                "name": "Colonisation",
+                "desc": "Colonisation Settings",
+                "prefs": [
+                    {
+                        "name": "colonisation_max_commodities",
+                        "type": "str",
+                        "desc": "Maximum Commodities"
+                    },
+                    {
+                        "name": "enable_progress_scrollbar",
+                        "type": "checkbox",
+                        "desc": "Use scrollbar (restart required)"
+                    },
+                    {
+                        "name": "rc_api_key",
+                        "type": "custom",
+                        "custom": "_rc_api_key"
+                    },
+                    {
+                        "name": "rc_api_pass",
+                        "type": "custom",
+                        "custom": "_rc_api_pass"
+                    }
+                ]
+            },
+            {
+                "name": "Fleet Carrier",
+                "desc": "Fleet Carrier Settings",
+                "prefs": [
+                    {
+                        "name": "fc_cooldown",
+                        "type": "menu",
+                        "options": {
+                                "popup": "Popup only",
+                                "overlay": "Overlay only",
+                                "both": "Popup and Overlay"
+                            }
+                    }
+                ]
             }
         ]
     },
@@ -130,8 +171,6 @@
                     {
                         "name": "discord_webhooks",
                         "type": "custom",
-                        "default": null,
-                        "desc": "",
                         "custom": "_discord_webhooks"
                     }
                 ]

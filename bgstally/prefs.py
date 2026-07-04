@@ -142,12 +142,12 @@ class Prefs:
                 if isinstance(var, str): # Sometimes the state variable is a string instead of a StringVar, so we need to convert it
                     var = tk.StringVar(value=var, name=pref.var)
 
-                nb.Label(parent_frame, text=pref.desc, state=state).grid(row=row, column=col, padx=(10,0), sticky=tk.W)
+                nb.Label(parent_frame, text=pref.desc, state=state).grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
                 col += 1
                 options:dict = pref.options
                 nb.OptionMenu(parent_frame, var, var.get(), *options.values(),
                               command=partial(self._menu_selected, pref.var, options), direction="below"). \
-                    grid(row=row, column=col, sticky=tk.W)
+                    grid(row=row, column=col, pady=(0,5), sticky=tk.W)
 
             case "custom" if pref.custom is not None:
                 func:Callable = getattr(self, pref.custom)
@@ -155,14 +155,14 @@ class Prefs:
 
             case "label":
                 nb.Label(parent_frame, text=pref.desc, state=state). \
-                    grid(row=row, column=col, columnspan=parent_frame.grid_size()[0] - col, padx=10, sticky=tk.W)
+                    grid(row=row, column=col, columnspan=parent_frame.grid_size()[0] - col, padx=10, pady=(0,5), sticky=tk.W)
 
             case _:
-                nb.Label(parent_frame, text=pref.desc, state=state).grid(row=row, column=col, padx=(10,0), sticky=tk.W)
+                nb.Label(parent_frame, text=pref.desc, state=state).grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
                 col += 1
                 nb.EntryMenu(parent_frame, textvariable=getattr(self.bgstally.state, pref.var, ""), width=getattr(pref, "width", 20),
                              state=state).\
-                    grid(row=row, column=col, sticky=tk.W)
+                    grid(row=row, column=col, pady=(0,5), sticky=tk.W)
 
         return col
 
@@ -244,6 +244,11 @@ class Prefs:
                                             'rc_insert_row', 'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell')
         self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)
         self.sheet_webhooks.readonly(state=="disabled")
+
+    def _rc_api_key(self, frame:tk.Frame, row:int, column:int, state:str) -> None:
+            api_keys_label_common(self, row, frame) #type: ignore
+    def _rc_api_pass(self, frame:tk.Frame, row:int, column:int, state:str) -> None:
+        show_pwd_var_common(frame, row, self) #type: ignore
 
     # @catch_exceptions
     # def _objectives_overlay_settings(self, frame:tk.Frame, row:int, column:int, state:str) -> None:
@@ -495,7 +500,6 @@ class Prefs:
         k: str = next(k for k, v in cooldown_types.items() if v == value)
         self.bgstally.state.FcCooldown.set(k)
         self.bgstally.state.refresh()
-
 
     def _webhooks_table_modified(self, event=None):
         """

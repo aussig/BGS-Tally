@@ -1,0 +1,174 @@
+[
+  {
+    "name": "General",
+    "sections": [
+      {
+        "name": "Misc",
+        "desc": "Miscellaneous Settings",
+        "cols": 1,
+        "prefs": [
+          {
+            "name": "plugin_active",
+            "type": "bool",
+            "var": "Status",
+            "default": "Yes",
+            "desc": "BGS-Tally Active"
+          },
+          {
+            "name": "show_zero_activity_systems",
+            "type": "bool",
+            "var": "ShowZeroActivitySystems",
+            "default": "Yes",
+            "desc": "Show Systems with Zero Activity"
+          },
+          {
+            "name": "colonisation_active",
+            "type": "bool",
+            "var": "ColonisationStatus",
+            "default": "Yes",
+            "desc": "Colonisation Active"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Discord",
+    "sections": [
+      {
+        "name": "Misc",
+        "desc": "Miscellaneous Settings",
+        "cols": 2,
+        "prefs": [
+          {
+            "name": "detailed_inf",
+            "type": "bool",
+            "desc": "Show Detailed INF"
+          },
+          {
+            "name": "include_secondary_inf",
+            "type": "bool",
+            "desc": "Include Secondary INF"
+          },
+          {
+            "name": "detailed_trade",
+            "type": "bool",
+            "desc": "Show Detailed Trade"
+          },
+          {
+            "name": "enable_system_activity_by_default",
+            "type": "bool",
+            "desc": "Report Newly Visited System Activity By Default"
+          },
+          {
+            "name": "enable_show_merits",
+            "type": "bool",
+            "desc": "Show Powerplay Merits Gained"
+          },
+          {
+            "name": "favourite_activity_mode",
+            "type": "menu",
+            "default": "default",
+            "desc": "Favourite Activity Mode",
+            "options": {
+                "Ignore": "Include all factions",
+                "Factions": "Include favourite factions only",
+                "Systems": "Include systems containing favourite factions"
+              }
+          },
+          {
+            "name": "use_colonisation_name",
+            "type": "bool",
+            "default": "No",
+            "desc": "Use Colonisation Plan name instead of System Name"
+          },
+          {
+            "name": "discord_bgs_tw_automatic",
+            "type": "bool",
+            "var": "DiscordBGSTWAutomatic",
+            "desc": "Automatically Post BGS and TW Activity"
+          }
+        ]
+      },
+      {
+        "name": " ",
+        "desc": "",
+        "cols": 1,
+        "prefs": [
+          {
+            "name": "discord_username",
+            "type": "str",
+            "desc": "Post to Discord as"
+          },
+          {
+            "name": "discord_lang",
+            "type": "menu",
+            "var": "discord_lang",
+            "default": "default",
+            "desc": "Language for Discord Posts"
+          },
+          {
+            "name": "discord_formatter",
+            "type": "menu",
+            "var": "discord_formatter",
+            "default": "default",
+            "desc": "Format for Discord Posts"
+          },
+          {
+            "name": "discord_avatar_url",
+            "type": "str",
+            "desc": "Discord Avatar URL"
+          }
+        ]
+      },
+      {
+        "name": "Webhooks",
+        "desc": "Discord Webhooks",
+        "cols": 1,
+        "prefs": [
+          {
+            "name": "discord_webhooks",
+            "type": "custom",
+            "default": null,
+            "desc": "Discord Webhooks",
+            "custom": "_discord_webhooks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Overlay",
+    "sections": [
+      {
+        "name": "Misc",
+        "desc": "Miscellaneous Settings",
+        "cols": 1,
+        "prefs": [
+          {
+            "name": "enable_overlay",
+            "type": "bool",
+            "desc": "Show In-game Overlay"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Integrations",
+    "sections": [
+      {
+        "name": "Misc",
+        "desc": "Miscellaneous Settings",
+        "cols": 1,
+        "prefs": [
+          {
+            "name": "enable_remote_server",
+            "type": "bool",
+            "desc": "Enable Remote Server"
+          }
+        ]
+      }
+    ]
+  }
+]

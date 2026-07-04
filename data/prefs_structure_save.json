@@ -1,0 +1,288 @@
+[
+  {
+    "name": "General",
+    "sections": [
+      {
+        "name": "Misc",
+        "desc": "Miscellaneous Settings",
+        "cols": 1,
+        "prefs": [
+          {
+            "name": "plugin_active",
+            "type": "bool",
+            "var": "Status",
+            "default": "Yes",
+            "desc": "BGS-Tally Active",
+            "options": [],
+            "custom": null
+          },
+          {
+            "name": "show_zero_activity_systems",
+            "type": "bool",
+            "var": "ShowZeroActivitySystems",
+            "default": "Yes",
+            "desc": "Show Systems with Zero Activity",
+            "options": [],
+            "custom": null
+          },
+          {
+            "name": "colonisation_active",
+            "type": "bool",
+            "var": "ColonisationStatus",
+            "default": "Yes",
+            "desc": "Colonisation Active",
+            "options": [],
+            "custom": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Discord",
+    "sections": [
+      {
+        "name": "Misc",
+        "desc": "Miscellaneous Settings",
+        "cols": 2,
+        "prefs": [
+          {
+            "name": "detailed_inf",
+            "type": "bool",
+            "var": "DetailedInf",
+            "default": "Yes",
+            "desc": "Show Detailed INF",
+            "options": [],
+            "custom": null
+          },
+          {
+            "name": "include_secondary_inf",
+            "type": "bool",
+            "var": "IncludeSecondaryInf",
+            "default": "Yes",
+            "desc": "Include Secondary INF",
+            "options": [],
+            "custom": null
+          },
+          {
+            "name": "detailed_trade",
+            "type": "bool",
+            "var": "DetailedTrade",
+            "default": "Yes",
+            "desc": "Show Detailed Trade",
+            "options": [],
+            "custom": null
+          },
+          {
+            "name": "enable_system_activity_by_default",
+            "type": "bool",
+            "var": "EnableSystemActivityByDefault",
+            "default": "Yes",
+            "desc": "Report Newly Visited System Activity By Default",
+            "options": [],
+            "custom": null
+          },
+          {
+            "name": "enable_show_merits",
+            "type": "bool",
+            "var": "EnableShowMerits",
+            "default": "Yes",
+            "desc": "Show Powerplay Merits Gained",
+            "options": [],
+            "custom": null
+          },
+          {
+            "name": "favourite_activity_mode",
+            "type": "menu",
+            "var": "FavouriteActivityMode",
+            "default": "default",
+            "desc": "Favourite Activity Mode",
+            "options": [
+              {
+                "key": "Ignore",
+                "value": "Include all factions"
+              },
+              {
+                "key": "Factions",
+                "value": "Include favourite factions only"
+              },
+              {
+                "key": "Systems",
+                "value": "Include systems containing favourite factions"
+              }
+            ],
+            "custom": null
+          },
+          {
+            "name": "use_colonisation_name",
+            "type": "bool",
+            "var": "UseColonisationName",
+            "default": "No",
+            "desc": "Use Colonisation Plan name instead of System Name",
+            "options": [],
+            "custom": null
+          },
+          {
+            "name": "discord_bgs_tw_automatic",
+            "type": "bool",
+            "var": "DiscordBGSTWAutomatic",
+            "default": "Yes",
+            "desc": "Automatically Post BGS and TW Activity",
+            "options": [],
+            "custom": null
+          }
+        ]
+      },
+      {
+        "name": " ",
+        "desc": "",
+        "cols": 1,
+        "prefs": [
+          {
+            "name": "discord_username",
+            "type": "str",
+            "var": "DiscordUsername",
+            "default": "",
+            "desc": "Post to Discord as",
+            "options": [],
+            "custom": null
+          },
+          {
+            "name": "discord_lang",
+            "type": "menu",
+            "var": "discord_lang",
+            "default": "default",
+            "desc": "Language for Discord Posts",
+            "options": [
+              {
+                "key": null,
+                "value": "Default"
+              },
+              {
+                "key": "en",
+                "value": "en"
+              },
+              {
+                "key": "de",
+                "value": "de"
+              },
+              {
+                "key": "es",
+                "value": "es"
+              },
+              {
+                "key": "fr",
+                "value": "fr"
+              },
+              {
+                "key": "hu",
+                "value": "hu"
+              },
+              {
+                "key": "it",
+                "value": "it"
+              },
+              {
+                "key": "pt-BR",
+                "value": "pt-BR"
+              },
+              {
+                "key": "pt-PT",
+                "value": "pt-PT"
+              },
+              {
+                "key": "ru",
+                "value": "ru"
+              },
+              {
+                "key": "sr-Latn",
+                "value": "sr-Latn"
+              },
+              {
+                "key": "tr",
+                "value": "tr"
+              }
+            ],
+            "custom": null
+          },
+          {
+            "name": "discord_formatter",
+            "type": "menu",
+            "var": "discord_formatter",
+            "default": "default",
+            "desc": "Format for Discord Posts",
+            "options": [],
+            "custom": null
+          },
+          {
+            "name": "discord_avatar_url",
+            "type": "str",
+            "var": "DiscordAvatarURL",
+            "default": "",
+            "desc": "Discord Avatar URL",
+            "options": [],
+            "custom": null
+          }
+        ]
+      },
+      {
+        "name": "Webhooks",
+        "desc": "Discord Webhooks",
+        "cols": 1,
+        "prefs": [
+          {
+            "name": "discord_webhooks",
+            "type": "custom",
+            "var": "DiscordWebhooks",
+            "default": null,
+            "desc": "Discord Webhooks",
+            "options": [],
+            "custom": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Overlay",
+    "sections": [
+      {
+        "name": "Misc",
+        "desc": "Miscellaneous Settings",
+        "cols": 1,
+        "prefs": [
+          {
+            "name": "enable_overlay",
+            "type": "bool",
+            "var": "EnableOverlay",
+            "default": "Yes",
+            "desc": "Show In-game Overlay",
+            "options": [],
+            "custom": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Integrations",
+    "sections": [
+      {
+        "name": "Misc",
+        "desc": "Miscellaneous Settings",
+        "cols": 1,
+        "prefs": [
+          {
+            "name": "enable_remote_server",
+            "type": "bool",
+            "var": "EnableRemoteServer",
+            "default": "Yes",
+            "desc": "Enable Remote Server",
+            "options": [],
+            "custom": null
+          }
+        ]
+      }
+    ]
+  }
+]

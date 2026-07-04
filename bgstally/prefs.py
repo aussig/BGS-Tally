@@ -84,19 +84,23 @@ class Prefs:
         """
         Create the tabs for the preferences window
         """
-        nb.Notebook(frame, width=800, height=600).grid(row=current_row, columnspan=2, padx=10, pady=10, sticky=tk.NSEW); current_row += 1
+        notebook:nb.Notebook = nb.Notebook(frame, width=800, height=600)
+        notebook.grid(row=current_row, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
+        current_row += 1
         for tab in self.prefs:
-            self._create_tab(frame, tab)
+            self._create_tab(notebook, tab)
 
-    def _create_tab(self, parent_frame:tk.Frame, tab:Tab) -> None:
+    def _create_tab(self, notebook:nb.Notebook, tab:Tab) -> None:
         """
         Create a tab in the preferences notebook
         """
-        nb.Label(parent_frame, text=tab.name, font=FONT_HEADING_2).grid(row=0, column=0, padx=10, sticky=tk.W)
-        tab_frame = nb.Frame(parent_frame)
+        fr:nb.Frame = nb.Frame(notebook)
+        nb.Label(fr, text=tab.name, font=FONT_HEADING_2).grid(row=0, column=0, padx=10, sticky=tk.W)
+        tab_frame = nb.Frame(fr)
         tab_frame.grid(row=1, column=0, padx=10, pady=10, sticky=tk.NSEW)
         for section in tab.sections:
             self._create_section(tab_frame, section)
+        notebook.add(fr, text=tab.name)
 
     def _create_section(self, parent_frame:tk.Frame, section:Section) -> None:
         """

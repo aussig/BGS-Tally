@@ -177,6 +177,38 @@ def scan_base_types_file(path: pathlib.Path) -> list[ast.Call]:
                     out.append(call)
     return out
 
+def scan_section(data:dict|list, out:list[ast.Call]):
+    """Recursively scan a section of the prefs_structure.json for translatable strings."""
+
+    if isinstance(data, list):
+        for item in data:
+            out = scan_section(item, out)
+        return out
+
+    if isinstance(data, dict):
+        translatable_keys = ['label', 'desc']
+        for key, value in data.items():
+            if isinstance(value, list):
+                out = scan_section(value, out)
+            if isinstance(value, str) and key in translatable_keys:
+                # Create a fake Call node
+                call = ast.Call(
+                    func=ast.Name(id='__', ctx=ast.Load()),
+                    args=[ast.Constant(value=value)],
+                    keywords=[],
+                    lineno=0,
+                    col_offset=0
+                )
+                setattr(call, "comment", f"Preferences '{key}'")
+                out.append(call)
+    return out
+
+def scan_prefs_structure_file(path: pathlib.Path) -> list[ast.Call]:
+    """Scan a prefs_structure.json file for translatable strings."""
+    with open(path, encoding="utf-8") as prefs_structure_file:
+        return scan_section(json.load(prefs_structure_file), [])
+
+    return out
 
 def scan_directory(
     path: pathlib.Path, skip: list[pathlib.Path] | None = None
@@ -198,6 +230,8 @@ def scan_directory(
             out[thing] = scan_python_file(thing)
         elif thing.is_file() and thing.name == "base_types.json":
             out[thing] = scan_base_types_file(thing)
+        elif thing.is_file() and thing.name == "prefs_structure.json":
+            out[thing] = scan_prefs_structure_file(thing)
         elif thing.is_dir():
             out.update(scan_directory(thing, skip))
 

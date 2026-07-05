@@ -11,13 +11,15 @@
                         "type": "bool",
                         "var": "Status",
                         "default": "Yes",
-                        "label": "BGS-Tally Active"
+                        "label": "BGS-Tally Active",
+                        "desc": "Completely enable or disable BGS-Tally"
                     },
                     {
                         "type": "bool",
                         "var": "ShowZeroActivitySystems",
                         "default": "Yes",
-                        "label": "Show Systems with Zero Activity"
+                        "label": "Show Systems with Zero Activity",
+                        "desc": "Display systems even if they have zero activity"
                     },
                     {
                         "type": "bool",
@@ -298,6 +300,10 @@
                         "label": "Force Tick",
                         "type": "custom",
                         "custom": "_force_tick_button"
+                    },
+                    {
+                        "label": "Dangerous action: only use when you are certain a tick occurred.",
+                        "type": "label"
                     }
                 ]
             }

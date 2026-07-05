@@ -2,11 +2,12 @@ from dataclasses import dataclass, field, fields
 from typing import get_origin
 from copy import deepcopy
 import json
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 from functools import partial
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, font as tkfont
 
 import myNotebook as nb # type:ignore
 from ttkHyperlinkLabel import HyperlinkLabel # type:ignore
@@ -92,66 +93,84 @@ class Prefs:
         row:int = 0
         tab_frame = nb.Frame(fr)
         tab_frame.grid(row=row, column=0, padx=10, pady=10, sticky=tk.NSEW)
+        tab_frame.columnconfigure(0, weight=1)
         for section in tab.sections:
             row += 1
             row = self._create_section(tab_frame, row, section)
+
         state:str|Callable = getattr(self, tab.state)() if callable(getattr(self, tab.state, None)) else tab.state
         notebook.add(fr, text=tab.name, state=state)
 
     def _create_section(self, parent_frame:tk.Frame, row:int, section:Section) -> int:
         """ Create a section in a tab """
-        if row > 1 and section.name.strip() != "":
-            ttk.Separator(parent_frame, orient=tk.HORIZONTAL).grid(row=row, columnspan=2, padx=10, pady=10, sticky=tk.EW)
+
+        sfr:tk.Frame|ttk.LabelFrame
+        fnt:tkfont.Font = tkfont.nametofont("TkDefaultFont").copy()
+        fnt.configure(weight="bold")
+
+        if True: # Horizontal rules
+            if row > 1 and section.name.strip() != "":
+                ttk.Separator(parent_frame, orient=tk.HORIZONTAL).grid(row=row, columnspan=2, padx=10, pady=10, sticky=tk.EW)
             row += 1
 
-        nb.Label(parent_frame, text=f"{section.name:<20}", font=FONT_TEXT_BOLD).\
-            grid(row=row, column=0, padx=10, pady=10,sticky=tk.NW)
+            nb.Label(parent_frame, text=f"{section.name:<20}", font=fnt).grid(row=row, column=0, padx=10, pady=10,sticky=tk.NW)
+            sfr = nb.Frame(parent_frame)
+            sfr.grid(row=row, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
-        section_frame = nb.Frame(parent_frame)
-        section_frame.grid(row=row, column=1, padx=10, pady=10, sticky=tk.NSEW)
+        else: # Bordered frames
+            sfr = tk.LabelFrame(parent_frame, text=section.desc, font=fnt, bg="SystemWindow")
+            sfr.grid(row=row, column=0, padx=10, pady=10, sticky=tk.NSEW)
+            sfr.columnconfigure(0, weight=0)
+            sfr.columnconfigure(1, weight=1)
+
         sr:int = 0; sc:int = 0
         for pref in section.prefs:
             if sr > 0 and (pref.type == "custom" or pref.type == "label"):
                 sc = 0; sr += 1
 
-            sc = self._create_pref(section_frame, pref, sr, sc+1)
-            if (sc := sc + 1) > section.cols:
+            sc = self._create_pref(sfr, pref, sr, sc)
+            if (sc := sc + 1) >= section.cols:
                 sc = 0; sr += 1
 
         return row
 
     @catch_exceptions
-    def _create_pref(self, parent_frame:tk.Frame, pref:Pref, row:int, column:int) -> int:
+    def _create_pref(self, parent_frame:tk.Frame|ttk.LabelFrame, pref:Pref, row:int, column:int) -> int:
         """ Create a preference option """
         col:int = column
         state:str|Callable = getattr(self, pref.state)() if callable(getattr(self, pref.state, None)) else pref.state
 
         match pref.type:
-            case "bool":
+            case "bool" | "checkbox":
                 nb.Checkbutton(parent_frame, text=pref.desc, variable=getattr(self.bgstally.state, pref.var, ""),
                                onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, state=state).\
                     grid(row=row, column=col, padx=(10,0), sticky=tk.W)
 
-            case "radio":
+            case "radio" | "radiobutton":
                 nb.Radiobutton(parent_frame, text=pref.desc, variable=getattr(self.bgstally.state, pref.var, ""),
                                value=pref.value, state=state).\
                     grid(row=row, column=col, padx=(10,0), sticky=tk.W)
 
             case "menu":
-                var:tk.StringVar|str = getattr(self.bgstally.state, pref.var)
-                if isinstance(var, str): # Sometimes the state variable is a string instead of a StringVar, so we need to convert it
-                    var = tk.StringVar(value=var, name=pref.var)
-
                 nb.Label(parent_frame, text=pref.desc, state=state).grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
                 col += 1
-                options:dict = pref.options
-                nb.OptionMenu(parent_frame, var, var.get(), *options.values(),
-                              command=partial(self._menu_selected, pref.var, options), direction="below"). \
+
+                var:tk.StringVar|str = getattr(self.bgstally.state, pref.var)
+                if isinstance(var, str): # Sometimes the state variable is a string instead of a StringVar, so we need to convert it
+                    disp_var = tk.StringVar(value=var, name=pref.var)
+                else:
+                    disp_var = tk.StringVar(value=var.get(), name=pref.var)
+
+                defval:str|None = pref.options.get(disp_var.get(), pref.default)
+                values:list = list(pref.options.values())
+                nb.OptionMenu(parent_frame, disp_var, defval, *values,
+                              command=partial(self._menu_selected, pref.var, pref.options), direction="below"). \
                     grid(row=row, column=col, pady=(0,5), sticky=tk.W)
 
             case "custom" if pref.custom is not None:
                 func:Callable = getattr(self, pref.custom)
-                func(parent_frame, row, col, state)
+                c = func(parent_frame, row, col, state)
+                if c and c > 1: col += c
 
             case "label":
                 nb.Label(parent_frame, text=pref.desc, state=state). \
@@ -166,24 +185,30 @@ class Prefs:
 
         return col
 
+    @catch_exceptions
     def _menu_selected(self, var_name:str, options:dict, value:str) -> None:
         """ Callback for when a menu option is selected """
+
         k = next(k for k, v in options.items() if v == value)
-        getattr(self.bgstally.state, var_name).set(k)
+        var = getattr(self.bgstally.state, var_name)
+        if isinstance(var, str):
+            setattr(self.bgstally.state, var_name, k)
+        if isinstance(var, tk.StringVar):
+            var.set(k)
         self.bgstally.state.refresh()
 
     def _hydrate_pref(self, pref:Pref) -> Pref:
         """ Hydrate a preference with default values and options if not provided. """
         # Fill in a default variable name if not provided
-        if pref.var is None:
-            pref.var = pref.name.replace("_", " ").title().replace(" ", "")
+        if pref.name is None:
+            pref.name = pref.var
         if pref.type == "bool" and pref.default is None:
             pref.default = "Yes"
         if pref.type == "str" and pref.default is None:
             pref.default = ""
-        if pref.name == "discord_lang":
+        if pref.var == "discord_lang":
             pref.options = available_langs()
-        if pref.name == "discord_formatter":
+        if pref.var == "discord_formatter":
             pref.options = self.bgstally.formatter_manager.get_formatters()
 
         return pref
@@ -218,7 +243,7 @@ class Prefs:
     Custom functions for creating specific preference types that require more complex UI elements than the standard ones.
     """
     @catch_exceptions
-    def _discord_webhooks(self, frame:tk.Frame, row:int, column:int, state:str) -> None:
+    def _discord_webhooks(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
         ui_scaling:float = frame.tk.call('tk', 'scaling')
         sheet_headings:list = ["UUID",
                                _("Nickname"), # LANG: Preferences table heading
@@ -244,11 +269,17 @@ class Prefs:
                                             'rc_insert_row', 'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell')
         self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)
         self.sheet_webhooks.readonly(state=="disabled")
+        return 1
 
-    def _rc_api_key(self, frame:tk.Frame, row:int, column:int, state:str) -> None:
+    def _rc_api_key(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
+            from plugins.common_coreutils import api_keys_label_common # type: ignore
             api_keys_label_common(self, row, frame) #type: ignore
-    def _rc_api_pass(self, frame:tk.Frame, row:int, column:int, state:str) -> None:
+            return 3
+
+    def _rc_api_pass(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
+        from plugins.common_coreutils import show_pwd_var_common # type: ignore
         show_pwd_var_common(frame, row, self) #type: ignore
+        return 1
 
     # @catch_exceptions
     # def _objectives_overlay_settings(self, frame:tk.Frame, row:int, column:int, state:str) -> None:
@@ -464,42 +495,40 @@ class Prefs:
 
 
     def save_prefs(self):
-        """
-        Preferences frame has been saved (from EDMC core or any plugin)
-        """
-        self.update_plugin_frame()
-        self._load_commodities()
+        """ Preferences frame has been saved (from EDMC core or any plugin) """
+        self.bgstally.ui.update_plugin_frame()
+        self.bgstally.ui._load_commodities()
 
 
-    def _formatter_modified(self, event=None):
-        """Callback for change in formatter dropdown
+    # def _formatter_modified(self, event=None):
+    #     """Callback for change in formatter dropdown
 
-        Args:
-            event (_type_, optional): Variable related to the callback. Defaults to None.
-        """
-        formatters_by_name: dict = {v: k for k, v in self.formatters.items()}
-        self.bgstally.state.discord_formatter = formatters_by_name.get(self.formatter.get())
+    #     Args:
+    #         event (_type_, optional): Variable related to the callback. Defaults to None.
+    #     """
+    #     formatters_by_name: dict = {v: k for k, v in self.formatters.items()}
+    #     self.bgstally.state.discord_formatter = formatters_by_name.get(self.formatter.get())
 
-    def _colonisation_change(self, event=None):
-        """Callback for change in colonisation status
+    # def _colonisation_change(self, event=None):
+    #     """Callback for change in colonisation status
 
-        Args:
-            event (_type_, optional): Variable related to the callback. Defaults to None.
-        """
-        self.bgstally.state.refresh()
-        self.update_plugin_frame()
+    #     Args:
+    #         event (_type_, optional): Variable related to the callback. Defaults to None.
+    #     """
+    #     self.bgstally.state.refresh()
+    #     self.update_plugin_frame()
 
-    def _favourite_type_selected(self, favourite_types: dict, value: str):
-        """The user has changed the dropdown to choose the favourite faction posting type
-        """
-        k: str = next(k for k, v in favourite_types.items() if v == value)
-        self.bgstally.state.FavouriteActivityMode.set(k)
-        self.bgstally.state.refresh
+    # def _favourite_type_selected(self, favourite_types: dict, value: str):
+    #     """The user has changed the dropdown to choose the favourite faction posting type
+    #     """
+    #     k: str = next(k for k, v in favourite_types.items() if v == value)
+    #     self.bgstally.state.FavouriteActivityMode.set(k)
+    #     self.bgstally.state.refresh
 
-    def _cooldown_selected(self, cooldown_types: dict, value: str):
-        k: str = next(k for k, v in cooldown_types.items() if v == value)
-        self.bgstally.state.FcCooldown.set(k)
-        self.bgstally.state.refresh()
+    # def _cooldown_selected(self, cooldown_types: dict, value: str):
+    #     k: str = next(k for k, v in cooldown_types.items() if v == value)
+    #     self.bgstally.state.FcCooldown.set(k)
+    #     self.bgstally.state.refresh()
 
     def _webhooks_table_modified(self, event=None):
         """

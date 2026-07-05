@@ -5,7 +5,6 @@
             {
                 "name": "Misc",
                 "desc": "Miscellaneous Settings",
-                "cols": 1,
                 "prefs": [
                     {
                         "name": "plugin_active",
@@ -15,14 +14,12 @@
                         "desc": "BGS-Tally Active"
                     },
                     {
-                        "name": "show_zero_activity_systems",
                         "type": "bool",
                         "var": "ShowZeroActivitySystems",
                         "default": "Yes",
                         "desc": "Show Systems with Zero Activity"
                     },
                     {
-                        "name": "colonisation_active",
                         "type": "bool",
                         "var": "ColonisationStatus",
                         "default": "Yes",
@@ -35,24 +32,19 @@
                 "desc": "Colonisation Settings",
                 "prefs": [
                     {
-                        "name": "colonisation_max_commodities",
+                        "var": "ColonisationMaxCommodities",
                         "type": "str",
                         "desc": "Maximum Commodities"
                     },
                     {
-                        "name": "enable_progress_scrollbar",
+                        "var": "EnableProgressScrollbar",
                         "type": "checkbox",
                         "desc": "Use scrollbar (restart required)"
                     },
                     {
-                        "name": "rc_api_key",
-                        "type": "custom",
-                        "custom": "_rc_api_key"
-                    },
-                    {
-                        "name": "rc_api_pass",
-                        "type": "custom",
-                        "custom": "_rc_api_pass"
+                        "var": "RCApiKey",
+                        "type": "password",
+                        "desc": "Raven Colonial API Key"
                     }
                 ]
             },
@@ -61,7 +53,7 @@
                 "desc": "Fleet Carrier Settings",
                 "prefs": [
                     {
-                        "name": "fc_cooldown",
+                        "var": "FcCooldown",
                         "type": "menu",
                         "options": {
                                 "popup": "Popup only",
@@ -82,53 +74,49 @@
                 "cols": 2,
                 "prefs": [
                     {
-                        "name": "detailed_inf",
+                        "var": "DetailedINF",
                         "type": "bool",
                         "desc": "Show Detailed INF"
                     },
                     {
-                        "name": "include_secondary_inf",
+                        "var": "IncludeSecondaryINF",
                         "type": "bool",
                         "desc": "Include Secondary INF"
                     },
                     {
-                        "name": "detailed_trade",
+                        "var": "DetailedTrade",
                         "type": "bool",
                         "desc": "Show Detailed Trade"
                     },
                     {
-                        "name": "enable_system_activity_by_default",
+                        "var": "EnableSystemActivityByDefault",
                         "type": "bool",
                         "desc": "Report Newly Visited System Activity By Default"
                     },
                     {
-                        "name": "enable_show_merits",
+                        "var": "EnableShowMerits",
                         "type": "bool",
                         "desc": "Show Powerplay Merits Gained"
                     },
                     {
-                        "name": "use_colonisation_name",
+                        "var": "UseColonisationName",
                         "type": "bool",
                         "default": "No",
                         "desc": "Use Colonisation Plan name instead of System Name"
                     },
                     {
-                        "name": "discord_bgs_tw_automatic",
-                        "type": "bool",
                         "var": "DiscordBGSTWAutomatic",
+                        "type": "bool",
                         "desc": "Automatically Post BGS and TW Activity"
                     }
                 ]
             },
             {
-                "name": "",
-                "desc": "",
-                "cols": 1,
                 "prefs": [
                     {
-                        "name": "favourite_activity_mode",
+                        "var": "FavouriteActivityMode",
                         "type": "menu",
-                        "default": "default",
+                        "default": "Ignore",
                         "desc": "Favourite Activity Mode",
                         "options": {
                             "Ignore": "Include all factions",
@@ -137,26 +125,24 @@
                         }
                     },
                     {
-                        "name": "discord_username",
+                        "var": "DiscordUsername",
                         "type": "str",
                         "desc": "Post to Discord as"
                     },
                     {
-                        "name": "discord_lang",
-                        "type": "menu",
                         "var": "discord_lang",
+                        "type": "menu",
                         "default": "Default",
                         "desc": "Language for Discord Posts"
                     },
                     {
-                        "name": "discord_formatter",
-                        "type": "menu",
                         "var": "discord_formatter",
-                        "default": "default",
+                        "type": "menu",
+                        "default": "Default",
                         "desc": "Format for Discord Posts"
                     },
                     {
-                        "name": "discord_avatar_url",
+                        "var": "DiscordAvatarURL",
                         "width": 80,
                         "type": "str",
                         "desc": "Discord Avatar URL"
@@ -166,7 +152,6 @@
             {
                 "name": "Webhooks",
                 "desc": "Discord Webhooks",
-                "cols": 1,
                 "prefs": [
                     {
                         "name": "discord_webhooks",
@@ -184,10 +169,9 @@
             {
                 "name": "Misc",
                 "desc": "Miscellaneous Settings",
-                "cols": 1,
                 "prefs": [
                     {
-                        "name": "enable_overlay",
+                        "var": "EnableOverlay",
                         "type": "bool",
                         "desc": "Show In-game Overlay"
                     }
@@ -199,48 +183,47 @@
                 "cols": 6,
                 "prefs": [
                     {
-                        "name": "enable_overlay_activity",
+                        "var": "EnableOverlayActivity",
                         "type": "bool",
                         "desc": "Activity Indicator"
                     },
                     {
-                        "name": "enable_overlay_cmdr",
+                        "var": "EnableOverlayCMDR",
                         "type": "bool",
                         "desc": "CMDR Info"
                     },
                     {
-                        "name": "enable_overlay_colonisation",
+                        "var": "EnableOverlayColonisation",
                         "type": "bool",
                         "desc": "Colonisation"
                     },
                     {
-                        "name": "enable_overlay_current_tick",
+                        "var": "EnableOverlayCurrentTick",
                         "type": "bool",
                         "desc": "Current Tick"
                     },
                     {
-                        "name": "enable_overlay_objectives",
+                        "var": "EnableOverlayObjectives",
                         "type": "bool",
                         "desc": "Objectives"
                     },
                     {
-                        "name": "enable_overlay_system",
+                        "var": "EnableOverlaySystem",
                         "type": "bool",
                         "desc": "System Information"
                     },
                     {
-                        "name": "enable_overlay_tw_progress",
                         "var": "EnableOverlayTWProgress",
                         "type": "bool",
                         "desc": "Thargoid War Progress"
                     },
                     {
-                        "name": "enable_overlay_warning",
+                        "var": "EnableOverlayWarning",
                         "type": "bool",
                         "desc": "Alerts and Warnings"
                     },
                     {
-                        "name": "enable_overlay_carrier",
+                        "var": "EnableOverlayCarrier",
                         "type": "bool",
                         "desc": "Fleetcarrier"
                     },
@@ -257,35 +240,35 @@
                 "cols": 2,
                 "prefs": [
                     {
-                        "name": "overlay_objectives_mode_notifynew",
+                        "name": "OverlayObjectivesModeNotifyNew",
                         "type": "radio",
                         "var": "OverlayObjectivesMode",
                         "value": "0",
                         "desc": "Show notification for new objectives"
                     },
                     {
-                        "name": "overlay_objectives_mode_new",
+                        "name": "OverlayObjectivesModeNew",
                         "type": "radio",
                         "var": "OverlayObjectivesMode",
                         "value": "1",
                         "desc": "Show new objective"
                     },
                     {
-                        "name": "overlay_objectives_mode_new_updated",
+                        "name": "OverlayObjectivesModeUpdated",
                         "type": "radio",
                         "var": "OverlayObjectivesMode",
                         "value": "2",
                         "desc": "Show new and updated objectives"
                     },
                     {
-                        "name": "overlay_objectives_mode_top_priority",
+                        "name": "OverlayObjectivesModeTopPriority",
                         "type": "radio",
                         "var": "OverlayObjectivesMode",
                         "value": "3",
                         "desc": "Always show top priority objective"
                     },
                     {
-                        "name": "overlay_objectives_mode_all",
+                        "name": "OverlayObjectivesModeAll",
                         "type": "radio",
                         "var": "OverlayObjectivesMode",
                         "value": "4",
@@ -301,10 +284,9 @@
             {
                 "name": "Misc",
                 "desc": "Miscellaneous Settings",
-                "cols": 1,
                 "prefs": [
                     {
-                        "name": "enable_remote_server",
+                        "var": "EnableRemoteServer",
                         "type": "bool",
                         "desc": "Enable Remote Server"
                     }

@@ -55,7 +55,7 @@ class TestPrefs:
         """Test basic harness initialization."""
         assert harness is not None
         assert len(harness.plugin.prefs.prefs) == 4
-        assert len(harness.plugin.prefs.prefs[0].sections) == 1
+        assert len(harness.plugin.prefs.prefs[0].sections) == 3
         assert len(harness.plugin.prefs.prefs[0].sections[0].prefs) == 3
 
     def test_prefs_frame(self, harness) -> None:

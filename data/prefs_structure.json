@@ -3,8 +3,7 @@
         "label": "General Options",
         "sections": [
             {
-                "label": "Misc",
-                "desc": "Miscellaneous Settings",
+                "label": "Enable",
                 "prefs": [
                     {
                         "name": "plugin_active",
@@ -13,13 +12,6 @@
                         "default": "Yes",
                         "label": "BGS-Tally Active",
                         "desc": "Completely enable or disable BGS-Tally"
-                    },
-                    {
-                        "type": "bool",
-                        "var": "ShowZeroActivitySystems",
-                        "default": "Yes",
-                        "label": "Show Systems with Zero Activity",
-                        "desc": "Display systems even if they have zero activity"
                     },
                     {
                         "type": "bool",
@@ -73,6 +65,35 @@
                         "name": "remote_server_connect_button",
                         "type": "custom",
                         "custom": "_show_api_window"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "label": "BGS Options",
+        "sections": [
+            {
+                "label": "Options",
+                "cols": 2,
+                "prefs": [
+                    {
+                        "type": "bool",
+                        "var": "ShowZeroActivitySystems",
+                        "default": "Yes",
+                        "label": "Show Systems with Zero Activity",
+                        "desc": "Display systems even if they have zero activity"
+                    }
+                ]
+            },
+            {
+                "label": "Favourites",
+                "desc": "Favourite Factions",
+                "prefs": [
+                    {
+                        "name": "favourite_factions",
+                        "type": "custom",
+                        "custom": "_favourite_factions"
                     }
                 ]
             }

@@ -17,6 +17,7 @@ from thirdparty.Tooltip import ToolTip
 from bgstally.constants import (FOLDER_DATA, FILE_SUFFIX, FONT_HEADING_2, FONT_TEXT_BOLD, FONT_SMALL, CheckStates, UpdateUIPolicy)
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, catch_exceptions
+from bgstally.factionmanager import FactionManager
 
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
@@ -323,7 +324,7 @@ class Prefs:
 
     def _show_api_window(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
         """ Show the API window for the overlay plugin """
-        ttk.Button(frame, text=_("Overlay API Settings"), width=20, command=partial(self.bgstally.ui._show_api_window, frame)).\
+        nb.Button(frame, text=_("Overlay API Settings"), width=20, command=partial(self.bgstally.ui._show_api_window, frame)).\
             grid(row=row, column=column, padx=10, pady=5, sticky=tk.W)
         return 1
 
@@ -348,3 +349,43 @@ class Prefs:
 
         answer = askyesno(title=_("Confirm Force a New Tick"), message=message, default="no") # LANG: Preferences force tick popup title
         if answer: self.bgstally.new_tick(True, UpdateUIPolicy.IMMEDIATE)
+
+    @catch_exceptions
+    def _change_favourite(self, name:tk.Variable|str, var:tk.Variable|bool) -> None:
+        """ Callback for when a favourite faction is changed or added """
+        faction:str = name.get() if isinstance(name, tk.Variable) else name
+        fav:bool = var.get() if isinstance(var, tk.Variable) else var
+
+        # Add this to the list of favourite factions if it is not already there
+        children:list = [child.cget("text") for child in self.fav_fr.winfo_children() if isinstance(child, nb.Checkbutton)]
+        if faction not in children:
+            nv:tk.BooleanVar = tk.BooleanVar(value=fav)
+            n:int = len(children)
+            nb.Checkbutton(self.fav_fr, text=faction, command=partial(self._change_favourite, faction, nv),
+                           onvalue=True, offvalue=False, variable=nv, state=nv.get()).\
+                            grid(row=(n//3), column=(n%3), padx=(0, 10), sticky=tk.W)
+
+        Debug.logger.debug(f"Preference changed: {faction} ({fav})={fav}")
+        self.bgstally.faction_manager.set_favourite(faction, fav)
+
+    @catch_exceptions
+    def _favourite_factions(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
+        """ Show the favourite factions list and allow the user to add or remove factions from it """
+        self.fav_fr:nb.Frame = nb.Frame(frame)
+        self.fav_fr.grid(row=row, column=column, columnspan=3, padx=10, pady=5, sticky=tk.NSEW)
+
+        var:tk.Variable
+        for i, faction in enumerate(self.bgstally.faction_manager.factions):
+            var = tk.BooleanVar(value=self.bgstally.faction_manager.is_favourite(faction))
+            nb.Checkbutton(self.fav_fr, text=faction, command=partial(self._change_favourite, faction, var),
+                               onvalue=True, offvalue=False, variable=var, state=var.get()). \
+                grid(row=(i//3), column=(i%3), padx=(0,10), sticky=tk.W)
+
+        row += 1
+        var = tk.StringVar(value="")
+        nb.EntryMenu(frame, textvariable=var, width=25, state=state). \
+            grid(row=row, column=column, padx=(10,0), pady=(0,5), sticky=tk.W)
+        nb.Button(frame, text=_("Add Faction"), command=partial(self._change_favourite, var, True), state=state). \
+            grid(row=row, column=column+1, padx=(10,0), pady=(0,5), sticky=tk.W)
+
+        return 2

@@ -292,6 +292,7 @@
         "label": "Advanced Options",
         "sections": [
             {
+                "label": "Advanced",
                 "prefs": [
                     {
                         "label": "Force Tick",

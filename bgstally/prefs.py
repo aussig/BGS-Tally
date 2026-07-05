@@ -24,9 +24,13 @@ from thirdparty.tksheet import Sheet
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
-URL_WIKI = "https://github.com/aussig/BGS-Tally/wiki"
+URL_GITHUB = "https://github.com/aussig/BGS-Tally"
+URL_WIKI = f"{URL_GITHUB}/wiki"
 PREFS_STRUCTURE = "prefs_structure" + FILE_SUFFIX
 
+"""
+Data classes for managing preferences in the plugin. These classes represent the structure of the preferences: tabs, sections, and individual preferences.
+"""
 @dataclass
 class Pref:
     """Class to hold a single preference."""
@@ -68,15 +72,21 @@ class Prefs:
         """ Return a TK Frame for adding to the EDMC settings dialog """
         self.prefs_fr = parent_frame
         self.frame = nb.Frame(parent_frame)
-        self.frame.columnconfigure(1, weight=1)
+        self.frame.columnconfigure(0, weight=0)
+        self.frame.columnconfigure(1, weight=0)
+        self.frame.columnconfigure(2, weight=1)
 
         current_row = 1
-        nb.Label(self.frame, text=f"{self.bgstally.plugin_name} v{str(self.bgstally.version)}", font=FONT_HEADING_2).\
+        HyperlinkLabel(self.frame, text=f"{self.bgstally.plugin_name}", background=nb.Label().cget('background'),
+                       foreground=nb.Label().cget('foreground'), url=URL_GITHUB, underline=False, font=FONT_HEADING_2).\
             grid(row=current_row, column=0, padx=10, sticky=tk.W)
         HyperlinkLabel(self.frame, text=_("Instructions for Use"), background=nb.Label().cget('background'), url=URL_WIKI, underline=True).\
-            grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences label
+            grid(row=current_row, column=1, padx=10, sticky=tk.W) # LANG: Preferences help link text
+        nb.Label(self.frame, text=f"v{str(self.bgstally.version)}", font=FONT_HEADING_2).\
+            grid(row=current_row, column=2, padx=10, sticky=tk.E)
 
-        ttk.Separator(self.frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
+        current_row += 1
+        #ttk.Separator(self.frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); #current_row += 1
 
         self._create_tabs(self.frame, current_row)
         return self.frame
@@ -84,7 +94,7 @@ class Prefs:
     def _create_tabs(self, frame:tk.Frame, current_row:int) -> None:
         """ Create the tabs for the preferences window """
         notebook:nb.Notebook = nb.Notebook(frame)
-        notebook.grid(row=current_row, columnspan=2, padx=10, pady=10, sticky=tk.NSEW)
+        notebook.grid(row=current_row, columnspan=3, padx=10, pady=10, sticky=tk.NSEW)
         current_row += 1
         [self._create_tab(notebook, tab) for tab in self.prefs]
 
@@ -263,7 +273,6 @@ class Prefs:
         self.bgstally.ui.update_plugin_frame()
         self.bgstally.ui._load_commodities()
 
-xx
     """
     Custom functions for creating specific preference types that require more complex UI elements than the standard ones.
     """
@@ -312,7 +321,7 @@ xx
 
     def _force_tick_button(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
         """ Show the Force Tick button """
-        nb.Button(frame, text=_("Force Tick"), command=self._confirm_force_tick, bg="red", fg="white").\
+        tk.Button(frame, text=_("Force Tick"), command=self._confirm_force_tick, bg="red", fg="white").\
             grid(row=row, column=column, padx=10, pady=5, sticky=tk.W)
         return 1
 

@@ -263,7 +263,6 @@ class Prefs:
         self.bgstally.ui.update_plugin_frame()
         self.bgstally.ui._load_commodities()
 
-xx
     """
     Custom functions for creating specific preference types that require more complex UI elements than the standard ones.
     """

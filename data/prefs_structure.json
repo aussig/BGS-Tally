@@ -42,7 +42,7 @@
                         "desc": "Use scrollbar (restart required)"
                     },
                     {
-                        "var": "RCApiKey",
+                        "var": "ColonisationRCAPIKey",
                         "type": "password",
                         "desc": "Raven Colonial API Key"
                     }

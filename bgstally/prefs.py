@@ -167,6 +167,16 @@ class Prefs:
                               command=partial(self._menu_selected, pref.var, pref.options), direction="below"). \
                     grid(row=row, column=col, pady=(0,5), sticky=tk.W)
 
+            case "password":
+                nb.Label(parent_frame, text=pref.desc, state=state).grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
+                col += 1
+                entry:nb.EntryMenu = nb.EntryMenu(parent_frame, textvariable=getattr(self.bgstally.state, pref.var, ""), show="*",
+                                                  width=50, state=state)
+                entry.grid(row=row, column=col, pady=(0,5), sticky=tk.W)
+                col += 1
+                nb.Button(parent_frame, text="👁", width=3, command=partial(self._toggle_password_visibility, entry)).\
+                    grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
+
             case "custom" if pref.custom is not None:
                 func:Callable = getattr(self, pref.custom)
                 c = func(parent_frame, row, col, state)
@@ -196,6 +206,13 @@ class Prefs:
         if isinstance(var, tk.StringVar):
             var.set(k)
         self.bgstally.state.refresh()
+
+    def _toggle_password_visibility(self, entry: nb.EntryMenu) -> None:
+        """ Toggle the visibility of a password entry field """
+        if entry.cget("show") == "*":
+            entry.config(show="")
+        else:
+            entry.config(show="*")
 
     def _hydrate_pref(self, pref:Pref) -> Pref:
         """ Hydrate a preference with default values and options if not provided. """
@@ -540,21 +557,21 @@ class Prefs:
         self.bgstally.webhook_manager.set_webhooks_from_list(self.sheet_webhooks.get_sheet_data())
 
 
-    def _language_modified(self, event=None):
-        """Callback for change in language dropdown
+    # def _language_modified(self, event=None):
+    #     """Callback for change in language dropdown
 
-        Args:
-            event (_type_, optional): Variable related to the callback. Defaults to None.
-        """
-        langs_by_name: dict = {v: k for k, v in self.languages.items()}  # Codes by name
-        self.bgstally.state.discord_lang = langs_by_name.get(self.language.get()) or ''  # or '' used here due to Default being None above
+    #     Args:
+    #         event (_type_, optional): Variable related to the callback. Defaults to None.
+    #     """
+    #     langs_by_name: dict = {v: k for k, v in self.languages.items()}  # Codes by name
+    #     self.bgstally.state.discord_lang = langs_by_name.get(self.language.get()) or ''  # or '' used here due to Default being None above
 
-    def overlay_options_state(self):
-        """
-        If the overlay plugin is not available, we want to disable the options so users are not interacting
-        with them expecting results
-        """
-        return "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"
+    # def overlay_options_state(self):
+    #     """
+    #     If the overlay plugin is not available, we want to disable the options so users are not interacting
+    #     with them expecting results
+    #     """
+    #     return "disabled" if self.bgstally.overlay.edmcoverlay == None else "enabled"
 
 
 

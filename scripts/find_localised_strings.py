@@ -208,7 +208,7 @@ def scan_prefs_structure_file(path: pathlib.Path) -> list[ast.Call]:
     with open(path, encoding="utf-8") as prefs_structure_file:
         return scan_section(json.load(prefs_structure_file), [])
 
-    return out
+    return []
 
 def scan_directory(
     path: pathlib.Path, skip: list[pathlib.Path] | None = None

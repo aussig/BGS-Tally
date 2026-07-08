@@ -96,7 +96,6 @@ class Prefs:
         current_row += 1
         [self._create_tab(notebook, tab) for tab in self.prefs]
 
-    @catch_exceptions
     def _create_tab(self, notebook:nb.Notebook, tab:Tab) -> None:
         """ Create a tab in the preferences notebook """
         fr:nb.Frame = nb.Frame(notebook)
@@ -111,7 +110,6 @@ class Prefs:
         state:str|Callable = getattr(self, tab.state)() if callable(getattr(self, tab.state, None)) else tab.state
         notebook.add(fr, text=tab.label, state=state)
 
-    @catch_exceptions
     def _create_section(self, parent_frame:tk.Frame, row:int, section:Section) -> int:
         """ Create a section in a tab """
 
@@ -205,7 +203,8 @@ class Prefs:
                 elem.grid(row=row, column=col, columnspan=parent_frame.grid_size()[0] - col, padx=10, pady=(0,5), sticky=tk.W)
 
             case _:
-                elem = nb.Label(parent_frame, text=pref.label, state=state).grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
+                elem = nb.Label(parent_frame, text=pref.label, state=state)
+                elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
                 col += 1
                 nb.EntryMenu(parent_frame, textvariable=getattr(self.bgstally.state, pref.var, ""), width=getattr(pref, "width", 20),
                              state=state). \
@@ -277,8 +276,10 @@ class Prefs:
 
         return [tab for tab in (self._from_dict(tab_data, "tab") for tab_data in raw) if isinstance(tab, Tab)]
 
+    @catch_exceptions
     def save_prefs(self):
         """ Preferences frame has been saved (from EDMC core or any plugin) """
+        self.bgstally.state.refresh()
         self.bgstally.ui.update_plugin_frame()
         self.bgstally.ui._load_commodities()
 

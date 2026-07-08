@@ -10,7 +10,8 @@ from typing import Generator
 from time import sleep
 from datetime import datetime, UTC
 from unittest.mock import patch
-import l10n
+from pathlib import Path
+import json
 
 # Config is already mocked by conftest.py
 from harness import TestHarness
@@ -52,14 +53,19 @@ class TestPrefs:
     """Test plugin preferences behavior."""
 
     def test_prefs_initialization(self, harness) -> None:
-        """Test basic harness initialization."""
+        """Test basic harness initialization and preference loading."""
         assert harness is not None
-        assert len(harness.plugin.prefs.prefs) == 4
-        assert len(harness.plugin.prefs.prefs[0].sections) == 3
-        assert len(harness.plugin.prefs.prefs[0].sections[0].prefs) == 3
+
+        file:Path = Path(harness.plugin.plugin_dir, "..", "data", "prefs_structure.json")
+        with file.open("r", encoding="utf-8") as f:
+            raw:list = json.load(f)
+
+        assert len(harness.plugin.prefs.prefs) == len(raw)
+        assert len(harness.plugin.prefs.prefs[0].sections) == len(raw[0].get("sections", []))
+        assert len(harness.plugin.prefs.prefs[0].sections[0].prefs) == len(raw[0].get("sections", [{}])[0].get("prefs", []))
 
     def test_prefs_frame(self, harness) -> None:
-        """Test basic harness initialization."""
+        """Test preference frame creation."""
         assert harness is not None
 
         harness.plugin.prefs.get_prefs_frame(harness.parent)

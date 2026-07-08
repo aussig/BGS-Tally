@@ -17,7 +17,8 @@
                         "type": "bool",
                         "var": "ColonisationStatus",
                         "default": "Yes",
-                        "label": "Colonisation Active"
+                        "label": "Colonisation Active",
+                        "desc": "Completely enable or disable colonisation"
                     }
                 ]
             },
@@ -28,7 +29,8 @@
                     {
                         "var": "ColonisationMaxCommodities",
                         "type": "str",
-                        "label": "Maximum Commodities"
+                        "label": "Maximum Commodities",
+                        "desc": "Scroll window height or maximum number of commodities to display in the colonisation panel"
                     },
                     {
                         "var": "EnableProgressScrollbar",
@@ -51,10 +53,11 @@
                         "var": "FcCooldown",
                         "type": "menu",
                         "options": {
-                                "popup": "Popup only",
-                                "overlay": "Overlay only",
-                                "both": "Popup and Overlay"
-                            }
+                            "none": "None",
+                            "popup": "Popup only",
+                            "overlay": "Overlay only",
+                            "both": "Popup and Overlay"
+                        }
                     }
                 ]
             },

@@ -108,12 +108,12 @@
                 "cols": 2,
                 "prefs": [
                     {
-                        "var": "DetailedINF",
+                        "var": "DetailedInf",
                         "type": "bool",
                         "label": "Show Detailed INF"
                     },
                     {
-                        "var": "IncludeSecondaryINF",
+                        "var": "IncludeSecondaryInf",
                         "type": "bool",
                         "label": "Include Secondary INF"
                     },

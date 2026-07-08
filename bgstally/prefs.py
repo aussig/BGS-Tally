@@ -125,7 +125,7 @@ class Prefs:
             row += 1
 
             lbl:nb.Label = nb.Label(parent_frame, text=f"{section.label:<20}", font=fnt)
-            lbl.grid(row=row, column=0, padx=10, pady=10,sticky=tk.NW)
+            lbl.grid(row=row, column=0, padx=10, pady=10, sticky=tk.NW)
 
             if section.desc.strip() != "":
                 ToolTip(lbl, text=section.desc)
@@ -160,12 +160,12 @@ class Prefs:
             case "bool" | "checkbox":
                 elem = nb.Checkbutton(parent_frame, text=pref.label, variable=getattr(self.bgstally.state, pref.var, ""),
                                onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, state=state)
-                elem.grid(row=row, column=col, padx=(10,0), sticky=tk.W)
+                elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
 
             case "radio" | "radiobutton":
                 elem = nb.Radiobutton(parent_frame, text=pref.label, variable=getattr(self.bgstally.state, pref.var, ""),
                                value=pref.value, state=state)
-                elem.grid(row=row, column=col, padx=(10,0), sticky=tk.W)
+                elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
 
             case "menu":
                 elem = nb.Label(parent_frame, text=pref.label, state=state)
@@ -372,20 +372,20 @@ class Prefs:
     def _favourite_factions(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
         """ Show the favourite factions list and allow the user to add or remove factions from it """
         self.fav_fr:nb.Frame = nb.Frame(frame)
-        self.fav_fr.grid(row=row, column=column, columnspan=3, padx=10, pady=5, sticky=tk.NSEW)
+        self.fav_fr.grid(row=row, column=column, columnspan=6, padx=0, pady=(0,5), sticky=tk.NSEW)
 
         var:tk.Variable
         for i, faction in enumerate(self.bgstally.faction_manager.factions):
             var = tk.BooleanVar(value=self.bgstally.faction_manager.is_favourite(faction))
             nb.Checkbutton(self.fav_fr, text=faction, command=partial(self._change_favourite, faction, var),
                                onvalue=True, offvalue=False, variable=var, state=var.get()). \
-                grid(row=(i//3), column=(i%3), padx=(0,10), sticky=tk.W)
+                grid(row=(i//3), column=(i%3), padx=(10,0), pady=(0,5), sticky=tk.W)
 
         row += 1
         var = tk.StringVar(value="")
-        nb.EntryMenu(frame, textvariable=var, width=25, state=state). \
-            grid(row=row, column=column, padx=(10,0), pady=(0,5), sticky=tk.W)
+        nb.EntryMenu(frame, textvariable=var, width=35, state=state, background="red"). \
+            grid(row=row, column=column, padx=(10,0), pady=(5,5), sticky=tk.W)
         nb.Button(frame, text=_("Add Faction"), command=partial(self._change_favourite, var, True), state=state). \
-            grid(row=row, column=column+1, padx=(10,0), pady=(0,5), sticky=tk.W)
+            grid(row=row, column=column+1, pady=(5,5), sticky=tk.W)
 
         return 2

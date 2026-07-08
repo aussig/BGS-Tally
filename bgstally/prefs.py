@@ -14,10 +14,9 @@ from ttkHyperlinkLabel import HyperlinkLabel # type:ignore
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
 
-from bgstally.constants import (FOLDER_DATA, FILE_SUFFIX, FONT_HEADING_2, FONT_TEXT_BOLD, FONT_SMALL, CheckStates, UpdateUIPolicy)
+from bgstally.constants import (FOLDER_DATA, FILE_SUFFIX, FONT_HEADING_2, FONT_SMALL, CheckStates, UpdateUIPolicy)
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, catch_exceptions
-from bgstally.factionmanager import FactionManager
 
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
@@ -26,9 +25,29 @@ URL_GITHUB = "https://github.com/aussig/BGS-Tally"
 URL_WIKI = f"{URL_GITHUB}/wiki"
 PREFS_STRUCTURE = "prefs_structure" + FILE_SUFFIX
 
+
 """
-Data classes for managing preferences in the plugin. These classes represent the structure of the preferences: tabs, sections, and individual preferences.
+  Preferences are defined in the prefs_structure.json file which defines tabs, sections and preferences.
+  Most preferences are simple and can be created automatically from the JSON file.
+
+  Values for preferences depend on the type but the following are common:
+
+  type indicates the type of preference:
+  - label: Just for displaying text
+  - entry / str: A text entry field for a string or numeric preference
+  - checkbox / bool: A checkbox for a simple on/off boolean preference
+  - radio / radiobutton: A radio button for a single choice with multiple options
+  - menu: A dropdown menu for a preference with multiple options (a different way to implement radio buttons)
+  - password: A password entry field for a string preference
+  - custom: A preference type that requires a custom function to create the UI elements
+
+  var indicates the bgstally state variable the preference is bound to. If not provided, it will default to the name of the preference.
+
+  desc is an optional description for the preference that will be shown as a tooltip.
+
+  state is optional and a function name that returns "enabled" or "disabled" allowing dynamic enabling/disabling of preferences.
 """
+
 @dataclass
 class Pref:
     """Class to hold a single preference."""
@@ -155,7 +174,7 @@ class Prefs:
 
         elem:nb.Checkbutton|nb.Radiobutton|nb.OptionMenu|nb.EntryMenu|nb.Label|ttk.Button = None
         match pref.type:
-            case "bool" | "checkbox":
+            case "checkbox" | "bool":
                 elem = nb.Checkbutton(parent_frame, text=pref.label, variable=getattr(self.bgstally.state, pref.var, ""),
                                onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, state=state)
                 elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
@@ -202,7 +221,7 @@ class Prefs:
                 elem = nb.Label(parent_frame, text=pref.label, state=state)
                 elem.grid(row=row, column=col, columnspan=parent_frame.grid_size()[0] - col, padx=10, pady=(0,5), sticky=tk.W)
 
-            case _:
+            case "entry" | "str":
                 elem = nb.Label(parent_frame, text=pref.label, state=state)
                 elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
                 col += 1
@@ -285,6 +304,8 @@ class Prefs:
 
     """
     Custom functions for creating specific preference types that require more complex UI elements than the standard ones.
+
+    These functions return an integer indicating how many columns this custom preference takes up in the layout.
     """
     @catch_exceptions
     def _discord_webhooks(self, frame:tk.Frame, row:int, column:int, state:str) -> int:

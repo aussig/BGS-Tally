@@ -578,14 +578,15 @@ class UI:
         # and not in combat (hardpoints deployed)
         self.show_colonisation_overlay = bool(entry["Flags"] & edmc_data.FlagsInMainShip and \
                                          (not entry['Flags'] & edmc_data.FlagsHardpointsDeployed) and \
-                                         entry.get("GuiFocus") in (edmc_data.GuiFocusNoFocus,edmc_data.GuiFocusStationServices)
+                                         entry.get("GuiFocus") in [edmc_data.GuiFocusNoFocus,edmc_data.GuiFocusStationServices]
                                         )
         # Only show the carrier overlay if the user is in their ship looking at the main panel
         # (Not sure if this is too restrictive, but it avoids showing the overlay when the user is busy)
         self.show_carrier_overlay = bool(entry["Flags"] & edmc_data.FlagsInMainShip and \
                                          (not entry['Flags'] & edmc_data.FlagsHardpointsDeployed) and \
-                                         entry.get("GuiFocus") in (edmc_data.GuiFocusNoFocus)
+                                         entry.get("GuiFocus") in [edmc_data.GuiFocusNoFocus]
                                         )
+
     @catch_exceptions
     def _worker(self) -> None:
         """
@@ -738,12 +739,12 @@ class UI:
                     self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
 
             # Colonisation
-            if self.bgstally.state.enable_overlay_colonisation and self.show_colonisation_overlay:
-                colonisation_text: str = self.window_progress.as_text(False)
+            if self.bgstally.state.enable_overlay_colonisation:
+                colonisation_text:str = self.window_progress.as_text(False) if self.show_colonisation_overlay else ""
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 
-            if self.bgstally.state.enable_overlay_carrier and self.show_carrier_overlay:
-                carrier_text: str = self.bgstally.fleet_carrier.update_overlay()
+            if self.bgstally.state.enable_overlay_carrier:
+                carrier_text:str = self.bgstally.fleet_carrier.update_overlay() if self.show_carrier_overlay else ""
                 self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True)
 
     def _previous_ticks_popup(self):

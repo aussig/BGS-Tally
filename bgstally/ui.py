@@ -11,15 +11,19 @@ from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
+    from bgstally.state import State
 
 import myNotebook as nb  # type: ignore
 from plugins.common_coreutils import api_keys_label_common, show_pwd_var_common # type: ignore
 from ttkHyperlinkLabel import HyperlinkLabel  # type: ignore
+
+from config import config # type: ignore
 import edmc_data # type: ignore
 
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates,
-                                DiscordActivity, FavouriteActivity, UpdateUIPolicy)
+from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL,
+                                TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity, FavouriteActivity, UpdateUIPolicy,
+                                Vehicle, ShipState, UIState)
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, catch_exceptions, get_by_path, get_localised_filepath, human_format
 from bgstally.widgets import EntryPlus
@@ -32,7 +36,6 @@ from bgstally.windows.legend import WindowLegend
 from bgstally.windows.objectives import WindowObjectives
 from bgstally.windows.objectives_overlay_settings import WindowObjectivesOverlaySettings
 from bgstally.windows.progress import ProgressWindow
-from config import config
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
 
@@ -569,24 +572,6 @@ class UI:
         self.bgstally.state.FcCooldown.set(k)
         self.bgstally.state.refresh()
 
-    def dashboard_entry(self, cmdr:str, is_beta:bool, entry:dict):
-        """
-        Handle dashboard entries
-        """
-
-        # Only show the colonisation overlay if the user is in their ship looking at the main panel or the station services panel,
-        # and not in combat (hardpoints deployed)
-        self.show_colonisation_overlay = bool(entry["Flags"] & edmc_data.FlagsInMainShip and \
-                                         (not entry['Flags'] & edmc_data.FlagsHardpointsDeployed) and \
-                                         entry.get("GuiFocus") in [edmc_data.GuiFocusNoFocus,edmc_data.GuiFocusStationServices]
-                                        )
-        # Only show the carrier overlay if the user is in their ship looking at the main panel
-        # (Not sure if this is too restrictive, but it avoids showing the overlay when the user is busy)
-        self.show_carrier_overlay = bool(entry["Flags"] & edmc_data.FlagsInMainShip and \
-                                         (not entry['Flags'] & edmc_data.FlagsHardpointsDeployed) and \
-                                         entry.get("GuiFocus") in [edmc_data.GuiFocusNoFocus]
-                                        )
-
     @catch_exceptions
     def _worker(self) -> None:
         """
@@ -738,13 +723,23 @@ class UI:
                 if show_objectives and objectives_text:
                     self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
 
+            state:State = self.bgstally.state
+
             # Colonisation
-            if self.bgstally.state.enable_overlay_colonisation:
-                colonisation_text:str = self.window_progress.as_text(False) if self.show_colonisation_overlay else ""
+            show_colonisation_overlay = bool(
+                state.vehicle == Vehicle.SHIP and \
+                state.ui_state in (UIState.STATIONSERVICES, UIState.NOFOCUS) and \
+                (ShipState.HARDPOINTSDEPLOYED not in state.ship_state))
+            if state.enable_overlay_colonisation and show_colonisation_overlay:
+                colonisation_text:str = self.window_progress.as_text(False)
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 
-            if self.bgstally.state.enable_overlay_carrier:
-                carrier_text:str = self.bgstally.fleet_carrier.update_overlay() if self.show_carrier_overlay else ""
+            show_carrier_overlay = bool(
+                state.vehicle == Vehicle.SHIP and \
+                state.ui_state in (UIState.NOFOCUS) and \
+                (ShipState.HARDPOINTSDEPLOYED not in state.ship_state))
+            if state.enable_overlay_carrier and show_carrier_overlay:
+                carrier_text:str = self.bgstally.fleet_carrier.update_overlay()
                 self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True)
 
     def _previous_ticks_popup(self):

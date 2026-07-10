@@ -5,15 +5,17 @@ from threading import Thread
 from time import sleep
 
 import semantic_version
-from companion import SERVER_LIVE, CAPIData
-from monitor import monitor
+from companion import SERVER_LIVE, CAPIData # type: ignore
+from monitor import monitor # type: ignore
+from config import appversion, config # type: ignore
+import edmc_data # type: ignore
 
 from bgstally.activity import Activity
 from bgstally.activitymanager import ActivityManager
 from bgstally.apimanager import APIManager
 from bgstally.colonisation import Colonisation
 from bgstally.config import Config
-from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy
+from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy, Vehicle, Location, ShipState, UIState
 from bgstally.debug import Debug
 from bgstally.discord import Discord
 from bgstally.factionmanager import FactionManager
@@ -31,7 +33,6 @@ from bgstally.ui import UI
 from bgstally.updatemanager import UpdateManager
 from bgstally.utils import _, get_by_path
 from bgstally.webhookmanager import WebhookManager
-from config import appversion, config
 
 TIME_TICK_WORKER_PERIOD_S = 60 # 1 minute
 
@@ -77,7 +78,7 @@ class BGSTally:
                 sentry_sdk.init(dsn=self.config.apikey_sentry())
                 Debug.logger.info("Enabling Sentry Error Logging")
             except:
-            #except ImportError:  # This causing harness issues when the sentry sdk exists but no valid key 
+            #except ImportError:  # This causing harness issues when the sentry sdk exists but no valid key
                 pass
 
         # Debug Class
@@ -288,6 +289,11 @@ class BGSTally:
                 activity.mission_failed(entry, self.mission_log)
                 dirty = True
 
+            case 'Music' if entry.get('MusicTrack') == "MainMenu":
+                self.state.vehicle = Vehicle.UNKNOWN
+                self.state.location = Location.UNKNOWN
+                self.state.ship_state = set()
+
             case 'PowerplayMerits':
                 activity.powerplay_merits(entry)
                 dirty = True
@@ -354,6 +360,72 @@ class BGSTally:
             self.api_manager.send_activity(activity, cmdr)
 
         self.api_manager.send_event(entry, activity, cmdr, mission)
+
+    def dashboard_entry(self, cmdr, is_beta, entry):
+        """ Handle dashboard entries to update the state based on the current vehicle, location, ship, and UI states. """
+
+        # Determine the current vehicle based on the entry flags
+        v_states:dict = {
+            Vehicle.SHIP: entry["Flags"] & edmc_data.FlagsInMainShip,
+            Vehicle.FIGHTER: entry["Flags"] & edmc_data.FlagsInFighter,
+            Vehicle.SRV: entry["Flags"] & edmc_data.FlagsInSRV,
+            Vehicle.MULTICREW: entry["Flags"] & edmc_data.FlagsInMulticrew,
+            Vehicle.ONFOOT: entry["Flags2"] & edmc_data.Flags2OnFoot,
+            Vehicle.TAXI: entry["Flags2"] & edmc_data.Flags2InTaxi}
+        self.state.vehicle = [v for v, active in v_states.items() if active][0] if any(v_states.values()) else Vehicle.UNKNOWN
+
+        # Location
+        l_states:dict = {
+            Location.STATION: entry["Flags"] & edmc_data.FlagsDocked,
+            Location.PLANET: entry["Flags"] & edmc_data.FlagsLanded,
+            Location.STATION: entry["Flags2"] & edmc_data.Flags2OnFootInStation,
+            Location.PLANET: entry["Flags2"] & edmc_data.Flags2OnFootOnPlanet,
+            Location.HANGAR: entry["Flags2"] & edmc_data.Flags2OnFootInHangar}
+        self.state.location = [l for l, active in l_states.items() if active][0] if any(l_states.values()) else Location.SPACE
+
+        # Ship states
+        s_states:dict = {
+            ShipState.DOCKED: entry["Flags"] & edmc_data.FlagsDocked,
+            ShipState.LANDED: entry["Flags"] & edmc_data.FlagsLanded,
+            ShipState.GEARDOWN: entry["Flags"] & edmc_data.FlagsGearDown,
+            ShipState.SHIELDSUP: entry["Flags"] & edmc_data.FlagsShieldsUp,
+            ShipState.SUPERCRUISE: entry["Flags"] & edmc_data.FlagsSupercruise,
+            ShipState.FAOFF: entry["Flags"] & edmc_data.FlagsFlightAssistOff,
+            ShipState.HARDPOINTSDEPLOYED: entry["Flags"] & edmc_data.FlagsHardpointsDeployed,
+            ShipState.INWING: entry["Flags"] & edmc_data.FlagsInWing,
+            ShipState.LIGHTSON: entry["Flags"] & edmc_data.FlagsLightsOn,
+            ShipState.SCOOPDEPLOYED: entry["Flags"] & edmc_data.FlagsCargoScoopDeployed,
+            ShipState.SILENTRUNNING: entry["Flags"] & edmc_data.FlagsSilentRunning,
+            ShipState.SCOOPINGFUEL: entry["Flags"] & edmc_data.FlagsScoopingFuel,
+            ShipState.FSDMASSLOCKED: entry["Flags"] & edmc_data.FlagsFsdMassLocked,
+            ShipState.FSDCHARGING: entry["Flags"] & edmc_data.FlagsFsdCharging,
+            ShipState.FSDCOOLDOWN: entry["Flags"] & edmc_data.FlagsFsdCooldown,
+            ShipState.LOWFUEL: entry["Flags"] & edmc_data.FlagsLowFuel,
+            ShipState.OVERHEATING: entry["Flags"] & edmc_data.FlagsOverHeating,
+            ShipState.ISINDANGER: entry["Flags"] & edmc_data.FlagsIsInDanger,
+            ShipState.BEINGINTERDICTED: entry["Flags"] & edmc_data.FlagsBeingInterdicted,
+            ShipState.NIGHTVISION: entry["Flags"] & edmc_data.FlagsNightVision,
+            ShipState.FSDJUMP: entry["Flags"] & edmc_data.FlagsFsdJump
+            }
+
+        self.state.ship_state = {s for s, active in s_states.items() if active}
+
+        # UI State
+        u_states:dict = {
+            UIState.NOFOCUS: entry.get("GuiFocus") == edmc_data.GuiFocusNoFocus,
+            UIState.INTERNALPANEL: entry.get("GuiFocus") == edmc_data.GuiFocusInternalPanel,
+            UIState.EXTERNALPANEL: entry.get("GuiFocus") == edmc_data.GuiFocusExternalPanel,
+            UIState.COMMSPANEL: entry.get("GuiFocus") == edmc_data.GuiFocusCommsPanel,
+            UIState.ROLEPANEL: entry.get("GuiFocus") == edmc_data.GuiFocusRolePanel,
+            UIState.STATIONSERVICES: entry.get("GuiFocus") == edmc_data.GuiFocusStationServices,
+            UIState.GALAXYMAP: entry.get("GuiFocus") == edmc_data.GuiFocusGalaxyMap,
+            UIState.SYSTEMMAP: entry.get("GuiFocus") == edmc_data.GuiFocusSystemMap,
+            UIState.ORRERY: entry.get("GuiFocus") == edmc_data.GuiFocusOrrery,
+            UIState.FSS: entry.get("GuiFocus") == edmc_data.GuiFocusFSS,
+            UIState.SAA: entry.get("GuiFocus") == edmc_data.GuiFocusSAA,
+            UIState.CODEX: entry.get("GuiFocus") == edmc_data.GuiFocusCodex
+        }
+        self.state.ui_state = [u for u, active in u_states.items() if active][0] if any(u_states.values()) else UIState.NOFOCUS
 
 
     def capi_fleetcarrier(self, data: CAPIData):

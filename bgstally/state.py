@@ -4,9 +4,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
-from bgstally.constants import CheckStates, DiscordActivity, FavouriteActivity
-from config import config
+from config import config #type: ignore
 
+from bgstally.constants import CheckStates, DiscordActivity, FavouriteActivity, Vehicle, Location, ShipState, UIState
 
 class State:
     """
@@ -88,8 +88,12 @@ class State:
         self.last_ships_targeted:dict = {}
         self.last_ship_targeted:dict = {}
 
-        self.refresh()
+        self.vehicle:Vehicle = Vehicle.UNKNOWN
+        self.location:Location = Location.UNKNOWN
+        self.ship_state:set[ShipState] = set()  # Set of current ship states
+        self.ui_state:UIState = UIState.NOFOCUS
 
+        self.refresh()
 
     def refresh(self):
         """

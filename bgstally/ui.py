@@ -271,7 +271,7 @@ class UI:
 
         ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
         nb.Label(frame, text=_("Discord Webhooks"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
-        ui_scaling:float = self.frame.tk.call('tk', 'scaling')
+        ui_scaling:float = self.frame.tk.call('tk', 'scaling') if self.frame else 1.0
         sheet_headings:list = ["UUID",
                                _("Nickname"), # LANG: Preferences table heading
                                _("Webhook URL"), # LANG: Preferences table heading
@@ -286,13 +286,14 @@ class UI:
                                      show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
                                      headers=sheet_headings)
         self.sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
-        self.sheet_webhooks.hide_columns(columns=[0])                       # Visible column indexes
-        self.sheet_webhooks.checkbox_column(c=[3, 4, 5, 6, 7, 8])           # Data column indexes
+        self.sheet_webhooks.hide_columns(columns={0})                       # Visible column indexes
+        self.sheet_webhooks.checkbox_column(c=iter([3, 4, 5, 6, 7, 8]))     # Data column indexes
         self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks_as_list())
         self.sheet_webhooks.column_width(column=0, width=int(150 * ui_scaling), redraw=False) # Visible column indexes
         self.sheet_webhooks.column_width(column=1, width=int(200 * ui_scaling), redraw=True)  # Visible column indexes
-        self.sheet_webhooks.enable_bindings(('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select', 'rc_insert_row',
-                            'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell', 'modified'))
+        self.sheet_webhooks.enable_bindings('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu',
+                                            'rc_select', 'rc_insert_row', 'rc_delete_row', 'copy', 'cut', 'paste', 'delete',
+                                            'undo', 'edit_cell')
         self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)
         nb.Label(frame, text=_("To add a webhook: Right-click on a row number and select 'Insert rows above / below'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences label
         nb.Label(frame, text=_("To delete a webhook: Right-click on a row number and select 'Delete rows'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences label
@@ -586,7 +587,7 @@ class UI:
 
             sleep(TIME_WORKER_PERIOD_S)
 
-            current_activity: Activity = self.bgstally.activity_manager.get_current_activity()
+            current_activity:Activity|None = self.bgstally.activity_manager.get_current_activity()
 
             # Current Galaxy and System Tick Times
             if self.bgstally.state.enable_overlay_current_tick:
@@ -632,18 +633,20 @@ class UI:
                     self.bgstally.overlay.display_progress_bar("tw", _("TW War Progress in {current_system}: {percent}%").format(current_system=current_system.get('System', 'Unknown'), percent=percent), progress) # LANG:Overlay TW report message
 
             # System Activity. Shares same overlay panel as System Info and Station Info
-            if self.bgstally.state.enable_overlay_system and current_activity is not None:
+            fmtr = self.bgstally.formatter_manager.get_default_formatter()
+            if self.bgstally.state.enable_overlay_system and current_activity is not None and fmtr is not None:
+
                 if self.activity_system_address is not None:
                     # Report recent activity in a designated system, overrides pinned systems
                     report_system:dict|None = current_activity.get_system_by_address(self.activity_system_address)
                     if report_system is not None:
-                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True)
+                        self.bgstally.overlay.display_message("system_info", fmtr.get_overlay(current_activity, DiscordActivity.BOTH, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True)
                     self.activity_system_address = None
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
                     if pinned_systems is not None and pinned_systems != []:
-                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
+                        self.bgstally.overlay.display_message("system_info", fmtr.get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
 
             system_and_station_info:str = ""
 
@@ -730,16 +733,16 @@ class UI:
                 state.vehicle == Vehicle.SHIP and \
                 state.ui_state in (UIState.STATIONSERVICES, UIState.NOFOCUS) and \
                 (ShipState.HARDPOINTSDEPLOYED not in state.ship_state))
-            if state.enable_overlay_colonisation and show_colonisation_overlay:
-                colonisation_text:str = self.window_progress.as_text(False)
+            if self.bgstally.state.enable_overlay_colonisation:
+                colonisation_text:str = self.window_progress.as_text(False) if show_colonisation_overlay else ""
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 
             show_carrier_overlay = bool(
                 state.vehicle == Vehicle.SHIP and \
                 state.ui_state in (UIState.NOFOCUS) and \
                 (ShipState.HARDPOINTSDEPLOYED not in state.ship_state))
-            if state.enable_overlay_carrier and show_carrier_overlay:
-                carrier_text:str = self.bgstally.fleet_carrier.update_overlay()
+            if self.bgstally.state.enable_overlay_carrier:
+                carrier_text:str = self.bgstally.fleet_carrier.update_overlay() if show_carrier_overlay else ""
                 self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True)
 
     def _previous_ticks_popup(self):
@@ -759,10 +762,13 @@ class UI:
             menu.grab_release()
 
 
-    def _show_activity_window(self, activity: Activity):
+    def _show_activity_window(self, activity:Activity|None):
         """
         Display the appropriate activity data window, using data from the passed in activity object
         """
+        if activity is None:
+            return
+
         existing_activity_window:WindowActivity|None = self.window_activity.get(activity.tick_id)
         if existing_activity_window is not None:
             existing_activity_window.show(activity)

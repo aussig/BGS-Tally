@@ -2,8 +2,15 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### New Features:
 
+* Made colonisation & carrier overlays sensitive to the UI state
 
+### Changes:
+
+* Added Vehicle, Location, ShipState & UI state tracking to the state object
+* Refactored colonisation progress code
+* Improved colonisaion overlay
 
 ## v5.5.1 - 2026-05-11
 

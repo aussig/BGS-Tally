@@ -369,7 +369,7 @@ class BGSTally:
             Vehicle.SHIP: entry["Flags"] & edmc_data.FlagsInMainShip,
             Vehicle.FIGHTER: entry["Flags"] & edmc_data.FlagsInFighter,
             Vehicle.SRV: entry["Flags"] & edmc_data.FlagsInSRV,
-            Vehicle.MULTICREW: entry["Flags"] & edmc_data.FlagsInMulticrew,
+            Vehicle.MULTICREW: entry["Flags2"] & edmc_data.Flags2InMulticrew,
             Vehicle.ON_FOOT: entry["Flags2"] & edmc_data.Flags2OnFoot,
             Vehicle.TAXI: entry["Flags2"] & edmc_data.Flags2InTaxi}
         self.state.vehicle = [v for v, active in v_states.items() if active][0] if any(v_states.values()) else Vehicle.UNKNOWN
@@ -387,7 +387,7 @@ class BGSTally:
         s_states:dict = {
             ShipState.DOCKED: entry["Flags"] & edmc_data.FlagsDocked,
             ShipState.LANDED: entry["Flags"] & edmc_data.FlagsLanded,
-            ShipState.GEAR_DOWN: entry["Flags"] & edmc_data.FlagsGearDown,
+            ShipState.GEAR_DOWN: entry["Flags"] & edmc_data.FlagsLandingGearDown,
             ShipState.SHIELDS_UP: entry["Flags"] & edmc_data.FlagsShieldsUp,
             ShipState.SUPERCRUISE: entry["Flags"] & edmc_data.FlagsSupercruise,
             ShipState.FA_OFF: entry["Flags"] & edmc_data.FlagsFlightAssistOff,

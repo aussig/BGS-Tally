@@ -302,7 +302,7 @@ class ObjectivesManager:
 
         if previous_available != self.objectives_available():
             # We've flipped from having objectives to not having objectives or vice versa. Refresh the plugin frame.
-            self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
+            self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame)
 
 
     def get_human_readable_objectives(self, discord: bool) -> str:
@@ -896,4 +896,3 @@ class ObjectivesManager:
                         result += "  " + _("{status} Fail missions against '{target_faction}' in '{target_system}'").format(status=status, target_faction=target_faction, target_system=target_system_name) + "\n" # LANG: Mission to fail missions against a faction
 
         return result
-

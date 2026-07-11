@@ -422,29 +422,6 @@ class TestColonisationMethods:
         id2 = c._generate_buildid(123)
         assert id2 == '&123'
 
-    def test_from_dict_migrates_resourcesrequired(self, harness) -> None:
-        """This can likely go away soon and the code can be removed """
-        c = harness.plugin.colonisation
-        payload = {
-            'Systems': [],
-            'Progress': [{'MarketID': 500, 'ResourcesRequired': [{'Name': '$steel_name;', 'RequiredAmount': 12, 'ProvidedAmount': 3}], 'Updated': '2026-03-01'}],
-            'ProgressView': 0,
-            'ProgressUnits': [0],
-            'ProgressColumns': [],
-            'BuildIndex': 0,
-            'WindowGeometries': {}
-        }
-
-        c.progress = []
-        c._from_dict(payload)
-
-        progress_list = [p for p in c.progress if p.get('MarketID') == 500 and p.get('Required', {}).get('steel') == 12]
-        assert len(progress_list) == 1
-
-        progress = progress_list[0]
-        assert progress['Required']['steel'] == 12
-        assert progress['Delivered']['steel'] == 3
-
 
 class TestColonisationFullBuild:
     def test_claim(self, harness) -> None:

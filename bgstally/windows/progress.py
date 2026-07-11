@@ -443,43 +443,32 @@ class ProgressWindow:
         for col in self.columns:
             if col >= len(self.headings): col = 0
             heading_list.append(self.headings[col].get('Label'))
+        heading_list.insert(1, _('Category'))
 
         comms_list:list[list] = []
         for rowcnt, (comm, row_values) in enumerate(self._get_rows(comms)):
-            if self._skip_row(self.view, comm, rowcnt):
-                Debug.logger.debug(f"Skipping row for {comm}")
-                continue
+            if self._skip_row(self.view, comm, rowcnt): continue
             row_values[0] = str_truncate(row_values[0], 29)
+            row_values.insert(1, self.colonisation.get_commodity(comm, 'category'))
             comms_list.append(row_values)
 
         total_list:list = []
         for i, col in enumerate(self.columns):
             total_list.append(self._get_value(self.headings[col].get('Column'), self.units[i], totals) if i > 0 else _('Total')) # LANG: Total amounts
+        total_list.insert(1, '')
 
         if discord:
             # Add commodity name.
-            #heading_list.insert(1, _('Category')) # LANG: Commodity
-            #for comm in comms_list:
-            #    comm.insert(1, self.colonisation.get_commodity(comm[0], 'category')) # LANG: Commodity
-            #total_list.insert(1, '')
-            column_widths=[31, 13, 13, 13]
-            alignments=[Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
-            # TableStyle.from_string("     ||||-|||           --  --")
+            column_widths=[31, 20, 13, 13, 13]
+            alignments=[Alignment.LEFT, Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
             style:TableStyle = TableStyle.from_string("      || -||            --  --")
+            output += table2ascii(header=heading_list, body=comms_list, footer=total_list,
+                                  column_widths=column_widths, alignments=alignments,
+                                  style=style)
         else:
-            # Just columns 0 & 1 for the overlay
-            heading_list = heading_list[0:2]
-            comms_list = [row[0:2] for row in comms_list]
-            total_list = total_list[0:2]
-            column_widths=[31, 13]
-            alignments=[Alignment.LEFT, Alignment.LEFT]
-            style:TableStyle = PresetStyle.plain
-
-        Debug.logger.debug(f"Progress table: {heading_list} / {comms_list} / {total_list}")
-
-        output += table2ascii(header=heading_list, body=comms_list, footer=total_list,
-                              column_widths=column_widths, alignments=alignments,
-                              style=style)
+            output += f"{TAG_OVERLAY_HIGHLIGHT}{heading_list[0]}...{heading_list[2]}\n"
+            for row in comms_list:
+                output += f"{str_truncate(row[0], 30)}...{TAG_OVERLAY_HIGHLIGHT}{row[2]}\n"
 
         if discord: output += "```\n"
         return output.strip()

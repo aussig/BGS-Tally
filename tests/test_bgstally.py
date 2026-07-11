@@ -71,7 +71,6 @@ class TestBGSTally:
         plugin.colonisation.save.assert_called_once_with('Shutdown')
         plugin.save_data.assert_called_once()
 
-
     def test_check_tick_trigger(self, harness) -> None:
         plugin = harness.plugin
         plugin.tick.fetch_tick = MagicMock(return_value=True)
@@ -103,6 +102,7 @@ class TestBGSTally:
         assert plugin.state.ui_state == UIState.STATION_SERVICES
 
     def test_check_no_tick(self, harness) -> None:
+        """ Test check_tick() when no new tick is available. This may fail if the server is running slowly or is down. """
         plugin = harness.plugin
         plugin.tick.fetch_tick = MagicMock(return_value=False)
         with patch.object(plugin, "new_tick") as mock_new_tick:

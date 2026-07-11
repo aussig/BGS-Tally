@@ -27,12 +27,12 @@ from .preset_style import PresetStyle
 from .table_style import TableStyle
 from .table_to_ascii import table2ascii
 
-if TYPE_CHECKING or sys.version_info >= (3, 8):
-    from importlib import metadata
-else:
-    import importlib_metadata as metadata
+#if TYPE_CHECKING or sys.version_info >= (3, 8):
+#    from importlib import metadata
+#else:
+#    import importlib_metadata as metadata
 
-__version__ = metadata.version(__name__)
+#__version__ = metadata.version(__name__)
 
 __all__ = [
     "Alignment",

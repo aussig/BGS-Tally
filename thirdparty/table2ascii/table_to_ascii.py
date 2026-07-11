@@ -4,7 +4,7 @@ import textwrap
 from math import ceil, floor
 from collections.abc import Sequence
 
-from wcwidth import width
+#from wcwidth import width
 
 from .alignment import Alignment
 from .annotations import SupportsStr
@@ -618,7 +618,8 @@ class TableToAscii:
         Returns:
             The width of the string in characters
         """
-        return width(text) if self.__use_wcwidth else len(text)
+        return len(text)
+        #return width(text) if self.__use_wcwidth else len(text)
 
     @staticmethod
     def __is_number(text: str) -> bool:

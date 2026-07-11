@@ -370,7 +370,7 @@ class BGSTally:
             Vehicle.FIGHTER: entry["Flags"] & edmc_data.FlagsInFighter,
             Vehicle.SRV: entry["Flags"] & edmc_data.FlagsInSRV,
             Vehicle.MULTICREW: entry["Flags"] & edmc_data.FlagsInMulticrew,
-            Vehicle.ONFOOT: entry["Flags2"] & edmc_data.Flags2OnFoot,
+            Vehicle.ON_FOOT: entry["Flags2"] & edmc_data.Flags2OnFoot,
             Vehicle.TAXI: entry["Flags2"] & edmc_data.Flags2InTaxi}
         self.state.vehicle = [v for v, active in v_states.items() if active][0] if any(v_states.values()) else Vehicle.UNKNOWN
 
@@ -387,45 +387,45 @@ class BGSTally:
         s_states:dict = {
             ShipState.DOCKED: entry["Flags"] & edmc_data.FlagsDocked,
             ShipState.LANDED: entry["Flags"] & edmc_data.FlagsLanded,
-            ShipState.GEARDOWN: entry["Flags"] & edmc_data.FlagsGearDown,
-            ShipState.SHIELDSUP: entry["Flags"] & edmc_data.FlagsShieldsUp,
+            ShipState.GEAR_DOWN: entry["Flags"] & edmc_data.FlagsGearDown,
+            ShipState.SHIELDS_UP: entry["Flags"] & edmc_data.FlagsShieldsUp,
             ShipState.SUPERCRUISE: entry["Flags"] & edmc_data.FlagsSupercruise,
-            ShipState.FAOFF: entry["Flags"] & edmc_data.FlagsFlightAssistOff,
-            ShipState.HARDPOINTSDEPLOYED: entry["Flags"] & edmc_data.FlagsHardpointsDeployed,
-            ShipState.INWING: entry["Flags"] & edmc_data.FlagsInWing,
-            ShipState.LIGHTSON: entry["Flags"] & edmc_data.FlagsLightsOn,
-            ShipState.SCOOPDEPLOYED: entry["Flags"] & edmc_data.FlagsCargoScoopDeployed,
-            ShipState.SILENTRUNNING: entry["Flags"] & edmc_data.FlagsSilentRunning,
-            ShipState.SCOOPINGFUEL: entry["Flags"] & edmc_data.FlagsScoopingFuel,
-            ShipState.FSDMASSLOCKED: entry["Flags"] & edmc_data.FlagsFsdMassLocked,
-            ShipState.FSDCHARGING: entry["Flags"] & edmc_data.FlagsFsdCharging,
-            ShipState.FSDCOOLDOWN: entry["Flags"] & edmc_data.FlagsFsdCooldown,
-            ShipState.LOWFUEL: entry["Flags"] & edmc_data.FlagsLowFuel,
+            ShipState.FA_OFF: entry["Flags"] & edmc_data.FlagsFlightAssistOff,
+            ShipState.HARDPOINTS_DEPLOYED: entry["Flags"] & edmc_data.FlagsHardpointsDeployed,
+            ShipState.IN_WING: entry["Flags"] & edmc_data.FlagsInWing,
+            ShipState.LIGHTS_ON: entry["Flags"] & edmc_data.FlagsLightsOn,
+            ShipState.SCOOP_DEPLOYED: entry["Flags"] & edmc_data.FlagsCargoScoopDeployed,
+            ShipState.SILENT_RUNNING: entry["Flags"] & edmc_data.FlagsSilentRunning,
+            ShipState.SCOOPING_FUEL: entry["Flags"] & edmc_data.FlagsScoopingFuel,
+            ShipState.FSD_MASSLOCKED: entry["Flags"] & edmc_data.FlagsFsdMassLocked,
+            ShipState.FSD_CHARGING: entry["Flags"] & edmc_data.FlagsFsdCharging,
+            ShipState.FSD_COOLDOWN: entry["Flags"] & edmc_data.FlagsFsdCooldown,
+            ShipState.LOW_FUEL: entry["Flags"] & edmc_data.FlagsLowFuel,
             ShipState.OVERHEATING: entry["Flags"] & edmc_data.FlagsOverHeating,
-            ShipState.ISINDANGER: entry["Flags"] & edmc_data.FlagsIsInDanger,
-            ShipState.BEINGINTERDICTED: entry["Flags"] & edmc_data.FlagsBeingInterdicted,
+            ShipState.IN_DANGER: entry["Flags"] & edmc_data.FlagsIsInDanger,
+            ShipState.BEING_INTERDICTED: entry["Flags"] & edmc_data.FlagsBeingInterdicted,
             ShipState.NIGHTVISION: entry["Flags"] & edmc_data.FlagsNightVision,
-            ShipState.FSDJUMP: entry["Flags"] & edmc_data.FlagsFsdJump
+            ShipState.FSD_JUMP: entry["Flags"] & edmc_data.FlagsFsdJump
             }
 
         self.state.ship_state = {s for s, active in s_states.items() if active}
 
         # UI State
         u_states:dict = {
-            UIState.NOFOCUS: entry.get("GuiFocus") == edmc_data.GuiFocusNoFocus,
-            UIState.INTERNALPANEL: entry.get("GuiFocus") == edmc_data.GuiFocusInternalPanel,
-            UIState.EXTERNALPANEL: entry.get("GuiFocus") == edmc_data.GuiFocusExternalPanel,
-            UIState.COMMSPANEL: entry.get("GuiFocus") == edmc_data.GuiFocusCommsPanel,
-            UIState.ROLEPANEL: entry.get("GuiFocus") == edmc_data.GuiFocusRolePanel,
-            UIState.STATIONSERVICES: entry.get("GuiFocus") == edmc_data.GuiFocusStationServices,
-            UIState.GALAXYMAP: entry.get("GuiFocus") == edmc_data.GuiFocusGalaxyMap,
-            UIState.SYSTEMMAP: entry.get("GuiFocus") == edmc_data.GuiFocusSystemMap,
+            UIState.NO_FOCUS: entry.get("GuiFocus") == edmc_data.GuiFocusNoFocus,
+            UIState.INTERNAL_PANEL: entry.get("GuiFocus") == edmc_data.GuiFocusInternalPanel,
+            UIState.EXTERNAL_PANEL: entry.get("GuiFocus") == edmc_data.GuiFocusExternalPanel,
+            UIState.COMMS_PANEL: entry.get("GuiFocus") == edmc_data.GuiFocusCommsPanel,
+            UIState.ROLE_PANEL: entry.get("GuiFocus") == edmc_data.GuiFocusRolePanel,
+            UIState.STATION_SERVICES: entry.get("GuiFocus") == edmc_data.GuiFocusStationServices,
+            UIState.GALAXY_MAP: entry.get("GuiFocus") == edmc_data.GuiFocusGalaxyMap,
+            UIState.SYSTEM_MAP: entry.get("GuiFocus") == edmc_data.GuiFocusSystemMap,
             UIState.ORRERY: entry.get("GuiFocus") == edmc_data.GuiFocusOrrery,
             UIState.FSS: entry.get("GuiFocus") == edmc_data.GuiFocusFSS,
             UIState.SAA: entry.get("GuiFocus") == edmc_data.GuiFocusSAA,
             UIState.CODEX: entry.get("GuiFocus") == edmc_data.GuiFocusCodex
         }
-        self.state.ui_state = [u for u, active in u_states.items() if active][0] if any(u_states.values()) else UIState.NOFOCUS
+        self.state.ui_state = [u for u, active in u_states.items() if active][0] if any(u_states.values()) else UIState.NO_FOCUS
 
 
     def capi_fleetcarrier(self, data: CAPIData):

@@ -731,16 +731,16 @@ class UI:
             # Colonisation
             show_colonisation_overlay = bool(
                 state.vehicle == Vehicle.SHIP and \
-                state.ui_state in (UIState.STATIONSERVICES, UIState.NOFOCUS) and \
-                (ShipState.HARDPOINTSDEPLOYED not in state.ship_state))
+                state.ui_state in (UIState.STATION_SERVICES, UIState.NO_FOCUS) and \
+                (ShipState.HARDPOINTS_DEPLOYED not in state.ship_state))
             if self.bgstally.state.enable_overlay_colonisation:
                 colonisation_text:str = self.window_progress.as_text(False) if show_colonisation_overlay else ""
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 
             show_carrier_overlay = bool(
                 state.vehicle == Vehicle.SHIP and \
-                state.ui_state in (UIState.NOFOCUS) and \
-                (ShipState.HARDPOINTSDEPLOYED not in state.ship_state))
+                state.ui_state in (UIState.NO_FOCUS) and \
+                (ShipState.HARDPOINTS_DEPLOYED not in state.ship_state))
             if self.bgstally.state.enable_overlay_carrier:
                 carrier_text:str = self.bgstally.fleet_carrier.update_overlay() if show_carrier_overlay else ""
                 self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True)

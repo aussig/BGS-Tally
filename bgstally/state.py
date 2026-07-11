@@ -91,7 +91,7 @@ class State:
         self.vehicle:Vehicle = Vehicle.UNKNOWN
         self.location:Location = Location.UNKNOWN
         self.ship_state:set[ShipState] = set()  # Set of current ship states
-        self.ui_state:UIState = UIState.NOFOCUS
+        self.ui_state:UIState = UIState.NO_FOCUS
 
         self.refresh()
 

@@ -12,6 +12,8 @@ from urllib.parse import quote
 
 from requests import Response
 
+from thirdparty.table2ascii import table2ascii, Alignment
+
 if TYPE_CHECKING:
     from colonisation import Colonisation
     from bgstally.bgstally import BGSTally
@@ -317,6 +319,7 @@ class ProgressWindow:
             totals_parent = table
 
         row:int = 0
+
         # Column headings
         for col, v in enumerate(self.columns):
             if v >= len(self.headings): v = 0
@@ -412,6 +415,9 @@ class ProgressWindow:
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
             return "" # LANG: No builds or commodities being tracked
 
+        comms:list[Commodity] = self._get_comms(required, delivered)
+        totals:Commodity = self._get_totals(comms)
+
         if self.build_index >= len(required): self.build_index = 0
 
         output:str = ""
@@ -431,36 +437,40 @@ class ProgressWindow:
 
         output += f"{_('Progress')}: {self.progress:.0f}%\n" # LANG: Colonisation Progress
         output += "\n"
-        if discord:
-            output += f"{_('Commodity'):<28} | {_('Category'):<20} | {_('Remaining'):<7}\n" # LANG: Colonisation discord headings
 
-        output += "-" * 63 + "\n"
-        comms:list = []
-        qty:dict = {k: v - delivered[self.build_index].get(k, 0) for k, v in required[self.build_index].items()}
-        if self.colonisation.docked == True and '$EXT_PANEL_ColonisationShip' not in f"{self.colonisation.station}" and 'Construction Site' not in f"{self.colonisation.station}":
-            comms = self.colonisation.get_commodity_list(CommodityOrder.CATEGORY)
-        else:
-            comms = self.colonisation.get_commodity_list(self.comm_order, qty)
+        heading_list:list = []
+        for col in self.columns:
+            if col >= len(self.headings): col = 0
+            heading_list.append(self.headings[col].get('Label'))
 
-        for c in comms:
-            reqcnt:int = required[self.build_index].get(c, 0) if len(required) > self.build_index else 0
-            delcnt:int = delivered[self.build_index].get(c, 0) if len(delivered) > self.build_index else 0
-            # Hide if we're docked and market doesn't have this.
-            if not discord and self.colonisation.docked == True and self.colonisation.market != {} and self.colonisation.market.get(f"${c}_name;", 0) == 0:
+        comms_list:list[list] = []
+        for rowcnt, (comm, row_values) in enumerate(self._get_rows(comms)):
+            if self._skip_row(self.view, comm, rowcnt):
+                Debug.logger.debug(f"Skipping row for {comm}")
                 continue
-            remaining:int = reqcnt - delcnt
-            # Show amount left to buy unless it's our carrier in which case it needs to be amount left to deliver
-            if not discord and self.colonisation.docked and self.colonisation.market_id != self.bgstally.fleet_carrier.carrier_id:
-                remaining -= self.colonisation.cargo.get(c, 0)
-                remaining -= self.colonisation.carrier_cargo.get(c, 0)
+            comms_list.append(row_values)
 
-            if remaining > 0:
-                name:str = self.colonisation.get_commodity(c, 'name')
-                cat:str = self.colonisation.get_commodity(c, 'category')
-                if discord:
-                    output += f"{name:<28} | {cat:<20} | {remaining: 8,}{_('t')}\n" # LANG: Colonisation tonnes abbreviation
-                else:
-                    output += f"{name}: {remaining}{_('t')}\n" # LANG: Colonisation tonnes abbreviation
+        total_list:list = []
+        for i, col in enumerate(self.columns):
+            total_list.append(self._get_value(self.headings[col].get('Column'), self.units[i], totals) if i > 0 else _('Total')) # LANG: Total amounts
+
+        if discord:
+            # Add commodity name.
+            heading_list.insert(1, _('Category')) # LANG: Commodity
+            comms_list.insert(0, [self.colonisation.get_commodity(comm.comm, 'category') for comm, row_values in self._get_rows(comms)]) # LANG: Commodity
+            total_list.insert(1, '')
+            column_widths=[28, 28, 13, 13, 13]
+            alignments=[Alignment.LEFT, Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
+        else:
+            # Just columns 0 & 1 for the overlay
+            heading_list = heading_list[0:1]
+            comms_list = [row[0:1] for row in comms_list]
+            total_list = total_list[0:1]
+            column_widths=[28, 13]
+            alignments=[Alignment.LEFT, Alignment.RIGHT]
+
+        output += table2ascii(header=heading_list, body=comms_list, footer=total_list,
+                              column_widths=column_widths, alignments=alignments)
 
         if discord: output += "```\n"
         return output.strip()
@@ -740,22 +750,12 @@ class ProgressWindow:
 
         self.table_frame.grid()
 
-        # Set the column headings according to the selected units
-        for col, val in enumerate(self.columns):
-            if val >= len(self.headings): val = len(self.headings) -1
-            if col >= len(self.collbls): col = len(self.collbls) - 1
-            if self.collbls[col] == None: col = 0
-            self.collbls[col]['text'] = self.headings[val].get('Label')
-            self.collbls[col].grid()
+        totals:Commodity = self._get_totals(comms)
 
-        totals:Commodity = Commodity(self.colonisation, 'total', 0, 0)
-
-        cols = []
-        for i, col in enumerate(self.columns):
-             cols.append([self.headings[col].get('Column'), self.units[i]])
+        self._display_headings()
 
         rowcnt:int = 0
-        for comm, row_values in self._row_values(cols, comms, totals):
+        for comm, row_values in self._get_rows(comms):
             row:dict = self.rows[rowcnt]
 
             if self._skip_row(self.view, comm, rowcnt):
@@ -770,18 +770,18 @@ class ProgressWindow:
                 rowcnt += 1
                 break
 
-            for col, val in enumerate(row_values):
+            for col, v in enumerate(row_values):
                 row[col].bind("<Button-1>", partial(self.link, comm.comm, None))
                 row[col].bind("<Button-2>", partial(self.link, comm.comm, sn))
                 row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(comm.comm)))
 
                 if col == 0:
-                    row[col]['text'] = val
+                    row[col]['text'] = v
                     self.rowtts[rowcnt].text = self.colonisation.get_commodity(comm.comm, 'category')
                     row[col].grid()
                     continue
 
-                row[col]['text'] = val
+                row[col]['text'] = v
                 row[col].grid()
 
             self._highlight_row(row, comm)
@@ -798,7 +798,7 @@ class ProgressWindow:
             else: # Just this one build? Hide the table
                 self.table_frame.grid_remove()
         else:
-            self._display_totals(cols, totals)
+            self._display_totals(totals)
 
         if self.use_scrollbar:
             rows:int = min(rowcnt, self.max_rows)
@@ -836,14 +836,9 @@ class ProgressWindow:
         return [Commodity(self.colonisation, c,r.get(c, 0), d.get(c, 0)) for c in self.colonisation.get_commodity_list(self.comm_order, qty) if c in r.keys()]
 
 
-    def _row_values(self, cols:list, comms:list, totals:Commodity) -> list[tuple]:
-        '''Build the display rows for commodities using the selected four columns.'''
-        display_rows:list[tuple] = []
-
-        for i, comm in enumerate(comms):
-            if i >= len(self.rows):
-                continue
-
+    def _get_totals(self, comms:list[Commodity]) -> Commodity:
+        totals:Commodity = Commodity(self.colonisation, 'total', 0, 0)
+        for comm in comms:
             totals.required += comm.required
             totals.delivered += comm.delivered
             totals.buyorder += comm.buyorder
@@ -852,22 +847,41 @@ class ProgressWindow:
             if comm.remaining > 0:
                 totals.cargo += max(min(comm.cargo, comm.remaining), 0)
                 totals.carrier += max(min(comm.carrier, comm.remaining - comm.cargo), 0)
+        return totals
+
+
+    def _get_rows(self, comms:list[Commodity]) -> list[tuple]:
+        '''Build the display rows for commodities using the selected four columns.'''
+        display_rows:list[tuple] = []
+
+        for i, comm in enumerate(comms):
+            if i >= len(self.rows):
+                continue
 
             row_values:list = []
-            for col in cols:
-                row_values.append(self._get_value(col[0], col[1], comm))
+            for i, col in enumerate(self.columns):
+                row_values.append(self._get_value(self.headings[col].get('Column'), self.units[i], comm))
 
             display_rows.append((comm, row_values))
 
         return display_rows
 
 
+    def _display_headings(self) -> None:
+        # Set the column headings according to the selected units
+        for col, v in enumerate(self.columns):
+            if v >= len(self.headings): v = len(self.headings) -1
+            if col >= len(self.collbls): col = len(self.collbls) - 1
+            if self.collbls[col] == None: col = 0
+            self.collbls[col]['text'] = self.headings[v].get('Label')
+            self.collbls[col].grid()
+
     @catch_exceptions
-    def _display_totals(self, cols:list, totals:Commodity) -> None:
+    def _display_totals(self, totals:Commodity) -> None:
         ''' Display the totals at the bottom of the table '''
-        Debug.logger.debug(f"Displaying totals: {cols}")
-        for i, col in enumerate(cols):
-            self.total_row[i]['text'] = self._get_value(col[0], col[1], totals) if i > 0 else _('Total') # LANG: Total amounts
+
+        for i, col in enumerate(self.columns):
+            self.total_row[i]['text'] = self._get_value(self.headings[col].get('Column'), self.units[i], totals) if i > 0 else _('Total') # LANG: Total amounts
             self._set_weight(self.total_row[i])
             self.total_row[i].grid()
 

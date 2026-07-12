@@ -10,7 +10,8 @@
 
 * Added Vehicle, Location, ShipState & UI state tracking to the state object
 * Refactored colonisation progress code
-* Improved colonisaion overlay
+* Improved colonisation overlay to only show when appropriate and to reflect the first column of the progress window.
+* Improved colonisation discord post to reflect the columns in the progress window.
 
 ## v5.5.1 - 2026-05-11
 

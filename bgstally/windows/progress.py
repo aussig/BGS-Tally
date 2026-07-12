@@ -459,8 +459,8 @@ class ProgressWindow:
 
         if discord:
             # Add commodity name.
-            #column_widths=[31, 22, 13, 13, 13]
-            column_widths=[31, 13, 13, 13]
+            #column_widths=[31, 22, 10, 10, 10]
+            column_widths=[30, 11, 11, 11]
             #alignments=[Alignment.LEFT, Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
             alignments=[Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
             style:TableStyle = TableStyle.from_string("      || -||            --  --")
@@ -898,9 +898,9 @@ class ProgressWindow:
                 qty:int = getattr(comm, which.lower(), 0)
 
                 if units == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
-                    return f"{ceil(qty / self.colonisation.cargo_capacity): >10,}{_('L')}" # LANG: Colonisation loads abbreviation
+                    return f"{ceil(qty / self.colonisation.cargo_capacity): >7,}{_('L')}" # LANG: Colonisation loads abbreviation
 
-                return f"{qty: >10,}{_('t')}" # LANG: Colonisation tonnes abbreviation
+                return f"{qty: >7,}{_('t')}" # LANG: Colonisation tonnes abbreviation
 
 
     def _set_weight(self, cell, w:Literal['normal', 'bold']='bold') -> None:

@@ -443,32 +443,36 @@ class ProgressWindow:
         for col in self.columns:
             if col >= len(self.headings): col = 0
             heading_list.append(self.headings[col].get('Label'))
-        heading_list.insert(1, _('Category'))
+        #heading_list.insert(1, _('Category'))
 
         comms_list:list[list] = []
         for rowcnt, (comm, row_values) in enumerate(self._get_rows(comms)):
             if self._skip_row(self.view, comm, rowcnt): continue
             row_values[0] = str_truncate(row_values[0], 29)
-            row_values.insert(1, self.colonisation.get_commodity(comm, 'category'))
+            #row_values.insert(1, comm.category)
             comms_list.append(row_values)
 
         total_list:list = []
         for i, col in enumerate(self.columns):
             total_list.append(self._get_value(self.headings[col].get('Column'), self.units[i], totals) if i > 0 else _('Total')) # LANG: Total amounts
-        total_list.insert(1, '')
+        #total_list.insert(1, '')
 
         if discord:
             # Add commodity name.
-            column_widths=[31, 20, 13, 13, 13]
-            alignments=[Alignment.LEFT, Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
+            #column_widths=[31, 22, 13, 13, 13]
+            column_widths=[31, 13, 13, 13]
+            #alignments=[Alignment.LEFT, Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
+            alignments=[Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
             style:TableStyle = TableStyle.from_string("      || -||            --  --")
             output += table2ascii(header=heading_list, body=comms_list, footer=total_list,
                                   column_widths=column_widths, alignments=alignments,
                                   style=style)
         else:
-            output += f"{TAG_OVERLAY_HIGHLIGHT}{heading_list[0]}...{heading_list[2]}\n"
+            output += "- - - - - - - - - - - - -\n"
+            output += f"{heading_list[1]: <10} {heading_list[0]: <30}\n"
             for row in comms_list:
-                output += f"{str_truncate(row[0], 30)}...{TAG_OVERLAY_HIGHLIGHT}{row[2]}\n"
+                #output += f"{str_truncate(row[0], 30)}  ...  {row[1].replace(' ', '')}\n"
+                output += f"{row[1].replace(' ', ''): <10} {str_truncate(row[0], 30)}\n"
 
         if discord: output += "```\n"
         return output.strip()

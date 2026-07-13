@@ -434,7 +434,7 @@ class ProgressWindow:
             if discord:
                 output = f"```{sn}, {bn}\n"
             else:
-                output = f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 30, loc='left')}\n"
+                output = f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 20, loc='middle')}\n"
 
         output += f"{_('Progress')}: {self.progress:.0f}%\n" # LANG: Colonisation Progress
         output += "\n"
@@ -472,7 +472,7 @@ class ProgressWindow:
             output += f"{heading_list[1]: <10} {heading_list[0]: <30}\n"
             for row in comms_list:
                 #output += f"{str_truncate(row[0], 30)}  ...  {row[1].replace(' ', '')}\n"
-                output += f"{row[1].replace(' ', ''): <10} {str_truncate(row[0], 30)}\n"
+                output += f"{row[1].replace(' ', ''): <9} {str_truncate(row[0], 20)}\n"
 
         if discord: output += "```\n"
         return output.strip()

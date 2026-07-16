@@ -406,6 +406,8 @@ class ProgressWindow:
     @catch_exceptions
     def as_text(self, discord:bool = True) -> str:
         ''' Return a text representation of the progress window '''
+        if self.view == ProgressView.NONE: return ""
+
         if not hasattr(self.bgstally, 'colonisation'):
             return _("No colonisation data available") # LANG: No colonisation data available
         self.colonisation = self.bgstally.colonisation
@@ -682,7 +684,7 @@ class ProgressWindow:
         if docked and not forsale and not comm.purchase > 0 and comm.cargo == 0:
             return True
 
-        if view == ProgressView.MINIMAL: # Minimal show everything else
+        if view == ProgressView.REDUCED: # REDUCED show everything else
             return False
 
         if (not docked or not hasmarket) and not comm.purchase > 0 and comm.cargo == 0:

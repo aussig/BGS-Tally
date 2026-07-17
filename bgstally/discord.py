@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 from bgstally.constants import DiscordChannel, RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
-from bgstally.utils import _, __, get_by_path
+from bgstally.utils import _, __, get_by_path, catch_exceptions
 from thirdparty.colors import *
 
 DATETIME_FORMAT: str = "%Y-%m-%d %H:%M:%S"
@@ -39,7 +39,7 @@ class Discord:
     def __init__(self, bgstally: 'BGSTally'):
         self.bgstally: BGSTally = bgstally
 
-
+    @catch_exceptions
     def post_plaintext(self, discord_text:str, webhooks_data:dict|None, channel:DiscordChannel, callback:callable):
         """
         Post plain text to Discord
@@ -73,7 +73,7 @@ class Discord:
                 if discord_text == "": return
 
                 discord_text += ("```ansi\n" + blue(__("Posted at: {date_time} | {plugin_name} v{version}", lang=self.bgstally.state.discord_lang)) + "```").format(date_time=utc_time_now, plugin_name=self.bgstally.plugin_name, version=str(self.bgstally.version)) # LANG: Discord message footer, legacy text mode
-                url:str = webhook_url
+                url:str = webhook_url + "?wait=true"
                 payload:dict = {'content': discord_text,
                                 'username': self.bgstally.state.DiscordUsername.get(),
                                 'avatar_url': avatar_url,
@@ -96,7 +96,7 @@ class Discord:
 
                     self.bgstally.request_manager.queue_request(url, RequestMethod.DELETE, callback=self._request_complete, data=data)
 
-
+    @catch_exceptions
     def post_embed(self, title: str, description: str, fields: list, webhooks_data: dict|None, channel: DiscordChannel, callback: callable):
         """Post an embed to Discord. All fields are truncated to discord limits before posting.
 
@@ -134,7 +134,7 @@ class Discord:
             data: dict = {'channel': channel, 'callback': callback, 'webhookdata': specific_webhook_data} # Data that's carried through the request queue and back to the callback
 
             # Fetch the previous post ID, if present, from the webhook data for the channel we're posting in. May be the default True / False value
-            previous_messageid: str = specific_webhook_data.get(channel, None)
+            previous_messageid:str|None = specific_webhook_data.get(channel, None)
 
             if previous_messageid == "" or previous_messageid == None or previous_messageid == True or previous_messageid == False:
                 # No previous post
@@ -166,7 +166,7 @@ class Discord:
 
                     self.bgstally.request_manager.queue_request(url, RequestMethod.DELETE, callback=self._request_complete, data=data)
 
-
+    @catch_exceptions
     def _request_complete(self, success:bool, response:Response, request:BGSTallyRequest):
         """
         A discord request has completed
@@ -174,7 +174,8 @@ class Discord:
         if not success:
             if request.method == RequestMethod.PATCH:
                 # If a PATCH (message update) fails, we can try again with a POST (message create). Note the URL is not the same.
-                self.bgstally.request_manager.queue_request(get_by_path(request.data, ['webhookdata', 'url']), RequestMethod.POST, payload=request.payload, params={'wait': 'true'}, callback=self._request_complete, data=request.data)
+                if request.data:
+                    self.bgstally.request_manager.queue_request(get_by_path(request.data, ['webhookdata', 'url']), RequestMethod.POST, payload=request.payload, params={'wait': 'true'}, callback=self._request_complete, data=request.data)
             else:
                 # If POSTs or DELETEs fail, we can't do anything more
                 Debug.logger.warning(f"Unable to post message to Discord. Reason: '{response.reason}' Content: '{response.content}' URL: '{request.endpoint}'")
@@ -182,13 +183,20 @@ class Discord:
             return
 
         # This callback is the one we stashed in data - i.e. a callback to where the discord post request originated
-        callback:callable = request.data.get('callback')
+        data:dict|None = request.data
+        if not data:
+            Debug.logger.debug(f"No data returned")
+            return
+
+        callback = data.get('callback')
         if callback:
             if request.method == RequestMethod.DELETE:
-                callback(request.data.get('channel'), request.data.get('webhookdata'), "")
-            else:
+                callback(data.get('channel'), data.get('webhookdata'), "")
+            elif response.status_code != 204:
                 response_json:dict = response.json()
-                callback(request.data.get('channel'), request.data.get('webhookdata'), response_json.get('id', ""))
+                callback(data.get('channel'), data.get('webhookdata'), response_json.get('id', ""))
+            else:
+                Debug.logger.debug(f"Discord gave no response, no id stored")
 
 
     def _get_embed(self, title: str | None = None, description: str | None = None, fields: list[dict[str, str]] | None = None, update: bool = False) -> dict[str, any]:

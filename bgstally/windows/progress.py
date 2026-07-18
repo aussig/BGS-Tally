@@ -452,7 +452,8 @@ class ProgressWindow:
             if self._skip_row(self.view, comm, rowcnt): continue
             if not discord and int(re.sub(r'[^\d]+', '', row_values[1])) == 0 and self.view != ProgressView.FULL: continue
             row_values[0] = str_truncate(row_values[0], 29) if discord else str_truncate(row_values[0], 20)
-            row_values[1] = f"{row_values[1]: >9}" if discord else f"{row_values[1]: <13}"
+            w = 18 - len(row_values[1])
+            row_values[1] = f"{row_values[1]: >9}" if discord else f"{row_values[1]: <16}"[0:w]
             comms_list.append(row_values)
 
         total_list:list = []
@@ -468,13 +469,17 @@ class ProgressWindow:
             output += table2ascii(header=heading_list, body=comms_list, footer=total_list,
                                   column_widths=column_widths, alignments=alignments,
                                   style=style)
+            output += "```\n"
         else:
             output += "- - - - - - - - - - - - -\n"
-            output += f"{heading_list[1]: <10} {heading_list[0]: <30}\n"
+            output += f"{heading_list[1]}\n"
             for row in comms_list:
                 output += f"{row[1]} {row[0]}\n"
+            w = 18 - len(total_list[1])
+            total_list[1] = f"{total_list[1]: <16}"[0:w]
+            output += "- - - - - - - - - - - - -\n"
+            output += f"{total_list[1]} {total_list[0]}\n"
 
-        if discord: output += "```\n"
         return output.strip()
 
 
@@ -563,7 +568,7 @@ class ProgressWindow:
         self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=RavenColonial(self.colonisation)._headers(), callback=self._markets_callback, attempts=3)
 
         # Create/recreate the frame now since it takes a while to show the data
-        if self.mkts_fr != None and self.mkts_fr.winfo_exists(): self.mkts_fr.destroy()
+        if hasattr(self, 'mkts_fr') and self.mkts_fr.winfo_exists(): self.mkts_fr.destroy()
         self.mkts_fr = tk.Toplevel(self.bgstally.ui.frame)
         self.mkts_fr.wm_title(_("{plugin_name} - Markets Window").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the markets popup window
         width:int = sum([v.get('width') for v in self.markets.values()]) + 20

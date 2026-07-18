@@ -452,7 +452,7 @@ class ProgressWindow:
             if self._skip_row(self.view, comm, rowcnt): continue
             if not discord and int(re.sub(r'[^\d]+', '', row_values[1])) == 0 and self.view != ProgressView.FULL: continue
             row_values[0] = str_truncate(row_values[0], 29) if discord else str_truncate(row_values[0], 20)
-            row_values[1] = f"{row_values[1]: >10}" if discord else f"{row_values[1]: <13}"
+            row_values[1] = f"{row_values[1]: >9}" if discord else f"{row_values[1]: <13}"
             comms_list.append(row_values)
 
         total_list:list = []

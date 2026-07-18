@@ -73,13 +73,13 @@ class Discord:
                 if discord_text == "": return
 
                 discord_text += ("```ansi\n" + blue(__("Posted at: {date_time} | {plugin_name} v{version}", lang=self.bgstally.state.discord_lang)) + "```").format(date_time=utc_time_now, plugin_name=self.bgstally.plugin_name, version=str(self.bgstally.version)) # LANG: Discord message footer, legacy text mode
-                url:str = webhook_url if url.endswith("?wait=true") else webhook_url + "?wait=true"
+                url:str = webhook_url
                 payload:dict = {'content': discord_text,
                                 'username': self.bgstally.state.DiscordUsername.get(),
                                 'avatar_url': avatar_url,
                                 'embeds': []}
 
-                self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, callback=self._request_complete, data=data)
+                self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, params={'wait': 'true'},callback=self._request_complete, data=data)
             else:
                 # Previous post
                 if discord_text != "":

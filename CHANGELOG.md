@@ -13,6 +13,10 @@
 * Improved colonisation overlay to only show when appropriate and to reflect the first column of the progress window.
 * Improved colonisation discord post to reflect the columns in the progress window.
 
+### Bug Fixes:
+
+* Fixed a fleetcarrier runtime if fdev returned the wrong type of data to a CAPI query.
+
 ## v5.5.1 - 2026-05-11
 
 ### Bug Fixes:

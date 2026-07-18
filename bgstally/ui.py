@@ -731,7 +731,7 @@ class UI:
             # Colonisation
             show_colonisation_overlay = bool(
                 state.vehicle == Vehicle.SHIP and \
-                state.ui_state in (UIState.STATION_SERVICES, UIState.NO_FOCUS) and \
+                state.ui_state in (UIState.STATION_SERVICES, UIState.NO_FOCUS, UIState.INTERNAL_PANEL) and \
                 (ShipState.HARDPOINTS_DEPLOYED not in state.ship_state))
             if self.bgstally.state.enable_overlay_colonisation:
                 colonisation_text:str = self.window_progress.as_text(False) if show_colonisation_overlay else ""
@@ -741,10 +741,11 @@ class UI:
                 state.vehicle == Vehicle.SHIP and \
                 state.ui_state in (UIState.NO_FOCUS) and \
                 (ShipState.HARDPOINTS_DEPLOYED not in state.ship_state))
-            Debug.logger.debug(f"Carrier overlay: {show_carrier_overlay} {self.bgstally.state.enable_overlay_carrier}")
-            if self.bgstally.state.enable_overlay_carrier:
-                carrier_text:str = self.bgstally.fleet_carrier.update_overlay() if show_carrier_overlay else ""
-                self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True)
+            #Debug.logger.debug(f"{self.bgstally.state.enable_overlay_carrier} {show_carrier_overlay} {state.vehicle} {state.ui_state}")
+            if self.bgstally.state.enable_overlay_carrier and show_carrier_overlay:
+                carrier_text:str = self.bgstally.fleet_carrier.update_overlay()
+                if carrier_text != "":
+                    self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True, ttl_override=3)
 
     def _previous_ticks_popup(self):
         """

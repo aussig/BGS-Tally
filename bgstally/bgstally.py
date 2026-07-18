@@ -289,10 +289,14 @@ class BGSTally:
                 activity.mission_failed(entry, self.mission_log)
                 dirty = True
 
-            case 'Music' if entry.get('MusicTrack') == "MainMenu":
-                self.state.vehicle = Vehicle.UNKNOWN
-                self.state.location = Location.UNKNOWN
-                self.state.ship_state = set()
+            case 'Music':
+                match entry.get('MusicTrack'):
+                    case "MainMenu":
+                        self.state.vehicle = Vehicle.UNKNOWN
+                        self.state.location = Location.UNKNOWN
+                        self.state.ship_state = set()
+                    case "FleetCarrier_Managment":
+                        self.state.ui_state = UIState.CARRIER_MANAGEMENT
 
             case 'PowerplayMerits':
                 activity.powerplay_merits(entry)
@@ -411,7 +415,7 @@ class BGSTally:
         self.state.ship_state = {s for s, active in s_states.items() if active}
 
         # UI State
-        u_states:dict = {
+        ui_states:dict = {
             UIState.NO_FOCUS: entry.get("GuiFocus") == edmc_data.GuiFocusNoFocus,
             UIState.INTERNAL_PANEL: entry.get("GuiFocus") == edmc_data.GuiFocusInternalPanel,
             UIState.EXTERNAL_PANEL: entry.get("GuiFocus") == edmc_data.GuiFocusExternalPanel,
@@ -425,7 +429,10 @@ class BGSTally:
             UIState.SAA: entry.get("GuiFocus") == edmc_data.GuiFocusSAA,
             UIState.CODEX: entry.get("GuiFocus") == edmc_data.GuiFocusCodex
         }
-        self.state.ui_state = [u for u, active in u_states.items() if active][0] if any(u_states.values()) else UIState.NO_FOCUS
+        if self.state.ui_state == UIState.CARRIER_MANAGEMENT and ui_states[UIState.GALAXY_MAP]:
+            self.state.ui_state = UIState.CARRIER_GAL_MAP
+        else:
+            self.state.ui_state = [u for u, active in ui_states.items() if active][0] if any(ui_states.values()) else UIState.NO_FOCUS
 
 
     def capi_fleetcarrier(self, data: CAPIData):

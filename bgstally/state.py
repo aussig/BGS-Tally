@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
+from bgstally.debug import Debug
 from config import config #type: ignore
 
 from bgstally.constants import CheckStates, DiscordActivity, FavouriteActivity, Vehicle, Location, ShipState, UIState
@@ -110,7 +111,6 @@ class State:
         self.enable_overlay_objectives:bool = (self.EnableOverlayObjectives.get() == CheckStates.STATE_ON)
         self.enable_overlay_colonisation:bool = (self.EnableOverlayColonisation.get() == CheckStates.STATE_ON) and (self.ColonisationStatus.get() == CheckStates.STATE_ON)
         self.enable_overlay_carrier:bool = (self.EnableOverlayCarrier.get() == CheckStates.STATE_ON)
-
         # Other booleans
         self.abbreviate_faction_names:bool = (self.AbbreviateFactionNames.get() == CheckStates.STATE_ON)
         self.secondary_inf:bool = (self.IncludeSecondaryInf.get() == CheckStates.STATE_ON)
@@ -150,6 +150,7 @@ class State:
         config.set('BGST_EnableOverlayObjectives', self.EnableOverlayObjectives.get())
         config.set('BGST_OverlayObjectivesMode', self.OverlayObjectivesMode.get())
         config.set('BGST_EnableOverlayColonisation', self.EnableOverlayColonisation.get())
+        config.set('BGST_EnableOverlayCarrier', self.EnableOverlayCarrier.get())
         config.set('BGST_EnableSystemActivityByDefault', self.EnableSystemActivityByDefault.get())
         config.set('BGST_EnableShowMerits', self.EnableShowMerits.get())
         config.set('BGST_DetailedInf', self.DetailedInf.get())

@@ -450,18 +450,17 @@ class ProgressWindow:
         comms_list:list[list] = []
         for rowcnt, (comm, row_values) in enumerate(self._get_rows(comms)):
             if self._skip_row(self.view, comm, rowcnt): continue
-            row_values[0] = str_truncate(row_values[0], 29)
-            #row_values.insert(1, comm.category)
+            if not discord and int(re.sub(r'[^\d]+', '', row_values[1])) == 0 and self.view != ProgressView.FULL: continue
+            row_values[0] = str_truncate(row_values[0], 29) if discord else str_truncate(row_values[0], 20)
+            row_values[1] = f"{row_values[1]: >10}" if discord else f"{row_values[1]: <13}"
             comms_list.append(row_values)
 
         total_list:list = []
         for i, col in enumerate(self.columns):
             total_list.append(self._get_value(self.headings[col].get('Column'), self.units[i], totals) if i > 0 else _('Total')) # LANG: Total amounts
-        #total_list.insert(1, '')
 
         if discord:
             # Add commodity name.
-            #column_widths=[31, 22, 10, 10, 10]
             column_widths=[30, 11, 11, 11]
             #alignments=[Alignment.LEFT, Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
             alignments=[Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
@@ -473,8 +472,7 @@ class ProgressWindow:
             output += "- - - - - - - - - - - - -\n"
             output += f"{heading_list[1]: <10} {heading_list[0]: <30}\n"
             for row in comms_list:
-                #output += f"{str_truncate(row[0], 30)}  ...  {row[1].replace(' ', '')}\n"
-                output += f"{row[1].replace(' ', ''): <9} {str_truncate(row[0], 20)}\n"
+                output += f"{row[1]} {row[0]}\n"
 
         if discord: output += "```\n"
         return output.strip()
@@ -763,7 +761,6 @@ class ProgressWindow:
             row:dict = self.rows[rowcnt]
 
             if self._skip_row(self.view, comm, rowcnt):
-                Debug.logger.debug(f"Skipping row for {comm}")
                 continue
 
             if rowcnt == self.max_rows and not self.use_scrollbar:
@@ -900,9 +897,9 @@ class ProgressWindow:
                 qty:int = getattr(comm, which.lower(), 0)
 
                 if units == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
-                    return f"{ceil(qty / self.colonisation.cargo_capacity): >7,}{_('L')}" # LANG: Colonisation loads abbreviation
+                    return f"{ceil(qty / self.colonisation.cargo_capacity):,}{_('L')}" # LANG: Colonisation loads abbreviation
 
-                return f"{qty: >7,}{_('t')}" # LANG: Colonisation tonnes abbreviation
+                return f"{qty:,}{_('t')}" # LANG: Colonisation tonnes abbreviation
 
 
     def _set_weight(self, cell, w:Literal['normal', 'bold']='bold') -> None:

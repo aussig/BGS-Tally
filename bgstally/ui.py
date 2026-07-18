@@ -741,6 +741,7 @@ class UI:
                 state.vehicle == Vehicle.SHIP and \
                 state.ui_state in (UIState.NO_FOCUS) and \
                 (ShipState.HARDPOINTS_DEPLOYED not in state.ship_state))
+            Debug.logger.debug(f"Carrier overlay: {show_carrier_overlay} {self.bgstally.state.enable_overlay_carrier}")
             if self.bgstally.state.enable_overlay_carrier:
                 carrier_text:str = self.bgstally.fleet_carrier.update_overlay() if show_carrier_overlay else ""
                 self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True)

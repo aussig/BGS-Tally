@@ -4,14 +4,15 @@
 
 ### New Features:
 
+* The colonisation overlay now mimics the first column of the progress window in content (required, remaining etc.), level of detail, and units (Tonnes/Loads)
+* Like the colonisation overlay the discord post mimics the progress window in the columns, level of detail, and units.
 * Made colonisation & carrier overlays sensitive to the UI state
 
 ### Changes:
 
+* Added table2ascii library to make discord tables easier and more consistent
 * Added Vehicle, Location, ShipState & UI state tracking to the state object
 * Refactored colonisation progress code
-* Improved colonisation overlay to only show when appropriate and to reflect the first column of the progress window.
-* Improved colonisation discord post to reflect the columns in the progress window.
 
 ### Bug Fixes:
 

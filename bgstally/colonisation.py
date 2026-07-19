@@ -298,6 +298,7 @@ class Colonisation:
                         if prog != None: rc.load_project(prog)
 
                 # If it's a construction site, carrier or other non-standard location we ignore it at least til we dock.
+                # @TODO: Test removing this (apart from the RE_IGNORE_PATTERN), it's unnecessary
                 if self.station == None or re.search(RE_IGNORE_PATTERN, self.station) or 'Construction Site' in self.station or 'System Colonisation Ship' in self.station:
                     return
 

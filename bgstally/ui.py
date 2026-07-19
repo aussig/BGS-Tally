@@ -739,7 +739,7 @@ class UI:
 
             show_carrier_overlay = bool(
                 state.vehicle == Vehicle.SHIP and \
-                state.ui_state in (UIState.NO_FOCUS) and \
+                state.ui_state in (UIState.STATION_SERVICES, UIState.NO_FOCUS) and \
                 (ShipState.HARDPOINTS_DEPLOYED not in state.ship_state))
             #Debug.logger.debug(f"{self.bgstally.state.enable_overlay_carrier} {show_carrier_overlay} {state.vehicle} {state.ui_state}")
             if self.bgstally.state.enable_overlay_carrier and show_carrier_overlay:

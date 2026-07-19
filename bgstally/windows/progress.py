@@ -441,10 +441,11 @@ class ProgressWindow:
         output += f"{_('Progress')}: {self.progress:.0f}%\n" # LANG: Colonisation Progress
         output += "\n"
 
+        column_widths=[30, 11, 11, 11]
         heading_list:list = []
-        for col in self.columns:
+        for i, col in enumerate(self.columns):
             if col >= len(self.headings): col = 0
-            heading_list.append(self.headings[col].get('Label'))
+            heading_list.append(str_truncate(self.headings[col].get('Label'), column_widths[i]-2))
         #heading_list.insert(1, _('Category'))
 
         comms_list:list[list] = []
@@ -462,8 +463,6 @@ class ProgressWindow:
 
         if discord:
             # Add commodity name.
-            column_widths=[30, 11, 11, 11]
-            #alignments=[Alignment.LEFT, Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
             alignments=[Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
             style:TableStyle = TableStyle.from_string("      || -||            --  --")
             output += table2ascii(header=heading_list, body=comms_list, footer=total_list,

@@ -368,6 +368,9 @@ class BGSTally:
     def dashboard_entry(self, cmdr, is_beta, entry):
         """ Handle dashboard entries to update the state based on the current vehicle, location, ship, and UI states. """
 
+        for item in ["Flags", "Flags2", "GuiFocus"]:
+            if item not in entry: entry[item] = 0
+
         # Determine the current vehicle based on the entry flags
         v_states:dict = {
             Vehicle.SHIP: entry["Flags"] & edmc_data.FlagsInMainShip,
@@ -416,18 +419,18 @@ class BGSTally:
 
         # UI State
         ui_states:dict = {
-            UIState.NO_FOCUS: entry.get("GuiFocus") == edmc_data.GuiFocusNoFocus,
-            UIState.INTERNAL_PANEL: entry.get("GuiFocus") == edmc_data.GuiFocusInternalPanel,
-            UIState.EXTERNAL_PANEL: entry.get("GuiFocus") == edmc_data.GuiFocusExternalPanel,
-            UIState.COMMS_PANEL: entry.get("GuiFocus") == edmc_data.GuiFocusCommsPanel,
-            UIState.ROLE_PANEL: entry.get("GuiFocus") == edmc_data.GuiFocusRolePanel,
-            UIState.STATION_SERVICES: entry.get("GuiFocus") == edmc_data.GuiFocusStationServices,
-            UIState.GALAXY_MAP: entry.get("GuiFocus") == edmc_data.GuiFocusGalaxyMap,
-            UIState.SYSTEM_MAP: entry.get("GuiFocus") == edmc_data.GuiFocusSystemMap,
-            UIState.ORRERY: entry.get("GuiFocus") == edmc_data.GuiFocusOrrery,
-            UIState.FSS: entry.get("GuiFocus") == edmc_data.GuiFocusFSS,
-            UIState.SAA: entry.get("GuiFocus") == edmc_data.GuiFocusSAA,
-            UIState.CODEX: entry.get("GuiFocus") == edmc_data.GuiFocusCodex
+            UIState.NO_FOCUS: entry["GuiFocus"] == edmc_data.GuiFocusNoFocus,
+            UIState.INTERNAL_PANEL: entry["GuiFocus"] == edmc_data.GuiFocusInternalPanel,
+            UIState.EXTERNAL_PANEL: entry["GuiFocus"] == edmc_data.GuiFocusExternalPanel,
+            UIState.COMMS_PANEL: entry["GuiFocus"] == edmc_data.GuiFocusCommsPanel,
+            UIState.ROLE_PANEL: entry["GuiFocus"] == edmc_data.GuiFocusRolePanel,
+            UIState.STATION_SERVICES: entry["GuiFocus"] == edmc_data.GuiFocusStationServices,
+            UIState.GALAXY_MAP: entry["GuiFocus"] == edmc_data.GuiFocusGalaxyMap,
+            UIState.SYSTEM_MAP: entry["GuiFocus"] == edmc_data.GuiFocusSystemMap,
+            UIState.ORRERY: entry["GuiFocus"] == edmc_data.GuiFocusOrrery,
+            UIState.FSS: entry["GuiFocus"] == edmc_data.GuiFocusFSS,
+            UIState.SAA: entry["GuiFocus"] == edmc_data.GuiFocusSAA,
+            UIState.CODEX: entry["GuiFocus"] == edmc_data.GuiFocusCodex
         }
         if self.state.ui_state == UIState.CARRIER_MANAGEMENT and ui_states[UIState.GALAXY_MAP]:
             self.state.ui_state = UIState.CARRIER_GAL_MAP

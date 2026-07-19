@@ -7,12 +7,14 @@ import webbrowser
 from functools import partial
 from math import ceil
 from tkinter import ttk
-from typing import TYPE_CHECKING, Literal, Tuple
+from typing import TYPE_CHECKING, Literal
 from urllib.parse import quote
 
 from requests import Response
 
-from thirdparty.table2ascii import table2ascii, Alignment, TableStyle, PresetStyle
+from config import config  # type: ignore
+
+from thirdparty.table2ascii import table2ascii, Alignment, TableStyle
 from thirdparty.table2ascii.table_style import TableStyle
 
 if TYPE_CHECKING:
@@ -24,9 +26,10 @@ from bgstally.debug import Debug
 from bgstally.ravencolonial import RavenColonial
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import _, catch_exceptions, human_format, str_truncate
-from config import config  # type: ignore
 from thirdparty.tksheet import Sheet, natural_sort_key
 from thirdparty.Tooltip import ToolTip
+
+commtt:str = _("List details ({view_title}), left click to cycle, right click menu") # LANG: tooltip for the commodity header
 
 @dataclass
 class Commodity:
@@ -252,8 +255,9 @@ class ProgressWindow:
 
         view_btn:tk.Label = tk.Label(builds, image=self.bgstally.ui.image_icon_change_view, cursor="hand2")
         view_btn.bind("<Button-1>", partial(self.event, "change"))
+        view_btn.bind("<Button-3>", partial(self._view_menu))
         view_btn.grid(row=0, column=c, sticky=tk.E)
-        self.viewtt:ToolTip = ToolTip(view_btn, text=_("Cycle commodity list details") + " (" + self.view.name.title() +")") # LANG: tooltip for the commodity header
+        self.viewtt:ToolTip = ToolTip(view_btn, text=commtt.format(view_title=self.view.name.title()))
         c += 1
 
         next_btn:tk.Label = tk.Label(builds, image=self.bgstally.ui.image_icon_right_arrow, cursor="hand2")
@@ -329,8 +333,8 @@ class ProgressWindow:
                 lbl.configure(width=self.comm_width, anchor=tk.W)
             else:
                 lbl.configure(width=self.amt_width, justify=tk.RIGHT, anchor=tk.E)
-            lbl.bind("<Button-1>", partial(self.change_view, col, 'Column'))
-            lbl.bind("<Button-3>", partial(self.change_view, col, 'Units'))
+            lbl.bind("<Button-1>", partial(self.change_units, col, 'Column'))
+            lbl.bind("<Button-3>", partial(self.change_units, col, 'Units'))
             if config.get_int('theme') == 0: lbl['fg'] = 'black'
             self._set_weight(lbl)
             lbl.grid(row=0, column=col, sticky=tk.EW if col == 0 else tk.E, padx=(0,5))
@@ -379,6 +383,23 @@ class ProgressWindow:
 
         self.update_display()
 
+    @catch_exceptions
+    def _set_view(self, view:ProgressView) -> None:
+        """ Set the view of the commodity list to the selected view. """
+        self.view = view
+        self.viewtt.text = commtt.format(view_title=self.view.name.title())
+        self.colonisation.dirty = True
+        self.update_display()
+
+    @catch_exceptions
+    def _view_menu(self, event: tk.Event) -> None:
+        """ Display the context menu when right-clicked on the view button."""
+
+        menu = tk.Menu(tearoff=tk.FALSE)
+        for v in ProgressView:
+            menu.add_command(label=v.name.title(), command=partial(self._set_view, v))  # LANG: build popup menu
+        menu.post(event.x_root, event.y_root)
+        menu.grab_release()
 
     @catch_exceptions
     def _context_menu(self, event: tk.Event) -> None:
@@ -401,47 +422,46 @@ class ProgressWindow:
                     menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)))  # LANG: Colonisation popup menu option
 
         menu.post(event.x_root, event.y_root)
+        menu.grab_release()
+
+    def _base_name(self, b:dict) -> str:
+        ''' Return the base name for a build, stripping out the construction site prefix '''
+        return re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;) ", "", b.get('Name', ''))
 
 
     @catch_exceptions
-    def as_text(self, discord:bool = True) -> str:
-        ''' Return a text representation of the progress window '''
+    def discord_text(self) -> str:
+        ''' Return a text representation of the progress window for Discord '''
         if self.view == ProgressView.NONE: return ""
 
         if not hasattr(self.bgstally, 'colonisation'):
             return _("No colonisation data available") # LANG: No colonisation data available
-        self.colonisation = self.bgstally.colonisation
 
+        column_widths=[30, 11, 11, 11]
+        alignments=[Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
+        style:TableStyle = TableStyle.from_string("      || -||            --  --")
+
+        self.colonisation = self.bgstally.colonisation
         tracked:list = self.colonisation.get_tracked_builds()
-        required:list = self.colonisation.get_required(tracked)
-        delivered:list = self.colonisation.get_delivered(tracked)
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
             return "" # LANG: No builds or commodities being tracked
 
-        comms:list[Commodity] = self._get_comms(required, delivered)
+        comms:list[Commodity] = self._get_comms(tracked)
         totals:Commodity = self._get_totals(comms)
 
-        if self.build_index >= len(required): self.build_index = 0
+        if self.build_index >= len(comms): self.build_index = 0
 
-        output:str = ""
-        if discord:
-            output = "```" + _("All builds") + "\n" # LANG: all tracked builds
-        else:
-            output = TAG_OVERLAY_HIGHLIGHT + _("All builds") + "\n" # LANG: all tracked builds
+        output:str = "```" + _("All builds") + "\n" # LANG: all tracked builds
 
         if self.build_index < len(tracked):
             b:dict = tracked[self.build_index]
-            sn:str = b.get('Plan', _('Unknown')) # LANG: Unknown system name
-            bn:str = b.get('Name', '') if b.get('Name','') != '' else b.get('Base Type', '')
-            if discord:
-                output = f"```{sn}, {bn}\n"
-            else:
-                output = f"{TAG_OVERLAY_HIGHLIGHT}{sn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 20, loc='middle')}\n"
+            pn:str = b.get('Plan', _('Unknown')) # LANG: Unknown system name
+            bn:str = self._base_name(b) if b.get('Name','') != '' else b.get('Base Type', '')
+            output = f"```{pn}, {bn}\n"
 
         output += f"{_('Progress')}: {self.progress:.0f}%\n" # LANG: Colonisation Progress
         output += "\n"
 
-        column_widths=[30, 11, 11, 11]
         heading_list:list = []
         for i, col in enumerate(self.columns):
             if col >= len(self.headings): col = 0
@@ -451,33 +471,66 @@ class ProgressWindow:
         comms_list:list[list] = []
         for rowcnt, (comm, row_values) in enumerate(self._get_rows(comms)):
             if self._skip_row(self.view, comm, rowcnt): continue
-            if not discord and int(re.sub(r'[^\d]+', '', row_values[1])) == 0 and self.view != ProgressView.FULL: continue
-            row_values[0] = str_truncate(row_values[0], 29) if discord else str_truncate(row_values[0], 20)
-            w = 18 - len(row_values[1])
-            row_values[1] = f"{row_values[1]: >9}" if discord else f"{row_values[1]: <16}"[0:w]
+            row_values[0] = str_truncate(row_values[0], 29)
+            row_values[1] = f"{row_values[1]: >9}"
             comms_list.append(row_values)
 
         total_list:list = []
         for i, col in enumerate(self.columns):
             total_list.append(self._get_value(self.headings[col].get('Column'), self.units[i], totals) if i > 0 else _('Total')) # LANG: Total amounts
 
-        if discord:
-            # Add commodity name.
-            alignments=[Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
-            style:TableStyle = TableStyle.from_string("      || -||            --  --")
-            output += table2ascii(header=heading_list, body=comms_list, footer=total_list,
-                                  column_widths=column_widths, alignments=alignments,
-                                  style=style)
-            output += "```\n"
-        else:
-            output += "- - - - - - - - - - - - -\n"
-            output += f"{heading_list[1]}\n"
-            for row in comms_list:
-                output += f"{row[1]} {row[0]}\n"
-            w = 18 - len(total_list[1])
-            total_list[1] = f"{total_list[1]: <16}"[0:w]
-            output += "- - - - - - - - - - - - -\n"
-            output += f"{total_list[1]} {total_list[0]}\n"
+        # Add commodity name.
+        output += table2ascii(header=heading_list, body=comms_list, footer=total_list,
+                                column_widths=column_widths, alignments=alignments,
+                                style=style)
+        output += "```\n"
+        return output.strip()
+
+
+    @catch_exceptions
+    def overlay_text(self) -> str:
+        ''' Return an overlay representation of the progress window '''
+        if self.view == ProgressView.NONE: return ""
+
+        if not hasattr(self.bgstally, 'colonisation'):
+            return _("No colonisation data available") # LANG: No colonisation data available
+        self.colonisation = self.bgstally.colonisation
+
+        tracked:list = self.colonisation.get_tracked_builds()
+        if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
+            return "" # LANG: No builds or commodities being tracked
+
+        comms:list[Commodity] = self._get_comms(tracked)
+        totals:Commodity = self._get_totals(comms)
+
+        if self.build_index >= len(comms): self.build_index = 0
+
+        output = TAG_OVERLAY_HIGHLIGHT + _("All builds") + "\n" # LANG: all tracked builds
+        if self.build_index < len(tracked):
+            b:dict = tracked[self.build_index]
+            pn:str = b.get('Plan', _('Unknown')) # LANG: Unknown system name
+            bn:str = self._base_name(b) if b.get('Name','') != '' else b.get('Base Type', '')
+            output = f"{TAG_OVERLAY_HIGHLIGHT}{pn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 20, loc='middle')}\n"
+
+        output += f"{_('Progress')}: {self.progress:.0f}%\n" # LANG: Colonisation Progress
+        output += "\n- - - - - - - - - - - - -\n"
+
+        output += f"{self.headings[1].get('Label')}\n"
+
+        for rowcnt, (comm, row_values) in enumerate(self._get_rows(comms)):
+            if self._skip_row(self.view, comm, rowcnt): continue
+            if int(re.sub(r'[^\d]+', '', row_values[1])) == 0 and self.view != ProgressView.FULL: continue
+            w:int = 18 - len(row_values[1])
+            v:str = f"{row_values[1]: <16}"[0:w] # Adjust for proportional font
+            c:str = str_truncate(row_values[0], 20)
+            output += f"{v} {c}\n"
+
+        output += "- - - - - - - - - - - - -\n"
+        val:str = self._get_value(self.headings[1].get('Column'), self.units[1], totals)
+        w:int = 18 - len(val)
+        v:str = f"{val: <16}"[0:w] # Adjust for proportional font
+        c:str = _("Total") # LANG: Total amounts
+        output += f"{v} {c}\n"
 
         return output.strip()
 
@@ -496,11 +549,11 @@ class ProgressWindow:
                 if self.build_index < 0: self.build_index = max
             case 'change':
                 self.view = ProgressView((self.view.value + 1) % len(ProgressView))
-                self.viewtt.text = _("Cycle commodity list details ({view_title})").format(view_title=self.view.name.title()) # LANG: tooltip for the commodity header
+                self.viewtt.text = commtt.format(view_title=self.view.name.title()) # LANG: tooltip for the commodity header
                 self.colonisation.dirty = True
             case 'copy':
                 self.frame.clipboard_clear()
-                self.frame.clipboard_append(self.as_text())
+                self.frame.clipboard_append(self.discord_text())
             case _:
                 self.frame.clipboard_clear()
                 self.frame.clipboard_append(event)
@@ -509,7 +562,7 @@ class ProgressWindow:
 
 
     @catch_exceptions
-    def change_view(self, column:int, which:str, tkEvent) -> None:
+    def change_units(self, column:int, which:str, tkEvent) -> None:
         ''' Change the view of the column when clicked. This cycles between tonnes, remaining, loads, etc. '''
         if column == 0:
             self.comm_order = CommodityOrder((self.comm_order.value + 1) % len(CommodityOrder))
@@ -711,55 +764,40 @@ class ProgressWindow:
             return
 
         tracked:list = self.colonisation.get_tracked_builds()
-        required:list = self.colonisation.get_required(tracked)
-        delivered:list = self.colonisation.get_delivered(tracked)
 
         if len(tracked) == 0 or self.colonisation.cargo_capacity < 8:
             self.frame.grid_remove()
             Debug.logger.info("No builds or commodities, hiding progress frame")
             return
 
-        if self.build_index > len(required):
+        if self.build_index > len(tracked):
             Debug.logger.debug(f"Build index {self.build_index} out of range {len(tracked)}, resetting to 0")
             self.build_index = 0
 
         self.frame.grid()
-        self.table_frame.grid()
 
         # Set the build name (system name and plan name)
         name = _('All') # LANG: all builds
-        sn:str = _('Unknown') # LANG: Unknown system name
         if self.build_index < len(tracked):
             b:dict = tracked[self.build_index]
-            bn:str = re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;) ", "", b.get('Name', ''))
-            bt:str = b.get('Base Type', '')
-            pn:str = b.get('Plan', _('Unknown')) # LANG: Unknown colonisation plan name
-            sn:str = b.get('StarSystem', _('Unknown')) # LANG: Unknown colonisation system name
-            name:str = ', '.join([pn, bt])
-            if b.get('Name', '') != '':
-                name = ', '.join([pn, bt, bn])
+            pn:str = b.get('Plan', b.get('StarSystem', _('Unknown')))    # LANG: Unknown colonisation plan name
+            bn:str = self._base_name(b) + ", " + b.get('Base Type', '') if b.get('Name', '') != '' else b.get('Base Type', '')
+            name:str = f"{pn}, {bn}"
         self.titlett.text = f"{name}\n{_('left click to copy, right click menu')}" # LANG: tooltip for the build name"
         self.title.config(text=str_truncate(name, self.build_width, loc='middle'))
-
         # Get an ordered list of commodities
-        comms:list[Commodity] = self._get_comms(required, delivered)
-
-        if comms == []:
-            Debug.logger.info(f"No commodities found")
-            return
+        comms:list[Commodity] = self._get_comms(tracked)
 
         # Hide the table but not the progress frame so the change view icon is still available
-        if self.view == ProgressView.NONE:
+        if comms == [] or self.view == ProgressView.NONE:
             self.table_frame.grid_remove()
             Debug.logger.info("Progress view none, hiding table")
             return
 
         self.table_frame.grid()
-
-        totals:Commodity = self._get_totals(comms)
-
         self._display_headings()
 
+        totals:Commodity = self._get_totals(comms)
         rowcnt:int = 0
         for comm, row_values in self._get_rows(comms):
             row:dict = self.rows[rowcnt]
@@ -777,7 +815,7 @@ class ProgressWindow:
 
             for col, v in enumerate(row_values):
                 row[col].bind("<Button-1>", partial(self.link, comm.comm, None))
-                row[col].bind("<Button-2>", partial(self.link, comm.comm, sn))
+                row[col].bind("<Button-2>", partial(self.link, comm.comm, b.get('StarSystem', _('Unknown'))))
                 row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(comm.comm)))
 
                 if col == 0:
@@ -792,6 +830,7 @@ class ProgressWindow:
             self._highlight_row(row, comm)
             rowcnt += 1
 
+        # Remove the rows we don't need to display anymore
         for j in range(rowcnt, len(self.rows)):
             for cell in self.rows[j].values():
                 cell.grid_remove()
@@ -825,8 +864,11 @@ class ProgressWindow:
             self.progtt.text = f"{_('Progress')}: {int(self.progvar.get())}%" # LANG: tooltip for the progress bar
 
 
-    def _get_comms(self, required:list[dict], delivered:list[dict]) -> list[Commodity]:
+    def _get_comms(self, tracked:list) -> list[Commodity]:
         ''' Get the list of commodities to display in the order they should be displayed. '''
+        required:list = self.colonisation.get_required(tracked)
+        delivered:list = self.colonisation.get_delivered(tracked)
+
         r:dict = required[self.build_index if self.build_index < len(required) else 0]
         d:dict = delivered[self.build_index if self.build_index < len(delivered) else 0]
 

@@ -734,7 +734,7 @@ class UI:
                 state.ui_state in (UIState.STATION_SERVICES, UIState.NO_FOCUS, UIState.INTERNAL_PANEL) and \
                 (ShipState.HARDPOINTS_DEPLOYED not in state.ship_state))
             if self.bgstally.state.enable_overlay_colonisation:
-                colonisation_text:str = self.window_progress.as_text(False) if show_colonisation_overlay else ""
+                colonisation_text:str = self.window_progress.overlay_text() if show_colonisation_overlay else ""
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 
             show_carrier_overlay = bool(

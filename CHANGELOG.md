@@ -13,6 +13,7 @@
 * Added table2ascii library to make discord tables easier and more consistent
 * Added Vehicle, Location, ShipState & UI state tracking to the state object
 * Refactored colonisation progress code
+* Replaced the confusing cycling through the progress details options with a dropdown menu
 
 ### Bug Fixes:
 

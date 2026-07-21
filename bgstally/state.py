@@ -59,7 +59,7 @@ class State:
         self.ShowZeroActivitySystems:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ShowZeroActivity', default=config.get_str('XShowZeroActivity', default=CheckStates.STATE_ON)))
         self.AbbreviateFactionNames:tk.StringVar = tk.StringVar(value=config.get_str('BGST_AbbreviateFactions', default=config.get_str('XAbbreviate', default=CheckStates.STATE_OFF)))
         self.IncludeSecondaryInf:tk.StringVar = tk.StringVar(value=config.get_str('BGST_SecondaryInf', default=config.get_str('XSecondaryInf', default=CheckStates.STATE_ON)))
-        self.DiscordUsername:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordUsername', default=config.get_str('XDiscordUsername', default="")))
+        self.DiscordUsername:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordUsername', default=config.get_str('XDiscordUsername', default="Set Discord Name Here")))
         self.EnableOverlay:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlay', default=config.get_str('XEnableOverlay', default=CheckStates.STATE_ON)))
         self.current_system_id:str = config.get_str('BGST_CurrentSystemID', default=config.get_str('XCurrentSystemID', default=""))
         self.station_faction:str = config.get_str('BGST_StationFaction', default=config.get_str('XStationFaction', default = ""))

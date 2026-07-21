@@ -45,14 +45,14 @@ def plugin_prefs(parent, cmdr: str, is_beta: bool):
     """
     Return a TK Frame for adding to the EDMC settings dialog
     """
-    return this.ui.get_prefs_frame(parent)
+    return this.prefs.get_prefs_frame(parent)
 
 
 def prefs_changed(cmdr: str, is_beta: bool) -> None:
     """
     Save settings.
     """
-    this.ui.save_prefs()
+    this.prefs.save_prefs()
 
 
 def journal_entry(cmdr, is_beta, system, station, entry, state):

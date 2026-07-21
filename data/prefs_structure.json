@@ -1,0 +1,336 @@
+[
+    {
+        "label": "General Options",
+        "sections": [
+            {
+                "label": "Enable",
+                "prefs": [
+                    {
+                        "name": "plugin_active",
+                        "type": "bool",
+                        "var": "Status",
+                        "default": "Yes",
+                        "label": "BGS-Tally Active",
+                        "desc": "Completely enable or disable BGS-Tally"
+                    },
+                    {
+                        "type": "bool",
+                        "var": "ColonisationStatus",
+                        "default": "Yes",
+                        "label": "Colonisation Active",
+                        "desc": "Completely enable or disable colonisation"
+                    }
+                ]
+            },
+            {
+                "label": "Colonisation",
+                "desc": "Colonisation Settings",
+                "prefs": [
+                    {
+                        "var": "ColonisationMaxCommodities",
+                        "type": "str",
+                        "label": "Maximum Commodities",
+                        "desc": "Scroll window height or maximum number of commodities to display in the colonisation panel"
+                    },
+                    {
+                        "var": "EnableProgressScrollbar",
+                        "type": "checkbox",
+                        "label": "Use scrollbar (restart required)"
+                    },
+                    {
+                        "var": "ColonisationRCAPIKey",
+                        "type": "password",
+                        "label": "Raven Colonial API Key"
+                    }
+                ]
+            },
+            {
+                "label": "Fleet Carrier",
+                "desc": "Fleet Carrier Settings",
+                "prefs": [
+                    {
+                        "label": "Cooldown Display",
+                        "var": "FcCooldown",
+                        "type": "menu",
+                        "options": {
+                            "none": "None",
+                            "popup": "Popup only",
+                            "overlay": "Overlay only",
+                            "both": "Popup and Overlay"
+                        }
+                    }
+                ]
+            },
+            {
+                "label": "Integrations",
+                "prefs": [
+                    {
+                        "name": "remote_server_connect_button",
+                        "type": "custom",
+                        "custom": "_show_api_window"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "label": "BGS Options",
+        "sections": [
+            {
+                "label": "Options",
+                "cols": 2,
+                "prefs": [
+                    {
+                        "type": "bool",
+                        "var": "ShowZeroActivitySystems",
+                        "default": "Yes",
+                        "label": "Show Systems with Zero Activity",
+                        "desc": "Display systems even if they have zero activity"
+                    }
+                ]
+            },
+            {
+                "label": "Favourites",
+                "desc": "Favourite Factions",
+                "prefs": [
+                    {
+                        "name": "favourite_factions",
+                        "type": "custom",
+                        "custom": "_favourite_factions"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "label": "Discord Options",
+        "sections": [
+            {
+                "label": "Options",
+                "desc": "General Settings",
+                "cols": 2,
+                "prefs": [
+                    {
+                        "var": "DetailedInf",
+                        "type": "bool",
+                        "label": "Show Detailed INF"
+                    },
+                    {
+                        "var": "IncludeSecondaryInf",
+                        "type": "bool",
+                        "label": "Include Secondary INF"
+                    },
+                    {
+                        "var": "DetailedTrade",
+                        "type": "bool",
+                        "label": "Show Detailed Trade"
+                    },
+                    {
+                        "var": "EnableSystemActivityByDefault",
+                        "type": "bool",
+                        "label": "Report Newly Visited System Activity By Default"
+                    },
+                    {
+                        "var": "EnableShowMerits",
+                        "type": "bool",
+                        "label": "Show Powerplay Merits Gained"
+                    },
+                    {
+                        "var": "UseColonisationName",
+                        "type": "bool",
+                        "default": "No",
+                        "label": "Use Colonisation Plan name instead of System Name"
+                    },
+                    {
+                        "var": "DiscordBGSTWAutomatic",
+                        "type": "bool",
+                        "label": "Automatically Post BGS and TW Activity"
+                    }
+                ]
+            },
+            {
+                "prefs": [
+                    {
+                        "var": "FavouriteActivityMode",
+                        "type": "menu",
+                        "default": "Ignore",
+                        "label": "Favourite Activity Mode",
+                        "options": {
+                            "Ignore": "Include all factions",
+                            "Factions": "Include favourite factions only",
+                            "Systems": "Include systems containing favourite factions"
+                        }
+                    },
+                    {
+                        "var": "DiscordUsername",
+                        "type": "str",
+                        "label": "Post to Discord as"
+                    },
+                    {
+                        "var": "discord_lang",
+                        "type": "menu",
+                        "default": "Default",
+                        "label": "Language for Discord Posts"
+                    },
+                    {
+                        "var": "discord_formatter",
+                        "type": "menu",
+                        "default": "Default",
+                        "label": "Format for Discord Posts"
+                    },
+                    {
+                        "var": "DiscordAvatarURL",
+                        "width": 80,
+                        "type": "str",
+                        "label": "Discord Avatar URL"
+                    }
+                ]
+            },
+            {
+                "label": "Webhooks",
+                "desc": "Discord Webhooks",
+                "prefs": [
+                    {
+                        "name": "discord_webhooks",
+                        "type": "custom",
+                        "custom": "_discord_webhooks"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "label": "Overlay Settings",
+        "state": "_overlay_options_state",
+        "sections": [
+            {
+                "label": "Enable",
+                "prefs": [
+                    {
+                        "var": "EnableOverlay",
+                        "type": "bool",
+                        "label": "Show In-game Overlay"
+                    }
+                ]
+            },
+            {
+                "label": "Panels",
+                "desc": "Overlay Panels",
+                "cols": 6,
+                "prefs": [
+                    {
+                        "var": "EnableOverlayActivity",
+                        "type": "bool",
+                        "label": "Activity Indicator"
+                    },
+                    {
+                        "var": "EnableOverlayCMDR",
+                        "type": "bool",
+                        "label": "CMDR Info"
+                    },
+                    {
+                        "var": "EnableOverlayColonisation",
+                        "type": "bool",
+                        "label": "Colonisation"
+                    },
+                    {
+                        "var": "EnableOverlayCurrentTick",
+                        "type": "bool",
+                        "label": "Current Tick"
+                    },
+                    {
+                        "var": "EnableOverlayObjectives",
+                        "type": "bool",
+                        "label": "Objectives"
+                    },
+                    {
+                        "var": "EnableOverlaySystem",
+                        "type": "bool",
+                        "label": "System Information"
+                    },
+                    {
+                        "var": "EnableOverlayTWProgress",
+                        "type": "bool",
+                        "label": "Thargoid War Progress"
+                    },
+                    {
+                        "var": "EnableOverlayWarning",
+                        "type": "bool",
+                        "label": "Alerts and Warnings"
+                    },
+                    {
+                        "var": "EnableOverlayCarrier",
+                        "type": "bool",
+                        "label": "Fleetcarrier"
+                    },
+                    {
+                        "name": "overlay_label",
+                        "type": "label",
+                        "label": "In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information."
+                    }
+                ]
+            },
+            {
+                "label": "Objectives",
+                "desc": "Objectives Overlay Settings",
+                "cols": 2,
+                "prefs": [
+                    {
+                        "name": "OverlayObjectivesModeNotifyNew",
+                        "type": "radio",
+                        "var": "OverlayObjectivesMode",
+                        "value": "0",
+                        "label": "Show notification for new objectives"
+                    },
+                    {
+                        "name": "OverlayObjectivesModeNew",
+                        "type": "radio",
+                        "var": "OverlayObjectivesMode",
+                        "value": "1",
+                        "label": "Show new objective"
+                    },
+                    {
+                        "name": "OverlayObjectivesModeUpdated",
+                        "type": "radio",
+                        "var": "OverlayObjectivesMode",
+                        "value": "2",
+                        "label": "Show new and updated objectives"
+                    },
+                    {
+                        "name": "OverlayObjectivesModeTopPriority",
+                        "type": "radio",
+                        "var": "OverlayObjectivesMode",
+                        "value": "3",
+                        "label": "Always show top priority objective"
+                    },
+                    {
+                        "name": "OverlayObjectivesModeAll",
+                        "type": "radio",
+                        "var": "OverlayObjectivesMode",
+                        "value": "4",
+                        "label": "Always show all objectives"
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "label": "Advanced Options",
+        "sections": [
+            {
+                "label": "Advanced",
+                "prefs": [
+                    {
+                        "label": "Force Tick",
+                        "type": "custom",
+                        "custom": "_force_tick_button"
+                    },
+                    {
+                        "label": "Dangerous action: only use when you are certain a tick occurred.",
+                        "type": "label"
+                    }
+                ]
+            }
+        ]
+    }
+]

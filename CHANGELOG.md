@@ -14,10 +14,15 @@
 * Added Vehicle, Location, ShipState & UI state tracking to the state object
 * Refactored colonisation progress code
 * Replaced the confusing cycling through the progress details options with a dropdown menu
+* Now set a default Discord 'Post as' username to help speed up setup. You should still set your own though.
+* Reorganized the preferences display into tabs, sections and preferences.
 
 ### Bug Fixes:
 
 * Fixed a fleetcarrier runtime if fdev returned the wrong type of data to a CAPI query.
+* Discord preview wasn't refreshing after changing the favourite faction mode in the drop-down
+* Checkbox for enabling / disabling automatic Discord posting had gone missing
+* Discord plaintext posts weren't updating on subsequent posts
 
 ## v5.5.1 - 2026-05-11
 

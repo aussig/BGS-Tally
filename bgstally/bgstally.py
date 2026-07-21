@@ -30,6 +30,7 @@ from bgstally.state import State
 from bgstally.targetmanager import TargetManager
 from bgstally.tick import Tick
 from bgstally.ui import UI
+from bgstally.prefs import Prefs
 from bgstally.updatemanager import UpdateManager
 from bgstally.utils import _, get_by_path
 from bgstally.webhookmanager import WebhookManager
@@ -106,6 +107,7 @@ class BGSTally:
         self.objectives_manager: ObjectivesManager = ObjectivesManager(self)
         self.colonisation: Colonisation = Colonisation(self)
         self.faction_manager: FactionManager = FactionManager(self)
+        self.prefs: Prefs = Prefs(self)
 
         self.tick_thread: Thread = Thread(target=self._tick_worker, name="BGSTally Tick worker")
         self.tick_thread.daemon = True

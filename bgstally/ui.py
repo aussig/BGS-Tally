@@ -26,7 +26,6 @@ from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_
                                 Vehicle, ShipState, UIState)
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, catch_exceptions, get_by_path, get_localised_filepath, human_format
-from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
 from bgstally.windows.cmdrs import WindowCMDRs
@@ -520,58 +519,6 @@ class UI:
         except Exception as e:
                 Debug.logger.error(f"Unable to load {rare_filepath}")
 
-
-    def _webhooks_table_modified(self, event=None):
-        """
-        Callback for all modifications to the webhooks table
-
-        Args:
-            event (namedtuple, optional): Variables related to the callback. Defaults to None.
-        """
-        self.bgstally.webhook_manager.set_webhooks_from_list(self.sheet_webhooks.get_sheet_data())
-
-
-    def _language_modified(self, event=None):
-        """Callback for change in language dropdown
-
-        Args:
-            event (_type_, optional): Variable related to the callback. Defaults to None.
-        """
-        langs_by_name: dict = {v: k for k, v in self.languages.items()}  # Codes by name
-        self.bgstally.state.discord_lang = langs_by_name.get(self.language.get()) or ''  # or '' used here due to Default being None above
-
-
-    def _formatter_modified(self, event=None):
-        """Callback for change in formatter dropdown
-
-        Args:
-            event (_type_, optional): Variable related to the callback. Defaults to None.
-        """
-        formatters_by_name: dict = {v: k for k, v in self.formatters.items()}
-        self.bgstally.state.discord_formatter = formatters_by_name.get(self.formatter.get())
-
-
-    def _colonisation_change(self, event=None):
-        """Callback for change in colonisation status
-
-        Args:
-            event (_type_, optional): Variable related to the callback. Defaults to None.
-        """
-        self.bgstally.state.refresh()
-        self.update_plugin_frame()
-
-
-    def _favourite_type_selected(self, favourite_types: dict, value: str):
-        """The user has changed the dropdown to choose the favourite faction posting type
-        """
-        k: str = next(k for k, v in favourite_types.items() if v == value)
-        self.bgstally.state.FavouriteActivityMode.set(k)
-        self.bgstally.state.refresh
-
-    def _cooldown_selected(self, cooldown_types: dict, value: str):
-        k: str = next(k for k, v in cooldown_types.items() if v == value)
-        self.bgstally.state.FcCooldown.set(k)
-        self.bgstally.state.refresh()
 
     @catch_exceptions
     def _worker(self) -> None:

@@ -11,7 +11,7 @@
 
 * Discord preview wasn't refreshing after changing the favourite faction mode in the drop-down
 * Checkbox for enabling / disabling automatic Discord posting had gone missing
-
+* Discord plaintext posts weren't updating on subsequent posts
 
 ## v5.5.1 - 2026-05-11
 

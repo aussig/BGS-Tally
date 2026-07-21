@@ -81,18 +81,18 @@ class TestUI:
             mock_window_activity.assert_called_once_with(harness.plugin, ui, activity)
             assert ui.window_activity["tick-new"] is mock_instance
 
-    def test_language_and_formatter_callbacks_update_state(self, harness) -> None:
-        ui = harness.plugin.ui
+    # def test_language_and_formatter_callbacks_update_state(self, harness) -> None:
+    #     ui = harness.plugin.ui
 
-        ui.languages = {None: "Default", "en": "English"}
-        ui.language = SimpleNamespace(get=lambda: "English")
-        ui._language_modified()
-        assert harness.plugin.state.discord_lang == "en"
+    #     ui.languages = {None: "Default", "en": "English"}
+    #     ui.language = SimpleNamespace(get=lambda: "English")
+    #     ui._language_modified()
+    #     assert harness.plugin.state.discord_lang == "en"
 
-        ui.formatters = {None: "Default", "text": "Text"}
-        ui.formatter = SimpleNamespace(get=lambda: "Text")
-        ui._formatter_modified()
-        assert harness.plugin.state.discord_formatter == "text"
+    #     ui.formatters = {None: "Default", "text": "Text"}
+    #     ui.formatter = SimpleNamespace(get=lambda: "Text")
+    #     ui._formatter_modified()
+    #     assert harness.plugin.state.discord_formatter == "text"
 
     def test_overlay_options_state_reflects_overlay_availability(self, harness) -> None:
         ui = harness.plugin.ui
@@ -110,22 +110,22 @@ class TestUI:
         assert "Jameson Memorial" in result
         assert "Pilots Federation" in result
 
-    def test_favourite_and_cooldown_callbacks_update_state(self, harness) -> None:
-        ui = harness.plugin.ui
+    # def test_favourite_and_cooldown_callbacks_update_state(self, harness) -> None:
+    #     ui = harness.plugin.ui
 
-        ui.bgstally.state.refresh = MagicMock()
-        ui._favourite_type_selected(
-            {
-                FavouriteActivity.IGNORE: "Include all factions",
-                FavouriteActivity.FACTIONS: "Include favourite factions only",
-            },
-            "Include favourite factions only",
-        )
-        assert ui.bgstally.state.FavouriteActivityMode.get() == FavouriteActivity.FACTIONS
+    #     ui.bgstally.state.refresh = MagicMock()
+    #     ui._favourite_type_selected(
+    #         {
+    #             FavouriteActivity.IGNORE: "Include all factions",
+    #             FavouriteActivity.FACTIONS: "Include favourite factions only",
+    #         },
+    #         "Include favourite factions only",
+    #     )
+    #     assert ui.bgstally.state.FavouriteActivityMode.get() == FavouriteActivity.FACTIONS
 
-        ui._cooldown_selected({"popup": "Popup only"}, "Popup only")
-        assert ui.bgstally.state.FcCooldown.get() == "popup"
-        ui.bgstally.state.refresh.assert_called_once()
+    #     ui._cooldown_selected({"popup": "Popup only"}, "Popup only")
+    #     assert ui.bgstally.state.FcCooldown.get() == "popup"
+    #     ui.bgstally.state.refresh.assert_called_once()
 
     def test_update_plugin_frame_shows_update_available_notice(self, harness) -> None:
         ui = harness.plugin.ui

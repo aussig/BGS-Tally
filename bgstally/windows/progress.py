@@ -256,6 +256,7 @@ class ProgressWindow:
         view_btn:tk.Label = tk.Label(builds, image=self.bgstally.ui.image_icon_change_view, cursor="hand2")
         #view_btn.bind("<Button-1>", partial(self.event, "change"))
         view_btn.bind("<Button-1>", partial(self._view_menu))
+        view_btn.bind("<Button-3>", partial(self._view_menu))
         view_btn.grid(row=0, column=c, sticky=tk.E)
         self.viewtt:ToolTip = ToolTip(view_btn, text=commtt.format(view_title=self.view.name.title()))
         c += 1
@@ -406,20 +407,21 @@ class ProgressWindow:
         """ Display the context menu when right-clicked."""
 
         menu = tk.Menu(tearoff=tk.FALSE)
-        menu.add_command(label=_('Copy to Clipboard'), command=partial(self.event, "copy"))  # LANG: build popup menu
+        menu.add_command(label=_('Copy Progress'), command=partial(self.event, "copy"))  # LANG: build popup menu
         #menu.add_command(label=_('Post to Discord'), command=partial(self.event, "post"))  # LANG: build popup menu
 
         tracked:list = self.colonisation.get_tracked_builds()
         if self.build_index < len(tracked):
             menu.add_separator()
             b:dict = tracked[self.build_index]
-            if b.get('ProjectID', None) != None:
-                menu.add_command(label=_('Open in RavenColonial'), command=partial(webbrowser.open, 'https://ravencolonial.com/#build='+b.get('ProjectID','')))  # LANG: Colonisation popup RC menu option
+            menu.add_command(label=_('Open in RavenColonial'), command=partial(webbrowser.open, 'https://ravencolonial.com/#build='+b.get('ProjectID','')), state = tk.ACTIVE if b.get('ProjectID') else tk.DISABLED)  # LANG: Colonisation popup RC menu option
 
-            if b.get('MarketID', None) != None:
-                params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in b.items()}
-                for k, v in self.links.items():
-                    menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)))  # LANG: Colonisation popup menu option
+
+            params:dict = {k: quote(str(v)) if str(k) != 'Layout' else str(v).strip().lower().replace(" ","_") for k, v in b.items()}
+            if 'MarketID' not in params: params['MarketID'] = None
+            for k, v in self.links.items():
+                menu.add_command(label=_("Open in {k}").format(k=k), command=partial(webbrowser.open, v.format(**params)),
+                                 state = tk.ACTIVE if b.get('MarketID') else tk.DISABLED)  # LANG: Colonisation popup menu option
 
         menu.post(event.x_root, event.y_root)
         menu.grab_release()
@@ -528,7 +530,7 @@ class ProgressWindow:
             output += f"{v} {c}\n"
 
         output += "- - - - - - - - - - - - -\n"
-        val:str = self._get_value(self.headings[1].get('Column'), self.units[1], totals)
+        val:str = self._get_value(self.headings[self.columns[1]].get('Column'), self.units[1], totals)
         w:int = 18 - len(val)
         v:str = f"{val: <16}"[0:w] # Adjust for proportional font
         c:str = _("Total") # LANG: Total amounts

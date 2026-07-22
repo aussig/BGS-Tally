@@ -139,6 +139,8 @@ class API:
         """
         Call the discovery endpoint
         """
+        if not self.bgstally.request_manager.url_valid(self.url):
+            return
         self.bgstally.request_manager.queue_request(self.url + ENDPOINT_DISCOVERY, RequestMethod.GET, headers=self._get_headers(), callback=callback)
 
 

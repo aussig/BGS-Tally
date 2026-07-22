@@ -829,7 +829,7 @@ class Colonisation:
 
 
     @catch_exceptions
-    def modify_build(self, system:str|int, buildid:str|int, data:dict, silent:bool = False) -> None:
+    def modify_build(self, system:dict|int, buildid:str|int, data:dict, silent:bool = False) -> None:
         ''' Modify a build in a system '''
         build:dict|None = None
 

@@ -511,6 +511,7 @@ class TestColonisationProgress:
         assert progress.TAG_OVERLAY_HIGHLIGHT in overlay_output
 
 class TestColonisationFullBuild:
+
     def test_claim(self, harness) -> None:
         """ Test claiming a system and deploying a beacon creates a new system entry and updates state. """
         harness.load_events("colonisation_build_events.json")
@@ -558,6 +559,24 @@ class TestColonisationFullBuild:
 
     def test_visit_outpost(self, harness) -> None:
         """ Test visiting the completed outpost. """
+        harness.load_events("colonisation_build_events.json")
+        c = harness.plugin.colonisation
+
+        harness.play_sequence("claim", SHORT_DELAY)
+        harness.play_sequence("visit_ship", SHORT_DELAY)
+        harness.play_sequence("contribution", SHORT_DELAY)
+        harness.play_sequence("complete", SHORT_DELAY)
+        harness.play_sequence("visit_outpost", SHORT_DELAY)
+
+        assert c.systems[1]['Builds'][0]['BuildID'] == "&3963439106"
+        assert c.systems[1]['Builds'][0]['MarketID'] == 4351826691
+        assert c.systems[1]['Builds'][0]['State'] == BuildState.COMPLETE
+        assert c.systems[1]['Builds'][0]['Name'] == 'Citroen Arsenal'
+
+    @pytest.mark.manual_only
+    @pytest.mark.live_requests
+    def test_full_build_live(self, harness) -> None:
+        """ Test the full build process live. """
         harness.load_events("colonisation_build_events.json")
         c = harness.plugin.colonisation
 

@@ -208,8 +208,9 @@ class MockTranslations:
         }
         return {'language': language_names.get(lang, lang)}
     @staticmethod
+
     def available() -> set[str]:
-        return {'en'}
+        return set('en')
     @staticmethod
     def get_system_lang() -> str:
         return 'en'

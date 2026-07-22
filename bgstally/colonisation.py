@@ -285,6 +285,11 @@ class Colonisation:
                 return
 
             case 'SupercruiseExit' | 'ApproachSettlement':
+                # If we don't have this system in our list, we don't care about it.
+                system:dict|None = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
+                if system == None:
+                    return
+
                 if entry.get('event') == 'ApproachSettlement':
                     self.location = 'Surface'
 
@@ -293,18 +298,13 @@ class Colonisation:
                 # to only get progress that's changed
                 tracked:list[dict] = self.get_tracked_builds()
                 for b in tracked:
-                    if b.get('ProjectID', None) != None:
+                    if system.get('RCSync') and b.get('ProjectID', None) != None:
                         prog:dict|None = self.find_progress(b.get('ProjectID', 0))
                         if prog != None: rc.load_project(prog)
 
                 # If it's a construction site, carrier or other non-standard location we ignore it at least til we dock.
                 # @TODO: Test removing this (apart from the RE_IGNORE_PATTERN), it's unnecessary
                 if self.station == None or re.search(RE_IGNORE_PATTERN, self.station): #or 'Construction Site' in self.station or 'System Colonisation Ship' in self.station:
-                    return
-
-                # If we don't have this system in our list, we don't care about it.
-                system:dict|None = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-                if system == None:
                     return
 
                 # It's in a system we're building in, so we should find or create it.
@@ -956,7 +956,7 @@ class Colonisation:
         costs:dict = self.base_costs
         cat:str = bt.get('Category', '')
         if cat not in costs:
-            Debug.logger.error(f"Unknown category {cat} for base type {type}")
+            Debug.logger.warning(f"Unknown category {cat} for base type {type}")
             return {}
 
         sub:str = ''

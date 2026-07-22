@@ -107,7 +107,7 @@ class UpdateManager:
         self.update_available = True
 
         # Update UI, deferred because we're in a thread
-        if self.bgstally.ui.frame: self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
+        if self.bgstally.ui.frame: self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame)
 
         # Perform update
         self._update_plugin()

@@ -130,8 +130,9 @@ class FleetCarrier:
             _('Crew Capacity'): get_by_path(self.data, ["capacity", "crew"], 0), # LANG: Carrier services
         }
         crew:dict = get_by_path(self.data, ['servicesCrew'], {}) # Detailed crew information
-        for k, v in get_by_path(self.data, ["market", "services"], {}).items(): # List of all services and their status
+        if not crew or crew == []: return services # Weird but apparently fdev do this sometimes.
 
+        for k, v in get_by_path(self.data, ["market", "services"], {}).items(): # List of all services and their status
             services['crew'][k] = deepcopy(crew.get(k, {}).get('crewMember', {}))
             services['crew'][k]['enabled'] = (services['crew'].get(k, {}).get('enabled', 'No').title(), 'str', 'No')
 

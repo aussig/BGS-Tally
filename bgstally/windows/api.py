@@ -293,7 +293,7 @@ class WindowAPI:
 
         # Clear the warning message from the main frame
         self.bgstally.api_manager.api_updated = False
-        self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
+        self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame)
 
 
     def _decline(self):

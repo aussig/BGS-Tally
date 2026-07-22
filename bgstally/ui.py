@@ -11,14 +11,19 @@ from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
+    from bgstally.state import State
 
-import myNotebook as nb
-from plugins.common_coreutils import api_keys_label_common, show_pwd_var_common
-from ttkHyperlinkLabel import HyperlinkLabel
+import myNotebook as nb  # type: ignore
+from plugins.common_coreutils import api_keys_label_common, show_pwd_var_common # type: ignore
+from ttkHyperlinkLabel import HyperlinkLabel  # type: ignore
+
+from config import config # type: ignore
+import edmc_data # type: ignore
 
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates,
-                                DiscordActivity, FavouriteActivity, UpdateUIPolicy)
+from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL,
+                                TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity, FavouriteActivity, UpdateUIPolicy,
+                                Vehicle, ShipState, UIState)
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, catch_exceptions, get_by_path, get_localised_filepath, human_format
 from bgstally.windows.activity import WindowActivity
@@ -30,7 +35,6 @@ from bgstally.windows.legend import WindowLegend
 from bgstally.windows.objectives import WindowObjectives
 from bgstally.windows.objectives_overlay_settings import WindowObjectivesOverlaySettings
 from bgstally.windows.progress import ProgressWindow
-from config import config
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
 
@@ -89,6 +93,10 @@ class UI:
         # RavenColonial API key management
         self.apikey:nb.EntryMenu
         self.apikey_label:tk.Label
+
+        # Show/hide based on UI state
+        self.show_colonisation_overlay:bool = True
+        self.show_carrier_overlay:bool = True
 
         # Single-instance windows
         self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally)
@@ -203,6 +211,12 @@ class UI:
         self.window_progress.update_display()
 
 
+    def save_prefs(self):
+        """
+        Preferences frame has been saved (from EDMC core or any plugin)
+        """
+        self.update_plugin_frame()
+        self._load_commodities()
 
 
     def show_system_info(self, system_address: int):
@@ -311,7 +325,7 @@ class UI:
 
             sleep(TIME_WORKER_PERIOD_S)
 
-            current_activity: Activity = self.bgstally.activity_manager.get_current_activity()
+            current_activity:Activity|None = self.bgstally.activity_manager.get_current_activity()
 
             # Current Galaxy and System Tick Times
             if self.bgstally.state.enable_overlay_current_tick:
@@ -357,18 +371,20 @@ class UI:
                     self.bgstally.overlay.display_progress_bar("tw", _("TW War Progress in {current_system}: {percent}%").format(current_system=current_system.get('System', 'Unknown'), percent=percent), progress) # LANG:Overlay TW report message
 
             # System Activity. Shares same overlay panel as System Info and Station Info
-            if self.bgstally.state.enable_overlay_system and current_activity is not None:
+            fmtr = self.bgstally.formatter_manager.get_default_formatter()
+            if self.bgstally.state.enable_overlay_system and current_activity is not None and fmtr is not None:
+
                 if self.activity_system_address is not None:
                     # Report recent activity in a designated system, overrides pinned systems
                     report_system:dict|None = current_activity.get_system_by_address(self.activity_system_address)
                     if report_system is not None:
-                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True)
+                        self.bgstally.overlay.display_message("system_info", fmtr.get_overlay(current_activity, DiscordActivity.BOTH, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True)
                     self.activity_system_address = None
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
                     if pinned_systems is not None and pinned_systems != []:
-                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
+                        self.bgstally.overlay.display_message("system_info", fmtr.get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
 
             system_and_station_info:str = ""
 
@@ -448,14 +464,26 @@ class UI:
                 if show_objectives and objectives_text:
                     self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
 
+            state:State = self.bgstally.state
+
             # Colonisation
+            show_colonisation_overlay = bool(
+                state.vehicle == Vehicle.SHIP and \
+                state.ui_state in (UIState.STATION_SERVICES, UIState.NO_FOCUS, UIState.INTERNAL_PANEL) and \
+                (ShipState.HARDPOINTS_DEPLOYED not in state.ship_state))
             if self.bgstally.state.enable_overlay_colonisation:
-                colonisation_text: str = self.window_progress.as_text(False)
+                colonisation_text:str = self.window_progress.overlay_text() if show_colonisation_overlay else ""
                 self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
 
-            if self.bgstally.state.enable_overlay_carrier:
-                carrier_text: str = self.bgstally.fleet_carrier.update_overlay()
-                self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True)
+            show_carrier_overlay = bool(
+                state.vehicle == Vehicle.SHIP and \
+                state.ui_state in (UIState.STATION_SERVICES, UIState.NO_FOCUS) and \
+                (ShipState.HARDPOINTS_DEPLOYED not in state.ship_state))
+            #Debug.logger.debug(f"{self.bgstally.state.enable_overlay_carrier} {show_carrier_overlay} {state.vehicle} {state.ui_state}")
+            if self.bgstally.state.enable_overlay_carrier and show_carrier_overlay:
+                carrier_text:str = self.bgstally.fleet_carrier.update_overlay()
+                if carrier_text != "":
+                    self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True, ttl_override=3)
 
     def _previous_ticks_popup(self):
         """
@@ -474,10 +502,13 @@ class UI:
             menu.grab_release()
 
 
-    def _show_activity_window(self, activity: Activity):
+    def _show_activity_window(self, activity:Activity|None):
         """
         Display the appropriate activity data window, using data from the passed in activity object
         """
+        if activity is None:
+            return
+
         existing_activity_window:WindowActivity|None = self.window_activity.get(activity.tick_id)
         if existing_activity_window is not None:
             existing_activity_window.show(activity)

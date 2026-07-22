@@ -319,7 +319,6 @@ class TestCarrierRoute:
                 "mission": False,
                 "stolen": False
             }}}
-        sleep(20)
         fc.spansh_route('Alpha Centauri')
 
         assert len(fc.route) == 1

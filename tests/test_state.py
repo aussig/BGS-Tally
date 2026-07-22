@@ -163,14 +163,14 @@ class TestState:
         assert harness is not None
         state:State = harness.plugin.state
 
-        config.data['XShowZeroActivity'] = CheckStates.STATE_OFF.value
-        config.data['XAbbreviate'] = CheckStates.STATE_ON.value
-        config.data['XSecondaryInf'] = CheckStates.STATE_OFF.value
-        config.data['XDiscordUsername'] = "LegacyCmdr"
-        config.data['XEnableOverlay'] = CheckStates.STATE_OFF.value
-        config.data['XCurrentSystemID'] = "LegacySystem"
-        config.data['XStationFaction'] = "LegacyFaction"
-        config.data['XStationType'] = "LegacyStation"
+        config.set('XShowZeroActivity', CheckStates.STATE_OFF.value)
+        config.set('XAbbreviate', CheckStates.STATE_ON.value)
+        config.set('XSecondaryInf', CheckStates.STATE_OFF.value)
+        config.set('XDiscordUsername', "LegacyCmdr")
+        config.set('XEnableOverlay', CheckStates.STATE_OFF.value)
+        config.set('XCurrentSystemID', "LegacySystem")
+        config.set('XStationFaction', "LegacyFaction")
+        config.set('XStationType', "LegacyStation")
 
         state = State(harness.plugin)
 
@@ -183,11 +183,11 @@ class TestState:
         assert state.station_faction == "LegacyFaction"
         assert state.station_type == "LegacyStation"
 
-        assert 'XShowZeroActivity' not in config.data
-        assert 'XAbbreviate' not in config.data
-        assert 'XSecondaryInf' not in config.data
-        assert 'XDiscordUsername' not in config.data
-        assert 'XEnableOverlay' not in config.data
-        assert 'XCurrentSystemID' not in config.data
-        assert 'XStationFaction' not in config.data
-        assert 'XStationType' not in config.data
+        assert config.get_str('XShowZeroActivity', default=None) is None
+        assert config.get_str('XAbbreviate', default=None) is None
+        assert config.get_str('XSecondaryInf', default=None) is None
+        assert config.get_str('XDiscordUsername', default=None) is None
+        assert config.get_str('XEnableOverlay', default=None) is None
+        assert config.get_str('XCurrentSystemID', default=None) is None
+        assert config.get_str('XStationFaction', default=None) is None
+        assert config.get_str('XStationType', default=None) is None

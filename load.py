@@ -1,7 +1,7 @@
 from os import path
 
 import semantic_version
-from companion import CAPIData
+from companion import CAPIData # type: ignore
 
 import bgstally.globals
 from bgstally.bgstally import BGSTally
@@ -69,3 +69,10 @@ def capi_fleetcarrier(data: CAPIData):
     """
     if this.state.Status.get() != CheckStates.STATE_ON: return
     this.capi_fleetcarrier(data)
+
+def dashboard_entry(cmdr:str, is_beta:bool, entry:dict) -> None:
+    """
+    Handle dashboard entries
+    """
+    if this.state.Status.get() != CheckStates.STATE_ON: return
+    this.dashboard_entry(cmdr, is_beta, entry)

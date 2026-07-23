@@ -574,9 +574,9 @@ class TestColonisationFullBuild:
         assert c.systems[1]['Builds'][0]['Name'] == 'Citroen Arsenal'
 
     @pytest.mark.manual_only
-    @pytest.mark.live_requests
     def test_full_build_live(self, harness) -> None:
         """ Test the full build process live. """
+        harness.set_requests_mode(True)
         harness.load_events("colonisation_build_events.json")
         c = harness.plugin.colonisation
 

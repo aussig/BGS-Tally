@@ -787,7 +787,7 @@ class ProgressWindow:
             b:dict = tracked[self.build_index]
             system = b.get('StarSystem', _('Unknown'))
             pn:str = b.get('Plan', b.get('StarSystem', _('Unknown')))    # LANG: Unknown colonisation plan name
-            bn:str = self._base_name(b) + ", " + b.get('Base Type', '') if b.get('Name', ' ') != ' ' else b.get('Base Type', '')
+            bn:str = b.get('Base Type', '') + ", " + self._base_name(b) if b.get('Name', ' ') != ' ' else b.get('Base Type', '')
             name = f"{pn}, {bn}"
         self.titlett.text = f"{name}\n{_('left click to copy, right click menu')}" # LANG: tooltip for the build name"
         self.title.config(text=str_truncate(name, self.build_width, loc='middle'))

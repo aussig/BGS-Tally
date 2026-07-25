@@ -137,7 +137,7 @@ class Colonisation:
 
         if entry.get('StationType', '') == 'FleetCarrier' : self.station = 'FleetCarrier'
 
-        Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} ({station}) market: {self.market_id}")
+        #Debug.logger.debug(f"Event ({cmdr}): {entry.get('event')} -- SystemID: {self.system_id} Sys: {self.current_system} body: {self.body} station: {self.station} ({station}) market: {self.market_id}")
 
         match entry.get('event'):
             case 'StartUp': # Synthetic event.
@@ -158,7 +158,6 @@ class Colonisation:
                     SYSTEM_SERVICE.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
 
                 # Update progress for tracked, rc sync projects.
-                Debug.logger.debug(f"Loading projects")
                 for progress in self.progress:
                     if progress.get('ProjectID', None) != None or progress.get('ConstructionComplete', False) == True:
                         continue
@@ -310,14 +309,13 @@ class Colonisation:
                     return
 
                 # It's in a system we're building in, so we should find or create it.
-                Debug.logger.debug(f"Finding build {self.market_id} {self.station} {self.body}")
+                Debug.logger.debug(f"Approached site, finding build {self.market_id} {self.station} {self.body}")
                 build = self.find_or_create_build(system, {'MarketID': self.market_id,
                                                            'Name': self.station,
                                                            'Body': self.body})
                 data:dict = {} # Build update dict. Only update things that need to be changed.
                 if 'Construction Site' in self.station or 'System Colonisation Ship' in self.station:
-                    if build.get('State', None) != BuildState.PROGRESS: data['State'] = BuildState.PROGRESS
-                    if build.get('Track', False) == False: data['Track'] = True
+                    if build.get('State', None) not in [BuildState.PROGRESS, BuildState.COMPLETE]: data['State'] = BuildState.PROGRESS
                 else:
                     if build.get('State', None) != BuildState.COMPLETE: data['State'] = BuildState.COMPLETE
                     if build.get('Track', False) == True: data['Track'] = False

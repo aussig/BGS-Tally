@@ -1,6 +1,6 @@
 # Change Log
 
-## vx.x.x - xxxx-xx-xx
+## v5.6.0-a1 - 2026-07-26
 
 ### New Features:
 
@@ -23,6 +23,7 @@
 * Discord preview wasn't refreshing after changing the favourite faction mode in the drop-down
 * Checkbox for enabling / disabling automatic Discord posting had gone missing
 * Discord plaintext posts weren't updating on subsequent posts
+
 
 ## v5.5.1 - 2026-05-11
 

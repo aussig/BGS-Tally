@@ -121,17 +121,7 @@ class MockResponse:
 
 
 class MockSession:
-    _instance = None
-
-    # Singleton pattern
-    def __new__(cls, *args, **kwargs):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance
-
     def __init__(self) -> None:
-        if hasattr(self, '_initialized'): return
-
         self.calls = []
         self.queued_responses = {'get': {}, 'post': {}, 'put': {}, 'patch': {}, 'delete': {},
                                  'head': {}, 'options': {}}
@@ -150,8 +140,6 @@ class MockSession:
         self.timeout = None
         self.trust_env = True
 
-        self._initialized = True
-
     def _mock_request(self, method: str, url: str, **kwargs) -> MockResponse:
         call = {'method': method, 'url': url, **kwargs}
         self.calls.append(call)
@@ -159,10 +147,10 @@ class MockSession:
         response:MockResponse|None = None
         if url in self.queued_responses[method] and len(self.queued_responses[method][url]) > 0:
             response = self.queued_responses[method][url].pop(0)
-        if response == None and 'any' in self.queued_responses[method] and len(self.queued_responses[method]['any']) > 0:
-            response = self.queued_responses[method]['any'].pop(0)
         if response == None and url in self.sticky_responses[method]:
             response = self.sticky_responses[method][url]
+        if response == None and 'any' in self.queued_responses[method] and len(self.queued_responses[method]['any']) > 0:
+            response = self.queued_responses[method]['any'].pop(0)
         if response == None and 'any' in self.sticky_responses[method]:
             response = self.sticky_responses[method]['any']
         if response == None:

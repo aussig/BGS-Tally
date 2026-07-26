@@ -139,6 +139,8 @@ class API:
         """
         Call the discovery endpoint
         """
+        if not self.bgstally.request_manager.url_valid(self.url):
+            return
         self.bgstally.request_manager.queue_request(self.url + ENDPOINT_DISCOVERY, RequestMethod.GET, headers=self._get_headers(), callback=callback)
 
 
@@ -173,7 +175,7 @@ class API:
             self.user_approved = False
             # Put Message in BGS-Tally message field (with link to API settings? Possibly not when we have multiple APIs)
             self.bgstally.api_manager.api_updated = True
-            if self.bgstally.ui.frame: self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame())
+            if self.bgstally.ui.frame: self.bgstally.ui.frame.after(1000, self.bgstally.ui.update_plugin_frame)
 
         self.events = discovery_data.get('events', EVENTS_FILTER_DEFAULTS)
 

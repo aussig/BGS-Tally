@@ -1,7 +1,7 @@
 from os import path
 
 import semantic_version
-from companion import CAPIData
+from companion import CAPIData # type: ignore
 
 import bgstally.globals
 from bgstally.bgstally import BGSTally
@@ -9,7 +9,7 @@ from bgstally.constants import CheckStates, UpdateUIPolicy
 from bgstally.debug import Debug
 
 PLUGIN_NAME = "BGS-Tally"
-PLUGIN_VERSION = semantic_version.Version.coerce("5.5.1")
+PLUGIN_VERSION = semantic_version.Version.coerce("5.6.0-a1")
 VERSION = str(PLUGIN_VERSION) # For compatability with the EDMC Plugin Registry: https://github.com/EDCD/EDMC-Plugin-Registry
 
 # Initialise the main plugin class
@@ -45,14 +45,14 @@ def plugin_prefs(parent, cmdr: str, is_beta: bool):
     """
     Return a TK Frame for adding to the EDMC settings dialog
     """
-    return this.ui.get_prefs_frame(parent)
+    return this.prefs.get_prefs_frame(parent)
 
 
 def prefs_changed(cmdr: str, is_beta: bool) -> None:
     """
     Save settings.
     """
-    this.ui.save_prefs()
+    this.prefs.save_prefs()
 
 
 def journal_entry(cmdr, is_beta, system, station, entry, state):
@@ -69,3 +69,10 @@ def capi_fleetcarrier(data: CAPIData):
     """
     if this.state.Status.get() != CheckStates.STATE_ON: return
     this.capi_fleetcarrier(data)
+
+def dashboard_entry(cmdr:str, is_beta:bool, entry:dict) -> None:
+    """
+    Handle dashboard entries
+    """
+    if this.state.Status.get() != CheckStates.STATE_ON: return
+    this.dashboard_entry(cmdr, is_beta, entry)

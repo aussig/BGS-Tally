@@ -148,11 +148,13 @@ class ColonisationWindow:
         # Links to systems, bodies etc.
         self.links:dict = {'System': {'Inara': 'https://inara.cz/elite/starsystem/search/?search={StarSystem}',
                                       'Spansh': 'https://www.spansh.co.uk/system/{SystemAddress}',
+                                      'Canonn': 'https://signals.canonn.tech/index.html?system={StarSystem}',
                                       'EDGIS': 'https://elitedangereuse.fr/outils/sysmap.php?system={StarSystem}',
                                       'EDSM': 'https://www.edsm.net/en/system?systemName={StarSystem}',
                                       'RavenColonial': 'https://ravencolonial.com/#sys={StarSystem}'},
                            'Bodies': {'Inara': 'https://inara.cz/elite/starsystem-bodies/search/?search={StarSystem}',
                                       'Spansh': 'https://www.spansh.co.uk/system/{SystemAddress}#system-bodies',
+                                      'Canonn': 'https://signals.canonn.tech/index.html?system={StarSystem}',
                                       'EDGIS': 'https://elitedangereuse.fr/outils/sysmap.php?system={StarSystem}'},
                            'Base':   {'RavenColonial': 'https://ravencolonial.com/#vis={Layout}'}
                             }

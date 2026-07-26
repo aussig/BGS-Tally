@@ -1,5 +1,30 @@
 # Change Log
 
+## v5.6.0-a1 - 2026-07-26
+
+### New Features:
+
+* The colonisation overlay now mimics the first column of the progress window in content (required, remaining etc.), level of detail, and units (Tonnes/Loads)
+* Like the colonisation overlay the discord post mimics the progress window in the columns, level of detail, and units.
+* Made colonisation & carrier overlays sensitive to the UI state
+
+### Changes:
+
+* Added table2ascii library to make discord tables easier and more consistent
+* Added Vehicle, Location, ShipState & UI state tracking to the state object
+* Refactored colonisation progress code
+* Replaced the confusing cycling through the progress details options with a dropdown menu
+* Now set a default Discord 'Post as' username to help speed up setup. You should still set your own though.
+* Reorganized the preferences display into tabs, sections and preferences.
+
+### Bug Fixes:
+
+* Fixed a fleetcarrier runtime if fdev returned the wrong type of data to a CAPI query.
+* Discord preview wasn't refreshing after changing the favourite faction mode in the drop-down
+* Checkbox for enabling / disabling automatic Discord posting had gone missing
+* Discord plaintext posts weren't updating on subsequent posts
+
+
 ## v5.5.1 - 2026-05-11
 
 ### Bug Fixes:

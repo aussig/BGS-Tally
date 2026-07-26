@@ -126,6 +126,8 @@ class TestColonisationMethods:
         # Make sure we only have two builds so we can do the three states
         c.systems[0]['Builds'] = c.systems[0]['Builds'][0:2]
         sys = c.systems[0]
+
+        for b in sys['Builds']: b['Track'] = False
         for i, state in enumerate(['None', 'Partial', 'All']):
             if i > 0: sys['Builds'][i-1]['Track'] = True
             res = c.get_system_tracking(sys)
@@ -422,40 +424,103 @@ class TestColonisationMethods:
         id2 = c._generate_buildid(123)
         assert id2 == '&123'
 
-    def test_from_dict_migrates_resourcesrequired(self, harness) -> None:
-        """This can likely go away soon and the code can be removed """
+
+class TestColonisationProgress:
+    def test_progress(self, harness) -> None:
+        """ Test the progress window initialization. """
+        harness.load_events("colonisation_build_events.json")
+        plugin = harness.plugin
+
+        progress_window = plugin.ui.window_progress
+        assert progress_window is not None
+        progress_window.update_display()
+
+        print(f"Progress window progress: {progress_window.progress}")
+        assert len(progress_window.columns) == 4
+
+
+    def test_get_value_formats(self, harness) -> None:
+        """Values should format as tonnes by default and loads when >1 load."""
+        progress_window = harness.plugin.ui.window_progress
         c = harness.plugin.colonisation
-        payload = {
-            'Systems': [],
-            'Progress': [{'MarketID': 500, 'ResourcesRequired': [{'Name': '$steel_name;', 'RequiredAmount': 12, 'ProvidedAmount': 3}], 'Updated': '2026-03-01'}],
-            'ProgressView': 0,
-            'ProgressUnits': [0],
-            'ProgressColumns': [],
-            'BuildIndex': 0,
-            'WindowGeometries': {}
-        }
+        c.cargo_capacity = 100
 
-        c.progress = []
-        c._from_dict(payload)
+        comm = progress.Commodity(c, 'steel', 250, 0)
+        assert progress_window._get_value('Required', progress.ProgressUnits.QTY, comm) == '250t'
+        assert progress_window._get_value('Required', progress.ProgressUnits.LOADS, comm) == '3L'
 
-        progress_list = [p for p in c.progress if p.get('MarketID') == 500 and p.get('Required', {}).get('steel') == 12]
-        assert len(progress_list) == 1
+        one_load_or_less = progress.Commodity(c, 'water', 50, 0)
+        assert progress_window._get_value('Required', progress.ProgressUnits.LOADS, one_load_or_less) == '50t'
 
-        progress = progress_list[0]
-        assert progress['Required']['steel'] == 12
-        assert progress['Delivered']['steel'] == 3
+    def test_get_totals_caps(self, harness) -> None:
+        """Totals should not over-count cargo/carrier beyond remaining need."""
+        progress_window = harness.plugin.ui.window_progress
+        c = harness.plugin.colonisation
 
+        tracked:list = c.get_tracked_builds()
+        comms:list = progress_window._get_comms(tracked)
+        steel_index = next((i for i, comm in enumerate(comms) if comm.comm == 'steel'), None)
+        assert steel_index is not None
+        print(f"Comms: {comms[steel_index]}")
+
+        comms[steel_index].cargo = 100
+        comms[steel_index].carrier = 1000
+        comms[steel_index].buyorder = 3000
+
+        totals = progress_window._get_totals(comms)
+        assert totals.required == 6700
+        assert totals.delivered == 1446
+        assert totals.buyorder == 3000
+        assert totals.cargo == 100
+        assert totals.carrier == 1000
+        assert totals.remaining == 5254
+        assert totals.purchase == 5254
+
+    def test_skip_row(self, harness) -> None:
+        """Skip logic should respect view mode and max row limits."""
+        progress_window = harness.plugin.ui.window_progress
+        c = harness.plugin.colonisation
+
+        comm = progress.Commodity(c, 'steel', 10, 10)
+        comm.remaining = 0
+        comm.cargo = 0
+
+        assert progress_window._skip_row(progress.ProgressView.FULL, comm, 0) is False
+        assert progress_window._skip_row(progress.ProgressView.REDUCED, comm, 0) is True
+
+        progress_window.use_scrollbar = False
+        progress_window.max_rows = 1
+        long_list_comm = progress.Commodity(c, 'water', 10, 0)
+        assert progress_window._skip_row(progress.ProgressView.FULL, long_list_comm, 2) is True
+
+    def test_overlay_and_discord_text(self, harness) -> None:
+        """Text output should be empty in NONE view and populated in FULL view."""
+        progress_window = harness.plugin.ui.window_progress
+
+        progress_window.view = progress.ProgressView.NONE
+        assert progress_window.discord_text() == ''
+        assert progress_window.overlay_text() == ''
+
+        progress_window.view = progress.ProgressView.FULL
+        discord_output = progress_window.discord_text()
+        overlay_output = progress_window.overlay_text()
+
+        assert len(discord_output) > 1000
+        assert '```' in discord_output
+        assert len(overlay_output) > 600
+        assert progress.TAG_OVERLAY_HIGHLIGHT in overlay_output
 
 class TestColonisationFullBuild:
+
     def test_claim(self, harness) -> None:
         """ Test claiming a system and deploying a beacon creates a new system entry and updates state. """
-        harness.load_events("colonisation_build.json")
+        harness.load_events("colonisation_build_events.json")
         c = harness.plugin.colonisation
         harness.play_sequence("claim", SHORT_DELAY)
 
     def test_visit(self, harness) -> None:
         """ Test visiting the colonisation ship. """
-        harness.load_events("colonisation_build.json")
+        harness.load_events("colonisation_build_events.json")
         c = harness.plugin.colonisation
 
         harness.play_sequence("claim", SHORT_DELAY)
@@ -467,7 +532,7 @@ class TestColonisationFullBuild:
 
     def test_contribution(self, harness) -> None:
         """ Test visiting the colonisation ship. """
-        harness.load_events("colonisation_build.json")
+        harness.load_events("colonisation_build_events.json")
         c = harness.plugin.colonisation
 
         harness.play_sequence("claim", SHORT_DELAY)
@@ -479,7 +544,7 @@ class TestColonisationFullBuild:
 
     def test_complete(self, harness) -> None:
         """ Test completing construction. """
-        harness.load_events("colonisation_build.json")
+        harness.load_events("colonisation_build_events.json")
         c = harness.plugin.colonisation
 
         harness.play_sequence("claim", SHORT_DELAY)
@@ -494,7 +559,7 @@ class TestColonisationFullBuild:
 
     def test_visit_outpost(self, harness) -> None:
         """ Test visiting the completed outpost. """
-        harness.load_events("colonisation_build.json")
+        harness.load_events("colonisation_build_events.json")
         c = harness.plugin.colonisation
 
         harness.play_sequence("claim", SHORT_DELAY)
@@ -508,64 +573,20 @@ class TestColonisationFullBuild:
         assert c.systems[1]['Builds'][0]['State'] == BuildState.COMPLETE
         assert c.systems[1]['Builds'][0]['Name'] == 'Citroen Arsenal'
 
+    @pytest.mark.manual_only
+    def test_full_build_live(self, harness) -> None:
+        """ Test the full build process live. """
+        harness.set_requests_mode(True)
+        harness.load_events("colonisation_build_events.json")
+        c = harness.plugin.colonisation
 
+        harness.play_sequence("claim", SHORT_DELAY)
+        harness.play_sequence("visit_ship", SHORT_DELAY)
+        harness.play_sequence("contribution", SHORT_DELAY)
+        harness.play_sequence("complete", SHORT_DELAY)
+        harness.play_sequence("visit_outpost", SHORT_DELAY)
 
-# Unused tests that do some interesting things
-    # def test_journal_entry_colonisation_contribution(self, harness) -> None:
-    #     c = harness.plugin.colonisation
-
-    #     with patch('bgstally.colonisation.RavenColonial') as mock_rc:
-    #         instance = mock_rc.return_value
-    #         c.current_system = 'Sol'
-    #         c.system_id = 777
-    #         c.market_id = 500
-    #         c.journal_entry('Testy', False, 'Sol', '', {'event': 'ColonisationContribution', 'StarSystem': 'Sol', 'SystemAddress': 777, 'Contributions': [{'Name': '$steel_name;', 'ProvidedAmount': 10}]}, {})
-
-    #         instance.record_contribution.assert_called_once()
-
-    # def test_journal_entry_docked_creates_build(self, harness) -> None:
-    #     c = harness.plugin.colonisation
-
-    #     c.systems = []
-    #     c.progress = []
-
-    #     with patch('bgstally.colonisation.BODY_SERVICE.import_bodies', return_value=None), \
-    #          patch('bgstally.colonisation.SYSTEM_SERVICE.import_system', return_value=None), \
-    #          patch('bgstally.colonisation.STATION_SERVICE.import_stations', return_value=None):
-
-    #         c.current_system = 'Sol'
-    #         c.system_id = 777
-    #         c.market_id = 600
-    #         c.station = 'System Colonisation Ship'
-
-    #         c.journal_entry('Testy', False, 'Sol', '', {'event': 'Docked', 'StarSystem': 'Sol', 'SystemAddress': 777, 'MarketID': 600, 'StationType': 'Starport'}, {})
-
-    #         system = c.find_system({'StarSystem': 'Sol', 'SystemAddress': 777})
-    #         assert system is not None
-    #         assert len(system.get('Builds', [])) > 0
-
-    #         build = c.find_build(system, {'MarketID': 600})
-    #         if build is None:
-    #             # fallback: there is at least one build; pick the first one
-    #             build = system.get('Builds', [None])[0]
-
-    #         assert build is not None
-    #         assert build['State'] == BuildState.PROGRESS
-
-    # def test_journal_entry_supercruise_exit_tracks_project(self, harness) -> None:
-    #     c = harness.plugin.colonisation
-    #     c.systems = [{
-    #         'Name': 'SolPlan', 'StarSystem': 'Sol', 'SystemAddress': 777, 'RCSync': True, 'Hidden': False,
-    #         'Builds': [{'Name': 'Asteroid Base', 'MarketID': 500, 'BuildID': 'x-1', 'ProjectID': 100, 'Track': True, 'State': BuildState.PROGRESS}]
-    #     }]
-
-    #     c.progress = [{'MarketID': 500, 'ProjectID': 100, 'Required': {}, 'Delivered': {}, 'ConstructionComplete': False}]
-
-    #     c.current_system = 'Sol'
-    #     c.system_id = 777
-    #     c.station = 'Some Station'
-
-    #     with patch('bgstally.colonisation.RavenColonial') as mock_rc:
-    #         instance = mock_rc.return_value
-    #         c.journal_entry('Testy', False, 'Sol', '', {'event': 'SupercruiseExit', 'StarSystem': 'Sol', 'SystemAddress': 777}, {})
-    #         instance.load_project.assert_called_once_with(c.progress[0])
+        assert c.systems[1]['Builds'][0]['BuildID'] == "&3963439106"
+        assert c.systems[1]['Builds'][0]['MarketID'] == 4351826691
+        assert c.systems[1]['Builds'][0]['State'] == BuildState.COMPLETE
+        assert c.systems[1]['Builds'][0]['Name'] == 'Citroen Arsenal'

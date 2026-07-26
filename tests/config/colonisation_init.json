@@ -25,7 +25,7 @@
                 "waterpurifiers": 13
             },
             "Delivered": {
-                "aluminium": 0,
+                "aluminium": 1377,
                 "ceramiccomposites": 0,
                 "computercomponents": 0,
                 "copper": 0,
@@ -38,7 +38,7 @@
                 "powergenerators": 0,
                 "semiconductors": 0,
                 "steel": 0,
-                "superconductors": 0,
+                "superconductors": 61,
                 "titanium": 0,
                 "water": 0,
                 "waterpurifiers": 0
@@ -76,7 +76,7 @@
                     "Base Type": "Satellite",
                     "MarketID": 3960978946,
                     "Location": "Orbital",
-                    "Track": false,
+                    "Track": true,
                     "ProjectID": "45135c16-cbbe-412e-b0b0-f097a1ac06e0",
                     "Readonly": false
                 },
@@ -132,7 +132,7 @@
             "RCSync": false,
             "Architect": "NavlGazr",
             "Rev": 1,
-            "Hidden": true,
+            "Hidden": false,
             "SpanshUpdated": 1762908547,
             "BuildSlots": {
                 "1": [

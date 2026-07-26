@@ -63,7 +63,7 @@ class Overlay:
         """
         if self.edmcoverlay == None: return
         if not self.bgstally.state.enable_overlay: return
-        if message == "": return
+        #if message == "": return
 
         try:
             fi: dict | None = self.bgstally.config.overlay_frame(frame_name)
@@ -79,9 +79,15 @@ class Overlay:
             for line in lines:
                 segments += textwrap.wrap(line, width = 80, subsequent_indent = '  ')
 
-            message_width: int = len(max(segments, key = len)) * WIDTH_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(max(segments, key = len)) * WIDTH_CHARACTER_LARGE
-            message_height: int = len(segments) * HEIGHT_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(segments) * HEIGHT_CHARACTER_LARGE
-            ttl: int = ttl_override if ttl_override else int(fi['ttl'])
+            if message == "":
+                segments = [" "]
+                message_width:int = 0
+                message_height:int = 0
+                ttl:int = 1
+            else:
+                message_width: int = len(max(segments, key = len)) * WIDTH_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(max(segments, key = len)) * WIDTH_CHARACTER_LARGE
+                message_height: int = len(segments) * HEIGHT_CHARACTER_NORMAL if fi['text_size'] == "normal" else len(segments) * HEIGHT_CHARACTER_LARGE
+                ttl: int = ttl_override if ttl_override else int(fi['ttl'])
             title_colour: str = title_colour_override if title_colour_override else fi['title_colour']
             text_colour: str = text_colour_override if text_colour_override else fi['text_colour']
 

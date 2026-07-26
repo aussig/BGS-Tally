@@ -35,6 +35,63 @@ class UpdateUIPolicy(Enum):
     LATER = 2
 
 
+# Which vehichle the user is currently in.
+class Vehicle(str, Enum):
+    SHIP = 'Ship'
+    FIGHTER = 'Fighter'
+    SRV = 'SRV'
+    MULTICREW = 'MultiCrew'
+    ON_FOOT = 'OnFoot'
+    TAXI = 'Taxi'
+    UNKNOWN = 'Unknown'
+
+class Location(str, Enum):
+    SPACE = 'Space'
+    STATION = 'Station'
+    PLANET = 'Planet'
+    HANGAR = 'Hangar'
+    UNKNOWN = 'Unknown'
+
+class ShipState(str, Enum):
+    DOCKED = 'Docked'
+    LANDED = 'Landed'
+    GEAR_DOWN = 'GearDown'
+    SHIELDS_UP = 'ShieldsUp'
+    SUPERCRUISE = 'Supercruise'
+    FA_OFF = 'FlightAssistOff'
+    HARDPOINTS_DEPLOYED = 'HardpointsDeployed'
+    IN_WING = 'InWing'
+    LIGHTS_ON = 'LightsOn'
+    SCOOP_DEPLOYED = 'CargoScoopDeployed'
+    SILENT_RUNNING = 'SilentRunning'
+    SCOOPING_FUEL = 'ScoopingFuel'
+    FSD_MASSLOCKED = 'FsdMassLocked'
+    FSD_CHARGING = 'FsdCharging'
+    FSD_JUMP = 'FsdJump'
+    FSD_COOLDOWN = 'FsdCooldown'
+    LOW_FUEL = 'LowFuel'
+    OVERHEATING = 'OverHeating'
+    IN_DANGER = 'IsInDanger'
+    BEING_INTERDICTED = 'BeingInterdicted'
+    ANALYSIS_MODE = 'AnalysisMode'
+    NIGHTVISION = 'NightVision'
+
+class UIState(str, Enum):
+    NO_FOCUS = 'NoFocus'
+    INTERNAL_PANEL = 'InternalPanel'
+    EXTERNAL_PANEL = 'ExternalPanel'
+    COMMS_PANEL = 'CommsPanel'
+    ROLE_PANEL = 'RolePanel'
+    STATION_SERVICES = 'StationServices'
+    CARRIER_MANAGEMENT = 'CarrierManagement'
+    GALAXY_MAP = 'GalaxyMap'
+    CARRIER_GAL_MAP = 'CarrierGalaxyMap'
+    SYSTEM_MAP = 'SystemMap'
+    ORRERY = 'Orrery'
+    FSS = 'FSS'
+    SAA = 'SAA'
+    CODEX = 'Codex'
+
 # Discord channels
 # Subclassing from str as well as Enum means json.load and json.dump work seamlessly
 class DiscordChannel(str, Enum):

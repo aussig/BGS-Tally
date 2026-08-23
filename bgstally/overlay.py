@@ -75,7 +75,7 @@ class Overlay:
 
             # Put the title first
             if title != None and title != '':
-                segments += f"{TAG_OVERLAY_HIGHLIGHT}{title}"
+                segments.append(f"{TAG_OVERLAY_HIGHLIGHT}{title}")
             for line in lines:
                 segments += textwrap.wrap(line, width = 80, subsequent_indent = '  ')
 

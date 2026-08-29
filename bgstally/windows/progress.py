@@ -740,7 +740,7 @@ class ProgressWindow:
             return True
 
         # If we're docked and the market doesn't have this commodity and we don't need to buy it and we don't have any in cargo then skip unless we're in FULL view
-        if docked and not forsale and not comm.purchase > 0 and comm.cargo == 0:
+        if docked and not forsale and not comm.remaining > 0 and comm.cargo == 0:
             return True
 
         if view == ProgressView.REDUCED: # REDUCED show everything else

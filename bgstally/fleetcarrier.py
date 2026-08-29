@@ -1,5 +1,6 @@
 import json
 import time
+import traceback
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from os import path
@@ -309,6 +310,7 @@ class FleetCarrier:
             "fuel_loaded": self.overview.get('fuel', 1000),
             "tritium_stored" : get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)
             }
+        Debug.logger.debug(f"Spansh route request {params}")
         res:requests.Response = requests.post(SPANSH_ROUTE, params=params, headers={'User-Agent': f"BGSTally/{self.bgstally.version}"})
         if res.status_code != 202:
             Debug.logger.info(f"Spansh error: {res}")
@@ -489,14 +491,14 @@ class FleetCarrier:
 
             jumplist:list = deepcopy(self.itinerary)
             centries:list = [x['arrivalTime'][:-3] for x in get_by_path(self.data, ['itinerary', 'completed'])]
-            ientries:list = [x['arrivalTime'][:-3] for x in self.itinerary]
+            ientries:list = [x['arrivalTime'][:-3] for x in self.itinerary if 'arrivalTime' in x and x['arrivalTime'] is not None]
 
             # Add entries that aren't in our itinerary
-            jumplist += [j for j in get_by_path(data, ['itinerary', 'completed'], []) if j['arrivalTime'][:-3] not in ientries]
+            jumplist += [j for j in get_by_path(data, ['itinerary', 'completed'], []) if 'arrivalTime' in j and j['arrivalTime'] and j['arrivalTime'][:-3] not in ientries]
 
             # Remove entires that are in our itinerary but not in the capi data
             # (for as far back as the capi data goes)
-            jumplist = [j for i, j in enumerate(jumplist) if j['arrivalTime'][:-3] in centries or i >= len(centries)]
+            jumplist = [j for i, j in enumerate(jumplist) if 'arrivalTime' in j and j['arrivalTime'] and j['arrivalTime'][:-3] in centries or i >= len(centries)]
 
             # Sort & dedup
             jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)
@@ -527,6 +529,8 @@ class FleetCarrier:
 
         except Exception as e:
             Debug.logger.error(f"Error updating itinerary {e}")
+            trace:list = traceback.format_exc().splitlines()
+            Debug.logger.error("\n".join(trace))
             return self.itinerary
 
 

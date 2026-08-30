@@ -6,6 +6,7 @@
 
 * Fixed bug where builds around a primary star weren't showing on bodies window
 * Stopped colonisation overlay displaying empty tables
+* Only the owner can update a systenm's nickname so stop trying if it isn't ours
 
 ## v5.6.0-a1 - 2026-07-26
 

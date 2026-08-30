@@ -1,5 +1,15 @@
 # Change Log
 
+## v5.6.0-b1 - 2026-08-30
+
+### Bug Fixes:
+
+* Fixed bug where builds around a primary star weren't showing on bodies window
+* Stopped colonisation overlay displaying empty tables
+* Only the owner can update a systenm's nickname so stop trying if it isn't ours
+* Fixed Objectives overlay so the title isn't line wrapped after every letter
+
+
 ## v5.6.0-a1 - 2026-07-26
 
 ### New Features:

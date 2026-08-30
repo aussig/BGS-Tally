@@ -11,17 +11,21 @@ from typing import TYPE_CHECKING, List, Optional
 
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
+    from bgstally.state import State
 
-import myNotebook as nb
-from plugins.common_coreutils import api_keys_label_common, show_pwd_var_common
-from ttkHyperlinkLabel import HyperlinkLabel
+import myNotebook as nb  # type: ignore
+from plugins.common_coreutils import api_keys_label_common, show_pwd_var_common # type: ignore
+from ttkHyperlinkLabel import HyperlinkLabel  # type: ignore
+
+from config import config # type: ignore
+import edmc_data # type: ignore
 
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates,
-                                DiscordActivity, FavouriteActivity, UpdateUIPolicy)
+from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL,
+                                TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity, FavouriteActivity, UpdateUIPolicy,
+                                Vehicle, ShipState, UIState)
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, catch_exceptions, get_by_path, get_localised_filepath, human_format
-from bgstally.widgets import EntryPlus
 from bgstally.windows.activity import WindowActivity
 from bgstally.windows.api import WindowAPI
 from bgstally.windows.cmdrs import WindowCMDRs
@@ -31,7 +35,6 @@ from bgstally.windows.legend import WindowLegend
 from bgstally.windows.objectives import WindowObjectives
 from bgstally.windows.objectives_overlay_settings import WindowObjectivesOverlaySettings
 from bgstally.windows.progress import ProgressWindow
-from config import config
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
 
@@ -90,6 +93,10 @@ class UI:
         # RavenColonial API key management
         self.apikey:nb.EntryMenu
         self.apikey_label:tk.Label
+
+        # Show/hide based on UI state
+        self.show_colonisation_overlay:bool = True
+        self.show_carrier_overlay:bool = True
 
         # Single-instance windows
         self.window_cmdrs:WindowCMDRs = WindowCMDRs(self.bgstally)
@@ -204,214 +211,6 @@ class UI:
         self.window_progress.update_display()
 
 
-    def get_prefs_frame(self, parent_frame: tk.Frame):
-        """
-        Return a TK Frame for adding to the EDMC settings dialog
-        """
-        self.plugin_frame:tk.Frame = parent_frame
-        frame = nb.Frame(parent_frame)
-        # Make the second column fill available space
-        frame.columnconfigure(1, weight=1)
-
-        current_row = 1
-        nb.Label(frame, text=f"{self.bgstally.plugin_name} v{str(self.bgstally.version)}", font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.W)
-        HyperlinkLabel(frame, text=_("Instructions for Use"), background=nb.Label().cget('background'), url=URL_WIKI, underline=True).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences label
-
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text=_("General Options"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
-        nb.Checkbutton(frame, text=_("{plugin_name} Active").format(plugin_name=self.bgstally.plugin_name), variable=self.bgstally.state.Status, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.update_plugin_frame).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(frame, text=_("Show Systems with Zero Activity"), variable=self.bgstally.state.ShowZeroActivitySystems, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(frame, text=_("Colonisation Active"), variable=self.bgstally.state.ColonisationStatus, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self._colonisation_change).grid(row=current_row, column=1, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences checkbox label
-
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text=_("Discord Options"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
-        discofr = nb.Frame(frame)
-        discofr.grid(row=current_row, column=1, padx=0, sticky=tk.W); current_row += 1
-        row:int = 0; column:int = 0
-        nb.Checkbutton(discofr, text=_("Show Detailed INF"), variable=self.bgstally.state.DetailedInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=0, padx=10, sticky=tk.W)# LANG: Preferences checkbox label
-        nb.Checkbutton(discofr, text=_("Include Secondary INF"), variable=self.bgstally.state.IncludeSecondaryInf, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=1, padx=10, sticky=tk.W); row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(discofr, text=_("Show Detailed Trade"), variable=self.bgstally.state.DetailedTrade, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=0, padx=10, sticky=tk.W)# LANG: Preferences checkbox label
-        nb.Checkbutton(discofr, text=_("Report Newly Visited System Activity By Default"), variable=self.bgstally.state.EnableSystemActivityByDefault, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF).grid(row=row, column=1, padx=10, sticky=tk.W); row += 1 # LANG: Preferences checkbox label
-        nb.Checkbutton(discofr, text=_("Show Powerplay Merits Gained"), variable=self.bgstally.state.EnableShowMerits, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=0, padx=10, sticky=tk.W) # LANG: Preferences checkbox label
-        favourite_types: dict = {FavouriteActivity.IGNORE: _("Include all factions"), # LANG: Dropdown menu on activity window
-                                 FavouriteActivity.FACTIONS: _("Include favourite factions only"), # LANG: Dropdown menu on activity window
-                                 FavouriteActivity.SYSTEMS: _("Include systems containing favourite factions")} # LANG: Dropdown menu on activity window
-        var_favourite_type: tk.StringVar = tk.StringVar(value=favourite_types.get(self.bgstally.state.FavouriteActivityMode.get(), FavouriteActivity.IGNORE))
-        self.mnu_favourite_type: nb.OptionMenu = nb.OptionMenu(discofr, var_favourite_type, var_favourite_type.get(),
-                                                            *favourite_types.values(),
-                                                            command=partial(self._favourite_type_selected, favourite_types), direction='below')
-        self.mnu_favourite_type.grid(row=row, column=1, padx=10, sticky=tk.W); row += 1
-        nb.Checkbutton(discofr, text=_("Use Colonisation Plan name instead of System Name"), variable=self.bgstally.state.UseColonisationName, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=row, column=0, padx=10, sticky=tk.W); row += 1 # LANG: Preferences checkbox label
-
-        nb.Label(frame, text=_("Post to Discord as")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
-        self.languages: dict[str|None, str] = available_langs()
-        self.language:tk.StringVar = tk.StringVar(value=self.languages.get(self.bgstally.state.discord_lang, _('Default'))) # LANG: Preferences label
-        self.formatters: dict[str|None, str] = self.bgstally.formatter_manager.get_formatters()
-        self.formatter:tk.StringVar = tk.StringVar(value=self.formatters.get(self.bgstally.state.discord_formatter, _('Default'))) # LANG: Preferences label
-        discofr2 = nb.Frame(frame)
-        discofr2.grid(row=current_row, column=1, padx=0, sticky=tk.W); current_row += 1
-        row = 0
-        EntryPlus(discofr2, textvariable=self.bgstally.state.DiscordUsername).grid(row=row, column=0, padx=10, pady=1, sticky=tk.W)
-        nb.Label(discofr2, text=_("Language for Discord Posts")).grid(row=row, column=1, padx=10, sticky=tk.W) # LANG: Preferences label
-        #nb.Label(discofr2, text=_("Post Language")).grid(row=row, column=1, padx=10, sticky=tk.W) # LANG: Preferences label
-        nb.OptionMenu(discofr2, self.language, self.language.get(), *self.languages.values(), command=self._language_modified).grid(row=row, column=2, padx=10, pady=1, sticky=tk.W)
-        nb.Label(discofr2, text=_("Format for Discord Posts")).grid(row=row, column=3, padx=(50,10), sticky=tk.W) # LANG: Preferences label
-        #nb.Label(discofr2, text=_("Post Format")).grid(row=row, column=3, padx=10, sticky=tk.W) # LANG: Preferences label
-        nb.OptionMenu(discofr2, self.formatter, self.formatter.get(), *sorted(self.formatters.values()), command=self._formatter_modified).grid(row=row, column=4, padx=10, pady=1, sticky=tk.W)
-        nb.Label(frame, text=_("Discord Avatar URL")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
-        EntryPlus(frame, textvariable=self.bgstally.state.DiscordAvatarURL, width=80).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
-
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text=_("Discord Webhooks"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
-        ui_scaling:float = self.frame.tk.call('tk', 'scaling')
-        sheet_headings:list = ["UUID",
-                               _("Nickname"), # LANG: Preferences table heading
-                               _("Webhook URL"), # LANG: Preferences table heading
-                               "BGS",
-                               "TW",
-                               _("FC C/M"), # LANG: Preferences table heading, abbreviation for fleet carrier commodities / materials
-                               _("FC Ops"), # LANG: Preferences table heading, abbreviation for fleet carrier operations
-                               "CMDR",
-                               "PP"]
-        self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, cell_auto_resize_enabled=False, height=140, width=880,
-                                     column_width=int(45 * ui_scaling), header_align="left", empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
-                                     show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
-                                     headers=sheet_headings)
-        self.sheet_webhooks.grid(row=current_row, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); current_row += 1
-        self.sheet_webhooks.hide_columns(columns=[0])                       # Visible column indexes
-        self.sheet_webhooks.checkbox_column(c=[3, 4, 5, 6, 7, 8])           # Data column indexes
-        self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks_as_list())
-        self.sheet_webhooks.column_width(column=0, width=int(150 * ui_scaling), redraw=False) # Visible column indexes
-        self.sheet_webhooks.column_width(column=1, width=int(200 * ui_scaling), redraw=True)  # Visible column indexes
-        self.sheet_webhooks.enable_bindings(('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select', 'rc_insert_row',
-                            'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell', 'modified'))
-        self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)
-        nb.Label(frame, text=_("To add a webhook: Right-click on a row number and select 'Insert rows above / below'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences label
-        nb.Label(frame, text=_("To delete a webhook: Right-click on a row number and select 'Delete rows'."), font=FONT_SMALL).grid(row=current_row, columnspan=2, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences label
-
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text=_("In-game Overlay"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
-        nb.Checkbutton(frame, text=_("Show In-game Overlay"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlay,
-                       state=self.overlay_options_state(),
-                       onvalue=CheckStates.STATE_ON,
-                       offvalue=CheckStates.STATE_OFF,
-                       command=self.bgstally.state.refresh
-                       ).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-
-        nb.Label(frame, text=_("Panels")).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences label
-        overlay_options_frame_1:ttk.Frame = ttk.Frame(frame)
-        overlay_options_frame_1.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(overlay_options_frame_1, text=_("Activity Indicator"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlayActivity,
-                       state=self.overlay_options_state(),
-                       onvalue=CheckStates.STATE_ON,
-                       offvalue=CheckStates.STATE_OFF,
-                       command=self.bgstally.state.refresh
-                       ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_1, text=_("CMDR Info"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlayCMDR,
-                       state=self.overlay_options_state(),
-                       onvalue=CheckStates.STATE_ON,
-                       offvalue=CheckStates.STATE_OFF,
-                       command=self.bgstally.state.refresh
-                       ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_1, text=_("Colonisation"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlayColonisation,
-                       state=self.overlay_options_state(),
-                       onvalue=CheckStates.STATE_ON,
-                       offvalue=CheckStates.STATE_OFF,
-                       command=self.bgstally.state.refresh
-                       ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_1, text=_("Current Tick"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlayCurrentTick,
-                       state=self.overlay_options_state(),
-                       onvalue=CheckStates.STATE_ON,
-                       offvalue=CheckStates.STATE_OFF,
-                       command=self.bgstally.state.refresh
-                       ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_1, text=_("Objectives"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlayObjectives,
-                       state=self.overlay_options_state(),
-                       onvalue=CheckStates.STATE_ON,
-                       offvalue=CheckStates.STATE_OFF,
-                       command=self.bgstally.state.refresh
-                       ).pack(side=tk.LEFT)
-        ttk.Button(overlay_options_frame_1, text="⚙", width=3,
-                   state=self.overlay_options_state(),
-                   command=partial(self.window_objectives_overlay_settings.show, parent_frame)
-                   ).pack(side=tk.LEFT, padx=(2, 0))
-        overlay_options_frame_2:ttk.Frame = ttk.Frame(frame)
-        overlay_options_frame_2.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-        nb.Checkbutton(overlay_options_frame_2, text=_("System Information"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlaySystem,
-                       state=self.overlay_options_state(),
-                       onvalue=CheckStates.STATE_ON,
-                       offvalue=CheckStates.STATE_OFF,
-                       command=self.bgstally.state.refresh
-                       ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_2, text=_("Thargoid War Progress"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlayTWProgress,
-                       state=self.overlay_options_state(),
-                       onvalue=CheckStates.STATE_ON,
-                       offvalue=CheckStates.STATE_OFF,
-                       command=self.bgstally.state.refresh
-                       ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_2, text=_("Alerts and Warnings"), # LANG: Preferences checkbox label
-                       variable=self.bgstally.state.EnableOverlayWarning,
-                       state=self.overlay_options_state(),
-                       onvalue=CheckStates.STATE_ON,
-                       offvalue=CheckStates.STATE_OFF,
-                       command=self.bgstally.state.refresh
-                       ).pack(side=tk.LEFT)
-        nb.Checkbutton(overlay_options_frame_2, text=_("Fleetcarrier"), # LANG: Preferences checkbox label
-                    variable=self.bgstally.state.EnableOverlayCarrier,
-                    state=self.overlay_options_state(),
-                    onvalue=CheckStates.STATE_ON,
-                    offvalue=CheckStates.STATE_OFF,
-                    command=self.bgstally.state.refresh
-                    ).pack(side=tk.LEFT)
-
-        if self.bgstally.overlay.edmcoverlay == None:
-            nb.Label(frame, text=_("In-game overlay support requires the separate EDMCOverlay plugin to be installed - see the instructions for more information.")).grid(columnspan=2, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences label
-
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text=_("Integrations"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
-        tk.Button(frame, text=_("Configure Remote Server"), command=partial(self._show_api_window, parent_frame)).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences button label
-
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text=_("Colonisation"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
-        nb.Label(frame, text=_("Maximum commodities")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
-        EntryPlus(frame, textvariable=self.bgstally.state.ColonisationMaxCommodities).grid(row=current_row, column=1, padx=10, pady=1, sticky=tk.W); current_row += 1
-        nb.Checkbutton(frame, text=_("Use scrollbar (restart required)"), variable=self.bgstally.state.EnableProgressScrollbar, onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, command=self.bgstally.state.refresh).grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences checkbox label
-
-        api_keys_label_common(self, current_row, frame)
-        current_row += 1
-        show_pwd_var_common(frame, current_row, self)
-        current_row += 1
-        self.apikey_label.configure(text=_("RavenColonial API Key")) # LANG: Preferences label
-        self.apikey.configure(textvariable=self.bgstally.state.ColonisationRCAPIKey)
-
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text=_("Fleet Carrier"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW); current_row += 1 # LANG: Preferences heading
-        nb.Label(frame, text=_("Fleet Carrier Cooldown Notifications")).grid(row=current_row, column=0, padx=10, sticky=tk.W) # LANG: Preferences label
-        cdnotifications: dict = {"none": _("None"), # LANG: Dropdown menu on prefs window
-                                 "popup": _("Popup only"), # LANG: Dropdown menu on prefs window
-                                 "overlay": _("Overlay only"), # LANG: Dropdown menu on prefs window
-                                 "both": _("Popup and Overlay")} # LANG: Dropdown menu on prefs window
-        notifications_var:tk.StringVar = tk.StringVar(value=cdnotifications.get(self.bgstally.state.FcCooldown.get(), "Both"))
-        self.fccooldown:nb.OptionMenu = nb.OptionMenu(frame, notifications_var, notifications_var.get(),
-                                                            *cdnotifications.values(),
-                                                            command=partial(self._cooldown_selected, cdnotifications), direction='below')
-        self.fccooldown.grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1
-
-        ttk.Separator(frame, orient=tk.HORIZONTAL).grid(row=current_row, columnspan=2, padx=10, pady=1, sticky=tk.EW); current_row += 1
-        nb.Label(frame, text=_("Advanced"), font=FONT_HEADING_2).grid(row=current_row, column=0, padx=10, sticky=tk.NW) # LANG: Preferences heading
-        tk.Button(frame, text=_("Force Tick"), command=self._confirm_force_tick, bg="red", fg="white").grid(row=current_row, column=1, padx=10, sticky=tk.W); current_row += 1 # LANG: Preferences button label
-
-        return frame
-
-
     def save_prefs(self):
         """
         Preferences frame has been saved (from EDMC core or any plugin)
@@ -512,58 +311,6 @@ class UI:
                 Debug.logger.error(f"Unable to load {rare_filepath}")
 
 
-    def _webhooks_table_modified(self, event=None):
-        """
-        Callback for all modifications to the webhooks table
-
-        Args:
-            event (namedtuple, optional): Variables related to the callback. Defaults to None.
-        """
-        self.bgstally.webhook_manager.set_webhooks_from_list(self.sheet_webhooks.get_sheet_data())
-
-
-    def _language_modified(self, event=None):
-        """Callback for change in language dropdown
-
-        Args:
-            event (_type_, optional): Variable related to the callback. Defaults to None.
-        """
-        langs_by_name: dict = {v: k for k, v in self.languages.items()}  # Codes by name
-        self.bgstally.state.discord_lang = langs_by_name.get(self.language.get()) or ''  # or '' used here due to Default being None above
-
-
-    def _formatter_modified(self, event=None):
-        """Callback for change in formatter dropdown
-
-        Args:
-            event (_type_, optional): Variable related to the callback. Defaults to None.
-        """
-        formatters_by_name: dict = {v: k for k, v in self.formatters.items()}
-        self.bgstally.state.discord_formatter = formatters_by_name.get(self.formatter.get())
-
-
-    def _colonisation_change(self, event=None):
-        """Callback for change in colonisation status
-
-        Args:
-            event (_type_, optional): Variable related to the callback. Defaults to None.
-        """
-        self.bgstally.state.refresh()
-        self.update_plugin_frame()
-
-
-    def _favourite_type_selected(self, favourite_types: dict, value: str):
-        """The user has changed the dropdown to choose the favourite faction posting type
-        """
-        k: str = next(k for k, v in favourite_types.items() if v == value)
-        self.bgstally.state.FavouriteActivityMode.set(k)
-        self.bgstally.state.refresh
-
-    def _cooldown_selected(self, cooldown_types: dict, value: str):
-        k: str = next(k for k, v in cooldown_types.items() if v == value)
-        self.bgstally.state.FcCooldown.set(k)
-        self.bgstally.state.refresh()
-
     @catch_exceptions
     def _worker(self) -> None:
         """
@@ -578,7 +325,7 @@ class UI:
 
             sleep(TIME_WORKER_PERIOD_S)
 
-            current_activity: Activity = self.bgstally.activity_manager.get_current_activity()
+            current_activity:Activity|None = self.bgstally.activity_manager.get_current_activity()
 
             # Current Galaxy and System Tick Times
             if self.bgstally.state.enable_overlay_current_tick:
@@ -624,18 +371,20 @@ class UI:
                     self.bgstally.overlay.display_progress_bar("tw", _("TW War Progress in {current_system}: {percent}%").format(current_system=current_system.get('System', 'Unknown'), percent=percent), progress) # LANG:Overlay TW report message
 
             # System Activity. Shares same overlay panel as System Info and Station Info
-            if self.bgstally.state.enable_overlay_system and current_activity is not None:
+            fmtr = self.bgstally.formatter_manager.get_default_formatter()
+            if self.bgstally.state.enable_overlay_system and current_activity is not None and fmtr is not None:
+
                 if self.activity_system_address is not None:
                     # Report recent activity in a designated system, overrides pinned systems
                     report_system:dict|None = current_activity.get_system_by_address(self.activity_system_address)
                     if report_system is not None:
-                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True)
+                        self.bgstally.overlay.display_message("system_info", fmtr.get_overlay(current_activity, DiscordActivity.BOTH, [report_system['System']], lang=self.bgstally.state.discord_lang), fit_to_text=True)
                     self.activity_system_address = None
                 else:
                     # Report pinned systems
                     pinned_systems:list = current_activity.get_pinned_systems()
                     if pinned_systems is not None and pinned_systems != []:
-                        self.bgstally.overlay.display_message("system_info", self.bgstally.formatter_manager.get_default_formatter().get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
+                        self.bgstally.overlay.display_message("system_info", fmtr.get_overlay(current_activity, DiscordActivity.BOTH, pinned_systems, lang=self.bgstally.state.discord_lang), fit_to_text=True, ttl_override=TIME_WORKER_PERIOD_S + 2) # Overlay pinned systems message
 
             system_and_station_info:str = ""
 
@@ -652,7 +401,7 @@ class UI:
                 system_and_station_info += self._build_station_info(self.info_station)
                 self.info_station = None
 
-            if system_and_station_info != "":
+            if self.bgstally.state.enable_overlay_system and system_and_station_info != "":
                 self.bgstally.overlay.display_message("system_info", system_and_station_info, fit_to_text=True)
 
             # CMDR Information
@@ -715,14 +464,27 @@ class UI:
                 if show_objectives and objectives_text:
                     self.bgstally.overlay.display_message("objectives", objectives_text, fit_to_text=True, title=self.bgstally.objectives_manager.get_title())
 
-            # Colonisation
-            if self.bgstally.state.enable_overlay_colonisation:
-                colonisation_text: str = self.window_progress.as_text(False)
-                self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True)
+            state:State = self.bgstally.state
 
-            if self.bgstally.state.enable_overlay_carrier:
-                carrier_text: str = self.bgstally.fleet_carrier.update_overlay()
-                self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True)
+            # Colonisation
+            show_colonisation_overlay = bool(
+                state.vehicle == Vehicle.SHIP and \
+                state.ui_state in (UIState.STATION_SERVICES, UIState.NO_FOCUS, UIState.INTERNAL_PANEL) and \
+                (ShipState.HARDPOINTS_DEPLOYED not in state.ship_state))
+            if self.bgstally.state.enable_overlay_colonisation and show_colonisation_overlay:
+                colonisation_text:str = self.window_progress.overlay_text()
+                if colonisation_text != "":
+                    self.bgstally.overlay.display_message("colonisation", colonisation_text, fit_to_text=True, ttl_override=3)
+
+            show_carrier_overlay = bool(
+                state.vehicle == Vehicle.SHIP and \
+                state.ui_state in (UIState.STATION_SERVICES, UIState.NO_FOCUS) and \
+                (ShipState.HARDPOINTS_DEPLOYED not in state.ship_state))
+            #Debug.logger.debug(f"{self.bgstally.state.enable_overlay_carrier} {show_carrier_overlay} {state.vehicle} {state.ui_state}")
+            if self.bgstally.state.enable_overlay_carrier and show_carrier_overlay:
+                carrier_text:str = self.bgstally.fleet_carrier.update_overlay()
+                if carrier_text != "":
+                    self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True, ttl_override=3)
 
     def _previous_ticks_popup(self):
         """
@@ -741,10 +503,13 @@ class UI:
             menu.grab_release()
 
 
-    def _show_activity_window(self, activity: Activity):
+    def _show_activity_window(self, activity:Activity|None):
         """
         Display the appropriate activity data window, using data from the passed in activity object
         """
+        if activity is None:
+            return
+
         existing_activity_window:WindowActivity|None = self.window_activity.get(activity.tick_id)
         if existing_activity_window is not None:
             existing_activity_window.show(activity)

@@ -197,6 +197,9 @@ class RavenColonial:
 
         payload:dict = {}
         for k, v in self.sys_params.items():
+            # Only the owner can set the nickname
+            if k == 'nickname' and system.get('Architect', None) != self.colonisation.cmdr:
+                continue
             if k != 'rev' and system.get(v, None) != None and system.get(v, None) != data.get(k, None):
                 payload[k] = system.get(v, '').strip() if isinstance(system.get(v, None), str) else system.get(v, None)
 

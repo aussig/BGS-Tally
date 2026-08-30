@@ -413,7 +413,7 @@ class WindowFleetCarrier:
                            _("All") : DiscordFleetCarrier.ALL} # LANG: Dropdown menu on activity window
 
         strv:tk.StringVar = tk.StringVar(value=state.get())
-        sel:str = strv.get() if strv.get() in post_types.keys() else _("All")
+        sel:str = strv.get() if strv.get() in post_types.keys() else _("All") # LANG: Dropdown menu on activity window
         menuv:ttk.OptionMenu = ttk.OptionMenu(bar, strv, sel, *post_types.keys(),
                                               command=lambda val: _post_type_selected(val),
                                               direction='above')

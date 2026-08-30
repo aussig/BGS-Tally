@@ -1,5 +1,6 @@
 import json
 import time
+import traceback
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from os import path
@@ -130,8 +131,9 @@ class FleetCarrier:
             _('Crew Capacity'): get_by_path(self.data, ["capacity", "crew"], 0), # LANG: Carrier services
         }
         crew:dict = get_by_path(self.data, ['servicesCrew'], {}) # Detailed crew information
-        for k, v in get_by_path(self.data, ["market", "services"], {}).items(): # List of all services and their status
+        if not crew or crew == []: return services # Weird but apparently fdev do this sometimes.
 
+        for k, v in get_by_path(self.data, ["market", "services"], {}).items(): # List of all services and their status
             services['crew'][k] = deepcopy(crew.get(k, {}).get('crewMember', {}))
             services['crew'][k]['enabled'] = (services['crew'].get(k, {}).get('enabled', 'No').title(), 'str', 'No')
 
@@ -153,8 +155,8 @@ class FleetCarrier:
             for name, deets in ent.items():
                 deets['locName'] = self.bgstally.ui.commodities.get(name, {}).get('Name', name)
                 deets['category'] = self.bgstally.ui.commodities.get(name, {}).get('Category', '') if isinstance(self.bgstally.ui.commodities.get(name, {}).get('Category', ''), str) else 'Unknown'
-                deets['mission'] = _('Yes') if t == 'mission' else ''
-                deets['stolen'] = _('Yes') if t == 'stolen' else ''
+                deets['mission'] = _("Yes") if (t == 'mission') else "" # LANG: Carrier cargo - yes it's mission cargo
+                deets['stolen'] = _("Yes") if (t == 'stolen') else "" # LANG: Carrier cargo - yes it's stolen cargo
                 comm[name] = deets
         comm = dict(sorted(comm.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
@@ -183,7 +185,7 @@ class FleetCarrier:
         stored:int = 0
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
-                deets['mission'] = _('Yes') if (t == 'mission') else ''
+                deets['mission'] = _("Yes") if (t == 'mission') else "" # LANG: Carrier locker - yes it's a mission microresource
                 buying += deets.get('outstanding', 0)
                 if deets['outstanding'] == 0 and deets['price'] > 0 and (t == 'normal'):
                     selling += deets.get('stock', 0)
@@ -308,6 +310,7 @@ class FleetCarrier:
             "fuel_loaded": self.overview.get('fuel', 1000),
             "tritium_stored" : get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)
             }
+        Debug.logger.debug(f"Spansh route request {params}")
         res:requests.Response = requests.post(SPANSH_ROUTE, params=params, headers={'User-Agent': f"BGSTally/{self.bgstally.version}"})
         if res.status_code != 202:
             Debug.logger.info(f"Spansh error: {res}")
@@ -477,49 +480,58 @@ class FleetCarrier:
     def _update_itinerary(self, data:dict) -> list:
         """ Update our local itinerary data from CAPI data structure """
 
-        if not self.itinerary:
-            self.itinerary = []
+        # There seems to be a lot of weird edge cases for itinerary data where it can be missing or in the wrong format,
+        # so we'll catch exceptions and just return our existing data if it doesn't work.
+        try:
+            if not self.itinerary:
+                self.itinerary = []
 
-        if not get_by_path(self.data, ['itinerary', 'completed']):
+            if not get_by_path(self.data, ['itinerary', 'completed']):
+                return self.itinerary
+
+            jumplist:list = deepcopy(self.itinerary)
+            centries:list = [x['arrivalTime'][:-3] for x in get_by_path(self.data, ['itinerary', 'completed'])]
+            ientries:list = [x['arrivalTime'][:-3] for x in self.itinerary if 'arrivalTime' in x and x['arrivalTime'] is not None]
+
+            # Add entries that aren't in our itinerary
+            jumplist += [j for j in get_by_path(data, ['itinerary', 'completed'], []) if 'arrivalTime' in j and j['arrivalTime'] and j['arrivalTime'][:-3] not in ientries]
+
+            # Remove entires that are in our itinerary but not in the capi data
+            # (for as far back as the capi data goes)
+            jumplist = [j for i, j in enumerate(jumplist) if 'arrivalTime' in j and j['arrivalTime'] and j['arrivalTime'][:-3] in centries or i >= len(centries)]
+
+            # Sort & dedup
+            jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)
+            jumplist = list({j['arrivalTime'][:-3]: j for j in jumplist}.values())
+
+            # Cleanup
+            capidict:dict = {j['arrivalTime'][:-3]: j for j in get_by_path(self.data, ['itinerary', 'completed'])}
+            jumplist[0]['departureTime'] = None
+            jumplist[0]['visitDurationSeconds'] = None
+            if 'body' not in jumplist[0] and 'currentBody' in self.overview and jumplist[0]['starsystem'] == self.overview['currentStarSystem']:
+                jumplist[0]['body'] = self.overview['currentBody']
+
+            # Treat CAPI as authoritative copying over anything from there
+            for i in range(0, len(jumplist)):
+                if i > 0:
+                    jumplist[i]['departureTime'] = jumplist[i-1]['arrivalTime']
+                    jumplist[i]['visitDurationSeconds'] = self._td(jumplist[i]['departureTime'], jumplist[i]['arrivalTime'])
+
+                # Copy CAPI data verbatim where we have it
+                atime:str = jumplist[i]['arrivalTime'][:-3]
+                if atime in capidict:
+                    for k, v in capidict[atime].items():
+                        jumplist[i][k] = v
+                    if jumplist[i].get('body') and jumplist[i]['starsystem'] not in jumplist[i]['body']:
+                        del jumplist[i]['body']
+
+            return jumplist[0:FC_MAX_JUMPS_TRACKED]
+
+        except Exception as e:
+            Debug.logger.error(f"Error updating itinerary {e}")
+            trace:list = traceback.format_exc().splitlines()
+            Debug.logger.error("\n".join(trace))
             return self.itinerary
-
-        jumplist:list = deepcopy(self.itinerary)
-        centries:list = [x['arrivalTime'][:-3] for x in get_by_path(self.data, ['itinerary', 'completed'])]
-        ientries:list = [x['arrivalTime'][:-3] for x in self.itinerary]
-
-        # Add entries that aren't in our itinerary
-        jumplist += [j for j in get_by_path(data, ['itinerary', 'completed'], []) if j['arrivalTime'][:-3] not in ientries]
-
-        # Remove entires that are in our itinerary but not in the capi data
-        # (for as far back as the capi data goes)
-        jumplist = [j for i, j in enumerate(jumplist) if j['arrivalTime'][:-3] in centries or i >= len(centries)]
-
-        # Sort & dedup
-        jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)
-        jumplist = list({j['arrivalTime'][:-3]: j for j in jumplist}.values())
-
-        # Cleanup
-        capidict:dict = {j['arrivalTime'][:-3]: j for j in get_by_path(self.data, ['itinerary', 'completed'])}
-        jumplist[0]['departureTime'] = None
-        jumplist[0]['visitDurationSeconds'] = None
-        if 'body' not in jumplist[0] and jumplist[0]['starsystem'] == self.overview['currentStarSystem']:
-            jumplist[0]['body'] = self.overview['currentBody']
-
-        # Treat CAPI as authoritative copying over anything from there
-        for i in range(0, len(jumplist)):
-            if i > 0:
-                jumplist[i]['departureTime'] = jumplist[i-1]['arrivalTime']
-                jumplist[i]['visitDurationSeconds'] = self._td(jumplist[i]['departureTime'], jumplist[i]['arrivalTime'])
-
-            # Copy CAPI data verbatim where we have it
-            atime:str = jumplist[i]['arrivalTime'][:-3]
-            if atime in capidict:
-                for k, v in capidict[atime].items():
-                    jumplist[i][k] = v
-                if jumplist[i].get('body') and jumplist[i]['starsystem'] not in jumplist[i]['body']:
-                    del jumplist[i]['body']
-
-        return jumplist[0:FC_MAX_JUMPS_TRACKED]
 
 
     def _update_locker(self, data: dict) -> dict:

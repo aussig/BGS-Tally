@@ -4,9 +4,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
-from bgstally.constants import CheckStates, DiscordActivity, FavouriteActivity
-from config import config
+from bgstally.debug import Debug
+from config import config #type: ignore
 
+from bgstally.constants import CheckStates, DiscordActivity, FavouriteActivity, Vehicle, Location, ShipState, UIState
 
 class State:
     """
@@ -58,7 +59,7 @@ class State:
         self.ShowZeroActivitySystems:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ShowZeroActivity', default=config.get_str('XShowZeroActivity', default=CheckStates.STATE_ON)))
         self.AbbreviateFactionNames:tk.StringVar = tk.StringVar(value=config.get_str('BGST_AbbreviateFactions', default=config.get_str('XAbbreviate', default=CheckStates.STATE_OFF)))
         self.IncludeSecondaryInf:tk.StringVar = tk.StringVar(value=config.get_str('BGST_SecondaryInf', default=config.get_str('XSecondaryInf', default=CheckStates.STATE_ON)))
-        self.DiscordUsername:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordUsername', default=config.get_str('XDiscordUsername', default="")))
+        self.DiscordUsername:tk.StringVar = tk.StringVar(value=config.get_str('BGST_DiscordUsername', default=config.get_str('XDiscordUsername', default="Set Discord Name Here")))
         self.EnableOverlay:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlay', default=config.get_str('XEnableOverlay', default=CheckStates.STATE_ON)))
         self.current_system_id:str = config.get_str('BGST_CurrentSystemID', default=config.get_str('XCurrentSystemID', default=""))
         self.station_faction:str = config.get_str('BGST_StationFaction', default=config.get_str('XStationFaction', default = ""))
@@ -88,8 +89,12 @@ class State:
         self.last_ships_targeted:dict = {}
         self.last_ship_targeted:dict = {}
 
-        self.refresh()
+        self.vehicle:Vehicle = Vehicle.UNKNOWN
+        self.location:Location = Location.UNKNOWN
+        self.ship_state:set[ShipState] = set()  # Set of current ship states
+        self.ui_state:UIState = UIState.NO_FOCUS
 
+        self.refresh()
 
     def refresh(self):
         """
@@ -106,7 +111,6 @@ class State:
         self.enable_overlay_objectives:bool = (self.EnableOverlayObjectives.get() == CheckStates.STATE_ON)
         self.enable_overlay_colonisation:bool = (self.EnableOverlayColonisation.get() == CheckStates.STATE_ON) and (self.ColonisationStatus.get() == CheckStates.STATE_ON)
         self.enable_overlay_carrier:bool = (self.EnableOverlayCarrier.get() == CheckStates.STATE_ON)
-
         # Other booleans
         self.abbreviate_faction_names:bool = (self.AbbreviateFactionNames.get() == CheckStates.STATE_ON)
         self.secondary_inf:bool = (self.IncludeSecondaryInf.get() == CheckStates.STATE_ON)
@@ -146,6 +150,7 @@ class State:
         config.set('BGST_EnableOverlayObjectives', self.EnableOverlayObjectives.get())
         config.set('BGST_OverlayObjectivesMode', self.OverlayObjectivesMode.get())
         config.set('BGST_EnableOverlayColonisation', self.EnableOverlayColonisation.get())
+        config.set('BGST_EnableOverlayCarrier', self.EnableOverlayCarrier.get())
         config.set('BGST_EnableSystemActivityByDefault', self.EnableSystemActivityByDefault.get())
         config.set('BGST_EnableShowMerits', self.EnableShowMerits.get())
         config.set('BGST_DetailedInf', self.DetailedInf.get())

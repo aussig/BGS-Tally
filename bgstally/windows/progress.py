@@ -517,25 +517,29 @@ class ProgressWindow:
             output = f"{TAG_OVERLAY_HIGHLIGHT}{pn}\n{TAG_OVERLAY_HIGHLIGHT}{str_truncate(bn, 20, loc='middle')}\n"
 
         output += f"{_('Progress')}: {self.progress:.0f}%\n" # LANG: Colonisation Progress
-        output += "\n- - - - - - - - - - - - -\n"
 
-        output += f"{self.headings[self.columns[1]].get('Label')}\n"
+        table:str = "\n- - - - - - - - - - - - -\n"
 
+        table += f"{self.headings[self.columns[1]].get('Label')}\n"
+
+        rows:int = 0
         for rowcnt, (comm, row_values) in enumerate(self._get_rows(comms)):
             if self._skip_row(self.view, comm, rowcnt): continue
             if int(re.sub(r'[^\d]+', '', row_values[1])) == 0 and self.view != ProgressView.FULL: continue
             w:int = 18 - len(row_values[1])
             v:str = f"{row_values[1]: <16}"[0:w] # Adjust for proportional font
             c:str = str_truncate(row_values[0], 20)
-            output += f"{v} {c}\n"
+            table += f"{v} {c}\n"
+            rows += 1
 
-        output += "- - - - - - - - - - - - -\n"
+        table += "- - - - - - - - - - - - -\n"
         val:str = self._get_value(self.headings[self.columns[1]].get('Column'), self.units[1], totals)
         w:int = 18 - len(val)
         v:str = f"{val: <16}"[0:w] # Adjust for proportional font
         c:str = _("Total") # LANG: Total amounts
-        output += f"{v} {c}\n"
+        table += f"{v} {c}\n"
 
+        if rows: output += table
         return output.strip()
 
 

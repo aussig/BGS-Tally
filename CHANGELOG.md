@@ -7,6 +7,8 @@
 * Fixed bug where builds around a primary star weren't showing on bodies window
 * Stopped colonisation overlay displaying empty tables
 * Only the owner can update a systenm's nickname so stop trying if it isn't ours
+* Fixed Objectives overlay so the title isn't line wrapped after every letter
+
 
 ## v5.6.0-a1 - 2026-07-26
 
@@ -31,6 +33,7 @@
 * Discord preview wasn't refreshing after changing the favourite faction mode in the drop-down
 * Checkbox for enabling / disabling automatic Discord posting had gone missing
 * Discord plaintext posts weren't updating on subsequent posts
+
 
 ## v5.5.1 - 2026-05-11
 

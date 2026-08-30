@@ -786,10 +786,10 @@ class ProgressWindow:
 
         # Set the build name (system name and plan name)
         name:str = _('All') # LANG: all builds
-        system:str = _('Unknown')
+        system:str = _('Unknown') # LANG: Unknown system name
         if self.build_index < len(tracked):
             b:dict = tracked[self.build_index]
-            system = b.get('StarSystem', _('Unknown'))
+            system = b.get('StarSystem', _('Unknown')) # LANG: Unknown system name
             pn:str = b.get('Plan', b.get('StarSystem', _('Unknown')))    # LANG: Unknown colonisation plan name
             bn:str = b.get('Base Type', '') + ", " + self._base_name(b) if b.get('Name', ' ') != ' ' else b.get('Base Type', '')
             name = f"{pn}, {bn}"

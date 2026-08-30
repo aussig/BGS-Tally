@@ -1811,7 +1811,7 @@ class BodiesPopup:
     @catch_exceptions
     def _add_builds_to_body(self, tree:ttk.Treeview, item:str, body:dict, system:dict) -> None:
         for i, b in enumerate(system.get('Builds', [])):
-            if b.get('BodyNum') == body.get('bodyId'):
+            if b.get('BodyNum', 0) == body.get('bodyId', 0):
                 # TODO: Add build location icon (colored by build state?)
                 bt:dict = self.parent.colonisation.get_base_type(b.get('Base Type', ''))
                 bt['State'] = b.get('State', BuildState.PLANNED)

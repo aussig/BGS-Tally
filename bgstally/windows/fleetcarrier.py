@@ -576,10 +576,10 @@ class WindowFleetCarrier:
         Debug.logger.debug(f"Checking if fleet carrier cooldown notification should be displayed, current setting is {self.bgstally.state.fc_cooldown} {config.get('bgst_fccooldown')}")
         if self.bgstally.state.fc_cooldown in ('overlay', 'both'):
             Debug.logger.debug(f"Showing fleet carrier cooldown notification as overlay")
-            self.bgstally.ui.show_warning(_("Fleetcarrier cooldown completed")) # LANG: Fleet carrier cooldown notification
+            self.bgstally.ui.show_warning(_("Fleet carrier cooldown completed")) # LANG: Fleet carrier cooldown notification
         if self.bgstally.state.fc_cooldown in ('popup', 'both'):
             Debug.logger.debug(f"Showing fleet carrier cooldown notification as popup")
-            PopupNotice(_("Fleetcarrier cooldown\ncompleted"), 20000, self.bgstally.fleet_carrier) # LANG: Fleet carrier cooldown notification
+            PopupNotice(_("Fleet carrier cooldown{CR}completed").format(CR="\n"), 20000, self.bgstally.fleet_carrier) # LANG: Fleet carrier cooldown notification
 
 class PopupNotice:
     """ Create a temporary popup window """

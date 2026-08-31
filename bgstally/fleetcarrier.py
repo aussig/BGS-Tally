@@ -155,8 +155,8 @@ class FleetCarrier:
             for name, deets in ent.items():
                 deets['locName'] = self.bgstally.ui.commodities.get(name, {}).get('Name', name)
                 deets['category'] = self.bgstally.ui.commodities.get(name, {}).get('Category', '') if isinstance(self.bgstally.ui.commodities.get(name, {}).get('Category', ''), str) else 'Unknown'
-                deets['mission'] = _('Yes') if t == 'mission' else ''
-                deets['stolen'] = _('Yes') if t == 'stolen' else ''
+                deets['mission'] = _("Yes") if (t == 'mission') else "" # LANG: Carrier cargo - yes it's mission cargo
+                deets['stolen'] = _("Yes") if (t == 'stolen') else "" # LANG: Carrier cargo - yes it's stolen cargo
                 comm[name] = deets
         comm = dict(sorted(comm.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
@@ -185,7 +185,7 @@ class FleetCarrier:
         stored:int = 0
         for t, ent in self.locker.items():
             for mat, deets in ent.items():
-                deets['mission'] = _('Yes') if (t == 'mission') else ''
+                deets['mission'] = _("Yes") if (t == 'mission') else "" # LANG: Carrier locker - yes it's a mission microresource
                 buying += deets.get('outstanding', 0)
                 if deets['outstanding'] == 0 and deets['price'] > 0 and (t == 'normal'):
                     selling += deets.get('stock', 0)

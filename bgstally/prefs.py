@@ -347,7 +347,7 @@ class Prefs:
     def _show_api_window(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
         """ Show the API window for the overlay plugin """
         nb.Button(frame, text=_("Overlay API Settings"), width=20, command=partial(self.bgstally.ui._show_api_window, frame)).\
-            grid(row=row, column=column, padx=10, pady=5, sticky=tk.W)
+            grid(row=row, column=column, padx=10, pady=5, sticky=tk.W) # LANG: Preferences overlay API settings button text
         return 1
 
     def _force_tick_button(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
@@ -360,7 +360,7 @@ class Prefs:
         style.configure('ft.TButton', font=fnt, foreground="red", relief="raised")
 
         ttk.Button(frame, text=_("Force Tick"), command=self._confirm_force_tick, style='ft.TButton').\
-            grid(row=row, column=column, padx=10, pady=5, sticky=tk.W)
+            grid(row=row, column=column, padx=10, pady=5, sticky=tk.W) # LANG: Preferences force tick button text
         return 1
 
     def _confirm_force_tick(self):
@@ -408,6 +408,6 @@ class Prefs:
         nb.EntryMenu(frame, textvariable=var, width=35, state=state, background="red"). \
             grid(row=row, column=column, padx=(10,0), pady=(5,5), sticky=tk.W)
         nb.Button(frame, text=_("Add Faction"), command=partial(self._change_favourite, var, True), state=state). \
-            grid(row=row, column=column+1, pady=(5,5), sticky=tk.W)
+            grid(row=row, column=column+1, pady=(5,5), sticky=tk.W) # LANG: Preferences add faction button text
 
         return 2

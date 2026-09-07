@@ -136,21 +136,22 @@ class Prefs:
         fnt:tkfont.Font = tkfont.nametofont("TkDefaultFont").copy()
         fnt.configure(weight="bold")
 
+        label:str = _(section.label.strip())
         if True: # Horizontal rules
-            if row > 1 and section.label.strip() != "":
+            if row > 1 and label != "":
                 ttk.Separator(parent_frame, orient=tk.HORIZONTAL).grid(row=row, columnspan=2, padx=10, pady=10, sticky=tk.EW)
             row += 1
 
-            lbl:nb.Label = nb.Label(parent_frame, text=f"{section.label:<20}", font=fnt)
+            lbl:nb.Label = nb.Label(parent_frame, text=f"{label:<20}", font=fnt) # TODO: Add translation function call
             lbl.grid(row=row, column=0, padx=10, pady=10, sticky=tk.NW)
 
             if section.desc.strip() != "":
-                ToolTip(lbl, text=section.desc)
+                ToolTip(lbl, text=section.desc)  # TODO: Add translation function call
             sfr = nb.Frame(parent_frame)
             sfr.grid(row=row, column=1, padx=10, pady=10, sticky=tk.NSEW)
 
         else: # Bordered frames
-            sfr = tk.LabelFrame(parent_frame, text=section.label, font=fnt, bg="SystemWindow")
+            sfr = tk.LabelFrame(parent_frame, text=label, font=fnt, bg="SystemWindow")
             sfr.grid(row=row, column=0, padx=10, pady=10, sticky=tk.NSEW)
             sfr.columnconfigure(0, weight=0)
             sfr.columnconfigure(1, weight=1)
@@ -173,19 +174,21 @@ class Prefs:
         state:str|Callable = getattr(self, pref.state)() if callable(getattr(self, pref.state, None)) else pref.state
 
         elem:nb.Checkbutton|nb.Radiobutton|nb.OptionMenu|nb.EntryMenu|nb.Label|ttk.Button = None
+        label:str = _(pref.label.strip())
+        desc:str = _(pref.desc.strip())
         match pref.type:
             case "checkbox" | "bool":
-                elem = nb.Checkbutton(parent_frame, text=pref.label, variable=getattr(self.bgstally.state, pref.var, ""),
+                elem = nb.Checkbutton(parent_frame, text=label, variable=getattr(self.bgstally.state, pref.var, ""),
                                onvalue=CheckStates.STATE_ON, offvalue=CheckStates.STATE_OFF, state=state)
                 elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
 
             case "radio" | "radiobutton":
-                elem = nb.Radiobutton(parent_frame, text=pref.label, variable=getattr(self.bgstally.state, pref.var, ""),
+                elem = nb.Radiobutton(parent_frame, text=label, variable=getattr(self.bgstally.state, pref.var, ""),
                                value=pref.value, state=state)
                 elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
 
             case "menu":
-                elem = nb.Label(parent_frame, text=pref.label, state=state)
+                elem = nb.Label(parent_frame, text=label, state=state)
                 elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
                 col += 1
 
@@ -195,14 +198,14 @@ class Prefs:
                 else:
                     disp_var = tk.StringVar(value=var.get(), name=pref.var)
 
-                defval:str|None = pref.options.get(disp_var.get(), pref.default)
-                values:list = list(pref.options.values())
+                defval:str|None = pref.options.get(disp_var.get(), _(pref.default))
+                values:list = [ _(value.strip()) for value in pref.options.values() ]
                 nb.OptionMenu(parent_frame, disp_var, defval, *values,
                               command=partial(self._menu_selected, pref.var, pref.options), direction="below"). \
                     grid(row=row, column=col, pady=(0,5), sticky=tk.W)
 
             case "password":
-                elem = nb.Label(parent_frame, text=pref.label, state=state)
+                elem = nb.Label(parent_frame, text=label, state=state)
                 elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
                 col += 1
                 item:nb.EntryMenu = nb.EntryMenu(parent_frame, textvariable=getattr(self.bgstally.state, pref.var, ""), show="*",
@@ -218,19 +221,19 @@ class Prefs:
                 if c and c > 1: col += c
 
             case "label":
-                elem = nb.Label(parent_frame, text=pref.label, state=state)
+                elem = nb.Label(parent_frame, text=label, state=state)
                 elem.grid(row=row, column=col, columnspan=parent_frame.grid_size()[0] - col, padx=10, pady=(0,5), sticky=tk.W)
 
             case "entry" | "str":
-                elem = nb.Label(parent_frame, text=pref.label, state=state)
+                elem = nb.Label(parent_frame, text=label, state=state)
                 elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
                 col += 1
                 nb.EntryMenu(parent_frame, textvariable=getattr(self.bgstally.state, pref.var, ""), width=getattr(pref, "width", 20),
                              state=state). \
                     grid(row=row, column=col, pady=(0,5), sticky=tk.W)
 
-        if pref.desc.strip() != "":
-            ToolTip(elem, text=pref.desc)
+        if desc != "":
+            ToolTip(elem, text=desc)
         return col
 
     @catch_exceptions
@@ -246,7 +249,7 @@ class Prefs:
         self.bgstally.state.refresh()
 
     @catch_exceptions
-    def _toggle_password_visibility(self, entry: nb.EntryMenu) -> None:
+    def _toggle_password_visibility(self, entry:nb.EntryMenu) -> None:
         """ Toggle the visibility of a password entry field """
         if entry.cget("show") == "*":
             entry.config(show="")

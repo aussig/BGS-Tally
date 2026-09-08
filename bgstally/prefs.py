@@ -127,7 +127,8 @@ class Prefs:
             row = self._create_section(tab_frame, row, section)
 
         state:str|Callable = getattr(self, tab.state)() if callable(getattr(self, tab.state, None)) else tab.state
-        notebook.add(fr, text=tab.label, state=state)
+        label:str = _(tab.label.strip())
+        notebook.add(fr, text=label, state=state)
 
     def _create_section(self, parent_frame:tk.Frame, row:int, section:Section) -> int:
         """ Create a section in a tab """

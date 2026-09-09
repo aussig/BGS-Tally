@@ -15,11 +15,12 @@ from bgstally.activitymanager import ActivityManager
 from bgstally.apimanager import APIManager
 from bgstally.colonisation import Colonisation
 from bgstally.config import Config
-from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy, Vehicle, Location, ShipState, UIState
+from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy, Vehicle, Location, ShipState, UIState, FleetCarrierType
 from bgstally.debug import Debug
 from bgstally.discord import Discord
 from bgstally.factionmanager import FactionManager
 from bgstally.fleetcarrier import FleetCarrier
+from bgstally.fleetcarriers import FleetCarriers
 from bgstally.formattermanager import ActivityFormatterManager
 from bgstally.market import Market
 from bgstally.missionlog import MissionLog
@@ -96,7 +97,7 @@ class BGSTally:
         self.tick: Tick = Tick(self, True)
         self.overlay: Overlay = Overlay(self)
         self.activity_manager: ActivityManager = ActivityManager(self)
-        self.fleet_carrier: FleetCarrier = FleetCarrier(self)
+        self.fleet_carriers: FleetCarriers = FleetCarriers(self)
         self.market: Market = Market(self)
         self.request_manager: RequestManager = RequestManager(self)
         self.api_manager: APIManager = APIManager(self)
@@ -112,6 +113,18 @@ class BGSTally:
         self.tick_thread: Thread = Thread(target=self._tick_worker, name="BGSTally Tick worker")
         self.tick_thread.daemon = True
         self.tick_thread.start()
+
+
+    @property
+    def fleet_carrier(self) -> FleetCarrier:
+        """ Our personal carrier. Kept for every caller that only ever cares about their own carrier. """
+        return self.fleet_carriers.personal
+
+
+    def _carrier(self, entry:dict) -> FleetCarrier:
+        """ Resolve which FleetCarrier a CarrierType-bearing journal entry (stats/location) is about """
+        carrier_type:FleetCarrierType = FleetCarrierType(entry.get('CarrierType', FleetCarrierType.PERSONAL))
+        return self.fleet_carriers.get(entry.get('CarrierID', 0), carrier_type)
 
 
     def plugin_stop(self):
@@ -186,10 +199,10 @@ class BGSTally:
                 self.fleet_carrier.jump_requested(entry)
 
             case 'CarrierLocation':
-                self.fleet_carrier.carrier_location(entry)
+                self._carrier(entry).carrier_location(entry)
 
             case 'CarrierStats':
-                self.fleet_carrier.stats_received(entry)
+                self._carrier(entry).stats_received(entry)
 
             case 'CarrierTradeOrder':
                 self.fleet_carrier.trade_order(entry)
@@ -484,7 +497,7 @@ class BGSTally:
         self.tick.save()
         self.activity_manager.save()
         self.state.save()
-        self.fleet_carrier.save()
+        self.fleet_carriers.save_all()
         self.api_manager.save()
         self.webhook_manager.save()
         self.faction_manager.save()

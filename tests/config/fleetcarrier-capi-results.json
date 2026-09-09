@@ -1,5 +1,6 @@
 {
     "carrier_id": 12345,
+    "carrier_type": "FleetCarrier",
     "last_modified": 1773960295,
     "overview": {
         "name": "[CLB] SV Booze Cruise",
@@ -3398,9 +3399,5 @@
         },
         "modules": [],
         "timestamp": "2026-03-20T03:00:28Z"
-    },
-    "windows": {
-        "Carrier": "1083x660+306+70",
-        "Alert": "300x150+17+40"
     }
 }

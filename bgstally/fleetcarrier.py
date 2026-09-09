@@ -31,10 +31,11 @@ class FleetCarrier:
     since the CAPI is queried infrequently and can be unhelpfully out of date.
     Some data is managed and updated locally to work around the CAPI data being out of date.
     """
-    def __init__(self, bgstally: 'BGSTally') -> None:
+    def __init__(self, bgstally: 'BGSTally', carrier_id:int = 0, carrier_type:FleetCarrierType = FleetCarrierType.PERSONAL) -> None:
         self.bgstally:BGSTally = bgstally
 
-        self.carrier_id:int = 0
+        self.carrier_id:int = carrier_id
+        self.carrier_type:FleetCarrierType = carrier_type
         self.overview:dict = {} # Top level data
         self.locker:dict = {} # Local copy of locker data
         self.cargo:dict = {} # Local copy of cargo data
@@ -43,13 +44,19 @@ class FleetCarrier:
         self.shipyard:dict = {} # Local copy of shipyard data
         self.last_modified:int = 0 # Record of when we last modified our local data. Used to avoid overwriting with out of date CAPI data.
         self.data:dict = {}  # Raw CAPI data
-        self.window_geometries:dict = {}
         self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
         self.timer:datetime|None = None
         self.load()
+        # A fresh carrier needs its id set now, not just once CAPI/CarrierStats populates overview.
+        if not self.overview.get('carrier_id'): self.overview['carrier_id'] = self.carrier_id
         self._update_route()
         if self.data != {}:
             self.itinerary = self._update_itinerary(self.data)
+
+    @property
+    def has_capi_data(self) -> bool:
+        """ Whether we've ever received real CAPI /fleetcarrier data (personal carriers only). """
+        return self.data != {}
 
     @catch_exceptions
     def available(self) -> bool:
@@ -86,21 +93,23 @@ class FleetCarrier:
         Return summary information as a dictionary. The summary is different to other tabs in that it's just a group of
         key value pairs, there's no table of detailed listings
         """
-        summary:dict = {'finances': [], 'costs': [], 'capacity': []}
+        summary:dict = {'finances': None, 'costs': None, 'capacity': []}
 
-        summary['finances'] = {
-            _('Bank Balance'): self.overview.get('bankBalance', 0),           # LANG: Carrier summary
-            _('Bank Reserve'): self.overview.get('bankReservedBalance', 0),   # LANG: Carrier summary
-            _('Available Balance'): self.overview.get('bankBalance', 0)-self.overview.get('bankReservedBalance', 0), # LANG: Carrier summary
-            _('Reserve Percentage'): (round((self.overview.get('bankReservedBalance', 0) * 100) / self.overview.get('bankBalance', 1)), 'num', 0, '%')# LANG: Carrier summary
-        }
+        # CAPI-only, so show as unknown rather than a misleading zero when we've never had CAPI data.
+        if self.has_capi_data:
+            summary['finances'] = {
+                _('Bank Balance'): self.overview.get('bankBalance', 0),           # LANG: Carrier summary
+                _('Bank Reserve'): self.overview.get('bankReservedBalance', 0),   # LANG: Carrier summary
+                _('Available Balance'): self.overview.get('bankBalance', 0)-self.overview.get('bankReservedBalance', 0), # LANG: Carrier summary
+                _('Reserve Percentage'): (round((self.overview.get('bankReservedBalance', 0) * 100) / self.overview.get('bankBalance', 1)), 'num', 0, '%')# LANG: Carrier summary
+            }
 
-        summary['costs'] = {
-            _('Total'): self.overview.get('maintenance', 0),                   # LANG: Carrier summary
-            _('Core Cost'): self.overview.get('coreCost', 0),                  # LANG: Carrier summary
-            _('Services Cost'): self.overview.get('servicesCost', 0),          # LANG: Carrier summary
-            _('Jump Cost'): (get_by_path(self.data, ["finance", "numJumps"], 0) * 100000, 'num', 0),   # LANG: Carrier summary
-        }
+            summary['costs'] = {
+                _('Total'): self.overview.get('maintenance', 0),                   # LANG: Carrier summary
+                _('Core Cost'): self.overview.get('coreCost', 0),                  # LANG: Carrier summary
+                _('Services Cost'): self.overview.get('servicesCost', 0),          # LANG: Carrier summary
+                _('Jump Cost'): (get_by_path(self.data, ["finance", "numJumps"], 0) * 100000, 'num', 0),   # LANG: Carrier summary
+            }
 
         summary['capacity'] = {
             _('Total Capacity'): (self.overview.get('totalCapacity', 25000), 'num', 'Unknown', 't'),   # LANG: Carrier summary
@@ -634,7 +643,7 @@ class FleetCarrier:
     def stats_received(self, entry: dict) -> None:
         """ The user entered the carrier management screen generating a CarrierStats event """
 
-        if entry.get('CarrierType') != FleetCarrierType.PERSONAL: return
+        if entry.get('CarrierType') != self.carrier_type: return
 
         # Note we always re-populate here, in case the user has bought a new carrier.
         # We should get a subsequent CAPI update to populate the rest.
@@ -1242,6 +1251,7 @@ class FleetCarrier:
         """ Return a Dictionary representation of our data, suitable for serializing """
         return {
             'carrier_id': self.carrier_id,
+            'carrier_type': self.carrier_type.value,
             'last_modified': self.last_modified,
             'overview': self.overview,
             'cargo': self.cargo,
@@ -1250,56 +1260,70 @@ class FleetCarrier:
             'route': self.route,
             'shipyard': self.shipyard,
             'data': self.data,
-            'windows': self.window_geometries
             }
 
 
     def _from_dict(self, dict: dict) -> None:
         """ Populate our data from a Dictionary that has been deserialized """
         self.carrier_id = dict.get('carrier_id', 0)
+        self.carrier_type = FleetCarrierType(dict.get('carrier_type', FleetCarrierType.PERSONAL))
         self.last_modified = dict.get('last_modified', 0)
         self.overview = dict.get('overview', {})
+
         self.cargo = dict.get('cargo', {})
-        self.window_geometries = dict.get('windows', {})
-        if 'normal' not in self.cargo: self.cargo = {'overview': {}, 'stolen': {}, 'mission': {}, 'normal': {}} # For migration from old to new format
+        if 'normal' not in self.cargo:
+            self.cargo = {'overview': {}, 'stolen': {}, 'mission': {}, 'normal': {}} # For migration from old to new format
+
         self.locker = dict.get('locker', {})
-        if 'normal' not in self.locker: self.locker = {'overview': {}, 'mission': {}, 'normal': {}} # For migration from old to new format
-        if isinstance(self.locker, list): self.locker = {} # For migration from old to new format
+        if 'normal' not in self.locker:
+            self.locker = {'overview': {}, 'mission': {}, 'normal': {}} # For migration from old to new format
+        if isinstance(self.locker, list):
+            self.locker = {} # For migration from old to new format
+
         self.itinerary = dict.get('itinerary', [])
         self.route = dict.get('route', [])
         self.shipyard = dict.get('shipyard', {})
-        if 'overview' not in self.shipyard: self.shipyard = {'overview' : {}, 'ships': {}}
+        if 'overview' not in self.shipyard:
+            self.shipyard = {'overview' : {}, 'ships': {}}
         self.data = dict.get('data', {})
+
+
+    def _get_filename(self) -> str:
+        """ Personal keeps the fixed legacy filename; any other carrier is keyed by carrier_id. """
+        if self.carrier_type == FleetCarrierType.PERSONAL: return FILENAME
+        return f"carrier_{self.carrier_id}.json"
 
 
     @catch_exceptions
     def load(self) -> None:
         """ Load state from file """
 
-        file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
-        if path.exists(file):
-            with open(file) as json_file:
-                self._from_dict(json.load(json_file))
-                if self.data is None or self.data.get('name') is None:
-                    # There is no CAPI data, so clear our name and callsign as we have no personal carrier. This is to clear up
-                    # the problem where a squadron carrier was accidentally stored as a personal one, when the user doesn't
-                    # have a personal carrier.
-                    self.overview = {}
-                    self.cargo = {'overview' : {}, 'normal': {}, 'stolen': {}, 'mission':{}}
-                    self.locker = {'normal': {}, 'mission': {}}
-                    self.itinerary = []
-                    self.route = []
-                elif self.overview.get('callsign', None) != get_by_path(self.data, ['name', 'callsign']):
-                    # The CAPI callsign doesn't match our stored callsign, so re-parse the CAPI data. This is to clear up
-                    # the problem where a squadron carrier was accidentally stored as a personal one, overwriting the user's
-                    # actual personal carrier data.
-                    self.update(self.data)
+        file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, self._get_filename())
+        if not path.exists(file):
+            return
+
+        with open(file) as json_file:
+            self._from_dict(json.load(json_file))
+            if self.data is None or self.data.get('name') is None:
+                # There is no CAPI data, so clear our name and callsign as we have no personal carrier. This is to clear up
+                # the problem where a squadron carrier was accidentally stored as a personal one, when the user doesn't
+                # have a personal carrier.
+                self.overview = {}
+                self.cargo = {'overview' : {}, 'normal': {}, 'stolen': {}, 'mission':{}}
+                self.locker = {'normal': {}, 'mission': {}}
+                self.itinerary = []
+                self.route = []
+            elif self.overview.get('callsign', None) != get_by_path(self.data, ['name', 'callsign']):
+                # The CAPI callsign doesn't match our stored callsign, so re-parse the CAPI data. This is to clear up
+                # the problem where a squadron carrier was accidentally stored as a personal one, overwriting the user's
+                # actual personal carrier data.
+                self.update(self.data)
 
 
     @catch_exceptions
     def save(self) -> None:
         """ Save state to file """
         ind:int = 4 if self.bgstally.dev_mode == True else 0
-        file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
+        file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, self._get_filename())
         with open(file, 'w') as outfile:
             json.dump(self._as_dict(), outfile, indent=ind)

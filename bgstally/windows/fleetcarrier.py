@@ -30,8 +30,8 @@ class WindowFleetCarrier:
         self.window:tk.Toplevel|None = None
         self.frame:ttk.Frame
         self.itineraryfr:ttk.Frame
-        self.summfr:ttk.Frame|None = None
-        self.tabbar:ScrollableNotebook|None = None
+        self.carrier_tabbar:ScrollableNotebook|None = None # Outer Personal/Squadron switcher
+        self.carrier_uis:dict = {} # Carrier name -> {'frame', 'summfr', 'tabbar', 'tab_frames'}, one set per carrier
         self.scale:float = 1.0
 
         self.tabs:dict = {
@@ -128,9 +128,9 @@ class WindowFleetCarrier:
 
         self.scale = config.get_int('ui_scale') / 100.00
         self.window = tk.Toplevel(self.bgstally.ui.frame)
-        self.window.title(_("{plugin_name} - Carrier {carrier_name}").format(plugin_name=self.bgstally.plugin_name, carrier_name=self.bgstally.fleet_carrier.overview.get('name'))) # LANG: Carrier window title
+        self.window.title(_("{plugin_name} - Fleet Carriers").format(plugin_name=self.bgstally.plugin_name)) # LANG: Carrier window title
         self.window.iconphoto(False, self.bgstally.ui.image_logo_bgstally_32, self.bgstally.ui.image_logo_bgstally_16)
-        geometry:str = self.bgstally.fleet_carrier.window_geometries.get('Carrier', f"{int(850*self.scale)}x{int(550*self.scale)}")
+        geometry:str = config.get_str('BGST_CarrierWindowGeometry', default="") or f"{int(850*self.scale)}x{int(550*self.scale)}"
         self.window.geometry(geometry)
         self.window.protocol("WM_DELETE_WINDOW", self.close)
 
@@ -138,69 +138,81 @@ class WindowFleetCarrier:
         if not config.get_bool('capi_fleetcarrier'):
             ttk.Label(self.frame, text=_("Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration"), foreground=COLOUR_WARNING).pack(anchor=tk.NW) # LANG: Label on carrier window
 
+        self.carrier_tabbar = ScrollableNotebook(self.frame, wheelscroll=True, tabmenu=False)
+        self.carrier_tabbar.pack(fill=tk.BOTH, padx=5, pady=5, expand=True)
+
         self.update_display()
         self.frame.pack(fill=tk.BOTH, expand=True)
 
 
     def update_display(self) -> None:
         """ Update the Fleet Carrier window contents """
-        if self.window == None or not self.window.winfo_exists(): return
+        if self.window == None or not self.window.winfo_exists() or self.carrier_tabbar is None: return
 
-        # Clear existing contents
-        #for w in self.frame.winfo_children(): w.destroy()
+        carriers:dict = {_('Personal'): self.bgstally.fleet_carriers.personal} # LANG: Carrier window tab
+        if self.bgstally.fleet_carriers.squadron is not None:
+            carriers[_('Squadron')] = self.bgstally.fleet_carriers.squadron # LANG: Carrier window tab
 
-        self._show_overview(self.bgstally.fleet_carrier, self.frame)
-        self._create_tabs(self.bgstally.fleet_carrier, self.frame)
+        for name, fc in carriers.items():
+            if name not in self.carrier_uis:
+                frame:ttk.Frame = ttk.Frame(self.carrier_tabbar, relief=tk.FLAT)
+                frame.pack(fill=tk.BOTH, expand=1)
+                self.carrier_tabbar.add(frame, text=name)
+                self.carrier_uis[name] = {'frame': frame, 'summfr': None, 'tabbar': None, 'tab_frames': {}}
+
+            self._show_overview(fc, self.carrier_uis[name])
+            self._create_tabs(fc, self.carrier_uis[name])
+
 
     def close(self, n:str = '', w:tk.Toplevel|None = None) -> None:
         ''' Close the window and any popups and clean up'''
         # Close one window.
         if w and w.winfo_exists():
-            self.bgstally.fleet_carrier.window_geometries['Alert'] = w.winfo_geometry()
+            config.set('BGST_CarrierAlertGeometry', w.winfo_geometry())
             w.destroy()
             return
 
         if self.window and self.window.winfo_exists():
-            self.bgstally.fleet_carrier.window_geometries['Carrier'] = self.window.winfo_geometry()
+            config.set('BGST_CarrierWindowGeometry', self.window.winfo_geometry())
             self.window.destroy()
 
         # UI components
-        self.summfr = None
-        self.tabbar = None
-        for k, v in self.tabs.items():
-            v['fr'] = None
+        self.carrier_tabbar = None
+        self.carrier_uis = {}
 
 
-    def _show_overview(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
+    def _show_overview(self, fc:FleetCarrier, ui:dict) -> None:
         """ Show the Fleet Carrier overview tab """
-        if self.summfr == None:
-            self.summfr = ttk.Frame(frame)
-            self.summfr.pack(fill=tk.X)
-        self._create_columns(fc.get_overview(), 3, self.summfr)
+        if ui['summfr'] == None:
+            ui['summfr'] = ttk.Frame(ui['frame'])
+            ui['summfr'].pack(fill=tk.X)
+        self._create_columns(fc.get_overview(), 3, ui['summfr'])
 
 
-    def _create_tabs(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
-        """ Create and populate the Fleet Carrier tabs """
+    def _create_tabs(self, fc:FleetCarrier, ui:dict) -> None:
+        """ Create and populate this carrier's tabs """
 
         # Only create this once.
-        if self.tabbar == None:
+        if ui['tabbar'] == None:
             style:ttk.Style = ttk.Style()
             style.configure("White.TNotebook.Tab", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), padding=[10, 5], background='green')
-            self.tabbar = ScrollableNotebook(frame, wheelscroll=True, tabmenu=False, style='White.TNotebook')
-            self.tabbar.pack(fill=tk.X, padx=5, pady=5)
+            ui['tabbar'] = ScrollableNotebook(ui['frame'], wheelscroll=True, tabmenu=False, style='White.TNotebook')
+            ui['tabbar'].pack(fill=tk.X, padx=5, pady=5)
 
         for k, v in self.tabs.items():
             # Only create these once
-            if v.get('fr', None) == None:
-                v['fr'] = ttk.Frame(self.tabbar, relief=tk.FLAT)
-                v['fr'].pack(fill=tk.BOTH, expand=1)
-                self.tabbar.add(v['fr'], text=_(k)) # LANG: Ignore
+            if k not in ui['tab_frames']:
+                fr:ttk.Frame = ttk.Frame(ui['tabbar'], relief=tk.FLAT)
+                fr.pack(fill=tk.BOTH, expand=1)
+                ui['tabbar'].add(fr, text=_(k)) # LANG: Ignore
+                ui['tab_frames'][k] = fr
 
             # Create/Recreate the contents of each tab
-            for w in v['fr'].winfo_children(): w.destroy()
+            fr = ui['tab_frames'][k]
+            for w in fr.winfo_children(): w.destroy()
             if v.get('buttons', None) != None:
-                v['buttons'](fc, v['fr'])
-            v['func'](fc, v, v['fr'])
+                v['buttons'](fc, fr)
+            v['func'](fc, v, fr)
 
 
     def _summary(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
@@ -369,10 +381,10 @@ class WindowFleetCarrier:
 
 
     def _cargo_buttons(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
-        self._discord_buttons('Cargo', frame)
+        self._discord_buttons(fc, 'Cargo', frame)
     def _locker_buttons(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
-        self._discord_buttons('Locker', frame)
-    def _discord_buttons(self, which:str, frame:ttk.Frame) -> None:
+        self._discord_buttons(fc, 'Locker', frame)
+    def _discord_buttons(self, fc:FleetCarrier, which:str, frame:ttk.Frame) -> None:
         """ Create discord buttons for cargo or locker as appropriate """
 
         state:tk.StringVar = self.bgstally.state.FcCargo if which == 'Cargo' else self.bgstally.state.FcLocker
@@ -380,11 +392,11 @@ class WindowFleetCarrier:
         # Internal helper functions.
         def _ctc(which:str, type:str|tk.StringVar) -> None:
             frame.clipboard_clear()
-            frame.clipboard_append(self._get_as_text(which, type, False))
+            frame.clipboard_append(self._get_as_text(fc, which, type, False))
 
         def _post(which:str, type:str|tk.StringVar, btn:ttk.Button) -> None:
             btn.config(state=tk.DISABLED)
-            output:str = self._get_as_text(which, type, True)
+            output:str = self._get_as_text(fc, which, type, True)
 
             while len(output) > 1990:
                 split_at:int = output.rfind('\n', 0, 1900)
@@ -515,10 +527,9 @@ class WindowFleetCarrier:
 
 
     @catch_exceptions
-    def _get_as_text(self, which:str, type:str|tk.StringVar, discord:bool = False) -> str:
+    def _get_as_text(self, fc:FleetCarrier, which:str, type:str|tk.StringVar, discord:bool = False) -> str:
         """ Get the cargo or locker as text for pasting or posting to Discord """
 
-        fc: FleetCarrier = self.bgstally.fleet_carrier
         l:str|None = self.bgstally.state.discord_lang if discord else ""
         tab:dict = self.tabs[which]
         if isinstance(type, tk.StringVar): type = type.get()
@@ -579,16 +590,15 @@ class WindowFleetCarrier:
             self.bgstally.ui.show_warning(_("Fleet carrier cooldown completed")) # LANG: Fleet carrier cooldown notification
         if self.bgstally.state.fc_cooldown in ('popup', 'both'):
             Debug.logger.debug(f"Showing fleet carrier cooldown notification as popup")
-            PopupNotice(_("Fleet carrier cooldown{CR}completed").format(CR="\n"), 20000, self.bgstally.fleet_carrier) # LANG: Fleet carrier cooldown notification
+            PopupNotice(_("Fleet carrier cooldown{CR}completed").format(CR="\n"), 20000) # LANG: Fleet carrier cooldown notification
 
 class PopupNotice:
     """ Create a temporary popup window """
-    def __init__(self, notice:str, timeout:int, fc:FleetCarrier) -> None:
-        self.fc:FleetCarrier = fc
+    def __init__(self, notice:str, timeout:int) -> None:
         self.root = tk.Tk()
         self.root.overrideredirect(True)
         self.root.attributes("-alpha", 0.6)
-        self.root.geometry(fc.window_geometries.get('Alert', "300x150-1+0"))
+        self.root.geometry(config.get_str('BGST_CarrierAlertGeometry', default="") or "300x150-1+0")
         self.root.attributes("-topmost", True)
         self.frame = tk.Frame(self.root, bg='red4', relief="raised")
         self.frame.pack(fill="both", expand=True)
@@ -613,5 +623,5 @@ class PopupNotice:
 
     def close(self) -> None:
         if self.root and self.root.winfo_exists():
-            self.fc.window_geometries['Alert'] = self.root.winfo_geometry()
+            config.set('BGST_CarrierAlertGeometry', self.root.winfo_geometry())
             self.root.destroy()

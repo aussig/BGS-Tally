@@ -2,8 +2,9 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+## New Features:
 
-
+* Experimental support for squadron carriers
 
 ## v5.6.0 - 2026-08-31
 

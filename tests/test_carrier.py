@@ -87,6 +87,55 @@ class TestCarrierInitialization:
         fc.overview = {'name': 'Test Carrier'}
         assert not fc.available()
 
+    def test_no_capi_data_initially(self, harness) -> None:
+        """ Test has_capi_data before any CAPI data is received """
+        fc = harness.plugin.fleet_carrier
+        fc.data = {}
+        assert not fc.has_capi_data
+
+    def test_capi_data_flag_set(self, harness) -> None:
+        """ Test has_capi_data once CAPI data has been received """
+        fc = harness.plugin.fleet_carrier
+        fc.data = {'name': {}}
+        assert fc.has_capi_data
+
+class TestFleetCarriers:
+    """ Test the FleetCarriers registry that tracks personal and squadron carriers """
+
+    def test_personal_available(self, harness) -> None:
+        """ Test that the personal carrier slot always exists """
+        assert harness.plugin.fleet_carriers.personal is not None
+
+    def test_squadron_unseen(self, harness) -> None:
+        """ Test that squadron is None until a squadron carrier is seen """
+        assert harness.plugin.fleet_carriers.squadron is None
+
+    def test_get_personal(self, harness) -> None:
+        """ Test get returns existing personal carrier """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(99999, FleetCarrierType.PERSONAL)
+        assert fc is harness.plugin.fleet_carriers.personal
+
+    def test_get_squadron(self, harness) -> None:
+        """ Test get creates a new squadron carrier """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(54321, FleetCarrierType.SQUADRON)
+        assert fc.carrier_id == 54321
+        assert fc.carrier_type == FleetCarrierType.SQUADRON
+        assert harness.plugin.fleet_carriers.squadron is fc
+
+    def test_carrier_resolves_personal(self, harness) -> None:
+        """ Test _carrier() resolves personal for a PERSONAL-typed entry """
+        entry = {'CarrierID': 12345, 'CarrierType': 'FleetCarrier'}
+        assert harness.plugin._carrier(entry) is harness.plugin.fleet_carrier
+
+    def test_carrier_resolves_squadron(self, harness) -> None:
+        """ Test _carrier() resolves a separate carrier for a SQUADRON-typed entry """
+        entry = {'CarrierID': 54321, 'CarrierType': 'SquadronCarrier'}
+        squadron = harness.plugin._carrier(entry)
+        assert squadron is not harness.plugin.fleet_carrier
+        assert squadron is harness.plugin.fleet_carriers.squadron
+
 class TestCarrierUIDataMethods:
     """ Test the methods used by the UI to retrieve carrier data """
     def test_get_overview(self, harness) -> None:
@@ -120,6 +169,17 @@ class TestCarrierUIDataMethods:
         summary = fc.get_summary()
         assert 'finances' in summary
         assert 'costs' in summary
+        assert 'capacity' in summary
+
+    def test_get_summary_no_capi_data(self, harness) -> None:
+        """ Test get_summary() omits finances/costs without CAPI data """
+        fc = harness.plugin.fleet_carrier
+        fc.data = {}
+        fc.overview = {'totalCapacity': 25000}
+
+        summary = fc.get_summary()
+        assert summary['finances'] is None
+        assert summary['costs'] is None
         assert 'capacity' in summary
 
     def test_get_cargo(self, harness) -> None:

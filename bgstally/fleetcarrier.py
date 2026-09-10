@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DiscordChannel, FleetCarrierJump,
                                 FleetCarrierType)
 from bgstally.debug import Debug
+from bgstally.ravencolonial import Spansh
 from bgstally.utils import _, __, catch_exceptions, get_by_path
 from thirdparty.colors import *
 
@@ -676,6 +677,7 @@ class FleetCarrier:
 
         if self.bgstally.dev_mode == True: self.save()
         self.bgstally.ui.window_fc.update_display()
+        Spansh().import_fleetcarrier(self)
 
 
     @catch_exceptions
@@ -801,6 +803,7 @@ class FleetCarrier:
                                         'starsystem': entry.get('StarSystem', ''),
                                         'body': entry.get('Body', '')
                                         })
+            Spansh().import_fleetcarrier(self)
             return
 
         Debug.logger.debug(f"Calling jump complete")
@@ -836,6 +839,7 @@ class FleetCarrier:
 
         self.bgstally.ui.window_fc.update_display()
         if self.bgstally.dev_mode == True: self.save()
+        Spansh().import_fleetcarrier(self)
 
 
     @catch_exceptions
@@ -1314,6 +1318,9 @@ class FleetCarrier:
 
         with open(file) as json_file:
             self._from_dict(json.load(json_file))
+            if self.carrier_type != FleetCarrierType.PERSONAL:
+                return # Squadron (etc) carriers never have CAPI data -- the checks below don't apply
+
             if self.data is None or self.data.get('name') is None:
                 # There is no CAPI data, so clear our name and callsign as we have no personal carrier. This is to clear up
                 # the problem where a squadron carrier was accidentally stored as a personal one, when the user doesn't

@@ -35,8 +35,9 @@ def harness(request) -> Generator:
                                     json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
                         url='http://tick.infomancer.uk/galtick.json', sticky=True)
 
-    # Make sure we always start with a consistent fleetcarrier.json
+    # Make sure we always start with a consistent fleetcarrier.json, and no leftover squadron (etc) carriers
     Path(Path(__file__).parent / "otherdata" / "fleetcarrier.json").unlink(missing_ok=True)
+    for f in Path(Path(__file__).parent / "otherdata").glob("carrier_*.json"): f.unlink()
     carrier_init_file:str = getattr(request, 'param', 'fleetcarrier_init.json')
     if carrier_init_file != 'None':
         shutil.copy(Path(__file__).parent / "config" / carrier_init_file,
@@ -123,6 +124,22 @@ class TestFleetCarriers:
         assert fc.carrier_id == 54321
         assert fc.carrier_type == FleetCarrierType.SQUADRON
         assert harness.plugin.fleet_carriers.squadron is fc
+
+    def test_squadron_persists_across_load(self, harness) -> None:
+        """ Test a squadron carrier's overview survives a fresh load(), not wiped as no-CAPI """
+        from bgstally.constants import FleetCarrierType
+        from bgstally.fleetcarrier import FleetCarrier
+
+        fc = harness.plugin.fleet_carriers.get(54321, FleetCarrierType.SQUADRON)
+        fc.overview = {'name': 'Test Squadron', 'callsign': 'SQD-123', 'currentStarSystem': 'Sol', 'bankBalance': 5000}
+        fc.save()
+
+        reloaded = FleetCarrier(harness.plugin, 54321, FleetCarrierType.SQUADRON)
+
+        assert reloaded.overview.get('name') == 'Test Squadron'
+        assert reloaded.overview.get('callsign') == 'SQD-123'
+        assert reloaded.overview.get('currentStarSystem') == 'Sol'
+        assert reloaded.overview.get('bankBalance') == 5000
 
     def test_carrier(self, harness) -> None:
         """ Test _carrier method """
@@ -684,6 +701,32 @@ class TestCarrierEvents:
         assert fc.shipyard['ships']['1']['name'] == 'Eagle'
         assert fc.shipyard['overview']['shipCount'] == 1
         assert fc.shipyard['overview']['totalValue'] == 50000
+
+class TestSpanshFleetCarrier:
+    """ Test Spansh filling market gaps for a fleet carrier we have no CAPI data for """
+
+    def test_spansh_import(self, harness) -> None:
+        """ Test import_fleetcarrier() and its callback """
+        from bgstally.ravencolonial import Spansh
+        fc = harness.plugin.fleet_carrier
+
+        fc.data = {'name': {}} # Has CAPI data -- should not query Spansh at all
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            Spansh().import_fleetcarrier(fc)
+        mock_queue.assert_not_called()
+
+        fc.data = {}
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'stock': 999, 'buyTotal': 0, 'outstanding': 0, 'price': 1}
+        response = Mock()
+        response.json.return_value = {'record': {'market': [
+            {'commodity': 'Tritium', 'category': 'Chemicals', 'supply': 500, 'demand': 0, 'buy_price': 8000, 'sell_price': 0},
+            {'commodity': 'Water', 'category': 'Chemicals', 'supply': 200, 'demand': 0, 'buy_price': 100, 'sell_price': 0}
+        ]}}
+
+        Spansh()._fleetcarrier_callback(fc, True, response, Mock())
+
+        assert fc.cargo['normal']['tritium']['stock'] == 999 # Already tracked, not overwritten
+        assert fc.cargo['normal']['water']['stock'] == 200 # Gap filled
 
 class CarrierUnused:
     def test_parse_date(self, harness) -> None:

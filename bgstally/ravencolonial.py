@@ -14,6 +14,7 @@ from bgstally.utils import _, get_by_path, catch_exceptions
 if TYPE_CHECKING:
     from colonisation import Colonisation
     from bgstally.bgstally import BGSTally
+    from bgstally.fleetcarrier import FleetCarrier
 
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
 RC_COOLDOWN = 30
@@ -933,6 +934,7 @@ class Spansh:
         # Only initialize if it's the first time
         if not hasattr(self, '_initialized'):
             self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
+            self.carrier_cache:dict = {} # marketId -> last query time, for import_fleetcarrier()'s cooldown
             self._initialized = True
         self.body_details = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', \
                              'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
@@ -945,6 +947,39 @@ class Spansh:
 
     def import_bodies(self, system_name:str) -> None:
         return self._get_details(system_name, 'bodies')
+
+    @catch_exceptions
+    def import_fleetcarrier(self, fc:'FleetCarrier') -> None:
+        """ Retrieve a market snapshot from Spansh for a fleet carrier we have no CAPI data for """
+        if fc.has_capi_data or fc.carrier_id == 0: return
+        if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - SPANSH_COOLDOWN: return
+        self.carrier_cache[fc.carrier_id] = int(time.time())
+
+        url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
+        RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._fleetcarrier_callback, fc))
+
+    @catch_exceptions
+    def _fleetcarrier_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
+        """ Merge Spansh's market snapshot into a fleet carrier, filling gaps rather than overwriting """
+        if success == False: return
+
+        record:dict = response.json().get('record', {})
+        if not record.get('market'): return
+
+        for m in record['market']:
+            comm:str = re.sub(r'[^a-z0-9]', '', m.get('commodity', '').lower())
+            if comm == '' or comm in fc.cargo['normal']: continue
+
+            fc.cargo['normal'][comm] = {
+                'locName': m.get('commodity', comm),
+                'category': m.get('category', 'Unknown'),
+                'stock': m.get('supply', 0),
+                'buyTotal': 0,
+                'outstanding': m.get('demand', 0),
+                'price': m.get('buy_price', 0) or m.get('sell_price', 0),
+            }
+
+        RavenColonial(self).bgstally.ui.window_fc.update_display()
 
     @catch_exceptions
     def _get_by_name(self, system_name:str) -> dict|None:

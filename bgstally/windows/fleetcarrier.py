@@ -452,14 +452,14 @@ class WindowFleetCarrier:
                                               direction='above')
 
         cbtn:ttk.Button = ttk.Button(bar, text=_("Copy to Clipboard"), command=partial(_ctc, which, strv)) # LANG: Button label
-        cbtn.pack(side=tk.LEFT, padx=5, pady=(5, 0))
+        cbtn.pack(side=tk.LEFT, padx=5, pady=(10, 0))
         dbtn = ttk.Button(bar, text=_("Post to Discord"), # LANG: Button label
                                     state=(tk.NORMAL if _discord_available() else tk.DISABLED))
         dbtn.configure(command=partial(_post, which, strv, dbtn))
-        dbtn.pack(side=tk.RIGHT, padx=5, pady=(5, 0))
+        dbtn.pack(side=tk.RIGHT, padx=5, pady=(10, 0))
         if not _discord_available():
             ToolTip(dbtn, text=_("Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord").format(CR="\n")) # LANG: Post to Discord button tooltip
-        menuv.pack(side=tk.RIGHT, pady=(5, 0))
+        menuv.pack(side=tk.RIGHT, pady=(10, 0))
 
 
     def _routing_buttons(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
@@ -515,10 +515,10 @@ class WindowFleetCarrier:
         clear.config(state=tk.DISABLED if itinerary.get('route', []) == [] else tk.NORMAL)
 
         # At the bottom as order of definition and order of display are different
-        calc.pack(side=tk.RIGHT, padx=5, pady=(5, 0))
-        dest.pack(side=tk.RIGHT, padx=5, pady=(5, 0))
-        lbl.pack(side=tk.RIGHT, padx=5, pady=(5, 0))
-        clear.pack(side=tk.RIGHT, padx=5, pady=(5, 0))
+        calc.pack(side=tk.RIGHT, padx=5, pady=(10, 0))
+        dest.pack(side=tk.RIGHT, padx=5, pady=(10, 0))
+        lbl.pack(side=tk.RIGHT, padx=5, pady=(10, 0))
+        clear.pack(side=tk.RIGHT, padx=5, pady=(10, 0))
 
         return
 

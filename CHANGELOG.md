@@ -2,7 +2,9 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### Bug Fixes:
 
+* Commodity list was getting unduly truncatd in overlay and discord.
 
 
 ## v5.6.0 - 2026-08-31

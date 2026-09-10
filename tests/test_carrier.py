@@ -124,17 +124,24 @@ class TestFleetCarriers:
         assert fc.carrier_type == FleetCarrierType.SQUADRON
         assert harness.plugin.fleet_carriers.squadron is fc
 
-    def test_carrier_resolves_personal(self, harness) -> None:
-        """ Test _carrier() resolves personal for a PERSONAL-typed entry """
+    def test_carrier(self, harness) -> None:
+        """ Test _carrier method """
         entry = {'CarrierID': 12345, 'CarrierType': 'FleetCarrier'}
         assert harness.plugin._carrier(entry) is harness.plugin.fleet_carrier
 
-    def test_carrier_resolves_squadron(self, harness) -> None:
-        """ Test _carrier() resolves a separate carrier for a SQUADRON-typed entry """
         entry = {'CarrierID': 54321, 'CarrierType': 'SquadronCarrier'}
         squadron = harness.plugin._carrier(entry)
         assert squadron is not harness.plugin.fleet_carrier
         assert squadron is harness.plugin.fleet_carriers.squadron
+
+        from bgstally.constants import FleetCarrierType
+        squadron = harness.plugin.fleet_carriers.get(54321, FleetCarrierType.SQUADRON)
+        assert harness.plugin._carrier({'CarrierID': 54321}) is squadron
+
+        squadron = harness.plugin.fleet_carriers.get(54321, FleetCarrierType.SQUADRON)
+        assert harness.plugin._carrier({'MarketID': 54321}) is squadron
+
+        assert harness.plugin._carrier({'MarketID': 11111}) is harness.plugin.fleet_carrier
 
 class TestCarrierUIDataMethods:
     """ Test the methods used by the UI to retrieve carrier data """
@@ -181,6 +188,16 @@ class TestCarrierUIDataMethods:
         assert summary['finances'] is None
         assert summary['costs'] is None
         assert 'capacity' in summary
+
+    def test_get_summary_stats_only(self, harness) -> None:
+        """ Test get_summary() shows finances from CarrierStats alone, but not CAPI-only costs """
+        fc = harness.plugin.fleet_carrier
+        fc.data = {}
+        fc.overview = {'bankBalance': 1000000, 'bankReservedBalance': 200000, 'totalCapacity': 25000}
+
+        summary = fc.get_summary()
+        assert summary['finances'] is not None
+        assert summary['costs'] is None
 
     def test_get_cargo(self, harness) -> None:
         """ Test get_cargo() method """
@@ -574,6 +591,35 @@ class TestCarrierEvents:
         assert fc.overview['name'] != 'Test Carrier'
         assert fc.overview['callsign'] != 'ABC-123'
 
+    def test_stats_received_sets_fuel(self, harness) -> None:
+        """ Test stats_received() populates fuel from CarrierStats """
+        fc = harness.plugin.fleet_carrier
+        entry = {
+            'CarrierID': 12345,
+            'CarrierType': 'FleetCarrier',
+            'Name': 'Test Carrier',
+            'Callsign': 'ABC-123',
+            'DockingAccess': 'all',
+            'AllowNotorious': True,
+            'FuelLevel': 750,
+            'SpaceUsage': {
+                'TotalCapacity': 25000,
+                'Crew': 50,
+                'ShipPacks': 10,
+                'ModulePacks': 5,
+                'FreeSpace': 24000,
+                'CargoSpaceReserved': 100
+            },
+            'Finance': {
+                'CarrierBalance': 1000000,
+                'ReserveBalance': 200000
+            }
+        }
+
+        fc.stats_received(entry)
+
+        assert fc.overview['fuel'] == 750
+
     def test_carrier_location(self, harness) -> None:
         """ Test carrier_location() method """
         fc = harness.plugin.fleet_carrier
@@ -593,6 +639,22 @@ class TestCarrierEvents:
         assert after == before + 1
         assert fc.itinerary[0]['starsystem'] == 'Alpha Centauri'
         assert fc.itinerary[0]['body'] == 'Alpha Centauri A'
+
+    def test_carrier_location_empty_itinerary(self, harness) -> None:
+        """ Test carrier_location() seeds the itinerary instead of crashing when it's empty """
+        fc = harness.plugin.fleet_carrier
+        fc.itinerary = []
+        entry = {
+            'CarrierID': 12345,
+            'StarSystem': 'Alpha Centauri',
+            'Body': 'Alpha Centauri A'
+        }
+        assert fc.overview['carrier_id'] == 12345
+
+        fc.carrier_location(entry)
+
+        assert fc.overview['currentStarSystem'] == 'Alpha Centauri'
+        assert len(fc.itinerary) > 0
 
     def test_deposit_fuel(self, harness) -> None:
         """ Test deposit_fuel() method """

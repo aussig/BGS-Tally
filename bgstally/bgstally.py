@@ -122,9 +122,11 @@ class BGSTally:
 
 
     def _carrier(self, entry:dict) -> FleetCarrier:
-        """ Resolve which FleetCarrier a CarrierType-bearing journal entry (stats/location) is about """
-        carrier_type:FleetCarrierType = FleetCarrierType(entry.get('CarrierType', FleetCarrierType.PERSONAL))
-        return self.fleet_carriers.get(entry.get('CarrierID', 0), carrier_type)
+        """ Resolve which FleetCarrier a journal entry is about, creating one if CarrierType is given """
+        carrier_id:int = entry.get('CarrierID', entry.get('MarketID', 0))
+        if 'CarrierType' in entry:
+            return self.fleet_carriers.get(carrier_id, FleetCarrierType(entry['CarrierType']))
+        return self.fleet_carriers.find(carrier_id) or self.fleet_carriers.personal
 
 
     def plugin_stop(self):
@@ -205,7 +207,7 @@ class BGSTally:
                 self._carrier(entry).stats_received(entry)
 
             case 'CarrierTradeOrder':
-                self.fleet_carrier.trade_order(entry)
+                self._carrier(entry).trade_order(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'CollectCargo':
@@ -269,19 +271,19 @@ class BGSTally:
 
             case 'Market':
                 self.market.load()
-                self.fleet_carrier.market(entry)
+                self._carrier(entry).market(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'MarketBuy':
                 activity.trade_purchased(entry, self.state)
-                self.fleet_carrier.market_activity(entry)
+                self._carrier(entry).market_activity(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
                 dirty = True
 
             case 'MarketSell':
                 activity.trade_sold(entry, self.state)
-                self.fleet_carrier.market_activity(entry)
+                self._carrier(entry).market_activity(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 

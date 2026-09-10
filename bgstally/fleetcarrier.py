@@ -95,8 +95,9 @@ class FleetCarrier:
         """
         summary:dict = {'finances': None, 'costs': None, 'capacity': []}
 
-        # CAPI-only, so show as unknown rather than a misleading zero when we've never had CAPI data.
-        if self.has_capi_data:
+        # Finances come from CarrierStats too, not just CAPI -- costs (maintenance/core/services/jump)
+        # have no CarrierStats equivalent, so those stay unknown rather than a misleading zero.
+        if 'bankBalance' in self.overview:
             summary['finances'] = {
                 _('Bank Balance'): self.overview.get('bankBalance', 0),           # LANG: Carrier summary
                 _('Bank Reserve'): self.overview.get('bankReservedBalance', 0),   # LANG: Carrier summary
@@ -104,6 +105,7 @@ class FleetCarrier:
                 _('Reserve Percentage'): (round((self.overview.get('bankReservedBalance', 0) * 100) / self.overview.get('bankBalance', 1)), 'num', 0, '%')# LANG: Carrier summary
             }
 
+        if self.has_capi_data:
             summary['costs'] = {
                 _('Total'): self.overview.get('maintenance', 0),                   # LANG: Carrier summary
                 _('Core Cost'): self.overview.get('coreCost', 0),                  # LANG: Carrier summary
@@ -661,6 +663,7 @@ class FleetCarrier:
                         'crew': [self.overview, ['SpaceUsage', 'Crew'], 0],
                         'bankBalance': [self.overview, ['Finance', 'CarrierBalance'], 0],
                         'bankReservedBalance': [self.overview, ['Finance', 'ReserveBalance'], 0],
+                        'fuel': [self.overview, ['FuelLevel'], 0],
                         }
         for k, v in updates.items():
             v[0][k] = get_by_path(entry, v[1], v[2])
@@ -769,6 +772,13 @@ class FleetCarrier:
 
         Debug.logger.debug(f"Carrier location for {entry.get('CarrierID')} current state {self.jump_state}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
+
+        # A fresh carrier has no itinerary yet, so seed one entry or self.itinerary[0] below crashes.
+        if not self.itinerary:
+            self.itinerary = [{
+                'departureTime': None, 'arrivalTime': None, 'state': 'success',
+                'visitDurationSeconds': 0, 'starsystem': entry.get('StarSystem', ''), 'body': entry.get('Body', ''),
+            }]
 
         # Did we move without getting notified? (logged out maybe)
         if entry.get('StarSystem') != self.overview.get('currentStarSystem'):

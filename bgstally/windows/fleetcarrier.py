@@ -149,19 +149,21 @@ class WindowFleetCarrier:
         """ Update the Fleet Carrier window contents """
         if self.window == None or not self.window.winfo_exists() or self.carrier_tabbar is None: return
 
-        carriers:dict = {_('Personal'): self.bgstally.fleet_carriers.personal} # LANG: Carrier window tab
+        carriers:dict = {'Personal': self.bgstally.fleet_carriers.personal}
         if self.bgstally.fleet_carriers.squadron is not None:
-            carriers[_('Squadron')] = self.bgstally.fleet_carriers.squadron # LANG: Carrier window tab
+            carriers['Squadron'] = self.bgstally.fleet_carriers.squadron
 
-        for name, fc in carriers.items():
-            if name not in self.carrier_uis:
+        for role, fc in carriers.items():
+            if role not in self.carrier_uis:
                 frame:ttk.Frame = ttk.Frame(self.carrier_tabbar, relief=tk.FLAT)
                 frame.pack(fill=tk.BOTH, expand=1)
-                self.carrier_tabbar.add(frame, text=name)
-                self.carrier_uis[name] = {'frame': frame, 'summfr': None, 'tabbar': None, 'tab_frames': {}}
+                self.carrier_tabbar.add(frame, text=_(role)) # LANG: Carrier window tab, until callsign is known
+                self.carrier_uis[role] = {'frame': frame, 'summfr': None, 'tabbar': None, 'tab_frames': {}}
 
-            self._show_overview(fc, self.carrier_uis[name])
-            self._create_tabs(fc, self.carrier_uis[name])
+            ui:dict = self.carrier_uis[role]
+            self._tab_configure(self.carrier_tabbar, ui['frame'], text=fc.overview.get('callsign') or _(role))
+            self._show_overview(fc, ui)
+            self._create_tabs(fc, ui)
 
 
     def close(self, n:str = '', w:tk.Toplevel|None = None) -> None:
@@ -214,6 +216,23 @@ class WindowFleetCarrier:
                 v['buttons'](fc, fr)
             v['func'](fc, v, fr)
 
+            match k:
+                case 'Cargo':
+                    has_data = any(fc.cargo.get(t) for t in ('normal', 'stolen', 'mission'))
+                    # Without CAPI we only ever learn cargo from buy/sell orders -- label it accordingly.
+                    self._tab_configure(ui['tabbar'], fr, text=_('Cargo') if fc.has_capi_data else _('Market')) # LANG: Carrier window tab
+                case 'Locker': has_data = any(fc.locker.get(t) for t in ('normal', 'mission'))
+                case 'Itinerary': has_data = fc.itinerary != [] or fc.route != []
+                case 'Shipyard': has_data = fc.shipyard.get('ships', {}) != {}
+                case _: has_data = True
+            self._tab_configure(ui['tabbar'], fr, state='normal' if has_data else 'disabled')
+
+
+    def _tab_configure(self, notebook:ScrollableNotebook, child:ttk.Frame, **kwargs) -> None:
+        """ ScrollableNotebook.tab() only touches its hidden content pane, not the visible tab strip """
+        idx:int = notebook.notebookContent.index(child)
+        notebook.notebookTab.tab(notebook.notebookTab.tabs()[idx], **kwargs)
+
 
     def _summary(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
         summary:dict = fc.get_summary()
@@ -237,6 +256,8 @@ class WindowFleetCarrier:
                 if k != 'capacity':
                     separator:ttk.Separator = ttk.Separator(fr, orient=tk.HORIZONTAL)
                     separator.pack(side=tk.TOP, fill=tk.X, pady=5, padx=5)
+
+        if not fc.has_capi_data: return # Service details (crew, taxation) are CAPI-only
 
         services:dict = fc.get_services()
 
@@ -431,14 +452,14 @@ class WindowFleetCarrier:
                                               direction='above')
 
         cbtn:ttk.Button = ttk.Button(bar, text=_("Copy to Clipboard"), command=partial(_ctc, which, strv)) # LANG: Button label
-        cbtn.pack(side=tk.LEFT, padx=5, pady=5)
+        cbtn.pack(side=tk.LEFT, padx=5, pady=(5, 0))
         dbtn = ttk.Button(bar, text=_("Post to Discord"), # LANG: Button label
                                     state=(tk.NORMAL if _discord_available() else tk.DISABLED))
         dbtn.configure(command=partial(_post, which, strv, dbtn))
-        dbtn.pack(side=tk.RIGHT, padx=5, pady=5)
+        dbtn.pack(side=tk.RIGHT, padx=5, pady=(5, 0))
         if not _discord_available():
             ToolTip(dbtn, text=_("Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord").format(CR="\n")) # LANG: Post to Discord button tooltip
-        menuv.pack(side=tk.RIGHT, pady=5)
+        menuv.pack(side=tk.RIGHT, pady=(5, 0))
 
 
     def _routing_buttons(self, fc:FleetCarrier, frame:ttk.Frame) -> None:
@@ -494,10 +515,10 @@ class WindowFleetCarrier:
         clear.config(state=tk.DISABLED if itinerary.get('route', []) == [] else tk.NORMAL)
 
         # At the bottom as order of definition and order of display are different
-        calc.pack(side=tk.RIGHT, padx=5, pady=5)
-        dest.pack(side=tk.RIGHT, padx=5, pady=5)
-        lbl.pack(side=tk.RIGHT, padx=5, pady=5)
-        clear.pack(side=tk.RIGHT, padx=5, pady=5)
+        calc.pack(side=tk.RIGHT, padx=5, pady=(5, 0))
+        dest.pack(side=tk.RIGHT, padx=5, pady=(5, 0))
+        lbl.pack(side=tk.RIGHT, padx=5, pady=(5, 0))
+        clear.pack(side=tk.RIGHT, padx=5, pady=(5, 0))
 
         return
 

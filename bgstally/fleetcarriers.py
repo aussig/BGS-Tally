@@ -35,11 +35,17 @@ class FleetCarriers:
 
 
     def get(self, carrier_id:int, carrier_type:FleetCarrierType) -> FleetCarrier:
-        """ Return the FleetCarrier for carrier_id, creating it necessary """
+        """ Return the FleetCarrier for carrier_id, creating it if necessary """
         if carrier_type == FleetCarrierType.PERSONAL: return self.personal
         if carrier_id not in self.carriers:
             self.carriers[carrier_id] = FleetCarrier(self.bgstally, carrier_id, carrier_type)
         return self.carriers[carrier_id]
+
+
+    def find(self, carrier_id:int) -> FleetCarrier|None:
+        """ Return an already-known carrier by id alone, without creating a new one """
+        if carrier_id == self.personal.carrier_id: return self.personal
+        return self.carriers.get(carrier_id)
 
 
     @catch_exceptions

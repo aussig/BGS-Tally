@@ -1176,7 +1176,7 @@ class FleetCarrier:
 
     def _lt(self, tstr:str|None) -> str:
         """ Convert a UTC datetime string into a local datetime string """
-        if tstr == None: return ''
+        if not tstr: return ''
         try:
             t:datetime = self._parse_date(tstr)
             return t.astimezone(None).strftime(DATETIME_FORMAT_JSON)

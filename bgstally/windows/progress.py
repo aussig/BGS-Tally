@@ -900,7 +900,7 @@ class ProgressWindow:
                 row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(comm.comm)))
 
                 if col == 0:
-                    row[col]['text'] = v
+                    row[col]['text'] = str_truncate(v, 26)
                     self.rowtts[rowcnt].text = self.colonisation.get_commodity(comm.comm, 'category')
                     row[col].grid()
                     continue

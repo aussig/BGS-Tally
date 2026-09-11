@@ -4,7 +4,12 @@
 
 ## New Features:
 
-* Experimental support for squadron carriers
+* Experimental support for squadron and third-party carriers
+* Squadron and third-party carriers are now progress display options
+
+### Changes:
+
+* Progress columns is now a dropdown menu
 
 ## v5.6.0 - 2026-08-31
 

@@ -150,10 +150,10 @@ class ProgressWindow:
         self.coltts: list = [None, None, None, None]
         self.total_row:list = [None, None, None, None]
 
-        # Buy Orders is personal-carrier-only -- we can't place trade orders on a carrier we don't own.
-        # Carrier stays available regardless, since it can show any tracked carrier's stock.
+        # By removing the carrier from here we remove it everywhere
         if not self.bgstally.fleet_carrier.available():
-            self.headings.pop() # Buy Orders (always last)
+            self.headings.pop() # Carrier
+            self.headings.pop() # Buy Orders
 
         # UI components
         self.scale:float = config.get_int('ui_scale') / 100.00
@@ -595,24 +595,23 @@ class ProgressWindow:
         ''' Display a popup menu for choosing what a commodity column shows '''
         menu:tk.Menu = tk.Menu(tearoff=tk.FALSE)
         for i, heading in enumerate(self.headings):
-            if heading['Column'] in ('Commodity', 'Carrier'): continue
-            menu.add_command(label=heading['Label'], command=partial(self._set_column, col, i, None)) # LANG: progress column popup menu
+            if heading['Column'] == 'Commodity': continue
+            #carrier_id:int|None = self.bgstally.fleet_carrier.carrier_id if heading['Column'] == 'Carrier' else None
+            menu.add_command(label=heading['Label'], command=partial(self._set_column, col, i)) # LANG: progress column popup menu
 
+        # Other carriers (not our personal one) go below a separator, keyed by the same 'Carrier' heading
         carrier_index:int = next((i for i, h in enumerate(self.headings) if h['Column'] == 'Carrier'), -1)
-        carriers:list = []
-        if carrier_index >= 0 and self.bgstally.fleet_carrier.available():
-            carriers.append((self.bgstally.fleet_carrier.overview.get('callsign') or _('Personal'), self.bgstally.fleet_carrier.carrier_id)) # LANG: Carrier submenu entry
+        others:list = []
         squadron:FleetCarrier|None = self.bgstally.fleet_carriers.squadron
-        if carrier_index >= 0 and squadron is not None and squadron.available():
-            carriers.append((squadron.overview.get('callsign') or _('Squadron'), squadron.carrier_id)) # LANG: Carrier submenu entry
+        if squadron is not None and squadron.available():
+            others.append((squadron.overview.get('callsign') or _('Squadron'), squadron.carrier_id)) # LANG: Carrier menu entry
         for fc in self.bgstally.fleet_carriers.third_party:
-            carriers.append((fc.overview.get('callsign') or str(fc.carrier_id), fc.carrier_id))
+            others.append((fc.overview.get('callsign') or str(fc.carrier_id), fc.carrier_id))
 
-        if carriers:
-            submenu:tk.Menu = tk.Menu(menu, tearoff=tk.FALSE)
-            for label, carrier_id in carriers:
-                submenu.add_command(label=label, command=partial(self._set_column, col, carrier_index, carrier_id)) # LANG: progress carrier submenu entry
-            menu.add_cascade(label=_('Carrier'), menu=submenu) # LANG: Carrier submenu heading
+        if others and carrier_index >= 0:
+            menu.add_separator()
+            for label, carrier_id in others:
+                menu.add_command(label=label, command=partial(self._set_column, col, carrier_index, carrier_id)) # LANG: Carrier menu entry
 
         menu.post(event.x_root, event.y_root)
         menu.grab_release()
@@ -639,18 +638,24 @@ class ProgressWindow:
         idx:int = self.columns[col] if self.columns[col] < len(self.headings) else 0
         return self.headings[idx]
 
+    def _other_carrier(self, col:int) -> int|None:
+        ''' The selected carrier_id for a Carrier column, unless it's our personal carrier (kept as plain 'Carrier') '''
+        carrier_id:int|None = self.column_carriers[col]
+        if carrier_id is None or carrier_id == self.bgstally.fleet_carrier.carrier_id: return None
+        return carrier_id
+
     def _column_label(self, col:int) -> str:
-        ''' Display label for a column: metric name, or the specific carrier if a Carrier column '''
+        ''' Display label for a column: metric name, or the specific carrier if not our personal one '''
         heading:dict = self._column_heading(col)
-        if heading['Column'] == 'Carrier' and self.column_carriers[col] is not None:
-            return self._carrier_label(self.column_carriers[col])
-        return heading.get('Label', '')
+        other:int|None = self._other_carrier(col) if heading['Column'] == 'Carrier' else None
+        return self._carrier_label(other) if other is not None else heading.get('Label', '')
 
     def _column_tooltip(self, col:int) -> str:
         ''' Tooltip for a column: metric tooltip, or which carrier a Carrier column is showing '''
         heading:dict = self._column_heading(col)
-        if heading['Column'] == 'Carrier' and self.column_carriers[col] is not None:
-            return _("Stock available to buy at {carrier}").format(carrier=self._carrier_label(self.column_carriers[col])) # LANG: Carrier column tooltip
+        other:int|None = self._other_carrier(col) if heading['Column'] == 'Carrier' else None
+        if other is not None:
+            return _("Stock available to buy at {carrier}").format(carrier=self._carrier_label(other)) # LANG: Carrier column tooltip
         return heading.get('Tooltip', '')
 
 

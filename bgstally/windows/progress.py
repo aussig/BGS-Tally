@@ -20,12 +20,13 @@ from thirdparty.table2ascii.table_style import TableStyle
 if TYPE_CHECKING:
     from colonisation import Colonisation
     from bgstally.bgstally import BGSTally
+    from bgstally.fleetcarrier import FleetCarrier
 
 from bgstally.constants import FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates, CommodityOrder, ProgressUnits, ProgressView, RequestMethod
 from bgstally.debug import Debug
 from bgstally.ravencolonial import RavenColonial
 from bgstally.requestmanager import BGSTallyRequest
-from bgstally.utils import _, catch_exceptions, human_format, str_truncate
+from bgstally.utils import _, catch_exceptions, get_by_path, human_format, str_truncate
 from thirdparty.tksheet import Sheet, natural_sort_key
 from thirdparty.Tooltip import ToolTip
 
@@ -45,6 +46,7 @@ class Commodity:
     buyorder:int = field(init=False)
     remaining:int = field(init=False)
     purchase:int = field(init=False)
+    carrier_stocks:dict = field(init=False, default_factory=dict) # Stock of this commodity, keyed by carrier_id
 
     def __post_init__(self):
         self.name = self.col_obj.get_commodity(self.comm, 'name')
@@ -54,6 +56,11 @@ class Commodity:
         self.buyorder = self.col_obj.carrier_buy.get(self.comm, 0)
         self.remaining = max(0, self.required - self.delivered)
         self.purchase = max(0, self.required - self.delivered - self.cargo - self.carrier)
+
+        fleet_carriers = self.col_obj.bgstally.fleet_carriers
+        self.carrier_stocks = {fleet_carriers.personal.carrier_id: self.carrier}
+        for fc in fleet_carriers.carriers.values():
+            self.carrier_stocks[fc.carrier_id] = int(get_by_path(fc.cargo, ['normal', self.comm, 'stock'], 0))
 
 class ProgressWindow:
     '''
@@ -138,14 +145,15 @@ class ProgressWindow:
         # Initialise the default units & column types
         self.units:list = [CommodityOrder.ALPHA, ProgressUnits.QTY, ProgressUnits.QTY, ProgressUnits.QTY]
         self.columns:list = [0, 2, 3, 5]
+        self.column_carriers:list = [None, None, None, None] # Which carrier a 'Carrier' column shows, if any
         self.collbls:list = [None, None, None, None] # Column headings
         self.coltts: list = [None, None, None, None]
         self.total_row:list = [None, None, None, None]
 
-        # By removing the carrier from here we remove it everywhere
+        # Buy Orders is personal-carrier-only -- we can't place trade orders on a carrier we don't own.
+        # Carrier stays available regardless, since it can show any tracked carrier's stock.
         if not self.bgstally.fleet_carrier.available():
-            self.headings.pop() # Carrier
-            self.headings.pop() # Buy Orders
+            self.headings.pop() # Buy Orders (always last)
 
         # UI components
         self.scale:float = config.get_int('ui_scale') / 100.00
@@ -327,21 +335,23 @@ class ProgressWindow:
         row:int = 0
 
         # Column headings
-        for col, v in enumerate(self.columns):
-            if v >= len(self.headings): v = 0
-            lbl = tk.Label(headings_parent, text=self.headings[v].get('Label'), cursor='hand2')
+        for col in range(len(self.columns)):
+            lbl = tk.Label(headings_parent, text=self._column_label(col), cursor='hand2')
             if col == 0:
                 lbl.configure(width=self.comm_width, anchor=tk.W)
             else:
                 lbl.configure(width=self.amt_width, justify=tk.RIGHT, anchor=tk.E)
-            lbl.bind("<Button-1>", partial(self.change_units, col, 'Column'))
+            if col == 0:
+                lbl.bind("<Button-1>", partial(self.change_units, col, 'Column'))
+            else:
+                lbl.bind("<Button-1>", partial(self._column_menu, col))
             lbl.bind("<Button-3>", partial(self.change_units, col, 'Units'))
             if config.get_int('theme') == 0: lbl['fg'] = 'black'
             self._set_weight(lbl)
             lbl.grid(row=0, column=col, sticky=tk.EW if col == 0 else tk.E, padx=(0,5))
 
             self.collbls[col] = lbl
-            self.coltts[col] = ToolTip(lbl, text=self.headings[v].get('Tooltip'))
+            self.coltts[col] = ToolTip(lbl, text=self._column_tooltip(col))
         if not self.use_scrollbar:
             row = 1
 
@@ -465,9 +475,8 @@ class ProgressWindow:
         output += "```"
 
         heading_list:list = []
-        for i, col in enumerate(self.columns):
-            if col >= len(self.headings): col = 0
-            heading_list.append(str_truncate(self.headings[col].get('Label'), column_widths[i]-2))
+        for i in range(len(self.columns)):
+            heading_list.append(str_truncate(self._column_label(i), column_widths[i]-2))
         #heading_list.insert(1, _('Category'))
 
         comms_list:list[list] = []
@@ -479,7 +488,7 @@ class ProgressWindow:
 
         total_list:list = []
         for i, col in enumerate(self.columns):
-            total_list.append(self._get_value(self.headings[col].get('Column'), self.units[i], totals) if i > 0 else _('Total')) # LANG: Total amounts
+            total_list.append(self._get_value(self.headings[col].get('Column'), self.units[i], totals, self.column_carriers[i]) if i > 0 else _('Total')) # LANG: Total amounts
 
         # Add commodity name.
         table:str = table2ascii(header=heading_list, body=comms_list, footer=total_list,
@@ -520,7 +529,7 @@ class ProgressWindow:
 
         table:str = "\n- - - - - - - - - - - - -\n"
 
-        table += f"{self.headings[self.columns[1]].get('Label')}\n"
+        table += f"{self._column_label(1)}\n"
 
         rows:int = 0
         for rowcnt, (comm, row_values) in enumerate(self._get_rows(comms)):
@@ -533,7 +542,7 @@ class ProgressWindow:
             rows += 1
 
         table += "- - - - - - - - - - - - -\n"
-        val:str = self._get_value(self.headings[self.columns[1]].get('Column'), self.units[1], totals)
+        val:str = self._get_value(self.headings[self.columns[1]].get('Column'), self.units[1], totals, self.column_carriers[1])
         w:int = 18 - len(val)
         v:str = f"{val: <16}"[0:w] # Adjust for proportional font
         c:str = _("Total") # LANG: Total amounts
@@ -571,21 +580,78 @@ class ProgressWindow:
 
     @catch_exceptions
     def change_units(self, column:int, which:str, tkEvent) -> None:
-        ''' Change the view of the column when clicked. This cycles between tonnes, remaining, loads, etc. '''
+        ''' Cycle commodity order (column 0) or amount units - tonnes vs loads (other columns) '''
         if column == 0:
             self.comm_order = CommodityOrder((self.comm_order.value + 1) % len(CommodityOrder))
             self.coltts[column].text = self.ordertts[self.comm_order.value]
-        else:
-            if which == 'Units':
-                self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
-            else:
-                val = (self.columns[column] + 1) % len(self.headings)
-                if val == 0: val = 1 # Don't permit Commodities
-                self.columns[column] = val
-                self.coltts[column].text = self.headings[val].get('Tooltip')
+        elif which == 'Units':
+            self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
 
         self.colonisation.dirty = True
         self.update_display()
+
+    @catch_exceptions
+    def _column_menu(self, col:int, event:tk.Event) -> None:
+        ''' Display a popup menu for choosing what a commodity column shows '''
+        menu:tk.Menu = tk.Menu(tearoff=tk.FALSE)
+        for i, heading in enumerate(self.headings):
+            if heading['Column'] in ('Commodity', 'Carrier'): continue
+            menu.add_command(label=heading['Label'], command=partial(self._set_column, col, i, None)) # LANG: progress column popup menu
+
+        carrier_index:int = next((i for i, h in enumerate(self.headings) if h['Column'] == 'Carrier'), -1)
+        carriers:list = []
+        if carrier_index >= 0 and self.bgstally.fleet_carrier.available():
+            carriers.append((self.bgstally.fleet_carrier.overview.get('callsign') or _('Personal'), self.bgstally.fleet_carrier.carrier_id)) # LANG: Carrier submenu entry
+        squadron:FleetCarrier|None = self.bgstally.fleet_carriers.squadron
+        if carrier_index >= 0 and squadron is not None and squadron.available():
+            carriers.append((squadron.overview.get('callsign') or _('Squadron'), squadron.carrier_id)) # LANG: Carrier submenu entry
+        for fc in self.bgstally.fleet_carriers.third_party:
+            carriers.append((fc.overview.get('callsign') or str(fc.carrier_id), fc.carrier_id))
+
+        if carriers:
+            submenu:tk.Menu = tk.Menu(menu, tearoff=tk.FALSE)
+            for label, carrier_id in carriers:
+                submenu.add_command(label=label, command=partial(self._set_column, col, carrier_index, carrier_id)) # LANG: progress carrier submenu entry
+            menu.add_cascade(label=_('Carrier'), menu=submenu) # LANG: Carrier submenu heading
+
+        menu.post(event.x_root, event.y_root)
+        menu.grab_release()
+
+    @catch_exceptions
+    def _set_column(self, col:int, heading_index:int, carrier_id:int|None) -> None:
+        ''' Set a column to show a metric, or a specific carrier's available stock '''
+        self.columns[col] = heading_index
+        self.column_carriers[col] = carrier_id
+        self.coltts[col].text = self._column_tooltip(col)
+        self.colonisation.dirty = True
+        self.update_display()
+
+    def _carrier_label(self, carrier_id:int) -> str:
+        ''' Display name for a specific carrier column: its callsign, or a role name before one is known '''
+        fc:FleetCarrier|None = self.bgstally.fleet_carriers.find(carrier_id)
+        if fc is None: return _('Carrier') # LANG: Carrier column fallback label
+        if fc is self.bgstally.fleet_carrier: return fc.overview.get('callsign') or _('Personal') # LANG: Personal carrier fallback label
+        if fc is self.bgstally.fleet_carriers.squadron: return fc.overview.get('callsign') or _('Squadron') # LANG: Squadron carrier fallback label
+        return fc.overview.get('callsign') or str(fc.carrier_id)
+
+    def _column_heading(self, col:int) -> dict:
+        ''' The heading dict currently selected for a column '''
+        idx:int = self.columns[col] if self.columns[col] < len(self.headings) else 0
+        return self.headings[idx]
+
+    def _column_label(self, col:int) -> str:
+        ''' Display label for a column: metric name, or the specific carrier if a Carrier column '''
+        heading:dict = self._column_heading(col)
+        if heading['Column'] == 'Carrier' and self.column_carriers[col] is not None:
+            return self._carrier_label(self.column_carriers[col])
+        return heading.get('Label', '')
+
+    def _column_tooltip(self, col:int) -> str:
+        ''' Tooltip for a column: metric tooltip, or which carrier a Carrier column is showing '''
+        heading:dict = self._column_heading(col)
+        if heading['Column'] == 'Carrier' and self.column_carriers[col] is not None:
+            return _("Stock available to buy at {carrier}").format(carrier=self._carrier_label(self.column_carriers[col])) # LANG: Carrier column tooltip
+        return heading.get('Tooltip', '')
 
 
     @catch_exceptions
@@ -904,6 +970,8 @@ class ProgressWindow:
             if comm.remaining > 0:
                 totals.cargo += max(min(comm.cargo, comm.remaining), 0)
                 totals.carrier += max(min(comm.carrier, comm.remaining - comm.cargo), 0)
+            for carrier_id, stock in comm.carrier_stocks.items():
+                totals.carrier_stocks[carrier_id] = totals.carrier_stocks.get(carrier_id, 0) + stock
         return totals
 
 
@@ -917,7 +985,7 @@ class ProgressWindow:
 
             row_values:list = []
             for i, col in enumerate(self.columns):
-                row_values.append(self._get_value(self.headings[col].get('Column'), self.units[i], comm))
+                row_values.append(self._get_value(self.headings[col].get('Column'), self.units[i], comm, self.column_carriers[i]))
 
             display_rows.append((comm, row_values))
 
@@ -926,11 +994,10 @@ class ProgressWindow:
 
     def _display_headings(self) -> None:
         # Set the column headings according to the selected units
-        for col, v in enumerate(self.columns):
-            if v >= len(self.headings): v = len(self.headings) -1
+        for col in range(len(self.columns)):
             if col >= len(self.collbls): col = len(self.collbls) - 1
             if self.collbls[col] == None: col = 0
-            self.collbls[col]['text'] = self.headings[v].get('Label')
+            self.collbls[col]['text'] = self._column_label(col)
             self.collbls[col].grid()
 
     @catch_exceptions
@@ -938,24 +1005,27 @@ class ProgressWindow:
         ''' Display the totals at the bottom of the table '''
 
         for i, col in enumerate(self.columns):
-            self.total_row[i]['text'] = self._get_value(self.headings[col].get('Column'), self.units[i], totals) if i > 0 else _('Total') # LANG: Total amounts
+            self.total_row[i]['text'] = self._get_value(self.headings[col].get('Column'), self.units[i], totals, self.column_carriers[i]) if i > 0 else _('Total') # LANG: Total amounts
             self._set_weight(self.total_row[i])
             self.total_row[i].grid()
 
 
     @catch_exceptions
-    def _get_value(self, which:str, units:ProgressUnits, comm:Commodity) -> str:
+    def _get_value(self, which:str, units:ProgressUnits, comm:Commodity, carrier_id:int|None = None) -> str:
         ''' Calculate and format the commodity amount depending on the column and the units '''
         match which:
             case 'Commodity': return comm.name
             case 'Category': return comm.category
+            case 'Carrier':
+                cid:int = carrier_id if carrier_id is not None else self.bgstally.fleet_carrier.carrier_id
+                qty:int = comm.carrier_stocks.get(cid, 0)
             case _:
                 qty:int = getattr(comm, which.lower(), 0)
 
-                if units == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
-                    return f"{ceil(qty / self.colonisation.cargo_capacity):,}{_('L')}" # LANG: Colonisation loads abbreviation
+        if units == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
+            return f"{ceil(qty / self.colonisation.cargo_capacity):,}{_('L')}" # LANG: Colonisation loads abbreviation
 
-                return f"{qty:,}{_('t')}" # LANG: Colonisation tonnes abbreviation
+        return f"{qty:,}{_('t')}" # LANG: Colonisation tonnes abbreviation
 
 
     def _set_weight(self, cell, w:Literal['normal', 'bold']='bold') -> None:

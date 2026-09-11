@@ -105,6 +105,7 @@ class DiscordChannel(str, Enum):
 class FleetCarrierType(str, Enum):
     PERSONAL = 'FleetCarrier'
     SQUADRON = 'SquadronCarrier'
+    THIRDPARTY = 'ThirdPartyCarrier'
 
 
 class FleetCarrierJump(str, Enum):

@@ -149,19 +149,23 @@ class WindowFleetCarrier:
         """ Update the Fleet Carrier window contents """
         if self.window == None or not self.window.winfo_exists() or self.carrier_tabbar is None: return
 
-        carriers:dict = {'Personal': self.bgstally.fleet_carriers.personal}
+        # Keyed by a stable id: the fixed role name for personal/squadron, carrier_id for third-party
+        # (there can be several of those, and personal/squadron's own carrier_id may start unknown).
+        carriers:dict = {'Personal': (_('Personal'), self.bgstally.fleet_carriers.personal)} # LANG: Carrier window tab, until callsign is known
         if self.bgstally.fleet_carriers.squadron is not None:
-            carriers['Squadron'] = self.bgstally.fleet_carriers.squadron
+            carriers['Squadron'] = (_('Squadron'), self.bgstally.fleet_carriers.squadron) # LANG: Carrier window tab, until callsign is known
+        for fc in self.bgstally.fleet_carriers.third_party:
+            carriers[fc.carrier_id] = (_('Third-Party Carrier'), fc) # LANG: Carrier window tab, until callsign is known
 
-        for role, fc in carriers.items():
-            if role not in self.carrier_uis:
+        for key, (label, fc) in carriers.items():
+            if key not in self.carrier_uis:
                 frame:ttk.Frame = ttk.Frame(self.carrier_tabbar, relief=tk.FLAT)
                 frame.pack(fill=tk.BOTH, expand=1)
-                self.carrier_tabbar.add(frame, text=_(role)) # LANG: Carrier window tab, until callsign is known
-                self.carrier_uis[role] = {'frame': frame, 'summfr': None, 'tabbar': None, 'tab_frames': {}}
+                self.carrier_tabbar.add(frame, text=label)
+                self.carrier_uis[key] = {'frame': frame, 'summfr': None, 'tabbar': None, 'tab_frames': {}}
 
-            ui:dict = self.carrier_uis[role]
-            self._tab_configure(self.carrier_tabbar, ui['frame'], text=fc.overview.get('callsign') or _(role))
+            ui:dict = self.carrier_uis[key]
+            self._tab_configure(self.carrier_tabbar, ui['frame'], text=fc.overview.get('callsign') or label)
             self._show_overview(fc, ui)
             self._create_tabs(fc, ui)
 

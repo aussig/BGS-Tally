@@ -1,7 +1,9 @@
 import json
 from glob import glob
-from os import path
+from os import path, remove
 from typing import TYPE_CHECKING
+
+from config import config # type: ignore
 
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
@@ -10,16 +12,20 @@ from bgstally.constants import FOLDER_OTHER_DATA, FleetCarrierType
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.utils import catch_exceptions
 
+CFG_NEVER_TRACK:str = 'BGST_CarrierNeverTrack'
+
 class FleetCarriers:
-    """ Tracks every FleetCarrier we know about: our personal carrier, plus any squadron carrier. """
+    """ Tracks every FleetCarrier we know about: our personal carrier, our squadron's, and any
+    third-party carrier we've visited and chosen (or been set) to track. """
 
     @catch_exceptions
     def __init__(self, bgstally: 'BGSTally') -> None:
         self.bgstally:BGSTally = bgstally
         self.personal:FleetCarrier = FleetCarrier(bgstally, 0, FleetCarrierType.PERSONAL)
-        self.carriers:dict[int, FleetCarrier] = {} # Non-personal carriers (currently just squadron), by carrier_id
+        self.carriers:dict[int, FleetCarrier] = {} # Non-personal carriers (squadron/third-party), by carrier_id
+        self.never_track:set[int] = {int(i) for i in config.get_list(CFG_NEVER_TRACK, default=[])}
 
-        # Load any previously-saved non-personal carriers (currently just squadron)
+        # Load any previously-saved non-personal carriers (squadron/third-party)
         pattern:str = path.join(bgstally.plugin_dir, FOLDER_OTHER_DATA, "carrier_*.json")
         for file in glob(pattern):
             carrier_id:int = int(path.splitext(path.basename(file))[0].removeprefix("carrier_"))
@@ -28,10 +34,21 @@ class FleetCarriers:
             self.carriers[carrier_id] = FleetCarrier(bgstally, carrier_id, carrier_type)
 
 
+    def by_type(self, carrier_type:FleetCarrierType) -> list[FleetCarrier]:
+        """ Every non-personal carrier we know of, of a given type """
+        return [c for c in self.carriers.values() if c.carrier_type == carrier_type]
+
+
     @property
     def squadron(self) -> FleetCarrier|None:
         """ Our squadron's carrier, if we've seen one """
-        return next((c for c in self.carriers.values() if c.carrier_type == FleetCarrierType.SQUADRON), None)
+        return next(iter(self.by_type(FleetCarrierType.SQUADRON)), None)
+
+
+    @property
+    def third_party(self) -> list[FleetCarrier]:
+        """ Every third-party carrier we're currently tracking """
+        return self.by_type(FleetCarrierType.THIRDPARTY)
 
 
     def get(self, carrier_id:int, carrier_type:FleetCarrierType) -> FleetCarrier:
@@ -46,6 +63,25 @@ class FleetCarriers:
         """ Return an already-known carrier by id alone, without creating a new one """
         if carrier_id == self.personal.carrier_id: return self.personal
         return self.carriers.get(carrier_id)
+
+
+    def is_never_track(self, carrier_id:int) -> bool:
+        """ Whether this carrier has been set to never be auto-tracked """
+        return carrier_id in self.never_track
+
+
+    def set_never_track(self, carrier_id:int) -> None:
+        """ Block a carrier from ever being auto-tracked again """
+        self.never_track.add(carrier_id)
+        config.set(CFG_NEVER_TRACK, list(self.never_track))
+
+
+    def remove(self, carrier_id:int) -> None:
+        """ Stop tracking a third-party carrier and delete its local data """
+        carrier:FleetCarrier|None = self.carriers.pop(carrier_id, None)
+        if carrier is None: return
+        file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, carrier._get_filename())
+        if path.exists(file): remove(file)
 
 
     @catch_exceptions

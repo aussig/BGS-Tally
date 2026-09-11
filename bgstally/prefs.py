@@ -411,3 +411,41 @@ class Prefs:
             grid(row=row, column=column+1, pady=(5,5), sticky=tk.W) # LANG: Preferences add faction button text
 
         return 2
+
+    @catch_exceptions
+    def _tracked_carriers(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
+        """ List currently-tracked third-party carriers, each with Remove and Never Track buttons """
+        self.carriers_fr:nb.Frame = nb.Frame(frame)
+        self.carriers_fr.grid(row=row, column=column, columnspan=4, padx=0, pady=(0,5), sticky=tk.NSEW)
+        self._rebuild_tracked_carriers()
+        return 4
+
+    def _rebuild_tracked_carriers(self) -> None:
+        """ Redraw the list of tracked third-party carriers """
+        for child in self.carriers_fr.winfo_children(): child.destroy()
+
+        carriers = self.bgstally.fleet_carriers.third_party
+        if not carriers:
+            nb.Label(self.carriers_fr, text=_("No third-party carriers tracked")).grid(row=0, column=0, sticky=tk.W) # LANG: Preferences no tracked carriers
+            return
+
+        for i, fc in enumerate(carriers):
+            name:str = fc.overview.get('callsign') or str(fc.carrier_id)
+            nb.Label(self.carriers_fr, text=name).grid(row=i, column=0, padx=(10,10), sticky=tk.W)
+            nb.Button(self.carriers_fr, text=_("Remove"), command=partial(self._remove_tracked_carrier, fc.carrier_id)). \
+                grid(row=i, column=1, padx=(0,5), sticky=tk.W) # LANG: Preferences remove tracked carrier button
+            nb.Button(self.carriers_fr, text=_("Never Track"), command=partial(self._never_track_carrier, fc.carrier_id)). \
+                grid(row=i, column=2, padx=(0,5), sticky=tk.W) # LANG: Preferences never track carrier button
+
+    @catch_exceptions
+    def _remove_tracked_carrier(self, carrier_id:int) -> None:
+        """ Stop tracking a third-party carrier """
+        self.bgstally.fleet_carriers.remove(carrier_id)
+        self._rebuild_tracked_carriers()
+
+    @catch_exceptions
+    def _never_track_carrier(self, carrier_id:int) -> None:
+        """ Remove a carrier and block it from ever being auto-tracked again """
+        self.bgstally.fleet_carriers.remove(carrier_id)
+        self.bgstally.fleet_carriers.set_never_track(carrier_id)
+        self._rebuild_tracked_carriers()

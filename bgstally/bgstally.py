@@ -15,7 +15,7 @@ from bgstally.activitymanager import ActivityManager
 from bgstally.apimanager import APIManager
 from bgstally.colonisation import Colonisation
 from bgstally.config import Config
-from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy, Vehicle, Location, ShipState, UIState, FleetCarrierType
+from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy, Vehicle, Location, ShipState, UIState, FleetCarrierType, CheckStates
 from bgstally.debug import Debug
 from bgstally.discord import Discord
 from bgstally.factionmanager import FactionManager
@@ -243,6 +243,15 @@ class BGSTally:
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 self.ui.show_station_info(station, self.state.station_faction)
                 dirty = True
+
+                market_id:int = entry.get('MarketID', 0)
+                if entry.get('StationType') == 'FleetCarrier' and \
+                    self.fleet_carriers.find(market_id) is None and \
+                        self.state.AutoTrackCarriers.get() == CheckStates.STATE_ON and \
+                            not self.fleet_carriers.is_never_track(market_id):
+                        carrier:FleetCarrier = self.fleet_carriers.get(market_id, FleetCarrierType.THIRDPARTY)
+                        carrier.overview['callsign'] = station
+                        carrier.overview['currentStarSystem'] = system
 
             case 'EjectCargo':
                 activity.cargo_ejected(entry)

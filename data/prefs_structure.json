@@ -58,6 +58,17 @@
                             "overlay": "Overlay only",
                             "both": "Popup and Overlay"
                         }
+                    },
+                    {
+                        "var": "AutoTrackCarriers",
+                        "type": "checkbox",
+                        "label": "Auto-Track Third-Party Carriers",
+                        "desc": "Automatically track a fleet carrier you dock at, even if it isn't yours or your squadron's"
+                    },
+                    {
+                        "name": "tracked_carriers",
+                        "type": "custom",
+                        "custom": "_tracked_carriers"
                     }
                 ]
             },

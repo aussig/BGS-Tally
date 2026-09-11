@@ -14,7 +14,7 @@ from ttkHyperlinkLabel import HyperlinkLabel # type:ignore
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
 
-from bgstally.constants import (FOLDER_DATA, FILE_SUFFIX, FONT_HEADING_2, FONT_SMALL, CheckStates, FleetCarrierType, UpdateUIPolicy)
+from bgstally.constants import (FOLDER_DATA, FILE_SUFFIX, FONT_HEADING_2, FONT_SMALL, CheckStates, UpdateUIPolicy)
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, catch_exceptions
 
@@ -421,12 +421,11 @@ class Prefs:
 
     @catch_exceptions
     def _add_tracked_carrier(self, var:tk.StringVar) -> None:
-        """ Callback for adding a carrier to track by its market/carrier ID """
-        carrier_id:str = var.get().strip()
-        if not carrier_id.isdigit(): return
-        self.bgstally.fleet_carriers.get(int(carrier_id), FleetCarrierType.THIRDPARTY)
+        """ Callback for adding a carrier to track by its callsign (its permanent, human-visible identifier) """
+        callsign:str = var.get().strip()
+        if not callsign: return
         var.set("")
-        self._rebuild_tracked_carriers()
+        self.bgstally.fleet_carriers.track_by_callsign(callsign, self._rebuild_tracked_carriers)
 
     @catch_exceptions
     def _tracked_carriers(self, frame:tk.Frame, row:int, column:int, state:str) -> int:

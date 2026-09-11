@@ -5,7 +5,7 @@ import time
 from functools import partial
 import requests
 from requests import Response
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from bgstally.constants import RequestMethod, BuildState
 from bgstally.requestmanager import BGSTallyRequest
@@ -960,8 +960,30 @@ class Spansh:
         RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._fleetcarrier_callback, fc))
 
     @catch_exceptions
+    def find_carrier(self, callsign:str, callback:Callable[[int|None], None]) -> None:
+        """ Resolve a carrier's callsign to its market id """
+        url:str = f"{SPANSH_API}/search?q={quote(callsign)}"
+        RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._find_carrier_callback, callsign, callback))
+
+    @catch_exceptions
+    def _find_carrier_callback(self, callsign:str, callback:Callable[[int|None], None], success:bool, response:Response,
+                               request:BGSTallyRequest) -> None:
+        """ get market_id from results """
+        if not success:
+            callback(None)
+            return
+
+        market_id:int|None = None
+        for result in response.json().get('results', []):
+            record:dict = result.get('record', {})
+            if record.get('name', '').lower() == callsign.lower():
+                market_id = record.get('market_id')
+                break
+        callback(market_id)
+
+    @catch_exceptions
     def _fleetcarrier_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
-        """ Merge Spansh's market snapshot into a fleet carrier: fills gaps, or overwrites if Spansh's data is newer """
+        """ Merge newer market data  """
         if success == False: return
 
         record:dict = response.json().get('record', {})

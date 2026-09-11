@@ -1,7 +1,7 @@
 import json
 from glob import glob
 from os import path, remove
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
@@ -77,6 +77,15 @@ class FleetCarriers:
 
 
     def refresh_from_spansh(self) -> None:
-        """ Opportunistically refresh every tracked squadron/third-party carrier's market data from Spansh """
+        """ Refresh squadron/third-party carrier market data from Spansh """
         for carrier in self.carriers.values():
             Spansh().import_fleetcarrier(carrier)
+
+
+    def track_by_callsign(self, callsign:str, callback:Callable[[], None]) -> None:
+        """ Start tracking a third-party carrier """
+        def _resolved(market_id:int|None) -> None:
+            if market_id is not None:
+                Spansh().import_fleetcarrier(self.get(market_id, FleetCarrierType.THIRDPARTY))
+            callback()
+        Spansh().find_carrier(callsign, _resolved)

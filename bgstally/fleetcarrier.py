@@ -178,6 +178,9 @@ class FleetCarrier:
                 comm[name] = deets
         comm = dict(sorted(comm.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
+        if self.carrier_type == FleetCarrierType.THIRDPARTY:
+            return {'overview': None, 'inventory': comm}
+
         summ:dict = {
             _("Space") : (self._get_freespace() + self._get_marketused() + self._get_reserved(), 'num', 'Unknown', 't'), # LANG: Carrier cargo
             _("Used") : (self._get_marketused() + self._get_reserved(), 'num', '0t', 't'),                   # LANG: Carrier cargo

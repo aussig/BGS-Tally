@@ -225,8 +225,7 @@ class WindowFleetCarrier:
             match k:
                 case 'Cargo':
                     has_data = any(fc.cargo.get(t) for t in ('normal', 'stolen', 'mission'))
-                    # Without CAPI we only ever learn cargo from buy/sell orders -- label it accordingly.
-                    self._tab_configure(ui['tabbar'], fr, text=_('Cargo') if fc.has_capi_data else _('Market')) # LANG: Carrier window tab
+                    self._tab_configure(ui['tabbar'], fr, text=_('Market')) # LANG: Carrier window tab
                 case 'Locker': has_data = any(fc.locker.get(t) for t in ('normal', 'mission'))
                 case 'Itinerary': has_data = fc.itinerary != [] or fc.route != []
                 case 'Shipyard': has_data = fc.shipyard.get('ships', {}) != {}
@@ -572,7 +571,7 @@ class WindowFleetCarrier:
             case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
             case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
 
-        output += "## " + __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=fc.overview['name'], order=order.title()) + "\n" # LANG: fleet carrier materials header
+        output += "## " + __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=fc.overview.get('name', fc.overview.get('callsign')), order=order.title()) + "\n" # LANG: fleet carrier materials header
         if fc.overview.get('currentStarSystem', "") != "":
             output += "### " + __("Location: {system}", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) + "\n" # LANG: fleet carrier materials system line
 

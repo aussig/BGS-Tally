@@ -596,8 +596,8 @@ class ProgressWindow:
         menu:tk.Menu = tk.Menu(tearoff=tk.FALSE)
         for i, heading in enumerate(self.headings):
             if heading['Column'] == 'Commodity': continue
-            #carrier_id:int|None = self.bgstally.fleet_carrier.carrier_id if heading['Column'] == 'Carrier' else None
-            menu.add_command(label=heading['Label'], command=partial(self._set_column, col, i)) # LANG: progress column popup menu
+            carrier_id:int|None = self.bgstally.fleet_carrier.carrier_id if heading['Column'] == 'Carrier' else None
+            menu.add_command(label=heading['Label'], command=partial(self._set_column, col, i, carrier_id)) # LANG: progress column popup menu
 
         # Other carriers (not our personal one) go below a separator, keyed by the same 'Carrier' heading
         carrier_index:int = next((i for i, h in enumerate(self.headings) if h['Column'] == 'Carrier'), -1)

@@ -3,27 +3,23 @@ from glob import glob
 from os import path, remove
 from typing import TYPE_CHECKING
 
-from config import config # type: ignore
-
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
 from bgstally.constants import FOLDER_OTHER_DATA, FleetCarrierType
 from bgstally.fleetcarrier import FleetCarrier
+from bgstally.ravencolonial import Spansh
 from bgstally.utils import catch_exceptions
-
-CFG_NEVER_TRACK:str = 'BGST_CarrierNeverTrack'
 
 class FleetCarriers:
     """ Tracks every FleetCarrier we know about: our personal carrier, our squadron's, and any
-    third-party carrier we've visited and chosen (or been set) to track. """
+    third-party carrier we've visited and chosen to track. """
 
     @catch_exceptions
     def __init__(self, bgstally: 'BGSTally') -> None:
         self.bgstally:BGSTally = bgstally
         self.personal:FleetCarrier = FleetCarrier(bgstally, 0, FleetCarrierType.PERSONAL)
         self.carriers:dict[int, FleetCarrier] = {} # Non-personal carriers (squadron/third-party), by carrier_id
-        self.never_track:set[int] = {int(i) for i in config.get_list(CFG_NEVER_TRACK, default=[])}
 
         # Load any previously-saved non-personal carriers (squadron/third-party)
         pattern:str = path.join(bgstally.plugin_dir, FOLDER_OTHER_DATA, "carrier_*.json")
@@ -65,17 +61,6 @@ class FleetCarriers:
         return self.carriers.get(carrier_id)
 
 
-    def is_never_track(self, carrier_id:int) -> bool:
-        """ Whether this carrier has been set to never be auto-tracked """
-        return carrier_id in self.never_track
-
-
-    def set_never_track(self, carrier_id:int) -> None:
-        """ Block a carrier from ever being auto-tracked again """
-        self.never_track.add(carrier_id)
-        config.set(CFG_NEVER_TRACK, list(self.never_track))
-
-
     def remove(self, carrier_id:int) -> None:
         """ Stop tracking a third-party carrier and delete its local data """
         carrier:FleetCarrier|None = self.carriers.pop(carrier_id, None)
@@ -89,3 +74,9 @@ class FleetCarriers:
         """ Save our personal carrier and any other tracked carriers """
         self.personal.save()
         for carrier in self.carriers.values(): carrier.save()
+
+
+    def refresh_from_spansh(self) -> None:
+        """ Opportunistically refresh every tracked squadron/third-party carrier's market data from Spansh """
+        for carrier in self.carriers.values():
+            Spansh().import_fleetcarrier(carrier)

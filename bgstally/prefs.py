@@ -14,7 +14,7 @@ from ttkHyperlinkLabel import HyperlinkLabel # type:ignore
 from thirdparty.tksheet import Sheet
 from thirdparty.Tooltip import ToolTip
 
-from bgstally.constants import (FOLDER_DATA, FILE_SUFFIX, FONT_HEADING_2, FONT_SMALL, CheckStates, UpdateUIPolicy)
+from bgstally.constants import (FOLDER_DATA, FILE_SUFFIX, FONT_HEADING_2, FONT_SMALL, CheckStates, FleetCarrierType, UpdateUIPolicy)
 from bgstally.debug import Debug
 from bgstally.utils import _, available_langs, catch_exceptions
 
@@ -413,39 +413,44 @@ class Prefs:
         return 2
 
     @catch_exceptions
-    def _tracked_carriers(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
-        """ List currently-tracked third-party carriers, each with Remove and Never Track buttons """
-        self.carriers_fr:nb.Frame = nb.Frame(frame)
-        self.carriers_fr.grid(row=row, column=column, columnspan=4, padx=0, pady=(0,5), sticky=tk.NSEW)
+    def _untrack_carrier(self, carrier_id:int, var:tk.BooleanVar) -> None:
+        """ Callback for when a tracked carrier's checkbox is unticked """
+        if var.get(): return # Only unticking does anything -- there's no bigger list to re-tick it back into
+        self.bgstally.fleet_carriers.remove(carrier_id)
         self._rebuild_tracked_carriers()
-        return 4
+
+    @catch_exceptions
+    def _add_tracked_carrier(self, var:tk.StringVar) -> None:
+        """ Callback for adding a carrier to track by its market/carrier ID """
+        carrier_id:str = var.get().strip()
+        if not carrier_id.isdigit(): return
+        self.bgstally.fleet_carriers.get(int(carrier_id), FleetCarrierType.THIRDPARTY)
+        var.set("")
+        self._rebuild_tracked_carriers()
+
+    @catch_exceptions
+    def _tracked_carriers(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
+        """ Show the tracked third-party carriers list and allow adding or removing carriers """
+        self.carriers_fr:nb.Frame = nb.Frame(frame)
+        self.carriers_fr.grid(row=row, column=column, columnspan=6, padx=0, pady=(0,5), sticky=tk.NSEW)
+        self._rebuild_tracked_carriers()
+
+        row += 1
+        var:tk.StringVar = tk.StringVar(value="")
+        nb.EntryMenu(frame, textvariable=var, width=15, state=state). \
+            grid(row=row, column=column, padx=(10,0), pady=(5,5), sticky=tk.W)
+        nb.Button(frame, text=_("Add Carrier"), command=partial(self._add_tracked_carrier, var), state=state). \
+            grid(row=row, column=column+1, pady=(5,5), sticky=tk.W) # LANG: Preferences add carrier button text
+
+        return 2
 
     def _rebuild_tracked_carriers(self) -> None:
         """ Redraw the list of tracked third-party carriers """
         for child in self.carriers_fr.winfo_children(): child.destroy()
 
-        carriers = self.bgstally.fleet_carriers.third_party
-        if not carriers:
-            nb.Label(self.carriers_fr, text=_("No third-party carriers tracked")).grid(row=0, column=0, sticky=tk.W) # LANG: Preferences no tracked carriers
-            return
-
-        for i, fc in enumerate(carriers):
+        for i, fc in enumerate(self.bgstally.fleet_carriers.third_party):
             name:str = fc.overview.get('callsign') or str(fc.carrier_id)
-            nb.Label(self.carriers_fr, text=name).grid(row=i, column=0, padx=(10,10), sticky=tk.W)
-            nb.Button(self.carriers_fr, text=_("Remove"), command=partial(self._remove_tracked_carrier, fc.carrier_id)). \
-                grid(row=i, column=1, padx=(0,5), sticky=tk.W) # LANG: Preferences remove tracked carrier button
-            nb.Button(self.carriers_fr, text=_("Never Track"), command=partial(self._never_track_carrier, fc.carrier_id)). \
-                grid(row=i, column=2, padx=(0,5), sticky=tk.W) # LANG: Preferences never track carrier button
-
-    @catch_exceptions
-    def _remove_tracked_carrier(self, carrier_id:int) -> None:
-        """ Stop tracking a third-party carrier """
-        self.bgstally.fleet_carriers.remove(carrier_id)
-        self._rebuild_tracked_carriers()
-
-    @catch_exceptions
-    def _never_track_carrier(self, carrier_id:int) -> None:
-        """ Remove a carrier and block it from ever being auto-tracked again """
-        self.bgstally.fleet_carriers.remove(carrier_id)
-        self.bgstally.fleet_carriers.set_never_track(carrier_id)
-        self._rebuild_tracked_carriers()
+            var:tk.BooleanVar = tk.BooleanVar(value=True)
+            nb.Checkbutton(self.carriers_fr, text=name, command=partial(self._untrack_carrier, fc.carrier_id, var),
+                           onvalue=True, offvalue=False, variable=var). \
+                grid(row=(i//3), column=(i%3), padx=(10,0), pady=(0,5), sticky=tk.W)

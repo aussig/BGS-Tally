@@ -4,7 +4,7 @@
 
 ## New Features:
 
-* Experimental support for squadron and third-party carriers
+* Support for squadron and third-party carriers
 * Squadron and third-party carriers are now progress display options
 
 ### Changes:

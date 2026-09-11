@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
-from bgstally.constants import COLOUR_WARNING, DATETIME_FORMAT_CARRIER, FONT_HEADING_1, FONT_SMALL, DiscordChannel, DiscordFleetCarrier
+from bgstally.constants import COLOUR_WARNING, DATETIME_FORMAT_CARRIER, FONT_HEADING_1, FONT_SMALL, DiscordChannel, DiscordFleetCarrier, FleetCarrierType
 from bgstally.debug import Debug
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.utils import _, __, catch_exceptions, hfplus, str_truncate
@@ -138,7 +138,9 @@ class WindowFleetCarrier:
         if not config.get_bool('capi_fleetcarrier'):
             ttk.Label(self.frame, text=_("Some information cannot be updated. Enable Fleet Carrier CAPI Queries in File -> Settings -> Configuration"), foreground=COLOUR_WARNING).pack(anchor=tk.NW) # LANG: Label on carrier window
 
-        self.carrier_tabbar = ScrollableNotebook(self.frame, wheelscroll=True, tabmenu=False)
+        style:ttk.Style = ttk.Style()
+        style.configure("Carrier.TNotebook.Tab", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), padding=[10, 5])
+        self.carrier_tabbar = ScrollableNotebook(self.frame, wheelscroll=True, tabmenu=False, style='Carrier.TNotebook')
         self.carrier_tabbar.pack(fill=tk.BOTH, padx=5, pady=5, expand=True)
 
         self.update_display()
@@ -228,6 +230,8 @@ class WindowFleetCarrier:
                 case 'Locker': has_data = any(fc.locker.get(t) for t in ('normal', 'mission'))
                 case 'Itinerary': has_data = fc.itinerary != [] or fc.route != []
                 case 'Shipyard': has_data = fc.shipyard.get('ships', {}) != {}
+                # Finances/costs/capacity all come from CAPI/CarrierStats, neither of which we get for a carrier we don't own.
+                case 'Summary': has_data = fc.carrier_type != FleetCarrierType.THIRDPARTY
                 case _: has_data = True
             self._tab_configure(ui['tabbar'], fr, state='normal' if has_data else 'disabled')
 

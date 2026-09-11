@@ -1221,6 +1221,7 @@ class Colonisation:
             'ProgressUnits': units,
             'ProgressColumns': self.bgstally.ui.window_progress.columns,
             'ProgressColumnCarriers': self.bgstally.ui.window_progress.column_carriers,
+            'ProgressColumnCarrierDemand': self.bgstally.ui.window_progress.column_carrier_demand,
             'BuildIndex'   : self.bgstally.ui.window_progress.build_index,
             'WindowGeometries' : self.window_geometries
             }
@@ -1287,6 +1288,8 @@ class Colonisation:
                 self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
             if dict.get('ProgressColumnCarriers', None) != None:
                 self.bgstally.ui.window_progress.column_carriers = dict.get('ProgressColumnCarriers', [])
+            if dict.get('ProgressColumnCarrierDemand', None) != None:
+                self.bgstally.ui.window_progress.column_carrier_demand = dict.get('ProgressColumnCarrierDemand', [])
             self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
             self.window_geometries = dict.get('WindowGeometries', {})
         except:

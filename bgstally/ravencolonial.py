@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from urllib.parse import quote
 import re
 import time
@@ -960,26 +961,38 @@ class Spansh:
 
     @catch_exceptions
     def _fleetcarrier_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
-        """ Merge Spansh's market snapshot into a fleet carrier, filling gaps rather than overwriting """
+        """ Merge Spansh's market snapshot into a fleet carrier: fills gaps, or overwrites if Spansh's data is newer """
         if success == False: return
 
         record:dict = response.json().get('record', {})
-        if not record.get('market'): return
+        if record.get('carrier_name') and not fc.overview.get('name'):
+            fc.overview['name'] = record['carrier_name']
 
-        for m in record['market']:
-            comm:str = re.sub(r'[^a-z0-9]', '', m.get('commodity', '').lower())
-            if comm == '' or comm in fc.cargo['normal']: continue
+        if record.get('market'):
+            newer:bool = self._spansh_time(record.get('market_updated_at')) > fc.last_modified
 
-            fc.cargo['normal'][comm] = {
-                'locName': m.get('commodity', comm),
-                'category': m.get('category', 'Unknown'),
-                'stock': m.get('supply', 0),
-                'buyTotal': 0,
-                'outstanding': m.get('demand', 0),
-                'price': m.get('buy_price', 0) or m.get('sell_price', 0),
-            }
+            for m in record['market']:
+                comm:str = re.sub(r'[^a-z0-9]', '', m.get('commodity', '').lower())
+                if comm == '' or (comm in fc.cargo['normal'] and not newer): continue
+
+                fc.cargo['normal'][comm] = {
+                    'locName': m.get('commodity', comm),
+                    'category': m.get('category', 'Unknown'),
+                    'stock': m.get('supply', 0),
+                    'buyTotal': 0,
+                    'outstanding': m.get('demand', 0),
+                    'price': m.get('buy_price', 0) or m.get('sell_price', 0),
+                }
 
         RavenColonial(self).bgstally.ui.window_fc.update_display()
+
+    def _spansh_time(self, updated_at:str|None) -> int:
+        """ Parse Spansh's market_updated_at timestamp, or 0 if missing/unparseable """
+        if not updated_at: return 0
+        try:
+            return int(datetime.strptime(updated_at, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp())
+        except ValueError:
+            return 0
 
     @catch_exceptions
     def _get_by_name(self, system_name:str) -> dict|None:

@@ -166,6 +166,9 @@ class BGSTally:
             self.ui.show_system_info(entry.get('SystemAddress'))
             dirty = True
 
+            if entry.get('event') == 'StartUp':
+                self.fleet_carriers.refresh_from_spansh()
+
         mission:dict|None = self.mission_log.get_mission(entry.get('MissionID'))
 
         match entry.get('event'):
@@ -247,11 +250,13 @@ class BGSTally:
                 market_id:int = entry.get('MarketID', 0)
                 if entry.get('StationType') == 'FleetCarrier' and \
                     self.fleet_carriers.find(market_id) is None and \
-                        self.state.AutoTrackCarriers.get() == CheckStates.STATE_ON and \
-                            not self.fleet_carriers.is_never_track(market_id):
+                        self.state.AutoTrackCarriers.get() == CheckStates.STATE_ON:
                         carrier:FleetCarrier = self.fleet_carriers.get(market_id, FleetCarrierType.THIRDPARTY)
                         carrier.overview['callsign'] = station
                         carrier.overview['currentStarSystem'] = system
+
+                # Docking anywhere is a chance to opportunistically refresh squadron/third-party carriers.
+                self.fleet_carriers.refresh_from_spansh()
 
             case 'EjectCargo':
                 activity.cargo_ejected(entry)

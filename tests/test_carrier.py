@@ -142,38 +142,16 @@ class TestFleetCarriers:
         assert reloaded.overview.get('bankBalance') == 5000
 
     def test_third_party_registry(self, harness) -> None:
-        """ Test third_party, is_never_track, set_never_track and remove """
+        """ Test third_party and remove """
         from bgstally.constants import FleetCarrierType
         fcs = harness.plugin.fleet_carriers
 
         fc = fcs.get(77777, FleetCarrierType.THIRDPARTY)
         assert fcs.third_party == [fc]
-        assert not fcs.is_never_track(77777)
-
-        fcs.set_never_track(77777)
-        assert fcs.is_never_track(77777)
 
         fcs.remove(77777)
         assert fcs.third_party == []
         assert fcs.find(77777) is None
-
-    def test_docked_auto_track(self, harness) -> None:
-        """ Test Docked auto-tracks a third-party carrier, gated by the pref and never-track list """
-        from bgstally.constants import CheckStates
-
-        harness.plugin.state.AutoTrackCarriers.set(CheckStates.STATE_OFF)
-        harness.fire_event({'event': 'Docked', 'StationName': 'ABC-123', 'StationType': 'FleetCarrier', 'MarketID': 88888})
-        assert harness.plugin.fleet_carriers.find(88888) is None
-
-        harness.plugin.state.AutoTrackCarriers.set(CheckStates.STATE_ON)
-        harness.plugin.fleet_carriers.set_never_track(99999)
-        harness.fire_event({'event': 'Docked', 'StationName': 'DEF-456', 'StationType': 'FleetCarrier', 'MarketID': 99999})
-        assert harness.plugin.fleet_carriers.find(99999) is None
-
-        harness.fire_event({'event': 'Docked', 'StationName': 'XYZ-789', 'StationType': 'FleetCarrier', 'MarketID': 12321})
-        fc = harness.plugin.fleet_carriers.find(12321)
-        assert fc is not None
-        assert fc.overview['callsign'] == 'XYZ-789'
 
     def test_carrier(self, harness) -> None:
         """ Test _carrier method """

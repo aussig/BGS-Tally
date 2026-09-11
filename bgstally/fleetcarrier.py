@@ -38,11 +38,11 @@ class FleetCarrier:
         self.carrier_id:int = carrier_id
         self.carrier_type:FleetCarrierType = carrier_type
         self.overview:dict = {} # Top level data
-        self.locker:dict = {} # Local copy of locker data
-        self.cargo:dict = {} # Local copy of cargo data
+        self.locker:dict = {'normal': {}, 'mission': {}} # Local copy of locker data
+        self.cargo:dict = {'overview': {}, 'normal': {}, 'stolen': {}, 'mission': {}} # Local copy of cargo data
         self.itinerary:list = [] # Local copy of jump data
         self.route:list = [] # Planned route
-        self.shipyard:dict = {} # Local copy of shipyard data
+        self.shipyard:dict = {'overview': {}, 'ships': {}} # Local copy of shipyard data
         self.last_modified:int = 0 # Record of when we last modified our local data. Used to avoid overwriting with out of date CAPI data.
         self.data:dict = {}  # Raw CAPI data
         self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
@@ -70,14 +70,19 @@ class FleetCarrier:
     def get_overview(self) -> dict:
         """ Return the carrier overview as key value pairs """
 
-        itinerary:list = self.itinerary
-        arrival:str = itinerary[-1].get('arrivalTime', "") if len(itinerary) > 0 else ''
-
-        return {
+        overview:dict = {
             _('Name'): self.overview.get('name', ''),                                    # LANG: Carrier overview
             _('Callsign'): self.overview.get('callsign', ''),                            # LANG: Carrier overview
             _('Location'): self.overview.get('currentBody', self.overview.get('currentStarSystem', '')), # LANG: Carrier overview
+        }
 
+        # These all come from CAPI/CarrierStats, neither of which we ever get for a carrier we don't own.
+        if self.carrier_type == FleetCarrierType.THIRDPARTY: return overview
+
+        itinerary:list = self.itinerary
+        arrival:str = itinerary[-1].get('arrivalTime', "") if len(itinerary) > 0 else ''
+
+        overview.update({
             _('Arrival'): (arrival, 'datetime', 'Unknown'),                              # LANG: Carrier overview
             _('Docking'): (self._readable(self.overview.get('dockingAccess', '')), 'str', 'Unknown'), # LANG: Carrier overview
             _('Allow Notorious'): (self.overview.get('notoriousAccess', ''), 'str', 'Unknown'), # LANG: Carrier overview
@@ -85,7 +90,8 @@ class FleetCarrier:
             _('Fuel'):(f"{self.overview.get('fuel', 0):,}t (+{int(get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)):,}t)", 'fixed'),                    # LANG: Carrier overview
             _('Space'): (f"{self._get_freespace():,}t ({int(self._get_freespace() * 100 / self.overview.get('totalCapacity', 25000))}%)", 'fixed'), # LANG: Carrier overview
             _('Tax Level'): (self.overview.get('taxation', 0), 'num', '0%', '%'),        # LANG: Carrier overview
-        }
+        })
+        return overview
 
 
     @catch_exceptions
@@ -341,7 +347,7 @@ class FleetCarrier:
             tries += 1
             time.sleep(1)
 
-        if jobresp.status_code != 200:
+        if not jobresp or jobresp.status_code != 200:
             Debug.logger.debug(f"{jobresp} {params}")
             return
 

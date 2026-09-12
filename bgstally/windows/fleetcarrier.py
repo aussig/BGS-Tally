@@ -140,7 +140,7 @@ class WindowFleetCarrier:
 
         style:ttk.Style = ttk.Style()
         style.configure("Carrier.TNotebook.Tab", font=(FONT_SMALL[0], FONT_SMALL[1], "bold"), padding=[10, 5])
-        self.carrier_tabbar = ScrollableNotebook(self.frame, wheelscroll=True, tabmenu=False, style='Carrier.TNotebook')
+        self.carrier_tabbar = ScrollableNotebook(self.frame, wheelscroll=True, style='Carrier.TNotebook')
         self.carrier_tabbar.pack(fill=tk.BOTH, padx=5, pady=5, expand=True)
 
         self.update_display()
@@ -167,7 +167,10 @@ class WindowFleetCarrier:
                 self.carrier_uis[key] = {'frame': frame, 'summfr': None, 'tabbar': None, 'tab_frames': {}}
 
             ui:dict = self.carrier_uis[key]
-            self._tab_configure(self.carrier_tabbar, ui['frame'], text=fc.overview.get('callsign') or label)
+            bar_title:str = label
+            if fc.overview.get('callsign', None): bar_title = fc.overview.get('callsign')
+            if fc.overview.get('name', None): bar_title = str_truncate(bar_title + " " + fc.overview.get('name'), 20)
+            self._tab_configure(self.carrier_tabbar, ui['frame'], text=bar_title)
             self._show_overview(fc, ui)
             self._create_tabs(fc, ui)
 

@@ -638,13 +638,14 @@ class ProgressWindow:
         self.colonisation.dirty = True
         self.update_display()
 
-    def _carrier_label(self, carrier_id:int) -> str:
+    def _carrier_label(self, carrier_id:int, long:bool = False) -> str:
         ''' Display name for a specific carrier column: its callsign, or a role name before one is known '''
         fc:FleetCarrier|None = self.bgstally.fleet_carriers.find(carrier_id)
         if fc is None: return _('Carrier') # LANG: Carrier column fallback label
-        if fc is self.bgstally.fleet_carrier: return fc.overview.get('callsign') or _('Personal') # LANG: Personal carrier fallback label
-        if fc is self.bgstally.fleet_carriers.squadron: return fc.overview.get('callsign') or _('Squadron') # LANG: Squadron carrier fallback label
-        return fc.overview.get('callsign') or str(fc.carrier_id)
+        name:str = fc.overview.get('name', fc.overview.get('callsign', None)) if long else fc.overview.get('callsign', None)
+        if not name and fc is self.bgstally.fleet_carrier: return _('Personal') # LANG: Personal carrier fallback label
+        if not name and fc is self.bgstally.fleet_carriers.squadron: return _('Squadron') # LANG: Squadron carrier fallback label
+        return name or str(fc.carrier_id)
 
     def _column_heading(self, col:int) -> dict:
         ''' The heading dict currently selected for a column '''
@@ -675,7 +676,7 @@ class ProgressWindow:
         if heading['Column'] != 'Carrier': return heading.get('Tooltip', '')
 
         other:int|None = self._other_carrier(col)
-        carrier:str = self._carrier_label(other) if other is not None else _('Personal') # LANG: Personal carrier fallback label
+        carrier:str = self._carrier_label(other, long=True) if other is not None else _('Personal') # LANG: Personal carrier fallback label
         mode:str = _('Demand') if self.column_carrier_demand[col] else _('Stock available to buy') # LANG: Carrier column tooltip mode
         return _("{mode} at {carrier} (middle-click to toggle demand/stock)").format(mode=mode, carrier=carrier) # LANG: Carrier column tooltip
 

@@ -333,7 +333,7 @@ class RavenColonial:
 
         Debug.logger.info(f"RavenColonial site order updated for system {system.get('StarSystem', '')}")
 
-
+    @catch_exceptions
     def _merge_system_data(self, data:dict) -> None:
         """ Merge the data from RavenColonial into the system data """
 

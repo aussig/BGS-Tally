@@ -5,6 +5,7 @@
 ### Bug Fixes:
 
 * New settings panel was not allowing translation
+* Fixes for some Raven Colonial data import issues
 
 
 ## v5.6.0 - 2026-08-31

@@ -76,8 +76,10 @@ class FleetCarriers:
         for carrier in self.carriers.values(): carrier.save()
 
 
-    def refresh_from_spansh(self) -> None:
-        """ Refresh squadron/third-party carrier market data from Spansh """
+    def refresh_markets(self) -> None:
+        """ Refresh carrier market data from Spansh """
+
+        Spansh().import_fleetcarrier(self.personal)
         for carrier in self.carriers.values():
             Spansh().import_fleetcarrier(carrier)
 

@@ -666,7 +666,7 @@ class ProgressWindow:
         fc:FleetCarrier|None = self.bgstally.fleet_carriers.find(other)
         if fc is not None and fc.carrier_type == FleetCarrierType.THIRDPARTY:
             name:str = fc.overview.get('callsign', str(fc.carrier_id))
-            return f"{name} {'B' if self.column_carrier_demand[col] else 'S'}"
+            return f"{'▼' if self.column_carrier_demand[col] else '▲'}{name}"
         return self._carrier_label(other)
 
     def _column_tooltip(self, col:int) -> str:

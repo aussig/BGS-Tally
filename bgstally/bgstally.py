@@ -167,7 +167,7 @@ class BGSTally:
             dirty = True
 
             if entry.get('event') == 'StartUp':
-                self.fleet_carriers.refresh_from_spansh()
+                self.fleet_carriers.refresh_markets()
 
         mission:dict|None = self.mission_log.get_mission(entry.get('MissionID'))
 
@@ -255,8 +255,8 @@ class BGSTally:
                         carrier.overview['callsign'] = station
                         carrier.overview['currentStarSystem'] = system
 
-                # Docking anywhere is a chance to opportunistically refresh squadron/third-party carriers.
-                self.fleet_carriers.refresh_from_spansh()
+                # refresh carrier market data
+                self.fleet_carriers.refresh_markets()
 
             case 'EjectCargo':
                 activity.cargo_ejected(entry)

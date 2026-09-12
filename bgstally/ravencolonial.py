@@ -966,7 +966,8 @@ class Spansh:
         RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._find_carrier_callback, callsign, callback))
 
     @catch_exceptions
-    def _find_carrier_callback(self, callsign:str, callback:Callable[[int|None], None], success:bool, response:Response) -> None:
+    def _find_carrier_callback(self, callsign:str, callback:Callable[[int|None], None], success:bool, response:Response,
+                               request:BGSTallyRequest) -> None:
         """ get market_id from results """
         if not success:
             callback(None)
@@ -981,14 +982,14 @@ class Spansh:
         callback(market_id)
 
     @catch_exceptions
-    def _fleetcarrier_callback(self, fc:'FleetCarrier', success:bool, response:Response) -> None:
+    def _fleetcarrier_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
         """ Merge newer market data """
         if success == False: return
 
         record:dict = response.json().get('record', {})
         fc.overview['name'] = fc.overview.get('name', record.get('carrier_name', ''))
         fc.overview['callsign'] = fc.overview.get('callsign', record.get('callsign', ''))
-
+        fc.overview['currentStarSystem'] = fc.overview.get('currentStarSystem', record.get('system_name', ''))
         if record.get('market'):
             newer:bool = self._spansh_time(record.get('market_updated_at')) > fc.last_modified
 

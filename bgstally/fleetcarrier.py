@@ -1,11 +1,12 @@
 import json
 import time
 import traceback
+import re
+import requests
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from os import path
 from typing import TYPE_CHECKING
-import requests
 
 import outfitting # type: ignore
 from edmc_data import ship_name_map # type: ignore
@@ -1182,11 +1183,14 @@ class FleetCarrier:
         total_value:int = 0
         for item in entry.get('Items', []):
             at_carrier:bool = item.get('MarketID', entry.get('MarketID', 0)) == self.carrier_id
-            mods:dict = outfitting.lookup({'id': item.get('StorageSlot', 0), 'name': item.get('Name', '')}, ship_name_map) or {}
+            Debug.logger.debug(f"Module {item.get('StorageSlot', 0)} {item.get('Name', '')}")
+            mod:dict = outfitting.lookup({'id': item.get('StorageSlot', 0),
+                                          'name': re.sub(r"\$(.*)_name;$", r"\1", item.get('Name', ''))}, ship_name_map) or {}
+            Debug.logger.debug(f"Module {mod}")
             self.modules['modules'][str(item.get('StorageSlot', ''))] = {
                 'name': item.get('Name_Localised', item.get('Name', '')),
-                'size': mods.get('class', ''), # EDMC's 'class' is the module's size (e.g. '2', or a hardpoint's '1'-'4')
-                'class': mods.get('rating', ''), # EDMC's 'rating' is the letter grade (A-E) the game itself calls "class"
+                'size': mod.get('class', ''), # EDMC's 'class' is the module's size (e.g. '2', or a hardpoint's '1'-'4')
+                'class': mod.get('rating', ''), # EDMC's 'rating' is the letter grade (A-E) the game itself calls "class"
                 'location': 'Carrier' if at_carrier else item.get('StarSystem', _('In Transit')), # LANG: Fleet carrier, module in transit
                 'value': item.get('BuyPrice', 0),
                 'transferPrice': item.get('TransferCost', 0),

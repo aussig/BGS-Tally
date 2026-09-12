@@ -966,8 +966,7 @@ class Spansh:
         RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._find_carrier_callback, callsign, callback))
 
     @catch_exceptions
-    def _find_carrier_callback(self, callsign:str, callback:Callable[[int|None], None], success:bool, response:Response,
-                               request:BGSTallyRequest) -> None:
+    def _find_carrier_callback(self, callsign:str, callback:Callable[[int|None], None], success:bool, response:Response) -> None:
         """ get market_id from results """
         if not success:
             callback(None)
@@ -982,13 +981,13 @@ class Spansh:
         callback(market_id)
 
     @catch_exceptions
-    def _fleetcarrier_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
-        """ Merge newer market data  """
+    def _fleetcarrier_callback(self, fc:'FleetCarrier', success:bool, response:Response) -> None:
+        """ Merge newer market data """
         if success == False: return
 
         record:dict = response.json().get('record', {})
-        if record.get('carrier_name') and not fc.overview.get('name'):
-            fc.overview['name'] = record['carrier_name']
+        fc.overview['name'] = fc.overview.get('name', record.get('carrier_name', ''))
+        fc.overview['callsign'] = fc.overview.get('callsign', record.get('callsign', ''))
 
         if record.get('market'):
             newer:bool = self._spansh_time(record.get('market_updated_at')) > fc.last_modified
@@ -1017,17 +1016,15 @@ class Spansh:
             return 0
 
     @catch_exceptions
-    def _get_by_name(self, system_name:str) -> dict|None:
+    def _get_by_name(self, system_name:str) -> dict|None: # UNUSED
         """ Retrieve the system address from Spansh """
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
             Debug.logger.info(f"Unknown system {system_name}")
             return
 
-        system_address:int|None = system.get('SystemAddress', None)
-        if system_address != None:
-            Debug.logger.debug(f"System {system_name} has address {system_address} in local data")
-            return system_address
+        if system.get('SystemAddress', None) != None:
+            return system.get('SystemAddress', None)
 
         url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
         response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)

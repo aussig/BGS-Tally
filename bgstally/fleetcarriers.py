@@ -86,6 +86,8 @@ class FleetCarriers:
         """ Start tracking a third-party carrier """
         def _resolved(market_id:int|None) -> None:
             if market_id is not None:
-                Spansh().import_fleetcarrier(self.get(market_id, FleetCarrierType.THIRDPARTY))
+                fc:FleetCarrier = self.get(market_id, FleetCarrierType.THIRDPARTY)
+                fc.overview['callsign'] = callsign
+                Spansh().import_fleetcarrier(fc)
             callback()
         Spansh().find_carrier(callsign, _resolved)

@@ -100,7 +100,7 @@ class FleetCarrier:
         Return summary information as a dictionary. The summary is different to other tabs in that it's just a group of
         key value pairs, there's no table of detailed listings
         """
-        summary:dict = {'finances': None, 'costs': None, 'capacity': []}
+        summary:dict = {'finances': None, 'costs': None, 'capacity': None}
 
         # Finances come from CarrierStats too, not just CAPI -- costs (maintenance/core/services/jump)
         # have no CarrierStats equivalent, so those stay unknown rather than a misleading zero.
@@ -119,6 +119,9 @@ class FleetCarrier:
                 _('Services Cost'): self.overview.get('servicesCost', 0),          # LANG: Carrier summary
                 _('Jump Cost'): (get_by_path(self.data, ["finance", "numJumps"], 0) * 100000, 'num', 0),   # LANG: Carrier summary
             }
+
+        # Total/used capacity all come from CAPI/CarrierStats, neither of which we get for a carrier we don't own.
+        if self.carrier_type == FleetCarrierType.THIRDPARTY: return summary
 
         summary['capacity'] = {
             _('Total Capacity'): (self.overview.get('totalCapacity', 25000), 'num', 'Unknown', 't'),   # LANG: Carrier summary
@@ -363,7 +366,7 @@ class FleetCarrier:
         """ Remove the current route """
         self.route = []
         self.bgstally.overlay.display_message('fleetcarrier', "", ttl_override=1)
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
 
 
     def _update_route(self) -> None:
@@ -389,7 +392,7 @@ class FleetCarrier:
             self.bgstally.ui.frame.clipboard_clear()
             self.bgstally.ui.frame.update()
 
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
 
     @catch_exceptions
     def update_overlay(self) -> str:
@@ -643,12 +646,12 @@ class FleetCarrier:
         # so only use the CAPI data for them if we haven't docked in the last N seconds
         if self.last_modified > int(time.time()) - FDEV_SLACKING_TIME:
             Debug.logger.debug("Ignoring CAPI cargo update")
-            self.bgstally.ui.window_fc.update_display()
+            self.bgstally.ui.window_fc.update_carrier_display(self)
             return
 
         Debug.logger.debug(f"CAPI cargo update now: {int(time.time())} last mod: {self.last_modified} diff: {int(time.time()) - FDEV_SLACKING_TIME}")
         self.cargo = self._update_cargo(self.data)
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
 
 
     @catch_exceptions
@@ -685,7 +688,7 @@ class FleetCarrier:
             self.last_modified = 0
 
         if self.bgstally.dev_mode == True: self.save()
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
         Spansh().import_fleetcarrier(self)
 
 
@@ -738,7 +741,7 @@ class FleetCarrier:
         if self.bgstally.ui.frame:
             self.bgstally.ui.frame.after(rem * 1000, lambda: self._jump_complete())
         Debug.logger.debug(f"Jump scheduled for {departure} ({(rem)} seconds) [{self.jump_state}]")
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
 
 
     @catch_exceptions
@@ -774,7 +777,7 @@ class FleetCarrier:
         self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
 
 
     @catch_exceptions
@@ -846,7 +849,7 @@ class FleetCarrier:
         self.overview['jumpDestinationBody'] = None
         self.overview['departureScheduled'] = None
 
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
         Spansh().import_fleetcarrier(self)
 
@@ -898,7 +901,7 @@ class FleetCarrier:
         """ Update our fuel tank, there has been a deposit """
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
         self.overview['fuel'] = entry.get('Total', 1000)
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
 
 
     @catch_exceptions
@@ -940,7 +943,7 @@ class FleetCarrier:
                 self.locker['normal'][mat]['outstanding'] = 0
                 self.locker['normal'][mat]['price'] = 0
 
-            self.bgstally.ui.window_fc.update_display()
+            self.bgstally.ui.window_fc.update_carrier_display(self)
             if self.bgstally.dev_mode == True: self.save()
             return
 
@@ -973,7 +976,7 @@ class FleetCarrier:
             self.cargo['normal'][comm]['stock'] = 0
             self.last_modified = 0
 
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
 
@@ -1028,7 +1031,7 @@ class FleetCarrier:
                 deets['stock'] = 0
                 deets['price'] = 0
 
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
 
@@ -1063,7 +1066,7 @@ class FleetCarrier:
                 del self.cargo['normal'][comm]
                 self.last_modified = 0
 
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
 
@@ -1096,7 +1099,7 @@ class FleetCarrier:
             Debug.logger.error(f"Correcting negative stock {self.cargo['normal'][comm]}")
             self.cargo['normal'][comm]['stock'] = 0
 
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
 
@@ -1136,7 +1139,7 @@ class FleetCarrier:
                 self.shipyard['overview']['shipCount'] = carrier_count
                 self.shipyard['overview']['totalValue'] = total_value
 
-        self.bgstally.ui.window_fc.update_display()
+        self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
     def _parse_date(self, date:str) -> datetime:

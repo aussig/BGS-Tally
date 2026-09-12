@@ -347,7 +347,6 @@ class ProgressWindow:
                 lbl.bind("<Button-1>", partial(self.change_units, col, 'Column'))
             else:
                 lbl.bind("<Button-1>", partial(self._column_menu, col))
-                lbl.bind("<Button-2>", partial(self._toggle_carrier_demand, col))
             lbl.bind("<Button-3>", partial(self.change_units, col, 'Units'))
             if config.get_int('theme') == 0: lbl['fg'] = 'black'
             self._set_weight(lbl)
@@ -600,9 +599,9 @@ class ProgressWindow:
         for i, heading in enumerate(self.headings):
             if heading['Column'] == 'Commodity': continue
             carrier_id:int|None = self.bgstally.fleet_carrier.carrier_id if heading['Column'] == 'Carrier' else None
-            menu.add_command(label=heading['Label'], command=partial(self._set_column, col, i, carrier_id)) # LANG: progress column popup menu
+            menu.add_command(label=heading['Label'], command=partial(self._set_column, col, i, carrier_id, False)) # LANG: progress column popup menu
 
-        # Other carriers (not our personal one) go below a separator, keyed by the same 'Carrier' heading
+        # Other carriers (not our personal one) go below a separator
         carrier_index:int = next((i for i, h in enumerate(self.headings) if h['Column'] == 'Carrier'), -1)
         others:list = []
         squadron:FleetCarrier|None = self.bgstally.fleet_carriers.squadron
@@ -614,26 +613,20 @@ class ProgressWindow:
         if others and carrier_index >= 0:
             menu.add_separator()
             for label, carrier_id in others:
-                menu.add_command(label=label, command=partial(self._set_column, col, carrier_index, carrier_id)) # LANG: Carrier menu entry
+                submenu:tk.Menu = tk.Menu(menu, tearoff=tk.FALSE)
+                submenu.add_command(label=_('Buy'), command=partial(self._set_column, col, carrier_index, carrier_id, True)) # LANG: Carrier menu entry, demand
+                submenu.add_command(label=_('Sell'), command=partial(self._set_column, col, carrier_index, carrier_id, False)) # LANG: Carrier menu entry, stock
+                menu.add_cascade(label=label, menu=submenu)
 
         menu.post(event.x_root, event.y_root)
         menu.grab_release()
 
     @catch_exceptions
-    def _set_column(self, col:int, heading_index:int, carrier_id:int|None) -> None:
-        ''' Set a column to show a metric, or a specific carrier's available stock '''
+    def _set_column(self, col:int, heading_index:int, carrier_id:int|None, demand:bool = False) -> None:
+        ''' Set a column to show a metric, or a specific carrier's stock/demand '''
         self.columns[col] = heading_index
         self.column_carriers[col] = carrier_id
-        self.column_carrier_demand[col] = False
-        self.coltts[col].text = self._column_tooltip(col)
-        self.colonisation.dirty = True
-        self.update_display()
-
-    @catch_exceptions
-    def _toggle_carrier_demand(self, col:int, event:tk.Event) -> None:
-        ''' Middle-click a Carrier column: toggle between its stock (buy) and demand (sell) '''
-        if self._column_heading(col)['Column'] != 'Carrier': return
-        self.column_carrier_demand[col] = not self.column_carrier_demand[col]
+        self.column_carrier_demand[col] = demand
         self.coltts[col].text = self._column_tooltip(col)
         self.colonisation.dirty = True
         self.update_display()
@@ -676,7 +669,7 @@ class ProgressWindow:
         other:int|None = self._other_carrier(col)
         carrier:str = self._carrier_label(other, long=True) if other is not None else _('Personal') # LANG: Personal carrier fallback label
         mode:str = _('Demand') if self.column_carrier_demand[col] else _('Stock available to buy') # LANG: Carrier column tooltip mode
-        return _("{mode} at {carrier} (middle-click to toggle demand/stock)").format(mode=mode, carrier=carrier) # LANG: Carrier column tooltip
+        return _("{mode} at {carrier}").format(mode=mode, carrier=carrier) # LANG: Carrier column tooltip
 
 
     @catch_exceptions

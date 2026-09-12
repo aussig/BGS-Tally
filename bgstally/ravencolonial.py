@@ -28,6 +28,9 @@ EDSM_COOLDOWN = (3600 * 24)
 
 SPANSH_API = 'https://spansh.co.uk/api'
 SPANSH_COOLDOWN = (3600 * 24)
+SPANSH_LOCAL_COOLDOWN = (60 * 1)
+SPANSH_REMOTE_COOLDOWN = (60 * 10)
+
 class RavenColonial:
     """
     Class to handle all the data syncing between the colonisation system and RavenColonial.com. It also handles retrieving
@@ -953,7 +956,10 @@ class Spansh:
     def import_fleetcarrier(self, fc:'FleetCarrier') -> None:
         """ Retrieve a market snapshot from Spansh for a fleet carrier we have no CAPI data for """
         if fc.has_capi_data or fc.carrier_id == 0: return
-        if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - SPANSH_COOLDOWN: return
+
+        in_system:bool = fc.overview.get('currentStarSystem') == RavenColonial(self).colonisation.current_system
+        cooldown:int = SPANSH_LOCAL_COOLDOWN if in_system else SPANSH_REMOTE_COOLDOWN
+        if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - cooldown: return
         self.carrier_cache[fc.carrier_id] = int(time.time())
 
         url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
@@ -996,7 +1002,7 @@ class Spansh:
                     'price': m.get('buy_price', 0) or m.get('sell_price', 0),
                 }
 
-        RavenColonial(self).bgstally.ui.window_fc.update_display()
+        RavenColonial(self).bgstally.ui.window_fc.update_carrier_display(fc)
 
     @catch_exceptions
     def find_carrier(self, callsign:str) -> int|None:

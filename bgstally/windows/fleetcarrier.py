@@ -148,31 +148,52 @@ class WindowFleetCarrier:
 
 
     def update_display(self) -> None:
-        """ Update the Fleet Carrier window contents """
+        """ Update the Fleet Carrier window contents (every tracked carrier) """
         if self.window == None or not self.window.winfo_exists() or self.carrier_tabbar is None: return
 
-        # Keyed by a stable id: the fixed role name for personal/squadron, carrier_id for third-party
-        # (there can be several of those, and personal/squadron's own carrier_id may start unknown).
-        carriers:dict = {'Personal': (_('Personal'), self.bgstally.fleet_carriers.personal)} # LANG: Carrier window tab, until callsign is known
+        for key, label, fc in self._all_carriers():
+            self._update_carrier_tab(key, label, fc)
+
+
+    def update_carrier_display(self, fc:FleetCarrier) -> None:
+        """ Update just one carrier's tab -- e.g. after an async refresh for that carrier alone """
+        if self.window == None or not self.window.winfo_exists() or self.carrier_tabbar is None: return
+
+        for key, label, candidate in self._all_carriers():
+            if candidate is fc:
+                self._update_carrier_tab(key, label, fc)
+                return
+
+
+    def _all_carriers(self) -> list:
+        """ Every carrier we show a tab for, as (key, label, carrier) -- key is stable: role name for
+        personal/squadron, carrier_id for third-party (there can be several, and personal/squadron's
+        own carrier_id may start unknown). """
+        carriers:list = [('Personal', _('Personal'), self.bgstally.fleet_carriers.personal)] # LANG: Carrier window tab, until callsign is known
         if self.bgstally.fleet_carriers.squadron is not None:
-            carriers['Squadron'] = (_('Squadron'), self.bgstally.fleet_carriers.squadron) # LANG: Carrier window tab, until callsign is known
+            carriers.append(('Squadron', _('Squadron'), self.bgstally.fleet_carriers.squadron)) # LANG: Carrier window tab, until callsign is known
         for fc in self.bgstally.fleet_carriers.third_party:
-            carriers[fc.carrier_id] = (_('Third-Party Carrier'), fc) # LANG: Carrier window tab, until callsign is known
+            carriers.append((fc.carrier_id, _('Third-Party Carrier'), fc)) # LANG: Carrier window tab, until callsign is known
+        return carriers
 
-        for key, (label, fc) in carriers.items():
-            if key not in self.carrier_uis:
-                frame:ttk.Frame = ttk.Frame(self.carrier_tabbar, relief=tk.FLAT)
-                frame.pack(fill=tk.BOTH, expand=1)
-                self.carrier_tabbar.add(frame, text=label)
-                self.carrier_uis[key] = {'frame': frame, 'summfr': None, 'tabbar': None, 'tab_frames': {}}
 
-            ui:dict = self.carrier_uis[key]
-            bar_title:str = label
-            if fc.overview.get('callsign', None): bar_title = fc.overview.get('callsign')
-            if fc.overview.get('name', None): bar_title = str_truncate(bar_title + " " + fc.overview.get('name'), 20)
-            self._tab_configure(self.carrier_tabbar, ui['frame'], text=bar_title)
-            self._show_overview(fc, ui)
-            self._create_tabs(fc, ui)
+    def _update_carrier_tab(self, key, label:str, fc:FleetCarrier) -> None:
+        """ Create (if needed) and refresh a single carrier's tab """
+        if self.carrier_tabbar is None: return
+
+        if key not in self.carrier_uis:
+            frame:ttk.Frame = ttk.Frame(self.carrier_tabbar, relief=tk.FLAT)
+            frame.pack(fill=tk.BOTH, expand=1)
+            self.carrier_tabbar.add(frame, text=label)
+            self.carrier_uis[key] = {'frame': frame, 'summfr': None, 'tabbar': None, 'tab_frames': {}}
+
+        ui:dict = self.carrier_uis[key]
+        bar_title:str = fc.overview.get('callsign') or label
+        name:str = fc.overview.get('name') or ''
+        if name: bar_title = str_truncate(f"{bar_title} {name}", 20)
+        self._tab_configure(self.carrier_tabbar, ui['frame'], text=bar_title)
+        self._show_overview(fc, ui)
+        self._create_tabs(fc, ui)
 
 
     def close(self, n:str = '', w:tk.Toplevel|None = None) -> None:

@@ -7,7 +7,7 @@ import requests
 from requests import Response
 from typing import TYPE_CHECKING, Callable
 
-from bgstally.constants import RequestMethod, BuildState
+from bgstally.constants import FleetCarrierType, RequestMethod, BuildState
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
 from bgstally.utils import _, get_by_path, catch_exceptions
@@ -987,12 +987,24 @@ class Spansh:
         if success == False: return
 
         record:dict = response.json().get('record', {})
-        fc.overview['name'] = fc.overview.get('name', record.get('carrier_name', ''))
-        fc.overview['callsign'] = fc.overview.get('callsign', record.get('callsign', ''))
-        fc.overview['currentStarSystem'] = fc.overview.get('currentStarSystem', record.get('system_name', ''))
-        if record.get('market'):
-            newer:bool = self._spansh_time(record.get('market_updated_at')) > fc.last_modified
 
+        fc.overview['callsign'] = fc.overview.get('callsign', record.get('callsign', ''))
+
+        fc.overview['name'] = record.get('carrier_name', fc.overview.get('name', None))
+        if fc.overview.get('name', None) == None:
+            match fc.carrier_type:
+                case FleetCarrierType.PERSONAL:
+                    fc.overview['name'] = _("Personal")
+                case FleetCarrierType.SQUADRON:
+                    fc.overview['name'] = _("Squadron")
+                case _:
+                    fc.overview['name'] = ""
+
+        newer:bool = self._spansh_time(record.get('market_updated_at')) > fc.last_modified
+        #if newer and record.get('system_name', '') != fc.overview.get('currentStarSystem', ''):
+        fc.overview['currentStarSystem'] = record.get('system_name', fc.overview.get('currentStarSystem', ''))
+
+        if record.get('market'):
             for m in record['market']:
                 comm:str = re.sub(r'[^a-z0-9]', '', m.get('commodity', '').lower())
                 if comm == '' or (comm in fc.cargo['normal'] and not newer): continue

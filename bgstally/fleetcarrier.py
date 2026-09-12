@@ -1328,7 +1328,7 @@ class FleetCarrier:
         with open(file) as json_file:
             self._from_dict(json.load(json_file))
             if self.carrier_type != FleetCarrierType.PERSONAL:
-                return # Squadron (etc) carriers never have CAPI data -- the checks below don't apply
+                return # Only personal carriers have CAPI data
 
             if self.data is None or self.data.get('name') is None:
                 # There is no CAPI data, so clear our name and callsign as we have no personal carrier. This is to clear up

@@ -642,10 +642,8 @@ class ProgressWindow:
         ''' Display name for a specific carrier column: its callsign, or a role name before one is known '''
         fc:FleetCarrier|None = self.bgstally.fleet_carriers.find(carrier_id)
         if fc is None: return _('Carrier') # LANG: Carrier column fallback label
-        name:str = fc.overview.get('name', fc.overview.get('callsign', None)) if long else fc.overview.get('callsign', None)
-        if not name and fc is self.bgstally.fleet_carrier: return _('Personal') # LANG: Personal carrier fallback label
-        if not name and fc is self.bgstally.fleet_carriers.squadron: return _('Squadron') # LANG: Squadron carrier fallback label
-        return name or str(fc.carrier_id)
+        if long and fc.overview.get('name', None) is not None: return fc.overview.get('name', '')
+        return fc.overview.get('callsign', None) or _('Unknown') # LANG: Carrier column fallback label
 
     def _column_heading(self, col:int) -> dict:
         ''' The heading dict currently selected for a column '''

@@ -5,8 +5,10 @@ from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from os import path
 from typing import TYPE_CHECKING
-
 import requests
+
+import outfitting # type: ignore
+from edmc_data import ship_name_map # type: ignore
 
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
@@ -335,6 +337,8 @@ class FleetCarrier:
         for slot, m in self.modules.get('modules', {}).items():
             modules.append({
                 'name': (m.get('name', ''), 'name', 'None'),
+                'size': (m.get('size', ''), 'name', ''),
+                'class': (m.get('class', ''), 'name', ''),
                 'location': (m.get('location', ''), 'name', 'Unknown'),
                 'value': (m.get('value', 0), 'num', 0),
                 'transferTime': (m.get('transferTime', 0), 'interval'),
@@ -1178,8 +1182,11 @@ class FleetCarrier:
         total_value:int = 0
         for item in entry.get('Items', []):
             at_carrier:bool = item.get('MarketID', entry.get('MarketID', 0)) == self.carrier_id
+            mods:dict = outfitting.lookup({'id': item.get('StorageSlot', 0), 'name': item.get('Name', '')}, ship_name_map) or {}
             self.modules['modules'][str(item.get('StorageSlot', ''))] = {
                 'name': item.get('Name_Localised', item.get('Name', '')),
+                'size': mods.get('class', ''), # EDMC's 'class' is the module's size (e.g. '2', or a hardpoint's '1'-'4')
+                'class': mods.get('rating', ''), # EDMC's 'rating' is the letter grade (A-E) the game itself calls "class"
                 'location': 'Carrier' if at_carrier else item.get('StarSystem', _('In Transit')), # LANG: Fleet carrier, module in transit
                 'value': item.get('BuyPrice', 0),
                 'transferPrice': item.get('TransferCost', 0),
@@ -1193,6 +1200,7 @@ class FleetCarrier:
 
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
+
 
     def _parse_date(self, date:str) -> datetime:
         """ Parse a datetime. We only have two formats """

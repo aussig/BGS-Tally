@@ -119,6 +119,8 @@ class WindowFleetCarrier:
             'Modules': {
                 'cols': {
                     'name': {'title': 'Name', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 200, 'locName': _('Name')}, # LANG: Modules tab
+                    'size': {'title': 'Size', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 55, 'locName': _('Size')}, # LANG: Modules tab
+                    'class': {'title': 'Class', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 55, 'locName': _('Class')}, # LANG: Modules tab
                     #{'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 175, 'locName': _('Location')}, # LANG: Modules tab
                     'value': {'title': 'Value', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 90, 'locName': _('Value')}, # LANG: Modules tab
                     'hot': {'title': 'Hot', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Hot')}, # LANG: Modules tab

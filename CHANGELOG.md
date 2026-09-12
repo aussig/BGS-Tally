@@ -4,6 +4,7 @@
 
 ### Bug Fixes:
 
+* Commodity list was getting unduly truncated in overlay and discord.
 * New settings panel was not allowing translation
 * Fixes for some Raven Colonial data import issues
 

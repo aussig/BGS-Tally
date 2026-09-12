@@ -471,11 +471,13 @@ class ProgressWindow:
         #heading_list.insert(1, _('Category'))
 
         comms_list:list[list] = []
-        for rowcnt, (comm, row_values) in enumerate(self._get_rows(comms)):
+        rowcnt:int = 0
+        for comm, row_values in self._get_rows(comms):
             if self._skip_row(self.view, comm, rowcnt): continue
             row_values[0] = str_truncate(row_values[0], 29)
             row_values[1] = f"{row_values[1]: >9}"
             comms_list.append(row_values)
+            rowcnt += 1
 
         total_list:list = []
         for i, col in enumerate(self.columns):
@@ -523,8 +525,10 @@ class ProgressWindow:
         table += f"{self.headings[self.columns[1]].get('Label')}\n"
 
         rows:int = 0
-        for rowcnt, (comm, row_values) in enumerate(self._get_rows(comms)):
+        rowcnt:int = 0
+        for comm, row_values in self._get_rows(comms):
             if self._skip_row(self.view, comm, rowcnt): continue
+            rowcnt += 1
             if int(re.sub(r'[^\d]+', '', row_values[1])) == 0 and self.view != ProgressView.FULL: continue
             w:int = 18 - len(row_values[1])
             v:str = f"{row_values[1]: <16}"[0:w] # Adjust for proportional font

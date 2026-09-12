@@ -420,12 +420,15 @@ class Prefs:
         self._rebuild_tracked_carriers()
 
     @catch_exceptions
-    def _add_tracked_carrier(self, var:tk.StringVar) -> None:
+    def _add_tracked_carrier(self, entry:nb.EntryMenu, var:tk.StringVar) -> None:
         """ Callback for adding a carrier to track by its callsign (its permanent, human-visible identifier) """
         callsign:str = var.get().strip()
         if not callsign: return
         var.set("")
-        self.bgstally.fleet_carriers.track_by_callsign(callsign, self._rebuild_tracked_carriers)
+        entry.config(state=tk.DISABLED)
+        if self.bgstally.fleet_carriers.track_by_callsign(callsign):
+            self._rebuild_tracked_carriers()
+        entry.config(state=tk.NORMAL)
 
     @catch_exceptions
     def _tracked_carriers(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
@@ -436,9 +439,9 @@ class Prefs:
 
         row += 1
         var:tk.StringVar = tk.StringVar(value="")
-        nb.EntryMenu(frame, textvariable=var, width=15, state=state). \
-            grid(row=row, column=column, padx=(10,0), pady=(5,5), sticky=tk.W)
-        nb.Button(frame, text=_("Add Carrier"), command=partial(self._add_tracked_carrier, var), state=state). \
+        entry:nb.EntryMenu = nb.EntryMenu(frame, textvariable=var, width=15, state=state)
+        entry.grid(row=row, column=column, padx=(10,0), pady=(5,5), sticky=tk.W)
+        nb.Button(frame, text=_("Add Carrier"), command=partial(self._add_tracked_carrier, entry, var), state=state). \
             grid(row=row, column=column+1, pady=(5,5), sticky=tk.W) # LANG: Preferences add carrier button text
 
         return 2

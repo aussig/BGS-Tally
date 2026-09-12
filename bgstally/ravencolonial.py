@@ -960,28 +960,6 @@ class Spansh:
         RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._fleetcarrier_callback, fc))
 
     @catch_exceptions
-    def find_carrier(self, callsign:str, callback:Callable[[int|None], None]) -> None:
-        """ Resolve a carrier's callsign to its market id """
-        url:str = f"{SPANSH_API}/search?q={quote(callsign)}"
-        RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._find_carrier_callback, callsign, callback))
-
-    @catch_exceptions
-    def _find_carrier_callback(self, callsign:str, callback:Callable[[int|None], None], success:bool, response:Response,
-                               request:BGSTallyRequest) -> None:
-        """ get market_id from results """
-        if not success:
-            callback(None)
-            return
-
-        market_id:int|None = None
-        for result in response.json().get('results', []):
-            record:dict = result.get('record', {})
-            if record.get('name', '').lower() == callsign.lower():
-                market_id = record.get('market_id')
-                break
-        callback(market_id)
-
-    @catch_exceptions
     def _fleetcarrier_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
         """ Merge newer market data """
         if success == False: return
@@ -1019,6 +997,20 @@ class Spansh:
                 }
 
         RavenColonial(self).bgstally.ui.window_fc.update_display()
+
+    @catch_exceptions
+    def find_carrier(self, callsign:str) -> int|None:
+        """ Resolve a carrier's callsign to its market id """
+        url:str = f"{SPANSH_API}/search?q={quote(callsign)}"
+        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
+        if response.status_code != 200:
+            return None
+
+        for result in response.json().get('results', []):
+            record:dict = result.get('record', {})
+            if record.get('name', '').lower() == callsign.lower():
+                return record.get('market_id')
+        return None
 
     def _spansh_time(self, updated_at:str|None) -> int:
         """ Parse Spansh's market_updated_at timestamp, or 0 if missing/unparseable """

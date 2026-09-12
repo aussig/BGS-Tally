@@ -368,6 +368,9 @@ class BGSTally:
             case 'Shipyard' | 'StoredShips' | 'ShipyardSwap' | 'ShipyardTransfer':
                 self.fleet_carrier.shipyard_event(entry)
 
+            case 'StoredModules':
+                self.fleet_carrier.modules_event(entry)
+
             case 'SupercruiseDestinationDrop':
                 activity.destination_dropped(entry, self.state)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)

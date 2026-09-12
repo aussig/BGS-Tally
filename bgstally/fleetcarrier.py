@@ -43,6 +43,7 @@ class FleetCarrier:
         self.itinerary:list = [] # Local copy of jump data
         self.route:list = [] # Planned route
         self.shipyard:dict = {'overview': {}, 'ships': {}} # Local copy of shipyard data
+        self.modules:dict = {'overview': {}, 'modules': {}} # Local copy of stored module data
         self.last_modified:int = 0 # Record of when we last modified our local data. Used to avoid overwriting with out of date CAPI data.
         self.data:dict = {}  # Raw CAPI data
         self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
@@ -318,6 +319,29 @@ class FleetCarrier:
                 'hot': (s.get('hot', False), 'bool'),
             })
         return {'overview': summ, 'ships': ships}
+
+
+    @catch_exceptions
+    def get_modules(self) -> dict:
+        """
+        Return the carrier's stored modules. Overview is a set of key value pairs and
+        modules is a list of modules with details to be displayed in a treeviewplus table.
+        """
+        summ:dict = {
+            _('Stored Modules'): self.modules.get('overview', {}).get('moduleCount', 'None'), # LANG: Carrier modules
+            _('Total Value'): self.modules.get('overview', {}).get('totalValue', 'None') # LANG: Carrier modules
+        }
+        modules:list = []
+        for slot, m in self.modules.get('modules', {}).items():
+            modules.append({
+                'name': (m.get('name', ''), 'name', 'None'),
+                'location': (m.get('location', ''), 'name', 'Unknown'),
+                'value': (m.get('value', 0), 'num', 0),
+                'transferTime': (m.get('transferTime', 0), 'interval'),
+                'transferPrice': (m.get('transferPrice', 0), 'num'),
+                'hot': (m.get('hot', False), 'bool'),
+            })
+        return {'overview': summ, 'modules': modules}
 
 
     # UI Operations
@@ -1142,6 +1166,34 @@ class FleetCarrier:
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
+    @catch_exceptions
+    def modules_event(self, entry:dict) -> None:
+        """
+        The user viewed their stored modules, producing a StoredModules journal event.
+        Unlike stored ships, modules aren't split into Here/Remote -- each item carries its own location.
+        """
+        if entry.get('event') != 'StoredModules': return
+
+        carrier_count:int = 0
+        total_value:int = 0
+        for item in entry.get('Items', []):
+            at_carrier:bool = item.get('MarketID', entry.get('MarketID', 0)) == self.carrier_id
+            self.modules['modules'][str(item.get('StorageSlot', ''))] = {
+                'name': item.get('Name_Localised', item.get('Name', '')),
+                'location': 'Carrier' if at_carrier else item.get('StarSystem', _('In Transit')), # LANG: Fleet carrier, module in transit
+                'value': item.get('BuyPrice', 0),
+                'transferPrice': item.get('TransferCost', 0),
+                'transferTime': item.get('TransferTime', 0),
+                'hot': item.get('Hot', False)
+            }
+            if at_carrier: carrier_count += 1
+            total_value += item.get('BuyPrice', 0)
+        self.modules['overview']['moduleCount'] = carrier_count
+        self.modules['overview']['totalValue'] = total_value
+
+        self.bgstally.ui.window_fc.update_carrier_display(self)
+        if self.bgstally.dev_mode == True: self.save()
+
     def _parse_date(self, date:str) -> datetime:
         """ Parse a datetime. We only have two formats """
         dt:datetime
@@ -1285,6 +1337,7 @@ class FleetCarrier:
             'itinerary': self.itinerary,
             'route': self.route,
             'shipyard': self.shipyard,
+            'modules': self.modules,
             'data': self.data,
             }
 
@@ -1311,6 +1364,9 @@ class FleetCarrier:
         self.shipyard = dict.get('shipyard', {})
         if 'overview' not in self.shipyard:
             self.shipyard = {'overview' : {}, 'ships': {}}
+        self.modules = dict.get('modules', {})
+        if 'overview' not in self.modules:
+            self.modules = {'overview': {}, 'modules': {}}
         self.data = dict.get('data', {})
 
 

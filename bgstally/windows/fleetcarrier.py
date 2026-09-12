@@ -116,6 +116,17 @@ class WindowFleetCarrier:
                 },
                 'func': self._shipyard
             },
+            'Modules': {
+                'cols': {
+                    'name': {'title': 'Name', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 200, 'locName': _('Name')}, # LANG: Modules tab
+                    #{'title': 'Location', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 175, 'locName': _('Location')}, # LANG: Modules tab
+                    'value': {'title': 'Value', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 90, 'locName': _('Value')}, # LANG: Modules tab
+                    'hot': {'title': 'Hot', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Hot')}, # LANG: Modules tab
+                    'transferTime': {'title': 'Transfer Time', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 175, 'locName': _('Transfer Time')}, # LANG: Modules tab
+                    'transferPrice': {'title': 'Transfer Cost', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 125, 'locName': _('Transfer Cost')}, # LANG: Modules tab
+                },
+                'func': self._modules
+            },
         }
 
 
@@ -253,6 +264,7 @@ class WindowFleetCarrier:
                 case 'Locker': has_data = any(fc.locker.get(t) for t in ('normal', 'mission'))
                 case 'Itinerary': has_data = fc.itinerary != [] or fc.route != []
                 case 'Shipyard': has_data = fc.shipyard.get('ships', {}) != {}
+                case 'Modules': has_data = fc.modules.get('modules', {}) != {}
                 # Finances/costs/capacity all come from CAPI/CarrierStats, neither of which we get for a carrier we don't own.
                 case 'Summary': has_data = fc.carrier_type != FleetCarrierType.THIRDPARTY
                 case _: has_data = True
@@ -396,6 +408,22 @@ class WindowFleetCarrier:
             row:list = []
             for c in which['cols'].keys():
                 row.append(hfplus(ship.get(c)))
+            table.insert("", 'end', values=row)
+
+
+    def _modules(self, fc:FleetCarrier, which:dict, frame:ttk.Frame) -> None:
+        """ Create and display the Modules tab """
+        modules:dict = fc.get_modules()
+
+        if modules.get('overview', None) != None:
+            self._overview(modules['overview'], 10, frame, bg='white')
+
+        table:TreeviewPlus = self._create_table(which['cols'], frame)
+        for module in modules.get('modules', []):
+            if module.get('location')[0] != 'Carrier': continue # Only show modules stored at the carrier
+            row:list = []
+            for c in which['cols'].keys():
+                row.append(hfplus(module.get(c)))
             table.insert("", 'end', values=row)
 
 

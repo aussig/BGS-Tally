@@ -1658,6 +1658,10 @@
         "overview": {},
         "ships": {}
     },
+    "modules": {
+        "overview": {},
+        "modules": {}
+    },
     "data": {
         "name": {
             "callsign": "T3S-TY",

@@ -2,7 +2,9 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### Bug Fixes:
 
+* New settings panel was not allowing translation
 
 
 ## v5.6.0 - 2026-08-31

@@ -996,6 +996,11 @@ class ProgressWindow:
             if comm.remaining > 0:
                 totals.cargo += max(min(comm.cargo, comm.remaining), 0)
                 totals.carrier += max(min(comm.carrier, comm.remaining - comm.cargo), 0)
+            # Each carrier's own total across commodities, kept separate per carrier_id -- not summed together.
+            for carrier_id, stock in comm.carrier_stocks.items():
+                totals.carrier_stocks[carrier_id] = totals.carrier_stocks.get(carrier_id, 0) + stock
+            for carrier_id, demand in comm.carrier_demands.items():
+                totals.carrier_demands[carrier_id] = totals.carrier_demands.get(carrier_id, 0) + demand
         return totals
 
 

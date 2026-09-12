@@ -444,7 +444,7 @@ class RavenColonial:
         """ Process the results of querying RavenColonial for the system details """
 
         if success == False:
-            Debug.logger.error(f"System load failed {response.content}")
+            Debug.logger.error(f"System load failed {response.content if response != None else 'No response'}")
             return
 
         data:dict = response.json()
@@ -514,7 +514,7 @@ class RavenColonial:
             projectid = build.get('ProjectID', None)
 
         if projectid == None:
-            Debug.logger.error(f"Project not found {response} {response.content}")
+            Debug.logger.error(f"Project not found {response}")
             return
 
         self.colonisation.update_progress(progress.get('MarketID', 0), {'ProjectID': projectid}, True)

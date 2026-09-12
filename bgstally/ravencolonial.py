@@ -966,7 +966,7 @@ class Spansh:
 
         record:dict = response.json().get('record', {})
 
-        fc.overview['callsign'] = fc.overview.get('callsign', record.get('callsign', ''))
+        fc.overview['callsign'] = fc.overview.get('callsign', record.get('name', ''))
 
         fc.overview['name'] = record.get('carrier_name', fc.overview.get('name', None))
         if fc.overview.get('name', None) == None:

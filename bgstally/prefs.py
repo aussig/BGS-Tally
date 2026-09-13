@@ -350,7 +350,7 @@ class Prefs:
 
     def _show_api_window(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
         """ Show the API window for the overlay plugin """
-        nb.Button(frame, text=_("Overlay API Settings"), width=20, command=partial(self.bgstally.ui._show_api_window, frame)).\
+        nb.Button(frame, text=_("Overlay API Settings"), command=partial(self.bgstally.ui._show_api_window, frame)).\
             grid(row=row, column=column, padx=10, pady=5, sticky=tk.W) # LANG: Preferences overlay API settings button text
         return 1
 

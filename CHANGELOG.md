@@ -11,6 +11,15 @@
 
 * Progress columns is now a dropdown menu
 
+## v5.6.1 - 2026-09-12
+
+### Bug Fixes:
+
+* Commodity list was getting unduly truncated in overlay and discord.
+* New settings panel was not allowing translation
+* Fixes for some Raven Colonial data import issues
+
+
 ## v5.6.0 - 2026-08-31
 
 ### New Features:

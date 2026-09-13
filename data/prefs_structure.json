@@ -164,7 +164,7 @@
                     {
                         "var": "FavouriteActivityMode",
                         "type": "menu",
-                        "default": "Ignore",
+                        "default": "Include all factions",
                         "label": "Favourite Activity Mode",
                         "options": {
                             "Ignore": "Include all factions",

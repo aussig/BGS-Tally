@@ -645,6 +645,8 @@ class Colonisation:
         # Do some fuzzy matching on similarity, body, etc. for things that may have changed while we were away.
         blist:list = sorted(builds[1:], key=lambda item: item.get('State', ''), reverse=True)
         for build in blist:
+            if (data.get('BuildID', None) != None and build.get('BuildID', None) != None) or \
+                (data.get('MarketID', None) != None and build.get('MarketID', None) != None): continue # We checked these above, no match then skip it.
             state:str|None = build.get('State', None)
             location:str|None = build.get('Location', None)
             if location == None and build.get('Base Type', None) != None:
@@ -676,8 +678,9 @@ class Colonisation:
             return None
 
         # Primary port. We completed it but don't know its new name or marketid.
-        if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('MarketID', None) == None and \
-             builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == data.get('Body', str(data.get('BodyNum', ''))).lower():
+        if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('BuildID', None) == None and \
+            builds[0].get('MarketID', None) == None and \
+                builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == data.get('Body', str(data.get('BodyNum', ''))).lower():
             Debug.logger.debug(f"Matched completed primary port {data.get('Name', None)} {data.get('Body', str(data.get('BodyNum', ''))).lower()}")
             return builds[0]
 
@@ -689,7 +692,7 @@ class Colonisation:
         ''' Find a build by marketid or name, or create it if it doesn't exist '''
         build:dict|None = self.find_build(system, data)
         if build != None:
-            Debug.logger.debug(f"Build found: {build.get('Name','')} {build.get('Base Type','')} {build.get('Body','')}")
+            Debug.logger.debug(f"Build found: {build}")
             return build
 
         return self.add_build(system, data)

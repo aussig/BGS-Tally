@@ -79,7 +79,8 @@ class FleetCarriers:
     def refresh_markets(self) -> None:
         """ Refresh carrier market data from Spansh """
 
-        Spansh().import_fleetcarrier(self.personal)
+        # Personal needs special treatment
+        #Spansh().import_fleetcarrier(self.personal)
         for carrier in self.carriers.values():
             Spansh().import_fleetcarrier(carrier)
 

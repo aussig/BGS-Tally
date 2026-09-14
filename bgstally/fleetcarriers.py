@@ -1,6 +1,7 @@
 import json
 from glob import glob
 from os import path, remove
+from threading import Thread
 from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
@@ -47,6 +48,13 @@ class FleetCarriers:
         return self.by_type(FleetCarrierType.THIRDPARTY)
 
 
+    def add(self, carrier_id:int, type:FleetCarrierType, station:str|None = None, system:str|None = None) -> None:
+        """ Add a new carrier """
+        if not carrier_id or carrier_id in self.carriers: return
+        self.carriers[carrier_id] = FleetCarrier(self.bgstally, carrier_id, type)
+        if station: self.carriers[carrier_id].overview['callsign'] = station
+        if system: self.carriers[carrier_id].overview['currentStarSystem'] = system
+
     def get(self, carrier_id:int, carrier_type:FleetCarrierType) -> FleetCarrier:
         """ Return the FleetCarrier for carrier_id, creating it if necessary """
         if carrier_type == FleetCarrierType.PERSONAL: return self.personal
@@ -77,12 +85,12 @@ class FleetCarriers:
 
 
     def refresh_markets(self) -> None:
-        """ Refresh carrier market data from Spansh """
+        """ Refresh each carrier's cargo data, one thread per carrier """
 
         # Personal needs special treatment
         #Spansh().import_fleetcarrier(self.personal)
         for carrier in self.carriers.values():
-            Spansh().import_fleetcarrier(carrier)
+            Thread(target=carrier.update_carrier, daemon=True, name=f"FC update {carrier.carrier_id}").start()
 
 
     def track_by_callsign(self, callsign:str) -> bool:

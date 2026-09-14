@@ -582,7 +582,7 @@ class TestCarrierEvents:
         fc = harness.plugin.fleet_carrier
         capi_data:dict = harness.get_config_data('fleetcarrier-capi-data.json')
 
-        fc.update(capi_data)
+        fc.capi_update(capi_data)
 
         assert fc.overview.get('currentStarSystem') == capi_data['currentStarSystem']
 
@@ -718,16 +718,15 @@ class TestSpanshFleetCarrier:
     """ Test Spansh filling market gaps for a fleet carrier we have no CAPI data for """
 
     def test_spansh_import(self, harness) -> None:
-        """ Test import_fleetcarrier() and its callback """
+        """ Test import_fleetcarrier() and its callback for the personal carrier -- merged via _apply_market() diffing """
         from bgstally.ravencolonial import Spansh
         fc = harness.plugin.fleet_carrier
 
-        fc.data = {'name': {}} # Has CAPI data -- should not query Spansh at all
         with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
-            Spansh().import_fleetcarrier(fc)
+            Spansh().import_fleetcarrier(fc) # carrier_id still 0, so no query yet
         mock_queue.assert_not_called()
 
-        fc.data = {}
+        fc.carrier_id = 3709409280
         fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'stock': 999, 'buyTotal': 0, 'outstanding': 0, 'price': 1}
         response = Mock()
         response.json.return_value = {'record': {'market': [
@@ -737,8 +736,8 @@ class TestSpanshFleetCarrier:
 
         Spansh()._fleetcarrier_callback(fc, True, response, Mock())
 
-        assert fc.cargo['normal']['tritium']['stock'] == 999 # Already tracked, not overwritten
-        assert fc.cargo['normal']['water']['stock'] == 200 # Gap filled
+        assert fc.cargo['normal']['tritium']['stock'] == 500 # Diffed: market's observed stock differs, so we adopt it
+        assert fc.cargo['normal']['water']['stock'] == 200 # New commodity, added
 
 class CarrierUnused:
     def test_parse_date(self, harness) -> None:

@@ -7,7 +7,7 @@ import requests
 from requests import Response
 from typing import TYPE_CHECKING, Callable
 
-from bgstally.constants import FleetCarrierType, RequestMethod, BuildState
+from bgstally.constants import RequestMethod, BuildState
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
 from bgstally.utils import _, get_by_path, catch_exceptions
@@ -112,6 +112,7 @@ class RavenColonial:
         }
 
         self._cache:dict = {} # Cache of responses and response times used to reduce API calls
+        self._rc_tracked:dict[int, bool] = {} # carrier_id -> whether RC currently has a record for it
         self._initialized = True
 
 
@@ -667,7 +668,7 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def update_carrier(self, marketid:int, cargo:dict) -> None:
+    def update_carrier(self, marketid:int, cargo:dict, sync:bool = False) -> None:
         """ Update the cargo of a fleet carrier """
         if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
             Debug.logger.info("Not updating carrier in RavenColonial")
@@ -675,19 +676,61 @@ class RavenColonial:
 
         payload:dict = {comm : cargo.get(comm, 0) for comm in self.bgstally.ui.commodities.keys()}
         url:str = f"{RC_API}/fc/{marketid}/cargo"
+
+        if sync:
+            response:Response = requests.post(url, json=payload, headers=self._headers(), timeout=TIMEOUT)
+            self._carrier_callback(response.status_code == 200, response)
+            return
+
         self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=self._headers(), callback=self._carrier_callback)
-        return
 
 
     @catch_exceptions
-    def _carrier_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
-        """ Process the results of querying RavenColonial """
-        data:dict = response.json()
+    def _carrier_callback(self, success:bool, response:Response, request:BGSTallyRequest|None = None) -> None:
+        """ Process the results of updating a carrier's cargo in RavenColonial """
         if success == False or response.status_code != 200:
             Debug.logger.warning(f"Error updating carrier {response} {response.content}")
             return
 
         Debug.logger.debug(f"RavenColonial carrier updated: {response}")
+
+
+    @catch_exceptions
+    def get_carrier(self, marketid:int) -> dict|None:
+        """ Synchronously fetch RC's current view of a carrier, normalized for FleetCarrier.merge() """
+        cache_key:str = f'fc_{marketid}'
+        if self._cache.get(cache_key, 0) > int(time.time()) - RC_COOLDOWN: return None
+        self._cache[cache_key] = int(time.time())
+
+        url:str = f"{RC_API}/fc/{marketid}"
+        response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
+        self._rc_tracked[marketid] = response.status_code == 200
+        if response.status_code != 200: return None
+
+        data:dict = response.json()
+        return {
+            'timestamp': self._parse_time(data.get('lastRefresh')),
+            'overview': {
+                'callsign': data.get('name'),
+                'name': data.get('displayName'),
+                'currentStarSystem': data.get('systemName'),
+            },
+            'cargo': {comm: {'stock': qty} for comm, qty in data.get('cargo', {}).items()},
+        }
+
+
+    def is_tracked(self, marketid:int) -> bool:
+        """ Whether RC is currently known to track this carrier, from the last successful get_carrier() check """
+        return self._rc_tracked.get(marketid, False)
+
+
+    def _parse_time(self, updated_at:str|None) -> int:
+        """ Parse an ISO8601 timestamp (RC's lastRefresh, Spansh's market_updated_at), or 0 if missing/unparseable """
+        if not updated_at: return 0
+        try:
+            return int(datetime.fromisoformat(updated_at.replace('Z', '+00:00')).timestamp())
+        except ValueError:
+            return 0
 
 
 
@@ -954,8 +997,8 @@ class Spansh:
 
     @catch_exceptions
     def import_fleetcarrier(self, fc:'FleetCarrier') -> None:
-        """ Retrieve a market snapshot from Spansh for a fleet carrier we have no CAPI data for """
-        if fc.has_capi_data or fc.carrier_id == 0: return
+        """ Retrieve a market snapshot from Spansh for a fleet carrier """
+        if fc.carrier_id == 0: return
 
         in_system:bool = fc.overview.get('currentStarSystem') == RavenColonial(self).colonisation.current_system
         cooldown:int = SPANSH_LOCAL_COOLDOWN if in_system else SPANSH_REMOTE_COOLDOWN
@@ -970,39 +1013,52 @@ class Spansh:
         """ Merge newer market data """
         if success == False: return
 
-        record:dict = response.json().get('record', {})
-
-        fc.overview['callsign'] = fc.overview.get('callsign', record.get('name', ''))
-
-        fc.overview['name'] = record.get('carrier_name', fc.overview.get('name', None))
-        if fc.overview.get('name', None) == None:
-            match fc.carrier_type:
-                case FleetCarrierType.PERSONAL:
-                    fc.overview['name'] = _("Personal")
-                case FleetCarrierType.SQUADRON:
-                    fc.overview['name'] = _("Squadron")
-                case _:
-                    fc.overview['name'] = ""
-
-        newer:bool = self._spansh_time(record.get('market_updated_at')) > fc.last_modified
-        #if newer and record.get('system_name', '') != fc.overview.get('currentStarSystem', ''):
-        fc.overview['currentStarSystem'] = record.get('system_name', fc.overview.get('currentStarSystem', ''))
-
-        if record.get('market'):
-            for m in record['market']:
-                comm:str = re.sub(r'[^a-z0-9]', '', m.get('commodity', '').lower())
-                if comm == '' or (comm in fc.cargo['normal'] and not newer): continue
-
-                fc.cargo['normal'][comm] = {
-                    'locName': m.get('commodity', comm),
-                    'category': m.get('category', 'Unknown'),
-                    'stock': m.get('supply', 0),
-                    'buyTotal': 0,
-                    'outstanding': m.get('demand', 0),
-                    'price': m.get('buy_price', 0) or m.get('sell_price', 0),
-                }
-
+        fc.merge(self._normalize_market(response.json().get('record', {})), spansh=True)
         RavenColonial(self).bgstally.ui.window_fc.update_carrier_display(fc)
+
+    @catch_exceptions
+    def get_market(self, fc:'FleetCarrier') -> dict|None:
+        """ Synchronously fetch a market snapshot from Spansh, normalized for FleetCarrier.merge() """
+        if fc.carrier_id == 0: return None
+
+        in_system:bool = fc.overview.get('currentStarSystem') == RavenColonial(self).colonisation.current_system
+        cooldown:int = SPANSH_LOCAL_COOLDOWN if in_system else SPANSH_REMOTE_COOLDOWN
+        if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - cooldown: return None
+        self.carrier_cache[fc.carrier_id] = int(time.time())
+
+        url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
+        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
+        if response.status_code != 200: return None
+
+        return self._normalize_market(response.json().get('record', {}))
+
+    def _normalize_market(self, record:dict) -> dict:
+        """ Convert a Spansh station record into FleetCarrier.merge()'s normalized envelope """
+        cargo:dict = {}
+        for m in record.get('market', []):
+            comm:str = re.sub(r'[^a-z0-9]', '', m.get('commodity', '').lower())
+            if comm == '': continue
+
+            cargo[comm] = {
+                'locName': m.get('commodity', comm),
+                'category': m.get('category', 'Unknown'),
+                'consumer': m.get('demand', 0) > 0,
+                'producer': m.get('supply', 0) > 0,
+                'demand': m.get('demand', 0),
+                'stock': m.get('supply', 0),
+                'buy_price': m.get('buy_price', 0),
+                'sell_price': m.get('sell_price', 0),
+            }
+
+        return {
+            'timestamp': RavenColonial(self)._parse_time(record.get('market_updated_at')),
+            'overview': {
+                'callsign': record.get('name'),
+                'name': record.get('carrier_name'),
+                'currentStarSystem': record.get('system_name'),
+            },
+            'cargo': cargo,
+        }
 
     @catch_exceptions
     def find_carrier(self, callsign:str) -> int|None:
@@ -1017,14 +1073,6 @@ class Spansh:
             if record.get('name', '').lower() == callsign.lower():
                 return record.get('market_id')
         return None
-
-    def _spansh_time(self, updated_at:str|None) -> int:
-        """ Parse Spansh's market_updated_at timestamp, or 0 if missing/unparseable """
-        if not updated_at: return 0
-        try:
-            return int(datetime.strptime(updated_at, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc).timestamp())
-        except ValueError:
-            return 0
 
     @catch_exceptions
     def _get_by_name(self, system_name:str) -> dict|None: # UNUSED

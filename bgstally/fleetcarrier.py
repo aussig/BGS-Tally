@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DiscordChannel, FleetCarrierJump,
                                 FleetCarrierType)
 from bgstally.debug import Debug
-from bgstally.ravencolonial import Spansh
+from bgstally.ravencolonial import RavenColonial, Spansh
 from bgstally.utils import _, __, catch_exceptions, get_by_path
 from thirdparty.colors import *
 
@@ -199,6 +199,70 @@ class FleetCarrier:
             _('Profit') : get_by_path(self.data, ["marketFinances", "allTimeProfit"], 'None'), # LANG: Carrier cargo
         }
         return {'overview': summ, 'inventory': comm}
+
+
+    @catch_exceptions
+    def update_carrier(self) -> None:
+        """ Refresh this carrier's cargo from RC then Spansh, pushing back to RC if Spansh ends up fresher """
+        rc:RavenColonial = RavenColonial(self.bgstally.colonisation)
+
+        rc_data:dict|None = rc.get_carrier(self.carrier_id)
+        if rc_data: self.merge(rc_data)
+
+        newer:bool = False
+        if self.carrier_type != FleetCarrierType.PERSONAL:
+            spansh_data:dict|None = Spansh().get_market(self)
+            if spansh_data: newer = self.merge(spansh_data, spansh=True)
+
+        if newer and rc.is_tracked(self.carrier_id):
+            inventory:dict = self.get_cargo('normal').get('inventory', {})
+            cargo:dict = {comm: int(item.get('stock', 0)) for comm, item in inventory.items()}
+            rc.update_carrier(self.carrier_id, cargo, sync=True)
+
+        self.bgstally.ui.window_fc.update_carrier_display(self)
+
+
+    @catch_exceptions
+    def merge(self, data:dict, spansh:bool = False) -> bool:
+        """ Merge a normalized RC/Spansh snapshot; overview always refreshes, cargo respects data's own freshness """
+        if not data: return False
+
+        for key, value in data.get('overview', {}).items():
+            if value is None: continue
+            if key == 'callsign' and self.overview.get('callsign'): continue
+            self.overview[key] = value
+
+        if not self.overview.get('name'):
+            match self.carrier_type:
+                case FleetCarrierType.PERSONAL:
+                    self.overview['name'] = _("Personal")
+                case FleetCarrierType.SQUADRON:
+                    self.overview['name'] = _("Squadron")
+                case _:
+                    self.overview['name'] = ""
+
+        newer:bool = data.get('timestamp', 0) > self.last_modified
+        cargo:dict = data.get('cargo', {})
+        if not cargo: return False
+
+        if spansh and self.carrier_type == FleetCarrierType.PERSONAL:
+            # Only the personal carrier has real cargo (via CAPI) to diff Spansh's market activity against
+            self._apply_market(cargo)
+            self.last_modified = int(time.time())
+            return True
+
+        # No real cargo insight for this carrier, so take the market snapshot as our best guess verbatim
+        for comm, item in cargo.items():
+            if comm in self.cargo['normal'] and not newer: continue
+            entry:dict = self.cargo['normal'].setdefault(comm, {'locName': comm, 'category': 'Unknown', 'stock': 0, 'buyTotal': 0, 'outstanding': 0, 'price': 0})
+            if 'locName' in item: entry['locName'] = item['locName']
+            if 'category' in item: entry['category'] = item['category']
+            if 'stock' in item: entry['stock'] = item['stock']
+            if 'demand' in item: entry['outstanding'] = item['demand']
+            if 'buy_price' in item or 'sell_price' in item: entry['price'] = item.get('buy_price', 0) or item.get('sell_price', 0)
+
+        if newer: self.last_modified = int(time.time())
+        return newer
 
 
     @catch_exceptions
@@ -619,7 +683,7 @@ class FleetCarrier:
 
     # Journal event and CAPI data update methods
     @catch_exceptions
-    def update(self, data: dict) -> None:
+    def capi_update(self, data: dict) -> None:
         """ Store the latest data from CAPI, called when new data is received """
 
         # Data directly from CAPI response. This is only received for personal carriers. Structure documented here:
@@ -1019,25 +1083,45 @@ class FleetCarrier:
             Debug.logger.debug(f"No market data available for CarrierID {entry.get('MarketID')}")
             return
 
-        for comm, item in self.bgstally.market.commodities.items():
+        commodities:dict = {
+            comm: {
+                'consumer': item.get('Consumer', False),
+                'producer': item.get('Producer', False),
+                'demand': item.get('Demand', 0),
+                'stock': item.get('Stock', 0),
+                'sell_price': item.get('SellPrice', 0), # Price player sells at
+                'buy_price': item.get('BuyPrice', 0), # Price player buys at
+            }
+            for comm, item in self.bgstally.market.commodities.items()
+        }
+        self._apply_market(commodities)
+
+        self.bgstally.ui.window_fc.update_carrier_display(self)
+        if self.bgstally.dev_mode == True: self.save()
+
+
+    @catch_exceptions
+    def _apply_market(self, commodities:dict) -> None:
+        """ Diff a market snapshot against our cargo, inferring cargo changes from demand/stock deltas """
+        for comm, item in commodities.items():
             if comm not in self.cargo['normal']:
-                self.cargo['normal'][comm] = self._init_cargo_item(comm)
+                self.cargo['normal'][comm] = self._init_cargo_item(comm, item.get('locName', comm))
 
             # Buying and the demand has changed
-            if item.get('Consumer', False) == True and int(item.get('Demand', 0)) != int(self.cargo['normal'][comm]['outstanding']):
-                Debug.logger.debug(f"Adjusting due to change in demand {self.cargo['normal'][comm]['outstanding']} {item.get('Demand', 0)}")
-                diff:int = int(self.cargo['normal'][comm]['outstanding']) - int(item.get('Demand', 0))
+            if item.get('consumer') and int(item.get('demand', 0)) != int(self.cargo['normal'][comm]['outstanding']):
+                Debug.logger.debug(f"Adjusting due to change in demand {self.cargo['normal'][comm]['outstanding']} {item.get('demand', 0)}")
+                diff:int = int(self.cargo['normal'][comm]['outstanding']) - int(item.get('demand', 0))
                 self.cargo['normal'][comm]['stock'] += diff
                 if self.cargo['normal'][comm]['stock'] < 0: self.cargo['normal'][comm]['stock'] = 0
-                self.cargo['normal'][comm]['outstanding'] = int(item.get('Demand', 0))
-                self.cargo['normal'][comm]['price'] = int(item.get('SellPrice', 0)) # Price player sells at
+                self.cargo['normal'][comm]['outstanding'] = int(item.get('demand', 0))
+                self.cargo['normal'][comm]['price'] = int(item.get('sell_price', 0))
 
             # Selling and our stock has changed
-            if item.get('Producer', False) == True and \
-                (int(item.get('Stock', 0)) != self.cargo['normal'][comm]['stock'] or int(item.get('BuyPrice', 0)) != self.cargo['normal'][comm]['price']):
-                Debug.logger.debug(f"Adjusting due to change in stock {self.cargo['normal'][comm]['stock']} {item.get('Stock', 0)}")
-                self.cargo['normal'][comm]['stock'] = int(item.get('Stock', 0))
-                self.cargo['normal'][comm]['price'] = int(item.get('BuyPrice', 0)) # Price player buys at
+            if item.get('producer') and \
+                (int(item.get('stock', 0)) != self.cargo['normal'][comm]['stock'] or int(item.get('buy_price', 0)) != self.cargo['normal'][comm]['price']):
+                Debug.logger.debug(f"Adjusting due to change in stock {self.cargo['normal'][comm]['stock']} {item.get('stock', 0)}")
+                self.cargo['normal'][comm]['stock'] = int(item.get('stock', 0))
+                self.cargo['normal'][comm]['price'] = int(item.get('buy_price', 0))
 
             if self.cargo['normal'][comm]['stock'] < 0:
                 Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
@@ -1050,7 +1134,7 @@ class FleetCarrier:
         # For sells it means we sold all our stock because we'd have had a trade order event otherwise.
         for comm, deets in self.cargo['normal'].items():
             # If we're still buying or selling this or we never were then nothing to do here.
-            if comm in self.bgstally.market.commodities.keys() or deets['price'] == 0: continue
+            if comm in commodities.keys() or deets['price'] == 0: continue
 
             if deets['outstanding'] > 0: # We were buying but someone must have completed the buy order
                 deets['outstanding'] = 0
@@ -1059,9 +1143,6 @@ class FleetCarrier:
             elif deets['stock'] > 0: # We were selling, someone must have bought all our stock
                 deets['stock'] = 0
                 deets['price'] = 0
-
-        self.bgstally.ui.window_fc.update_carrier_display(self)
-        if self.bgstally.dev_mode == True: self.save()
 
 
     @catch_exceptions
@@ -1414,7 +1495,7 @@ class FleetCarrier:
                 # The CAPI callsign doesn't match our stored callsign, so re-parse the CAPI data. This is to clear up
                 # the problem where a squadron carrier was accidentally stored as a personal one, overwriting the user's
                 # actual personal carrier data.
-                self.update(self.data)
+                self.capi_update(self.data)
 
 
     @catch_exceptions

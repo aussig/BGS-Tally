@@ -248,12 +248,10 @@ class BGSTally:
                 dirty = True
 
                 market_id:int = entry.get('MarketID', 0)
-                if entry.get('StationType') == 'FleetCarrier' and \
-                    self.fleet_carriers.find(market_id) is None and \
-                        self.state.AutoTrackCarriers.get() == CheckStates.STATE_ON:
-                        carrier:FleetCarrier = self.fleet_carriers.get(market_id, FleetCarrierType.THIRDPARTY)
-                        carrier.overview['callsign'] = station
-                        carrier.overview['currentStarSystem'] = system
+                # Add a third-party carrier if appropriate
+                if entry.get('StationType') == 'FleetCarrier' and self.state.AutoTrackCarriers.get() == CheckStates.STATE_ON and \
+                    self.fleet_carriers.find(market_id) is None:
+                    self.fleet_carriers.add(market_id, FleetCarrierType.THIRDPARTY, station, system)
 
                 # refresh carrier market data
                 self.fleet_carriers.refresh_markets()
@@ -482,7 +480,7 @@ class BGSTally:
         if data.source_host != SERVER_LIVE:
             return
 
-        self.fleet_carrier.update(data.data)
+        self.fleet_carrier.capi_update(data.data)
         self.ui.update_plugin_frame()
 
 

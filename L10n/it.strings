@@ -749,10 +749,12 @@
 "Fleet Carrier" = "Fleet Carrier";
 
 /* fleetcarrier.py: Fleet carrier cooldown notification; In files: fleetcarrier.py:579:579 */
-"Fleet carrier cooldown completed" = "Fleet carrier cooldown completed";
+"Fleet carrier cooldown completed" = "Raffreddamento Fleet Carrier
+completato";
 
 /* fleetcarrier.py: Fleet carrier cooldown notification; In files: fleetcarrier.py:582:582 */
-"Fleet carrier cooldown{CR}completed" = "Fleet carrier cooldown{CR}completed";
+"Fleet carrier cooldown{CR}completed" = "Raffreddamento Fleet Carrier{CR}
+completato";
 
 /* prefs_structure.json: Preferences 'desc'; In files: prefs_structure.json:0: */
 "Fleet Carrier Settings" = "Impostazioni Fleet Carrier";

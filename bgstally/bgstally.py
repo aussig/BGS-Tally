@@ -168,12 +168,12 @@ class BGSTally:
             self.ui.show_system_info(entry.get('SystemAddress'))
             dirty = True
 
-            if entry.get('event') == 'StartUp':
-                self.fleet_carriers.refresh_markets(system)
-
         mission:dict|None = self.mission_log.get_mission(entry.get('MissionID'))
 
         match entry.get('event'):
+            case 'StartUp':
+                self.fleet_carriers.refresh_markets(system)
+
             case 'ApproachSettlement' if state['Odyssey']:
                 activity.settlement_approached(entry, self.state)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)

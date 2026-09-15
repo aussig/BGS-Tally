@@ -25,6 +25,7 @@ FILENAME = "fleetcarrier.json"
 FC_MAX_SHIPS = 40
 FC_MAX_JUMPS_TRACKED = 250
 FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
+EDDN_LAG_TIME = 60 # How long behind EDDN may be in seconds
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
 UPDATE_LOCAL_COOLDOWN = 60 # update_carrier() cooldown for a carrier in our current system
 UPDATE_REMOTE_COOLDOWN = (60 * 15) # update_carrier() cooldown for a carrier elsewhere
@@ -244,7 +245,7 @@ class FleetCarrier:
                 case _:
                     self.overview['name'] = ""
 
-        newer:bool = data.get('timestamp', 0) > self.last_modified
+        newer:bool = data.get('timestamp', 0) > self.last_modified + EDDN_LAG_TIME
         cargo:dict = data.get('cargo', {})
         if not cargo: return False
 

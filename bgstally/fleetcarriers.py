@@ -1,4 +1,3 @@
-import json
 from glob import glob
 from os import path, remove
 from threading import Thread
@@ -7,7 +6,7 @@ from typing import TYPE_CHECKING, Callable
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
-from bgstally.constants import FOLDER_OTHER_DATA, FleetCarrierType
+from bgstally.constants import FOLDER_CARRIERS, FOLDER_OTHER_DATA, FleetCarrierType
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.ravencolonial import Spansh
 from bgstally.utils import catch_exceptions
@@ -22,13 +21,12 @@ class FleetCarriers:
         self.personal:FleetCarrier = FleetCarrier(bgstally, 0, FleetCarrierType.PERSONAL)
         self.carriers:dict[int, FleetCarrier] = {} # Non-personal carriers (squadron/third-party), by carrier_id
 
-        # Load any previously-saved non-personal carriers (squadron/third-party)
-        pattern:str = path.join(bgstally.plugin_dir, FOLDER_OTHER_DATA, "carrier_*.json")
+        # Load any previously-saved non-personal carriers (squadron/third-party), one file per callsign
+        pattern:str = path.join(bgstally.plugin_dir, FOLDER_OTHER_DATA, FOLDER_CARRIERS, "*.json")
         for file in glob(pattern):
-            carrier_id:int = int(path.splitext(path.basename(file))[0].removeprefix("carrier_"))
-            with open(file) as json_file:
-                carrier_type:FleetCarrierType = FleetCarrierType(json.load(json_file).get('carrier_type', FleetCarrierType.SQUADRON))
-            self.carriers[carrier_id] = FleetCarrier(bgstally, carrier_id, carrier_type)
+            callsign:str = path.splitext(path.basename(file))[0]
+            fc:FleetCarrier = FleetCarrier(bgstally, 0, FleetCarrierType.THIRDPARTY, callsign) # load() fills in the real id/type
+            self.carriers[fc.carrier_id] = fc
 
 
     def by_type(self, carrier_type:FleetCarrierType) -> list[FleetCarrier]:
@@ -51,15 +49,14 @@ class FleetCarriers:
     def add(self, carrier_id:int, type:FleetCarrierType, station:str|None = None, system:str|None = None) -> None:
         """ Add a new carrier """
         if not carrier_id or carrier_id in self.carriers: return
-        self.carriers[carrier_id] = FleetCarrier(self.bgstally, carrier_id, type)
-        if station: self.carriers[carrier_id].overview['callsign'] = station
+        self.carriers[carrier_id] = FleetCarrier(self.bgstally, carrier_id, type, station)
         if system: self.carriers[carrier_id].overview['currentStarSystem'] = system
 
-    def get(self, carrier_id:int, carrier_type:FleetCarrierType) -> FleetCarrier:
+    def get(self, carrier_id:int, carrier_type:FleetCarrierType, callsign:str|None = None) -> FleetCarrier:
         """ Return the FleetCarrier for carrier_id, creating it if necessary """
         if carrier_type == FleetCarrierType.PERSONAL: return self.personal
         if carrier_id not in self.carriers:
-            self.carriers[carrier_id] = FleetCarrier(self.bgstally, carrier_id, carrier_type)
+            self.carriers[carrier_id] = FleetCarrier(self.bgstally, carrier_id, carrier_type, callsign)
         return self.carriers[carrier_id]
 
 
@@ -98,8 +95,7 @@ class FleetCarriers:
         market_id:int|None = Spansh().find_carrier(callsign)
         if market_id is None: return False
 
-        fc:FleetCarrier = self.get(market_id, FleetCarrierType.THIRDPARTY)
-        fc.overview['callsign'] = callsign
+        fc:FleetCarrier = self.get(market_id, FleetCarrierType.THIRDPARTY, callsign)
         Spansh().import_fleetcarrier(fc)
 
         return True

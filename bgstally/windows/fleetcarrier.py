@@ -301,7 +301,7 @@ class WindowFleetCarrier:
                     separator:ttk.Separator = ttk.Separator(fr, orient=tk.HORIZONTAL)
                     separator.pack(side=tk.TOP, fill=tk.X, pady=5, padx=5)
 
-        if not fc.has_capi_data: return # Service details (crew, taxation) are CAPI-only
+        if fc.data == {}: return # Service details (crew, taxation) only available from CAPI
 
         services:dict = fc.get_services()
 

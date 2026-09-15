@@ -14,7 +14,7 @@ from edmc_data import ship_name_map # type: ignore
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
-from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DiscordChannel, FleetCarrierJump,
+from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_CARRIERS, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DiscordChannel, FleetCarrierJump,
                                 FleetCarrierType)
 from bgstally.debug import Debug
 from bgstally.ravencolonial import RavenColonial, Spansh
@@ -35,12 +35,12 @@ class FleetCarrier:
     since the CAPI is queried infrequently and can be unhelpfully out of date.
     Some data is managed and updated locally to work around the CAPI data being out of date.
     """
-    def __init__(self, bgstally: 'BGSTally', carrier_id:int = 0, carrier_type:FleetCarrierType = FleetCarrierType.PERSONAL) -> None:
+    def __init__(self, bgstally: 'BGSTally', carrier_id:int = 0, carrier_type:FleetCarrierType = FleetCarrierType.PERSONAL, callsign:str|None = None) -> None:
         self.bgstally:BGSTally = bgstally
 
         self.carrier_id:int = carrier_id
         self.carrier_type:FleetCarrierType = carrier_type
-        self.overview:dict = {} # Top level data
+        self.overview:dict = {'callsign': callsign} if callsign else {} # Top level data
         self.locker:dict = {'normal': {}, 'mission': {}} # Local copy of locker data
         self.cargo:dict = {'overview': {}, 'normal': {}, 'stolen': {}, 'mission': {}} # Local copy of cargo data
         self.itinerary:list = [] # Local copy of jump data
@@ -57,11 +57,6 @@ class FleetCarrier:
         self._update_route()
         if self.data != {}:
             self.itinerary = self._update_itinerary(self.data)
-
-    @property
-    def has_capi_data(self) -> bool:
-        """ Whether we've ever received real CAPI /fleetcarrier data (personal carriers only). """
-        return self.data != {}
 
     @catch_exceptions
     def available(self) -> bool:
@@ -116,7 +111,7 @@ class FleetCarrier:
                 _('Reserve Percentage'): (round((self.overview.get('bankReservedBalance', 0) * 100) / self.overview.get('bankBalance', 1)), 'num', 0, '%')# LANG: Carrier summary
             }
 
-        if self.has_capi_data:
+        if self.data != {}:
             summary['costs'] = {
                 _('Total'): self.overview.get('maintenance', 0),                   # LANG: Carrier summary
                 _('Core Cost'): self.overview.get('coreCost', 0),                  # LANG: Carrier summary
@@ -149,6 +144,7 @@ class FleetCarrier:
         Return services as a dictionary. The overview is a set of key value pairs and
         the crew is a list of crew members with their details to be displayed in a treeviewplus table.
         """
+        # @TODO: Pull minimal service info from the journal
         services:dict = {'overview': {}, 'crew': {}}
         services['overview'] = {
             _('Weekly Cost'): get_by_path(self.data, ["finance", "servicesCost"], 0), # LANG: Carrier services
@@ -1464,9 +1460,9 @@ class FleetCarrier:
 
 
     def _get_filename(self) -> str:
-        """ Personal keeps the fixed legacy filename; any other carrier is keyed by carrier_id. """
+        """ Save filename for this carrier """
         if self.carrier_type == FleetCarrierType.PERSONAL: return FILENAME
-        return f"carrier_{self.carrier_id}.json"
+        return path.join(FOLDER_CARRIERS, f"{self.overview.get('callsign') or self.carrier_id}.json")
 
 
     @catch_exceptions

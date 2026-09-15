@@ -15,7 +15,7 @@ from bgstally.activitymanager import ActivityManager
 from bgstally.apimanager import APIManager
 from bgstally.colonisation import Colonisation
 from bgstally.config import Config
-from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy, Vehicle, Location, ShipState, UIState, FleetCarrierType, CheckStates
+from bgstally.constants import FOLDER_CARRIERS, FOLDER_OTHER_DATA, UpdateUIPolicy, Vehicle, Location, ShipState, UIState, FleetCarrierType, CheckStates
 from bgstally.debug import Debug
 from bgstally.discord import Discord
 from bgstally.factionmanager import FactionManager
@@ -88,6 +88,8 @@ class BGSTally:
 
         data_filepath = path.join(self.plugin_dir, FOLDER_OTHER_DATA)
         if not path.exists(data_filepath): mkdir(data_filepath)
+        carriers_filepath = path.join(data_filepath, FOLDER_CARRIERS)
+        if not path.exists(carriers_filepath): mkdir(carriers_filepath)
 
         # Main Classes
         self.state: State = State(self)

@@ -37,7 +37,7 @@ def harness(request) -> Generator:
 
     # Make sure we always start with a consistent fleetcarrier.json, and no leftover squadron (etc) carriers
     Path(Path(__file__).parent / "otherdata" / "fleetcarrier.json").unlink(missing_ok=True)
-    for f in Path(Path(__file__).parent / "otherdata").glob("carrier_*.json"): f.unlink()
+    for f in Path(Path(__file__).parent / "otherdata" / "carriers").glob("*.json"): f.unlink()
     carrier_init_file:str = getattr(request, 'param', 'fleetcarrier_init.json')
     if carrier_init_file != 'None':
         shutil.copy(Path(__file__).parent / "config" / carrier_init_file,
@@ -126,15 +126,16 @@ class TestFleetCarriers:
         assert harness.plugin.fleet_carriers.squadron is fc
 
     def test_squadron_persists_across_load(self, harness) -> None:
-        """ Test a squadron carrier's overview survives a fresh load(), not wiped as no-CAPI """
+        """ Test a squadron carrier's overview survives a save + fresh reload, not wiped as no-CAPI """
         from bgstally.constants import FleetCarrierType
-        from bgstally.fleetcarrier import FleetCarrier
+        from bgstally.fleetcarriers import FleetCarriers
 
         fc = harness.plugin.fleet_carriers.get(54321, FleetCarrierType.SQUADRON)
         fc.overview = {'name': 'Test Squadron', 'callsign': 'SQD-123', 'currentStarSystem': 'Sol', 'bankBalance': 5000}
         fc.save()
 
-        reloaded = FleetCarrier(harness.plugin, 54321, FleetCarrierType.SQUADRON)
+        # Simulate a plugin restart: rediscover carriers from disk (keyed by callsign) rather than by id alone
+        reloaded = FleetCarriers(harness.plugin).find(54321)
 
         assert reloaded.overview.get('name') == 'Test Squadron'
         assert reloaded.overview.get('callsign') == 'SQD-123'

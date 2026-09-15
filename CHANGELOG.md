@@ -5,11 +5,17 @@
 ## New Features:
 
 * Support for squadron and third-party carriers
-* Squadron and third-party carriers are now progress display options
+  * Tracked carriers can be added and removed via preferences or automatically on first docking
+  * Carriers are listed in a tab bar in the Fleet Carrier window
+  * Squadron and third-party carriers have reduced information based on what is available
+  * Carrier data is updated from journal events, Spansh, and RavenvColonial as appropriate
+  * Squadron and third-party carrier markets are colonisation progress display options
+  * Raven Colonial updates are sent for tracked carriers that are associated with your Commander or one of your builds
+* Personal carrier has a new modules section to display modules stored on the carrier
 
 ### Changes:
 
-* Progress columns is now a dropdown menu
+* Progress columns is now a dropdown menu and includes tracked carriers
 
 ## v5.6.1 - 2026-09-12
 

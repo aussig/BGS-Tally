@@ -89,16 +89,16 @@ class TestCarrierInitialization:
         assert not fc.available()
 
     def test_no_capi_data_initially(self, harness) -> None:
-        """ Test has_capi_data before any CAPI data is received """
+        """ Test fc.data before any CAPI data is received """
         fc = harness.plugin.fleet_carrier
         fc.data = {}
-        assert not fc.has_capi_data
+        assert fc.data == {}
 
     def test_capi_data_flag_set(self, harness) -> None:
-        """ Test has_capi_data once CAPI data has been received """
+        """ Test fc.data once CAPI data has been received """
         fc = harness.plugin.fleet_carrier
         fc.data = {'name': {}}
-        assert fc.has_capi_data
+        assert fc.data != {}
 
 class TestFleetCarriers:
     """ Test the FleetCarriers registry that tracks personal and squadron carriers """
@@ -137,10 +137,41 @@ class TestFleetCarriers:
         # Simulate a plugin restart: rediscover carriers from disk (keyed by callsign) rather than by id alone
         reloaded = FleetCarriers(harness.plugin).find(54321)
 
+        assert reloaded is not None
         assert reloaded.overview.get('name') == 'Test Squadron'
         assert reloaded.overview.get('callsign') == 'SQD-123'
         assert reloaded.overview.get('currentStarSystem') == 'Sol'
         assert reloaded.overview.get('bankBalance') == 5000
+
+    def test_update_carrier_cooldown(self, harness) -> None:
+        """ Test update_carrier() skips RC/Spansh while on cooldown, using the shorter local cooldown when in-system """
+        from bgstally.constants import FleetCarrierType
+        from bgstally.fleetcarrier import UPDATE_LOCAL_COOLDOWN, UPDATE_REMOTE_COOLDOWN
+
+        fc = harness.plugin.fleet_carriers.get(77777, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.overview['currentStarSystem'] = 'Sol'
+
+        with patch('bgstally.ravencolonial.RavenColonial.get_carrier', return_value=None) as mock_rc, \
+             patch('bgstally.ravencolonial.Spansh.get_market', return_value=None) as mock_spansh:
+            fc.update_carrier('Sol')
+            assert mock_rc.call_count == 1
+            assert mock_spansh.call_count == 1
+
+            fc.update_carrier('Sol') # Still within cooldown, should be skipped entirely
+            assert mock_rc.call_count == 1
+            assert mock_spansh.call_count == 1
+
+            fc._last_update_check -= UPDATE_LOCAL_COOLDOWN + 1
+            fc.update_carrier('Sol') # Local cooldown has now expired, cmdr is in the same system
+            assert mock_rc.call_count == 2
+
+            fc._last_update_check -= UPDATE_LOCAL_COOLDOWN + 1
+            fc.update_carrier('Some Other System') # Remote cooldown hasn't expired yet, still skipped
+            assert mock_rc.call_count == 2
+
+            fc._last_update_check -= UPDATE_REMOTE_COOLDOWN + 1
+            fc.update_carrier('Some Other System') # Remote cooldown has now expired
+            assert mock_rc.call_count == 3
 
     def test_third_party_registry(self, harness) -> None:
         """ Test third_party and remove """
@@ -172,6 +203,34 @@ class TestFleetCarriers:
         assert harness.plugin._carrier({'MarketID': 54321}) is squadron
 
         assert harness.plugin._carrier({'MarketID': 11111}) is harness.plugin.fleet_carrier
+
+    def test_fss_signal_backfills_tracked_carrier_only(self, harness) -> None:
+        """ Test fss_signal() only fills a missing name on an already-tracked carrier, never creates one """
+        from bgstally.constants import FleetCarrierType
+        fcs = harness.plugin.fleet_carriers
+
+        fcs.fss_signal({'SignalType': 'FleetCarrier', 'IsStation': True, 'SignalName': '[CLB] SV Booze Cruise T9M-33M'})
+        assert fcs.carriers == {} # Not tracked, so not created
+
+        fc = fcs.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fcs.fss_signal({'SignalType': 'FleetCarrier', 'IsStation': True, 'SignalName': '[CLB] SV Booze Cruise T9M-33M'})
+        assert fc.overview.get('name') == '[CLB] SV Booze Cruise'
+
+        fcs.fss_signal({'SignalType': 'FleetCarrier', 'IsStation': True, 'SignalName': 'Some Other Name T9M-33M'})
+        assert fc.overview.get('name') == '[CLB] SV Booze Cruise' # Never overwritten once known
+
+    def test_fss_signal_squadron_carrier(self, harness) -> None:
+        """ Test fss_signal() on the SquadronCarrier "name | tag" and bare-tag signal shapes """
+        from bgstally.constants import FleetCarrierType
+        fcs = harness.plugin.fleet_carriers
+
+        fc = fcs.get(54321, FleetCarrierType.SQUADRON, 'IECC')
+        fcs.fss_signal({'SignalType': 'SquadronCarrier', 'IsStation': True, 'SignalName': 'SAIGETSU | IECC'})
+        assert fc.overview.get('name') == 'SAIGETSU'
+
+        fc2 = fcs.get(11111, FleetCarrierType.THIRDPARTY, 'IECC2')
+        fcs.fss_signal({'SignalType': 'SquadronCarrier', 'IsStation': True, 'SignalName': 'IECC2'}) # Bare tag, no name
+        assert fc2.overview.get('name') is None # No crash, nothing to backfill
 
 class TestCarrierUIDataMethods:
     """ Test the methods used by the UI to retrieve carrier data """

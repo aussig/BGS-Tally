@@ -26,6 +26,8 @@ FC_MAX_SHIPS = 40
 FC_MAX_JUMPS_TRACKED = 250
 FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
+UPDATE_LOCAL_COOLDOWN = 60 # update_carrier() cooldown for a carrier in our current system
+UPDATE_REMOTE_COOLDOWN = (60 * 15) # update_carrier() cooldown for a carrier elsewhere
 
 class FleetCarrier:
     """
@@ -51,6 +53,7 @@ class FleetCarrier:
         self.data:dict = {}  # Raw CAPI data
         self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
         self.timer:datetime|None = None
+        self._last_update_check:int = 0 # Cooldown tracking for update_carrier()
         self.load()
         # A fresh carrier needs its id set now, not just once CAPI/CarrierStats populates overview.
         if not self.overview.get('carrier_id'): self.overview['carrier_id'] = self.carrier_id
@@ -198,8 +201,12 @@ class FleetCarrier:
 
 
     @catch_exceptions
-    def update_carrier(self) -> None:
+    def update_carrier(self, system:str = '') -> None:
         """ Refresh this carrier's cargo from RC then Spansh, pushing back to RC if Spansh ends up fresher """
+        cooldown:int = UPDATE_LOCAL_COOLDOWN if system == self.overview.get('currentStarSystem') else UPDATE_REMOTE_COOLDOWN
+        if self._last_update_check > int(time.time()) - cooldown: return
+        self._last_update_check = int(time.time())
+
         rc:RavenColonial = RavenColonial(self.bgstally.colonisation)
 
         rc_data:dict|None = rc.get_carrier(self.carrier_id)

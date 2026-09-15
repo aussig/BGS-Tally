@@ -1,3 +1,4 @@
+import re
 from glob import glob
 from os import path, remove
 from threading import Thread
@@ -65,6 +66,33 @@ class FleetCarriers:
         if carrier_id == self.personal.carrier_id: return self.personal
         return self.carriers.get(carrier_id)
 
+    @catch_exceptions
+    def fss_signal(self, entry:dict) -> None:
+        """ FSSSignalDiscovered event: backfill a tracked carrier's name from its scan signal """
+        if entry.get('SignalType') not in ('FleetCarrier', 'SquadronCarrier') or not entry.get('IsStation'): return
+
+        signal:str = entry.get('SignalName', '').strip()
+        callsign:str|None = None
+        name:str|None = None
+
+        if entry.get('SignalType') == 'SquadronCarrier':
+            # "<name> | <tag>", or just "<tag>" alone -- the tag is the callsign
+            name, _, tag = signal.rpartition('|')
+            callsign = tag.strip() or signal
+            name = name.strip() or None
+
+        if entry.get('SignalType') == 'FleetCarrier':
+            m = re.match(r'^(.*?)\s*([A-Z0-9]{3}-[A-Z0-9]{3})$', signal)
+            if m:
+                name = m.group(1).strip() or None
+                callsign = m.group(2)
+        if not callsign or not name: return
+
+        fc:FleetCarrier|None = next((fc for fc in self.carriers.values() if fc.overview.get('callsign', '').lower() == callsign.lower()), None)
+        if not fc or fc.overview.get('name'): return
+
+        fc.overview['name'] = name
+
 
     def remove(self, carrier_id:int) -> None:
         """ Stop tracking a third-party carrier and delete its local data """
@@ -81,13 +109,12 @@ class FleetCarriers:
         for carrier in self.carriers.values(): carrier.save()
 
 
-    def refresh_markets(self) -> None:
+    def refresh_markets(self, system:str) -> None:
         """ Refresh each carrier's cargo data, one thread per carrier """
 
-        # Personal needs special treatment
-        #Spansh().import_fleetcarrier(self.personal)
+        Thread(target=self.personal.update_carrier, daemon=True, name=f"FC update {self.personal.carrier_id}", args=(system,)).start()
         for carrier in self.carriers.values():
-            Thread(target=carrier.update_carrier, daemon=True, name=f"FC update {carrier.carrier_id}").start()
+            Thread(target=carrier.update_carrier, daemon=True, name=f"FC update {carrier.carrier_id}", args=(system,)).start()
 
 
     def track_by_callsign(self, callsign:str) -> bool:

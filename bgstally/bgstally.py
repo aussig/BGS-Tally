@@ -169,7 +169,7 @@ class BGSTally:
             dirty = True
 
             if entry.get('event') == 'StartUp':
-                self.fleet_carriers.refresh_markets()
+                self.fleet_carriers.refresh_markets(system)
 
         mission:dict|None = self.mission_log.get_mission(entry.get('MissionID'))
 
@@ -256,7 +256,7 @@ class BGSTally:
                     self.fleet_carriers.add(market_id, FleetCarrierType.THIRDPARTY, station, system)
 
                 # refresh carrier market data
-                self.fleet_carriers.refresh_markets()
+                self.fleet_carriers.refresh_markets(system)
 
             case 'EjectCargo':
                 activity.cargo_ejected(entry)
@@ -265,6 +265,9 @@ class BGSTally:
             case 'FactionKillBond':
                 activity.cb_received(entry, self.state, cmdr)
                 dirty = True
+
+            case 'FSSSignalDiscovered':
+                self.fleet_carriers.fss_signal(entry)
 
             case 'Friends' if entry.get('Status') == "Requested":
                 self.target_manager.friend_request(entry, system)

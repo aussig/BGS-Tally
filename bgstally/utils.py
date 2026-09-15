@@ -419,7 +419,7 @@ def catch_exceptions(func):
             Debug.logger.info(f"An error occurred in {func.__name__}: {e}")
             trace:list = traceback.format_exc().splitlines()
             #Debug.logger.error("\n".join(trace[4:]))
-            Debug.logger.error(trace[0] + "\n" + "\n".join(trace[4:]))
+            Debug.logger.error(trace[0] + "\n" + "\n".join(trace[1:]))
     return wrapper
 
 

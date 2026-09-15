@@ -1077,7 +1077,7 @@ class FleetCarrier:
 
 
     @catch_exceptions
-    def market(self, entry: dict) -> None:
+    def market(self, entry:dict) -> None:
         """ Market event. If it's for our carrier we update the cargo amounts using BGS-Tally's copy of the market data"""
         if entry.get("MarketID") != self.overview.get('carrier_id', ''): return
         self.last_modified = int(time.time())
@@ -1103,7 +1103,6 @@ class FleetCarrier:
         if self.bgstally.dev_mode == True: self.save()
 
 
-    @catch_exceptions
     def _apply_market(self, commodities:dict) -> None:
         """ Diff a market snapshot against our cargo, inferring cargo changes from demand/stock deltas """
         for comm, item in commodities.items():

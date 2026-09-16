@@ -1077,7 +1077,7 @@ class FleetCarrier:
 
     @catch_exceptions
     def market(self, entry:dict) -> None:
-        """ Market event. If it's for our carrier we update the cargo amounts using BGS-Tally's copy of the market data"""
+        """ Market event, update our buy/sell/cargo """
         if entry.get("MarketID") != self.overview.get('carrier_id', ''): return
         self.last_modified = int(time.time())
 
@@ -1109,20 +1109,20 @@ class FleetCarrier:
             entry:dict = self.cargo['normal'][comm]
 
             # Buying and the demand has changed -- infer a cargo change from the demand delta
-            if item.get('buy', 0) > 0 and int(item['buy']) != int(entry.get('buy', 0)):
-                Debug.logger.debug(f"Adjusting due to change in demand {entry.get('buy', 0)} {item['buy']}")
-                diff:int = int(entry.get('buy', 0)) - int(item['buy'])
+            if int(item.get('buy', 0)) != int(entry.get('buy', 0)):
+                Debug.logger.debug(f"Adjusting due to change in demand {entry.get('buy', 0)} {item.get('buy', 0)}")
+                diff:int = int(entry.get('buy', 0)) - int(item.get('buy', 0))
                 entry['cargo'] = (entry.get('cargo') or 0) + diff
-                if entry['cargo'] < 0: entry['cargo'] = 0
-                entry['buy'] = int(item['buy'])
-                entry['price'] = int(item.get('price', 0))
+                entry['buy'] = int(item.get('buy', 0))
 
             # Selling and our stock has changed -- the sell listing is what we hold while actively selling
-            if item.get('sell', 0) > 0 and (int(item['sell']) != entry.get('sell', 0) or int(item.get('price', 0)) != entry.get('price', 0)):
-                Debug.logger.debug(f"Adjusting due to change in stock {entry.get('sell', 0)} {item['sell']}")
-                entry['sell'] = int(item['sell'])
+            if int(item.get('sell', 0)) != int(entry.get('sell', 0)):
+                Debug.logger.debug(f"Adjusting due to change in stock {entry.get('sell', 0)} {item.get('sell', 0)}")
+                entry['sell'] = int(item.get('sell', 0))
                 entry['cargo'] = entry['sell']
-                entry['price'] = int(item.get('price', 0))
+
+            # price is only meaningful while actively trading; keeps itself in sync with the market otherwise
+            entry['price'] = int(item.get('price', 0)) if entry['buy'] > 0 or entry['sell'] > 0 else 0
 
             if (entry.get('cargo') or 0) < 0:
                 Debug.logger.error(f"Negative cargo {entry}")

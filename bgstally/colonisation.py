@@ -71,6 +71,7 @@ class Colonisation:
 
         self.cargo:dict = {}       # Local store of our current cargo
         self.carrier_cargo:dict = {} # Local store of our current carrier cargo
+        self.carrier_sell:dict = {}  # Local store of our current carrier sell listings
         self.carrier_buy:dict = {}   # Local store of our current carrier buy orders
         self.market:dict = {}      # Local store of the current market data
         self.cargo_capacity:int = 784 # Default cargo capacity
@@ -1099,24 +1100,29 @@ class Colonisation:
         if self.bgstally.fleet_carrier.available() == False:
             return
         cargo:dict = {}
+        sell:dict = {}
         buyorder:dict = {}
 
         fccargo = self.bgstally.fleet_carrier.get_cargo('normal')
         for name, cargo_item in fccargo.get('inventory', {}).items():
             cargo[name] = int(cargo_item.get('cargo', 0) or 0)
+            if cargo_item.get('sell', 0) > 0:
+                sell[name] = int(cargo_item.get('sell', 0))
             if cargo_item.get('buy', 0) > 0:
                 buyorder[name] = int(cargo_item.get('buy', 0))
 
         if cargo != self.carrier_cargo and self.cmdr != None:
             RavenColonial(self).update_carrier(self.bgstally.fleet_carrier)
 
-        if cargo != self.carrier_cargo or self.carrier_buy != buyorder:
+        if cargo != self.carrier_cargo or self.carrier_buy != buyorder or self.carrier_sell != sell:
             self.carrier_buy = buyorder
             self.carrier_cargo = cargo
+            self.carrier_sell = sell
             self.bgstally.ui.window_progress.update_display()
 
         self.carrier_buy = buyorder
         self.carrier_cargo = cargo
+        self.carrier_sell = sell
 
 
     def _update_cargo(self, cargo:dict) -> None:
@@ -1224,7 +1230,7 @@ class Colonisation:
             'ProgressUnits': units,
             'ProgressColumns': self.bgstally.ui.window_progress.columns,
             'ProgressColumnCarriers': self.bgstally.ui.window_progress.column_carriers,
-            'ProgressColumnCarrierDemand': self.bgstally.ui.window_progress.column_carrier_demand,
+            'ProgressColumnCarrierMode': self.bgstally.ui.window_progress.column_carrier_mode,
             'BuildIndex'   : self.bgstally.ui.window_progress.build_index,
             'WindowGeometries' : self.window_geometries
             }
@@ -1291,8 +1297,10 @@ class Colonisation:
                 self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
             if dict.get('ProgressColumnCarriers', None) != None:
                 self.bgstally.ui.window_progress.column_carriers = dict.get('ProgressColumnCarriers', [])
-            if dict.get('ProgressColumnCarrierDemand', None) != None:
-                self.bgstally.ui.window_progress.column_carrier_demand = dict.get('ProgressColumnCarrierDemand', [])
+            if dict.get('ProgressColumnCarrierMode', None) != None:
+                self.bgstally.ui.window_progress.column_carrier_mode = dict.get('ProgressColumnCarrierMode', [])
+            elif dict.get('ProgressColumnCarrierDemand', None) != None: # Migrate from the old boolean demand flag
+                self.bgstally.ui.window_progress.column_carrier_mode = ['buy' if v else 'sell' for v in dict.get('ProgressColumnCarrierDemand', [])]
             self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
             self.window_geometries = dict.get('WindowGeometries', {})
         except:

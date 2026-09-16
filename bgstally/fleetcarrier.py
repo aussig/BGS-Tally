@@ -1196,7 +1196,7 @@ class FleetCarrier:
         amt:int = entry.get('Count', 0) if entry.get('event') == 'MarketSell' else -entry.get('Count', 0)
         deets:dict = self.cargo['normal'][comm]
 
-        if entry.get('buy', 0) > 0: # Buying
+        if deets.get('buy', 0) > 0: # Buying
             deets['buy'] -= amt
             # Finished.
             if deets['buy'] == 0:

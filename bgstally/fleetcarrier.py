@@ -1109,17 +1109,17 @@ class FleetCarrier:
             entry:dict = self.cargo['normal'][comm]
 
             # Buying and the demand has changed -- infer a cargo change from the demand delta
-            if item.get('buy', 0) > 0 and int(item['buy']) != int(entry['buy']):
-                Debug.logger.debug(f"Adjusting due to change in demand {entry['buy']} {item['buy']}")
-                diff:int = int(entry['buy']) - int(item['buy'])
+            if item.get('buy', 0) > 0 and int(item['buy']) != int(entry.get('buy', 0)):
+                Debug.logger.debug(f"Adjusting due to change in demand {entry.get('buy', 0)} {item['buy']}")
+                diff:int = int(entry.get('buy', 0)) - int(item['buy'])
                 entry['cargo'] = (entry.get('cargo') or 0) + diff
                 if entry['cargo'] < 0: entry['cargo'] = 0
                 entry['buy'] = int(item['buy'])
                 entry['price'] = int(item.get('price', 0))
 
             # Selling and our stock has changed -- the sell listing is what we hold while actively selling
-            if item.get('sell', 0) > 0 and (int(item['sell']) != entry['sell'] or int(item.get('price', 0)) != entry['price']):
-                Debug.logger.debug(f"Adjusting due to change in stock {entry['sell']} {item['sell']}")
+            if item.get('sell', 0) > 0 and (int(item['sell']) != entry.get('sell', 0) or int(item.get('price', 0)) != entry.get('price', 0)):
+                Debug.logger.debug(f"Adjusting due to change in stock {entry.get('sell', 0)} {item['sell']}")
                 entry['sell'] = int(item['sell'])
                 entry['cargo'] = entry['sell']
                 entry['price'] = int(item.get('price', 0))
@@ -1137,10 +1137,10 @@ class FleetCarrier:
             # If we're still buying or selling this or we never were then nothing to do here.
             if comm in commodities.keys() or deets['price'] == 0: continue
 
-            if deets['buy'] > 0: # We were buying but someone must have completed the buy order
+            if deets.get('buy', 0) > 0: # We were buying but someone must have completed the buy order
                 deets['buy'] = 0
                 deets['price'] = 0
-            elif deets['sell'] > 0: # We were selling, someone must have bought all our stock
+            if deets.get('sell', 0) > 0: # We were selling, someone must have bought all our stock
                 deets['sell'] = 0
                 deets['cargo'] = 0
                 deets['price'] = 0
@@ -1196,15 +1196,15 @@ class FleetCarrier:
         amt:int = entry.get('Count', 0) if entry.get('event') == 'MarketSell' else -entry.get('Count', 0)
         deets:dict = self.cargo['normal'][comm]
 
-        if deets['buy'] > 0: # Buying
+        if entry.get('buy', 0) > 0: # Buying
             deets['buy'] -= amt
             # Finished.
             if deets['buy'] == 0:
                 deets['price'] = 0
-        elif deets['sell'] + amt == 0: # Selling & all sold
+        if deets.get('sell', 0) + amt == 0: # Selling & all sold
             deets['sell'] = 0
             deets['price'] = 0
-        elif deets['sell'] > 0: # Still selling, just less remaining
+        if deets.get('sell', 0) > 0: # Still selling, just less remaining
             deets['sell'] += amt
 
         deets['cargo'] = (deets.get('cargo') or 0) + amt

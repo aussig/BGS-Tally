@@ -1058,6 +1058,9 @@ class FleetCarrier:
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
 
         if entry.get('PurchaseOrder') is not None:
+            # If we were selling we need to clear the sell listing
+            self.cargo['normal'][comm]['sell'] = 0
+
             self.cargo['normal'][comm]['buy'] = entry.get('PurchaseOrder', 0)
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
 

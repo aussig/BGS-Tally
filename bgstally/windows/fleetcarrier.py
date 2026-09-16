@@ -261,7 +261,7 @@ class WindowFleetCarrier:
             match k:
                 case 'Cargo':
                     has_data = any(fc.cargo.get(t) for t in ('normal', 'stolen', 'mission'))
-                    self._tab_configure(ui['tabbar'], fr, text=_('Market')) # LANG: Carrier window tab
+                    self._tab_configure(ui['tabbar'], fr, text=_('Commodities')) # LANG: Carrier window tab
                 case 'Locker': has_data = any(fc.locker.get(t) for t in ('normal', 'mission'))
                 case 'Itinerary': has_data = fc.itinerary != [] or fc.route != []
                 case 'Shipyard': has_data = fc.shipyard.get('ships', {}) != {}
@@ -332,10 +332,11 @@ class WindowFleetCarrier:
             for c in which['cols'].keys():
                 val:str = ""
                 match c:
-                    case "buy" if i.get("price", 0) > 0 and i.get("outstanding", 0) > 0: val = i.get("outstanding")
-                    case "sell" if i.get("price", 0) > 0 and i.get("stock", 0) > 0 and i.get('buyTotal') == 0: val = i.get("stock")
+                    case "stock": val = i.get("cargo") if i.get("cargo") is not None else ""
+                    case "buy": val = i.get("buy") if i.get("buy", 0) > 0 else ""
+                    case "sell": val = i.get("sell") if i.get("sell", 0) > 0 else ""
                     case _: val = i.get(c, " ")
-                if i.get('stock', 0) > 0 or i.get('outstanding', 0) > 0:
+                if (i.get('cargo') or 0) > 0 or i.get('buy', 0) > 0 or i.get('sell', 0) > 0:
                     line.append(hfplus(val))
             if line != []:
                 table.insert("", 'end', values=line, iid=i.get('locName'))
@@ -640,10 +641,12 @@ class WindowFleetCarrier:
         w:int = sum([d.get('discordWidth', 0) for d in tab['cols'].values()])
         output += "-" * (w + (3 * (len(header) -1))) + "\n"
 
-        # Table rows
+        # Table rows. Cargo tracks cargo/sell/buy explicitly; Locker still overloads 'stock'/'outstanding'.
+        sell_key:str = "sell" if which == 'Cargo' else "stock"
+        buy_key:str = "buy" if which == 'Cargo' else "outstanding"
         for item in data.get('inventory', {}).values():
-            if type == 'Selling' and (item.get('price', 0) == 0 or item.get('stock', 0) == 0 or item.get('buyTotal', 0) > 0): continue
-            if type == 'Buying' and item.get('outstanding', 0) == 0: continue
+            if type == 'Selling' and (item.get('price', 0) == 0 or item.get(sell_key, 0) == 0): continue
+            if type == 'Buying' and item.get(buy_key, 0) == 0: continue
             if type == 'Both' and item.get('price', 0) == 0: continue
 
             line:list = []
@@ -651,8 +654,9 @@ class WindowFleetCarrier:
                 if col.get('discordWidth', None) == None: continue
                 val:str = ""
                 match f:
-                    case "buy" if item.get("price", 0) > 0 and item.get("outstanding", 0) > 0: val = item.get("outstanding")
-                    case "sell" if item.get("price", 0) > 0 and item.get("stock", 0) > 0: val = item.get("stock")
+                    case "stock" if which == 'Cargo': val = item.get("cargo") if item.get("cargo") is not None else ""
+                    case "buy" if item.get("price", 0) > 0 and item.get(buy_key, 0) > 0: val = item.get(buy_key)
+                    case "sell" if item.get("price", 0) > 0 and item.get(sell_key, 0) > 0: val = item.get(sell_key)
                     case _: val = item.get(f, " ")
                 tmp:str = str_truncate(__(hfplus(val), lang=l), col['discordWidth']) # LANG: Ignore
                 fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"

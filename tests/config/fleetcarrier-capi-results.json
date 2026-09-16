@@ -33,19 +33,19 @@
         "overview": {},
         "stolen": {
             "fish": {
-                "stock": 3
+                "cargo": 3
             },
             "coffee": {
-                "stock": 1
+                "cargo": 1
             },
             "animalmeat": {
-                "stock": 3
+                "cargo": 3
             },
             "conductivefabrics": {
-                "stock": 1
+                "cargo": 1
             },
             "cobalt": {
-                "stock": 5
+                "cargo": 5
             }
         },
         "mission": {},
@@ -53,129 +53,129 @@
             "unknownartifact": {
                 "locName": "Thargoid Sensor",
                 "category": "Salvage",
-                "stock": 12,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 12,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "thargoidgeneratortissuesample": {
                 "locName": "Caustic Tissue Sample",
                 "category": "Salvage",
-                "stock": 5,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 5,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "thargoidtissuesampletype5": {
                 "locName": "Thargoid Orthrus Tissue Sample",
                 "category": "Salvage",
-                "stock": 1,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 1,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "thargoidtissuesampletype7": {
                 "locName": "Thargoid Scythe Tissue Sample",
                 "category": "Salvage",
-                "stock": 4,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 4,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "thargoidheart": {
                 "locName": "Thargoid Heart",
                 "category": "Salvage",
-                "stock": 9,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 9,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "thargoidtissuesampletype9a": {
                 "locName": "Titan Deep Tissue Sample",
                 "category": "Salvage",
-                "stock": 7,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 7,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "thargoidtissuesampletype9b": {
                 "locName": "Titan Tissue Sample",
                 "category": "Salvage",
-                "stock": 2,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 2,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "thargoidtissuesampletype9c": {
                 "locName": "Titan Partial Tissue Sample",
                 "category": "Salvage",
-                "stock": 2,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 2,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "unknownresin": {
                 "locName": "Thargoid Resin",
                 "category": "Salvage",
-                "stock": 2,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 2,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "thargoidtitandrivecomponent": {
                 "locName": "Titan Drive Component",
                 "category": "Salvage",
-                "stock": 3,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 3,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "thargoidpod": {
                 "locName": "Xenobiological Prison Pod",
                 "category": "Salvage",
-                "stock": 6,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 6,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "platinum": {
                 "locName": "Platinum",
                 "category": "Metals",
-                "stock": 4,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 4,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "ancientrelictg": {
                 "locName": "Unclassified Relic",
                 "category": "Salvage",
-                "stock": 4,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 4,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "emergencypowercells": {
                 "locName": "Emergency Power Cells",
                 "category": "Machinery",
-                "stock": 84,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 84,
+                "sell": 84,
+                "buy": 0,
                 "price": 2308
             },
             "damagedescapepod": {
                 "locName": "Damaged Escape Pod",
                 "category": "Salvage",
-                "stock": 100,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 100,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             },
             "occupiedcryopod": {
                 "locName": "Occupied Escape Pod",
                 "category": "Salvage",
-                "stock": 100,
-                "buyTotal": 0,
-                "outstanding": 0,
+                "cargo": 100,
+                "sell": 0,
+                "buy": 0,
                 "price": 0
             }
         }

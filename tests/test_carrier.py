@@ -153,24 +153,24 @@ class TestFleetCarriers:
 
         with patch('bgstally.ravencolonial.RavenColonial.get_carrier', return_value=None) as mock_rc, \
              patch('bgstally.ravencolonial.Spansh.get_market', return_value=None) as mock_spansh:
-            fc.update_carrier('Sol')
+            fc.update_carrier('Sol', 'Earth')
             assert mock_rc.call_count == 1
             assert mock_spansh.call_count == 1
 
-            fc.update_carrier('Sol') # Still within cooldown, should be skipped entirely
+            fc.update_carrier('Sol', 'Earth') # Still within cooldown, should be skipped entirely
             assert mock_rc.call_count == 1
             assert mock_spansh.call_count == 1
 
             fc._last_update_check -= UPDATE_LOCAL_COOLDOWN + 1
-            fc.update_carrier('Sol') # Local cooldown has now expired, cmdr is in the same system
+            fc.update_carrier('Sol', 'Earth') # Local cooldown has now expired, cmdr is in the same system
             assert mock_rc.call_count == 2
 
             fc._last_update_check -= UPDATE_LOCAL_COOLDOWN + 1
-            fc.update_carrier('Some Other System') # Remote cooldown hasn't expired yet, still skipped
+            fc.update_carrier('Some Other System', 'Mars') # Remote cooldown hasn't expired yet, still skipped
             assert mock_rc.call_count == 2
 
             fc._last_update_check -= UPDATE_REMOTE_COOLDOWN + 1
-            fc.update_carrier('Some Other System') # Remote cooldown has now expired
+            fc.update_carrier('Some Other System', 'Mars') # Remote cooldown has now expired
             assert mock_rc.call_count == 3
 
     def test_third_party_registry(self, harness) -> None:
@@ -520,7 +520,8 @@ class TestCarrierTrade:
         fc.trade_order(entry)
 
         assert 'tritium' in fc.cargo['normal']
-        assert fc.cargo['normal']['tritium']['stock'] == 100
+        assert fc.cargo['normal']['tritium']['cargo'] == 100
+        assert fc.cargo['normal']['tritium']['sell'] == 100
         assert fc.cargo['normal']['tritium']['price'] == 1000
         assert fc._get_freespace() == free - 100
 
@@ -541,7 +542,7 @@ class TestCarrierTrade:
         fc.trade_order(entry)
 
         assert 'tritium' in fc.cargo['normal']
-        assert fc.cargo['normal']['tritium']['outstanding'] == 50
+        assert fc.cargo['normal']['tritium']['buy'] == 50
         assert fc.cargo['normal']['tritium']['price'] == 900
         assert fc._get_freespace() == free - 50
         assert fc._get_reserved() == reserved + 50
@@ -558,14 +559,14 @@ class TestCarrierTrade:
         fc.overview = {'carrier_id': 12345}
         fc.cargo = {
             'normal': {
-                'tritium': {'stock': 100, 'price': 1000, 'outstanding': 50, 'buyTotal': 50}
+                'tritium': {'cargo': 100, 'sell': 100, 'price': 1000, 'buy': 50}
             }
         }
 
         fc.trade_order(entry)
 
-        assert fc.cargo['normal']['tritium']['outstanding'] == 0
-        assert fc.cargo['normal']['tritium']['buyTotal'] == 0
+        assert fc.cargo['normal']['tritium']['buy'] == 0
+        assert fc.cargo['normal']['tritium']['sell'] == 0
         assert fc.cargo['normal']['tritium']['price'] == 0
 
     def test_cargo_transfer(self, harness) -> None:
@@ -573,7 +574,7 @@ class TestCarrierTrade:
         fc = harness.plugin.fleet_carrier
         fc.cargo = {
             'normal': {
-                'steel': {'stock': 100, 'outstanding': 50, 'price': 1000}
+                'steel': {'cargo': 100, 'buy': 50, 'price': 1000}
             }
         }
 
@@ -588,8 +589,8 @@ class TestCarrierTrade:
         free:int = fc._get_freespace()
         fc.cargo_transfer(entry)
 
-        assert fc.cargo['normal']['tritium']['stock'] == 50
-        assert fc.cargo['normal']['steel']['stock'] == 75
+        assert fc.cargo['normal']['tritium']['cargo'] == 50
+        assert fc.cargo['normal']['steel']['cargo'] == 75
         assert fc._get_freespace() == free - 50 + 25
 
 
@@ -605,14 +606,14 @@ class TestCarrierTrade:
         }
         fc.cargo = {
             'normal': {
-                'tritium': {'stock': 100, 'outstanding': 50, 'price': 1000}
+                'tritium': {'cargo': 100, 'sell': 0, 'buy': 50, 'price': 1000}
             }
         }
         free:int = fc._get_freespace()
         fc.market_activity(entry)
 
-        assert fc.cargo['normal']['tritium']['outstanding'] == 40
-        assert fc.cargo['normal']['tritium']['stock'] == 110
+        assert fc.cargo['normal']['tritium']['buy'] == 40
+        assert fc.cargo['normal']['tritium']['cargo'] == 110
         assert fc._get_freespace() == free
 
     def test_market_activity_sell(self, harness) -> None:
@@ -620,7 +621,7 @@ class TestCarrierTrade:
         fc = harness.plugin.fleet_carrier
         fc.cargo = {
             'normal': {
-                'tritium': {'stock': 100, 'outstanding': 0, 'price': 1000}
+                'tritium': {'cargo': 100, 'sell': 100, 'buy': 0, 'price': 1000}
             }
         }
         entry = {
@@ -633,7 +634,8 @@ class TestCarrierTrade:
         free:int = fc._get_freespace()
         fc.market_activity(entry)
 
-        assert fc.cargo['normal']['tritium']['stock'] == 80
+        assert fc.cargo['normal']['tritium']['cargo'] == 80
+        assert fc.cargo['normal']['tritium']['sell'] == 80
         assert fc._get_freespace() == free + 20
 
 class TestCarrierEvents:
@@ -787,7 +789,7 @@ class TestSpanshFleetCarrier:
         mock_queue.assert_not_called()
 
         fc.carrier_id = 3709409280
-        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'stock': 999, 'buyTotal': 0, 'outstanding': 0, 'price': 1}
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
         response = Mock()
         response.json.return_value = {'record': {'market': [
             {'commodity': 'Tritium', 'category': 'Chemicals', 'supply': 500, 'demand': 0, 'buy_price': 8000, 'sell_price': 0},
@@ -796,8 +798,27 @@ class TestSpanshFleetCarrier:
 
         Spansh()._fleetcarrier_callback(fc, True, response, Mock())
 
-        assert fc.cargo['normal']['tritium']['stock'] == 500 # Diffed: market's observed stock differs, so we adopt it
-        assert fc.cargo['normal']['water']['stock'] == 200 # New commodity, added
+        # Diffed: market's observed stock differs, so we adopt it -- sell and cargo move together while selling
+        assert fc.cargo['normal']['tritium']['cargo'] == 500
+        assert fc.cargo['normal']['tritium']['sell'] == 500
+        assert fc.cargo['normal']['water']['cargo'] == 200 # New commodity, added
+        assert fc.cargo['normal']['water']['sell'] == 200
+
+    def test_spansh_commodity_name_mismatch(self, harness) -> None:
+        """ Test a Spansh display name that doesn't reduce to its real symbol by stripping punctuation """
+        from bgstally.ravencolonial import Spansh
+        fc = harness.plugin.fleet_carrier
+        fc.carrier_id = 3709409280
+
+        response = Mock()
+        response.json.return_value = {'record': {'market': [
+            {'commodity': 'Agri-Medicines', 'category': 'Medicines', 'supply': 50, 'demand': 0, 'buy_price': 400, 'sell_price': 0}
+        ]}}
+
+        Spansh()._fleetcarrier_callback(fc, True, response, Mock())
+
+        assert 'agriculturalmedicines' in fc.cargo['normal']
+        assert fc.cargo['normal']['agriculturalmedicines']['cargo'] == 50
 
 class CarrierUnused:
     def test_parse_date(self, harness) -> None:

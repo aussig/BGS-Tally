@@ -172,7 +172,7 @@ class BGSTally:
 
         match entry.get('event'):
             case 'StartUp':
-                self.fleet_carriers.refresh_markets(system)
+                self.fleet_carriers.refresh_markets(system, station)
 
             case 'ApproachSettlement' if state['Odyssey']:
                 activity.settlement_approached(entry, self.state)
@@ -256,7 +256,7 @@ class BGSTally:
                     self.fleet_carriers.add(market_id, FleetCarrierType.THIRDPARTY, station, system)
 
                 # refresh carrier market data
-                self.fleet_carriers.refresh_markets(system)
+                self.fleet_carriers.refresh_markets(system, station)
 
             case 'EjectCargo':
                 activity.cargo_ejected(entry)

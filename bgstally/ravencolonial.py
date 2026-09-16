@@ -668,21 +668,31 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def update_carrier(self, marketid:int, cargo:dict, sync:bool = False) -> None:
-        """ Update the cargo of a fleet carrier """
+    def update_carrier(self, fc:'FleetCarrier') -> None:
+        """ Push this carrier's cargo/buy/sell orders to RavenColonial, merged onto its current record """
         if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
             Debug.logger.info("Not updating carrier in RavenColonial")
             return
 
-        payload:dict = {comm : cargo.get(comm, 0) for comm in self.bgstally.ui.commodities.keys()}
-        url:str = f"{RC_API}/fc/{marketid}/cargo"
+        url:str = f"{RC_API}/fc/{fc.carrier_id}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=partial(self._carrier_fetched_callback, fc))
 
-        if sync:
-            response:Response = requests.post(url, json=payload, headers=self._headers(), timeout=TIMEOUT)
-            self._carrier_callback(response.status_code == 200, response)
-            return
 
-        self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=self._headers(), callback=self._carrier_callback)
+    @catch_exceptions
+    def _carrier_fetched_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
+        """ Continue the async cargo push once we have the carrier's current RavenColonial record """
+        if success == False or response.status_code != 200: return
+
+        inventory:dict = fc.get_cargo('normal').get('inventory', {})
+        view:dict = response.json()
+        view['cargo'] = {comm: int(item.get('cargo') or 0) for comm, item in inventory.items()}
+        view['sales'] = [{'name': comm, 'price': item.get('price', 0), 'total': item.get('sell', 0)}
+                          for comm, item in inventory.items() if item.get('sell', 0) > 0]
+        view['purchases'] = [{'name': comm, 'price': item.get('price', 0), 'outstanding': item.get('buy', 0)}
+                             for comm, item in inventory.items() if item.get('buy', 0) > 0]
+
+        url:str = f"{RC_API}/fc/{fc.carrier_id}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.PUT, payload=view, headers=self._headers(), callback=self._carrier_callback)
 
 
     @catch_exceptions
@@ -715,7 +725,7 @@ class RavenColonial:
                 'name': data.get('displayName'),
                 'currentStarSystem': data.get('systemName'),
             },
-            'cargo': {comm: {'stock': qty} for comm, qty in data.get('cargo', {}).items()},
+            'cargo': {comm: {'cargo': qty} for comm, qty in data.get('cargo', {}).items()},
         }
 
 
@@ -1036,18 +1046,16 @@ class Spansh:
         """ Convert a Spansh station record into FleetCarrier.merge()'s normalized envelope """
         cargo:dict = {}
         for m in record.get('market', []):
-            comm:str = re.sub(r'[^a-z0-9]', '', m.get('commodity', '').lower())
+            comm:str = self._resolve_commodity(m.get('commodity', ''))
             if comm == '': continue
 
+            # The game only ever has one active price per commodity, so buy_price/sell_price collapse to one
             cargo[comm] = {
                 'locName': m.get('commodity', comm),
                 'category': m.get('category', 'Unknown'),
-                'consumer': m.get('demand', 0) > 0,
-                'producer': m.get('supply', 0) > 0,
-                'demand': m.get('demand', 0),
-                'stock': m.get('supply', 0),
-                'buy_price': m.get('buy_price', 0),
-                'sell_price': m.get('sell_price', 0),
+                'sell': m.get('supply', 0),
+                'buy': m.get('demand', 0),
+                'price': m.get('buy_price', 0) or m.get('sell_price', 0),
             }
 
         return {
@@ -1059,6 +1067,12 @@ class Spansh:
             },
             'cargo': cargo,
         }
+
+    def _resolve_commodity(self, name:str) -> str:
+        """ Resolve a Spansh commodity display name (e.g. "Agri-Medicines") to our internal symbol """
+        commodities:dict = RavenColonial(self).bgstally.ui.commodities
+        symbol:str|None = next((s for s, c in commodities.items() if c.get('Name', '').lower() == name.lower()), None)
+        return symbol or re.sub(r'[^a-z0-9]', '', name.lower())
 
     @catch_exceptions
     def find_carrier(self, callsign:str) -> int|None:

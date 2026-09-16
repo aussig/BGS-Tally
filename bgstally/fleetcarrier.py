@@ -90,7 +90,7 @@ class FleetCarrier:
             _('Docking'): (self._readable(self.overview.get('dockingAccess', '')), 'str', 'Unknown'), # LANG: Carrier overview
             _('Allow Notorious'): (self.overview.get('notoriousAccess', ''), 'str', 'Unknown'), # LANG: Carrier overview
 
-            _('Fuel'):(f"{self.overview.get('fuel', 0):,}t (+{int(get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)):,}t)", 'fixed'),                    # LANG: Carrier overview
+            _('Fuel'):(f"{self.overview.get('fuel', 0):,}t (+{int(get_by_path(self.cargo, ['normal', 'tritium', 'cargo'], 0)):,}t)", 'fixed'),                    # LANG: Carrier overview
             _('Space'): (f"{self._get_freespace():,}t ({int(self._get_freespace() * 100 / self.overview.get('totalCapacity', 25000))}%)", 'fixed'), # LANG: Carrier overview
             _('Tax Level'): (self.overview.get('taxation', 0), 'num', '0%', '%'),        # LANG: Carrier overview
         })
@@ -202,8 +202,11 @@ class FleetCarrier:
 
 
     @catch_exceptions
-    def update_carrier(self, system:str = '') -> None:
+    def update_carrier(self, system:str = '', station:str = '') -> None:
         """ Refresh this carrier's cargo from RC then Spansh, pushing back to RC if Spansh ends up fresher """
+
+        if system == self.overview.get('currentStarSystem', '') and station == self.overview.get('currentStation', ''): return
+
         cooldown:int = UPDATE_LOCAL_COOLDOWN if system == self.overview.get('currentStarSystem') else UPDATE_REMOTE_COOLDOWN
         if self._last_update_check > int(time.time()) - cooldown: return
         self._last_update_check = int(time.time())
@@ -219,9 +222,7 @@ class FleetCarrier:
             if spansh_data: newer = self.merge(spansh_data, spansh=True)
 
         if newer and rc.is_tracked(self.carrier_id):
-            inventory:dict = self.get_cargo('normal').get('inventory', {})
-            cargo:dict = {comm: int(item.get('stock', 0)) for comm, item in inventory.items()}
-            rc.update_carrier(self.carrier_id, cargo, sync=True)
+            rc.update_carrier(self)
 
         self.bgstally.ui.window_fc.update_carrier_display(self)
 
@@ -255,15 +256,13 @@ class FleetCarrier:
             self.last_modified = int(time.time())
             return True
 
-        # No real cargo insight for this carrier, so take the market snapshot as our best guess verbatim
+        # No real cargo insight for this carrier, so take the market snapshot as our best guess verbatim.
+        # RC's cargo entries carry 'cargo' directly (trusted as real held quantity); Spansh's carry 'sell'/'buy'.
         for comm, item in cargo.items():
             if comm in self.cargo['normal'] and not newer: continue
-            entry:dict = self.cargo['normal'].setdefault(comm, {'locName': comm, 'category': 'Unknown', 'stock': 0, 'buyTotal': 0, 'outstanding': 0, 'price': 0})
-            if 'locName' in item: entry['locName'] = item['locName']
-            if 'category' in item: entry['category'] = item['category']
-            if 'stock' in item: entry['stock'] = item['stock']
-            if 'demand' in item: entry['outstanding'] = item['demand']
-            if 'buy_price' in item or 'sell_price' in item: entry['price'] = item.get('buy_price', 0) or item.get('sell_price', 0)
+            entry:dict = self.cargo['normal'].setdefault(comm, {'locName': comm, 'category': 'Unknown', 'cargo': None, 'sell': 0, 'buy': 0, 'price': 0})
+            for key in ('locName', 'category', 'cargo', 'sell', 'buy', 'price'):
+                if key in item: entry[key] = item[key]
 
         if newer: self.last_modified = int(time.time())
         return newer
@@ -314,7 +313,7 @@ class FleetCarrier:
         route:list = []
         tot:int = 0
         depot:int = int(self.overview.get('fuel', 0))
-        trit:int = int(get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0))
+        trit:int = int(get_by_path(self.cargo, ['normal', 'tritium', 'cargo'], 0))
         deposit:bool = False
         for j in self.route:
             tot += int(j.get('fuel_used'))
@@ -362,7 +361,7 @@ class FleetCarrier:
         summ[_('Scheduled Jump')] = (self.overview.get('jumpDestinationBody', self.overview.get('jumpDestination', 'None')), 'str', 'None') # LANG: Carrier itinerary
         summ[_('Departure Time')] = (self._lt(self.overview.get('departureScheduled', '')), 'datetime', 'None') # LANG: Carrier itinerary
         summ[_('Fuel')] = (self.overview.get('fuel', 0), 'num', '0t', 't')       # LANG: Carrier itinerary
-        summ[_('Tritium')] = (get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0), 'num', '0t', 't') # LANG: Carrier itinerary
+        summ[_('Tritium')] = (get_by_path(self.cargo, ['normal', 'tritium', 'cargo'], 0), 'num', '0t', 't') # LANG: Carrier itinerary
 
         return {'overview': summ, 'route': route, 'completed': jumps}
 
@@ -429,7 +428,7 @@ class FleetCarrier:
             "capacity_used": self._get_usedspace(), # Maybe this shouldn't include reserved?
             "calculate_starting_fuel": 0,
             "fuel_loaded": self.overview.get('fuel', 1000),
-            "tritium_stored" : get_by_path(self.cargo, ['normal', 'tritium', 'stock'], 0)
+            "tritium_stored" : get_by_path(self.cargo, ['normal', 'tritium', 'cargo'], 0)
             }
         Debug.logger.debug(f"Spansh route request {params}")
         res:requests.Response = requests.post(SPANSH_ROUTE, params=params, headers={'User-Agent': f"BGSTally/{self.bgstally.version}"})
@@ -550,8 +549,8 @@ class FleetCarrier:
                 for type in ['stolen', 'mission']:
                     if (stolen and type == 'stolen') or (mission and type == 'mission'):
                         if cargo[type].get(cname, None) == None:
-                            cargo[type][cname] = {'stock': 0}
-                        cargo[type][cname]['stock'] += c.get('qty', 0)
+                            cargo[type][cname] = {'cargo': 0}
+                        cargo[type][cname]['cargo'] += c.get('qty', 0)
                 continue
 
             # all the ways a commodity may be listed in CAPI data
@@ -559,26 +558,26 @@ class FleetCarrier:
             purchase:dict = next((item for item in get_by_path(data, ['orders', 'commodities', 'purchases'], []) if item.get('name', "").lower() == cname), {})
             market:dict = next((item for item in get_by_path(data, ['market', 'commodities'], []) if item.get('name', "").lower() == cname), {})
 
-            # Figure out the stock using the various sources
-            stock:int = max(int(sale.get('stock', 0)), int(market.get('stock', 0)))
+            # Actual held quantity is independent of any sell listing -- there may be multiple cargo entries
+            # for the same commodity so we need to do addition.
+            cargo_qty:int = c.get('qty', 0)
+            if cname in cargo['normal']: cargo_qty += cargo['normal'][cname]['cargo']
 
-            if stock == 0: # No sales or market so cargo. There may be multiple of these so we need to do addition
-                stock = c.get('qty', 0)
-                if cname in cargo['normal']:
-                    stock += cargo['normal'][cname]['stock']
+            # Quantity actively listed for sale, which can be less than what's actually held
+            sell:int = max(int(sale.get('stock', 0)), int(market.get('stock', 0)))
 
-            if stock > 0 or purchase.get('outstanding', 0):
+            if cargo_qty > 0 or sell > 0 or purchase.get('outstanding', 0):
                 cargo['normal'][cname] = {
                     'locName': comms.get(cname, {}).get('Name', c.get('locName', cname).lower()),
                     'category': comms.get(cname, {}).get('Category', c.get('categoryname', 'Unknown')),
-                    'stock': stock,
-                    'buyTotal': purchase.get('total', 0),
-                    'outstanding': purchase.get('outstanding', 0),
+                    'cargo': cargo_qty,
+                    'sell': sell,
+                    'buy': purchase.get('outstanding', 0),
                     'price': max(int(sale.get('price', 0)), int(purchase.get('price', 0)),
                                  int(market.get('sellPrice', 0)), int(market.get('buyPrice', 0)))
                 }
-            if cargo['normal'][cname]['stock'] < 0:
-                Debug.logger.error(f"Negative stock {cargo['normal'][cname]}")
+            if cargo['normal'][cname]['cargo'] < 0:
+                Debug.logger.error(f"Negative cargo {cargo['normal'][cname]}")
             #else:
                 #Debug.logger.debug(f"Final cargo: {cargo['normal'][cname]}")
 
@@ -589,9 +588,9 @@ class FleetCarrier:
                 cargo['normal'][c['name']] = {
                     'locName': comms.get(cname, {}).get('Name', c.get('locName', cname).lower()),
                     'category': comms.get(cname, {}).get('Category', c.get('categoryname', 'Unknown')),
-                    'stock': 0,
-                    'buyTotal': c.get('total', 0),
-                    'outstanding': c.get('outstanding', 0),
+                    'cargo': 0,
+                    'sell': 0,
+                    'buy': c.get('outstanding', 0),
                     'price': c.get('price')
                 }
 
@@ -1051,26 +1050,25 @@ class FleetCarrier:
 
         if entry.get('SaleOrder') is not None:
             # If we were selling we need to clear any existing buy order and free up reserved space
-            self.cargo['normal'][comm]['outstanding'] = 0
-            self.cargo['normal'][comm]['buyTotal'] = 0
+            self.cargo['normal'][comm]['buy'] = 0
 
-            # Set price and stock
-            self.cargo['normal'][comm]['stock'] = entry.get('SaleOrder', 0)
+            # You can't list less than you hold for sale -- the whole stock gets listed, so sell == cargo
+            self.cargo['normal'][comm]['sell'] = entry.get('SaleOrder', 0)
+            self.cargo['normal'][comm]['cargo'] = entry.get('SaleOrder', 0)
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
 
         if entry.get('PurchaseOrder') is not None:
-            self.cargo['normal'][comm]['buyTotal'] = entry.get('PurchaseOrder', 0)
-            self.cargo['normal'][comm]['outstanding'] = entry.get('PurchaseOrder', 0)
+            self.cargo['normal'][comm]['buy'] = entry.get('PurchaseOrder', 0)
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
 
         if entry.get('CancelTrade') == True:
-            self.cargo['normal'][comm]['outstanding'] = 0
-            self.cargo['normal'][comm]['buyTotal'] = 0
+            self.cargo['normal'][comm]['buy'] = 0
+            self.cargo['normal'][comm]['sell'] = 0
             self.cargo['normal'][comm]['price'] = 0
 
-        if self.cargo['normal'][comm]['stock'] < 0:
-            Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
-            self.cargo['normal'][comm]['stock'] = 0
+        if (self.cargo['normal'][comm].get('cargo') or 0) < 0:
+            Debug.logger.error(f"Negative cargo {self.cargo['normal'][comm]}")
+            self.cargo['normal'][comm]['cargo'] = 0
             self.last_modified = 0
 
         self.bgstally.ui.window_fc.update_carrier_display(self)
@@ -1089,12 +1087,10 @@ class FleetCarrier:
 
         commodities:dict = {
             comm: {
-                'consumer': item.get('Consumer', False),
-                'producer': item.get('Producer', False),
-                'demand': item.get('Demand', 0),
-                'stock': item.get('Stock', 0),
-                'sell_price': item.get('SellPrice', 0), # Price player sells at
-                'buy_price': item.get('BuyPrice', 0), # Price player buys at
+                'buy': item.get('Demand', 0),
+                'sell': item.get('Stock', 0),
+                # The game only ever has one active price per commodity: what we sell at if buying, or buy at if selling
+                'price': item.get('SellPrice', 0) if item.get('Demand', 0) > 0 else item.get('BuyPrice', 0),
             }
             for comm, item in self.bgstally.market.commodities.items()
         }
@@ -1105,30 +1101,32 @@ class FleetCarrier:
 
 
     def _apply_market(self, commodities:dict) -> None:
-        """ Diff a market snapshot against our cargo, inferring cargo changes from demand/stock deltas """
+        """ Diff a market snapshot against our cargo, inferring cargo changes from buy/sell deltas """
         for comm, item in commodities.items():
             if comm not in self.cargo['normal']:
                 self.cargo['normal'][comm] = self._init_cargo_item(comm, item.get('locName', comm))
 
-            # Buying and the demand has changed
-            if item.get('consumer') and int(item.get('demand', 0)) != int(self.cargo['normal'][comm]['outstanding']):
-                Debug.logger.debug(f"Adjusting due to change in demand {self.cargo['normal'][comm]['outstanding']} {item.get('demand', 0)}")
-                diff:int = int(self.cargo['normal'][comm]['outstanding']) - int(item.get('demand', 0))
-                self.cargo['normal'][comm]['stock'] += diff
-                if self.cargo['normal'][comm]['stock'] < 0: self.cargo['normal'][comm]['stock'] = 0
-                self.cargo['normal'][comm]['outstanding'] = int(item.get('demand', 0))
-                self.cargo['normal'][comm]['price'] = int(item.get('sell_price', 0))
+            entry:dict = self.cargo['normal'][comm]
 
-            # Selling and our stock has changed
-            if item.get('producer') and \
-                (int(item.get('stock', 0)) != self.cargo['normal'][comm]['stock'] or int(item.get('buy_price', 0)) != self.cargo['normal'][comm]['price']):
-                Debug.logger.debug(f"Adjusting due to change in stock {self.cargo['normal'][comm]['stock']} {item.get('stock', 0)}")
-                self.cargo['normal'][comm]['stock'] = int(item.get('stock', 0))
-                self.cargo['normal'][comm]['price'] = int(item.get('buy_price', 0))
+            # Buying and the demand has changed -- infer a cargo change from the demand delta
+            if item.get('buy', 0) > 0 and int(item['buy']) != int(entry['buy']):
+                Debug.logger.debug(f"Adjusting due to change in demand {entry['buy']} {item['buy']}")
+                diff:int = int(entry['buy']) - int(item['buy'])
+                entry['cargo'] = (entry.get('cargo') or 0) + diff
+                if entry['cargo'] < 0: entry['cargo'] = 0
+                entry['buy'] = int(item['buy'])
+                entry['price'] = int(item.get('price', 0))
 
-            if self.cargo['normal'][comm]['stock'] < 0:
-                Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
-                self.cargo['normal'][comm]['stock'] = 0
+            # Selling and our stock has changed -- the sell listing is what we hold while actively selling
+            if item.get('sell', 0) > 0 and (int(item['sell']) != entry['sell'] or int(item.get('price', 0)) != entry['price']):
+                Debug.logger.debug(f"Adjusting due to change in stock {entry['sell']} {item['sell']}")
+                entry['sell'] = int(item['sell'])
+                entry['cargo'] = entry['sell']
+                entry['price'] = int(item.get('price', 0))
+
+            if (entry.get('cargo') or 0) < 0:
+                Debug.logger.error(f"Negative cargo {entry}")
+                entry['cargo'] = 0
                 self.last_modified = 0
 
         # Now check for completed orders by going through all the cargo and find any commodities
@@ -1139,12 +1137,12 @@ class FleetCarrier:
             # If we're still buying or selling this or we never were then nothing to do here.
             if comm in commodities.keys() or deets['price'] == 0: continue
 
-            if deets['outstanding'] > 0: # We were buying but someone must have completed the buy order
-                deets['outstanding'] = 0
-                deets['buyTotal'] = 0
+            if deets['buy'] > 0: # We were buying but someone must have completed the buy order
+                deets['buy'] = 0
                 deets['price'] = 0
-            elif deets['stock'] > 0: # We were selling, someone must have bought all our stock
-                deets['stock'] = 0
+            elif deets['sell'] > 0: # We were selling, someone must have bought all our stock
+                deets['sell'] = 0
+                deets['cargo'] = 0
                 deets['price'] = 0
 
 
@@ -1166,15 +1164,15 @@ class FleetCarrier:
                 continue
 
             # We just have to assume it's not stolen because the journal doesn't say.
-            self.cargo['normal'][comm]['stock'] += amt
+            self.cargo['normal'][comm]['cargo'] = (self.cargo['normal'][comm].get('cargo') or 0) + amt
 
-            if self.cargo['normal'][comm]['stock'] < 0:
-                Debug.logger.error(f"Negative stock {self.cargo['normal'][comm]}")
+            if self.cargo['normal'][comm]['cargo'] < 0:
+                Debug.logger.error(f"Negative cargo {self.cargo['normal'][comm]}")
                 # See if we have any stolen cargo of this type and if so subtract that
                 if comm in self.cargo.get('stolen', []):
                     Debug.logger.debug(f"Try removing stolen {self.cargo['stolen'][comm]}")
-                    self.cargo['stolen'][comm]['stock'] += self.cargo['normal'][comm]['stock']
-                    if self.cargo['stolen'][comm]['stock'] <= 0:
+                    self.cargo['stolen'][comm]['cargo'] += self.cargo['normal'][comm]['cargo']
+                    if self.cargo['stolen'][comm]['cargo'] <= 0:
                         del self.cargo['stolen'][comm]
                 del self.cargo['normal'][comm]
                 self.last_modified = 0
@@ -1196,21 +1194,24 @@ class FleetCarrier:
 
         # Sale amount is positive if to carrier, negative if from carrier (MarketSell to carrier, MarketBuy from carrier)
         amt:int = entry.get('Count', 0) if entry.get('event') == 'MarketSell' else -entry.get('Count', 0)
+        deets:dict = self.cargo['normal'][comm]
 
-        if self.cargo['normal'][comm]['outstanding'] > 0: # Buying
-            self.cargo['normal'][comm]['outstanding'] -= amt
+        if deets['buy'] > 0: # Buying
+            deets['buy'] -= amt
             # Finished.
-            if self.cargo['normal'][comm]['outstanding'] == 0:
-                self.cargo['normal'][comm]['price'] = 0
-                self.cargo['normal'][comm]['buyTotal'] = 0
-        elif self.cargo['normal'][comm]['stock'] + amt == 0: # Selling & all sold
-            self.cargo['normal'][comm]['price'] = 0
+            if deets['buy'] == 0:
+                deets['price'] = 0
+        elif deets['sell'] + amt == 0: # Selling & all sold
+            deets['sell'] = 0
+            deets['price'] = 0
+        elif deets['sell'] > 0: # Still selling, just less remaining
+            deets['sell'] += amt
 
-        self.cargo['normal'][comm]['stock'] += amt
+        deets['cargo'] = (deets.get('cargo') or 0) + amt
 
-        if self.cargo['normal'][comm]['stock'] < 0:
-            Debug.logger.error(f"Correcting negative stock {self.cargo['normal'][comm]}")
-            self.cargo['normal'][comm]['stock'] = 0
+        if deets['cargo'] < 0:
+            Debug.logger.error(f"Correcting negative cargo {deets}")
+            deets['cargo'] = 0
 
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
@@ -1347,18 +1348,14 @@ class FleetCarrier:
 
     def _get_forsale(self) -> int:
         ### Return the amount of cargo for sale on the carrier. ###
-
-        # For sale is price > 0, buyOrder = 0, and only normal cargo.
-        return sum([c.get('stock', 0) for c in self.cargo.get('normal', {}).values() if c.get('price') > 0 and c.get('outstanding') == 0])
+        return sum(c.get('sell', 0) for c in self.cargo.get('normal', {}).values())
 
 
     def _get_notforsale(self) -> int:
         ### Return the amount of cargo not for sale on the carrier. ###
-
-        # Not For sale is any cargo with price = 0
-        return sum([c.get('stock', 0) for c in self.cargo.get('normal', {}).values() if c.get('price', 0) == 0 or c.get('outstanding', 0) > 0] +
-                   [c.get('stock', 0) for c in self.cargo.get('stolen', {}).values() if c.get('price', 0) == 0 or c.get('outstanding', 0) > 0] +
-                   [c.get('stock', 0) for c in self.cargo.get('mission', {}).values() if c.get('price', 0) == 0 or c.get('outstanding', 0) > 0])
+        return sum((c.get('cargo') or 0) - c.get('sell', 0) for c in self.cargo.get('normal', {}).values()) + \
+               sum(c.get('cargo', 0) for c in self.cargo.get('stolen', {}).values()) + \
+               sum(c.get('cargo', 0) for c in self.cargo.get('mission', {}).values())
 
 
     def _get_marketused(self) -> int:
@@ -1368,8 +1365,7 @@ class FleetCarrier:
 
     def _get_reserved(self) -> int:
         """ Return the amount of cargo space reserved on the carrier. """
-        # Reserved is any cargo with price > 0 and outstanding > 0
-        return sum([c.get('outstanding', 0) for c in self.cargo.get('normal', {}).values() if c.get('price', 0) > 0 and c.get('outstanding', 0) > 0])
+        return sum(c.get('buy', 0) for c in self.cargo.get('normal', {}).values())
 
 
     def _get_usedspace(self) -> int:
@@ -1414,9 +1410,9 @@ class FleetCarrier:
         return {
             'locName': self.bgstally.ui.commodities[item].get('Name', alt),
             'category': self.bgstally.ui.commodities[item].get('Category', 'Unknown'),
-            'stock': 0,
-            'buyTotal': 0,
-            'outstanding': 0,
+            'cargo': 0, # Actual held quantity -- only ever meaningful for the personal carrier
+            'sell': 0, # Quantity currently listed for sale
+            'buy': 0, # Outstanding purchase order quantity
             'price': 0
             }
 

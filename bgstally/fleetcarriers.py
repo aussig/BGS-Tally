@@ -109,12 +109,12 @@ class FleetCarriers:
         for carrier in self.carriers.values(): carrier.save()
 
 
-    def refresh_markets(self, system:str) -> None:
+    def refresh_markets(self, system:str, station:str) -> None:
         """ Refresh each carrier's cargo data, one thread per carrier """
 
-        Thread(target=self.personal.update_carrier, daemon=True, name=f"FC update {self.personal.carrier_id}", args=(system,)).start()
+        Thread(target=self.personal.update_carrier, daemon=True, name=f"FC update {self.personal.carrier_id}", args=(system, station)).start()
         for carrier in self.carriers.values():
-            Thread(target=carrier.update_carrier, daemon=True, name=f"FC update {carrier.carrier_id}", args=(system,)).start()
+            Thread(target=carrier.update_carrier, daemon=True, name=f"FC update {carrier.carrier_id}", args=(system, station)).start()
 
 
     def track_by_callsign(self, callsign:str) -> bool:

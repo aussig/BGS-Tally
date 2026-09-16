@@ -1294,7 +1294,8 @@ class Colonisation:
             if dict.get('ProgressUnits', []) != []:
                 self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
             if dict.get('ProgressColumns', None) != None:
-                self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
+                num_headings:int = len(self.bgstally.ui.window_progress.headings)
+                self.bgstally.ui.window_progress.columns = [c if c < num_headings else 0 for c in dict.get('ProgressColumns', [])]
             if dict.get('ProgressColumnCarriers', None) != None:
                 self.bgstally.ui.window_progress.column_carriers = dict.get('ProgressColumnCarriers', [])
             if dict.get('ProgressColumnCarrierMode', None) != None:

@@ -24,7 +24,7 @@ from thirdparty.colors import *
 FILENAME = "fleetcarrier.json"
 FC_MAX_SHIPS = 40
 FC_MAX_JUMPS_TRACKED = 250
-FDEV_SLACKING_TIME = 3600 # How long behind CAPI may be in seconds
+FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 EDDN_LAG_TIME = 60 # How long behind EDDN may be in seconds
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
 UPDATE_LOCAL_COOLDOWN = 60 # update_carrier() cooldown for a carrier in our current system
@@ -177,7 +177,8 @@ class FleetCarrier:
         comm:dict = {}
         for t, ent in self.cargo.items():
             if t == 'overview' or (type != 'all' and type != t): continue
-            for name, deets in ent.items():
+            for name, orig in ent.items():
+                deets:dict = dict(orig) # Copy -- these are display-only annotations, not part of our stored state
                 deets['locName'] = self.bgstally.ui.commodities.get(name, {}).get('Name', name)
                 deets['category'] = self.bgstally.ui.commodities.get(name, {}).get('Category', '') if isinstance(self.bgstally.ui.commodities.get(name, {}).get('Category', ''), str) else 'Unknown'
                 deets['mission'] = _("Yes") if (t == 'mission') else "" # LANG: Carrier cargo - yes it's mission cargo
@@ -764,6 +765,7 @@ class FleetCarrier:
         new_cargo:dict = self._update_cargo(self.data)
         Debug.logger.debug(f"No recent activity, taking CAPI cargo as authoritative: {self.cargo['normal']} -> {new_cargo['normal']}")
         self.cargo = new_cargo
+        self.bgstally.colonisation._update_carrier() # Pushes to RC if this changed our cargo
         self.bgstally.ui.window_fc.update_carrier_display(self)
 
 
@@ -1117,14 +1119,20 @@ class FleetCarrier:
             }
             for comm, item in self.bgstally.market.commodities.items()
         }
-        self._apply_market(commodities)
+        changed:bool = self._apply_market(commodities)
+
+        # The personal carrier is pushed via Colonisation's own journal-driven update; for any other carrier
+        # this direct market visit is the only place we'd otherwise learn of its cargo/buy/sell changing.
+        if changed and self.carrier_type != FleetCarrierType.PERSONAL and self.bgstally.colonisation.cmdr != None:
+            RavenColonial(self.bgstally.colonisation).update_carrier(self)
 
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
 
-    def _apply_market(self, commodities:dict) -> None:
+    def _apply_market(self, commodities:dict) -> bool:
         """ Diff a market snapshot against our cargo, inferring cargo changes from buy/sell deltas """
+        changed:bool = False
         for comm, item in commodities.items():
             if comm not in self.cargo['normal']:
                 self.cargo['normal'][comm] = self._init_cargo_item(comm, item.get('locName', comm))
@@ -1156,7 +1164,9 @@ class FleetCarrier:
                 entry['cargo'] = 0
                 self.last_modified = 0
 
-            if entry != before: Debug.logger.debug(f"Market update for {comm}: {before} -> {entry}")
+            if entry != before:
+                Debug.logger.debug(f"Market update for {comm}: {before} -> {entry}")
+                changed = True
 
         # Now check for orders that ended by going through all the cargo and finding any commodities
         # for sale or purchase that are no longer in the market data -- an order can end by completing
@@ -1170,10 +1180,14 @@ class FleetCarrier:
                 Debug.logger.debug(f"{comm} vanished from market data while buying, clearing buy order: {deets}")
                 deets['buy'] = 0
                 deets['price'] = 0
+                changed = True
             if deets.get('sell', 0) > 0: # We were selling -- may have sold out, or just delisted, can't tell which
                 Debug.logger.debug(f"{comm} vanished from market data while selling, clearing sell listing: {deets}")
                 deets['sell'] = 0
                 deets['price'] = 0
+                changed = True
+
+        return changed
 
 
     @catch_exceptions

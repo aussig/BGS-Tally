@@ -214,14 +214,19 @@ class FleetCarrier:
         rc:RavenColonial = RavenColonial(self.bgstally.colonisation)
 
         rc_data:dict|None = rc.get_carrier(self.carrier_id)
-        if rc_data: self.merge(rc_data)
+        if rc_data:
+            Debug.logger.debug(f"Merging RC data for carrier {self.overview.get('callsign', self.carrier_id)}")
+            self.merge(rc_data)
 
         newer:bool = False
         if self.carrier_type != FleetCarrierType.PERSONAL:
             spansh_data:dict|None = Spansh().get_market(self)
-            if spansh_data: newer = self.merge(spansh_data, spansh=True)
+            if spansh_data:
+                Debug.logger.debug(f"Merging Spansh data for carrier {self.overview.get('callsign', self.carrier_id)}")
+                newer = self.merge(spansh_data, spansh=True)
 
         if newer and rc.is_tracked(self.carrier_id):
+            Debug.logger.debug(f"Updating RC carrier data for {self.overview.get('callsign', self.carrier_id)}")
             rc.update_carrier(self)
 
         self.bgstally.ui.window_fc.update_carrier_display(self)
@@ -565,14 +570,20 @@ class FleetCarrier:
 
             # Quantity actively listed for sale, which can be less than what's actually held
             sell:int = max(int(sale.get('stock', 0)), int(market.get('stock', 0)))
+            buy:int = int(purchase.get('outstanding', 0))
 
-            if cargo_qty > 0 or sell > 0 or purchase.get('outstanding', 0):
+            if buy > 0 and sell > 0:
+                # CAPI's orders and market sub-lists can lag each other independently -- we can only be doing one
+                Debug.logger.error(f"CAPI reports both buy ({buy}) and sell ({sell}) for {cname}, trusting the buy order")
+                sell = 0
+
+            if cargo_qty > 0 or sell > 0 or buy > 0:
                 cargo['normal'][cname] = {
                     'locName': comms.get(cname, {}).get('Name', c.get('locName', cname).lower()),
                     'category': comms.get(cname, {}).get('Category', c.get('categoryname', 'Unknown')),
                     'cargo': cargo_qty,
                     'sell': sell,
-                    'buy': purchase.get('outstanding', 0),
+                    'buy': buy,
                     'price': max(int(sale.get('price', 0)), int(purchase.get('price', 0)),
                                  int(market.get('sellPrice', 0)), int(market.get('buyPrice', 0)))
                 }
@@ -1117,13 +1128,13 @@ class FleetCarrier:
             if buy > 0 or int(entry.get('buy', 0)) > 0:
                 # Buying, or a buy order just completed -- infer a cargo change from the demand delta
                 if buy != int(entry.get('buy', 0)):
-                    Debug.logger.debug(f"Adjusting due to change in demand {entry.get('buy', 0)} {buy}")
+                    Debug.logger.debug(f"Adjusting {comm} due to change in demand {entry.get('buy', 0)} {buy}")
                     diff:int = int(entry.get('buy', 0)) - buy
                     entry['cargo'] = (entry.get('cargo') or 0) + diff
             elif sell > 0 or int(entry.get('sell', 0)) > 0:
                 # Selling, or we just sold out -- the sell listing is what we hold while actively selling
                 if sell != int(entry.get('sell', 0)):
-                    Debug.logger.debug(f"Adjusting due to change in stock {entry.get('sell', 0)} {sell}")
+                    Debug.logger.debug(f"Adjusting {comm} due to change in stock {entry.get('sell', 0)} {sell}")
                     entry['cargo'] = sell
 
             entry['buy'] = buy

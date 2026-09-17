@@ -1140,10 +1140,11 @@ class FleetCarrier:
                 if buy != int(entry.get('buy', 0)):
                     diff:int = int(entry.get('buy', 0)) - buy
                     entry['cargo'] = (entry.get('cargo') or 0) + diff
-            elif sell > 0 or int(entry.get('sell', 0)) > 0:
-                # Selling, or we just sold out -- the sell listing is what we hold while actively selling
-                if sell != int(entry.get('sell', 0)):
-                    entry['cargo'] = sell
+            elif sell > 0:
+                # Selling -- can't list less than held, so cargo must always equal sell
+                entry['cargo'] = sell
+            # else sell just dropped to zero -- could be sold out or just delisted/cancelled, we can't tell
+            # which from market data alone, so leave cargo as-is rather than assume it was sold
 
             entry['buy'] = buy
             entry['sell'] = sell
@@ -1157,10 +1158,10 @@ class FleetCarrier:
 
             if entry != before: Debug.logger.debug(f"Market update for {comm}: {before} -> {entry}")
 
-        # Now check for completed orders by going through all the cargo and find any commodities
-        # for sale or purchase that are no longer in the market data.
-        # For buys that means the buy order completed because we'd have had a trade order event otherwise.
-        # For sells it means we sold all our stock because we'd have had a trade order event otherwise.
+        # Now check for orders that ended by going through all the cargo and finding any commodities
+        # for sale or purchase that are no longer in the market data -- an order can end by completing
+        # or by being cancelled, and market data alone can't tell us which, so we only clear the order,
+        # never cargo (a completed buy's cargo increment already happened via the demand delta above).
         for comm, deets in self.cargo['normal'].items():
             # If we're still buying or selling this or we never were then nothing to do here.
             if comm in commodities.keys() or deets['price'] == 0: continue
@@ -1169,10 +1170,9 @@ class FleetCarrier:
                 Debug.logger.debug(f"{comm} vanished from market data while buying, clearing buy order: {deets}")
                 deets['buy'] = 0
                 deets['price'] = 0
-            if deets.get('sell', 0) > 0: # We were selling, someone must have bought all our stock
+            if deets.get('sell', 0) > 0: # We were selling -- may have sold out, or just delisted, can't tell which
                 Debug.logger.debug(f"{comm} vanished from market data while selling, clearing sell listing: {deets}")
                 deets['sell'] = 0
-                deets['cargo'] = 0
                 deets['price'] = 0
 
 

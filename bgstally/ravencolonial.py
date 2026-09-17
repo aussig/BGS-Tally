@@ -718,6 +718,26 @@ class RavenColonial:
         if response.status_code != 200: return None
 
         data:dict = response.json()
+        cargo:dict = {comm: {'cargo': qty} for comm, qty in data.get('cargo', {}).items()}
+
+        # 'sales'/'purchases' may be entirely absent if whoever last pushed this carrier never populated them --
+        # in that case we can't trust their absence as "confirmed nothing", so leave buy/sell out of the merge.
+        if 'sales' in data or 'purchases' in data:
+            for entry in cargo.values(): entry['sell'] = 0; entry['buy'] = 0
+            for sale in data.get('sales') or []:
+                comm:str = sale.get('name', '')
+                if comm == '': continue
+                cargo.setdefault(comm, {})['sell'] = int(sale.get('total', 0))
+                cargo[comm]['price'] = int(sale.get('price', 0))
+            for purchase in data.get('purchases') or []:
+                comm = purchase.get('name', '')
+                if comm == '': continue
+                cargo.setdefault(comm, {})['buy'] = int(purchase.get('outstanding', 0))
+                cargo[comm]['price'] = int(purchase.get('price', 0))
+            Debug.logger.debug(f"RC carrier {marketid} has order data, applying buy/sell from RC: {cargo}")
+        else:
+            Debug.logger.debug(f"RC carrier {marketid} has no order data, only applying cargo from RC: {cargo}")
+
         return {
             'timestamp': self._parse_time(data.get('lastRefresh')),
             'overview': {
@@ -725,7 +745,7 @@ class RavenColonial:
                 'name': data.get('displayName'),
                 'currentStarSystem': data.get('systemName'),
             },
-            'cargo': {comm: {'cargo': qty} for comm, qty in data.get('cargo', {}).items()},
+            'cargo': cargo,
         }
 
 

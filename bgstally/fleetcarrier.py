@@ -24,7 +24,7 @@ from thirdparty.colors import *
 FILENAME = "fleetcarrier.json"
 FC_MAX_SHIPS = 40
 FC_MAX_JUMPS_TRACKED = 250
-FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
+FDEV_SLACKING_TIME = 3600 # How long behind CAPI may be in seconds
 EDDN_LAG_TIME = 60 # How long behind EDDN may be in seconds
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
 UPDATE_LOCAL_COOLDOWN = 60 # update_carrier() cooldown for a carrier in our current system
@@ -263,11 +263,14 @@ class FleetCarrier:
 
         # No real cargo insight for this carrier, so take the market snapshot as our best guess verbatim.
         # RC's cargo entries carry 'cargo' directly (trusted as real held quantity); Spansh's carry 'sell'/'buy'.
+        source:str = "Spansh" if spansh else "RC"
         for comm, item in cargo.items():
             if comm in self.cargo['normal'] and not newer: continue
             entry:dict = self.cargo['normal'].setdefault(comm, {'locName': comm, 'category': 'Unknown', 'cargo': None, 'sell': 0, 'buy': 0, 'price': 0})
+            before:dict = dict(entry)
             for key in ('locName', 'category', 'cargo', 'sell', 'buy', 'price'):
                 if key in item: entry[key] = item[key]
+            if entry != before: Debug.logger.debug(f"{source} merge for {comm}: {before} -> {entry}")
 
         if newer: self.last_modified = int(time.time())
         return newer
@@ -756,8 +759,11 @@ class FleetCarrier:
             self.bgstally.ui.window_fc.update_carrier_display(self)
             return
 
-        Debug.logger.debug(f"CAPI cargo update now: {int(time.time())} last mod: {self.last_modified} diff: {int(time.time()) - FDEV_SLACKING_TIME}")
-        self.cargo = self._update_cargo(self.data)
+        # No activity from any source in over an hour -- CAPI is our most-behind source but never partially
+        # wrong, so we trust it completely rather than merge (which would treat any gaps in the response as truth)
+        new_cargo:dict = self._update_cargo(self.data)
+        Debug.logger.debug(f"No recent activity, taking CAPI cargo as authoritative: {self.cargo['normal']} -> {new_cargo['normal']}")
+        self.cargo = new_cargo
         self.bgstally.ui.window_fc.update_carrier_display(self)
 
 
@@ -1059,6 +1065,8 @@ class FleetCarrier:
             self.cargo['normal'][comm] = self._init_cargo_item(comm, entry.get('Commodity_Localised', comm))
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
 
+        before:dict = dict(self.cargo['normal'][comm])
+
         if entry.get('SaleOrder') is not None:
             # If we were selling we need to clear any existing buy order and free up reserved space
             self.cargo['normal'][comm]['buy'] = 0
@@ -1085,6 +1093,7 @@ class FleetCarrier:
             self.cargo['normal'][comm]['cargo'] = 0
             self.last_modified = 0
 
+        Debug.logger.debug(f"Trade order for {comm}: {before} -> {self.cargo['normal'][comm]}")
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
@@ -1121,6 +1130,7 @@ class FleetCarrier:
                 self.cargo['normal'][comm] = self._init_cargo_item(comm, item.get('locName', comm))
 
             entry:dict = self.cargo['normal'][comm]
+            before:dict = dict(entry)
             buy:int = int(item.get('buy', 0))
             sell:int = int(item.get('sell', 0))
 
@@ -1128,13 +1138,11 @@ class FleetCarrier:
             if buy > 0 or int(entry.get('buy', 0)) > 0:
                 # Buying, or a buy order just completed -- infer a cargo change from the demand delta
                 if buy != int(entry.get('buy', 0)):
-                    Debug.logger.debug(f"Adjusting {comm} due to change in demand {entry.get('buy', 0)} {buy}")
                     diff:int = int(entry.get('buy', 0)) - buy
                     entry['cargo'] = (entry.get('cargo') or 0) + diff
             elif sell > 0 or int(entry.get('sell', 0)) > 0:
                 # Selling, or we just sold out -- the sell listing is what we hold while actively selling
                 if sell != int(entry.get('sell', 0)):
-                    Debug.logger.debug(f"Adjusting {comm} due to change in stock {entry.get('sell', 0)} {sell}")
                     entry['cargo'] = sell
 
             entry['buy'] = buy
@@ -1147,6 +1155,8 @@ class FleetCarrier:
                 entry['cargo'] = 0
                 self.last_modified = 0
 
+            if entry != before: Debug.logger.debug(f"Market update for {comm}: {before} -> {entry}")
+
         # Now check for completed orders by going through all the cargo and find any commodities
         # for sale or purchase that are no longer in the market data.
         # For buys that means the buy order completed because we'd have had a trade order event otherwise.
@@ -1156,9 +1166,11 @@ class FleetCarrier:
             if comm in commodities.keys() or deets['price'] == 0: continue
 
             if deets.get('buy', 0) > 0: # We were buying but someone must have completed the buy order
+                Debug.logger.debug(f"{comm} vanished from market data while buying, clearing buy order: {deets}")
                 deets['buy'] = 0
                 deets['price'] = 0
             if deets.get('sell', 0) > 0: # We were selling, someone must have bought all our stock
+                Debug.logger.debug(f"{comm} vanished from market data while selling, clearing sell listing: {deets}")
                 deets['sell'] = 0
                 deets['cargo'] = 0
                 deets['price'] = 0
@@ -1182,7 +1194,9 @@ class FleetCarrier:
                 continue
 
             # We just have to assume it's not stolen because the journal doesn't say.
-            self.cargo['normal'][comm]['cargo'] = (self.cargo['normal'][comm].get('cargo') or 0) + amt
+            before:int|None = self.cargo['normal'][comm].get('cargo')
+            self.cargo['normal'][comm]['cargo'] = (before or 0) + amt
+            Debug.logger.debug(f"Cargo transfer for {comm}: cargo {before} -> {self.cargo['normal'][comm]['cargo']}")
 
             if self.cargo['normal'][comm]['cargo'] < 0:
                 Debug.logger.error(f"Negative cargo {self.cargo['normal'][comm]}")

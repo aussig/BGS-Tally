@@ -761,9 +761,9 @@ class RavenColonial:
 
         timestamp:int = self._parse_time(data.get('lastRefresh'))
         if timestamp == 0:
-            # merge() can't tell this is newer than what we hold, so it'll only take commodities we've never seen
+            # merge() can't confirm this is newer than what we hold, so it'll be skipped entirely -- all or nothing
             Debug.logger.warning(f"RC carrier {marketid} has no usable lastRefresh ({data.get('lastRefresh')}), "
-                                 "so only commodities we don't already know will be merged")
+                                 "so this update will be skipped")
 
         return {
             'timestamp': timestamp,

@@ -260,7 +260,6 @@ class FleetCarrier:
                 case _:
                     self.overview['name'] = ""
 
-        newer:bool = data.get('timestamp', 0) > self.data_time + EDDN_LAG_TIME
         cargo:dict = data.get('cargo', {})
         if not cargo: return False
 
@@ -268,11 +267,14 @@ class FleetCarrier:
         # it's strictly worse than the journal and CAPI. Take its overview above but never its cargo.
         if spansh and self.carrier_type == FleetCarrierType.PERSONAL: return False
 
+        # All or nothing -- we can't tell which individual commodities within a stale snapshot might still
+        # be accurate, so a snapshot that isn't confirmed newer contributes nothing, not even new commodities.
+        if data.get('timestamp', 0) <= self.data_time + EDDN_LAG_TIME: return False
+
         # No real cargo insight for this carrier, so take the market snapshot as our best guess verbatim.
         # RC's cargo entries carry 'cargo' directly (trusted as real held quantity); Spansh's carry 'sell'/'buy'.
         source:str = "Spansh" if spansh else "RC"
         for comm, item in cargo.items():
-            if comm in self.cargo['normal'] and not newer: continue
             entry:dict = self.cargo['normal'].setdefault(comm, {'locName': comm, 'category': 'Unknown', 'cargo': None, 'sell': 0, 'buy': 0, 'price': 0})
             before:dict = dict(entry)
             for key in ('locName', 'category', 'cargo', 'sell', 'buy', 'price'):
@@ -285,8 +287,8 @@ class FleetCarrier:
 
             if entry != before: Debug.logger.debug(f"{source} merge for {comm}: {before} -> {entry}")
 
-        if newer: self._touch(data.get('timestamp', 0))
-        return newer
+        self._touch(data.get('timestamp', 0))
+        return True
 
 
     @catch_exceptions

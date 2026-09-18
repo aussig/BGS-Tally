@@ -246,6 +246,9 @@ class FleetCarrier:
         """ Merge a normalized RC/Spansh snapshot; overview always refreshes, cargo respects data's own freshness """
         if not data: return False
 
+        newer:bool = data.get('timestamp', 0) > self.data_time + EDDN_LAG_TIME
+        if spansh and (self.carrier_type == FleetCarrierType.PERSONAL or not newer): return False
+
         for key, value in data.get('overview', {}).items():
             if value is None: continue
             if key == 'callsign' and self.overview.get('callsign'): continue
@@ -263,17 +266,10 @@ class FleetCarrier:
         cargo:dict = data.get('cargo', {})
         if not cargo: return False
 
-        # Spansh only reflects the last market snapshot, missing every trade since, so for our own carrier
-        # it's strictly worse than the journal and CAPI. Take its overview above but never its cargo.
-        if spansh and self.carrier_type == FleetCarrierType.PERSONAL: return False
-
-        # All or nothing -- we can't tell which individual commodities within a stale snapshot might still
-        # be accurate, so a snapshot that isn't confirmed newer contributes nothing, not even new commodities.
-        if data.get('timestamp', 0) <= self.data_time + EDDN_LAG_TIME: return False
-
         # No real cargo insight for this carrier, so take the market snapshot as our best guess verbatim.
         # RC's cargo entries carry 'cargo' directly (trusted as real held quantity); Spansh's carry 'sell'/'buy'.
         source:str = "Spansh" if spansh else "RC"
+        changed:bool = False
         for comm, item in cargo.items():
             entry:dict = self.cargo['normal'].setdefault(comm, {'locName': comm, 'category': 'Unknown', 'cargo': None, 'sell': 0, 'buy': 0, 'price': 0})
             before:dict = dict(entry)
@@ -285,10 +281,13 @@ class FleetCarrier:
                 Debug.logger.error(f"{source} reports both buy and sell for {comm}, trusting the buy order")
                 entry['sell'] = 0
 
-            if entry != before: Debug.logger.debug(f"{source} merge for {comm}: {before} -> {entry}")
+            if entry != before:
+                Debug.logger.debug(f"{source} merge for {comm}: {before} -> {entry}")
+                changed = True
 
-        self._touch(data.get('timestamp', 0))
-        return True
+        # Only record this as a confirmed-fresh reading if the timestamp backs that up
+        if newer: self._touch(data.get('timestamp', 0))
+        return changed
 
 
     @catch_exceptions

@@ -1029,3 +1029,49 @@ class CarrierUnused:
         fc._from_dict(data)
         assert fc.carrier_id == 12345
         assert fc.overview['name'] == 'Test'
+
+
+class TestRavenColonialMerge:
+    """ Test RC's data being merged onto a carrier, with and without a usable lastRefresh """
+
+    def _rc(self, commodities:dict, timestamp:int = 0) -> dict:
+        """ A normalized RC envelope, as RavenColonial.get_carrier() would return it """
+        return {'timestamp': timestamp, 'overview': {}, 'cargo': commodities}
+
+    def test_rc_without_timestamp_still_overwrites(self, harness) -> None:
+        """ Test RC with no usable lastRefresh is still trusted -- every push replaces the whole record """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+
+        changed:bool = fc.merge(self._rc({
+            'tritium': {'cargo': 1},  # Already known -- RC's copy is trusted anyway
+            'water': {'cargo': 5},    # Never seen before
+        }))
+
+        assert changed is True
+        assert fc.cargo['normal']['tritium']['cargo'] == 1
+        assert fc.cargo['normal']['water']['cargo'] == 5
+
+    def test_rc_without_timestamp_does_not_confirm_freshness(self, harness) -> None:
+        """ Test an unconfirmed RC merge doesn't count as a confirmed-fresh reading """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        before_data_time:int = fc.data_time
+        before_last_modified:int = fc.last_modified
+
+        fc.merge(self._rc({'water': {'cargo': 5}}))
+
+        assert fc.data_time == before_data_time
+        assert fc.last_modified == before_last_modified
+
+    def test_rc_with_confirmed_timestamp_updates_freshness(self, harness) -> None:
+        """ Test RC with a confirmed-newer lastRefresh records it as a genuinely fresh reading """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+
+        changed:bool = fc.merge(self._rc({'tritium': {'cargo': 1}}, timestamp=int(datetime.now(UTC).timestamp()) + 3600))
+
+        assert changed is True
+        assert fc.cargo['normal']['tritium']['cargo'] == 1
+        assert fc.last_modified > 0

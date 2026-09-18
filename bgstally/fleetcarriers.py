@@ -13,8 +13,10 @@ from bgstally.ravencolonial import Spansh
 from bgstally.utils import catch_exceptions
 
 class FleetCarriers:
-    """ Tracks every FleetCarrier we know about: our personal carrier, our squadron's, and any
-    third-party carrier we've visited and chosen to track. """
+    """
+    Tracks every FleetCarrier we know about: our personal carrier, our squadron's, and any third-party carrier we've visited and
+    chosen to track.
+    """
 
     @catch_exceptions
     def __init__(self, bgstally: 'BGSTally') -> None:
@@ -65,6 +67,7 @@ class FleetCarriers:
         """ Return an already-known carrier by id alone, without creating a new one """
         if carrier_id == self.personal.carrier_id: return self.personal
         return self.carriers.get(carrier_id)
+
 
     @catch_exceptions
     def fss_signal(self, entry:dict) -> None:

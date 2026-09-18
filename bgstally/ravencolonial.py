@@ -702,7 +702,7 @@ class RavenColonial:
             Debug.logger.warning(f"Error updating carrier {response} {response.content}")
             return
 
-        Debug.logger.debug(f"RavenColonial carrier updated: {response}")
+        Debug.logger.debug(f"RavenColonial carrier update submitted: {response}")
 
 
     @catch_exceptions
@@ -722,7 +722,7 @@ class RavenColonial:
 
         # 'sales'/'purchases' may be entirely absent if whoever last pushed this carrier never populated them --
         # in that case we can't trust their absence as "confirmed nothing", so leave buy/sell out of the merge.
-        if 'sales' in data or 'purchases' in data:
+        if data.get('sales', []) or data.get('purchases', []):
             for entry in cargo.values(): entry['sell'] = 0; entry['buy'] = 0
             for sale in data.get('sales') or []:
                 comm:str = sale.get('name', '')

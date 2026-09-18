@@ -120,7 +120,7 @@ class RavenColonial:
         """ Return the headers to use for RavenColonial API calls """
         headers:dict = self.base_headers
         if self.colonisation.cmdr != None: headers["rcc-cmdr"] = self.colonisation.cmdr
-        if self.bgstally.state.ColonisationRCAPIKey.get() != None: headers["rcc-key"] = self.bgstally.state.ColonisationRCAPIKey.get()
+        if self.bgstally.state.colonisation_rc_api_key != None: headers["rcc-key"] = self.bgstally.state.colonisation_rc_api_key
         return headers
 
 
@@ -131,7 +131,7 @@ class RavenColonial:
         if system == None or system.get('RCOpen', False) == True:
             return True
 
-        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
+        if self.colonisation.cmdr == None or self.bgstally.state.colonisation_rc_api_key == None or self.bgstally.state.colonisation_rc_api_key == '':
             return False
 
         return self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
@@ -674,7 +674,7 @@ class RavenColonial:
     @catch_exceptions
     def update_carrier(self, fc:'FleetCarrier') -> None:
         """ Push this carrier's cargo/buy/sell orders to RavenColonial, merged onto its current record """
-        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
+        if self.colonisation.cmdr == None or self.bgstally.state.colonisation_rc_api_key == None or self.bgstally.state.colonisation_rc_api_key == '':
             Debug.logger.info("Not updating carrier in RavenColonial")
             return
 

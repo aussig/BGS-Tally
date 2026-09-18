@@ -127,6 +127,7 @@ class State:
         self.overlay_objectives_mode:int = int(self.OverlayObjectivesMode.get())
         self.favourite_activity_mode:str = str(self.FavouriteActivityMode.get())
         self.fc_cooldown:str = str(self.FcCooldown.get())
+        self.colonisation_rc_api_key:str = str(self.ColonisationRCAPIKey.get())
 
 
     def save(self):

@@ -1417,7 +1417,7 @@ class ColonisationWindow:
         RavenColonial(self.colonisation).load_system(system.get('SystemAddress', ''), system.get('Rev', ''), True)
 
         if self.bgstally.fleet_carrier.available() == True:
-            RavenColonial(self.colonisation).update_carrier(self.bgstally.fleet_carrier.carrier_id, self.colonisation.carrier_cargo)
+            RavenColonial(self.colonisation).update_carrier(self.bgstally.fleet_carrier)
 
 
     @catch_exceptions

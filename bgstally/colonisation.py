@@ -83,7 +83,7 @@ class Colonisation:
         self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost', 'Readonly']
         self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync', 'BuildSlots', 'RCCommander', 'RCOpen']
         self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost', 'Readonly']
-        self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
+        self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered', 'LinkedFC']
 
         self.window_geometries:dict = {}
 
@@ -1038,6 +1038,11 @@ class Colonisation:
                 return p
         return None
 
+
+    def is_carrier_linked(self, carrier_id:int) -> bool:
+        ''' Whether RC currently lists this carrier as linked to any of our tracked builds '''
+        return any(carrier_id in p.get('LinkedFC', []) for p in self.progress)
+
     @catch_exceptions
     def update_progress(self, id:int, data:dict, silent:bool = False) -> None:
         ''' Update a progress record '''
@@ -1111,13 +1116,12 @@ class Colonisation:
             if cargo_item.get('buy', 0) > 0:
                 buyorder[name] = int(cargo_item.get('buy', 0))
 
-        if cargo != self.carrier_cargo and self.cmdr != None:
+        # We push sales and purchases as well as cargo, so any of the three changing is worth sending
+        changed:bool = cargo != self.carrier_cargo or buyorder != self.carrier_buy or sell != self.carrier_sell
+        if changed and self.cmdr != None:
             RavenColonial(self).update_carrier(self.bgstally.fleet_carrier)
 
-        if cargo != self.carrier_cargo or self.carrier_buy != buyorder or self.carrier_sell != sell:
-            self.carrier_buy = buyorder
-            self.carrier_cargo = cargo
-            self.carrier_sell = sell
+        if changed:
             self.bgstally.ui.window_progress.update_display()
 
         self.carrier_buy = buyorder

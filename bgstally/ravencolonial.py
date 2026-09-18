@@ -563,8 +563,8 @@ class RavenColonial:
             if rcval != None and v != 'Updated':
                 payload[k] = rcval
 
-        if payload == self._cache.get(progress.get('ProjectID', ''), {}):return
-        self._cache[progress.get('ProjectID', '')] = payload
+        if payload == self._cache.get(f"upsert_{progress.get('ProjectID', '')}", {}): return
+        self._cache[f"upsert_{progress.get('ProjectID', '')}"] = payload
 
         url:str = f"{RC_API}/project/{progress.get('ProjectID')}"
         self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, headers=self._headers(), callback=self._project_callback)
@@ -633,7 +633,7 @@ class RavenColonial:
             return
 
         data:dict = response.json()
-        self._cache[data.get('buildId')] = data.get('timestamp')
+        self._cache[f"project_{data.get('buildId')}"] = data.get('timestamp')
         update:dict = {}
         for k, v in self.project_params.items():
             if data.get(k, None) == None:
@@ -642,6 +642,10 @@ class RavenColonial:
                 update[v] = re.sub(r"\.\d+\+00:00$", "Z", str(data.get(k, None)))
                 continue
             update[v] = data.get(k, '') if isinstance(data.get(k, None), str) and 'name' not in k.lower() else data.get(k, None)
+
+        if data.get('linkedFC') is not None:
+            # Carriers RC considers linked to this build -- used to gate which third-party carriers we push to RC
+            update['LinkedFC'] = [int(fc['marketId']) for fc in data['linkedFC'] if fc.get('marketId') is not None]
 
         if update != {}:
             self.colonisation.update_progress(data.get('marketId', 0), update, True)
@@ -674,6 +678,16 @@ class RavenColonial:
             Debug.logger.info("Not updating carrier in RavenColonial")
             return
 
+        # Callers only get here once they've detected a real cargo/buy/sell change, so the push itself is
+        # never skipped -- only the GET for RC's other fields (name, system, etc.) is cached and reused,
+        # since those rarely change and don't need re-fetching before every single push.
+        cache_key:str = f'push_{fc.carrier_id}'
+        cached:dict|None = self._cache.get(cache_key)
+        if cached and cached['ts'] > int(time.time()) - RC_COOLDOWN:
+            Debug.logger.debug(f"Reusing cached RC record for carrier {fc.carrier_id}, skipping GET")
+            self._push_carrier(fc, dict(cached['doc']))
+            return
+
         url:str = f"{RC_API}/fc/{fc.carrier_id}"
         self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=partial(self._carrier_fetched_callback, fc))
 
@@ -683,9 +697,16 @@ class RavenColonial:
         """ Continue the async cargo push once we have the carrier's current RavenColonial record """
         if success == False or response.status_code != 200: return
 
-        inventory:dict = fc.get_cargo('normal').get('inventory', {})
         view:dict = response.json()
-        view['cargo'] = {comm: int(item.get('cargo') or 0) for comm, item in inventory.items()}
+        self._cache[f'push_{fc.carrier_id}'] = {'ts': int(time.time()), 'doc': view}
+        self._push_carrier(fc, view)
+
+
+    def _push_carrier(self, fc:'FleetCarrier', view:dict) -> None:
+        """ Merge our current cargo/buy/sell onto an RC carrier record and push it """
+        inventory:dict = fc.get_cargo('normal').get('inventory', {})
+        # A cargo of None means we've never had visibility of it -- don't publish that as a confirmed zero
+        view['cargo'] = {comm: int(item['cargo']) for comm, item in inventory.items() if item.get('cargo') is not None}
         view['sales'] = [{'name': comm, 'price': item.get('price', 0), 'total': item.get('sell', 0)}
                           for comm, item in inventory.items() if item.get('sell', 0) > 0]
         view['purchases'] = [{'name': comm, 'price': item.get('price', 0), 'outstanding': item.get('buy', 0)}
@@ -738,8 +759,14 @@ class RavenColonial:
         else:
             Debug.logger.debug(f"RC carrier {marketid} has no order data, only applying cargo from RC: {cargo}")
 
+        timestamp:int = self._parse_time(data.get('lastRefresh'))
+        if timestamp == 0:
+            # merge() can't tell this is newer than what we hold, so it'll only take commodities we've never seen
+            Debug.logger.warning(f"RC carrier {marketid} has no usable lastRefresh ({data.get('lastRefresh')}), "
+                                 "so only commodities we don't already know will be merged")
+
         return {
-            'timestamp': self._parse_time(data.get('lastRefresh')),
+            'timestamp': timestamp,
             'overview': {
                 'callsign': data.get('name'),
                 'name': data.get('displayName'),

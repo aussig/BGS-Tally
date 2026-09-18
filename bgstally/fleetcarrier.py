@@ -276,7 +276,7 @@ class FleetCarrier:
             for key in ('locName', 'category', 'cargo', 'sell', 'buy', 'price'):
                 if key in item: entry[key] = item[key]
 
-            if entry['buy'] > 0 and entry['sell'] > 0:
+            if entry.get('buy', 0) > 0 and entry.get('sell', 0) > 0:
                 # Can't be doing both, and a lagging snapshot is likelier to still show the finished side
                 Debug.logger.error(f"{source} reports both buy and sell for {comm}, trusting the buy order")
                 entry['sell'] = 0

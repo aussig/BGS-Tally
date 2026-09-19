@@ -739,6 +739,7 @@ class RavenColonial:
         if response.status_code != 200: return None
 
         data:dict = response.json()
+        which:str = data.get('name', marketid)
         cargo:dict = {comm: {'cargo': qty} for comm, qty in data.get('cargo', {}).items()}
 
         # 'sales'/'purchases' may be entirely absent if whoever last pushed this carrier never populated them --
@@ -755,13 +756,13 @@ class RavenColonial:
                 if comm == '': continue
                 cargo.setdefault(comm, {})['buy'] = int(purchase.get('outstanding', 0))
                 cargo[comm]['price'] = int(purchase.get('price', 0))
-            Debug.logger.debug(f"RC carrier {marketid} has order data, applying buy/sell from RC: {cargo}")
+            Debug.logger.debug(f"RC carrier {which} has order data, applying buy/sell from RC: {cargo}")
         else:
-            Debug.logger.debug(f"RC carrier {marketid} has no order data, only applying cargo from RC: {cargo}")
+            Debug.logger.debug(f"RC carrier {which} has no order data, only applying cargo from RC: {cargo}")
 
         timestamp:int = self._parse_time(data.get('lastRefresh'))
         if timestamp == 0:
-            Debug.logger.debug(f"RC carrier {marketid} has no usable lastRefresh ({data.get('lastRefresh')})")
+            Debug.logger.debug(f"RC carrier {which} has no usable lastRefresh ({data.get('lastRefresh')})")
 
         return {
             'timestamp': timestamp,
@@ -775,12 +776,12 @@ class RavenColonial:
 
 
     def is_tracked(self, marketid:int) -> bool:
-        """ Whether RC is currently known to track this carrier, from the last successful get_carrier() check """
+        """ Whether RC is currently known to track this carrier """
         return self._rc_tracked.get(marketid, False)
 
 
     def _parse_time(self, updated_at:str|None) -> int:
-        """ Parse an ISO8601 timestamp (RC's lastRefresh, Spansh's market_updated_at), or 0 if missing/unparseable """
+        """ Parse an ISO8601 timestamp or 0 if missing/unparseable """
         if not updated_at: return 0
         try:
             return int(datetime.fromisoformat(updated_at.replace('Z', '+00:00')).timestamp())
@@ -1069,7 +1070,9 @@ class Spansh:
         if success == False: return
 
         fc.merge(self._normalize_market(response.json().get('record', {})), spansh=True)
-        RavenColonial(self).bgstally.ui.window_fc.update_carrier_display(fc)
+        ui = RavenColonial(self).bgstally.ui
+        if ui.frame is not None:
+            ui.frame.after(0, partial(ui.window_fc.update_carrier_display, fc))
 
     @catch_exceptions
     def get_market(self, fc:'FleetCarrier') -> dict|None:

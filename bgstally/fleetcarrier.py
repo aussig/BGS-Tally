@@ -774,13 +774,11 @@ class FleetCarrier:
         # CAPI is our most-behind source but never partially wrong, so take it wholesale rather than
         # merge, which would read any gap in the response as a confirmed zero
         new_cargo:dict = self._update_cargo(self.data)
-        Debug.logger.debug(f"No recent activity, taking CAPI cargo as authoritative: {self.cargo['normal']} -> {new_cargo['normal']}")
+        Debug.logger.debug(f"No recent activity, accepting CAPI cargo: {self.cargo['normal']} -> {new_cargo['normal']}")
         self.cargo = new_cargo
         # CAPI stamps the snapshot itself, so we know its real age rather than assuming the worst. Trades we
         # had no part in never reach us, so anything RC has from after this still beats it.
-        capi_time:int = int(time.time()) - FDEV_SLACKING_TIME
-        try: capi_time = int(self._parse_date(self.data['timestamp']).timestamp())
-        except (KeyError, ValueError): Debug.logger.warning("No usable CAPI timestamp, assuming the worst")
+        capi_time:int = int(self._parse_date(self.data['timestamp']).timestamp()) if 'timestamp' in self.data else int(time.time()) - FDEV_SLACKING_TIME
         self._touch(capi_time)
         self.bgstally.colonisation._update_carrier() # Pushes to RC if this changed our cargo
         self.bgstally.ui.window_fc.update_carrier_display(self)

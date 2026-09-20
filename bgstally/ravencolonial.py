@@ -756,16 +756,12 @@ class RavenColonial:
                 if comm == '': continue
                 cargo.setdefault(comm, {})['buy'] = int(purchase.get('outstanding', 0))
                 cargo[comm]['price'] = int(purchase.get('price', 0))
-            Debug.logger.debug(f"RC carrier {which} has order data, applying buy/sell from RC: {cargo}")
+            Debug.logger.debug(f"RC carrier {which} ({data.get('lastRefresh')}) has order data: {cargo}")
         else:
-            Debug.logger.debug(f"RC carrier {which} has no order data, only applying cargo from RC: {cargo}")
-
-        timestamp:int = self._parse_time(data.get('lastRefresh'))
-        if timestamp == 0:
-            Debug.logger.debug(f"RC carrier {which} has no usable lastRefresh ({data.get('lastRefresh')})")
+            Debug.logger.debug(f"RC carrier {which} ({data.get('lastRefresh')}) only has cargo data: {cargo}")
 
         return {
-            'timestamp': timestamp,
+            'timestamp': self._parse_time(data.get('lastRefresh')),
             'overview': {
                 'callsign': data.get('name'),
                 'name': data.get('displayName'),

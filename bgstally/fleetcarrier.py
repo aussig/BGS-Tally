@@ -1158,17 +1158,10 @@ class FleetCarrier:
             buy:int = int(item.get('buy', 0))
             sell:int = int(item.get('sell', 0))
 
-            # We can only be buying or selling, never both -- whichever side is (or was) active governs cargo
-            if buy > 0 or int(entry.get('buy', 0)) > 0:
-                # Buying, or a buy order just completed -- infer a cargo change from the demand delta
-                if buy != int(entry.get('buy', 0)):
-                    diff:int = int(entry.get('buy', 0)) - buy
-                    entry['cargo'] = (entry.get('cargo') or 0) + diff
-            elif sell > 0:
-                # Selling -- can't list less than held, so cargo must always equal sell
+            if entry.get('cargo') is not None and int(entry.get('buy', 0)) > buy:
+                entry['cargo'] += int(entry.get('buy', 0)) - buy
+            if entry.get('cargo') is not None and sell > 0:
                 entry['cargo'] = sell
-            # else sell just dropped to zero -- could be sold out or just delisted/cancelled, we can't tell
-            # which from market data alone, so leave cargo as-is rather than assume it was sold
 
             entry['buy'] = buy
             entry['sell'] = sell
@@ -1270,11 +1263,14 @@ class FleetCarrier:
             deets['sell'] = max(0, deets['sell'] + amt)
             if deets['sell'] == 0: deets['price'] = 0
 
-        deets['cargo'] = (deets.get('cargo') or 0) + amt
+        # A delta only means something against a known baseline -- without one (no CAPI, no RC figure yet)
+        # our own trade here is just one transaction against an unknown total, not its held quantity.
+        if deets.get('cargo') is not None:
+            deets['cargo'] += amt
 
-        if deets['cargo'] < 0:
-            Debug.logger.error(f"Correcting negative cargo {deets}")
-            deets['cargo'] = 0
+            if deets['cargo'] < 0:
+                Debug.logger.error(f"Correcting negative cargo {deets}")
+                deets['cargo'] = 0
 
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
@@ -1474,7 +1470,7 @@ class FleetCarrier:
         return {
             'locName': details.get('Name', alt),
             'category': details.get('Category', 'Unknown'),
-            'cargo': 0, # Actual held quantity -- only ever meaningful for the personal carrier
+            'cargo': None, # Actual held quantity -- unknown until CAPI, a personal trade/transfer, or RC tells us
             'sell': 0, # Quantity currently listed for sale
             'buy': 0, # Outstanding purchase order quantity
             'price': 0

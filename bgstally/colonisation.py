@@ -632,7 +632,7 @@ class Colonisation:
         # Match on site name.
         if data.get('Name', None) != None:
             for build in builds:
-                if build.get('Name', None) != None and build.get('Name', None) == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')):
+                if build.get('Name', None) != None and build.get('Name', '').lower() == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')).lower():
                     return build
 
         # Match on name if we can.

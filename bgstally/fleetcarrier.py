@@ -774,7 +774,7 @@ class FleetCarrier:
         # CAPI is our most-behind source but never partially wrong, so take it wholesale rather than
         # merge, which would read any gap in the response as a confirmed zero
         new_cargo:dict = self._update_cargo(self.data)
-        Debug.logger.debug(f"No recent activity, accepting CAPI cargo: {self.cargo['normal']} -> {new_cargo['normal']}")
+        Debug.logger.debug(f"No recent activity, accepting CAPI cargo")
         self.cargo = new_cargo
         # CAPI stamps the snapshot itself, so we know its real age rather than assuming the worst. Trades we
         # had no part in never reach us, so anything RC has from after this still beats it.
@@ -1169,12 +1169,12 @@ class FleetCarrier:
             entry['price'] = int(item.get('price', 0)) if buy > 0 or sell > 0 else 0
 
             if (entry.get('cargo') or 0) < 0:
-                Debug.logger.error(f"Negative cargo {entry}")
+                Debug.logger.error(f"{self.overview.get('callsign', self.carrier_id)} negative cargo {entry}")
                 entry['cargo'] = 0
                 self.last_modified = 0
 
             if entry != before:
-                Debug.logger.debug(f"Market update for {comm}: {before} -> {entry}")
+                Debug.logger.debug(f"{self.overview.get('callsign', self.carrier_id)} market update for {comm}: {before} -> {entry}")
                 changed = True
 
         # Now check for orders that ended by going through all the cargo and finding any commodities
@@ -1186,12 +1186,12 @@ class FleetCarrier:
             if comm in commodities.keys() or deets['price'] == 0: continue
 
             if deets.get('buy', 0) > 0: # We were buying but someone must have completed the buy order
-                Debug.logger.debug(f"{comm} vanished from market data while buying, clearing buy order: {deets}")
+                Debug.logger.debug(f"{self.overview.get('callsign', self.carrier_id)} {comm} vanished while buying, clearing buy order: {deets}")
                 deets['buy'] = 0
                 deets['price'] = 0
                 changed = True
             if deets.get('sell', 0) > 0: # We were selling -- may have sold out, or just delisted, can't tell which
-                Debug.logger.debug(f"{comm} vanished from market data while selling, clearing sell listing: {deets}")
+                Debug.logger.debug(f"{self.overview.get('callsign', self.carrier_id)} {comm} vanished while selling, clearing sell listing: {deets}")
                 deets['sell'] = 0
                 deets['price'] = 0
                 changed = True

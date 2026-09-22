@@ -730,9 +730,11 @@ class RavenColonial:
     def get_carrier(self, marketid:int) -> dict|None:
         """ Synchronously fetch RC's current view of a carrier, normalized for FleetCarrier.merge() """
         cache_key:str = f'fc_{marketid}'
-        if self._cache.get(cache_key, 0) > int(time.time()) - RC_COOLDOWN: return None
+
+        if self._cache.get(cache_key, 0) > int(time.time()) - (RC_COOLDOWN if self.is_editable() else RC_COOLDOWN * 10): return None
         self._cache[cache_key] = int(time.time())
 
+        # A get tells us if this carrier is being tracked by RC, and if so gives us its current cargo/buy/sell state.
         url:str = f"{RC_API}/fc/{marketid}"
         response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
         self._rc_tracked[marketid] = response.status_code == 200

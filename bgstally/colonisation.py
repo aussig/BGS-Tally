@@ -177,16 +177,19 @@ class Colonisation:
                     return
 
                 system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-                if system != None and system.get('Hidden', True) == False and system.get('RCSync', False) == True:
-                    for progress in self.progress:
-                        if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
-                            rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
+                if system == None or system.get('Hidden', False) == True or system.get('RCSync', False) == False:
+                    Debug.logger.warning(f"Ignoring ColonisationContribution event (system issues).")
+                    return
 
-                            # Just in case we don't have the ProjectID on the build, add it now.
-                            b:dict|None = self.find_build(system, {'MarketID': self.market_id})
-                            if b != None and b.get('ProjectID', None) == None:
-                                self.modify_build(system, b.get('BuildID', ''), {'ProjectID': progress.get('ProjectID', None)})
-                            break
+                for progress in self.progress:
+                    if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
+                        rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
+
+                        # Just in case we don't have the ProjectID on the build, add it now.
+                        b:dict|None = self.find_build(system, {'MarketID': self.market_id})
+                        if b != None and b.get('ProjectID', None) == None:
+                            self.modify_build(system, b.get('BuildID', ''), {'ProjectID': progress.get('ProjectID', None)})
+                        return
 
             case 'ColonisationSystemClaim':
                 if not self.current_system or not self.system_id:

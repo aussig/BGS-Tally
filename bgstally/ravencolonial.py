@@ -655,10 +655,6 @@ class RavenColonial:
     def record_contribution(self, project_id:int, contributions:list[dict]) -> None:
         """ Record colonisation contributions made """
 
-        #if self.is_editable() == False:
-        #    Debug.logger.info("Not recording contribution with RavenColonial")
-        #    return
-
         payload:dict = {re.sub(r"\$(.*)_name;$", r"\1", c.get('Name', '').lower()): c.get('Amount', 0) for c in contributions}
 
         # Which of the following to use?

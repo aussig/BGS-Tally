@@ -14,8 +14,8 @@ from edmc_data import ship_name_map # type: ignore
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
-from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_CARRIERS, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DiscordChannel, FleetCarrierJump,
-                                FleetCarrierType)
+from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_CARRIERS, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DataTier, DiscordChannel,
+                                FleetCarrierJump, FleetCarrierType)
 from bgstally.debug import Debug
 from bgstally.ravencolonial import RavenColonial, Spansh
 from bgstally.utils import _, __, catch_exceptions, get_by_path
@@ -26,6 +26,7 @@ FC_MAX_SHIPS = 40
 FC_MAX_JUMPS_TRACKED = 250
 FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 EDDN_LAG_TIME = 60 # How long behind EDDN may be in seconds
+RC_STALE_VS_MARKET_GAP = 1800 # If market_time outpaces an RC-sourced cargo_time by this much, RC's cargo is stale
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
 UPDATE_LOCAL_COOLDOWN = 60 # update_carrier() cooldown for a carrier in our current system
 UPDATE_REMOTE_COOLDOWN = (60 * 15) # update_carrier() cooldown for a carrier elsewhere
@@ -51,8 +52,11 @@ class FleetCarrier:
         self.route:list = [] # Planned route
         self.shipyard:dict = {'overview': {}, 'ships': {}} # Local copy of shipyard data
         self.modules:dict = {'overview': {}, 'modules': {}} # Local copy of stored module data
-        self.last_modified:int = 0 # Wall clock time we last changed our data, gates out of date CAPI data
-        self.data_time:int = 0 # Timestamp of the data itself, gates sources older than what we already hold
+        self.cargo_tier:DataTier = DataTier.UNKNOWN # Which source last supplied our held cargo reading
+        self.cargo_time:int = 0 # Our best (discounted) estimate of when that cargo reading was true
+        self.market_tier:DataTier = DataTier.UNKNOWN # Which source last supplied our held buy/sell/price reading
+        self.market_time:int = 0 # Our best (discounted) estimate of when that market reading was true
+        self._rc_last_cargo:dict|None = None # Last RC cargo snapshot (comm -> qty), for change-detection
         self.data:dict = {}  # Raw CAPI data
         self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
         self.timer:datetime|None = None
@@ -222,12 +226,11 @@ class FleetCarrier:
             Debug.logger.debug(f"Merging RC data for carrier {self.overview.get('callsign', self.carrier_id)}")
             self.merge(rc_data)
 
+        spansh_data:dict|None = Spansh().get_market(self)
         newer:bool = False
-        if self.carrier_type != FleetCarrierType.PERSONAL:
-            spansh_data:dict|None = Spansh().get_market(self)
-            if spansh_data:
-                Debug.logger.debug(f"Merging Spansh data for carrier {self.overview.get('callsign', self.carrier_id)}")
-                newer = self.merge(spansh_data, spansh=True)
+        if spansh_data:
+            Debug.logger.debug(f"Merging Spansh data for carrier {self.overview.get('callsign', self.carrier_id)}")
+            newer = self.merge(spansh_data, spansh=True)
 
         if newer and rc.is_tracked(self.carrier_id) and self.bgstally.colonisation.is_carrier_linked(self.carrier_id):
             Debug.logger.debug(f"Updating RC carrier data for {self.overview.get('callsign', self.carrier_id)}")
@@ -236,22 +239,66 @@ class FleetCarrier:
         self.bgstally.ui.window_fc.update_carrier_display(self)
 
 
-    def _touch(self, timestamp:int = 0) -> None:
-        """ Record that our cargo changed, and how fresh the data behind it is """
-        self.last_modified = int(time.time())
-        self.data_time = timestamp if timestamp else self.last_modified
+    def _touch_cargo(self, tier:DataTier, timestamp:int = 0) -> None:
+        """ Record that we now hold a cargo reading from `tier`, effective at `timestamp` (defaults to now) """
+        self.cargo_tier = tier
+        self.cargo_time = timestamp if timestamp else int(time.time())
+
+
+    def _touch_market(self, tier:DataTier, timestamp:int = 0) -> None:
+        """ Record that we now hold a buy/sell/price reading from `tier`, effective at `timestamp` (defaults to now) """
+        self.market_tier = tier
+        self.market_time = timestamp if timestamp else int(time.time())
 
 
     @catch_exceptions
     def merge(self, data:dict, spansh:bool = False) -> bool:
-        """ Merge a normalized RC/Spansh snapshot; overview always refreshes, cargo respects data's own freshness """
+        """ Merge a normalized RC/Spansh snapshot; cargo and market freshness are gated independently """
         if not data: return False
 
-        newer:bool = data.get('timestamp', 0) > self.data_time + EDDN_LAG_TIME
-        if spansh and (self.carrier_type == FleetCarrierType.PERSONAL or not newer): return False
+        changed:bool = self._merge_overview(data.get('overview', {}))
 
+        cargo:dict = data.get('cargo', {})
+        if not cargo: return changed
+
+        source:str = "Spansh" if spansh else "RC"
+        tier:DataTier = DataTier.SPANSH if spansh else DataTier.RC
+        if spansh:
+            # A real EDDN-derived timestamp, discounted by how far behind EDDN itself may be
+            effective_time:int = data.get('timestamp', 0) - EDDN_LAG_TIME
+        else:
+            effective_time = self._rc_effective_time(cargo)
+
+        if self._merge_cargo(cargo, tier, source, effective_time): changed = True
+        if self._merge_market(cargo, tier, source, effective_time): changed = True
+
+        # RC's cargo can go stale silently -- if the market's moved well past it, stop trusting it
+        if self.cargo_tier == DataTier.RC and self.market_time - self.cargo_time > RC_STALE_VS_MARKET_GAP:
+            for entry in self.cargo['normal'].values(): entry['cargo'] = None
+            self.cargo_tier = DataTier.UNKNOWN
+            self.cargo_time = 0
+            Debug.logger.debug(f"{self.overview['name']} RC cargo invalidated, market has moved on without it")
+            changed = True
+
+        return changed
+
+    def _default_cargo_entry(self, comm:str) -> dict:
+        """ A commodity entry with everything unknown, keyed by its own symbol as a display-name fallback """
+        return {'locName': comm, 'category': 'Unknown', 'cargo': None, 'sell': 0, 'buy': 0, 'price': 0}
+
+
+    def _rc_effective_time(self, cargo:dict) -> int:
+        """ RC gives no timestamp of its own, so synthesize one via change-detection """
+        snapshot:dict = {comm: item['cargo'] for comm, item in cargo.items() if 'cargo' in item}
+        if snapshot == self._rc_last_cargo: return self.cargo_time
+        self._rc_last_cargo = snapshot
+        return int(time.time())
+
+
+    def _merge_overview(self, overview:dict) -> bool:
+        """ Merge overview fields (name, docking access, etc); always applies, no freshness gate """
         changed:bool = False
-        for key, value in data.get('overview', {}).items():
+        for key, value in overview.items():
             if value is None: continue
             if key == 'callsign' and self.overview.get('callsign'): continue
             if self.overview.get(key) != value: changed = True
@@ -266,46 +313,87 @@ class FleetCarrier:
                 case _:
                     self.overview['name'] = ""
 
-        cargo:dict = data.get('cargo', {})
-        if not cargo: return changed
+        return changed
 
-        # No real cargo insight for this carrier, so take the market snapshot as our best guess verbatim.
-        # RC's cargo entries carry 'cargo' directly (trusted as real held quantity); Spansh's carry 'sell'/'buy'.
-        source:str = "Spansh" if spansh else "RC"
+
+    def _merge_cargo(self, cargo:dict, tier:DataTier, source:str, effective_time:int) -> bool:
+        """ Apply cargo figures from a snapshot that carries them (RC only), if fresher than what we hold """
+        if not any('cargo' in item for item in cargo.values()): return False
+        if effective_time <= self.cargo_time: return False
+
+        changed:bool = False
         for comm, item in cargo.items():
-            entry:dict = self.cargo['normal'].setdefault(comm, {'locName': comm, 'category': 'Unknown', 'cargo': None, 'sell': 0, 'buy': 0, 'price': 0})
+            if 'cargo' not in item: continue
+            entry:dict = self.cargo['normal'].setdefault(comm, self._default_cargo_entry(comm))
+            if entry['cargo'] != item['cargo']:
+                entry['cargo'] = item['cargo']
+                Debug.logger.debug(f"{self.overview['name']} {source} merge cargo for {comm}")
+                changed = True
+
+        # RC's list is a full manifest, so absence means gone, not just unmentioned
+        for comm in [comm for comm in self.cargo['normal'] if comm not in cargo and self.cargo['normal'][comm]['cargo'] is not None]:
+            self.cargo['normal'][comm]['cargo'] = None
+            Debug.logger.debug(f"{self.overview['name']} {source} cleared cargo for {comm}, no longer in snapshot")
+            changed = True
+
+        self._touch_cargo(tier, effective_time)
+        return changed
+
+
+    def _infer_cargo_from_trade(self, entry:dict, buy:int, sell:int) -> None:
+        """ A sell listing IS the held quantity; a buy delta only means something with a known baseline """
+        if entry.get('cargo') is None: return
+        if int(entry.get('buy', 0)) > buy:
+            entry['cargo'] += int(entry.get('buy', 0)) - buy
+        if sell > 0:
+            entry['cargo'] = sell
+
+
+    def _merge_market(self, cargo:dict, tier:DataTier, source:str, effective_time:int) -> bool:
+        """ Apply buy/sell/price figures from a snapshot that carries them, if fresher than what we hold """
+        if not any('sell' in item or 'buy' in item for item in cargo.values()): return False
+        if effective_time <= self.market_time: return False
+
+        # Only adjust cargo for our own carrier
+        cargo_eligible:bool = self.carrier_type == FleetCarrierType.PERSONAL and effective_time > self.cargo_time
+        changed:bool = False
+        cargo_changed:bool = False
+        for comm, item in cargo.items():
+            # a reference, changes will affect self.cargo['normal'][comm] directly
+            entry:dict = self.cargo['normal'].setdefault(comm, self._default_cargo_entry(comm))
             before:dict = dict(entry)
-            for key in ('locName', 'category', 'cargo', 'sell', 'buy', 'price'):
+            for key in ('locName', 'category'):
                 if key in item: entry[key] = item[key]
+
+            if 'sell' in item or 'buy' in item:
+                buy:int = int(item.get('buy', 0))
+                sell:int = int(item.get('sell', 0))
+                if cargo_eligible: self._infer_cargo_from_trade(entry, buy, sell)
+                entry['buy'] = buy
+                entry['sell'] = sell
+
+            if 'price' in item: entry['price'] = item['price']
 
             if entry.get('buy', 0) > 0 and entry.get('sell', 0) > 0:
                 # Can't be doing both, and a lagging snapshot is likelier to still show the finished side
                 Debug.logger.error(f"{self.overview['name']} {source} reports both buy and sell for {comm}, trusting the buy order")
                 entry['sell'] = 0
 
+            if entry.get('cargo') != before.get('cargo'): cargo_changed = True
             if entry != before:
-                Debug.logger.debug(f"{self.overview['name']} {source} merge for {comm}")
+                Debug.logger.debug(f"{self.overview['name']} {source} merge market for {comm}")
                 changed = True
 
-        # A snapshot is the WHOLE market, not a delta -- for any carrier but our own, a commodity it no
-        # longer mentions means we're no longer buying/selling it there. Our own carrier keeps what
-        # CAPI/our own tracking already knows, which is more complete than any snapshot, so nothing
-        # gets pruned there.
+        # A snapshot is the whole market, so absence means not traded, not just unmentioned
         for comm in [comm for comm in self.cargo['normal'] if comm not in cargo]:
-            entry:dict = self.cargo['normal'][comm]
-            if spansh and (entry.get('sell') or entry.get('buy') or entry.get('price')):
-                # Spansh never has an opinion on cargo
+            entry = self.cargo['normal'][comm]
+            if entry['sell'] or entry['buy'] or entry['price']:
                 entry['sell'] = entry['buy'] = entry['price'] = 0
                 Debug.logger.debug(f"{self.overview['name']} {source} cleared market side of {comm}, no longer in snapshot")
                 changed = True
 
-            if not spansh and 'cargo' in entry:
-                del self.cargo['normal'][comm]['cargo']
-                Debug.logger.debug(f"{self.overview['name']} {source} dropped {comm}, no longer in snapshot")
-                changed = True
-
-        # Only record this as a confirmed-fresh reading if the timestamp backs that up
-        if newer: self._touch(data.get('timestamp', 0))
+        self._touch_market(tier, effective_time)
+        if cargo_changed: self._touch_cargo(tier, effective_time)
         return changed
 
 
@@ -784,22 +872,23 @@ class FleetCarrier:
         self.locker = self._update_locker(self.data)
         self.itinerary = self._update_itinerary(self.data)
 
-        # All the following are time sensitive or updated locally, so only take CAPI's copy of them
-        # once nothing we know of has touched this carrier for FDEV_SLACKING_TIME
-        if self.last_modified > int(time.time()) - FDEV_SLACKING_TIME:
-            Debug.logger.debug("Ignoring CAPI cargo update")
+        # CAPI's timestamp is optimistic -- discount it rather than assume it's exactly current
+        effective_time:int = (int(self._parse_date(self.data['timestamp']).timestamp()) if 'timestamp' in self.data
+                              else int(time.time())) - FDEV_SLACKING_TIME
+
+        # CAPI's replace is atomic; a fresher reading of either half should block the whole thing
+        if effective_time <= self.cargo_time or effective_time <= self.market_time:
+            Debug.logger.debug("Ignoring CAPI cargo update, held reading is still fresher")
             self.bgstally.ui.window_fc.update_carrier_display(self)
             return
 
         # CAPI is our most-behind source but never partially wrong, so take it wholesale rather than
         # merge, which would read any gap in the response as a confirmed zero
         new_cargo:dict = self._update_cargo(self.data)
-        Debug.logger.debug(f"No recent activity, accepting CAPI cargo")
+        Debug.logger.debug(f"Accepting CAPI cargo")
         self.cargo = new_cargo
-        # CAPI stamps the snapshot itself, so we know its real age rather than assuming the worst. Trades we
-        # had no part in never reach us, so anything RC has from after this still beats it.
-        capi_time:int = int(self._parse_date(self.data['timestamp']).timestamp()) if 'timestamp' in self.data else int(time.time()) - FDEV_SLACKING_TIME
-        self._touch(capi_time)
+        self._touch_cargo(DataTier.CAPI, effective_time)
+        self._touch_market(DataTier.CAPI, effective_time)
         self.bgstally.colonisation._update_carrier() # Pushes to RC if this changed our cargo
         self.bgstally.ui.window_fc.update_carrier_display(self)
 
@@ -834,8 +923,9 @@ class FleetCarrier:
         # Sanity check
         if get_by_path(entry, ['SpaceUsage', 'FreeSpace'], 0) != self._get_freespace() or \
             get_by_path(entry, ['SpaceUsage', 'CargoSpaceReserved']) != self._get_reserved():
-            Debug.logger.error(f"Carrier space mismatch, clearing modification time")
-            self.last_modified = 0
+            Debug.logger.error(f"Carrier space mismatch, clearing cargo freshness")
+            self.cargo_tier = DataTier.UNKNOWN
+            self.cargo_time = 0
 
         if self.bgstally.dev_mode == True: self.save()
         self.bgstally.ui.window_fc.update_carrier_display(self)
@@ -1070,7 +1160,6 @@ class FleetCarrier:
         # { "timestamp":"2024-02-17T16:35:57Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "CancelTrade":true }
 
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
-        self._touch()
 
         comm:str = entry.get('Commodity', "").lower()
         if comm not in self.bgstally.ui.commodities:
@@ -1119,6 +1208,7 @@ class FleetCarrier:
             self.cargo['normal'][comm]['sell'] = entry.get('SaleOrder', 0)
             self.cargo['normal'][comm]['cargo'] = entry.get('SaleOrder', 0)
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
+            self._touch_cargo(DataTier.JOURNAL)
 
         if entry.get('PurchaseOrder') is not None:
             # If we were selling we need to clear the sell listing
@@ -1135,8 +1225,8 @@ class FleetCarrier:
         if (self.cargo['normal'][comm].get('cargo') or 0) < 0:
             Debug.logger.error(f"Negative cargo {self.cargo['normal'][comm]}")
             self.cargo['normal'][comm]['cargo'] = 0
-            self.last_modified = 0
 
+        self._touch_market(DataTier.JOURNAL)
         Debug.logger.debug(f"Trade order for {comm}: {before} -> {self.cargo['normal'][comm]}")
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
@@ -1146,7 +1236,6 @@ class FleetCarrier:
     def market(self, entry:dict) -> None:
         """ Market event, update our buy/sell/cargo """
         if entry.get("MarketID") != self.overview.get('carrier_id', ''): return
-        self._touch()
 
         if not self.bgstally.market.available(entry.get("MarketID", 0)):
             Debug.logger.debug(f"No market data available for CarrierID {entry.get('MarketID')}")
@@ -1163,8 +1252,6 @@ class FleetCarrier:
         }
         changed:bool = self._apply_market(commodities)
 
-        # The personal carrier is pushed via Colonisation's own journal-driven update; for any other carrier
-        # this direct market visit is the only place we'd otherwise learn of its cargo/buy/sell changing.
         # Only push it if RC actually considers it linked to one of our builds -- visiting it isn't enough.
         if changed and self.carrier_type != FleetCarrierType.PERSONAL and self.bgstally.colonisation.cmdr != None \
                 and self.bgstally.colonisation.is_carrier_linked(self.carrier_id):
@@ -1175,9 +1262,9 @@ class FleetCarrier:
 
 
     def _apply_market(self, commodities:dict) -> bool:
-        """ Diff a market snapshot against our cargo -- a sell listing tells us cargo outright,
-        a buy order only lets us infer a delta, and only once we have a baseline to apply it to """
+        """ Diff a market snapshot against our cargo, a sell listing tells us cargo, buy order lets us infer a delta """
         changed:bool = False
+        cargo_changed:bool = False
         for comm, item in commodities.items():
             if comm not in self.cargo['normal']:
                 self.cargo['normal'][comm] = self._init_cargo_item(comm, item.get('locName', comm))
@@ -1187,10 +1274,7 @@ class FleetCarrier:
             buy:int = int(item.get('buy', 0))
             sell:int = int(item.get('sell', 0))
 
-            if entry.get('cargo') is not None and int(entry.get('buy', 0)) > buy:
-                entry['cargo'] += int(entry.get('buy', 0)) - buy
-            if entry.get('cargo') is not None and sell > 0:
-                entry['cargo'] = sell
+            self._infer_cargo_from_trade(entry, buy, sell)
 
             entry['buy'] = buy
             entry['sell'] = sell
@@ -1200,8 +1284,8 @@ class FleetCarrier:
             if (entry.get('cargo') or 0) < 0:
                 Debug.logger.error(f"{self.overview.get('callsign', self.carrier_id)} negative cargo {entry}")
                 entry['cargo'] = 0
-                self.last_modified = 0
 
+            if entry.get('cargo') != before.get('cargo'): cargo_changed = True
             if entry != before:
                 Debug.logger.debug(f"{self.overview.get('callsign', self.carrier_id)} market update for {comm}: {before} -> {entry}")
                 changed = True
@@ -1225,6 +1309,8 @@ class FleetCarrier:
                 deets['price'] = 0
                 changed = True
 
+        self._touch_market(DataTier.JOURNAL)
+        if cargo_changed: self._touch_cargo(DataTier.JOURNAL)
         return changed
 
 
@@ -1232,7 +1318,7 @@ class FleetCarrier:
     def cargo_transfer(self, entry:dict) -> None:
         """ The user transferred cargo to or from the carrier generating a CargoTransfer event """
         # { "timestamp":"2025-03-22T15:15:21Z", "event":"CargoTransfer", "Transfers":[ { "Type":"steel", "Count":728, "Direction":"toship" }, { "Type":"titanium", "Count":56, "Direction":"toship" } ] }
-        self._touch()
+        self._touch_cargo(DataTier.JOURNAL)
 
         for i in entry.get('Transfers', []):
             # Direction is tocarrier, toship or tosrv -- the last is ship to SRV and never touches the carrier
@@ -1262,7 +1348,6 @@ class FleetCarrier:
                     if self.cargo['stolen'][comm]['cargo'] <= 0:
                         del self.cargo['stolen'][comm]
                 del self.cargo['normal'][comm]
-                self.last_modified = 0
 
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
@@ -1272,7 +1357,6 @@ class FleetCarrier:
     def market_activity(self, entry:dict) -> None:
         ''' We bought or sold to/from our carrier '''
         if entry.get('MarketID') != self.overview.get('carrier_id', ''): return
-        self._touch()
 
         #{ "timestamp":"2025-09-18T23:39:55Z", "event":"MarketBuy", "MarketID":3709409280, "Type":"fruitandvegetables", "Type_Localised":"Fruit and Vegetables", "Count":195, "BuyPrice":483, "TotalCost":94185 }
         comm:str = entry.get('Type', "").lower()
@@ -1292,8 +1376,7 @@ class FleetCarrier:
             deets['sell'] = max(0, deets['sell'] + amt)
             if deets['sell'] == 0: deets['price'] = 0
 
-        # A delta only means something against a known baseline -- without one (no CAPI, no RC figure yet)
-        # our own trade here is just one transaction against an unknown total, not its held quantity.
+        # A delta only means something with a known baseline -- otherwise it's not evidence of the total
         if deets.get('cargo') is not None:
             deets['cargo'] += amt
 
@@ -1301,6 +1384,9 @@ class FleetCarrier:
                 Debug.logger.error(f"Correcting negative cargo {deets}")
                 deets['cargo'] = 0
 
+            self._touch_cargo(DataTier.JOURNAL)
+
+        self._touch_market(DataTier.JOURNAL)
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
@@ -1511,8 +1597,11 @@ class FleetCarrier:
         return {
             'carrier_id': self.carrier_id,
             'carrier_type': self.carrier_type.value,
-            'last_modified': self.last_modified,
-            'data_time': self.data_time,
+            'cargo_tier': self.cargo_tier.value,
+            'cargo_time': self.cargo_time,
+            'market_tier': self.market_tier.value,
+            'market_time': self.market_time,
+            'rc_last_cargo': self._rc_last_cargo,
             'overview': self.overview,
             'cargo': self.cargo,
             'locker': self.locker,
@@ -1530,8 +1619,13 @@ class FleetCarrier:
         """ Populate our data from a Dictionary that has been deserialized """
         self.carrier_id = dict.get('carrier_id', 0)
         self.carrier_type = FleetCarrierType(dict.get('carrier_type', FleetCarrierType.PERSONAL))
-        self.last_modified = dict.get('last_modified', 0)
-        self.data_time = dict.get('data_time', self.last_modified) # Old saves predate the split
+        # Old saves predate the cargo/market freshness split -- fall back to the single value they had
+        old_time:int = dict.get('data_time', dict.get('last_modified', 0))
+        self.cargo_tier = DataTier(dict.get('cargo_tier', DataTier.UNKNOWN))
+        self.cargo_time = dict.get('cargo_time', old_time)
+        self.market_tier = DataTier(dict.get('market_tier', DataTier.UNKNOWN))
+        self.market_time = dict.get('market_time', old_time)
+        self._rc_last_cargo = dict.get('rc_last_cargo')
         self.overview = dict.get('overview', {})
 
         self.cargo = dict.get('cargo', {})

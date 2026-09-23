@@ -108,6 +108,17 @@ class FleetCarrierType(str, Enum):
     THIRDPARTY = 'ThirdPartyCarrier'
 
 
+# Which source last supplied a carrier's cargo/market reading. Metadata for logging and for
+# the RC-specific staleness check -- acceptance itself is decided by comparing timestamps,
+# not by tier.
+class DataTier(str, Enum):
+    UNKNOWN = 'Unknown'
+    SPANSH = 'Spansh'
+    RC = 'RC'
+    CAPI = 'CAPI'
+    JOURNAL = 'Journal'
+
+
 class FleetCarrierJump(str, Enum):
     Idle = 'Idle'
     Jumping = 'Jumping'

@@ -173,6 +173,16 @@ class TestFleetCarriers:
             fc.update_carrier('Some Other System', 'Mars') # Remote cooldown has now expired
             assert mock_rc.call_count == 3
 
+    def test_personal_carrier_queries_spansh(self, harness) -> None:
+        """ Test update_carrier() also queries Spansh for our own carrier -- merge()'s own freshness
+        gate protects it, so there's no need to exclude it here anymore. """
+        fc = harness.plugin.fleet_carrier
+
+        with patch('bgstally.ravencolonial.RavenColonial.get_carrier', return_value=None), \
+             patch('bgstally.ravencolonial.Spansh.get_market', return_value=None) as mock_spansh:
+            fc.update_carrier()
+            assert mock_spansh.call_count == 1
+
     def test_third_party_registry(self, harness) -> None:
         """ Test third_party and remove """
         from bgstally.constants import FleetCarrierType
@@ -662,22 +672,27 @@ class TestCarrierEvents:
         saved:dict = json.loads((harness.plugin_dir / "otherdata" / "fleetcarrier.json").read_text())
         expected:dict = json.loads((harness.plugin_dir / "config" / "fleetcarrier-capi-results.json").read_text())
 
-        # Applying CAPI stamps both with wall clock, so they can't be compared against a fixture
-        for k in ('last_modified', 'data_time'):
+        # Applying CAPI stamps these with wall clock (or its own timestamp), so they can't be
+        # compared against a fixture
+        for k in ('cargo_tier', 'cargo_time', 'market_tier', 'market_time', 'rc_last_cargo'):
             saved.pop(k, None)
             expected.pop(k, None)
         assert saved == expected
 
     def test_capi_dates_its_own_data(self, harness) -> None:
-        """ Test we age CAPI cargo by its own timestamp, so newer RC data can still win """
+        """ Test we discount CAPI cargo by its own lag margin, so a fresher RC reading can still win """
+        from bgstally.fleetcarrier import FDEV_SLACKING_TIME
+        from bgstally.constants import DataTier
         fc = harness.plugin.fleet_carrier
         capi_data:dict = harness.get_config_data('fleetcarrier-capi-data.json')
         capi_data['timestamp'] = '2026-03-20T03:00:28Z'
 
         fc.capi_update(capi_data)
 
-        assert fc.data_time == int(datetime.fromisoformat('2026-03-20T03:00:28Z').timestamp())
-        assert fc.last_modified > fc.data_time # We changed now, but the data itself is older
+        expected:int = int(datetime.fromisoformat('2026-03-20T03:00:28Z').timestamp()) - FDEV_SLACKING_TIME
+        assert fc.cargo_time == expected
+        assert fc.market_time == expected
+        assert fc.cargo_tier == DataTier.CAPI
 
     def test_stats_received_wrong_carrier(self, harness) -> None:
         """ Test stats_received() method """
@@ -856,12 +871,14 @@ class TestSpanshFleetCarrier:
         assert fc.cargo['normal']['tritium']['price'] == 0
         assert fc.cargo['normal']['tritium']['cargo'] == 999 # RC gave us this, Spansh has no opinion on it
 
-    def test_spansh_leaves_personal_cargo(self, harness) -> None:
-        """ Test Spansh can't touch our own carrier's cargo, where the journal and CAPI both know better """
+    def test_spansh_keeps_fresher_cargo(self, harness) -> None:
+        """ Test Spansh can't override a market reading that's already fresher than its own """
         from bgstally.ravencolonial import Spansh
+        from bgstally.constants import DataTier
         fc = harness.plugin.fleet_carrier
         fc.carrier_id = 3709409280
         fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+        fc._touch_market(DataTier.JOURNAL) # a real reading, already fresher than Spansh's own lag-discounted one
 
         response = self._market([
             {'commodity': 'Tritium', 'category': 'Chemicals', 'supply': 500, 'demand': 0, 'buy_price': 8000, 'sell_price': 0},
@@ -872,6 +889,24 @@ class TestSpanshFleetCarrier:
 
         assert fc.cargo['normal']['tritium'] == {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
         assert 'water' not in fc.cargo['normal']
+
+    def test_spansh_infers_personal_cargo(self, harness) -> None:
+        """ Test Spansh's buy/sell delta can adjust our own carrier's cargo, unlike a third party's """
+        from bgstally.ravencolonial import Spansh
+        fc = harness.plugin.fleet_carrier
+        fc.carrier_id = 3709409280
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 10, 'sell': 0, 'buy': 50, 'price': 100}
+        fc.cargo['normal']['water'] = {'locName': 'Water', 'category': 'Chemicals', 'cargo': 100, 'sell': 0, 'buy': 0, 'price': 0}
+
+        response = self._market([
+            {'commodity': 'Tritium', 'category': 'Chemicals', 'supply': 0, 'demand': 20, 'buy_price': 0, 'sell_price': 100}, # Buy order shrank 50 -> 20
+            {'commodity': 'Water', 'category': 'Chemicals', 'supply': 80, 'demand': 0, 'buy_price': 0, 'sell_price': 50},    # Now listed for sale
+        ])
+
+        Spansh()._fleetcarrier_callback(fc, True, response, Mock())
+
+        assert fc.cargo['normal']['tritium']['cargo'] == 40 # 10 + (50 - 20) sold to us
+        assert fc.cargo['normal']['water']['cargo'] == 80   # Can't list more for sale than held
 
     def test_spansh_commodity_name_mismatch(self, harness) -> None:
         """ Test a Spansh display name that doesn't reduce to its real symbol by stripping punctuation """
@@ -1071,31 +1106,31 @@ class TestRavenColonialMerge:
         assert fc.cargo['normal']['tritium']['cargo'] == 1
         assert fc.cargo['normal']['water']['cargo'] == 5
 
-    def test_rc_no_timestamp_unconfirmed(self, harness) -> None:
-        """ Test an unconfirmed RC merge doesn't count as a confirmed-fresh reading """
+    def test_rc_repeat_fetch_not_fresher(self, harness) -> None:
+        """ Test an identical repeat RC fetch doesn't advance cargo_time """
         from bgstally.constants import FleetCarrierType
         fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
-        before_data_time:int = fc.data_time
-        before_last_modified:int = fc.last_modified
-
         fc.merge(self._rc({'water': {'cargo': 5}}))
+        after_first:int = fc.cargo_time
 
-        assert fc.data_time == before_data_time
-        assert fc.last_modified == before_last_modified
+        fc.merge(self._rc({'water': {'cargo': 5}})) # Identical -- nothing new happened
 
-    def test_rc_timestamp_confirms_fresh(self, harness) -> None:
-        """ Test RC with a confirmed-newer lastRefresh records it as a genuinely fresh reading """
-        from bgstally.constants import FleetCarrierType
+        assert fc.cargo_time == after_first
+
+    def test_rc_change_detected_marks_fresh(self, harness) -> None:
+        """ Test a genuinely new RC cargo reading is recorded as a fresh reading """
+        from bgstally.constants import FleetCarrierType, DataTier
         fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
 
-        changed:bool = fc.merge(self._rc({'tritium': {'cargo': 1}}, timestamp=int(datetime.now(UTC).timestamp()) + 3600))
+        changed:bool = fc.merge(self._rc({'tritium': {'cargo': 1}}))
 
         assert changed is True
         assert fc.cargo['normal']['tritium']['cargo'] == 1
-        assert fc.last_modified > 0
+        assert fc.cargo_time > 0
+        assert fc.cargo_tier == DataTier.RC
 
     def test_rc_drops_stale_commodity(self, harness) -> None:
-        """ Test a commodity missing from a fresh snapshot is dropped, not left stale, for a carrier we don't own """
+        """ Test a commodity missing from a fresh snapshot loses its cargo figure, for a carrier we don't own """
         from bgstally.constants import FleetCarrierType
         fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
         fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
@@ -1103,15 +1138,17 @@ class TestRavenColonialMerge:
         changed:bool = fc.merge(self._rc({'water': {'cargo': 5}}))
 
         assert changed is True
-        assert 'tritium' not in fc.cargo['normal']
+        assert fc.cargo['normal']['tritium']['cargo'] is None
         assert fc.cargo['normal']['water']['cargo'] == 5
 
-    def test_rc_keeps_personal_cargo(self, harness) -> None:
-        """ Test our own carrier keeps commodities missing from a snapshot -- our own tracking is more complete """
+    def test_rc_keeps_fresher_cargo(self, harness) -> None:
+        """ Test RC can't override a cargo reading that's already fresher than its own """
+        from bgstally.constants import DataTier
         fc = harness.plugin.fleet_carrier
         fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+        fc._touch_cargo(DataTier.JOURNAL) # a real, already-fresher reading
 
         fc.merge(self._rc({'water': {'cargo': 5}}))
 
         assert fc.cargo['normal']['tritium']['cargo'] == 999
-        assert fc.cargo['normal']['water']['cargo'] == 5
+        assert 'water' not in fc.cargo['normal'] # RC's update was rejected outright, not even applied

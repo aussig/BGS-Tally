@@ -586,12 +586,13 @@ class Colonisation:
         for system in self.get_all_systems():
             if system.get('Hidden', False) == True:
                 continue
-            for build in self.get_system_builds(system):
+            for i, build in enumerate(self.get_system_builds(system)):
                 if build.get("Track", False) == True and self.get_build_state(build) != BuildState.COMPLETE:
                     b:dict = build.copy()
                     b['Plan'] = system.get('Name', '')
                     b['StarSystem'] = system.get('StarSystem', '')
                     b['SystemAddress'] = system.get('SystemAddress', 0)
+                    b['Primary'] = (i==0)
                     tracked.append(b)
 
         return tracked
@@ -618,6 +619,7 @@ class Colonisation:
         Name, BuildID or Marketid are preferred but we use fuzzy matching for weird fdev cases
         '''
         builds:list = self.get_system_builds(system)
+        builds[0]['Primary'] = True # Bit of a hack, should flag the primary at source.
 
         #Debug.logger.debug(f"Finding build in {system.get('StarSystem')} {data} Builds: {builds}")
         if data.get('Name', '') == '' or data.get('Name', '') == ' ': data['Name'] = None
@@ -993,7 +995,7 @@ class Colonisation:
                         res = p.get(type, {})
                         break
             if res == {} and type != 'Delivered' and b.get('Base Type', '') != '':
-                res = self._get_cost(b.get('Base Type', ''), i==0)
+                res = self._get_cost(b.get('Base Type', ''), b.get('Primary', False))
             found += 1
             prog.append(res)
 

@@ -38,7 +38,8 @@ class FleetCarrier:
     since the CAPI is queried infrequently and can be unhelpfully out of date.
     Some data is managed and updated locally to work around the CAPI data being out of date.
     """
-    def __init__(self, bgstally: 'BGSTally', carrier_id:int = 0, carrier_type:FleetCarrierType = FleetCarrierType.PERSONAL, callsign:str|None = None) -> None:
+    def __init__(self, bgstally: 'BGSTally', carrier_id:int = 0, carrier_type:FleetCarrierType = FleetCarrierType.PERSONAL,
+                 callsign:str|None = None) -> None:
         self.bgstally:BGSTally = bgstally
 
         self.carrier_id:int = carrier_id
@@ -278,11 +279,11 @@ class FleetCarrier:
 
             if entry.get('buy', 0) > 0 and entry.get('sell', 0) > 0:
                 # Can't be doing both, and a lagging snapshot is likelier to still show the finished side
-                Debug.logger.error(f"{source} reports both buy and sell for {comm}, trusting the buy order")
+                Debug.logger.error(f"{self.overview['name']} {source} reports both buy and sell for {comm}, trusting the buy order")
                 entry['sell'] = 0
 
             if entry != before:
-                Debug.logger.debug(f"{source} merge for {comm}: {before} -> {entry}")
+                Debug.logger.debug(f"{self.overview['name']} {source} merge for {comm}")
                 changed = True
 
         # Only record this as a confirmed-fresh reading if the timestamp backs that up
@@ -522,7 +523,7 @@ class FleetCarrier:
         if len(self.route) > 0 and self.route[0]['name'] != self.overview.get('currentStarSystem', 'Unknown'):
             message = f"{_('Route Next')}: {self.route[0]['name']}" # LANG: Next system in route on carrier overlay
 
-        cd:str = ''; delta:int
+        cd:str = ''; delta:int = 0
         if self.timer != None:
             # Subtract extra seconds because of the update delay.
             delta = self._td(self.timer, datetime.now(tz=UTC))
@@ -541,6 +542,7 @@ class FleetCarrier:
             if 600 <= delta:
                 message += f"\n{_('Jump Initiation in')} {self._td_str(delta - 600)}" # LANG: Carrier overlay
 
+        #Debug.logger.debug(f"Carrier state: {self.jump_state} timer: {self.timer} delta: {delta} message: {message}")
         if message != "":
             message = TAG_OVERLAY_HIGHLIGHT + message
 
@@ -872,6 +874,7 @@ class FleetCarrier:
             self.bgstally.ui.frame.after(rem * 1000, lambda: self._jump_complete())
         Debug.logger.debug(f"Jump scheduled for {departure} ({(rem)} seconds) [{self.jump_state}]")
         self.bgstally.ui.window_fc.update_carrier_display(self)
+        if self.bgstally.dev_mode == True: self.save()
 
 
     @catch_exceptions
@@ -987,6 +990,7 @@ class FleetCarrier:
     @catch_exceptions
     def _jump_complete(self) -> None:
         """ Jump may have completed """
+
         Debug.logger.debug(f"Jump complete called state: {self.jump_state} {self.overview.get('departureScheduled', '')}")
         if self.jump_state != FleetCarrierJump.Jumping: return
         Debug.logger.debug(f"Starting cooldown")
@@ -1001,8 +1005,14 @@ class FleetCarrier:
             self.timer = departure + timedelta(seconds=300 - departure.second)
 
         rem:int = self._td(self.timer, datetime.now(tz=UTC))
-        if self.bgstally.ui.frame:
+
+        if self.bgstally.ui.frame and rem > 0:
             self.bgstally.ui.frame.after(rem * 1000, lambda: self._cooldown_complete())
+
+        if rem < 0:
+            self.timer = None
+            self.jump_state = FleetCarrierJump.Idle
+
         self._update_route()
 
 
@@ -1492,6 +1502,8 @@ class FleetCarrier:
             'shipyard': self.shipyard,
             'modules': self.modules,
             'data': self.data,
+            'timer': self.timer.isoformat() if self.timer else None,
+            'jump_state': self.jump_state.value
             }
 
 
@@ -1522,7 +1534,15 @@ class FleetCarrier:
         if 'overview' not in self.modules:
             self.modules = {'overview': {}, 'modules': {}}
         self.data = dict.get('data', {})
+        self.timer = dict.get('timer') and datetime.fromisoformat(dict.get('timer')) or None
+        self.jump_state = FleetCarrierJump(dict.get('jump_state', FleetCarrierJump.Idle))
 
+        Debug.logger.debug(f"")
+        # Deal with whatever we missed while shutdown
+        if self.timer and self.timer < datetime.now(tz=UTC):
+            Debug.logger.debug(f"Jump timer expired while jumping, letting jump_complete figure it out")
+            self.jump_state = FleetCarrierJump.Jumping
+            self._jump_complete()
 
     def _get_filename(self) -> str:
         """ Save filename for this carrier """

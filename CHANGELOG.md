@@ -16,6 +16,12 @@
 ### Changes:
 
 * Progress columns is now a dropdown menu and includes tracked carriers
+* Carrier jump progress is saved over EDMC restarts
+
+### Bug Fixes:
+
+* Fixed a colonisation bug where contributions might not be sent to RavenColonial
+* Fixed situation where until started a primary port could show non-primary cost
 
 ## v5.6.1 - 2026-09-12
 

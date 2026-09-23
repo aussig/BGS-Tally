@@ -291,23 +291,18 @@ class FleetCarrier:
         # longer mentions means we're no longer buying/selling it there. Our own carrier keeps what
         # CAPI/our own tracking already knows, which is more complete than any snapshot, so nothing
         # gets pruned there.
-        if self.carrier_type != FleetCarrierType.PERSONAL:
-            for comm in [comm for comm in self.cargo['normal'] if comm not in cargo]:
-                if spansh:
-                    # Spansh never has an opinion on cargo, so its absence here only means "not
-                    # currently traded" -- clear the market side but leave any cargo figure RC gave
-                    # us alone, rather than throwing away knowledge Spansh never contradicted.
-                    entry:dict = self.cargo['normal'][comm]
-                    if entry['sell'] or entry['buy'] or entry['price']:
-                        entry['sell'] = entry['buy'] = entry['price'] = 0
-                        Debug.logger.debug(f"{self.overview['name']} {source} cleared market side of {comm}, no longer in snapshot")
-                        changed = True
-                else:
-                    # RC's cargo entries are a full manifest, not just active orders, so its absence
-                    # here really does mean gone -- drop the whole entry, cargo included.
-                    del self.cargo['normal'][comm]
-                    Debug.logger.debug(f"{self.overview['name']} {source} dropped {comm}, no longer in snapshot")
-                    changed = True
+        for comm in [comm for comm in self.cargo['normal'] if comm not in cargo]:
+            entry:dict = self.cargo['normal'][comm]
+            if spansh and (entry.get('sell') or entry.get('buy') or entry.get('price')):
+                # Spansh never has an opinion on cargo
+                entry['sell'] = entry['buy'] = entry['price'] = 0
+                Debug.logger.debug(f"{self.overview['name']} {source} cleared market side of {comm}, no longer in snapshot")
+                changed = True
+
+            if not spansh and 'cargo' in entry:
+                del self.cargo['normal'][comm]['cargo']
+                Debug.logger.debug(f"{self.overview['name']} {source} dropped {comm}, no longer in snapshot")
+                changed = True
 
         # Only record this as a confirmed-fresh reading if the timestamp backs that up
         if newer: self._touch(data.get('timestamp', 0))

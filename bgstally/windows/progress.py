@@ -536,7 +536,9 @@ class ProgressWindow:
         for comm, row_values in self._get_rows(comms):
             if self._skip_row(self.view, comm, rowcnt): continue
             rowcnt += 1
-            if int(re.sub(r'[^\d]+', '', row_values[1])) == 0 and self.view != ProgressView.FULL: continue
+            if self.view != ProgressView.FULL and int(re.sub(r'[^\d]+', '', row_values[1])) == 0: continue
+            if self.view != ProgressView.FULL and self.colonisation.docked == True and self.colonisation.market and \
+                not self.colonisation.market.get(f"${comm.comm}_name;", 0): continue # market!
             w:int = 18 - len(row_values[1])
             v:str = f"{row_values[1]: <16}"[0:w] # Adjust for proportional font
             c:str = str_truncate(row_values[0], 20)

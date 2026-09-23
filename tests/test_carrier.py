@@ -204,7 +204,7 @@ class TestFleetCarriers:
 
         assert harness.plugin._carrier({'MarketID': 11111}) is harness.plugin.fleet_carrier
 
-    def test_fss_signal_backfills_tracked_carrier_only(self, harness) -> None:
+    def test_fss_signal_tracked_only(self, harness) -> None:
         """ Test fss_signal() only fills a missing name on an already-tracked carrier, never creates one """
         from bgstally.constants import FleetCarrierType
         fcs = harness.plugin.fleet_carriers
@@ -757,8 +757,8 @@ class TestCarrierEvents:
         assert fc.itinerary[0]['starsystem'] == 'Alpha Centauri'
         assert fc.itinerary[0]['body'] == 'Alpha Centauri A'
 
-    def test_carrier_location_empty_itinerary(self, harness) -> None:
-        """ Test carrier_location() seeds the itinerary instead of crashing when it's empty """
+    def test_empty_itinerary(self, harness) -> None:
+        """ Test carrier_location the itinerary """
         fc = harness.plugin.fleet_carrier
         fc.itinerary = []
         entry = {
@@ -837,6 +837,24 @@ class TestSpanshFleetCarrier:
         assert fc.cargo['normal']['tritium']['cargo'] == 999 # Ours, left alone
         assert fc.cargo['normal']['water']['sell'] == 200 # New commodity, added
         assert fc.cargo['normal']['water']['cargo'] == None # Never held it as far as we know
+
+    def test_spansh_drop_keeps_cargo(self, harness) -> None:
+        """ Test a commodity missing from a Spansh snapshot only loses its market side, not an RC-derived cargo figure """
+        from bgstally.ravencolonial import Spansh
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 500, 'buy': 0, 'price': 8000}
+
+        response = self._market([
+            {'commodity': 'Water', 'category': 'Chemicals', 'supply': 200, 'demand': 0, 'buy_price': 100, 'sell_price': 0}
+        ])
+
+        Spansh()._fleetcarrier_callback(fc, True, response, Mock())
+
+        assert fc.cargo['normal']['tritium']['sell'] == 0
+        assert fc.cargo['normal']['tritium']['buy'] == 0
+        assert fc.cargo['normal']['tritium']['price'] == 0
+        assert fc.cargo['normal']['tritium']['cargo'] == 999 # RC gave us this, Spansh has no opinion on it
 
     def test_spansh_leaves_personal_cargo(self, harness) -> None:
         """ Test Spansh can't touch our own carrier's cargo, where the journal and CAPI both know better """
@@ -1053,7 +1071,7 @@ class TestRavenColonialMerge:
         assert fc.cargo['normal']['tritium']['cargo'] == 1
         assert fc.cargo['normal']['water']['cargo'] == 5
 
-    def test_rc_without_timestamp_does_not_confirm_freshness(self, harness) -> None:
+    def test_rc_no_timestamp_unconfirmed(self, harness) -> None:
         """ Test an unconfirmed RC merge doesn't count as a confirmed-fresh reading """
         from bgstally.constants import FleetCarrierType
         fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
@@ -1065,7 +1083,7 @@ class TestRavenColonialMerge:
         assert fc.data_time == before_data_time
         assert fc.last_modified == before_last_modified
 
-    def test_rc_with_confirmed_timestamp_updates_freshness(self, harness) -> None:
+    def test_rc_timestamp_confirms_fresh(self, harness) -> None:
         """ Test RC with a confirmed-newer lastRefresh records it as a genuinely fresh reading """
         from bgstally.constants import FleetCarrierType
         fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
@@ -1075,3 +1093,25 @@ class TestRavenColonialMerge:
         assert changed is True
         assert fc.cargo['normal']['tritium']['cargo'] == 1
         assert fc.last_modified > 0
+
+    def test_rc_drops_stale_commodity(self, harness) -> None:
+        """ Test a commodity missing from a fresh snapshot is dropped, not left stale, for a carrier we don't own """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+
+        changed:bool = fc.merge(self._rc({'water': {'cargo': 5}}))
+
+        assert changed is True
+        assert 'tritium' not in fc.cargo['normal']
+        assert fc.cargo['normal']['water']['cargo'] == 5
+
+    def test_rc_keeps_personal_cargo(self, harness) -> None:
+        """ Test our own carrier keeps commodities missing from a snapshot -- our own tracking is more complete """
+        fc = harness.plugin.fleet_carrier
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+
+        fc.merge(self._rc({'water': {'cargo': 5}}))
+
+        assert fc.cargo['normal']['tritium']['cargo'] == 999
+        assert fc.cargo['normal']['water']['cargo'] == 5

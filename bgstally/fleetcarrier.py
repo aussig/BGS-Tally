@@ -250,9 +250,11 @@ class FleetCarrier:
         newer:bool = data.get('timestamp', 0) > self.data_time + EDDN_LAG_TIME
         if spansh and (self.carrier_type == FleetCarrierType.PERSONAL or not newer): return False
 
+        changed:bool = False
         for key, value in data.get('overview', {}).items():
             if value is None: continue
             if key == 'callsign' and self.overview.get('callsign'): continue
+            if self.overview.get(key) != value: changed = True
             self.overview[key] = value
 
         if not self.overview.get('name'):
@@ -265,12 +267,11 @@ class FleetCarrier:
                     self.overview['name'] = ""
 
         cargo:dict = data.get('cargo', {})
-        if not cargo: return False
+        if not cargo: return changed
 
         # No real cargo insight for this carrier, so take the market snapshot as our best guess verbatim.
         # RC's cargo entries carry 'cargo' directly (trusted as real held quantity); Spansh's carry 'sell'/'buy'.
         source:str = "Spansh" if spansh else "RC"
-        changed:bool = False
         for comm, item in cargo.items():
             entry:dict = self.cargo['normal'].setdefault(comm, {'locName': comm, 'category': 'Unknown', 'cargo': None, 'sell': 0, 'buy': 0, 'price': 0})
             before:dict = dict(entry)
@@ -285,6 +286,28 @@ class FleetCarrier:
             if entry != before:
                 Debug.logger.debug(f"{self.overview['name']} {source} merge for {comm}")
                 changed = True
+
+        # A snapshot is the WHOLE market, not a delta -- for any carrier but our own, a commodity it no
+        # longer mentions means we're no longer buying/selling it there. Our own carrier keeps what
+        # CAPI/our own tracking already knows, which is more complete than any snapshot, so nothing
+        # gets pruned there.
+        if self.carrier_type != FleetCarrierType.PERSONAL:
+            for comm in [comm for comm in self.cargo['normal'] if comm not in cargo]:
+                if spansh:
+                    # Spansh never has an opinion on cargo, so its absence here only means "not
+                    # currently traded" -- clear the market side but leave any cargo figure RC gave
+                    # us alone, rather than throwing away knowledge Spansh never contradicted.
+                    entry:dict = self.cargo['normal'][comm]
+                    if entry['sell'] or entry['buy'] or entry['price']:
+                        entry['sell'] = entry['buy'] = entry['price'] = 0
+                        Debug.logger.debug(f"{self.overview['name']} {source} cleared market side of {comm}, no longer in snapshot")
+                        changed = True
+                else:
+                    # RC's cargo entries are a full manifest, not just active orders, so its absence
+                    # here really does mean gone -- drop the whole entry, cargo included.
+                    del self.cargo['normal'][comm]
+                    Debug.logger.debug(f"{self.overview['name']} {source} dropped {comm}, no longer in snapshot")
+                    changed = True
 
         # Only record this as a confirmed-fresh reading if the timestamp backs that up
         if newer: self._touch(data.get('timestamp', 0))
@@ -1157,7 +1180,8 @@ class FleetCarrier:
 
 
     def _apply_market(self, commodities:dict) -> bool:
-        """ Diff a market snapshot against our cargo, inferring cargo changes from buy/sell deltas """
+        """ Diff a market snapshot against our cargo -- a sell listing tells us cargo outright,
+        a buy order only lets us infer a delta, and only once we have a baseline to apply it to """
         changed:bool = False
         for comm, item in commodities.items():
             if comm not in self.cargo['normal']:
@@ -1480,7 +1504,7 @@ class FleetCarrier:
         return {
             'locName': details.get('Name', alt),
             'category': details.get('Category', 'Unknown'),
-            'cargo': None, # Actual held quantity -- unknown until CAPI, a personal trade/transfer, or RC tells us
+            'cargo': None, # Actual held quantity -- unknown until CAPI, a personal trade/transfer, RC, or a direct sell listing tells us
             'sell': 0, # Quantity currently listed for sale
             'buy': 0, # Outstanding purchase order quantity
             'price': 0

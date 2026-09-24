@@ -22,6 +22,7 @@
 
 * Fixed a colonisation bug where contributions might not be sent to RavenColonial
 * Fixed situation where until started a primary port could show non-primary cost
+* Fixed issue caused by ED sometimes writing market.json late
 
 ## v5.6.1 - 2026-09-12
 

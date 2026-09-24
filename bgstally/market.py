@@ -49,13 +49,14 @@ class Market:
         journal_dir:str = config.get_str('journaldir') or config.default_journal_dir
         if not journal_dir: return
 
-        # ED is sometimes writing the market.json late so we retry a few times before giving up
-        # only delays but up to 500ms.
+        # The game can fire the Market event just before it finishes (re)writing this file, briefly empty
         try:
             for _ in range(MARKET_READ_ATTEMPTS):
                 with open(join(journal_dir, FILENAME_MARKET), 'rb') as file:
                     data:bytes = file.read().strip()
-                    if not data: continue
+                    if not data:
+                        sleep(MARKET_READ_RETRY_DELAY)
+                        continue
 
                     json_data = json.loads(data)
                     self.name = json_data['StationName']
@@ -68,7 +69,6 @@ class Market:
 
                         self.commodities[item_name] = item
                     return
-                sleep(MARKET_READ_RETRY_DELAY)
 
         except Exception as e:
             Debug.logger.info(f"Unable to load {FILENAME_MARKET} from the player journal folder")

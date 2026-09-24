@@ -252,6 +252,9 @@ class Entry(Base):
 class Button(Base):
     """ A themed button that can switch between light and dark mode. """
     def __init__(self, master:tk.Widget, **kw) -> None:
+        object.__setattr__(self, '_ipad_x', 0)
+        object.__setattr__(self, '_ipad_y', 0)
+
         # EDMC's theme has a bug if the cursor is set on a ttk.Button with an image so we use a tk.Button
         btn:ttk.Button|tk.Button = tk.Button(master, **kw) if 'cursor' in kw else self._ttk_button(master, kw)
 
@@ -264,22 +267,22 @@ class Button(Base):
         object.__setattr__(self, '_char_width', int(w) if w is not None else None)
 
     def _ttk_button(self, master:tk.Widget, kw:dict) -> ttk.Button:
-        """ ttk.Button has no pixel height and its width is in characters, so pad a probe up to the target size """
+        """ ttk.Button ignores height and treats width as characters -- measure its natural size so grid() can pad up to it """
         target_w, target_h = kw.get('width'), kw.get('height')
         ttk_kw:dict = {k: v for k, v in kw.items() if k not in ('width', 'height')}
 
-        probe:ttk.Button = ttk.Button(master, **ttk_kw)
-        probe.update_idletasks()
-        pad_x:int = max(0, (int(target_w) - probe.winfo_reqwidth()) // 2) if target_w is not None else 0
-        pad_y:int = max(0, (int(target_h) - probe.winfo_reqheight()) // 2) if target_h is not None else 0
+        btn:ttk.Button = ttk.Button(master, **ttk_kw)
+        btn.update_idletasks()
+        object.__setattr__(self, '_ipad_x', max(0, (int(target_w) - btn.winfo_reqwidth()) // 2) if target_w is not None else 0)
+        object.__setattr__(self, '_ipad_y', max(0, (int(target_h) - btn.winfo_reqheight()) // 2) if target_h is not None else 0)
+        return btn
 
-        if pad_x == 0 and pad_y == 0:
-            return probe
-
-        probe.destroy()
-        style_name:str = f'th{id(self)}.TButton'
-        ttk.Style().configure(style_name, padding=(pad_x, pad_y))
-        return ttk.Button(master, style=style_name, **ttk_kw)
+    def grid(self, *args, **kw) -> Any:
+        """ ttk.Button under-sizes vs the request -- grid-pad it up when it's the half actually being shown """
+        if config.get_int('theme') == 0:
+            kw.setdefault('ipadx', self._ipad_x)
+            kw.setdefault('ipady', self._ipad_y)
+        return super().grid(*args, **kw)
 
     def configure(self, cnf=None, **kw) -> None:
         """ Override configure to also counteract tk.Button's width-unit switch on image attach. """

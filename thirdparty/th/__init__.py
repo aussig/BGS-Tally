@@ -13,8 +13,9 @@ from .autocompleter import Autocompleter
 from .placeholder import Placeholder, PlaceholderMixin
 from .tooltip import Tooltip
 
-__all__ = ["TopLevel", "Frame", "LabelFrame", "Label", "Text", "RichText", "RichScrolledText", "Button", "Radiobutton", "ComboBox",
-           "Listbox", "Checkbutton", "Scale", "Spinbox", "ScrollableFrame", "Tooltip", "Autocompleter", "Placeholder", "resolve"]
+__all__ = ["TopLevel", "Frame", "LabelFrame", "Label", "Text", "RichText", "RichScrolledText", "Entry", "Button", "Radiobutton",
+           "ComboBox", "Listbox", "Checkbutton", "Scale", "Spinbox", "Separator", "ScrollableFrame", "Tooltip", "Autocompleter",
+           "Placeholder", "resolve"]
 
 DEBUG_FRAMES:bool = False # Turn this on to color each frame for debugging
 index:int = 0
@@ -179,6 +180,15 @@ class Label(tk.Label):
         tk.Label.__init__(self, master, **kw)
         theme.update(self)
 
+class Separator(tk.Frame):
+    """ A themed horizontal or vertical separator line that can switch between light and dark mode. """
+    def __init__(self, master:tk.Widget, orient:str = tk.HORIZONTAL, **kw) -> None:
+        kw.setdefault('relief', tk.GROOVE)
+        kw.setdefault('borderwidth', 1)
+        kw.setdefault('height' if orient == tk.HORIZONTAL else 'width', 2)
+        tk.Frame.__init__(self, master, **kw)
+        theme.update(self)
+
 class Text(tk.Text):
     """ A themed text box that can switch between light and dark mode. """
     def __init__(self, master:tk.Widget, **kw) -> None:
@@ -242,8 +252,11 @@ class Entry(Base):
 class Button(Base):
     """ A themed button that can switch between light and dark mode. """
     def __init__(self, master:tk.Widget, **kw) -> None:
+        # ttk.Button has no pixel 'height' option (it sizes to content) unlike tk.Button, so drop it for that half
+        ttk_kw:dict = {k: v for k, v in kw.items() if k != 'height'}
+
         # EDMC's theme has a bug if the cursor is set on a ttk.Button with an image so we use a tk.Button
-        btn:ttk.Button|tk.Button = tk.Button(master, **kw) if 'cursor' in kw else ttk.Button(master, **kw)
+        btn:ttk.Button|tk.Button = tk.Button(master, **kw) if 'cursor' in kw else ttk.Button(master, **ttk_kw)
 
         alt:tk.Button = tk.Button(master, **_strip_name(kw))
 

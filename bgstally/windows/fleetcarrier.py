@@ -261,7 +261,7 @@ class WindowFleetCarrier:
             match k:
                 case 'Cargo':
                     has_data = any(fc.cargo.get(t) for t in ('normal', 'stolen', 'mission'))
-                    self._tab_configure(ui['tabbar'], fr, text=_('Commodities')) # LANG: Carrier window tab
+                    #self._tab_configure(ui['tabbar'], fr, text=_('Commodities')) # LANG: Carrier window tab
                 case 'Locker': has_data = any(fc.locker.get(t) for t in ('normal', 'mission'))
                 case 'Itinerary': has_data = fc.itinerary != [] or fc.route != []
                 case 'Shipyard': has_data = fc.shipyard.get('ships', {}) != {}

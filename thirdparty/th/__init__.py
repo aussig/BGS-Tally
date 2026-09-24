@@ -183,10 +183,10 @@ class Label(tk.Label):
 class Separator(tk.Frame):
     """ A themed horizontal or vertical separator line that can switch between light and dark mode. """
     def __init__(self, master:tk.Widget, orient:str = tk.HORIZONTAL, **kw) -> None:
-        kw.setdefault('relief', tk.GROOVE)
-        kw.setdefault('borderwidth', 1)
-        kw.setdefault('height' if orient == tk.HORIZONTAL else 'width', 2)
-        tk.Frame.__init__(self, master, **kw)
+        #kw.setdefault('relief', tk.GROOVE)
+        #kw.setdefault('borderwidth', 1)
+        #kw.setdefault('height' if orient == tk.HORIZONTAL else 'width', 2)
+        ttk.Separator.__init__(self, master, **kw)
         theme.update(self)
 
 class Text(tk.Text):

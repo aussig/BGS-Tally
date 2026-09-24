@@ -1,7 +1,6 @@
 {
     "carrier_id": 12345,
     "carrier_type": "FleetCarrier",
-    "last_modified": 1773960295,
     "overview": {
         "name": "[CLB] SV Booze Cruise",
         "currentStarSystem": "M23 Sector AA-Q c5-22",
@@ -3403,5 +3402,7 @@
         },
         "modules": [],
         "timestamp": "2026-03-20T03:00:28Z"
-    }
+    },
+    "timer": null,
+    "jump_state": "Idle"
 }

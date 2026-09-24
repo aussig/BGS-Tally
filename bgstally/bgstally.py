@@ -127,7 +127,7 @@ class BGSTally:
         """ Resolve which FleetCarrier a journal entry is about, creating one if CarrierType is given """
         carrier_id:int = entry.get('CarrierID', entry.get('MarketID', 0))
         if 'CarrierType' in entry:
-            return self.fleet_carriers.get(carrier_id, FleetCarrierType(entry['CarrierType']))
+            return self.fleet_carriers.get(carrier_id, FleetCarrierType(entry['CarrierType']), entry.get('Callsign'))
         return self.fleet_carriers.find(carrier_id) or self.fleet_carriers.personal
 
 

@@ -701,8 +701,9 @@ class RavenColonial:
     def _push_carrier(self, fc:'FleetCarrier', view:dict) -> None:
         """ Merge our current cargo/buy/sell onto an RC carrier record and push it """
         inventory:dict = fc.get_cargo('normal').get('inventory', {})
-        # A cargo of None means we've never had visibility of it -- don't publish that as a confirmed zero
-        view['cargo'] = {comm: int(item['cargo']) for comm, item in inventory.items() if item.get('cargo') is not None}
+        cargo:dict = {comm: int(item['cargo']) for comm, item in inventory.items() if item.get('cargo') is not None}
+        # RC only leaves its own stored cargo untouched when this is null
+        view['cargo'] = cargo if cargo else None
         view['sales'] = [{'name': comm, 'price': item.get('price', 0), 'total': item.get('sell', 0)}
                           for comm, item in inventory.items() if item.get('sell', 0) > 0]
         view['purchases'] = [{'name': comm, 'price': item.get('price', 0), 'outstanding': item.get('buy', 0)}
@@ -730,7 +731,7 @@ class RavenColonial:
         if self._cache.get(cache_key, 0) > int(time.time()) - (RC_COOLDOWN if self.is_editable() else RC_COOLDOWN * 10): return None
         self._cache[cache_key] = int(time.time())
 
-        # A get tells us if this carrier is being tracked by RC, and if so gives us its current cargo/buy/sell state.
+        # A get tells us if this carrier is being tracked by RC and returns current cargo/buy/sell state.
         url:str = f"{RC_API}/fc/{marketid}"
         response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
         self._rc_tracked[marketid] = response.status_code == 200
@@ -740,8 +741,7 @@ class RavenColonial:
         which:str = data.get('name', marketid)
         cargo:dict = {comm: {'cargo': qty} for comm, qty in data.get('cargo', {}).items()}
 
-        # 'sales'/'purchases' may be entirely absent if whoever last pushed this carrier never populated them --
-        # in that case we can't trust their absence as "confirmed nothing", so leave buy/sell out of the merge.
+        # 'sales'/'purchases' may be entirely absent if whoever last pushed this carrier never populated them
         if data.get('sales', []) or data.get('purchases', []):
             for entry in cargo.values(): entry['sell'] = 0; entry['buy'] = 0
             for sale in data.get('sales') or []:

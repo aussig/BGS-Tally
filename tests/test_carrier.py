@@ -205,6 +205,14 @@ class TestFleetCarriers:
         assert squadron is not harness.plugin.fleet_carrier
         assert squadron is harness.plugin.fleet_carriers.squadron
 
+    def test_carrier_uses_entry_callsign(self, harness) -> None:
+        """ Test a new carrier gets its real callsign at construction, not just carrier_id -- otherwise
+        it loads from the wrong file and silently loses everything saved under its real one """
+        entry = {'CarrierID': 54321, 'CarrierType': 'SquadronCarrier', 'Callsign': 'CLBF'}
+        squadron = harness.plugin._carrier(entry)
+        assert squadron.overview.get('callsign') == 'CLBF'
+        assert squadron._get_filename().endswith('CLBF.json')
+
         from bgstally.constants import FleetCarrierType
         squadron = harness.plugin.fleet_carriers.get(54321, FleetCarrierType.SQUADRON)
         assert harness.plugin._carrier({'CarrierID': 54321}) is squadron
@@ -1152,3 +1160,67 @@ class TestRavenColonialMerge:
 
         assert fc.cargo['normal']['tritium']['cargo'] == 999
         assert 'water' not in fc.cargo['normal'] # RC's update was rejected outright, not even applied
+
+
+class TestRavenColonialPush:
+    """ Test pushing our own carrier's cargo/market data onto RC's record """
+
+    def test_push_sends_null_cargo_when_unknown(self, harness) -> None:
+        """ Test we send null, not {}, when we have no cargo visibility -- RC only leaves its own record alone for null """
+        from bgstally.ravencolonial import RavenColonial
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': None, 'sell': 500, 'buy': 0, 'price': 8000}
+
+        rc = RavenColonial(harness.plugin.colonisation)
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            rc._push_carrier(fc, {})
+
+        payload:dict = mock_queue.call_args.kwargs['payload']
+        assert payload['cargo'] is None
+
+    def test_push_sends_known_cargo(self, harness) -> None:
+        """ Test known cargo is still sent as a real dict, not swept up by the null-when-empty case """
+        from bgstally.ravencolonial import RavenColonial
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+        fc.cargo['normal']['water'] = {'locName': 'Water', 'category': 'Chemicals', 'cargo': None, 'sell': 0, 'buy': 0, 'price': 0}
+
+        rc = RavenColonial(harness.plugin.colonisation)
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            rc._push_carrier(fc, {})
+
+        payload:dict = mock_queue.call_args.kwargs['payload']
+        assert payload['cargo'] == {'tritium': 999}
+
+    def test_squadron_market_never_pushes(self, harness) -> None:
+        """ Test a squadron carrier's market visit never pushes to RC -- multiple squad members'
+        clients could each detect the same trade and push conflicting deltas """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3713239296, FleetCarrierType.SQUADRON, 'CLBF')
+        fc.overview['carrier_id'] = 3713239296
+        harness.plugin.colonisation.cmdr = 'Testy'
+        harness.plugin.market.commodities = {'tritium': {'Demand': 0, 'Stock': 50, 'SellPrice': 100, 'BuyPrice': 0}}
+
+        with patch.object(harness.plugin.market, 'available', return_value=True), \
+             patch.object(harness.plugin.colonisation, 'is_carrier_linked', return_value=True), \
+             patch('bgstally.ravencolonial.RavenColonial.update_carrier') as mock_push:
+            fc.market({'MarketID': 3713239296})
+
+        mock_push.assert_not_called()
+
+    def test_thirdparty_market_still_pushes(self, harness) -> None:
+        """ Test a third-party carrier's market visit still pushes to RC when linked """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.overview['carrier_id'] = 3709409280
+        harness.plugin.colonisation.cmdr = 'Testy'
+        harness.plugin.market.commodities = {'tritium': {'Demand': 0, 'Stock': 50, 'SellPrice': 100, 'BuyPrice': 0}}
+
+        with patch.object(harness.plugin.market, 'available', return_value=True), \
+             patch.object(harness.plugin.colonisation, 'is_carrier_linked', return_value=True), \
+             patch('bgstally.ravencolonial.RavenColonial.update_carrier') as mock_push:
+            fc.market({'MarketID': 3709409280})
+
+        mock_push.assert_called_once()

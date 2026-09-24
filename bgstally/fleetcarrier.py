@@ -222,20 +222,25 @@ class FleetCarrier:
         rc:RavenColonial = RavenColonial(self.bgstally.colonisation)
 
         rc_data:dict|None = rc.get_carrier(self.carrier_id)
+        changed:bool = False
         if rc_data:
             Debug.logger.debug(f"Merging RC data for carrier {self.overview.get('callsign', self.carrier_id)}")
-            self.merge(rc_data)
+            changed = self.merge(rc_data)
 
         spansh_data:dict|None = Spansh().get_market(self)
         newer:bool = False
         if spansh_data:
             Debug.logger.debug(f"Merging Spansh data for carrier {self.overview.get('callsign', self.carrier_id)}")
             newer = self.merge(spansh_data, spansh=True)
+            if newer: changed = True
 
-        if newer and rc.is_tracked(self.carrier_id) and self.bgstally.colonisation.is_carrier_linked(self.carrier_id):
+        # Never push a squadron carrier -- see the same note in market() for why
+        if newer and self.carrier_type != FleetCarrierType.SQUADRON and rc.is_tracked(self.carrier_id) \
+                and self.bgstally.colonisation.is_carrier_linked(self.carrier_id):
             Debug.logger.debug(f"Updating RC carrier data for {self.overview.get('callsign', self.carrier_id)}")
             rc.update_carrier(self)
 
+        if changed: self.save()
         self.bgstally.ui.window_fc.update_carrier_display(self)
 
 
@@ -1253,7 +1258,9 @@ class FleetCarrier:
         changed:bool = self._apply_market(commodities)
 
         # Only push it if RC actually considers it linked to one of our builds -- visiting it isn't enough.
-        if changed and self.carrier_type != FleetCarrierType.PERSONAL and self.bgstally.colonisation.cmdr != None \
+        # Never push a squadron carrier -- multiple squad members' clients could each detect the same
+        # trade and push conflicting deltas, so we only ever read RC's copy for those, never write to it.
+        if changed and self.carrier_type == FleetCarrierType.THIRDPARTY and self.bgstally.colonisation.cmdr != None \
                 and self.bgstally.colonisation.is_carrier_linked(self.carrier_id):
             RavenColonial(self.bgstally.colonisation).update_carrier(self)
 

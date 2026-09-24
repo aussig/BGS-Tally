@@ -152,10 +152,10 @@ class UI:
         self.lbl_tick.grid(row=current_row, column=1, columnspan=column_count, sticky=tk.W)
         current_row += 1
         current_column: int = 0
-        self.btn_latest_tick: th.Button = th.Button(self.frame, text=_("Latest BGS Tally"), height=SIZE_BUTTON_PIXELS-2, image=self.image_blank, compound=tk.RIGHT, command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity())) # LANG: Button label
+        self.btn_latest_tick: th.Button = th.Button(self.frame, text=_("Latest BGS Tally"), height=SIZE_BUTTON_PIXELS, image=self.image_blank, compound=tk.RIGHT, command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity())) # LANG: Button label
         self.btn_latest_tick.grid(row=current_row, column=current_column, padx=3)
         current_column += 1
-        self.btn_previous_ticks: th.Button = th.Button(self.frame, text=_("Previous BGS Tallies") + " ", height=SIZE_BUTTON_PIXELS-2, image=self.image_button_dropdown_menu, compound=tk.RIGHT, command=self._previous_ticks_popup) # LANG: Button label
+        self.btn_previous_ticks: th.Button = th.Button(self.frame, text=_("Previous BGS Tallies") + " ", height=SIZE_BUTTON_PIXELS, image=self.image_button_dropdown_menu, compound=tk.RIGHT, command=self._previous_ticks_popup) # LANG: Button label
         self.btn_previous_ticks.grid(row=current_row, column=current_column, padx=3, sticky=tk.W)
         current_column += 1
         self.btn_cmdrs: th.Button = th.Button(self.frame, image=self.image_button_cmdrs, height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_cmdr_list_window)

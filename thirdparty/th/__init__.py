@@ -13,6 +13,8 @@ from .autocompleter import Autocompleter
 from .placeholder import Placeholder, PlaceholderMixin
 from .tooltip import Tooltip
 
+from ..debug import Debug
+
 __all__ = ["TopLevel", "Frame", "LabelFrame", "Label", "Text", "RichText", "RichScrolledText", "Entry", "Button", "Radiobutton",
            "ComboBox", "Listbox", "Checkbutton", "Scale", "Spinbox", "Separator", "ScrollableFrame", "Tooltip", "Autocompleter",
            "Placeholder", "resolve"]
@@ -273,6 +275,10 @@ class Button(Base):
 
         btn:ttk.Button = ttk.Button(master, **ttk_kw)
         btn.update_idletasks()
+        if target_w is not None or target_h is not None:  # Fudge required due to borders
+            target_w = 8 if target_w is None else target_w + 8
+            target_h = 8 if target_h is None else target_h + 8
+        Debug.logger.debug(f"Button size: {target_w} {btn.winfo_reqwidth()} by {target_h} {btn.winfo_reqheight()} ")
         object.__setattr__(self, '_ipad_x', max(0, (int(target_w) - btn.winfo_reqwidth()) // 2) if target_w is not None else 0)
         object.__setattr__(self, '_ipad_y', max(0, (int(target_h) - btn.winfo_reqheight()) // 2) if target_h is not None else 0)
         return btn

@@ -1,5 +1,6 @@
 import json
 from os.path import join
+from time import sleep
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -9,6 +10,8 @@ from bgstally.debug import Debug
 from config import config
 
 FILENAME_MARKET = "Market.json"
+MARKET_READ_ATTEMPTS = 5
+MARKET_READ_RETRY_DELAY = 0.01
 
 class Market:
     def __init__(self, bgstally: 'BGSTally'):
@@ -42,30 +45,36 @@ class Market:
 
 
     def _parse(self):
-        """
-        Load and parse the 'Market.json' file from the player journal folder
-        """
+        """ Load and parse the 'Market.json' file from the player journal folder """
         journal_dir:str = config.get_str('journaldir') or config.default_journal_dir
         if not journal_dir: return
 
+        # ED is sometimes writing the market.json late so we retry a few times before giving up
+        # only delays but up to 500ms.
         try:
-            with open(join(journal_dir, FILENAME_MARKET), 'rb') as file:
-                data:bytes = file.read().strip()
-                if not data: return
+            for _ in range(MARKET_READ_ATTEMPTS):
+                with open(join(journal_dir, FILENAME_MARKET), 'rb') as file:
+                    data:bytes = file.read().strip()
+                    if not data: continue
 
-                json_data = json.loads(data)
-                self.name = json_data['StationName']
-                self.id = json_data['MarketID']
-                items:list = json_data['Items']
+                    json_data = json.loads(data)
+                    self.name = json_data['StationName']
+                    self.id = json_data['MarketID']
+                    items:list = json_data['Items']
 
-                for item in items:
-                    item_name:str = item.get('Name', "")[1:-6] # Remove leading "$" and trailing "_name;"
-                    if item_name == "": continue
+                    for item in items:
+                        item_name:str = item.get('Name', "")[1:-6] # Remove leading "$" and trailing "_name;"
+                        if item_name == "": continue
 
-                    self.commodities[item_name] = item
+                        self.commodities[item_name] = item
+                    return
+                sleep(MARKET_READ_RETRY_DELAY)
 
         except Exception as e:
             Debug.logger.info(f"Unable to load {FILENAME_MARKET} from the player journal folder")
+            return
+
+        Debug.logger.info(f"Gave up loading {FILENAME_MARKET} after {MARKET_READ_ATTEMPTS} attempts")
 
 
     def get_commodity(self, name:str) -> dict:

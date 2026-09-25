@@ -337,7 +337,7 @@ class Prefs:
         self.sheet_webhooks.enable_bindings('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select',
                                             'rc_insert_row', 'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell')
         self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)
-        self.sheet_webhooks.readonly(state=="disabled")
+        self.sheet_webhooks.readonly(readonly=(state=="disabled"))
         return 1
 
     def _webhooks_table_modified(self, event=None):
@@ -350,7 +350,7 @@ class Prefs:
 
     def _show_api_window(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
         """ Show the API window for the overlay plugin """
-        nb.Button(frame, text=_("Overlay API Settings"), width=20, command=partial(self.bgstally.ui._show_api_window, frame)).\
+        nb.Button(frame, text=_("Overlay API Settings"), command=partial(self.bgstally.ui._show_api_window, frame)).\
             grid(row=row, column=column, padx=10, pady=5, sticky=tk.W) # LANG: Preferences overlay API settings button text
         return 1
 

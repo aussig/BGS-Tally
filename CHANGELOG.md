@@ -2,7 +2,11 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+### Bug Fixes:
 
+* Fixed width of API settings preferences button
+* Fixed readonly state of first row of discord webhooks
+* Added a template row if a user has no discord webhooks
 
 
 ## v5.6.1 - 2026-09-12

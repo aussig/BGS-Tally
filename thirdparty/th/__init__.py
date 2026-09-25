@@ -254,11 +254,16 @@ class Button(Base):
     def __init__(self, master:tk.Widget, **kw) -> None:
         object.__setattr__(self, '_ipad_x', 0)
         object.__setattr__(self, '_ipad_y', 0)
+        # Requested padx/pady grid-pad both themes equally -- native padx/pady render a
+        # different, unpredictable amount wider on tk.Button vs ttk.Button for the same value.
+        object.__setattr__(self, '_pad_x', kw.get('padx') or 0)
+        object.__setattr__(self, '_pad_y', kw.get('pady') or 0)
+        alt_kw:dict = {k: v for k, v in kw.items() if k not in ('padx', 'pady')}
 
         # EDMC's theme has a bug if the cursor is set on a ttk.Button with an image so we use a tk.Button
-        btn:ttk.Button|tk.Button = tk.Button(master, **kw) if 'cursor' in kw else self._ttk_button(master, kw)
+        btn:ttk.Button|tk.Button = tk.Button(master, **alt_kw) if 'cursor' in kw else self._ttk_button(master, kw)
 
-        alt:tk.Button = tk.Button(master, **_strip_name(kw))
+        alt:tk.Button = tk.Button(master, **_strip_name(alt_kw))
 
         super().__init__(btn, alt)
 
@@ -267,12 +272,10 @@ class Button(Base):
         object.__setattr__(self, '_char_width', int(w) if w is not None else None)
 
     def _ttk_button(self, master:tk.Widget, kw:dict) -> ttk.Button:
-        """ ttk ignores height and its native padding is unreliable across themes -- grid-pad instead """
+        """ ttk ignores height, and only needs a pixel width fudge for icon buttons """
         has_image:bool = 'image' in kw
         target_w:int|None = kw.get('width') if has_image else None
         target_h:int|None = kw.get('height')
-        padx:int = kw.get('padx') or 0
-        pady:int = kw.get('pady') or 0
         ttk_kw:dict = {k: v for k, v in kw.items() if k not in ('height', 'padx', 'pady') and (k != 'width' or not has_image)}
 
         btn:ttk.Button = ttk.Button(master, **ttk_kw)
@@ -281,17 +284,16 @@ class Button(Base):
         if target_w is not None: target_w += 8
         if target_h is not None: target_h += 8
         Debug.logger.debug(f"Button size: {target_w} {btn.winfo_reqwidth()} by {target_h} {btn.winfo_reqheight()} ")
-        ipad_x:int = max(0, (target_w - btn.winfo_reqwidth()) // 2) if target_w is not None else 0
-        ipad_y:int = max(0, (target_h - btn.winfo_reqheight()) // 2) if target_h is not None else 0
-        object.__setattr__(self, '_ipad_x', ipad_x + padx)
-        object.__setattr__(self, '_ipad_y', ipad_y + pady)
+        object.__setattr__(self, '_ipad_x', max(0, (target_w - btn.winfo_reqwidth()) // 2) if target_w is not None else 0)
+        object.__setattr__(self, '_ipad_y', max(0, (target_h - btn.winfo_reqheight()) // 2) if target_h is not None else 0)
         return btn
 
     def grid(self, *args, **kw) -> Any:
-        """ ttk.Button under-sizes vs the request -- grid-pad it up when it's the half actually being shown """
-        if config.get_int('theme') == 0:
-            kw.setdefault('ipadx', self._ipad_x)
-            kw.setdefault('ipady', self._ipad_y)
+        """ padx/pady apply in both themes; the width/height target-fit only applies to the ttk half """
+        target_ipad_x:int = self._ipad_x if config.get_int('theme') == 0 else 0
+        target_ipad_y:int = self._ipad_y if config.get_int('theme') == 0 else 0
+        kw.setdefault('ipadx', self._pad_x + target_ipad_x)
+        kw.setdefault('ipady', self._pad_y + target_ipad_y)
         return super().grid(*args, **kw)
 
     def configure(self, cnf=None, **kw) -> None:

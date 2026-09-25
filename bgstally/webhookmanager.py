@@ -76,7 +76,7 @@ class WebhookManager:
         self.save()
 
 
-    def get_webhooks_as_dict(self, channel:DiscordChannel|None = None) -> list:
+    def get_webhooks_as_dict(self, channel:DiscordChannel|None = None) -> dict:
         """
         Get the webhooks as a dict
 
@@ -122,7 +122,7 @@ class WebhookManager:
                     webhook.get(DiscordChannel.POWERPLAY, False)
                 ])
 
-        return result
+        return result or [[token_hex(9), "Dummy", "<url>", False, False, False, False, False, False]]
 
 
     def _as_dict(self) -> dict:

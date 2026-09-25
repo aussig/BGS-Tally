@@ -267,25 +267,24 @@ class Button(Base):
         object.__setattr__(self, '_char_width', int(w) if w is not None else None)
 
     def _ttk_button(self, master:tk.Widget, kw:dict) -> ttk.Button:
-        """ Icon buttons need a pixel width (ttk has none); text-only buttons already get ttk's native char width """
+        """ ttk ignores height and its native padding is unreliable across themes -- grid-pad instead """
         has_image:bool = 'image' in kw
         target_w:int|None = kw.get('width') if has_image else None
         target_h:int|None = kw.get('height')
-        padx:int|None = kw.get('padx')
-        pady:int|None = kw.get('pady')
+        padx:int = kw.get('padx') or 0
+        pady:int = kw.get('pady') or 0
         ttk_kw:dict = {k: v for k, v in kw.items() if k not in ('height', 'padx', 'pady') and (k != 'width' or not has_image)}
-        if padx is not None or pady is not None:
-            # ttk.Button has no padx/pady options (tk.Button does) -- padding is its equivalent
-            ttk_kw['padding'] = (padx or 0, pady or 0, padx or 0, pady or 0)
 
         btn:ttk.Button = ttk.Button(master, **ttk_kw)
         btn.update_idletasks()
-        if target_w is not None or target_h is not None:  # Fudge required due to borders
-            target_w = 8 if target_w is None else target_w + 8
-            target_h = 8 if target_h is None else target_h + 8
+        # Windows' native ttk theme adds its own chrome outside what reqwidth/reqheight report
+        if target_w is not None: target_w += 8
+        if target_h is not None: target_h += 8
         Debug.logger.debug(f"Button size: {target_w} {btn.winfo_reqwidth()} by {target_h} {btn.winfo_reqheight()} ")
-        object.__setattr__(self, '_ipad_x', max(0, (int(target_w) - btn.winfo_reqwidth()) // 2) if target_w is not None else 0)
-        object.__setattr__(self, '_ipad_y', max(0, (int(target_h) - btn.winfo_reqheight()) // 2) if target_h is not None else 0)
+        ipad_x:int = max(0, (target_w - btn.winfo_reqwidth()) // 2) if target_w is not None else 0
+        ipad_y:int = max(0, (target_h - btn.winfo_reqheight()) // 2) if target_h is not None else 0
+        object.__setattr__(self, '_ipad_x', ipad_x + padx)
+        object.__setattr__(self, '_ipad_y', ipad_y + pady)
         return btn
 
     def grid(self, *args, **kw) -> Any:

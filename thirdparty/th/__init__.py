@@ -271,7 +271,12 @@ class Button(Base):
         has_image:bool = 'image' in kw
         target_w:int|None = kw.get('width') if has_image else None
         target_h:int|None = kw.get('height')
-        ttk_kw:dict = {k: v for k, v in kw.items() if k != 'height' and (k != 'width' or not has_image)}
+        padx:int|None = kw.get('padx')
+        pady:int|None = kw.get('pady')
+        ttk_kw:dict = {k: v for k, v in kw.items() if k not in ('height', 'padx', 'pady') and (k != 'width' or not has_image)}
+        if padx is not None or pady is not None:
+            # ttk.Button has no padx/pady options (tk.Button does) -- padding is its equivalent
+            ttk_kw['padding'] = (padx or 0, pady or 0, padx or 0, pady or 0)
 
         btn:ttk.Button = ttk.Button(master, **ttk_kw)
         btn.update_idletasks()

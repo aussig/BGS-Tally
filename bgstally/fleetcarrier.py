@@ -1450,8 +1450,12 @@ class FleetCarrier:
         for item in entry.get('Items', []):
             at_carrier:bool = item.get('MarketID', entry.get('MarketID', 0)) == self.carrier_id
             Debug.logger.debug(f"Module {item.get('StorageSlot', 0)} {item.get('Name', '')}")
-            mod:dict = outfitting.lookup({'id': item.get('StorageSlot', 0),
-                                          'name': re.sub(r"\$(.*)_name;$", r"\1", item.get('Name', ''))}, ship_name_map) or {}
+            try:
+                # EDMC's outfitting.lookup() raises ValueError for a module it doesn't recognize
+                mod:dict = outfitting.lookup({'id': item.get('StorageSlot', 0),
+                                              'name': re.sub(r"\$(.*)_name;$", r"\1", item.get('Name', ''))}, ship_name_map) or {}
+            except ValueError:
+                continue
             Debug.logger.debug(f"Module {mod}")
             self.modules['modules'][str(item.get('StorageSlot', ''))] = {
                 'name': item.get('Name_Localised', item.get('Name', '')),

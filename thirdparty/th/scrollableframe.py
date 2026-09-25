@@ -88,8 +88,8 @@ class ScrollableFrame(tk.Frame):
         self._update_scrollbar_visibility(content_height)
 
     def _content_height(self) -> int:
-        """ Sum only the currently-gridded children -- grid_remove()'d rows must not count """
-        return sum(child.winfo_reqheight() for child in self.interior.winfo_children() if child.winfo_manager() == 'grid')
+        """ Sum only actively-managed children """
+        return sum(child.winfo_reqheight() for child in self.interior.winfo_children() if child.winfo_manager())
 
     def _on_canvas_configure(self, event:tk.Event) -> None:
         """ Keep the interior frame's width matched to the canvas's visible width. """

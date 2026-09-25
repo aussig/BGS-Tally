@@ -196,17 +196,21 @@ class UI:
         self.window_progress.create_frame(self.expanded_frame, current_row, column_count)
 
         self.collapsed_frame:th.Frame = th.Frame(self.frame)
-        self.collapsed_frame.columnconfigure(2, weight=1) # spacer -- pushes the show button to the far right
+        self.collapsed_frame.columnconfigure(3, weight=1) # spacer -- pushes the show button to the far right
         default_font:tkFont.Font = tkFont.Font(font=th.Label(self.collapsed_frame).cget('font'))
         bold_font:tuple = (default_font['family'], default_font['size'], 'bold')
         th.Label(self.collapsed_frame, text=self.bgstally.plugin_name, font=bold_font).grid(row=0, column=0, sticky=tk.W)
+        HyperlinkLabel(self.collapsed_frame, text=f"v{str(self.bgstally.version)}", background=th.Label(self.expanded_frame).cget('background'), url=URL_LATEST_RELEASE, underline=True).grid(row=0, column=1, sticky=tk.W, padx=(10,0))
+
         frm_status_collapsed: th.Frame = th.Frame(self.collapsed_frame)
-        frm_status_collapsed.grid(row=0, column=1, sticky=tk.W, padx=(10, 0))
+        frm_status_collapsed.grid(row=0, column=2, sticky=tk.W, padx=(10, 0))
         th.Label(frm_status_collapsed, text=_("Status:")).pack(side=tk.LEFT) # LANG: Main window label
+
         self.lbl_active_collapsed: th.Label = th.Label(frm_status_collapsed, width=SIZE_STATUS_ICON_PIXELS, height=SIZE_STATUS_ICON_PIXELS, image=self.image_icon_green_tick if self.bgstally.state.Status.get() == CheckStates.STATE_ON else self.image_icon_red_cross)
         self.lbl_active_collapsed.pack(side=tk.LEFT)
+
         self.btn_show: th.Button = th.Button(self.collapsed_frame, text=GLYPH_SHOW, width=3, command=self._toggle_panel)
-        self.btn_show.grid(row=0, column=3, sticky=tk.E)
+        self.btn_show.grid(row=0, column=4, sticky=tk.E)
         th.Tooltip(self.btn_show, text=_("Show {plugin_name}").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window tooltip
 
         if self.bgstally.state.plugin_hidden:

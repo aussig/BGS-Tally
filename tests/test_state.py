@@ -158,7 +158,7 @@ class TestState:
         assert config.get_str('BGST_DiscordFormatter', default='') == "TestFormatter"
 
 
-    def test_state_load_migrates_legacy_config_keys(self, harness) -> None:
+    def test_state_migrates_legacy_keys(self, harness) -> None:
         assert harness is not None
         state:State = harness.plugin.state
 

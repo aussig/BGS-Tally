@@ -43,6 +43,8 @@ FILENAME_COMMODITIES_CSV = "commodity.csv"
 FILENAME_RARE_COMMODITIES_CSV = "rare_commodity.csv"
 SIZE_BUTTON_PIXELS = 30
 SIZE_STATUS_ICON_PIXELS = 16
+GLYPH_HIDE = "\U0001F648" # see-no-evil monkey, matches ExplorerLite's shown-panel glyph
+GLYPH_SHOW = "\U0001F441" # eye, matches ExplorerLite's hidden-panel glyph
 TIME_WORKER_PERIOD_S = 2
 TIME_TICK_ALERT_M = 60
 TIME_TICK_OBJECTIVES_REFRESH_S = 30
@@ -132,58 +134,97 @@ class UI:
         Return a TK Frame for adding to the EDMC main window
         """
         self.frame = th.Frame(parent_frame)
+        self.frame.columnconfigure(0, weight=1)
+
+        button_columns:int = 6 if self.bgstally.capi_fleetcarrier_available() else 5
+
+        self.expanded_frame:th.Frame = th.Frame(self.frame)
+        self.expanded_frame.grid(row=0, column=0, sticky=tk.NSEW)
 
         column_count: int = 3
         if self.bgstally.capi_fleetcarrier_available(): column_count += 1
 
         current_row: int = 0
-        th.Label(self.frame, image=self.image_logo_bgstally_100).grid(row=current_row, column=0, rowspan=3, sticky=tk.W)
-        self.lbl_version: HyperlinkLabel = HyperlinkLabel(self.frame, text=f"v{str(self.bgstally.version)}", background=th.Label(self.frame).cget('background'), url=URL_LATEST_RELEASE, underline=True)
+        th.Label(self.expanded_frame, image=self.image_logo_bgstally_100).grid(row=current_row, column=0, rowspan=3, sticky=tk.W)
+        self.lbl_version: HyperlinkLabel = HyperlinkLabel(self.expanded_frame, text=f"v{str(self.bgstally.version)}", background=th.Label(self.expanded_frame).cget('background'), url=URL_LATEST_RELEASE, underline=True)
         self.lbl_version.grid(row=current_row, column=1, columnspan=column_count, sticky=tk.W)
+        self.btn_hide: th.Button = th.Button(self.expanded_frame, text=GLYPH_HIDE, width=3, command=self._toggle_panel)
+        self.btn_hide.grid(row=current_row, column=button_columns - 1, sticky=tk.E)
+        th.Tooltip(self.btn_hide, text=_("Hide {plugin_name}").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window tooltip
         current_row += 1
-        frm_status: th.Frame = th.Frame(self.frame)
+        frm_status: th.Frame = th.Frame(self.expanded_frame)
         frm_status.grid(row=current_row, column=1, columnspan=column_count, sticky=tk.W)
         self.lbl_status: th.Label = th.Label(frm_status, text=_("{plugin_name} Status:").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window label
         self.lbl_status.pack(side=tk.LEFT)
         self.lbl_active: th.Label = th.Label(frm_status, width=SIZE_STATUS_ICON_PIXELS, height=SIZE_STATUS_ICON_PIXELS, image=self.image_icon_green_tick if self.bgstally.state.Status.get() == CheckStates.STATE_ON else self.image_icon_red_cross)
         self.lbl_active.pack(side=tk.LEFT)
         current_row += 1
-        self.lbl_tick: th.Label = th.Label(self.frame, text=_("Last BGS Tick:") + " " + self.bgstally.tick.get_formatted()) # LANG: Main window label
+        self.lbl_tick: th.Label = th.Label(self.expanded_frame, text=_("Last BGS Tick:") + " " + self.bgstally.tick.get_formatted()) # LANG: Main window label
         self.lbl_tick.grid(row=current_row, column=1, columnspan=column_count, sticky=tk.W)
         current_row += 1
         current_column: int = 0
-        self.btn_latest_tick: th.Button = th.Button(self.frame, text=_("Latest BGS Tally"), height=SIZE_BUTTON_PIXELS, image=self.image_blank, compound=tk.RIGHT, command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity())) # LANG: Button label
+        self.btn_latest_tick: th.Button = th.Button(self.expanded_frame, text=_("Latest BGS Tally"), height=SIZE_BUTTON_PIXELS, image=self.image_blank, compound=tk.RIGHT, command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity())) # LANG: Button label
         self.btn_latest_tick.grid(row=current_row, column=current_column, padx=3)
         current_column += 1
-        self.btn_previous_ticks: th.Button = th.Button(self.frame, text=_("Previous BGS Tallies") + " ", height=SIZE_BUTTON_PIXELS, image=self.image_button_dropdown_menu, compound=tk.RIGHT, command=self._previous_ticks_popup) # LANG: Button label
+        self.btn_previous_ticks: th.Button = th.Button(self.expanded_frame, text=_("Previous BGS Tallies") + " ", height=SIZE_BUTTON_PIXELS, image=self.image_button_dropdown_menu, compound=tk.RIGHT, command=self._previous_ticks_popup) # LANG: Button label
         self.btn_previous_ticks.grid(row=current_row, column=current_column, padx=3, sticky=tk.W)
         current_column += 1
-        self.btn_cmdrs: th.Button = th.Button(self.frame, image=self.image_button_cmdrs, height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_cmdr_list_window)
+        self.btn_cmdrs: th.Button = th.Button(self.expanded_frame, image=self.image_button_cmdrs, height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_cmdr_list_window)
         self.btn_cmdrs.grid(row=current_row, column=current_column, padx=3)
         current_column += 1
         th.Tooltip(self.btn_cmdrs, text=_("Show CMDR information window")) # LANG: Main window tooltip
         if self.bgstally.capi_fleetcarrier_available():
-            self.btn_carrier: th.Button|None = th.Button(self.frame, image=self.image_button_carrier, state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_fc_window)
+            self.btn_carrier: th.Button|None = th.Button(self.expanded_frame, image=self.image_button_carrier, state=('normal' if self.bgstally.fleet_carrier.available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_fc_window)
             self.btn_carrier.grid(row=current_row, column=current_column, padx=3)
             th.Tooltip(self.btn_carrier, text=_("Show fleet carrier window")) # LANG: Main window tooltip
             current_column += 1
         else:
             self.btn_carrier: th.Button|None = None
 
-        self.btn_objectives: th.Button = th.Button(self.frame, image=self.image_button_objectives, state=('normal' if self.bgstally.objectives_manager.objectives_available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_objectives_window)
+        self.btn_objectives: th.Button = th.Button(self.expanded_frame, image=self.image_button_objectives, state=('normal' if self.bgstally.objectives_manager.objectives_available() else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_objectives_window)
         self.btn_objectives.grid(row=current_row, column=current_column, padx=3)
         th.Tooltip(self.btn_objectives, text=_("Show objectives / missions window")) # LANG: Main window tooltip
         current_column += 1
 
-        self.btn_colonisation: th.Button = th.Button(self.frame, image=self.image_button_colonisation, state=('normal' if self.bgstally.state.enable_colonisation == True else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_colonisation_window)
+        self.btn_colonisation: th.Button = th.Button(self.expanded_frame, image=self.image_button_colonisation, state=('normal' if self.bgstally.state.enable_colonisation == True else 'disabled'), height=SIZE_BUTTON_PIXELS, width=SIZE_BUTTON_PIXELS, command=self._show_colonisation_window)
         self.btn_colonisation.grid(row=current_row, column=current_column, padx=3)
         th.Tooltip(self.btn_colonisation, text=_("Show colonisation window")) # LANG: Main window tooltip
         current_column += 1
         current_row += 1
 
-        self.window_progress.create_frame(self.frame, current_row, column_count)
+        self.window_progress.create_frame(self.expanded_frame, current_row, column_count)
+
+        self.collapsed_frame:th.Frame = th.Frame(self.frame)
+        self.collapsed_frame.columnconfigure(2, weight=1) # spacer -- pushes the show button to the far right
+        th.Label(self.collapsed_frame, text=self.bgstally.plugin_name, font=FONT_HEADING_2).grid(row=0, column=0, sticky=tk.W)
+        frm_status_collapsed: th.Frame = th.Frame(self.collapsed_frame)
+        frm_status_collapsed.grid(row=0, column=1, sticky=tk.W, padx=(10, 0))
+        th.Label(frm_status_collapsed, text=_("Status:")).pack(side=tk.LEFT) # LANG: Main window label
+        self.lbl_active_collapsed: th.Label = th.Label(frm_status_collapsed, width=SIZE_STATUS_ICON_PIXELS, height=SIZE_STATUS_ICON_PIXELS, image=self.image_icon_green_tick if self.bgstally.state.Status.get() == CheckStates.STATE_ON else self.image_icon_red_cross)
+        self.lbl_active_collapsed.pack(side=tk.LEFT)
+        self.btn_show: th.Button = th.Button(self.collapsed_frame, text=GLYPH_SHOW, width=3, command=self._toggle_panel)
+        self.btn_show.grid(row=0, column=3, sticky=tk.E)
+        th.Tooltip(self.btn_show, text=_("Show {plugin_name}").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window tooltip
+
+        if self.bgstally.state.plugin_hidden:
+            self.expanded_frame.grid_forget()
+            self.collapsed_frame.grid(row=0, column=0, sticky=tk.EW)
 
         return self.frame
+
+
+    def _toggle_panel(self) -> None:
+        """ Show/hide the main window content. Tracking and activity continue either way. """
+        self.bgstally.state.set_plugin_hidden(not self.bgstally.state.plugin_hidden)
+
+        if not self.bgstally.state.plugin_hidden:
+            self.collapsed_frame.grid_forget()
+            self.expanded_frame.grid(row=0, column=0, sticky=tk.NSEW)
+            self.update_plugin_frame()
+            return
+
+        self.expanded_frame.grid_forget()
+        self.collapsed_frame.grid(row=0, column=0, sticky=tk.EW)
 
 
     def update_plugin_frame(self):
@@ -193,6 +234,7 @@ class UI:
         self.btn_latest_tick.configure(text=_("Latest BGS Tally")) # LANG: Button label
         self.btn_previous_ticks.configure(text=_("Previous BGS Tallies") + " ") # LANG: Button label
         self.lbl_active.configure(image=self.image_icon_green_tick if self.bgstally.state.Status.get() == CheckStates.STATE_ON else self.image_icon_red_cross)
+        self.lbl_active_collapsed.configure(image=self.image_icon_green_tick if self.bgstally.state.Status.get() == CheckStates.STATE_ON else self.image_icon_red_cross)
         self.lbl_tick.configure(text=_("Last BGS Tick:") + " " + self.bgstally.tick.get_formatted()) # LANG: Main window label
 
         if self.bgstally.update_manager.update_available:

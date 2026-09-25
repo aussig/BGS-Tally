@@ -146,7 +146,7 @@ class TestBGSTally:
         plugin.ui.update_plugin_frame.assert_not_called()
         plugin.overlay.display_message.assert_not_called()
 
-    def test_tick_worker_exits_when_shutting_down(self, harness) -> None:
+    def test_tick_worker_exits_shutdown(self, harness) -> None:
         plugin = harness.plugin
         config.shutting_down = True
 

@@ -267,9 +267,11 @@ class Button(Base):
         object.__setattr__(self, '_char_width', int(w) if w is not None else None)
 
     def _ttk_button(self, master:tk.Widget, kw:dict) -> ttk.Button:
-        """ ttk.Button ignores height and treats width as characters -- measure its natural size so grid() can pad up to it """
-        target_w, target_h = kw.get('width'), kw.get('height')
-        ttk_kw:dict = {k: v for k, v in kw.items() if k not in ('width', 'height')}
+        """ Icon buttons need a pixel width (ttk has none); text-only buttons already get ttk's native char width """
+        has_image:bool = 'image' in kw
+        target_w:int|None = kw.get('width') if has_image else None
+        target_h:int|None = kw.get('height')
+        ttk_kw:dict = {k: v for k, v in kw.items() if k != 'height' and (k != 'width' or not has_image)}
 
         btn:ttk.Button = ttk.Button(master, **ttk_kw)
         btn.update_idletasks()

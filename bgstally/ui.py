@@ -1,5 +1,6 @@
 import csv
 import tkinter as tk
+import tkinter.font as tkFont
 from datetime import UTC, datetime, timedelta
 from functools import partial
 from os import path
@@ -21,7 +22,7 @@ from config import config # type: ignore
 import edmc_data # type: ignore
 
 from bgstally.activity import STATES_ELECTION, STATES_WAR, Activity
-from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_HEADING_2, FONT_SMALL,
+from bgstally.constants import (DATETIME_FORMAT_ACTIVITY, FOLDER_ASSETS, FOLDER_DATA, FONT_SMALL,
                                 TAG_OVERLAY_HIGHLIGHT, CheckStates, DiscordActivity, FavouriteActivity, UpdateUIPolicy,
                                 Vehicle, ShipState, UIState)
 from bgstally.debug import Debug
@@ -196,7 +197,9 @@ class UI:
 
         self.collapsed_frame:th.Frame = th.Frame(self.frame)
         self.collapsed_frame.columnconfigure(2, weight=1) # spacer -- pushes the show button to the far right
-        th.Label(self.collapsed_frame, text=self.bgstally.plugin_name, font=FONT_HEADING_2).grid(row=0, column=0, sticky=tk.W)
+        default_font:tkFont.Font = tkFont.Font(font=th.Label(self.collapsed_frame).cget('font'))
+        bold_font:tuple = (default_font['family'], default_font['size'], 'bold')
+        th.Label(self.collapsed_frame, text=self.bgstally.plugin_name, font=bold_font).grid(row=0, column=0, sticky=tk.W)
         frm_status_collapsed: th.Frame = th.Frame(self.collapsed_frame)
         frm_status_collapsed.grid(row=0, column=1, sticky=tk.W, padx=(10, 0))
         th.Label(frm_status_collapsed, text=_("Status:")).pack(side=tk.LEFT) # LANG: Main window label

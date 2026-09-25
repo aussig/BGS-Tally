@@ -856,6 +856,8 @@ class ProgressWindow:
             for cell in self.rows[j].values():
                 cell.grid_remove()
 
+        self.scroll_frame.refresh()
+
         # We're down to having nothing left to deliver.
         if (totals.required - totals.delivered) == 0:
             if len(tracked) == 0: # Nothing at all, remove the entire frame

@@ -1165,7 +1165,7 @@ class TestRavenColonialMerge:
 class TestRavenColonialPush:
     """ Test pushing our own carrier's cargo/market data onto RC's record """
 
-    def test_push_sends_null_cargo_when_unknown(self, harness) -> None:
+    def test_push_sends_null_unknown(self, harness) -> None:
         """ Test we send null, not {}, when we have no cargo visibility -- RC only leaves its own record alone for null """
         from bgstally.ravencolonial import RavenColonial
         from bgstally.constants import FleetCarrierType

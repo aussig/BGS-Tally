@@ -50,6 +50,8 @@ class State:
         self.ColonisationMaxCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationMaxCommodities', default="20"))
         self.ColonisationRCAPIKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationRCAPIKey', default=""))
 
+        self.plugin_hidden:bool = (config.get_str('BGST_PluginHidden', default=CheckStates.STATE_OFF) == CheckStates.STATE_ON)
+
         self.FcCargo:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcCargo', default="Both"))
         self.FcLocker:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcLocker', default="Both"))
         self.FcCooldown:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcCooldown', default="both"))
@@ -95,6 +97,11 @@ class State:
         self.ui_state:UIState = UIState.NO_FOCUS
 
         self.refresh()
+
+    def set_plugin_hidden(self, hidden:bool) -> None:
+        ''' Persist whether the whole plugin is hidden or shown '''
+        self.plugin_hidden = hidden
+        config.set('BGST_PluginHidden', CheckStates.STATE_ON if hidden else CheckStates.STATE_OFF)
 
     def refresh(self):
         """

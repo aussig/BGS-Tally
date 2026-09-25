@@ -57,6 +57,10 @@ class ScrollableFrame(tk.Frame):
         self._resize_pending = True
         self.after_idle(self._apply_resize)
 
+    def refresh(self) -> None:
+        """ Force a resize/scrollbar recompute -- call after grid()/grid_remove() since <Configure> may not fire """
+        self._apply_resize()
+
     def _apply_resize(self) -> None:
         self._resize_pending = False
         if not self._canvas.winfo_exists():
@@ -84,8 +88,8 @@ class ScrollableFrame(tk.Frame):
         self._update_scrollbar_visibility(content_height)
 
     def _content_height(self) -> int:
-        """ Sum the children's own requested heights rather than trust `.interior.winfo_reqheight()` """
-        return sum(child.winfo_reqheight() for child in self.interior.winfo_children())
+        """ Sum only the currently-gridded children -- grid_remove()'d rows must not count """
+        return sum(child.winfo_reqheight() for child in self.interior.winfo_children() if child.winfo_manager() == 'grid')
 
     def _on_canvas_configure(self, event:tk.Event) -> None:
         """ Keep the interior frame's width matched to the canvas's visible width. """

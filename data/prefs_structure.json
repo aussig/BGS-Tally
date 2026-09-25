@@ -33,11 +33,6 @@
                         "desc": "Scroll window height or maximum number of commodities to display in the colonisation panel"
                     },
                     {
-                        "var": "EnableProgressScrollbar",
-                        "type": "checkbox",
-                        "label": "Use scrollbar (restart required)"
-                    },
-                    {
                         "var": "ColonisationRCAPIKey",
                         "type": "password",
                         "label": "Raven Colonial API Key"

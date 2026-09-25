@@ -282,7 +282,6 @@ class ProgressWindow:
             else:
                 lbl.bind("<Button-1>", partial(self._column_menu, col))
             lbl.bind("<Button-3>", partial(self.change_units, col, 'Units'))
-            if config.get_int('theme') == 0: lbl['fg'] = 'black'
             self._set_weight(lbl)
             lbl.grid(row=0, column=col, sticky=tk.EW if col == 0 else tk.E, padx=(0,5))
 
@@ -936,6 +935,8 @@ class ProgressWindow:
             if col >= len(self.collbls): col = len(self.collbls) - 1
             if self.collbls[col] == None: col = 0
             self.collbls[col]['text'] = self._column_label(col)
+            self.collbls[col]['fg'] = config.get_str('dark_text') if config.get_int('theme') > 0 else "black"
+
             self.collbls[col].grid()
 
     @catch_exceptions
@@ -984,7 +985,7 @@ class ProgressWindow:
         space:int = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
         for cell in row.values():
             # Get the ed:mc default color
-            if config.get_int('theme') == 0: cell['fg'] = 'black'
+            cell['fg'] = config.get_str('dark_text') if config.get_int('theme') > 0 else "black"
             self._set_weight(cell, 'normal')
 
             if comm.remaining <= 0: # Nothing left to deliver, grey it out

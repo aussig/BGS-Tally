@@ -107,6 +107,18 @@ class Colonisation:
             self.base_types = json.load(f)
             Debug.logger.info(f"Loaded {len(self.base_types)} base types for colonisation")
 
+        self.colonisation_commodities:set = self._extract_commodities(self.base_costs)
+
+    def _extract_commodities(self, node:dict) -> set:
+        ''' Get all the commodities from the base cost data '''
+        found:set = set()
+        for k, v in node.items():
+            if isinstance(v, dict):
+                found.update(self._extract_commodities(v))
+                continue
+            found.add(k)
+        return found
+
     @catch_exceptions
     def journal_entry(self, cmdr, is_beta, sys, station, entry, state) -> None:
         '''
@@ -925,16 +937,17 @@ class Colonisation:
 
     @catch_exceptions
     def get_commodity_list(self, order:CommodityOrder = CommodityOrder.ALPHA, qty:dict = {}) -> list:
-        ''' Return an ordered list of all base commodities '''
+        ''' Return an ordered list of commodities that can ever be required for a build '''
+        commodities:dict = {k: v for k, v in self.bgstally.ui.commodities.items() if k in self.colonisation_commodities}
 
         match order:
             case CommodityOrder.QUANTITY:
                ordered:list = list(k for k, v in sorted(qty.items(), key=lambda item: item[1], reverse=True))
-               return ordered + list(set(self.bgstally.ui.commodities.keys()) - set(ordered)) # Order plus zeroes at the end
+               return ordered + list(set(commodities.keys()) - set(ordered)) # Order plus zeroes at the end
             case CommodityOrder.CATEGORY:
-                return list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: (item[1]['Category'], item[1]['Name'].lower())))
+                return list(k for k, v in sorted(commodities.items(), key=lambda item: (item[1]['Category'], item[1]['Name'].lower())))
             case _:
-                return list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Name'].lower()))
+                return list(k for k, v in sorted(commodities.items(), key=lambda item: item[1]['Name'].lower()))
 
 
     @catch_exceptions

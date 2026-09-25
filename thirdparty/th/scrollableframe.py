@@ -27,6 +27,7 @@ class ScrollableFrame(tk.Frame):
         self._last_height:int|None = None
         self._last_scrollregion:tuple|None = None
         self._last_item_width:int|None = None
+        self._themed_children:set = set()
 
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -62,8 +63,11 @@ class ScrollableFrame(tk.Frame):
             return
 
         for child in self.interior.winfo_children():
+            if child in self._themed_children:
+                continue
             theme.update(child) # colors it if the theme is already known...
             theme.register(child) # ...and covers it for a later apply() if not
+            self._themed_children.add(child)
 
         bbox = self._canvas.bbox("all")
         # Compare against the value *we* last applied, not the widget's own read-back: under
@@ -115,6 +119,7 @@ class ScrollableFrame(tk.Frame):
         self.interior.unbind("<Configure>")
         for child in self.interior.winfo_children():
             child.destroy()
+        self._themed_children.clear()
         self.interior.bind("<Configure>", self._on_interior_configure)
         self._on_interior_configure()
 

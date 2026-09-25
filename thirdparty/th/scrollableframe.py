@@ -6,8 +6,12 @@ pixels; while content fits, the widget looks and behaves like a plain frame.
 """
 import tkinter as tk
 from tkinter import ttk
+from typing import TYPE_CHECKING
 
 from theme import theme # type: ignore
+
+if TYPE_CHECKING:
+    from . import Frame
 
 class ScrollableFrame(tk.Frame):
     """
@@ -36,7 +40,7 @@ class ScrollableFrame(tk.Frame):
         # Not gridded yet -- shown/hidden by _update_scrollbar_visibility() as content changes.
 
         from . import Frame # local import: avoids a hard circular import at module load time
-        self.interior:tk.Frame = Frame(self._canvas)
+        self.interior:'Frame' = Frame(self._canvas)
         theme.register(self.interior) # else stuck light forever -- canvas children aren't walked
         self._interior_id = self._canvas.create_window((0, 0), window=self.interior, anchor="nw")
 

@@ -48,7 +48,6 @@ class State:
         self.UseColonisationName:tk.StringVar = tk.StringVar(value=config.get_str('BGST_UseColonisationName', default=CheckStates.STATE_OFF))
 
         self.ColonisationMaxCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationMaxCommodities', default="20"))
-        self.EnableProgressScrollbar:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableProgressScrollbar', default=CheckStates.STATE_OFF))
         self.ColonisationRCAPIKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationRCAPIKey', default=""))
 
         self.FcCargo:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcCargo', default="Both"))
@@ -121,7 +120,6 @@ class State:
         self.showmerits:bool = (self.EnableShowMerits.get() == CheckStates.STATE_ON)
         self.use_colonisation_name:bool = (self.UseColonisationName.get() == CheckStates.STATE_ON)
         self.enable_colonisation:bool = (self.ColonisationStatus.get() == CheckStates.STATE_ON)
-        self.progress_scrollbar:bool = (self.EnableProgressScrollbar.get() == CheckStates.STATE_ON)
 
         # Non booleans
         self.overlay_objectives_mode:int = int(self.OverlayObjectivesMode.get())
@@ -165,7 +163,6 @@ class State:
         config.set('BGST_FcLocker', self.FcLocker.get())
         config.set('BGST_FcCooldown', self.FcCooldown.get())
         config.set('BGST_ColonisationMaxCommodities', self.ColonisationMaxCommodities.get())
-        config.set('BGST_EnableProgressScrollbar', self.EnableProgressScrollbar.get())
         config.set('BGST_ColonisationRCAPIKey', self.ColonisationRCAPIKey.get())
         config.set('BGST_FavouriteActivityMode', self.FavouriteActivityMode.get())
         config.set('BGST_UseColonisationName', self.UseColonisationName.get())

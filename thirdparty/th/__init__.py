@@ -137,7 +137,7 @@ class TopLevel(tk.Toplevel):
     A plain themed toplevel window. Deliberately does NOT call theme.update()/register() on
     itself
     """
-    def __init__(self, master:tk.Widget, **kw) -> None:
+    def __init__(self, master:tk.Widget|None = None, **kw) -> None:
         tk.Toplevel.__init__(self, master, **kw)
 
 class Frame(tk.Frame):
@@ -183,12 +183,10 @@ class Label(tk.Label):
         theme.update(self)
 
 class Separator(tk.Frame):
-    """ A themed horizontal or vertical separator line that can switch between light and dark mode. """
-    def __init__(self, master:tk.Widget, orient:str = tk.HORIZONTAL, **kw) -> None:
-        #kw.setdefault('relief', tk.GROOVE)
-        #kw.setdefault('borderwidth', 1)
-        #kw.setdefault('height' if orient == tk.HORIZONTAL else 'width', 2)
-        ttk.Separator.__init__(self, master, **kw)
+    """ A themed separator line, matching EDMC's own per-plugin one -- stretch it via grid(sticky=EW or NS) """
+    def __init__(self, master:tk.Widget, **kw) -> None:
+        kw.setdefault('highlightthickness', 1)
+        tk.Frame.__init__(self, master, **kw)
         theme.update(self)
 
 class Text(tk.Text):

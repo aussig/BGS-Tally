@@ -4,6 +4,9 @@
 
 ## New Features:
 
+* BGS-Tally display has a collapsed mode that hides details and overlays while continuing to function in all other aspects
+* EDMC window buttons use theme-aware objects
+* Progress display switches colours correctly when the theme is changed
 * Support for squadron and third-party carriers
   * Tracked carriers can be added and removed via preferences or automatically on first docking
   * Carriers are listed in a tab bar in the Fleet Carrier window
@@ -16,6 +19,7 @@
 ### Changes:
 
 * Progress columns is now a dropdown menu and includes tracked carriers
+* Carrier buy orders, sell orders, and cargo are available as distinct progress views
 * Carrier jump progress is saved over EDMC restarts
 
 ### Bug Fixes:

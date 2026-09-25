@@ -415,3 +415,48 @@ class Prefs:
             grid(row=row, column=column+1, pady=(5,5), sticky=tk.W) # LANG: Preferences add faction button text
 
         return 2
+
+    @catch_exceptions
+    def _untrack_carrier(self, carrier_id:int, var:tk.BooleanVar) -> None:
+        """ Callback for when a tracked carrier's checkbox is unticked """
+        if var.get(): return # Only unticking does anything -- there's no bigger list to re-tick it back into
+        self.bgstally.fleet_carriers.remove(carrier_id)
+        self._rebuild_tracked_carriers()
+
+    @catch_exceptions
+    def _add_tracked_carrier(self, entry:nb.EntryMenu, var:tk.StringVar) -> None:
+        """ Callback for adding a carrier to track by its callsign (its permanent, human-visible identifier) """
+        callsign:str = var.get().strip()
+        if not callsign: return
+        var.set("")
+        entry.config(state=tk.DISABLED)
+        if self.bgstally.fleet_carriers.track_by_callsign(callsign):
+            self._rebuild_tracked_carriers()
+        entry.config(state=tk.NORMAL)
+
+    @catch_exceptions
+    def _tracked_carriers(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
+        """ Show the tracked third-party carriers list and allow adding or removing carriers """
+        self.carriers_fr:nb.Frame = nb.Frame(frame)
+        self.carriers_fr.grid(row=row, column=column, columnspan=6, padx=0, pady=(0,5), sticky=tk.NSEW)
+        self._rebuild_tracked_carriers()
+
+        row += 1
+        var:tk.StringVar = tk.StringVar(value="")
+        entry:nb.EntryMenu = nb.EntryMenu(frame, textvariable=var, width=15, state=state)
+        entry.grid(row=row, column=column, padx=(10,0), pady=(5,5), sticky=tk.W)
+        nb.Button(frame, text=_("Add Carrier"), command=partial(self._add_tracked_carrier, entry, var), state=state). \
+            grid(row=row, column=column+1, pady=(5,5), sticky=tk.W) # LANG: Preferences add carrier button text
+
+        return 2
+
+    def _rebuild_tracked_carriers(self) -> None:
+        """ Redraw the list of tracked third-party carriers """
+        for child in self.carriers_fr.winfo_children(): child.destroy()
+
+        for i, fc in enumerate(self.bgstally.fleet_carriers.third_party):
+            name:str = fc.overview.get('callsign') or str(fc.carrier_id)
+            var:tk.BooleanVar = tk.BooleanVar(value=True)
+            nb.Checkbutton(self.carriers_fr, text=name, command=partial(self._untrack_carrier, fc.carrier_id, var),
+                           onvalue=True, offvalue=False, variable=var). \
+                grid(row=(i//3), column=(i%3), padx=(10,0), pady=(0,5), sticky=tk.W)

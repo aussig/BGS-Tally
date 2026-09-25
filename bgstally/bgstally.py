@@ -15,11 +15,12 @@ from bgstally.activitymanager import ActivityManager
 from bgstally.apimanager import APIManager
 from bgstally.colonisation import Colonisation
 from bgstally.config import Config
-from bgstally.constants import FOLDER_OTHER_DATA, UpdateUIPolicy, Vehicle, Location, ShipState, UIState
+from bgstally.constants import FOLDER_CARRIERS, FOLDER_OTHER_DATA, UpdateUIPolicy, Vehicle, Location, ShipState, UIState, FleetCarrierType, CheckStates
 from bgstally.debug import Debug
 from bgstally.discord import Discord
 from bgstally.factionmanager import FactionManager
 from bgstally.fleetcarrier import FleetCarrier
+from bgstally.fleetcarriers import FleetCarriers
 from bgstally.formattermanager import ActivityFormatterManager
 from bgstally.market import Market
 from bgstally.missionlog import MissionLog
@@ -87,6 +88,8 @@ class BGSTally:
 
         data_filepath = path.join(self.plugin_dir, FOLDER_OTHER_DATA)
         if not path.exists(data_filepath): mkdir(data_filepath)
+        carriers_filepath = path.join(data_filepath, FOLDER_CARRIERS)
+        if not path.exists(carriers_filepath): mkdir(carriers_filepath)
 
         # Main Classes
         self.state: State = State(self)
@@ -96,7 +99,7 @@ class BGSTally:
         self.tick: Tick = Tick(self, True)
         self.overlay: Overlay = Overlay(self)
         self.activity_manager: ActivityManager = ActivityManager(self)
-        self.fleet_carrier: FleetCarrier = FleetCarrier(self)
+        self.fleet_carriers: FleetCarriers = FleetCarriers(self)
         self.market: Market = Market(self)
         self.request_manager: RequestManager = RequestManager(self)
         self.api_manager: APIManager = APIManager(self)
@@ -112,6 +115,20 @@ class BGSTally:
         self.tick_thread: Thread = Thread(target=self._tick_worker, name="BGSTally Tick worker")
         self.tick_thread.daemon = True
         self.tick_thread.start()
+
+
+    @property
+    def fleet_carrier(self) -> FleetCarrier:
+        """ Our personal carrier. Kept for every caller that only ever cares about their own carrier. """
+        return self.fleet_carriers.personal
+
+
+    def _carrier(self, entry:dict) -> FleetCarrier:
+        """ Resolve which FleetCarrier a journal entry is about, creating one if CarrierType is given """
+        carrier_id:int = entry.get('CarrierID', entry.get('MarketID', 0))
+        if 'CarrierType' in entry:
+            return self.fleet_carriers.get(carrier_id, FleetCarrierType(entry['CarrierType']), entry.get('Callsign'))
+        return self.fleet_carriers.find(carrier_id) or self.fleet_carriers.personal
 
 
     def plugin_stop(self):
@@ -154,6 +171,9 @@ class BGSTally:
         mission:dict|None = self.mission_log.get_mission(entry.get('MissionID'))
 
         match entry.get('event'):
+            case 'StartUp':
+                self.fleet_carriers.refresh_markets(system, station)
+
             case 'ApproachSettlement' if state['Odyssey']:
                 activity.settlement_approached(entry, self.state)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
@@ -186,13 +206,13 @@ class BGSTally:
                 self.fleet_carrier.jump_requested(entry)
 
             case 'CarrierLocation':
-                self.fleet_carrier.carrier_location(entry)
+                self._carrier(entry).carrier_location(entry)
 
             case 'CarrierStats':
-                self.fleet_carrier.stats_received(entry)
+                self._carrier(entry).stats_received(entry)
 
             case 'CarrierTradeOrder':
-                self.fleet_carrier.trade_order(entry)
+                self._carrier(entry).trade_order(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'CollectCargo':
@@ -229,6 +249,15 @@ class BGSTally:
                 self.ui.show_station_info(station, self.state.station_faction)
                 dirty = True
 
+                market_id:int = entry.get('MarketID', 0)
+                # Add a third-party carrier if appropriate
+                if entry.get('StationType') == 'FleetCarrier' and self.state.AutoTrackCarriers.get() == CheckStates.STATE_ON and \
+                    self.fleet_carriers.find(market_id) is None:
+                    self.fleet_carriers.add(market_id, FleetCarrierType.THIRDPARTY, station, system)
+
+                # refresh carrier market data
+                self.fleet_carriers.refresh_markets(system, station)
+
             case 'EjectCargo':
                 activity.cargo_ejected(entry)
                 dirty = True
@@ -236,6 +265,9 @@ class BGSTally:
             case 'FactionKillBond':
                 activity.cb_received(entry, self.state, cmdr)
                 dirty = True
+
+            case 'FSSSignalDiscovered':
+                self.fleet_carriers.fss_signal(entry)
 
             case 'Friends' if entry.get('Status') == "Requested":
                 self.target_manager.friend_request(entry, system)
@@ -256,19 +288,19 @@ class BGSTally:
 
             case 'Market':
                 self.market.load()
-                self.fleet_carrier.market(entry)
+                self._carrier(entry).market(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'MarketBuy':
                 activity.trade_purchased(entry, self.state)
-                self.fleet_carrier.market_activity(entry)
+                self._carrier(entry).market_activity(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
                 dirty = True
 
             case 'MarketSell':
                 activity.trade_sold(entry, self.state)
-                self.fleet_carrier.market_activity(entry)
+                self._carrier(entry).market_activity(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
@@ -338,6 +370,9 @@ class BGSTally:
 
             case 'Shipyard' | 'StoredShips' | 'ShipyardSwap' | 'ShipyardTransfer':
                 self.fleet_carrier.shipyard_event(entry)
+
+            case 'StoredModules':
+                self.fleet_carrier.modules_event(entry)
 
             case 'SupercruiseDestinationDrop':
                 activity.destination_dropped(entry, self.state)
@@ -450,7 +485,7 @@ class BGSTally:
         if data.source_host != SERVER_LIVE:
             return
 
-        self.fleet_carrier.update(data.data)
+        self.fleet_carrier.capi_update(data.data)
         self.ui.update_plugin_frame()
 
 
@@ -484,7 +519,7 @@ class BGSTally:
         self.tick.save()
         self.activity_manager.save()
         self.state.save()
-        self.fleet_carrier.save()
+        self.fleet_carriers.save_all()
         self.api_manager.save()
         self.webhook_manager.save()
         self.faction_manager.save()

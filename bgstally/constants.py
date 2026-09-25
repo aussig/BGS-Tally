@@ -105,6 +105,18 @@ class DiscordChannel(str, Enum):
 class FleetCarrierType(str, Enum):
     PERSONAL = 'FleetCarrier'
     SQUADRON = 'SquadronCarrier'
+    THIRDPARTY = 'ThirdPartyCarrier'
+
+
+# Which source last supplied a carrier's cargo/market reading. Metadata for logging and for
+# the RC-specific staleness check -- acceptance itself is decided by comparing timestamps,
+# not by tier.
+class DataTier(str, Enum):
+    UNKNOWN = 'Unknown'
+    SPANSH = 'Spansh'
+    RC = 'RC'
+    CAPI = 'CAPI'
+    JOURNAL = 'Journal'
 
 
 class FleetCarrierJump(str, Enum):
@@ -213,6 +225,7 @@ DATETIME_FORMAT_TITLE: str = "%Y-%m-%d %H:%M:%S"
 FILE_SUFFIX: str = ".json"
 FOLDER_ASSETS: str = "assets"
 FOLDER_BACKUPS: str = "backups"
+FOLDER_CARRIERS: str = "carriers"
 FOLDER_DATA: str = "data"
 FOLDER_OTHER_DATA: str = "otherdata"
 FOLDER_UPDATES: str = "updates"

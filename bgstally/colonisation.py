@@ -71,6 +71,7 @@ class Colonisation:
 
         self.cargo:dict = {}       # Local store of our current cargo
         self.carrier_cargo:dict = {} # Local store of our current carrier cargo
+        self.carrier_sell:dict = {}  # Local store of our current carrier sell listings
         self.carrier_buy:dict = {}   # Local store of our current carrier buy orders
         self.market:dict = {}      # Local store of the current market data
         self.cargo_capacity:int = 784 # Default cargo capacity
@@ -82,7 +83,7 @@ class Colonisation:
         self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost', 'Readonly']
         self.system_keys:list = ['Name', 'StarSystem', 'SystemAddress', 'Claimed', 'Builds', 'Notes', 'Population', 'Economy', 'Security' 'RScync', 'Architect', 'Rev', 'Bodies', 'EDSMUpdated', 'Hidden', 'SpanshUpdated', 'RCSync', 'BuildSlots', 'RCCommander', 'RCOpen']
         self.build_keys:list = ['Name', 'Plan', 'State', 'Base Type', 'Body', 'BodyNum', 'MarketID', 'Track', 'StationEconomy', 'Layout', 'Location', 'BuildID', 'ProjectID', 'TotalCost', 'Readonly']
-        self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered']
+        self.progress_keys:list = ['MarketID', 'Updated', 'ConstructionProgress', 'ConstructionFailed', 'ConstructionComplete', 'ProjectID', 'Required', 'Delivered', 'LinkedFC']
 
         self.window_geometries:dict = {}
 
@@ -176,16 +177,19 @@ class Colonisation:
                     return
 
                 system = self.find_system({'StarSystem' : self.current_system, 'SystemAddress': self.system_id})
-                if system != None and system.get('Hidden', True) == False and system.get('RCSync', False) == True:
-                    for progress in self.progress:
-                        if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
-                            rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
+                if system == None or system.get('Hidden', False) == True or system.get('RCSync', False) == False:
+                    Debug.logger.warning(f"Ignoring ColonisationContribution event (system issues).")
+                    return
 
-                            # Just in case we don't have the ProjectID on the build, add it now.
-                            b:dict|None = self.find_build(system, {'MarketID': self.market_id})
-                            if b != None and b.get('ProjectID', None) == None:
-                                self.modify_build(system, b.get('BuildID', ''), {'ProjectID': progress.get('ProjectID', None)})
-                            break
+                for progress in self.progress:
+                    if progress.get('MarketID', None) == self.market_id and progress.get('ProjectID', None) != None:
+                        rc.record_contribution(progress.get('ProjectID', 0), entry.get('Contributions', []))
+
+                        # Just in case we don't have the ProjectID on the build, add it now.
+                        b:dict|None = self.find_build(system, {'MarketID': self.market_id})
+                        if b != None and b.get('ProjectID', None) == None:
+                            self.modify_build(system, b.get('BuildID', ''), {'ProjectID': progress.get('ProjectID', None)})
+                        return
 
             case 'ColonisationSystemClaim':
                 if not self.current_system or not self.system_id:
@@ -582,12 +586,13 @@ class Colonisation:
         for system in self.get_all_systems():
             if system.get('Hidden', False) == True:
                 continue
-            for build in self.get_system_builds(system):
+            for i, build in enumerate(self.get_system_builds(system)):
                 if build.get("Track", False) == True and self.get_build_state(build) != BuildState.COMPLETE:
                     b:dict = build.copy()
                     b['Plan'] = system.get('Name', '')
                     b['StarSystem'] = system.get('StarSystem', '')
                     b['SystemAddress'] = system.get('SystemAddress', 0)
+                    b['Primary'] = (i==0)
                     tracked.append(b)
 
         return tracked
@@ -614,6 +619,7 @@ class Colonisation:
         Name, BuildID or Marketid are preferred but we use fuzzy matching for weird fdev cases
         '''
         builds:list = self.get_system_builds(system)
+        builds[0]['Primary'] = True # Bit of a hack, should flag the primary at source.
 
         #Debug.logger.debug(f"Finding build in {system.get('StarSystem')} {data} Builds: {builds}")
         if data.get('Name', '') == '' or data.get('Name', '') == ' ': data['Name'] = None
@@ -631,7 +637,7 @@ class Colonisation:
         # Match on site name.
         if data.get('Name', None) != None:
             for build in builds:
-                if build.get('Name', None) != None and build.get('Name', None) == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')):
+                if build.get('Name', None) != None and build.get('Name', '').lower() == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')).lower():
                     return build
 
         # Match on name if we can.
@@ -677,9 +683,8 @@ class Colonisation:
         if len(builds) == 0:
             return None
 
-        # Primary port. We completed it but don't know its new name or marketid.
-        if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('BuildID', None) == None and \
-            builds[0].get('MarketID', None) == None and \
+        # Primary port. We completed it but don't know its new name or marketid
+        if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('MarketID', None) == None and \
                 builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == data.get('Body', str(data.get('BodyNum', ''))).lower():
             Debug.logger.debug(f"Matched completed primary port {data.get('Name', None)} {data.get('Body', str(data.get('BodyNum', ''))).lower()}")
             return builds[0]
@@ -989,7 +994,7 @@ class Colonisation:
                         res = p.get(type, {})
                         break
             if res == {} and type != 'Delivered' and b.get('Base Type', '') != '':
-                res = self._get_cost(b.get('Base Type', ''), i==0)
+                res = self._get_cost(b.get('Base Type', ''), b.get('Primary', False))
             found += 1
             prog.append(res)
 
@@ -1036,6 +1041,11 @@ class Colonisation:
             if p.get('MarketID', 0) == id or p.get('ProjectID', '') == id:
                 return p
         return None
+
+
+    def is_carrier_linked(self, carrier_id:int) -> bool:
+        ''' Whether RC currently lists this carrier as linked to any of our tracked builds '''
+        return any(carrier_id in p.get('LinkedFC', []) for p in self.progress)
 
     @catch_exceptions
     def update_progress(self, id:int, data:dict, silent:bool = False) -> None:
@@ -1099,24 +1109,28 @@ class Colonisation:
         if self.bgstally.fleet_carrier.available() == False:
             return
         cargo:dict = {}
+        sell:dict = {}
         buyorder:dict = {}
 
         fccargo = self.bgstally.fleet_carrier.get_cargo('normal')
         for name, cargo_item in fccargo.get('inventory', {}).items():
-            cargo[name] = int(cargo_item.get('stock', 0))
-            if cargo_item.get('outstanding', 0) > 0:
-                buyorder[name] = int(cargo_item.get('outstanding', 0))
+            cargo[name] = int(cargo_item.get('cargo', 0) or 0)
+            if cargo_item.get('sell', 0) > 0:
+                sell[name] = int(cargo_item.get('sell', 0))
+            if cargo_item.get('buy', 0) > 0:
+                buyorder[name] = int(cargo_item.get('buy', 0))
 
-        if cargo != self.carrier_cargo and self.cmdr != None:
-            RavenColonial(self).update_carrier(self.bgstally.fleet_carrier.carrier_id, cargo)
+        # We push sales and purchases as well as cargo, so any of the three changing is worth sending
+        changed:bool = cargo != self.carrier_cargo or buyorder != self.carrier_buy or sell != self.carrier_sell
+        if changed and self.cmdr != None:
+            RavenColonial(self).update_carrier(self.bgstally.fleet_carrier)
 
-        if cargo != self.carrier_cargo or self.carrier_buy != buyorder:
-            self.carrier_buy = buyorder
-            self.carrier_cargo = cargo
+        if changed:
             self.bgstally.ui.window_progress.update_display()
 
         self.carrier_buy = buyorder
         self.carrier_cargo = cargo
+        self.carrier_sell = sell
 
 
     def _update_cargo(self, cargo:dict) -> None:
@@ -1223,6 +1237,8 @@ class Colonisation:
             'ProgressView' : self.bgstally.ui.window_progress.view.value,
             'ProgressUnits': units,
             'ProgressColumns': self.bgstally.ui.window_progress.columns,
+            'ProgressColumnCarriers': self.bgstally.ui.window_progress.column_carriers,
+            'ProgressColumnCarrierMode': self.bgstally.ui.window_progress.column_carrier_mode,
             'BuildIndex'   : self.bgstally.ui.window_progress.build_index,
             'WindowGeometries' : self.window_geometries
             }
@@ -1286,7 +1302,14 @@ class Colonisation:
             if dict.get('ProgressUnits', []) != []:
                 self.bgstally.ui.window_progress.units = [ProgressUnits(v) for v in dict.get('ProgressUnits', [])]
             if dict.get('ProgressColumns', None) != None:
-                self.bgstally.ui.window_progress.columns = dict.get('ProgressColumns', [])
+                num_headings:int = len(self.bgstally.ui.window_progress.headings)
+                self.bgstally.ui.window_progress.columns = [c if c < num_headings else 0 for c in dict.get('ProgressColumns', [])]
+            if dict.get('ProgressColumnCarriers', None) != None:
+                self.bgstally.ui.window_progress.column_carriers = dict.get('ProgressColumnCarriers', [])
+            if dict.get('ProgressColumnCarrierMode', None) != None:
+                self.bgstally.ui.window_progress.column_carrier_mode = dict.get('ProgressColumnCarrierMode', [])
+            elif dict.get('ProgressColumnCarrierDemand', None) != None: # Migrate from the old boolean demand flag
+                self.bgstally.ui.window_progress.column_carrier_mode = ['buy' if v else 'sell' for v in dict.get('ProgressColumnCarrierDemand', [])]
             self.bgstally.ui.window_progress.build_index = dict.get('BuildIndex', 0)
             self.window_geometries = dict.get('WindowGeometries', {})
         except:

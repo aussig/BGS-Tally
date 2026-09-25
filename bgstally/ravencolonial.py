@@ -1,10 +1,11 @@
+from datetime import datetime, timezone
 from urllib.parse import quote
 import re
 import time
 from functools import partial
 import requests
 from requests import Response
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 from bgstally.constants import RequestMethod, BuildState
 from bgstally.requestmanager import BGSTallyRequest
@@ -14,6 +15,7 @@ from bgstally.utils import _, get_by_path, catch_exceptions
 if TYPE_CHECKING:
     from colonisation import Colonisation
     from bgstally.bgstally import BGSTally
+    from bgstally.fleetcarrier import FleetCarrier
 
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
 RC_COOLDOWN = 30
@@ -26,6 +28,9 @@ EDSM_COOLDOWN = (3600 * 24)
 
 SPANSH_API = 'https://spansh.co.uk/api'
 SPANSH_COOLDOWN = (3600 * 24)
+SPANSH_LOCAL_COOLDOWN = (60 * 1)
+SPANSH_REMOTE_COOLDOWN = (60 * 10)
+
 class RavenColonial:
     """
     Class to handle all the data syncing between the colonisation system and RavenColonial.com. It also handles retrieving
@@ -107,6 +112,7 @@ class RavenColonial:
         }
 
         self._cache:dict = {} # Cache of responses and response times used to reduce API calls
+        self._rc_tracked:dict[int, bool] = {} # carrier_id -> whether RC currently has a record for it
         self._initialized = True
 
 
@@ -114,7 +120,7 @@ class RavenColonial:
         """ Return the headers to use for RavenColonial API calls """
         headers:dict = self.base_headers
         if self.colonisation.cmdr != None: headers["rcc-cmdr"] = self.colonisation.cmdr
-        if self.bgstally.state.ColonisationRCAPIKey.get() != None: headers["rcc-key"] = self.bgstally.state.ColonisationRCAPIKey.get()
+        if self.bgstally.state.colonisation_rc_api_key != None: headers["rcc-key"] = self.bgstally.state.colonisation_rc_api_key
         return headers
 
 
@@ -125,7 +131,7 @@ class RavenColonial:
         if system == None or system.get('RCOpen', False) == True:
             return True
 
-        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
+        if self.colonisation.cmdr == None or self.bgstally.state.colonisation_rc_api_key == None or self.bgstally.state.colonisation_rc_api_key == '':
             return False
 
         return self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
@@ -439,7 +445,7 @@ class RavenColonial:
         """ Process the results of querying RavenColonial for the system details """
 
         if success == False:
-            Debug.logger.error(f"System load failed {response.content}")
+            Debug.logger.error(f"System load failed {response.content if response != None else 'No response'}")
             return
 
         data:dict = response.json()
@@ -509,7 +515,7 @@ class RavenColonial:
             projectid = build.get('ProjectID', None)
 
         if projectid == None:
-            Debug.logger.error(f"Project not found {response} {response.content}")
+            Debug.logger.error(f"Project not found {response}")
             return
 
         self.colonisation.update_progress(progress.get('MarketID', 0), {'ProjectID': projectid}, True)
@@ -557,8 +563,8 @@ class RavenColonial:
             if rcval != None and v != 'Updated':
                 payload[k] = rcval
 
-        if payload == self._cache.get(progress.get('ProjectID', ''), {}):return
-        self._cache[progress.get('ProjectID', '')] = payload
+        if payload == self._cache.get(f"upsert_{progress.get('ProjectID', '')}", {}): return
+        self._cache[f"upsert_{progress.get('ProjectID', '')}"] = payload
 
         url:str = f"{RC_API}/project/{progress.get('ProjectID')}"
         self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, headers=self._headers(), callback=self._project_callback)
@@ -627,7 +633,7 @@ class RavenColonial:
             return
 
         data:dict = response.json()
-        self._cache[data.get('buildId')] = data.get('timestamp')
+        self._cache[f"project_{data.get('buildId')}"] = data.get('timestamp')
         update:dict = {}
         for k, v in self.project_params.items():
             if data.get(k, None) == None:
@@ -637,6 +643,10 @@ class RavenColonial:
                 continue
             update[v] = data.get(k, '') if isinstance(data.get(k, None), str) and 'name' not in k.lower() else data.get(k, None)
 
+        if data.get('linkedFC') is not None:
+            # Carriers RC considers linked to this build -- used to gate which third-party carriers we push to RC
+            update['LinkedFC'] = [int(fc['marketId']) for fc in data['linkedFC'] if fc.get('marketId') is not None]
+
         if update != {}:
             self.colonisation.update_progress(data.get('marketId', 0), update, True)
 
@@ -644,10 +654,6 @@ class RavenColonial:
     @catch_exceptions
     def record_contribution(self, project_id:int, contributions:list[dict]) -> None:
         """ Record colonisation contributions made """
-
-        #if self.is_editable() == False:
-        #    Debug.logger.info("Not recording contribution with RavenColonial")
-        #    return
 
         payload:dict = {re.sub(r"\$(.*)_name;$", r"\1", c.get('Name', '').lower()): c.get('Amount', 0) for c in contributions}
 
@@ -662,27 +668,119 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def update_carrier(self, marketid:int, cargo:dict) -> None:
-        """ Update the cargo of a fleet carrier """
-        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
+    def update_carrier(self, fc:'FleetCarrier') -> None:
+        """ Push this carrier's cargo/buy/sell orders to RavenColonial, merged onto its current record """
+        if self.colonisation.cmdr == None or self.bgstally.state.colonisation_rc_api_key == None or self.bgstally.state.colonisation_rc_api_key == '':
             Debug.logger.info("Not updating carrier in RavenColonial")
             return
 
-        payload:dict = {comm : cargo.get(comm, 0) for comm in self.bgstally.ui.commodities.keys()}
-        url:str = f"{RC_API}/fc/{marketid}/cargo"
-        self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=self._headers(), callback=self._carrier_callback)
-        return
+        # Callers only get here once they've detected a real cargo/buy/sell change, so the push itself is
+        # never skipped -- only the GET for RC's other fields (name, system, etc.) is cached and reused,
+        # since those rarely change and don't need re-fetching before every single push.
+        cache_key:str = f'push_{fc.carrier_id}'
+        cached:dict|None = self._cache.get(cache_key)
+        if cached and cached['ts'] > int(time.time()) - RC_COOLDOWN:
+            Debug.logger.debug(f"Reusing cached RC record for carrier {fc.carrier_id}, skipping GET")
+            self._push_carrier(fc, dict(cached['doc']))
+            return
+
+        url:str = f"{RC_API}/fc/{fc.carrier_id}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=partial(self._carrier_fetched_callback, fc))
 
 
     @catch_exceptions
-    def _carrier_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
-        """ Process the results of querying RavenColonial """
-        data:dict = response.json()
+    def _carrier_fetched_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
+        """ Continue the async cargo push once we have the carrier's current RavenColonial record """
+        if success == False or response.status_code != 200: return
+
+        view:dict = response.json()
+        self._cache[f'push_{fc.carrier_id}'] = {'ts': int(time.time()), 'doc': view}
+        self._push_carrier(fc, view)
+
+
+    def _push_carrier(self, fc:'FleetCarrier', view:dict) -> None:
+        """ Merge our current cargo/buy/sell onto an RC carrier record and push it """
+        inventory:dict = fc.get_cargo('normal').get('inventory', {})
+        cargo:dict = {comm: int(item['cargo']) for comm, item in inventory.items() if item.get('cargo') is not None}
+        # RC only leaves its own stored cargo untouched when this is null
+        view['cargo'] = cargo if cargo else None
+        view['sales'] = [{'name': comm, 'price': item.get('price', 0), 'total': item.get('sell', 0)}
+                          for comm, item in inventory.items() if item.get('sell', 0) > 0]
+        view['purchases'] = [{'name': comm, 'price': item.get('price', 0), 'outstanding': item.get('buy', 0)}
+                             for comm, item in inventory.items() if item.get('buy', 0) > 0]
+
+        url:str = f"{RC_API}/fc/{fc.carrier_id}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.PUT, payload=view, headers=self._headers(), callback=self._carrier_callback)
+
+
+    @catch_exceptions
+    def _carrier_callback(self, success:bool, response:Response, request:BGSTallyRequest|None = None) -> None:
+        """ Process the results of updating a carrier's cargo in RavenColonial """
         if success == False or response.status_code != 200:
             Debug.logger.warning(f"Error updating carrier {response} {response.content}")
             return
 
-        Debug.logger.debug(f"RavenColonial carrier updated: {response}")
+        Debug.logger.debug(f"RavenColonial carrier update submitted: {response}")
+
+
+    @catch_exceptions
+    def get_carrier(self, marketid:int) -> dict|None:
+        """ Synchronously fetch RC's current view of a carrier, normalized for FleetCarrier.merge() """
+        cache_key:str = f'fc_{marketid}'
+
+        if self._cache.get(cache_key, 0) > int(time.time()) - (RC_COOLDOWN if self.is_editable() else RC_COOLDOWN * 10): return None
+        self._cache[cache_key] = int(time.time())
+
+        # A get tells us if this carrier is being tracked by RC and returns current cargo/buy/sell state.
+        url:str = f"{RC_API}/fc/{marketid}"
+        response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
+        self._rc_tracked[marketid] = response.status_code == 200
+        if response.status_code != 200: return None
+
+        data:dict = response.json()
+        which:str = data.get('name', marketid)
+        cargo:dict = {comm: {'cargo': qty} for comm, qty in data.get('cargo', {}).items()}
+
+        # 'sales'/'purchases' may be entirely absent if whoever last pushed this carrier never populated them
+        if data.get('sales', []) or data.get('purchases', []):
+            for entry in cargo.values(): entry['sell'] = 0; entry['buy'] = 0
+            for sale in data.get('sales') or []:
+                comm:str = sale.get('name', '')
+                if comm == '': continue
+                cargo.setdefault(comm, {})['sell'] = int(sale.get('total', 0))
+                cargo[comm]['price'] = int(sale.get('price', 0))
+            for purchase in data.get('purchases') or []:
+                comm = purchase.get('name', '')
+                if comm == '': continue
+                cargo.setdefault(comm, {})['buy'] = int(purchase.get('outstanding', 0))
+                cargo[comm]['price'] = int(purchase.get('price', 0))
+            Debug.logger.debug(f"RC carrier {which} ({data.get('lastRefresh')}) has order data: {cargo}")
+        else:
+            Debug.logger.debug(f"RC carrier {which} ({data.get('lastRefresh')}) only has cargo data: {cargo}")
+
+        return {
+            'timestamp': self._parse_time(data.get('lastRefresh')),
+            'overview': {
+                'callsign': data.get('name'),
+                'name': data.get('displayName'),
+                'currentStarSystem': data.get('systemName'),
+            },
+            'cargo': cargo,
+        }
+
+
+    def is_tracked(self, marketid:int) -> bool:
+        """ Whether RC is currently known to track this carrier """
+        return self._rc_tracked.get(marketid, False)
+
+
+    def _parse_time(self, updated_at:str|None) -> int:
+        """ Parse an ISO8601 timestamp or 0 if missing/unparseable """
+        if not updated_at: return 0
+        try:
+            return int(datetime.fromisoformat(updated_at.replace('Z', '+00:00')).timestamp())
+        except ValueError:
+            return 0
 
 
 
@@ -933,6 +1031,7 @@ class Spansh:
         # Only initialize if it's the first time
         if not hasattr(self, '_initialized'):
             self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
+            self.carrier_cache:dict = {} # marketId -> last query time, for import_fleetcarrier()'s cooldown
             self._initialized = True
         self.body_details = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', \
                              'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
@@ -947,17 +1046,100 @@ class Spansh:
         return self._get_details(system_name, 'bodies')
 
     @catch_exceptions
-    def _get_by_name(self, system_name:str) -> dict|None:
+    def import_fleetcarrier(self, fc:'FleetCarrier') -> None:
+        """ Retrieve a market snapshot from Spansh for a fleet carrier """
+        if fc.carrier_id == 0: return
+
+        in_system:bool = fc.overview.get('currentStarSystem') == RavenColonial(self).colonisation.current_system
+        cooldown:int = SPANSH_LOCAL_COOLDOWN if in_system else SPANSH_REMOTE_COOLDOWN
+        if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - cooldown: return
+        self.carrier_cache[fc.carrier_id] = int(time.time())
+
+        url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
+        RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._fleetcarrier_callback, fc))
+
+    @catch_exceptions
+    def _fleetcarrier_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
+        """ Merge newer market data """
+        if success == False: return
+
+        fc.merge(self._normalize_market(response.json().get('record', {})), spansh=True)
+        ui = RavenColonial(self).bgstally.ui
+        if ui.frame is not None:
+            ui.frame.after(0, partial(ui.window_fc.update_carrier_display, fc))
+
+    @catch_exceptions
+    def get_market(self, fc:'FleetCarrier') -> dict|None:
+        """ Synchronously fetch a market snapshot from Spansh, normalized for FleetCarrier.merge() """
+        if fc.carrier_id == 0: return None
+
+        in_system:bool = fc.overview.get('currentStarSystem') == RavenColonial(self).colonisation.current_system
+        cooldown:int = SPANSH_LOCAL_COOLDOWN if in_system else SPANSH_REMOTE_COOLDOWN
+        if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - cooldown: return None
+        self.carrier_cache[fc.carrier_id] = int(time.time())
+
+        url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
+        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
+        if response.status_code != 200: return None
+
+        return self._normalize_market(response.json().get('record', {}))
+
+    def _normalize_market(self, record:dict) -> dict:
+        """ Convert a Spansh station record into FleetCarrier.merge()'s normalized envelope """
+        cargo:dict = {}
+        for m in record.get('market', []):
+            comm:str = self._resolve_commodity(m.get('commodity', ''))
+            if comm == '': continue
+
+            # The game only ever has one active price per commodity, so buy_price/sell_price collapse to one
+            cargo[comm] = {
+                'locName': m.get('commodity', comm),
+                'category': m.get('category', 'Unknown'),
+                'sell': m.get('supply', 0),
+                'buy': m.get('demand', 0),
+                'price': m.get('buy_price', 0) or m.get('sell_price', 0),
+            }
+
+        return {
+            'timestamp': RavenColonial(self)._parse_time(record.get('market_updated_at')),
+            'overview': {
+                'callsign': record.get('name'),
+                'name': record.get('carrier_name'),
+                'currentStarSystem': record.get('system_name'),
+            },
+            'cargo': cargo,
+        }
+
+    def _resolve_commodity(self, name:str) -> str:
+        """ Resolve a Spansh commodity display name (e.g. "Agri-Medicines") to our internal symbol """
+        commodities:dict = RavenColonial(self).bgstally.ui.commodities
+        symbol:str|None = next((s for s, c in commodities.items() if c.get('Name', '').lower() == name.lower()), None)
+        return symbol or re.sub(r'[^a-z0-9]', '', name.lower())
+
+    @catch_exceptions
+    def find_carrier(self, callsign:str) -> int|None:
+        """ Resolve a carrier's callsign to its market id """
+        url:str = f"{SPANSH_API}/search?q={quote(callsign)}"
+        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
+        if response.status_code != 200:
+            return None
+
+        for result in response.json().get('results', []):
+            record:dict = result.get('record', {})
+            if record.get('name', '').lower() == callsign.lower():
+                return record.get('market_id')
+        return None
+
+    @catch_exceptions
+    def _get_by_name(self, system_name:str) -> dict|None: # UNUSED
         """ Retrieve the system address from Spansh """
         system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
         if system == None:
             Debug.logger.info(f"Unknown system {system_name}")
             return
 
-        system_address:int|None = system.get('SystemAddress', None)
-        if system_address != None:
-            Debug.logger.debug(f"System {system_name} has address {system_address} in local data")
-            return system_address
+        if system.get('SystemAddress', None) != None:
+            return system.get('SystemAddress', None)
 
         url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
         response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)

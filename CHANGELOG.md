@@ -2,12 +2,30 @@
 
 ## vx.x.x - xxxx-xx-xx
 
+## New Features:
+
+* Support for squadron and third-party carriers
+  * Tracked carriers can be added and removed via preferences or automatically on first docking
+  * Carriers are listed in a tab bar in the Fleet Carrier window
+  * Squadron and third-party carriers have reduced information based on what is available
+  * Carrier data is updated from journal events, Spansh, and RavenvColonial as appropriate
+  * Squadron and third-party carrier markets are colonisation progress display options
+  * Raven Colonial updates are sent for tracked carriers that are associated with your Commander or one of your builds
+* Personal carrier has a new modules section to display modules stored on the carrier
+
+### Changes:
+
+* Progress columns is now a dropdown menu and includes tracked carriers
+* Carrier jump progress is saved over EDMC restarts
+
 ### Bug Fixes:
 
+* Fixed a colonisation bug where contributions might not be sent to RavenColonial
+* Fixed situation where until started a primary port could show non-primary cost
+* Fixed issue caused by ED sometimes writing market.json late
 * Fixed width of API settings preferences button
 * Fixed readonly state of first row of discord webhooks
 * Added a template row if a user has no discord webhooks
-
 
 ## v5.6.1 - 2026-09-12
 

@@ -127,7 +127,6 @@ class TestState:
         state.FcCargo.set("Selling")
         state.FcLocker.set("Buying")
         state.ColonisationMaxCommodities.set("35")
-        state.EnableProgressScrollbar.set(CheckStates.STATE_ON)
         state.ColonisationRCAPIKey.set("secret-key")
         state.FavouriteActivityMode.set(FavouriteActivity.FACTIONS)
         state.UseColonisationName.set(CheckStates.STATE_ON)

@@ -98,6 +98,15 @@ class Tooltip(TooltipBase):
         if text != '':
             self.args['text'] = text
 
+    @property
+    def text(self) -> str:
+        """ Plain text shown, for parity with the older ToolTip's public .text attribute """
+        return self.args.get('text', '')
+
+    @text.setter
+    def text(self, value:str) -> None:
+        self.set_text(value)
+
     def showcontents(self, **kwargs):
         super().showcontents(**{**self.args, **kwargs})
 

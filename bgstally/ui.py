@@ -64,6 +64,7 @@ class UI:
         self.image_logo_bgstally_100 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_100x67.png"))
         self.image_logo_bgstally_16 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_16x16.png"))
         self.image_logo_bgstally_32 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_32x32.png"))
+        self.image_logo_bgstally_30x22 = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_bgstally_30x22.png"))
         self.image_logo_edgis = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_edgis.png"))
         self.image_logo_inara = PhotoImage(file = path.join(self.bgstally.plugin_dir, FOLDER_ASSETS, "logo_inara.png"))
 
@@ -200,7 +201,7 @@ class UI:
         self.collapsed_frame.columnconfigure(2, weight=1) # spacer -- spreads title/version/status/show evenly
         self.collapsed_frame.columnconfigure(4, weight=1)
         self.collapsed_frame.columnconfigure(6, weight=1)
-        th.Label(self.collapsed_frame, image=self.image_logo_bgstally_16).grid(row=0, column=0, sticky=tk.W)
+        th.Label(self.collapsed_frame, image=self.image_logo_bgstally_30x22).grid(row=0, column=0, sticky=tk.W)
         default_font:tkFont.Font = tkFont.Font(font=th.Label(self.collapsed_frame).cget('font'))
         bold_font:tuple = (default_font['family'], default_font['size'], 'bold')
         th.Label(self.collapsed_frame, text=self.bgstally.plugin_name, font=bold_font).grid(row=0, column=1, sticky=tk.W, padx=(4, 0))

@@ -1201,14 +1201,17 @@ class TestRavenColonialPush:
         fc = harness.plugin.fleet_carriers.get(3713239296, FleetCarrierType.SQUADRON, 'CLBF')
         fc.overview['carrier_id'] = 3713239296
         harness.plugin.colonisation.cmdr = 'Testy'
+        harness.plugin.state.colonisation_rc_api_key = 'key'
         harness.plugin.market.commodities = {'tritium': {'Demand': 0, 'Stock': 50, 'SellPrice': 100, 'BuyPrice': 0}}
 
+        # market() now always calls update_carrier() for a non-personal carrier and relies on its
+        # own internal squadron guard, so assert on the network call it would otherwise reach
         with patch.object(harness.plugin.market, 'available', return_value=True), \
              patch.object(harness.plugin.colonisation, 'is_carrier_linked', return_value=True), \
-             patch('bgstally.ravencolonial.RavenColonial.update_carrier') as mock_push:
+             patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
             fc.market({'MarketID': 3713239296})
 
-        mock_push.assert_not_called()
+        mock_queue.assert_not_called()
 
     def test_thirdparty_market_still_pushes(self, harness) -> None:
         """ Test a third-party carrier's market visit still pushes to RC when linked """

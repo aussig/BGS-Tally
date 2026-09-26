@@ -208,6 +208,17 @@ class FleetCarrier:
         return {'overview': summ, 'inventory': comm}
 
 
+    def get_cargo_data(self) -> dict:
+        """ Return normal cargo as {comm: {cargo, sell, buy, price}}, undecorated for internal (non-UI) use """
+        return dict(self.cargo['normal'])
+
+
+    def _cargo_changed(self, changed:bool) -> None:
+        """ Push to RC and refresh the progress window's carrier columns, if our cargo/buy/sell actually changed """
+        RavenColonial(self.bgstally.colonisation).update_carrier(self, changed)
+        if changed: self.bgstally.ui.window_progress.update_display()
+
+
     @catch_exceptions
     def update_carrier(self, system:str = '', station:str = '') -> None:
         """ Refresh this carrier's cargo from RC then Spansh, pushing back to RC if Spansh ends up fresher """
@@ -234,11 +245,7 @@ class FleetCarrier:
             newer = self.merge(spansh_data, spansh=True)
             if newer: changed = True
 
-        # Never push a squadron carrier -- see the same note in market() for why
-        if newer and self.carrier_type != FleetCarrierType.SQUADRON and rc.is_tracked(self.carrier_id) \
-                and self.bgstally.colonisation.is_carrier_linked(self.carrier_id):
-            Debug.logger.debug(f"Updating RC carrier data for {self.overview.get('callsign', self.carrier_id)}")
-            rc.update_carrier(self)
+        self._cargo_changed(newer)
 
         if changed: self.save()
         self.bgstally.ui.window_fc.update_carrier_display(self)
@@ -890,11 +897,12 @@ class FleetCarrier:
         # CAPI is our most-behind source but never partially wrong, so take it wholesale rather than
         # merge, which would read any gap in the response as a confirmed zero
         new_cargo:dict = self._update_cargo(self.data)
+        changed:bool = new_cargo != self.cargo
         Debug.logger.debug(f"Accepting CAPI cargo")
         self.cargo = new_cargo
         self._touch_cargo(DataTier.CAPI, effective_time)
         self._touch_market(DataTier.CAPI, effective_time)
-        self.bgstally.colonisation._update_carrier() # Pushes to RC if this changed our cargo
+        self._cargo_changed(changed)
         self.bgstally.ui.window_fc.update_carrier_display(self)
 
 
@@ -1233,6 +1241,7 @@ class FleetCarrier:
 
         self._touch_market(DataTier.JOURNAL)
         Debug.logger.debug(f"Trade order for {comm}: {before} -> {self.cargo['normal'][comm]}")
+        self._cargo_changed(self.cargo['normal'][comm] != before)
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
@@ -1256,13 +1265,7 @@ class FleetCarrier:
             for comm, item in self.bgstally.market.commodities.items()
         }
         changed:bool = self._apply_market(commodities)
-
-        # Only push it if RC actually considers it linked to one of our builds -- visiting it isn't enough.
-        # Never push a squadron carrier -- multiple squad members' clients could each detect the same
-        # trade and push conflicting deltas, so we only ever read RC's copy for those, never write to it.
-        if changed and self.carrier_type == FleetCarrierType.THIRDPARTY and self.bgstally.colonisation.cmdr != None \
-                and self.bgstally.colonisation.is_carrier_linked(self.carrier_id):
-            RavenColonial(self.bgstally.colonisation).update_carrier(self)
+        self._cargo_changed(changed)
 
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
@@ -1298,9 +1301,7 @@ class FleetCarrier:
                 changed = True
 
         # Now check for orders that ended by going through all the cargo and finding any commodities
-        # for sale or purchase that are no longer in the market data -- an order can end by completing
-        # or by being cancelled, and market data alone can't tell us which, so we only clear the order,
-        # never cargo (a completed buy's cargo increment already happened via the demand delta above).
+        # for sale or purchase that are no longer in the market data
         for comm, deets in self.cargo['normal'].items():
             # If we're still buying or selling this or we never were then nothing to do here.
             if comm in commodities.keys() or deets['price'] == 0: continue
@@ -1327,6 +1328,7 @@ class FleetCarrier:
         # { "timestamp":"2025-03-22T15:15:21Z", "event":"CargoTransfer", "Transfers":[ { "Type":"steel", "Count":728, "Direction":"toship" }, { "Type":"titanium", "Count":56, "Direction":"toship" } ] }
         self._touch_cargo(DataTier.JOURNAL)
 
+        changed:bool = False
         for i in entry.get('Transfers', []):
             # Direction is tocarrier, toship or tosrv -- the last is ship to SRV and never touches the carrier
             if i.get('Direction') not in ('tocarrier', 'toship'): continue
@@ -1344,6 +1346,7 @@ class FleetCarrier:
             # We just have to assume it's not stolen because the journal doesn't say.
             before:int|None = self.cargo['normal'][comm].get('cargo')
             self.cargo['normal'][comm]['cargo'] = (before or 0) + amt
+            changed = True
             Debug.logger.debug(f"Cargo transfer for {comm}: cargo {before} -> {self.cargo['normal'][comm]['cargo']}")
 
             if self.cargo['normal'][comm]['cargo'] < 0:
@@ -1356,6 +1359,7 @@ class FleetCarrier:
                         del self.cargo['stolen'][comm]
                 del self.cargo['normal'][comm]
 
+        self._cargo_changed(changed)
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
@@ -1373,6 +1377,7 @@ class FleetCarrier:
         # Sale amount is positive if to carrier, negative if from carrier (MarketSell to carrier, MarketBuy from carrier)
         amt:int = entry.get('Count', 0) if entry.get('event') == 'MarketSell' else -entry.get('Count', 0)
         deets:dict = self.cargo['normal'][comm]
+        changed:bool = deets.get('buy', 0) > 0 or deets.get('sell', 0) > 0 or deets.get('cargo') is not None
 
         # We can only be buying or selling, so at most one of these applies
         if deets.get('buy', 0) > 0: # Buying, so the trade fills part of our outstanding order
@@ -1394,6 +1399,7 @@ class FleetCarrier:
             self._touch_cargo(DataTier.JOURNAL)
 
         self._touch_market(DataTier.JOURNAL)
+        self._cargo_changed(changed)
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 

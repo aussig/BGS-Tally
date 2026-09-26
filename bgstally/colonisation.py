@@ -70,9 +70,6 @@ class Colonisation:
         self.dirty:bool = False
 
         self.cargo:dict = {}       # Local store of our current cargo
-        self.carrier_cargo:dict = {} # Local store of our current carrier cargo
-        self.carrier_sell:dict = {}  # Local store of our current carrier sell listings
-        self.carrier_buy:dict = {}   # Local store of our current carrier buy orders
         self.market:dict = {}      # Local store of the current market data
         self.cargo_capacity:int = 784 # Default cargo capacity
 
@@ -90,7 +87,6 @@ class Colonisation:
         # Load base commodities, types, costs, and saved data
         self._load_base_types()
         self._load()
-        self._update_carrier()
 
 
     @catch_exceptions
@@ -144,7 +140,6 @@ class Colonisation:
             case 'StartUp': # Synthetic event.
                 self._update_cargo(state.get('Cargo'))
                 self._update_market(self.market_id)
-                self._update_carrier()
 
                 # Update systems with external data if required
                 for system in self.systems:
@@ -169,7 +164,6 @@ class Colonisation:
 
             case 'Cargo' | 'CargoTransfer' | 'CarrierTradeOrder':
                 self._update_cargo(state.get('Cargo'))
-                self._update_carrier()
 
             case 'ColonisationContribution':
                 if not self.current_system or not self.system_id or not self.market_id:
@@ -271,7 +265,6 @@ class Colonisation:
             case 'Market'|'MarketBuy'|'MarketSell':
                 self._update_market(self.market_id)
                 self._update_cargo(state.get('Cargo'))
-                self._update_carrier()
 
             case 'SupercruiseEntry' | 'FSDJump':
                 self.market = {}
@@ -1102,35 +1095,6 @@ class Colonisation:
         [system, build] = self.find_build_any({'MarketID': progress.get('MarketID', 0)})
         if system != None and build != None and system.get('RCSync', False) == True:
             RavenColonial(self).upsert_project(system, build, progress)
-
-
-    def _update_carrier(self) -> None:
-        ''' Update the carrier cargo data. '''
-        if self.bgstally.fleet_carrier.available() == False:
-            return
-        cargo:dict = {}
-        sell:dict = {}
-        buyorder:dict = {}
-
-        fccargo = self.bgstally.fleet_carrier.get_cargo('normal')
-        for name, cargo_item in fccargo.get('inventory', {}).items():
-            cargo[name] = int(cargo_item.get('cargo', 0) or 0)
-            if cargo_item.get('sell', 0) > 0:
-                sell[name] = int(cargo_item.get('sell', 0))
-            if cargo_item.get('buy', 0) > 0:
-                buyorder[name] = int(cargo_item.get('buy', 0))
-
-        # We push sales and purchases as well as cargo, so any of the three changing is worth sending
-        changed:bool = cargo != self.carrier_cargo or buyorder != self.carrier_buy or sell != self.carrier_sell
-        if changed and self.cmdr != None:
-            RavenColonial(self).update_carrier(self.bgstally.fleet_carrier)
-
-        if changed:
-            self.bgstally.ui.window_progress.update_display()
-
-        self.carrier_buy = buyorder
-        self.carrier_cargo = cargo
-        self.carrier_sell = sell
 
 
     def _update_cargo(self, cargo:dict) -> None:

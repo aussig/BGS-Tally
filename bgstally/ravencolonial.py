@@ -7,7 +7,7 @@ import requests
 from requests import Response
 from typing import TYPE_CHECKING, Callable
 
-from bgstally.constants import RequestMethod, BuildState
+from bgstally.constants import RequestMethod, BuildState, FleetCarrierType
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
 from bgstally.utils import _, get_by_path, catch_exceptions
@@ -668,15 +668,17 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def update_carrier(self, fc:'FleetCarrier') -> None:
-        """ Push this carrier's cargo/buy/sell orders to RavenColonial, merged onto its current record """
-        if self.colonisation.cmdr == None or self.bgstally.state.colonisation_rc_api_key == None or self.bgstally.state.colonisation_rc_api_key == '':
+    def update_carrier(self, fc:'FleetCarrier', changed:bool = True) -> None:
+        """ Push this carrier's cargo/buy/sell orders to RavenColonial, merged onto its current record, if warranted """
+        # RC doesn't support squadron carriers for updates.
+        if not changed or fc.carrier_type == FleetCarrierType.SQUADRON: return
+        if self.colonisation.cmdr == None or not self.colonisation.is_carrier_linked(fc.carrier_id): return
+        if self.bgstally.state.colonisation_rc_api_key == None or self.bgstally.state.colonisation_rc_api_key == '':
             Debug.logger.info("Not updating carrier in RavenColonial")
             return
 
-        # Callers only get here once they've detected a real cargo/buy/sell change, so the push itself is
-        # never skipped -- only the GET for RC's other fields (name, system, etc.) is cached and reused,
-        # since those rarely change and don't need re-fetching before every single push.
+        # Only the GET for RC's other fields (name, system, etc.) is cached and reused, since those
+        # rarely change and don't need re-fetching before every single push.
         cache_key:str = f'push_{fc.carrier_id}'
         cached:dict|None = self._cache.get(cache_key)
         if cached and cached['ts'] > int(time.time()) - RC_COOLDOWN:
@@ -700,7 +702,7 @@ class RavenColonial:
 
     def _push_carrier(self, fc:'FleetCarrier', view:dict) -> None:
         """ Merge our current cargo/buy/sell onto an RC carrier record and push it """
-        inventory:dict = fc.get_cargo('normal').get('inventory', {})
+        inventory:dict = fc.get_cargo_data()
         cargo:dict = {comm: int(item['cargo']) for comm, item in inventory.items() if item.get('cargo') is not None}
         # RC only leaves its own stored cargo untouched when this is null
         view['cargo'] = cargo if cargo else None
@@ -710,7 +712,8 @@ class RavenColonial:
                              for comm, item in inventory.items() if item.get('buy', 0) > 0]
 
         url:str = f"{RC_API}/fc/{fc.carrier_id}"
-        self.bgstally.request_manager.queue_request(url, RequestMethod.PUT, payload=view, headers=self._headers(), callback=self._carrier_callback)
+        self.bgstally.request_manager.queue_request(url, RequestMethod.PUT, payload=view, headers=self._headers(),
+                                                    callback=self._carrier_callback)
 
 
     @catch_exceptions

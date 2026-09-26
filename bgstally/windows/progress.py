@@ -25,7 +25,7 @@ from bgstally.constants import FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CommodityOrder
 from bgstally.debug import Debug
 from bgstally.ravencolonial import RavenColonial
 from bgstally.requestmanager import BGSTallyRequest
-from bgstally.utils import _, catch_exceptions, get_by_path, human_format, str_truncate
+from bgstally.utils import _, catch_exceptions, human_format, str_truncate
 import thirdparty.th as th
 from thirdparty.tksheet import Sheet, natural_sort_key
 
@@ -53,16 +53,18 @@ class Commodity:
         self.name = self.col_obj.get_commodity(self.comm, 'name')
         self.category = self.col_obj.get_commodity(self.comm, 'category')
         self.cargo = self.col_obj.cargo.get(self.comm, 0)
-        self.carrier = self.col_obj.carrier_cargo.get(self.comm, 0)
-        self.carrier_sell = self.col_obj.carrier_sell.get(self.comm, 0)
-        self.buyorder = self.col_obj.carrier_buy.get(self.comm, 0)
+        personal:dict = self.col_obj.bgstally.fleet_carrier.get_cargo_data().get(self.comm, {})
+        self.carrier = int(personal.get('cargo', 0) or 0)
+        self.carrier_sell = int(personal.get('sell', 0))
+        self.buyorder = int(personal.get('buy', 0))
         self.remaining = max(0, self.required - self.delivered)
         self.purchase = max(0, self.required - self.delivered - self.cargo - self.carrier)
 
-        # Personal uses the fields above (already totalled correctly elsewhere) -- these are for other carriers only.
+        # carrier/carrier_sell/buyorder above are for our own carrier -- these are for other carriers.
         for fc in self.col_obj.bgstally.fleet_carriers.carriers.values():
-            self.carrier_stocks[fc.carrier_id] = int(get_by_path(fc.cargo, ['normal', self.comm, 'sell'], 0))
-            self.carrier_demands[fc.carrier_id] = int(get_by_path(fc.cargo, ['normal', self.comm, 'buy'], 0))
+            item:dict = fc.get_cargo_data().get(self.comm, {})
+            self.carrier_stocks[fc.carrier_id] = int(item.get('sell', 0))
+            self.carrier_demands[fc.carrier_id] = int(item.get('buy', 0))
 
 class ProgressWindow:
     '''

@@ -174,8 +174,7 @@ class TestFleetCarriers:
             assert mock_rc.call_count == 3
 
     def test_personal_carrier_queries_spansh(self, harness) -> None:
-        """ Test update_carrier() also queries Spansh for our own carrier -- merge()'s own freshness
-        gate protects it, so there's no need to exclude it here anymore. """
+        """ Test update_carrier() also queries Spansh for our own carrier """
         fc = harness.plugin.fleet_carrier
 
         with patch('bgstally.ravencolonial.RavenColonial.get_carrier', return_value=None), \
@@ -206,8 +205,7 @@ class TestFleetCarriers:
         assert squadron is harness.plugin.fleet_carriers.squadron
 
     def test_carrier_uses_entry_callsign(self, harness) -> None:
-        """ Test a new carrier gets its real callsign at construction, not just carrier_id -- otherwise
-        it loads from the wrong file and silently loses everything saved under its real one """
+        """ Test a new carrier gets its real callsign at construction, not just carrier_id  """
         entry = {'CarrierID': 54321, 'CarrierType': 'SquadronCarrier', 'Callsign': 'CLBF'}
         squadron = harness.plugin._carrier(entry)
         assert squadron.overview.get('callsign') == 'CLBF'
@@ -1100,13 +1098,13 @@ class TestRavenColonialMerge:
         return {'timestamp': timestamp, 'overview': {}, 'cargo': commodities}
 
     def test_rc_without_timestamp_still_overwrites(self, harness) -> None:
-        """ Test RC with no usable lastRefresh is still trusted -- every push replaces the whole record """
+        """ Test RC with no usable lastRefresh is still trusted """
         from bgstally.constants import FleetCarrierType
         fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
         fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
 
         changed:bool = fc.merge(self._rc({
-            'tritium': {'cargo': 1},  # Already known -- RC's copy is trusted anyway
+            'tritium': {'cargo': 1},  # Already known
             'water': {'cargo': 5},    # Never seen before
         }))
 
@@ -1121,7 +1119,7 @@ class TestRavenColonialMerge:
         fc.merge(self._rc({'water': {'cargo': 5}}))
         after_first:int = fc.cargo_time
 
-        fc.merge(self._rc({'water': {'cargo': 5}})) # Identical -- nothing new happened
+        fc.merge(self._rc({'water': {'cargo': 5}})) # Identical, nothing new happened
 
         assert fc.cargo_time == after_first
 
@@ -1165,8 +1163,8 @@ class TestRavenColonialMerge:
 class TestRavenColonialPush:
     """ Test pushing our own carrier's cargo/market data onto RC's record """
 
-    def test_push_sends_null_unknown(self, harness) -> None:
-        """ Test we send null, not {}, when we have no cargo visibility -- RC only leaves its own record alone for null """
+    def test_push_sends_null_cargo_when_unknown(self, harness) -> None:
+        """ Test we send null, not {}, when we have no cargo visibility """
         from bgstally.ravencolonial import RavenColonial
         from bgstally.constants import FleetCarrierType
         fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
@@ -1195,22 +1193,23 @@ class TestRavenColonialPush:
         assert payload['cargo'] == {'tritium': 999}
 
     def test_squadron_market_never_pushes(self, harness) -> None:
-        """ Test a squadron carrier's market visit never pushes to RC -- multiple squad members'
-        clients could each detect the same trade and push conflicting deltas """
+        """ Test a squadron carrier's market visit never pushes to RC """
         from bgstally.constants import FleetCarrierType
         fc = harness.plugin.fleet_carriers.get(3713239296, FleetCarrierType.SQUADRON, 'CLBF')
         fc.overview['carrier_id'] = 3713239296
         harness.plugin.colonisation.cmdr = 'Testy'
+        harness.plugin.state.colonisation_rc_api_key = 'key'
         harness.plugin.market.commodities = {'tritium': {'Demand': 0, 'Stock': 50, 'SellPrice': 100, 'BuyPrice': 0}}
 
+        # market() now always calls update_carrier() for a non-personal carrier
         with patch.object(harness.plugin.market, 'available', return_value=True), \
              patch.object(harness.plugin.colonisation, 'is_carrier_linked', return_value=True), \
-             patch('bgstally.ravencolonial.RavenColonial.update_carrier') as mock_push:
+             patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
             fc.market({'MarketID': 3713239296})
 
-        mock_push.assert_not_called()
+        mock_queue.assert_not_called()
 
-    def test_thirdparty_market_still_pushes(self, harness) -> None:
+    def test_thirdparty_market_pushes(self, harness) -> None:
         """ Test a third-party carrier's market visit still pushes to RC when linked """
         from bgstally.constants import FleetCarrierType
         fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')

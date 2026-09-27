@@ -19,6 +19,13 @@
                         "default": "Yes",
                         "label": "Colonisation Active",
                         "desc": "Completely enable or disable colonisation"
+                    },
+                    {
+                        "type": "bool",
+                        "var": "AutoUpdateStatus",
+                        "default": "Yes",
+                        "label": "Automatic Plugin Updates",
+                        "desc": "Enable or disable automatic updates of the BGS-Tally plugin"
                     }
                 ]
             },

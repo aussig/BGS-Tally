@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 from requests import Response
 from semantic_version import Version
 
-from bgstally.constants import FOLDER_BACKUPS, FOLDER_UPDATES, RequestMethod
+from bgstally.constants import CheckStates, FOLDER_BACKUPS, FOLDER_UPDATES, RequestMethod
 from bgstally.debug import Debug
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.utils import _
@@ -34,13 +34,17 @@ class UpdateManager:
         self.backups_folder:str = path.join(self.bgstally.plugin_dir, FOLDER_BACKUPS)
         self.latest_download_file:str = path.join(self.updates_folder, FILE_LATEST)
         self.remote_version:Version = Version.coerce("0")
-        self.release_url:str = None
+        self.release_url:str|None = None
         self.update_available:bool = False
 
         # Handbrake for local development. Developers - you could lose any unstaged changes if you remove the handbrake. BE WARNED!
         # If you do accidentally overwrite your local folder, the plugin should have made a backup in "backups/"
         if path.exists(path.join(self.bgstally.plugin_dir, FILE_DISABLE)):
             Debug.logger.info(f"Disabling auto-update because {FILE_DISABLE} exists")
+            return
+
+        if self.bgstally.state.AutoUpdateStatus.get() != CheckStates.STATE_ON:
+            Debug.logger.info("Disabling auto-update because user has disabled automatic updates")
             return
 
         try:

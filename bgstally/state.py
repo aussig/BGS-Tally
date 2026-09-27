@@ -26,6 +26,7 @@ class State:
         # UI preference fields
         self.Status:tk.StringVar = tk.StringVar(value=config.get_str('BGST_Status', default=CheckStates.STATE_ON))
         self.ColonisationStatus:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationStatus', default=CheckStates.STATE_ON))
+        self.AutoUpdateStatus:tk.StringVar = tk.StringVar(value=config.get_str('BGST_AutoUpdateStatus', default=CheckStates.STATE_ON))
         self.EnableOverlayCurrentTick:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCurrentTick', default=CheckStates.STATE_ON))
         self.EnableOverlayActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayActivity', default=CheckStates.STATE_ON))
         self.EnableOverlayTWProgress:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayTWProgress', default=CheckStates.STATE_ON))
@@ -138,6 +139,7 @@ class State:
         # UI preference fields
         config.set('BGST_Status', self.Status.get())
         config.set('BGST_ColonisationStatus', self.ColonisationStatus.get())
+        config.set('BGST_AutoUpdateStatus', self.AutoUpdateStatus.get())
         config.set('BGST_ShowZeroActivity', self.ShowZeroActivitySystems.get())
         config.set('BGST_AbbreviateFactions', self.AbbreviateFactionNames.get())
         config.set('BGST_SecondaryInf', self.IncludeSecondaryInf.get())

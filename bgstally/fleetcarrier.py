@@ -1460,7 +1460,7 @@ class FleetCarrier:
                 # EDMC's outfitting.lookup() raises ValueError for a module it doesn't recognize
                 mod:dict = outfitting.lookup({'id': item.get('StorageSlot', 0),
                                               'name': re.sub(r"\$(.*)_name;$", r"\1", item.get('Name', ''))}, ship_name_map) or {}
-            except ValueError:
+            except (ValueError, KeyError) as e:
                 continue
             Debug.logger.debug(f"Module {mod}")
             self.modules['modules'][str(item.get('StorageSlot', ''))] = {

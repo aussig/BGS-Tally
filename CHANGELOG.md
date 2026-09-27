@@ -15,6 +15,7 @@
   * Squadron and third-party carrier markets are colonisation progress display options
   * Raven Colonial updates are sent for tracked carriers that are associated with your Commander or one of your builds
 * Personal carrier has a new modules section to display modules stored on the carrier
+* Added checkbox to enable and disable automatic updates of the plugin. Defaults to enabled.
 
 ### Changes:
 

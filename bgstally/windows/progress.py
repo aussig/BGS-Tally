@@ -269,6 +269,13 @@ class ProgressWindow:
         scroll_frame.grid(row=1, column=0, sticky=tk.NSEW)
         self.scroll_frame:th.ScrollableFrame = scroll_frame
 
+        # scroll_frame's own width is now constant regardless of whether its scrollbar is showing,
+        # so header/footer just need a matching one-time reservation, never toggled, to line up with it
+        for frame in (header_frame, footer_frame):
+            spacer:tk.Frame = tk.Frame(frame, width=scroll_frame.scrollbar_width, height=1)
+            spacer.grid(row=0, column=4)
+            spacer.grid_propagate(False)
+
         table:th.Frame = scroll_frame.interior
         table.columnconfigure(0, weight=3)
         table.columnconfigure(1, weight=1)

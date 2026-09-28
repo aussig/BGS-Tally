@@ -257,6 +257,13 @@ class ProgressWindow:
         footer_frame:th.Frame = th.Frame(table_frame)
         footer_frame.grid(row=2, column=0, sticky=tk.EW)
 
+        # Match the body's column weights so header/footer redistribute the same way it does
+        for weighted_frame in (header_frame, footer_frame):
+            weighted_frame.columnconfigure(0, weight=3)
+            weighted_frame.columnconfigure(1, weight=1)
+            weighted_frame.columnconfigure(2, weight=1)
+            weighted_frame.columnconfigure(3, weight=1)
+
         # Scrollbar only actually appears once the commodity list exceeds max_rows worth of height
         scroll_frame:th.ScrollableFrame = th.ScrollableFrame(table_frame, maxheight=int(self.max_rows*21*self.scale))
         scroll_frame.grid(row=1, column=0, sticky=tk.NSEW)

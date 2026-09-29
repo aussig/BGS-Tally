@@ -1667,7 +1667,6 @@ class FleetCarrier:
         self.timer = dict.get('timer') and datetime.fromisoformat(dict.get('timer')) or None
         self.jump_state = FleetCarrierJump(dict.get('jump_state', FleetCarrierJump.Idle))
 
-        Debug.logger.debug(f"")
         # Deal with whatever we missed while shutdown
         if self.timer and self.timer < datetime.now(tz=UTC):
             Debug.logger.debug(f"Jump timer expired while jumping, letting jump_complete figure it out")

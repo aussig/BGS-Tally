@@ -624,7 +624,8 @@ class Colonisation:
         Name, BuildID or Marketid are preferred but we use fuzzy matching for weird fdev cases
         '''
         builds:list = self.get_system_builds(system)
-        builds[0]['Primary'] = True # Bit of a hack, should flag the primary at source.
+        if len(builds) > 0:
+            builds[0]['Primary'] = True # Bit of a hack, should flag the primary at source.
 
         #Debug.logger.debug(f"Finding build in {system.get('StarSystem')} {data} Builds: {builds}")
         if data.get('Name', '') == '' or data.get('Name', '') == ' ': data['Name'] = None

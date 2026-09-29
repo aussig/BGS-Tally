@@ -254,7 +254,8 @@ class UI:
         elif self.bgstally.api_manager.api_updated:
             self.lbl_version.configure(text=_("API changed, open settings to re-approve"), url="", foreground='red') # LANG: Main window label
         else:
-            self.lbl_version.configure(text=f"v{str(self.bgstally.version)}", url=URL_LATEST_RELEASE, foreground='blue')
+            colour:str = config.get_str('dark_highlight') if config.get_int('theme') else 'blue'
+            self.lbl_version.configure(text=f"v{str(self.bgstally.version)}", url=URL_LATEST_RELEASE, foreground=colour)
 
         self.btn_latest_tick.config(command=partial(self._show_activity_window, self.bgstally.activity_manager.get_current_activity()))
         if self.btn_carrier is not None:

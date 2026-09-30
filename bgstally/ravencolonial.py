@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
 RC_COOLDOWN = 30
-TIMEOUT=15
+TIMEOUT=10
 
 EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
 EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
@@ -600,7 +600,7 @@ class RavenColonial:
 
         url:str = f"{RC_API}/project/poll"
         payload:list = [projectid]
-        response:Response = requests.post(url, headers=self._headers(), json=payload, timeout=TIMEOUT)
+        response:Response = requests.post(url, headers=self._headers(), json=payload, timeout=10)
         if response.status_code != 200:
             Debug.logger.error(f"Error for {url} {response} {response.content}")
             return

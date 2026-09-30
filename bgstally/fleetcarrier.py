@@ -1460,7 +1460,7 @@ class FleetCarrier:
                 # EDMC's outfitting.lookup() raises ValueError for a module it doesn't recognize
                 mod:dict = outfitting.lookup({'id': item.get('StorageSlot', 0),
                                               'name': re.sub(r"\$(.*)_name;$", r"\1", item.get('Name', ''))}, ship_name_map) or {}
-            except (ValueError, KeyError) as e:
+            except ValueError:
                 continue
             Debug.logger.debug(f"Module {mod}")
             self.modules['modules'][str(item.get('StorageSlot', ''))] = {
@@ -1667,6 +1667,7 @@ class FleetCarrier:
         self.timer = dict.get('timer') and datetime.fromisoformat(dict.get('timer')) or None
         self.jump_state = FleetCarrierJump(dict.get('jump_state', FleetCarrierJump.Idle))
 
+        Debug.logger.debug(f"")
         # Deal with whatever we missed while shutdown
         if self.timer and self.timer < datetime.now(tz=UTC):
             Debug.logger.debug(f"Jump timer expired while jumping, letting jump_complete figure it out")

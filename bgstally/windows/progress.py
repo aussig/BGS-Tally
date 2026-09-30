@@ -817,7 +817,7 @@ class ProgressWindow:
             Debug.logger.debug(f"Build index {self.build_index} out of range {len(tracked)}, resetting to 0")
             self.build_index = 0
 
-        self.frame.grid()
+        self.frame.grid(padx=5)
 
         # Set the build name (system name and plan name)
         name:str = _('All') # LANG: all builds

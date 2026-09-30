@@ -477,7 +477,7 @@ class TestColonisationProgress:
         assert totals.purchase == 5254
 
     def test_skip_row(self, harness) -> None:
-        """Skip logic should respect view mode and max row limits."""
+        """Skip logic should respect view mode, never row count."""
         progress_window = harness.plugin.ui.window_progress
         c = harness.plugin.colonisation
 
@@ -488,10 +488,10 @@ class TestColonisationProgress:
         assert progress_window._skip_row(progress.ProgressView.FULL, comm, 0) is False
         assert progress_window._skip_row(progress.ProgressView.REDUCED, comm, 0) is True
 
-        progress_window.use_scrollbar = False
+        # Rows past max_rows are shown too now -- the scrollable frame handles overflow, not skipping
         progress_window.max_rows = 1
         long_list_comm = progress.Commodity(c, 'water', 10, 0)
-        assert progress_window._skip_row(progress.ProgressView.FULL, long_list_comm, 2) is True
+        assert progress_window._skip_row(progress.ProgressView.FULL, long_list_comm, 2) is False
 
     def test_overlay_and_discord_text(self, harness) -> None:
         """Text output should be empty in NONE view and populated in FULL view."""

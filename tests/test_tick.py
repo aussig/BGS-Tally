@@ -79,7 +79,7 @@ class TestTick:
         assert harness.plugin.tick.tick_id.startswith("frc-")
         assert harness.plugin.tick.tick_time is not None
 
-    def test_system_tick_received_updates_current_activity(self, harness) -> None:
+    def test_system_tick_updates_activity(self, harness) -> None:
         from tests.edmc.requests import MockResponse
 
         current_system_id = "12345"

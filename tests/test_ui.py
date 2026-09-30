@@ -260,7 +260,7 @@ class TestUI:
 
         assert ui.bgstally.overlay.edmcoverlay.messages == {}
 
-    def test_worker_exits_when_shutting_down(self, harness) -> None:
+    def test_worker_exits_on_shutdown(self, harness) -> None:
         ui = harness.plugin.ui
         config.shutting_down = True
 
@@ -270,7 +270,7 @@ class TestUI:
         finally:
             config.shutting_down = False
 
-    def test_worker_updates_tick_activity(self, harness) -> None:
+    def test_worker_updates_tick(self, harness) -> None:
         ui = harness.plugin.ui
         state = ui.bgstally.state
 

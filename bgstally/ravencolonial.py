@@ -1082,8 +1082,15 @@ class Spansh:
         self.carrier_cache[fc.carrier_id] = int(time.time())
 
         url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
-        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
-        if response.status_code != 200: return None
+        try:
+            response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
+            if response.status_code != 200: return None
+        except requests.exceptions.ReadTimeout as e:
+            Debug.logger.debug(f"Timeout error getting market data from Spansh")
+            return None
+        except Exception as e:
+            Debug.logger.debug(f"Error getting market data from Spansh {e}")
+            return None
 
         return self._normalize_market(response.json().get('record', {}))
 

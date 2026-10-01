@@ -1119,6 +1119,12 @@ class FleetCarrier:
         self.jump_state = FleetCarrierJump.Cooldown
 
         # It seems carrier cooldown is rounded to the nearest minute.
+        if not self.overview.get('departureScheduled', None):
+            self.timer = None
+            self.jump_state = FleetCarrierJump.Idle
+            self._update_route()
+            return
+
         departure:datetime = self._parse_date(self.overview['departureScheduled'])
         if departure.second >= 30: # Round up.
             self.timer = departure + timedelta(minutes=1, seconds=300 - departure.second)

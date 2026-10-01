@@ -670,19 +670,23 @@ class Colonisation:
             market:int|None = build.get('MarketID', None)
 
             # A build that was planned but is now a construction site or progress but we've never been there
-            if state in (BuildState.PLANNED, BuildState.PROGRESS) and market == None and location == loc and body == data.get('Body', str(data.get('BodyNum', ''))).lower():
+            dbody:str|None = None
+            if isinstance(data.get('Body', data.get('BodyNum', None)), str):
+                dbody = data.get('Body', data.get('BodyNum', '')).lower()
+
+            if state in (BuildState.PLANNED, BuildState.PROGRESS) and market == None and location == loc and body == dbody:
                 Debug.logger.debug(f"Matched planned build {data['Body']} {build.get('State', None)} {loc} Build: {build}")
                 return build
 
             # A build that was in progress but now has a new name (completed or renamed)
-            if state == BuildState.PROGRESS and body == data.get('Body', str(data.get('BodyNum', ''))).lower() and \
+            if state == BuildState.PROGRESS and body == dbody and \
                 (len(builds) == 1 or f"Construction Site: {data.get('Name', '')}" in build.get('Name', '')):
                 Debug.logger.debug(f"Matched construction {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
             # A completed but previously unvisited build.
             if state == BuildState.COMPLETE and building == False and market == None and location == loc and \
-                body != None and body == data.get('Body', str(data.get('BodyNum', ''))).lower():
+                body != None and body == dbody:
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
@@ -691,8 +695,9 @@ class Colonisation:
 
         # Primary port. We completed it but don't know its new name or marketid
         if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('MarketID', None) == None and \
-                builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == data.get('Body', str(data.get('BodyNum', ''))).lower():
-            Debug.logger.debug(f"Matched completed primary port {data.get('Name', None)} {data.get('Body', str(data.get('BodyNum', ''))).lower()}")
+            builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))) != None and \
+            builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == dbody:
+            Debug.logger.debug(f"Matched completed primary port {data.get('Name', None)} {dbody}")
             return builds[0]
 
         return None

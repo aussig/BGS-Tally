@@ -841,7 +841,7 @@ class TestSpanshFleetCarrier:
         real_id:int = fc.carrier_id
         fc.carrier_id = 0
         with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
-            Spansh().import_fleetcarrier(fc) # No carrier id, so nothing to query
+            Spansh(harness.plugin).import_fleetcarrier(fc) # No carrier id, so nothing to query
         mock_queue.assert_not_called()
         fc.carrier_id = real_id
 
@@ -851,7 +851,7 @@ class TestSpanshFleetCarrier:
             {'commodity': 'Water', 'category': 'Chemicals', 'supply': 200, 'demand': 0, 'buy_price': 100, 'sell_price': 0}
         ])
 
-        Spansh()._fleetcarrier_callback(fc, True, response, Mock())
+        Spansh(harness.plugin)._fleetcarrier_callback(fc, True, response, Mock())
 
         # Spansh reports the market, so it sets sell but can never tell us what's actually held
         assert fc.cargo['normal']['tritium']['sell'] == 500
@@ -870,7 +870,7 @@ class TestSpanshFleetCarrier:
             {'commodity': 'Water', 'category': 'Chemicals', 'supply': 200, 'demand': 0, 'buy_price': 100, 'sell_price': 0}
         ])
 
-        Spansh()._fleetcarrier_callback(fc, True, response, Mock())
+        Spansh(harness.plugin)._fleetcarrier_callback(fc, True, response, Mock())
 
         assert fc.cargo['normal']['tritium']['sell'] == 0
         assert fc.cargo['normal']['tritium']['buy'] == 0
@@ -891,7 +891,7 @@ class TestSpanshFleetCarrier:
             {'commodity': 'Water', 'category': 'Chemicals', 'supply': 200, 'demand': 0, 'buy_price': 100, 'sell_price': 0}
         ])
 
-        Spansh()._fleetcarrier_callback(fc, True, response, Mock())
+        Spansh(harness.plugin)._fleetcarrier_callback(fc, True, response, Mock())
 
         assert fc.cargo['normal']['tritium'] == {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
         assert 'water' not in fc.cargo['normal']
@@ -909,7 +909,7 @@ class TestSpanshFleetCarrier:
             {'commodity': 'Water', 'category': 'Chemicals', 'supply': 80, 'demand': 0, 'buy_price': 0, 'sell_price': 50},    # Now listed for sale
         ])
 
-        Spansh()._fleetcarrier_callback(fc, True, response, Mock())
+        Spansh(harness.plugin)._fleetcarrier_callback(fc, True, response, Mock())
 
         assert fc.cargo['normal']['tritium']['cargo'] == 40 # 10 + (50 - 20) sold to us
         assert fc.cargo['normal']['water']['cargo'] == 80   # Can't list more for sale than held
@@ -924,7 +924,7 @@ class TestSpanshFleetCarrier:
             {'commodity': 'Agri-Medicines', 'category': 'Medicines', 'supply': 50, 'demand': 0, 'buy_price': 400, 'sell_price': 0}
         ])
 
-        Spansh()._fleetcarrier_callback(fc, True, response, Mock())
+        Spansh(harness.plugin)._fleetcarrier_callback(fc, True, response, Mock())
 
         assert 'agriculturalmedicines' in fc.cargo['normal']
         assert fc.cargo['normal']['agriculturalmedicines']['sell'] == 50

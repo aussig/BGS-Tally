@@ -7,6 +7,8 @@ import requests
 from requests import Response
 from typing import TYPE_CHECKING, Callable
 
+import plug #type: ignore
+
 from bgstally.constants import RequestMethod, BuildState, FleetCarrierType
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
@@ -48,7 +50,7 @@ class RavenColonial:
         return cls._instance
 
 
-    def __init__(self, colonisation) -> None:
+    def __init__(self, colonisation:'Colonisation') -> None:
         # Only initialize if it's the first time
         if hasattr(self, '_initialized'): return
 
@@ -739,6 +741,7 @@ class RavenColonial:
             url:str = f"{RC_API}/fc/{marketid}"
             response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
         except requests.exceptions.ReadTimeout as e:
+            plug.show_error(_("{plugin_name} Error: Timeout fetching Raven Colonial carrier data.").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
             Debug.logger.debug(f"Timeout error fetching RC carrier {marketid}")
             return None
         except requests.RequestException as e:
@@ -1038,12 +1041,13 @@ class Spansh:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, bgstally:'BGSTally'):
         # Only initialize if it's the first time
         if not hasattr(self, '_initialized'):
             self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
             self.carrier_cache:dict = {} # marketId -> last query time, for import_fleetcarrier()'s cooldown
             self._initialized = True
+        self.bgstally:BGSTally = bgstally
         self.body_details = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', \
                              'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
 
@@ -1094,6 +1098,7 @@ class Spansh:
             response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
             if response.status_code != 200: return None
         except requests.exceptions.ReadTimeout as e:
+            plug.show_error(_("{plugin_name} Error: Timeout fetching carrier market from Spansh.").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
             Debug.logger.debug(f"Timeout error getting market data from Spansh")
             return None
         except Exception as e:

@@ -25,10 +25,7 @@ MARKET_FILENAME = 'Market.json'
 RE_IGNORE_PATTERN = r"(^\$|[A-Z0-9]{3}-[A-Z0-9]{3}$| \| [A-Z]{4}$)" # Pattern to ignore stations like carriers, scenarios, etc.
 
 # Services we use for different types of import
-SYSTEM_SERVICE = Spansh()
 BODY_SERVICE = EDSM()
-STATION_SERVICE = Spansh()
-
 
 class Colonisation:
     '''
@@ -163,7 +160,7 @@ class Colonisation:
                     if system.get('Bodies', None) == None or system.get('Bodies', [{}])[0].get('parentId', -1) == -1: # In case we didn't get them for some reason
                         BODY_SERVICE.import_bodies(system.get('StarSystem', ''))
 
-                    SYSTEM_SERVICE.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
+                    Spansh(self.bgstally).import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
 
                 # Update progress for tracked, rc sync projects.
                 for progress in self.progress:
@@ -480,8 +477,8 @@ class Colonisation:
         # If we have a system address, we get the bodies and maybe stations
         if rcsync == False and data.get('StarSystem', "") != "":
             BODY_SERVICE.import_bodies(data.get('StarSystem', ''))
-            if prepop == True: STATION_SERVICE.import_stations(data.get('StarSystem', ''))
-            SYSTEM_SERVICE.import_system(data.get('StarSystem', ''))
+            if prepop == True: Spansh(self.bgstally).import_stations(data.get('StarSystem', ''))
+            Spansh(self.bgstally).import_system(data.get('StarSystem', ''))
 
         self.save('Add system')
         return data

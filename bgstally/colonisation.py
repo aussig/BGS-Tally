@@ -693,8 +693,8 @@ class Colonisation:
         # Primary port. We completed it but don't know its new name or marketid
         if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('MarketID', None) == None and \
             builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))) != None and \
-            builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == dbody:
-            Debug.logger.debug(f"Matched completed primary port {data.get('Name', None)} {dbody}")
+            builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == data.get('Body', data.get('BodyNum', '')).lower():
+            Debug.logger.debug(f"Matched completed primary port {data.get('Name', None)} {data.get('Body', data.get('BodyNum', '')).lower()}")
             return builds[0]
 
         return None

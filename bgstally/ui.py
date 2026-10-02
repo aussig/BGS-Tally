@@ -44,8 +44,6 @@ FILENAME_COMMODITIES_CSV = "commodity.csv"
 FILENAME_RARE_COMMODITIES_CSV = "rare_commodity.csv"
 SIZE_BUTTON_PIXELS = 30
 SIZE_STATUS_ICON_PIXELS = 16
-GLYPH_HIDE = "\U0001F648" # see-no-evil monkey, matches ExplorerLite's shown-panel glyph
-GLYPH_SHOW = "\U0001F441" # eye, matches ExplorerLite's hidden-panel glyph
 TIME_WORKER_PERIOD_S = 2
 TIME_TICK_ALERT_M = 60
 TIME_TICK_OBJECTIVES_REFRESH_S = 30
@@ -140,8 +138,8 @@ class UI:
 
         button_columns:int = 6 if self.bgstally.capi_fleetcarrier_available() else 5
 
-        self.expanded_frame:th.Frame = th.Frame(self.frame)
-        self.expanded_frame.grid(row=0, column=0, sticky=tk.NSEW)
+        self.view:th.Collapsible = th.Collapsible(self.frame, hidden=self.bgstally.state.plugin_hidden, on_toggle=self._on_toggle)
+        self.expanded_frame:th.Frame = self.view.expanded
 
         column_count: int = 3
         if self.bgstally.capi_fleetcarrier_available(): column_count += 1
@@ -150,9 +148,8 @@ class UI:
         th.Label(self.expanded_frame, image=self.image_logo_bgstally_100).grid(row=current_row, column=0, rowspan=3, sticky=tk.W)
         self.lbl_version: HyperlinkLabel = HyperlinkLabel(self.expanded_frame, text=f"v{str(self.bgstally.version)}", background=th.Label(self.expanded_frame).cget('background'), url=URL_LATEST_RELEASE, underline=True)
         self.lbl_version.grid(row=current_row, column=1, columnspan=column_count, sticky=tk.W)
-        self.btn_hide: th.Button = th.Button(self.expanded_frame, text=GLYPH_HIDE, width=3, command=self._toggle_panel)
+        self.btn_hide: th.Button = self.view.hide_button(self.expanded_frame, tooltip=_("Hide {plugin_name}").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window tooltip
         self.btn_hide.grid(row=current_row, column=button_columns - 1, sticky=tk.E)
-        th.Tooltip(self.btn_hide, text=_("Hide {plugin_name}").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window tooltip
         current_row += 1
         frm_status: th.Frame = th.Frame(self.expanded_frame)
         frm_status.grid(row=current_row, column=1, columnspan=column_count, sticky=tk.W)
@@ -197,7 +194,7 @@ class UI:
 
         self.window_progress.create_frame(self.expanded_frame, current_row, column_count)
 
-        self.collapsed_frame:th.Frame = th.Frame(self.frame)
+        self.collapsed_frame:th.Frame = self.view.collapsed
         self.collapsed_frame.columnconfigure(2, weight=1) # spacer -- spreads title/version/status/show evenly
         self.collapsed_frame.columnconfigure(4, weight=1)
         self.collapsed_frame.columnconfigure(6, weight=1)
@@ -214,31 +211,16 @@ class UI:
         self.lbl_active_collapsed: th.Label = th.Label(frm_status_collapsed, width=SIZE_STATUS_ICON_PIXELS, height=SIZE_STATUS_ICON_PIXELS, image=self.image_icon_green_tick if self.bgstally.state.Status.get() == CheckStates.STATE_ON else self.image_icon_red_cross)
         self.lbl_active_collapsed.pack(side=tk.LEFT)
 
-        self.btn_show: th.Button = th.Button(self.collapsed_frame, text=GLYPH_SHOW, width=3, command=self._toggle_panel)
+        self.btn_show: th.Button = self.view.show_button(self.collapsed_frame, tooltip=_("Show {plugin_name}").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window tooltip
         self.btn_show.grid(row=0, column=7, sticky=tk.E)
-        th.Tooltip(self.btn_show, text=_("Show {plugin_name}").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window tooltip
-
-        if self.bgstally.state.plugin_hidden:
-            self.expanded_frame.grid_forget()
-            self.collapsed_frame.grid(row=0, column=0, sticky=tk.EW)
 
         return self.frame
 
 
-    def _toggle_panel(self) -> None:
-        """ Show/hide the main window content. Tracking and activity continue either way. """
-        self.bgstally.state.set_plugin_hidden(not self.bgstally.state.plugin_hidden)
-
-        if not self.bgstally.state.plugin_hidden:
-            self.collapsed_frame.grid_forget()
-            self.expanded_frame.grid(row=0, column=0, sticky=tk.NSEW)
-            self.update_plugin_frame()
-            th.fit_height(self.expanded_frame)
-            return
-
-        self.expanded_frame.grid_forget()
-        self.collapsed_frame.grid(row=0, column=0, sticky=tk.EW)
-        th.fit_height(self.expanded_frame)
+    def _on_toggle(self, hidden:bool) -> None:
+        """ Persist the hidden state and refresh when re-expanded """
+        self.bgstally.state.set_plugin_hidden(hidden)
+        if not hidden: self.update_plugin_frame()
 
 
     def update_plugin_frame(self):

@@ -733,7 +733,9 @@ class RavenColonial:
         """ Synchronously fetch RC's current view of a carrier, normalized for FleetCarrier.merge() """
         cache_key:str = f'fc_{marketid}'
 
-        if self._cache.get(cache_key, 0) > int(time.time()) - (RC_COOLDOWN if self.is_editable() else RC_COOLDOWN * 10): return None
+        # If a carrier isn't being tracked we use a much longer cooldown
+        cd:int = RC_COOLDOWN if self._rc_tracked.get(marketid, False) else RC_COOLDOWN * 10
+        if self._cache.get(cache_key, 0) > int(time.time()) - cd: return None
         self._cache[cache_key] = int(time.time())
 
         # A get tells us if this carrier is being tracked by RC and returns current cargo/buy/sell state.
@@ -781,12 +783,6 @@ class RavenColonial:
             },
             'cargo': cargo,
         }
-
-
-    def is_tracked(self, marketid:int) -> bool:
-        """ Whether RC is currently known to track this carrier """
-        return self._rc_tracked.get(marketid, False)
-
 
     def _parse_time(self, updated_at:str|None) -> int:
         """ Parse an ISO8601 timestamp or 0 if missing/unparseable """

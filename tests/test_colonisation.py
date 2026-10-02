@@ -439,6 +439,16 @@ class TestColonisationProgress:
         assert len(progress_window.columns) == 4
 
 
+    def test_no_builds_hides_frame(self, harness) -> None:
+        """ With nothing tracked on first run, the whole progress frame hides, not one of its children """
+        c = harness.plugin.colonisation
+        window = progress.ProgressWindow(harness.plugin)
+        with patch.object(c, 'get_tracked_builds', return_value=[]):
+            window.create_frame(harness.parent, 0, 3)
+
+        assert window.frame.winfo_manager() == ''
+
+
     def test_get_value_formats(self, harness) -> None:
         """Values should format as tonnes by default and loads when >1 load."""
         progress_window = harness.plugin.ui.window_progress

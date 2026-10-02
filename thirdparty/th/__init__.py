@@ -17,7 +17,7 @@ from ..debug import Debug
 
 __all__ = ["TopLevel", "Frame", "LabelFrame", "Label", "Text", "RichText", "RichScrolledText", "Entry", "Button", "Radiobutton",
            "ComboBox", "Listbox", "Checkbutton", "Scale", "Spinbox", "Separator", "ScrollableFrame", "Tooltip", "Autocompleter",
-           "Placeholder", "resolve"]
+           "Placeholder", "resolve", "fit_height"]
 
 DEBUG_FRAMES:bool = False # Turn this on to color each frame for debugging
 index:int = 0
@@ -37,6 +37,14 @@ def _match_label_defaults(kw:dict) -> None:
 def resolve(widget:Any) -> Any:
     """ Resolve the actual base object for a tk nametowidget() lookup. """
     return getattr(widget, 'themed', widget)
+
+def fit_height(widget:tk.Misc) -> None:
+    """ Refit the toplevel's height to its contents, keeping its width """
+    top:tk.Tk|tk.Toplevel = widget.winfo_toplevel()
+    top.update_idletasks()
+    if not top.winfo_ismapped() or top.winfo_height() == top.winfo_reqheight(): return
+
+    top.geometry(f"{top.winfo_width()}x{top.winfo_reqheight()}")
 
 """ A set of UI objects to handle themed widgets for dealing with EDMC dark mode """
 class Base:

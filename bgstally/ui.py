@@ -233,10 +233,12 @@ class UI:
             self.collapsed_frame.grid_forget()
             self.expanded_frame.grid(row=0, column=0, sticky=tk.NSEW)
             self.update_plugin_frame()
+            th.fit_height(self.expanded_frame)
             return
 
         self.expanded_frame.grid_forget()
         self.collapsed_frame.grid(row=0, column=0, sticky=tk.EW)
+        th.fit_height(self.expanded_frame)
 
 
     def update_plugin_frame(self):

@@ -17,7 +17,7 @@ from ..debug import Debug
 
 __all__ = ["TopLevel", "Frame", "LabelFrame", "Label", "Text", "RichText", "RichScrolledText", "Entry", "Button", "Radiobutton",
            "ComboBox", "Listbox", "Checkbutton", "Scale", "Spinbox", "Separator", "ScrollableFrame", "Tooltip", "Autocompleter",
-           "Placeholder", "resolve", "fit_height", "Collapsible"]
+           "Placeholder", "resolve", "fit_window", "Collapsible"]
 
 DEBUG_FRAMES:bool = False # Turn this on to color each frame for debugging
 index:int = 0
@@ -40,13 +40,14 @@ def resolve(widget:Any) -> Any:
     """ Resolve the actual base object for a tk nametowidget() lookup. """
     return getattr(widget, 'themed', widget)
 
-def fit_height(widget:tk.Misc) -> None:
-    """ Refit the toplevel's height to its contents, keeping its width """
+def fit_window(widget:tk.Misc) -> None:
+    """ Refit the toplevel to its contents: height always, width only when it must grow """
     top:tk.Tk|tk.Toplevel = widget.winfo_toplevel()
     top.update_idletasks()
-    if not top.winfo_ismapped() or top.winfo_height() == top.winfo_reqheight(): return
+    width:int = max(top.winfo_width(), top.winfo_reqwidth())
+    if not top.winfo_ismapped() or (top.winfo_width(), top.winfo_height()) == (width, top.winfo_reqheight()): return
 
-    top.geometry(f"{top.winfo_width()}x{top.winfo_reqheight()}")
+    top.geometry(f"{width}x{top.winfo_reqheight()}")
 
 """ A set of UI objects to handle themed widgets for dealing with EDMC dark mode """
 class Base:
@@ -476,7 +477,7 @@ class Collapsible:
         self.hidden = not self.hidden if hidden is None else hidden
         self._show_current()
         if self._on_toggle: self._on_toggle(self.hidden)
-        fit_height(self.expanded)
+        fit_window(self.expanded)
 
     def _show_current(self) -> None:
         if self.hidden:

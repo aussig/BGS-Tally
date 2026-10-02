@@ -735,8 +735,16 @@ class RavenColonial:
         self._cache[cache_key] = int(time.time())
 
         # A get tells us if this carrier is being tracked by RC and returns current cargo/buy/sell state.
-        url:str = f"{RC_API}/fc/{marketid}"
-        response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
+        try:
+            url:str = f"{RC_API}/fc/{marketid}"
+            response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
+        except requests.exceptions.ReadTimeout as e:
+            Debug.logger.debug(f"Timeout error fetching RC carrier {marketid}")
+            return None
+        except requests.RequestException as e:
+            Debug.logger.warning(f"Error fetching RC carrier {marketid}: {e}")
+            return None
+
         self._rc_tracked[marketid] = response.status_code == 200
         if response.status_code != 200: return None
 

@@ -164,7 +164,7 @@ class Colonisation:
 
                 # Update progress for tracked, rc sync projects.
                 for progress in self.progress:
-                    if progress.get('ProjectID', None) != None or progress.get('ConstructionComplete', False) == True:
+                    if progress.get('ProjectID', None) == None or progress.get('ConstructionComplete', False) == True:
                         continue
                     found:list = self.find_build_any({'ProjectID' : progress.get('ProjectID')})
                     if found[0] == None or found[1] == None or found[0].get('RCSync', False) == False or found[1].get('Track', False) == False:
@@ -637,10 +637,13 @@ class Colonisation:
                 for build in builds:
                     if build.get(m, None) == data.get(m, None):
                         return build
-        # Match on site name.
+        # Match on site name stripping out the construction/colonisation stuff.
         if data.get('Name', None) != None:
+            dn:str = re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')).lower()
             for build in builds:
-                if build.get('Name', None) != None and build.get('Name', '').lower() == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')).lower():
+                if not build.get('Name', None): continue
+                bn:str = re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', '')).lower()
+                if bn and dn and bn == dn:
                     return build
 
         # Match on name if we can.

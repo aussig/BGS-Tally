@@ -63,6 +63,7 @@ class Overlay:
         """
         if self.edmcoverlay == None: return
         if not self.bgstally.state.enable_overlay: return
+        if self.bgstally.state.plugin_hidden: return
         #if message == "": return
 
         try:
@@ -170,6 +171,7 @@ class Overlay:
         """
         if self.edmcoverlay == None: return
         if not self.bgstally.state.enable_overlay: return
+        if self.bgstally.state.plugin_hidden: return
 
         try:
             fi: dict | None = self.bgstally.config.overlay_frame(frame_name)
@@ -195,6 +197,7 @@ class Overlay:
         """
         if self.edmcoverlay == None: return
         if not self.bgstally.state.enable_overlay: return
+        if self.bgstally.state.plugin_hidden: return
 
         try:
             fi: dict | None = self.bgstally.config.overlay_frame(frame_name)
@@ -348,6 +351,7 @@ class Overlay:
         """
         if self.edmcoverlay == None: return
         if not self.bgstally.state.enable_overlay: return
+        if self.bgstally.state.plugin_hidden: return
 
         try:
             self.display_message("info", _("{plugin_name} Ready").format(plugin_name=self.bgstally.plugin_name), True, 30) # LANG: Overlay message

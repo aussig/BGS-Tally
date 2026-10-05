@@ -1061,7 +1061,8 @@ class Spansh:
         """ Retrieve a market snapshot from Spansh for a fleet carrier """
         if fc.carrier_id == 0: return
 
-        in_system:bool = fc.overview.get('currentStarSystem') == RavenColonial(self).colonisation.current_system
+        in_system:bool = not RavenColonial(self).colonisation or \
+            fc.overview.get('currentStarSystem') == RavenColonial(self).colonisation.current_system
         cooldown:int = SPANSH_LOCAL_COOLDOWN if in_system else SPANSH_REMOTE_COOLDOWN
         if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - cooldown: return
         self.carrier_cache[fc.carrier_id] = int(time.time())

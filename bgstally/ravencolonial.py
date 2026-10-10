@@ -7,6 +7,8 @@ import requests
 from requests import Response
 from typing import TYPE_CHECKING, Callable
 
+import plug #type: ignore
+
 from bgstally.constants import RequestMethod, BuildState, FleetCarrierType
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
@@ -19,7 +21,7 @@ if TYPE_CHECKING:
 
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
 RC_COOLDOWN = 30
-TIMEOUT=10
+TIMEOUT=15
 
 EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
 EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
@@ -48,7 +50,7 @@ class RavenColonial:
         return cls._instance
 
 
-    def __init__(self, colonisation) -> None:
+    def __init__(self, colonisation:'Colonisation') -> None:
         # Only initialize if it's the first time
         if hasattr(self, '_initialized'): return
 
@@ -600,7 +602,7 @@ class RavenColonial:
 
         url:str = f"{RC_API}/project/poll"
         payload:list = [projectid]
-        response:Response = requests.post(url, headers=self._headers(), json=payload, timeout=10)
+        response:Response = requests.post(url, headers=self._headers(), json=payload, timeout=TIMEOUT)
         if response.status_code != 200:
             Debug.logger.error(f"Error for {url} {response} {response.content}")
             return
@@ -731,12 +733,23 @@ class RavenColonial:
         """ Synchronously fetch RC's current view of a carrier, normalized for FleetCarrier.merge() """
         cache_key:str = f'fc_{marketid}'
 
-        if self._cache.get(cache_key, 0) > int(time.time()) - (RC_COOLDOWN if self.is_editable() else RC_COOLDOWN * 10): return None
+        # If a carrier isn't being tracked we use a much longer cooldown
+        cd:int = RC_COOLDOWN if self._rc_tracked.get(marketid, False) else RC_COOLDOWN * 10
+        if self._cache.get(cache_key, 0) > int(time.time()) - cd: return None
         self._cache[cache_key] = int(time.time())
 
         # A get tells us if this carrier is being tracked by RC and returns current cargo/buy/sell state.
-        url:str = f"{RC_API}/fc/{marketid}"
-        response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
+        try:
+            url:str = f"{RC_API}/fc/{marketid}"
+            response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
+        except requests.exceptions.ReadTimeout as e:
+            plug.show_error(_("{plugin_name} Error: Timeout fetching Raven Colonial carrier data.").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
+            Debug.logger.debug(f"Timeout error fetching RC carrier {marketid}")
+            return None
+        except requests.RequestException as e:
+            Debug.logger.warning(f"Error fetching RC carrier {marketid}: {e}")
+            return None
+
         self._rc_tracked[marketid] = response.status_code == 200
         if response.status_code != 200: return None
 
@@ -770,12 +783,6 @@ class RavenColonial:
             },
             'cargo': cargo,
         }
-
-
-    def is_tracked(self, marketid:int) -> bool:
-        """ Whether RC is currently known to track this carrier """
-        return self._rc_tracked.get(marketid, False)
-
 
     def _parse_time(self, updated_at:str|None) -> int:
         """ Parse an ISO8601 timestamp or 0 if missing/unparseable """
@@ -1030,12 +1037,13 @@ class Spansh:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, bgstally:'BGSTally'):
         # Only initialize if it's the first time
         if not hasattr(self, '_initialized'):
             self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
             self.carrier_cache:dict = {} # marketId -> last query time, for import_fleetcarrier()'s cooldown
             self._initialized = True
+        self.bgstally:BGSTally = bgstally
         self.body_details = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', \
                              'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
 
@@ -1053,7 +1061,8 @@ class Spansh:
         """ Retrieve a market snapshot from Spansh for a fleet carrier """
         if fc.carrier_id == 0: return
 
-        in_system:bool = fc.overview.get('currentStarSystem') == RavenColonial(self).colonisation.current_system
+        in_system:bool = not RavenColonial(self).colonisation or \
+            fc.overview.get('currentStarSystem') == RavenColonial(self).colonisation.current_system
         cooldown:int = SPANSH_LOCAL_COOLDOWN if in_system else SPANSH_REMOTE_COOLDOWN
         if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - cooldown: return
         self.carrier_cache[fc.carrier_id] = int(time.time())
@@ -1082,8 +1091,16 @@ class Spansh:
         self.carrier_cache[fc.carrier_id] = int(time.time())
 
         url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
-        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
-        if response.status_code != 200: return None
+        try:
+            response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
+            if response.status_code != 200: return None
+        except requests.exceptions.ReadTimeout as e:
+            plug.show_error(_("{plugin_name} Error: Timeout fetching carrier market from Spansh.").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
+            Debug.logger.debug(f"Timeout error getting market data from Spansh")
+            return None
+        except Exception as e:
+            Debug.logger.debug(f"Error getting market data from Spansh {e}")
+            return None
 
         return self._normalize_market(response.json().get('record', {}))
 

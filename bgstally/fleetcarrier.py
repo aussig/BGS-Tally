@@ -238,7 +238,7 @@ class FleetCarrier:
             Debug.logger.debug(f"Merging RC data for carrier {self.overview.get('callsign', self.carrier_id)}")
             changed = self.merge(rc_data)
 
-        spansh_data:dict|None = Spansh().get_market(self)
+        spansh_data:dict|None = Spansh(self.bgstally).get_market(self)
         newer:bool = False
         if spansh_data:
             Debug.logger.debug(f"Merging Spansh data for carrier {self.overview.get('callsign', self.carrier_id)}")
@@ -942,7 +942,7 @@ class FleetCarrier:
 
         if self.bgstally.dev_mode == True: self.save()
         self.bgstally.ui.window_fc.update_carrier_display(self)
-        Spansh().import_fleetcarrier(self)
+        Spansh(self.bgstally).import_fleetcarrier(self)
 
 
     @catch_exceptions
@@ -1069,7 +1069,7 @@ class FleetCarrier:
                                         'starsystem': entry.get('StarSystem', ''),
                                         'body': entry.get('Body', '')
                                         })
-            Spansh().import_fleetcarrier(self)
+            Spansh(self.bgstally).import_fleetcarrier(self)
             return
 
         Debug.logger.debug(f"Calling jump complete")
@@ -1105,7 +1105,7 @@ class FleetCarrier:
 
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
-        Spansh().import_fleetcarrier(self)
+        Spansh(self.bgstally).import_fleetcarrier(self)
 
 
     @catch_exceptions
@@ -1119,6 +1119,12 @@ class FleetCarrier:
         self.jump_state = FleetCarrierJump.Cooldown
 
         # It seems carrier cooldown is rounded to the nearest minute.
+        if not self.overview.get('departureScheduled', None):
+            self.timer = None
+            self.jump_state = FleetCarrierJump.Idle
+            self._update_route()
+            return
+
         departure:datetime = self._parse_date(self.overview['departureScheduled'])
         if departure.second >= 30: # Round up.
             self.timer = departure + timedelta(minutes=1, seconds=300 - departure.second)
@@ -1460,7 +1466,7 @@ class FleetCarrier:
                 # EDMC's outfitting.lookup() raises ValueError for a module it doesn't recognize
                 mod:dict = outfitting.lookup({'id': item.get('StorageSlot', 0),
                                               'name': re.sub(r"\$(.*)_name;$", r"\1", item.get('Name', ''))}, ship_name_map) or {}
-            except ValueError:
+            except (ValueError, KeyError) as e:
                 continue
             Debug.logger.debug(f"Module {mod}")
             self.modules['modules'][str(item.get('StorageSlot', ''))] = {
@@ -1667,7 +1673,6 @@ class FleetCarrier:
         self.timer = dict.get('timer') and datetime.fromisoformat(dict.get('timer')) or None
         self.jump_state = FleetCarrierJump(dict.get('jump_state', FleetCarrierJump.Idle))
 
-        Debug.logger.debug(f"")
         # Deal with whatever we missed while shutdown
         if self.timer and self.timer < datetime.now(tz=UTC):
             Debug.logger.debug(f"Jump timer expired while jumping, letting jump_complete figure it out")

@@ -122,10 +122,10 @@ class FleetCarriers:
 
     def track_by_callsign(self, callsign:str) -> bool:
         """ Start tracking a third-party carrier """
-        market_id:int|None = Spansh().find_carrier(callsign)
+        market_id:int|None = Spansh(self.bgstally).find_carrier(callsign)
         if market_id is None: return False
 
         fc:FleetCarrier = self.get(market_id, FleetCarrierType.THIRDPARTY, callsign)
-        Spansh().import_fleetcarrier(fc)
+        Spansh(self.bgstally).import_fleetcarrier(fc)
 
         return True

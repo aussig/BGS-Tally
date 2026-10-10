@@ -25,10 +25,7 @@ MARKET_FILENAME = 'Market.json'
 RE_IGNORE_PATTERN = r"(^\$|[A-Z0-9]{3}-[A-Z0-9]{3}$| \| [A-Z]{4}$)" # Pattern to ignore stations like carriers, scenarios, etc.
 
 # Services we use for different types of import
-SYSTEM_SERVICE = Spansh()
 BODY_SERVICE = EDSM()
-STATION_SERVICE = Spansh()
-
 
 class Colonisation:
     '''
@@ -103,6 +100,18 @@ class Colonisation:
             self.base_types = json.load(f)
             Debug.logger.info(f"Loaded {len(self.base_types)} base types for colonisation")
 
+        self.colonisation_commodities:set = self._extract_commodities(self.base_costs)
+
+    def _extract_commodities(self, node:dict) -> set:
+        ''' Get all the commodities from the base cost data '''
+        found:set = set()
+        for k, v in node.items():
+            if isinstance(v, dict):
+                found.update(self._extract_commodities(v))
+                continue
+            found.add(k)
+        return found
+
     @catch_exceptions
     def journal_entry(self, cmdr, is_beta, sys, station, entry, state) -> None:
         '''
@@ -151,11 +160,11 @@ class Colonisation:
                     if system.get('Bodies', None) == None or system.get('Bodies', [{}])[0].get('parentId', -1) == -1: # In case we didn't get them for some reason
                         BODY_SERVICE.import_bodies(system.get('StarSystem', ''))
 
-                    SYSTEM_SERVICE.import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
+                    Spansh(self.bgstally).import_system(system.get('StarSystem', '')) # Update the system stats from Spansh/EDSM
 
                 # Update progress for tracked, rc sync projects.
                 for progress in self.progress:
-                    if progress.get('ProjectID', None) != None or progress.get('ConstructionComplete', False) == True:
+                    if progress.get('ProjectID', None) == None or progress.get('ConstructionComplete', False) == True:
                         continue
                     found:list = self.find_build_any({'ProjectID' : progress.get('ProjectID')})
                     if found[0] == None or found[1] == None or found[0].get('RCSync', False) == False or found[1].get('Track', False) == False:
@@ -468,8 +477,8 @@ class Colonisation:
         # If we have a system address, we get the bodies and maybe stations
         if rcsync == False and data.get('StarSystem', "") != "":
             BODY_SERVICE.import_bodies(data.get('StarSystem', ''))
-            if prepop == True: STATION_SERVICE.import_stations(data.get('StarSystem', ''))
-            SYSTEM_SERVICE.import_system(data.get('StarSystem', ''))
+            if prepop == True: Spansh(self.bgstally).import_stations(data.get('StarSystem', ''))
+            Spansh(self.bgstally).import_system(data.get('StarSystem', ''))
 
         self.save('Add system')
         return data
@@ -612,7 +621,8 @@ class Colonisation:
         Name, BuildID or Marketid are preferred but we use fuzzy matching for weird fdev cases
         '''
         builds:list = self.get_system_builds(system)
-        builds[0]['Primary'] = True # Bit of a hack, should flag the primary at source.
+        if len(builds) > 0:
+            builds[0]['Primary'] = True # Bit of a hack, should flag the primary at source.
 
         #Debug.logger.debug(f"Finding build in {system.get('StarSystem')} {data} Builds: {builds}")
         if data.get('Name', '') == '' or data.get('Name', '') == ' ': data['Name'] = None
@@ -627,10 +637,13 @@ class Colonisation:
                 for build in builds:
                     if build.get(m, None) == data.get(m, None):
                         return build
-        # Match on site name.
+        # Match on site name stripping out the construction/colonisation stuff.
         if data.get('Name', None) != None:
+            dn:str = re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')).lower()
             for build in builds:
-                if build.get('Name', None) != None and build.get('Name', '').lower() == re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", data.get('Name', '')).lower():
+                if not build.get('Name', None): continue
+                bn:str = re.sub(r"(\w+ Construction Site:|\$EXT_PANEL_ColonisationShip;|System Colonisation Ship) ", "", build.get('Name', '')).lower()
+                if bn and dn and bn == dn:
                     return build
 
         # Match on name if we can.
@@ -657,19 +670,23 @@ class Colonisation:
             market:int|None = build.get('MarketID', None)
 
             # A build that was planned but is now a construction site or progress but we've never been there
-            if state in (BuildState.PLANNED, BuildState.PROGRESS) and market == None and location == loc and body == data.get('Body', str(data.get('BodyNum', ''))).lower():
+            dbody:str|None = None
+            if isinstance(data.get('Body', data.get('BodyNum', None)), str):
+                dbody = data.get('Body', data.get('BodyNum', '')).lower()
+
+            if state in (BuildState.PLANNED, BuildState.PROGRESS) and market == None and location == loc and body == dbody:
                 Debug.logger.debug(f"Matched planned build {data['Body']} {build.get('State', None)} {loc} Build: {build}")
                 return build
 
             # A build that was in progress but now has a new name (completed or renamed)
-            if state == BuildState.PROGRESS and body == data.get('Body', str(data.get('BodyNum', ''))).lower() and \
+            if state == BuildState.PROGRESS and body == dbody and \
                 (len(builds) == 1 or f"Construction Site: {data.get('Name', '')}" in build.get('Name', '')):
                 Debug.logger.debug(f"Matched construction {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
             # A completed but previously unvisited build.
             if state == BuildState.COMPLETE and building == False and market == None and location == loc and \
-                body != None and body == data.get('Body', str(data.get('BodyNum', ''))).lower():
+                body != None and body == dbody:
                 Debug.logger.debug(f"Matched completed on {build.get('Body')} {build.get('State', None)} {build.get('Location', '')} Build: {build}")
                 return build
 
@@ -678,8 +695,9 @@ class Colonisation:
 
         # Primary port. We completed it but don't know its new name or marketid
         if builds[0].get('State', None) == BuildState.COMPLETE and builds[0].get('MarketID', None) == None and \
-                builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == data.get('Body', str(data.get('BodyNum', ''))).lower():
-            Debug.logger.debug(f"Matched completed primary port {data.get('Name', None)} {data.get('Body', str(data.get('BodyNum', ''))).lower()}")
+            builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))) != None and \
+            builds[0].get('Body', str(builds[0].get('BodyNum', 'Unknown'))).lower() == data.get('Body', data.get('BodyNum', '')).lower():
+            Debug.logger.debug(f"Matched completed primary port {data.get('Name', None)} {data.get('Body', data.get('BodyNum', '')).lower()}")
             return builds[0]
 
         return None
@@ -918,16 +936,17 @@ class Colonisation:
 
     @catch_exceptions
     def get_commodity_list(self, order:CommodityOrder = CommodityOrder.ALPHA, qty:dict = {}) -> list:
-        ''' Return an ordered list of all base commodities '''
+        ''' Return an ordered list of commodities that can ever be required for a build '''
+        commodities:dict = {k: v for k, v in self.bgstally.ui.commodities.items() if k in self.colonisation_commodities}
 
         match order:
             case CommodityOrder.QUANTITY:
                ordered:list = list(k for k, v in sorted(qty.items(), key=lambda item: item[1], reverse=True))
-               return ordered + list(set(self.bgstally.ui.commodities.keys()) - set(ordered)) # Order plus zeroes at the end
+               return ordered + list(set(commodities.keys()) - set(ordered)) # Order plus zeroes at the end
             case CommodityOrder.CATEGORY:
-                return list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: (item[1]['Category'], item[1]['Name'].lower())))
+                return list(k for k, v in sorted(commodities.items(), key=lambda item: (item[1]['Category'], item[1]['Name'].lower())))
             case _:
-                return list(k for k, v in sorted(self.bgstally.ui.commodities.items(), key=lambda item: item[1]['Name'].lower()))
+                return list(k for k, v in sorted(commodities.items(), key=lambda item: item[1]['Name'].lower()))
 
 
     @catch_exceptions

@@ -2,47 +2,13 @@
 
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
-from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest  # type: ignore
 
 from bgstally.activity import STATES_WAR
 from bgstally.constants import FavouriteActivity
-from harness import TestHarness
 from config import config  # type: ignore
-
-
-@pytest.fixture
-def harness(request) -> Generator:
-    """Provide a fresh test harness for each test."""
-    live = request.node.get_closest_marker("live_requests") is not None
-
-    test_harness: TestHarness = TestHarness(live_requests=live)
-
-    import bgstally.constants
-
-    bgstally.constants.FOLDER_ASSETS = "../assets"
-    bgstally.constants.FOLDER_DATA = "../data"
-
-    # Put in a response for the update manager so it doesn't error
-    if not live:
-        from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get',
-                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
-                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
-                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
-
-    from load import plugin_app, plugin_start3
-    import bgstally.globals
-
-    test_harness.plugin = bgstally.globals.this
-
-    plugin_start3(str(test_harness.plugin_dir))
-    plugin_app(test_harness.parent)
-
-    yield test_harness
-    test_harness.assert_no_unhandled_exceptions()
 
 
 class TestUI:
@@ -235,13 +201,13 @@ class TestUI:
         assert ui.expanded_frame.grid_info() != {}
         assert ui.collapsed_frame.grid_info() == {}
 
-        ui._toggle_panel()
+        ui.view.toggle()
 
         assert ui.bgstally.state.plugin_hidden is True
         assert ui.expanded_frame.grid_info() == {}
         assert ui.collapsed_frame.grid_info() != {}
 
-        ui._toggle_panel()
+        ui.view.toggle()
 
         assert ui.bgstally.state.plugin_hidden is False
         assert ui.expanded_frame.grid_info() != {}
@@ -255,7 +221,7 @@ class TestUI:
         assert ui.bgstally.overlay.edmcoverlay.messages != {}
 
         ui.bgstally.overlay.edmcoverlay.messages.clear()
-        ui._toggle_panel()
+        ui.view.toggle()
         ui.bgstally.overlay.display_message("info", "test")
 
         assert ui.bgstally.overlay.edmcoverlay.messages == {}

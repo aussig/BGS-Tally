@@ -6,54 +6,26 @@ import pytest # type: ignore
 import shutil
 import json
 from pathlib import Path
-from typing import Generator
 from time import sleep
 from unittest.mock import patch, MagicMock
 
-from datetime import datetime, UTC
 from bgstally.windows import progress
-from harness import TestHarness
 from bgstally.constants import BuildState
 
 SHORT_DELAY = 0.01
 
 @pytest.fixture
-def harness(request) -> Generator:
-    """ Provide a fresh test harness for each test. """
-    live = request.node.get_closest_marker('live_requests') is not None
-    test_harness = TestHarness(live_requests=live)
+def pre_start():
+    """Reset colonisation.json before the plugin starts."""
+    def init(request, harness) -> None:
+        # Initialize colonisation state - use parametrized filename if provided
+        Path(Path(__file__).parent / "otherdata" / "colonisation.json").unlink(missing_ok=True)
+        colonisation_init_file = getattr(request, 'param', 'colonisation_init.json')
+        if colonisation_init_file != 'None':
+            shutil.copy(Path(__file__).parent / "config" / colonisation_init_file,
+                        Path(__file__).parent / "otherdata" / "colonisation.json")
 
-    # Use the "normal" locations for assets and data
-    import bgstally.constants
-    bgstally.constants.FOLDER_ASSETS = "../assets"
-    bgstally.constants.FOLDER_DATA = "../data"
-
-    # Put in a response for the update manager so it doesn't error
-    if not live:
-        from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get',
-                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
-                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
-                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
-
-    # Initialize colonisation state - use parametrized filename if provided
-    Path(Path(__file__).parent / "otherdata" / "colonisation.json").unlink(missing_ok=True)
-    colonisation_init_file = getattr(request, 'param', 'colonisation_init.json')
-    if colonisation_init_file != 'None':
-        shutil.copy(Path(__file__).parent / "config" / colonisation_init_file,
-                    Path(__file__).parent / "otherdata" / "colonisation.json")
-
-    from load import plugin_start3, plugin_app, journal_entry
-    import bgstally.globals
-    test_harness.plugin = bgstally.globals.this
-
-    plugin_start3(str(test_harness.plugin_dir))
-    plugin_app(test_harness.parent)
-
-    test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
-
-    yield test_harness
-    test_harness.assert_no_unhandled_exceptions()
+    return init
 
 class TestColonisationInitialization:
     @pytest.mark.parametrize('harness', ['None', 'colonisation_empty.json', 'colonisation-5.4.0.json', 'colonisation-5.5.0.json'], indirect=True)

@@ -5,56 +5,29 @@ Test suite for carrier module of BGS-Tally.
 import pytest # type: ignore
 import shutil
 from pathlib import Path
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING
 from time import sleep
 from datetime import datetime, UTC, timedelta
 from unittest.mock import Mock, patch, MagicMock
 import json
-from harness import TestHarness
 
 if TYPE_CHECKING:
     import bgstally.ui
     from bgstally.windows.fleetcarrier import PopupNotice
 
 @pytest.fixture
-def harness(request) -> Generator:
-    """ Provide a fresh test harness for each test. """
-    live = request.node.get_closest_marker('live_requests') is not None
-    test_harness = TestHarness(live_requests=live)
+def pre_start():
+    """Reset fleetcarrier.json and the carriers folder before the plugin starts."""
+    def init(request, harness) -> None:
+        # Make sure we always start with a consistent fleetcarrier.json, and no leftover squadron (etc) carriers
+        Path(Path(__file__).parent / "otherdata" / "fleetcarrier.json").unlink(missing_ok=True)
+        for f in Path(Path(__file__).parent / "otherdata" / "carriers").glob("*.json"): f.unlink()
+        carrier_init_file:str = getattr(request, 'param', 'fleetcarrier_init.json')
+        if carrier_init_file != 'None':
+            shutil.copy(Path(__file__).parent / "config" / carrier_init_file,
+                        Path(__file__).parent / "otherdata" / "fleetcarrier.json")
 
-    # Use the "normal" locations for assets and data
-    import bgstally.constants
-    bgstally.constants.FOLDER_ASSETS = "../assets"
-    bgstally.constants.FOLDER_DATA = "../data"
-
-    # Put in a response for the update manager so it doesn't error
-    if not live:
-        from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get',
-                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
-                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
-                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
-
-    # Make sure we always start with a consistent fleetcarrier.json, and no leftover squadron (etc) carriers
-    Path(Path(__file__).parent / "otherdata" / "fleetcarrier.json").unlink(missing_ok=True)
-    for f in Path(Path(__file__).parent / "otherdata" / "carriers").glob("*.json"): f.unlink()
-    carrier_init_file:str = getattr(request, 'param', 'fleetcarrier_init.json')
-    if carrier_init_file != 'None':
-        shutil.copy(Path(__file__).parent / "config" / carrier_init_file,
-                    Path(__file__).parent / "otherdata" / "fleetcarrier.json")
-
-    # Now we can import plugin modules
-    from load import plugin_start3, plugin_app, journal_entry
-    import bgstally.globals
-    test_harness.plugin = bgstally.globals.this
-
-    plugin_start3(str(test_harness.plugin_dir))
-    plugin_app(test_harness.parent)
-
-    test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
-
-    yield test_harness
-    test_harness.assert_no_unhandled_exceptions()
+    return init
 
 class TestCarrierInitialization:
 

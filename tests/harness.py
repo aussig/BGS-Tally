@@ -466,6 +466,8 @@ class TestHarness:
 
     def _capture_thread_exception(self, args: threading.ExceptHookArgs) -> None:
         """Record unhandled worker-thread exceptions so tests can fail deterministically."""
+        if args.exc_type is SystemExit: return
+
         exc_type = getattr(args.exc_type, '__name__', str(args.exc_type))
         thread_name = getattr(args.thread, 'name', '<unknown>')
         self.unhandled_exceptions.append(f"{thread_name}: {exc_type}: {args.exc_value}")
@@ -491,7 +493,7 @@ class TestHarness:
             except tk.TclError:
                 return
 
-            pending = self._tk_scheduler.pending_count() if hasattr(self, '_tk_scheduler') else 0
+            pending = self._tk_scheduler.pending_count(timeout_s) if hasattr(self, '_tk_scheduler') else 0
             if pending == 0 and callbacks_ran == 0:
                 return
             if monotonic() >= end_time:

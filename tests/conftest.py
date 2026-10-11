@@ -1,6 +1,7 @@
 # Sections marked PLUGIN need editing to reuse this file for another plugin; the rest is generic.
 import sys
 import threading
+import time
 from datetime import datetime, UTC
 from time import monotonic, sleep as real_sleep
 from typing import Generator
@@ -8,8 +9,6 @@ from typing import Generator
 import pytest
 from harness import TestHarness
 
-# PLUGIN: modules whose worker threads use "from time import sleep"; they get an interruptible sleep
-MODS:tuple = ('bgstally.activitymanager', 'bgstally.api', 'bgstally.bgstally', 'bgstally.requestmanager', 'bgstally.ui')
 JOIN_S:float = 2
 
 # GENERIC: set at teardown to end every worker thread sleeping via _sleep
@@ -63,15 +62,13 @@ def _sleep(secs:float) -> None:
     if threading.current_thread() is threading.main_thread(): return real_sleep(secs)
     if stop.wait(secs): raise SystemExit
 
+# Installed once at import so any later "from time import sleep" binds this; per-test patching would miss them
+time.sleep = _sleep
 
 @pytest.fixture(autouse=True)
 def stop_workers():
-    """Give the workers an interruptible sleep, then stop and join them after the test."""
+    """Stop and join the workers started during each test."""
     stop.clear()
-    # Modules aren't importable until the harness exists, so the first test's workers keep the real sleep
-    for name in MODS:
-        if name in sys.modules: setattr(sys.modules[name], 'sleep', _sleep)
-
     before:set = set(threading.enumerate())
 
     yield

@@ -271,7 +271,7 @@ class FleetCarrier:
         fields:list = []
         if table:
             fields.append({'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem') or __("Unknown", lang=l)}) # LANG: Discord heading
-            fields.append({'name': __("Updated", lang=l), 'value': f"<t:{j['departure']}:R>"}) # LANG: Discord heading
+            fields.append({'name': __("Updated", lang=l), 'value': f"<t:{int(time.time())}:R>"}) # LANG: Discord heading
 
         discord.post_embed(title, table, fields, self.discord_market, DiscordChannel.FLEETCARRIER_MATERIALS, self._market_posted)
 

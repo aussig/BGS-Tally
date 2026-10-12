@@ -281,12 +281,13 @@ class FleetCarrier:
         if not j: return
 
         l:str|None = self.bgstally.state.discord_lang
+        time_head:str = __("Departure In", lang=l) if state in ("Scheduled", "Cancelled") else __("Arrived", lang=l) # LANG: Discord heading
         fields:list = [
             {'name': __("State", lang=l), 'value': state, 'inline': True}, # LANG: Discord heading
             {'name': __("From System", lang=l), 'value': j['from'], 'inline': True}, # LANG: Discord heading
             {'name': __("To System", lang=l), 'value': j['to'], 'inline': True}, # LANG: Discord heading
             {'name': __("To Body", lang=l), 'value': j['body'], 'inline': True}, # LANG: Discord heading
-            {'name': __("Departure Time", lang=l), 'value': f"<t:{j['departure']}:R>"}, # LANG: Discord heading
+            {'name': time_head, 'value': f"<t:{j['departure']}:R>"},
             {'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}, # LANG: Discord heading
             {'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}] # LANG: Discord heading
         title:str = __("Carrier Jump: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
@@ -520,12 +521,13 @@ class FleetCarrier:
             if type == 'Selling' and (item.get('price', 0) == 0 or item.get(sell_key, 0) == 0): continue
             if type == 'Buying' and item.get(buy_key, 0) == 0: continue
             if type == 'Both' and item.get('price', 0) == 0: continue
+            if type == 'All' and item.get("cargo", 0) == 0 and item.get(buy_key, 0) == 0 and item.get(sell_key, 0) == 0: continue
 
             row:list = []
             for f, _title, width, _align in cols:
                 val:str = ""
                 match f:
-                    case "stock" if which == 'Cargo': val = item.get("cargo") if item.get("cargo") is not None else ""
+                    case "stock" if which == 'All': val = item.get("cargo") if item.get("cargo") is not None else ""
                     case "buy" if item.get("price", 0) > 0 and item.get(buy_key, 0) > 0: val = item.get(buy_key)
                     case "sell" if item.get("price", 0) > 0 and item.get(sell_key, 0) > 0: val = item.get(sell_key)
                     case _: val = item.get(f, " ")

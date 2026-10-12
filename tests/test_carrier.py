@@ -1209,7 +1209,7 @@ class TestDiscordUpdates:
         harness.plugin.state.DiscordUsername.set('tester')
         fc = harness.plugin.fleet_carriers.get(3700005632, FleetCarrierType.PERSONAL, 'AAA-111')
         fc.discord_jump = {}
-        fc.discord_market = []
+        fc.discord_market = {}
         return fc
 
     def test_jump_state_edits_post(self, harness) -> None:
@@ -1227,35 +1227,32 @@ class TestDiscordUpdates:
         assert mock_queue.call_args.args[0].endswith('/messages/123')
         assert mock_queue.call_args.args[1] == RequestMethod.PATCH
 
-    def test_market_post_edits_trims(self, harness) -> None:
-        """ Test the market post is edited in place and extra parts are deleted when it shrinks """
+    def test_market_embed_edits(self, harness) -> None:
+        """ Test the market embed is posted then edited in place """
         from bgstally.constants import RequestMethod
         fc = self._fc(harness)
-        big:str = "## T\n```\n" + "x" * 80 + "\n" + ("y" * 80 + "\n") * 50 + "```"
 
-        with patch.object(fc, 'get_text', side_effect=[big, "small"]), \
+        with patch.object(fc, '_table', return_value="```\nrow\n```"), \
              patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
             fc._post_market()
-            assert len(fc.discord_market) == 3
-            for n in range(3): fc._market_posted(n, 'FC-mats', dict(self.HOOK), str(100 + n))
-            mock_queue.reset_mock()
+            assert mock_queue.call_args.args[1] == RequestMethod.POST
+            fc._market_posted('FC-mats', dict(self.HOOK), '100')
             fc._post_market()
 
-        methods:list = [c.args[1] for c in mock_queue.call_args_list]
-        assert methods == [RequestMethod.PATCH, RequestMethod.DELETE, RequestMethod.DELETE]
-        assert len(fc.discord_market) == 1
+        assert mock_queue.call_args.args[0].endswith('/messages/100')
+        assert mock_queue.call_args.args[1] == RequestMethod.PATCH
+        assert mock_queue.call_args.kwargs['payload']['embeds'][0]['description'] == "```\nrow\n```"
 
     def test_market_empty_deletes_post(self, harness) -> None:
         """ Test the market post is deleted when there is nothing to buy or sell """
         from bgstally.constants import RequestMethod
         fc = self._fc(harness)
-        fc.discord_market = [{'u1': {**self.HOOK, 'FC-mats': '100'}}]
+        fc.discord_market = {'u1': {**self.HOOK, 'FC-mats': '100'}}
 
         with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
             fc._post_market()
 
         assert mock_queue.call_args.args[1] == RequestMethod.DELETE
-        assert fc.discord_market == []
 
     def test_market_text_table(self, harness) -> None:
         """ Test the Discord market text is a table, or empty with no orders """

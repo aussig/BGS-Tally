@@ -3406,5 +3406,5 @@
     "timer": null,
     "jump_state": "Idle",
     "discord_jump": {},
-    "discord_market": []
+    "discord_market": {}
 }

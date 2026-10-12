@@ -29,6 +29,7 @@ FC_MAX_JUMPS_TRACKED = 250
 FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 EDDN_LAG_TIME = 60 # How long behind EDDN may be in seconds
 RC_STALE_VS_MARKET_GAP = 1800 # If market_time outpaces an RC-sourced cargo_time by this much, RC's cargo is stale
+MARKET_EMBED_MAX = 4000 # Embed description limit less headroom for the closing fence
 MARKET_DEBOUNCE = 60 # Seconds of market quiet before editing the FC-mats post
 # Discord table columns per tab: (item key, title, width, alignment)
 DISCORD_COLS = {
@@ -71,7 +72,7 @@ class FleetCarrier:
         self.timer:datetime|None = None
         self._last_update_check:int = 0 # Cooldown tracking for update_carrier()
         self.discord_jump:dict = {} # Current jump's details plus per-webhook FC-ops message ids
-        self.discord_market:list = [] # Per message part, per-webhook FC-mats message ids
+        self.discord_market:dict = {} # Per-webhook FC-mats message ids
         self._market_timer:str|None = None # Pending debounced FC-mats post
         self.load()
         # A fresh carrier needs its id set now, not just once CAPI/CarrierStats populates overview.
@@ -250,28 +251,20 @@ class FleetCarrier:
         discord = self.bgstally.discord
         if not discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) or self.bgstally.state.DiscordUsername.get() == "": return
 
-        out:str = self.get_text('Cargo', 'Both', True)
-        parts:list = []
-        while len(out) > 1990:
-            cut:int = out.rfind('\n', 0, 1900)
-            parts.append(out[0:cut] + "```")
-            out = "```\n" + out[cut + 1:]
-        if out: parts.append(out)
-
-        # Surplus parts post "" which deletes their message
-        for n in range(max(len(parts), len(self.discord_market))):
-            if n >= len(self.discord_market): self.discord_market.append({})
-            discord.post_plaintext(parts[n] if n < len(parts) else "", self.discord_market[n], DiscordChannel.FLEETCARRIER_MATERIALS,
-                                   partial(self._market_posted, n))
-        del self.discord_market[len(parts):]
+        l:str|None = self.bgstally.state.discord_lang
+        table:str = self._table('Cargo', 'Both', True)
+        if len(table) > MARKET_EMBED_MAX: table = table[0:table.rfind('\n', 0, MARKET_EMBED_MAX)] + "\n```"
+        fields:list = [{'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem') or __("Unknown", lang=l)}] if table else [] # LANG: Discord heading
+        title:str = __("Carrier Market: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', self.overview.get('callsign'))) # LANG: Discord post title
+        discord.post_embed(title, table, fields, self.discord_market, DiscordChannel.FLEETCARRIER_MATERIALS, self._market_posted)
 
 
-    def _market_posted(self, n:int, channel:DiscordChannel, hook:dict, msgid:str) -> None:
-        """ Store the message id for part n of the FC-mats post """
+    def _market_posted(self, channel:DiscordChannel, hook:dict, msgid:str) -> None:
+        """ Store the FC-mats message id """
         uuid:str|None = hook.get('uuid')
-        if uuid is None or n >= len(self.discord_market): return
+        if uuid is None: return
 
-        self.discord_market[n].setdefault(uuid, hook)[channel] = msgid
+        self.discord_market.setdefault(uuid, hook)[channel] = msgid
         self.save()
 
 
@@ -498,11 +491,8 @@ class FleetCarrier:
         """ Get the cargo or locker as text for pasting or posting to Discord, empty if there are no rows """
 
         l:str|None = self.bgstally.state.discord_lang if discord else ""
-        skip:set = {'Selling': {'stock', 'buy'}, 'Buying': {'stock', 'sell'}, 'Both': {'stock'}}.get(type, set())
-        cols:list = [c for c in DISCORD_COLS[which] if c[0] not in skip]
-        data:dict = self.get_cargo() if which == 'Cargo' else self.get_locker()
-
-        output:str = ""
+        table:str = self._table(which, type, discord)
+        if not table: return ""
 
         order:str = which
         match type:
@@ -510,9 +500,19 @@ class FleetCarrier:
             case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
             case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
 
-        output += "## " + __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', self.overview.get('callsign')), order=order.title()) + "\n" # LANG: fleet carrier materials header
+        output:str = "## " + __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', self.overview.get('callsign')), order=order.title()) + "\n" # LANG: fleet carrier materials header
         if self.overview.get('currentStarSystem', "") != "":
             output += "### " + __("Location: {system}", lang=l).format(system=self.overview.get('currentStarSystem', 'Unknown')) + "\n" # LANG: fleet carrier materials system line
+        return output + "\n" + table
+
+
+    def _table(self, which:str, type:str, discord:bool) -> str:
+        """ Fenced ASCII table of the cargo or locker rows, empty if there are none """
+
+        l:str|None = self.bgstally.state.discord_lang if discord else ""
+        skip:set = {'Selling': {'stock', 'buy'}, 'Buying': {'stock', 'sell'}, 'Both': {'stock'}}.get(type, set())
+        cols:list = [c for c in DISCORD_COLS[which] if c[0] not in skip]
+        data:dict = self.get_cargo() if which == 'Cargo' else self.get_locker()
 
         # Table rows. Cargo tracks cargo/sell/buy explicitly; Locker still overloads 'stock'/'outstanding'.
         sell_key:str = "sell" if which == 'Cargo' else "stock"
@@ -542,8 +542,7 @@ class FleetCarrier:
         aligns:list = [c[3] for c in cols]
         style:TableStyle = TableStyle.from_string("      || -||            --  --")
         table:str = table2ascii(header=header, body=body, column_widths=widths, alignments=aligns, style=style)
-        output += "\n```\n" + "\n".join(line[2:-2] for line in table.splitlines()) + "\n```" # table2ascii pads both edges
-        return output
+        return "```\n" + "\n".join(line[2:-2] for line in table.splitlines()) + "\n```" # table2ascii pads both edges
 
 
     @catch_exceptions
@@ -1785,7 +1784,7 @@ class FleetCarrier:
         self.timer = dict.get('timer') and datetime.fromisoformat(dict.get('timer')) or None
         self.jump_state = FleetCarrierJump(dict.get('jump_state', FleetCarrierJump.Idle))
         self.discord_jump = dict.get('discord_jump', {})
-        self.discord_market = dict.get('discord_market', [])
+        self.discord_market = dict.get('discord_market', {})
 
         # Deal with whatever we missed while shutdown
         if self.timer and self.timer < datetime.now(tz=UTC):

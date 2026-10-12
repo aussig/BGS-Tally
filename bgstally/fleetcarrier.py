@@ -1784,7 +1784,10 @@ class FleetCarrier:
         self.timer = dict.get('timer') and datetime.fromisoformat(dict.get('timer')) or None
         self.jump_state = FleetCarrierJump(dict.get('jump_state', FleetCarrierJump.Idle))
         self.discord_jump = dict.get('discord_jump', {})
-        self.discord_market = dict.get('discord_market', {})
+        market:dict|list = dict.get('discord_market', {})
+        if isinstance(market, list): # Early builds saved a list
+            market = {} # For migration from old to new format
+        self.discord_market = market
 
         # Deal with whatever we missed while shutdown
         if self.timer and self.timer < datetime.now(tz=UTC):

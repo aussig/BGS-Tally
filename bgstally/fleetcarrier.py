@@ -5,6 +5,7 @@ import re
 import requests
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
+from functools import partial
 from os import path
 from typing import TYPE_CHECKING
 
@@ -18,8 +19,9 @@ from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_CARRIERS, FOLDER_OT
                                 FleetCarrierJump, FleetCarrierType)
 from bgstally.debug import Debug
 from bgstally.ravencolonial import RavenColonial, Spansh
-from bgstally.utils import _, __, catch_exceptions, get_by_path
+from bgstally.utils import _, __, catch_exceptions, get_by_path, hfplus, str_truncate
 from thirdparty.colors import *
+from thirdparty.table2ascii import table2ascii, Alignment, TableStyle
 
 FILENAME = "fleetcarrier.json"
 FC_MAX_SHIPS = 40
@@ -27,6 +29,13 @@ FC_MAX_JUMPS_TRACKED = 250
 FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 EDDN_LAG_TIME = 60 # How long behind EDDN may be in seconds
 RC_STALE_VS_MARKET_GAP = 1800 # If market_time outpaces an RC-sourced cargo_time by this much, RC's cargo is stale
+MARKET_DEBOUNCE = 60 # Seconds of market quiet before editing the FC-mats post
+# Discord table columns per tab: (item key, title, width, alignment)
+DISCORD_COLS = {
+    'Cargo': [('locName', 'Commodity', 20, Alignment.LEFT), ('category', 'Category', 14, Alignment.LEFT), ('stock', 'Stock', 6, Alignment.RIGHT),
+              ('buy', 'Buying', 6, Alignment.RIGHT), ('sell', 'Selling', 7, Alignment.RIGHT), ('price', 'Price', 7, Alignment.RIGHT)],
+    'Locker': [('locName', 'Material', 20, Alignment.LEFT), ('category', 'Category', 8, Alignment.LEFT), ('stock', 'Stock', 5, Alignment.RIGHT),
+               ('buy', 'Buying', 6, Alignment.RIGHT), ('sell', 'Selling', 7, Alignment.RIGHT), ('price', 'Price', 7, Alignment.RIGHT)]}
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
 UPDATE_LOCAL_COOLDOWN = 60 # update_carrier() cooldown for a carrier in our current system
 UPDATE_REMOTE_COOLDOWN = (60 * 15) # update_carrier() cooldown for a carrier elsewhere
@@ -61,6 +70,9 @@ class FleetCarrier:
         self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
         self.timer:datetime|None = None
         self._last_update_check:int = 0 # Cooldown tracking for update_carrier()
+        self.discord_jump:dict = {} # Current jump's details plus per-webhook FC-ops message ids
+        self.discord_market:list = [] # Per message part, per-webhook FC-mats message ids
+        self._market_timer:str|None = None # Pending debounced FC-mats post
         self.load()
         # A fresh carrier needs its id set now, not just once CAPI/CarrierStats populates overview.
         if not self.overview.get('carrier_id'): self.overview['carrier_id'] = self.carrier_id
@@ -216,7 +228,78 @@ class FleetCarrier:
     def _cargo_changed(self, changed:bool) -> None:
         """ Push to RC and refresh the progress window's carrier columns, if our cargo/buy/sell actually changed """
         RavenColonial(self.bgstally.colonisation).update_carrier(self, changed)
-        if changed: self.bgstally.ui.window_progress.update_display()
+        if not changed: return
+
+        self.bgstally.ui.window_progress.update_display()
+        self._queue_market()
+
+
+    def _queue_market(self) -> None:
+        """ Debounce an FC-mats market post for the personal carrier """
+        frame = self.bgstally.ui.frame
+        if self.carrier_type != FleetCarrierType.PERSONAL or not frame: return
+
+        if self._market_timer: frame.after_cancel(self._market_timer)
+        self._market_timer = frame.after(MARKET_DEBOUNCE * 1000, self._post_market)
+
+
+    @catch_exceptions
+    def _post_market(self) -> None:
+        """ Post, or edit the previous post of, the cargo market to FC-mats """
+        self._market_timer = None
+        discord = self.bgstally.discord
+        if not discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) or self.bgstally.state.DiscordUsername.get() == "": return
+
+        out:str = self.get_text('Cargo', 'Both', True)
+        parts:list = []
+        while len(out) > 1990:
+            cut:int = out.rfind('\n', 0, 1900)
+            parts.append(out[0:cut] + "```")
+            out = "```\n" + out[cut + 1:]
+        if out: parts.append(out)
+
+        # Surplus parts post "" which deletes their message
+        for n in range(max(len(parts), len(self.discord_market))):
+            if n >= len(self.discord_market): self.discord_market.append({})
+            discord.post_plaintext(parts[n] if n < len(parts) else "", self.discord_market[n], DiscordChannel.FLEETCARRIER_MATERIALS,
+                                   partial(self._market_posted, n))
+        del self.discord_market[len(parts):]
+
+
+    def _market_posted(self, n:int, channel:DiscordChannel, hook:dict, msgid:str) -> None:
+        """ Store the message id for part n of the FC-mats post """
+        uuid:str|None = hook.get('uuid')
+        if uuid is None or n >= len(self.discord_market): return
+
+        self.discord_market[n].setdefault(uuid, hook)[channel] = msgid
+        self.save()
+
+
+    def _post_jump(self, state:str) -> None:
+        """ Post, or edit the previous post of, this jump's FC-ops embed with the given state """
+        j:dict = self.discord_jump
+        if not j: return
+
+        l:str|None = self.bgstally.state.discord_lang
+        fields:list = [
+            {'name': __("State", lang=l), 'value': state, 'inline': True}, # LANG: Discord heading
+            {'name': __("From System", lang=l), 'value': j['from'], 'inline': True}, # LANG: Discord heading
+            {'name': __("To System", lang=l), 'value': j['to'], 'inline': True}, # LANG: Discord heading
+            {'name': __("To Body", lang=l), 'value': j['body'], 'inline': True}, # LANG: Discord heading
+            {'name': __("Departure Time", lang=l), 'value': f"<t:{j['departure']}:R>"}, # LANG: Discord heading
+            {'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}, # LANG: Discord heading
+            {'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}] # LANG: Discord heading
+        title:str = __("Carrier Jump: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
+        self.bgstally.discord.post_embed(title, "", fields, j['hooks'], DiscordChannel.FLEETCARRIER_OPERATIONS, self._jump_posted)
+
+
+    def _jump_posted(self, channel:DiscordChannel, hook:dict, msgid:str) -> None:
+        """ Store the FC-ops message id for the current jump """
+        uuid:str|None = hook.get('uuid')
+        if uuid is None or not self.discord_jump: return
+
+        self.discord_jump['hooks'].setdefault(uuid, hook)[channel] = msgid
+        self.save()
 
 
     @catch_exceptions
@@ -407,6 +490,57 @@ class FleetCarrier:
         self._touch_market(tier, effective_time)
         if cargo_changed: self._touch_cargo(tier, effective_time)
         return changed
+
+
+    @catch_exceptions
+    def get_text(self, which:str, type:str, discord:bool = False) -> str:
+        """ Get the cargo or locker as text for pasting or posting to Discord, empty if there are no rows """
+
+        l:str|None = self.bgstally.state.discord_lang if discord else ""
+        cols:list = DISCORD_COLS[which]
+        data:dict = self.get_cargo() if which == 'Cargo' else self.get_locker()
+
+        output:str = ""
+
+        order:str = which
+        match type:
+            case 'Both': order += " " + __("orders", l) # LANG: fleet carrier orders discord label
+            case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
+            case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
+
+        output += "## " + __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', self.overview.get('callsign')), order=order.title()) + "\n" # LANG: fleet carrier materials header
+        if self.overview.get('currentStarSystem', "") != "":
+            output += "### " + __("Location: {system}", lang=l).format(system=self.overview.get('currentStarSystem', 'Unknown')) + "\n" # LANG: fleet carrier materials system line
+
+        # Table rows. Cargo tracks cargo/sell/buy explicitly; Locker still overloads 'stock'/'outstanding'.
+        sell_key:str = "sell" if which == 'Cargo' else "stock"
+        buy_key:str = "buy" if which == 'Cargo' else "outstanding"
+        body:list = []
+        for item in data.get('inventory', {}).values():
+            if type == 'Selling' and (item.get('price', 0) == 0 or item.get(sell_key, 0) == 0): continue
+            if type == 'Buying' and item.get(buy_key, 0) == 0: continue
+            if type == 'Both' and item.get('price', 0) == 0: continue
+
+            row:list = []
+            for f, _title, width, _align in cols:
+                val:str = ""
+                match f:
+                    case "stock" if which == 'Cargo': val = item.get("cargo") if item.get("cargo") is not None else ""
+                    case "buy" if item.get("price", 0) > 0 and item.get(buy_key, 0) > 0: val = item.get(buy_key)
+                    case "sell" if item.get("price", 0) > 0 and item.get(sell_key, 0) > 0: val = item.get(sell_key)
+                    case _: val = item.get(f, " ")
+                row.append(str_truncate(__(hfplus(val), lang=l), width)) # LANG: Ignore
+            body.append(row)
+
+        if not body: return ""
+
+        header:list = [str_truncate(__(title, lang=l), width) for _f, title, width, _align in cols] # LANG: Ignore
+        widths:list = [c[2] + 2 for c in cols]
+        aligns:list = [c[3] for c in cols]
+        style:TableStyle = TableStyle.from_string("      || -||            --  --")
+        table:str = table2ascii(header=header, body=body, column_widths=widths, alignments=aligns, style=style)
+        output += "\n```\n" + "\n".join(line[2:-2] for line in table.splitlines()) + "\n```" # table2ascii pads both edges
+        return output
 
 
     @catch_exceptions
@@ -973,20 +1107,9 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = departure.strftime("%Y-%m-%d %H:%M:%S")
             self.itinerary[0]['visitDurationSeconds'] = self._td(departure, self.itinerary[0]['arrivalTime'])
 
-        # Automatically post to whichever discord webhooks are set for carrier operations
-        # the discord class handles where and whether to post
-        l:str|None = self.bgstally.state.discord_lang
-        title:str = __("Jump Scheduled for Carrier {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
-        description:str = __("A carrier jump has been scheduled", lang=l) # LANG: Discord text
-
-        fields:list = []
-        fields.append({'name': __("From System", lang=l), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("To System", lang=l), 'value': entry.get('SystemName', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("To Body", lang=l), 'value': entry.get('Body', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("Departure Time", lang=l), 'value': f"<t:{round(departure.timestamp())}:R>"}) # LANG: Discord heading
-        fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
-        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self.discord_jump = {'from': self.data.get('currentStarSystem', "Unknown"), 'to': entry.get('SystemName', "Unknown"),
+                             'body': entry.get('Body', "Unknown"), 'departure': round(departure.timestamp()), 'hooks': {}}
+        self._post_jump(__("Scheduled", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
 
         self.jump_state = FleetCarrierJump.Jumping
         self.timer = departure
@@ -1015,17 +1138,7 @@ class FleetCarrier:
             if self.bgstally.ui.frame:
                 self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
 
-        # Automatically post to whichever discord webhooks are set for carrier operations
-        # the discord class handles where and whether to post
-        l:str|None = self.bgstally.state.discord_lang
-        title:str = __("Jump Cancelled for Carrier {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
-        description:str = __("The scheduled carrier jump was cancelled", lang=l) # LANG: Discord text
-
-        fields:list = []
-        fields.append({'name': __("Current System", lang=l), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Fleet Carrier Discord heading
-        fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Fleet Carrier Discord heading
-        fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}) # LANG: Fleet Carrier Discord heading
-        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self._post_jump(__("Cancelled", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
 
         self.overview['jumpDestination'] = None
         self.overview['jumpDestinationBody'] = None
@@ -1125,6 +1238,8 @@ class FleetCarrier:
             self._update_route()
             return
 
+        self._post_jump(__("Jumped", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
+
         departure:datetime = self._parse_date(self.overview['departureScheduled'])
         if departure.second >= 30: # Round up.
             self.timer = departure + timedelta(minutes=1, seconds=300 - departure.second)
@@ -1152,15 +1267,7 @@ class FleetCarrier:
         self.jump_state = FleetCarrierJump.Idle
         self.bgstally.ui.window_fc.cooldown_notice()
 
-        # Automatically post to whichever discord webhooks are set for carrier operations
-        # the discord class handles where and whether to post
-        l:str|None = self.bgstally.state.discord_lang
-        title:str = __("Cooldown completed for Carrier {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
-        description:str = __("Cooldown has completed", lang=l) # LANG: Discord text
-
-        fields:list = []
-        fields.append({'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
-        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self._post_jump(__("Cooldown complete", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
 
 
     @catch_exceptions
@@ -1634,7 +1741,9 @@ class FleetCarrier:
             'modules': self.modules,
             'data': self.data,
             'timer': self.timer.isoformat() if self.timer else None,
-            'jump_state': self.jump_state.value
+            'jump_state': self.jump_state.value,
+            'discord_jump': self.discord_jump,
+            'discord_market': self.discord_market
             }
 
 
@@ -1672,6 +1781,8 @@ class FleetCarrier:
         self.data = dict.get('data', {})
         self.timer = dict.get('timer') and datetime.fromisoformat(dict.get('timer')) or None
         self.jump_state = FleetCarrierJump(dict.get('jump_state', FleetCarrierJump.Idle))
+        self.discord_jump = dict.get('discord_jump', {})
+        self.discord_market = dict.get('discord_market', [])
 
         # Deal with whatever we missed while shutdown
         if self.timer and self.timer < datetime.now(tz=UTC):

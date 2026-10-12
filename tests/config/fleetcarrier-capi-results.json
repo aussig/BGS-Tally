@@ -3404,5 +3404,7 @@
         "timestamp": "2026-03-20T03:00:28Z"
     },
     "timer": null,
-    "jump_state": "Idle"
+    "jump_state": "Idle",
+    "discord_jump": {},
+    "discord_market": []
 }

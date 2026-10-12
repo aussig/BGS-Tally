@@ -1196,3 +1196,73 @@ class TestRavenColonialPush:
             fc.market({'MarketID': 3709409280})
 
         mock_push.assert_called_once()
+
+
+class TestDiscordUpdates:
+    """ Test fleet carrier Discord posts are edited in place rather than re-posted """
+
+    HOOK:dict = {'uuid': 'u1', 'name': 'x', 'url': 'https://discord.com/api/webhooks/1/abc', 'FC-ops': True, 'FC-mats': True}
+
+    def _fc(self, harness):
+        from bgstally.constants import FleetCarrierType
+        harness.plugin.webhook_manager.data['webhooks'] = [dict(self.HOOK)]
+        harness.plugin.state.DiscordUsername.set('tester')
+        fc = harness.plugin.fleet_carriers.get(3700005632, FleetCarrierType.PERSONAL, 'AAA-111')
+        fc.discord_jump = {}
+        fc.discord_market = []
+        return fc
+
+    def test_jump_state_edits_post(self, harness) -> None:
+        """ Test a second jump state PATCHes the first post's message """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+        fc.discord_jump = {'from': 'A', 'to': 'B', 'body': 'B 1', 'departure': 1, 'hooks': {}}
+
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_jump("Scheduled")
+            assert mock_queue.call_args.args[1] == RequestMethod.POST
+            fc._jump_posted('FC-ops', dict(self.HOOK), '123')
+            fc._post_jump("Cancelled")
+
+        assert mock_queue.call_args.args[0].endswith('/messages/123')
+        assert mock_queue.call_args.args[1] == RequestMethod.PATCH
+
+    def test_market_post_edits_trims(self, harness) -> None:
+        """ Test the market post is edited in place and extra parts are deleted when it shrinks """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+        big:str = "## T\n```\n" + "x" * 80 + "\n" + ("y" * 80 + "\n") * 50 + "```"
+
+        with patch.object(fc, 'get_text', side_effect=[big, "small"]), \
+             patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_market()
+            assert len(fc.discord_market) == 3
+            for n in range(3): fc._market_posted(n, 'FC-mats', dict(self.HOOK), str(100 + n))
+            mock_queue.reset_mock()
+            fc._post_market()
+
+        methods:list = [c.args[1] for c in mock_queue.call_args_list]
+        assert methods == [RequestMethod.PATCH, RequestMethod.DELETE, RequestMethod.DELETE]
+        assert len(fc.discord_market) == 1
+
+    def test_market_empty_deletes_post(self, harness) -> None:
+        """ Test the market post is deleted when there is nothing to buy or sell """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+        fc.discord_market = [{'u1': {**self.HOOK, 'FC-mats': '100'}}]
+
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_market()
+
+        assert mock_queue.call_args.args[1] == RequestMethod.DELETE
+        assert fc.discord_market == []
+
+    def test_market_text_table(self, harness) -> None:
+        """ Test the Discord market text is a table, or empty with no orders """
+        fc = self._fc(harness)
+        assert fc.get_text('Cargo', 'Both', True) == ""
+
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1000}
+        lines:list = fc.get_text('Cargo', 'Both', True).splitlines()
+        assert lines[-1] == "```" and "Commodity" in lines[-4] and "Tritium" in lines[-2]
+        assert set(lines[-3]) <= set("-|")

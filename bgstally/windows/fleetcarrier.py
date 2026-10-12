@@ -56,12 +56,12 @@ class WindowFleetCarrier:
             },
             'Cargo': {
                 'cols': {
-                    'locName': {'title': 'Commodity', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'discordWidth':20, 'locName': _('Commodity')}, # LANG: Cargo tab
-                    'category': {'title': 'Category', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150, 'discordWidth':14, 'locName': _('Category')}, # LANG: Cargo tab
-                    'stock': {'title': 'Stock', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':6, 'locName': _('Stock')}, # LANG: Cargo tab
-                    'buy': {'title': 'Buying', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':6, 'locName': _('Buying')}, # LANG: Cargo tab
-                    'sell': {'title': 'Selling', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':7, 'locName': _('Selling')}, # LANG: Cargo tab
-                    'price': {'title': 'Price', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':7, 'locName': _('Price')}, # LANG: Cargo tab
+                    'locName': {'title': 'Commodity', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Commodity')}, # LANG: Cargo tab
+                    'category': {'title': 'Category', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150, 'locName': _('Category')}, # LANG: Cargo tab
+                    'stock': {'title': 'Stock', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Stock')}, # LANG: Cargo tab
+                    'buy': {'title': 'Buying', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Buying')}, # LANG: Cargo tab
+                    'sell': {'title': 'Selling', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Selling')}, # LANG: Cargo tab
+                    'price': {'title': 'Price', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Price')}, # LANG: Cargo tab
                     'stolen': {'title': 'Stolen', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Stolen')}, # LANG: Cargo tab
                     'mission': {'title': 'Mission', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Mission')} # LANG: Cargo tab
                 },
@@ -70,12 +70,12 @@ class WindowFleetCarrier:
             },
             'Locker': {
                 'cols': {
-                    'locName': {'title': 'Material', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'discordWidth':20, 'locName': _('Material')}, # LANG: Locker tab
-                    'category': {'title': 'Category', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150, 'discordWidth':8, 'locName': _('Category')}, # LANG: Locker tab
-                    'stock': {'title': 'Stock', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':5, 'locName': _('Stock')}, # LANG: Locker tab
-                    'buy': {'title': 'Buying', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':6, 'locName': _('Buying')}, # LANG: Locker tab
-                    'sell': {'title': 'Selling', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':7, 'locName': _('Selling')}, # LANG: Locker tab
-                    'price': {'title': 'Price', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'discordWidth':7, 'locName': _('Price')}, # LANG: Locker tab
+                    'locName': {'title': 'Material', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Material')}, # LANG: Locker tab
+                    'category': {'title': 'Category', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150, 'locName': _('Category')}, # LANG: Locker tab
+                    'stock': {'title': 'Stock', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Stock')}, # LANG: Locker tab
+                    'buy': {'title': 'Buying', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Buying')}, # LANG: Locker tab
+                    'sell': {'title': 'Selling', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Selling')}, # LANG: Locker tab
+                    'price': {'title': 'Price', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Price')}, # LANG: Locker tab
                     'mission': {'title': 'Mission', 'sort': 'name', 'align': tk.E, 'stretch': tk.NO, 'width': 70, 'locName': _('Mission')} # LANG: Locker tab
                 },
                 "func": self._locker,
@@ -473,12 +473,14 @@ class WindowFleetCarrier:
 
         # Internal helper functions.
         def _ctc(which:str, type:str|tk.StringVar) -> None:
+            if isinstance(type, tk.StringVar): type = type.get()
             frame.clipboard_clear()
-            frame.clipboard_append(self._get_as_text(fc, which, type, False))
+            frame.clipboard_append(fc.get_text(which, type, False))
 
         def _post(which:str, type:str|tk.StringVar, btn:ttk.Button) -> None:
             btn.config(state=tk.DISABLED)
-            output:str = self._get_as_text(fc, which, type, True)
+            if isinstance(type, tk.StringVar): type = type.get()
+            output:str = fc.get_text(which, type, True)
 
             while len(output) > 1990:
                 split_at:int = output.rfind('\n', 0, 1900)
@@ -606,65 +608,6 @@ class WindowFleetCarrier:
             table.column(v['title'], anchor=v['align'], stretch=v['stretch'], width=v['width'])
 
         return table
-
-
-    @catch_exceptions
-    def _get_as_text(self, fc:FleetCarrier, which:str, type:str|tk.StringVar, discord:bool = False) -> str:
-        """ Get the cargo or locker as text for pasting or posting to Discord """
-
-        l:str|None = self.bgstally.state.discord_lang if discord else ""
-        tab:dict = self.tabs[which]
-        if isinstance(type, tk.StringVar): type = type.get()
-        data:dict = fc.get_cargo() if which == 'Cargo' else fc.get_locker()
-
-        output:str = ""
-
-        order:str = which
-        match type:
-            case 'Both': order += " " + __("orders", l) # LANG: fleet carrier orders discord label
-            case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
-            case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
-
-        output += "## " + __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=fc.overview.get('name', fc.overview.get('callsign')), order=order.title()) + "\n" # LANG: fleet carrier materials header
-        if fc.overview.get('currentStarSystem', "") != "":
-            output += "### " + __("Location: {system}", lang=l).format(system=fc.overview.get('currentStarSystem', 'Unknown')) + "\n" # LANG: fleet carrier materials system line
-
-        output += "\n```\n"
-        # Header row for table
-        header:list = []
-        for col in tab['cols'].values():
-            if col.get('discordWidth', None) == None: continue
-            tmp:str = str_truncate(__(col['title'], lang=l), col['discordWidth']) # LANG: Ignore
-            fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"
-            header.append(fmt.format(val=tmp))
-        output += " | ".join(header) + "\n"
-        w:int = sum([d.get('discordWidth', 0) for d in tab['cols'].values()])
-        output += "-" * (w + (3 * (len(header) -1))) + "\n"
-
-        # Table rows. Cargo tracks cargo/sell/buy explicitly; Locker still overloads 'stock'/'outstanding'.
-        sell_key:str = "sell" if which == 'Cargo' else "stock"
-        buy_key:str = "buy" if which == 'Cargo' else "outstanding"
-        for item in data.get('inventory', {}).values():
-            if type == 'Selling' and (item.get('price', 0) == 0 or item.get(sell_key, 0) == 0): continue
-            if type == 'Buying' and item.get(buy_key, 0) == 0: continue
-            if type == 'Both' and item.get('price', 0) == 0: continue
-
-            line:list = []
-            for f, col in tab['cols'].items():
-                if col.get('discordWidth', None) == None: continue
-                val:str = ""
-                match f:
-                    case "stock" if which == 'Cargo': val = item.get("cargo") if item.get("cargo") is not None else ""
-                    case "buy" if item.get("price", 0) > 0 and item.get(buy_key, 0) > 0: val = item.get(buy_key)
-                    case "sell" if item.get("price", 0) > 0 and item.get(sell_key, 0) > 0: val = item.get(sell_key)
-                    case _: val = item.get(f, " ")
-                tmp:str = str_truncate(__(hfplus(val), lang=l), col['discordWidth']) # LANG: Ignore
-                fmt:str = "{val:"; fmt += "<" if col['align'] == tk.W else ">"; fmt += str(col['discordWidth']); fmt += "}"
-                line.append(fmt.format(val=tmp))
-            if line != []:
-                output += " | ".join(line) + "\n"
-        output += "```"
-        return output
 
 
     def cooldown_notice(self) -> None:

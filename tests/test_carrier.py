@@ -1266,3 +1266,7 @@ class TestDiscordUpdates:
         lines:list = fc.get_text('Cargo', 'Both', True).splitlines()
         assert lines[-1] == "```" and "Commodity" in lines[-4] and "Tritium" in lines[-2]
         assert set(lines[-3]) <= set("-|")
+        assert "Stock" not in lines[-4] and "Selling" in lines[-4]
+        assert "Buying" in lines[-4]
+        assert "Buying" not in fc.get_text('Cargo', 'Selling', True)
+        assert "Stock" in fc.get_text('Cargo', 'All', True)

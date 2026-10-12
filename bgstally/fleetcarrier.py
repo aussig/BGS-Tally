@@ -497,7 +497,8 @@ class FleetCarrier:
         """ Get the cargo or locker as text for pasting or posting to Discord, empty if there are no rows """
 
         l:str|None = self.bgstally.state.discord_lang if discord else ""
-        cols:list = DISCORD_COLS[which]
+        skip:set = {'Selling': {'stock', 'buy'}, 'Buying': {'stock', 'sell'}, 'Both': {'stock'}}.get(type, set())
+        cols:list = [c for c in DISCORD_COLS[which] if c[0] not in skip]
         data:dict = self.get_cargo() if which == 'Cargo' else self.get_locker()
 
         output:str = ""

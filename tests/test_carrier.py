@@ -1267,3 +1267,5 @@ class TestDiscordUpdates:
         assert "Buying" in lines[-4]
         assert "Buying" not in fc.get_text('Cargo', 'Selling', True)
         assert "Stock" in fc.get_text('Cargo', 'All', True)
+        embed:list = fc._table('Cargo', 'Both', True, True).splitlines()
+        assert "Category" not in embed[1] and "Commodity" in embed[1]

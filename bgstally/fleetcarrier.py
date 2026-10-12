@@ -252,7 +252,7 @@ class FleetCarrier:
         if not discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) or self.bgstally.state.DiscordUsername.get() == "": return
 
         l:str|None = self.bgstally.state.discord_lang
-        table:str = self._table('Cargo', 'Both', True)
+        table:str = self._table('Cargo', 'Both', True, True)
         if len(table) > MARKET_EMBED_MAX: table = table[0:table.rfind('\n', 0, MARKET_EMBED_MAX)] + "\n```"
         fields:list = [{'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem') or __("Unknown", lang=l)}] if table else [] # LANG: Discord heading
         title:str = __("Carrier Market: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', self.overview.get('callsign'))) # LANG: Discord post title
@@ -506,12 +506,13 @@ class FleetCarrier:
         return output + "\n" + table
 
 
-    def _table(self, which:str, type:str, discord:bool) -> str:
+    def _table(self, which:str, type:str, discord:bool, embed:bool = False) -> str:
         """ Fenced ASCII table of the cargo or locker rows, empty if there are none """
 
         l:str|None = self.bgstally.state.discord_lang if discord else ""
         skip:set = {'Selling': {'stock', 'buy'}, 'Buying': {'stock', 'sell'}, 'Both': {'stock'}}.get(type, set())
-        cols:list = [c for c in DISCORD_COLS[which] if c[0] not in skip]
+        if embed: skip = skip | {'category'}
+        cols:list = [(k, t, 28 if embed and k == 'locName' else w, al) for k, t, w, al in DISCORD_COLS[which] if k not in skip]
         data:dict = self.get_cargo() if which == 'Cargo' else self.get_locker()
 
         # Table rows. Cargo tracks cargo/sell/buy explicitly; Locker still overloads 'stock'/'outstanding'.

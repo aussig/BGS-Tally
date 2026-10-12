@@ -33,10 +33,18 @@ MARKET_EMBED_MAX = 4000 # Embed description limit less headroom for the closing 
 MARKET_DEBOUNCE = 60 # Seconds of market quiet before editing the FC-mats post
 # Discord table columns per tab: (item key, title, width, alignment)
 DISCORD_COLS = {
-    'Cargo': [('locName', 'Commodity', 20, Alignment.LEFT), ('category', 'Category', 14, Alignment.LEFT), ('stock', 'Stock', 6, Alignment.RIGHT),
-              ('buy', 'Buying', 6, Alignment.RIGHT), ('sell', 'Selling', 7, Alignment.RIGHT), ('price', 'Price', 7, Alignment.RIGHT)],
-    'Locker': [('locName', 'Material', 20, Alignment.LEFT), ('category', 'Category', 8, Alignment.LEFT), ('stock', 'Stock', 5, Alignment.RIGHT),
-               ('buy', 'Buying', 6, Alignment.RIGHT), ('sell', 'Selling', 7, Alignment.RIGHT), ('price', 'Price', 7, Alignment.RIGHT)]}
+    'Cargo': [('locName', 'Commodity', 20, Alignment.LEFT),
+              ('category', 'Category', 14, Alignment.LEFT),
+              ('stock', 'Stock', 6, Alignment.RIGHT),
+              ('buy', 'Buying', 6, Alignment.RIGHT),
+              ('sell', 'Selling', 7, Alignment.RIGHT),
+              ('price', 'Price', 7, Alignment.RIGHT)],
+    'Locker': [('locName', 'Material', 20, Alignment.LEFT),
+               ('category', 'Category', 8, Alignment.LEFT),
+               ('stock', 'Stock', 5, Alignment.RIGHT),
+               ('buy', 'Buying', 6, Alignment.RIGHT),
+               ('sell', 'Selling', 7, Alignment.RIGHT),
+               ('price', 'Price', 7, Alignment.RIGHT)]}
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
 UPDATE_LOCAL_COOLDOWN = 60 # update_carrier() cooldown for a carrier in our current system
 UPDATE_REMOTE_COOLDOWN = (60 * 15) # update_carrier() cooldown for a carrier elsewhere
@@ -249,13 +257,22 @@ class FleetCarrier:
         """ Post, or edit the previous post of, the cargo market to FC-mats """
         self._market_timer = None
         discord = self.bgstally.discord
+
         if not discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) or self.bgstally.state.DiscordUsername.get() == "": return
 
         l:str|None = self.bgstally.state.discord_lang
-        table:str = self._table('Cargo', 'Both', True, True)
-        if len(table) > MARKET_EMBED_MAX: table = table[0:table.rfind('\n', 0, MARKET_EMBED_MAX)] + "\n```"
-        fields:list = [{'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem') or __("Unknown", lang=l)}] if table else [] # LANG: Discord heading
+
         title:str = __("Carrier Market: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', self.overview.get('callsign'))) # LANG: Discord post title
+
+        table:str = self._table('Cargo', 'Both', True, True)
+        if len(table) > MARKET_EMBED_MAX:
+            table = table[0:table.rfind('\n', 0, MARKET_EMBED_MAX)] + "\n```"
+
+        fields:list = []
+        if table:
+            fields.append({'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem') or __("Unknown", lang=l)}) # LANG: Discord heading
+            fields.append({'name': __("Updated", lang=l), 'value': f"<t:{j['departure']}:R>"}) # LANG: Discord heading
+
         discord.post_embed(title, table, fields, self.discord_market, DiscordChannel.FLEETCARRIER_MATERIALS, self._market_posted)
 
 
@@ -507,12 +524,12 @@ class FleetCarrier:
 
 
     def _table(self, which:str, type:str, discord:bool, embed:bool = False) -> str:
-        """ Fenced ASCII table of the cargo or locker rows, empty if there are none """
+        """ Table of the cargo or locker rows, empty if there are none """
 
         l:str|None = self.bgstally.state.discord_lang if discord else ""
         skip:set = {'Selling': {'stock', 'buy'}, 'Buying': {'stock', 'sell'}, 'Both': {'stock'}}.get(type, set())
         if embed: skip = skip | {'category'}
-        cols:list = [(k, t, 28 if embed and k == 'locName' else w, al) for k, t, w, al in DISCORD_COLS[which] if k not in skip]
+        cols:list = [(k, t, 25 if embed and k == 'locName' else w, al) for k, t, w, al in DISCORD_COLS[which] if k not in skip]
         data:dict = self.get_cargo() if which == 'Cargo' else self.get_locker()
 
         # Table rows. Cargo tracks cargo/sell/buy explicitly; Locker still overloads 'stock'/'outstanding'.
@@ -1750,7 +1767,7 @@ class FleetCarrier:
             }
 
 
-    def _from_dict(self, dict: dict) -> None:
+    def _from_dict(self, dict:dict) -> None:
         """ Populate our data from a Dictionary that has been deserialized """
         self.carrier_id = dict.get('carrier_id', 0)
         self.carrier_type = FleetCarrierType(dict.get('carrier_type', FleetCarrierType.PERSONAL))
@@ -1785,7 +1802,7 @@ class FleetCarrier:
         self.timer = dict.get('timer') and datetime.fromisoformat(dict.get('timer')) or None
         self.jump_state = FleetCarrierJump(dict.get('jump_state', FleetCarrierJump.Idle))
         self.discord_jump = dict.get('discord_jump', {})
-        market:dict|list = dict.get('discord_market', {})
+        market = dict.get('discord_market', {})
         if isinstance(market, list): # Early builds saved a list
             market = {} # For migration from old to new format
         self.discord_market = market

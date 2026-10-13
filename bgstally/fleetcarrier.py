@@ -269,9 +269,11 @@ class FleetCarrier:
 
 
     def _post_jump(self, state:str) -> None:
-        """ Post, or edit the previous post of, this jump's FC-ops embed with the given state """
+        """ Post, or edit the previous post of, this jump's FC-ops or SQ-ops embed with the given state """
         j:dict = self.discord_jump
-        if not j: return
+        chan:DiscordChannel|None = {FleetCarrierType.PERSONAL: DiscordChannel.FLEETCARRIER_OPERATIONS,
+                                    FleetCarrierType.SQUADRON: DiscordChannel.SQUADRON_OPERATIONS}.get(self.carrier_type)
+        if not j or chan is None: return
 
         l:str|None = self.bgstally.state.discord_lang
         time_head:str = __("Departure In", lang=l) if state in ("Scheduled", "Cancelled") else __("Arrived", lang=l) # LANG: Discord heading
@@ -284,7 +286,9 @@ class FleetCarrier:
             {'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}, # LANG: Discord heading
             {'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}] # LANG: Discord heading
         title:str = __("Carrier Jump: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
-        self.bgstally.discord.post_embed(title, "", fields, j['hooks'], DiscordChannel.FLEETCARRIER_OPERATIONS, self._jump_posted)
+        if chan == DiscordChannel.SQUADRON_OPERATIONS:
+            title = __("Squadron", lang=l) + " " + title # LANG: Discord post title
+        self.bgstally.discord.post_embed(title, "", fields, j['hooks'], chan, self._jump_posted)
 
 
     def _jump_posted(self, channel:DiscordChannel, hook:dict, msgid:str) -> None:

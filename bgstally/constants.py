@@ -99,6 +99,7 @@ class DiscordChannel(str, Enum):
     CMDR_INFORMATION = 'CMDR-info'
     FLEETCARRIER_MATERIALS = 'FC-mats'
     FLEETCARRIER_OPERATIONS = 'FC-ops'
+    SQUADRON_OPERATIONS = 'SQ-ops'
     POWERPLAY = 'PP'
     THARGOIDWAR = 'TW'
 

@@ -1227,6 +1227,22 @@ class TestDiscordUpdates:
         assert mock_queue.call_args.args[0].endswith('/messages/123')
         assert mock_queue.call_args.args[1] == RequestMethod.PATCH
 
+    def test_squadron_jump_posts(self, harness) -> None:
+        """ Test a squadron carrier jump posts to SQ-ops, and a third-party one posts nowhere """
+        from bgstally.constants import FleetCarrierType
+        fc = self._fc(harness)
+        harness.plugin.webhook_manager.data['webhooks'] = [{**self.HOOK, 'SQ-ops': True, 'FC-ops': False}]
+        jump:dict = {'from': 'A', 'to': 'B', 'body': 'B 1', 'departure': 1, 'hooks': {}}
+
+        sq = harness.plugin.fleet_carriers.get(3700009999, FleetCarrierType.SQUADRON, 'SQD-111')
+        sq.discord_jump = dict(jump)
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            sq._post_jump("Scheduled")
+            assert mock_queue.call_count == 1
+            fc.discord_jump = dict(jump)
+            fc._post_jump("Scheduled")
+            assert mock_queue.call_count == 1
+
     def test_market_embed_edits(self, harness) -> None:
         """ Test the market embed is posted then edited in place """
         from bgstally.constants import RequestMethod

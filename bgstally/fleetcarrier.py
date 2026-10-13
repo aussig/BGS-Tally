@@ -29,6 +29,7 @@ FC_MAX_JUMPS_TRACKED = 250
 FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 EDDN_LAG_TIME = 60 # How long behind EDDN may be in seconds
 RC_STALE_VS_MARKET_GAP = 1800 # If market_time outpaces an RC-sourced cargo_time by this much, RC's cargo is stale
+RC_MAX_AGE = 6 * 3600 # RC cargo last refreshed from CAPI longer ago than this is ignored
 MARKET_EMBED_MAX = 4000 # Embed description limit less headroom for the closing fence
 MARKET_DEBOUNCE = 60 # Seconds of market quiet before editing the FC-mats post
 # Discord table columns per tab: (item key, title, width, alignment)
@@ -353,6 +354,11 @@ class FleetCarrier:
 
         cargo:dict = data.get('cargo', {})
         if not cargo: return changed
+
+        stamp:int = data.get('timestamp', 0)
+        if not spansh and stamp and stamp < time.time() - RC_MAX_AGE:
+            Debug.logger.debug(f"Ignoring RC cargo for {self.overview.get('callsign')}, last refreshed {stamp}")
+            return changed
 
         source:str = "Spansh" if spansh else "RC"
         tier:DataTier = DataTier.SPANSH if spansh else DataTier.RC

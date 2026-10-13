@@ -4,6 +4,7 @@ Test suite for carrier module of BGS-Tally.
 
 import pytest # type: ignore
 import shutil
+import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 from time import sleep
@@ -1251,6 +1252,17 @@ class TestDiscordUpdates:
             sq.jump_state = FleetCarrierJump.Idle
             fcs.personal.jump_state = FleetCarrierJump.Idle
             assert fcs.overlay_text() == "route"
+
+    def test_old_rc_cargo_ignored(self, harness) -> None:
+        """ Test RC cargo last refreshed long ago is ignored, but an undated one is taken """
+        fc = self._fc(harness)
+        rc:dict = {'timestamp': int(time.time()) - 86400, 'overview': {}, 'cargo': {'tritium': {'cargo': 5}}}
+        assert fc.merge(rc) is False
+        assert 'tritium' not in fc.cargo['normal']
+
+        rc['timestamp'] = 0
+        assert fc.merge(rc) is True
+        assert fc.cargo['normal']['tritium']['cargo'] == 5
 
     def test_squadron_jump_posts(self, harness) -> None:
         """ Test a squadron carrier jump posts to SQ-ops, and a third-party one posts nowhere """

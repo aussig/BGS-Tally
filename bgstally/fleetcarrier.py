@@ -803,6 +803,7 @@ class FleetCarrier:
 
         #Debug.logger.debug(f"Carrier state: {self.jump_state} timer: {self.timer} delta: {delta} message: {message}")
         if message != "":
+            if self.carrier_type != FleetCarrierType.PERSONAL: message = f"{self.overview.get('name', '')}: {message}"
             message = TAG_OVERLAY_HIGHLIGHT + message
 
         return message
@@ -1272,7 +1273,7 @@ class FleetCarrier:
         if self.jump_state != FleetCarrierJump.Cooldown: return
 
         self.jump_state = FleetCarrierJump.Idle
-        self.bgstally.ui.window_fc.cooldown_notice()
+        self.bgstally.ui.window_fc.cooldown_notice(self.overview.get('name', '') if self.carrier_type != FleetCarrierType.PERSONAL else "")
 
         self._post_jump(__("Cooldown complete", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
 

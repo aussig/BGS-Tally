@@ -1238,6 +1238,20 @@ class TestDiscordUpdates:
         fc._from_dict({'cargo': cargo, 'cargo_tier': 'RC', 'cargo_time': 100})
         assert fc.cargo['normal']['tritium']['cargo'] == 5
 
+    def test_overlay_personal_first(self, harness) -> None:
+        """ Test the overlay shows a busy carrier over a route hint, personal before squadron """
+        from bgstally.constants import FleetCarrierJump, FleetCarrierType
+        fcs = harness.plugin.fleet_carriers
+        sq = fcs.get(3700009999, FleetCarrierType.SQUADRON, 'SQD-111')
+        with patch.object(fcs.personal, 'update_overlay', return_value="route"), patch.object(sq, 'update_overlay', return_value="sq jump"):
+            sq.jump_state = FleetCarrierJump.Jumping
+            assert fcs.overlay_text() == "sq jump"
+            fcs.personal.jump_state = FleetCarrierJump.Cooldown
+            assert fcs.overlay_text() == "route"
+            sq.jump_state = FleetCarrierJump.Idle
+            fcs.personal.jump_state = FleetCarrierJump.Idle
+            assert fcs.overlay_text() == "route"
+
     def test_squadron_jump_posts(self, harness) -> None:
         """ Test a squadron carrier jump posts to SQ-ops, and a third-party one posts nowhere """
         from bgstally.constants import FleetCarrierType

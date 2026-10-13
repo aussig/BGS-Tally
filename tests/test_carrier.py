@@ -1227,6 +1227,17 @@ class TestDiscordUpdates:
         assert mock_queue.call_args.args[0].endswith('/messages/123')
         assert mock_queue.call_args.args[1] == RequestMethod.PATCH
 
+    def test_load_wipes_unknown_cargo(self, harness) -> None:
+        """ Test cargo of unknown age is cleared on load but known-age cargo is kept """
+        fc = self._fc(harness)
+        cargo:dict = {'normal': {'tritium': {'cargo': 5, 'sell': 0, 'buy': 0, 'price': 0}}}
+
+        fc._from_dict({'cargo': {'normal': {'tritium': dict(cargo['normal']['tritium'])}}, 'cargo_tier': 'Unknown', 'cargo_time': 0})
+        assert fc.cargo['normal']['tritium']['cargo'] is None
+
+        fc._from_dict({'cargo': cargo, 'cargo_tier': 'RC', 'cargo_time': 100})
+        assert fc.cargo['normal']['tritium']['cargo'] == 5
+
     def test_squadron_jump_posts(self, harness) -> None:
         """ Test a squadron carrier jump posts to SQ-ops, and a third-party one posts nowhere """
         from bgstally.constants import FleetCarrierType

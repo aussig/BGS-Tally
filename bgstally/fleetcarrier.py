@@ -1771,6 +1771,9 @@ class FleetCarrier:
         if 'normal' not in self.cargo:
             self.cargo = {'overview': {}, 'stolen': {}, 'mission': {}, 'normal': {}} # For migration from old to new format
 
+        if self.cargo_tier == DataTier.UNKNOWN:
+            for entry in self.cargo['normal'].values(): entry['cargo'] = None # Unknown age, so can't be trusted
+
         self.locker = dict.get('locker', {})
         if 'normal' not in self.locker:
             self.locker = {'overview': {}, 'mission': {}, 'normal': {}} # For migration from old to new format

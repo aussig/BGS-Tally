@@ -4,22 +4,26 @@
 
 ## New Features:
 
-* BGS-Tally display has a collapsed mode that hides details and overlays while continuing to function in all other aspects
-* EDMC window buttons use theme-aware objects
-* Progress display switches colours correctly when the theme is changed
-* Support for squadron and third-party carriers
+* Fleet carrier improvements
+  * Support for squadron and third-party carriers
   * Tracked carriers can be added and removed via preferences or automatically on first docking
   * Carriers are listed in a tab bar in the Fleet Carrier window
   * Squadron and third-party carriers have reduced information based on what is available
-  * Carrier data is updated from journal events, Spansh, and RavenvColonial as appropriate
+  * Carrier data is updated from CAPI, journal events, Spansh, and Raven Colonial as appropriate
   * Squadron and third-party carrier markets are colonisation progress display options
   * Raven Colonial updates are sent for tracked carriers that are associated with your Commander or one of your builds
-* Personal carrier has a new modules section to display modules stored on the carrier
-* Added checkbox to enable and disable automatic updates of the plugin. Defaults to enabled.
+  * Personal carrier display now has a modules section to display modules stored on the carrier
+  * Automated carrier discord posts now update rather than adding a new one
+  * Squadron carrier jumps are posted separately to their own webhook
+* UI Improvements
+  * Main display has a collapsed mode that hides details and overlays while continuing to function in all other aspects
+  * EDMC window buttons use theme-aware objects
+  * Progress display switches colours correctly when the theme is changed
+* Added checkbox to enable and disable automatic updates of the plugin. Defaults to enabled
 
 ### Changes:
 
-* Progress columns is now a dropdown menu and includes tracked carriers
+* Progress columns now have dropdown menus which include tracked carriers
 * Carrier buy orders, sell orders, and cargo are available as distinct progress views
 * Carrier jump progress is saved over EDMC restarts
 

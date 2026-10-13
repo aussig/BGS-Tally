@@ -22,8 +22,6 @@
 * Progress columns is now a dropdown menu and includes tracked carriers
 * Carrier buy orders, sell orders, and cargo are available as distinct progress views
 * Carrier jump progress is saved over EDMC restarts
-* Setting an FC C/M webhook will cause market updates to automatically be posted to discord
-* Automated carrier discord posts are updated rather than duplicated to reduce spam
 
 ### Bug Fixes:
 

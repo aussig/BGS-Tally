@@ -31,6 +31,7 @@ EDDN_LAG_TIME = 60 # How long behind EDDN may be in seconds
 RC_STALE_VS_MARKET_GAP = 1800 # If market_time outpaces an RC-sourced cargo_time by this much, RC's cargo is stale
 RC_MAX_AGE = 6 * 3600 # RC cargo last refreshed from CAPI longer ago than this is ignored
 MARKET_EMBED_MAX = 4000 # Embed description limit less headroom for the closing fence
+MARKET_REPOST = 24 * 3600 # Age after which the FC-mats post is deleted and recreated, as edits never refresh its date
 MARKET_DEBOUNCE = 60 # Seconds of market quiet before editing the FC-mats post
 # Discord table columns per tab: (item key, title, width, alignment)
 DISCORD_COLS = {
@@ -253,11 +254,26 @@ class FleetCarrier:
         if not discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) or self.bgstally.state.DiscordUsername.get() == "": return
 
         l:str|None = self.bgstally.state.discord_lang
-        table:str = self._table('Cargo', 'Both', True, True)
-        if len(table) > MARKET_EMBED_MAX: table = table[0:table.rfind('\n', 0, MARKET_EMBED_MAX)] + "\n```"
-        fields:list = [{'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem') or __("Unknown", lang=l)}] if table else [] # LANG: Discord heading
+
         title:str = __("Carrier Market: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', self.overview.get('callsign'))) # LANG: Discord post title
-        discord.post_embed(title, table, fields, self.discord_market, DiscordChannel.FLEETCARRIER_MATERIALS, self._market_posted)
+
+        table:str = self._table('Cargo', 'Both', True, True)
+        if len(table) > MARKET_EMBED_MAX:
+            table = table[0:table.rfind('\n', 0, MARKET_EMBED_MAX)] + "\n```"
+        fields:list = []
+        if table:
+            fields.append({'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem') or __("Unknown", lang=l), 'inline': True})
+            fields.append({'name': __("Updated", lang=l), 'value': f"<t:{int(time.time())}:R>", 'inline': True}) # LANG: Discord heading
+
+        chan:DiscordChannel = DiscordChannel.FLEETCARRIER_MATERIALS
+        for uuid, hook in self.discord_market.items():
+            msgid:str|bool|None = hook.get(chan)
+            if not table or not isinstance(msgid, str) or not msgid: continue
+            if time.time() - ((int(msgid) >> 22) / 1000 + 1420070400) < MARKET_REPOST: continue # Message ids encode their creation time
+            discord.post_embed(title, "", [], {uuid: dict(hook)}, chan, None) # Delete, queued ahead of the new post below
+            hook[chan] = ""
+
+        discord.post_embed(title, table, fields, self.discord_market, chan, self._market_posted)
 
 
     def _market_posted(self, channel:DiscordChannel, hook:dict, msgid:str) -> None:
@@ -522,7 +538,7 @@ class FleetCarrier:
         l:str|None = self.bgstally.state.discord_lang if discord else ""
         skip:set = {'Selling': {'stock', 'buy'}, 'Buying': {'stock', 'sell'}, 'Both': {'stock'}}.get(type, set())
         if embed: skip = skip | {'category'}
-        cols:list = [(k, t, 28 if embed and k == 'locName' else w, al) for k, t, w, al in DISCORD_COLS[which] if k not in skip]
+        cols:list = [(k, t, 26 if embed and k == 'locName' else w, al) for k, t, w, al in DISCORD_COLS[which] if k not in skip]
         data:dict = self.get_cargo() if which == 'Cargo' else self.get_locker()
 
         # Table rows. Cargo tracks cargo/sell/buy explicitly; Locker still overloads 'stock'/'outstanding'.

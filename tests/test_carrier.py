@@ -1264,6 +1264,18 @@ class TestDiscordUpdates:
         assert fc.merge(rc) is True
         assert fc.cargo['normal']['tritium']['cargo'] == 5
 
+    def test_old_market_reposted(self, harness) -> None:
+        """ Test an old market post is deleted then recreated, not edited """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+        fc.discord_market = {'u1': {**self.HOOK, 'FC-mats': '100'}}
+
+        with patch.object(fc, '_table', return_value="```\nrow\n```"), \
+             patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_market()
+
+        assert [c.args[1] for c in mock_queue.call_args_list] == [RequestMethod.DELETE, RequestMethod.POST]
+
     def test_squadron_jump_posts(self, harness) -> None:
         """ Test a squadron carrier jump posts to SQ-ops, and a third-party one posts nowhere """
         from bgstally.constants import FleetCarrierType
@@ -1289,10 +1301,11 @@ class TestDiscordUpdates:
              patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
             fc._post_market()
             assert mock_queue.call_args.args[1] == RequestMethod.POST
-            fc._market_posted('FC-mats', dict(self.HOOK), '100')
+            fresh:str = str((int(time.time() * 1000) - 1420070400000) << 22)
+            fc._market_posted('FC-mats', dict(self.HOOK), fresh)
             fc._post_market()
 
-        assert mock_queue.call_args.args[0].endswith('/messages/100')
+        assert mock_queue.call_args.args[0].endswith(f'/messages/{fresh}')
         assert mock_queue.call_args.args[1] == RequestMethod.PATCH
         assert mock_queue.call_args.kwargs['payload']['embeds'][0]['description'] == "```\nrow\n```"
 

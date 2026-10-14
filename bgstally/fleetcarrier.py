@@ -263,7 +263,7 @@ class FleetCarrier:
             table = table[0:table.rfind('\n', 0, MARKET_EMBED_MAX)] + "\n```"
         fields:list = []
         if table:
-            fields.append({'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem') or __("Unknown", lang=l), 'inline': True})
+            fields.append({'name': __("Location", lang=l), 'value': self.overview.get('currentBody', self.overview.get('currentStarSystem', '')) or __("Unknown", lang=l), 'inline': True})
             fields.append({'name': __("Updated", lang=l), 'value': f"<t:{int(time.time())}:R>", 'inline': True}) # LANG: Discord heading
 
         chan:DiscordChannel = DiscordChannel.FLEETCARRIER_MATERIALS
@@ -1785,46 +1785,45 @@ class FleetCarrier:
             }
 
 
-    def _from_dict(self, dict: dict) -> None:
+    def _from_dict(self, data:dict) -> None:
         """ Populate our data from a Dictionary that has been deserialized """
-        self.carrier_id = dict.get('carrier_id', 0)
-        self.carrier_type = FleetCarrierType(dict.get('carrier_type', FleetCarrierType.PERSONAL))
+        self.carrier_id = data.get('carrier_id', 0)
+        self.carrier_type = FleetCarrierType(data.get('carrier_type', FleetCarrierType.PERSONAL))
         # Old saves predate the cargo/market freshness split -- fall back to the single value they had
-        old_time:int = dict.get('data_time', dict.get('last_modified', 0))
-        self.cargo_tier = DataTier(dict.get('cargo_tier', DataTier.UNKNOWN))
-        self.cargo_time = dict.get('cargo_time', old_time)
-        self.market_tier = DataTier(dict.get('market_tier', DataTier.UNKNOWN))
-        self.market_time = dict.get('market_time', old_time)
-        self.location_time = dict.get('location_time', 0)
-        self._rc_last_cargo = dict.get('rc_last_cargo')
-        self.overview = dict.get('overview', {})
+        old_time:int = data.get('data_time', data.get('last_modified', 0))
+        self.cargo_tier = DataTier(data.get('cargo_tier', DataTier.UNKNOWN))
+        self.cargo_time = data.get('cargo_time', old_time)
+        self.market_tier = DataTier(data.get('market_tier', DataTier.UNKNOWN))
+        self.market_time = data.get('market_time', old_time)
+        self._rc_last_cargo = data.get('rc_last_cargo')
+        self.overview = data.get('overview', {})
 
-        self.cargo = dict.get('cargo', {})
+        self.cargo = data.get('cargo', {})
         if 'normal' not in self.cargo:
             self.cargo = {'overview': {}, 'stolen': {}, 'mission': {}, 'normal': {}} # For migration from old to new format
 
         if self.cargo_tier == DataTier.UNKNOWN:
             for entry in self.cargo['normal'].values(): entry['cargo'] = None # Unknown age, so can't be trusted
 
-        self.locker = dict.get('locker', {})
+        self.locker = data.get('locker', {})
         if 'normal' not in self.locker:
             self.locker = {'overview': {}, 'mission': {}, 'normal': {}} # For migration from old to new format
         if isinstance(self.locker, list):
             self.locker = {} # For migration from old to new format
 
-        self.itinerary = dict.get('itinerary', [])
-        self.route = dict.get('route', [])
-        self.shipyard = dict.get('shipyard', {})
+        self.itinerary = data.get('itinerary', [])
+        self.route = data.get('route', [])
+        self.shipyard = data.get('shipyard', {})
         if 'overview' not in self.shipyard:
             self.shipyard = {'overview' : {}, 'ships': {}}
-        self.modules = dict.get('modules', {})
+        self.modules = data.get('modules', {})
         if 'overview' not in self.modules:
             self.modules = {'overview': {}, 'modules': {}}
-        self.data = dict.get('data', {})
-        self.timer = dict.get('timer') and datetime.fromisoformat(dict.get('timer')) or None
-        self.jump_state = FleetCarrierJump(dict.get('jump_state', FleetCarrierJump.Idle))
-        self.discord_jump = dict.get('discord_jump', {})
-        market:dict|list = dict.get('discord_market', {})
+        self.data = data.get('data', {})
+        self.timer = data.get('timer') and datetime.fromisoformat(data.get('timer')) or None
+        self.jump_state = FleetCarrierJump(data.get('jump_state', FleetCarrierJump.Idle))
+        self.discord_jump = data.get('discord_jump', {})
+        market:dict|list = data.get('discord_market', {})
         if isinstance(market, list): # Early builds saved a list
             market = {} # For migration from old to new format
         self.discord_market = market

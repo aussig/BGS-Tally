@@ -263,7 +263,7 @@ class WindowFleetCarrier:
                     has_data = any(fc.cargo.get(t) for t in ('normal', 'stolen', 'mission'))
                     #self._tab_configure(ui['tabbar'], fr, text=_('Commodities')) # LANG: Carrier window tab
                 case 'Locker': has_data = any(fc.locker.get(t) for t in ('normal', 'mission'))
-                case 'Itinerary': has_data = fc.itinerary != [] or fc.route != []
+                case 'Itinerary': has_data = fc.carrier_type != FleetCarrierType.THIRDPARTY or fc.itinerary != [] or fc.route != []
                 case 'Shipyard': has_data = fc.shipyard.get('ships', {}) != {}
                 case 'Modules': has_data = fc.modules.get('modules', {}) != {}
                 # Finances/costs/capacity all come from CAPI/CarrierStats, neither of which we get for a carrier we don't own.

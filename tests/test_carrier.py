@@ -338,6 +338,19 @@ class TestCarrierUIDataMethods:
         assert 'route' in itinerary
         assert 'completed' in itinerary
 
+    def test_itinerary_unknown_tritium(self, harness) -> None:
+        """ Test route tritium columns show Unknown rather than crash when tritium is unknown """
+        from bgstally.utils import hfplus
+        fc = harness.plugin.fleet_carrier
+        fc.overview = {'currentStarSystem': 'Sol', 'fuel': 1000}
+        fc.cargo = {'normal': {'tritium': {'cargo': None}}}
+        fc.route = [{'name': 'Alpha Centauri', 'distance': 4.37, 'distance_to_destination': 0, 'fuel_used': 100}]
+
+        itinerary = fc.get_itinerary()
+        assert hfplus(itinerary['route'][0]['tritium']) == 'Unknown'
+        assert hfplus(itinerary['route'][0]['refuel']) == 'Unknown'
+        assert hfplus(itinerary['overview']['Tritium']) == 'Unknown'
+
     def test_get_shipyard(self, harness) -> None:
         """ Test get_shipyard() method """
         fc = harness.plugin.fleet_carrier
@@ -1275,6 +1288,22 @@ class TestDiscordUpdates:
             fc._post_market()
 
         assert [c.args[1] for c in mock_queue.call_args_list] == [RequestMethod.DELETE, RequestMethod.POST]
+
+    def test_stale_location_ignored(self, harness) -> None:
+        """ Test an older RC/Spansh snapshot can't revert a location the journal told us """
+        fc = self._fc(harness)
+        fc.overview['currentStarSystem'] = 'Jotunheim'
+        fc.carrier_id = fc.overview['carrier_id'] = 3700005632
+
+        with patch('bgstally.fleetcarrier.Spansh'):
+            fc.carrier_location({'CarrierID': 3700005632, 'StarSystem': 'Caspatsuria', 'Body': 'Caspatsuria 1'})
+        assert fc.overview['currentStarSystem'] == 'Caspatsuria'
+
+        fc.merge({'timestamp': int(time.time()) - 86400, 'overview': {'currentStarSystem': 'Jotunheim'}, 'cargo': {}}, spansh=True)
+        assert fc.overview['currentStarSystem'] == 'Caspatsuria'
+
+        fc.merge({'timestamp': int(time.time()) + 60, 'overview': {'currentStarSystem': 'Sol'}, 'cargo': {}}, spansh=True)
+        assert fc.overview['currentStarSystem'] == 'Sol'
 
     def test_squadron_jump_posts(self, harness) -> None:
         """ Test a squadron carrier jump posts to SQ-ops, and a third-party one posts nowhere """

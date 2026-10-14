@@ -68,6 +68,7 @@ class FleetCarrier:
         self.cargo_time:int = 0 # Our best (discounted) estimate of when that cargo reading was true
         self.market_tier:DataTier = DataTier.UNKNOWN # Which source last supplied our held buy/sell/price reading
         self.market_time:int = 0 # Our best (discounted) estimate of when that market reading was true
+        self.location_time:int = 0 # When the journal last told us where this carrier is
         self._rc_last_cargo:dict|None = None # Last RC cargo snapshot (comm -> qty), for change-detection
         self.data:dict = {}  # Raw CAPI data
         self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
@@ -366,7 +367,7 @@ class FleetCarrier:
         """ Merge a normalized RC/Spansh snapshot; cargo and market freshness are gated independently """
         if not data: return False
 
-        changed:bool = self._merge_overview(data.get('overview', {}))
+        changed:bool = self._merge_overview(data.get('overview', {}), data.get('timestamp', 0))
 
         cargo:dict = data.get('cargo', {})
         if not cargo: return changed
@@ -410,12 +411,13 @@ class FleetCarrier:
         return int(time.time())
 
 
-    def _merge_overview(self, overview:dict) -> bool:
+    def _merge_overview(self, overview:dict, timestamp:int = 0) -> bool:
         """ Merge overview fields (name, docking access, etc); always applies, no freshness gate """
         changed:bool = False
         for key, value in overview.items():
             if value is None: continue
             if key == 'callsign' and self.overview.get('callsign'): continue
+            if key == 'currentStarSystem' and self.location_time and timestamp <= self.location_time: continue
             if self.overview.get(key) != value: changed = True
             self.overview[key] = value
 
@@ -617,7 +619,9 @@ class FleetCarrier:
         route:list = []
         tot:int = 0
         depot:int = int(self.overview.get('fuel', 0))
-        trit:int = int(get_by_path(self.cargo, ['normal', 'tritium', 'cargo'], 0))
+        stored:int|None = get_by_path(self.cargo, ['normal', 'tritium', 'cargo'])
+        known:bool = stored is not None
+        trit:int = int(stored or 0)
         deposit:bool = False
         for j in self.route:
             tot += int(j.get('fuel_used'))
@@ -633,8 +637,8 @@ class FleetCarrier:
                 'fuel_used': (int(j.get('fuel_used')), 'num'),
                 'fuel_in_depot': (depot, 'num'),
                 'deposit': (deposit, 'boolean'),
-                'tritium': (trit, 'num'),
-                'refuel': (trit < 0, 'boolean'),
+                'tritium': (trit, 'num') if known else ('', 'str', 'Unknown'),
+                'refuel': (trit < 0, 'boolean') if known else ('', 'str', 'Unknown'),
                 'state': 'Scheduled' if j.get('name') == self.overview.get('jumpDestination', 'Unknown') else 'Planned',
                 'starsystem': (j.get('name'), 'str')
             })
@@ -665,7 +669,7 @@ class FleetCarrier:
         summ[_('Scheduled Jump')] = (self.overview.get('jumpDestinationBody', self.overview.get('jumpDestination', 'None')), 'str', 'None') # LANG: Carrier itinerary
         summ[_('Departure Time')] = (self._lt(self.overview.get('departureScheduled', '')), 'datetime', 'None') # LANG: Carrier itinerary
         summ[_('Fuel')] = (self.overview.get('fuel', 0), 'num', '0t', 't')       # LANG: Carrier itinerary
-        summ[_('Tritium')] = (get_by_path(self.cargo, ['normal', 'tritium', 'cargo'], 0), 'num', '0t', 't') # LANG: Carrier itinerary
+        summ[_('Tritium')] = (trit if known else '', 'num', '0t' if known else 'Unknown', 't') # LANG: Carrier itinerary
 
         return {'overview': summ, 'route': route, 'completed': jumps}
 
@@ -1184,6 +1188,8 @@ class FleetCarrier:
         Debug.logger.debug(f"Carrier location for {entry.get('CarrierID')} current state {self.jump_state}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
+        self.location_time = int(time.time())
+
         # A fresh carrier has no itinerary yet, so seed one entry or self.itinerary[0] below crashes.
         if not self.itinerary:
             self.itinerary = [{
@@ -1241,6 +1247,7 @@ class FleetCarrier:
 
         # Update our location and clear the jump
         self.overview['currentStarSystem'] = self.overview.get('jumpDestination', '')
+        self.location_time = int(time.time())
         self.overview['currentBody'] = self.overview.get('jumpDestinationBody', None)
         self.overview['jumpDestination'] = None
         self.overview['jumpDestinationBody'] = None
@@ -1761,6 +1768,7 @@ class FleetCarrier:
             'cargo_time': self.cargo_time,
             'market_tier': self.market_tier.value,
             'market_time': self.market_time,
+            'location_time': self.location_time,
             'rc_last_cargo': self._rc_last_cargo,
             'overview': self.overview,
             'cargo': self.cargo,
@@ -1787,6 +1795,7 @@ class FleetCarrier:
         self.cargo_time = dict.get('cargo_time', old_time)
         self.market_tier = DataTier(dict.get('market_tier', DataTier.UNKNOWN))
         self.market_time = dict.get('market_time', old_time)
+        self.location_time = dict.get('location_time', 0)
         self._rc_last_cargo = dict.get('rc_last_cargo')
         self.overview = dict.get('overview', {})
 

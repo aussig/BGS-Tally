@@ -33,7 +33,6 @@ SPANSH_COOLDOWN = (3600 * 24)
 SPANSH_LOCAL_COOLDOWN = (60 * 1)
 SPANSH_REMOTE_COOLDOWN = (60 * 10)
 SPANSH_MARKET_SIZE = 10 # Stations fetched per commodity, enough to rank every station in the nearest system
-SPANSH_MARKET_ROWS = 2 # Markets listed per commodity
 SPANSH_MARKET_DAYS = 3 # Ignore markets not updated within this many days
 
 class RavenColonial:
@@ -1045,6 +1044,8 @@ class Spansh:
         if not hasattr(self, '_initialized'):
             self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
             self.carrier_cache:dict = {} # marketId -> last query time, for import_fleetcarrier()'s cooldown
+            self.market_cache:dict = {} # (system, commodity, minimum) -> best markets, dropped when the commander leaves the system
+            self.market_here:str|None = None # The commander's system when market_cache was filled
             self._initialized = True
         self.bgstally:BGSTally = bgstally
         self.body_details = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', \
@@ -1067,15 +1068,24 @@ class Spansh:
             result_fnc(symbol, [])
             return
 
+        if self.bgstally.colonisation.current_system != self.market_here:
+            self.market_cache.clear()
+            self.market_here = self.bgstally.colonisation.current_system
+
+        key:tuple = (system, symbol, minimum)
+        if key in self.market_cache:
+            result_fnc(symbol, self.market_cache[key])
+            return
+
         filters:dict = {'market': [{'name': name, 'supply': {'comparison': '<=>', 'value': [max(1, minimum), 1_000_000_000]}}],
                         'market_updated_at': {'comparison': '<=>', 'value': [f"now-{SPANSH_MARKET_DAYS}d", 'now']}}
         payload:dict = {'filters': filters, 'reference_system': system, 'size': SPANSH_MARKET_SIZE, 'page': 0,
                         'sort': [{'distance': {'direction': 'asc'}}]}
         self.bgstally.request_manager.queue_request(f"{SPANSH_API}/stations/search", RequestMethod.POST, payload=payload, attempts=3,
-                                                    callback=partial(self._markets_callback, symbol, name, minimum, result_fnc))
+                                                    callback=partial(self._markets_callback, key, name, result_fnc))
 
     @catch_exceptions
-    def _markets_callback(self, symbol:str, name:str, minimum:int, result_fnc:Callable[[str, list], object], success:bool,
+    def _markets_callback(self, key:tuple, name:str, result_fnc:Callable[[str, list], object], success:bool,
                           response:Response, request:BGSTallyRequest) -> None:
         """ Reduce a Spansh station search to the best few rows, nearest first and orbital before surface before carrier """
         rows:list = []
@@ -1087,13 +1097,16 @@ class Spansh:
                          'supply': entry.get('supply', 0), 'updated': s.get('market_updated_at', "")})
 
         rows.sort(key=lambda r: (r['distance'], 'OSC'.index(r['type']), r['arrival'] if r['arrival'] is not None else float('inf')))
-        plenty:list = [r for r in rows if r['supply'] > 2 * minimum]
-        best:list = []
-        for r in plenty or rows: # Markets with barely enough stock are only a fallback
-            best.append(r)
-            if len(best) == SPANSH_MARKET_ROWS or (r['type'] == 'O' and r['large'] and r['supply'] > 2 * minimum): break
+        _system, symbol, minimum = key
+        best:list = rows[:1]
+        for r in rows[1:]: # Only worth a second row if it improves on the first
+            first:dict = best[0]
+            if r['distance'] < first['distance'] or ('OSC'.index(r['type']) < 'OSC'.index(first['type'])) \
+                or (r['supply'] > 2 * minimum >= first['supply']) or (r['large'] and not first['large']):
+                best.append(r)
+                break
 
-        # Return the best markets to the caller via the result function
+        if success: self.market_cache[key] = best # Failures aren't cached so they can be retried
         result_fnc(symbol, best)
 
     @catch_exceptions

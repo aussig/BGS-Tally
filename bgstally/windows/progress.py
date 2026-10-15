@@ -642,7 +642,7 @@ class ProgressWindow:
         self.mkts_fr = th.TopLevel(frame)
         self.mkts_fr.wm_title(_("{plugin_name} - Markets Window").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the markets popup window
         width:int = sum([v.get('width') for v in self.markets.values()]) + 20
-        self.mkts_fr.geometry(f"{int(width*self.scale)}x{int(500*self.scale)}")
+        self.mkts_fr.geometry(f"{int(width*self.scale)}x{int(60*self.scale)}") # Fitted to the table as results arrive
         self.mkts_fr.protocol("WM_DELETE_WINDOW", self.mkts_fr.destroy)
         self.mkts_fr.config(bd=2, relief=tk.FLAT)
 
@@ -691,6 +691,10 @@ class ProgressWindow:
             sheet[f"H{i+1}"].highlight(bg=self.colors.get(row[7], 'white'))
         sheet.set_all_row_heights(height=int(19*self.scale), redraw=False)
         sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
+
+        width:int = int(sum(sheet.get_column_widths())) + 20
+        height:int = int(sheet.CH.current_height or 19 * self.scale) + int(sum(sheet.get_row_heights())) + 20
+        self.mkts_fr.geometry(f"{width}x{min(height, int(self.mkts_fr.winfo_screenheight() * 0.8))}")
 
 
     @catch_exceptions

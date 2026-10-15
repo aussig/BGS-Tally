@@ -394,7 +394,7 @@ class ProgressWindow:
 
         column_widths=[30, 11, 11, 11]
         alignments=[Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
-        style:TableStyle = TableStyle.from_string("      || -||            --  --")
+        style:TableStyle = TableStyle.from_string(TABLE_STYLE)
 
         self.colonisation = self.bgstally.colonisation
         tracked:list = self.colonisation.get_tracked_builds()

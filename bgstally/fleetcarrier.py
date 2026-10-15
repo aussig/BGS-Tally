@@ -5,6 +5,7 @@ import re
 import requests
 from copy import deepcopy
 from datetime import UTC, datetime, timedelta
+from functools import partial
 from os import path
 from typing import TYPE_CHECKING
 
@@ -14,12 +15,13 @@ from edmc_data import ship_name_map # type: ignore
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
-from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_CARRIERS, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DataTier, DiscordChannel,
+from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_CARRIERS, FOLDER_OTHER_DATA, TABLE_STYLE, TAG_OVERLAY_HIGHLIGHT, DataTier, DiscordChannel,
                                 FleetCarrierJump, FleetCarrierType)
 from bgstally.debug import Debug
 from bgstally.ravencolonial import RavenColonial, Spansh
-from bgstally.utils import _, __, catch_exceptions, get_by_path
+from bgstally.utils import _, __, catch_exceptions, get_by_path, hfplus, str_truncate
 from thirdparty.colors import *
+from thirdparty.table2ascii import table2ascii, Alignment, TableStyle
 
 FILENAME = "fleetcarrier.json"
 FC_MAX_SHIPS = 40
@@ -27,6 +29,16 @@ FC_MAX_JUMPS_TRACKED = 250
 FDEV_SLACKING_TIME = 1800 # How long behind CAPI may be in seconds
 EDDN_LAG_TIME = 60 # How long behind EDDN may be in seconds
 RC_STALE_VS_MARKET_GAP = 1800 # If market_time outpaces an RC-sourced cargo_time by this much, RC's cargo is stale
+RC_MAX_AGE = 6 * 3600 # RC cargo last refreshed from CAPI longer ago than this is ignored
+MARKET_EMBED_MAX = 4000 # Embed description limit less headroom for the closing fence
+MARKET_REPOST = 24 * 3600 # Age after which the FC-mats post is deleted and recreated, as edits never refresh its date
+MARKET_DEBOUNCE = 30 # Seconds of market quiet before editing the FC-mats post
+# Discord table columns per tab: (item key, title, width, alignment)
+DISCORD_COLS = {
+    'Cargo': [('locName', 'Commodity', 20, Alignment.LEFT), ('category', 'Category', 14, Alignment.LEFT), ('stock', 'Stock', 6, Alignment.RIGHT),
+              ('buy', 'Buying', 6, Alignment.RIGHT), ('sell', 'Selling', 7, Alignment.RIGHT), ('price', 'Price', 7, Alignment.RIGHT)],
+    'Locker': [('locName', 'Material', 20, Alignment.LEFT), ('category', 'Category', 8, Alignment.LEFT), ('stock', 'Stock', 5, Alignment.RIGHT),
+               ('buy', 'Buying', 6, Alignment.RIGHT), ('sell', 'Selling', 7, Alignment.RIGHT), ('price', 'Price', 7, Alignment.RIGHT)]}
 SPANSH_ROUTE = "https://spansh.co.uk/api/fleetcarrier/route"
 UPDATE_LOCAL_COOLDOWN = 60 # update_carrier() cooldown for a carrier in our current system
 UPDATE_REMOTE_COOLDOWN = (60 * 15) # update_carrier() cooldown for a carrier elsewhere
@@ -56,11 +68,15 @@ class FleetCarrier:
         self.cargo_time:int = 0 # Our best (discounted) estimate of when that cargo reading was true
         self.market_tier:DataTier = DataTier.UNKNOWN # Which source last supplied our held buy/sell/price reading
         self.market_time:int = 0 # Our best (discounted) estimate of when that market reading was true
+        self.location_time:int = 0 # When the journal last told us where this carrier is
         self._rc_last_cargo:dict|None = None # Last RC cargo snapshot (comm -> qty), for change-detection
         self.data:dict = {}  # Raw CAPI data
         self.jump_state:FleetCarrierJump = FleetCarrierJump.Idle
         self.timer:datetime|None = None
         self._last_update_check:int = 0 # Cooldown tracking for update_carrier()
+        self.discord_jump:dict = {} # Current jump's details plus per-webhook FC-ops message ids
+        self.discord_market:dict = {} # Per-webhook FC-mats message ids
+        self._market_timer:str|None = None # Pending debounced FC-mats post
         self.load()
         # A fresh carrier needs its id set now, not just once CAPI/CarrierStats populates overview.
         if not self.overview.get('carrier_id'): self.overview['carrier_id'] = self.carrier_id
@@ -216,7 +232,90 @@ class FleetCarrier:
     def _cargo_changed(self, changed:bool) -> None:
         """ Push to RC and refresh the progress window's carrier columns, if our cargo/buy/sell actually changed """
         RavenColonial(self.bgstally.colonisation).update_carrier(self, changed)
-        if changed: self.bgstally.ui.window_progress.update_display()
+        if not changed: return
+
+        self.bgstally.ui.window_progress.update_display()
+        self._queue_market()
+
+
+    def _queue_market(self) -> None:
+        """ Debounce an FC-mats market post for the personal carrier """
+        frame = self.bgstally.ui.frame
+        if self.carrier_type != FleetCarrierType.PERSONAL or not frame: return
+
+        if self._market_timer: frame.after_cancel(self._market_timer)
+        self._market_timer = frame.after(MARKET_DEBOUNCE * 1000, self._post_market)
+
+
+    @catch_exceptions
+    def _post_market(self) -> None:
+        """ Post, or edit the previous post of, the cargo market to FC-mats """
+        self._market_timer = None
+        discord = self.bgstally.discord
+        if not discord.valid_webhook_available(DiscordChannel.FLEETCARRIER_MATERIALS) or self.bgstally.state.DiscordUsername.get() == "": return
+
+        l:str|None = self.bgstally.state.discord_lang
+
+        title:str = __("Carrier Market: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', self.overview.get('callsign'))) # LANG: Discord post title
+
+        table:str = self._table('Cargo', 'Both', True, True)
+        if len(table) > MARKET_EMBED_MAX:
+            table = table[0:table.rfind('\n', 0, MARKET_EMBED_MAX)] + "\n```"
+        fields:list = []
+        if table:
+            fields.append({'name': __("Location", lang=l), 'value': self.overview.get('currentBody', self.overview.get('currentStarSystem', '')) or __("Unknown", lang=l), 'inline': True})
+            fields.append({'name': __("Updated", lang=l), 'value': f"<t:{int(time.time())}:R>", 'inline': True}) # LANG: Discord heading
+
+        chan:DiscordChannel = DiscordChannel.FLEETCARRIER_MATERIALS
+        for uuid, hook in self.discord_market.items():
+            msgid:str|bool|None = hook.get(chan)
+            if not table or not isinstance(msgid, str) or not msgid: continue
+            if time.time() - ((int(msgid) >> 22) / 1000 + 1420070400) < MARKET_REPOST: continue # Message ids encode their creation time
+            discord.post_embed(title, "", [], {uuid: dict(hook)}, chan, None) # Delete, queued ahead of the new post below
+            hook[chan] = ""
+
+        discord.post_embed(title, table, fields, self.discord_market, chan, self._market_posted)
+
+
+    def _market_posted(self, channel:DiscordChannel, hook:dict, msgid:str) -> None:
+        """ Store the FC-mats message id """
+        uuid:str|None = hook.get('uuid')
+        if uuid is None: return
+
+        self.discord_market.setdefault(uuid, hook)[channel] = msgid
+        self.save()
+
+
+    def _post_jump(self, state:str) -> None:
+        """ Post, or edit the previous post of, this jump's FC-ops or SQ-ops embed with the given state """
+        j:dict = self.discord_jump
+        chan:DiscordChannel|None = {FleetCarrierType.PERSONAL: DiscordChannel.FLEETCARRIER_OPERATIONS,
+                                    FleetCarrierType.SQUADRON: DiscordChannel.SQUADRON_OPERATIONS}.get(self.carrier_type)
+        if not j or chan is None: return
+
+        l:str|None = self.bgstally.state.discord_lang
+        time_head:str = __("Departure In", lang=l) if state in ("Scheduled", "Cancelled") else __("Arrived", lang=l) # LANG: Discord heading
+        fields:list = [
+            {'name': __("State", lang=l), 'value': state, 'inline': True}, # LANG: Discord heading
+            {'name': __("From System", lang=l), 'value': j['from'], 'inline': True}, # LANG: Discord heading
+            {'name': __("To System", lang=l), 'value': j['to'], 'inline': True}, # LANG: Discord heading
+            {'name': __("To Body", lang=l), 'value': j['body'], 'inline': True}, # LANG: Discord heading
+            {'name': time_head, 'value': f"<t:{j['departure']}:R>"},
+            {'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}, # LANG: Discord heading
+            {'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}] # LANG: Discord heading
+        title:str = __("Carrier Jump: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
+        if chan == DiscordChannel.SQUADRON_OPERATIONS:
+            title = __("Squadron", lang=l) + " " + title # LANG: Discord post title
+        self.bgstally.discord.post_embed(title, "", fields, j['hooks'], chan, self._jump_posted)
+
+
+    def _jump_posted(self, channel:DiscordChannel, hook:dict, msgid:str) -> None:
+        """ Store the FC-ops message id for the current jump """
+        uuid:str|None = hook.get('uuid')
+        if uuid is None or not self.discord_jump: return
+
+        self.discord_jump['hooks'].setdefault(uuid, hook)[channel] = msgid
+        self.save()
 
 
     @catch_exceptions
@@ -268,10 +367,15 @@ class FleetCarrier:
         """ Merge a normalized RC/Spansh snapshot; cargo and market freshness are gated independently """
         if not data: return False
 
-        changed:bool = self._merge_overview(data.get('overview', {}))
+        changed:bool = self._merge_overview(data.get('overview', {}), data.get('timestamp', 0))
 
         cargo:dict = data.get('cargo', {})
         if not cargo: return changed
+
+        stamp:int = data.get('timestamp', 0)
+        if not spansh and stamp and stamp < time.time() - RC_MAX_AGE:
+            Debug.logger.debug(f"Ignoring RC cargo for {self.overview.get('callsign')}, last refreshed {stamp}")
+            return changed
 
         source:str = "Spansh" if spansh else "RC"
         tier:DataTier = DataTier.SPANSH if spansh else DataTier.RC
@@ -307,12 +411,13 @@ class FleetCarrier:
         return int(time.time())
 
 
-    def _merge_overview(self, overview:dict) -> bool:
+    def _merge_overview(self, overview:dict, timestamp:int = 0) -> bool:
         """ Merge overview fields (name, docking access, etc); always applies, no freshness gate """
         changed:bool = False
         for key, value in overview.items():
             if value is None: continue
             if key == 'callsign' and self.overview.get('callsign'): continue
+            if key == 'currentStarSystem' and self.location_time and timestamp <= self.location_time: continue
             if self.overview.get(key) != value: changed = True
             self.overview[key] = value
 
@@ -410,6 +515,70 @@ class FleetCarrier:
 
 
     @catch_exceptions
+    def get_text(self, which:str, type:str, discord:bool = False) -> str:
+        """ Get the cargo or locker as text for pasting or posting to Discord, empty if there are no rows """
+
+        l:str|None = self.bgstally.state.discord_lang if discord else ""
+        table:str = self._table(which, type, discord)
+        if not table: return ""
+
+        order:str = which
+        match type:
+            case 'Both': order += " " + __("orders", l) # LANG: fleet carrier orders discord label
+            case 'Buying': order += " " + __("buy", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
+            case 'Selling': order += " " + __("sell", l) + ' ' + __("order", l) # LANG: fleet carrier orders discord label
+
+        output:str = "## " + __("Carrier {order} for {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', self.overview.get('callsign')), order=order.title()) + "\n" # LANG: fleet carrier materials header
+        if self.overview.get('currentStarSystem', "") != "":
+            output += "### " + __("Location: {system}", lang=l).format(system=self.overview.get('currentStarSystem', 'Unknown')) + "\n" # LANG: fleet carrier materials system line
+        return output + "\n" + table
+
+
+    def _table(self, which:str, type:str, discord:bool, embed:bool = False) -> str:
+        """ Fenced ASCII table of the cargo or locker rows, empty if there are none """
+
+        l:str|None = self.bgstally.state.discord_lang if discord else ""
+        skip:set = {'Selling': {'stock', 'buy'}, 'Buying': {'stock', 'sell'}, 'Both': {'stock'}}.get(type, set())
+        if embed: skip = skip | {'category'}
+        cols:list = [(k, t, 26 if embed and k == 'locName' else w, al) for k, t, w, al in DISCORD_COLS[which] if k not in skip]
+        data:dict = self.get_cargo() if which == 'Cargo' else self.get_locker()
+
+        # Table rows. Cargo tracks cargo/sell/buy explicitly; Locker still overloads 'stock'/'outstanding'.
+        sell_key:str = "sell" if which == 'Cargo' else "stock"
+        buy_key:str = "buy" if which == 'Cargo' else "outstanding"
+        body:list = []
+        tot:dict = {}
+
+        for item in data.get('inventory', {}).values():
+            if type == 'Selling' and (item.get('price', 0) == 0 or item.get(sell_key, 0) == 0): continue
+            if type == 'Buying' and item.get(buy_key, 0) == 0: continue
+            if type == 'Both' and item.get('price', 0) == 0: continue
+            if type == 'All' and item.get("cargo", 0) == 0 and item.get(buy_key, 0) == 0 and item.get(sell_key, 0) == 0: continue
+
+            row:list = []
+            for f, _title, width, _align in cols:
+                val:str = ""
+                match f:
+                    case "stock" if which == 'All': val = item.get("cargo") if item.get("cargo") is not None else ""
+                    case "buy" if item.get("price", 0) > 0 and item.get(buy_key, 0) > 0: val = item.get(buy_key)
+                    case "sell" if item.get("price", 0) > 0 and item.get(sell_key, 0) > 0: val = item.get(sell_key)
+                    case _: val = item.get(f, " ")
+                if f in ('stock', 'buy', 'sell') and isinstance(val, int): tot[f] = tot.get(f, 0) + val
+                row.append(str_truncate(hfplus(val), width)) # LANG: Ignore
+            body.append(row)
+
+        if not body: return ""
+
+        header:list = [str_truncate(__(title, lang=l), width) for _f, title, width, _align in cols] # LANG: Ignore
+        totals:list = [str_truncate(__('Total', lang=l) if i == 0 else hfplus(tot.get(f, 0)), width) for i, (f, _t, width, _a) in enumerate(cols)] # LANG: Discord post
+        widths:list = [c[2] + 2 for c in cols]
+        aligns:list = [c[3] for c in cols]
+        style:TableStyle = TableStyle.from_string(TABLE_STYLE)
+        table:str = table2ascii(header=header, body=body, footer=totals, column_widths=widths, alignments=aligns, style=style)
+        return "```\n" + "\n".join(line[2:-2] for line in table.splitlines()) + "\n```" # table2ascii pads both edges
+
+
+    @catch_exceptions
     def get_locker(self) -> dict:
         """
         Return locker as a dictionary. overview is a set of key value pairs and
@@ -454,7 +623,9 @@ class FleetCarrier:
         route:list = []
         tot:int = 0
         depot:int = int(self.overview.get('fuel', 0))
-        trit:int = int(get_by_path(self.cargo, ['normal', 'tritium', 'cargo'], 0))
+        stored:int|None = get_by_path(self.cargo, ['normal', 'tritium', 'cargo'])
+        known:bool = stored is not None
+        trit:int = int(stored or 0)
         deposit:bool = False
         for j in self.route:
             tot += int(j.get('fuel_used'))
@@ -470,8 +641,8 @@ class FleetCarrier:
                 'fuel_used': (int(j.get('fuel_used')), 'num'),
                 'fuel_in_depot': (depot, 'num'),
                 'deposit': (deposit, 'boolean'),
-                'tritium': (trit, 'num'),
-                'refuel': (trit < 0, 'boolean'),
+                'tritium': (trit, 'num') if known else ('', 'str', 'Unknown'),
+                'refuel': (trit < 0, 'boolean') if known else ('', 'str', 'Unknown'),
                 'state': 'Scheduled' if j.get('name') == self.overview.get('jumpDestination', 'Unknown') else 'Planned',
                 'starsystem': (j.get('name'), 'str')
             })
@@ -502,7 +673,7 @@ class FleetCarrier:
         summ[_('Scheduled Jump')] = (self.overview.get('jumpDestinationBody', self.overview.get('jumpDestination', 'None')), 'str', 'None') # LANG: Carrier itinerary
         summ[_('Departure Time')] = (self._lt(self.overview.get('departureScheduled', '')), 'datetime', 'None') # LANG: Carrier itinerary
         summ[_('Fuel')] = (self.overview.get('fuel', 0), 'num', '0t', 't')       # LANG: Carrier itinerary
-        summ[_('Tritium')] = (get_by_path(self.cargo, ['normal', 'tritium', 'cargo'], 0), 'num', '0t', 't') # LANG: Carrier itinerary
+        summ[_('Tritium')] = (trit if known else '', 'num', '0t' if known else 'Unknown', 't') # LANG: Carrier itinerary
 
         return {'overview': summ, 'route': route, 'completed': jumps}
 
@@ -662,6 +833,7 @@ class FleetCarrier:
 
         #Debug.logger.debug(f"Carrier state: {self.jump_state} timer: {self.timer} delta: {delta} message: {message}")
         if message != "":
+            if self.carrier_type != FleetCarrierType.PERSONAL: message = f"{self.overview.get('name', '')}: {message}"
             message = TAG_OVERLAY_HIGHLIGHT + message
 
         return message
@@ -973,20 +1145,9 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = departure.strftime("%Y-%m-%d %H:%M:%S")
             self.itinerary[0]['visitDurationSeconds'] = self._td(departure, self.itinerary[0]['arrivalTime'])
 
-        # Automatically post to whichever discord webhooks are set for carrier operations
-        # the discord class handles where and whether to post
-        l:str|None = self.bgstally.state.discord_lang
-        title:str = __("Jump Scheduled for Carrier {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
-        description:str = __("A carrier jump has been scheduled", lang=l) # LANG: Discord text
-
-        fields:list = []
-        fields.append({'name': __("From System", lang=l), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("To System", lang=l), 'value': entry.get('SystemName', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("To Body", lang=l), 'value': entry.get('Body', "Unknown"), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("Departure Time", lang=l), 'value': f"<t:{round(departure.timestamp())}:R>"}) # LANG: Discord heading
-        fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Discord heading
-        fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), False), 'inline': True}) # LANG: Discord heading
-        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self.discord_jump = {'from': self.data.get('currentStarSystem', "Unknown"), 'to': entry.get('SystemName', "Unknown"),
+                             'body': entry.get('Body', "Unknown"), 'departure': round(departure.timestamp()), 'hooks': {}}
+        self._post_jump(__("Scheduled", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
 
         self.jump_state = FleetCarrierJump.Jumping
         self.timer = departure
@@ -1015,17 +1176,7 @@ class FleetCarrier:
             if self.bgstally.ui.frame:
                 self.bgstally.ui.frame.after(60 * 1000, lambda: self._cooldown_complete())
 
-        # Automatically post to whichever discord webhooks are set for carrier operations
-        # the discord class handles where and whether to post
-        l:str|None = self.bgstally.state.discord_lang
-        title:str = __("Jump Cancelled for Carrier {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
-        description:str = __("The scheduled carrier jump was cancelled", lang=l) # LANG: Discord text
-
-        fields:list = []
-        fields.append({'name': __("Current System", lang=l), 'value': self.data.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Fleet Carrier Discord heading
-        fields.append({'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}) # LANG: Fleet Carrier Discord heading
-        fields.append({'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}) # LANG: Fleet Carrier Discord heading
-        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self._post_jump(__("Cancelled", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
 
         self.overview['jumpDestination'] = None
         self.overview['jumpDestinationBody'] = None
@@ -1040,6 +1191,8 @@ class FleetCarrier:
 
         Debug.logger.debug(f"Carrier location for {entry.get('CarrierID')} current state {self.jump_state}")
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
+
+        self.location_time = int(time.time())
 
         # A fresh carrier has no itinerary yet, so seed one entry or self.itinerary[0] below crashes.
         if not self.itinerary:
@@ -1098,6 +1251,7 @@ class FleetCarrier:
 
         # Update our location and clear the jump
         self.overview['currentStarSystem'] = self.overview.get('jumpDestination', '')
+        self.location_time = int(time.time())
         self.overview['currentBody'] = self.overview.get('jumpDestinationBody', None)
         self.overview['jumpDestination'] = None
         self.overview['jumpDestinationBody'] = None
@@ -1125,6 +1279,8 @@ class FleetCarrier:
             self._update_route()
             return
 
+        self._post_jump(__("Jumped", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
+
         departure:datetime = self._parse_date(self.overview['departureScheduled'])
         if departure.second >= 30: # Round up.
             self.timer = departure + timedelta(minutes=1, seconds=300 - departure.second)
@@ -1150,17 +1306,9 @@ class FleetCarrier:
         if self.jump_state != FleetCarrierJump.Cooldown: return
 
         self.jump_state = FleetCarrierJump.Idle
-        self.bgstally.ui.window_fc.cooldown_notice()
+        self.bgstally.ui.window_fc.cooldown_notice(self.overview.get('name', '') if self.carrier_type != FleetCarrierType.PERSONAL else "")
 
-        # Automatically post to whichever discord webhooks are set for carrier operations
-        # the discord class handles where and whether to post
-        l:str|None = self.bgstally.state.discord_lang
-        title:str = __("Cooldown completed for Carrier {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
-        description:str = __("Cooldown has completed", lang=l) # LANG: Discord text
-
-        fields:list = []
-        fields.append({'name': __("Location", lang=l), 'value': self.overview.get('currentStarSystem', "Unknown"), 'inline': True}) # LANG: Discord heading
-        self.bgstally.discord.post_embed(title, description, fields, None, DiscordChannel.FLEETCARRIER_OPERATIONS, None)
+        self._post_jump(__("Cooldown complete", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
 
 
     @catch_exceptions
@@ -1624,6 +1772,7 @@ class FleetCarrier:
             'cargo_time': self.cargo_time,
             'market_tier': self.market_tier.value,
             'market_time': self.market_time,
+            'location_time': self.location_time,
             'rc_last_cargo': self._rc_last_cargo,
             'overview': self.overview,
             'cargo': self.cargo,
@@ -1634,44 +1783,54 @@ class FleetCarrier:
             'modules': self.modules,
             'data': self.data,
             'timer': self.timer.isoformat() if self.timer else None,
-            'jump_state': self.jump_state.value
+            'jump_state': self.jump_state.value,
+            'discord_jump': self.discord_jump,
+            'discord_market': self.discord_market
             }
 
 
-    def _from_dict(self, dict: dict) -> None:
+    def _from_dict(self, data:dict) -> None:
         """ Populate our data from a Dictionary that has been deserialized """
-        self.carrier_id = dict.get('carrier_id', 0)
-        self.carrier_type = FleetCarrierType(dict.get('carrier_type', FleetCarrierType.PERSONAL))
+        self.carrier_id = data.get('carrier_id', 0)
+        self.carrier_type = FleetCarrierType(data.get('carrier_type', FleetCarrierType.PERSONAL))
         # Old saves predate the cargo/market freshness split -- fall back to the single value they had
-        old_time:int = dict.get('data_time', dict.get('last_modified', 0))
-        self.cargo_tier = DataTier(dict.get('cargo_tier', DataTier.UNKNOWN))
-        self.cargo_time = dict.get('cargo_time', old_time)
-        self.market_tier = DataTier(dict.get('market_tier', DataTier.UNKNOWN))
-        self.market_time = dict.get('market_time', old_time)
-        self._rc_last_cargo = dict.get('rc_last_cargo')
-        self.overview = dict.get('overview', {})
+        old_time:int = data.get('data_time', data.get('last_modified', 0))
+        self.cargo_tier = DataTier(data.get('cargo_tier', DataTier.UNKNOWN))
+        self.cargo_time = data.get('cargo_time', old_time)
+        self.market_tier = DataTier(data.get('market_tier', DataTier.UNKNOWN))
+        self.market_time = data.get('market_time', old_time)
+        self._rc_last_cargo = data.get('rc_last_cargo')
+        self.overview = data.get('overview', {})
 
-        self.cargo = dict.get('cargo', {})
+        self.cargo = data.get('cargo', {})
         if 'normal' not in self.cargo:
             self.cargo = {'overview': {}, 'stolen': {}, 'mission': {}, 'normal': {}} # For migration from old to new format
 
-        self.locker = dict.get('locker', {})
+        if self.cargo_tier == DataTier.UNKNOWN:
+            for entry in self.cargo['normal'].values(): entry['cargo'] = None # Unknown age, so can't be trusted
+
+        self.locker = data.get('locker', {})
         if 'normal' not in self.locker:
             self.locker = {'overview': {}, 'mission': {}, 'normal': {}} # For migration from old to new format
         if isinstance(self.locker, list):
             self.locker = {} # For migration from old to new format
 
-        self.itinerary = dict.get('itinerary', [])
-        self.route = dict.get('route', [])
-        self.shipyard = dict.get('shipyard', {})
+        self.itinerary = data.get('itinerary', [])
+        self.route = data.get('route', [])
+        self.shipyard = data.get('shipyard', {})
         if 'overview' not in self.shipyard:
             self.shipyard = {'overview' : {}, 'ships': {}}
-        self.modules = dict.get('modules', {})
+        self.modules = data.get('modules', {})
         if 'overview' not in self.modules:
             self.modules = {'overview': {}, 'modules': {}}
-        self.data = dict.get('data', {})
-        self.timer = dict.get('timer') and datetime.fromisoformat(dict.get('timer')) or None
-        self.jump_state = FleetCarrierJump(dict.get('jump_state', FleetCarrierJump.Idle))
+        self.data = data.get('data', {})
+        self.timer = data.get('timer') and datetime.fromisoformat(data.get('timer')) or None
+        self.jump_state = FleetCarrierJump(data.get('jump_state', FleetCarrierJump.Idle))
+        self.discord_jump = data.get('discord_jump', {})
+        market:dict|list = data.get('discord_market', {})
+        if isinstance(market, list): # Early builds saved a list
+            market = {} # For migration from old to new format
+        self.discord_market = market
 
         # Deal with whatever we missed while shutdown
         if self.timer and self.timer < datetime.now(tz=UTC):

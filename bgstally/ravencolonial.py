@@ -1166,14 +1166,14 @@ class Spansh:
         """ Retrieve a market snapshot from Spansh for a fleet carrier """
         if fc.carrier_id == 0: return
 
-        in_system:bool = not RavenColonial(self).colonisation or \
-            fc.overview.get('currentStarSystem') == RavenColonial(self).colonisation.current_system
+        in_system:bool = not self.bgstally.colonisation or \
+            fc.overview.get('currentStarSystem') == self.bgstally.colonisation.current_system
         cooldown:int = SPANSH_LOCAL_COOLDOWN if in_system else SPANSH_REMOTE_COOLDOWN
         if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - cooldown: return
         self.carrier_cache[fc.carrier_id] = int(time.time())
 
         url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
-        RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._fleetcarrier_callback, fc))
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._fleetcarrier_callback, fc))
 
     @catch_exceptions
     def _fleetcarrier_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
@@ -1181,7 +1181,7 @@ class Spansh:
         if success == False: return
 
         fc.merge(self._normalize_market(response.json().get('record', {})), spansh=True)
-        ui = RavenColonial(self).bgstally.ui
+        ui = self.bgstally.ui
         if ui.frame is not None:
             ui.frame.after(0, partial(ui.window_fc.update_carrier_display, fc))
 
@@ -1190,14 +1190,14 @@ class Spansh:
         """ Synchronously fetch a market snapshot from Spansh, normalized for FleetCarrier.merge() """
         if fc.carrier_id == 0: return None
 
-        in_system:bool = fc.overview.get('currentStarSystem') == RavenColonial(self).colonisation.current_system
+        in_system:bool = fc.overview.get('currentStarSystem') == self.bgstally.colonisation.current_system
         cooldown:int = SPANSH_LOCAL_COOLDOWN if in_system else SPANSH_REMOTE_COOLDOWN
         if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - cooldown: return None
         self.carrier_cache[fc.carrier_id] = int(time.time())
 
         url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
         try:
-            response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
+            response:Response = requests.get(url, headers=RavenColonial(self.bgstally.colonisation).base_headers, timeout=TIMEOUT)
             if response.status_code != 200: return None
         except requests.exceptions.ReadTimeout as e:
             plug.show_error(_("{plugin_name} Error: Timeout fetching carrier market from Spansh.").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
@@ -1226,7 +1226,7 @@ class Spansh:
             }
 
         return {
-            'timestamp': RavenColonial(self)._parse_time(record.get('market_updated_at')),
+            'timestamp': RavenColonial(self.bgstally.colonisation)._parse_time(record.get('market_updated_at')),
             'overview': {
                 'callsign': record.get('name'),
                 'name': record.get('carrier_name'),
@@ -1237,7 +1237,7 @@ class Spansh:
 
     def _resolve_commodity(self, name:str) -> str:
         """ Resolve a Spansh commodity display name (e.g. "Agri-Medicines") to our internal symbol """
-        commodities:dict = RavenColonial(self).bgstally.ui.commodities
+        commodities:dict = self.bgstally.ui.commodities
         symbol:str|None = next((s for s, c in commodities.items() if c.get('Name', '').lower() == name.lower()), None)
         return symbol or re.sub(r'[^a-z0-9]', '', name.lower())
 
@@ -1245,7 +1245,7 @@ class Spansh:
     def find_carrier(self, callsign:str) -> int|None:
         """ Resolve a carrier's callsign to its market id """
         url:str = f"{SPANSH_API}/search?q={quote(callsign)}"
-        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
+        response:Response = requests.get(url, headers=RavenColonial(self.bgstally.colonisation).base_headers, timeout=TIMEOUT)
         if response.status_code != 200:
             return None
 
@@ -1258,7 +1258,7 @@ class Spansh:
     @catch_exceptions
     def _get_by_name(self, system_name:str) -> dict|None: # UNUSED
         """ Retrieve the system address from Spansh """
-        system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
+        system:dict|None = self.bgstally.colonisation.find_system({'StarSystem': system_name})
         if system == None:
             Debug.logger.info(f"Unknown system {system_name}")
             return
@@ -1267,7 +1267,7 @@ class Spansh:
             return system.get('SystemAddress', None)
 
         url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
-        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
+        response:Response = requests.get(url, headers=RavenColonial(self.bgstally.colonisation).base_headers, timeout=TIMEOUT)
         if response.status_code != 200:
             Debug.logger.error(f"Query system response for {system_name}: {response.status_code}")
             return None
@@ -1284,9 +1284,9 @@ class Spansh:
             return
 
         # Check when we last updated this system
-        if not hasattr(RavenColonial(self), '_initialized'): return
+        if not hasattr(RavenColonial._instance, '_initialized'): return
 
-        system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
+        system:dict|None = self.bgstally.colonisation.find_system({'StarSystem': system_name})
         if system == None:
             Debug.logger.info(f"Unknown system {system_name}")
             return
@@ -1305,12 +1305,12 @@ class Spansh:
         # Do it the efficient way since we have the address
         if system.get('SystemAddress', None) != None:
             url:str = f"{SPANSH_API}/system/{system.get('SystemAddress', None)}"
-            RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
+            self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
             return
 
         url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
-        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
-        RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
+        #response:Response = requests.get(url, headers=RavenColonial(self.bgstally.colonisation).base_headers, timeout=TIMEOUT)
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
 
 
     @catch_exceptions
@@ -1356,7 +1356,7 @@ class Spansh:
         update['SystemAddress'] = data.get('id64', None)
         update['SpanshUpdated'] = int(time.time())
 
-        RavenColonial(self).colonisation.modify_system(system, update)
+        self.bgstally.colonisation.modify_system(system, update)
 
 
     @catch_exceptions
@@ -1379,13 +1379,13 @@ class Spansh:
             market_id:int = base.get('market_id', 0)
             state:BuildState = BuildState.PROGRESS if 'Construction Site' in name else BuildState.COMPLETE
 
-            if RavenColonial(self).colonisation.find_build(system, {'MarketID': market_id, 'Name': name}) != None:
+            if self.bgstally.colonisation.find_build(system, {'MarketID': market_id, 'Name': name}) != None:
                 Debug.logger.debug(f"Build {name} already exists in system {data.get('name')}, skipping")
                 continue
 
             # Look for a completed base with the same name since depots sometimes hang around.
             if 'Construction Site' in base.get('name', '') and \
-                RavenColonial(self).colonisation.find_build(system, {'Name': re.sub(r".* Construction Site: ", "", base.get('name'))}) != None:
+                self.bgstally.colonisation.find_build(system, {'Name': re.sub(r".* Construction Site: ", "", base.get('name'))}) != None:
                     Debug.logger.debug(f"Skipping construction site {base.get('name')}")
                     continue
 
@@ -1396,8 +1396,8 @@ class Spansh:
                 'Name': name,
                 'MarketID': market_id
                 }
-            Debug.logger.debug(f"Adding station base.get('name', '') to system {data.get('name')} {build}")
-            RavenColonial(self).colonisation.add_build(system, build)
+            Debug.logger.debug(f"Adding station {base.get('name', '')} to system {data.get('name')} {build}")
+            self.bgstally.colonisation.add_build(system, build)
 
 
     @catch_exceptions
@@ -1418,4 +1418,4 @@ class Spansh:
             bodies.append(v)
 
         if bodies != []:
-            RavenColonial(self).colonisation.modify_system(system, {'Bodies': bodies})
+            self.bgstally.colonisation.modify_system(system, {'Bodies': bodies})

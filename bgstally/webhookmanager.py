@@ -60,7 +60,7 @@ class WebhookManager:
             return
 
         for webhook in data:
-            if len(webhook) == 9:
+            if len(webhook) == 10:
                 self.data['webhooks'].append({
                     'uuid': webhook[0] if webhook[0] is not None and webhook[0] != "" else token_hex(9),
                     'name': webhook[1],
@@ -70,7 +70,8 @@ class WebhookManager:
                     DiscordChannel.FLEETCARRIER_MATERIALS: webhook[5],
                     DiscordChannel.FLEETCARRIER_OPERATIONS: webhook[6],
                     DiscordChannel.CMDR_INFORMATION: webhook[7],
-                    DiscordChannel.POWERPLAY: webhook[8]
+                    DiscordChannel.POWERPLAY: webhook[8],
+                    DiscordChannel.SQUADRON_OPERATIONS: webhook[9]
                 })
 
         self.save()
@@ -119,10 +120,11 @@ class WebhookManager:
                     webhook.get(DiscordChannel.FLEETCARRIER_MATERIALS, False),
                     webhook.get(DiscordChannel.FLEETCARRIER_OPERATIONS, False),
                     webhook.get(DiscordChannel.CMDR_INFORMATION, False),
-                    webhook.get(DiscordChannel.POWERPLAY, False)
+                    webhook.get(DiscordChannel.POWERPLAY, False),
+                    webhook.get(DiscordChannel.SQUADRON_OPERATIONS, False)
                 ])
 
-        return result or [[token_hex(9), "Dummy", "<url>", False, False, False, False, False, False]]
+        return result or [[token_hex(9), "Dummy", "<url>", False, False, False, False, False, False, False]]
 
 
     def _as_dict(self) -> dict:

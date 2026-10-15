@@ -525,7 +525,7 @@ class UI:
                 (ShipState.IN_DANGER not in state.ship_state))
             #Debug.logger.debug(f"{self.bgstally.state.enable_overlay_carrier} {show_carrier_overlay} {state.vehicle} {state.ui_state} {(ShipState.HARDPOINTS_DEPLOYED not in state.ship_state)}")
             if self.bgstally.state.enable_overlay_carrier and show_carrier_overlay:
-                carrier_text:str = self.bgstally.fleet_carrier.update_overlay()
+                carrier_text:str = self.bgstally.fleet_carriers.overlay_text()
                 if carrier_text != "":
                     self.bgstally.overlay.display_message("fleetcarrier", carrier_text, fit_to_text=True, ttl_override=3)
 

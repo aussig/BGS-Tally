@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Callable
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
-from bgstally.constants import FOLDER_CARRIERS, FOLDER_OTHER_DATA, FleetCarrierType
+from bgstally.constants import FOLDER_CARRIERS, FOLDER_OTHER_DATA, FleetCarrierJump, FleetCarrierType
 from bgstally.fleetcarrier import FleetCarrier
 from bgstally.ravencolonial import Spansh
 from bgstally.utils import catch_exceptions
@@ -41,6 +41,13 @@ class FleetCarriers:
     def squadron(self) -> FleetCarrier|None:
         """ Our squadron's carrier, if we've seen one """
         return next(iter(self.by_type(FleetCarrierType.SQUADRON)), None)
+
+
+    def overlay_text(self) -> str:
+        """ Overlay message for whichever carrier is mid-jump or cooling down, personal first, else the personal route hint """
+        texts:list = [(c, c.update_overlay()) for c in [self.personal, self.squadron] if c is not None]
+        busy:str = next((t for c, t in texts if t and c.jump_state != FleetCarrierJump.Idle), "")
+        return busy or next((t for _c, t in texts if t), "")
 
 
     @property

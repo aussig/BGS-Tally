@@ -32,7 +32,7 @@ RC_STALE_VS_MARKET_GAP = 1800 # If market_time outpaces an RC-sourced cargo_time
 RC_MAX_AGE = 6 * 3600 # RC cargo last refreshed from CAPI longer ago than this is ignored
 MARKET_EMBED_MAX = 4000 # Embed description limit less headroom for the closing fence
 MARKET_REPOST = 24 * 3600 # Age after which the FC-mats post is deleted and recreated, as edits never refresh its date
-MARKET_DEBOUNCE = 60 # Seconds of market quiet before editing the FC-mats post
+MARKET_DEBOUNCE = 30 # Seconds of market quiet before editing the FC-mats post
 # Discord table columns per tab: (item key, title, width, alignment)
 DISCORD_COLS = {
     'Cargo': [('locName', 'Commodity', 20, Alignment.LEFT), ('category', 'Category', 14, Alignment.LEFT), ('stock', 'Stock', 6, Alignment.RIGHT),
@@ -547,6 +547,7 @@ class FleetCarrier:
         sell_key:str = "sell" if which == 'Cargo' else "stock"
         buy_key:str = "buy" if which == 'Cargo' else "outstanding"
         body:list = []
+
         for item in data.get('inventory', {}).values():
             if type == 'Selling' and (item.get('price', 0) == 0 or item.get(sell_key, 0) == 0): continue
             if type == 'Buying' and item.get(buy_key, 0) == 0: continue
@@ -561,16 +562,17 @@ class FleetCarrier:
                     case "buy" if item.get("price", 0) > 0 and item.get(buy_key, 0) > 0: val = item.get(buy_key)
                     case "sell" if item.get("price", 0) > 0 and item.get(sell_key, 0) > 0: val = item.get(sell_key)
                     case _: val = item.get(f, " ")
-                row.append(str_truncate(__(hfplus(val), lang=l), width)) # LANG: Ignore
+                row.append(str_truncate(hfplus(val), width)) # LANG: Ignore
             body.append(row)
 
         if not body: return ""
 
         header:list = [str_truncate(__(title, lang=l), width) for _f, title, width, _align in cols] # LANG: Ignore
+        totals:list = [__('Total', lang=l)] + [hfplus(sum(int(row[i]) for row in body if row[i].isdigit())) for i in range(1, len(cols))] # LANG: Discord post
         widths:list = [c[2] + 2 for c in cols]
         aligns:list = [c[3] for c in cols]
         style:TableStyle = TableStyle.from_string("      || -||            --  --")
-        table:str = table2ascii(header=header, body=body, column_widths=widths, alignments=aligns, style=style)
+        table:str = table2ascii(header=header, body=body, footer=totals, column_widths=widths, alignments=aligns, style=style)
         return "```\n" + "\n".join(line[2:-2] for line in table.splitlines()) + "\n```" # table2ascii pads both edges
 
 

@@ -666,9 +666,8 @@ class ProgressWindow:
 
         self.mkts_order:list[str] = [c.comm for c in comms]
         self.mkts_rows:dict = {}
-        for c in comms:
-            Spansh(self.bgstally).find_markets(c.comm, sys, c.purchase,
-                                               lambda symbol, rows: frame.after(0, partial(self._show_markets, symbol, rows)))
+        Spansh(self.bgstally).find_markets({c.comm: c.purchase for c in comms}, sys,
+                                           lambda symbol, rows:frame.after(0, partial(self._show_markets, symbol, rows)))
 
 
     @catch_exceptions

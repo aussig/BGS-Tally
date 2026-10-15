@@ -688,6 +688,13 @@ class ProgressWindow:
                                    f"{int(r['supply']):,}", r['updated'].replace('T', ' ')[0:16]] for r in rows] \
                                  or [[name, category, _('None found')] + [''] * 7] # LANG: No market found for a commodity
 
+        # Clear repeats.
+        if len(self.mkts_rows[symbol]) > 1:
+            self.mkts_rows[symbol][1][0]= ''
+            self.mkts_rows[symbol][1][1]= ''
+            if self.mkts_rows[symbol][0][2] == self.mkts_rows[symbol][1][2]:
+                self.mkts_rows[symbol][1][2]= ''
+
         data:list = [row for k in self.mkts_order for row in self.mkts_rows.get(k, [])]
         sheet:Sheet = self.mkts_sheet
         sheet.set_sheet_data(data, reset_col_positions=False, reset_highlights=True, redraw=False)

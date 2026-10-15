@@ -547,6 +547,7 @@ class FleetCarrier:
         sell_key:str = "sell" if which == 'Cargo' else "stock"
         buy_key:str = "buy" if which == 'Cargo' else "outstanding"
         body:list = []
+        tot:dict = {}
 
         for item in data.get('inventory', {}).values():
             if type == 'Selling' and (item.get('price', 0) == 0 or item.get(sell_key, 0) == 0): continue
@@ -562,13 +563,14 @@ class FleetCarrier:
                     case "buy" if item.get("price", 0) > 0 and item.get(buy_key, 0) > 0: val = item.get(buy_key)
                     case "sell" if item.get("price", 0) > 0 and item.get(sell_key, 0) > 0: val = item.get(sell_key)
                     case _: val = item.get(f, " ")
+                if f in ('stock', 'buy', 'sell') and isinstance(val, int): tot[f] = tot.get(f, 0) + val
                 row.append(str_truncate(hfplus(val), width)) # LANG: Ignore
             body.append(row)
 
         if not body: return ""
 
         header:list = [str_truncate(__(title, lang=l), width) for _f, title, width, _align in cols] # LANG: Ignore
-        totals:list = [__('Total', lang=l)] + [hfplus(sum(int(row[i]) for row in body if row[i].isdigit())) for i in range(1, len(cols))] # LANG: Discord post
+        totals:list = [str_truncate(__('Total', lang=l) if i == 0 else hfplus(tot.get(f, 0)), width) for i, (f, _t, width, _a) in enumerate(cols)] # LANG: Discord post
         widths:list = [c[2] + 2 for c in cols]
         aligns:list = [c[3] for c in cols]
         style:TableStyle = TableStyle.from_string(TABLE_STYLE)

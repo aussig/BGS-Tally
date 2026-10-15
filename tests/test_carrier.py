@@ -1362,5 +1362,9 @@ class TestDiscordUpdates:
         assert "Buying" in lines[-6]
         assert "Buying" not in fc.get_text('Cargo', 'Selling', True)
         assert "Stock" in fc.get_text('Cargo', 'All', True)
+        fc.cargo['normal']['steel'] = {'locName': 'Steel', 'category': 'Metals', 'cargo': 4581, 'sell': 4581, 'buy': 0, 'price': 4179}
+        total:str = fc.get_text('Cargo', 'Both', True).splitlines()[-2]
+        assert "Total" in total and "5,580" in total and "1,000" not in total
+
         embed:list = fc._table('Cargo', 'Both', True, True).splitlines()
         assert "Category" not in embed[1] and "Commodity" in embed[1]

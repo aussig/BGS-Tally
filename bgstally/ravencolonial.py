@@ -1,6 +1,4 @@
-import csv
 from datetime import datetime, timezone
-from os import path
 from urllib.parse import quote
 import re
 import time
@@ -11,7 +9,7 @@ from typing import TYPE_CHECKING, Callable
 
 import plug #type: ignore
 
-from bgstally.constants import FOLDER_DATA, RequestMethod, BuildState, FleetCarrierType
+from bgstally.constants import RequestMethod, BuildState, FleetCarrierType
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
 from bgstally.utils import _, get_by_path, catch_exceptions
@@ -1046,7 +1044,6 @@ class Spansh:
         if not hasattr(self, '_initialized'):
             self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
             self.carrier_cache:dict = {} # marketId -> last query time, for import_fleetcarrier()'s cooldown
-            self.english_names:dict|None = None # Commodity symbol -> English name, loaded on first market search
             self._initialized = True
         self.bgstally:BGSTally = bgstally
         self.body_details = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', \
@@ -1064,11 +1061,7 @@ class Spansh:
     @catch_exceptions
     def find_markets(self, symbol:str, system:str, minimum:int, callback:Callable[[str, list], object]) -> None:
         """ Search for the nearest markets with a commodity in stock, calling back with a list of station rows """
-        if self.english_names is None: # Spansh matches English names but ui.commodities is localised
-            with open(path.join(self.bgstally.plugin_dir, FOLDER_DATA, "commodity.csv"), encoding='utf-8') as f:
-                self.english_names = {r['symbol'].lower(): r['name'] for r in csv.DictReader(f)}
-
-        name:str|None = self.english_names.get(symbol)
+        name:str|None = self.bgstally.ui.commodities.get(symbol, {}).get('EnglishName')
         if name is None:
             callback(symbol, [])
             return

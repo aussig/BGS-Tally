@@ -318,22 +318,26 @@ class UI:
     def _load_commodities(self):
         """
         Load the commodity and rare_commodity CSV files containing full list of commodities. We build a dict where the key is the commodity
-        internal name from the 'symbol' column in the CSV, lowercased, and the value is a dict containing the other fields (ID, Category, Name)
-        where Name is localised.
+        internal name from the 'symbol' column in the CSV, lowercased, and the value is a dict containing the other fields (ID, Category, Name) where Name is localised.
 
-        The CSV files are sourced from the EDCD FDevIDs project https://github.com/EDCD/FDevIDs and should be updated occasionally, along with the
-        localised versions in the L10n folder. Note that commodity.csv has an extra column 'InaraID' which we maintain.
+        The CSV files are sourced from the EDCD FDevIDs project https://github.com/EDCD/FDevIDs and should be updated occasionally, along with the localised versions in the L10n folder. Note that commodity.csv has an extra column 'InaraID' which we maintain.
         """
         self.commodities = {}
         filepath: str|None = get_localised_filepath(FILENAME_COMMODITIES_CSV, path.join(self.bgstally.plugin_dir, FOLDER_DATA))
         if filepath is None: return
 
         try:
+            # Spansh only uses English names for commodities so we need that regardless of the localisation
+            with open(path.join(self.bgstally.plugin_dir, FOLDER_DATA, FILENAME_COMMODITIES_CSV), encoding = 'utf-8') as csv_file_handler:
+                english:dict = {rows.get('symbol', "").lower(): rows.get('name', "") for rows in csv.DictReader(csv_file_handler)}
+
             with open(filepath, encoding = 'utf-8') as csv_file_handler:
                 csv_reader = csv.DictReader(csv_file_handler)
 
                 for rows in csv_reader:
-                    self.commodities[rows.get('symbol', "").lower()] = {'ID': rows.get('id', ""), 'InaraID': rows.get('inara_id', ""), 'Category': rows.get('category', ""), 'Name': rows.get('name', "")}
+                    symbol:str = rows.get('symbol', "").lower()
+                    self.commodities[symbol] = {'ID': rows.get('id', ""), 'InaraID': rows.get('inara_id', ""),
+                                                'Category': rows.get('category', ""), 'Name': rows.get('name', ""), 'EnglishName': english.get(symbol, rows.get('name', ""))}
         except Exception as e:
                 Debug.logger.error(f"Unable to load {filepath}")
 

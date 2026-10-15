@@ -596,7 +596,7 @@ class TestSpanshMarkets:
             callback(True, response, None)
             found['payload'] = payload
 
-        with patch.object(harness.plugin.request_manager, 'queue_request', side_effect=fake_queue), patch('bgstally.ravencolonial.FOLDER_DATA', '../data'):
+        with patch.object(harness.plugin.request_manager, 'queue_request', side_effect=fake_queue):
             Spansh(harness.plugin).find_markets('agriculturalmedicines', 'Sol', 100, lambda s, rows: found.update({s: rows}))
 
         assert found['payload']['filters']['market'][0]['name'] == 'Agri-Medicines'

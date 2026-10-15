@@ -4,6 +4,7 @@ Test suite for carrier module of BGS-Tally.
 
 import pytest # type: ignore
 import shutil
+import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 from time import sleep
@@ -336,6 +337,19 @@ class TestCarrierUIDataMethods:
         assert 'overview' in itinerary
         assert 'route' in itinerary
         assert 'completed' in itinerary
+
+    def test_itinerary_unknown_tritium(self, harness) -> None:
+        """ Test route tritium columns show Unknown rather than crash when tritium is unknown """
+        from bgstally.utils import hfplus
+        fc = harness.plugin.fleet_carrier
+        fc.overview = {'currentStarSystem': 'Sol', 'fuel': 1000}
+        fc.cargo = {'normal': {'tritium': {'cargo': None}}}
+        fc.route = [{'name': 'Alpha Centauri', 'distance': 4.37, 'distance_to_destination': 0, 'fuel_used': 100}]
+
+        itinerary = fc.get_itinerary()
+        assert hfplus(itinerary['route'][0]['tritium']) == 'Unknown'
+        assert hfplus(itinerary['route'][0]['refuel']) == 'Unknown'
+        assert hfplus(itinerary['overview']['Tritium']) == 'Unknown'
 
     def test_get_shipyard(self, harness) -> None:
         """ Test get_shipyard() method """
@@ -1196,3 +1210,161 @@ class TestRavenColonialPush:
             fc.market({'MarketID': 3709409280})
 
         mock_push.assert_called_once()
+
+
+class TestDiscordUpdates:
+    """ Test fleet carrier Discord posts are edited in place rather than re-posted """
+
+    HOOK:dict = {'uuid': 'u1', 'name': 'x', 'url': 'https://discord.com/api/webhooks/1/abc', 'FC-ops': True, 'FC-mats': True}
+
+    def _fc(self, harness):
+        from bgstally.constants import FleetCarrierType
+        harness.plugin.webhook_manager.data['webhooks'] = [dict(self.HOOK)]
+        harness.plugin.state.DiscordUsername.set('tester')
+        fc = harness.plugin.fleet_carriers.get(3700005632, FleetCarrierType.PERSONAL, 'AAA-111')
+        fc.discord_jump = {}
+        fc.discord_market = {}
+        return fc
+
+    def test_jump_state_edits_post(self, harness) -> None:
+        """ Test a second jump state PATCHes the first post's message """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+        fc.discord_jump = {'from': 'A', 'to': 'B', 'body': 'B 1', 'departure': 1, 'hooks': {}}
+
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_jump("Scheduled")
+            assert mock_queue.call_args.args[1] == RequestMethod.POST
+            fc._jump_posted('FC-ops', dict(self.HOOK), '123')
+            fc._post_jump("Cancelled")
+
+        assert mock_queue.call_args.args[0].endswith('/messages/123')
+        assert mock_queue.call_args.args[1] == RequestMethod.PATCH
+
+    def test_load_wipes_unknown_cargo(self, harness) -> None:
+        """ Test cargo of unknown age is cleared on load but known-age cargo is kept """
+        fc = self._fc(harness)
+        cargo:dict = {'normal': {'tritium': {'cargo': 5, 'sell': 0, 'buy': 0, 'price': 0}}}
+
+        fc._from_dict({'cargo': {'normal': {'tritium': dict(cargo['normal']['tritium'])}}, 'cargo_tier': 'Unknown', 'cargo_time': 0})
+        assert fc.cargo['normal']['tritium']['cargo'] is None
+
+        fc._from_dict({'cargo': cargo, 'cargo_tier': 'RC', 'cargo_time': 100})
+        assert fc.cargo['normal']['tritium']['cargo'] == 5
+
+    def test_overlay_personal_first(self, harness) -> None:
+        """ Test the overlay shows a busy carrier over a route hint, personal before squadron """
+        from bgstally.constants import FleetCarrierJump, FleetCarrierType
+        fcs = harness.plugin.fleet_carriers
+        sq = fcs.get(3700009999, FleetCarrierType.SQUADRON, 'SQD-111')
+        with patch.object(fcs.personal, 'update_overlay', return_value="route"), patch.object(sq, 'update_overlay', return_value="sq jump"):
+            sq.jump_state = FleetCarrierJump.Jumping
+            assert fcs.overlay_text() == "sq jump"
+            fcs.personal.jump_state = FleetCarrierJump.Cooldown
+            assert fcs.overlay_text() == "route"
+            sq.jump_state = FleetCarrierJump.Idle
+            fcs.personal.jump_state = FleetCarrierJump.Idle
+            assert fcs.overlay_text() == "route"
+
+    def test_old_rc_cargo_ignored(self, harness) -> None:
+        """ Test RC cargo last refreshed long ago is ignored, but an undated one is taken """
+        fc = self._fc(harness)
+        rc:dict = {'timestamp': int(time.time()) - 86400, 'overview': {}, 'cargo': {'tritium': {'cargo': 5}}}
+        assert fc.merge(rc) is False
+        assert 'tritium' not in fc.cargo['normal']
+
+        rc['timestamp'] = 0
+        assert fc.merge(rc) is True
+        assert fc.cargo['normal']['tritium']['cargo'] == 5
+
+    def test_old_market_reposted(self, harness) -> None:
+        """ Test an old market post is deleted then recreated, not edited """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+        fc.discord_market = {'u1': {**self.HOOK, 'FC-mats': '100'}}
+
+        with patch.object(fc, '_table', return_value="```\nrow\n```"), \
+             patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_market()
+
+        assert [c.args[1] for c in mock_queue.call_args_list] == [RequestMethod.DELETE, RequestMethod.POST]
+
+    def test_stale_location_ignored(self, harness) -> None:
+        """ Test an older RC/Spansh snapshot can't revert a location the journal told us """
+        fc = self._fc(harness)
+        fc.overview['currentStarSystem'] = 'Jotunheim'
+        fc.carrier_id = fc.overview['carrier_id'] = 3700005632
+
+        with patch('bgstally.fleetcarrier.Spansh'):
+            fc.carrier_location({'CarrierID': 3700005632, 'StarSystem': 'Caspatsuria', 'Body': 'Caspatsuria 1'})
+        assert fc.overview['currentStarSystem'] == 'Caspatsuria'
+
+        fc.merge({'timestamp': int(time.time()) - 86400, 'overview': {'currentStarSystem': 'Jotunheim'}, 'cargo': {}}, spansh=True)
+        assert fc.overview['currentStarSystem'] == 'Caspatsuria'
+
+        fc.merge({'timestamp': int(time.time()) + 60, 'overview': {'currentStarSystem': 'Sol'}, 'cargo': {}}, spansh=True)
+        assert fc.overview['currentStarSystem'] == 'Sol'
+
+    def test_squadron_jump_posts(self, harness) -> None:
+        """ Test a squadron carrier jump posts to SQ-ops, and a third-party one posts nowhere """
+        from bgstally.constants import FleetCarrierType
+        fc = self._fc(harness)
+        harness.plugin.webhook_manager.data['webhooks'] = [{**self.HOOK, 'SQ-ops': True, 'FC-ops': False}]
+        jump:dict = {'from': 'A', 'to': 'B', 'body': 'B 1', 'departure': 1, 'hooks': {}}
+
+        sq = harness.plugin.fleet_carriers.get(3700009999, FleetCarrierType.SQUADRON, 'SQD-111')
+        sq.discord_jump = dict(jump)
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            sq._post_jump("Scheduled")
+            assert mock_queue.call_count == 1
+            fc.discord_jump = dict(jump)
+            fc._post_jump("Scheduled")
+            assert mock_queue.call_count == 1
+
+    def test_market_embed_edits(self, harness) -> None:
+        """ Test the market embed is posted then edited in place """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+
+        with patch.object(fc, '_table', return_value="```\nrow\n```"), \
+             patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_market()
+            assert mock_queue.call_args.args[1] == RequestMethod.POST
+            fresh:str = str((int(time.time() * 1000) - 1420070400000) << 22)
+            fc._market_posted('FC-mats', dict(self.HOOK), fresh)
+            fc._post_market()
+
+        assert mock_queue.call_args.args[0].endswith(f'/messages/{fresh}')
+        assert mock_queue.call_args.args[1] == RequestMethod.PATCH
+        assert mock_queue.call_args.kwargs['payload']['embeds'][0]['description'] == "```\nrow\n```"
+
+    def test_market_empty_deletes_post(self, harness) -> None:
+        """ Test the market post is deleted when there is nothing to buy or sell """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+        fc.discord_market = {'u1': {**self.HOOK, 'FC-mats': '100'}}
+
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_market()
+
+        assert mock_queue.call_args.args[1] == RequestMethod.DELETE
+
+    def test_market_text_table(self, harness) -> None:
+        """ Test the Discord market text is a table, or empty with no orders """
+        fc = self._fc(harness)
+        assert fc.get_text('Cargo', 'Both', True) == ""
+
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1000}
+        lines:list = fc.get_text('Cargo', 'Both', True).splitlines()
+        assert lines[-1] == "```" and "Commodity" in lines[-6] and "Tritium" in lines[-4] and "Total" in lines[-2]
+        assert set(lines[-5]) <= set("-|")
+        assert "Stock" not in lines[-6] and "Selling" in lines[-6]
+        assert "Buying" in lines[-6]
+        assert "Buying" not in fc.get_text('Cargo', 'Selling', True)
+        assert "Stock" in fc.get_text('Cargo', 'All', True)
+        fc.cargo['normal']['steel'] = {'locName': 'Steel', 'category': 'Metals', 'cargo': 4581, 'sell': 4581, 'buy': 0, 'price': 4179}
+        total:str = fc.get_text('Cargo', 'Both', True).splitlines()[-2]
+        assert "Total" in total and "5,580" in total and "1,000" not in total
+
+        embed:list = fc._table('Cargo', 'Both', True, True).splitlines()
+        assert "Category" not in embed[1] and "Commodity" in embed[1]

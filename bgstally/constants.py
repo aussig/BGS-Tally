@@ -247,3 +247,4 @@ else:
 COLOUR_HEADING_1: str = "#A300A3"
 COLOUR_WARNING: str = "#F00"
 TAG_OVERLAY_HIGHLIGHT: str = "<H>"
+TABLE_STYLE: str = "      || ---            --  --" # table2ascii style string, header rule wins over column bars

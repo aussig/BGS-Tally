@@ -1356,10 +1356,10 @@ class TestDiscordUpdates:
 
         fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1000}
         lines:list = fc.get_text('Cargo', 'Both', True).splitlines()
-        assert lines[-1] == "```" and "Commodity" in lines[-4] and "Tritium" in lines[-2]
-        assert set(lines[-3]) <= set("-|")
-        assert "Stock" not in lines[-4] and "Selling" in lines[-4]
-        assert "Buying" in lines[-4]
+        assert lines[-1] == "```" and "Commodity" in lines[-6] and "Tritium" in lines[-4] and "Total" in lines[-2]
+        assert set(lines[-5]) <= set("-|")
+        assert "Stock" not in lines[-6] and "Selling" in lines[-6]
+        assert "Buying" in lines[-6]
         assert "Buying" not in fc.get_text('Cargo', 'Selling', True)
         assert "Stock" in fc.get_text('Cargo', 'All', True)
         embed:list = fc._table('Cargo', 'Both', True, True).splitlines()

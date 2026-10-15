@@ -15,7 +15,7 @@ from edmc_data import ship_name_map # type: ignore
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
-from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_CARRIERS, FOLDER_OTHER_DATA, TAG_OVERLAY_HIGHLIGHT, DataTier, DiscordChannel,
+from bgstally.constants import (DATETIME_FORMAT_JSON, FOLDER_CARRIERS, FOLDER_OTHER_DATA, TABLE_STYLE, TAG_OVERLAY_HIGHLIGHT, DataTier, DiscordChannel,
                                 FleetCarrierJump, FleetCarrierType)
 from bgstally.debug import Debug
 from bgstally.ravencolonial import RavenColonial, Spansh
@@ -571,7 +571,7 @@ class FleetCarrier:
         totals:list = [__('Total', lang=l)] + [hfplus(sum(int(row[i]) for row in body if row[i].isdigit())) for i in range(1, len(cols))] # LANG: Discord post
         widths:list = [c[2] + 2 for c in cols]
         aligns:list = [c[3] for c in cols]
-        style:TableStyle = TableStyle.from_string("      || -||            --  --")
+        style:TableStyle = TableStyle.from_string(TABLE_STYLE)
         table:str = table2ascii(header=header, body=body, footer=totals, column_widths=widths, alignments=aligns, style=style)
         return "```\n" + "\n".join(line[2:-2] for line in table.splitlines()) + "\n```" # table2ascii pads both edges
 

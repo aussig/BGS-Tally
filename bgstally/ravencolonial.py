@@ -1158,8 +1158,8 @@ class Spansh:
                 result_fnc(symbol, best)
                 continue
 
-        self._search(system, name, minimum, SPANSH_MARKET_SIZE, partial(self._markets_callback, (system, symbol, minimum),
-                                                                        name, result_fnc))
+            self._search(system, name, minimum, SPANSH_MARKET_SIZE, partial(self._markets_callback, (system, symbol, minimum),
+                                                                            name, result_fnc))
 
     @catch_exceptions
     def import_fleetcarrier(self, fc:'FleetCarrier') -> None:

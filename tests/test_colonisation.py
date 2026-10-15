@@ -653,11 +653,11 @@ class TestSpanshMarkets:
             response.json.return_value = {'results': stations if isinstance(sent[-1], list) else []}
             callback(True, response, None)
 
-        wanted:dict = {'tritium': 100, 'agriculturalmedicines': 100, 'gold': 100}
+        wanted:dict = {'gold': 100, 'tritium': 100, 'platinum': 100, 'agriculturalmedicines': 100}
         with patch.object(harness.plugin.request_manager, 'queue_request', side_effect=fake_queue), \
              patch('bgstally.ravencolonial.SPANSH_BATCH_SIZE', 6):
             sp.find_markets(wanted, 'Sol', lambda s, rows: found.update({s: rows}))
 
-        assert sent == [['Tritium', 'Agri-Medicines', 'Gold'], 'Gold'] # Gold has no rows in the shared page so is searched alone
+        assert sent == [['Gold', 'Tritium', 'Platinum', 'Agri-Medicines'], 'Gold', 'Platinum'] # No rows in the shared page, so searched alone
         assert [r['station'] for r in found['tritium']] == ['St0']
-        assert found['gold'] == [] and 'agriculturalmedicines' in found
+        assert found['gold'] == [] and found['platinum'] == [] and 'agriculturalmedicines' in found

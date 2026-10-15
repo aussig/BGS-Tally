@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
     from bgstally.fleetcarrier import FleetCarrier
 
-from bgstally.constants import FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CommodityOrder, ProgressUnits, ProgressView
+from bgstally.constants import FONT_SMALL, TABLE_STYLE, TAG_OVERLAY_HIGHLIGHT, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
 from bgstally.ravencolonial import Spansh
 from bgstally.utils import _, catch_exceptions, human_format, str_truncate

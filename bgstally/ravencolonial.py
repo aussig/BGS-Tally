@@ -1,4 +1,6 @@
+import csv
 from datetime import datetime, timezone
+from os import path
 from urllib.parse import quote
 import re
 import time
@@ -9,7 +11,7 @@ from typing import TYPE_CHECKING, Callable
 
 import plug #type: ignore
 
-from bgstally.constants import RequestMethod, BuildState, FleetCarrierType
+from bgstally.constants import FOLDER_DATA, RequestMethod, BuildState, FleetCarrierType
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
 from bgstally.utils import _, get_by_path, catch_exceptions
@@ -32,6 +34,8 @@ SPANSH_API = 'https://spansh.co.uk/api'
 SPANSH_COOLDOWN = (3600 * 24)
 SPANSH_LOCAL_COOLDOWN = (60 * 1)
 SPANSH_REMOTE_COOLDOWN = (60 * 10)
+SPANSH_MARKET_ROWS = 10 # Nearest markets listed per commodity
+SPANSH_MARKET_DAYS = 3 # Ignore markets not updated within this many days
 
 class RavenColonial:
     """
@@ -1042,6 +1046,7 @@ class Spansh:
         if not hasattr(self, '_initialized'):
             self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
             self.carrier_cache:dict = {} # marketId -> last query time, for import_fleetcarrier()'s cooldown
+            self.english_names:dict|None = None # Commodity symbol -> English name, loaded on first market search
             self._initialized = True
         self.bgstally:BGSTally = bgstally
         self.body_details = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', \
@@ -1055,6 +1060,39 @@ class Spansh:
 
     def import_bodies(self, system_name:str) -> None:
         return self._get_details(system_name, 'bodies')
+
+    @catch_exceptions
+    def find_markets(self, symbol:str, system:str, minimum:int, callback:Callable[[str, list], object]) -> None:
+        """ Search for the nearest markets with a commodity in stock, calling back with a list of station rows """
+        if self.english_names is None: # Spansh matches English names but ui.commodities is localised
+            with open(path.join(self.bgstally.plugin_dir, FOLDER_DATA, "commodity.csv"), encoding='utf-8') as f:
+                self.english_names = {r['symbol'].lower(): r['name'] for r in csv.DictReader(f)}
+
+        name:str|None = self.english_names.get(symbol)
+        if name is None:
+            callback(symbol, [])
+            return
+
+        filters:dict = {'market': [{'name': name, 'supply': {'comparison': '<=>', 'value': [max(1, minimum), 1_000_000_000]}}],
+                        'market_updated_at': {'comparison': '<=>', 'value': [f"now-{SPANSH_MARKET_DAYS}d", 'now']}}
+        payload:dict = {'filters': filters, 'reference_system': system, 'size': SPANSH_MARKET_ROWS, 'page': 0,
+                        'sort': [{'distance': {'direction': 'asc'}}]}
+        self.bgstally.request_manager.queue_request(f"{SPANSH_API}/stations/search", RequestMethod.POST, payload=payload, attempts=3,
+                                                    callback=partial(self._markets_callback, symbol, name, callback))
+
+    @catch_exceptions
+    def _markets_callback(self, symbol:str, name:str, callback:Callable[[str, list], object], success:bool, response:Response,
+                          request:BGSTallyRequest) -> None:
+        """ Reduce a Spansh station search to one row per station for the commodity """
+        rows:list = []
+        for s in (response.json().get('results', []) if success and response is not None else []):
+            entry:dict = next((m for m in s.get('market', []) if m.get('commodity') == name), {})
+            rows.append({'system': s.get('system_name', ""), 'station': s.get('name', ""), 'distance': s.get('distance') or 0,
+                         'arrival': s.get('distance_to_arrival'), 'large': bool(s.get('has_large_pad')),
+                         'type': 'S' if s.get('is_planetary') else 'C' if 'carrier' in s.get('type', "").lower() else 'O',
+                         'supply': entry.get('supply', 0), 'updated': s.get('market_updated_at', "")})
+
+        callback(symbol, rows)
 
     @catch_exceptions
     def import_fleetcarrier(self, fc:'FleetCarrier') -> None:

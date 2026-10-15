@@ -572,3 +572,35 @@ class TestColonisationFullBuild:
         assert c.systems[1]['Builds'][0]['MarketID'] == 4351826691
         assert c.systems[1]['Builds'][0]['State'] == BuildState.COMPLETE
         assert c.systems[1]['Builds'][0]['Name'] == 'Citroen Arsenal'
+
+
+class TestSpanshMarkets:
+    """ Tests for the Spansh nearby markets lookup. """
+
+    def test_spansh_market_rows(self, harness) -> None:
+        """ Test a station search is requested for the English name and reduced to rows. """
+        from bgstally.ravencolonial import Spansh
+        found:dict = {}
+        stations:list = [
+            {'system_name': 'Sol', 'name': 'Galileo', 'distance': 0, 'distance_to_arrival': 503.7, 'has_large_pad': True, 'is_planetary': False,
+             'type': 'Ocellus Starport', 'market_updated_at': '2026-10-15T18:04:19Z',
+             'market': [{'commodity': 'Gold', 'supply': 1}, {'commodity': 'Agri-Medicines', 'supply': 900}]},
+            {'system_name': 'Luhman 16', 'name': 'Base', 'distance': 6.5, 'distance_to_arrival': None, 'has_large_pad': False, 'is_planetary': True,
+             'type': 'Planetary Outpost', 'market': [{'commodity': 'Agri-Medicines', 'supply': 5}]},
+            {'system_name': 'Procyon', 'name': 'B0M-08F', 'distance': 11.4, 'has_large_pad': True, 'is_planetary': False,
+             'type': 'Drake-Class Carrier', 'market': [{'commodity': 'Agri-Medicines', 'supply': 7}]}]
+
+        def fake_queue(url, method, callback = None, payload = None, **kwargs):
+            response = MagicMock()
+            response.json.return_value = {'results': stations}
+            callback(True, response, None)
+            found['payload'] = payload
+
+        with patch.object(harness.plugin.request_manager, 'queue_request', side_effect=fake_queue), patch('bgstally.ravencolonial.FOLDER_DATA', '../data'):
+            Spansh(harness.plugin).find_markets('agriculturalmedicines', 'Sol', 100, lambda s, rows: found.update({s: rows}))
+
+        assert found['payload']['filters']['market'][0]['name'] == 'Agri-Medicines'
+        rows:list = found['agriculturalmedicines']
+        assert [(r['station'], r['type'], r['large'], r['supply']) for r in rows] == [
+            ('Galileo', 'O', True, 900), ('Base', 'S', False, 5), ('B0M-08F', 'C', True, 7)]
+        assert rows[1]['arrival'] is None

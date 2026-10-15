@@ -653,7 +653,7 @@ class ProgressWindow:
                         align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                         show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
                         empty_vertical=0, empty_horizontal=0, header_font=header_fnt, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                        show_header=True, default_row_height=int(19*self.scale), table_wrap="w", alternate_color="gray95")
+                        show_header=True, default_row_height=int(19*self.scale), alternate_color="gray95")
         self.mkts_sheet.pack(fill=tk.BOTH, padx=0, pady=0)
         self.mkts_sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize',
                                         'right_click_popup_menu', 'copy', 'sort_rows')
@@ -662,7 +662,7 @@ class ProgressWindow:
         self.mkts_sheet.set_sheet_data([[''] * len(self.markets)], redraw=False) # Columns must exist before they can be sized
         for i, v in enumerate(self.markets.values()):
             self.mkts_sheet.align_columns(i, v.get('align'))
-            self.mkts_sheet.column_width(i, int(v.get('width')*self.scale))
+            self.mkts_sheet.column_width(i, v.get('width', 100))
 
         self.mkts_order:list[str] = [c.comm for c in comms]
         self.mkts_rows:dict = {}
@@ -689,7 +689,8 @@ class ProgressWindow:
         for i, row in enumerate(data):
             sheet[f"G{i+1}"].highlight(bg=self.colors.get(row[6], 'white'))
             sheet[f"H{i+1}"].highlight(bg=self.colors.get(row[7], 'white'))
-        sheet.set_all_row_heights(height=None, only_set_if_too_small=True, redraw=True)
+        sheet.set_all_row_heights(height=int(19*self.scale), redraw=False)
+        sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
     @catch_exceptions

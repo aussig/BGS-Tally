@@ -690,10 +690,11 @@ class ProgressWindow:
 
         # Clear repeats.
         if len(self.mkts_rows[symbol]) > 1:
-            self.mkts_rows[symbol][1][0]= ''
-            self.mkts_rows[symbol][1][1]= ''
-            if self.mkts_rows[symbol][0][2] == self.mkts_rows[symbol][1][2]:
-                self.mkts_rows[symbol][1][2]= ''
+            for i in range(1, len(self.mkts_rows[symbol])):
+                self.mkts_rows[symbol][i][0]= ''
+                self.mkts_rows[symbol][i][1]= ''
+                if self.mkts_rows[symbol][0][2] == self.mkts_rows[symbol][i][2]:
+                    self.mkts_rows[symbol][i][2]= ''
 
         data:list = [row for k in self.mkts_order for row in self.mkts_rows.get(k, [])]
         sheet:Sheet = self.mkts_sheet

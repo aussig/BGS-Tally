@@ -300,7 +300,7 @@ class FleetCarrier:
             {'name': __("From System", lang=l), 'value': j['from'], 'inline': True}, # LANG: Discord heading
             {'name': __("To System", lang=l), 'value': j['to'], 'inline': True}, # LANG: Discord heading
             {'name': __("To Body", lang=l), 'value': j['body'], 'inline': True}, # LANG: Discord heading
-            {'name': time_head, 'value': f"<t:{j['departure']}:R>", 'inline': True},
+            {'name': time_head, 'value': f"<t:{j['departure']}:R>"},
             {'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}, # LANG: Discord heading
             {'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}] # LANG: Discord heading
         title:str = __("Carrier Jump: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title

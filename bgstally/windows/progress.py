@@ -475,7 +475,7 @@ class ProgressWindow:
 
         output += f"{_('Progress')}: {self.progress:.0f}%\n" # LANG: Colonisation Progress
 
-        table:str = "\n- - - - - - - - - - - - - - - - - - - - - -\n"
+        table:str = "\n- - - - - - - - - - - - -\n"
 
         table += f"{self._column_label(1)}\n"
 
@@ -493,7 +493,7 @@ class ProgressWindow:
             table += f"{v} {c}\n"
             rows += 1
 
-        table += "- - - - - - - - - - - - - - - - - - - - - -\n"
+        table += "- - - - - - - - - - - - -\n"
         val:str = self._get_value(self.headings[self.columns[1]].get('Column'), self.units[1], totals, self.column_carriers[1], self.column_carrier_mode[1])
         w:int = 18 - len(val)
         v:str = f"{val: <16}"[0:w] # Adjust for proportional font

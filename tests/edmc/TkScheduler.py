@@ -108,9 +108,13 @@ class HarnessTkScheduler:
 
         self._installed = False
 
-    def pending_count(self) -> int:
+    def pending_count(self, within:float|None = None) -> int:
+        """Queued callbacks, optionally only those due within `within` seconds."""
         with self._lock:
-            return len(self._pending)
+            if within is None: return len(self._pending)
+
+            horizon:float = monotonic() + within
+            return sum(1 for due, *_ in self._pending if due <= horizon)
 
     def drain_due_callbacks(self) -> int:
         """Run all queued callbacks that are due on the main thread."""

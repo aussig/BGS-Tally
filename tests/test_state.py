@@ -2,60 +2,28 @@
 Simple unit tests for state.py.
 """
 import pytest # type: ignore
-from typing import Generator
 from pathlib import Path
 import shutil
 from time import sleep
-from datetime import datetime, UTC
 from unittest.mock import patch
 
-from harness import TestHarness
 from bgstally.constants import CheckStates, DiscordActivity, FavouriteActivity
 from bgstally.state import State
 
 from config import config #type:ignore
 
 @pytest.fixture
-def harness(request) -> Generator:
-    """ Provide a fresh test harness for each test. """
-    live = request.node.get_closest_marker('live_requests') is not None
+def pre_start():
+    """Use the basic config and reset Market.json before the plugin starts."""
+    def init(request, harness) -> None:
+        harness.set_edmc_config('config_basic.toml')
+        Path(Path(__file__).parent / "journal_folder" / "Market.json").unlink(missing_ok=True)
+        market_init_file:str = getattr(request, 'param', 'market_init.json')
+        if market_init_file != 'None':
+            shutil.copy(Path(__file__).parent / "journal_config" / market_init_file,
+                        Path(__file__).parent / "journal_folder" / "Market.json")
 
-    test_harness:TestHarness = TestHarness(live_requests=live)
-    test_harness.set_edmc_config('config_basic.toml')
-
-    import bgstally.constants
-    bgstally.constants.FOLDER_ASSETS = "../assets"
-    bgstally.constants.FOLDER_DATA = "../data"
-
-    # Put in a response for the update manager so it doesn't error
-    if not live:
-        from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get',
-                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
-                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
-                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
-
-    Path(Path(__file__).parent / "journal_folder" / "Market.json").unlink(missing_ok=True)
-    market_init_file:str = getattr(request, 'param', 'market_init.json')
-    if market_init_file != 'None':
-        shutil.copy(Path(__file__).parent / "journal_config" / market_init_file,
-                    Path(__file__).parent / "journal_folder" / "Market.json")
-
-
-    # Now we can start the plugin
-    from load import plugin_start3, plugin_app, journal_entry
-    import bgstally.globals
-    test_harness.plugin = bgstally.globals.this
-
-    plugin_start3(str(test_harness.plugin_dir))
-    plugin_app(test_harness.parent)
-
-    test_harness.load_events("journal_events.json")
-    test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
-
-    yield test_harness
-    test_harness.assert_no_unhandled_exceptions()
-
+    return init
 
 class TestState:
     """Tests for state management."""

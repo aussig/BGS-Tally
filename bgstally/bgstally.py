@@ -200,10 +200,10 @@ class BGSTally:
                 self.fleet_carrier.deposit_fuel(entry)
 
             case 'CarrierJumpCancelled':
-                self.fleet_carrier.jump_cancelled(entry)
+                self._carrier(entry).jump_cancelled(entry)
 
             case 'CarrierJumpRequest':
-                self.fleet_carrier.jump_requested(entry)
+                self._carrier(entry).jump_requested(entry)
 
             case 'CarrierLocation':
                 self._carrier(entry).carrier_location(entry)

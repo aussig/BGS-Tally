@@ -1,51 +1,16 @@
 """Test the tick handling code for BGS-Tally."""
 
 import pytest # type: ignore
-from typing import Generator
 from pathlib import Path
 import shutil
 from time import sleep
 from datetime import datetime, UTC
 from unittest.mock import patch
 
-# Config is already mocked by conftest.py
-from harness import TestHarness
-
 from bgstally.constants import DATETIME_FORMAT_ACTIVITY, DATETIME_FORMAT_TICK_DETECTOR_SYSTEM
 from bgstally.constants import RequestMethod
 from bgstally.tick import URL_GALAXY_TICK_DETECTOR, URL_SYSTEM_TICK_DETECTOR, TICKID_UNKNOWN
 from bgstally.requestmanager import BGSTallyRequest
-
-
-@pytest.fixture
-def harness(request) -> Generator:
-    """Provide a fresh test harness for each test."""
-    live = request.node.get_closest_marker('live_requests') is not None
-
-    test_harness:TestHarness = TestHarness(live_requests=live)
-
-    import bgstally.constants
-    bgstally.constants.FOLDER_ASSETS = "../assets"
-    bgstally.constants.FOLDER_DATA = "../data"
-
-    # Put in a response for the update manager so it doesn't error
-    if not live:
-        from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get',
-                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
-                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
-                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
-
-    # Now we can start the plugin
-    from load import plugin_start3, plugin_app, journal_entry
-    import bgstally.globals
-    test_harness.plugin = bgstally.globals.this
-
-    plugin_start3(str(test_harness.plugin_dir))
-    plugin_app(test_harness.parent)
-
-    yield test_harness
-    test_harness.assert_no_unhandled_exceptions()
 
 
 class TestTick:

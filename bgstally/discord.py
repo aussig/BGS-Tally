@@ -27,7 +27,7 @@ DISCORD_LIMIT_FIELDS: int = 25
 DISCORD_LIMIT_EMBED_FIELD_NAME: int = 256
 DISCORD_LIMIT_EMBED_FIELD_VALUE: int = 1024
 
-URL_CLOCK_IMAGE: str = "https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Fxemoji_u1F556.svg/240px-Fxemoji_u1F556.svg.png"
+URL_CLOCK_IMAGE: str = "https://raw.githubusercontent.com/wiki/aussig/BGS-Tally/images/icon-clock.png"
 URL_GITHUB: str = "https://github.com/aussig/BGS-Tally/wiki"
 URL_LOGO: str = "https://raw.githubusercontent.com/wiki/aussig/BGS-Tally/images/logo-square-white.png"
 

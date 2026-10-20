@@ -1,7 +1,6 @@
 import re
 from glob import glob
 from os import path, remove
-from threading import Thread
 from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
@@ -120,11 +119,8 @@ class FleetCarriers:
 
 
     def refresh_markets(self, system:str, station:str) -> None:
-        """ Refresh each carrier's cargo data, one thread per carrier """
-
-        Thread(target=self.personal.update_carrier, daemon=True, name=f"FC update {self.personal.carrier_id}", args=(system, station)).start()
-        for carrier in self.carriers.values():
-            Thread(target=carrier.update_carrier, daemon=True, name=f"FC update {carrier.carrier_id}", args=(system, station)).start()
+        """ Refresh each carrier's cargo data in the background """
+        for carrier in [self.personal, *self.carriers.values()]: carrier.refresh(system, station)
 
 
     def track_by_callsign(self, callsign:str) -> bool:
@@ -132,7 +128,6 @@ class FleetCarriers:
         market_id:int|None = Spansh(self.bgstally).find_carrier(callsign)
         if market_id is None: return False
 
-        fc:FleetCarrier = self.get(market_id, FleetCarrierType.THIRDPARTY, callsign)
-        Spansh(self.bgstally).import_fleetcarrier(fc)
+        self.get(market_id, FleetCarrierType.THIRDPARTY, callsign).refresh()
 
         return True

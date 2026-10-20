@@ -7,8 +7,6 @@ import requests
 from requests import Response
 from typing import TYPE_CHECKING, Callable
 
-import plug #type: ignore
-
 from bgstally.constants import RequestMethod, BuildState, FleetCarrierType
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
@@ -21,6 +19,7 @@ if TYPE_CHECKING:
 
 RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
 RC_COOLDOWN = 30
+RC_UNLISTED_COOLDOWN = 1800 # How often to recheck RC for a carrier it doesn't list
 TIMEOUT=15
 
 EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
@@ -30,8 +29,6 @@ EDSM_COOLDOWN = (3600 * 24)
 
 SPANSH_API = 'https://spansh.co.uk/api'
 SPANSH_COOLDOWN = (3600 * 24)
-SPANSH_LOCAL_COOLDOWN = (60 * 1)
-SPANSH_REMOTE_COOLDOWN = (60 * 10)
 SPANSH_MARKET_SIZE = 10 # Stations fetched per commodity, enough to rank every station in the nearest system
 SPANSH_MARKET_DAYS = 3 # Ignore markets not updated within this many days
 SPANSH_BATCH_SIZE = 20 # Stations fetched by the shared search for several commodities
@@ -118,7 +115,8 @@ class RavenColonial:
         }
 
         self._cache:dict = {} # Cache of responses and response times used to reduce API calls
-        self._rc_tracked:dict[int, bool] = {} # carrier_id -> whether RC currently has a record for it
+        self._rc_carriers:set = set() # Carriers RC lists, queried on every refresh
+        self._rc_missed:dict = {} # carrier_id -> when RC last said it doesn't list it
         self._initialized = True
 
 
@@ -735,33 +733,35 @@ class RavenColonial:
         Debug.logger.debug(f"RavenColonial carrier update submitted: {response}")
 
 
+    def get_carrier(self, marketid:int, result_fnc:Callable[[dict|None], None]) -> None:
+        """ Queue a fetch of RC's view of a carrier, calling back with it normalized for merge(), or None """
+        # Most carriers aren't on RC, so only recheck those occasionally
+        if marketid not in self._rc_carriers and self._rc_missed.get(marketid, 0) > int(time.time()) - RC_UNLISTED_COOLDOWN:
+            result_fnc(None)
+            return
+
+        url:str = f"{RC_API}/fc/{marketid}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(),
+                                                    callback=partial(self._carrier_get_callback, marketid, result_fnc))
+
+
     @catch_exceptions
-    def get_carrier(self, marketid:int) -> dict|None:
-        """ Synchronously fetch RC's current view of a carrier, normalized for FleetCarrier.merge() """
-        cache_key:str = f'fc_{marketid}'
+    def _carrier_get_callback(self, marketid:int, result_fnc:Callable[[dict|None], None], success:bool, response:Response|None,
+                              request:BGSTallyRequest) -> None:
+        """ Note whether RC lists this carrier, then pass on its normalized record """
+        found:bool = success and response is not None and response.status_code == 200
+        if found: self._rc_carriers.add(marketid)
+        if response is not None and response.status_code == 404:
+            self._rc_carriers.discard(marketid)
+            self._rc_missed[marketid] = int(time.time())
 
-        # If a carrier isn't being tracked we use a much longer cooldown
-        cd:int = RC_COOLDOWN if self._rc_tracked.get(marketid, False) else RC_COOLDOWN * 10
-        if self._cache.get(cache_key, 0) > int(time.time()) - cd: return None
-        self._cache[cache_key] = int(time.time())
+        result_fnc(self._normalize_carrier(response.json()) if found and response is not None else None)
 
-        # A get tells us if this carrier is being tracked by RC and returns current cargo/buy/sell state.
-        try:
-            url:str = f"{RC_API}/fc/{marketid}"
-            response:Response = requests.get(url, headers=self._headers(), timeout=TIMEOUT)
-        except requests.exceptions.ReadTimeout as e:
-            plug.show_error(_("{plugin_name} Error: Timeout fetching Raven Colonial carrier data.").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
-            Debug.logger.debug(f"Timeout error fetching RC carrier {marketid}")
-            return None
-        except requests.RequestException as e:
-            Debug.logger.warning(f"Error fetching RC carrier {marketid}: {e}")
-            return None
 
-        self._rc_tracked[marketid] = response.status_code == 200
-        if response.status_code != 200: return None
-
-        data:dict = response.json()
-        which:str = data.get('name', marketid)
+    @catch_exceptions
+    def _normalize_carrier(self, data:dict) -> dict|None:
+        """ Convert an RC carrier record into FleetCarrier.merge()'s normalized envelope """
+        which:str = str(data.get('name', data.get('marketId')))
         cargo:dict = {comm: {'cargo': qty} for comm, qty in data.get('cargo', {}).items()}
 
         # 'sales'/'purchases' may be entirely absent if whoever last pushed this carrier never populated them
@@ -1048,7 +1048,6 @@ class Spansh:
         # Only initialize if it's the first time
         if not hasattr(self, '_initialized'):
             self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
-            self.carrier_cache:dict = {} # marketId -> last query time, for import_fleetcarrier()'s cooldown
             self.market_cache:dict = {} # (system, commodity, minimum) -> best markets, dropped when the commander leaves the system
             self.market_here:str|None = None # The commander's system when market_cache was filled
             self._initialized = True
@@ -1164,53 +1163,23 @@ class Spansh:
             self._search(system, name, minimum, SPANSH_MARKET_SIZE, partial(self._markets_callback, (system, symbol, minimum),
                                                                             name, result_fnc))
 
-    @catch_exceptions
-    def import_fleetcarrier(self, fc:'FleetCarrier') -> None:
-        """ Retrieve a market snapshot from Spansh for a fleet carrier """
-        if fc.carrier_id == 0: return
-
-        in_system:bool = not self.bgstally.colonisation or \
-            fc.overview.get('currentStarSystem') == self.bgstally.colonisation.current_system
-        cooldown:int = SPANSH_LOCAL_COOLDOWN if in_system else SPANSH_REMOTE_COOLDOWN
-        if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - cooldown: return
-        self.carrier_cache[fc.carrier_id] = int(time.time())
+    def get_market(self, fc:'FleetCarrier', result_fnc:Callable[[dict|None], None]) -> None:
+        """ Queue a fetch of a carrier's Spansh market, calling back with it normalized for merge(), or None """
+        if fc.carrier_id == 0:
+            result_fnc(None)
+            return
 
         url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
-        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._fleetcarrier_callback, fc))
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=RavenColonial(self.bgstally.colonisation).base_headers,
+                                                    callback=partial(self._market_get_callback, result_fnc))
+
 
     @catch_exceptions
-    def _fleetcarrier_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
-        """ Merge newer market data """
-        if success == False: return
+    def _market_get_callback(self, result_fnc:Callable[[dict|None], None], success:bool, response:Response|None,
+                             request:BGSTallyRequest) -> None:
+        """ Pass on the normalized Spansh market, or None if the fetch failed """
+        result_fnc(self._normalize_market(response.json().get('record', {})) if success and response is not None else None)
 
-        fc.merge(self._normalize_market(response.json().get('record', {})), spansh=True)
-        ui = self.bgstally.ui
-        if ui.frame is not None:
-            ui.frame.after(0, partial(ui.window_fc.update_carrier_display, fc))
-
-    @catch_exceptions
-    def get_market(self, fc:'FleetCarrier') -> dict|None:
-        """ Synchronously fetch a market snapshot from Spansh, normalized for FleetCarrier.merge() """
-        if fc.carrier_id == 0: return None
-
-        in_system:bool = fc.overview.get('currentStarSystem') == self.bgstally.colonisation.current_system
-        cooldown:int = SPANSH_LOCAL_COOLDOWN if in_system else SPANSH_REMOTE_COOLDOWN
-        if self.carrier_cache.get(fc.carrier_id, 0) > int(time.time()) - cooldown: return None
-        self.carrier_cache[fc.carrier_id] = int(time.time())
-
-        url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
-        try:
-            response:Response = requests.get(url, headers=RavenColonial(self.bgstally.colonisation).base_headers, timeout=TIMEOUT)
-            if response.status_code != 200: return None
-        except requests.exceptions.ReadTimeout as e:
-            plug.show_error(_("{plugin_name} Error: Timeout fetching carrier market from Spansh.").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window error message
-            Debug.logger.debug(f"Timeout error getting market data from Spansh")
-            return None
-        except Exception as e:
-            Debug.logger.debug(f"Error getting market data from Spansh {e}")
-            return None
-
-        return self._normalize_market(response.json().get('record', {}))
 
     def _normalize_market(self, record:dict) -> dict:
         """ Convert a Spansh station record into FleetCarrier.merge()'s normalized envelope """

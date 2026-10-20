@@ -572,3 +572,92 @@ class TestColonisationFullBuild:
         assert c.systems[1]['Builds'][0]['MarketID'] == 4351826691
         assert c.systems[1]['Builds'][0]['State'] == BuildState.COMPLETE
         assert c.systems[1]['Builds'][0]['Name'] == 'Citroen Arsenal'
+
+
+class TestSpanshMarkets:
+    """ Tests for the Spansh nearby markets lookup. """
+
+    def test_spansh_market_rows(self, harness) -> None:
+        """ Test a station search is requested for the English name and reduced to the best rows. """
+        from bgstally.ravencolonial import Spansh
+        found:dict = {}
+
+        def station(name:str, dist:float, kind:str, supply:int, large:bool = True) -> dict:
+            return {'system_name': name, 'name': name, 'distance': dist, 'distance_to_arrival': 100, 'has_large_pad': large,
+                    'is_planetary': kind == 'S', 'type': 'Drake-Class Carrier' if kind == 'C' else 'Coriolis Starport',
+                    'market': [{'commodity': 'Gold', 'supply': 1}, {'commodity': 'Agri-Medicines', 'supply': supply}]}
+
+        def search(stations:list, minimum:int = 100) -> list:
+            def fake_queue(url, method, callback = None, payload = None, **kwargs):
+                response = MagicMock()
+                response.json.return_value = {'results': stations}
+                found['payload'] = payload
+                callback(True, response, None)
+
+            Spansh(harness.plugin).market_cache.clear()
+            with patch.object(harness.plugin.request_manager, 'queue_request', side_effect=fake_queue):
+                Spansh(harness.plugin).find_markets({'agriculturalmedicines': minimum}, 'Sol', lambda s, rows: found.update({s: rows}))
+            return [r['station'] for r in found['agriculturalmedicines']]
+
+        assert search([station('Surf', 0, 'S', 900), station('Orb', 0, 'O', 900)]) == ['Orb'] # Same system, orbital ranks first
+        assert search([station('Surf', 0, 'S', 900), station('Orb', 5, 'O', 900)]) == ['Surf', 'Orb'] # Better type
+        assert found['payload']['filters']['market'][0]['name'] == 'Agri-Medicines'
+        assert search([station('Orb', 0, 'O', 900), station('Surf', 5, 'S', 900)]) == ['Orb'] # Worse type, not wanted
+        assert search([station('Orb', 0, 'O', 150), station('Orb2', 5, 'O', 900)]) == ['Orb', 'Orb2'] # Meets the quantity
+        assert search([station('Orb', 0, 'O', 900), station('Orb2', 5, 'O', 900)]) == ['Orb'] # Nothing better
+        assert search([station('Surf', 0, 'S', 900), station('Surf2', 5, 'S', 900)]) == ['Surf'] # Surface only, second is farther
+        assert search([station('Orb', 0, 'O', 900, False), station('Orb2', 5, 'O', 900)]) == ['Orb', 'Orb2'] # Large pads
+        assert search([station('Car', 0, 'C', 900), station('Surf', 5, 'S', 900), station('Orb', 9, 'O', 900)]) == ['Car', 'Surf']
+
+    def test_spansh_market_cache(self, harness) -> None:
+        """ Test repeat searches are cached until the commander leaves the system. """
+        from bgstally.ravencolonial import Spansh
+        sp = Spansh(harness.plugin)
+        sp.market_cache.clear()
+        sent:list = []
+
+        def fake_queue(url, method, callback = None, payload = None, **kwargs):
+            sent.append(payload)
+            response = MagicMock()
+            response.json.return_value = {'results': []}
+            callback(True, response, None)
+
+        def search(minimum:int = 100) -> None:
+            with patch.object(harness.plugin.request_manager, 'queue_request', side_effect=fake_queue):
+                sp.find_markets({'agriculturalmedicines': minimum}, 'Sol', lambda s, rows: None)
+
+        harness.plugin.colonisation.current_system = 'Sol'
+        search(); search()
+        assert len(sent) == 1
+        search(200)
+        assert len(sent) == 2 # A different amount needed is a different search
+        harness.plugin.colonisation.current_system = 'Barnard\'s Star'
+        search()
+        assert len(sent) == 3
+
+    def test_spansh_market_batch(self, harness) -> None:
+        """ Test several commodities share one search and only unsettled ones are searched again. """
+        from bgstally.ravencolonial import Spansh
+        sp = Spansh(harness.plugin)
+        sp.market_cache.clear()
+        sent:list = []
+        found:dict = {}
+        stations:list = [{'system_name': f"S{i}", 'name': f"St{i}", 'distance': i, 'distance_to_arrival': 10, 'has_large_pad': False,
+                          'is_planetary': False, 'type': 'Coriolis Starport',
+                          'market': [{'commodity': 'Tritium', 'supply': 1000}, {'commodity': 'Agri-Medicines', 'supply': 1000}]}
+                         for i in range(6)]
+
+        def fake_queue(url, method, callback = None, payload = None, **kwargs):
+            sent.append(payload['filters']['market'][0]['name'])
+            response = MagicMock()
+            response.json.return_value = {'results': stations if isinstance(sent[-1], list) else []}
+            callback(True, response, None)
+
+        wanted:dict = {'gold': 100, 'tritium': 100, 'platinum': 100, 'agriculturalmedicines': 100}
+        with patch.object(harness.plugin.request_manager, 'queue_request', side_effect=fake_queue), \
+             patch('bgstally.ravencolonial.SPANSH_BATCH_SIZE', 6):
+            sp.find_markets(wanted, 'Sol', lambda s, rows: found.update({s: rows}))
+
+        assert sent == [['Gold', 'Tritium', 'Platinum', 'Agri-Medicines'], 'Gold', 'Platinum'] # No rows in the shared page, so searched alone
+        assert [r['station'] for r in found['tritium']] == ['St0']
+        assert found['gold'] == [] and found['platinum'] == [] and 'agriculturalmedicines' in found

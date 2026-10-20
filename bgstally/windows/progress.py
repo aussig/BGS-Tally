@@ -9,7 +9,6 @@ from tkinter import ttk
 from typing import TYPE_CHECKING, Literal
 from urllib.parse import quote
 
-from requests import Response
 
 from config import config  # type: ignore
 
@@ -21,10 +20,9 @@ if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
     from bgstally.fleetcarrier import FleetCarrier
 
-from bgstally.constants import FONT_SMALL, TABLE_STYLE, TAG_OVERLAY_HIGHLIGHT, CommodityOrder, ProgressUnits, ProgressView, RequestMethod
+from bgstally.constants import FONT_SMALL, TABLE_STYLE, TAG_OVERLAY_HIGHLIGHT, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
-from bgstally.ravencolonial import RavenColonial
-from bgstally.requestmanager import BGSTallyRequest
+from bgstally.ravencolonial import Spansh
 from bgstally.utils import _, catch_exceptions, human_format, str_truncate
 import thirdparty.th as th
 from thirdparty.tksheet import Sheet, natural_sort_key
@@ -122,17 +120,16 @@ class ProgressWindow:
         self.ordertts:list = [_('Alphabetical order'), _('Category order'), _('Quantity order')]  # LANG: Commodity order tooltips
 
         self.markets:dict = {
+            'commodity' : {'header': _('Commodity'), 'width': 150, 'align': "left"},    # LANG: Commodity heading
+            'category' : {'header': _('Category'), 'width': 110, 'align': "left"},      # LANG: Commodity category heading
             'systemName' : {'header': _('System'), 'width': 175, 'align': "left"},      # LANG: System Name heading
             'stationName' : {'header': _('Station'), 'width': 175, 'align': "left"},    # LANG: Station name heading
-            'distance': {'header': _('Dist (ly)'), 'width': 50, 'align': "center"},     # LANG: System distance heading
-            'distanceToArrival': {'header': _('Arr (ls)'), 'width': 50, 'align': "center"}, # LANG: station distance from arrival heading
-            'distance': {'header': _('Dist (ly)'), 'width': 50, 'align': "center"},     # LANG: System distance heading
-            'distanceToArrival': {'header': _('Arr (ls)'), 'width': 50, 'align': "center"}, # LANG: station distance from arrival heading
+            'distance': {'header': _('Dist (ly)'), 'width': 60, 'align': "center"},     # LANG: System distance heading
+            'distanceToArrival': {'header': _('Arr (ls)'), 'width': 60, 'align': "center"}, # LANG: station distance from arrival heading
             'type': {'header': _('Type'), 'width': 35, 'align': "center"},              # LANG: Station type (O=Orbital, S=Surface, C=Carrier)
-            'padSize': {'header': _('Pad'), 'width': 35, 'align': "center"},            # LANG: Pad size (L, M, S)
-            'count': {'header': _('Count'), 'width':45, 'align': "center"},             # LANG: Count of commodities available
-            'quantity': {'header': _('Amt (t)'), 'width':55, 'align': "center"},        # LANG: Tonnes of needed commodities available
-            'commodities': {'header': _('Commodities'), 'width': 565, 'align': "left"}  # LANG: List of commodities available
+            'padSize': {'header': _('Pad'), 'width': 35, 'align': "center"},            # LANG: Large landing pad available (L)
+            'quantity': {'header': _('Amt (t)'), 'width':65, 'align': "center"},        # LANG: Tonnes of the commodity available
+            'updated': {'header': _('Updated'), 'width': 120, 'align': "center"}        # LANG: Date and time the market was last updated
             }
 
         self.colors:dict = {'L' : '#d4edbc', 'M' : '#dbe5ff', 'O' : '#d5deeb', 'S' : '#ebe6db', 'C' : '#e6dbeb'}
@@ -627,135 +624,92 @@ class ProgressWindow:
 
 
     @catch_exceptions
-    def link(self, comm:str, src:str|None, tkEvent) -> None:
-        ''' Open the link to Inara for nearest location for the commodity. '''
+    def link(self, src:str|None, tkEvent) -> None:
+        ''' Open a table of the nearest Spansh markets for the commodities still to buy. '''
 
-        comm_id = self.bgstally.ui.commodities.get(comm, {}).get('InaraID', "")
+        frame = self.bgstally.ui.frame
+        if frame is None: return
+
         sys:str|None = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
         if sys == None: sys = 'sol'
 
-        # pi3=3 - large, pi3=2 - medium
-        size:int = 2 if self.colonisation.cargo_capacity < 407 else 3
+        listed:list[Commodity] = self._get_comms(self.colonisation.get_tracked_builds())
+        comms:list[Commodity] = [c for i, c in enumerate(listed) if c.purchase > 0 and not self._skip_row(self.view, c, i)]
+        if comms == []: return
 
-        # pi7=5000 - supply (100, 500, 1000, 2500, 5000, 10000, 50000)
-        tracked:list = self.colonisation.get_tracked_builds()
-        required:list = self.colonisation.get_required(tracked)
-        delivered:list = self.colonisation.get_delivered(tracked)
-        rem:int = (required[self.build_index].get(comm, 0) if len(required) > self.build_index else 0) - (delivered[self.build_index].get(comm, 0) if len(delivered) > self.build_index else 0)
-        for min in [500, 1000, 2500, 5000, 10000, 50000]:
-            if min > rem: break
-
-        projectid:str|None = None
-        if self.build_index < len(tracked):
-            projectid = tracked[self.build_index].get('ProjectID', None)
-        if self.build_index < len(tracked) and projectid == None:
-            progress:dict|None = self.colonisation.find_progress(tracked[self.build_index].get('MarketID'))
-            if progress != None:
-                projectid = progress.get('ProjectID', None)
-
-        # If we don't have a RavenColonial project ID then use Inara
-        if projectid == None:
-            url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
-            webbrowser.open(url)
-            return
-
-        url:str = f"https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api/project/{projectid}/markets"
-        payload:dict = {"refSystem": sys,
-                        "shipSize": 'medium',
-                        "requireNeed": True}
-        self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=RavenColonial(self.colonisation)._headers(), callback=self._markets_callback, attempts=3)
-
-        # Create/recreate the frame now since it takes a while to show the data
-        if hasattr(self, 'mkts_fr') and self.mkts_fr.winfo_exists(): self.mkts_fr.destroy()
-        self.mkts_fr = th.TopLevel(self.bgstally.ui.frame)
+        # Create/recreate the frame now since results arrive one commodity at a time
+        if hasattr(self, 'mkts_fr') and self.mkts_fr.winfo_exists(): self._close_markets()
+        self.mkts_fr = th.TopLevel(frame)
         self.mkts_fr.wm_title(_("{plugin_name} - Markets Window").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the markets popup window
         width:int = sum([v.get('width') for v in self.markets.values()]) + 20
-        self.mkts_fr.geometry(f"{int(width*self.scale)}x{int(500*self.scale)}")
-        self.mkts_fr.protocol("WM_DELETE_WINDOW", self.mkts_fr.destroy)
+        self.mkts_fr.geometry(self.colonisation.window_geometries.get('Markets', f"{int(width*self.scale)}x{int(300*self.scale)}"))
+        self.mkts_fr.protocol("WM_DELETE_WINDOW", self._close_markets)
         self.mkts_fr.config(bd=2, relief=tk.FLAT)
 
-
-    @catch_exceptions
-    def _markets_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
-        ''' Callback from the RavenColonial materials request to open popup '''
-        if not self.mkts_fr or not self.mkts_fr.winfo_exists(): return
-
-        if response == None or response.status_code != 200:
-            Debug.logger.error(f"RavenColonial materials request failed")
-            self.mkts_fr.destroy()
-            return
-
-        tmp:dict = response.json()
-        markets:list = tmp.get('markets', [])
-        if len(markets) == 0:
-            Debug.logger.info("RavenColonial materials request returned no markets")
-            self.mkts_fr.destroy()
-            return
-
         header_fnt:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
-        sheet:Sheet = Sheet(self.mkts_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False,
+        self.mkts_sheet:Sheet = Sheet(self.mkts_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False,
                         cell_auto_resize_enabled=True, height=4096,
                         show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
                         align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                         show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
                         empty_vertical=0, empty_horizontal=0, header_font=header_fnt, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                        show_header=True, default_row_height=int(19*self.scale), table_wrap="w", alternate_color="gray95")
-        sheet.pack(fill=tk.BOTH, padx=0, pady=0)
+                        show_header=True, default_row_height=int(19*self.scale), alternate_color="gray95")
+        self.mkts_sheet.pack(fill=tk.BOTH, padx=0, pady=0)
+        self.mkts_sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize',
+                                        'right_click_popup_menu', 'copy', 'sort_rows')
+        self.mkts_sheet.set_header_data([v['header'] for v in self.markets.values()])
+        self.mkts_sheet.extra_bindings('cell_select', func=partial(self._sheet_clicked, self.mkts_sheet))
+        self.mkts_sheet.set_sheet_data([[''] * len(self.markets)], redraw=False) # Columns must exist before they can be sized
+        for i, v in enumerate(self.markets.values()):
+            self.mkts_sheet.align_columns(i, v.get('align'))
+            self.mkts_sheet.column_width(i, v.get('width', 100))
 
-        sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'sort_rows')
-        sheet.set_header_data([v['header'] for v in self.markets.values()])
-        sheet.extra_bindings('cell_select', func=partial(self._sheet_clicked, sheet))
+        self.mkts_order:list[str] = [c.comm for c in comms]
+        self.mkts_rows:dict = {}
+        Spansh(self.bgstally).find_markets({c.comm: c.purchase for c in comms}, sys,
+                                           lambda symbol, rows:frame.after(0, partial(self._show_markets, symbol, rows)))
 
-        tracked:list = self.colonisation.get_tracked_builds()
-        required:list = self.colonisation.get_required(tracked)
-        delivered:list = self.colonisation.get_delivered(tracked)
 
-        data:list = []
-        for i, m in enumerate(list(k for k in sorted(markets, key=lambda item: item.get('distance'), reverse=False))):
-            include:bool = False
-            row:list = []
-            for k, v in self.markets.items():
-                d:str = ''
-                match k:
-                    case 'distance':
-                        d = f"{m.get('distance', 0):,.1f}"
-                    case 'distanceToArrival':
-                        d = f"{int(m.get('distanceToArrival', 0)):,}"
-                    case 'type':
-                        d = 'S' if m.get('surface', False) == True else 'C' if m.get('type', '').lower().find('carrier') >= 0 else 'O'
-                        sheet[f"E{i+1}"].highlight(bg=self.colors.get(d, 'white'))
-                    case 'padSize':
-                        d = m.get('padSize', '').upper()[0:1]
-                        sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
-                    case 'count':
-                        d = str(len([k for k, v in m.get('supplies', {}).items() if min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) > 0]))
-                        if d != '0': include = True
-                    case 'quantity':
-                        d = f"{(sum([min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) for k, v in m.get('supplies', {}).items()])):,}"
-                    case 'commodities':
-                        # ⚠ ⊘ ⦵
-                        d = ', '.join([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v))}{'/'+human_format(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0)) if v < required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0) else ''})" for k, v in m.get('supplies', {}).items() if min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) > 0])
-                    case _:
-                        d = m.get(k, '')
-                row.append(d)
+    def _close_markets(self) -> None:
+        ''' Close the markets window, remembering its size and position. '''
+        self.colonisation.window_geometries['Markets'] = self.mkts_fr.winfo_geometry()
+        self.mkts_fr.destroy()
 
-            if include == True:
-                data.append(row)
 
-        sheet.set_sheet_data(data, redraw=False)
+    @catch_exceptions
+    def _show_markets(self, symbol:str, rows:list) -> None:
+        ''' Add one commodity's Spansh results to the markets table, keeping commodities in progress order. '''
+        if not self.mkts_fr or not self.mkts_fr.winfo_exists(): return
 
-        for i, (k, v) in enumerate(self.markets.items()):
-            sheet.align_columns(i, v.get('align'))
-            sheet.column_width(i, int(v.get('width')*self.scale))
+        name:str = self.colonisation.get_commodity(symbol, 'name')
+        category:str = self.colonisation.get_commodity(symbol, 'category')
+        self.mkts_rows[symbol] = [[name, category, r['system'], r['station'], f"{r['distance']:,.1f}",
+                                   f"{int(r['arrival']):,}" if r['arrival'] is not None else '', r['type'], 'L' if r['large'] else '-',
+                                   f"{int(r['supply']):,}", r['updated'].replace('T', ' ')[0:16]] for r in rows] \
+                                 or [[name, category, _('None found')] + [''] * 7] # LANG: No market found for a commodity
 
-        sheet.set_all_row_heights(height=None, only_set_if_too_small=True, redraw=True)
+        # Clear repeats.
+        if len(self.mkts_rows[symbol]) > 1:
+            for i in range(1, len(self.mkts_rows[symbol])):
+                self.mkts_rows[symbol][i][0]= ''
+                self.mkts_rows[symbol][i][1]= ''
+                if self.mkts_rows[symbol][0][2] == self.mkts_rows[symbol][i][2]:
+                    self.mkts_rows[symbol][i][2]= ''
+
+        data:list = [row for k in self.mkts_order for row in self.mkts_rows.get(k, [])]
+        sheet:Sheet = self.mkts_sheet
+        sheet.set_sheet_data(data, reset_col_positions=False, reset_highlights=True, redraw=False)
+        for i, row in enumerate(data):
+            sheet[f"G{i+1}"].highlight(bg=self.colors.get(row[6], 'white'))
+            sheet[f"H{i+1}"].highlight(bg=self.colors.get(row[7], 'white'))
+        sheet.set_all_row_heights(height=int(19*self.scale), redraw=False)
+        sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
     @catch_exceptions
     def _sheet_clicked(self, sheet:Sheet, event) -> None:
         ''' Open system or station '''
-        #sheet.toggle_select_row(event.selected.row, False, True)
-        if event.selected.column == 0:
+        if event.selected.column == 2:
             system:str = str(sheet[(event['selected'].row, event['selected'].column)].data)
             self.bgstally.ui.window_colonisation._link({'StarSystem': system}, 'System')
 
@@ -851,8 +805,8 @@ class ProgressWindow:
                 continue
 
             for col, v in enumerate(row_values):
-                row[col].bind("<Button-1>", partial(self.link, comm.comm, None))
-                row[col].bind("<Button-2>", partial(self.link, comm.comm, system))
+                row[col].bind("<Button-1>", partial(self.link, None))
+                row[col].bind("<Button-2>", partial(self.link, system))
                 row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(comm.comm)))
 
                 if col == 0:

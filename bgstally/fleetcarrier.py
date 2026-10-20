@@ -82,6 +82,12 @@ class FleetCarrier:
         if self.data != {}:
             self.itinerary = self._update_itinerary(self.data)
 
+    @property
+    def owned(self) -> bool:
+        """ Personal or squadron, so CarrierStats and carrier journal events reach us """
+        return self.carrier_type != FleetCarrierType.THIRDPARTY
+
+
     @catch_exceptions
     def available(self) -> bool:
         """ Return true if there is data available on a Fleet Carrier """
@@ -100,7 +106,7 @@ class FleetCarrier:
         }
 
         # These all come from CAPI/CarrierStats, neither of which we ever get for a carrier we don't own.
-        if self.carrier_type == FleetCarrierType.THIRDPARTY: return overview
+        if not self.owned: return overview
 
         itinerary:list = self.itinerary
         arrival:str = itinerary[-1].get('arrivalTime', "") if len(itinerary) > 0 else ''
@@ -144,7 +150,7 @@ class FleetCarrier:
             }
 
         # Total/used capacity all come from CAPI/CarrierStats, neither of which we get for a carrier we don't own.
-        if self.carrier_type == FleetCarrierType.THIRDPARTY: return summary
+        if not self.owned: return summary
 
         summary['capacity'] = {
             _('Total Capacity'): (self.overview.get('totalCapacity', 25000), 'num', 'Unknown', 't'),   # LANG: Carrier summary
@@ -206,8 +212,7 @@ class FleetCarrier:
                 comm[name] = deets
         comm = dict(sorted(comm.items(), key=lambda item: item[1]['category']+','+item[1]['locName']))
 
-        if self.carrier_type == FleetCarrierType.THIRDPARTY:
-            return {'overview': None, 'inventory': comm}
+        if not self.owned: return {'overview': None, 'inventory': comm}
 
         summ:dict = {
             _("Space") : (self._get_freespace() + self._get_marketused() + self._get_reserved(), 'num', 'Unknown', 't'), # LANG: Carrier cargo
@@ -274,15 +279,15 @@ class FleetCarrier:
             discord.post_embed(title, "", [], {uuid: dict(hook)}, chan, None) # Delete, queued ahead of the new post below
             hook[chan] = ""
 
-        discord.post_embed(title, table, fields, self.discord_market, chan, self._market_posted)
+        discord.post_embed(title, table, fields, self.discord_market, chan, partial(self._posted, self.discord_market))
 
 
-    def _market_posted(self, channel:DiscordChannel, hook:dict, msgid:str) -> None:
-        """ Store the FC-mats message id """
+    def _posted(self, hooks:dict, channel:DiscordChannel, hook:dict, msgid:str) -> None:
+        """ Store a posted message id in the per-webhook dict it was posted for """
         uuid:str|None = hook.get('uuid')
         if uuid is None: return
 
-        self.discord_market.setdefault(uuid, hook)[channel] = msgid
+        hooks.setdefault(uuid, hook)[channel] = msgid
         self.save()
 
 
@@ -301,21 +306,12 @@ class FleetCarrier:
             {'name': __("To System", lang=l), 'value': j['to'], 'inline': True}, # LANG: Discord heading
             {'name': __("To Body", lang=l), 'value': j['body'], 'inline': True}, # LANG: Discord heading
             {'name': time_head, 'value': f"<t:{j['departure']}:R>"},
-            {'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}, # LANG: Discord heading
-            {'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}] # LANG: Discord heading
+            {'name': __("Docking", lang=l), 'value': self._readable(self.overview.get('dockingAccess', ''), True), 'inline': True}, # LANG: Discord heading
+            {'name': __("Notorious Access", lang=l), 'value': self._readable(self.overview.get('notoriousAccess', False), True), 'inline': True}] # LANG: Discord heading
         title:str = __("Carrier Jump: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
         if chan == DiscordChannel.SQUADRON_OPERATIONS:
             title = __("Squadron", lang=l) + " " + title # LANG: Discord post title
-        self.bgstally.discord.post_embed(title, "", fields, j['hooks'], chan, self._jump_posted)
-
-
-    def _jump_posted(self, channel:DiscordChannel, hook:dict, msgid:str) -> None:
-        """ Store the FC-ops message id for the current jump """
-        uuid:str|None = hook.get('uuid')
-        if uuid is None or not self.discord_jump: return
-
-        self.discord_jump['hooks'].setdefault(uuid, hook)[channel] = msgid
-        self.save()
+        self.bgstally.discord.post_embed(title, "", fields, j['hooks'], chan, partial(self._posted, j['hooks']))
 
 
     @catch_exceptions
@@ -574,7 +570,7 @@ class FleetCarrier:
             for f, _title, width, _align in cols:
                 val:str = ""
                 match f:
-                    case "stock" if which == 'All': val = item.get("cargo") if item.get("cargo") is not None else ""
+                    case "stock" if which == 'Cargo': val = item.get("cargo") if item.get("cargo") is not None else ""
                     case "buy" if item.get("price", 0) > 0 and item.get(buy_key, 0) > 0: val = item.get(buy_key)
                     case "sell" if item.get("price", 0) > 0 and item.get(sell_key, 0) > 0: val = item.get(sell_key)
                     case _: val = item.get(f, " ")
@@ -1060,7 +1056,7 @@ class FleetCarrier:
         # If we don't know where we are trust the CAPI.
         if self.overview.get('currentStarSystem', None) == None:
             self.overview['currentStarSystem'] = get_by_path(self.data, ['currentStarSystem'], '')
-            del self.overview['currentBody']
+            self.overview.pop('currentBody', None)
 
         # If we have a body but it doesn't match the system, clear it.
         if self.overview.get('currentBody', None) != None and self.overview.get('currentStarSystem', '') not in self.overview.get('currentBody', None):
@@ -1121,6 +1117,12 @@ class FleetCarrier:
         # We should get a subsequent CAPI update to populate the rest.
         self.carrier_id = entry.get('CarrierID', 0)
 
+        # Only management rights give us CarrierStats, so a carrier first seen docking is really our squadron's
+        if self.carrier_type == FleetCarrierType.THIRDPARTY and entry.get('CarrierType') == FleetCarrierType.SQUADRON:
+            Debug.logger.info(f"{self.overview.get('callsign', self.carrier_id)} is our squadron carrier, not third-party")
+            self.carrier_type = FleetCarrierType.SQUADRON
+            self.save()
+
         # A list of local values to update from the event
         updates:dict = {'name': [self.overview, ['Name'], "----"],
                         'dockingAccess': [self.overview, ['DockingAccess'], 'None'],
@@ -1173,7 +1175,7 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = departure.strftime("%Y-%m-%d %H:%M:%S")
             self.itinerary[0]['visitDurationSeconds'] = self._td(departure, self.itinerary[0]['arrivalTime'])
 
-        self.discord_jump = {'from': self.data.get('currentStarSystem', "Unknown"), 'to': entry.get('SystemName', "Unknown"),
+        self.discord_jump = {'from': self.overview.get('currentStarSystem') or "Unknown", 'to': entry.get('SystemName', "Unknown"),
                              'body': entry.get('Body', "Unknown"), 'departure': round(departure.timestamp()), 'hooks': {}}
         self._post_jump(__("Scheduled", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
 

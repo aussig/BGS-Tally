@@ -192,7 +192,9 @@ class BGSTally:
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'CargoTransfer':
-                self.fleet_carrier.cargo_transfer(entry)
+                # No MarketID in the event, but transfers only happen docked at our own or our squadron's carrier
+                docked:FleetCarrier|None = self.fleet_carriers.find(self.colonisation.market_id or 0) if self.colonisation.docked else None
+                (docked or self.fleet_carrier).cargo_transfer(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
@@ -250,10 +252,10 @@ class BGSTally:
                 dirty = True
 
                 market_id:int = entry.get('MarketID', 0)
-                # Add a third-party carrier if appropriate
-                if entry.get('StationType') == 'FleetCarrier' and self.state.AutoTrackCarriers.get() == CheckStates.STATE_ON and \
-                    self.fleet_carriers.find(market_id) is None:
-                    self.fleet_carriers.add(market_id, FleetCarrierType.THIRDPARTY, station, system)
+                # Track a third-party carrier. Ours docks as a FleetCarrier too, maybe before its id is known
+                if market_id and entry.get('StationType') == 'FleetCarrier' and station != self.fleet_carrier.overview.get('callsign') and \
+                    self.state.AutoTrackCarriers.get() == CheckStates.STATE_ON and self.fleet_carriers.find(market_id) is None:
+                    self.fleet_carriers.get(market_id, FleetCarrierType.THIRDPARTY, station).overview['currentStarSystem'] = system
 
                 # refresh carrier market data
                 self.fleet_carriers.refresh_markets(system, station)

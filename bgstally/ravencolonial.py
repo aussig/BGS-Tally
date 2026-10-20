@@ -34,6 +34,15 @@ SPANSH_MARKET_DAYS = 3 # Ignore markets not updated within this many days
 SPANSH_BATCH_SIZE = 20 # Stations fetched by the shared search for several commodities
 SPANSH_SETTLED_ROWS = 5 # Rows the shared search needs to find for a commodity before it is trusted
 
+def _parse_time(updated_at:str|None) -> int:
+    """ Parse an ISO8601 timestamp or 0 if missing/unparseable """
+    if not updated_at: return 0
+    try:
+        return int(datetime.fromisoformat(updated_at.replace('Z', '+00:00')).timestamp())
+    except ValueError:
+        return 0
+
+
 class RavenColonial:
     """
     Class to handle all the data syncing between the colonisation system and RavenColonial.com. It also handles retrieving
@@ -782,7 +791,7 @@ class RavenColonial:
             Debug.logger.debug(f"RC carrier {which} ({data.get('lastRefresh')}) only has cargo data: {cargo}")
 
         return {
-            'timestamp': self._parse_time(data.get('lastRefresh')),
+            'timestamp': _parse_time(data.get('lastRefresh')),
             'overview': {
                 'callsign': data.get('name'),
                 'name': data.get('displayName'),
@@ -791,13 +800,6 @@ class RavenColonial:
             'cargo': cargo,
         }
 
-    def _parse_time(self, updated_at:str|None) -> int:
-        """ Parse an ISO8601 timestamp or 0 if missing/unparseable """
-        if not updated_at: return 0
-        try:
-            return int(datetime.fromisoformat(updated_at.replace('Z', '+00:00')).timestamp())
-        except ValueError:
-            return 0
 
 
 
@@ -1198,7 +1200,7 @@ class Spansh:
             }
 
         return {
-            'timestamp': RavenColonial(self.bgstally.colonisation)._parse_time(record.get('market_updated_at')),
+            'timestamp': _parse_time(record.get('market_updated_at')),
             'overview': {
                 'callsign': record.get('name'),
                 'name': record.get('carrier_name'),

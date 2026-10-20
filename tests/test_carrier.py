@@ -233,6 +233,45 @@ class TestFleetCarriers:
 
         assert harness.plugin._carrier({'MarketID': 11111}) is None # Unknown, and no CarrierType to create one
 
+    def test_stats_promotes_squadron(self, harness) -> None:
+        """ Test only CarrierStats turns a tracked third-party carrier into our squadron's """
+        from bgstally.constants import FleetCarrierType
+        fcs = harness.plugin.fleet_carriers
+        fc = fcs.get(66666, FleetCarrierType.THIRDPARTY, 'SQDX')
+
+        try:
+            harness.fire_event({'event': 'CarrierLocation', 'CarrierType': 'SquadronCarrier', 'CarrierID': 66666, 'StarSystem': 'Sol'})
+            assert fc.carrier_type == FleetCarrierType.THIRDPARTY # Could just be aboard someone else's carrier
+
+            harness.fire_event({'event': 'CarrierStats', 'CarrierType': 'SquadronCarrier', 'CarrierID': 66666, 'Callsign': 'SQDX'})
+            assert fc.carrier_type == FleetCarrierType.SQUADRON
+            assert fcs.find(66666) is fc
+        finally:
+            fcs.remove(66666)
+
+    def test_docked_skips_own_carrier(self, harness) -> None:
+        """ Test docking at our own carrier before its id is known doesn't track it as third-party """
+        from bgstally.constants import CheckStates
+        fcs = harness.plugin.fleet_carriers
+        personal = harness.plugin.fleet_carrier
+        real_id:int = personal.carrier_id
+        auto:str = harness.plugin.state.AutoTrackCarriers.get()
+        docked:dict = {'event': 'Docked', 'StationType': 'FleetCarrier', 'StarSystem': 'Sol', 'SystemAddress': 10477373803}
+
+        try:
+            personal.carrier_id = 0
+            harness.plugin.state.AutoTrackCarriers.set(CheckStates.STATE_ON)
+            harness.fire_event({**docked, 'StationName': personal.overview.get('callsign'), 'MarketID': 55555})
+            assert fcs.find(55555) is None
+
+            harness.fire_event({**docked, 'StationName': 'OTH-123', 'MarketID': 55556})
+            assert fcs.find(55556) is not None # Someone else's carrier is still tracked
+        finally:
+            personal.carrier_id = real_id
+            harness.plugin.state.AutoTrackCarriers.set(auto)
+            fcs.remove(55556)
+            harness.fire_event({'event': 'Undocked', 'StationName': 'OTH-123', 'MarketID': 55556})
+
     def test_fss_signal_tracked_only(self, harness) -> None:
         """ Test fss_signal() only fills a missing name on an already-tracked carrier, never creates one """
         from bgstally.constants import FleetCarrierType
@@ -713,6 +752,24 @@ class TestCarrierTrade:
         assert fc.cargo['normal']['ghost']['cargo'] == 0
         assert fc.cargo_tier == DataTier.CAPI and (fc.market_tier, fc.market_time) == (DataTier.JOURNAL, now)
 
+    def test_transfer_at_squadron_carrier(self, harness) -> None:
+        """ Test a cargo transfer while docked at the squadron carrier updates it, not our own """
+        from bgstally.constants import FleetCarrierType
+        personal = harness.plugin.fleet_carrier
+        personal.cargo['normal']['steel'] = {'locName': 'Steel', 'category': 'Metals', 'cargo': 100, 'sell': 0, 'buy': 0, 'price': 0}
+        squadron = harness.plugin.fleet_carriers.get(3713239296, FleetCarrierType.SQUADRON, 'CLBF')
+        squadron.cargo['normal']['steel'] = {'locName': 'Steel', 'category': 'Metals', 'cargo': 10, 'sell': 0, 'buy': 0, 'price': 0}
+        col = harness.plugin.colonisation
+        col.docked, col.market_id = True, 3713239296
+
+        try:
+            harness.fire_event({'event': 'CargoTransfer', 'Transfers': [{'Type': 'steel', 'Count': 25, 'Direction': 'tocarrier'}]})
+        finally:
+            col.docked, col.market_id = False, None
+
+        assert squadron.cargo['normal']['steel']['cargo'] == 35
+        assert personal.cargo['normal']['steel']['cargo'] == 100
+
     def test_cargo_transfer_ignores_srv(self, harness) -> None:
         """ Test a ship to SRV transfer, which never touches the carrier """
         fc = harness.plugin.fleet_carrier
@@ -787,6 +844,21 @@ class TestCarrierEvents:
             saved.pop(k, None)
             expected.pop(k, None)
         assert saved == expected
+
+    def test_capi_without_location(self, harness) -> None:
+        """ Test CAPI still applies when we know neither the carrier's system nor body """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        capi_data:dict = harness.get_config_data('fleetcarrier-capi-data.json')
+        fc.overview.pop('currentStarSystem', None)
+        fc.overview.pop('currentBody', None)
+        fc._invalidate_cargo()
+        fc.market_tier = DataTier.UNKNOWN
+
+        fc.capi_update(capi_data)
+
+        assert fc.overview.get('currentStarSystem') == capi_data['currentStarSystem']
+        assert fc.cargo_tier == DataTier.CAPI # Reached the end rather than stopping at the missing body
 
     def test_capi_dates_its_own_data(self, harness) -> None:
         """ Test we discount CAPI cargo by its own lag margin, so a fresher journal reading can still win """
@@ -1369,11 +1441,50 @@ class TestDiscordUpdates:
         with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
             fc._post_jump("Scheduled")
             assert mock_queue.call_args.args[1] == RequestMethod.POST
-            fc._jump_posted('FC-ops', dict(self.HOOK), '123')
+            fc._posted(fc.discord_jump['hooks'], 'FC-ops', dict(self.HOOK), '123')
             fc._post_jump("Cancelled")
 
         assert mock_queue.call_args.args[0].endswith('/messages/123')
         assert mock_queue.call_args.args[1] == RequestMethod.PATCH
+
+    def test_squadron_jump_post_fields(self, harness) -> None:
+        """ Test a squadron jump post takes its origin and access from what we know, as it never has CAPI """
+        from bgstally.constants import FleetCarrierJump, FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3713239296, FleetCarrierType.SQUADRON, 'CLBF')
+        fc.data = {}
+        fc.overview.update({'name': 'Squad', 'currentStarSystem': 'Sol', 'dockingAccess': 'all', 'notoriousAccess': False})
+        departure:str = (datetime.now(UTC) + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        with patch.object(harness.plugin.discord, 'post_embed') as mock_post:
+            fc.jump_requested({'CarrierID': 3713239296, 'SystemName': 'Achenar', 'Body': 'Achenar 1', 'DepartureTime': departure})
+
+        fields:dict = {f['name']: f['value'] for f in mock_post.call_args.args[2]}
+        assert fields['From System'] == 'Sol'
+        assert fields['Docking'] == 'All'
+        fc.jump_state, fc.timer = FleetCarrierJump.Idle, None
+
+    def test_all_table_shows_stock(self, harness) -> None:
+        """ Test the All cargo table fills the Stock column from held cargo """
+        fc = self._fc(harness)
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 777, 'sell': 0, 'buy': 0, 'price': 0}
+
+        row:str = next(line for line in fc._table('Cargo', 'All', True).splitlines() if 'Tritium' in line)
+
+        assert '777' in row
+
+    def test_late_reply_keeps_jump(self, harness) -> None:
+        """ Test a Discord reply arriving after a new jump is stored on its own jump """
+        fc = self._fc(harness)
+        fc.discord_jump = {'from': 'A', 'to': 'B', 'body': 'B 1', 'departure': 1, 'hooks': {}}
+
+        with patch.object(harness.plugin.discord, 'post_embed') as mock_post:
+            fc._post_jump("Scheduled")
+        old:dict = fc.discord_jump
+        fc.discord_jump = {'from': 'B', 'to': 'C', 'body': 'C 1', 'departure': 2, 'hooks': {}}
+        mock_post.call_args.args[5]('FC-ops', dict(self.HOOK), '123')
+
+        assert old['hooks']['u1']['FC-ops'] == '123'
+        assert fc.discord_jump['hooks'] == {}
 
     def test_load_wipes_unknown_cargo(self, harness) -> None:
         """ Test cargo of unknown age is cleared on load but known-age cargo is kept """
@@ -1465,7 +1576,7 @@ class TestDiscordUpdates:
             fc._post_market()
             assert mock_queue.call_args.args[1] == RequestMethod.POST
             fresh:str = str((int(time.time() * 1000) - 1420070400000) << 22)
-            fc._market_posted('FC-mats', dict(self.HOOK), fresh)
+            fc._posted(fc.discord_market, 'FC-mats', dict(self.HOOK), fresh)
             fc._post_market()
 
         assert mock_queue.call_args.args[0].endswith(f'/messages/{fresh}')

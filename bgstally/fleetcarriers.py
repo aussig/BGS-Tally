@@ -55,12 +55,6 @@ class FleetCarriers:
         return self.by_type(FleetCarrierType.THIRDPARTY)
 
 
-    def add(self, carrier_id:int, type:FleetCarrierType, station:str|None = None, system:str|None = None) -> None:
-        """ Add a new carrier """
-        if not carrier_id or carrier_id in self.carriers: return
-        self.carriers[carrier_id] = FleetCarrier(self.bgstally, carrier_id, type, station)
-        if system: self.carriers[carrier_id].overview['currentStarSystem'] = system
-
     def get(self, carrier_id:int, carrier_type:FleetCarrierType, callsign:str|None = None) -> FleetCarrier:
         """ Return the FleetCarrier for carrier_id, creating it if necessary """
         if carrier_type == FleetCarrierType.PERSONAL: return self.personal

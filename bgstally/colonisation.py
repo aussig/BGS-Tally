@@ -621,8 +621,6 @@ class Colonisation:
         Name, BuildID or Marketid are preferred but we use fuzzy matching for weird fdev cases
         '''
         builds:list = self.get_system_builds(system)
-        if len(builds) > 0:
-            builds[0]['Primary'] = True # Bit of a hack, should flag the primary at source.
 
         #Debug.logger.debug(f"Finding build in {system.get('StarSystem')} {data} Builds: {builds}")
         if data.get('Name', '') == '' or data.get('Name', '') == ' ': data['Name'] = None
@@ -1006,7 +1004,8 @@ class Colonisation:
                         res = p.get(type, {})
                         break
             if res == {} and type != 'Delivered' and b.get('Base Type', '') != '':
-                res = self._get_cost(b.get('Base Type', ''), b.get('Primary', False))
+                # Tracked build copies carry the flag, a system's own build list is in order
+                res = self._get_cost(b.get('Base Type', ''), b.get('Primary', i == 0))
             found += 1
             prog.append(res)
 

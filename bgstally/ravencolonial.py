@@ -32,6 +32,10 @@ SPANSH_API = 'https://spansh.co.uk/api'
 SPANSH_COOLDOWN = (3600 * 24)
 SPANSH_LOCAL_COOLDOWN = (60 * 1)
 SPANSH_REMOTE_COOLDOWN = (60 * 10)
+SPANSH_MARKET_SIZE = 10 # Stations fetched per commodity, enough to rank every station in the nearest system
+SPANSH_MARKET_DAYS = 3 # Ignore markets not updated within this many days
+SPANSH_BATCH_SIZE = 20 # Stations fetched by the shared search for several commodities
+SPANSH_SETTLED_ROWS = 5 # Rows the shared search needs to find for a commodity before it is trusted
 
 class RavenColonial:
     """
@@ -1045,6 +1049,8 @@ class Spansh:
         if not hasattr(self, '_initialized'):
             self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
             self.carrier_cache:dict = {} # marketId -> last query time, for import_fleetcarrier()'s cooldown
+            self.market_cache:dict = {} # (system, commodity, minimum) -> best markets, dropped when the commander leaves the system
+            self.market_here:str|None = None # The commander's system when market_cache was filled
             self._initialized = True
         self.bgstally:BGSTally = bgstally
         self.body_details = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', \
@@ -1058,6 +1064,105 @@ class Spansh:
 
     def import_bodies(self, system_name:str) -> None:
         return self._get_details(system_name, 'bodies')
+
+    @catch_exceptions
+    def find_markets(self, wanted:dict, system:str, result_fnc:Callable[[str, list], object]) -> None:
+        """ Find the best nearby markets for each commodity in wanted (symbol -> amount needed), calling back once per commodity """
+        if self.bgstally.colonisation.current_system != self.market_here:
+            self.market_cache.clear()
+            self.market_here = self.bgstally.colonisation.current_system
+
+        pending:dict = {} # symbol -> (English name, amount needed)
+        for symbol, minimum in wanted.items():
+            english:str|None = self.bgstally.ui.commodities.get(symbol, {}).get('EnglishName')
+            if english is None:
+                result_fnc(symbol, [])
+                continue
+
+            if (system, symbol, minimum) in self.market_cache:
+                result_fnc(symbol, self.market_cache[(system, symbol, minimum)])
+                continue
+
+            pending[symbol] = (english, minimum)
+
+        if not pending: return
+
+        if len(pending) == 1:
+            symbol, (name, minimum) = next(iter(pending.items()))
+            self._search(system, name, minimum, SPANSH_MARKET_SIZE, partial(self._markets_callback, (system, symbol, minimum), name,
+                                                                            result_fnc))
+            return
+
+        # One search for the nearest stations selling any of them, then only chase the commodities that search didn't settle
+        floor:int = min(minimum for _name, minimum in pending.values())
+        self._search(system, [name for name, _minimum in pending.values()], floor, SPANSH_BATCH_SIZE,
+                     partial(self._batch_callback, system, pending, result_fnc))
+
+    def _search(self, system:str, names:str|list, minimum:int, size:int, callback:Callable) -> None:
+        """ Queue a Spansh station search for recently updated markets with a commodity, or any of several, in stock """
+        filters:dict = {'market': [{'name': names, 'supply': {'comparison': '<=>', 'value': [max(1, minimum), 1_000_000_000]}}],
+                        'market_updated_at': {'comparison': '<=>', 'value': [f"now-{SPANSH_MARKET_DAYS}d", 'now']}}
+        payload:dict = {'filters': filters, 'reference_system': system, 'size': size, 'page': 0,
+                        'sort': [{'distance': {'direction': 'asc'}}]}
+        self.bgstally.request_manager.queue_request(f"{SPANSH_API}/stations/search", RequestMethod.POST, payload=payload, attempts=3,
+                                                    callback=callback)
+
+    def _market_row(self, s:dict, name:str) -> dict:
+        """ Format one market row """
+        entry:dict = next((m for m in s.get('market', []) if m.get('commodity') == name), {})
+        return {'system': s.get('system_name', ""),
+                'station': s.get('name', ""),
+                'distance': s.get('distance') or 0,
+                'arrival': s.get('distance_to_arrival'),
+                'large': bool(s.get('has_large_pad')),
+                'type': 'S' if s.get('is_planetary') else 'C' if 'carrier' in s.get('type', "").lower() else 'O',
+                'supply': entry.get('supply', 0),
+                'updated': s.get('market_updated_at', "")
+                }
+
+    def _best(self, rows:list, minimum:int) -> list:
+        """ The nearest market, orbital before surface before carrier, plus a second only if it improves on the first """
+        rows.sort(key=lambda r: (r['distance'], 'OSC'.index(r['type']), r['arrival'] if r['arrival'] is not None else float('inf')))
+        best:list = rows[:1]
+        for r in rows[1:]:
+            first:dict = best[0]
+            if r['distance'] < first['distance'] or ('OSC'.index(r['type']) < 'OSC'.index(first['type'])) \
+                or (r['supply'] > 2 * minimum >= first['supply']) or (r['large'] and not first['large']):
+                best.append(r)
+                break
+
+        return best
+
+    @catch_exceptions
+    def _markets_callback(self, key:tuple, name:str, result_fnc:Callable[[str, list], object], success:bool,
+                          response:Response, request:BGSTallyRequest) -> None:
+        """ Reduce a single commodity's station search to its best rows """
+        _system, symbol, minimum = key
+        stations:list = response.json().get('results', []) if success and response is not None else []
+        best:list = self._best([self._market_row(s, name) for s in stations], minimum)
+        if success: self.market_cache[key] = best # Failures aren't cached so they can be retried
+        result_fnc(symbol, best)
+
+    @catch_exceptions
+    def _batch_callback(self, system:str, pending:dict, result_fnc:Callable[[str, list], object], success:bool,
+                        response:Response, request:BGSTallyRequest) -> None:
+        """ Settle each commodity from the shared station search if it has enough rows, or search for it on its own """
+        if not success or response is None:
+            for symbol in pending: result_fnc(symbol, [])
+            return
+
+        stations:list = response.json().get('results', [])
+        for symbol, (name, minimum) in pending.items():
+            rows:list = [r for r in (self._market_row(s, name) for s in stations) if r['supply'] >= max(1, minimum)]
+            best:list = self._best(rows, minimum)
+            ideal:bool = bool(best) and best[0]['type'] == 'O' and best[0]['large'] and best[0]['supply'] > 2 * minimum
+            if len(stations) < SPANSH_BATCH_SIZE or len(rows) >= SPANSH_SETTLED_ROWS or ideal:
+                self.market_cache[(system, symbol, minimum)] = best
+                result_fnc(symbol, best)
+                continue
+
+            self._search(system, name, minimum, SPANSH_MARKET_SIZE, partial(self._markets_callback, (system, symbol, minimum),
+                                                                            name, result_fnc))
 
     @catch_exceptions
     def import_fleetcarrier(self, fc:'FleetCarrier') -> None:

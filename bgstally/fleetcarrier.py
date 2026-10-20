@@ -1060,16 +1060,39 @@ class FleetCarrier:
         effective_time:int = (int(self._parse_date(self.data['timestamp']).timestamp()) if 'timestamp' in self.data
                               else int(time.time())) - FDEV_SLACKING_TIME
 
-        # CAPI's replace is atomic; a fresher reading of either half should block the whole thing
-        if effective_time <= self.cargo_time or effective_time <= self.market_time:
+        # Known activity outranks CAPI on each half. RC's stamps are synthesised and unknown ones say nothing,
+        # so without known activity CAPI is the baseline.
+        cargo_known:int = 0 if self.cargo_tier in (DataTier.RC, DataTier.UNKNOWN) else self.cargo_time
+        market_known:int = 0 if self.market_tier in (DataTier.RC, DataTier.UNKNOWN) else self.market_time
+        if effective_time <= cargo_known:
             Debug.logger.debug("Ignoring CAPI cargo update, held reading is still fresher")
+            self.bgstally.ui.window_fc.update_carrier_display(self)
+            return
+
+        new_cargo:dict = self._update_cargo(self.data)
+        if effective_time <= market_known:
+            # Orders are fresher but cargo isn't, so take only the quantities
+            Debug.logger.debug("Taking CAPI cargo quantities as a baseline, held orders are fresher")
+            changed:bool = False
+            for comm, item in self.cargo['normal'].items():
+                qty:int = new_cargo['normal'].get(comm, {}).get('cargo', 0) # Absent from CAPI means none held
+                changed = changed or item.get('cargo') != qty
+                item['cargo'] = qty
+
+            for comm, item in new_cargo['normal'].items():
+                if comm in self.cargo['normal']: continue
+                self.cargo['normal'][comm] = {**item, 'sell': 0, 'buy': 0, 'price': 0}
+                changed = True
+
+            self.cargo['stolen'], self.cargo['mission'] = new_cargo['stolen'], new_cargo['mission']
+            self._touch_cargo(DataTier.CAPI, effective_time)
+            self._cargo_changed(changed)
             self.bgstally.ui.window_fc.update_carrier_display(self)
             return
 
         # CAPI is our most-behind source but never partially wrong, so take it wholesale rather than
         # merge, which would read any gap in the response as a confirmed zero
-        new_cargo:dict = self._update_cargo(self.data)
-        changed:bool = new_cargo != self.cargo
+        changed = new_cargo != self.cargo
         Debug.logger.debug(f"Accepting CAPI cargo")
         self.cargo = new_cargo
         self._touch_cargo(DataTier.CAPI, effective_time)
@@ -1375,7 +1398,6 @@ class FleetCarrier:
             self.cargo['normal'][comm]['sell'] = entry.get('SaleOrder', 0)
             self.cargo['normal'][comm]['cargo'] = entry.get('SaleOrder', 0)
             self.cargo['normal'][comm]['price'] = entry.get('Price', 0)
-            self._touch_cargo(DataTier.JOURNAL)
 
         if entry.get('PurchaseOrder') is not None:
             # If we were selling we need to clear the sell listing
@@ -1393,9 +1415,13 @@ class FleetCarrier:
             Debug.logger.error(f"Negative cargo {self.cargo['normal'][comm]}")
             self.cargo['normal'][comm]['cargo'] = 0
 
-        self._touch_market(DataTier.JOURNAL)
+        changed:bool = self.cargo['normal'][comm] != before
+        if changed: # A repeated order is no fresher a reading than we already hold
+            self._touch_market(DataTier.JOURNAL)
+            if entry.get('SaleOrder') is not None: self._touch_cargo(DataTier.JOURNAL)
+
         Debug.logger.debug(f"Trade order for {comm}: {before} -> {self.cargo['normal'][comm]}")
-        self._cargo_changed(self.cargo['normal'][comm] != before)
+        self._cargo_changed(changed)
         self.bgstally.ui.window_fc.update_carrier_display(self)
         if self.bgstally.dev_mode == True: self.save()
 
@@ -1511,7 +1537,7 @@ class FleetCarrier:
                     self.cargo['stolen'][comm]['cargo'] += self.cargo['normal'][comm]['cargo']
                     if self.cargo['stolen'][comm]['cargo'] <= 0:
                         del self.cargo['stolen'][comm]
-                del self.cargo['normal'][comm]
+                self.cargo['normal'][comm]['cargo'] = None if before is None else 0 # Keep the entry, it may hold orders
 
         self._cargo_changed(changed)
         self.bgstally.ui.window_fc.update_carrier_display(self)

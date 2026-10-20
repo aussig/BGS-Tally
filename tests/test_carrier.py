@@ -528,6 +528,36 @@ class TestCarrierTrade:
         assert fc.cargo['normal']['tritium']['price'] == 1000
         assert fc._get_freespace() == free - 100
 
+    def test_rc_echo_not_fresh(self, harness) -> None:
+        """ Test RC returning what we just pushed is not stamped as a new reading """
+        from unittest.mock import MagicMock
+        from bgstally.constants import DataTier
+        from bgstally.ravencolonial import RavenColonial
+        fc = harness.plugin.fleet_carrier
+        fc.cargo_tier, fc.cargo_time = DataTier.JOURNAL, 100
+
+        RavenColonial(harness.plugin.colonisation)._carrier_callback(fc, {'steel': 5}, True, MagicMock(status_code=200))
+        fc.merge({'timestamp': 0, 'cargo': {'steel': {'cargo': 5}}})
+        assert (fc.cargo_tier, fc.cargo_time) == (DataTier.JOURNAL, 100)
+
+        fc.merge({'timestamp': 0, 'cargo': {'steel': {'cargo': 6}}}) # RC changed for another reason, so that is news
+        assert fc.cargo_tier == DataTier.RC and fc.cargo_time > 100
+
+    def test_repeat_order_keeps_stamp(self, harness) -> None:
+        """ Test a trade order that changes nothing leaves the freshness stamps alone """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        fc.cargo = {'normal': {'steel': {'cargo': None, 'sell': 0, 'buy': 50, 'price': 1000}}}
+        fc.market_tier, fc.market_time = DataTier.SPANSH, 100
+        order:dict = {'CarrierID': fc.overview.get('carrier_id'), 'Commodity': 'steel', 'PurchaseOrder': 50, 'Price': 1000}
+
+        fc.trade_order(order)
+        assert (fc.market_tier, fc.market_time) == (DataTier.SPANSH, 100)
+
+        order['PurchaseOrder'] = 60
+        fc.trade_order(order)
+        assert fc.market_tier == DataTier.JOURNAL and fc.market_time > 100
+
     def test_trade_order_purchase(self, harness) -> None:
         """ Test trade_order() for purchase order """
         fc = harness.plugin.fleet_carrier
@@ -596,6 +626,53 @@ class TestCarrierTrade:
         assert fc.cargo['normal']['steel']['cargo'] == 75
         assert fc._get_freespace() == free - 50 + 25
 
+
+    def test_negative_transfer_keeps_orders(self, harness) -> None:
+        """ Test a transfer that takes cargo negative keeps the entry and its buy order """
+        fc = harness.plugin.fleet_carrier
+        fc.cargo = {'normal': {'steel': {'cargo': None, 'sell': 0, 'buy': 50, 'price': 1000},
+                               'gold': {'cargo': 10, 'sell': 0, 'buy': 5, 'price': 9}}}
+
+        fc.cargo_transfer({'event': 'CargoTransfer', 'Transfers': [{'Type': 'steel', 'Count': 25, 'Direction': 'toship'},
+                                                                   {'Type': 'gold', 'Count': 25, 'Direction': 'toship'}]})
+
+        assert fc.cargo['normal']['steel'] == {'cargo': None, 'sell': 0, 'buy': 50, 'price': 1000} # Unknown stays unknown
+        assert fc.cargo['normal']['gold'] == {'cargo': 0, 'sell': 0, 'buy': 5, 'price': 9}
+
+    def test_capi_baseline_without_activity(self, harness) -> None:
+        """ Test RC stamps don't block CAPI but known journal activity does """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        capi_data:dict = harness.get_config_data('fleetcarrier-capi-data.json')
+        capi_data['timestamp'] = datetime.now(UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
+        now:int = int(time.time())
+
+        fc.cargo_tier, fc.cargo_time, fc.market_tier, fc.market_time = DataTier.RC, now, DataTier.UNKNOWN, 0
+        fc.capi_update(capi_data)
+        assert fc.cargo_tier == DataTier.CAPI
+
+        fc.cargo_tier, fc.cargo_time, fc.market_tier, fc.market_time = DataTier.JOURNAL, now, DataTier.UNKNOWN, 0
+        fc.capi_update(capi_data)
+        assert fc.cargo_tier == DataTier.JOURNAL
+
+    def test_capi_cargo_keeps_orders(self, harness) -> None:
+        """ Test CAPI cargo baselines unknown quantities while the fresher held orders are kept """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        capi_data:dict = harness.get_config_data('fleetcarrier-capi-data.json')
+        capi_data['timestamp'] = datetime.now(UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
+        comm, held = next((c, i) for c, i in fc._update_cargo(capi_data)['normal'].items() if i['cargo'] > 0)
+        now:int = int(time.time())
+
+        fc.cargo = {'overview': {}, 'stolen': {}, 'mission': {},
+                    'normal': {comm: {**held, 'cargo': None, 'buy': 7, 'sell': 0, 'price': 3}, 'ghost': {**held, 'cargo': 9}}}
+        fc.cargo_tier, fc.cargo_time, fc.market_tier, fc.market_time = DataTier.UNKNOWN, 0, DataTier.JOURNAL, now
+        fc.capi_update(capi_data)
+
+        assert fc.cargo['normal'][comm]['cargo'] == held['cargo']
+        assert (fc.cargo['normal'][comm]['buy'], fc.cargo['normal'][comm]['price']) == (7, 3)
+        assert fc.cargo['normal']['ghost']['cargo'] == 0
+        assert fc.cargo_tier == DataTier.CAPI and (fc.market_tier, fc.market_time) == (DataTier.JOURNAL, now)
 
     def test_cargo_transfer_ignores_srv(self, harness) -> None:
         """ Test a ship to SRV transfer, which never touches the carrier """
@@ -673,7 +750,7 @@ class TestCarrierEvents:
         assert saved == expected
 
     def test_capi_dates_its_own_data(self, harness) -> None:
-        """ Test we discount CAPI cargo by its own lag margin, so a fresher RC reading can still win """
+        """ Test we discount CAPI cargo by its own lag margin, so a fresher journal reading can still win """
         from bgstally.fleetcarrier import FDEV_SLACKING_TIME
         from bgstally.constants import DataTier
         fc = harness.plugin.fleet_carrier

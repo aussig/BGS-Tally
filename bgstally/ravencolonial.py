@@ -719,15 +719,18 @@ class RavenColonial:
 
         url:str = f"{RC_API}/fc/{fc.carrier_id}"
         self.bgstally.request_manager.queue_request(url, RequestMethod.PUT, payload=view, headers=self._headers(),
-                                                    callback=self._carrier_callback)
+                                                    callback=partial(self._carrier_callback, fc, cargo))
 
 
     @catch_exceptions
-    def _carrier_callback(self, success:bool, response:Response, request:BGSTallyRequest|None = None) -> None:
+    def _carrier_callback(self, fc:'FleetCarrier', cargo:dict, success:bool, response:Response,
+                          request:BGSTallyRequest|None = None) -> None:
         """ Process the results of updating a carrier's cargo in RavenColonial """
         if success == False or response.status_code != 200:
             Debug.logger.warning(f"Error updating carrier {response} {response.content}")
             return
+
+        if cargo: fc._rc_last_cargo = cargo # So RC handing our own push back isn't mistaken for a fresh reading
 
         Debug.logger.debug(f"RavenColonial carrier update submitted: {response}")
 

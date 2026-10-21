@@ -299,8 +299,7 @@ class FleetCarrier:
             {'name': __("State", lang=l), 'value': state, 'inline': True}, # LANG: Discord heading
             {'name': __("From System", lang=l), 'value': j['from'], 'inline': True}, # LANG: Discord heading
             {'name': __("To System", lang=l), 'value': j['to'], 'inline': True}, # LANG: Discord heading
-            {'name': __("To Body", lang=l), 'value': j['body'], 'inline': True}, # LANG: Discord heading
-            {'name': time_head, 'value': f"<t:{j['departure']}:R>"},
+            {'name': time_head, 'value': f"<t:{j['departure']}:R>", 'inline': True},
             {'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}, # LANG: Discord heading
             {'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}] # LANG: Discord heading
         title:str = __("Carrier Jump: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
@@ -1168,8 +1167,9 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = departure.strftime("%Y-%m-%d %H:%M:%S")
             self.itinerary[0]['visitDurationSeconds'] = self._td(departure, self.itinerary[0]['arrivalTime'])
 
-        self.discord_jump = {'from': self.data.get('currentStarSystem', "Unknown"), 'to': entry.get('SystemName', "Unknown"),
-                             'body': entry.get('Body', "Unknown"), 'departure': round(departure.timestamp()), 'hooks': {}}
+        self.discord_jump = {'from': self.data.get('currentBody', self.data.get('currentStarSystem', "Unknown")),
+                             'to': entry.get('Body', entry.get('SystemName', "Unknown")),
+                             'hooks': {}}
         self._post_jump(__("Scheduled", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
 
         self.jump_state = FleetCarrierJump.Jumping

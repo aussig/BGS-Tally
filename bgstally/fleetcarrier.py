@@ -1169,6 +1169,7 @@ class FleetCarrier:
 
         self.discord_jump = {'from': self.data.get('currentBody', self.data.get('currentStarSystem', "Unknown")),
                              'to': entry.get('Body', entry.get('SystemName', "Unknown")),
+                             'departure': round(departure.timestamp()),
                              'hooks': {}}
         self._post_jump(__("Scheduled", lang=self.bgstally.state.discord_lang)) # LANG: Discord jump state
 

@@ -1,7 +1,6 @@
 import re
 from glob import glob
 from os import path, remove
-from threading import Thread
 from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
@@ -55,12 +54,6 @@ class FleetCarriers:
         """ Every third-party carrier we're currently tracking """
         return self.by_type(FleetCarrierType.THIRDPARTY)
 
-
-    def add(self, carrier_id:int, type:FleetCarrierType, station:str|None = None, system:str|None = None) -> None:
-        """ Add a new carrier """
-        if not carrier_id or carrier_id in self.carriers: return
-        self.carriers[carrier_id] = FleetCarrier(self.bgstally, carrier_id, type, station)
-        if system: self.carriers[carrier_id].overview['currentStarSystem'] = system
 
     def get(self, carrier_id:int, carrier_type:FleetCarrierType, callsign:str|None = None) -> FleetCarrier:
         """ Return the FleetCarrier for carrier_id, creating it if necessary """
@@ -120,11 +113,8 @@ class FleetCarriers:
 
 
     def refresh_markets(self, system:str, station:str) -> None:
-        """ Refresh each carrier's cargo data, one thread per carrier """
-
-        Thread(target=self.personal.update_carrier, daemon=True, name=f"FC update {self.personal.carrier_id}", args=(system, station)).start()
-        for carrier in self.carriers.values():
-            Thread(target=carrier.update_carrier, daemon=True, name=f"FC update {carrier.carrier_id}", args=(system, station)).start()
+        """ Refresh each carrier's cargo data in the background """
+        for carrier in [self.personal, *self.carriers.values()]: carrier.refresh(system, station)
 
 
     def track_by_callsign(self, callsign:str) -> bool:
@@ -132,7 +122,6 @@ class FleetCarriers:
         market_id:int|None = Spansh(self.bgstally).find_carrier(callsign)
         if market_id is None: return False
 
-        fc:FleetCarrier = self.get(market_id, FleetCarrierType.THIRDPARTY, callsign)
-        Spansh(self.bgstally).import_fleetcarrier(fc)
+        self.get(market_id, FleetCarrierType.THIRDPARTY, callsign).refresh()
 
         return True

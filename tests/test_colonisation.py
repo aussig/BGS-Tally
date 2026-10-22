@@ -342,6 +342,18 @@ class TestColonisationMethods:
         assert isinstance(progress, list)
         assert progress[0]['foodcartridges'] == 8
 
+    def test_primary_cost_by_order(self, harness) -> None:
+        """ Test a system's first build is costed as primary without find_build() having flagged it """
+        c = harness.plugin.colonisation
+        builds:list = [{'Base Type': 'Pirate Outpost'}, {'Base Type': 'Pirate Outpost'}]
+
+        required:list = c.get_required(builds)
+
+        assert required[0]['steel'] == 6660
+        assert required[1]['steel'] == 5588
+        c.find_build(c.systems[0], {'Name': 'Nowhere'})
+        assert 'Primary' not in c.systems[0]['Builds'][0]
+
     def test_find_or_create_progress(self, harness) -> None:
         """ Test progress find or create """
         c = harness.plugin.colonisation

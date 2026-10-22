@@ -123,12 +123,12 @@ class BGSTally:
         return self.fleet_carriers.personal
 
 
-    def _carrier(self, entry:dict) -> FleetCarrier:
-        """ Resolve which FleetCarrier a journal entry is about, creating one if CarrierType is given """
+    def _carrier(self, entry:dict) -> FleetCarrier|None:
+        """ The FleetCarrier a journal entry is about, created if CarrierType is given, else None if unknown """
         carrier_id:int = entry.get('CarrierID', entry.get('MarketID', 0))
         if 'CarrierType' in entry:
             return self.fleet_carriers.get(carrier_id, FleetCarrierType(entry['CarrierType']), entry.get('Callsign'))
-        return self.fleet_carriers.find(carrier_id) or self.fleet_carriers.personal
+        return self.fleet_carriers.find(carrier_id)
 
 
     def plugin_stop(self):
@@ -192,27 +192,29 @@ class BGSTally:
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'CargoTransfer':
-                self.fleet_carrier.cargo_transfer(entry)
+                # No MarketID in the event, but transfers only happen docked at our own or our squadron's carrier
+                docked:FleetCarrier|None = self.fleet_carriers.find(self.colonisation.market_id or 0) if self.colonisation.docked else None
+                (docked or self.fleet_carrier).cargo_transfer(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 
             case 'CarrierDepositFuel':
-                self.fleet_carrier.deposit_fuel(entry)
+                if fc := self._carrier(entry): fc.deposit_fuel(entry)
 
             case 'CarrierJumpCancelled':
-                self._carrier(entry).jump_cancelled(entry)
+                if fc := self._carrier(entry): fc.jump_cancelled(entry)
 
             case 'CarrierJumpRequest':
-                self._carrier(entry).jump_requested(entry)
+                if fc := self._carrier(entry): fc.jump_requested(entry)
 
             case 'CarrierLocation':
-                self._carrier(entry).carrier_location(entry)
+                if fc := self._carrier(entry): fc.carrier_location(entry)
 
             case 'CarrierStats':
-                self._carrier(entry).stats_received(entry)
+                if fc := self._carrier(entry): fc.stats_received(entry)
 
             case 'CarrierTradeOrder':
-                self._carrier(entry).trade_order(entry)
+                if fc := self._carrier(entry): fc.trade_order(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'CollectCargo':
@@ -250,10 +252,10 @@ class BGSTally:
                 dirty = True
 
                 market_id:int = entry.get('MarketID', 0)
-                # Add a third-party carrier if appropriate
-                if entry.get('StationType') == 'FleetCarrier' and self.state.AutoTrackCarriers.get() == CheckStates.STATE_ON and \
-                    self.fleet_carriers.find(market_id) is None:
-                    self.fleet_carriers.add(market_id, FleetCarrierType.THIRDPARTY, station, system)
+                # Track a third-party carrier. Ours docks as a FleetCarrier too, maybe before its id is known
+                if market_id and entry.get('StationType') == 'FleetCarrier' and station != self.fleet_carrier.overview.get('callsign') and \
+                    self.state.AutoTrackCarriers.get() == CheckStates.STATE_ON and self.fleet_carriers.find(market_id) is None:
+                    self.fleet_carriers.get(market_id, FleetCarrierType.THIRDPARTY, station).overview['currentStarSystem'] = system
 
                 # refresh carrier market data
                 self.fleet_carriers.refresh_markets(system, station)
@@ -288,19 +290,19 @@ class BGSTally:
 
             case 'Market':
                 self.market.load()
-                self._carrier(entry).market(entry)
+                if fc := self._carrier(entry): fc.market(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
             case 'MarketBuy':
                 activity.trade_purchased(entry, self.state)
-                self._carrier(entry).market_activity(entry)
+                if fc := self._carrier(entry): fc.market_activity(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
 
                 dirty = True
 
             case 'MarketSell':
                 activity.trade_sold(entry, self.state)
-                self._carrier(entry).market_activity(entry)
+                if fc := self._carrier(entry): fc.market_activity(entry)
                 self.colonisation.journal_entry(cmdr, is_beta, system, station, entry, state)
                 dirty = True
 

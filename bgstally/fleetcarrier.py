@@ -1238,14 +1238,12 @@ class FleetCarrier:
             # No jump scheduled but carrier isn't where we think it is so add current location to itinerary.
             if self.itinerary[0]['starsystem'] != entry.get('StarSystem'):
                 Debug.logger.debug(f"Adding jump to itinerary")
-                self.itinerary.insert(0, {
-                                        'departureTime': None,
+                self.itinerary.insert(0, {'departureTime': None,
                                         'arrivalTime': self.itinerary[0].get('departureTime', ''),
                                         'state': "success",
                                         'visitDurationSeconds': 0,
                                         'starsystem': entry.get('StarSystem', ''),
-                                        'body': entry.get('Body', '')
-                                        })
+                                        'body': entry.get('Body', '')})
             Spansh(self.bgstally).import_fleetcarrier(self)
             return
 
@@ -1264,14 +1262,12 @@ class FleetCarrier:
             self.itinerary[0]['visitDurationSeconds'] = self._td(self.overview['departureScheduled'], self.itinerary[0]['arrivalTime'])
 
         if self.itinerary[0]['starsystem'] != self.overview.get('jumpDestination', '') and abs(self._td(self.itinerary[0]['arrivalTime'], self.overview['departureScheduled'])) > 60:
-            self.itinerary.insert(0, {
-                                      'departureTime': None,
+            self.itinerary.insert(0, {'departureTime': None,
                                       'arrivalTime': self.overview['departureScheduled'],
                                       'state': "success",
                                       'visitDurationSeconds': 0,
                                       'starsystem': self.overview.get('jumpDestination', ''),
-                                      'body': self.overview.get('jumpDestinationBody', None)
-                                      })
+                                      'body': self.overview.get('jumpDestinationBody', None)})
 
         # Update our location and clear the jump
         self.overview['currentStarSystem'] = self.overview.get('jumpDestination', '')
@@ -1346,10 +1342,6 @@ class FleetCarrier:
     @catch_exceptions
     def trade_order(self, entry:dict) -> None:
         """ The user set a buy or sell order on their carrier """
-        # { "timestamp":"2024-02-17T16:33:10Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"imperialslaves", "Commodity_Localised":"Imperial Slaves", "SaleOrder":10, "Price":1749300 }
-        # { "timestamp":"2024-02-17T16:33:51Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "PurchaseOrder":5, "Price":4516 }
-        # { "timestamp":"2024-02-17T16:35:57Z", "event":"CarrierTradeOrder", "CarrierID":3703308032, "BlackMarket":false, "Commodity":"unstabledatacore", "Commodity_Localised":"Unstable Data Core", "CancelTrade":true }
-
         if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
 
         comm:str = entry.get('Commodity', "").lower()
@@ -1506,7 +1498,6 @@ class FleetCarrier:
     @catch_exceptions
     def cargo_transfer(self, entry:dict) -> None:
         """ The user transferred cargo to or from the carrier generating a CargoTransfer event """
-        # { "timestamp":"2025-03-22T15:15:21Z", "event":"CargoTransfer", "Transfers":[ { "Type":"steel", "Count":728, "Direction":"toship" }, { "Type":"titanium", "Count":56, "Direction":"toship" } ] }
         self._touch_cargo(DataTier.JOURNAL)
 
         changed:bool = False
@@ -1587,11 +1578,7 @@ class FleetCarrier:
 
     @catch_exceptions
     def shipyard_event(self, entry:dict) -> None:
-        """
-        The user viewed the carrier shipyard
-        StoredShips event happens before the ship is actually stored.
-        The subsequent ShipyardSwap doesn't include all the ship details so we have to keep a record of all ships.
-        """
+        """ The user viewed the carrier shipyard """
 
         match entry.get('event', ''):
             case 'Shipyard':
@@ -1626,9 +1613,7 @@ class FleetCarrier:
 
     @catch_exceptions
     def modules_event(self, entry:dict) -> None:
-        """
-        The user viewed their stored modules, producing a StoredModules journal event.
-        Unlike stored ships, modules aren't split into Here/Remote -- each item carries its own location.
+        """ User viewed their stored modules, producing a StoredModules journal event.
         """
         if entry.get('event') != 'StoredModules': return
 
@@ -1636,14 +1621,12 @@ class FleetCarrier:
         total_value:int = 0
         for item in entry.get('Items', []):
             at_carrier:bool = item.get('MarketID', entry.get('MarketID', 0)) == self.carrier_id
-            Debug.logger.debug(f"Module {item.get('StorageSlot', 0)} {item.get('Name', '')}")
             try:
                 # EDMC's outfitting.lookup() raises ValueError for a module it doesn't recognize
                 mod:dict = outfitting.lookup({'id': item.get('StorageSlot', 0),
                                               'name': re.sub(r"\$(.*)_name;$", r"\1", item.get('Name', ''))}, ship_name_map) or {}
             except (ValueError, KeyError) as e:
                 continue
-            Debug.logger.debug(f"Module {mod}")
             self.modules['modules'][str(item.get('StorageSlot', ''))] = {
                 'name': item.get('Name_Localised', item.get('Name', '')),
                 'size': mod.get('class', ''), # EDMC's 'class' is the module's size (e.g. '2', or a hardpoint's '1'-'4')
@@ -1771,10 +1754,9 @@ class FleetCarrier:
                         "BountyHunter": ["Bounty Hunter", _("Bounty Hunter"), __("Bounty Hunter", lang=lang)] # LANG: Readable carrier states
                         }
         map:list = readable.get(field, [])
-        if discord == False:
-            return map[1] if map != [] else str(field)
-        return map[2] if map != [] else str(field)
-
+        if not map: return str(field)
+        if discord: return map[2]
+        return map[1]
 
     def _init_cargo_item(self, item:str, alt:str = "") -> dict:
         """ Initialize a cargo item structure """

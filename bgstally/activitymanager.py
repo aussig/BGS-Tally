@@ -1,5 +1,6 @@
+import json
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from os import listdir, mkdir, path, remove, rename
 from threading import Thread
 from time import sleep
@@ -9,7 +10,7 @@ if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
 from bgstally.activity import Activity
-from bgstally.constants import FILE_SUFFIX
+from bgstally.constants import DATETIME_FORMAT_ACTIVITY, FILE_SUFFIX
 from bgstally.debug import Debug
 from bgstally.tick import Tick
 from config import config
@@ -188,6 +189,36 @@ class ActivityManager:
             except FileNotFoundError: # Source doesn't exist
                 Debug.logger.warning(f"Attempt to archive failed, source file doesn't exist")
                 continue
+
+
+    def purge_archive(self, days:int) -> int:
+        """
+        Delete archived activity files whose tick is more than the given number of days ago, returning the count deleted
+        """
+        folder:str = path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, FOLDER_ACTIVITYDATA_ARCHIVE)
+        if not path.exists(folder): return 0
+
+        cutoff:datetime = datetime.now(UTC) - timedelta(days=days)
+        count:int = 0
+
+        for file in listdir(folder):
+            if not file.endswith(FILE_SUFFIX): continue
+
+            filepath:str = path.join(folder, file)
+            try:
+                with open(filepath) as f:
+                    ticktime:datetime = datetime.strptime(json.load(f)['ticktime'], DATETIME_FORMAT_ACTIVITY).replace(tzinfo=UTC)
+            except Exception:
+                Debug.logger.warning(f"Unable to read ticktime from archived activity {file}")
+                continue
+
+            if ticktime >= cutoff: continue
+
+            remove(filepath)
+            count += 1
+
+        Debug.logger.info(f"Deleted {count} archived activity files older than {days} days")
+        return count
 
 
     def _autopost_worker(self) -> None:

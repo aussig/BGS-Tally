@@ -35,6 +35,7 @@ PREFS_STRUCTURE = "prefs_structure" + FILE_SUFFIX
   type indicates the type of preference:
   - label: Just for displaying text
   - entry / str: A text entry field for a string or numeric preference
+  - spinbox: A numeric spinbox, with optional min and max
   - checkbox / bool: A checkbox for a simple on/off boolean preference
   - radio / radiobutton: A radio button for a single choice with multiple options
   - menu: A dropdown menu for a preference with multiple options (a different way to implement radio buttons)
@@ -233,6 +234,15 @@ class Prefs:
                              state=state). \
                     grid(row=row, column=col, pady=(0,5), sticky=tk.W)
 
+            case "spinbox":
+                elem = nb.Label(parent_frame, text=label, state=state)
+                elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
+                col += 1
+                ttk.Spinbox(parent_frame, textvariable=getattr(self.bgstally.state, pref.var), from_=getattr(pref, "min", 0),
+                            to=getattr(pref, "max", 100), width=getattr(pref, "width", 5),
+                            state="disabled" if state == "disabled" else "normal"). \
+                    grid(row=row, column=col, pady=(0,5), sticky=tk.W)
+
         if desc != "":
             ToolTip(elem, text=desc)
         return col
@@ -376,6 +386,26 @@ class Prefs:
 
         answer = askyesno(title=_("Confirm Force a New Tick"), message=message, default="no") # LANG: Preferences force tick popup title
         if answer: self.bgstally.new_tick(True, UpdateUIPolicy.IMMEDIATE)
+
+    def _archive_purge(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
+        """ Show the archive retention days field and Delete Now button """
+        nb.Label(frame, text=_("Delete older than (days)")).grid(row=row, column=column, padx=10, pady=5, sticky=tk.W) # LANG: Preferences archive purge label
+        self.archive_days:tk.StringVar = tk.StringVar(value="365")
+        ttk.Spinbox(frame, from_=1, to=9999, width=5, textvariable=self.archive_days).grid(row=row, column=column + 1, pady=5, sticky=tk.W)
+        ttk.Button(frame, text=_("Delete Now"), command=self._confirm_archive_purge, style='ft.TButton').\
+            grid(row=row, column=column + 2, padx=10, pady=5, sticky=tk.W) # LANG: Preferences archive purge button text
+        return 3
+
+    def _confirm_archive_purge(self):
+        """ Delete old archived activity when user clicks button """
+        days:str = self.archive_days.get().strip()
+        if not days.isdigit(): return
+
+        message:str = _("This will permanently delete archived activity older than {days} days.").format(days=days) + "\n\n" # LANG: Preferences archive purge popup text
+        message += _("Are you sure that you want to do this?") # LANG: Preferences force tick text
+
+        if not askyesno(title=_("Confirm Delete Archived Activity"), message=message, default="no"): return # LANG: Preferences archive purge popup title
+        self.bgstally.activity_manager.purge_archive(int(days))
 
     @catch_exceptions
     def _change_favourite(self, name:tk.Variable|str, var:tk.Variable|bool) -> None:

@@ -618,7 +618,7 @@ class ProgressWindow:
         if heading['Column'] != 'Carrier': return heading.get('Tooltip', '')
 
         other:int|None = self._other_carrier(col)
-        carrier:str = self._carrier_label(other, long=True) if other is not None else _('Personal') # LANG: Personal carrier fallback label
+        carrier:str = self._carrier_label(other, long=True)# if other is not None else _('Personal') # LANG: Personal carrier fallback label
         modes:dict = {'buy': _('Demand'), 'sell': _('Stock available to buy'), 'cargo': _('Amount held in cargo')} # LANG: Carrier column tooltip modes
         return _("{mode} at {carrier}").format(mode=modes.get(self.column_carrier_mode[col], ''), carrier=carrier) # LANG: Carrier column tooltip
 
@@ -812,6 +812,8 @@ class ProgressWindow:
                 if col == 0:
                     row[col]['text'] = str_truncate(v, 26)
                     self.rowtts[rowcnt].text = self.colonisation.get_commodity(comm.comm, 'category')
+                    if hasattr(self, 'mkts_rows') and comm.comm in self.mkts_rows: # Add the nearest market to the tooltip if we have it
+                        self.rowtts[rowcnt].text += f" – {self.mkts_rows[comm.comm][0][3]}"
                     row[col].grid()
                     continue
 
@@ -987,5 +989,5 @@ class ProgressWindow:
                 self._set_weight(cell, 'bold' if comm.purchase > 0 and space > 0 else 'normal')
                 continue
 
-            if comm.buyorder and comm.buyorder >= comm.purchase: # Does carrier buy order cover what we still need to buy?
-                cell['fg'] = 'magenta3'
+            if comm.buyorder and comm.buyorder < comm.purchase: # Does carrier buy order cover what we still need to buy?
+                cell['fg'] = 'plum3'

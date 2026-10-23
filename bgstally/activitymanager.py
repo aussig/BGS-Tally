@@ -6,6 +6,8 @@ from threading import Thread
 from time import sleep
 from typing import TYPE_CHECKING
 
+from config import config #type: ignore
+
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
@@ -13,7 +15,7 @@ from bgstally.activity import Activity
 from bgstally.constants import DATETIME_FORMAT_ACTIVITY, FILE_SUFFIX
 from bgstally.debug import Debug
 from bgstally.tick import Tick
-from config import config
+
 
 FILE_LEGACY_CURRENTDATA = "Today Data.txt"
 FILE_LEGACY_PREVIOUSDATA = "Yesterday Data.txt"
@@ -102,27 +104,27 @@ class ActivityManager:
         New tick detected, duplicate the current Activity object or ignore if it's older than current tick.
         """
 
-        if tick.tick_time < self.current_activity.tick_time:
+        if self.current_activity and tick.tick_time < self.current_activity.tick_time:
             # An inbound tick is older than the current tick. The only valid situation for this is if the user has done a Force Tick
             # but a new tick was then detected with an earlier timestamp. Ignore the tick in this situation.
             return False
-        else:
-            # An inbound tick is newer than the current tick. Create a new Activity object.
-            # Note Activity uses a customised __deepcopy__ that only deep copies data, not class instances.
-            new_activity:Activity = deepcopy(self.current_activity)
-            new_activity.tick_id = tick.tick_id
-            new_activity.tick_time = tick.tick_time
-            new_activity.tick_forced = forced
-            new_activity.discord_webhook_data = {}
-            new_activity.discord_notes = ""
-            new_activity.dirty = False
-            new_activity.autopost = False
-            new_activity.clear_activity(self.bgstally.mission_log)
-            self.activity_data.append(new_activity)
-            self.activity_data.sort(reverse=True)
-            self.current_activity = new_activity
 
-            return True
+        # An inbound tick is newer than the current tick. Create a new Activity object.
+        # Note Activity uses a customised __deepcopy__ that only deep copies data, not class instances.
+        new_activity:Activity = deepcopy(self.current_activity)
+        new_activity.tick_id = tick.tick_id
+        new_activity.tick_time = tick.tick_time
+        new_activity.tick_forced = forced
+        new_activity.discord_webhook_data = {}
+        new_activity.discord_notes = ""
+        new_activity.dirty = False
+        new_activity.autopost = False
+        new_activity.clear_activity(self.bgstally.mission_log)
+        self.activity_data.append(new_activity)
+        self.activity_data.sort(reverse=True)
+        self.current_activity = new_activity
+
+        return True
 
 
     def _load(self):

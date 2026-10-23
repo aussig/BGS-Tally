@@ -339,7 +339,7 @@ class Prefs:
                                           empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
                                           show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
                                           headers=sheet_headings)
-        self.sheet_webhooks.grid(row=row, column=column, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); row += 1
+        self.sheet_webhooks.grid(row=row, column=column, columnspan=2, padx=5, pady=(0,5), sticky=tk.NSEW); row += 1
         self.sheet_webhooks.hide_columns(columns=(0))                       # Visible column indexes
         self.sheet_webhooks.checkbox_column(c=iter([3, 4, 5, 6, 7, 8, 9]))           # Data column indexes
         self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks_as_list())
@@ -389,11 +389,11 @@ class Prefs:
 
     def _archive_purge(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
         """ Show the archive retention days field and Delete Now button """
-        nb.Label(frame, text=_("Delete older than (days)")).grid(row=row, column=column, padx=10, pady=5, sticky=tk.W) # LANG: Preferences archive purge label
+        nb.Label(frame, text=_("Delete older than (days)")).grid(row=row, column=column, padx=10, pady=(0,5), sticky=tk.NW) # LANG: Preferences archive purge label
         self.archive_days:tk.StringVar = tk.StringVar(value="365")
-        ttk.Spinbox(frame, from_=1, to=9999, width=5, textvariable=self.archive_days).grid(row=row, column=column + 1, pady=5, sticky=tk.W)
+        ttk.Spinbox(frame, from_=1, to=9999, width=5, textvariable=self.archive_days).grid(row=row, column=column + 1, pady=(0,5), sticky=tk.W)
         ttk.Button(frame, text=_("Delete Now"), command=self._confirm_archive_purge, style='ft.TButton').\
-            grid(row=row, column=column + 2, padx=10, pady=5, sticky=tk.W) # LANG: Preferences archive purge button text
+            grid(row=row, column=column + 2, padx=10, pady=(0,5), sticky=tk.W) # LANG: Preferences archive purge button text
         return 3
 
     def _confirm_archive_purge(self):

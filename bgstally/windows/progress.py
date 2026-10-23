@@ -986,3 +986,6 @@ class ProgressWindow:
                 # bold if need any and have room, otherwise normal
                 self._set_weight(cell, 'bold' if comm.purchase > 0 and space > 0 else 'normal')
                 continue
+
+            if comm.buyorder and comm.buyorder >= comm.purchase: # Does carrier buy order cover what we still need to buy?
+                cell['fg'] = 'magenta3'

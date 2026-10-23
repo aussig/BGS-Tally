@@ -911,13 +911,51 @@ class TestCarrierEvents:
         fc = harness.plugin.fleet_carrier
         fc.cargo['normal'] = {'steel': {'locName': 'Steel', 'category': 'Metals', 'cargo': 100, 'sell': 0, 'buy': 50, 'price': 4000}}
         fc._touch_cargo(DataTier.JOURNAL)
-        entry = {'CarrierID': 12345, 'CarrierType': 'FleetCarrier', 'SpaceUsage': {'TotalCapacity': 25000, 'FreeSpace': 1}}
+        entry = {'CarrierID': 12345, 'CarrierType': 'FleetCarrier', 'SpaceUsage': {'TotalCapacity': 25000, 'Cargo': 1}}
 
         fc.stats_received(entry)
 
         assert fc.cargo['normal']['steel']['cargo'] is None
         assert fc.cargo['normal']['steel']['buy'] == 50
         assert (fc.cargo_tier, fc.cargo_time) == (DataTier.UNKNOWN, 0)
+
+    def test_stats_reserved_keeps_cargo(self, harness) -> None:
+        """ Test a reserved-space mismatch marks orders stale but keeps held cargo """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        fc.cargo['normal'] = {'steel': {'locName': 'Steel', 'category': 'Metals', 'cargo': 100, 'sell': 0, 'buy': 50, 'price': 4000}}
+        fc._touch_cargo(DataTier.JOURNAL)
+        fc._touch_market(DataTier.JOURNAL)
+        entry = {'CarrierID': 12345, 'CarrierType': 'FleetCarrier', 'SpaceUsage': {'TotalCapacity': 25000, 'Cargo': 100, 'CargoSpaceReserved': 10}}
+
+        fc.stats_received(entry)
+
+        assert fc.cargo['normal']['steel']['cargo'] == 100
+        assert (fc.market_tier, fc.market_time) == (DataTier.UNKNOWN, 0)
+
+    def test_stats_unknown_cargo_skips(self, harness) -> None:
+        """ Test the held-cargo check is skipped while our cargo is unknown """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        fc.cargo['normal'] = {'steel': {'locName': 'Steel', 'category': 'Metals', 'cargo': None, 'sell': 0, 'buy': 0, 'price': 0}}
+        fc._invalidate_cargo()
+        entry = {'CarrierID': 12345, 'CarrierType': 'FleetCarrier', 'SpaceUsage': {'TotalCapacity': 25000, 'Cargo': 302}}
+
+        with patch.object(fc, '_invalidate_cargo') as inv:
+            fc.stats_received(entry)
+
+        inv.assert_not_called()
+
+    def test_trade_order_applies(self, harness) -> None:
+        """ Test a CarrierTradeOrder for our carrier is applied, not dropped """
+        fc = harness.plugin.fleet_carrier
+        fc.carrier_id = 12345
+        fc.cargo['normal'] = {'steel': {'locName': 'Steel', 'category': 'Metals', 'cargo': 100, 'sell': 0, 'buy': 0, 'price': 0}}
+        harness.plugin.ui.commodities = {'steel': {'Name': 'Steel', 'Category': 'Metals'}}
+
+        fc.trade_order({'CarrierID': 12345, 'CarrierType': 'FleetCarrier', 'Commodity': 'steel', 'PurchaseOrder': 50, 'Price': 4000})
+
+        assert fc.cargo['normal']['steel']['buy'] == 50
 
     def test_stats_received_sets_fuel(self, harness) -> None:
         """ Test stats_received() populates fuel from CarrierStats """

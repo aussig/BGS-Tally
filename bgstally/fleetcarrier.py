@@ -305,8 +305,8 @@ class FleetCarrier:
             {'name': __("From System", lang=l), 'value': j['from'], 'inline': True}, # LANG: Discord heading
             {'name': __("To System", lang=l), 'value': j['to'], 'inline': True}, # LANG: Discord heading
             {'name': time_head, 'value': f"<t:{j['departure']}:R>", 'inline': True},
-            {'name': __("Docking", lang=l), 'value': self._readable(self.data.get('dockingAccess', ''), True), 'inline': True}, # LANG: Discord heading
-            {'name': __("Notorious Access", lang=l), 'value': self._readable(self.data.get('notoriousAccess', False), True), 'inline': True}] # LANG: Discord heading
+            {'name': __("Docking", lang=l), 'value': self._readable(self.overview.get('dockingAccess', ''), True), 'inline': True}, # LANG: Discord heading
+            {'name': __("Notorious Access", lang=l), 'value': self._readable(self.overview.get('notoriousAccess', False), True), 'inline': True}] # LANG: Discord heading
         title:str = __("Carrier Jump: {carrier_name}", lang=l).format(carrier_name=self.overview.get('name', 0)) # LANG: Discord post title
         if chan == DiscordChannel.SQUADRON_OPERATIONS:
             title = __("Squadron", lang=l) + " " + title # LANG: Discord post title
@@ -1138,11 +1138,16 @@ class FleetCarrier:
         for k, v in updates.items():
             v[0][k] = get_by_path(entry, v[1], v[2])
 
-        # Sanity check
-        if get_by_path(entry, ['SpaceUsage', 'FreeSpace'], 0) != self._get_freespace() or \
-            get_by_path(entry, ['SpaceUsage', 'CargoSpaceReserved']) != self._get_reserved():
-            Debug.logger.error(f"Carrier space mismatch, clearing cargo")
+        # Sanity check held cargo and buy orders separately: only the former says our quantities are wrong
+        space:dict = entry.get('SpaceUsage', {})
+        if self.cargo_tier != DataTier.UNKNOWN and space.get('Cargo', self._get_marketused()) != self._get_marketused():
+            Debug.logger.error(f"Carrier cargo mismatch, clearing cargo")
             self._invalidate_cargo()
+
+        if space.get('CargoSpaceReserved', self._get_reserved()) != self._get_reserved():
+            Debug.logger.error(f"Carrier reserved space mismatch, buy orders are stale")
+            self.market_tier = DataTier.UNKNOWN
+            self.market_time = 0
 
         self._updated()
         self.refresh()
@@ -1174,7 +1179,7 @@ class FleetCarrier:
             self.itinerary[0]['departureTime'] = departure.strftime("%Y-%m-%d %H:%M:%S")
             self.itinerary[0]['visitDurationSeconds'] = self._td(departure, self.itinerary[0]['arrivalTime'])
 
-        self.discord_jump = {'from': self.data.get('currentBody', self.data.get('currentStarSystem', "Unknown")),
+        self.discord_jump = {'from': self.overview.get('currentBody', self.overview.get('currentStarSystem', "Unknown")),
                              'to': entry.get('Body', entry.get('SystemName', "Unknown")),
                              'departure': round(departure.timestamp()),
                              'hooks': {}}
@@ -1246,7 +1251,6 @@ class FleetCarrier:
                                         'body': entry.get('Body', '')
                                         })
             self.refresh()
-            Spansh(self.bgstally).import_fleetcarrier(self)
             return
 
         Debug.logger.debug(f"Calling jump complete")
@@ -1342,7 +1346,7 @@ class FleetCarrier:
     @catch_exceptions
     def trade_order(self, entry:dict) -> None:
         """ The user set a buy or sell order on their carrier """
-        if entry.get("CarrierID") != self.overview.get('carrier_id', ''): return
+        if entry.get("CarrierID") != self.carrier_id: return
 
         comm:str = entry.get('Commodity', "").lower()
         if comm not in self.bgstally.ui.commodities:

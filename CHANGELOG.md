@@ -25,7 +25,7 @@
 
 * Progress columns now have dropdown menus which include tracked carriers
 * Carrier buy orders, sell orders, and cargo are available as distinct progress views
-* Progress rows coloured magenta if the carrier buy order is sufficient (useful when setting up buy orders)
+* Progress rows coloured magenta if the carrier has a buy order but it's insufficient
 * Carrier jump progress is saved over EDMC restarts
 
 ### Bug Fixes:

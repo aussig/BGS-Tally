@@ -603,6 +603,12 @@ class ColonisationWindow:
                                                      'Name': '',
                                                      'Row': row+1})
             case 'Delete':
+                if system.get('RCSync', False) and system['Builds'][row].get('State', None) == "Progress" and system['Builds'][row].get('ProjectID', None):
+                    if not messagebox.askyesno(
+                        _("Confirm Removal"), # LANG: confirm system removal dialog title
+                        _("Are you sure you want to remove this build, it will delete the active Raven Colonial project?") # LANG: confirm project removal dialog text
+                    ):
+                        return
                 self.colonisation.remove_build(system, row)
                 sheet.del_row(row)
                 self._config_sheet(self.sheets[tabnum], system)

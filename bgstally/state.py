@@ -51,6 +51,7 @@ class State:
         self.ColonisationMaxCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationMaxCommodities', default="20"))
         self.ColonisationRCAPIKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationRCAPIKey', default=""))
         self.ColonisationRCAutoSync:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationRCAutoSync', default=CheckStates.STATE_ON))
+        self.ColonisationBuildMode:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationBuildMode', default="auto"))
 
         self.plugin_hidden:bool = (config.get_str('BGST_PluginHidden', default=CheckStates.STATE_OFF) == CheckStates.STATE_ON)
 
@@ -176,6 +177,7 @@ class State:
         config.set('BGST_ColonisationMaxCommodities', self.ColonisationMaxCommodities.get())
         config.set('BGST_ColonisationRCAPIKey', self.ColonisationRCAPIKey.get())
         config.set('BGST_ColonisationRCAutoSync', self.ColonisationRCAutoSync.get())
+        config.set('BGST_ColonisationBuildMode', self.ColonisationBuildMode.get())
         config.set('BGST_FavouriteActivityMode', self.FavouriteActivityMode.get())
         config.set('BGST_UseColonisationName', self.UseColonisationName.get())
 

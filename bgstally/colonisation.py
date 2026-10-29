@@ -243,7 +243,14 @@ class Colonisation:
                 if 'Colonisation Ship' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                     Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
                     if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
-                    build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
+                    site:dict = {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body}
+                    build = self.find_build(system, site)
+                    mode:str = self.bgstally.state.ColonisationBuildMode.get()
+                    if (mode == 'all' and (build == None or build.get('MarketID') != self.market_id)) or \
+                        (mode == 'unknown' and build == None):
+                        self.bgstally.ui.window_colonisation.new_build_dialog(system, build, site | {'Location': self.location})
+                        return
+                    if build == None: build = self.add_build(system, site)
                     build_state = BuildState.PROGRESS
                 # Complete station so find it and add/update as appropriate.
                 elif system != None and self.station not in ['FleetCarrier', 'SquadronCarrier'] and re.search(RE_IGNORE_PATTERN, f"{self.station}") == None :
@@ -710,6 +717,17 @@ class Colonisation:
             return build
 
         return self.add_build(system, data)
+
+
+    @catch_exceptions
+    def confirm_build(self, system:dict, build:dict|None, data:dict) -> None:
+        ''' Create or link a build for a site the user confirmed in the new build dialog '''
+        data |= {'State': BuildState.PROGRESS, 'Track': True}
+        if build == None:
+            self.add_build(system, data)
+            return
+
+        self.modify_build(system, build.get('BuildID', ''), data)
 
 
     @catch_exceptions

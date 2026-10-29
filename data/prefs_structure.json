@@ -49,6 +49,17 @@
                         "type": "checkbox",
                         "label": "Sync New Systems with Raven Colonial",
                         "desc": "Automatically sync newly created systems with Raven Colonial (requires an API key)"
+                    },
+                    {
+                        "var": "ColonisationBuildMode",
+                        "type": "menu",
+                        "label": "New Build Sites",
+                        "desc": "How builds are created when docking at a new colonisation ship or construction site",
+                        "options": {
+                            "auto": "Automated",
+                            "unknown": "Manual unknown",
+                            "all": "Manual all"
+                        }
                     }
                 ]
             },

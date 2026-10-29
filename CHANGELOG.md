@@ -21,6 +21,7 @@
   * Progress display switches colours correctly when the theme is changed
 * Added checkbox to enable and disable automatic updates of the plugin. Defaults to enabled
 * Added checkbox to enable and disable automatic syncing of new systems to Raven Colonial if a Raven Colonial API key is present
+* Added option for manual build adding with a dialogue to support it
 
 ### Changes:
 

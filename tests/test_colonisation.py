@@ -604,6 +604,7 @@ class TestSpanshMarkets:
                 response = MagicMock()
                 response.json.return_value = {'results': stations}
                 found['payload'] = payload
+                if not callback: return
                 callback(True, response, None)
 
             Spansh(harness.plugin).market_cache.clear()
@@ -632,6 +633,7 @@ class TestSpanshMarkets:
             sent.append(payload)
             response = MagicMock()
             response.json.return_value = {'results': []}
+            if not callback: return
             callback(True, response, None)
 
         def search(minimum:int = 100) -> None:
@@ -660,9 +662,11 @@ class TestSpanshMarkets:
                          for i in range(6)]
 
         def fake_queue(url, method, callback = None, payload = None, **kwargs):
+            if not payload: return
             sent.append(payload['filters']['market'][0]['name'])
             response = MagicMock()
             response.json.return_value = {'results': stations if isinstance(sent[-1], list) else []}
+            if not callback: return
             callback(True, response, None)
 
         wanted:dict = {'gold': 100, 'tritium': 100, 'platinum': 100, 'agriculturalmedicines': 100}
@@ -673,3 +677,27 @@ class TestSpanshMarkets:
         assert sent == [['Gold', 'Tritium', 'Platinum', 'Agri-Medicines'], 'Gold', 'Platinum'] # No rows in the shared page, so searched alone
         assert [r['station'] for r in found['tritium']] == ['St0']
         assert found['gold'] == [] and found['platinum'] == [] and 'agriculturalmedicines' in found
+
+    def test_manual_build_popup(self, harness) -> None:
+        """ Manual build modes prompt before adding an unknown site """
+        c = harness.plugin.colonisation
+        system:dict = c.systems[0]
+        dock:dict = {'event': 'Docked', 'StationName': 'Orbital Construction Site: Popup Test', 'MarketID': 3999999999,
+                     'StarSystem': system['StarSystem'], 'SystemAddress': system['SystemAddress']}
+        count:int = len(system['Builds'])
+
+        harness.plugin.state.ColonisationBuildMode.set('unknown')
+        with patch.object(harness.plugin.ui.window_colonisation, 'new_build_dialog') as dialog:
+            c.journal_entry('Cmdr', False, system['StarSystem'], None, dock, {})
+            assert dialog.call_count == 1
+            assert len(system['Builds']) == count
+
+            c.confirm_build(system, dialog.call_args.args[1], dialog.call_args.args[2] | {'Layout': 'Vulcan'})
+            assert len(system['Builds']) == count + 1
+            assert system['Builds'][-1]['Base Type'] == 'Industrial Outpost'
+
+            harness.plugin.state.ColonisationBuildMode.set('all')
+            c.journal_entry('Cmdr', False, system['StarSystem'], None, dock, {})
+            assert dialog.call_count == 1
+
+        harness.plugin.state.ColonisationBuildMode.set('auto')

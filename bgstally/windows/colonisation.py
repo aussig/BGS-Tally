@@ -170,6 +170,7 @@ class ColonisationWindow:
         self.notes_fr:tk.Toplevel|None = None
         self.bases_fr:tk.Toplevel|None = None
         self.bodies_fr:tk.Toplevel = None
+        self.build_dialog:tk.Toplevel|None = None
         self.scale:float = 0
 
 
@@ -1370,6 +1371,79 @@ class ColonisationWindow:
 
         self.close('EditSystem', dialog)
         self.update_display()
+
+
+    @catch_exceptions
+    def new_build_dialog(self, system:dict, build:dict|None, data:dict) -> None:
+        ''' Ask whether to create a build for a newly docked colonisation ship or construction site '''
+        if self.build_dialog and self.build_dialog.winfo_exists(): self.build_dialog.destroy()
+        self.colonisation = self.bgstally.colonisation
+
+        cat:str = 'Initial' if 'Colonisation Ship' in data.get('Name', '') else 'All'
+        known:dict = build or {}
+        new:str = _("New build") # LANG: Dropdown option to create a new build rather than use an existing one
+
+        options:dict = {new: None}
+        for i, b in enumerate(system.get('Builds', [])):
+            options[f"{i+1}:{b.get('Name') or b.get('Base Type') or '?'} ({b.get('Body') or '?'})"] = b
+        build_var:tk.StringVar = tk.StringVar(value=next(k for k, v in options.items() if v is build))
+
+        dialog:tk.Toplevel = tk.Toplevel(self.bgstally.ui.frame)
+        dialog.wm_attributes('-topmost', True)
+        dialog.title(_("New Build")) # LANG: Title of the popup for a newly discovered build site
+        if 'NewBuild' in self.colonisation.window_geometries: dialog.geometry(self.colonisation.window_geometries['NewBuild'])
+        dialog.protocol("WM_DELETE_WINDOW", partial(self.close, 'NewBuild', dialog))
+        dialog.config(bd=2, relief=tk.FLAT)
+        self.build_dialog = dialog
+
+        ttk.Label(dialog, text=f"{system.get('Name', '')}: {data.get('Name', '')}").\
+            grid(row=0, column=0, columnspan=2, padx=10, pady=10, sticky=tk.W)
+
+        type_var:tk.StringVar = tk.StringVar(value=known.get('Base Type', ''))
+        layout_var:tk.StringVar = tk.StringVar(value=known.get('Layout', ''))
+
+        ttk.Label(dialog, text=_("Build")+":").grid(row=1, column=0, padx=10, pady=5, sticky=tk.W) # LANG: Label for the existing build dropdown
+        build_cb:ttk.Combobox = ttk.Combobox(dialog, textvariable=build_var, values=list(options), state='readonly', width=40)
+        build_cb.grid(row=1, column=1, padx=10, pady=5, sticky=tk.W)
+
+        ttk.Label(dialog, text=_("Base Type")+":").grid(row=2, column=0, padx=10, pady=5, sticky=tk.W) # LANG: Label for the base type dropdown
+        type_cb:ttk.Combobox = ttk.Combobox(dialog, textvariable=type_var, state='readonly', width=30,
+                                            values=self.colonisation.get_base_types(cat))
+        type_cb.grid(row=2, column=1, padx=10, pady=5, sticky=tk.W)
+
+        ttk.Label(dialog, text=_("Layout")+":").grid(row=3, column=0, padx=10, pady=5, sticky=tk.W) # LANG: Label for the base layout dropdown
+        layout_cb:ttk.Combobox = ttk.Combobox(dialog, textvariable=layout_var, state='readonly', width=30,
+                                              values=sorted(self.colonisation.get_base_layouts(type_var.get() or cat)))
+        layout_cb.grid(row=3, column=1, padx=10, pady=5, sticky=tk.W)
+
+        def type_selected(event = None) -> None:
+            layouts:list = sorted(self.colonisation.get_base_layouts(type_var.get()))
+            layout_cb['values'] = layouts
+            layout_var.set(layouts[0] if len(layouts) == 1 else '')
+
+        def layout_selected(event = None) -> None:
+            type_var.set(self.colonisation.get_base_type(layout_var.get()).get('Type', type_var.get()))
+
+        def build_selected(event = None) -> None:
+            chosen:dict|None = options[build_var.get()]
+            if chosen == None: return
+            type_var.set(chosen.get('Base Type', ''))
+            layout_cb['values'] = sorted(self.colonisation.get_base_layouts(type_var.get() or cat))
+            layout_var.set(chosen.get('Layout', ''))
+
+        build_cb.bind('<<ComboboxSelected>>', build_selected)
+        type_cb.bind('<<ComboboxSelected>>', type_selected)
+        layout_cb.bind('<<ComboboxSelected>>', layout_selected)
+
+        def create() -> None:
+            chosen:dict = {k: v for k, v in {'Base Type': type_var.get(), 'Layout': layout_var.get()}.items() if v}
+            self.colonisation.confirm_build(system, options[build_var.get()], data | chosen)
+            self.close('NewBuild', dialog)
+
+        button_frame:ttk.Frame = ttk.Frame(dialog)
+        button_frame.grid(row=4, column=0, columnspan=2, pady=10)
+        ttk.Button(button_frame, text=_("Create"), command=create).pack(side=tk.LEFT, padx=5) # LANG: Create button
+        ttk.Button(button_frame, text=_("Cancel"), command=partial(self.close, 'NewBuild', dialog)).pack(side=tk.LEFT, padx=5) # LANG: Cancel button
 
 
     @catch_exceptions

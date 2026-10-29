@@ -944,9 +944,9 @@ class FleetCarrier:
             # Add entries that aren't in our itinerary
             jumplist += [j for j in get_by_path(data, ['itinerary', 'completed'], []) if 'arrivalTime' in j and j['arrivalTime'] and j['arrivalTime'][:-3] not in ientries]
 
-            # Remove entires that are in our itinerary but not in the capi data
+            # Remove entries that are in our itinerary but not in the capi data
             # (for as far back as the capi data goes)
-            jumplist = [j for i, j in enumerate(jumplist) if 'arrivalTime' in j and j['arrivalTime'] and j['arrivalTime'][:-3] in centries or i >= len(centries)]
+            jumplist = [j for i, j in enumerate(jumplist) if j.get('arrivalTime') and (j['arrivalTime'][:-3] in centries or i >= len(centries))]
 
             # Sort & dedup
             jumplist = sorted(jumplist, key=lambda item: self._parse_date(item['arrivalTime']), reverse=True)

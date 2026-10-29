@@ -20,6 +20,7 @@
   * EDMC window buttons use theme-aware objects
   * Progress display switches colours correctly when the theme is changed
 * Added checkbox to enable and disable automatic updates of the plugin. Defaults to enabled
+* Added checkbox to enable and disable automatic syncing of new systems to Raven Colonial if a Raven Colonial API key is present
 
 ### Changes:
 
@@ -27,6 +28,7 @@
 * Carrier buy orders, sell orders, and cargo are available as distinct progress views
 * Progress rows coloured magenta if the carrier has a buy order but it's insufficient
 * Carrier jump progress is saved over EDMC restarts
+* Made colonisation data more resilient by taking a backup if there are any issues loading it so it doesn't get lost
 
 ### Bug Fixes:
 

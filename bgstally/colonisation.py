@@ -453,7 +453,7 @@ class Colonisation:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
         system:dict|None = self.find_system(data)
         if system == None:
-            return self.add_system(data, False, False)
+            return self.add_system(data, False, self.bgstally.state.colonisation_rc_sync)
 
         return system
 

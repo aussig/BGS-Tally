@@ -43,6 +43,12 @@
                         "var": "ColonisationRCAPIKey",
                         "type": "password",
                         "label": "Raven Colonial API Key"
+                    },
+                    {
+                        "var": "ColonisationRCAutoSync",
+                        "type": "checkbox",
+                        "label": "Sync New Systems with Raven Colonial",
+                        "desc": "Automatically sync newly created systems with Raven Colonial (requires an API key)"
                     }
                 ]
             },

@@ -1157,10 +1157,21 @@ class Colonisation:
     def _load(self) -> None:
         ''' Load state from file '''
         file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
-        if path.exists(file):
-            with open(file) as json_file:
-                self._from_dict(json.load(json_file))
+        if not path.exists(file):
+            return
 
+        with open(file) as json_file:
+            try:
+                self._from_dict(json.load(json_file))
+            except Exception as e:
+                Debug.logger.error(f"Failed to load state from file: {e}")
+                # backup the corrupted file, make sure it's to a new filename
+                backup:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME + ".bak")
+                i:int = 0
+                while path.exists(backup):
+                    i += 1
+                    backup = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME + f".{i}.bak")
+                path.rename(file, backup)
 
     @catch_exceptions
     def save(self, cause:str = 'Unknown') -> None:

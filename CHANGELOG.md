@@ -21,7 +21,7 @@
   * Progress display switches colours correctly when the theme is changed
 * Added checkbox to enable and disable automatic updates of the plugin. Defaults to enabled
 * Added checkbox to enable and disable automatic syncing of new systems to Raven Colonial if a Raven Colonial API key is present
-* Added option for manual build adding with a dialogue to support it
+* Added option for manual build and project creation when visiting a colonisation/construction site with a dialogue to support it
 
 ### Changes:
 
@@ -30,6 +30,7 @@
 * Progress rows coloured magenta if the carrier has a buy order but it's insufficient
 * Carrier jump progress is saved over EDMC restarts
 * Made colonisation data more resilient by taking a backup if there are any issues loading it so it doesn't get lost
+* Immproved checks on deletion of builds and projects, added confirmation dialogue where appropriate
 
 ### Bug Fixes:
 

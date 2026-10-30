@@ -604,13 +604,7 @@ class ColonisationWindow:
                                                      'Name': '',
                                                      'Row': row+1})
             case 'Delete':
-                if system.get('RCSync', False) and system['Builds'][row].get('State', None) == "Progress" and system['Builds'][row].get('ProjectID', None):
-                    if not messagebox.askyesno(
-                        _("Confirm Removal"), # LANG: confirm system removal dialog title
-                        _("Are you sure you want to remove this build, it will delete the active Raven Colonial project?") # LANG: confirm project removal dialog text
-                    ):
-                        return
-                self.colonisation.remove_build(system, row)
+                if not self._remove_build(system, row): return
                 sheet.del_row(row)
                 self._config_sheet(self.sheets[tabnum], system)
             case 'MoveUp':
@@ -625,6 +619,36 @@ class ColonisationWindow:
                 self.colonisation.modify_build(system, row, {'Readonly': not system['Builds'][row].get('Readonly', False)}, True)
 
         self.update_display()
+
+
+    def _remove_build(self, system:dict, row:int) -> bool:
+        ''' Confirm and remove a build, returning False if it was kept '''
+        if row <= 0 or row >= len(system['Builds']): return False
+
+        build:dict = system['Builds'][row]
+        state:BuildState = self.colonisation.get_build_state(build)
+        if state == BuildState.PLANNED:
+            self.colonisation.remove_build(system, row)
+            return True
+
+        if state == BuildState.PROGRESS and system.get('RCSync', False) and self.colonisation.get_project_id(build) \
+            and RavenColonial(self.colonisation).is_editable(system):
+            ans:bool|None = messagebox.askyesnocancel(
+                _("Confirm Removal"), # LANG: confirm build removal dialog title
+                _("This build is in progress. Also delete its Raven Colonial project?\n\nYes: remove and delete project\nNo: remove locally only") # LANG: confirm project removal dialog text
+            )
+            if ans == None: return False
+            self.colonisation.remove_build(system, row, not ans, ans)
+            return True
+
+        if not messagebox.askyesno(
+            _("Confirm Removal"), # LANG: confirm build removal dialog title
+            _("Remove this build locally? It will not be removed from Raven Colonial.") # LANG: confirm local build removal dialog text
+        ):
+            return False
+
+        self.colonisation.remove_build(system, row, True)
+        return True
 
 
     @catch_exceptions
@@ -1109,7 +1133,9 @@ class ColonisationWindow:
             case 'Base Type' | 'Layout' if val == ' ':
                 # If they set the base type to empty remove the build
                 if row > 0 and row < len(system['Builds']):
-                    self.colonisation.remove_build(system, row)
+                    if not self._remove_build(system, row):
+                        self.update_display()
+                        return
                 else:
                     self.colonisation.set_base_type(system, row, val)
 

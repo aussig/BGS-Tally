@@ -298,8 +298,27 @@ class TestColonisationMethods:
 
         build:dict = c.add_build(system, new_build, False)
         assert len(system['Builds']) == buildc + 1
-        c.remove_build(system, build['MarketID'], False)
+        c.remove_build(system, build['BuildID'], False)
         assert len(system['Builds']) == buildc
+
+    @pytest.mark.parametrize('silent,delproj,state,deleted', [
+        (False, False, BuildState.PROGRESS, False),
+        (True, True, BuildState.PROGRESS, False),
+        (False, True, BuildState.COMPLETE, False),
+        (False, True, BuildState.PROGRESS, True),
+    ])
+    def test_remove_build_project(self, harness, silent, delproj, state, deleted) -> None:
+        """ RC project is only deleted when explicitly requested for an in-progress build """
+        c = harness.plugin.colonisation
+        system:dict = c.systems[0]
+        build:dict = c.add_build(system, {"Base Type": "Industrial Outpost", "Name": "Proj Test", "MarketID": 4224499460,
+                                          "BuildID": "&4224499460", "State": state, "ProjectID": "proj-1"}, True)
+
+        with patch('bgstally.colonisation.RavenColonial') as rc, patch.dict(system, {'RCSync': True}):
+            c.remove_build(system, build['BuildID'], silent, delproj)
+
+        assert rc.return_value.delete_project.called == deleted
+        assert c.find_build(system, {'BuildID': '&4224499460'}) == None
 
     def test_set_base_type(self, harness) -> None:
         c = harness.plugin.colonisation

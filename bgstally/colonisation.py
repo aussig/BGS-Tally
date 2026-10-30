@@ -791,43 +791,31 @@ class Colonisation:
 
 
     @catch_exceptions
-    def remove_build(self, system:dict|int, ind:int|str, silent:bool = False) -> None:
+    def remove_build(self, system:dict|int, ind:int|str, silent:bool = False, delproj:bool = False) -> None:
         ''' Remove a build from a system '''
         if isinstance(system, int): system = dict(self.systems[system])
 
         if system == None:
-            Debug.logger.warning(f"Cannot remove build - unknown system")
+            Debug.logger.warning(f"Cannot remove build without system")
             return
 
-        # Support marketid or BuildID as well as index
-        for i, b in enumerate(system.get('Builds', [])):
-            if isinstance(ind, str) and b.get('BuildID') == ind:
-                ind = i
-                break
-            if isinstance(ind, int) and b.get('MarketID') == int(ind):
-                ind = i
-                break
+        # Support BuildID as well as index
+        if isinstance(ind, str):
+            ind = next((i for i, b in enumerate(system.get('Builds', [])) if b.get('BuildID') == ind), ind)
 
-        if int(ind) >= len(system['Builds']):
-            Debug.logger.warning(f"Cannot remove build - invalid build index: {ind} {len(system['Builds'])} {system['Builds']}")
+        if isinstance(ind, str) or not 0 <= ind < len(system['Builds']):
+            Debug.logger.warning(f"Cannot remove build, invalid index: {ind}")
             return
 
         if silent == False and system.get('RCSync', False) == True:
-            RavenColonial(self).remove_site(system, int(ind))
+            RavenColonial(self).remove_site(system, ind)
 
-        # Remove build
-        build:dict = system['Builds'].pop(ind)
+        build:dict = system['Builds'][ind]
+        pid:str|None = self.get_project_id(build)
+        if delproj and not silent and pid and self.get_build_state(build) == BuildState.PROGRESS:
+            RavenColonial(self).delete_project(pid, system)
 
-        # Delete the project if it's in progress
-        if system.get('RCSync', False) == True and build.get('MarketID', None) != None:
-            pid:str|None = build.get('ProjectID', None)
-            if pid == None:
-                p:dict|None = self.find_progress(build.get('MarketID', ''))
-                if p != None:
-                    pid = p.get('ProjectID', None)
-
-            if pid != None:
-                RavenColonial(self).delete_project(pid)
+        system['Builds'].pop(ind)
 
         self.save('Build removed')
         self.bgstally.ui.window_colonisation.update_display()
@@ -1061,6 +1049,15 @@ class Colonisation:
 
         self.dirty = True
         return prog
+
+
+    def get_project_id(self, build:dict) -> str|None:
+        ''' Get the RC project id for a build '''
+        if build.get('ProjectID'): return build.get('ProjectID')
+        if build.get('MarketID') == None: return None
+
+        p:dict|None = self.find_progress(build.get('MarketID', ''))
+        return p.get('ProjectID') if p != None else None
 
 
     @catch_exceptions

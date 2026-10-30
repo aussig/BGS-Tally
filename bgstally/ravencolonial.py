@@ -256,10 +256,10 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def delete_project(self, project_id:str) -> None:
+    def delete_project(self, project_id:str, system:dict) -> None:
         """ Delete a project """
 
-        if self.is_editable() == False:
+        if self.is_editable(system) == False:
             Debug.logger.info("Not allowed to delete project")
             return
 

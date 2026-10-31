@@ -37,7 +37,7 @@
                         "var": "ColonisationMaxCommodities",
                         "type": "str",
                         "label": "Maximum Commodities",
-                        "desc": "Scroll window height or maximum number of commodities to display in the colonisation panel"
+                        "desc": "Maximum number of commodities to display before adding a scrollbar to the colonisation progress panel"
                     },
                     {
                         "var": "ColonisationRCAPIKey",
@@ -47,18 +47,18 @@
                     {
                         "var": "ColonisationRCAutoSync",
                         "type": "checkbox",
-                        "label": "Sync New Systems with Raven Colonial",
+                        "label": "Automatically Sync New Systems",
                         "desc": "Automatically sync newly created systems with Raven Colonial (requires an API key)"
                     },
                     {
                         "var": "ColonisationBuildMode",
                         "type": "menu",
-                        "label": "New Build Sites",
-                        "desc": "How builds are created when docking at a new colonisation ship or construction site",
+                        "label": "New Build Site Creation",
+                        "desc": "How builds are created when docking at a new colonisation ship or construction site.",
                         "options": {
-                            "auto": "Automated",
-                            "unknown": "Manual unknown",
-                            "all": "Manual all"
+                            "auto": "All Automated",
+                            "unknown": "Unknown Manual",
+                            "all": "All Manual"
                         }
                     }
                 ]

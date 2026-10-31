@@ -627,6 +627,7 @@ class ProgressWindow:
     def link(self, src:str|None, tkEvent) -> None:
         ''' Open a table of the nearest Spansh markets for the commodities still to buy. '''
 
+        Debug.logger.debug(f"Opening markets window for system: {src}")
         frame = self.bgstally.ui.frame
         if frame is None: return
 
@@ -634,7 +635,10 @@ class ProgressWindow:
         if sys == None: sys = 'sol'
 
         listed:list[Commodity] = self._get_comms(self.colonisation.get_tracked_builds())
-        comms:list[Commodity] = [c for i, c in enumerate(listed) if c.purchase > 0 and not self._skip_row(self.view, c, i)]
+        comms:list[Commodity] = []
+        for which in ['purchase', 'remaining', 'required']:
+            comms = ([c for i, c in enumerate(listed) if getattr(c, which) > 0 and not self._skip_row(self.view, c, i)])
+            if comms != []: break
         if comms == []: return
 
         # Create/recreate the frame now since results arrive one commodity at a time

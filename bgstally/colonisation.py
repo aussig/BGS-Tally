@@ -472,6 +472,11 @@ class Colonisation:
             Debug.logger.warning(f"Cannot add system - no name or system: {data}")
             return {}
 
+        existing:dict|None = self.find_system({'StarSystem': data['StarSystem']}) if data.get('StarSystem') else None
+        if existing != None:
+            Debug.logger.info(f"System {data['StarSystem']} already has a plan: {existing.get('Name')}")
+            return existing
+
         # Create new system
         if data.get('Name', None) == None: data['Name'] = data.get('StarSystem', '')
         if data.get('Builds', None) == None: data['Builds'] = []

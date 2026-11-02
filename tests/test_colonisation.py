@@ -144,6 +144,19 @@ class TestColonisationMethods:
         assert c.systems[syscount]['StarSystem'] == 'Test StarSystem'
         assert c.systems[syscount]['Builds'] == []
 
+    def test_add_system_duplicate(self, harness) -> None:
+        """ Adding a plan for an already planned star system returns the existing plan """
+        c = harness.plugin.colonisation
+        existing:dict = c.systems[0]
+        syscount:int = len(c.systems)
+
+        with patch('bgstally.colonisation.RavenColonial') as rc:
+            system:dict = c.add_system({'Name': 'Dup Plan', 'StarSystem': existing['StarSystem']}, False, True)
+
+        assert system is existing
+        assert len(c.systems) == syscount
+        rc.return_value.upsert_system.assert_not_called()
+
     def test_modify_system(self, harness) -> None:
         """ Test system modification """
         c = harness.plugin.colonisation

@@ -1051,6 +1051,12 @@ class ColonisationWindow:
         if self.window == None or not self.window.winfo_exists(): return
 
         systems:list = self.colonisation.get_all_systems()
+        for sysnum, system in enumerate(systems):
+            if system.get('Hidden', False) or sysnum in self.tl.values(): continue
+            tabnum:int = max(self.tl.keys()) + 1 if self.tl else 1
+            self.tl[tabnum] = sysnum
+            self._create_system_tab(tabnum, system)
+
         for tabnum, sysnum in self.tl.items():
             system:dict = systems[sysnum]
             #Debug.logger.debug(f"System: t {tabnum} sys {sysnum} {system.get('Name', '')}")
@@ -1287,14 +1293,20 @@ class ColonisationWindow:
 
         # Add the system
         system:dict = self.colonisation.add_system({'Name':plan_name, 'StarSystem':system_name}, prepop, rcsync)
-        if system == False:
+        if not system:
             messagebox.showerror(_("Error"), _("Unable to create system")) # LANG: General failure to create system error
             return
 
-        systems:list = self.colonisation.get_all_systems()
-        tabnum:int = 1
-        if self.tl != {}: max(self.tl.keys())+1 # Next available tab
-        self.tl[tabnum] = len(systems)-1
+        if system.get('Hidden', False): self.colonisation.modify_system(system, {'Hidden': False})
+
+        sysnum:int = self.colonisation.get_all_systems().index(system)
+        tabnum:int|None = next((t for t, s in self.tl.items() if s == sysnum), None)
+        if tabnum != None:
+            self.tabbar.select(tabnum)
+            return
+
+        tabnum = max(self.tl.keys()) + 1 if self.tl else 1
+        self.tl[tabnum] = sysnum
         self._create_system_tab(tabnum, system)
         self.update_display()
 

@@ -525,6 +525,8 @@ class ProgressWindow:
                 self.frame.clipboard_append(event)
 
         self.update_display()
+        if event in ('next', 'prev', 'change'):
+            th.fit_window(self.frame)
 
 
     @catch_exceptions

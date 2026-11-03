@@ -12,8 +12,12 @@ from .pluginslot import PluginSlot
 
 GLYPH_HIDE:str = "\U0001F648" # see-no-evil monkey
 GLYPH_SHOW:str = "\U0001F441" # eye
-GLYPH_UP:str = "\u2B06" # up arrow
-GLYPH_DOWN:str = "\u2B07" # down arrow
+#GLYPH_UP:str = "\u2B06" # up arrow
+#GLYPH_DOWN:str = "\u2B07" # down arrow
+#GLYPH_UP:str = "\U0001F53C" # up triangle
+#GLYPH_DOWN:str = "\U0001F53D" # down triangle
+GLYPH_UP:str = "▲"
+GLYPH_DOWN:str = "▼"
 
 class Collapsible:
     """ Swaps between an expanded and a collapsed view of a plugin, refitting the window """

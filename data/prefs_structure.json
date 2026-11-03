@@ -35,7 +35,9 @@
                 "prefs": [
                     {
                         "var": "ColonisationMaxCommodities",
-                        "type": "str",
+                        "type": "spinbox",
+                        "min": 3,
+                        "max": 55,
                         "label": "Maximum Commodities",
                         "desc": "Maximum number of commodities to display before adding a scrollbar to the colonisation progress panel"
                     },
@@ -348,7 +350,7 @@
         "label": "Advanced Options",
         "sections": [
             {
-                "label": "Advanced",
+                "label": "Galaxy Tick",
                 "prefs": [
                     {
                         "label": "Force Tick",
@@ -358,6 +360,15 @@
                     {
                         "label": "Dangerous action: only use when you are certain a tick occurred.",
                         "type": "label"
+                    }
+                ]
+            },
+            {
+                "label": "Delete Archived Activity",
+                "prefs": [
+                    {
+                        "type": "custom",
+                        "custom": "_archive_purge"
                     }
                 ]
             }

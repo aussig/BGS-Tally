@@ -110,7 +110,6 @@ class Tooltip(TooltipBase):
     def showcontents(self, **kwargs):
         super().showcontents(**{**self.args, **kwargs})
 
-
 class TreeTooltip:
     """Simple tooltip helper for Treeview widgets."""
 

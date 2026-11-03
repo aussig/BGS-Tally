@@ -1,4 +1,4 @@
-""" Expanded and collapsed views of a plugin with default hide/show (and optional move) buttons. """
+""" Expanded and collapsed views of a plugin with default hide/show (and optional up/down) buttons. """
 import tkinter as tk
 from tkinter import ttk
 from pathlib import Path
@@ -12,6 +12,8 @@ from .pluginslot import PluginSlot
 
 GLYPH_HIDE:str = "\U0001F648" # see-no-evil monkey
 GLYPH_SHOW:str = "\U0001F441" # eye
+GLYPH_UP:str = "\u2B06" # up arrow
+GLYPH_DOWN:str = "\u2B07" # down arrow
 
 class Collapsible:
     """ Swaps between an expanded and a collapsed view of a plugin, refitting the window """
@@ -31,8 +33,10 @@ class Collapsible:
         self._add("hide", self.expanded, GLYPH_HIDE, "Hide panel", self.toggle, 99, tk.NE)
         if movable:
             self.slot:PluginSlot = PluginSlot(parent, f"{self.key}_slot")
-            self._add("up", self.collapsed, "▲", "Move panel up", lambda: self.slot.move(-1), 97, tk.E)
-            self._add("down", self.collapsed, "▼", "Move panel down", lambda: self.slot.move(1), 98, tk.E)
+            #self._add("up", self.collapsed, "▲", "Move panel up", lambda: self.slot.move(-1), 97, tk.E)
+            #self._add("down", self.collapsed, "▼", "Move panel down", lambda: self.slot.move(1), 98, tk.E)
+            self._add("up", self.collapsed, GLYPH_UP, "Move panel up", lambda: self.slot.move(-1), 97, tk.E)
+            self._add("down", self.collapsed, GLYPH_DOWN, "Move panel down", lambda: self.slot.move(1), 98, tk.E)
         self._add("show", self.collapsed, GLYPH_SHOW, "Show panel", self.toggle, 99, tk.E)
 
         self._show_current()

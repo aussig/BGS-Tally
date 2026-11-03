@@ -20,6 +20,7 @@
   * EDMC window buttons use theme-aware objects
   * Progress display switches colours correctly when the theme is changed
 * Added checkbox to enable and disable automatic updates of the plugin. Defaults to enabled
+* Added preferences option to delete old, archived activity data
 
 ### Changes:
 

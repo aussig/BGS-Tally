@@ -131,7 +131,6 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         offset = time.mktime(datetime.now().timetuple()) - time.mktime(datetime.now(timezone.utc).timetuple())
         tick = round(time.mktime(activity.tick_time.timetuple()) + offset)
 
-        Debug.logger.debug(f"CLBActivityFormatter._build_text: activity_mode={activity_mode}")
         return f"### {__('BGS Report', lang)} - {__('Tick', lang)} : <t:{tick}>\n```ansi{text}```"  # LANG: BGS Report Tick time
 
 

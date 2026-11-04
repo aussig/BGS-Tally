@@ -76,6 +76,11 @@ class CLBActivityFormatter(DefaultActivityFormatter):
                 discord_field = {'name': self.get_system_display_name(system['System']), 'value': f"```ansi\n{system_text}```"}
                 discord_fields.append(discord_field)
 
+        if activity_mode == DiscordActivity.POWERPLAY and self.bgstally.state.showmerits and activity.get_merits() > 0:
+            merits_title: str = __("Powerplay Merits", lang) + " (" + activity.get_power() + ") " # LANG: Powerplay merits in Discord
+            discord_field = {'name': merits_title, 'value': f"```ansi\n{green(human_format(activity.get_merits()), fp=True)}```"}
+            discord_fields.append(discord_field)
+
         return discord_fields
 
     def get_mode(self) -> DiscordPostStyle:
@@ -92,6 +97,12 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         text:str = ""
         # Force plain text if we are not posting to Discord
         fp: bool = not discord
+
+        if activity_mode == DiscordActivity.POWERPLAY and self.bgstally.state.showmerits and activity.get_merits() > 0:
+            merits_title: str = __("Powerplay Merits", lang) + " (" + activity.get_power() + ")" # LANG: Heading for merits gained, with power name in brackets
+            text:str = f"\n{color_wrap(merits_title, 'blue', None, None, fp=fp)} : {activity.get_merits()}"
+            if discord: text = "```ansi" + text + "```"
+            return text
 
         for system in sorted(activity.systems.copy().values(), key=lambda d: d['System']): # Use a copy for thread-safe operation
             if system_names is not None and system['System'] not in system_names: continue
@@ -115,11 +126,12 @@ class CLBActivityFormatter(DefaultActivityFormatter):
         if text == "": return ""
 
         if discord and activity.discord_notes is not None and activity.discord_notes != "":
-            text += "\n" + activity.discord_notes
+            text += "\n" + activity.discord_notes + "\n"
 
         offset = time.mktime(datetime.now().timetuple()) - time.mktime(datetime.now(timezone.utc).timetuple())
         tick = round(time.mktime(activity.tick_time.timetuple()) + offset)
 
+        Debug.logger.debug(f"CLBActivityFormatter._build_text: activity_mode={activity_mode}")
         return f"### {__('BGS Report', lang)} - {__('Tick', lang)} : <t:{tick}>\n```ansi{text}```"  # LANG: BGS Report Tick time
 
 

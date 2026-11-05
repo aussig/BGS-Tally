@@ -40,6 +40,7 @@
 * Fixed broken clock icon on Discord posts
 * Fixed missing powerplay merits in CLB formatter
 * Fixed missing powerplay merits in copy to clipboard
+* Fixed API connections asking to be approved again after a failed discovery request, even though the API had not changed
 
 
 ## v5.6.1 - 2026-09-12

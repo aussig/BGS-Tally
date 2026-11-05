@@ -734,7 +734,7 @@ class RavenColonial:
                           request:BGSTallyRequest|None = None) -> None:
         """ Process the results of updating a carrier's cargo in RavenColonial """
         if success == False or response.status_code != 200:
-            Debug.logger.warning(f"Error updating carrier {response} {response.content}")
+            Debug.logger.warning(f"Error updating carrier {response} {response.content if response else ''}")
             return
 
         if cargo: fc._rc_last_cargo = cargo # So RC handing our own push back isn't mistaken for a fresh reading

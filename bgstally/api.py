@@ -149,8 +149,11 @@ class API:
         Discovery API information received from the server
         """
         if not success:
-            Debug.logger.info(f"Unable to discover API capabilities, falling back to defaults")
-            self._revert_discovery_to_defaults()
+            if response is not None and response.status_code in (404, 405):
+                Debug.logger.info(f"API has no discovery endpoint (HTTP {response.status_code}), falling back to defaults")
+                self._revert_discovery_to_defaults()
+            else:
+                Debug.logger.info(f"Unable to discover API capabilities, keeping current settings")
             return
 
         discovery_data:dict|None = None
@@ -158,13 +161,11 @@ class API:
         try:
             discovery_data = response.json()
         except JSONDecodeError:
-            Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
-            self._revert_discovery_to_defaults()
+            Debug.logger.warning(f"Event discovery data is invalid, keeping current settings")
             return
 
         if not isinstance(discovery_data, dict):
-            Debug.logger.warning(f"Event discovery data is invalid, falling back to defaults")
-            self._revert_discovery_to_defaults()
+            Debug.logger.warning(f"Event discovery data is invalid, keeping current settings")
             return
 
         self.name = discovery_data.get('name', NAME_DEFAULT)

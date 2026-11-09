@@ -54,6 +54,13 @@ class TestDiscovery:
         assert api.events == EVENTS_FILTER_DEFAULTS
 
 
+    def test_disallowed_discovery_method_uses_defaults(self, harness) -> None:
+        api:API = self.approved_api(harness)
+
+        api.discovery_received(False, MockResponse(405), None)
+        assert api.events == EVENTS_FILTER_DEFAULTS
+
+
     def test_changed_events_need_approval(self, harness) -> None:
         api:API = self.approved_api(harness)
 

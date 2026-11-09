@@ -149,8 +149,8 @@ class API:
         Discovery API information received from the server
         """
         if not success:
-            if response is not None and response.status_code == 404:
-                Debug.logger.info(f"API has no discovery endpoint, falling back to defaults")
+            if response is not None and response.status_code in (404, 405):
+                Debug.logger.info(f"API has no discovery endpoint (HTTP {response.status_code}), falling back to defaults")
                 self._revert_discovery_to_defaults()
             else:
                 Debug.logger.info(f"Unable to discover API capabilities, keeping current settings")

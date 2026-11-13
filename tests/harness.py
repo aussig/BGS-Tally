@@ -19,6 +19,7 @@ from datetime import datetime, timezone, timedelta, UTC
 from time import sleep, monotonic
 import logging
 import tkinter as tk
+import _tkinter
 import threading
 from typing import Any, Literal
 from types import SimpleNamespace
@@ -489,7 +490,9 @@ class TestHarness:
 
             try:
                 self.root.update_idletasks()
-                self.root.update()
+                # Bounded, not update(): macOS Tk can livelock after a worker-thread error path in a reused process
+                for _ in range(1000):
+                    if not self.root.tk.dooneevent(_tkinter.DONT_WAIT): break
             except tk.TclError:
                 return
 

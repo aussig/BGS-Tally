@@ -138,7 +138,7 @@ class UI:
 
         button_columns:int = 6 if self.bgstally.capi_fleetcarrier_available() else 5
 
-        self.view:th.Collapsible = th.Collapsible(self.frame, hidden=self.bgstally.state.plugin_hidden, on_toggle=self._on_toggle)
+        self.view:th.Collapsible = th.Collapsible(self.frame, hidden=self.bgstally.state.plugin_hidden, movable=True, on_toggle=self._on_toggle)
         self.expanded_frame:th.Frame = self.view.expanded
 
         column_count: int = 3
@@ -148,8 +148,7 @@ class UI:
         th.Label(self.expanded_frame, image=self.image_logo_bgstally_100).grid(row=current_row, column=0, rowspan=3, sticky=tk.W)
         self.lbl_version: HyperlinkLabel = HyperlinkLabel(self.expanded_frame, text=f"v{str(self.bgstally.version)}", background=th.Label(self.expanded_frame).cget('background'), url=URL_LATEST_RELEASE, underline=True)
         self.lbl_version.grid(row=current_row, column=1, columnspan=column_count, sticky=tk.W)
-        self.btn_hide: th.Button = self.view.hide_button(self.expanded_frame, tooltip=_("Hide {plugin_name}").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window tooltip
-        self.btn_hide.grid(row=current_row, column=button_columns - 1, sticky=tk.E)
+        self.btn_hide: th.Button = self.view.button("hide", tooltip=_("Hide {plugin_name}").format(plugin_name=self.bgstally.plugin_name), row=current_row, column=button_columns - 1, sticky=tk.E) # LANG: Main window tooltip
         current_row += 1
         frm_status: th.Frame = th.Frame(self.expanded_frame)
         frm_status.grid(row=current_row, column=1, columnspan=column_count, sticky=tk.W)
@@ -211,8 +210,9 @@ class UI:
         self.lbl_active_collapsed: th.Label = th.Label(frm_status_collapsed, width=SIZE_STATUS_ICON_PIXELS, height=SIZE_STATUS_ICON_PIXELS, image=self.image_icon_green_tick if self.bgstally.state.Status.get() == CheckStates.STATE_ON else self.image_icon_red_cross)
         self.lbl_active_collapsed.pack(side=tk.LEFT)
 
-        self.btn_show: th.Button = self.view.show_button(self.collapsed_frame, tooltip=_("Show {plugin_name}").format(plugin_name=self.bgstally.plugin_name)) # LANG: Main window tooltip
-        self.btn_show.grid(row=0, column=7, sticky=tk.E)
+        self.view.button("up", tooltip=_("Move {plugin_name} up").format(plugin_name=self.bgstally.plugin_name), column=7) # LANG: Main window tooltip
+        self.view.button("down", tooltip=_("Move {plugin_name} down").format(plugin_name=self.bgstally.plugin_name), column=8) # LANG: Main window tooltip
+        self.btn_show: th.Button = self.view.button("show", tooltip=_("Show {plugin_name}").format(plugin_name=self.bgstally.plugin_name), column=9) # LANG: Main window tooltip
 
         return self.frame
 

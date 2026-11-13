@@ -144,6 +144,19 @@ class TestColonisationMethods:
         assert c.systems[syscount]['StarSystem'] == 'Test StarSystem'
         assert c.systems[syscount]['Builds'] == []
 
+    def test_add_system_duplicate(self, harness) -> None:
+        """ Adding a plan for an already planned star system returns the existing plan """
+        c = harness.plugin.colonisation
+        existing:dict = c.systems[0]
+        syscount:int = len(c.systems)
+
+        with patch('bgstally.colonisation.RavenColonial') as rc:
+            system:dict = c.add_system({'Name': 'Dup Plan', 'StarSystem': existing['StarSystem']}, False, True)
+
+        assert system is existing
+        assert len(c.systems) == syscount
+        rc.return_value.upsert_system.assert_not_called()
+
     def test_modify_system(self, harness) -> None:
         """ Test system modification """
         c = harness.plugin.colonisation
@@ -298,8 +311,27 @@ class TestColonisationMethods:
 
         build:dict = c.add_build(system, new_build, False)
         assert len(system['Builds']) == buildc + 1
-        c.remove_build(system, build['MarketID'], False)
+        c.remove_build(system, build['BuildID'], False)
         assert len(system['Builds']) == buildc
+
+    @pytest.mark.parametrize('silent,delproj,state,deleted', [
+        (False, False, BuildState.PROGRESS, False),
+        (True, True, BuildState.PROGRESS, False),
+        (False, True, BuildState.COMPLETE, False),
+        (False, True, BuildState.PROGRESS, True),
+    ])
+    def test_remove_build_project(self, harness, silent, delproj, state, deleted) -> None:
+        """ RC project is only deleted when explicitly requested for an in-progress build """
+        c = harness.plugin.colonisation
+        system:dict = c.systems[0]
+        build:dict = c.add_build(system, {"Base Type": "Industrial Outpost", "Name": "Proj Test", "MarketID": 4224499460,
+                                          "BuildID": "&4224499460", "State": state, "ProjectID": "proj-1"}, True)
+
+        with patch('bgstally.colonisation.RavenColonial') as rc, patch.dict(system, {'RCSync': True}):
+            c.remove_build(system, build['BuildID'], silent, delproj)
+
+        assert rc.return_value.delete_project.called == deleted
+        assert c.find_build(system, {'BuildID': '&4224499460'}) == None
 
     def test_set_base_type(self, harness) -> None:
         c = harness.plugin.colonisation
@@ -604,6 +636,7 @@ class TestSpanshMarkets:
                 response = MagicMock()
                 response.json.return_value = {'results': stations}
                 found['payload'] = payload
+                if not callback: return
                 callback(True, response, None)
 
             Spansh(harness.plugin).market_cache.clear()
@@ -632,6 +665,7 @@ class TestSpanshMarkets:
             sent.append(payload)
             response = MagicMock()
             response.json.return_value = {'results': []}
+            if not callback: return
             callback(True, response, None)
 
         def search(minimum:int = 100) -> None:
@@ -660,9 +694,11 @@ class TestSpanshMarkets:
                          for i in range(6)]
 
         def fake_queue(url, method, callback = None, payload = None, **kwargs):
+            if not payload: return
             sent.append(payload['filters']['market'][0]['name'])
             response = MagicMock()
             response.json.return_value = {'results': stations if isinstance(sent[-1], list) else []}
+            if not callback: return
             callback(True, response, None)
 
         wanted:dict = {'gold': 100, 'tritium': 100, 'platinum': 100, 'agriculturalmedicines': 100}
@@ -673,3 +709,27 @@ class TestSpanshMarkets:
         assert sent == [['Gold', 'Tritium', 'Platinum', 'Agri-Medicines'], 'Gold', 'Platinum'] # No rows in the shared page, so searched alone
         assert [r['station'] for r in found['tritium']] == ['St0']
         assert found['gold'] == [] and found['platinum'] == [] and 'agriculturalmedicines' in found
+
+    def test_manual_build_popup(self, harness) -> None:
+        """ Manual build modes prompt before adding an unknown site """
+        c = harness.plugin.colonisation
+        system:dict = c.systems[0]
+        dock:dict = {'event': 'Docked', 'StationName': 'Orbital Construction Site: Popup Test', 'MarketID': 3999999999,
+                     'StarSystem': system['StarSystem'], 'SystemAddress': system['SystemAddress']}
+        count:int = len(system['Builds'])
+
+        harness.plugin.state.ColonisationBuildMode.set('unknown')
+        with patch.object(harness.plugin.ui.window_colonisation, 'new_build_dialog') as dialog:
+            c.journal_entry('Cmdr', False, system['StarSystem'], None, dock, {})
+            assert dialog.call_count == 1
+            assert len(system['Builds']) == count
+
+            c.confirm_build(system, dialog.call_args.args[1], dialog.call_args.args[2] | {'Layout': 'Vulcan'})
+            assert len(system['Builds']) == count + 1
+            assert system['Builds'][-1]['Base Type'] == 'Industrial Outpost'
+
+            harness.plugin.state.ColonisationBuildMode.set('all')
+            c.journal_entry('Cmdr', False, system['StarSystem'], None, dock, {})
+            assert dialog.call_count == 1
+
+        harness.plugin.state.ColonisationBuildMode.set('auto')

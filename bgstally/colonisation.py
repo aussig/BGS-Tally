@@ -243,7 +243,14 @@ class Colonisation:
                 if 'Colonisation Ship' in f"{self.station}" or 'Construction Site' in f"{self.station}":
                     Debug.logger.debug(f"Docked at construction site. Finding/creating system and build")
                     if system == None: system = self.find_or_create_system({'StarSystem': self.current_system, 'SystemAddress' : self.system_id})
-                    build = self.find_or_create_build(system, {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body})
+                    site:dict = {'MarketID': self.market_id, 'Name': self.station, 'Body': self.body}
+                    build = self.find_build(system, site)
+                    mode:str = self.bgstally.state.ColonisationBuildMode.get()
+                    if (mode == 'all' and (build == None or build.get('MarketID') != self.market_id)) or \
+                        (mode == 'unknown' and build == None):
+                        self.bgstally.ui.window_colonisation.new_build_dialog(system, build, site | {'Location': self.location})
+                        return
+                    if build == None: build = self.add_build(system, site)
                     build_state = BuildState.PROGRESS
                 # Complete station so find it and add/update as appropriate.
                 elif system != None and self.station not in ['FleetCarrier', 'SquadronCarrier'] and re.search(RE_IGNORE_PATTERN, f"{self.station}") == None :
@@ -453,7 +460,7 @@ class Colonisation:
         ''' Find a system by name or plan, or create it if it doesn't exist '''
         system:dict|None = self.find_system(data)
         if system == None:
-            return self.add_system(data, False, False)
+            return self.add_system(data, False, self.bgstally.state.colonisation_rc_sync)
 
         return system
 
@@ -464,6 +471,11 @@ class Colonisation:
         if data.get('StarSystem', None) == None and data.get('Name', None) == None:
             Debug.logger.warning(f"Cannot add system - no name or system: {data}")
             return {}
+
+        existing:dict|None = self.find_system({'StarSystem': data['StarSystem']}) if data.get('StarSystem') else None
+        if existing != None:
+            Debug.logger.info(f"System {data['StarSystem']} already has a plan: {existing.get('Name')}")
+            return existing
 
         # Create new system
         if data.get('Name', None) == None: data['Name'] = data.get('StarSystem', '')
@@ -713,6 +725,17 @@ class Colonisation:
 
 
     @catch_exceptions
+    def confirm_build(self, system:dict, build:dict|None, data:dict) -> None:
+        ''' Create or link a build for a site the user confirmed in the new build dialog '''
+        data |= {'State': BuildState.PROGRESS, 'Track': True}
+        if build == None:
+            self.add_build(system, data)
+            return
+
+        self.modify_build(system, build.get('BuildID', ''), data)
+
+
+    @catch_exceptions
     def add_build(self, system:int|dict, data:dict, silent:bool = False) -> dict:
         ''' Add a new build to a system '''
 
@@ -773,43 +796,31 @@ class Colonisation:
 
 
     @catch_exceptions
-    def remove_build(self, system:dict|int, ind:int|str, silent:bool = False) -> None:
+    def remove_build(self, system:dict|int, ind:int|str, silent:bool = False, delproj:bool = False) -> None:
         ''' Remove a build from a system '''
         if isinstance(system, int): system = dict(self.systems[system])
 
         if system == None:
-            Debug.logger.warning(f"Cannot remove build - unknown system")
+            Debug.logger.warning(f"Cannot remove build without system")
             return
 
-        # Support marketid or BuildID as well as index
-        for i, b in enumerate(system.get('Builds', [])):
-            if isinstance(ind, str) and b.get('BuildID') == ind:
-                ind = i
-                break
-            if isinstance(ind, int) and b.get('MarketID') == int(ind):
-                ind = i
-                break
+        # Support BuildID as well as index
+        if isinstance(ind, str):
+            ind = next((i for i, b in enumerate(system.get('Builds', [])) if b.get('BuildID') == ind), ind)
 
-        if int(ind) >= len(system['Builds']):
-            Debug.logger.warning(f"Cannot remove build - invalid build index: {ind} {len(system['Builds'])} {system['Builds']}")
+        if isinstance(ind, str) or not 0 <= ind < len(system['Builds']):
+            Debug.logger.warning(f"Cannot remove build, invalid index: {ind}")
             return
 
         if silent == False and system.get('RCSync', False) == True:
-            RavenColonial(self).remove_site(system, int(ind))
+            RavenColonial(self).remove_site(system, ind)
 
-        # Remove build
-        build:dict = system['Builds'].pop(ind)
+        build:dict = system['Builds'][ind]
+        pid:str|None = self.get_project_id(build)
+        if delproj and not silent and pid and self.get_build_state(build) == BuildState.PROGRESS:
+            RavenColonial(self).delete_project(pid, system)
 
-        # Delete the project if it's in progress
-        if system.get('RCSync', False) == True and build.get('MarketID', None) != None:
-            pid:str|None = build.get('ProjectID', None)
-            if pid == None:
-                p:dict|None = self.find_progress(build.get('MarketID', ''))
-                if p != None:
-                    pid = p.get('ProjectID', None)
-
-            if pid != None:
-                RavenColonial(self).delete_project(pid)
+        system['Builds'].pop(ind)
 
         self.save('Build removed')
         self.bgstally.ui.window_colonisation.update_display()
@@ -1045,6 +1056,15 @@ class Colonisation:
         return prog
 
 
+    def get_project_id(self, build:dict) -> str|None:
+        ''' Get the RC project id for a build '''
+        if build.get('ProjectID'): return build.get('ProjectID')
+        if build.get('MarketID') == None: return None
+
+        p:dict|None = self.find_progress(build.get('MarketID', ''))
+        return p.get('ProjectID') if p != None else None
+
+
     @catch_exceptions
     def find_progress(self, id:int|str) -> dict|None:
         ''' Find and return progress for a given market '''
@@ -1157,10 +1177,21 @@ class Colonisation:
     def _load(self) -> None:
         ''' Load state from file '''
         file:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME)
-        if path.exists(file):
-            with open(file) as json_file:
-                self._from_dict(json.load(json_file))
+        if not path.exists(file):
+            return
 
+        with open(file) as json_file:
+            try:
+                self._from_dict(json.load(json_file))
+            except Exception as e:
+                Debug.logger.error(f"Failed to load state from file: {e}")
+                # backup the corrupted file, make sure it's to a new filename
+                backup:str = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME + ".bak")
+                i:int = 0
+                while path.exists(backup):
+                    i += 1
+                    backup = path.join(self.bgstally.plugin_dir, FOLDER_OTHER_DATA, FILENAME + f".{i}.bak")
+                path.rename(file, backup)
 
     @catch_exceptions
     def save(self, cause:str = 'Unknown') -> None:

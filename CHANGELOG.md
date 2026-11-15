@@ -1,6 +1,6 @@
 # Change Log
 
-## vx.x.x - xxxx-xx-xx
+## v5.7.0 - xxxx-xx-xx
 
 ## New Features:
 
@@ -10,33 +10,41 @@
   * Carriers are listed in a tab bar in the Fleet Carrier window
   * Squadron and third-party carriers have reduced information based on what is available
   * Carrier data is updated from CAPI, journal events, Spansh, and Raven Colonial as appropriate
-  * Squadron and third-party carrier markets are colonisation progress display options
   * Raven Colonial updates are sent for tracked carriers that are associated with your Commander or one of your builds
   * Personal carrier display now has a modules section to display modules stored on the carrier
   * Automated carrier discord posts now update rather than adding a new one
   * Squadron carrier jumps are posted separately to their own webhook
 * UI Improvements
   * Main display has a collapsed mode that hides details and overlays while continuing to function in all other aspects
+  * Collapsed view offers up/down arrows to move the BGS-Tally plugin in the EDMC window
   * EDMC window buttons use theme-aware objects
   * Progress display switches colours correctly when the theme is changed
-* Added checkbox to enable and disable automatic updates of the plugin. Defaults to enabled
-* Added checkbox to enable and disable automatic syncing of new systems to Raven Colonial if a Raven Colonial API key is present
-* Added option for manual build and project creation when visiting a colonisation/construction site with a dialogue to support it
+* Added preference option to enable and disable automatic updates of the plugin. Defaults to enabled
 * Added preferences option to delete old, archived activity data
+* Colonisation
+  * Improved checks on deletion of builds and projects, added confirmation dialogue where appropriate
+  * Added preference option to enable and disable automatic syncing of new systems to Raven Colonial if a Raven Colonial API key is present
+  * Added preference option for manual build and project creation when visiting a colonisation/construction site with a dialogue to support it. Options are:
+    * Popup a dialogue box for manual matching or creation of the site and project
+    * Popup a dialogue box to create a site only if no site is matched
+    * Automatically update the site and create the project, creating a new site if no match is found
+  * Progress columns now have dropdown menus, squadron and third-party carrier markets are options
+  * Carrier buy orders, sell orders, and cargo are available as distinct progress views
+  * Progress rows coloured magenta if the carrier has a buy order but it's insufficient
+  * Commodity markets window (displayed by clicking on a commodity in the progress display) identifies closest locations for all commodities that still need to be purchased prioritising orbital sites and large landing pands
 
 ### Changes:
 
-* Progress columns now have dropdown menus which include tracked carriers
-* Carrier buy orders, sell orders, and cargo are available as distinct progress views
-* Progress rows coloured magenta if the carrier has a buy order but it's insufficient
 * Carrier jump progress is saved over EDMC restarts
 * Made colonisation data more resilient by taking a backup if there are any issues loading it so it doesn't get lost
-* Immproved checks on deletion of builds and projects, added confirmation dialogue where appropriate
+* Streamlined and increaed RC checks for updates to tracked builds
+* Switched to Raven Colonial's new API URL
 
 ### Bug Fixes:
 
-* Fixed a colonisation bug where contributions might not be sent to RavenColonial
+* Fixed a colonisation bug where contributions might not be sent to Raven Colonial
 * Fixed situation where until started a primary port could show non-primary cost
+* Fixed duplicate base creation scenario
 * Fixed issue caused by ED sometimes writing market.json late
 * Fixed width of API settings preferences button
 * Fixed readonly state of first row of discord webhooks

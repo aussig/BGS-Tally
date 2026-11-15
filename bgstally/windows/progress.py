@@ -633,7 +633,8 @@ class ProgressWindow:
         frame = self.bgstally.ui.frame
         if frame is None: return
 
-        sys:str|None = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
+        sys:str|None = src if src is not _("Unknown") else None
+        if not sys: sys = self.colonisation.current_system
         if sys == None: sys = 'sol'
 
         listed:list[Commodity] = self._get_comms(self.colonisation.get_tracked_builds())
@@ -811,10 +812,9 @@ class ProgressWindow:
                 continue
 
             for col, v in enumerate(row_values):
-                row[col].bind("<Button-1>", partial(self.link, None))
-                row[col].bind("<Button-2>", partial(self.link, system))
+                row[col].bind("<Button-1>", partial(self.link, system))
+                row[col].bind("<Button-2>", partial(self.link, None))
                 row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(comm.comm)))
-
                 if col == 0:
                     row[col]['text'] = str_truncate(v, 26)
                     self.rowtts[rowcnt].text = self.colonisation.get_commodity(comm.comm, 'category')

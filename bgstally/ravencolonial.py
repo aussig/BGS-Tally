@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
     from bgstally.fleetcarrier import FleetCarrier
 
-RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
+RC_API = 'https://ravencolonial.net/api'
 RC_COOLDOWN = 30
 RC_UNLISTED_COOLDOWN = 1800 # How often to recheck RC for a carrier it doesn't list
 TIMEOUT=15

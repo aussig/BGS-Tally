@@ -1069,11 +1069,11 @@ class Colonisation:
         '' ' Get progress for tracked RavenColonial builds and update the local state. '''
         # This will get called quite a lot but it only queries tracked builds and uses a lightweight method
         # to only get progress that's changed
-            tracked:list[dict] = self.get_tracked_builds()
-            for b in tracked:
-                if system.get('RCSync') and b.get('ProjectID', None) != None:
-                    prog:dict|None = self.find_progress(b.get('ProjectID', 0))
-                    if prog != None: RavenColonial(self).load_project(prog)
+        tracked:list[dict] = self.get_tracked_builds()
+        for b in tracked:
+            if system.get('RCSync') and b.get('ProjectID', None) != None:
+                prog:dict|None = self.find_progress(b.get('ProjectID', 0))
+                if prog != None: RavenColonial(self).load_project(prog)
 
     @catch_exceptions
     def update_progress(self, id:int, data:dict, silent:bool = False) -> None:

@@ -31,7 +31,7 @@
   * Progress columns now have dropdown menus, squadron and third-party carrier markets are options
   * Carrier buy orders, sell orders, and cargo are available as distinct progress views
   * Progress rows coloured magenta if the carrier has a buy order but it's insufficient
-  * Commodity markets window (displayed by clicking on a commodity in the progress display) identifies closest locations for all commodities that still need to be purchased prioritising orbital sites and large landing pands
+  * Commodity markets window (displayed by clicking on a commodity in the progress display) identifies closest locations for all commodities that still need to be purchased prioritising orbital sites and large landing pads
 
 ### Changes:
 

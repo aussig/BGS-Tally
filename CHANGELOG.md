@@ -4,7 +4,15 @@
 
 ## New Features:
 
-* Fleet carrier improvements
+* **General**
+  * Added preference option to enable and disable automatic updates of the plugin (defaults to enabled)
+  * Added preferences option to delete old, archived activity data
+* **UI**
+  * Main display has a collapsed mode that hides details and overlays while continuing to function in all other aspects
+  * Collapsed view offers up/down arrows to move the BGS-Tally plugin in the EDMC window
+  * EDMC window buttons use theme-aware objects
+  * Progress display switches colours correctly when the theme is changed
+* **Fleet carrier**
   * Support for squadron and third-party carriers
   * Tracked carriers can be added and removed via preferences or automatically on first docking
   * Carriers are listed in a tab bar in the Fleet Carrier window
@@ -14,14 +22,7 @@
   * Personal carrier display now has a modules section to display modules stored on the carrier
   * Automated carrier discord posts now update rather than adding a new one
   * Squadron carrier jumps are posted separately to their own webhook
-* UI Improvements
-  * Main display has a collapsed mode that hides details and overlays while continuing to function in all other aspects
-  * Collapsed view offers up/down arrows to move the BGS-Tally plugin in the EDMC window
-  * EDMC window buttons use theme-aware objects
-  * Progress display switches colours correctly when the theme is changed
-* Added preference option to enable and disable automatic updates of the plugin. Defaults to enabled
-* Added preferences option to delete old, archived activity data
-* Colonisation
+* **Colonisation**
   * Improved checks on deletion of builds and projects, added confirmation dialogue where appropriate
   * Added preference option to enable and disable automatic syncing of new systems to Raven Colonial if a Raven Colonial API key is present
   * Added preference option for manual build and project creation when visiting a colonisation/construction site with a dialogue to support it. Options are:

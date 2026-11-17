@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from theme import theme # type: ignore
 
 if TYPE_CHECKING:
-    from . import Frame
+    from . import Frame, fit_window
 
 class ScrollableFrame(tk.Frame):
     """
@@ -103,6 +103,9 @@ class ScrollableFrame(tk.Frame):
             self._canvas.configure(scrollregion=bbox)
         content_height:int = self._content_height()
         self._update_scrollbar_visibility(content_height)
+
+        from . import fit_window # local import: avoids a hard circular import at module load time
+        fit_window(self)
 
     def _content_height(self) -> int:
         """ Sum managed children's heights -- grid cells sharing a row count once, not once each """

@@ -2,6 +2,7 @@
 Test suite for faction manager module of BGS-Tally.
 """
 import pytest # type: ignore
+import json
 import shutil
 from pathlib import Path
 from time import sleep
@@ -28,7 +29,9 @@ class TestFactions:
     @pytest.mark.parametrize('harness', ['None', 'factions_init.json'], indirect=True)
     def test_initialization(self, harness) -> None:
         fm = harness.plugin.faction_manager
-        assert fm.factions == []
+        factions_file = Path(harness.plugin.plugin_dir) / "otherdata" / "factions.json"
+        expected_factions = json.loads(factions_file.read_text()) if factions_file.exists() else []
+        assert fm.factions == expected_factions
 
     def test_add_favourite(self, harness) -> None:
         fm = harness.plugin.faction_manager

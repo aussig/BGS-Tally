@@ -525,6 +525,8 @@ class ProgressWindow:
                 self.frame.clipboard_append(event)
 
         self.update_display()
+        if event in ('next', 'prev', 'change'):
+            th.fit_window(self.frame)
 
 
     @catch_exceptions
@@ -627,14 +629,19 @@ class ProgressWindow:
     def link(self, src:str|None, tkEvent) -> None:
         ''' Open a table of the nearest Spansh markets for the commodities still to buy. '''
 
+        Debug.logger.debug(f"Opening markets window for system: {src}")
         frame = self.bgstally.ui.frame
         if frame is None: return
 
-        sys:str|None = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
+        sys:str|None = src if src is not _("Unknown") else None
+        if not sys: sys = self.colonisation.current_system
         if sys == None: sys = 'sol'
 
         listed:list[Commodity] = self._get_comms(self.colonisation.get_tracked_builds())
-        comms:list[Commodity] = [c for i, c in enumerate(listed) if c.purchase > 0 and not self._skip_row(self.view, c, i)]
+        comms:list[Commodity] = []
+        for which in ['purchase', 'remaining', 'required']:
+            comms = ([c for i, c in enumerate(listed) if getattr(c, which) > 0 and not self._skip_row(self.view, c, i)])
+            if comms != []: break
         if comms == []: return
 
         # Create/recreate the frame now since results arrive one commodity at a time
@@ -805,10 +812,9 @@ class ProgressWindow:
                 continue
 
             for col, v in enumerate(row_values):
-                row[col].bind("<Button-1>", partial(self.link, None))
-                row[col].bind("<Button-2>", partial(self.link, system))
+                row[col].bind("<Button-1>", partial(self.link, system))
+                row[col].bind("<Button-2>", partial(self.link, None))
                 row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(comm.comm)))
-
                 if col == 0:
                     row[col]['text'] = str_truncate(v, 26)
                     self.rowtts[rowcnt].text = self.colonisation.get_commodity(comm.comm, 'category')

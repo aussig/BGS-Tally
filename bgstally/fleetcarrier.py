@@ -431,9 +431,9 @@ class FleetCarrier:
         if not self.overview.get('name'):
             match self.carrier_type:
                 case FleetCarrierType.PERSONAL:
-                    self.overview['name'] = _("Personal")
+                    self.overview['name'] = _("Personal")  # LANG: Carrier type
                 case FleetCarrierType.SQUADRON:
-                    self.overview['name'] = _("Squadron")
+                    self.overview['name'] = _("Squadron")  # LANG: Carrier type
                 case _:
                     self.overview['name'] = ""
 

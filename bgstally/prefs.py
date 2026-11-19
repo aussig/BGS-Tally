@@ -361,8 +361,8 @@ class Prefs:
 
     def _show_api_window(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
         """ Show the API window for the overlay plugin """
-        nb.Button(frame, text=_("Overlay API Settings"), command=partial(self.bgstally.ui._show_api_window, frame)).\
-            grid(row=row, column=column, padx=10, pady=5, sticky=tk.W) # LANG: Preferences overlay API settings button text
+        btn:nb.Button = nb.Button(frame, text=_("Overlay API Settings"), command=partial(self.bgstally.ui._show_api_window, frame)) # LANG: Preferences text
+        btn.grid(row=row, column=column, padx=10, pady=5, sticky=tk.W)
         return 1
 
     def _force_tick_button(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
@@ -373,9 +373,9 @@ class Prefs:
 
         style = ttk.Style()
         style.configure('ft.TButton', font=fnt, foreground="red", relief="raised")
+        btn:ttk.Button = ttk.Button(frame, text=_("Force Tick"), command=self._confirm_force_tick, style='ft.TButton') # LANG: Preferences text
 
-        ttk.Button(frame, text=_("Force Tick"), command=self._confirm_force_tick, style='ft.TButton').\
-            grid(row=row, column=column, padx=10, pady=5, sticky=tk.W) # LANG: Preferences force tick button text
+        btn.grid(row=row, column=column, padx=10, pady=5, sticky=tk.W) # LANG: Preferences force tick button text
         return 1
 
     def _confirm_force_tick(self):
@@ -392,8 +392,8 @@ class Prefs:
         nb.Label(frame, text=_("Delete older than (days)")).grid(row=row, column=column, padx=10, pady=(0,5), sticky=tk.NW) # LANG: Preferences archive purge label
         self.archive_days:tk.StringVar = tk.StringVar(value="365")
         ttk.Spinbox(frame, from_=1, to=9999, width=5, textvariable=self.archive_days).grid(row=row, column=column + 1, pady=(0,5), sticky=tk.W)
-        ttk.Button(frame, text=_("Delete Now"), command=self._confirm_archive_purge, style='ft.TButton').\
-            grid(row=row, column=column + 2, padx=10, pady=(0,5), sticky=tk.W) # LANG: Preferences archive purge button text
+        btn:ttk.Button = ttk.Button(frame, text=_("Delete Now"), command=self._confirm_archive_purge, style='ft.TButton') # LANG: Preferences text
+        btn.grid(row=row, column=column + 2, padx=10, pady=(0,5), sticky=tk.W)
         return 3
 
     def _confirm_archive_purge(self):
@@ -442,8 +442,8 @@ class Prefs:
         var = tk.StringVar(value="")
         nb.EntryMenu(frame, textvariable=var, width=35, state=state, background="red"). \
             grid(row=row, column=column, padx=(10,0), pady=(5,5), sticky=tk.W)
-        nb.Button(frame, text=_("Add Faction"), command=partial(self._change_favourite, var, True), state=state). \
-            grid(row=row, column=column+1, pady=(5,5), sticky=tk.W) # LANG: Preferences add faction button text
+        btn:nb.Button = nb.Button(frame, text=_("Add Faction"), command=partial(self._change_favourite, var, True), state=state) # LANG: Preferences text
+        btn.grid(row=row, column=column+1, pady=(5,5), sticky=tk.W)
 
         return 2
 
@@ -476,8 +476,8 @@ class Prefs:
         var:tk.StringVar = tk.StringVar(value="")
         entry:nb.EntryMenu = nb.EntryMenu(frame, textvariable=var, width=15, state=state)
         entry.grid(row=row, column=column, padx=(10,0), pady=(5,5), sticky=tk.W)
-        nb.Button(frame, text=_("Add Carrier"), command=partial(self._add_tracked_carrier, entry, var), state=state). \
-            grid(row=row, column=column+1, pady=(5,5), sticky=tk.W) # LANG: Preferences add carrier button text
+        btn:nb.Button = nb.Button(frame, text=_("Add Carrier"), command=partial(self._add_tracked_carrier, entry, var), state=state) # LANG: Preferences text
+        btn.grid(row=row, column=column+1, pady=(5,5), sticky=tk.W)
 
         return 2
 

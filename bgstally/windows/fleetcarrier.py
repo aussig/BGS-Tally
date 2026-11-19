@@ -45,9 +45,17 @@ class WindowFleetCarrier:
                     'salary' : {'title': 'Salary', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 85, 'locName': _('Salary')}, # LANG: Services summary tab
                     'hiringPrice': {'title': 'Hiring Cost', 'sort': 'num', 'align': tk.E, 'stretch': tk.NO, 'width': 100, 'locName': _('Hiring Cost')}, # LANG: Services summary tab
                 },
-                'names': {'vistagenomics': _('Vista Genomics'), # LANG: Service name
-                          'pioneersupplies': _('Pioneer Supplies'), # LANG: Service name
-                          'voucherredemption': _('Redemption'), # LANG: Service name
+                'names': {
+                    'bartender': _('Concourse Bar'), # LANG: Service name
+                    'blackmarket': _('Secure Warehouse'), # LANG: Service name
+                    'exploration': _('Universal Cargographics'), # LANG: Service name
+                    'pioneersupplies': _('Pioneer Supplies'), # LANG: Service name
+                    'rearm': _('Armoury'), # LANG: Service name
+                    'refuel': _('Refuel'), # LANG: Service name
+                    'repair': _('Repair'), # LANG: Service name
+        		    'shipyard': _('Shipyard'), #LANG: Service name
+                    'vistagenomics': _('Vista Genomics'), # LANG: Service name
+                    'voucherredemption': _('Redemption Office'), # LANG: Service name
                 },
                 'ignore': ['stationmenu', 'carrierfuel', 'commodities', 'carriermanagement', 'dock',
                            'crewlounge', 'engineer', 'socialspace', 'contacts', 'registeringcolonisation',
@@ -128,6 +136,15 @@ class WindowFleetCarrier:
                 },
                 'func': self._modules
             },
+        }
+        translations:dict = { # Translation table for service statuses and options that come via CAPI
+            'enabled': _('Enabled'), # LANG: Service enabled
+            'yes': _('Yes'), # LANG: Service yes
+            'no': _('No'), # LANG: Service no
+            'status': _('Status'), # LANG: Service status
+            'ok': _('OK'), # LANG: Service ok
+            'unavailable': _('Unavailable'), # LANG: Service unavailable
+            'private': _('Private'), # LANG: Service private
         }
 
 
@@ -314,6 +331,7 @@ class WindowFleetCarrier:
                 val:str = ''
                 match c:
                     case 'service': val = s.title() if s not in which['names'].keys() else which['names'][s]
+                    case 'status' | 'enabled': val = _(v.get(c, ""))
                     case _: val = hfplus(v.get(c, ""))
                 row.append(val)
             table.insert("", 'end', values=row)

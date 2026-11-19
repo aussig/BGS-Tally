@@ -35,6 +35,7 @@ PREFS_STRUCTURE = "prefs_structure" + FILE_SUFFIX
   type indicates the type of preference:
   - label: Just for displaying text
   - entry / str: A text entry field for a string or numeric preference
+  - spinbox: A numeric spinbox, with optional min and max
   - checkbox / bool: A checkbox for a simple on/off boolean preference
   - radio / radiobutton: A radio button for a single choice with multiple options
   - menu: A dropdown menu for a preference with multiple options (a different way to implement radio buttons)
@@ -233,6 +234,15 @@ class Prefs:
                              state=state). \
                     grid(row=row, column=col, pady=(0,5), sticky=tk.W)
 
+            case "spinbox":
+                elem = nb.Label(parent_frame, text=label, state=state)
+                elem.grid(row=row, column=col, padx=(10,0), pady=(0,5), sticky=tk.W)
+                col += 1
+                ttk.Spinbox(parent_frame, textvariable=getattr(self.bgstally.state, pref.var), from_=getattr(pref, "min", 0),
+                            to=getattr(pref, "max", 100), width=getattr(pref, "width", 5),
+                            state="disabled" if state == "disabled" else "normal"). \
+                    grid(row=row, column=col, pady=(0,5), sticky=tk.W)
+
         if desc != "":
             ToolTip(elem, text=desc)
         return col
@@ -322,22 +332,23 @@ class Prefs:
                                _("FC C/M"), # LANG: Preferences table heading, abbreviation for fleet carrier commodities / materials
                                _("FC Ops"), # LANG: Preferences table heading, abbreviation for fleet carrier operations
                                "CMDR",
-                               "PP"]
+                               "PP",
+                               _("SQ Ops")] # LANG: Preferences table heading, abbreviation for squadron carrier operations
         self.sheet_webhooks:Sheet = Sheet(frame, show_row_index=True, row_index_width=10, cell_auto_resize_enabled=False,
                                           width=1024, column_width=int(45 * ui_scaling), header_align="left",
                                           empty_vertical=15, empty_horizontal=0, font=FONT_SMALL,
                                           show_horizontal_grid=True, show_vertical_grid=False, show_top_left=False,
                                           headers=sheet_headings)
-        self.sheet_webhooks.grid(row=row, column=column, columnspan=2, padx=5, pady=5, sticky=tk.NSEW); row += 1
+        self.sheet_webhooks.grid(row=row, column=column, columnspan=2, padx=5, pady=(0,5), sticky=tk.NSEW); row += 1
         self.sheet_webhooks.hide_columns(columns=(0))                       # Visible column indexes
-        self.sheet_webhooks.checkbox_column(c=iter([3, 4, 5, 6, 7, 8]))           # Data column indexes
+        self.sheet_webhooks.checkbox_column(c=iter([3, 4, 5, 6, 7, 8, 9]))           # Data column indexes
         self.sheet_webhooks.set_sheet_data(data=self.bgstally.webhook_manager.get_webhooks_as_list())
         self.sheet_webhooks.column_width(column=0, width=int(150 * ui_scaling), redraw=False) # Visible column indexes
         self.sheet_webhooks.column_width(column=1, width=int(200 * ui_scaling), redraw=True)  # Visible column indexes
         self.sheet_webhooks.enable_bindings('single_select', 'row_select', 'arrowkeys', 'right_click_popup_menu', 'rc_select',
                                             'rc_insert_row', 'rc_delete_row', 'copy', 'cut', 'paste', 'delete', 'undo', 'edit_cell')
         self.sheet_webhooks.extra_bindings('all_modified_events', func=self._webhooks_table_modified)
-        self.sheet_webhooks.readonly(state=="disabled")
+        self.sheet_webhooks.readonly(readonly=(state=="disabled"))
         return 1
 
     def _webhooks_table_modified(self, event=None):
@@ -350,7 +361,7 @@ class Prefs:
 
     def _show_api_window(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
         """ Show the API window for the overlay plugin """
-        nb.Button(frame, text=_("Overlay API Settings"), width=20, command=partial(self.bgstally.ui._show_api_window, frame)).\
+        nb.Button(frame, text=_("Overlay API Settings"), command=partial(self.bgstally.ui._show_api_window, frame)).\
             grid(row=row, column=column, padx=10, pady=5, sticky=tk.W) # LANG: Preferences overlay API settings button text
         return 1
 
@@ -375,6 +386,26 @@ class Prefs:
 
         answer = askyesno(title=_("Confirm Force a New Tick"), message=message, default="no") # LANG: Preferences force tick popup title
         if answer: self.bgstally.new_tick(True, UpdateUIPolicy.IMMEDIATE)
+
+    def _archive_purge(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
+        """ Show the archive retention days field and Delete Now button """
+        nb.Label(frame, text=_("Delete older than (days)")).grid(row=row, column=column, padx=10, pady=(0,5), sticky=tk.NW) # LANG: Preferences archive purge label
+        self.archive_days:tk.StringVar = tk.StringVar(value="365")
+        ttk.Spinbox(frame, from_=1, to=9999, width=5, textvariable=self.archive_days).grid(row=row, column=column + 1, pady=(0,5), sticky=tk.W)
+        ttk.Button(frame, text=_("Delete Now"), command=self._confirm_archive_purge, style='ft.TButton').\
+            grid(row=row, column=column + 2, padx=10, pady=(0,5), sticky=tk.W) # LANG: Preferences archive purge button text
+        return 3
+
+    def _confirm_archive_purge(self):
+        """ Delete old archived activity when user clicks button """
+        days:str = self.archive_days.get().strip()
+        if not days.isdigit(): return
+
+        message:str = _("This will permanently delete archived activity older than {days} days.").format(days=days) + "\n\n" # LANG: Preferences archive purge popup text
+        message += _("Are you sure that you want to do this?") # LANG: Preferences force tick text
+
+        if not askyesno(title=_("Confirm Delete Archived Activity"), message=message, default="no"): return # LANG: Preferences archive purge popup title
+        self.bgstally.activity_manager.purge_archive(int(days))
 
     @catch_exceptions
     def _change_favourite(self, name:tk.Variable|str, var:tk.Variable|bool) -> None:
@@ -415,3 +446,48 @@ class Prefs:
             grid(row=row, column=column+1, pady=(5,5), sticky=tk.W) # LANG: Preferences add faction button text
 
         return 2
+
+    @catch_exceptions
+    def _untrack_carrier(self, carrier_id:int, var:tk.BooleanVar) -> None:
+        """ Callback for when a tracked carrier's checkbox is unticked """
+        if var.get(): return # Only unticking does anything -- there's no bigger list to re-tick it back into
+        self.bgstally.fleet_carriers.remove(carrier_id)
+        self._rebuild_tracked_carriers()
+
+    @catch_exceptions
+    def _add_tracked_carrier(self, entry:nb.EntryMenu, var:tk.StringVar) -> None:
+        """ Callback for adding a carrier to track by its callsign (its permanent, human-visible identifier) """
+        callsign:str = var.get().strip()
+        if not callsign: return
+        var.set("")
+        entry.config(state=tk.DISABLED)
+        if self.bgstally.fleet_carriers.track_by_callsign(callsign):
+            self._rebuild_tracked_carriers()
+        entry.config(state=tk.NORMAL)
+
+    @catch_exceptions
+    def _tracked_carriers(self, frame:tk.Frame, row:int, column:int, state:str) -> int:
+        """ Show the tracked third-party carriers list and allow adding or removing carriers """
+        self.carriers_fr:nb.Frame = nb.Frame(frame)
+        self.carriers_fr.grid(row=row, column=column, columnspan=6, padx=0, pady=(0,5), sticky=tk.NSEW)
+        self._rebuild_tracked_carriers()
+
+        row += 1
+        var:tk.StringVar = tk.StringVar(value="")
+        entry:nb.EntryMenu = nb.EntryMenu(frame, textvariable=var, width=15, state=state)
+        entry.grid(row=row, column=column, padx=(10,0), pady=(5,5), sticky=tk.W)
+        nb.Button(frame, text=_("Add Carrier"), command=partial(self._add_tracked_carrier, entry, var), state=state). \
+            grid(row=row, column=column+1, pady=(5,5), sticky=tk.W) # LANG: Preferences add carrier button text
+
+        return 2
+
+    def _rebuild_tracked_carriers(self) -> None:
+        """ Redraw the list of tracked third-party carriers """
+        for child in self.carriers_fr.winfo_children(): child.destroy()
+
+        for i, fc in enumerate(self.bgstally.fleet_carriers.third_party):
+            name:str = fc.overview.get('callsign') or str(fc.carrier_id)
+            var:tk.BooleanVar = tk.BooleanVar(value=True)
+            nb.Checkbutton(self.carriers_fr, text=name, command=partial(self._untrack_carrier, fc.carrier_id, var),
+                           onvalue=True, offvalue=False, variable=var). \
+                grid(row=(i//3), column=(i%3), padx=(10,0), pady=(0,5), sticky=tk.W)

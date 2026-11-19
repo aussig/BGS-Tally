@@ -2,56 +2,27 @@
 
 from datetime import datetime, timedelta, UTC
 from pathlib import Path
-from typing import Generator
 import shutil
 
 import pytest # type: ignore
 
 # Config is already mocked by conftest.py
-from harness import TestHarness
 
 from bgstally.constants import DATETIME_FORMAT_JOURNAL, FOLDER_OTHER_DATA
 from bgstally.missionlog import MissionLog, TIME_MISSION_EXPIRY_D
 
 
 @pytest.fixture
-def harness(request) -> Generator:
-    """Provide a fresh test harness for each test."""
-    live = request.node.get_closest_marker('live_requests') is not None
+def pre_start():
+    """Reset missionlog.json before the plugin starts."""
+    def init(request, harness) -> None:
+        Path(Path(__file__).parent / "otherdata" / "missionlog.json").unlink(missing_ok=True)
+        missionlog_init_file:str = getattr(request, 'param', 'missionlog_init.json')
+        if missionlog_init_file != 'None':
+            shutil.copy(Path(__file__).parent / "config" / missionlog_init_file,
+                        Path(__file__).parent / "otherdata" / "missionlog.json")
 
-    test_harness: TestHarness = TestHarness(live_requests=live)
-
-    import bgstally.constants
-    bgstally.constants.FOLDER_ASSETS = "../assets"
-    bgstally.constants.FOLDER_DATA = "../data"
-
-    # Put in a response for the update manager so it doesn't error
-    if not live:
-        from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get',
-                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
-                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
-                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
-
-    Path(Path(__file__).parent / "otherdata" / "missionlog.json").unlink(missing_ok=True)
-    missionlog_init_file:str = getattr(request, 'param', 'missionlog_init.json')
-    if missionlog_init_file != 'None':
-        shutil.copy(Path(__file__).parent / "config" / missionlog_init_file,
-                    Path(__file__).parent / "otherdata" / "missionlog.json")
-
-    # Now we can import plugin modules
-    from load import plugin_start3, plugin_app, journal_entry
-    import bgstally.globals
-    test_harness.plugin = bgstally.globals.this
-
-    plugin_start3(str(test_harness.plugin_dir))
-    plugin_app(test_harness.parent)
-
-    test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
-
-    yield test_harness
-    test_harness.assert_no_unhandled_exceptions()
-
+    return init
 
 class TestMissionLogFunctions:
     """Mission log module tests."""

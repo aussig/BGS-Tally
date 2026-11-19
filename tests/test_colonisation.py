@@ -6,54 +6,26 @@ import pytest # type: ignore
 import shutil
 import json
 from pathlib import Path
-from typing import Generator
 from time import sleep
 from unittest.mock import patch, MagicMock
 
-from datetime import datetime, UTC
 from bgstally.windows import progress
-from harness import TestHarness
 from bgstally.constants import BuildState
 
 SHORT_DELAY = 0.01
 
 @pytest.fixture
-def harness(request) -> Generator:
-    """ Provide a fresh test harness for each test. """
-    live = request.node.get_closest_marker('live_requests') is not None
-    test_harness = TestHarness(live_requests=live)
+def pre_start():
+    """Reset colonisation.json before the plugin starts."""
+    def init(request, harness) -> None:
+        # Initialize colonisation state - use parametrized filename if provided
+        Path(Path(__file__).parent / "otherdata" / "colonisation.json").unlink(missing_ok=True)
+        colonisation_init_file = getattr(request, 'param', 'colonisation_init.json')
+        if colonisation_init_file != 'None':
+            shutil.copy(Path(__file__).parent / "config" / colonisation_init_file,
+                        Path(__file__).parent / "otherdata" / "colonisation.json")
 
-    # Use the "normal" locations for assets and data
-    import bgstally.constants
-    bgstally.constants.FOLDER_ASSETS = "../assets"
-    bgstally.constants.FOLDER_DATA = "../data"
-
-    # Put in a response for the update manager so it doesn't error
-    if not live:
-        from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get',
-                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
-                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
-                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
-
-    # Initialize colonisation state - use parametrized filename if provided
-    Path(Path(__file__).parent / "otherdata" / "colonisation.json").unlink(missing_ok=True)
-    colonisation_init_file = getattr(request, 'param', 'colonisation_init.json')
-    if colonisation_init_file != 'None':
-        shutil.copy(Path(__file__).parent / "config" / colonisation_init_file,
-                    Path(__file__).parent / "otherdata" / "colonisation.json")
-
-    from load import plugin_start3, plugin_app, journal_entry
-    import bgstally.globals
-    test_harness.plugin = bgstally.globals.this
-
-    plugin_start3(str(test_harness.plugin_dir))
-    plugin_app(test_harness.parent)
-
-    test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
-
-    yield test_harness
-    test_harness.assert_no_unhandled_exceptions()
+    return init
 
 class TestColonisationInitialization:
     @pytest.mark.parametrize('harness', ['None', 'colonisation_empty.json', 'colonisation-5.4.0.json', 'colonisation-5.5.0.json'], indirect=True)
@@ -171,6 +143,19 @@ class TestColonisationMethods:
         assert c.systems[syscount]['Name'] == 'Test System'
         assert c.systems[syscount]['StarSystem'] == 'Test StarSystem'
         assert c.systems[syscount]['Builds'] == []
+
+    def test_add_system_duplicate(self, harness) -> None:
+        """ Adding a plan for an already planned star system returns the existing plan """
+        c = harness.plugin.colonisation
+        existing:dict = c.systems[0]
+        syscount:int = len(c.systems)
+
+        with patch('bgstally.colonisation.RavenColonial') as rc:
+            system:dict = c.add_system({'Name': 'Dup Plan', 'StarSystem': existing['StarSystem']}, False, True)
+
+        assert system is existing
+        assert len(c.systems) == syscount
+        rc.return_value.upsert_system.assert_not_called()
 
     def test_modify_system(self, harness) -> None:
         """ Test system modification """
@@ -326,8 +311,27 @@ class TestColonisationMethods:
 
         build:dict = c.add_build(system, new_build, False)
         assert len(system['Builds']) == buildc + 1
-        c.remove_build(system, build['MarketID'], False)
+        c.remove_build(system, build['BuildID'], False)
         assert len(system['Builds']) == buildc
+
+    @pytest.mark.parametrize('silent,delproj,state,deleted', [
+        (False, False, BuildState.PROGRESS, False),
+        (True, True, BuildState.PROGRESS, False),
+        (False, True, BuildState.COMPLETE, False),
+        (False, True, BuildState.PROGRESS, True),
+    ])
+    def test_remove_build_project(self, harness, silent, delproj, state, deleted) -> None:
+        """ RC project is only deleted when explicitly requested for an in-progress build """
+        c = harness.plugin.colonisation
+        system:dict = c.systems[0]
+        build:dict = c.add_build(system, {"Base Type": "Industrial Outpost", "Name": "Proj Test", "MarketID": 4224499460,
+                                          "BuildID": "&4224499460", "State": state, "ProjectID": "proj-1"}, True)
+
+        with patch('bgstally.colonisation.RavenColonial') as rc, patch.dict(system, {'RCSync': True}):
+            c.remove_build(system, build['BuildID'], silent, delproj)
+
+        assert rc.return_value.delete_project.called == deleted
+        assert c.find_build(system, {'BuildID': '&4224499460'}) == None
 
     def test_set_base_type(self, harness) -> None:
         c = harness.plugin.colonisation
@@ -369,6 +373,18 @@ class TestColonisationMethods:
         progress:list = c.get_delivered([build])
         assert isinstance(progress, list)
         assert progress[0]['foodcartridges'] == 8
+
+    def test_primary_cost_by_order(self, harness) -> None:
+        """ Test a system's first build is costed as primary without find_build() having flagged it """
+        c = harness.plugin.colonisation
+        builds:list = [{'Base Type': 'Pirate Outpost'}, {'Base Type': 'Pirate Outpost'}]
+
+        required:list = c.get_required(builds)
+
+        assert required[0]['steel'] == 6660
+        assert required[1]['steel'] == 5588
+        c.find_build(c.systems[0], {'Name': 'Nowhere'})
+        assert 'Primary' not in c.systems[0]['Builds'][0]
 
     def test_find_or_create_progress(self, harness) -> None:
         """ Test progress find or create """
@@ -439,6 +455,16 @@ class TestColonisationProgress:
         assert len(progress_window.columns) == 4
 
 
+    def test_no_builds_hides_frame(self, harness) -> None:
+        """ With nothing tracked on first run, the whole progress frame hides, not one of its children """
+        c = harness.plugin.colonisation
+        window = progress.ProgressWindow(harness.plugin)
+        with patch.object(c, 'get_tracked_builds', return_value=[]):
+            window.create_frame(harness.parent, 0, 3)
+
+        assert window.frame.winfo_manager() == ''
+
+
     def test_get_value_formats(self, harness) -> None:
         """Values should format as tonnes by default and loads when >1 load."""
         progress_window = harness.plugin.ui.window_progress
@@ -477,7 +503,7 @@ class TestColonisationProgress:
         assert totals.purchase == 5254
 
     def test_skip_row(self, harness) -> None:
-        """Skip logic should respect view mode and max row limits."""
+        """Skip logic should respect view mode, never row count."""
         progress_window = harness.plugin.ui.window_progress
         c = harness.plugin.colonisation
 
@@ -488,10 +514,10 @@ class TestColonisationProgress:
         assert progress_window._skip_row(progress.ProgressView.FULL, comm, 0) is False
         assert progress_window._skip_row(progress.ProgressView.REDUCED, comm, 0) is True
 
-        progress_window.use_scrollbar = False
+        # Rows past max_rows are shown too now -- the scrollable frame handles overflow, not skipping
         progress_window.max_rows = 1
         long_list_comm = progress.Commodity(c, 'water', 10, 0)
-        assert progress_window._skip_row(progress.ProgressView.FULL, long_list_comm, 2) is True
+        assert progress_window._skip_row(progress.ProgressView.FULL, long_list_comm, 2) is False
 
     def test_overlay_and_discord_text(self, harness) -> None:
         """Text output should be empty in NONE view and populated in FULL view."""
@@ -590,3 +616,120 @@ class TestColonisationFullBuild:
         assert c.systems[1]['Builds'][0]['MarketID'] == 4351826691
         assert c.systems[1]['Builds'][0]['State'] == BuildState.COMPLETE
         assert c.systems[1]['Builds'][0]['Name'] == 'Citroen Arsenal'
+
+
+class TestSpanshMarkets:
+    """ Tests for the Spansh nearby markets lookup. """
+
+    def test_spansh_market_rows(self, harness) -> None:
+        """ Test a station search is requested for the English name and reduced to the best rows. """
+        from bgstally.ravencolonial import Spansh
+        found:dict = {}
+
+        def station(name:str, dist:float, kind:str, supply:int, large:bool = True) -> dict:
+            return {'system_name': name, 'name': name, 'distance': dist, 'distance_to_arrival': 100, 'has_large_pad': large,
+                    'is_planetary': kind == 'S', 'type': 'Drake-Class Carrier' if kind == 'C' else 'Coriolis Starport',
+                    'market': [{'commodity': 'Gold', 'supply': 1}, {'commodity': 'Agri-Medicines', 'supply': supply}]}
+
+        def search(stations:list, minimum:int = 100) -> list:
+            def fake_queue(url, method, callback = None, payload = None, **kwargs):
+                response = MagicMock()
+                response.json.return_value = {'results': stations}
+                found['payload'] = payload
+                if not callback: return
+                callback(True, response, None)
+
+            Spansh(harness.plugin).market_cache.clear()
+            with patch.object(harness.plugin.request_manager, 'queue_request', side_effect=fake_queue):
+                Spansh(harness.plugin).find_markets({'agriculturalmedicines': minimum}, 'Sol', lambda s, rows: found.update({s: rows}))
+            return [r['station'] for r in found['agriculturalmedicines']]
+
+        assert search([station('Surf', 0, 'S', 900), station('Orb', 0, 'O', 900)]) == ['Orb'] # Same system, orbital ranks first
+        assert search([station('Surf', 0, 'S', 900), station('Orb', 5, 'O', 900)]) == ['Surf', 'Orb'] # Better type
+        assert found['payload']['filters']['market'][0]['name'] == 'Agri-Medicines'
+        assert search([station('Orb', 0, 'O', 900), station('Surf', 5, 'S', 900)]) == ['Orb'] # Worse type, not wanted
+        assert search([station('Orb', 0, 'O', 150), station('Orb2', 5, 'O', 900)]) == ['Orb', 'Orb2'] # Meets the quantity
+        assert search([station('Orb', 0, 'O', 900), station('Orb2', 5, 'O', 900)]) == ['Orb'] # Nothing better
+        assert search([station('Surf', 0, 'S', 900), station('Surf2', 5, 'S', 900)]) == ['Surf'] # Surface only, second is farther
+        assert search([station('Orb', 0, 'O', 900, False), station('Orb2', 5, 'O', 900)]) == ['Orb', 'Orb2'] # Large pads
+        assert search([station('Car', 0, 'C', 900), station('Surf', 5, 'S', 900), station('Orb', 9, 'O', 900)]) == ['Car', 'Surf']
+
+    def test_spansh_market_cache(self, harness) -> None:
+        """ Test repeat searches are cached until the commander leaves the system. """
+        from bgstally.ravencolonial import Spansh
+        sp = Spansh(harness.plugin)
+        sp.market_cache.clear()
+        sent:list = []
+
+        def fake_queue(url, method, callback = None, payload = None, **kwargs):
+            sent.append(payload)
+            response = MagicMock()
+            response.json.return_value = {'results': []}
+            if not callback: return
+            callback(True, response, None)
+
+        def search(minimum:int = 100) -> None:
+            with patch.object(harness.plugin.request_manager, 'queue_request', side_effect=fake_queue):
+                sp.find_markets({'agriculturalmedicines': minimum}, 'Sol', lambda s, rows: None)
+
+        harness.plugin.colonisation.current_system = 'Sol'
+        search(); search()
+        assert len(sent) == 1
+        search(200)
+        assert len(sent) == 2 # A different amount needed is a different search
+        harness.plugin.colonisation.current_system = 'Barnard\'s Star'
+        search()
+        assert len(sent) == 3
+
+    def test_spansh_market_batch(self, harness) -> None:
+        """ Test several commodities share one search and only unsettled ones are searched again. """
+        from bgstally.ravencolonial import Spansh
+        sp = Spansh(harness.plugin)
+        sp.market_cache.clear()
+        sent:list = []
+        found:dict = {}
+        stations:list = [{'system_name': f"S{i}", 'name': f"St{i}", 'distance': i, 'distance_to_arrival': 10, 'has_large_pad': False,
+                          'is_planetary': False, 'type': 'Coriolis Starport',
+                          'market': [{'commodity': 'Tritium', 'supply': 1000}, {'commodity': 'Agri-Medicines', 'supply': 1000}]}
+                         for i in range(6)]
+
+        def fake_queue(url, method, callback = None, payload = None, **kwargs):
+            if not payload: return
+            sent.append(payload['filters']['market'][0]['name'])
+            response = MagicMock()
+            response.json.return_value = {'results': stations if isinstance(sent[-1], list) else []}
+            if not callback: return
+            callback(True, response, None)
+
+        wanted:dict = {'gold': 100, 'tritium': 100, 'platinum': 100, 'agriculturalmedicines': 100}
+        with patch.object(harness.plugin.request_manager, 'queue_request', side_effect=fake_queue), \
+             patch('bgstally.ravencolonial.SPANSH_BATCH_SIZE', 6):
+            sp.find_markets(wanted, 'Sol', lambda s, rows: found.update({s: rows}))
+
+        assert sent == [['Gold', 'Tritium', 'Platinum', 'Agri-Medicines'], 'Gold', 'Platinum'] # No rows in the shared page, so searched alone
+        assert [r['station'] for r in found['tritium']] == ['St0']
+        assert found['gold'] == [] and found['platinum'] == [] and 'agriculturalmedicines' in found
+
+    def test_manual_build_popup(self, harness) -> None:
+        """ Manual build modes prompt before adding an unknown site """
+        c = harness.plugin.colonisation
+        system:dict = c.systems[0]
+        dock:dict = {'event': 'Docked', 'StationName': 'Orbital Construction Site: Popup Test', 'MarketID': 3999999999,
+                     'StarSystem': system['StarSystem'], 'SystemAddress': system['SystemAddress']}
+        count:int = len(system['Builds'])
+
+        harness.plugin.state.ColonisationBuildMode.set('unknown')
+        with patch.object(harness.plugin.ui.window_colonisation, 'new_build_dialog') as dialog:
+            c.journal_entry('Cmdr', False, system['StarSystem'], None, dock, {})
+            assert dialog.call_count == 1
+            assert len(system['Builds']) == count
+
+            c.confirm_build(system, dialog.call_args.args[1], dialog.call_args.args[2] | {'Layout': 'Vulcan'})
+            assert len(system['Builds']) == count + 1
+            assert system['Builds'][-1]['Base Type'] == 'Industrial Outpost'
+
+            harness.plugin.state.ColonisationBuildMode.set('all')
+            c.journal_entry('Cmdr', False, system['StarSystem'], None, dock, {})
+            assert dialog.call_count == 1
+
+        harness.plugin.state.ColonisationBuildMode.set('auto')

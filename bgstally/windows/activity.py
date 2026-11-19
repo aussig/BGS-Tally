@@ -808,6 +808,8 @@ class WindowActivity:
         formatter: BaseActivityFormatterInterface = self.bgstally.formatter_manager.get_current_formatter()
         if formatter is None: return
         text: str = formatter.get_text(activity, self.bgstally.state.DiscordActivity.get(), lang=self.bgstally.state.discord_lang)
+        if self.bgstally.state.showmerits:
+            text += formatter.get_text(activity, DiscordActivity.POWERPLAY, lang=self.bgstally.state.discord_lang)
 
         frm_container.clipboard_clear()
         frm_container.clipboard_append(text)

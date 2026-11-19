@@ -449,10 +449,10 @@ class AutoCompleter(Placeholder):
         self.parent:tk.Frame = parent
 
         self.popup:tk.Toplevel = tk.Toplevel(self.parent.winfo_toplevel())
+        self.popup.withdraw() # Before adding contents, so it's never mapped/visible even briefly
         self.popup.wm_overrideredirect(True)
         self.lb:tk.Listbox = tk.Listbox(self.popup, selectmode=tk.SINGLE, **kw)
         self.lb.pack(fill=tk.BOTH, expand=True)
-        self.popup.withdraw()
         self.lb_up = False
         self.has_selected = False
         self.queue:queue.Queue = queue.Queue()

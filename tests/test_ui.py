@@ -2,47 +2,13 @@
 
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
-from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest  # type: ignore
 
 from bgstally.activity import STATES_WAR
 from bgstally.constants import FavouriteActivity
-from harness import TestHarness
 from config import config  # type: ignore
-
-
-@pytest.fixture
-def harness(request) -> Generator:
-    """Provide a fresh test harness for each test."""
-    live = request.node.get_closest_marker("live_requests") is not None
-
-    test_harness: TestHarness = TestHarness(live_requests=live)
-
-    import bgstally.constants
-
-    bgstally.constants.FOLDER_ASSETS = "../assets"
-    bgstally.constants.FOLDER_DATA = "../data"
-
-    # Put in a response for the update manager so it doesn't error
-    if not live:
-        from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get',
-                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
-                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
-                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
-
-    from load import plugin_app, plugin_start3
-    import bgstally.globals
-
-    test_harness.plugin = bgstally.globals.this
-
-    plugin_start3(str(test_harness.plugin_dir))
-    plugin_app(test_harness.parent)
-
-    yield test_harness
-    test_harness.assert_no_unhandled_exceptions()
 
 
 class TestUI:
@@ -52,13 +18,13 @@ class TestUI:
         assert harness is not None
         assert harness.plugin.ui is not None
 
-    def test_show_activity_window_ignores_none_activity(self, harness) -> None:
+    def test_show_activity_ignores_none(self, harness) -> None:
         ui = harness.plugin.ui
         before = dict(ui.window_activity)
         ui._show_activity_window(None)
         assert ui.window_activity == before
 
-    def test_show_activity_window_reuses_existing_window(self, harness) -> None:
+    def test_show_activity_reuses_window(self, harness) -> None:
         ui = harness.plugin.ui
         existing = SimpleNamespace(show=MagicMock())
         activity = SimpleNamespace(tick_id="tick-1")
@@ -68,7 +34,7 @@ class TestUI:
 
         existing.show.assert_called_once_with(activity)
 
-    def test_show_activity_window_creates_window_for_new_tick(self, harness) -> None:
+    def test_show_activity_creates_window(self, harness) -> None:
         ui = harness.plugin.ui
         activity = SimpleNamespace(tick_id="tick-new")
 
@@ -81,7 +47,7 @@ class TestUI:
             mock_window_activity.assert_called_once_with(harness.plugin, ui, activity)
             assert ui.window_activity["tick-new"] is mock_instance
 
-    # def test_language_and_formatter_callbacks_update_state(self, harness) -> None:
+    # def test_language_formatter_update_state(self, harness) -> None:
     #     ui = harness.plugin.ui
 
     #     ui.languages = {None: "Default", "en": "English"}
@@ -94,7 +60,7 @@ class TestUI:
     #     ui._formatter_modified()
     #     assert harness.plugin.state.discord_formatter == "text"
 
-    def test_overlay_options_state_reflects_overlay_availability(self, harness) -> None:
+    def test_overlay_options_reflect_availability(self, harness) -> None:
         ui = harness.plugin.ui
 
         ui.bgstally.overlay.edmcoverlay = None
@@ -103,14 +69,14 @@ class TestUI:
         ui.bgstally.overlay.edmcoverlay = object()
         assert ui.overlay_options_state() == "enabled"
 
-    def test_build_station_info_contains_station_and_faction(self, harness) -> None:
+    def test_station_info_has_faction(self, harness) -> None:
         ui = harness.plugin.ui
         result = ui._build_station_info({"station": "Jameson Memorial", "faction": "Pilots Federation"})
 
         assert "Jameson Memorial" in result
         assert "Pilots Federation" in result
 
-    # def test_favourite_and_cooldown_callbacks_update_state(self, harness) -> None:
+    # def test_favourite_cooldown_update_state(self, harness) -> None:
     #     ui = harness.plugin.ui
 
     #     ui.bgstally.state.refresh = MagicMock()
@@ -127,7 +93,7 @@ class TestUI:
     #     assert ui.bgstally.state.FcCooldown.get() == "popup"
     #     ui.bgstally.state.refresh.assert_called_once()
 
-    def test_update_plugin_frame_shows_update_available_notice(self, harness) -> None:
+    def test_frame_shows_update_notice(self, harness) -> None:
         ui = harness.plugin.ui
 
         ui.btn_latest_tick = MagicMock()
@@ -152,7 +118,7 @@ class TestUI:
         )
         ui.window_progress.update_display.assert_called_once()
 
-    def test_update_plugin_frame_shows_api_changed_notice(self, harness) -> None:
+    def test_frame_shows_api_notice(self, harness) -> None:
         ui = harness.plugin.ui
 
         ui.btn_latest_tick = MagicMock()
@@ -176,7 +142,7 @@ class TestUI:
             foreground="red",
         )
 
-    def test_build_system_info_handles_no_factions(self, harness) -> None:
+    def test_system_info_no_factions(self, harness) -> None:
         ui = harness.plugin.ui
 
         activity = SimpleNamespace(get_ordered_factions=lambda _: [])
@@ -228,7 +194,39 @@ class TestUI:
         assert "Conflicts:" in result
         assert "Faction A vs Faction B" in result
 
-    def test_worker_exits_when_shutting_down(self, harness) -> None:
+    def test_toggle_switches_frames(self, harness) -> None:
+        ui = harness.plugin.ui
+
+        assert ui.bgstally.state.plugin_hidden is False
+        assert ui.expanded_frame.grid_info() != {}
+        assert ui.collapsed_frame.grid_info() == {}
+
+        ui.view.toggle()
+
+        assert ui.bgstally.state.plugin_hidden is True
+        assert ui.expanded_frame.grid_info() == {}
+        assert ui.collapsed_frame.grid_info() != {}
+
+        ui.view.toggle()
+
+        assert ui.bgstally.state.plugin_hidden is False
+        assert ui.expanded_frame.grid_info() != {}
+        assert ui.collapsed_frame.grid_info() == {}
+
+    def test_hide_suppresses_overlay(self, harness) -> None:
+        ui = harness.plugin.ui
+        ui.bgstally.state.enable_overlay = True
+
+        ui.bgstally.overlay.display_message("info", "test")
+        assert ui.bgstally.overlay.edmcoverlay.messages != {}
+
+        ui.bgstally.overlay.edmcoverlay.messages.clear()
+        ui.view.toggle()
+        ui.bgstally.overlay.display_message("info", "test")
+
+        assert ui.bgstally.overlay.edmcoverlay.messages == {}
+
+    def test_worker_exits_on_shutdown(self, harness) -> None:
         ui = harness.plugin.ui
         config.shutting_down = True
 
@@ -238,7 +236,7 @@ class TestUI:
         finally:
             config.shutting_down = False
 
-    def test_worker_tick_and_activity_indicator_single_iteration(self, harness) -> None:
+    def test_worker_updates_tick(self, harness) -> None:
         ui = harness.plugin.ui
         state = ui.bgstally.state
 

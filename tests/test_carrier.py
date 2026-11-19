@@ -4,56 +4,31 @@ Test suite for carrier module of BGS-Tally.
 
 import pytest # type: ignore
 import shutil
+import time
 from pathlib import Path
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING
 from time import sleep
 from datetime import datetime, UTC, timedelta
 from unittest.mock import Mock, patch, MagicMock
-import filecmp
-from harness import TestHarness
+import json
 
 if TYPE_CHECKING:
     import bgstally.ui
     from bgstally.windows.fleetcarrier import PopupNotice
 
 @pytest.fixture
-def harness(request) -> Generator:
-    """ Provide a fresh test harness for each test. """
-    live = request.node.get_closest_marker('live_requests') is not None
-    test_harness = TestHarness(live_requests=live)
+def pre_start():
+    """Reset fleetcarrier.json and the carriers folder before the plugin starts."""
+    def init(request, harness) -> None:
+        # Make sure we always start with a consistent fleetcarrier.json, and no leftover squadron (etc) carriers
+        Path(Path(__file__).parent / "otherdata" / "fleetcarrier.json").unlink(missing_ok=True)
+        for f in Path(Path(__file__).parent / "otherdata" / "carriers").glob("*.json"): f.unlink()
+        carrier_init_file:str = getattr(request, 'param', 'fleetcarrier_init.json')
+        if carrier_init_file != 'None':
+            shutil.copy(Path(__file__).parent / "config" / carrier_init_file,
+                        Path(__file__).parent / "otherdata" / "fleetcarrier.json")
 
-    # Use the "normal" locations for assets and data
-    import bgstally.constants
-    bgstally.constants.FOLDER_ASSETS = "../assets"
-    bgstally.constants.FOLDER_DATA = "../data"
-
-    # Put in a response for the update manager so it doesn't error
-    if not live:
-        from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get',
-                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
-                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
-                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
-
-    # Make sure we always start with a consistent fleetcarrier.json
-    Path(Path(__file__).parent / "otherdata" / "fleetcarrier.json").unlink(missing_ok=True)
-    carrier_init_file:str = getattr(request, 'param', 'fleetcarrier_init.json')
-    if carrier_init_file != 'None':
-        shutil.copy(Path(__file__).parent / "config" / carrier_init_file,
-                    Path(__file__).parent / "otherdata" / "fleetcarrier.json")
-
-    # Now we can import plugin modules
-    from load import plugin_start3, plugin_app, journal_entry
-    import bgstally.globals
-    test_harness.plugin = bgstally.globals.this
-
-    plugin_start3(str(test_harness.plugin_dir))
-    plugin_app(test_harness.parent)
-
-    test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
-
-    yield test_harness
-    test_harness.assert_no_unhandled_exceptions()
+    return init
 
 class TestCarrierInitialization:
 
@@ -86,6 +61,244 @@ class TestCarrierInitialization:
         fc = harness.plugin.fleet_carrier
         fc.overview = {'name': 'Test Carrier'}
         assert not fc.available()
+
+    def test_no_capi_data_initially(self, harness) -> None:
+        """ Test fc.data before any CAPI data is received """
+        fc = harness.plugin.fleet_carrier
+        fc.data = {}
+        assert fc.data == {}
+
+    def test_capi_data_flag_set(self, harness) -> None:
+        """ Test fc.data once CAPI data has been received """
+        fc = harness.plugin.fleet_carrier
+        fc.data = {'name': {}}
+        assert fc.data != {}
+
+class TestFleetCarriers:
+    """ Test the FleetCarriers registry that tracks personal and squadron carriers """
+
+    def test_personal_available(self, harness) -> None:
+        """ Test that the personal carrier slot always exists """
+        assert harness.plugin.fleet_carriers.personal is not None
+
+    def test_squadron_unseen(self, harness) -> None:
+        """ Test that squadron is None until a squadron carrier is seen """
+        assert harness.plugin.fleet_carriers.squadron is None
+
+    def test_get_personal(self, harness) -> None:
+        """ Test get returns existing personal carrier """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(99999, FleetCarrierType.PERSONAL)
+        assert fc is harness.plugin.fleet_carriers.personal
+
+    def test_get_squadron(self, harness) -> None:
+        """ Test get creates a new squadron carrier """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(54321, FleetCarrierType.SQUADRON)
+        assert fc.carrier_id == 54321
+        assert fc.carrier_type == FleetCarrierType.SQUADRON
+        assert harness.plugin.fleet_carriers.squadron is fc
+
+    def test_squadron_persists_across_load(self, harness) -> None:
+        """ Test a squadron carrier's overview survives a save + fresh reload, not wiped as no-CAPI """
+        from bgstally.constants import FleetCarrierType
+        from bgstally.fleetcarriers import FleetCarriers
+
+        fc = harness.plugin.fleet_carriers.get(54321, FleetCarrierType.SQUADRON)
+        fc.overview = {'name': 'Test Squadron', 'callsign': 'SQD-123', 'currentStarSystem': 'Sol', 'bankBalance': 5000}
+        fc.save()
+
+        # Simulate a plugin restart: rediscover carriers from disk (keyed by callsign) rather than by id alone
+        reloaded = FleetCarriers(harness.plugin).find(54321)
+
+        assert reloaded is not None
+        assert reloaded.overview.get('name') == 'Test Squadron'
+        assert reloaded.overview.get('callsign') == 'SQD-123'
+        assert reloaded.overview.get('currentStarSystem') == 'Sol'
+        assert reloaded.overview.get('bankBalance') == 5000
+
+    def test_refresh_cooldown(self, harness) -> None:
+        """ Test refresh() skips RC/Spansh while on cooldown, using the shorter local cooldown when in-system """
+        from bgstally.constants import FleetCarrierType
+        from bgstally.fleetcarrier import UPDATE_LOCAL_COOLDOWN, UPDATE_REMOTE_COOLDOWN
+
+        fc = harness.plugin.fleet_carriers.get(77777, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.overview['currentStarSystem'] = 'Sol'
+
+        with patch('bgstally.ravencolonial.RavenColonial.get_carrier') as mock_rc:
+            fc.refresh('Sol', 'Earth')
+            assert mock_rc.call_count == 1
+
+            fc.refresh('Sol', 'Earth') # Still within cooldown, should be skipped entirely
+            assert mock_rc.call_count == 1
+
+            fc._last_update_check -= UPDATE_LOCAL_COOLDOWN + 1
+            fc.refresh('Sol', 'Earth') # Local cooldown has now expired, cmdr is in the same system
+            assert mock_rc.call_count == 2
+
+            fc._last_update_check -= UPDATE_LOCAL_COOLDOWN + 1
+            fc.refresh('Some Other System', 'Mars') # Remote cooldown hasn't expired yet, still skipped
+            assert mock_rc.call_count == 2
+
+            fc._last_update_check -= UPDATE_REMOTE_COOLDOWN + 1
+            fc.refresh('Some Other System', 'Mars') # Remote cooldown has now expired
+            assert mock_rc.call_count == 3
+
+            fc._last_update_check = 0
+            fc.refresh('Sol', 'T9M-33M') # Docked at this carrier, its own Market event wins
+            assert mock_rc.call_count == 3
+
+    def test_refresh_chains_rc_spansh(self, harness) -> None:
+        """ Test refresh() queues RC then Spansh, then merges both on the UI thread """
+        fc = harness.plugin.fleet_carrier
+        fc.carrier_id = 3709409280
+        fc._last_update_check = 0
+
+        with patch('bgstally.ravencolonial.RavenColonial.get_carrier', side_effect=lambda _id, result_fnc: result_fnc('rc')) as mock_rc, \
+             patch('bgstally.ravencolonial.Spansh.get_market', side_effect=lambda _fc, result_fnc: result_fnc('spansh')) as mock_spansh, \
+             patch.object(fc, '_apply') as mock_apply:
+            fc.refresh()
+            assert mock_rc.call_count == 1
+            assert mock_spansh.call_count == 1
+            mock_apply.assert_not_called()
+            harness._pump_ui()
+            mock_apply.assert_called_once_with('rc', 'spansh')
+
+    def test_rc_unlisted_cooldown(self, harness) -> None:
+        """ Test RC is only rechecked occasionally for a carrier it doesn't list """
+        from bgstally.ravencolonial import RavenColonial, RC_UNLISTED_COOLDOWN
+        rc = RavenColonial(harness.plugin.colonisation)
+        results:list = []
+
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            rc.get_carrier(88888, results.append)
+            assert mock_queue.call_count == 1
+
+            missing = Mock(status_code=404)
+            mock_queue.call_args.kwargs['callback'](False, missing, Mock())
+            assert results == [None]
+
+            rc.get_carrier(88888, results.append) # Not listed, so answered without asking RC
+            assert mock_queue.call_count == 1
+            assert results == [None, None]
+
+            rc._rc_missed[88888] -= RC_UNLISTED_COOLDOWN + 1
+            rc.get_carrier(88888, results.append) # Recheck is due
+            assert mock_queue.call_count == 2
+
+            listed = Mock(status_code=200)
+            listed.json.return_value = {'name': 'RCX-001', 'cargo': {'steel': 5}}
+            mock_queue.call_args.kwargs['callback'](True, listed, Mock())
+            assert results[-1]['cargo'] == {'steel': {'cargo': 5}}
+
+            rc.get_carrier(88888, results.append) # Listed now, so asked every time
+            rc.get_carrier(88888, results.append)
+            assert mock_queue.call_count == 4
+
+    def test_third_party_registry(self, harness) -> None:
+        """ Test third_party and remove """
+        from bgstally.constants import FleetCarrierType
+        fcs = harness.plugin.fleet_carriers
+
+        fc = fcs.get(77777, FleetCarrierType.THIRDPARTY)
+        assert fcs.third_party == [fc]
+
+        fcs.remove(77777)
+        assert fcs.third_party == []
+        assert fcs.find(77777) is None
+
+    def test_carrier(self, harness) -> None:
+        """ Test _carrier method """
+        entry = {'CarrierID': 12345, 'CarrierType': 'FleetCarrier'}
+        assert harness.plugin._carrier(entry) is harness.plugin.fleet_carrier
+
+        entry = {'CarrierID': 54321, 'CarrierType': 'SquadronCarrier'}
+        squadron = harness.plugin._carrier(entry)
+        assert squadron is not harness.plugin.fleet_carrier
+        assert squadron is harness.plugin.fleet_carriers.squadron
+
+    def test_carrier_uses_entry_callsign(self, harness) -> None:
+        """ Test a new carrier gets its real callsign at construction, not just carrier_id  """
+        entry = {'CarrierID': 54321, 'CarrierType': 'SquadronCarrier', 'Callsign': 'CLBF'}
+        squadron = harness.plugin._carrier(entry)
+        assert squadron.overview.get('callsign') == 'CLBF'
+        assert squadron._get_filename().endswith('CLBF.json')
+
+        from bgstally.constants import FleetCarrierType
+        squadron = harness.plugin.fleet_carriers.get(54321, FleetCarrierType.SQUADRON)
+        assert harness.plugin._carrier({'CarrierID': 54321}) is squadron
+
+        squadron = harness.plugin.fleet_carriers.get(54321, FleetCarrierType.SQUADRON)
+        assert harness.plugin._carrier({'MarketID': 54321}) is squadron
+
+        assert harness.plugin._carrier({'MarketID': 11111}) is None # Unknown, and no CarrierType to create one
+
+    def test_stats_promotes_squadron(self, harness) -> None:
+        """ Test only CarrierStats turns a tracked third-party carrier into our squadron's """
+        from bgstally.constants import FleetCarrierType
+        fcs = harness.plugin.fleet_carriers
+        fc = fcs.get(66666, FleetCarrierType.THIRDPARTY, 'SQDX')
+
+        try:
+            harness.fire_event({'event': 'CarrierLocation', 'CarrierType': 'SquadronCarrier', 'CarrierID': 66666, 'StarSystem': 'Sol'})
+            assert fc.carrier_type == FleetCarrierType.THIRDPARTY # Could just be aboard someone else's carrier
+
+            harness.fire_event({'event': 'CarrierStats', 'CarrierType': 'SquadronCarrier', 'CarrierID': 66666, 'Callsign': 'SQDX'})
+            assert fc.carrier_type == FleetCarrierType.SQUADRON
+            assert fcs.find(66666) is fc
+        finally:
+            fcs.remove(66666)
+
+    def test_docked_skips_own_carrier(self, harness) -> None:
+        """ Test docking at our own carrier before its id is known doesn't track it as third-party """
+        from bgstally.constants import CheckStates
+        fcs = harness.plugin.fleet_carriers
+        personal = harness.plugin.fleet_carrier
+        real_id:int = personal.carrier_id
+        auto:str = harness.plugin.state.AutoTrackCarriers.get()
+        docked:dict = {'event': 'Docked', 'StationType': 'FleetCarrier', 'StarSystem': 'Sol', 'SystemAddress': 10477373803}
+
+        try:
+            personal.carrier_id = 0
+            harness.plugin.state.AutoTrackCarriers.set(CheckStates.STATE_ON)
+            harness.fire_event({**docked, 'StationName': personal.overview.get('callsign'), 'MarketID': 55555})
+            assert fcs.find(55555) is None
+
+            harness.fire_event({**docked, 'StationName': 'OTH-123', 'MarketID': 55556})
+            assert fcs.find(55556) is not None # Someone else's carrier is still tracked
+        finally:
+            personal.carrier_id = real_id
+            harness.plugin.state.AutoTrackCarriers.set(auto)
+            fcs.remove(55556)
+            harness.fire_event({'event': 'Undocked', 'StationName': 'OTH-123', 'MarketID': 55556})
+
+    def test_fss_signal_tracked_only(self, harness) -> None:
+        """ Test fss_signal() only fills a missing name on an already-tracked carrier, never creates one """
+        from bgstally.constants import FleetCarrierType
+        fcs = harness.plugin.fleet_carriers
+
+        fcs.fss_signal({'SignalType': 'FleetCarrier', 'IsStation': True, 'SignalName': '[CLB] SV Booze Cruise T9M-33M'})
+        assert fcs.carriers == {} # Not tracked, so not created
+
+        fc = fcs.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fcs.fss_signal({'SignalType': 'FleetCarrier', 'IsStation': True, 'SignalName': '[CLB] SV Booze Cruise T9M-33M'})
+        assert fc.overview.get('name') == '[CLB] SV Booze Cruise'
+
+        fcs.fss_signal({'SignalType': 'FleetCarrier', 'IsStation': True, 'SignalName': 'Some Other Name T9M-33M'})
+        assert fc.overview.get('name') == '[CLB] SV Booze Cruise' # Never overwritten once known
+
+    def test_fss_signal_squadron_carrier(self, harness) -> None:
+        """ Test fss_signal() on the SquadronCarrier "name | tag" and bare-tag signal shapes """
+        from bgstally.constants import FleetCarrierType
+        fcs = harness.plugin.fleet_carriers
+
+        fc = fcs.get(54321, FleetCarrierType.SQUADRON, 'IECC')
+        fcs.fss_signal({'SignalType': 'SquadronCarrier', 'IsStation': True, 'SignalName': 'SAIGETSU | IECC'})
+        assert fc.overview.get('name') == 'SAIGETSU'
+
+        fc2 = fcs.get(11111, FleetCarrierType.THIRDPARTY, 'IECC2')
+        fcs.fss_signal({'SignalType': 'SquadronCarrier', 'IsStation': True, 'SignalName': 'IECC2'}) # Bare tag, no name
+        assert fc2.overview.get('name') is None # No crash, nothing to backfill
 
 class TestCarrierUIDataMethods:
     """ Test the methods used by the UI to retrieve carrier data """
@@ -121,6 +334,27 @@ class TestCarrierUIDataMethods:
         assert 'finances' in summary
         assert 'costs' in summary
         assert 'capacity' in summary
+
+    def test_get_summary_no_capi_data(self, harness) -> None:
+        """ Test get_summary() omits finances/costs without CAPI data """
+        fc = harness.plugin.fleet_carrier
+        fc.data = {}
+        fc.overview = {'totalCapacity': 25000}
+
+        summary = fc.get_summary()
+        assert summary['finances'] is None
+        assert summary['costs'] is None
+        assert 'capacity' in summary
+
+    def test_get_summary_stats_only(self, harness) -> None:
+        """ Test get_summary() shows finances from CarrierStats alone, but not CAPI-only costs """
+        fc = harness.plugin.fleet_carrier
+        fc.data = {}
+        fc.overview = {'bankBalance': 1000000, 'bankReservedBalance': 200000, 'totalCapacity': 25000}
+
+        summary = fc.get_summary()
+        assert summary['finances'] is not None
+        assert summary['costs'] is None
 
     def test_get_cargo(self, harness) -> None:
         """ Test get_cargo() method """
@@ -182,6 +416,19 @@ class TestCarrierUIDataMethods:
         assert 'route' in itinerary
         assert 'completed' in itinerary
 
+    def test_itinerary_unknown_tritium(self, harness) -> None:
+        """ Test route tritium columns show Unknown rather than crash when tritium is unknown """
+        from bgstally.utils import hfplus
+        fc = harness.plugin.fleet_carrier
+        fc.overview = {'currentStarSystem': 'Sol', 'fuel': 1000}
+        fc.cargo = {'normal': {'tritium': {'cargo': None}}}
+        fc.route = [{'name': 'Alpha Centauri', 'distance': 4.37, 'distance_to_destination': 0, 'fuel_used': 100}]
+
+        itinerary = fc.get_itinerary()
+        assert hfplus(itinerary['route'][0]['tritium']) == 'Unknown'
+        assert hfplus(itinerary['route'][0]['refuel']) == 'Unknown'
+        assert hfplus(itinerary['overview']['Tritium']) == 'Unknown'
+
     def test_get_shipyard(self, harness) -> None:
         """ Test get_shipyard() method """
         fc = harness.plugin.fleet_carrier
@@ -207,7 +454,7 @@ class TestCarrierJumps:
 
         # Pre-flight checks.
         assert fc.jump_state == 'Idle'
-        assert fc.overview.get('carrier_id') == 12345
+        assert fc.carrier_id == 12345
         assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
 
         # Send event 0
@@ -226,7 +473,7 @@ class TestCarrierJumps:
         fc = harness.plugin.fleet_carrier
 
         events:list = harness.load_events("journal_events.json", BodyID=12).get("carrier_events", [])
-        assert fc.overview.get('carrier_id') == 12345
+        assert fc.carrier_id == 12345
         assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
 
         harness.fire_event(events[0])
@@ -246,7 +493,7 @@ class TestCarrierJumps:
         fc = harness.plugin.fleet_carrier
         events:list = harness.load_events("journal_events.json", BodyID=12).get("carrier_events", [])
 
-        assert fc.overview.get('carrier_id') == 12345
+        assert fc.carrier_id == 12345
         assert fc.overview.get('currentStarSystem', '') == 'M23 Sector AA-Q c5-22'
         harness.fire_event(events[0])
 
@@ -354,9 +601,40 @@ class TestCarrierTrade:
         fc.trade_order(entry)
 
         assert 'tritium' in fc.cargo['normal']
-        assert fc.cargo['normal']['tritium']['stock'] == 100
+        assert fc.cargo['normal']['tritium']['cargo'] == 100
+        assert fc.cargo['normal']['tritium']['sell'] == 100
         assert fc.cargo['normal']['tritium']['price'] == 1000
         assert fc._get_freespace() == free - 100
+
+    def test_rc_echo_not_fresh(self, harness) -> None:
+        """ Test RC returning what we just pushed is not stamped as a new reading """
+        from unittest.mock import MagicMock
+        from bgstally.constants import DataTier
+        from bgstally.ravencolonial import RavenColonial
+        fc = harness.plugin.fleet_carrier
+        fc.cargo_tier, fc.cargo_time = DataTier.JOURNAL, 100
+
+        RavenColonial(harness.plugin.colonisation)._carrier_callback(fc, {'steel': 5}, True, MagicMock(status_code=200))
+        fc.merge({'timestamp': 0, 'cargo': {'steel': {'cargo': 5}}})
+        assert (fc.cargo_tier, fc.cargo_time) == (DataTier.JOURNAL, 100)
+
+        fc.merge({'timestamp': 0, 'cargo': {'steel': {'cargo': 6}}}) # RC changed for another reason, so that is news
+        assert fc.cargo_tier == DataTier.RC and fc.cargo_time > 100
+
+    def test_repeat_order_keeps_stamp(self, harness) -> None:
+        """ Test a trade order that changes nothing leaves the freshness stamps alone """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        fc.cargo = {'normal': {'steel': {'cargo': None, 'sell': 0, 'buy': 50, 'price': 1000}}}
+        fc.market_tier, fc.market_time = DataTier.SPANSH, 100
+        order:dict = {'CarrierID': fc.carrier_id, 'Commodity': 'steel', 'PurchaseOrder': 50, 'Price': 1000}
+
+        fc.trade_order(order)
+        assert (fc.market_tier, fc.market_time) == (DataTier.SPANSH, 100)
+
+        order['PurchaseOrder'] = 60
+        fc.trade_order(order)
+        assert fc.market_tier == DataTier.JOURNAL and fc.market_time > 100
 
     def test_trade_order_purchase(self, harness) -> None:
         """ Test trade_order() for purchase order """
@@ -375,7 +653,7 @@ class TestCarrierTrade:
         fc.trade_order(entry)
 
         assert 'tritium' in fc.cargo['normal']
-        assert fc.cargo['normal']['tritium']['outstanding'] == 50
+        assert fc.cargo['normal']['tritium']['buy'] == 50
         assert fc.cargo['normal']['tritium']['price'] == 900
         assert fc._get_freespace() == free - 50
         assert fc._get_reserved() == reserved + 50
@@ -389,17 +667,17 @@ class TestCarrierTrade:
             'Commodity': 'tritium',
             'CancelTrade': True
         }
-        fc.overview = {'carrier_id': 12345}
+        fc.carrier_id = 12345
         fc.cargo = {
             'normal': {
-                'tritium': {'stock': 100, 'price': 1000, 'outstanding': 50, 'buyTotal': 50}
+                'tritium': {'cargo': 100, 'sell': 100, 'price': 1000, 'buy': 50}
             }
         }
 
         fc.trade_order(entry)
 
-        assert fc.cargo['normal']['tritium']['outstanding'] == 0
-        assert fc.cargo['normal']['tritium']['buyTotal'] == 0
+        assert fc.cargo['normal']['tritium']['buy'] == 0
+        assert fc.cargo['normal']['tritium']['sell'] == 0
         assert fc.cargo['normal']['tritium']['price'] == 0
 
     def test_cargo_transfer(self, harness) -> None:
@@ -407,7 +685,7 @@ class TestCarrierTrade:
         fc = harness.plugin.fleet_carrier
         fc.cargo = {
             'normal': {
-                'steel': {'stock': 100, 'outstanding': 50, 'price': 1000}
+                'steel': {'cargo': 100, 'buy': 50, 'price': 1000}
             }
         }
 
@@ -415,16 +693,91 @@ class TestCarrierTrade:
             'event':'CargoTransfer',
             'Transfers': [
                 {'Type': 'tritium', 'Count': 50, 'Direction': 'tocarrier'},
-                {'Type': 'steel', 'Count': 25, 'Direction': 'fromcarrier'},
-                {'Type': 'platinum', 'Count': 15, 'Direction': 'fromcarrier'}
+                {'Type': 'steel', 'Count': 25, 'Direction': 'toship'},
+                {'Type': 'platinum', 'Count': 15, 'Direction': 'toship'}
             ]
         }
         free:int = fc._get_freespace()
         fc.cargo_transfer(entry)
 
-        assert fc.cargo['normal']['tritium']['stock'] == 50
-        assert fc.cargo['normal']['steel']['stock'] == 75
+        assert fc.cargo['normal']['tritium']['cargo'] == 50
+        assert fc.cargo['normal']['steel']['cargo'] == 75
         assert fc._get_freespace() == free - 50 + 25
+
+
+    def test_negative_transfer_keeps_orders(self, harness) -> None:
+        """ Test a transfer that takes cargo negative keeps the entry and its buy order """
+        fc = harness.plugin.fleet_carrier
+        fc.cargo = {'normal': {'steel': {'cargo': None, 'sell': 0, 'buy': 50, 'price': 1000},
+                               'gold': {'cargo': 10, 'sell': 0, 'buy': 5, 'price': 9}}}
+
+        fc.cargo_transfer({'event': 'CargoTransfer', 'Transfers': [{'Type': 'steel', 'Count': 25, 'Direction': 'toship'},
+                                                                   {'Type': 'gold', 'Count': 25, 'Direction': 'toship'}]})
+
+        assert fc.cargo['normal']['steel'] == {'cargo': None, 'sell': 0, 'buy': 50, 'price': 1000} # Unknown stays unknown
+        assert fc.cargo['normal']['gold'] == {'cargo': 0, 'sell': 0, 'buy': 5, 'price': 9}
+
+    def test_capi_baseline_without_activity(self, harness) -> None:
+        """ Test RC stamps don't block CAPI but known journal activity does """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        capi_data:dict = harness.get_config_data('fleetcarrier-capi-data.json')
+        capi_data['timestamp'] = datetime.now(UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
+        now:int = int(time.time())
+
+        fc.cargo_tier, fc.cargo_time, fc.market_tier, fc.market_time = DataTier.RC, now, DataTier.UNKNOWN, 0
+        fc.capi_update(capi_data)
+        assert fc.cargo_tier == DataTier.CAPI
+
+        fc.cargo_tier, fc.cargo_time, fc.market_tier, fc.market_time = DataTier.JOURNAL, now, DataTier.UNKNOWN, 0
+        fc.capi_update(capi_data)
+        assert fc.cargo_tier == DataTier.JOURNAL
+
+    def test_capi_cargo_keeps_orders(self, harness) -> None:
+        """ Test CAPI cargo baselines unknown quantities while the fresher held orders are kept """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        capi_data:dict = harness.get_config_data('fleetcarrier-capi-data.json')
+        capi_data['timestamp'] = datetime.now(UTC).strftime('%Y-%m-%dT%H:%M:%SZ')
+        comm, held = next((c, i) for c, i in fc._update_cargo(capi_data)['normal'].items() if i['cargo'] > 0)
+        now:int = int(time.time())
+
+        fc.cargo = {'overview': {}, 'stolen': {}, 'mission': {},
+                    'normal': {comm: {**held, 'cargo': None, 'buy': 7, 'sell': 0, 'price': 3}, 'ghost': {**held, 'cargo': 9}}}
+        fc.cargo_tier, fc.cargo_time, fc.market_tier, fc.market_time = DataTier.UNKNOWN, 0, DataTier.JOURNAL, now
+        fc.capi_update(capi_data)
+
+        assert fc.cargo['normal'][comm]['cargo'] == held['cargo']
+        assert (fc.cargo['normal'][comm]['buy'], fc.cargo['normal'][comm]['price']) == (7, 3)
+        assert fc.cargo['normal']['ghost']['cargo'] == 0
+        assert fc.cargo_tier == DataTier.CAPI and (fc.market_tier, fc.market_time) == (DataTier.JOURNAL, now)
+
+    def test_transfer_at_squadron_carrier(self, harness) -> None:
+        """ Test a cargo transfer while docked at the squadron carrier updates it, not our own """
+        from bgstally.constants import FleetCarrierType
+        personal = harness.plugin.fleet_carrier
+        personal.cargo['normal']['steel'] = {'locName': 'Steel', 'category': 'Metals', 'cargo': 100, 'sell': 0, 'buy': 0, 'price': 0}
+        squadron = harness.plugin.fleet_carriers.get(3713239296, FleetCarrierType.SQUADRON, 'CLBF')
+        squadron.cargo['normal']['steel'] = {'locName': 'Steel', 'category': 'Metals', 'cargo': 10, 'sell': 0, 'buy': 0, 'price': 0}
+        col = harness.plugin.colonisation
+        col.docked, col.market_id = True, 3713239296
+
+        try:
+            harness.fire_event({'event': 'CargoTransfer', 'Transfers': [{'Type': 'steel', 'Count': 25, 'Direction': 'tocarrier'}]})
+        finally:
+            col.docked, col.market_id = False, None
+
+        assert squadron.cargo['normal']['steel']['cargo'] == 35
+        assert personal.cargo['normal']['steel']['cargo'] == 100
+
+    def test_cargo_transfer_ignores_srv(self, harness) -> None:
+        """ Test a ship to SRV transfer, which never touches the carrier """
+        fc = harness.plugin.fleet_carrier
+        fc.cargo = {'normal': {'steel': {'cargo': 100, 'buy': 0, 'sell': 0, 'price': 0}}}
+
+        fc.cargo_transfer({'event': 'CargoTransfer', 'Transfers': [{'Type': 'steel', 'Count': 25, 'Direction': 'tosrv'}]})
+
+        assert fc.cargo['normal']['steel']['cargo'] == 100
 
 
     def test_market_activity_buy(self, harness) -> None:
@@ -439,14 +792,14 @@ class TestCarrierTrade:
         }
         fc.cargo = {
             'normal': {
-                'tritium': {'stock': 100, 'outstanding': 50, 'price': 1000}
+                'tritium': {'cargo': 100, 'sell': 0, 'buy': 50, 'price': 1000}
             }
         }
         free:int = fc._get_freespace()
         fc.market_activity(entry)
 
-        assert fc.cargo['normal']['tritium']['outstanding'] == 40
-        assert fc.cargo['normal']['tritium']['stock'] == 110
+        assert fc.cargo['normal']['tritium']['buy'] == 40
+        assert fc.cargo['normal']['tritium']['cargo'] == 110
         assert fc._get_freespace() == free
 
     def test_market_activity_sell(self, harness) -> None:
@@ -454,7 +807,7 @@ class TestCarrierTrade:
         fc = harness.plugin.fleet_carrier
         fc.cargo = {
             'normal': {
-                'tritium': {'stock': 100, 'outstanding': 0, 'price': 1000}
+                'tritium': {'cargo': 100, 'sell': 100, 'buy': 0, 'price': 1000}
             }
         }
         entry = {
@@ -467,7 +820,8 @@ class TestCarrierTrade:
         free:int = fc._get_freespace()
         fc.market_activity(entry)
 
-        assert fc.cargo['normal']['tritium']['stock'] == 80
+        assert fc.cargo['normal']['tritium']['cargo'] == 80
+        assert fc.cargo['normal']['tritium']['sell'] == 80
         assert fc._get_freespace() == free + 20
 
 class TestCarrierEvents:
@@ -476,17 +830,53 @@ class TestCarrierEvents:
         fc = harness.plugin.fleet_carrier
         capi_data:dict = harness.get_config_data('fleetcarrier-capi-data.json')
 
-        fc.update(capi_data)
+        fc.capi_update(capi_data)
 
         assert fc.overview.get('currentStarSystem') == capi_data['currentStarSystem']
 
         fc.save()
-        assert filecmp.cmp(harness.plugin_dir / "otherdata" / "fleetcarrier.json",
-                           harness.plugin_dir / "config" / "fleetcarrier-capi-results.json",
-                           shallow=False)
+        saved:dict = json.loads((harness.plugin_dir / "otherdata" / "fleetcarrier.json").read_text())
+        expected:dict = json.loads((harness.plugin_dir / "config" / "fleetcarrier-capi-results.json").read_text())
+
+        # Applying CAPI stamps these with wall clock (or its own timestamp), so they can't be
+        # compared against a fixture
+        for k in ('cargo_tier', 'cargo_time', 'market_tier', 'market_time', 'rc_last_cargo'):
+            saved.pop(k, None)
+            expected.pop(k, None)
+        assert saved == expected
+
+    def test_capi_without_location(self, harness) -> None:
+        """ Test CAPI still applies when we know neither the carrier's system nor body """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        capi_data:dict = harness.get_config_data('fleetcarrier-capi-data.json')
+        fc.overview.pop('currentStarSystem', None)
+        fc.overview.pop('currentBody', None)
+        fc._invalidate_cargo()
+        fc.market_tier = DataTier.UNKNOWN
+
+        fc.capi_update(capi_data)
+
+        assert fc.overview.get('currentStarSystem') == capi_data['currentStarSystem']
+        assert fc.cargo_tier == DataTier.CAPI # Reached the end rather than stopping at the missing body
+
+    def test_capi_dates_its_own_data(self, harness) -> None:
+        """ Test we discount CAPI cargo by its own lag margin, so a fresher journal reading can still win """
+        from bgstally.fleetcarrier import FDEV_SLACKING_TIME
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        capi_data:dict = harness.get_config_data('fleetcarrier-capi-data.json')
+        capi_data['timestamp'] = '2026-03-20T03:00:28Z'
+
+        fc.capi_update(capi_data)
+
+        expected:int = int(datetime.fromisoformat('2026-03-20T03:00:28Z').timestamp()) - FDEV_SLACKING_TIME
+        assert fc.cargo_time == expected
+        assert fc.market_time == expected
+        assert fc.cargo_tier == DataTier.CAPI
 
     def test_stats_received_wrong_carrier(self, harness) -> None:
-        """ Test stats_received() method """
+        """ Test CarrierStats for an unknown carrier without a CarrierType reaches no carrier """
         fc = harness.plugin.fleet_carrier
         entry = {
             'CarrierID': 99999,
@@ -508,11 +898,93 @@ class TestCarrierEvents:
             }
         }
 
-        fc.stats_received(entry)
+        assert harness.plugin._carrier(entry) is None
+        harness.fire_event({'event': 'CarrierStats', **entry})
 
         assert fc.carrier_id != 99999
         assert fc.overview['name'] != 'Test Carrier'
         assert fc.overview['callsign'] != 'ABC-123'
+
+    def test_stats_mismatch_wipes_cargo(self, harness) -> None:
+        """ Test a CarrierStats space mismatch forgets held cargo but keeps orders """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        fc.cargo['normal'] = {'steel': {'locName': 'Steel', 'category': 'Metals', 'cargo': 100, 'sell': 0, 'buy': 50, 'price': 4000}}
+        fc._touch_cargo(DataTier.JOURNAL)
+        entry = {'CarrierID': 12345, 'CarrierType': 'FleetCarrier', 'SpaceUsage': {'TotalCapacity': 25000, 'Cargo': 1}}
+
+        fc.stats_received(entry)
+
+        assert fc.cargo['normal']['steel']['cargo'] is None
+        assert fc.cargo['normal']['steel']['buy'] == 50
+        assert (fc.cargo_tier, fc.cargo_time) == (DataTier.UNKNOWN, 0)
+
+    def test_stats_reserved_keeps_cargo(self, harness) -> None:
+        """ Test a reserved-space mismatch marks orders stale but keeps held cargo """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        fc.cargo['normal'] = {'steel': {'locName': 'Steel', 'category': 'Metals', 'cargo': 100, 'sell': 0, 'buy': 50, 'price': 4000}}
+        fc._touch_cargo(DataTier.JOURNAL)
+        fc._touch_market(DataTier.JOURNAL)
+        entry = {'CarrierID': 12345, 'CarrierType': 'FleetCarrier', 'SpaceUsage': {'TotalCapacity': 25000, 'Cargo': 100, 'CargoSpaceReserved': 10}}
+
+        fc.stats_received(entry)
+
+        assert fc.cargo['normal']['steel']['cargo'] == 100
+        assert (fc.market_tier, fc.market_time) == (DataTier.UNKNOWN, 0)
+
+    def test_stats_unknown_cargo_skips(self, harness) -> None:
+        """ Test the held-cargo check is skipped while our cargo is unknown """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        fc.cargo['normal'] = {'steel': {'locName': 'Steel', 'category': 'Metals', 'cargo': None, 'sell': 0, 'buy': 0, 'price': 0}}
+        fc._invalidate_cargo()
+        entry = {'CarrierID': 12345, 'CarrierType': 'FleetCarrier', 'SpaceUsage': {'TotalCapacity': 25000, 'Cargo': 302}}
+
+        with patch.object(fc, '_invalidate_cargo') as inv:
+            fc.stats_received(entry)
+
+        inv.assert_not_called()
+
+    def test_trade_order_applies(self, harness) -> None:
+        """ Test a CarrierTradeOrder for our carrier is applied, not dropped """
+        fc = harness.plugin.fleet_carrier
+        fc.carrier_id = 12345
+        fc.cargo['normal'] = {'steel': {'locName': 'Steel', 'category': 'Metals', 'cargo': 100, 'sell': 0, 'buy': 0, 'price': 0}}
+        harness.plugin.ui.commodities = {'steel': {'Name': 'Steel', 'Category': 'Metals'}}
+
+        fc.trade_order({'CarrierID': 12345, 'CarrierType': 'FleetCarrier', 'Commodity': 'steel', 'PurchaseOrder': 50, 'Price': 4000})
+
+        assert fc.cargo['normal']['steel']['buy'] == 50
+
+    def test_stats_received_sets_fuel(self, harness) -> None:
+        """ Test stats_received() populates fuel from CarrierStats """
+        fc = harness.plugin.fleet_carrier
+        entry = {
+            'CarrierID': 12345,
+            'CarrierType': 'FleetCarrier',
+            'Name': 'Test Carrier',
+            'Callsign': 'ABC-123',
+            'DockingAccess': 'all',
+            'AllowNotorious': True,
+            'FuelLevel': 750,
+            'SpaceUsage': {
+                'TotalCapacity': 25000,
+                'Crew': 50,
+                'ShipPacks': 10,
+                'ModulePacks': 5,
+                'FreeSpace': 24000,
+                'CargoSpaceReserved': 100
+            },
+            'Finance': {
+                'CarrierBalance': 1000000,
+                'ReserveBalance': 200000
+            }
+        }
+
+        fc.stats_received(entry)
+
+        assert fc.overview['fuel'] == 750
 
     def test_carrier_location(self, harness) -> None:
         """ Test carrier_location() method """
@@ -523,7 +995,7 @@ class TestCarrierEvents:
             'StarSystem': 'Alpha Centauri',
             'Body': 'Alpha Centauri A'
         }
-        assert fc.overview['carrier_id'] == 12345
+        assert fc.carrier_id == 12345
         fc.carrier_location(entry)
 
         assert fc.overview['currentStarSystem'] == 'Alpha Centauri'
@@ -533,6 +1005,22 @@ class TestCarrierEvents:
         assert after == before + 1
         assert fc.itinerary[0]['starsystem'] == 'Alpha Centauri'
         assert fc.itinerary[0]['body'] == 'Alpha Centauri A'
+
+    def test_empty_itinerary(self, harness) -> None:
+        """ Test carrier_location the itinerary """
+        fc = harness.plugin.fleet_carrier
+        fc.itinerary = []
+        entry = {
+            'CarrierID': 12345,
+            'StarSystem': 'Alpha Centauri',
+            'Body': 'Alpha Centauri A'
+        }
+        assert fc.carrier_id == 12345
+
+        fc.carrier_location(entry)
+
+        assert fc.overview['currentStarSystem'] == 'Alpha Centauri'
+        assert len(fc.itinerary) > 0
 
     def test_deposit_fuel(self, harness) -> None:
         """ Test deposit_fuel() method """
@@ -562,6 +1050,100 @@ class TestCarrierEvents:
         assert fc.shipyard['ships']['1']['name'] == 'Eagle'
         assert fc.shipyard['overview']['shipCount'] == 1
         assert fc.shipyard['overview']['totalValue'] == 50000
+
+class TestSpanshFleetCarrier:
+    """ Test Spansh filling market gaps for a fleet carrier we have no CAPI data for """
+
+    def _merge(self, harness, fc, commodities:list) -> None:
+        """ Apply a Spansh station record timestamped now, so it counts as newer than what we hold """
+        from bgstally.ravencolonial import Spansh
+        record:dict = {'market': commodities, 'market_updated_at': datetime.now(UTC).isoformat()}
+        fc._apply(None, Spansh(harness.plugin)._normalize_market(record))
+
+    def test_spansh_import(self, harness) -> None:
+        """ Test a Spansh import for a carrier we have no CAPI data for """
+        from bgstally.ravencolonial import Spansh
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+
+        real_id:int = fc.carrier_id
+        fc.carrier_id = 0
+        results:list = []
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            Spansh(harness.plugin).get_market(fc, results.append) # No carrier id, so nothing to query
+        mock_queue.assert_not_called()
+        assert results == [None]
+        fc.carrier_id = real_id
+
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+        self._merge(harness, fc, [
+            {'commodity': 'Tritium', 'category': 'Chemicals', 'supply': 500, 'demand': 0, 'buy_price': 8000, 'sell_price': 0},
+            {'commodity': 'Water', 'category': 'Chemicals', 'supply': 200, 'demand': 0, 'buy_price': 100, 'sell_price': 0}
+        ])
+
+        # Spansh reports the market, so it sets sell but can never tell us what's actually held
+        assert fc.cargo['normal']['tritium']['sell'] == 500
+        assert fc.cargo['normal']['tritium']['cargo'] == 999 # Ours, left alone
+        assert fc.cargo['normal']['water']['sell'] == 200 # New commodity, added
+        assert fc.cargo['normal']['water']['cargo'] == None # Never held it as far as we know
+
+    def test_spansh_drop_keeps_cargo(self, harness) -> None:
+        """ Test a commodity missing from a Spansh snapshot only loses its market side, not an RC-derived cargo figure """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 500, 'buy': 0, 'price': 8000}
+
+        self._merge(harness, fc, [
+            {'commodity': 'Water', 'category': 'Chemicals', 'supply': 200, 'demand': 0, 'buy_price': 100, 'sell_price': 0}
+        ])
+
+        assert fc.cargo['normal']['tritium']['sell'] == 0
+        assert fc.cargo['normal']['tritium']['buy'] == 0
+        assert fc.cargo['normal']['tritium']['price'] == 0
+        assert fc.cargo['normal']['tritium']['cargo'] == 999 # RC gave us this, Spansh has no opinion on it
+
+    def test_spansh_keeps_fresher_cargo(self, harness) -> None:
+        """ Test Spansh can't override a market reading that's already fresher than its own """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        fc.carrier_id = 3709409280
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+        fc._touch_market(DataTier.JOURNAL) # a real reading, already fresher than Spansh's own lag-discounted one
+
+        self._merge(harness, fc, [
+            {'commodity': 'Tritium', 'category': 'Chemicals', 'supply': 500, 'demand': 0, 'buy_price': 8000, 'sell_price': 0},
+            {'commodity': 'Water', 'category': 'Chemicals', 'supply': 200, 'demand': 0, 'buy_price': 100, 'sell_price': 0}
+        ])
+
+        assert fc.cargo['normal']['tritium'] == {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+        assert 'water' not in fc.cargo['normal']
+
+    def test_spansh_infers_personal_cargo(self, harness) -> None:
+        """ Test Spansh's buy/sell delta can adjust our own carrier's cargo, unlike a third party's """
+        fc = harness.plugin.fleet_carrier
+        fc.carrier_id = 3709409280
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 10, 'sell': 0, 'buy': 50, 'price': 100}
+        fc.cargo['normal']['water'] = {'locName': 'Water', 'category': 'Chemicals', 'cargo': 100, 'sell': 0, 'buy': 0, 'price': 0}
+
+        self._merge(harness, fc, [
+            {'commodity': 'Tritium', 'category': 'Chemicals', 'supply': 0, 'demand': 20, 'buy_price': 0, 'sell_price': 100}, # Buy order shrank 50 -> 20
+            {'commodity': 'Water', 'category': 'Chemicals', 'supply': 80, 'demand': 0, 'buy_price': 0, 'sell_price': 50},    # Now listed for sale
+        ])
+
+        assert fc.cargo['normal']['tritium']['cargo'] == 40 # 10 + (50 - 20) sold to us
+        assert fc.cargo['normal']['water']['cargo'] == 80   # Can't list more for sale than held
+
+    def test_spansh_commodity_name_mismatch(self, harness) -> None:
+        """ Test a Spansh display name that doesn't reduce to its real symbol by stripping punctuation """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+
+        self._merge(harness, fc, [
+            {'commodity': 'Agri-Medicines', 'category': 'Medicines', 'supply': 50, 'demand': 0, 'buy_price': 400, 'sell_price': 0}
+        ])
+
+        assert 'agriculturalmedicines' in fc.cargo['normal']
+        assert fc.cargo['normal']['agriculturalmedicines']['sell'] == 50
 
 class CarrierUnused:
     def test_parse_date(self, harness) -> None:
@@ -722,3 +1304,350 @@ class CarrierUnused:
         fc._from_dict(data)
         assert fc.carrier_id == 12345
         assert fc.overview['name'] == 'Test'
+
+
+class TestRavenColonialMerge:
+    """ Test RC's data being merged onto a carrier, with and without a usable lastRefresh """
+
+    def _rc(self, commodities:dict, timestamp:int = 0) -> dict:
+        """ A normalized RC envelope, as RavenColonial.get_carrier() would return it """
+        return {'timestamp': timestamp, 'overview': {}, 'cargo': commodities}
+
+    def test_rc_without_timestamp_still_overwrites(self, harness) -> None:
+        """ Test RC with no usable lastRefresh is still trusted """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+
+        changed:bool = fc.merge(self._rc({
+            'tritium': {'cargo': 1},  # Already known
+            'water': {'cargo': 5},    # Never seen before
+        }))
+
+        assert changed is True
+        assert fc.cargo['normal']['tritium']['cargo'] == 1
+        assert fc.cargo['normal']['water']['cargo'] == 5
+
+    def test_rc_repeat_fetch_not_fresher(self, harness) -> None:
+        """ Test an identical repeat RC fetch doesn't advance cargo_time """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.merge(self._rc({'water': {'cargo': 5}}))
+        after_first:int = fc.cargo_time
+
+        fc.merge(self._rc({'water': {'cargo': 5}})) # Identical, nothing new happened
+
+        assert fc.cargo_time == after_first
+
+    def test_rc_change_detected_marks_fresh(self, harness) -> None:
+        """ Test a genuinely new RC cargo reading is recorded as a fresh reading """
+        from bgstally.constants import FleetCarrierType, DataTier
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+
+        changed:bool = fc.merge(self._rc({'tritium': {'cargo': 1}}))
+
+        assert changed is True
+        assert fc.cargo['normal']['tritium']['cargo'] == 1
+        assert fc.cargo_time > 0
+        assert fc.cargo_tier == DataTier.RC
+
+    def test_rc_drops_stale_commodity(self, harness) -> None:
+        """ Test a commodity missing from a fresh snapshot loses its cargo figure, for a carrier we don't own """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+
+        changed:bool = fc.merge(self._rc({'water': {'cargo': 5}}))
+
+        assert changed is True
+        assert fc.cargo['normal']['tritium']['cargo'] is None
+        assert fc.cargo['normal']['water']['cargo'] == 5
+
+    def test_rc_keeps_fresher_cargo(self, harness) -> None:
+        """ Test RC can't override a cargo reading that's already fresher than its own """
+        from bgstally.constants import DataTier
+        fc = harness.plugin.fleet_carrier
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+        fc._touch_cargo(DataTier.JOURNAL) # a real, already-fresher reading
+
+        fc.merge(self._rc({'water': {'cargo': 5}}))
+
+        assert fc.cargo['normal']['tritium']['cargo'] == 999
+        assert 'water' not in fc.cargo['normal'] # RC's update was rejected outright, not even applied
+
+
+class TestRavenColonialPush:
+    """ Test pushing our own carrier's cargo/market data onto RC's record """
+
+    def test_push_sends_null_cargo_when_unknown(self, harness) -> None:
+        """ Test we send null, not {}, when we have no cargo visibility """
+        from bgstally.ravencolonial import RavenColonial
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': None, 'sell': 500, 'buy': 0, 'price': 8000}
+
+        rc = RavenColonial(harness.plugin.colonisation)
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            rc._push_carrier(fc, {})
+
+        payload:dict = mock_queue.call_args.kwargs['payload']
+        assert payload['cargo'] is None
+
+    def test_push_sends_known_cargo(self, harness) -> None:
+        """ Test known cargo is still sent as a real dict, not swept up by the null-when-empty case """
+        from bgstally.ravencolonial import RavenColonial
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1}
+        fc.cargo['normal']['water'] = {'locName': 'Water', 'category': 'Chemicals', 'cargo': None, 'sell': 0, 'buy': 0, 'price': 0}
+
+        rc = RavenColonial(harness.plugin.colonisation)
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            rc._push_carrier(fc, {})
+
+        payload:dict = mock_queue.call_args.kwargs['payload']
+        assert payload['cargo'] == {'tritium': 999}
+
+    def test_squadron_market_never_pushes(self, harness) -> None:
+        """ Test a squadron carrier's market visit never pushes to RC """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3713239296, FleetCarrierType.SQUADRON, 'CLBF')
+        fc.carrier_id = 3713239296
+        harness.plugin.colonisation.cmdr = 'Testy'
+        harness.plugin.state.colonisation_rc_api_key = 'key'
+        harness.plugin.market.commodities = {'tritium': {'Demand': 0, 'Stock': 50, 'SellPrice': 100, 'BuyPrice': 0}}
+
+        # market() now always calls update_carrier() for a non-personal carrier
+        with patch.object(harness.plugin.market, 'available', return_value=True), \
+             patch.object(harness.plugin.colonisation, 'is_carrier_linked', return_value=True), \
+             patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc.market({'MarketID': 3713239296})
+
+        mock_queue.assert_not_called()
+
+    def test_buy_order_fill_inferred(self, harness) -> None:
+        """ Test a buy order going to zero or vanishing from the market counts as filled """
+        fc = harness.plugin.fleet_carrier
+        fc.carrier_id = 3709409280
+        fc.cargo['normal']['steel'] = {'locName': 'Steel', 'category': 'Metals', 'cargo': 100, 'sell': 0, 'buy': 500, 'price': 4000}
+        fc.cargo['normal']['water'] = {'locName': 'Water', 'category': 'Chemicals', 'cargo': 10, 'sell': 0, 'buy': 40, 'price': 300}
+        harness.plugin.market.commodities = {'steel': {'Demand': 0, 'Stock': 0, 'SellPrice': 4000, 'BuyPrice': 0}}
+
+        with patch.object(harness.plugin.market, 'available', return_value=True):
+            fc.market({'MarketID': 3709409280})
+
+        assert fc.cargo['normal']['steel']['cargo'] == 600 # Listed with no demand left
+        assert fc.cargo['normal']['water']['cargo'] == 50 # No longer listed at all
+        assert fc.cargo['normal']['water']['buy'] == 0
+
+    def test_thirdparty_market_pushes(self, harness) -> None:
+        """ Test a third-party carrier's market visit still pushes to RC when linked """
+        from bgstally.constants import FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3709409280, FleetCarrierType.THIRDPARTY, 'T9M-33M')
+        fc.carrier_id = 3709409280
+        harness.plugin.colonisation.cmdr = 'Testy'
+        harness.plugin.market.commodities = {'tritium': {'Demand': 0, 'Stock': 50, 'SellPrice': 100, 'BuyPrice': 0}}
+
+        with patch.object(harness.plugin.market, 'available', return_value=True), \
+             patch.object(harness.plugin.colonisation, 'is_carrier_linked', return_value=True), \
+             patch('bgstally.ravencolonial.RavenColonial.update_carrier') as mock_push:
+            fc.market({'MarketID': 3709409280})
+
+        mock_push.assert_called_once()
+
+
+class TestDiscordUpdates:
+    """ Test fleet carrier Discord posts are edited in place rather than re-posted """
+
+    HOOK:dict = {'uuid': 'u1', 'name': 'x', 'url': 'https://discord.com/api/webhooks/1/abc', 'FC-ops': True, 'FC-mats': True}
+
+    def _fc(self, harness):
+        from bgstally.constants import FleetCarrierType
+        harness.plugin.webhook_manager.data['webhooks'] = [dict(self.HOOK)]
+        harness.plugin.state.DiscordUsername.set('tester')
+        fc = harness.plugin.fleet_carriers.get(3700005632, FleetCarrierType.PERSONAL, 'AAA-111')
+        fc.discord_jump = {}
+        fc.discord_market = {}
+        return fc
+
+    def test_jump_state_edits_post(self, harness) -> None:
+        """ Test a second jump state PATCHes the first post's message """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+        fc.discord_jump = {'from': 'A', 'to': 'B', 'body': 'B 1', 'departure': 1, 'hooks': {}}
+
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_jump("Scheduled")
+            assert mock_queue.call_args.args[1] == RequestMethod.POST
+            fc._posted(fc.discord_jump['hooks'], 'FC-ops', dict(self.HOOK), '123')
+            fc._post_jump("Cancelled")
+
+        assert mock_queue.call_args.args[0].endswith('/messages/123')
+        assert mock_queue.call_args.args[1] == RequestMethod.PATCH
+
+    def test_squadron_jump_post_fields(self, harness) -> None:
+        """ Test a squadron jump post takes its origin and access from what we know, as it never has CAPI """
+        from bgstally.constants import FleetCarrierJump, FleetCarrierType
+        fc = harness.plugin.fleet_carriers.get(3713239296, FleetCarrierType.SQUADRON, 'CLBF')
+        fc.data = {}
+        fc.overview.update({'name': 'Squad', 'currentStarSystem': 'Sol', 'dockingAccess': 'all', 'notoriousAccess': False})
+        departure:str = (datetime.now(UTC) + timedelta(hours=1)).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+        with patch.object(harness.plugin.discord, 'post_embed') as mock_post:
+            fc.jump_requested({'CarrierID': 3713239296, 'SystemName': 'Achenar', 'Body': 'Achenar 1', 'DepartureTime': departure})
+
+        fields:dict = {f['name']: f['value'] for f in mock_post.call_args.args[2]}
+        assert fields['From System'] == 'Sol'
+        assert fields['Docking'] == 'All'
+        fc.jump_state, fc.timer = FleetCarrierJump.Idle, None
+
+    def test_all_table_shows_stock(self, harness) -> None:
+        """ Test the All cargo table fills the Stock column from held cargo """
+        fc = self._fc(harness)
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 777, 'sell': 0, 'buy': 0, 'price': 0}
+
+        row:str = next(line for line in fc._table('Cargo', 'All', True).splitlines() if 'Tritium' in line)
+
+        assert '777' in row
+
+    def test_late_reply_keeps_jump(self, harness) -> None:
+        """ Test a Discord reply arriving after a new jump is stored on its own jump """
+        fc = self._fc(harness)
+        fc.discord_jump = {'from': 'A', 'to': 'B', 'body': 'B 1', 'departure': 1, 'hooks': {}}
+
+        with patch.object(harness.plugin.discord, 'post_embed') as mock_post:
+            fc._post_jump("Scheduled")
+        old:dict = fc.discord_jump
+        fc.discord_jump = {'from': 'B', 'to': 'C', 'body': 'C 1', 'departure': 2, 'hooks': {}}
+        mock_post.call_args.args[5]('FC-ops', dict(self.HOOK), '123')
+
+        assert old['hooks']['u1']['FC-ops'] == '123'
+        assert fc.discord_jump['hooks'] == {}
+
+    def test_load_wipes_unknown_cargo(self, harness) -> None:
+        """ Test cargo of unknown age is cleared on load but known-age cargo is kept """
+        fc = self._fc(harness)
+        cargo:dict = {'normal': {'tritium': {'cargo': 5, 'sell': 0, 'buy': 0, 'price': 0}}}
+
+        fc._from_dict({'cargo': {'normal': {'tritium': dict(cargo['normal']['tritium'])}}, 'cargo_tier': 'Unknown', 'cargo_time': 0})
+        assert fc.cargo['normal']['tritium']['cargo'] is None
+
+        fc._from_dict({'cargo': cargo, 'cargo_tier': 'RC', 'cargo_time': 100})
+        assert fc.cargo['normal']['tritium']['cargo'] == 5
+
+    def test_overlay_personal_first(self, harness) -> None:
+        """ Test the overlay shows a busy carrier over a route hint, personal before squadron """
+        from bgstally.constants import FleetCarrierJump, FleetCarrierType
+        fcs = harness.plugin.fleet_carriers
+        sq = fcs.get(3700009999, FleetCarrierType.SQUADRON, 'SQD-111')
+        with patch.object(fcs.personal, 'update_overlay', return_value="route"), patch.object(sq, 'update_overlay', return_value="sq jump"):
+            sq.jump_state = FleetCarrierJump.Jumping
+            assert fcs.overlay_text() == "sq jump"
+            fcs.personal.jump_state = FleetCarrierJump.Cooldown
+            assert fcs.overlay_text() == "route"
+            sq.jump_state = FleetCarrierJump.Idle
+            fcs.personal.jump_state = FleetCarrierJump.Idle
+            assert fcs.overlay_text() == "route"
+
+    def test_old_rc_cargo_ignored(self, harness) -> None:
+        """ Test RC cargo last refreshed long ago is ignored, but an undated one is taken """
+        fc = self._fc(harness)
+        rc:dict = {'timestamp': int(time.time()) - 86400, 'overview': {}, 'cargo': {'tritium': {'cargo': 5}}}
+        assert fc.merge(rc) is False
+        assert 'tritium' not in fc.cargo['normal']
+
+        rc['timestamp'] = 0
+        assert fc.merge(rc) is True
+        assert fc.cargo['normal']['tritium']['cargo'] == 5
+
+    def test_old_market_reposted(self, harness) -> None:
+        """ Test an old market post is deleted then recreated, not edited """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+        fc.discord_market = {'u1': {**self.HOOK, 'FC-mats': '100'}}
+
+        with patch.object(fc, '_table', return_value="```\nrow\n```"), \
+             patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_market()
+
+        assert [c.args[1] for c in mock_queue.call_args_list] == [RequestMethod.DELETE, RequestMethod.POST]
+
+    def test_stale_location_ignored(self, harness) -> None:
+        """ Test an older RC/Spansh snapshot can't revert a location the journal told us """
+        fc = self._fc(harness)
+        fc.overview['currentStarSystem'] = 'Jotunheim'
+        fc.carrier_id = 3700005632
+
+        with patch('bgstally.fleetcarrier.Spansh'):
+            fc.carrier_location({'CarrierID': 3700005632, 'StarSystem': 'Caspatsuria', 'Body': 'Caspatsuria 1'})
+        assert fc.overview['currentStarSystem'] == 'Caspatsuria'
+
+        fc.merge({'timestamp': int(time.time()) - 86400, 'overview': {'currentStarSystem': 'Jotunheim'}, 'cargo': {}}, spansh=True)
+        assert fc.overview['currentStarSystem'] == 'Caspatsuria'
+
+        fc.merge({'timestamp': int(time.time()) + 60, 'overview': {'currentStarSystem': 'Sol'}, 'cargo': {}}, spansh=True)
+        assert fc.overview['currentStarSystem'] == 'Sol'
+
+    def test_squadron_jump_posts(self, harness) -> None:
+        """ Test a squadron carrier jump posts to SQ-ops, and a third-party one posts nowhere """
+        from bgstally.constants import FleetCarrierType
+        fc = self._fc(harness)
+        harness.plugin.webhook_manager.data['webhooks'] = [{**self.HOOK, 'SQ-ops': True, 'FC-ops': False}]
+        jump:dict = {'from': 'A', 'to': 'B', 'body': 'B 1', 'departure': 1, 'hooks': {}}
+
+        sq = harness.plugin.fleet_carriers.get(3700009999, FleetCarrierType.SQUADRON, 'SQD-111')
+        sq.discord_jump = dict(jump)
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            sq._post_jump("Scheduled")
+            assert mock_queue.call_count == 1
+            fc.discord_jump = dict(jump)
+            fc._post_jump("Scheduled")
+            assert mock_queue.call_count == 1
+
+    def test_market_embed_edits(self, harness) -> None:
+        """ Test the market embed is posted then edited in place """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+
+        with patch.object(fc, '_table', return_value="```\nrow\n```"), \
+             patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_market()
+            assert mock_queue.call_args.args[1] == RequestMethod.POST
+            fresh:str = str((int(time.time() * 1000) - 1420070400000) << 22)
+            fc._posted(fc.discord_market, 'FC-mats', dict(self.HOOK), fresh)
+            fc._post_market()
+
+        assert mock_queue.call_args.args[0].endswith(f'/messages/{fresh}')
+        assert mock_queue.call_args.args[1] == RequestMethod.PATCH
+        assert mock_queue.call_args.kwargs['payload']['embeds'][0]['description'] == "```\nrow\n```"
+
+    def test_market_empty_deletes_post(self, harness) -> None:
+        """ Test the market post is deleted when there is nothing to buy or sell """
+        from bgstally.constants import RequestMethod
+        fc = self._fc(harness)
+        fc.discord_market = {'u1': {**self.HOOK, 'FC-mats': '100'}}
+
+        with patch.object(harness.plugin.request_manager, 'queue_request') as mock_queue:
+            fc._post_market()
+
+        assert mock_queue.call_args.args[1] == RequestMethod.DELETE
+
+    def test_market_text_table(self, harness) -> None:
+        """ Test the Discord market text is a table, or empty with no orders """
+        fc = self._fc(harness)
+        assert fc.get_text('Cargo', 'Both', True) == ""
+
+        fc.cargo['normal']['tritium'] = {'locName': 'Tritium', 'category': 'Chemicals', 'cargo': 999, 'sell': 999, 'buy': 0, 'price': 1000}
+        lines:list = fc.get_text('Cargo', 'Both', True).splitlines()
+        assert lines[-1] == "```" and "Commodity" in lines[-6] and "Tritium" in lines[-4] and "Total" in lines[-2]
+        assert set(lines[-5]) <= set("-|")
+        assert "Stock" not in lines[-6] and "Selling" in lines[-6]
+        assert "Buying" in lines[-6]
+        assert "Buying" not in fc.get_text('Cargo', 'Selling', True)
+        assert "Stock" in fc.get_text('Cargo', 'All', True)
+        fc.cargo['normal']['steel'] = {'locName': 'Steel', 'category': 'Metals', 'cargo': 4581, 'sell': 4581, 'buy': 0, 'price': 4179}
+        total:str = fc.get_text('Cargo', 'Both', True).splitlines()[-2]
+        assert "Total" in total and "5,580" in total and "1,000" not in total
+
+        embed:list = fc._table('Cargo', 'Both', True, True).splitlines()
+        assert "Category" not in embed[1] and "Commodity" in embed[1]

@@ -99,12 +99,25 @@ class DiscordChannel(str, Enum):
     CMDR_INFORMATION = 'CMDR-info'
     FLEETCARRIER_MATERIALS = 'FC-mats'
     FLEETCARRIER_OPERATIONS = 'FC-ops'
+    SQUADRON_OPERATIONS = 'SQ-ops'
     POWERPLAY = 'PP'
     THARGOIDWAR = 'TW'
 
 class FleetCarrierType(str, Enum):
     PERSONAL = 'FleetCarrier'
     SQUADRON = 'SquadronCarrier'
+    THIRDPARTY = 'ThirdPartyCarrier'
+
+
+# Which source last supplied a carrier's cargo/market reading. Metadata for logging and for
+# the RC-specific staleness check -- acceptance itself is decided by comparing timestamps,
+# not by tier.
+class DataTier(str, Enum):
+    UNKNOWN = 'Unknown'
+    SPANSH = 'Spansh'
+    RC = 'RC'
+    CAPI = 'CAPI'
+    JOURNAL = 'Journal'
 
 
 class FleetCarrierJump(str, Enum):
@@ -213,6 +226,7 @@ DATETIME_FORMAT_TITLE: str = "%Y-%m-%d %H:%M:%S"
 FILE_SUFFIX: str = ".json"
 FOLDER_ASSETS: str = "assets"
 FOLDER_BACKUPS: str = "backups"
+FOLDER_CARRIERS: str = "carriers"
 FOLDER_DATA: str = "data"
 FOLDER_OTHER_DATA: str = "otherdata"
 FOLDER_UPDATES: str = "updates"
@@ -233,3 +247,4 @@ else:
 COLOUR_HEADING_1: str = "#A300A3"
 COLOUR_WARNING: str = "#F00"
 TAG_OVERLAY_HIGHLIGHT: str = "<H>"
+TABLE_STYLE: str = "      || ---            --  --" # table2ascii style string, header rule wins over column bars

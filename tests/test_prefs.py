@@ -6,48 +6,11 @@ Run with: .venv_win\\Scripts\\python.exe -m pytest tests\\test_plugin.py -v --tb
 """
 
 import pytest # type: ignore
-from typing import Generator
 from time import sleep
-from datetime import datetime, UTC
 from unittest.mock import patch
 from pathlib import Path
 import json
 
-# Config is already mocked by conftest.py
-from harness import TestHarness
-
-@pytest.fixture
-def harness(request) -> Generator:
-    """ Provide a fresh test harness for each test. """
-    live = request.node.get_closest_marker('live_requests') is not None
-
-    test_harness = TestHarness(live_requests=live)
-
-    import bgstally.constants
-    bgstally.constants.FOLDER_ASSETS = "../assets"
-    bgstally.constants.FOLDER_DATA = "../data"
-
-    # Put in a response for the update manager so it doesn't error
-    if not live:
-        from tests.edmc.requests import queue_response, MockResponse
-        queue_response('get',
-                       MockResponse(200, url='http://tick.infomancer.uk/galtick.json',
-                                    json_data={"lastGalaxyTick": datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')}),
-                        url='http://tick.infomancer.uk/galtick.json', sticky=True)
-
-    # Now we can start the plugin
-    from load import plugin_start3, plugin_app, journal_entry
-    import bgstally.globals
-    test_harness.plugin = bgstally.globals.this
-
-    plugin_start3(str(test_harness.plugin_dir))
-    plugin_app(test_harness.parent)
-
-    test_harness.load_events("journal_events.json")
-    test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
-
-    yield test_harness
-    test_harness.assert_no_unhandled_exceptions()
 
 class TestPrefs:
     """Test plugin preferences behavior."""
@@ -70,3 +33,19 @@ class TestPrefs:
 
         harness.plugin.prefs.get_prefs_frame(harness.parent)
         assert(harness.plugin.prefs.frame is not None)
+
+    def test_purge_archive_by_ticktime(self, harness, tmp_path, monkeypatch) -> None:
+        """Archived activity older than the cutoff is deleted, newer is kept."""
+        from datetime import UTC, datetime, timedelta
+        from bgstally.constants import DATETIME_FORMAT_ACTIVITY
+
+        archive:Path = tmp_path / "activitydata" / "archive"
+        archive.mkdir(parents=True)
+        now:datetime = datetime.now(UTC)
+        for name, age in (("old", 400), ("new", 300)):
+            (archive / f"{name}.json").write_text(json.dumps({"ticktime": (now - timedelta(days=age)).strftime(DATETIME_FORMAT_ACTIVITY)}))
+        (archive / "bad.json").write_text("{}")
+
+        monkeypatch.setattr(harness.plugin, "plugin_dir", str(tmp_path))
+        assert harness.plugin.activity_manager.purge_archive(365) == 1
+        assert sorted(f.name for f in archive.iterdir()) == ["bad.json", "new.json"]

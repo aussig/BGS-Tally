@@ -1,12 +1,13 @@
+from datetime import datetime, timezone
 from urllib.parse import quote
 import re
 import time
 from functools import partial
 import requests
 from requests import Response
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
-from bgstally.constants import RequestMethod, BuildState
+from bgstally.constants import RequestMethod, BuildState, FleetCarrierType
 from bgstally.requestmanager import BGSTallyRequest
 from bgstally.debug import Debug
 from bgstally.utils import _, get_by_path, catch_exceptions
@@ -14,10 +15,12 @@ from bgstally.utils import _, get_by_path, catch_exceptions
 if TYPE_CHECKING:
     from colonisation import Colonisation
     from bgstally.bgstally import BGSTally
+    from bgstally.fleetcarrier import FleetCarrier
 
-RC_API = 'https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api'
+RC_API = 'https://ravencolonial.net/api'
 RC_COOLDOWN = 30
-TIMEOUT=10
+RC_UNLISTED_COOLDOWN = 1800 # How often to recheck RC for a carrier it doesn't list
+TIMEOUT=15
 
 EDSM_BODIES = 'https://www.edsm.net/api-system-v1/bodies?systemName='
 EDSM_STATIONS = 'https://www.edsm.net/api-system-v1/stations?systemName='
@@ -26,6 +29,20 @@ EDSM_COOLDOWN = (3600 * 24)
 
 SPANSH_API = 'https://spansh.co.uk/api'
 SPANSH_COOLDOWN = (3600 * 24)
+SPANSH_MARKET_SIZE = 10 # Stations fetched per commodity, enough to rank every station in the nearest system
+SPANSH_MARKET_DAYS = 3 # Ignore markets not updated within this many days
+SPANSH_BATCH_SIZE = 20 # Stations fetched by the shared search for several commodities
+SPANSH_SETTLED_ROWS = 5 # Rows the shared search needs to find for a commodity before it is trusted
+
+def _parse_time(updated_at:str|None) -> int:
+    """ Parse an ISO8601 timestamp or 0 if missing/unparseable """
+    if not updated_at: return 0
+    try:
+        return int(datetime.fromisoformat(updated_at.replace('Z', '+00:00')).timestamp())
+    except ValueError:
+        return 0
+
+
 class RavenColonial:
     """
     Class to handle all the data syncing between the colonisation system and RavenColonial.com. It also handles retrieving
@@ -43,7 +60,7 @@ class RavenColonial:
         return cls._instance
 
 
-    def __init__(self, colonisation) -> None:
+    def __init__(self, colonisation:'Colonisation') -> None:
         # Only initialize if it's the first time
         if hasattr(self, '_initialized'): return
 
@@ -107,6 +124,8 @@ class RavenColonial:
         }
 
         self._cache:dict = {} # Cache of responses and response times used to reduce API calls
+        self._rc_carriers:set = set() # Carriers RC lists, queried on every refresh
+        self._rc_missed:dict = {} # carrier_id -> when RC last said it doesn't list it
         self._initialized = True
 
 
@@ -114,7 +133,7 @@ class RavenColonial:
         """ Return the headers to use for RavenColonial API calls """
         headers:dict = self.base_headers
         if self.colonisation.cmdr != None: headers["rcc-cmdr"] = self.colonisation.cmdr
-        if self.bgstally.state.ColonisationRCAPIKey.get() != None: headers["rcc-key"] = self.bgstally.state.ColonisationRCAPIKey.get()
+        if self.bgstally.state.colonisation_rc_api_key != None: headers["rcc-key"] = self.bgstally.state.colonisation_rc_api_key
         return headers
 
 
@@ -125,7 +144,7 @@ class RavenColonial:
         if system == None or system.get('RCOpen', False) == True:
             return True
 
-        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
+        if self.colonisation.cmdr == None or self.bgstally.state.colonisation_rc_api_key == None or self.bgstally.state.colonisation_rc_api_key == '':
             return False
 
         return self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
@@ -237,10 +256,10 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def delete_project(self, project_id:str) -> None:
+    def delete_project(self, project_id:str, system:dict) -> None:
         """ Delete a project """
 
-        if self.is_editable() == False:
+        if self.is_editable(system) == False:
             Debug.logger.info("Not allowed to delete project")
             return
 
@@ -439,7 +458,7 @@ class RavenColonial:
         """ Process the results of querying RavenColonial for the system details """
 
         if success == False:
-            Debug.logger.error(f"System load failed {response.content}")
+            Debug.logger.error(f"System load failed {response.content if response != None else 'No response'}")
             return
 
         data:dict = response.json()
@@ -509,7 +528,7 @@ class RavenColonial:
             projectid = build.get('ProjectID', None)
 
         if projectid == None:
-            Debug.logger.error(f"Project not found {response} {response.content}")
+            Debug.logger.error(f"Project not found {response}")
             return
 
         self.colonisation.update_progress(progress.get('MarketID', 0), {'ProjectID': projectid}, True)
@@ -557,8 +576,8 @@ class RavenColonial:
             if rcval != None and v != 'Updated':
                 payload[k] = rcval
 
-        if payload == self._cache.get(progress.get('ProjectID', ''), {}):return
-        self._cache[progress.get('ProjectID', '')] = payload
+        if payload == self._cache.get(f"upsert_{progress.get('ProjectID', '')}", {}): return
+        self._cache[f"upsert_{progress.get('ProjectID', '')}"] = payload
 
         url:str = f"{RC_API}/project/{progress.get('ProjectID')}"
         self.bgstally.request_manager.queue_request(url, RequestMethod.PATCH, payload=payload, headers=self._headers(), callback=self._project_callback)
@@ -594,7 +613,7 @@ class RavenColonial:
 
         url:str = f"{RC_API}/project/poll"
         payload:list = [projectid]
-        response:Response = requests.post(url, headers=self._headers(), json=payload, timeout=10)
+        response:Response = requests.post(url, headers=self._headers(), json=payload, timeout=TIMEOUT)
         if response.status_code != 200:
             Debug.logger.error(f"Error for {url} {response} {response.content}")
             return
@@ -627,7 +646,7 @@ class RavenColonial:
             return
 
         data:dict = response.json()
-        self._cache[data.get('buildId')] = data.get('timestamp')
+        self._cache[f"project_{data.get('buildId')}"] = data.get('timestamp')
         update:dict = {}
         for k, v in self.project_params.items():
             if data.get(k, None) == None:
@@ -637,6 +656,10 @@ class RavenColonial:
                 continue
             update[v] = data.get(k, '') if isinstance(data.get(k, None), str) and 'name' not in k.lower() else data.get(k, None)
 
+        if data.get('linkedFC') is not None:
+            # Carriers RC considers linked to this build -- used to gate which third-party carriers we push to RC
+            update['LinkedFC'] = [int(fc['marketId']) for fc in data['linkedFC'] if fc.get('marketId') is not None]
+
         if update != {}:
             self.colonisation.update_progress(data.get('marketId', 0), update, True)
 
@@ -644,10 +667,6 @@ class RavenColonial:
     @catch_exceptions
     def record_contribution(self, project_id:int, contributions:list[dict]) -> None:
         """ Record colonisation contributions made """
-
-        #if self.is_editable() == False:
-        #    Debug.logger.info("Not recording contribution with RavenColonial")
-        #    return
 
         payload:dict = {re.sub(r"\$(.*)_name;$", r"\1", c.get('Name', '').lower()): c.get('Amount', 0) for c in contributions}
 
@@ -662,27 +681,125 @@ class RavenColonial:
 
 
     @catch_exceptions
-    def update_carrier(self, marketid:int, cargo:dict) -> None:
-        """ Update the cargo of a fleet carrier """
-        if self.colonisation.cmdr == None or self.bgstally.state.ColonisationRCAPIKey.get() == None or self.bgstally.state.ColonisationRCAPIKey.get() == '':
+    def update_carrier(self, fc:'FleetCarrier', changed:bool = True) -> None:
+        """ Push this carrier's cargo/buy/sell orders to RavenColonial, merged onto its current record, if warranted """
+        # RC doesn't support squadron carriers for updates.
+        if not changed or fc.carrier_type == FleetCarrierType.SQUADRON: return
+        if self.colonisation.cmdr == None or not self.colonisation.is_carrier_linked(fc.carrier_id): return
+        if self.bgstally.state.colonisation_rc_api_key == None or self.bgstally.state.colonisation_rc_api_key == '':
             Debug.logger.info("Not updating carrier in RavenColonial")
             return
 
-        payload:dict = {comm : cargo.get(comm, 0) for comm in self.bgstally.ui.commodities.keys()}
-        url:str = f"{RC_API}/fc/{marketid}/cargo"
-        self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=self._headers(), callback=self._carrier_callback)
-        return
+        # Only the GET for RC's other fields (name, system, etc.) is cached and reused, since those
+        # rarely change and don't need re-fetching before every single push.
+        cache_key:str = f'push_{fc.carrier_id}'
+        cached:dict|None = self._cache.get(cache_key)
+        if cached and cached['ts'] > int(time.time()) - RC_COOLDOWN:
+            Debug.logger.debug(f"Reusing cached RC record for carrier {fc.carrier_id}, skipping GET")
+            self._push_carrier(fc, dict(cached['doc']))
+            return
+
+        url:str = f"{RC_API}/fc/{fc.carrier_id}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(), callback=partial(self._carrier_fetched_callback, fc))
 
 
     @catch_exceptions
-    def _carrier_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
-        """ Process the results of querying RavenColonial """
-        data:dict = response.json()
+    def _carrier_fetched_callback(self, fc:'FleetCarrier', success:bool, response:Response, request:BGSTallyRequest) -> None:
+        """ Continue the async cargo push once we have the carrier's current RavenColonial record """
+        if success == False or response.status_code != 200: return
+
+        view:dict = response.json()
+        self._cache[f'push_{fc.carrier_id}'] = {'ts': int(time.time()), 'doc': view}
+        self._push_carrier(fc, view)
+
+
+    def _push_carrier(self, fc:'FleetCarrier', view:dict) -> None:
+        """ Merge our current cargo/buy/sell onto an RC carrier record and push it """
+        inventory:dict = fc.get_cargo_data()
+        cargo:dict = {comm: int(item['cargo']) for comm, item in inventory.items() if item.get('cargo') is not None}
+        # RC only leaves its own stored cargo untouched when this is null
+        view['cargo'] = cargo if cargo else None
+        view['sales'] = [{'name': comm, 'price': item.get('price', 0), 'total': item.get('sell', 0)}
+                          for comm, item in inventory.items() if item.get('sell', 0) > 0]
+        view['purchases'] = [{'name': comm, 'price': item.get('price', 0), 'outstanding': item.get('buy', 0)}
+                             for comm, item in inventory.items() if item.get('buy', 0) > 0]
+
+        url:str = f"{RC_API}/fc/{fc.carrier_id}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.PUT, payload=view, headers=self._headers(),
+                                                    callback=partial(self._carrier_callback, fc, cargo))
+
+
+    @catch_exceptions
+    def _carrier_callback(self, fc:'FleetCarrier', cargo:dict, success:bool, response:Response,
+                          request:BGSTallyRequest|None = None) -> None:
+        """ Process the results of updating a carrier's cargo in RavenColonial """
         if success == False or response.status_code != 200:
-            Debug.logger.warning(f"Error updating carrier {response} {response.content}")
+            Debug.logger.warning(f"Error updating carrier {response} {response.content if response else ''}")
             return
 
-        Debug.logger.debug(f"RavenColonial carrier updated: {response}")
+        if cargo: fc._rc_last_cargo = cargo # So RC handing our own push back isn't mistaken for a fresh reading
+
+        Debug.logger.debug(f"RavenColonial carrier update submitted: {response}")
+
+
+    def get_carrier(self, marketid:int, result_fnc:Callable[[dict|None], None]) -> None:
+        """ Queue a fetch of RC's view of a carrier, calling back with it normalized for merge(), or None """
+        # Most carriers aren't on RC, so only recheck those occasionally
+        if marketid not in self._rc_carriers and self._rc_missed.get(marketid, 0) > int(time.time()) - RC_UNLISTED_COOLDOWN:
+            result_fnc(None)
+            return
+
+        url:str = f"{RC_API}/fc/{marketid}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=self._headers(),
+                                                    callback=partial(self._carrier_get_callback, marketid, result_fnc))
+
+
+    @catch_exceptions
+    def _carrier_get_callback(self, marketid:int, result_fnc:Callable[[dict|None], None], success:bool, response:Response|None,
+                              request:BGSTallyRequest) -> None:
+        """ Note whether RC lists this carrier, then pass on its normalized record """
+        found:bool = success and response is not None and response.status_code == 200
+        if found: self._rc_carriers.add(marketid)
+        if response is not None and response.status_code == 404:
+            self._rc_carriers.discard(marketid)
+            self._rc_missed[marketid] = int(time.time())
+
+        result_fnc(self._normalize_carrier(response.json()) if found and response is not None else None)
+
+
+    @catch_exceptions
+    def _normalize_carrier(self, data:dict) -> dict|None:
+        """ Convert an RC carrier record into FleetCarrier.merge()'s normalized envelope """
+        which:str = str(data.get('name', data.get('marketId')))
+        cargo:dict = {comm: {'cargo': qty} for comm, qty in data.get('cargo', {}).items()}
+
+        # 'sales'/'purchases' may be entirely absent if whoever last pushed this carrier never populated them
+        if data.get('sales', []) or data.get('purchases', []):
+            for entry in cargo.values(): entry['sell'] = 0; entry['buy'] = 0
+            for sale in data.get('sales') or []:
+                comm:str = sale.get('name', '')
+                if comm == '': continue
+                cargo.setdefault(comm, {})['sell'] = int(sale.get('total', 0))
+                cargo[comm]['price'] = int(sale.get('price', 0))
+            for purchase in data.get('purchases') or []:
+                comm = purchase.get('name', '')
+                if comm == '': continue
+                cargo.setdefault(comm, {})['buy'] = int(purchase.get('outstanding', 0))
+                cargo[comm]['price'] = int(purchase.get('price', 0))
+            Debug.logger.debug(f"RC carrier {which} ({data.get('lastRefresh')}) has order data: {cargo}")
+        else:
+            Debug.logger.debug(f"RC carrier {which} ({data.get('lastRefresh')}) only has cargo data: {cargo}")
+
+        return {
+            'timestamp': _parse_time(data.get('lastRefresh')),
+            'overview': {
+                'callsign': data.get('name'),
+                'name': data.get('displayName'),
+                'currentStarSystem': data.get('systemName'),
+            },
+            'cargo': cargo,
+        }
+
 
 
 
@@ -929,11 +1046,14 @@ class Spansh:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self, bgstally:'BGSTally'):
         # Only initialize if it's the first time
         if not hasattr(self, '_initialized'):
             self.system_cache:dict = {} # Spansh has a single endpoint for all system data so cache it here rather than requerying.
+            self.market_cache:dict = {} # (system, commodity, minimum) -> best markets, dropped when the commander leaves the system
+            self.market_here:str|None = None # The commander's system when market_cache was filled
             self._initialized = True
+        self.bgstally:BGSTally = bgstally
         self.body_details = ['name', 'bodyId', 'type', 'subType', 'terraformingState', 'isLandable', 'rotationalPeriodTidallyLocked', \
                              'atmosphereType', 'volcanismType', 'rings', 'reserveLevel', 'distanceToArrival']
 
@@ -947,20 +1067,181 @@ class Spansh:
         return self._get_details(system_name, 'bodies')
 
     @catch_exceptions
-    def _get_by_name(self, system_name:str) -> dict|None:
+    def find_markets(self, wanted:dict, system:str, result_fnc:Callable[[str, list], object]) -> None:
+        """ Find the best nearby markets for each commodity in wanted (symbol -> amount needed), calling back once per commodity """
+        if self.bgstally.colonisation.current_system != self.market_here:
+            self.market_cache.clear()
+            self.market_here = self.bgstally.colonisation.current_system
+
+        pending:dict = {} # symbol -> (English name, amount needed)
+        for symbol, minimum in wanted.items():
+            english:str|None = self.bgstally.ui.commodities.get(symbol, {}).get('EnglishName')
+            if english is None:
+                result_fnc(symbol, [])
+                continue
+
+            if (system, symbol, minimum) in self.market_cache:
+                result_fnc(symbol, self.market_cache[(system, symbol, minimum)])
+                continue
+
+            pending[symbol] = (english, minimum)
+
+        if not pending: return
+
+        if len(pending) == 1:
+            symbol, (name, minimum) = next(iter(pending.items()))
+            self._search(system, name, minimum, SPANSH_MARKET_SIZE, partial(self._markets_callback, (system, symbol, minimum), name,
+                                                                            result_fnc))
+            return
+
+        # One search for the nearest stations selling any of them, then only chase the commodities that search didn't settle
+        floor:int = min(minimum for _name, minimum in pending.values())
+        self._search(system, [name for name, _minimum in pending.values()], floor, SPANSH_BATCH_SIZE,
+                     partial(self._batch_callback, system, pending, result_fnc))
+
+    def _search(self, system:str, names:str|list, minimum:int, size:int, callback:Callable) -> None:
+        """ Queue a Spansh station search for recently updated markets with a commodity, or any of several, in stock """
+        filters:dict = {'market': [{'name': names, 'supply': {'comparison': '<=>', 'value': [max(1, minimum), 1_000_000_000]}}],
+                        'market_updated_at': {'comparison': '<=>', 'value': [f"now-{SPANSH_MARKET_DAYS}d", 'now']}}
+        payload:dict = {'filters': filters, 'reference_system': system, 'size': size, 'page': 0,
+                        'sort': [{'distance': {'direction': 'asc'}}]}
+        self.bgstally.request_manager.queue_request(f"{SPANSH_API}/stations/search", RequestMethod.POST, payload=payload, attempts=3,
+                                                    callback=callback)
+
+    def _market_row(self, s:dict, name:str) -> dict:
+        """ Format one market row """
+        entry:dict = next((m for m in s.get('market', []) if m.get('commodity') == name), {})
+        return {'system': s.get('system_name', ""),
+                'station': s.get('name', ""),
+                'distance': s.get('distance') or 0,
+                'arrival': s.get('distance_to_arrival'),
+                'large': bool(s.get('has_large_pad')),
+                'type': 'S' if s.get('is_planetary') else 'C' if 'carrier' in s.get('type', "").lower() else 'O',
+                'supply': entry.get('supply', 0),
+                'updated': s.get('market_updated_at', "")
+                }
+
+    def _best(self, rows:list, minimum:int) -> list:
+        """ The nearest market, orbital before surface before carrier, plus a second only if it improves on the first """
+        rows.sort(key=lambda r: (r['distance'], 'OSC'.index(r['type']), r['arrival'] if r['arrival'] is not None else float('inf')))
+        best:list = rows[:1]
+        for r in rows[1:]:
+            first:dict = best[0]
+            if r['distance'] < first['distance'] or ('OSC'.index(r['type']) < 'OSC'.index(first['type'])) \
+                or (r['supply'] > 2 * minimum >= first['supply']) or (r['large'] and not first['large']):
+                best.append(r)
+                break
+
+        return best
+
+    @catch_exceptions
+    def _markets_callback(self, key:tuple, name:str, result_fnc:Callable[[str, list], object], success:bool,
+                          response:Response, request:BGSTallyRequest) -> None:
+        """ Reduce a single commodity's station search to its best rows """
+        _system, symbol, minimum = key
+        stations:list = response.json().get('results', []) if success and response is not None else []
+        best:list = self._best([self._market_row(s, name) for s in stations], minimum)
+        if success: self.market_cache[key] = best # Failures aren't cached so they can be retried
+        result_fnc(symbol, best)
+
+    @catch_exceptions
+    def _batch_callback(self, system:str, pending:dict, result_fnc:Callable[[str, list], object], success:bool,
+                        response:Response, request:BGSTallyRequest) -> None:
+        """ Settle each commodity from the shared station search if it has enough rows, or search for it on its own """
+        if not success or response is None:
+            for symbol in pending: result_fnc(symbol, [])
+            return
+
+        stations:list = response.json().get('results', [])
+        for symbol, (name, minimum) in pending.items():
+            rows:list = [r for r in (self._market_row(s, name) for s in stations) if r['supply'] >= max(1, minimum)]
+            best:list = self._best(rows, minimum)
+            ideal:bool = bool(best) and best[0]['type'] == 'O' and best[0]['large'] and best[0]['supply'] > 2 * minimum
+            if len(stations) < SPANSH_BATCH_SIZE or len(rows) >= SPANSH_SETTLED_ROWS or ideal:
+                self.market_cache[(system, symbol, minimum)] = best
+                result_fnc(symbol, best)
+                continue
+
+            self._search(system, name, minimum, SPANSH_MARKET_SIZE, partial(self._markets_callback, (system, symbol, minimum),
+                                                                            name, result_fnc))
+
+    def get_market(self, fc:'FleetCarrier', result_fnc:Callable[[dict|None], None]) -> None:
+        """ Queue a fetch of a carrier's Spansh market, calling back with it normalized for merge(), or None """
+        if fc.carrier_id == 0:
+            result_fnc(None)
+            return
+
+        url:str = f"{SPANSH_API}/station/{fc.carrier_id}"
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, headers=RavenColonial(self.bgstally.colonisation).base_headers,
+                                                    callback=partial(self._market_get_callback, result_fnc))
+
+
+    @catch_exceptions
+    def _market_get_callback(self, result_fnc:Callable[[dict|None], None], success:bool, response:Response|None,
+                             request:BGSTallyRequest) -> None:
+        """ Pass on the normalized Spansh market, or None if the fetch failed """
+        result_fnc(self._normalize_market(response.json().get('record', {})) if success and response is not None else None)
+
+
+    def _normalize_market(self, record:dict) -> dict:
+        """ Convert a Spansh station record into FleetCarrier.merge()'s normalized envelope """
+        cargo:dict = {}
+        for m in record.get('market', []):
+            comm:str = self._resolve_commodity(m.get('commodity', ''))
+            if comm == '': continue
+
+            # The game only ever has one active price per commodity, so buy_price/sell_price collapse to one
+            cargo[comm] = {
+                'locName': m.get('commodity', comm),
+                'category': m.get('category', 'Unknown'),
+                'sell': m.get('supply', 0),
+                'buy': m.get('demand', 0),
+                'price': m.get('buy_price', 0) or m.get('sell_price', 0),
+            }
+
+        return {
+            'timestamp': _parse_time(record.get('market_updated_at')),
+            'overview': {
+                'callsign': record.get('name'),
+                'name': record.get('carrier_name'),
+                'currentStarSystem': record.get('system_name'),
+            },
+            'cargo': cargo,
+        }
+
+    def _resolve_commodity(self, name:str) -> str:
+        """ Resolve a Spansh commodity display name (e.g. "Agri-Medicines") to our internal symbol """
+        commodities:dict = self.bgstally.ui.commodities
+        symbol:str|None = next((s for s, c in commodities.items() if c.get('Name', '').lower() == name.lower()), None)
+        return symbol or re.sub(r'[^a-z0-9]', '', name.lower())
+
+    @catch_exceptions
+    def find_carrier(self, callsign:str) -> int|None:
+        """ Resolve a carrier's callsign to its market id """
+        url:str = f"{SPANSH_API}/search?q={quote(callsign)}"
+        response:Response = requests.get(url, headers=RavenColonial(self.bgstally.colonisation).base_headers, timeout=TIMEOUT)
+        if response.status_code != 200:
+            return None
+
+        for result in response.json().get('results', []):
+            record:dict = result.get('record', {})
+            if record.get('name', '').lower() == callsign.lower():
+                return record.get('market_id')
+        return None
+
+    @catch_exceptions
+    def _get_by_name(self, system_name:str) -> dict|None: # UNUSED
         """ Retrieve the system address from Spansh """
-        system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
+        system:dict|None = self.bgstally.colonisation.find_system({'StarSystem': system_name})
         if system == None:
             Debug.logger.info(f"Unknown system {system_name}")
             return
 
-        system_address:int|None = system.get('SystemAddress', None)
-        if system_address != None:
-            Debug.logger.debug(f"System {system_name} has address {system_address} in local data")
-            return system_address
+        if system.get('SystemAddress', None) != None:
+            return system.get('SystemAddress', None)
 
         url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
-        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
+        response:Response = requests.get(url, headers=RavenColonial(self.bgstally.colonisation).base_headers, timeout=TIMEOUT)
         if response.status_code != 200:
             Debug.logger.error(f"Query system response for {system_name}: {response.status_code}")
             return None
@@ -977,9 +1258,9 @@ class Spansh:
             return
 
         # Check when we last updated this system
-        if not hasattr(RavenColonial(self), '_initialized'): return
+        if not hasattr(RavenColonial._instance, '_initialized'): return
 
-        system:dict|None = RavenColonial(self).colonisation.find_system({'StarSystem': system_name})
+        system:dict|None = self.bgstally.colonisation.find_system({'StarSystem': system_name})
         if system == None:
             Debug.logger.info(f"Unknown system {system_name}")
             return
@@ -998,12 +1279,12 @@ class Spansh:
         # Do it the efficient way since we have the address
         if system.get('SystemAddress', None) != None:
             url:str = f"{SPANSH_API}/system/{system.get('SystemAddress', None)}"
-            RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
+            self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
             return
 
         url:str = f"{SPANSH_API}/search?q={quote(system_name)}"
-        response:Response = requests.get(url, headers=RavenColonial(self).base_headers, timeout=TIMEOUT)
-        RavenColonial(self).bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
+        #response:Response = requests.get(url, headers=RavenColonial(self.bgstally.colonisation).base_headers, timeout=TIMEOUT)
+        self.bgstally.request_manager.queue_request(url, RequestMethod.GET, callback=partial(self._callback, system, which))
 
 
     @catch_exceptions
@@ -1049,7 +1330,7 @@ class Spansh:
         update['SystemAddress'] = data.get('id64', None)
         update['SpanshUpdated'] = int(time.time())
 
-        RavenColonial(self).colonisation.modify_system(system, update)
+        self.bgstally.colonisation.modify_system(system, update)
 
 
     @catch_exceptions
@@ -1072,13 +1353,13 @@ class Spansh:
             market_id:int = base.get('market_id', 0)
             state:BuildState = BuildState.PROGRESS if 'Construction Site' in name else BuildState.COMPLETE
 
-            if RavenColonial(self).colonisation.find_build(system, {'MarketID': market_id, 'Name': name}) != None:
+            if self.bgstally.colonisation.find_build(system, {'MarketID': market_id, 'Name': name}) != None:
                 Debug.logger.debug(f"Build {name} already exists in system {data.get('name')}, skipping")
                 continue
 
             # Look for a completed base with the same name since depots sometimes hang around.
             if 'Construction Site' in base.get('name', '') and \
-                RavenColonial(self).colonisation.find_build(system, {'Name': re.sub(r".* Construction Site: ", "", base.get('name'))}) != None:
+                self.bgstally.colonisation.find_build(system, {'Name': re.sub(r".* Construction Site: ", "", base.get('name'))}) != None:
                     Debug.logger.debug(f"Skipping construction site {base.get('name')}")
                     continue
 
@@ -1089,8 +1370,8 @@ class Spansh:
                 'Name': name,
                 'MarketID': market_id
                 }
-            Debug.logger.debug(f"Adding station base.get('name', '') to system {data.get('name')} {build}")
-            RavenColonial(self).colonisation.add_build(system, build)
+            Debug.logger.debug(f"Adding station {base.get('name', '')} to system {data.get('name')} {build}")
+            self.bgstally.colonisation.add_build(system, build)
 
 
     @catch_exceptions
@@ -1111,4 +1392,4 @@ class Spansh:
             bodies.append(v)
 
         if bodies != []:
-            RavenColonial(self).colonisation.modify_system(system, {'Bodies': bodies})
+            self.bgstally.colonisation.modify_system(system, {'Bodies': bodies})

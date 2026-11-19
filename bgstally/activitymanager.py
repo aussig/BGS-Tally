@@ -1,18 +1,21 @@
+import json
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from os import listdir, mkdir, path, remove, rename
 from threading import Thread
 from time import sleep
 from typing import TYPE_CHECKING
 
+from config import config #type: ignore
+
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
 from bgstally.activity import Activity
-from bgstally.constants import FILE_SUFFIX
+from bgstally.constants import DATETIME_FORMAT_ACTIVITY, FILE_SUFFIX
 from bgstally.debug import Debug
 from bgstally.tick import Tick
-from config import config
+
 
 FILE_LEGACY_CURRENTDATA = "Today Data.txt"
 FILE_LEGACY_PREVIOUSDATA = "Yesterday Data.txt"
@@ -101,27 +104,27 @@ class ActivityManager:
         New tick detected, duplicate the current Activity object or ignore if it's older than current tick.
         """
 
-        if tick.tick_time < self.current_activity.tick_time:
+        if self.current_activity and tick.tick_time < self.current_activity.tick_time:
             # An inbound tick is older than the current tick. The only valid situation for this is if the user has done a Force Tick
             # but a new tick was then detected with an earlier timestamp. Ignore the tick in this situation.
             return False
-        else:
-            # An inbound tick is newer than the current tick. Create a new Activity object.
-            # Note Activity uses a customised __deepcopy__ that only deep copies data, not class instances.
-            new_activity:Activity = deepcopy(self.current_activity)
-            new_activity.tick_id = tick.tick_id
-            new_activity.tick_time = tick.tick_time
-            new_activity.tick_forced = forced
-            new_activity.discord_webhook_data = {}
-            new_activity.discord_notes = ""
-            new_activity.dirty = False
-            new_activity.autopost = False
-            new_activity.clear_activity(self.bgstally.mission_log)
-            self.activity_data.append(new_activity)
-            self.activity_data.sort(reverse=True)
-            self.current_activity = new_activity
 
-            return True
+        # An inbound tick is newer than the current tick. Create a new Activity object.
+        # Note Activity uses a customised __deepcopy__ that only deep copies data, not class instances.
+        new_activity:Activity = deepcopy(self.current_activity)
+        new_activity.tick_id = tick.tick_id
+        new_activity.tick_time = tick.tick_time
+        new_activity.tick_forced = forced
+        new_activity.discord_webhook_data = {}
+        new_activity.discord_notes = ""
+        new_activity.dirty = False
+        new_activity.autopost = False
+        new_activity.clear_activity(self.bgstally.mission_log)
+        self.activity_data.append(new_activity)
+        self.activity_data.sort(reverse=True)
+        self.current_activity = new_activity
+
+        return True
 
 
     def _load(self):
@@ -188,6 +191,36 @@ class ActivityManager:
             except FileNotFoundError: # Source doesn't exist
                 Debug.logger.warning(f"Attempt to archive failed, source file doesn't exist")
                 continue
+
+
+    def purge_archive(self, days:int) -> int:
+        """
+        Delete archived activity files whose tick is more than the given number of days ago, returning the count deleted
+        """
+        folder:str = path.join(self.bgstally.plugin_dir, FOLDER_ACTIVITYDATA, FOLDER_ACTIVITYDATA_ARCHIVE)
+        if not path.exists(folder): return 0
+
+        cutoff:datetime = datetime.now(UTC) - timedelta(days=days)
+        count:int = 0
+
+        for file in listdir(folder):
+            if not file.endswith(FILE_SUFFIX): continue
+
+            filepath:str = path.join(folder, file)
+            try:
+                with open(filepath) as f:
+                    ticktime:datetime = datetime.strptime(json.load(f)['ticktime'], DATETIME_FORMAT_ACTIVITY).replace(tzinfo=UTC)
+            except Exception:
+                Debug.logger.warning(f"Unable to read ticktime from archived activity {file}")
+                continue
+
+            if ticktime >= cutoff: continue
+
+            remove(filepath)
+            count += 1
+
+        Debug.logger.info(f"Deleted {count} archived activity files older than {days} days")
+        return count
 
 
     def _autopost_worker(self) -> None:

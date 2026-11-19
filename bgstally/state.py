@@ -26,12 +26,14 @@ class State:
         # UI preference fields
         self.Status:tk.StringVar = tk.StringVar(value=config.get_str('BGST_Status', default=CheckStates.STATE_ON))
         self.ColonisationStatus:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationStatus', default=CheckStates.STATE_ON))
+        self.AutoUpdateStatus:tk.StringVar = tk.StringVar(value=config.get_str('BGST_AutoUpdateStatus', default=CheckStates.STATE_ON))
         self.EnableOverlayCurrentTick:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCurrentTick', default=CheckStates.STATE_ON))
         self.EnableOverlayActivity:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayActivity', default=CheckStates.STATE_ON))
         self.EnableOverlayTWProgress:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayTWProgress', default=CheckStates.STATE_ON))
         self.EnableOverlaySystem:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlaySystem', default=CheckStates.STATE_ON))
         self.EnableOverlayWarning:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayWarning', default=CheckStates.STATE_ON))
         self.EnableOverlayCarrier:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCarrier', default=CheckStates.STATE_ON))
+        self.AutoTrackCarriers:tk.StringVar = tk.StringVar(value=config.get_str('BGST_AutoTrackCarriers', default=CheckStates.STATE_OFF))
         self.EnableOverlayCMDR:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayCMDR', default=CheckStates.STATE_ON))
         self.EnableOverlayObjectives:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableOverlayObjectives', default=CheckStates.STATE_ON))
         self.OverlayObjectivesMode:tk.StringVar = tk.StringVar(value=config.get_str('BGST_OverlayObjectivesMode', default="2"))
@@ -47,8 +49,11 @@ class State:
         self.UseColonisationName:tk.StringVar = tk.StringVar(value=config.get_str('BGST_UseColonisationName', default=CheckStates.STATE_OFF))
 
         self.ColonisationMaxCommodities:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationMaxCommodities', default="20"))
-        self.EnableProgressScrollbar:tk.StringVar = tk.StringVar(value=config.get_str('BGST_EnableProgressScrollbar', default=CheckStates.STATE_OFF))
         self.ColonisationRCAPIKey:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationRCAPIKey', default=""))
+        self.ColonisationRCAutoSync:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationRCAutoSync', default=CheckStates.STATE_ON))
+        self.ColonisationBuildMode:tk.StringVar = tk.StringVar(value=config.get_str('BGST_ColonisationBuildMode', default="auto"))
+
+        self.plugin_hidden:bool = (config.get_str('BGST_PluginHidden', default=CheckStates.STATE_OFF) == CheckStates.STATE_ON)
 
         self.FcCargo:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcCargo', default="Both"))
         self.FcLocker:tk.StringVar = tk.StringVar(value=config.get_str('BGST_FcLocker', default="Both"))
@@ -96,6 +101,11 @@ class State:
 
         self.refresh()
 
+    def set_plugin_hidden(self, hidden:bool) -> None:
+        ''' Persist whether the whole plugin is hidden or shown '''
+        self.plugin_hidden = hidden
+        config.set('BGST_PluginHidden', CheckStates.STATE_ON if hidden else CheckStates.STATE_OFF)
+
     def refresh(self):
         """
         Update all our mirror thread-safe values from their tk equivalents
@@ -120,12 +130,13 @@ class State:
         self.showmerits:bool = (self.EnableShowMerits.get() == CheckStates.STATE_ON)
         self.use_colonisation_name:bool = (self.UseColonisationName.get() == CheckStates.STATE_ON)
         self.enable_colonisation:bool = (self.ColonisationStatus.get() == CheckStates.STATE_ON)
-        self.progress_scrollbar:bool = (self.EnableProgressScrollbar.get() == CheckStates.STATE_ON)
 
         # Non booleans
         self.overlay_objectives_mode:int = int(self.OverlayObjectivesMode.get())
         self.favourite_activity_mode:str = str(self.FavouriteActivityMode.get())
         self.fc_cooldown:str = str(self.FcCooldown.get())
+        self.colonisation_rc_api_key:str = str(self.ColonisationRCAPIKey.get())
+        self.colonisation_rc_sync:bool = (self.ColonisationRCAutoSync.get() == CheckStates.STATE_ON) and self.colonisation_rc_api_key != ""
 
 
     def save(self):
@@ -136,6 +147,7 @@ class State:
         # UI preference fields
         config.set('BGST_Status', self.Status.get())
         config.set('BGST_ColonisationStatus', self.ColonisationStatus.get())
+        config.set('BGST_AutoUpdateStatus', self.AutoUpdateStatus.get())
         config.set('BGST_ShowZeroActivity', self.ShowZeroActivitySystems.get())
         config.set('BGST_AbbreviateFactions', self.AbbreviateFactionNames.get())
         config.set('BGST_SecondaryInf', self.IncludeSecondaryInf.get())
@@ -151,6 +163,7 @@ class State:
         config.set('BGST_OverlayObjectivesMode', self.OverlayObjectivesMode.get())
         config.set('BGST_EnableOverlayColonisation', self.EnableOverlayColonisation.get())
         config.set('BGST_EnableOverlayCarrier', self.EnableOverlayCarrier.get())
+        config.set('BGST_AutoTrackCarriers', self.AutoTrackCarriers.get())
         config.set('BGST_EnableSystemActivityByDefault', self.EnableSystemActivityByDefault.get())
         config.set('BGST_EnableShowMerits', self.EnableShowMerits.get())
         config.set('BGST_DetailedInf', self.DetailedInf.get())
@@ -162,8 +175,9 @@ class State:
         config.set('BGST_FcLocker', self.FcLocker.get())
         config.set('BGST_FcCooldown', self.FcCooldown.get())
         config.set('BGST_ColonisationMaxCommodities', self.ColonisationMaxCommodities.get())
-        config.set('BGST_EnableProgressScrollbar', self.EnableProgressScrollbar.get())
         config.set('BGST_ColonisationRCAPIKey', self.ColonisationRCAPIKey.get())
+        config.set('BGST_ColonisationRCAutoSync', self.ColonisationRCAutoSync.get())
+        config.set('BGST_ColonisationBuildMode', self.ColonisationBuildMode.get())
         config.set('BGST_FavouriteActivityMode', self.FavouriteActivityMode.get())
         config.set('BGST_UseColonisationName', self.UseColonisationName.get())
 

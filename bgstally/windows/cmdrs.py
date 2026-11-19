@@ -1,10 +1,9 @@
 import tkinter as tk
 from datetime import datetime
 from functools import partial
-from tkinter import ttk
+from tkinter import ttk, font as tkfont
 from typing import TYPE_CHECKING
 from urllib.parse import quote
-
 if TYPE_CHECKING:
     from bgstally.bgstally import BGSTally
 
@@ -108,18 +107,18 @@ class WindowCMDRs:
                              self.bgstally.target_manager.get_human_readable_reason(target.get('Reason'), False)]
             treeview.insert("", 'end', values=target_values, iid=target.get('index'))
 
-        self.btn_copy_to_clipboard: tk.Button = tk.Button(frm_buttons, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, frm_container)) # LANG: Button label
+        self.btn_copy_to_clipboard: ttk.Button = ttk.Button(frm_buttons, text=_("Copy to Clipboard"), command=partial(self._copy_to_clipboard, frm_container)) # LANG: Button label
         self.btn_copy_to_clipboard.pack(side=tk.LEFT, padx=5, pady=5)
         self.btn_copy_to_clipboard['state'] = tk.DISABLED
 
-        self.btn_post: tk.Button = tk.Button(frm_buttons, text=_("Post CMDR to Discord"), command=partial(self._post_to_discord)) # LANG: Button on CMDR window
+        self.btn_post: ttk.Button = ttk.Button(frm_buttons, text=_("Post CMDR to Discord"), command=partial(self._post_to_discord)) # LANG: Button on CMDR window
         self.btn_post.pack(side=tk.RIGHT, padx=5, pady=5)
         self.btn_post['state'] = tk.DISABLED
         if not self._discord_button_available():
             ToolTip(self.btn_post, text=_("Both the 'Post to Discord as' field and a Discord webhook{CR}must be configured in the settings to allow posting to Discord").format(CR="\n")) # LANG: Post to Discord button tooltip
 
 
-        self.btn_delete: tk.Button = tk.Button(frm_buttons, text=_("Delete Selected"), command=partial(self._delete_selected, treeview)) # LANG: Button on CMDR window
+        self.btn_delete: ttk.Button = ttk.Button(frm_buttons, text=_("Delete Selected"), command=partial(self._delete_selected, treeview)) # LANG: Button on CMDR window
         self.btn_delete.pack(side=tk.RIGHT, padx=5, pady=5)
         self.btn_delete['state'] = tk.DISABLED
 
@@ -158,23 +157,28 @@ class WindowCMDRs:
         """
         self.selected_items = treeview.selection()
 
+        fnt:tkfont.Font = tkfont.nametofont("TkDefaultFont").copy()
+        fnt.configure(weight="bold")
+        style = ttk.Style()
+        style.configure('ft.TButton', font=fnt, foreground="red", relief="raised")
+
         if len(self.selected_items) == 1:
             self.btn_post.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
 
-            self.btn_delete.configure(bg="red", fg="white")
+            self.btn_delete.configure(style="ft.TButton")
             self.btn_delete['state'] = tk.NORMAL
             self.btn_copy_to_clipboard['state'] = tk.NORMAL
         elif len(self.selected_items) > 1:
             self.btn_post.configure(text=_("Post CMDR List to Discord")) # LANG: Button on CMDR window
             self._enable_post_button()
-            self.btn_delete.configure(bg="red", fg="white")
+            self.btn_delete.configure(style="ft.TButton")
             self.btn_delete['state'] = tk.NORMAL
             self.btn_copy_to_clipboard['state'] = tk.NORMAL
         else:
             self.btn_post.configure(text=_("Post CMDR to Discord")) # LANG: Button on CMDR window
             self.btn_post['state'] = tk.DISABLED
-            self.btn_delete.configure(bg="SystemButtonFace", fg="SystemButtonText")
+            self.btn_delete.configure(style="TButton")
             self.btn_delete['state'] = tk.DISABLED
             self.btn_copy_to_clipboard['state'] = tk.DISABLED
 

@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 import re
-import sys
 import tkinter as tk
 import tkinter.font as tkFont
 import webbrowser
@@ -10,7 +9,6 @@ from tkinter import ttk
 from typing import TYPE_CHECKING, Literal
 from urllib.parse import quote
 
-from requests import Response
 
 from config import config  # type: ignore
 
@@ -20,14 +18,14 @@ from thirdparty.table2ascii.table_style import TableStyle
 if TYPE_CHECKING:
     from colonisation import Colonisation
     from bgstally.bgstally import BGSTally
+    from bgstally.fleetcarrier import FleetCarrier
 
-from bgstally.constants import FONT_SMALL, TAG_OVERLAY_HIGHLIGHT, CheckStates, CommodityOrder, ProgressUnits, ProgressView, RequestMethod
+from bgstally.constants import FONT_SMALL, TABLE_STYLE, TAG_OVERLAY_HIGHLIGHT, CommodityOrder, ProgressUnits, ProgressView
 from bgstally.debug import Debug
-from bgstally.ravencolonial import RavenColonial
-from bgstally.requestmanager import BGSTallyRequest
+from bgstally.ravencolonial import Spansh
 from bgstally.utils import _, catch_exceptions, human_format, str_truncate
+import thirdparty.th as th
 from thirdparty.tksheet import Sheet, natural_sort_key
-from thirdparty.Tooltip import ToolTip
 
 commtt:str = _("List details ({view_title}), click to change") # LANG: tooltip for the commodity header
 
@@ -42,18 +40,29 @@ class Commodity:
     category:str = field(init=False)
     cargo:int = field(init=False)
     carrier:int = field(init=False)
+    carrier_sell:int = field(init=False)
     buyorder:int = field(init=False)
     remaining:int = field(init=False)
     purchase:int = field(init=False)
+    carrier_stocks:dict = field(init=False, default_factory=dict) # Stock (available to buy) of this commodity, keyed by carrier_id
+    carrier_demands:dict = field(init=False, default_factory=dict) # Demand (wanted, to load) of this commodity, keyed by carrier_id
 
     def __post_init__(self):
         self.name = self.col_obj.get_commodity(self.comm, 'name')
         self.category = self.col_obj.get_commodity(self.comm, 'category')
         self.cargo = self.col_obj.cargo.get(self.comm, 0)
-        self.carrier = self.col_obj.carrier_cargo.get(self.comm, 0)
-        self.buyorder = self.col_obj.carrier_buy.get(self.comm, 0)
+        personal:dict = self.col_obj.bgstally.fleet_carrier.get_cargo_data().get(self.comm, {})
+        self.carrier = int(personal.get('cargo', 0) or 0)
+        self.carrier_sell = int(personal.get('sell', 0))
+        self.buyorder = int(personal.get('buy', 0))
         self.remaining = max(0, self.required - self.delivered)
         self.purchase = max(0, self.required - self.delivered - self.cargo - self.carrier)
+
+        # carrier/carrier_sell/buyorder above are for our own carrier -- these are for other carriers.
+        for fc in self.col_obj.bgstally.fleet_carriers.carriers.values():
+            item:dict = fc.get_cargo_data().get(self.comm, {})
+            self.carrier_stocks[fc.carrier_id] = int(item.get('sell', 0))
+            self.carrier_demands[fc.carrier_id] = int(item.get('buy', 0))
 
 class ProgressWindow:
     '''
@@ -106,27 +115,21 @@ class ProgressWindow:
                 'Column' : 'Carrier',
                 'Label': _('Carrier'), # LANG: Carrier amount
                 'Tooltip' : f"{_('Amount in linked fleet carrier(s)')}" # LANG: Carrier amount tooltip
-            },
-            {
-                'Column' : 'BuyOrder',
-                'Label': _('Buy Orders'), # LANG: Carrier buy order amount
-                'Tooltip' : f"{_('Amount outstanding in carrier buy orders')}" # LANG: Carrier buy order tooltip
             }
         ]
         self.ordertts:list = [_('Alphabetical order'), _('Category order'), _('Quantity order')]  # LANG: Commodity order tooltips
 
         self.markets:dict = {
+            'commodity' : {'header': _('Commodity'), 'width': 150, 'align': "left"},    # LANG: Commodity heading
+            'category' : {'header': _('Category'), 'width': 110, 'align': "left"},      # LANG: Commodity category heading
             'systemName' : {'header': _('System'), 'width': 175, 'align': "left"},      # LANG: System Name heading
             'stationName' : {'header': _('Station'), 'width': 175, 'align': "left"},    # LANG: Station name heading
-            'distance': {'header': _('Dist (ly)'), 'width': 50, 'align': "center"},     # LANG: System distance heading
-            'distanceToArrival': {'header': _('Arr (ls)'), 'width': 50, 'align': "center"}, # LANG: station distance from arrival heading
-            'distance': {'header': _('Dist (ly)'), 'width': 50, 'align': "center"},     # LANG: System distance heading
-            'distanceToArrival': {'header': _('Arr (ls)'), 'width': 50, 'align': "center"}, # LANG: station distance from arrival heading
+            'distance': {'header': _('Dist (ly)'), 'width': 60, 'align': "center"},     # LANG: System distance heading
+            'distanceToArrival': {'header': _('Arr (ls)'), 'width': 60, 'align': "center"}, # LANG: station distance from arrival heading
             'type': {'header': _('Type'), 'width': 35, 'align': "center"},              # LANG: Station type (O=Orbital, S=Surface, C=Carrier)
-            'padSize': {'header': _('Pad'), 'width': 35, 'align': "center"},            # LANG: Pad size (L, M, S)
-            'count': {'header': _('Count'), 'width':45, 'align': "center"},             # LANG: Count of commodities available
-            'quantity': {'header': _('Amt (t)'), 'width':55, 'align': "center"},        # LANG: Tonnes of needed commodities available
-            'commodities': {'header': _('Commodities'), 'width': 565, 'align': "left"}  # LANG: List of commodities available
+            'padSize': {'header': _('Pad'), 'width': 35, 'align': "center"},            # LANG: Large landing pad available (L)
+            'quantity': {'header': _('Amt (t)'), 'width':65, 'align': "center"},        # LANG: Tonnes of the commodity available
+            'updated': {'header': _('Updated'), 'width': 120, 'align': "center"}        # LANG: Date and time the market was last updated
             }
 
         self.colors:dict = {'L' : '#d4edbc', 'M' : '#dbe5ff', 'O' : '#d5deeb', 'S' : '#ebe6db', 'C' : '#e6dbeb'}
@@ -138,6 +141,8 @@ class ProgressWindow:
         # Initialise the default units & column types
         self.units:list = [CommodityOrder.ALPHA, ProgressUnits.QTY, ProgressUnits.QTY, ProgressUnits.QTY]
         self.columns:list = [0, 2, 3, 5]
+        self.column_carriers:list = [None, None, None, None] # Which carrier a 'Carrier' column shows, if any
+        self.column_carrier_mode:list = ['sell', 'sell', 'sell', 'sell'] # Whether a 'Carrier' column shows buy, sell or cargo
         self.collbls:list = [None, None, None, None] # Column headings
         self.coltts: list = [None, None, None, None]
         self.total_row:list = [None, None, None, None]
@@ -145,16 +150,15 @@ class ProgressWindow:
         # By removing the carrier from here we remove it everywhere
         if not self.bgstally.fleet_carrier.available():
             self.headings.pop() # Carrier
-            self.headings.pop() # Buy Orders
 
         # UI components
         self.scale:float = config.get_int('ui_scale') / 100.00
         self.frame:tk.Frame
-        self.mkts_fr:tk.Toplevel # Markets popup window
+        self.mkts_fr:th.TopLevel # Markets popup window
         self.frame_row:int = 0 # Row in the parent frame
-        self.table_frame:tk.Frame # Table frame
-        self.title:tk.Label # Title object
-        self.titlett:ToolTip # Title tooltip
+        self.table_frame:th.Frame # Table frame
+        self.title:th.Label # Title object
+        self.titlett:th.Tooltip # Title tooltip
         self.rows:list = []
         self.rowtts:list = []
         self.progbar:ttk.Progressbar # Overall progress bar
@@ -162,12 +166,11 @@ class ProgressWindow:
         self.progress:int = 0 # Thread-safe version of progress percentage
         self.build_index:int = 0 # Which build we're showing
         self.view:ProgressView = ProgressView.REDUCED # Full, reduced, or no list of commodities
-        self.viewtt:ToolTip # View tooltip
+        self.viewtt:th.Tooltip # View tooltip
         self.comm_order:CommodityOrder = CommodityOrder.ALPHA # Commodity order
-        self.use_scrollbar:bool = self.bgstally.state.EnableProgressScrollbar.get() == CheckStates.STATE_ON
         self.max_rows:int = int(self.bgstally.state.ColonisationMaxCommodities.get()) if self.bgstally.state.ColonisationMaxCommodities.get().isdigit() else 10
 
-        self.comm_width:int = 24 if self.use_scrollbar else 26
+        self.comm_width:int = 24
         self.amt_width:int = 9
         self.bar_width:int = 300
         self.build_width:int = 46
@@ -175,47 +178,18 @@ class ProgressWindow:
     @catch_exceptions
     def create_frame(self, parent_frame:tk.Frame, start_row:int, column_count:int) -> None:
         ''' Create the progress frame. This is called by ui.py on startup. '''
-        def bind_mousewheel(event: tk.Event) -> None:
-            """ Scroll pane mousewheel bind on mouseover """
-            if sys.platform in ('linux', 'cygwin', 'msys'):
-                canvas.bind_all('<Button-4>', on_mousewheel)
-                canvas.bind_all('<Button-5>', on_mousewheel)
-            else:
-                canvas.bind_all('<MouseWheel>', on_mousewheel)
-
-        def unbind_mousewheel(event: tk.Event) -> None:
-            """ Scroll pane mousewheel unbind on mouseout """
-            if sys.platform in ('linux', 'cygwin', 'msys'):
-                canvas.unbind_all('<Button-4>')
-                canvas.unbind_all('<Button-5>')
-            else:
-                canvas.unbind_all('<MouseWheel>')
-
-        def on_mousewheel(event: tk.Event) -> None:
-            """ Scroll pane mousewheel event handler """
-            shift = (event.state & 0x1) != 0 #type: ignore
-            scroll:int = 0
-            if event.num == 4 or event.delta == 120:
-                scroll = -1
-            if event.num == 5 or event.delta == -120:
-                scroll = 1
-            if shift:
-                canvas.xview_scroll(scroll, 'units')
-            else:
-                canvas.yview_scroll(scroll, 'units')
-
         bgs_cols:int = 6
         self.colonisation:Colonisation = self.bgstally.colonisation
 
         self.frame_row = start_row
-        frame:tk.Frame = tk.Frame(parent_frame)
+        frame:th.Frame = th.Frame(parent_frame)
         frame.grid(row=start_row, column=0, columnspan=bgs_cols, sticky=tk.NSEW)
         self.frame = frame
 
         row:int = 0; col:int = 0
 
         # Overall progress bar chart
-        y:tk.LabelFrame = tk.LabelFrame(frame, border=0, height=10)#, width=int(self.bar_width*self.scale))
+        y:th.LabelFrame = th.LabelFrame(frame, border=0, height=10)#, width=int(self.bar_width*self.scale))
         y.grid(row=row, column=col, pady=0, sticky=tk.EW)
         y.grid_rowconfigure(0, weight=1)
         y.grid_propagate(False)
@@ -223,12 +197,12 @@ class ProgressWindow:
         self.progbar:ttk.Progressbar = ttk.Progressbar(y, orient=tk.HORIZONTAL, variable=self.progvar, maximum=100,
                                                        length=int(self.bar_width*self.scale),
                                                        mode='determinate')
-        self.progtt:ToolTip = ToolTip(self.progbar, text=_("Progress")) # LANG: progress tooltip
+        self.progtt:th.Tooltip = th.Tooltip(self.progbar, text=_("Progress")) # LANG: progress tooltip
         self.progbar.grid(row=0, column=0, pady=0, ipady=0, sticky=tk.EW)
         self.progbar.rowconfigure(0, weight=1)
         row += 1; col = 0
 
-        builds:tk.Frame = tk.Frame(frame)
+        builds:th.Frame = th.Frame(frame)
         builds.grid(row=row, column=0, sticky=tk.EW)
         builds.grid_columnconfigure(0, weight=0)
         builds.grid_columnconfigure(1, weight=5)
@@ -236,142 +210,121 @@ class ProgressWindow:
         builds.grid_columnconfigure(3, weight=0)
         builds.grid_columnconfigure(4, weight=0)
         c:int = 0
-        lbl:tk.Label = tk.Label(builds, text=_("Builds") + ":", anchor=tk.W) # LANG: Builds/bases
+        lbl:th.Label = th.Label(builds, text=_("Builds") + ":", anchor=tk.W) # LANG: Builds/bases
         lbl.grid(row=0, column=c, sticky=tk.W)
         self._set_weight(lbl)
         c += 1
-        self.title = tk.Label(builds, text=_("None"), justify=tk.CENTER, anchor=tk.CENTER, width=self.build_width, cursor="hand2") # LANG: None
+        self.title = th.Label(builds, text=_("None"), justify=tk.CENTER, anchor=tk.CENTER, width=self.build_width, cursor="hand2") # LANG: None
         self.title.bind("<Button-1>", partial(self.event, "copy"))
         self.title.bind("<Button-3>", partial(self._context_menu))
         self.title.grid(row=0, column=c, sticky=tk.EW)
-        self.titlett:ToolTip = ToolTip(self.title, text=f"{_('Current build')}, {_('left click to copy, right click menu')}") # LANG: tooltip for the build name
+        self.titlett:th.Tooltip = th.Tooltip(self.title, text=f"{_('Current build')}, {_('left click to copy, right click menu')}") # LANG: tooltip for the build name
         c += 1
 
-        prev_btn:tk.Label = tk.Label(builds, image=self.bgstally.ui.image_icon_left_arrow, cursor="hand2")
+        prev_btn:th.Label = th.Label(builds, image=self.bgstally.ui.image_icon_left_arrow, cursor="hand2")
         prev_btn.bind("<Button-1>", partial(self.event, "prev"))
         prev_btn.grid(row=0, column=c, sticky=tk.W)
-        ToolTip(prev_btn, text=_("Show previous build")) # LANG: tooltip for the previous build icon
+        th.Tooltip(prev_btn, text=_("Show previous build")) # LANG: tooltip for the previous build icon
         c += 1
 
-        view_btn:tk.Label = tk.Label(builds, image=self.bgstally.ui.image_icon_change_view, cursor="hand2")
+        view_btn:th.Label = th.Label(builds, image=self.bgstally.ui.image_icon_change_view, cursor="hand2")
         #view_btn.bind("<Button-1>", partial(self.event, "change"))
         view_btn.bind("<Button-1>", partial(self._view_menu))
         view_btn.bind("<Button-3>", partial(self._view_menu))
         view_btn.grid(row=0, column=c, sticky=tk.E)
-        self.viewtt:ToolTip = ToolTip(view_btn, text=commtt.format(view_title=self.view.name.title()))
+        self.viewtt:th.Tooltip = th.Tooltip(view_btn, text=commtt.format(view_title=self.view.name.title()))
         c += 1
 
-        next_btn:tk.Label = tk.Label(builds, image=self.bgstally.ui.image_icon_right_arrow, cursor="hand2")
+        next_btn:th.Label = th.Label(builds, image=self.bgstally.ui.image_icon_right_arrow, cursor="hand2")
         next_btn.bind("<Button-1>", partial(self.event, "next"))
         next_btn.grid(row=0, column=c, sticky=tk.E)
-        ToolTip(next_btn, text=_("Show next build")) # LANG: tooltip for the next build icon
+        th.Tooltip(next_btn, text=_("Show next build")) # LANG: tooltip for the next build icon
 
         row += 1; col = 0
 
         # Commodity table frame
-        table_frame:tk.Frame = tk.Frame(frame)
+        table_frame:th.Frame = th.Frame(frame)
         table_frame.grid(row=row, column=col, sticky=tk.NSEW)
         table_frame.grid_columnconfigure(0, weight=1)
+        table_frame.grid_rowconfigure(1, weight=1)
         self.table_frame = table_frame
 
-        # Add the scrollbar frame
-        if self.use_scrollbar:
-            height=int(self.max_rows*21*self.scale)
+        header_frame:th.Frame = th.Frame(table_frame)
+        header_frame.grid(row=0, column=0, sticky=tk.EW)
+        footer_frame:th.Frame = th.Frame(table_frame)
+        footer_frame.grid(row=2, column=0, sticky=tk.EW)
 
-            header_frame = tk.Frame(table_frame)
-            header_frame.grid(row=0, column=0, sticky=tk.EW)
-            footer_frame = tk.Frame(table_frame)
-            footer_frame.grid(row=2, column=0, sticky=tk.EW)
-            if config.get_int('theme') > 0:
-                header_frame.configure(background='black')
-                footer_frame.configure(background='black')
-            if config.get_int('theme') == 2:
-                header_frame.configure(background='')
-                footer_frame.configure(background='')
+        # Match the body's column weights so header/footer redistribute the same way it does
+        for weighted_frame in (header_frame, footer_frame):
+            weighted_frame.columnconfigure(0, weight=3)
+            weighted_frame.columnconfigure(1, weight=1)
+            weighted_frame.columnconfigure(2, weight=1)
+            weighted_frame.columnconfigure(3, weight=1)
 
-            canvas:tk.Canvas = tk.Canvas(table_frame, height=height, highlightthickness=0)
-            scrollbar:tk.Scrollbar = tk.Scrollbar(table_frame, orient='vertical', command=canvas.yview)
+        # Scrollbar only actually appears once the commodity list exceeds max_rows worth of height
+        scroll_frame:th.ScrollableFrame = th.ScrollableFrame(table_frame, maxheight=int(self.max_rows*21*self.scale))
+        scroll_frame.grid(row=1, column=0, sticky=tk.NSEW)
+        self.scroll_frame:th.ScrollableFrame = scroll_frame
 
-            scrollable_frame = tk.Frame(canvas)
-            if config.get_int('theme') > 0: scrollable_frame.configure(background='black')
-            if config.get_int('theme') == 2: scrollable_frame.configure(background='')
-            scrollable_frame.bind(
-                '<Configure>',
-                lambda e: canvas.configure(
-                    scrollregion=canvas.bbox('all')
-                )
-            )
-            canvas.bind('<Enter>', bind_mousewheel)
-            canvas.bind('<Leave>', unbind_mousewheel)
+        # scroll_frame's own width is now constant regardless of whether its scrollbar is showing,
+        # so header/footer just need a matching one-time reservation, never toggled, to line up with it
+        for strip in (header_frame, footer_frame):
+            spacer:tk.Frame = tk.Frame(strip, width=scroll_frame.scrollbar_width, height=1)
+            spacer.grid(row=0, column=4)
+            spacer.grid_propagate(False)
 
-            canvas.create_window((0, 0), window=scrollable_frame, anchor=tk.NW)
-            canvas.configure(yscrollcommand=scrollbar.set)
-            canvas.grid(row=1, column=0, sticky=tk.NSEW)
-            canvas.columnconfigure(0, weight=3)
-            canvas.columnconfigure(1, weight=1)
-            canvas.columnconfigure(2, weight=1)
-            canvas.columnconfigure(3, weight=1)
-            scrollbar.grid(row=0, column=1, rowspan=3, sticky=tk.NS, ipadx=0, padx=0)
-            table:tk.Frame = scrollable_frame
-            headings_parent:tk.Frame = header_frame
-            totals_parent:tk.Frame = footer_frame
-
-            self.canvas:tk.Canvas = canvas
-            self.scrollbar:tk.Scrollbar = scrollbar
-        else:
-            table:tk.Frame = tk.Frame(table_frame)
-            table.grid(row=0, column=0, sticky=tk.NS)
-            headings_parent = table
-            totals_parent = table
+        table:th.Frame = scroll_frame.interior
+        table.columnconfigure(0, weight=3)
+        table.columnconfigure(1, weight=1)
+        table.columnconfigure(2, weight=1)
+        table.columnconfigure(3, weight=1)
+        headings_parent:th.Frame = header_frame
+        totals_parent:th.Frame = footer_frame
 
         row:int = 0
 
         # Column headings
-        for col, v in enumerate(self.columns):
-            if v >= len(self.headings): v = 0
-            lbl = tk.Label(headings_parent, text=self.headings[v].get('Label'), cursor='hand2')
+        for col in range(len(self.columns)):
+            lbl = th.Label(headings_parent, text=self._column_label(col), cursor='hand2')
             if col == 0:
                 lbl.configure(width=self.comm_width, anchor=tk.W)
             else:
                 lbl.configure(width=self.amt_width, justify=tk.RIGHT, anchor=tk.E)
-            lbl.bind("<Button-1>", partial(self.change_units, col, 'Column'))
+            if col == 0:
+                lbl.bind("<Button-1>", partial(self.change_units, col, 'Column'))
+            else:
+                lbl.bind("<Button-1>", partial(self._column_menu, col))
             lbl.bind("<Button-3>", partial(self.change_units, col, 'Units'))
-            if config.get_int('theme') == 0: lbl['fg'] = 'black'
             self._set_weight(lbl)
             lbl.grid(row=0, column=col, sticky=tk.EW if col == 0 else tk.E, padx=(0,5))
 
             self.collbls[col] = lbl
-            self.coltts[col] = ToolTip(lbl, text=self.headings[v].get('Tooltip'))
-        if not self.use_scrollbar:
-            row = 1
+            self.coltts[col] = th.Tooltip(lbl, text=self._column_tooltip(col))
 
         # Go through the complete list of possible commodities and make a row for each and hide it.
         for c in self.colonisation.get_commodity_list():
             r:dict = {}
             for col, v in enumerate(self.columns):
-                lbl = tk.Label(table, text='', cursor='hand2')
+                lbl = th.Label(table, text='', cursor='hand2')
                 if col == 0:
                     lbl.configure(width=self.comm_width, anchor=tk.W)
                 else:
                     lbl.configure(width=self.amt_width, justify=tk.RIGHT, anchor=tk.E)
 
-                if self.use_scrollbar and config.get_int('theme') > 0:
-                    lbl.configure(background='black', foreground=config.get_str('dark_text'))
                 lbl.grid(row=row, column=col, sticky=tk.EW if col == 0 else tk.E, padx=(0,5))
                 r[col] = lbl
             self.rows.append(r)
-            self.rowtts.append(ToolTip(r[0], text='Category'))
+            self.rowtts.append(th.Tooltip(r[0], text='Category'))
             row += 1
 
         # Totals at the bottom
-        totals_row:int = 0 if self.use_scrollbar else row + 1
         for col, v in enumerate(self.columns):
-            lbl = tk.Label(totals_parent, text=_('Total')) # LANG: Total amounts
+            lbl = th.Label(totals_parent, text=_('Total')) # LANG: Total amounts
             if col == 0:
                 lbl.configure(width=self.comm_width, anchor=tk.W)
             else:
                 lbl.configure(width=self.amt_width, justify=tk.RIGHT, anchor=tk.E)
-            lbl.grid(row=totals_row, column=col, sticky=tk.EW if col == 0 else tk.E, padx=(0,5), pady=(0,2))
+            lbl.grid(row=0, column=col, sticky=tk.EW if col == 0 else tk.E, padx=(0,5), pady=(0,2))
             self._set_weight(lbl)
             self.total_row[col] = lbl
 
@@ -441,7 +394,7 @@ class ProgressWindow:
 
         column_widths=[30, 11, 11, 11]
         alignments=[Alignment.LEFT, Alignment.RIGHT, Alignment.RIGHT, Alignment.RIGHT]
-        style:TableStyle = TableStyle.from_string("      || -||            --  --")
+        style:TableStyle = TableStyle.from_string(TABLE_STYLE)
 
         self.colonisation = self.bgstally.colonisation
         tracked:list = self.colonisation.get_tracked_builds()
@@ -465,9 +418,8 @@ class ProgressWindow:
         output += "```"
 
         heading_list:list = []
-        for i, col in enumerate(self.columns):
-            if col >= len(self.headings): col = 0
-            heading_list.append(str_truncate(self.headings[col].get('Label'), column_widths[i]-2))
+        for i in range(len(self.columns)):
+            heading_list.append(str_truncate(self._column_label(i), column_widths[i]-2))
         #heading_list.insert(1, _('Category'))
 
         comms_list:list[list] = []
@@ -481,7 +433,7 @@ class ProgressWindow:
 
         total_list:list = []
         for i, col in enumerate(self.columns):
-            total_list.append(self._get_value(self.headings[col].get('Column'), self.units[i], totals) if i > 0 else _('Total')) # LANG: Total amounts
+            total_list.append(self._get_value(self.headings[col].get('Column'), self.units[i], totals, self.column_carriers[i], self.column_carrier_mode[i]) if i > 0 else _('Total')) # LANG: Total amounts
 
         # Add commodity name.
         table:str = table2ascii(header=heading_list, body=comms_list, footer=total_list,
@@ -522,14 +474,16 @@ class ProgressWindow:
 
         table:str = "\n- - - - - - - - - - - - -\n"
 
-        table += f"{self.headings[self.columns[1]].get('Label')}\n"
+        table += f"{self._column_label(1)}\n"
 
         rows:int = 0
         rowcnt:int = 0
         for comm, row_values in self._get_rows(comms):
             if self._skip_row(self.view, comm, rowcnt): continue
             rowcnt += 1
-            if int(re.sub(r'[^\d]+', '', row_values[1])) == 0 and self.view != ProgressView.FULL: continue
+            if self.view != ProgressView.FULL and int(re.sub(r'[^\d]+', '', row_values[1])) == 0: continue
+            if self.view != ProgressView.FULL and self.colonisation.docked == True and self.colonisation.market and \
+                not self.colonisation.market.get(f"${comm.comm}_name;", 0): continue # market!
             w:int = 18 - len(row_values[1])
             v:str = f"{row_values[1]: <16}"[0:w] # Adjust for proportional font
             c:str = str_truncate(row_values[0], 20)
@@ -537,7 +491,7 @@ class ProgressWindow:
             rows += 1
 
         table += "- - - - - - - - - - - - -\n"
-        val:str = self._get_value(self.headings[self.columns[1]].get('Column'), self.units[1], totals)
+        val:str = self._get_value(self.headings[self.columns[1]].get('Column'), self.units[1], totals, self.column_carriers[1], self.column_carrier_mode[1])
         w:int = 18 - len(val)
         v:str = f"{val: <16}"[0:w] # Adjust for proportional font
         c:str = _("Total") # LANG: Total amounts
@@ -571,157 +525,198 @@ class ProgressWindow:
                 self.frame.clipboard_append(event)
 
         self.update_display()
+        if event in ('next', 'prev', 'change'):
+            th.fit_window(self.frame)
 
 
     @catch_exceptions
     def change_units(self, column:int, which:str, tkEvent) -> None:
-        ''' Change the view of the column when clicked. This cycles between tonnes, remaining, loads, etc. '''
+        ''' Cycle commodity order (column 0) or amount units - tonnes vs loads (other columns) '''
         if column == 0:
             self.comm_order = CommodityOrder((self.comm_order.value + 1) % len(CommodityOrder))
             self.coltts[column].text = self.ordertts[self.comm_order.value]
-        else:
-            if which == 'Units':
-                self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
-            else:
-                val = (self.columns[column] + 1) % len(self.headings)
-                if val == 0: val = 1 # Don't permit Commodities
-                self.columns[column] = val
-                self.coltts[column].text = self.headings[val].get('Tooltip')
+        elif which == 'Units':
+            self.units[column] = ProgressUnits((self.units[column].value + 1) % (len(ProgressUnits)))
 
         self.colonisation.dirty = True
         self.update_display()
 
+    @catch_exceptions
+    def _column_menu(self, col:int, event:tk.Event) -> None:
+        ''' Display a popup menu for choosing what a commodity column shows '''
+        menu:tk.Menu = tk.Menu(tearoff=tk.FALSE)
+        for i, heading in enumerate(self.headings):
+            if heading['Column'] == 'Commodity': continue
+            if heading['Column'] == 'Carrier':
+                submenu:tk.Menu = tk.Menu(menu, tearoff=tk.FALSE)
+                submenu.add_command(label=_('Buy'), command=partial(self._set_column, col, i, None, 'buy')) # LANG: Carrier menu entry, demand
+                submenu.add_command(label=_('Sell'), command=partial(self._set_column, col, i, None, 'sell')) # LANG: Carrier menu entry, stock
+                submenu.add_command(label=_('Cargo'), command=partial(self._set_column, col, i, None, 'cargo')) # LANG: Carrier menu entry, cargo
+                menu.add_cascade(label=heading['Label'], menu=submenu)
+                continue
+            menu.add_command(label=heading['Label'], command=partial(self._set_column, col, i, None, 'sell')) # LANG: progress column popup menu
+
+        # Other carriers (not our personal one) go below a separator
+        carrier_index:int = next((i for i, h in enumerate(self.headings) if h['Column'] == 'Carrier'), -1)
+        others:list = []
+        squadron:FleetCarrier|None = self.bgstally.fleet_carriers.squadron
+        if squadron is not None and squadron.available():
+            others.append((squadron.overview.get('callsign') or _('Squadron'), squadron.carrier_id)) # LANG: Carrier menu entry
+        for fc in self.bgstally.fleet_carriers.third_party:
+            others.append((fc.overview.get('callsign') or str(fc.carrier_id), fc.carrier_id))
+
+        if others and carrier_index >= 0:
+            menu.add_separator()
+            for label, carrier_id in others:
+                submenu = tk.Menu(menu, tearoff=tk.FALSE)
+                submenu.add_command(label=_('Buy'), command=partial(self._set_column, col, carrier_index, carrier_id, 'buy')) # LANG: Carrier menu entry, demand
+                submenu.add_command(label=_('Sell'), command=partial(self._set_column, col, carrier_index, carrier_id, 'sell')) # LANG: Carrier menu entry, stock
+                menu.add_cascade(label=label, menu=submenu)
+
+        menu.post(event.x_root, event.y_root)
+        menu.grab_release()
 
     @catch_exceptions
-    def link(self, comm:str, src:str|None, tkEvent) -> None:
-        ''' Open the link to Inara for nearest location for the commodity. '''
+    def _set_column(self, col:int, heading_index:int, carrier_id:int|None, mode:str = 'sell') -> None:
+        ''' Set a column to show a metric, or a specific carrier's buy/sell/cargo amount '''
+        self.columns[col] = heading_index
+        self.column_carriers[col] = carrier_id
+        self.column_carrier_mode[col] = mode
+        self.coltts[col].text = self._column_tooltip(col)
+        self.colonisation.dirty = True
+        self.update_display()
 
-        comm_id = self.bgstally.ui.commodities.get(comm, {}).get('InaraID', "")
-        sys:str|None = self.colonisation.current_system if self.colonisation.current_system != None and src == None else src
+    def _carrier_label(self, carrier_id:int, long:bool = False) -> str:
+        ''' Display name for a specific carrier column: its callsign, or a role name before one is known '''
+        fc:FleetCarrier|None = self.bgstally.fleet_carriers.find(carrier_id)
+        if fc is None: return _('Carrier') # LANG: Carrier column fallback label
+        if long and fc.overview.get('name', ''): return fc.overview.get('name', '')
+        return fc.overview.get('callsign', '') or _('Unknown') # LANG: Carrier column fallback label
+
+    def _column_heading(self, col:int) -> dict:
+        ''' The heading dict currently selected for a column '''
+        idx:int = self.columns[col] if self.columns[col] < len(self.headings) else 0
+        return self.headings[idx]
+
+    def _other_carrier(self, col:int) -> int|None:
+        ''' The selected carrier_id for a Carrier column, unless it's our personal carrier (kept as plain 'Carrier') '''
+        carrier_id:int|None = self.column_carriers[col]
+        if carrier_id is None or carrier_id == self.bgstally.fleet_carrier.carrier_id: return None
+        return carrier_id
+
+    def _column_label(self, col:int) -> str:
+        ''' Display label for a column: metric name, or the carrier/mode a Carrier column is showing '''
+        heading:dict = self._column_heading(col)
+        if heading['Column'] != 'Carrier': return heading.get('Label', '')
+
+        icon:str = {'buy': '▼', 'sell': '▲', 'cargo': '■'}.get(self.column_carrier_mode[col], '')
+        other:int|None = self._other_carrier(col)
+        name:str = self._carrier_label(other) if other is not None else _('Carrier') # LANG: Personal carrier column label
+        return f"{icon}{name}"
+
+    def _column_tooltip(self, col:int) -> str:
+        ''' Tooltip for a column: metric tooltip, or which carrier/mode a Carrier column is showing '''
+        heading:dict = self._column_heading(col)
+        if heading['Column'] != 'Carrier': return heading.get('Tooltip', '')
+
+        other:int|None = self._other_carrier(col)
+        carrier:str = self._carrier_label(other, long=True)# if other is not None else _('Personal') # LANG: Personal carrier fallback label
+        modes:dict = {'buy': _('Demand'), 'sell': _('Stock available to buy'), 'cargo': _('Amount held in cargo')} # LANG: Carrier column tooltip modes
+        return _("{mode} at {carrier}").format(mode=modes.get(self.column_carrier_mode[col], ''), carrier=carrier) # LANG: Carrier column tooltip
+
+
+    @catch_exceptions
+    def link(self, src:str|None, tkEvent) -> None:
+        ''' Open a table of the nearest Spansh markets for the commodities still to buy. '''
+
+        Debug.logger.debug(f"Opening markets window for system: {src}")
+        frame = self.bgstally.ui.frame
+        if frame is None: return
+
+        sys:str|None = src if src is not _("Unknown") else None
+        if not sys: sys = self.colonisation.current_system
         if sys == None: sys = 'sol'
 
-        # pi3=3 - large, pi3=2 - medium
-        size:int = 2 if self.colonisation.cargo_capacity < 407 else 3
+        listed:list[Commodity] = self._get_comms(self.colonisation.get_tracked_builds())
+        comms:list[Commodity] = []
+        for which in ['purchase', 'remaining', 'required']:
+            comms = ([c for i, c in enumerate(listed) if getattr(c, which) > 0 and not self._skip_row(self.view, c, i)])
+            if comms != []: break
+        if comms == []: return
 
-        # pi7=5000 - supply (100, 500, 1000, 2500, 5000, 10000, 50000)
-        tracked:list = self.colonisation.get_tracked_builds()
-        required:list = self.colonisation.get_required(tracked)
-        delivered:list = self.colonisation.get_delivered(tracked)
-        rem:int = (required[self.build_index].get(comm, 0) if len(required) > self.build_index else 0) - (delivered[self.build_index].get(comm, 0) if len(delivered) > self.build_index else 0)
-        for min in [500, 1000, 2500, 5000, 10000, 50000]:
-            if min > rem: break
-
-        projectid:str|None = None
-        if self.build_index < len(tracked):
-            projectid = tracked[self.build_index].get('ProjectID', None)
-        if self.build_index < len(tracked) and projectid == None:
-            progress:dict|None = self.colonisation.find_progress(tracked[self.build_index].get('MarketID'))
-            if progress != None:
-                projectid = progress.get('ProjectID', None)
-
-        # If we don't have a RavenColonial project ID then use Inara
-        if projectid == None:
-            url:str = f"https://inara.cz/elite/commodities/?formbrief=1&pi1=1&pa1[]={comm_id}&ps1={quote(sys)}&pi10=3&pi11=0&pi3={size}&pi9=0&pi4=0&pi14=0&pi5=720&pi12=0&pi7={min}&pi8=0&pi13=0"
-            webbrowser.open(url)
-            return
-
-        url:str = f"https://ravencolonial100-awcbdvabgze4c5cq.canadacentral-01.azurewebsites.net/api/project/{projectid}/markets"
-        payload:dict = {"refSystem": sys,
-                        "shipSize": 'medium',
-                        "requireNeed": True}
-        self.bgstally.request_manager.queue_request(url, RequestMethod.POST, payload=payload, headers=RavenColonial(self.colonisation)._headers(), callback=self._markets_callback, attempts=3)
-
-        # Create/recreate the frame now since it takes a while to show the data
-        if hasattr(self, 'mkts_fr') and self.mkts_fr.winfo_exists(): self.mkts_fr.destroy()
-        self.mkts_fr = tk.Toplevel(self.bgstally.ui.frame)
+        # Create/recreate the frame now since results arrive one commodity at a time
+        if hasattr(self, 'mkts_fr') and self.mkts_fr.winfo_exists(): self._close_markets()
+        self.mkts_fr = th.TopLevel(frame)
         self.mkts_fr.wm_title(_("{plugin_name} - Markets Window").format(plugin_name=self.bgstally.plugin_name)) # LANG: Title of the markets popup window
         width:int = sum([v.get('width') for v in self.markets.values()]) + 20
-        self.mkts_fr.geometry(f"{int(width*self.scale)}x{int(500*self.scale)}")
-        self.mkts_fr.protocol("WM_DELETE_WINDOW", self.mkts_fr.destroy)
+        self.mkts_fr.geometry(self.colonisation.window_geometries.get('Markets', f"{int(width*self.scale)}x{int(300*self.scale)}"))
+        self.mkts_fr.protocol("WM_DELETE_WINDOW", self._close_markets)
         self.mkts_fr.config(bd=2, relief=tk.FLAT)
 
-
-    @catch_exceptions
-    def _markets_callback(self, success:bool, response:Response, request:BGSTallyRequest) -> None:
-        ''' Callback from the RavenColonial materials request to open popup '''
-        if not self.mkts_fr or not self.mkts_fr.winfo_exists(): return
-
-        if response == None or response.status_code != 200:
-            Debug.logger.error(f"RavenColonial materials request failed")
-            self.mkts_fr.destroy()
-            return
-
-        tmp:dict = response.json()
-        markets:list = tmp.get('markets', [])
-        if len(markets) == 0:
-            Debug.logger.info("RavenColonial materials request returned no markets")
-            self.mkts_fr.destroy()
-            return
-
         header_fnt:tuple = (FONT_SMALL[0], FONT_SMALL[1], "bold")
-        sheet:Sheet = Sheet(self.mkts_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False,
+        self.mkts_sheet:Sheet = Sheet(self.mkts_fr, sort_key=natural_sort_key, note_corners=True, show_row_index=False,
                         cell_auto_resize_enabled=True, height=4096,
                         show_horizontal_grid=True, show_vertical_grid=True, show_top_left=False,
                         align="center", show_selected_cells_border=True, table_selected_cells_border_fg='',
                         show_dropdown_borders=False, header_bg='lightgrey', header_selected_cells_bg='lightgrey',
                         empty_vertical=0, empty_horizontal=0, header_font=header_fnt, font=FONT_SMALL, arrow_key_down_right_scroll_page=True,
-                        show_header=True, default_row_height=int(19*self.scale), table_wrap="w", alternate_color="gray95")
-        sheet.pack(fill=tk.BOTH, padx=0, pady=0)
+                        show_header=True, default_row_height=int(19*self.scale), alternate_color="gray95")
+        self.mkts_sheet.pack(fill=tk.BOTH, padx=0, pady=0)
+        self.mkts_sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize',
+                                        'right_click_popup_menu', 'copy', 'sort_rows')
+        self.mkts_sheet.set_header_data([v['header'] for v in self.markets.values()])
+        self.mkts_sheet.extra_bindings('cell_select', func=partial(self._sheet_clicked, self.mkts_sheet))
+        self.mkts_sheet.set_sheet_data([[''] * len(self.markets)], redraw=False) # Columns must exist before they can be sized
+        for i, v in enumerate(self.markets.values()):
+            self.mkts_sheet.align_columns(i, v.get('align'))
+            self.mkts_sheet.column_width(i, v.get('width', 100))
 
-        sheet.enable_bindings('single_select', 'column_select', 'row_select', 'drag_select', 'column_width_resize', 'right_click_popup_menu', 'copy', 'sort_rows')
-        sheet.set_header_data([v['header'] for v in self.markets.values()])
-        sheet.extra_bindings('cell_select', func=partial(self._sheet_clicked, sheet))
+        self.mkts_order:list[str] = [c.comm for c in comms]
+        self.mkts_rows:dict = {}
+        Spansh(self.bgstally).find_markets({c.comm: c.purchase for c in comms}, sys,
+                                           lambda symbol, rows:frame.after(0, partial(self._show_markets, symbol, rows)))
 
-        tracked:list = self.colonisation.get_tracked_builds()
-        required:list = self.colonisation.get_required(tracked)
-        delivered:list = self.colonisation.get_delivered(tracked)
 
-        data:list = []
-        for i, m in enumerate(list(k for k in sorted(markets, key=lambda item: item.get('distance'), reverse=False))):
-            include:bool = False
-            row:list = []
-            for k, v in self.markets.items():
-                d:str = ''
-                match k:
-                    case 'distance':
-                        d = f"{m.get('distance', 0):,.1f}"
-                    case 'distanceToArrival':
-                        d = f"{int(m.get('distanceToArrival', 0)):,}"
-                    case 'type':
-                        d = 'S' if m.get('surface', False) == True else 'C' if m.get('type', '').lower().find('carrier') >= 0 else 'O'
-                        sheet[f"E{i+1}"].highlight(bg=self.colors.get(d, 'white'))
-                    case 'padSize':
-                        d = m.get('padSize', '').upper()[0:1]
-                        sheet[f"F{i+1}"].highlight(bg=self.colors.get(d, 'white'))
-                    case 'count':
-                        d = str(len([k for k, v in m.get('supplies', {}).items() if min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) > 0]))
-                        if d != '0': include = True
-                    case 'quantity':
-                        d = f"{(sum([min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) for k, v in m.get('supplies', {}).items()])):,}"
-                    case 'commodities':
-                        # ⚠ ⊘ ⦵
-                        d = ', '.join([f"{self.colonisation.get_commodity(k, 'name')} ({human_format(min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v))}{'/'+human_format(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0)) if v < required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0) else ''})" for k, v in m.get('supplies', {}).items() if min(required[self.build_index].get(k, 0) - delivered[self.build_index].get(k, 0), v) > 0])
-                    case _:
-                        d = m.get(k, '')
-                row.append(d)
+    def _close_markets(self) -> None:
+        ''' Close the markets window, remembering its size and position. '''
+        self.colonisation.window_geometries['Markets'] = self.mkts_fr.winfo_geometry()
+        self.mkts_fr.destroy()
 
-            if include == True:
-                data.append(row)
 
-        sheet.set_sheet_data(data, redraw=False)
+    @catch_exceptions
+    def _show_markets(self, symbol:str, rows:list) -> None:
+        ''' Add one commodity's Spansh results to the markets table, keeping commodities in progress order. '''
+        if not self.mkts_fr or not self.mkts_fr.winfo_exists(): return
 
-        for i, (k, v) in enumerate(self.markets.items()):
-            sheet.align_columns(i, v.get('align'))
-            sheet.column_width(i, int(v.get('width')*self.scale))
+        name:str = self.colonisation.get_commodity(symbol, 'name')
+        category:str = self.colonisation.get_commodity(symbol, 'category')
+        self.mkts_rows[symbol] = [[name, category, r['system'], r['station'], f"{r['distance']:,.1f}",
+                                   f"{int(r['arrival']):,}" if r['arrival'] is not None else '', r['type'], 'L' if r['large'] else '-',
+                                   f"{int(r['supply']):,}", r['updated'].replace('T', ' ')[0:16]] for r in rows] \
+                                 or [[name, category, _('None found')] + [''] * 7] # LANG: No market found for a commodity
 
-        sheet.set_all_row_heights(height=None, only_set_if_too_small=True, redraw=True)
+        # Clear repeats.
+        if len(self.mkts_rows[symbol]) > 1:
+            for i in range(1, len(self.mkts_rows[symbol])):
+                self.mkts_rows[symbol][i][0]= ''
+                self.mkts_rows[symbol][i][1]= ''
+                if self.mkts_rows[symbol][0][2] == self.mkts_rows[symbol][i][2]:
+                    self.mkts_rows[symbol][i][2]= ''
+
+        data:list = [row for k in self.mkts_order for row in self.mkts_rows.get(k, [])]
+        sheet:Sheet = self.mkts_sheet
+        sheet.set_sheet_data(data, reset_col_positions=False, reset_highlights=True, redraw=False)
+        for i, row in enumerate(data):
+            sheet[f"G{i+1}"].highlight(bg=self.colors.get(row[6], 'white'))
+            sheet[f"H{i+1}"].highlight(bg=self.colors.get(row[7], 'white'))
+        sheet.set_all_row_heights(height=int(19*self.scale), redraw=False)
+        sheet.set_all_column_widths(width=None, only_set_if_too_small=True, redraw=True, recreate_selection_boxes=True)
 
 
     @catch_exceptions
     def _sheet_clicked(self, sheet:Sheet, event) -> None:
         ''' Open system or station '''
-        #sheet.toggle_select_row(event.selected.row, False, True)
-        if event.selected.column == 0:
+        if event.selected.column == 2:
             system:str = str(sheet[(event['selected'].row, event['selected'].column)].data)
             self.bgstally.ui.window_colonisation._link({'StarSystem': system}, 'System')
 
@@ -735,9 +730,6 @@ class ProgressWindow:
 
         # Always ignore commodities that aren't required at all
         if comm.required <= 0:
-            return True
-        # Skip rows that exceed the maximum if we're not using the scrollbar (if we are using the scrollbar then we show them all and let the user scroll)
-        if (rowcnt > self.max_rows > 0) and not self.use_scrollbar:
             return True
 
         if view == ProgressView.FULL: # FULL show everything else
@@ -786,7 +778,7 @@ class ProgressWindow:
             Debug.logger.debug(f"Build index {self.build_index} out of range {len(tracked)}, resetting to 0")
             self.build_index = 0
 
-        self.frame.grid()
+        self.frame.grid(padx=5)
 
         # Set the build name (system name and plan name)
         name:str = _('All') # LANG: all builds
@@ -797,7 +789,7 @@ class ProgressWindow:
             pn:str = b.get('Plan', b.get('StarSystem', _('Unknown')))    # LANG: Unknown colonisation plan name
             bn:str = b.get('Base Type', '') + ", " + self._base_name(b) if b.get('Name', ' ') != ' ' else b.get('Base Type', '')
             name = f"{pn}, {bn}"
-        self.titlett.text = f"{name}\n{_('left click to copy, right click menu')}" # LANG: tooltip for the build name"
+        self.titlett.text = f"{name}\n{_('left click to copy, right click menu')}" # LANG: tooltip for the build name
         self.title.config(text=str_truncate(name, self.build_width, loc='middle'))
         # Get an ordered list of commodities
         comms:list[Commodity] = self._get_comms(tracked)
@@ -819,22 +811,15 @@ class ProgressWindow:
             if self._skip_row(self.view, comm, rowcnt):
                 continue
 
-            if rowcnt == self.max_rows and not self.use_scrollbar:
-                for cell in row.values():
-                    cell.grid_remove()
-                row[0]['text'] = '… '
-                row[0].grid()
-                rowcnt += 1
-                break
-
             for col, v in enumerate(row_values):
-                row[col].bind("<Button-1>", partial(self.link, comm.comm, None))
-                row[col].bind("<Button-2>", partial(self.link, comm.comm, system))
+                row[col].bind("<Button-1>", partial(self.link, system))
+                row[col].bind("<Button-2>", partial(self.link, None))
                 row[col].bind("<Button-3>", partial(self.event, self.colonisation.get_commodity(comm.comm)))
-
                 if col == 0:
-                    row[col]['text'] = v
+                    row[col]['text'] = str_truncate(v, 26)
                     self.rowtts[rowcnt].text = self.colonisation.get_commodity(comm.comm, 'category')
+                    if hasattr(self, 'mkts_rows') and comm.comm in self.mkts_rows: # Add the nearest market to the tooltip if we have it
+                        self.rowtts[rowcnt].text += f" – {self.mkts_rows[comm.comm][0][3]}"
                     row[col].grid()
                     continue
 
@@ -849,6 +834,8 @@ class ProgressWindow:
             for cell in self.rows[j].values():
                 cell.grid_remove()
 
+        self.scroll_frame.refresh()
+
         # We're down to having nothing left to deliver.
         if (totals.required - totals.delivered) == 0:
             if len(tracked) == 0: # Nothing at all, remove the entire frame
@@ -857,18 +844,6 @@ class ProgressWindow:
                 self.table_frame.grid_remove()
         else:
             self._display_totals(totals)
-
-        if self.use_scrollbar:
-            rows:int = min(rowcnt, self.max_rows)
-            current:int = self.canvas.winfo_height()
-            height=int(rows*21*self.scale)
-            if current != height:
-                self.canvas.yview_moveto(0.0)
-            self.canvas.configure(height=height)
-            if rowcnt <= self.max_rows:
-                self.scrollbar.grid_forget()
-            else:
-                self.scrollbar.grid(row=0, column=1, rowspan=3, sticky=tk.NS, ipadx=0, padx=0)
 
         if totals.required > 0:
             self.bar_width = self.progbar.master.winfo_width() - 10
@@ -903,11 +878,17 @@ class ProgressWindow:
             totals.required += comm.required
             totals.delivered += comm.delivered
             totals.buyorder += comm.buyorder
+            totals.carrier_sell += comm.carrier_sell
             totals.remaining += comm.remaining
             totals.purchase += comm.purchase
             if comm.remaining > 0:
                 totals.cargo += max(min(comm.cargo, comm.remaining), 0)
                 totals.carrier += max(min(comm.carrier, comm.remaining - comm.cargo), 0)
+            # Each carrier's own total across commodities, kept separate per carrier_id -- not summed together.
+            for carrier_id, stock in comm.carrier_stocks.items():
+                totals.carrier_stocks[carrier_id] = totals.carrier_stocks.get(carrier_id, 0) + stock
+            for carrier_id, demand in comm.carrier_demands.items():
+                totals.carrier_demands[carrier_id] = totals.carrier_demands.get(carrier_id, 0) + demand
         return totals
 
 
@@ -921,7 +902,7 @@ class ProgressWindow:
 
             row_values:list = []
             for i, col in enumerate(self.columns):
-                row_values.append(self._get_value(self.headings[col].get('Column'), self.units[i], comm))
+                row_values.append(self._get_value(self.headings[col].get('Column'), self.units[i], comm, self.column_carriers[i], self.column_carrier_mode[i]))
 
             display_rows.append((comm, row_values))
 
@@ -930,11 +911,12 @@ class ProgressWindow:
 
     def _display_headings(self) -> None:
         # Set the column headings according to the selected units
-        for col, v in enumerate(self.columns):
-            if v >= len(self.headings): v = len(self.headings) -1
+        for col in range(len(self.columns)):
             if col >= len(self.collbls): col = len(self.collbls) - 1
             if self.collbls[col] == None: col = 0
-            self.collbls[col]['text'] = self.headings[v].get('Label')
+            self.collbls[col]['text'] = self._column_label(col)
+            self.collbls[col]['fg'] = config.get_str('dark_text') if config.get_int('theme') > 0 else "black"
+
             self.collbls[col].grid()
 
     @catch_exceptions
@@ -942,24 +924,30 @@ class ProgressWindow:
         ''' Display the totals at the bottom of the table '''
 
         for i, col in enumerate(self.columns):
-            self.total_row[i]['text'] = self._get_value(self.headings[col].get('Column'), self.units[i], totals) if i > 0 else _('Total') # LANG: Total amounts
+            self.total_row[i]['text'] = self._get_value(self.headings[col].get('Column'), self.units[i], totals, self.column_carriers[i], self.column_carrier_mode[i]) if i > 0 else _('Total') # LANG: Total amounts
             self._set_weight(self.total_row[i])
             self.total_row[i].grid()
 
 
     @catch_exceptions
-    def _get_value(self, which:str, units:ProgressUnits, comm:Commodity) -> str:
+    def _get_value(self, which:str, units:ProgressUnits, comm:Commodity, carrier_id:int|None = None, mode:str = 'sell') -> str:
         ''' Calculate and format the commodity amount depending on the column and the units '''
         match which:
             case 'Commodity': return comm.name
             case 'Category': return comm.category
+            case 'Carrier':
+                cid:int = carrier_id if carrier_id is not None else self.bgstally.fleet_carrier.carrier_id
+                if cid == self.bgstally.fleet_carrier.carrier_id:
+                    qty:int = {'buy': comm.buyorder, 'sell': comm.carrier_sell, 'cargo': comm.carrier}.get(mode, comm.carrier_sell)
+                else:
+                    qty:int = {'buy': comm.carrier_demands.get(cid, 0), 'sell': comm.carrier_stocks.get(cid, 0)}.get(mode, comm.carrier_stocks.get(cid, 0))
             case _:
                 qty:int = getattr(comm, which.lower(), 0)
 
-                if units == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
-                    return f"{ceil(qty / self.colonisation.cargo_capacity):,}{_('L')}" # LANG: Colonisation loads abbreviation
+        if units == ProgressUnits.LOADS and ceil(qty / self.colonisation.cargo_capacity) > 1:
+            return f"{ceil(qty / self.colonisation.cargo_capacity):,}{_('L')}" # LANG: Colonisation loads abbreviation
 
-                return f"{qty:,}{_('t')}" # LANG: Colonisation tonnes abbreviation
+        return f"{qty:,}{_('t')}" # LANG: Colonisation tonnes abbreviation
 
 
     def _set_weight(self, cell, w:Literal['normal', 'bold']='bold') -> None:
@@ -977,7 +965,7 @@ class ProgressWindow:
         space:int = self.colonisation.cargo_capacity - sum(self.colonisation.cargo.values())
         for cell in row.values():
             # Get the ed:mc default color
-            if config.get_int('theme') == 0: cell['fg'] = 'black'
+            cell['fg'] = config.get_str('dark_text') if config.get_int('theme') > 0 else "black"
             self._set_weight(cell, 'normal')
 
             if comm.remaining <= 0: # Nothing left to deliver, grey it out
@@ -1006,3 +994,6 @@ class ProgressWindow:
                 # bold if need any and have room, otherwise normal
                 self._set_weight(cell, 'bold' if comm.purchase > 0 and space > 0 else 'normal')
                 continue
+
+            if comm.buyorder and comm.buyorder < comm.purchase: # Does carrier buy order cover what we still need to buy?
+                cell['fg'] = 'plum3'

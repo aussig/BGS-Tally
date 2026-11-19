@@ -171,6 +171,29 @@ for name, val in MockEDLogs.__dict__.items():
 _monitor.monitor = MockEDLogs # type: ignore
 sys.modules['monitor'] = _monitor
 
+# Mock EDMC's outfitting.py -- not a copy of the real one, which needs a genuine EDMC
+# install's modules.json data file to actually resolve a module symbol.
+_OUTFITTING_RATING_MAP = {'1': 'E', '2': 'D', '3': 'C', '4': 'B', '5': 'A'}
+
+def _mock_outfitting_lookup(module, ship_map, entitled=False):
+    if not module.get('name'):
+        raise ValueError(f"Module with ID {module.get('id')} is missing a 'name' field")
+    parts = module['name'].lower().split('_')
+    size = next((p[4:] for p in parts if p.startswith('size')), '')
+    rating_num = next((p[5:] for p in parts if p.startswith('class')), '')
+    return {
+        'id': module.get('id'),
+        'symbol': module['name'],
+        'category': parts[0] if parts else '',
+        'name': module['name'],
+        'class': size,
+        'rating': _OUTFITTING_RATING_MAP.get(rating_num, ''),
+    }
+
+_outfitting = _types.ModuleType('outfitting')
+_outfitting.lookup = _mock_outfitting_lookup # type: ignore
+sys.modules['outfitting'] = _outfitting
+
 _plug = _types.ModuleType('Plugin')
 class MockPlugin:
     def __init__(self) -> None:

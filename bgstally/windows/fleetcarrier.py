@@ -35,7 +35,7 @@ class WindowFleetCarrier:
         self.scale:float = 1.0
 
         self.tabs:dict = {
-            'Summary': {
+            'Summary': { # LANG: Carrier tab
                 'cols': {
                     'service': {'title': 'Service', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 225, 'locName': _('Service')}, # LANG: Services summary tab
                     'enabled': {'title': 'Enabled', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 85, 'locName': _('Enabled')}, # LANG: Services summary tab
@@ -54,7 +54,7 @@ class WindowFleetCarrier:
                            'livery', 'lastEdit', 'faction', 'gender'],
                 "func": self._summary
             },
-            'Cargo': {
+            'Cargo': { # LANG: Carrier tab
                 'cols': {
                     'locName': {'title': 'Commodity', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Commodity')}, # LANG: Cargo tab
                     'category': {'title': 'Category', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150, 'locName': _('Category')}, # LANG: Cargo tab
@@ -68,7 +68,7 @@ class WindowFleetCarrier:
                 "func": self._cargo,
                 "buttons": self._cargo_buttons,
             },
-            'Locker': {
+            'Locker': { # LANG: Carrier tab
                 'cols': {
                     'locName': {'title': 'Material', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 250, 'locName': _('Material')}, # LANG: Locker tab
                     'category': {'title': 'Category', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 150, 'locName': _('Category')}, # LANG: Locker tab
@@ -81,7 +81,7 @@ class WindowFleetCarrier:
                 "func": self._locker,
                 'buttons': self._locker_buttons,
             },
-            'Itinerary': {
+            'Itinerary': { # LANG: Carrier tab
                 'cols': {
                     'starsystem': {'title': 'System', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 250, 'locName': _('Star System')}, # LANG: Itinerary tab
                     'body': {'title': 'Body', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 75, 'locName': _('Body')}, # LANG: Itinerary tab
@@ -104,7 +104,7 @@ class WindowFleetCarrier:
                 'func': self._itinerary,
                 'buttons': self._routing_buttons,
             },
-            'Shipyard': {
+            'Shipyard': { # LANG: Carrier tab
                 'cols': {
                     'name': {'title': 'Name', 'sort': 'name', 'align': tk.W, 'stretch': tk.YES, 'width': 200, 'locName': _('Name')}, # LANG: Shipyard tab
                     'type': {'title': 'Type', 'sort': 'name', 'align': tk.W, 'stretch': tk.NO, 'width': 200, 'locName': _('Type')}, # LANG: Shipyard tab
@@ -116,7 +116,7 @@ class WindowFleetCarrier:
                 },
                 'func': self._shipyard
             },
-            'Modules': {
+            'Modules': { # LANG: Carrier tab
                 'cols': {
                     'size': {'title': 'Size', 'sort': 'name', 'align': tk.CENTER, 'stretch': tk.NO, 'width': 55, 'locName': _('Size')}, # LANG: Modules tab
                     'class': {'title': 'Class', 'sort': 'name', 'align': tk.CENTER, 'stretch': tk.NO, 'width': 55, 'locName': _('Class')}, # LANG: Modules tab

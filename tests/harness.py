@@ -36,6 +36,7 @@ sys.path.insert(0, str(test_dir))
 
 import tests.edmc.requests
 from tests.edmc.TkScheduler import HarnessTkScheduler
+from tests.edmc.Clipboard import HarnessClipboard
 import tests.edmc.mocks as mocks
 from tests.edmc.monitor import monitor
 
@@ -77,6 +78,14 @@ class TestHarness:
     # Prevent pytest from trying to collect this helper class as a test class
     __test__ = False
     _instance = None
+
+    # A tk.Canvas widget (e.g. utils.th.ScrollableFrame) hangs on .update() if it's created in
+    # any tk.Tk() root other than the FIRST one this process ever made. One root, kept alive for the
+    # whole process fixes this.
+    _shared_root:tk.Tk|None = None
+
+    # Lookup pools seen so far; resets unload their modules, so they're kept here until stop_lookups()
+    _lookup_pools:list = []
 
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
@@ -121,12 +130,24 @@ class TestHarness:
             self._original_threading_excepthook = threading.excepthook
         threading.excepthook = self._capture_thread_exception
 
-        # Create Tk root for headless mode
+        # Create Tk root for headless mode -- reuse the one shared root for the whole process
         try:
             if not hasattr(self, '_initialized'):
-                self.root:tk.Tk = tk.Tk()
+                if TestHarness._shared_root is None:
+                    # Tk() can transiently fail to locate tk.tcl (seen with MSIX-packaged Pythons)
+                    for attempt in range(3):
+                        try:
+                            TestHarness._shared_root = tk.Tk()
+                            break
+                        except tk.TclError as e:
+                            logging.warning(f"Failed to create Tk root (attempt {attempt + 1}/3): {e}")
+                            sleep(0.2)
+                    else:
+                        raise RuntimeError("Failed to create Tk root after 3 attempts")
+                    TestHarness._shared_root.withdraw()
+                    atexit.register(TestHarness._destroy_shared_root)
+                self.root:tk.Tk = TestHarness._shared_root
                 self.parent:tk.Frame = tk.Frame(self.root)
-                self.root.withdraw()
         except Exception as e:
             logging.error(f"Failed to create Tk root: {e}")
 
@@ -137,11 +158,34 @@ class TestHarness:
                 atexit.register(self._tk_scheduler.uninstall)
                 self._atexit_registered = True
 
+        if not hasattr(self, 'clipboard'):
+            self.clipboard = HarnessClipboard()
+            self.clipboard.install()
+            if not hasattr(self, '_clipboard_atexit_registered'):
+                atexit.register(self.clipboard.uninstall)
+                self._clipboard_atexit_registered = True
+
         self._initialized = True
+
+    @classmethod
+    def _collect_pools(cls) -> None:
+        """ Remember the lookup pool of every autocompleter module currently loaded. """
+        for name, mod in list(sys.modules.items()):
+            if not name.endswith('.autocompleter'): continue
+
+            pool = getattr(getattr(mod, 'Autocompleter', None), '_LOOKUP_EXECUTOR', None)
+            if pool is not None and pool not in cls._lookup_pools: cls._lookup_pools.append(pool)
+
+    @classmethod
+    def stop_lookups(cls) -> None:
+        """ Cancel queued autocompleter lookups so the pools' workers can't hold up interpreter exit. """
+        cls._collect_pools()
+        for pool in cls._lookup_pools: pool.shutdown(wait=False, cancel_futures=True)
 
     @classmethod
     def reset_instance(cls) -> None:
         """Dispose the singleton harness instance so the next test starts clean."""
+        cls._collect_pools()
         if cls._instance is None:
             return
 
@@ -154,16 +198,35 @@ class TestHarness:
                 pass
             del instance._tk_scheduler
 
-        if hasattr(instance, 'root'):
+        if hasattr(instance, 'clipboard'):
             try:
-                instance.root.destroy()
+                instance.clipboard.uninstall()
             except Exception:
                 pass
+            del instance.clipboard
+
+        # Clear the shared root's children, not the root; windows opened on it otherwise pile up
+        if hasattr(instance, 'root'):
+            for widget in instance.root.winfo_children():
+                try:
+                    widget.destroy()
+                except Exception:
+                    pass
 
         if hasattr(instance, '_original_threading_excepthook'):
             threading.excepthook = instance._original_threading_excepthook
 
         cls._instance = None
+
+    @classmethod
+    def _destroy_shared_root(cls) -> None:
+        """ Process-exit cleanup for the one Tk root shared across the whole test run. """
+        if cls._shared_root is not None:
+            try:
+                cls._shared_root.destroy()
+            except Exception:
+                pass
+            cls._shared_root = None
 
     def set_requests_mode(self, live_requests:bool) -> None:
         """ Set whether the harness should use live HTTPS requests or mocked responses. """
@@ -308,14 +371,14 @@ class TestHarness:
                             event[k1] = v1
                             if isinstance(v1, str) and v1.startswith("delta:"):
                                 delta_seconds = int(v1.split(":")[1])
-                                event[k1] = (datetime.now(timezone.utc) + timedelta(seconds=delta_seconds)).isoformat()
+                                event[k1] = (datetime.now(timezone.utc) + timedelta(seconds=delta_seconds)).strftime("%Y-%m-%dT%H:%M:%SZ")
                             if isinstance(v1, str) and v1.startswith("now:"):
-                                event[k1] = datetime.now(timezone.utc).isoformat()
+                                event[k1] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
                             if isinstance(v1, str) and '{' in v1 and '}' in v1:
                                 try:
                                     event[k1] = eval("f'" + v1 + "'")
                                 except Exception as e:
-                                    logging.warning(f"Warning: Could not evaluate f-string {v1}: {e}")
+                                    logging.warning(f"Warning: Could not evaluate f-string {v1}: {e} {line}")
                             if isinstance(event[k1], str) and event[k1].isnumeric():
                                 event[k1] = int(event[k1])
                         lines.append(event)
@@ -345,7 +408,7 @@ class TestHarness:
 
         # Add a timestamp if not provided.
         if 'timestamp' not in event:
-            event['timestamp'] = datetime.now(timezone.utc).isoformat()
+            event['timestamp'] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         # Do the opposite of what EDMC does with a startup event. i.e. update monitor fron the faux event rather than create a faux event from the monitor state.
         if event['event'] == 'Startup':
@@ -379,6 +442,26 @@ class TestHarness:
             self.fire_event(event, state=state)
             state = {}  # Clear state after the first event
             sleep(delay)
+
+    def wait_for_thread(self, thread:threading.Thread, timeout_s:float = 30) -> bool:
+        """ Run Tk's main loop until the thread ends so its widget calls get serviced. False on timeout. """
+        if not thread.is_alive(): return True
+
+        scheduler:HarnessTkScheduler|None = getattr(self, '_tk_scheduler', None)
+        real_after:Callable = (scheduler._orig_after if scheduler else None) or tk.Misc.after
+        deadline:float = monotonic() + timeout_s
+
+        def check() -> None:
+            if scheduler: scheduler.drain_due_callbacks()
+            if thread.is_alive() and monotonic() < deadline:
+                real_after(self.root, 10, check)
+                return
+
+            self.root.quit()
+
+        real_after(self.root, 10, check)
+        self.root.mainloop()
+        return not thread.is_alive()
 
     def register_dashboard_handler(self, handler: Callable, commander:str|None = None, is_beta:bool|None = None) -> None:
         """ Register a dashboard event handler (simulates dashboard_entry callback). """
@@ -496,7 +579,7 @@ class TestHarness:
             except tk.TclError:
                 return
 
-            pending = self._tk_scheduler.pending_count(timeout_s) if hasattr(self, '_tk_scheduler') else 0
+            pending =self._tk_scheduler.pending_count(timeout_s) if hasattr(self, '_tk_scheduler') else 0
             if pending == 0 and callbacks_ran == 0:
                 return
             if monotonic() >= end_time:

@@ -293,20 +293,21 @@ def hfplus(val:int|float|str|bool|tuple, type:str|None = None) -> str:
             ret = _("Yes") # LANG: Yes
 
         case 'datetime': # If it's a datetime convert it from the json date format to our date format
-            ret = datetime.strptime(str(value), DATETIME_FORMAT_JSON).strftime(DATETIME_FORMAT_CARRIER)
+            dt:datetime = datetime.strptime(str(value), "%Y-%m-%d %H:%M:%S")
+            ret = f"{dt:%x} {dt:%H:%M}"
 
         case 'interval': # Approximated interval (no seconds, only show minutes if it's less than a day)
             days , rem = divmod(int(value), 60*60*24)
             hours, rem = divmod(rem, 60*60)
             mins, rem = divmod(rem, 60)
             tmp:list = []
-            if floor(days) > 1: tmp.append(f"{floor(days)} days")
-            elif int(days) > 0: tmp.append(f"1 day")
-            if floor(hours) > 1: tmp.append(f"{floor(hours)} hours")
-            elif int(hours) > 0: tmp.append(f" 1 hour")
+            if floor(days) > 1: tmp.append(str(floor(days)) + " " + _("days")) # LANG: time period
+            elif int(days) > 0: tmp.append("1 " + _("day")) # LANG: time period
+            if floor(hours) > 1: tmp.append(str(floor(hours)) + " " + _("hours")) # LANG: time period
+            elif int(hours) > 0: tmp.append("1 " + _("hour")) # LANG: time period
             if len(tmp) < 2:
-                if floor(mins) > 1: tmp.append(f" {int(mins)} minutes")
-                elif mins > 0: tmp.append(f" 1 minute")
+                if floor(mins) > 1: tmp.append(str(floor(mins)) + " " + _("minutes")) # LANG: time period
+                elif mins > 0: tmp.append("1 " + _("minute")) # LANG: time period
             ret = ' '.join(tmp)
 
         case 'num': # We only shorten/simplify numbers over 100k. Smaller ones we just display with commas at thousands

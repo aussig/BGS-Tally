@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest  # type: ignore
 
@@ -26,26 +26,23 @@ class TestUI:
 
     def test_show_activity_reuses_window(self, harness) -> None:
         ui = harness.plugin.ui
-        existing = SimpleNamespace(show=MagicMock())
-        activity = SimpleNamespace(tick_id="tick-1")
-        ui.window_activity["tick-1"] = existing
+        activity = harness.plugin.activity_manager.get_current_activity()
+        ui._show_activity_window(activity)
+        window = ui.window_activity[activity.tick_id]
 
         ui._show_activity_window(activity)
 
-        existing.show.assert_called_once_with(activity)
+        assert ui.window_activity == {activity.tick_id: window}
 
     def test_show_activity_creates_window(self, harness) -> None:
+        from bgstally.windows.activity import WindowActivity
         ui = harness.plugin.ui
-        activity = SimpleNamespace(tick_id="tick-new")
+        activity = harness.plugin.activity_manager.get_current_activity()
 
-        with patch("bgstally.ui.WindowActivity") as mock_window_activity:
-            mock_instance = MagicMock()
-            mock_window_activity.return_value = mock_instance
+        ui._show_activity_window(activity)
 
-            ui._show_activity_window(activity)
-
-            mock_window_activity.assert_called_once_with(harness.plugin, ui, activity)
-            assert ui.window_activity["tick-new"] is mock_instance
+        assert isinstance(ui.window_activity[activity.tick_id], WindowActivity)
+        assert ui.window_activity[activity.tick_id].toplevel.winfo_exists()
 
     # def test_language_formatter_update_state(self, harness) -> None:
     #     ui = harness.plugin.ui
@@ -95,52 +92,26 @@ class TestUI:
 
     def test_frame_shows_update_notice(self, harness) -> None:
         ui = harness.plugin.ui
-
-        ui.btn_latest_tick = MagicMock()
-        ui.btn_previous_ticks = MagicMock()
-        ui.lbl_active = MagicMock()
-        ui.lbl_tick = MagicMock()
-        ui.lbl_version = MagicMock()
-        ui.btn_carrier = MagicMock()
-        ui.btn_objectives = MagicMock()
-        ui.btn_colonisation = MagicMock()
-        ui.window_progress = MagicMock()
-
         ui.bgstally.update_manager.update_available = True
         ui.bgstally.api_manager.api_updated = False
 
         ui.update_plugin_frame()
 
-        ui.lbl_version.configure.assert_called_with(
-            text="Update will be installed on shutdown",
-            url="https://github.com/aussig/BGS-Tally/releases/latest",
-            foreground="red",
-        )
-        ui.window_progress.update_display.assert_called_once()
+        assert ui.lbl_version.cget('text') == "Update will be installed on shutdown"
+        assert ui.lbl_version.url == "https://github.com/aussig/BGS-Tally/releases/latest"
+        assert ui.lbl_version.foreground == "red"
 
-    def test_frame_shows_api_notice(self, harness) -> None:
+    def test_frame_shows_api_notice(self, harness, monkeypatch) -> None:
         ui = harness.plugin.ui
-
-        ui.btn_latest_tick = MagicMock()
-        ui.btn_previous_ticks = MagicMock()
-        ui.lbl_active = MagicMock()
-        ui.lbl_tick = MagicMock()
-        ui.lbl_version = MagicMock()
-        ui.btn_carrier = None
-        ui.btn_objectives = MagicMock()
-        ui.btn_colonisation = MagicMock()
-        ui.window_progress = MagicMock()
-
+        monkeypatch.setattr(ui, 'btn_carrier', None) # also covers the no-carrier-button path
         ui.bgstally.update_manager.update_available = False
         ui.bgstally.api_manager.api_updated = True
 
         ui.update_plugin_frame()
 
-        ui.lbl_version.configure.assert_called_with(
-            text="API changed, open settings to re-approve",
-            url="",
-            foreground="red",
-        )
+        assert ui.lbl_version.cget('text') == "API changed, open settings to re-approve"
+        assert ui.lbl_version.url == ""
+        assert ui.lbl_version.foreground == "red"
 
     def test_system_info_no_factions(self, harness) -> None:
         ui = harness.plugin.ui
@@ -237,6 +208,7 @@ class TestUI:
             config.shutting_down = False
 
     def test_worker_updates_tick(self, harness) -> None:
+        from bgstally.ui import DATETIME_FORMAT_OVERLAY
         ui = harness.plugin.ui
         state = ui.bgstally.state
 
@@ -252,11 +224,11 @@ class TestUI:
 
         ui.indicate_activity = True
 
-        ui.bgstally.overlay.display_message = MagicMock()
-        ui.bgstally.overlay.display_indicator = MagicMock()
-        ui.bgstally.activity_manager.get_current_activity = MagicMock(return_value=None)
-        ui.bgstally.tick.get_formatted = MagicMock(return_value="2026-07-11 00:00")
-        ui.bgstally.tick.next_predicted = MagicMock(return_value=datetime.now(UTC) + timedelta(days=1))
+        state.enable_overlay = True
+        ui.bgstally.tick.tick_time = datetime.now(UTC) - timedelta(hours=1) # next predicted tick is well away
+        overlay = ui.bgstally.overlay.edmcoverlay
+        overlay.messages.clear()
+        overlay.shapes.clear()
 
         config.shutting_down = False
 
@@ -267,8 +239,8 @@ class TestUI:
             with patch("bgstally.ui.sleep", side_effect=_sleep_once):
                 ui._worker.__wrapped__(ui)
 
-            ui.bgstally.overlay.display_message.assert_any_call("tick", "Galaxy Tick: 2026-07-11 00:00", True)
-            ui.bgstally.overlay.display_indicator.assert_called_once_with("indicator")
+            assert f"Galaxy Tick: {ui.bgstally.tick.get_formatted(DATETIME_FORMAT_OVERLAY)}" in [msg[1] for msg in overlay.messages.values()]
+            assert "bgstally-frame-indicator" in overlay.shapes
             assert ui.indicate_activity is False
         finally:
             config.shutting_down = False

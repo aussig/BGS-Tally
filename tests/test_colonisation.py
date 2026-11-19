@@ -7,7 +7,8 @@ import shutil
 import json
 from pathlib import Path
 from time import sleep
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+from tests.edmc.requests import MockResponse
 
 from bgstally.windows import progress
 from bgstally.constants import BuildState
@@ -633,8 +634,7 @@ class TestSpanshMarkets:
 
         def search(stations:list, minimum:int = 100) -> list:
             def fake_queue(url, method, callback = None, payload = None, **kwargs):
-                response = MagicMock()
-                response.json.return_value = {'results': stations}
+                response = MockResponse(json_data={'results': stations})
                 found['payload'] = payload
                 if not callback: return
                 callback(True, response, None)
@@ -663,8 +663,7 @@ class TestSpanshMarkets:
 
         def fake_queue(url, method, callback = None, payload = None, **kwargs):
             sent.append(payload)
-            response = MagicMock()
-            response.json.return_value = {'results': []}
+            response = MockResponse(json_data={'results': []})
             if not callback: return
             callback(True, response, None)
 
@@ -696,8 +695,7 @@ class TestSpanshMarkets:
         def fake_queue(url, method, callback = None, payload = None, **kwargs):
             if not payload: return
             sent.append(payload['filters']['market'][0]['name'])
-            response = MagicMock()
-            response.json.return_value = {'results': stations if isinstance(sent[-1], list) else []}
+            response = MockResponse(json_data={'results': stations if isinstance(sent[-1], list) else []})
             if not callback: return
             callback(True, response, None)
 

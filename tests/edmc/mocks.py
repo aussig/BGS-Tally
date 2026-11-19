@@ -1,6 +1,7 @@
 import json
 import importlib
 import sys
+import tkinter as tk
 import types as _types
 import semantic_version
 import logging
@@ -94,7 +95,8 @@ _cfg_attrs = {
     'config_logger': logging.getLogger('TestHarness'),
     'shutting_down': False,
     'logger': logging.getLogger('TestHarness'),
-    'trace_on': []
+    'trace_on': [],
+    'user_agent': 'EDMC-TestHarness/1.0',
     }
 
 _cfg = _types.ModuleType('config')
@@ -116,13 +118,18 @@ class MockTheme:
         if hasattr(self, '_initialized'): return
         self._initialized = True
     def register(self, widget) -> None:  # noqa: CCR001, C901
-        pass
+        # Mirrors real theme.py's own type check -- e.g. tk.Toplevel is NOT a tk.Widget
+        # subclass (it's BaseWidget+Wm, not BaseWidget+Widget), so calling this on a
+        # Toplevel always raises in the real app; the mock needs to catch that too.
+        if not isinstance(widget, (tk.Widget, tk.BitmapImage)):
+            raise TypeError(f'Expected widget, got {type(widget)}')
     def register_alternate(self, pair, gridopts) -> None:
         pass
     def button_bind(self, widget, command, image) -> None:
         pass
     def update(self, widget) -> None:
-        pass
+        if not isinstance(widget, (tk.Widget, tk.BitmapImage)):
+            raise TypeError(f'Expected widget, got {type(widget)}')
     def apply(self, root) -> None:
         pass
 
@@ -171,8 +178,7 @@ for name, val in MockEDLogs.__dict__.items():
 _monitor.monitor = MockEDLogs # type: ignore
 sys.modules['monitor'] = _monitor
 
-# Mock EDMC's outfitting.py -- not a copy of the real one, which needs a genuine EDMC
-# install's modules.json data file to actually resolve a module symbol.
+# Mock EDMC's outfitting.py
 _OUTFITTING_RATING_MAP = {'1': 'E', '2': 'D', '3': 'C', '4': 'B', '5': 'A'}
 
 def _mock_outfitting_lookup(module, ship_map, entitled=False):
@@ -307,6 +313,12 @@ class Mockedmcoverlay:
                 print("send_shape called with no positional arguments")
                 return
             self.shapes[args[0]] = [*args, kw]
+
+        def send_raw(self, msg, **kw):
+            if not isinstance(msg, dict) or 'id' not in msg:
+                print("send_raw called without a dict containing 'id'")
+                return
+            self.shapes[msg['id']] = [msg, kw]
 
 _edmcoverlay = _types.ModuleType('EDMCOverlay')
 for name, val in MockEDMCOverlay.__dict__.items():

@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 from time import sleep
 from datetime import datetime, UTC, timedelta
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
+from tests.edmc.requests import MockResponse
 import json
 
 if TYPE_CHECKING:
@@ -174,8 +175,7 @@ class TestFleetCarriers:
             rc.get_carrier(88888, results.append)
             assert mock_queue.call_count == 1
 
-            missing = Mock(status_code=404)
-            mock_queue.call_args.kwargs['callback'](False, missing, Mock())
+            mock_queue.call_args.kwargs['callback'](False, MockResponse(status_code=404), None)
             assert results == [None]
 
             rc.get_carrier(88888, results.append) # Not listed, so answered without asking RC
@@ -186,9 +186,8 @@ class TestFleetCarriers:
             rc.get_carrier(88888, results.append) # Recheck is due
             assert mock_queue.call_count == 2
 
-            listed = Mock(status_code=200)
-            listed.json.return_value = {'name': 'RCX-001', 'cargo': {'steel': 5}}
-            mock_queue.call_args.kwargs['callback'](True, listed, Mock())
+            listed = MockResponse(json_data={'name': 'RCX-001', 'cargo': {'steel': 5}})
+            mock_queue.call_args.kwargs['callback'](True, listed, None)
             assert results[-1]['cargo'] == {'steel': {'cargo': 5}}
 
             rc.get_carrier(88888, results.append) # Listed now, so asked every time
@@ -608,13 +607,12 @@ class TestCarrierTrade:
 
     def test_rc_echo_not_fresh(self, harness) -> None:
         """ Test RC returning what we just pushed is not stamped as a new reading """
-        from unittest.mock import MagicMock
         from bgstally.constants import DataTier
         from bgstally.ravencolonial import RavenColonial
         fc = harness.plugin.fleet_carrier
         fc.cargo_tier, fc.cargo_time = DataTier.JOURNAL, 100
 
-        RavenColonial(harness.plugin.colonisation)._carrier_callback(fc, {'steel': 5}, True, MagicMock(status_code=200))
+        RavenColonial(harness.plugin.colonisation)._carrier_callback(fc, {'steel': 5}, True, MockResponse(status_code=200))
         fc.merge({'timestamp': 0, 'cargo': {'steel': {'cargo': 5}}})
         assert (fc.cargo_tier, fc.cargo_time) == (DataTier.JOURNAL, 100)
 

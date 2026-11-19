@@ -113,6 +113,12 @@ class MockResponse:
         if self.status_code >= 400:
             raise MockHTTPError(f'{self.status_code} {self.reason}')
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args) -> bool:
+        return False
+
     def iter_content(self, chunk_size: int = 1):
         if chunk_size <= 0:
             chunk_size = 1
@@ -186,6 +192,7 @@ class MockSession:
     def mount(self, *args, **kwargs) -> None:
         return None
 _mock_requests = MockSession()
+calls:list = _mock_requests.calls
 _live_session = None
 
 def RequestsSession():

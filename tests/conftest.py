@@ -1,4 +1,5 @@
 # Sections marked PLUGIN need editing to reuse this file for another plugin; the rest is generic.
+import shutil
 import sys
 import threading
 import time
@@ -40,12 +41,24 @@ def harness(request, pre_start) -> Generator:
         tick:str = datetime.now(UTC).isoformat(timespec='milliseconds').replace('+00:00', 'Z')
         queue_response('get', MockResponse(200, url=url, json_data={"lastGalaxyTick": tick}), url=url, sticky=True)
 
+    # PLUGIN: clear the data folders your plugin writes, so no test reads what an earlier one saved
+    for folder in ("otherdata", "activitydata", "backups"):
+        shutil.rmtree(test_harness.plugin_dir / folder, ignore_errors=True)
+        (test_harness.plugin_dir / folder).mkdir()
+
     pre_start(request, test_harness)
 
-    # PLUGIN: import and start your plugin through its load.py entry points
-    from load import plugin_start3, plugin_app, journal_entry
+    # PLUGIN: singletons outlive the plugin object they were built with, so each test starts with fresh ones
+    from bgstally.ravencolonial import RavenColonial, EDSM, Spansh
+    from bgstally.utils import DelayQueue
+    for singleton in (RavenColonial, EDSM, Spansh, DelayQueue): singleton._instance = None
+
+    # PLUGIN: import and start your plugin through its load.py entry points, on a fresh plugin object each test
+    import load
     import bgstally.globals
-    test_harness.plugin = bgstally.globals.this
+    load.this = bgstally.globals.this = load.BGSTally(load.PLUGIN_NAME, load.PLUGIN_VERSION)
+    test_harness.plugin = load.this
+    plugin_start3, plugin_app, journal_entry = load.plugin_start3, load.plugin_app, load.journal_entry
 
     plugin_start3(str(test_harness.plugin_dir))
     plugin_app(test_harness.parent)
@@ -55,6 +68,11 @@ def harness(request, pre_start) -> Generator:
     test_harness.register_journal_handler(journal_entry, 'Testy', 'Sol', False)
 
     yield test_harness
+
+    # PLUGIN: cancel delayed calls, which would otherwise fire on this test's plugin during a later test
+    for timer in getattr(DelayQueue._instance, 'queue', {}).values(): timer.cancel()
+    # GENERIC: destroy this test's UI so its pending after() callbacks are skipped instead of running in later tests
+    for widget in test_harness.parent.winfo_children(): widget.destroy()
     test_harness.assert_no_unhandled_exceptions()
 
 def _sleep(secs:float) -> None:

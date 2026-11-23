@@ -144,7 +144,8 @@ class RavenColonial:
         if system == None or system.get('RCOpen', False) == True:
             return True
 
-        if self.colonisation.cmdr == None or self.bgstally.state.colonisation_rc_api_key == None or self.bgstally.state.colonisation_rc_api_key == '':
+        if self.bgstally.state.enable_colonisation != True or self.colonisation.cmdr == None or \
+            self.bgstally.state.colonisation_rc_api_key == None or self.bgstally.state.colonisation_rc_api_key == '':
             return False
 
         return self.colonisation.cmdr in [system.get('Architect', None), system.get('RCCommander', None)]
@@ -668,6 +669,8 @@ class RavenColonial:
     def record_contribution(self, project_id:int, contributions:list[dict]) -> None:
         """ Record colonisation contributions made """
 
+        if self.bgstally.state.enable_colonisation != True: return # Just in case
+
         payload:dict = {re.sub(r"\$(.*)_name;$", r"\1", c.get('Name', '').lower()): c.get('Amount', 0) for c in contributions}
 
         # Which of the following to use?
@@ -683,6 +686,9 @@ class RavenColonial:
     @catch_exceptions
     def update_carrier(self, fc:'FleetCarrier', changed:bool = True) -> None:
         """ Push this carrier's cargo/buy/sell orders to RavenColonial, merged onto its current record, if warranted """
+
+        if self.bgstally.state.enable_colonisation != True: return # Just in case
+
         # RC doesn't support squadron carriers for updates.
         if not changed or fc.carrier_type == FleetCarrierType.SQUADRON: return
         if self.colonisation.cmdr == None or not self.colonisation.is_carrier_linked(fc.carrier_id): return
@@ -744,6 +750,9 @@ class RavenColonial:
 
     def get_carrier(self, marketid:int, result_fnc:Callable[[dict|None], None]) -> None:
         """ Queue a fetch of RC's view of a carrier, calling back with it normalized for merge(), or None """
+
+        if self.bgstally.state.enable_colonisation != True: return # Just in case
+
         # Most carriers aren't on RC, so only recheck those occasionally
         if marketid not in self._rc_carriers and self._rc_missed.get(marketid, 0) > int(time.time()) - RC_UNLISTED_COOLDOWN:
             result_fnc(None)
